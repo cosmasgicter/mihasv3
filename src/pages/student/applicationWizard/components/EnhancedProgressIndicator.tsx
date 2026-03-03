@@ -6,6 +6,7 @@
  * @requirements 1.2, 1.5 - CSS transitions replace framer-motion
  */
 
+import React, { useCallback, useRef } from 'react';
 import { CheckCircle, Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { staggerChild } from '@/lib/animations';
@@ -28,11 +29,12 @@ interface StepItemProps {
   isCurrent: boolean;
   isClickable: boolean;
   onClick?: () => void;
+  onKeyDown?: (e: React.KeyboardEvent) => void;
   totalSteps: number;
   shouldAnimate: boolean;
 }
 
-const StepItem = ({
+const StepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
   step,
   index,
   isActive,
@@ -40,15 +42,18 @@ const StepItem = ({
   isCurrent,
   isClickable,
   onClick,
+  onKeyDown,
   totalSteps,
   shouldAnimate
-}: StepItemProps) => {
+}, ref) => {
   const Icon = step.icon;
 
   return (
     <button
       type="button"
+      ref={ref}
       onClick={onClick}
+      onKeyDown={onKeyDown}
       disabled={!isClickable}
       className={cn(
         'flex flex-col items-center relative flex-1 group outline-none',
@@ -122,10 +127,11 @@ const StepItem = ({
       )}
     </button>
   );
-};
+});
+StepItem.displayName = 'StepItem';
 
 
-const MobileStepItem = ({
+const MobileStepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
   step,
   index,
   isActive,
@@ -133,15 +139,18 @@ const MobileStepItem = ({
   isCurrent,
   isClickable,
   onClick,
+  onKeyDown,
   totalSteps,
   shouldAnimate
-}: StepItemProps) => {
+}, ref) => {
   const Icon = step.icon;
 
   return (
     <button
       type="button"
+      ref={ref}
       onClick={onClick}
+      onKeyDown={onKeyDown}
       disabled={!isClickable}
       className={cn(
         'flex items-center gap-3 w-full p-2 rounded-lg transition-colors',
@@ -193,7 +202,8 @@ const MobileStepItem = ({
       )}
     </button>
   );
-};
+});
+MobileStepItem.displayName = 'MobileStepItem';
 
 export const EnhancedProgressIndicator = ({
   steps,
@@ -203,12 +213,43 @@ export const EnhancedProgressIndicator = ({
   className,
 }: EnhancedProgressIndicatorProps) => {
   const { shouldAnimate } = useOptimizedAnimation();
+  const desktopStepRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const mobileStepRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const handleStepClick = (stepIndex: number) => {
     if (stepIndex < currentStepIndex && onStepClick) {
       onStepClick(stepIndex);
     }
   };
+
+  const handleArrowKeyNavigation = useCallback(
+    (e: React.KeyboardEvent, index: number, refs: React.MutableRefObject<(HTMLButtonElement | null)[]>) => {
+      const isHorizontal = e.currentTarget.closest('[data-orientation="horizontal"]') !== null;
+      const prevKey = isHorizontal ? 'ArrowLeft' : 'ArrowUp';
+      const nextKey = isHorizontal ? 'ArrowRight' : 'ArrowDown';
+
+      let targetIndex: number | null = null;
+
+      if (e.key === nextKey) {
+        e.preventDefault();
+        targetIndex = index < steps.length - 1 ? index + 1 : 0;
+      } else if (e.key === prevKey) {
+        e.preventDefault();
+        targetIndex = index > 0 ? index - 1 : steps.length - 1;
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        targetIndex = 0;
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        targetIndex = steps.length - 1;
+      }
+
+      if (targetIndex !== null) {
+        refs.current[targetIndex]?.focus();
+      }
+    },
+    [steps.length]
+  );
 
   const progressPercentage = ((currentStepIndex + 1) / steps.length) * 100;
 
@@ -226,7 +267,12 @@ export const EnhancedProgressIndicator = ({
         />
 
         {/* Steps */}
-        <div className="flex items-start justify-between relative">
+        <div
+          className="flex items-start justify-between relative"
+          role="group"
+          aria-label="Application steps"
+          data-orientation="horizontal"
+        >
           {steps.map((step, index) => {
             const isActive = index <= currentStepIndex;
             const isCompleted = index < currentStepIndex || completedSteps.has(index);
@@ -236,6 +282,7 @@ export const EnhancedProgressIndicator = ({
             return (
               <StepItem
                 key={step.id}
+                ref={(el: HTMLButtonElement | null) => { desktopStepRefs.current[index] = el; }}
                 step={step}
                 index={index}
                 isActive={isActive}
@@ -243,6 +290,7 @@ export const EnhancedProgressIndicator = ({
                 isCurrent={isCurrent}
                 isClickable={isClickable}
                 onClick={() => handleStepClick(index)}
+                onKeyDown={(e: React.KeyboardEvent) => handleArrowKeyNavigation(e, index, desktopStepRefs)}
                 totalSteps={steps.length}
                 shouldAnimate={shouldAnimate}
               />
@@ -252,7 +300,12 @@ export const EnhancedProgressIndicator = ({
       </div>
 
       {/* Mobile: Vertical stepper */}
-      <div className="md:hidden space-y-1">
+      <div
+        className="md:hidden space-y-1"
+        role="group"
+        aria-label="Application steps"
+        data-orientation="vertical"
+      >
         {steps.map((step, index) => {
           const isActive = index <= currentStepIndex;
           const isCompleted = index < currentStepIndex || completedSteps.has(index);
@@ -262,6 +315,7 @@ export const EnhancedProgressIndicator = ({
           return (
             <MobileStepItem
               key={step.id}
+              ref={(el: HTMLButtonElement | null) => { mobileStepRefs.current[index] = el; }}
               step={step}
               index={index}
               isActive={isActive}
@@ -269,6 +323,7 @@ export const EnhancedProgressIndicator = ({
               isCurrent={isCurrent}
               isClickable={isClickable}
               onClick={() => handleStepClick(index)}
+              onKeyDown={(e: React.KeyboardEvent) => handleArrowKeyNavigation(e, index, mobileStepRefs)}
               totalSteps={steps.length}
               shouldAnimate={shouldAnimate}
             />

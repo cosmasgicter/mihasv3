@@ -129,18 +129,18 @@ export function useDocumentGeneration() {
         case 'slip':
           logger.log('[useDocumentGeneration] Generating slip PDF...');
           pdfBlob = await generateApplicationSlip({
-            public_tracking_code: application.public_tracking_code,
-            application_number: application.application_number,
-            status: application.status,
-            payment_status: application.payment_status,
-            submitted_at: application.submitted_at,
-            updated_at: application.updated_at,
-            program_name: application.program,
-            intake_name: application.intake,
-            institution: application.institution,
-            full_name: application.full_name,
-            email: application.email || '',
-            phone: application.phone,
+            public_tracking_code: application.public_tracking_code ?? '',
+            application_number: application.application_number ?? '',
+            status: application.status ?? '',
+            payment_status: application.payment_status ?? null,
+            submitted_at: application.submitted_at ?? null,
+            updated_at: application.updated_at ?? null,
+            program_name: application.program ?? null,
+            intake_name: application.intake ?? null,
+            institution: application.institution ?? null,
+            full_name: application.full_name ?? null,
+            email: application.email ?? '',
+            phone: application.phone ?? null,
           });
           logger.log('[useDocumentGeneration] Slip PDF generated successfully');
           filename = `application_slip_${application.application_number}.pdf`;
@@ -151,12 +151,12 @@ export function useDocumentGeneration() {
             throw new Error('Application must be approved to generate acceptance letter');
           }
           pdfBlob = await generateAcceptanceLetter({
-            applicationNumber: application.application_number,
-            studentName: application.full_name,
-            program: application.program,
-            institution: application.institution || 'MIHAS',
-            intake: application.intake,
-            approvedDate: application.updated_at,
+            applicationNumber: application.application_number ?? '',
+            studentName: application.full_name ?? '',
+            program: application.program ?? '',
+            institution: application.institution ?? 'MIHAS',
+            intake: application.intake ?? '',
+            approvedDate: application.updated_at ?? '',
           });
           filename = `acceptance_letter_${application.application_number}.pdf`;
           break;

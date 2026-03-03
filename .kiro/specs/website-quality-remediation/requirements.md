@@ -386,7 +386,7 @@ Comprehensive quality remediation for the MIHAS Application System (apply.mihas.
 
 1. THE Application_System SHALL remove `@ts-nocheck` directives from all files in `src/` (currently present in 40+ files including hooks, services, components, and utility modules)
 2. WHEN removing `@ts-nocheck` from a file, THE Application_System SHALL fix all resulting TypeScript errors with proper type annotations, type guards, or interface definitions rather than replacing with `@ts-ignore` on individual lines
-3. THE Application_System SHALL prioritize removing `@ts-nocheck` from critical-path files first: `src/hooks/useAutoSave.ts`, `src/hooks/usePWA.ts`, `src/forms/applicationSchema.ts`, `src/data/applications.ts`, `src/routes/config.tsx`
+3. THE Application_System SHALL prioritize removing `@ts-nocheck` from critical-path files first: `src/hooks/queries/useQueryConfig.ts`, `src/hooks/usePWA.ts`, `src/forms/applicationSchema.ts`, `src/data/applications.ts`, `src/routes/config.tsx`
 4. THE Application_System SHALL remove `@ts-nocheck` from all files before enabling `strictNullChecks` or `noImplicitAny` (Requirement 23), as the directives would silently bypass those checks
 
 ### Requirement 32: Fix SSE Keepalive Interval for Vercel Serverless Compatibility

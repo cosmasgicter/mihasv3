@@ -226,11 +226,11 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
                   <span className="text-xs font-medium text-foreground">User ID:</span>
                   <p className="text-sm font-mono text-foreground">{entry.actorId || 'N/A'}</p>
                 </div>
-                {entry.actorRoles?.length > 0 && (
+                {(entry.actorRoles?.length ?? 0) > 0 && (
                   <div>
                     <span className="text-xs font-medium text-foreground">Roles:</span>
                     <div className="flex flex-wrap gap-1 mt-1">
-                      {entry.actorRoles.map((role, index) => (
+                      {(entry.actorRoles ?? []).map((role, index) => (
                         <span
                           key={`${entry.id}-${role}-${index}`}
                           className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary-foreground"
@@ -473,24 +473,28 @@ export default function AuditTrailPage() {
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
               className="sm:hidden"
+              aria-label="Toggle filters"
+              aria-expanded={showFilters}
             >
-              <Filter className="h-4 w-4" />
+              <Filter className="h-4 w-4" aria-hidden="true" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleRefresh}
               disabled={loading}
+              aria-label="Refresh audit log"
             >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} aria-hidden="true" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={exportAuditLog}
               disabled={!response?.entries.length}
+              aria-label="Export audit log"
             >
-              <Download className="h-4 w-4" />
+              <Download className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
         </div>

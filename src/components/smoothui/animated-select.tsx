@@ -8,7 +8,7 @@
  * @requirements 7.3, 7.4 - SmoothUI form components with validation feedback
  */
 
-import { forwardRef, useState } from 'react';
+import { forwardRef, useState, useId } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -30,8 +30,8 @@ export const AnimatedSelect = forwardRef<HTMLSelectElement, AnimatedSelectProps>
   ({ label, error, helperText, options, placeholder, className, id, ...props }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const [hasValue, setHasValue] = useState(!!props.value || !!props.defaultValue);
-
-    const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
+    const generatedId = useId();
+    const selectId = id || generatedId;
 
     const handleFocus = (e: React.FocusEvent<HTMLSelectElement>) => {
       setIsFocused(true);

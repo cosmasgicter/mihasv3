@@ -1,4 +1,4 @@
-import { FileText, Download } from 'lucide-react'
+import { FileText, Download, CheckCircle, Clock } from 'lucide-react'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 
 interface DocumentItem {
@@ -33,7 +33,10 @@ export function DocumentsTab({ documents, loading, application }: { documents: D
             </div>
             <div>
               <p className="font-medium">{d.document_name}</p>
-              <span className={`text-xs px-2 py-1 rounded-full ${d.verification_status === 'verified' ? 'bg-green-100' : 'bg-yellow-100'}`}>{d.verification_status.toUpperCase()}</span>
+              <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full ${d.verification_status === 'verified' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                {d.verification_status === 'verified' ? <CheckCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                {d.verification_status.toUpperCase()}
+              </span>
             </div>
           </div>
           <a href={d.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 px-3 py-2 text-sm hover:bg-blue-50 rounded-lg"><Download className="h-4 w-4" />View</a>

@@ -80,7 +80,8 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
       import('jspdf'),
       import('jspdf-autotable').then(m => m.default)
     ]);
-    const doc = new jsPDF();
+    // jspdf-autotable adds lastAutoTable to the doc instance at runtime
+    const doc = new jsPDF() as InstanceType<typeof jsPDF> & { lastAutoTable?: { finalY: number } };
     const institutionName = getFullInstitutionName(data.institution);
     
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -142,7 +143,7 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
       }
     });
     
-    let finalY = (doc as any).lastAutoTable.finalY + 12;
+    let finalY = (doc.lastAutoTable?.finalY ?? 0) + 12;
     
     // Applicant Information Section
     doc.setFontSize(11);
@@ -167,7 +168,7 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
       }
     });
     
-    finalY = (doc as any).lastAutoTable.finalY + 12;
+    finalY = (doc.lastAutoTable?.finalY ?? 0) + 12;
     
     // Important Notice
     doc.setFontSize(10);

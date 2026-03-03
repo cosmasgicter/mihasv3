@@ -156,10 +156,11 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
     }
 
     const setupRegistration = async () => {
-      registration = await navigator.serviceWorker.getRegistration()
-      if (!registration || !isEffectActive) {
+      const reg = await navigator.serviceWorker.getRegistration()
+      if (!reg || !isEffectActive) {
         return
       }
+      registration = reg
 
       // Check if there's already a waiting worker
       if (registration.waiting) {

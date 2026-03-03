@@ -153,6 +153,7 @@ const EducationStep = ({
                     options={getSubjectOptions(grade.subject_id)}
                     disabled={subjects.length === 0}
                     placeholder={subjects.length === 0 ? 'Loading subjects...' : 'Select subject'}
+                    aria-label={`Subject ${index + 1}`}
                     data-testid={`subject-select-${index}`}
                   />
                 </div>
@@ -167,6 +168,7 @@ const EducationStep = ({
                     onChange={(value) => updateGrade(index, 'grade', parseInt(value))}
                     options={gradeOptions}
                     placeholder="Select grade"
+                    aria-label={`Grade for subject ${index + 1}`}
                     data-testid={`grade-select-${index}`}
                   />
                 </div>
@@ -181,6 +183,7 @@ const EducationStep = ({
                       event.preventDefault()
                       removeGrade(index)
                     }}
+                    aria-label={`Remove subject ${index + 1}`}
                     className="flex-1 sm:flex-none touch-manipulation min-h-[44px]"
                   >
                     <X className="h-4 w-4 sm:mr-0 mr-2" />
@@ -194,6 +197,7 @@ const EducationStep = ({
                         addGrade()
                       }}
                       size="sm"
+                      aria-label="Add another subject"
                       className="flex-1 sm:hidden bg-primary hover:bg-primary touch-manipulation min-h-[44px]"
                     >
                       + Add

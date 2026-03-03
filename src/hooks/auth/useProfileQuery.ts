@@ -32,11 +32,11 @@ type ProfileQueryResult = {
 
 const PROFILE_QUERY_KEY = (userId?: string | null) => ['user-profile', userId]
 
-function sanitizeProfile(data: any | null): UserProfile | null {
+function sanitizeProfile(data: Record<string, unknown> | null): UserProfile | null {
   if (!data) return null
 
   return Object.entries(data).reduce((acc, [key, value]) => {
-    (acc as any)[key] = typeof value === 'string'
+    (acc as Record<string, unknown>)[key] = typeof value === 'string'
       ? sanitizeForDisplay(value)
       : value
     return acc
@@ -126,7 +126,7 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
         throw new Error(result.error || 'Failed to update profile')
       }
 
-      const data = sanitizeProfile(result?.data)
+      const data = sanitizeProfile(result?.data ?? null)
 
       if (!data) {
         throw new Error('Profile update returned no data. The profile may not exist.')

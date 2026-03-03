@@ -157,8 +157,8 @@ function FormPanel({
         </Link>
 
         {/* Logo - visible on mobile */}
-        <div className="mt-6 flex items-center lg:hidden">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white shadow-lg">
+        <div className="mt-6 flex items-center lg:hidden" role="img" aria-label="Mukuba Institute of Health and Allied Sciences logo">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white shadow-lg" aria-hidden="true">
             <GraduationCap className="h-6 w-6" />
           </div>
           <span className="ml-3 text-lg font-semibold text-foreground">MIHAS</span>

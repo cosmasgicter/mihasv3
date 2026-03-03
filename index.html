@@ -28,6 +28,20 @@
     <meta name="robots" content="index, follow" />
     <meta name="description" content="Apply to Mukuba Institute of Health and Allied Sciences (MIHAS). Complete your student application online with real-time eligibility checking for nursing, midwifery, and allied health programs." />
 
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="MIHAS Application System" />
+    <meta property="og:description" content="Apply online to Mukuba Institute of Health and Allied Sciences. Nursing, Clinical Medicine, and allied health programs in Zambia." />
+    <meta property="og:image" content="***REMOVED***/images/og-image.png" />
+    <meta property="og:url" content="***REMOVED***" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="MIHAS Admissions" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="MIHAS Admissions Portal" />
+    <meta name="twitter:description" content="Apply online to Mukuba Institute of Health and Allied Sciences. Nursing, Clinical Medicine, and allied health programs in Zambia." />
+    <meta name="twitter:image" content="***REMOVED***/images/og-image.png" />
+
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#2563eb" />
@@ -48,6 +62,42 @@
     -->
 
     <title>MIHAS Application System</title>
+
+    <!-- Structured Data: EducationalOrganization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "EducationalOrganization",
+      "name": "Mukuba Institute of Health and Allied Sciences",
+      "alternateName": "MIHAS",
+      "url": "***REMOVED***",
+      "logo": "***REMOVED***/images/og-image.png",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "admissions",
+        "url": "***REMOVED***"
+      }
+    }
+    </script>
+
+    <!-- Structured Data: WebApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "MIHAS Admissions Portal",
+      "description": "Online admissions portal for Mukuba Institute of Health and Allied Sciences",
+      "url": "***REMOVED***",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires JavaScript",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "ZMW"
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>

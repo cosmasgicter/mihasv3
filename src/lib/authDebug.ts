@@ -4,14 +4,14 @@ import { sanitizeForLog } from '@/lib/security'
 export async function debugAuthState() {
   try {
     // Check current user via cookie-based auth
-    const sessionData = await apiClient.request<{ user?: any; role?: string }>('/api/auth?action=session')
+    const sessionData = await apiClient.request<{ user?: { id: string; role?: string }; role?: string }>('/api/auth?action=session')
     
     if (!sessionData) {
       console.log('[AuthDebug] No active session')
       return null
     }
     
-    const user = (sessionData as any)?.user
+    const user = sessionData?.user
     
     if (!user) {
       console.log('[AuthDebug] No user in session')
@@ -19,8 +19,8 @@ export async function debugAuthState() {
     }
     
     // Check user profile via API
-    let profile = null
-    let profileError = null
+    let profile: unknown = null
+    let profileError: string | null = null
     try {
       profile = await apiClient.request('/auth?action=session')
     } catch (e) {
@@ -28,7 +28,7 @@ export async function debugAuthState() {
     }
     
     // Role is embedded in JWT — no separate lookup needed
-    const role = user.role || (sessionData as any)?.role || null
+    const role = user.role || sessionData?.role || null
     
     return {
       user,
@@ -45,7 +45,8 @@ export async function debugAuthState() {
   }
 }
 
-// Add to window for easy debugging
+// Add to window for easy debugging in development
 if (typeof window !== 'undefined') {
-  (window as any).debugAuth = debugAuthState
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- debug utility attached to window for dev console access
+  (window as Window & { debugAuth?: typeof debugAuthState }).debugAuth = debugAuthState
 }

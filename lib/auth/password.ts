@@ -5,7 +5,7 @@
  * 
  * REQUIREMENTS:
  * - 1.6: THE Password_Hasher SHALL use bcrypt with minimum 12 rounds for all password hashing operations
- * - 1.8: THE Auth_System SHALL use Bun-native crypto exclusively with zero Supabase Auth SDK dependencies
+ * - 1.8: THE Auth_System SHALL use Bun-native crypto exclusively
  * - 1.9: IF a refresh token has been used previously, THEN THE Auth_System SHALL reject it (replay attack prevention)
  * - 3.8: THE JWT_Manager SHALL store refresh token hash in database for revocation capability
  * 
@@ -256,5 +256,70 @@ export async function upgradePasswordHash(userId: string, newPassword: string): 
   } catch (error) {
     console.error('[PASSWORD] Error upgrading password hash:', (error as Error).message);
     return false;
+  }
+}
+
+
+// ============================================================================
+// SHA-256 Legacy Migration Utilities
+// ============================================================================
+
+/**
+ * Check if a stored hash is in SHA-256 format (legacy).
+ * SHA-256 hashes are exactly 64 hex characters and do NOT start with $2 (bcrypt prefix).
+ *
+ * @param hash - The stored password hash to check
+ * @returns true if the hash appears to be SHA-256 format
+ */
+export function isSha256Hash(hash: string): boolean {
+  if (!hash || hash.length !== 64) return false;
+  // Must be all hex chars and must NOT be a bcrypt hash
+  return /^[a-f0-9]{64}$/i.test(hash) && !hash.startsWith('$2');
+}
+
+/**
+ * Verify a password against a SHA-256 hash using constant-time comparison.
+ * Used only during one-time migration from SHA-256 to bcrypt.
+ *
+ * @param password - Plain text password to verify
+ * @param storedHash - SHA-256 hex hash to compare against
+ * @returns true if the password matches the SHA-256 hash
+ */
+export function verifySha256Password(password: string, storedHash: string): boolean {
+  if (!password || !storedHash) return false;
+  try {
+    const computedHash = createHash('sha256').update(password).digest('hex');
+    const computedBuffer = Buffer.from(computedHash, 'hex');
+    const storedBuffer = Buffer.from(storedHash, 'hex');
+    if (computedBuffer.length !== storedBuffer.length) return false;
+    return timingSafeEqual(computedBuffer, storedBuffer);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Migrate a SHA-256 password hash to bcrypt.
+ * Verifies the password against the SHA-256 hash, then re-hashes with bcrypt
+ * and updates the database.
+ *
+ * @param userId - The user's ID
+ * @param password - The plain text password (already verified against SHA-256)
+ * @returns The new bcrypt hash, or null if migration failed
+ */
+export async function migrateSha256ToBcrypt(userId: string, password: string): Promise<string | null> {
+  try {
+    const bcryptHash = await hashPassword(password);
+    // Lazy import to avoid circular dependencies
+    const { query: dbQuery } = await import('../db');
+    await dbQuery(
+      'UPDATE profiles SET password_hash = $1, updated_at = NOW() WHERE id = $2',
+      [bcryptHash, userId]
+    );
+    console.log(`[PASSWORD] Migrated SHA-256 hash to bcrypt for user: ${userId}`);
+    return bcryptHash;
+  } catch (error) {
+    console.error('[PASSWORD] SHA-256 to bcrypt migration failed');
+    return null;
   }
 }

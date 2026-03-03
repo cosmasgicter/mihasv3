@@ -42,8 +42,8 @@ class SessionManagerImpl implements SessionManager {
 
   async isSessionValid(): Promise<boolean> {
     try {
-      const data = await apiClient.request<{ user?: any }>('/api/auth?action=session')
-      return !!(data as any)?.user
+      const data = await apiClient.request<{ user?: { id: string } }>('/api/auth?action=session')
+      return !!data?.user
     } catch (error) {
       const message = error instanceof Error ? error.message : ''
       // Try to refresh if session check fails with 401

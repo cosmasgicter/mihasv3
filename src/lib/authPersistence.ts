@@ -45,9 +45,9 @@ class AuthPersistence {
     this.isChecking = true
 
     try {
-      const sessionData = await apiClient.request<{ user?: any }>('/api/auth?action=session')
+      const sessionData = await apiClient.request<{ user?: { id: string } }>('/api/auth?action=session')
       
-      if (sessionData && (sessionData as any)?.user) {
+      if (sessionData?.user) {
         // Session exists, proactively refresh to extend it
         await apiClient.request('/api/auth?action=refresh', { method: 'POST' })
       }

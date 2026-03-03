@@ -297,7 +297,7 @@ export default function Applications() {
   const handleViewDocuments = useCallback(() => {
     if (!selectedApp) return
     
-    const documents = []
+    const documents: Array<{ name: string; url: string }> = []
     if (selectedApp.result_slip_url) documents.push({ name: 'Result Slip', url: selectedApp.result_slip_url })
     if (selectedApp.extra_kyc_url) documents.push({ name: 'Extra KYC', url: selectedApp.extra_kyc_url })
     if (selectedApp.pop_url) documents.push({ name: 'Proof of Payment', url: selectedApp.pop_url })
@@ -319,7 +319,7 @@ export default function Applications() {
     
     try {
       const response = await applicationService.getById(selectedApplication, { include: ['statusHistory'] })
-      if (response.statusHistory && response.statusHistory.length > 0) {
+      if (response && response.statusHistory && response.statusHistory.length > 0) {
         showInfo('Status History', `Application has ${response.statusHistory.length} status changes. Check the application timeline for details.`)
       } else {
         showInfo('No history', 'No status changes recorded for this application.')
@@ -461,9 +461,10 @@ export default function Applications() {
                     ? 'bg-card text-primary shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
-                title="Card View"
+                aria-label="Card view"
+                aria-pressed={viewMode === 'cards'}
               >
-                <LayoutGrid className="h-4 w-4" />
+                <LayoutGrid className="h-4 w-4" aria-hidden="true" />
               </button>
               <button
                 onClick={() => setViewMode('table')}
@@ -472,9 +473,10 @@ export default function Applications() {
                     ? 'bg-card text-primary shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
-                title="Table View"
+                aria-label="Table view"
+                aria-pressed={viewMode === 'table'}
               >
-                <Table className="h-4 w-4" />
+                <Table className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
             <Button
@@ -482,15 +484,18 @@ export default function Applications() {
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
               className="sm:hidden"
+              aria-label="Toggle filters"
+              aria-expanded={showFilters}
             >
-              <Filter className="h-4 w-4" />
+              <Filter className="h-4 w-4" aria-hidden="true" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleRefresh}
+              aria-label="Refresh applications"
             >
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
         </div>

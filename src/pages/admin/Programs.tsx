@@ -362,16 +362,18 @@ export default function AdminPrograms() {
                                 size="sm" 
                                 onClick={() => openEdit(program)}
                                 className="text-primary border-blue-300 hover:bg-primary/5"
+                                aria-label={`Edit ${program.name}`}
                               >
-                                <Pencil className="h-4 w-4" />
+                                <Pencil className="h-4 w-4" aria-hidden="true" />
                               </Button>
                               <Button 
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => openDelete(program)}
                                 className="text-destructive border-destructive/30 hover:bg-destructive/5"
+                                aria-label={`Delete ${program.name}`}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-4 w-4" aria-hidden="true" />
                               </Button>
                             </div>
                           </td>

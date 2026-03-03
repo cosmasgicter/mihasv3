@@ -51,6 +51,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             aria-invalid={error ? 'true' : 'false'}
+            aria-required={props.required || undefined}
             aria-describedby={describedByIds.length > 0 ? describedByIds.join(' ') : undefined}
             {...props}
           />

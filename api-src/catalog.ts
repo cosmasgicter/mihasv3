@@ -5,6 +5,7 @@ import { CatalogQueries, SubjectRecord } from '../lib/queries';
 import { withArcjetProtection } from '../lib/arcjet';
 import { getAuthUser } from '../lib/auth/middleware';
 import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
+import { validateServerEnv } from '../lib/envValidator';
 
 interface InstitutionRecord {
   id: string;
@@ -107,60 +108,68 @@ async function ensureAdmin(req: VercelRequest, res: VercelResponse) {
 }
 
 async function listPrograms(res: VercelResponse, includeInactive: boolean, shouldCache: boolean) {
-  const result = await query<ProgramRow>(
-    `SELECT
-      id,
-      name,
-      code,
-      description,
-      duration_months,
-      application_fee,
-      tuition_fee,
-      regulatory_body,
-      accreditation_status,
-      is_active,
-      created_at,
-      updated_at
-    FROM programs
-    WHERE ($1::boolean = true OR is_active = true)
-    ORDER BY name ASC`,
-    [includeInactive]
-  );
+  try {
+    const result = await query<ProgramRow>(
+      `SELECT
+        id,
+        name,
+        code,
+        description,
+        duration_months,
+        application_fee,
+        tuition_fee,
+        regulatory_body,
+        accreditation_status,
+        is_active,
+        created_at,
+        updated_at
+      FROM programs
+      WHERE ($1::boolean = true OR is_active = true)
+      ORDER BY name ASC`,
+      [includeInactive]
+    );
 
-  if (shouldCache) {
-    res.setHeader('Cache-Control', 'public, max-age=300');
+    if (shouldCache) {
+      res.setHeader('Cache-Control', 'public, max-age=300');
+    }
+
+    return sendSuccess(res, { programs: result.rows.map(normalizeProgram) });
+  } catch (error) {
+    return handleError(res, error, 'catalog/list-programs');
   }
-
-  return sendSuccess(res, { programs: result.rows.map(normalizeProgram) });
 }
 
 async function listIntakes(res: VercelResponse, includeInactive: boolean, shouldCache: boolean) {
-  const result = await query<IntakeRow>(
-    `SELECT
-      id,
-      name,
-      COALESCE(year, EXTRACT(YEAR FROM start_date)::int) AS year,
-      semester,
-      start_date,
-      end_date,
-      application_start_date,
-      application_deadline,
-      COALESCE(max_capacity, 0) AS max_capacity,
-      COALESCE(current_enrollment, 0) AS current_enrollment,
-      is_active,
-      created_at,
-      updated_at
-    FROM intakes
-    WHERE ($1::boolean = true OR is_active = true)
-    ORDER BY year DESC, start_date DESC`,
-    [includeInactive]
-  );
+  try {
+    const result = await query<IntakeRow>(
+      `SELECT
+        id,
+        name,
+        COALESCE(year, EXTRACT(YEAR FROM start_date)::int) AS year,
+        semester,
+        start_date,
+        end_date,
+        application_start_date,
+        application_deadline,
+        COALESCE(max_capacity, 0) AS max_capacity,
+        COALESCE(current_enrollment, 0) AS current_enrollment,
+        is_active,
+        created_at,
+        updated_at
+      FROM intakes
+      WHERE ($1::boolean = true OR is_active = true)
+      ORDER BY year DESC, start_date DESC`,
+      [includeInactive]
+    );
 
-  if (shouldCache) {
-    res.setHeader('Cache-Control', 'public, max-age=300');
+    if (shouldCache) {
+      res.setHeader('Cache-Control', 'public, max-age=300');
+    }
+
+    return sendSuccess(res, { intakes: result.rows.map(normalizeIntake) });
+  } catch (error) {
+    return handleError(res, error, 'catalog/list-intakes');
   }
-
-  return sendSuccess(res, { intakes: result.rows.map(normalizeIntake) });
 }
 
 async function createProgram(req: VercelRequest, res: VercelResponse) {
@@ -183,14 +192,18 @@ async function createProgram(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'duration_months must be between 1 and 120', HttpStatus.BAD_REQUEST);
   }
 
-  const result = await query<ProgramRow>(
-    `INSERT INTO programs (name, code, description, duration_months, application_fee, tuition_fee, regulatory_body, is_active, created_at, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW(), NOW())
-     RETURNING *`,
-    [name, code, description || null, durationMonths, applicationFee, tuitionFee, regulatoryBody]
-  );
+  try {
+    const result = await query<ProgramRow>(
+      `INSERT INTO programs (name, code, description, duration_months, application_fee, tuition_fee, regulatory_body, is_active, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW(), NOW())
+       RETURNING *`,
+      [name, code, description || null, durationMonths, applicationFee, tuitionFee, regulatoryBody]
+    );
 
-  return sendSuccess(res, { program: normalizeProgram(result.rows[0]) });
+    return sendSuccess(res, { program: normalizeProgram(result.rows[0]) });
+  } catch (error) {
+    return handleError(res, error, 'catalog/create-program');
+  }
 }
 
 async function updateProgram(req: VercelRequest, res: VercelResponse) {
@@ -218,27 +231,31 @@ async function updateProgram(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'duration_months must be between 1 and 120', HttpStatus.BAD_REQUEST);
   }
 
-  const result = await query<ProgramRow>(
-    `UPDATE programs
-     SET name = $2,
-         code = $3,
-         description = $4,
-         duration_months = $5,
-         application_fee = COALESCE($6, application_fee),
-         tuition_fee = $7,
-         regulatory_body = $8,
-         is_active = COALESCE($9, is_active),
-         updated_at = NOW()
-     WHERE id = $1
-     RETURNING *`,
-    [id, name, code, description || null, durationMonths, applicationFee, tuitionFee, regulatoryBody, isActive ?? null]
-  );
+  try {
+    const result = await query<ProgramRow>(
+      `UPDATE programs
+       SET name = $2,
+           code = $3,
+           description = $4,
+           duration_months = $5,
+           application_fee = COALESCE($6, application_fee),
+           tuition_fee = $7,
+           regulatory_body = $8,
+           is_active = COALESCE($9, is_active),
+           updated_at = NOW()
+       WHERE id = $1
+       RETURNING *`,
+      [id, name, code, description || null, durationMonths, applicationFee, tuitionFee, regulatoryBody, isActive ?? null]
+    );
 
-  if (result.rowCount === 0) {
-    return sendError(res, 'Program not found', HttpStatus.NOT_FOUND);
+    if (result.rowCount === 0) {
+      return sendError(res, 'Program not found', HttpStatus.NOT_FOUND);
+    }
+
+    return sendSuccess(res, { program: normalizeProgram(result.rows[0]) });
+  } catch (error) {
+    return handleError(res, error, 'catalog/update-program');
   }
-
-  return sendSuccess(res, { program: normalizeProgram(result.rows[0]) });
 }
 
 async function deleteProgram(req: VercelRequest, res: VercelResponse) {
@@ -249,20 +266,24 @@ async function deleteProgram(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Program id is required', HttpStatus.BAD_REQUEST);
   }
 
-  const result = await query<{ id: string }>(
-    `UPDATE programs
-     SET is_active = false,
-         updated_at = NOW()
-     WHERE id = $1 AND is_active = true
-     RETURNING id`,
-    [id]
-  );
+  try {
+    const result = await query<{ id: string }>(
+      `UPDATE programs
+       SET is_active = false,
+           updated_at = NOW()
+       WHERE id = $1 AND is_active = true
+       RETURNING id`,
+      [id]
+    );
 
-  if (result.rowCount === 0) {
-    return sendError(res, 'Program not found or already inactive', HttpStatus.NOT_FOUND);
+    if (result.rowCount === 0) {
+      return sendError(res, 'Program not found or already inactive', HttpStatus.NOT_FOUND);
+    }
+
+    return sendSuccess(res, { deleted: true, id });
+  } catch (error) {
+    return handleError(res, error, 'catalog/delete-program');
   }
-
-  return sendSuccess(res, { deleted: true, id });
 }
 
 async function createIntake(req: VercelRequest, res: VercelResponse) {
@@ -287,17 +308,21 @@ async function createIntake(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'max_capacity must be at least 1', HttpStatus.BAD_REQUEST);
   }
 
-  const result = await query<IntakeRow>(
-    `INSERT INTO intakes (
-      name, year, semester, start_date, end_date, application_deadline,
-      max_capacity, current_enrollment, is_active, created_at, updated_at
-    )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, 0, true, NOW(), NOW())
-    RETURNING *`,
-    [name, year, semester, startDate, endDate, applicationDeadline, maxCapacity]
-  );
+  try {
+    const result = await query<IntakeRow>(
+      `INSERT INTO intakes (
+        name, year, semester, start_date, end_date, application_deadline,
+        max_capacity, current_enrollment, is_active, created_at, updated_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 0, true, NOW(), NOW())
+      RETURNING *`,
+      [name, year, semester, startDate, endDate, applicationDeadline, maxCapacity]
+    );
 
-  return sendSuccess(res, { intake: normalizeIntake(result.rows[0]) });
+    return sendSuccess(res, { intake: normalizeIntake(result.rows[0]) });
+  } catch (error) {
+    return handleError(res, error, 'catalog/create-intake');
+  }
 }
 
 async function updateIntake(req: VercelRequest, res: VercelResponse) {
@@ -326,28 +351,32 @@ async function updateIntake(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'max_capacity must be at least 1', HttpStatus.BAD_REQUEST);
   }
 
-  const result = await query<IntakeRow>(
-    `UPDATE intakes
-     SET name = $2,
-         year = $3,
-         semester = $4,
-         start_date = $5,
-         end_date = $6,
-         application_deadline = $7,
-         max_capacity = $8,
-         current_enrollment = COALESCE($9, current_enrollment),
-         is_active = COALESCE($10, is_active),
-         updated_at = NOW()
-     WHERE id = $1
-     RETURNING *`,
-    [id, name, year, semester, startDate, endDate, applicationDeadline, maxCapacity, currentEnrollment, isActive ?? null]
-  );
+  try {
+    const result = await query<IntakeRow>(
+      `UPDATE intakes
+       SET name = $2,
+           year = $3,
+           semester = $4,
+           start_date = $5,
+           end_date = $6,
+           application_deadline = $7,
+           max_capacity = $8,
+           current_enrollment = COALESCE($9, current_enrollment),
+           is_active = COALESCE($10, is_active),
+           updated_at = NOW()
+       WHERE id = $1
+       RETURNING *`,
+      [id, name, year, semester, startDate, endDate, applicationDeadline, maxCapacity, currentEnrollment, isActive ?? null]
+    );
 
-  if (result.rowCount === 0) {
-    return sendError(res, 'Intake not found', HttpStatus.NOT_FOUND);
+    if (result.rowCount === 0) {
+      return sendError(res, 'Intake not found', HttpStatus.NOT_FOUND);
+    }
+
+    return sendSuccess(res, { intake: normalizeIntake(result.rows[0]) });
+  } catch (error) {
+    return handleError(res, error, 'catalog/update-intake');
   }
-
-  return sendSuccess(res, { intake: normalizeIntake(result.rows[0]) });
 }
 
 async function deleteIntake(req: VercelRequest, res: VercelResponse) {
@@ -358,20 +387,24 @@ async function deleteIntake(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Intake id is required', HttpStatus.BAD_REQUEST);
   }
 
-  const result = await query<{ id: string }>(
-    `UPDATE intakes
-     SET is_active = false,
-         updated_at = NOW()
-     WHERE id = $1 AND is_active = true
-     RETURNING id`,
-    [id]
-  );
+  try {
+    const result = await query<{ id: string }>(
+      `UPDATE intakes
+       SET is_active = false,
+           updated_at = NOW()
+       WHERE id = $1 AND is_active = true
+       RETURNING id`,
+      [id]
+    );
 
-  if (result.rowCount === 0) {
-    return sendError(res, 'Intake not found or already inactive', HttpStatus.NOT_FOUND);
+    if (result.rowCount === 0) {
+      return sendError(res, 'Intake not found or already inactive', HttpStatus.NOT_FOUND);
+    }
+
+    return sendSuccess(res, { deleted: true, id });
+  } catch (error) {
+    return handleError(res, error, 'catalog/delete-intake');
   }
-
-  return sendSuccess(res, { deleted: true, id });
 }
 
 /**
@@ -379,6 +412,13 @@ async function deleteIntake(req: VercelRequest, res: VercelResponse) {
  */
 async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return;
+
+  // Validate required environment variables (Req 25.3)
+  const envResult = validateServerEnv();
+  if (!envResult.valid) {
+    const details = envResult.errors.map((e) => e.message).join('; ');
+    return sendError(res, `Server misconfiguration: ${details}`, HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
+  }
 
   if (req.method === 'HEAD') {
     return res.status(200).end();

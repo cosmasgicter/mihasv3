@@ -136,11 +136,11 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
     // Filter by date range
     if (exportOptions.filters.dateRange.start) {
       const startDate = new Date(exportOptions.filters.dateRange.start)
-      filtered = filtered.filter(user => new Date(user.created_at) >= startDate)
+      filtered = filtered.filter(user => new Date(user.created_at ?? 0) >= startDate)
     }
     if (exportOptions.filters.dateRange.end) {
       const endDate = new Date(exportOptions.filters.dateRange.end)
-      filtered = filtered.filter(user => new Date(user.created_at) <= endDate)
+      filtered = filtered.filter(user => new Date(user.created_at ?? 0) <= endDate)
     }
 
     return filtered
@@ -154,7 +154,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
 
     const rows = data.map(user => {
       return exportOptions.fields.map(fieldId => {
-        const value = (user as any)[fieldId]
+        const value = (user as Record<string, unknown>)[fieldId]
         if (value === null || value === undefined) return ''
         if (typeof value === 'string') {
           const sanitized = String(value).replace(/["\r\n]/g, '').substring(0, 1000)
@@ -181,9 +181,9 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
 
   const exportToJSON = (data: UserProfile[]) => {
     const exportData = data.map(user => {
-      const filtered: any = {}
+      const filtered: Record<string, unknown> = {}
       exportOptions.fields.forEach(fieldId => {
-        const value = (user as any)[fieldId]
+        const value = (user as Record<string, unknown>)[fieldId]
         filtered[fieldId] = typeof value === 'string' ? String(value).substring(0, 1000) : value
       })
       return filtered

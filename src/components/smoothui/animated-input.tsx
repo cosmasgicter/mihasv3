@@ -7,7 +7,7 @@
  * @requirements 8.1, 8.6 - SmoothUI animations with reduced-motion support
  */
 
-import { forwardRef, useState } from 'react';
+import { forwardRef, useState, useId } from 'react';
 import { cn } from '@/lib/utils';
 
 interface AnimatedInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -20,8 +20,8 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
   ({ label, error, helperText, className, id, ...props }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const [hasValue, setHasValue] = useState(!!props.value || !!props.defaultValue);
-
-    const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+    const generatedId = useId();
+    const inputId = id || generatedId;
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
       setIsFocused(true);
@@ -84,6 +84,7 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
             onBlur={handleBlur}
             onChange={handleChange}
             aria-invalid={!!error}
+            aria-required={props.required || (label ? label.trimEnd().endsWith('*') : false) || undefined}
             aria-describedby={error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined}
             {...props}
           />

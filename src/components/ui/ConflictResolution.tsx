@@ -1,6 +1,8 @@
 import React from 'react'
 import { Button } from './Button'
 import { AlertTriangle, Clock, Merge } from 'lucide-react'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 interface ConflictResolutionProps {
   isOpen: boolean
@@ -21,11 +23,20 @@ export function ConflictResolution({
   localTimestamp,
   serverTimestamp
 }: ConflictResolutionProps) {
+  const focusTrapRef = useFocusTrap(isOpen)
+  useEscapeKey(isOpen, onClose)
+
   if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-card rounded-lg p-6 max-w-md w-full mx-4">
+      <div
+        ref={focusTrapRef as React.RefObject<HTMLDivElement>}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Sync Conflict Detected"
+        className="bg-card rounded-lg p-6 max-w-md w-full mx-4"
+      >
         <div className="flex items-center gap-3 mb-4">
           <AlertTriangle className="h-6 w-6 text-amber-500" />
           <h3 className="text-lg font-semibold">Sync Conflict Detected</h3>

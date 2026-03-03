@@ -1,5 +1,4 @@
 // @ts-nocheck
-import { notificationTracker } from './notificationTracker'
 
 /**
  * Push Notification Manager
@@ -182,38 +181,17 @@ class PushNotificationManager {
         schedule.failureReason = 'User preferences'
         this.scheduledNotifications.set(notificationId, schedule)
         
-        // Track as failed due to preferences
-        notificationTracker.trackFailed(notificationId, 'User preferences')
+        // tracking removed
         return notificationId
       }
 
-      // Track notification sending
-      notificationTracker.trackSent({
-        id: notificationId,
-        userId,
-        type: 'push',
-        title: payload.title,
-        body: payload.body,
-        metadata: { 
-          tag: payload.tag,
-          url: payload.url,
-          type: payload.data?.type 
-        }
-      })
-
-      // Send notification
+      // Deliver notification
       await this.deliverNotification(schedule)
-      
-      // Track successful delivery
-      notificationTracker.trackDelivered(notificationId)
       
     } catch (error) {
       schedule.status = 'failed'
       schedule.failureReason = error instanceof Error ? error.message : 'Unknown error'
       console.error('Failed to send notification:', error)
-      
-      // Track failure
-      notificationTracker.trackFailed(notificationId, schedule.failureReason)
     }
 
     this.scheduledNotifications.set(notificationId, schedule)

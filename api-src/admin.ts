@@ -21,11 +21,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleCors } from '../lib/cors';
 import { query } from '../lib/db';
-import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
+import { handleError, sendSuccess, sendError, HttpStatus, logErrorAuditEvent } from '../lib/errorHandler';
 import { withArcjetProtection } from '../lib/arcjet';
 import { requireRole, AuthenticationError, AuthorizationError, type AuthContext } from '../lib/auth/middleware';
 import { hashPassword } from '../lib/auth/password';
 import { logAuditEvent } from '../lib/auditLogger';
+import { requireCsrf } from '../lib/csrf';
+import { validateBody } from '../lib/validation/middleware';
+import { validateServerEnv } from '../lib/envValidator';
+import { adminRegisterBodySchema, adminSetPasswordBodySchema, updateRoleBodySchema, createSettingBodySchema, importSettingsBodySchema } from '../lib/validation/admin';
 
 /**
  * System setting interface matching database schema
@@ -48,11 +52,22 @@ interface SystemSetting {
 async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (handleCors(req, res)) return;
 
+  // Validate required environment variables (Req 25.3)
+  const envResult = validateServerEnv();
+  if (!envResult.valid) {
+    const details = envResult.errors.map((e) => e.message).join('; ');
+    sendError(res, `Server misconfiguration: ${details}`, HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
+    return;
+  }
+
   // Handle HEAD requests for health checks (no auth required)
   if (req.method === 'HEAD') {
     res.status(200).end();
     return;
   }
+
+  // CSRF validation for state-changing requests
+  if (await requireCsrf(req, res)) return;
 
   const action = req.query.action as string || 'dashboard';
 
@@ -235,8 +250,7 @@ async function handleGetSettings(res: VercelResponse): Promise<void> {
     );
     sendSuccess(res, { settings: result.rows || [] });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    sendError(res, message, HttpStatus.BAD_REQUEST);
+    handleError(res, error, 'admin/get-settings');
   }
 }
 
@@ -245,17 +259,10 @@ async function handleGetSettings(res: VercelResponse): Promise<void> {
  * MIGRATED: Using direct SQL instead of legacy admin SDK
  */
 async function handleCreateSetting(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
-  const body = req.body as Partial<SystemSetting>;
+  const parsed = validateBody(createSettingBodySchema, req, res);
+  if (!parsed) return;
 
-  if (!body.key || typeof body.key !== 'string') {
-    sendError(res, 'key is required and must be a string', HttpStatus.BAD_REQUEST);
-    return;
-  }
-
-  if (body.value === undefined || body.value === null) {
-    sendError(res, 'value is required', HttpStatus.BAD_REQUEST);
-    return;
-  }
+  const body = parsed;
 
   try {
     const result = await query<SystemSetting>(
@@ -279,12 +286,12 @@ async function handleCreateSetting(req: VercelRequest, res: VercelResponse, auth
 
     sendSuccess(res, { setting: result.rows[0] }, HttpStatus.CREATED);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : '';
     if (message.includes('duplicate key') || message.includes('23505')) {
       sendError(res, `Setting with key '${body.key}' already exists`, HttpStatus.CONFLICT);
       return;
     }
-    sendError(res, message, HttpStatus.BAD_REQUEST);
+    handleError(res, error, 'admin/create-setting');
   }
 }
 
@@ -349,8 +356,7 @@ async function handleUpdateSetting(req: VercelRequest, res: VercelResponse, auth
 
     sendSuccess(res, { setting: result.rows[0] });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    sendError(res, message, HttpStatus.BAD_REQUEST);
+    handleError(res, error, 'admin/update-setting');
   }
 }
 
@@ -386,8 +392,7 @@ async function handleDeleteSetting(req: VercelRequest, res: VercelResponse): Pro
 
     sendSuccess(res, { deleted: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    sendError(res, message, HttpStatus.BAD_REQUEST);
+    handleError(res, error, 'admin/delete-setting');
   }
 }
 
@@ -482,8 +487,7 @@ async function handleDashboard(res: VercelResponse): Promise<void> {
       generatedAt: now.toISOString(),
     });
   } catch (error) {
-    console.error('[ADMIN] Dashboard error:', error instanceof Error ? error.message : 'Unknown error');
-    sendError(res, 'Failed to fetch dashboard data', HttpStatus.INTERNAL_SERVER_ERROR);
+    handleError(res, error, 'admin/dashboard');
   }
 }
 
@@ -553,8 +557,7 @@ async function handleUsers(req: VercelRequest, res: VercelResponse): Promise<voi
       totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    sendError(res, message, HttpStatus.BAD_REQUEST);
+    handleError(res, error, 'admin/users');
   }
 }
 
@@ -564,32 +567,10 @@ async function handleUsers(req: VercelRequest, res: VercelResponse): Promise<voi
  * Requirement: 8.6 - Admin can register new users
  */
 async function handleRegisterUser(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
-  const { email, password, firstName, lastName, role } = req.body as {
-    email?: string;
-    password?: string;
-    firstName?: string;
-    lastName?: string;
-    role?: string;
-  };
+  const parsed = validateBody(adminRegisterBodySchema, req, res);
+  if (!parsed) return;
 
-  // Validate required fields
-  if (!email || !password || !firstName || !lastName) {
-    sendError(res, 'Email, password, firstName, and lastName are required', HttpStatus.BAD_REQUEST);
-    return;
-  }
-
-  // Validate email format
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    sendError(res, 'Invalid email format', HttpStatus.BAD_REQUEST);
-    return;
-  }
-
-  // Validate password strength
-  if (password.length < 8) {
-    sendError(res, 'Password must be at least 8 characters', HttpStatus.BAD_REQUEST);
-    return;
-  }
+  const { email, password, firstName, lastName, role } = parsed;
 
   // Validate role
   const validRoles = ['student', 'reviewer', 'admin', 'super_admin'];
@@ -649,8 +630,7 @@ async function handleRegisterUser(req: VercelRequest, res: VercelResponse, auth:
     }, HttpStatus.CREATED);
 
   } catch (error) {
-    console.error('[ADMIN] Registration error:', error instanceof Error ? error.message : 'Unknown error');
-    sendError(res, 'Registration failed', HttpStatus.INTERNAL_SERVER_ERROR);
+    handleError(res, error, 'admin/register');
   }
 }
 
@@ -751,8 +731,7 @@ async function handleDashboardStats(res: VercelResponse): Promise<void> {
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('[ADMIN] Stats error:', error instanceof Error ? error.message : 'Unknown error');
-    sendError(res, 'Failed to fetch dashboard stats', HttpStatus.INTERNAL_SERVER_ERROR);
+    handleError(res, error, 'admin/stats');
   }
 }
 
@@ -821,8 +800,7 @@ async function handleErrorStatistics(res: VercelResponse): Promise<void> {
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('[ADMIN] Error stats error:', error instanceof Error ? error.message : 'Unknown error');
-    sendError(res, 'Failed to fetch error statistics', HttpStatus.INTERNAL_SERVER_ERROR);
+    handleError(res, error, 'admin/errors');
   }
 }
 
@@ -843,18 +821,10 @@ async function handleSetPassword(req: VercelRequest, res: VercelResponse, auth: 
     return;
   }
 
-  const { email, password } = req.body as { email?: string; password?: string };
+  const parsed = validateBody(adminSetPasswordBodySchema, req, res);
+  if (!parsed) return;
 
-  if (!email || !password) {
-    sendError(res, 'Email and password are required', HttpStatus.BAD_REQUEST);
-    return;
-  }
-
-  // Validate password strength
-  if (password.length < 8) {
-    sendError(res, 'Password must be at least 8 characters', HttpStatus.BAD_REQUEST);
-    return;
-  }
+  const { email, password } = parsed;
 
   try {
     // Find user by email
@@ -908,8 +878,7 @@ async function handleSetPassword(req: VercelRequest, res: VercelResponse, auth: 
     });
 
   } catch (error) {
-    console.error('[ADMIN] Set password error:', error instanceof Error ? error.message : 'Unknown error');
-    sendError(res, 'Failed to set password', HttpStatus.INTERNAL_SERVER_ERROR);
+    handleError(res, error, 'admin/set-password');
   }
 }
 
@@ -997,12 +966,10 @@ async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<v
  * Upserts settings by setting_key (creates or updates)
  */
 async function handleImportSettings(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
-  const { settings } = req.body as { settings?: Partial<SystemSetting>[] };
+  const parsed = validateBody(importSettingsBodySchema, req, res);
+  if (!parsed) return;
 
-  if (!settings || !Array.isArray(settings)) {
-    sendError(res, 'settings array is required', HttpStatus.BAD_REQUEST);
-    return;
-  }
+  const { settings } = parsed;
 
   if (settings.length === 0) {
     sendError(res, 'settings array cannot be empty', HttpStatus.BAD_REQUEST);
@@ -1013,11 +980,6 @@ async function handleImportSettings(req: VercelRequest, res: VercelResponse, aut
   const errors: string[] = [];
 
   for (const setting of settings) {
-    if (!setting.key || setting.value === undefined) {
-      errors.push(`Invalid setting: missing key or value`);
-      continue;
-    }
-
     try {
       // Upsert: insert or update on conflict
       await query(
@@ -1155,8 +1117,7 @@ async function handleResetSettings(res: VercelResponse, auth: AuthContext): Prom
       count: defaultSettings.length,
     });
   } catch (error) {
-    console.error('[ADMIN] Reset settings error:', error instanceof Error ? error.message : 'Unknown error');
-    sendError(res, 'Failed to reset settings', HttpStatus.INTERNAL_SERVER_ERROR);
+    handleError(res, error, 'admin/reset-settings');
   }
 }
 
@@ -1194,19 +1155,10 @@ async function handleEligibilityRules(req: VercelRequest, res: VercelResponse, _
  * Only super_admin can change roles to admin/super_admin
  */
 async function handleUpdateRole(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
-  const { userId, role } = req.body as { userId?: string; role?: string };
+  const parsed = validateBody(updateRoleBodySchema, req, res);
+  if (!parsed) return;
 
-  if (!userId || !role) {
-    sendError(res, 'userId and role are required', HttpStatus.BAD_REQUEST);
-    return;
-  }
-
-  // Validate role
-  const validRoles = ['student', 'reviewer', 'admin', 'super_admin'];
-  if (!validRoles.includes(role)) {
-    sendError(res, `Invalid role. Valid roles: ${validRoles.join(', ')}`, HttpStatus.BAD_REQUEST);
-    return;
-  }
+  const { userId, role } = parsed;
 
   // Only super_admin can assign admin or super_admin roles
   if ((role === 'admin' || role === 'super_admin') && auth.role !== 'super_admin') {
@@ -1256,8 +1208,7 @@ async function handleUpdateRole(req: VercelRequest, res: VercelResponse, auth: A
 
     sendSuccess(res, { user: result.rows[0] });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    sendError(res, message, HttpStatus.BAD_REQUEST);
+    handleError(res, error, 'admin/update-role');
   }
 }
 
@@ -1347,8 +1298,7 @@ async function handleAuditLog(req: VercelRequest, res: VercelResponse): Promise<
       totalPages,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    sendError(res, message, HttpStatus.BAD_REQUEST);
+    handleError(res, error, 'admin/audit-log');
   }
 }
 
@@ -1384,8 +1334,9 @@ async function handleAppeals(req: VercelRequest, res: VercelResponse): Promise<v
       pageSize,
       totalPages: Math.max(1, Math.ceil(totalCount / pageSize)),
     });
-  } catch {
-    // eligibility_appeals table may not be configured yet.
+  } catch (error) {
+    // eligibility_appeals table may not be configured yet — log and return empty gracefully.
+    logErrorAuditEvent('admin/appeals', error).catch(() => {});
     sendSuccess(res, {
       appeals: [],
       totalCount: 0,

@@ -1,5 +1,21 @@
 import { useState, useEffect, useCallback } from 'react'
 
+// Network Information API is not yet in the standard TypeScript lib
+interface NetworkInformation extends EventTarget {
+  type?: string
+  effectiveType?: string
+  rtt?: number
+  downlink?: number
+  addEventListener(type: 'change', listener: EventListenerOrEventListenerObject): void
+  removeEventListener(type: 'change', listener: EventListenerOrEventListenerObject): void
+}
+
+interface NavigatorWithConnection extends Navigator {
+  connection?: NetworkInformation
+  mozConnection?: NetworkInformation
+  webkitConnection?: NetworkInformation
+}
+
 interface NetworkStatus {
   isOnline: boolean
   isSlowConnection: boolean
@@ -23,9 +39,8 @@ export function useNetworkStatus() {
     const isOnline = navigator.onLine
     
     // Get connection info if available (Chrome/Edge)
-    const connection = (navigator as any).connection || 
-                      (navigator as any).mozConnection || 
-                      (navigator as any).webkitConnection
+    const nav = navigator as NavigatorWithConnection
+    const connection = nav.connection || nav.mozConnection || nav.webkitConnection
     
     let isSlowConnection = false
     let connectionType = 'unknown'
@@ -69,9 +84,8 @@ export function useNetworkStatus() {
     window.addEventListener('offline', handleOffline)
     
     // Listen for connection changes (if supported)
-    const connection = (navigator as any).connection || 
-                      (navigator as any).mozConnection || 
-                      (navigator as any).webkitConnection
+    const nav = navigator as NavigatorWithConnection
+    const connection = nav.connection || nav.mozConnection || nav.webkitConnection
     
     if (connection) {
       connection.addEventListener('change', updateNetworkStatus)

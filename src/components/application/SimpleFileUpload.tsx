@@ -379,8 +379,9 @@ export function SimpleFileUpload({
                 size="sm"
                 onClick={clearResults}
                 className="text-accent hover:text-accent-foreground p-1 h-auto"
+                aria-label="Clear OCR results"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
           </div>

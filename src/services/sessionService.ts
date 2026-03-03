@@ -24,7 +24,7 @@ export async function terminateAllOtherSessions(): Promise<TerminateSessionsResu
     
     return {
       success: true,
-      terminatedCount: (result as any)?.revokedCount ?? 0,
+      terminatedCount: result?.revokedCount ?? 0,
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'

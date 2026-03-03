@@ -47,6 +47,10 @@ export interface StandaloneSelectProps {
   className?: string
   /** Additional CSS classes for the trigger */
   triggerClassName?: string
+  /** Whether the field is required */
+  required?: boolean
+  /** Accessible label for screen readers when no visible label is present */
+  'aria-label'?: string
   /** Test ID for testing */
   'data-testid'?: string
 }
@@ -79,7 +83,9 @@ export const StandaloneSelect = React.forwardRef<HTMLButtonElement, StandaloneSe
       helperText,
       className,
       triggerClassName,
+      'aria-label': ariaLabel,
       'data-testid': testId,
+      required,
     },
     ref
   ) => {
@@ -117,7 +123,9 @@ export const StandaloneSelect = React.forwardRef<HTMLButtonElement, StandaloneSe
               'min-h-[44px]',
               triggerClassName
             )}
+            aria-label={ariaLabel}
             aria-invalid={!!error}
+            aria-required={required || undefined}
             aria-describedby={
               error ? errorId : helperText ? helperId : undefined
             }

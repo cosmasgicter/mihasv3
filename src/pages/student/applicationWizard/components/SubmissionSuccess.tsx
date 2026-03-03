@@ -99,7 +99,7 @@ const SubmissionSuccess = ({
             </div>
             <div className="flex justify-between">
               <span className="text-warning-strong">Institution:</span>
-              <span className="font-semibold text-accent-foreground">{getInstitutionName(submittedApplication.institution)}</span>
+              <span className="font-semibold text-accent-foreground">{getInstitutionName(submittedApplication.institution ?? undefined)}</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
               <span className="text-accent flex items-center justify-between sm:justify-start">

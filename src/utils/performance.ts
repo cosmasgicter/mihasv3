@@ -40,7 +40,8 @@ export function prefersReducedMotion(): boolean {
 // Check if device is low-end
 export function isLowEndDevice(): boolean {
   if ('deviceMemory' in navigator) {
-    return (navigator as any).deviceMemory < 4
+    // deviceMemory is a non-standard API (Chrome only), not in standard TS lib
+    return (navigator as Navigator & { deviceMemory?: number }).deviceMemory! < 4
   }
   return false
 }

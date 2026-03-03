@@ -37,7 +37,7 @@ export function BulkUserOperations({
     if (selectedUsers.length === users.length) {
       onSelectionChange([])
     } else {
-      onSelectionChange(users.map(user => user.user_id))
+      onSelectionChange(users.map(user => user.user_id).filter((id): id is string => id !== undefined))
     }
   }
 
@@ -65,7 +65,7 @@ export function BulkUserOperations({
     onOperationComplete()
   }
 
-  const selectedUserDetails = users.filter(user => selectedUsers.includes(user.user_id))
+  const selectedUserDetails = users.filter(user => user.user_id && selectedUsers.includes(user.user_id))
   const canDelete = selectedUserDetails.every(user => user.role !== 'super_admin')
 
   return (
@@ -131,7 +131,7 @@ export function BulkUserOperations({
               <div key={user.user_id} className="flex items-center justify-between p-2 bg-muted rounded">
                 <div className="flex items-center space-x-3">
                   <button
-                    onClick={() => handleUserSelect(user.user_id)}
+                    onClick={() => handleUserSelect(user.user_id ?? '')}
                     className="text-primary hover:text-primary-foreground"
                   >
                     <CheckSquare className="h-4 w-4" />

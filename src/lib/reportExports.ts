@@ -2,6 +2,11 @@
 export type { ReportFormat, ProgramBreakdownStats, ReportExportData } from './reportExports.types'
 import type { ReportFormat, ReportExportData } from './reportExports.types'
 
+// jspdf-autotable adds lastAutoTable to the jsPDF instance at runtime
+interface JsPDFWithAutoTable {
+  lastAutoTable?: { finalY: number }
+}
+
 const formatMetricName = (metric: string) =>
   metric
     .replace(/_/g, ' ')
@@ -33,7 +38,7 @@ export const exportReportAsJson = (reportData: ReportExportData, fileName: strin
 export const exportReportAsPdf = async (reportData: ReportExportData, fileName: string) => {
   const jsPDF = (await import('jspdf')).default
   const autoTable = (await import('jspdf-autotable')).default
-  const doc = new jsPDF()
+  const doc = new jsPDF() as InstanceType<typeof jsPDF> & JsPDFWithAutoTable
   const marginLeft = 14
   let currentY = 20
 
@@ -53,9 +58,9 @@ export const exportReportAsPdf = async (reportData: ReportExportData, fileName: 
   }
 
   if (reportData.statistics) {
-    doc.setFont(undefined, 'bold')
+    doc.setFont('helvetica', 'bold')
     doc.text('Key Metrics', marginLeft, currentY)
-    doc.setFont(undefined, 'normal')
+    doc.setFont('helvetica', 'normal')
     currentY += 4
 
     autoTable(doc, {
@@ -74,13 +79,13 @@ export const exportReportAsPdf = async (reportData: ReportExportData, fileName: 
       }
     })
 
-    currentY = ((doc as any).lastAutoTable?.finalY || currentY) + 10
+    currentY = (doc.lastAutoTable?.finalY || currentY) + 10
   }
 
   if (reportData.programBreakdown && Object.keys(reportData.programBreakdown).length > 0) {
-    doc.setFont(undefined, 'bold')
+    doc.setFont('helvetica', 'bold')
     doc.text('Program Breakdown', marginLeft, currentY)
-    doc.setFont(undefined, 'normal')
+    doc.setFont('helvetica', 'normal')
     currentY += 4
 
     autoTable(doc, {

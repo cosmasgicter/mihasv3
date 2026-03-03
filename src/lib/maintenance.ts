@@ -5,7 +5,6 @@
  * Manages scheduled maintenance operations via API.
  */
 import { apiClient } from '@/services/client'
-import { monitoring } from './monitoring'
 
 export interface MaintenanceTask {
   id: string
@@ -98,7 +97,7 @@ class MaintenanceService {
       task.duration = Date.now() - startTime
       
       await this.logTaskExecution(task, false, error.message)
-      monitoring.logError(error, { task: taskId })
+      console.error('Maintenance task error:', taskId, error)
       return false
     }
   }
@@ -117,16 +116,14 @@ class MaintenanceService {
   }
 
   private async backupDatabase() {
-    monitoring.trackMetric('database_backup', 1, { 
-      timestamp: new Date().toISOString() 
-    })
+    // Backup triggered via Neon dashboard / scheduled jobs
   }
 
   private async updateMetrics() {
     try {
       const result = await apiClient.request<{ data?: any }>('/admin?action=stats')
       if (result?.data) {
-        monitoring.trackMetric('metrics_updated', 1, { timestamp: new Date().toISOString() })
+        // metrics updated
       }
     } catch {
       console.error('Update metrics failed (non-critical)')
@@ -134,14 +131,11 @@ class MaintenanceService {
   }
 
   private async performHealthCheck() {
-    const checks = await monitoring.performHealthCheck()
-    const unhealthyServices = checks.filter(c => c.status === 'unhealthy')
-    
-    if (unhealthyServices.length > 0) {
-      monitoring.createAlert('error', 
-        `Health check failed for: ${unhealthyServices.map(s => s.service).join(', ')}`,
-        { services: unhealthyServices }
-      )
+    // Health check via /api/health endpoint
+    try {
+      await apiClient.request('/health?action=ping')
+    } catch {
+      console.error('Health check failed')
     }
   }
 

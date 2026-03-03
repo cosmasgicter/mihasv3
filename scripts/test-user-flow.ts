@@ -17,6 +17,15 @@
 
 const BASE_URL = process.env.BASE_URL || '***REMOVED***';
 
+// Require credentials from environment variables — never hardcode secrets
+const TEST_STUDENT_EMAIL = process.env.TEST_STUDENT_EMAIL;
+const TEST_ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL;
+const TEST_PASSWORD = process.env.TEST_PASSWORD;
+
+if (!TEST_STUDENT_EMAIL) throw new Error('TEST_STUDENT_EMAIL env var required');
+if (!TEST_ADMIN_EMAIL) throw new Error('TEST_ADMIN_EMAIL env var required');
+if (!TEST_PASSWORD) throw new Error('TEST_PASSWORD env var required');
+
 interface TestResult {
   step: string;
   success: boolean;
@@ -76,11 +85,11 @@ async function runTests() {
   console.log('  MIHAS Application Flow Test');
   console.log('========================================\n');
 
-  // Test credentials
-  const studentEmail = 'test@mihas.edu.zm';
-  const studentPassword = 'Beanola2025';
-  const adminEmail = 'cosmas@beanola.com';
-  const adminPassword = 'Beanola2025';
+  // Test credentials (from environment variables)
+  const studentEmail = TEST_STUDENT_EMAIL;
+  const studentPassword = TEST_PASSWORD;
+  const adminEmail = TEST_ADMIN_EMAIL;
+  const adminPassword = TEST_PASSWORD;
 
   let studentToken: string | undefined;
   let adminToken: string | undefined;

@@ -1,23 +1,5 @@
 import React from 'react';
 
-const serializeError = (error: unknown) => {
-  if (error instanceof Error) {
-    // In production, limit stack trace exposure
-    const isDevelopment = import.meta.env.DEV
-    return isDevelopment 
-      ? error.message + '\n' + (error.stack || '')
-      : error.message;
-  }
-  if (typeof error === 'string') {
-    return error;
-  }
-  try {
-    return JSON.stringify(error, null, 2);
-  } catch {
-    return '[Unable to serialize error object]';
-  }
-};
-
 export class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
   { hasError: boolean; error: unknown }
@@ -28,8 +10,8 @@ export class ErrorBoundary extends React.Component<
   }
 
   static getDerivedStateFromError(error: Error) {
-    // Check if this is an extension-related error that should be ignored
-    const message = error.message || ''
+    const message = error.message || '';
+    // Don't show error boundary for browser extension conflicts
     if (
       message.includes('Could not establish connection') ||
       message.includes('Receiving end does not exist') ||
@@ -40,16 +22,15 @@ export class ErrorBoundary extends React.Component<
       message.includes('Failed to load resource') ||
       message.includes('Registration failed')
     ) {
-      // Don't show error boundary for extension conflicts
-      return { hasError: false, error: null }
+      return { hasError: false, error: null };
     }
-    
+
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Check if this is an extension-related error that should be ignored
-    const message = error.message || ''
+    const message = error.message || '';
+    // Silently ignore extension errors
     if (
       message.includes('Could not establish connection') ||
       message.includes('Receiving end does not exist') ||
@@ -60,40 +41,70 @@ export class ErrorBoundary extends React.Component<
       message.includes('Failed to load resource') ||
       message.includes('Registration failed')
     ) {
-      // Silently ignore extension errors
-      return
+      return;
     }
-    
+
     // Sanitize strings to prevent log injection
     const sanitize = (str: string) => str.replace(/[\r\n\t]/g, ' ');
-    
-    // Comprehensive error logging
-    const errorReport = {
+
+    console.error('Error caught by boundary:', {
       timestamp: new Date().toISOString(),
       error: {
         name: sanitize(error.name),
         message: sanitize(error.message),
-        stack: error.stack ? sanitize(error.stack) : undefined
       },
-      errorInfo,
-      userAgent: sanitize(navigator.userAgent),
-      url: sanitize(window.location.href)
-    };
-    
-    console.error('Error caught by boundary:', errorReport);
-    
-    // In production, errors are logged to console only (no external monitoring service configured)
-    if (!import.meta.env.DEV) {
-      // Error already logged above via console.error
-    }
+      componentStack: errorInfo.componentStack,
+      url: sanitize(window.location.href),
+    });
   }
+
+  handleReload = () => {
+    window.location.reload();
+  };
 
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-4 border border-error rounded">
-          <h2 className="text-error" style={{ fontSize: 'var(--type-lg)' }}>Something went wrong.</h2>
-          <pre className="mt-2" style={{ fontSize: 'var(--type-sm)', whiteSpace: 'pre-wrap' }}>{serializeError(this.state.error)}</pre>
+        <div
+          role="alert"
+          className="flex min-h-screen items-center justify-center bg-background px-4"
+        >
+          <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 text-center shadow-sm sm:p-8">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+              <svg
+                className="h-6 w-6 text-destructive"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
+                />
+              </svg>
+            </div>
+            <h2 className="mb-2 text-lg font-semibold text-foreground sm:text-xl">
+              Something went wrong
+            </h2>
+            <p className="mb-6 text-sm text-muted-foreground">
+              An unexpected error occurred. Please reload the page to try again.
+            </p>
+            {import.meta.env.DEV && this.state.error instanceof Error && (
+              <pre className="mb-6 max-h-32 overflow-auto rounded bg-muted p-3 text-left text-xs text-muted-foreground">
+                {this.state.error.message}
+              </pre>
+            )}
+            <button
+              type="button"
+              onClick={this.handleReload}
+              className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              Reload
+            </button>
+          </div>
         </div>
       );
     }
@@ -101,3 +112,4 @@ export class ErrorBoundary extends React.Component<
     return this.props.children;
   }
 }
+

@@ -461,3 +461,89 @@ export async function logAccountUnlocked(
     unlocked_by: unlockedBy,
   });
 }
+
+
+// ============================================================================
+// Convenience functions for application and admin audit logging (Requirement 8)
+// ============================================================================
+
+/**
+ * Log an application status change.
+ * Never logs PII — only entity IDs and status values.
+ *
+ * Requirement 8.1: Audit trail for all application status changes.
+ *
+ * @param actorId - User ID who changed the status (admin/reviewer)
+ * @param applicationId - Application being changed
+ * @param oldStatus - Previous status value
+ * @param newStatus - New status value
+ * @param retentionCategory - 'standard' (90-day) or 'security' (365-day)
+ */
+export async function logApplicationStatusChange(
+  actorId: string,
+  applicationId: string,
+  oldStatus: string,
+  newStatus: string,
+  retentionCategory: 'standard' | 'security' = 'standard'
+): Promise<void> {
+  await logAuditEvent({
+    actor_id: actorId,
+    action: 'application_status_change',
+    entity_type: 'application',
+    entity_id: applicationId,
+    changes: {
+      old_status: oldStatus,
+      new_status: newStatus,
+      retention_category: retentionCategory,
+    },
+  });
+}
+
+/**
+ * Log an admin action (user management, settings changes, etc.).
+ * Never logs PII — only entity IDs and action metadata.
+ *
+ * Requirement 8.2: Audit trail for all admin actions.
+ *
+ * @param actorId - Admin user ID performing the action
+ * @param actionType - Type of admin action (e.g. 'update_user_role', 'reset_settings')
+ * @param entityType - Type of entity being acted on
+ * @param entityId - ID of the entity being acted on
+ * @param changes - Non-PII change details (will be sanitized)
+ * @param retentionCategory - 'standard' (90-day) or 'security' (365-day)
+ */
+export async function logAdminAction(
+  actorId: string,
+  actionType: string,
+  entityType: AuditEntityType,
+  entityId: string | null,
+  changes?: Record<string, unknown>,
+  retentionCategory: 'standard' | 'security' = 'standard'
+): Promise<void> {
+  await logAuditEvent({
+    actor_id: actorId,
+    action: `admin_${actionType}`,
+    entity_type: entityType,
+    entity_id: entityId,
+    changes: {
+      ...(changes ? sanitizeContext(changes) : {}),
+      retention_category: retentionCategory,
+    },
+  });
+}
+
+/**
+ * Log a password reset event.
+ * Security retention category (365-day).
+ *
+ * @param userId - User whose password was reset
+ * @param ipAddress - Client IP address
+ */
+export async function logPasswordReset(
+  userId: string,
+  ipAddress?: string | null
+): Promise<void> {
+  await logAuthEvent(userId, 'password_reset', true, ipAddress, null, {
+    retention_category: 'security',
+  });
+}

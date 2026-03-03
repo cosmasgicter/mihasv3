@@ -394,7 +394,7 @@ export function ReportsGenerator() {
       const appsData = await applicationService.list({ pageSize: 1000 })
       
       const applications = (appsData?.applications || []).filter(app => {
-        const createdAt = new Date(app.created_at)
+        const createdAt = new Date(app.created_at ?? 0)
         const startDate = new Date(config.startDate)
         const endDate = new Date(config.endDate)
         return createdAt >= startDate && createdAt <= endDate
@@ -458,7 +458,7 @@ export function ReportsGenerator() {
     }
   }
 
-  const reportTypes = [
+  const reportTypes: Array<{ value: ReportConfig['type']; label: string; icon: React.ElementType }> = [
     { value: 'daily', label: 'Daily Report', icon: Calendar },
     { value: 'weekly', label: 'Weekly Report', icon: Calendar },
     { value: 'monthly', label: 'Monthly Report', icon: Calendar },
@@ -534,7 +534,7 @@ export function ReportsGenerator() {
               return (
                 <button
                   key={type.value}
-                  onClick={() => setConfig(prev => ({ ...prev, type: type.value as any }))}
+                  onClick={() => setConfig(prev => ({ ...prev, type: type.value }))}
                   className={`p-3 border rounded-lg text-left transition-colors ${
                     config.type === type.value
                       ? 'border-primary bg-blue-50 text-primary'

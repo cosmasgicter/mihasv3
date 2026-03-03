@@ -23,7 +23,11 @@ if (!RESEND_API_KEY) {
 const sql = neon(DATABASE_URL);
 const resend = new Resend(RESEND_API_KEY);
 
-const PASSWORD = 'Beanola2025';
+const PASSWORD = process.env.TEST_PASSWORD;
+if (!PASSWORD) {
+  console.error('TEST_PASSWORD env var required');
+  process.exit(1);
+}
 const APP_URL = '***REMOVED***';
 
 async function main() {

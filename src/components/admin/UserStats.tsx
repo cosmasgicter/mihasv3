@@ -29,7 +29,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
     () =>
       [...users]
         .sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          (a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
         )
         .slice(0, 3),
     [users]
@@ -123,7 +123,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
               <p className="text-purple-100 text-sm font-medium">New This Month</p>
               <p className="text-2xl sm:text-3xl font-bold break-words">
                 {users.filter(user => {
-                  const userDate = new Date(user.created_at)
+                  const userDate = new Date(user.created_at ?? 0)
                   const now = new Date()
                   return userDate.getMonth() === now.getMonth() && userDate.getFullYear() === now.getFullYear()
                 }).length}
@@ -190,7 +190,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
                     {getRoleLabel(user.role)}
                   </span>
                   <p className="text-xs text-foreground mt-1">
-                    {new Date(user.created_at).toLocaleDateString()}
+                    {new Date(user.created_at ?? 0).toLocaleDateString()}
                   </p>
                 </div>
               </div>

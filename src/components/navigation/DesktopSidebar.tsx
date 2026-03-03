@@ -99,11 +99,11 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         <div className={cn(
           "flex items-center",
           collapsed ? "justify-center" : "gap-2"
-        )}>
+        )} role="img" aria-label="Mukuba Institute of Health and Allied Sciences logo">
           <div className={cn(
             "w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary",
             "flex items-center justify-center shrink-0"
-          )}>
+          )} aria-hidden="true">
             <span className="text-white font-bold text-sm">M</span>
           </div>
           
@@ -169,8 +169,9 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
             <span>System Online</span>
           </div>
         ) : (
-          <div className="flex justify-center transition-opacity duration-200 motion-reduce:transition-none">
-            <div className="w-2 h-2 rounded-full bg-success animate-pulse motion-reduce:animate-none" />
+          <div className="flex justify-center transition-opacity duration-200 motion-reduce:transition-none" title="System Online" role="status">
+            <div className="w-2 h-2 rounded-full bg-success animate-pulse motion-reduce:animate-none" aria-hidden="true" />
+            <span className="sr-only">System Online</span>
           </div>
         )}
       </div>

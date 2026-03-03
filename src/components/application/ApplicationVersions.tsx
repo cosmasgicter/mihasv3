@@ -5,6 +5,8 @@ import { apiClient } from '@/services/client'
 import type { ApplicationVersion } from '@/types/application'
 import { formatDate } from '@/lib/utils'
 import { History, Eye, Download, Clock } from 'lucide-react'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 // Shared ApplicationVersion type
 
@@ -19,6 +21,8 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
   const [loading, setLoading] = useState(false)
   const [showVersions, setShowVersions] = useState(false)
   const [selectedVersion, setSelectedVersion] = useState<ApplicationVersion | null>(null)
+  const focusTrapRef = useFocusTrap(showVersions)
+  useEscapeKey(showVersions, () => setShowVersions(false))
 
   useEffect(() => {
     if (showVersions && applicationId) {
@@ -88,7 +92,13 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-card rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden">
+      <div
+        ref={focusTrapRef as React.RefObject<HTMLDivElement>}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Application Version History"
+        className="bg-card rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden"
+      >
         <div className="p-6 border-b">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-foreground">

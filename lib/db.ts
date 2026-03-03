@@ -215,7 +215,7 @@ async function executeNeonQuery<T>(
       );
     }
 
-    const sql = neon(connectionString) as unknown as NeonSqlFunction;
+    const sql = neon(connectionString) as NeonSqlFunction;
     let rows: Record<string, unknown>[];
 
     if (params && params.length > 0) {
@@ -437,7 +437,7 @@ export async function verifyDatabaseSchema(): Promise<{
       
       const result = await query<{ column_name: string }>(
         columnCheckQuery,
-        [REQUIRED_PROFILE_COLUMNS as unknown as string[]]
+        [[...REQUIRED_PROFILE_COLUMNS] as string[]]
       );
 
       const existingColumns = new Set(result.rows.map(r => r.column_name));

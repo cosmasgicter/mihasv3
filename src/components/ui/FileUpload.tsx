@@ -101,8 +101,9 @@ export function FileUpload({
                 onClick={onFileRemove}
                 disabled={disabled}
                 className="ml-2 flex-shrink-0"
+                aria-label="Remove file"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden="true" />
               </Button>
             )}
           </div>

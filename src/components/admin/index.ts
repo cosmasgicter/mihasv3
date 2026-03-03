@@ -20,7 +20,6 @@ export { EnhancedDataTable } from './EnhancedDataTable';
 export type { Column, EnhancedDataTableProps, SortDirection } from './EnhancedDataTable';
 
 // Monitoring components
-export { SystemMonitoring } from './SystemMonitoring';
 export { RealtimeStatus } from './RealtimeStatus';
 
 // Error handling

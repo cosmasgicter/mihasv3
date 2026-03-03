@@ -14,7 +14,7 @@ export function FancyPreloader() {
 
         {/* Icon */}
         <div className="mb-6 relative z-10 animate-[spin_3s_linear_infinite]">
-          <GraduationCap className="w-16 h-16 text-foreground mx-auto drop-shadow-lg" />
+          <GraduationCap className="w-16 h-16 text-foreground mx-auto drop-shadow-lg" aria-hidden="true" />
         </div>
         
         {/* Title */}

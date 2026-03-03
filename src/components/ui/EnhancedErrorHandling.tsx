@@ -180,7 +180,7 @@ export function formatErrorMessage(error: unknown): string {
   }
   
   if (typeof error === 'object' && error !== null) {
-    const errorObj = error as any
+    const errorObj = error as { message?: string; name?: string; code?: string; details?: string }
     
     // Supabase error format
     if (errorObj.message) {

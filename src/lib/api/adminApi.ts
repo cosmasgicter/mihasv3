@@ -108,9 +108,11 @@ function normalizeSettingValue(value: unknown): string {
 function toSystemSettingPayload(
   setting: Partial<SystemSettingPayload> | LegacySystemSettingPayload
 ): Partial<SystemSettingPayload> {
+  const legacy = setting as LegacySystemSettingPayload;
+  const modern = setting as Partial<SystemSettingPayload>;
   return {
-    key: 'key' in setting ? setting.key : setting.setting_key,
-    value: 'value' in setting ? setting.value : setting.setting_value,
+    key: 'key' in setting ? modern.key : legacy.setting_key,
+    value: 'value' in setting ? modern.value : legacy.setting_value,
     description: setting.description,
     category: setting.category,
     is_public: setting.is_public,

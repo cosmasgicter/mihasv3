@@ -79,8 +79,8 @@ export function ApplicationTimeline({ applications, className }: ApplicationTime
 
   // Sort applications by date (most recent first) and take the latest one
   const sortedApplications = [...applications].sort((a, b) => {
-    const dateA = new Date(a.updated_at || a.created_at);
-    const dateB = new Date(b.updated_at || b.created_at);
+    const dateA = new Date(a.updated_at || a.created_at || 0);
+    const dateB = new Date(b.updated_at || b.created_at || 0);
     return dateB.getTime() - dateA.getTime();
   });
 

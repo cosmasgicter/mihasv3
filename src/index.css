@@ -47,26 +47,31 @@
     @apply transition-all duration-200;
   }
   
-  /* Enhanced focus indicators for keyboard navigation */
-  *:focus {
-    @apply outline-none;
-  }
+  /* Enhanced focus indicators for keyboard navigation (WCAG 2.1 AA)
+   * - Minimum 2px ring with sufficient contrast (#2563eb = 4.52:1 on white)
+   * - Uses focus-visible so indicators only show on keyboard navigation, not mouse clicks
+   * - ring-ring maps to the theme's ring color (#2563eb) for consistency with UI components
+   * - ring-offset provides visual separation from the element
+   * Requirement 14.3: visible focus indicators on all interactive elements
+   */
   
   a:focus-visible,
   button:focus-visible,
   input:focus-visible,
   select:focus-visible,
   textarea:focus-visible,
-  [tabindex]:focus-visible {
-    @apply outline-2 outline-offset-2 outline-blue-600 ring-2 ring-blue-600 ring-offset-2;
-  }
-  
-  /* Ensure focus is visible on interactive elements */
+  [tabindex]:focus-visible,
   [role="button"]:focus-visible,
   [role="link"]:focus-visible,
   [role="menuitem"]:focus-visible,
-  [role="tab"]:focus-visible {
-    @apply outline-2 outline-offset-2 outline-blue-600 ring-2 ring-blue-600 ring-offset-2;
+  [role="tab"]:focus-visible,
+  [role="checkbox"]:focus-visible,
+  [role="radio"]:focus-visible,
+  [role="switch"]:focus-visible,
+  [role="combobox"]:focus-visible,
+  [role="listbox"]:focus-visible,
+  [role="option"]:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 }
 

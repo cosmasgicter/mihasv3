@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/Dialog'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Pencil, Trash2, Plus, ArrowLeft, Calendar, BarChart3, Target } from 'lucide-react'
-import { useForm } from 'react-hook-form'
+import { useForm, type Resolver } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 
@@ -54,7 +54,15 @@ const intakeSchema = z.object({
     path: ['available_spots'],
   })
 
-export type IntakeForm = z.infer<typeof intakeSchema>
+export interface IntakeForm {
+  name: string
+  year: number
+  start_date: string
+  end_date: string
+  application_deadline: string
+  total_capacity: number
+  available_spots: number
+}
 
 const formatDate = (dateString: string | null): string => {
   if (!dateString) return 'Invalid date'
@@ -93,7 +101,7 @@ export default function AdminIntakes() {
     reset,
     formState: { errors },
   } = useForm<IntakeForm>({
-    resolver: zodResolver(intakeSchema),
+    resolver: zodResolver(intakeSchema) as Resolver<IntakeForm>,
     defaultValues: {
       name: '',
       year: new Date().getFullYear(),
@@ -288,7 +296,7 @@ export default function AdminIntakes() {
                           <p className="text-sm text-foreground">Year: {intake.year}</p>
                         </div>
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          intake.available_spots > 0 ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
+                          (intake.available_spots ?? 0) > 0 ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
                         }`}>
                           {intake.available_spots}/{intake.total_capacity} spots
                         </span>
@@ -394,7 +402,7 @@ export default function AdminIntakes() {
                           </td>
                           <td className="px-6 py-4">
                             <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                              intake.available_spots > 0 ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
+                              (intake.available_spots ?? 0) > 0 ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
                             }`}>
                               {intake.available_spots}
                             </span>
@@ -406,16 +414,18 @@ export default function AdminIntakes() {
                                 size="sm" 
                                 onClick={() => openEdit(intake)}
                                 className="text-primary border-blue-300 hover:bg-primary/5"
+                                aria-label={`Edit ${intake.name}`}
                               >
-                                <Pencil className="h-4 w-4" />
+                                <Pencil className="h-4 w-4" aria-hidden="true" />
                               </Button>
                               <Button 
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => openDelete(intake)}
                                 className="text-destructive border-destructive/30 hover:bg-destructive/5"
+                                aria-label={`Delete ${intake.name}`}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-4 w-4" aria-hidden="true" />
                               </Button>
                             </div>
                           </td>

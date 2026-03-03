@@ -26,7 +26,7 @@ import type { ArcjetDecision } from "@arcjet/node";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 // Route type for rate limiting configuration
-export type RouteType = "auth" | "session" | "admin" | "notification" | "general";
+export type RouteType = "auth" | "session" | "admin" | "notification" | "general" | "registration";
 
 // Protected handler type - allows returning VercelResponse or void
 export type ProtectedHandler = (req: VercelRequest, res: VercelResponse) => Promise<VercelResponse | void>;
@@ -86,6 +86,13 @@ export const rateLimitConfigs = {
    * Design spec: general (100 req / 10 min)
    */
   general: { window: "10m", max: 100 },
+
+  /**
+   * Registration: Strict limits to prevent abuse
+   * - 3 requests per 10 minutes per IP
+   * Requirement 7.5: registration rate limiting via Arcjet
+   */
+  registration: { window: "10m", max: 3 },
 } as const;
 
 

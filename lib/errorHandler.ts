@@ -1,4 +1,5 @@
 import type { VercelResponse } from '@vercel/node';
+import type { AuditLogInput } from './queries';
 
 /**
  * Error Handler Module
@@ -412,6 +413,47 @@ export function logError(context: string, error: unknown): void {
 }
 
 /**
+ * Log an error to the audit trail with sanitized context.
+ * 
+ * Requirement 21.5: All caught errors in API endpoints are logged via logAuditEvent.
+ * CRITICAL: Never logs PII, stack traces, or sensitive data.
+ * Fire-and-forget — failures are swallowed to avoid breaking the error response.
+ *
+ * @param context - Endpoint/action context (e.g. 'auth/login', 'applications/create')
+ * @param error - The caught error
+ */
+export async function logErrorAuditEvent(context: string, error: unknown): Promise<void> {
+  try {
+    // Lazy import to avoid circular dependency (auditLogger imports from errorHandler)
+    const { logAuditEvent } = await import('./auditLogger');
+
+    const errorCode = error instanceof AuthError ? error.code : 'INTERNAL_ERROR';
+    const errorType = error instanceof AuthError
+      ? 'auth_error'
+      : error instanceof Error
+        ? error.constructor.name
+        : 'unknown';
+
+    const input: AuditLogInput = {
+      actor_id: null,
+      action: 'api_error',
+      entity_type: 'system',
+      entity_id: null,
+      changes: {
+        endpoint: context,
+        error_code: errorCode,
+        error_type: errorType,
+        timestamp: new Date().toISOString(),
+      },
+    };
+
+    await logAuditEvent(input);
+  } catch {
+    // Swallow — audit logging must never break the main flow
+  }
+}
+
+/**
  * Handle error and send appropriate response.
  * 
  * Ensures no PII is leaked in error responses.
@@ -430,6 +472,10 @@ export function handleError(
   context: string = 'API'
 ): VercelResponse {
   logError(context, error);
+
+  // Audit log the error with sanitized context (Requirement 21.5)
+  // Fire-and-forget — audit logging must never break the error response
+  logErrorAuditEvent(context, error).catch(() => {});
 
   // Ensure Content-Type is always JSON
   res.setHeader('Content-Type', 'application/json');

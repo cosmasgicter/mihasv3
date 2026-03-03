@@ -7,11 +7,11 @@
  * @module client
  */
 
-import { monitoring } from '@/lib/monitoring';
 import { getApiBaseUrl } from '@/lib/apiConfig';
 import { fetchWithCache, invalidateCache } from '@/utils/api-cache';
 import { ApiErrorHandler } from '@/lib/apiErrorHandler';
 import { logger } from '@/utils/logger';
+import { getCsrfToken, setCsrfToken } from '@/lib/csrfToken';
 
 import type { FetchWithCacheOptions } from '@/utils/api-cache';
 
@@ -124,7 +124,7 @@ class ApiClient {
       trimmedBody.startsWith('[');
 
     if (!shouldParseJson) {
-      return bodyText as unknown as TResponse;
+      return bodyText as TResponse;
     }
 
     try {
@@ -255,6 +255,14 @@ class ApiClient {
         ...this.normalizeHeaders(headers),
       };
 
+      // Attach CSRF token for state-changing requests
+      if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+        const csrfToken = getCsrfToken();
+        if (csrfToken) {
+          requestHeaders['X-CSRF-Token'] = csrfToken;
+        }
+      }
+
       const requestInit: RequestInit = {
         ...restOptions,
         method,
@@ -290,18 +298,9 @@ class ApiClient {
         const data = await fetchWithCache<TResponse | null>(url, fetchOptions);
 
         if (responseMeta) {
-          monitoring.trackApiCall(service, normalizedEndpoint, responseMeta.duration, responseMeta.ok, {
-            method,
-            statusCode: responseMeta.statusCode,
-          });
-          monitoring.queueFlush(!responseMeta.ok);
+          // monitoring removed
         } else {
-          const duration = Date.now() - start;
-          monitoring.trackApiCall(service, normalizedEndpoint, duration, true, {
-            method,
-            statusCode: 200,
-          });
-          monitoring.queueFlush(false);
+          // monitoring removed
         }
 
         // Unwrap { success, data } envelope from API responses
@@ -310,12 +309,14 @@ class ApiClient {
 
       const response = await fetch(`${API_BASE}${normalizedEndpoint}`, requestInit);
 
+      // Capture CSRF token from response header (set on login/refresh)
+      const responseCsrfToken = response.headers.get('X-CSRF-Token');
+      if (responseCsrfToken) {
+        setCsrfToken(responseCsrfToken);
+      }
+
       const duration = Date.now() - start;
-      monitoring.trackApiCall(service, normalizedEndpoint, duration, response.ok, {
-        method,
-        statusCode: response.status,
-      });
-      monitoring.queueFlush(!response.ok);
+      // monitoring removed
 
       if (!response.ok) {
         let errorMessage = `API Error: ${response.statusText}`;
@@ -335,11 +336,7 @@ class ApiClient {
           logger.warn('[API Client] 401 Unauthorized - session may have expired');
         }
 
-        monitoring.logError(service, `${response.status}: ${errorMessage}`, {
-          endpoint: normalizedEndpoint,
-          method,
-          statusCode: response.status,
-        });
+        // monitoring removed
 
         // Enhance error message for better UX
         const enhancedError = ApiErrorHandler.enhanceError({
@@ -368,16 +365,7 @@ class ApiClient {
       // Don't log or track abort errors (normal cancellation)
       if (!isAbortError) {
         const duration = Date.now() - start;
-        monitoring.trackApiCall(service, normalizedEndpoint, duration, false, { method });
-        const errorPayload = error instanceof Error ? error : { message: 'Unknown error' };
-        const statusCode =
-          typeof (error as any)?.status === 'number' ? (error as any).status : undefined;
-        monitoring.logError(service, errorPayload, {
-          endpoint: normalizedEndpoint,
-          method,
-          ...(statusCode ? { statusCode } : {}),
-        });
-        monitoring.queueFlush(true);
+        void duration; // monitoring removed
       }
 
       // For abort errors, just rethrow without enhancement
@@ -393,8 +381,9 @@ class ApiClient {
 
       // Enhance error if not already enhanced
       if (!(error instanceof Error) || !error.message.includes('Please')) {
+        const errorWithStatus = error as { status?: number }
         const errorStatusCode =
-          typeof (error as any)?.status === 'number' ? (error as any).status : undefined;
+          typeof errorWithStatus?.status === 'number' ? errorWithStatus.status : undefined;
         const enhancedError = ApiErrorHandler.enhanceError({
           endpoint: normalizedEndpoint,
           method,

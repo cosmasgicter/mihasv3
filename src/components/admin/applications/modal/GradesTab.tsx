@@ -1,4 +1,4 @@
-import { GraduationCap } from 'lucide-react'
+import { GraduationCap, CheckCircle, XCircle } from 'lucide-react'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { calculateBestFivePoints, sanitizeGradeValue } from '@/utils/grades'
 
@@ -30,7 +30,11 @@ export function GradesTab({ grades, loading }: { grades: Grade[], loading: boole
           return (
             <div key={i} className={`flex justify-between p-3 border rounded-lg ${best ? 'bg-green-50' : 'bg-card'}`}>
               <span>{g.subject_name}{best && <span className="ml-2 text-xs text-accent">BEST 5</span>}</span>
-              <span className={`px-3 py-1 rounded-full text-sm font-bold ${norm && norm <= 6 ? 'bg-green-100 text-green-900' : 'bg-red-100 text-red-900'}`}>{g.grade}</span>
+              <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold ${norm && norm <= 6 ? 'bg-green-100 text-green-900' : 'bg-red-100 text-red-900'}`}>
+                {norm && norm <= 6 ? <CheckCircle className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+                {g.grade}
+                <span className="sr-only">{norm && norm <= 6 ? '(Pass)' : '(Fail)'}</span>
+              </span>
             </div>
           )
         })}

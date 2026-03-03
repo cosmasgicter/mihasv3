@@ -15,13 +15,22 @@ import { handleCors } from "../lib/cors";
 import { query } from "../lib/db";
 import { hashPassword } from "../lib/auth/password";
 import { handleError, sendSuccess, sendError, HttpStatus } from "../lib/errorHandler";
+import { validateServerEnv } from "../lib/envValidator";
 
 /**
  * Bootstrap Handler - NOT protected by Arcjet
  */
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   // Handle CORS
   if (handleCors(req, res)) return;
+
+  // Validate required environment variables (Req 25.3)
+  const envResult = validateServerEnv();
+  if (!envResult.valid) {
+    const details = envResult.errors.map((e) => e.message).join('; ');
+    sendError(res, `Server misconfiguration: ${details}`, HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
+    return;
+  }
 
   if (req.method !== 'POST') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);

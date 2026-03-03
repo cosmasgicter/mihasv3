@@ -18,6 +18,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { clearCsrfToken } from '@/lib/csrfToken';
 
 /**
  * User role type
@@ -146,6 +147,7 @@ export const useAuthStore = create<AuthState>()(
        * Requirement 10.7: Clear local auth state on logout
        */
       clearAuth: () => {
+        clearCsrfToken();
         set({
           user: null,
           isAuthenticated: false,

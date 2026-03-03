@@ -69,6 +69,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           )}
           ref={ref}
           aria-invalid={error ? 'true' : 'false'}
+          aria-required={props.required || undefined}
           aria-describedby={
             error 
               ? errorId 

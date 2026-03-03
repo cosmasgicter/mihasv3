@@ -17,12 +17,12 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Test configuration
+// Test configuration — credentials must come from environment variables
 const TEST_CONFIG = {
-  baseUrl: 'http://localhost:5173',
+  baseUrl: process.env.BASE_URL || 'http://localhost:5173',
   testUser: {
-    email: 'test@example.com',
-    password: 'TestPassword123!'
+    email: process.env.TEST_EMAIL,
+    password: process.env.TEST_PASSWORD
   },
   thresholds: {
     navigation: 500,      // ms
@@ -31,6 +31,10 @@ const TEST_CONFIG = {
     lighthouseScore: 90   // score
   }
 };
+
+// Validate required credentials
+if (!TEST_CONFIG.testUser.email) throw new Error('TEST_EMAIL env var required');
+if (!TEST_CONFIG.testUser.password) throw new Error('TEST_PASSWORD env var required');
 
 // Colors for console output
 const colors = {

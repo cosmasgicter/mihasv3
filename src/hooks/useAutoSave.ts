@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
+import { stripPiiFields } from '@/lib/secureStorage'
+import { cachedGetItem, cachedSetItem, cachedRemoveItem } from '@/lib/localStorageCache'
 
 export interface AutoSaveData {
   [key: string]: any
@@ -73,7 +75,7 @@ export function useAutoSave(
       }
 
       const savePayload = {
-        data,
+        data: stripPiiFields(data as Record<string, unknown>),
         timestamp: new Date().toISOString(),
         url: location.pathname + location.search,
         userAgent: navigator.userAgent,
@@ -82,8 +84,8 @@ export function useAutoSave(
         version: Date.now() // For conflict resolution
       }
 
-      // Always save to localStorage first (works offline)
-      localStorage.setItem(storageKey, JSON.stringify(savePayload))
+      // Always save to localStorage first (works offline) — PII stripped
+      cachedSetItem(storageKey, JSON.stringify(savePayload))
       
       // Add to save queue for retry mechanism
       setSaveQueue(prev => [...prev, data])
@@ -193,7 +195,7 @@ export function useAutoSave(
   // Detect data conflicts
   const detectConflict = useCallback(() => {
     try {
-      const saved = localStorage.getItem(storageKey)
+      const saved = cachedGetItem(storageKey)
       if (!saved) return false
       
       const parsed = JSON.parse(saved)
@@ -244,7 +246,7 @@ export function useAutoSave(
   // Restore data from localStorage
   const restoreData = useCallback(() => {
     try {
-      const saved = localStorage.getItem(storageKey)
+      const saved = cachedGetItem(storageKey)
       if (!saved) return null
 
       const parsed = JSON.parse(saved)
@@ -254,7 +256,7 @@ export function useAutoSave(
       // Check if saved data is not too old (24 hours)
       const maxAge = 24 * 60 * 60 * 1000 // 24 hours
       if (Date.now() - savedTimestamp.getTime() > maxAge) {
-        localStorage.removeItem(storageKey)
+        cachedRemoveItem(storageKey)
         return null
       }
 
@@ -263,7 +265,7 @@ export function useAutoSave(
       return { data: savedData, timestamp: savedTimestamp }
     } catch (error) {
       console.error('Failed to restore auto-saved data:', error)
-      localStorage.removeItem(storageKey) // Remove corrupted data
+      cachedRemoveItem(storageKey) // Remove corrupted data
       onError?.(error as Error)
       return null
     }
@@ -271,7 +273,7 @@ export function useAutoSave(
 
   // Clear saved data
   const clearSavedData = useCallback(() => {
-    localStorage.removeItem(storageKey)
+    cachedRemoveItem(storageKey)
     setLastSaved(null)
     setIsDirty(false)
     setHasUnsavedChanges(false)
@@ -416,7 +418,7 @@ export function useDraftManager(formId: string) {
   useEffect(() => {
     const checkForDraft = () => {
       try {
-        const draft = localStorage.getItem(draftKey)
+        const draft = cachedGetItem(draftKey)
         if (draft) {
           const parsed = JSON.parse(draft)
           const draftTimestamp = new Date(parsed.timestamp)
@@ -429,12 +431,12 @@ export function useDraftManager(formId: string) {
             setShowDraftWarning(true)
           } else {
             // Remove old draft
-            localStorage.removeItem(draftKey)
+            cachedRemoveItem(draftKey)
           }
         }
       } catch (error) {
         console.error('Failed to check for draft:', error)
-        localStorage.removeItem(draftKey)
+        cachedRemoveItem(draftKey)
       }
     }
 
@@ -451,7 +453,7 @@ export function useDraftManager(formId: string) {
         url: location.pathname + location.search
       }
       
-      localStorage.setItem(draftKey, JSON.stringify(draftPayload))
+      cachedSetItem(draftKey, JSON.stringify(draftPayload))
       setHasDraft(true)
       setDraftData(draftPayload)
     } catch (error) {
@@ -468,14 +470,14 @@ export function useDraftManager(formId: string) {
   // Dismiss draft warning
   const dismissDraft = useCallback(() => {
     setShowDraftWarning(false)
-    localStorage.removeItem(draftKey)
+    cachedRemoveItem(draftKey)
     setHasDraft(false)
     setDraftData(null)
   }, [draftKey])
 
   // Clear draft
   const clearDraft = useCallback(() => {
-    localStorage.removeItem(draftKey)
+    cachedRemoveItem(draftKey)
     setHasDraft(false)
     setDraftData(null)
     setShowDraftWarning(false)

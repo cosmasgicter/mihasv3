@@ -11,9 +11,12 @@
 
 import { chromium } from '@playwright/test'
 
-const TEST_EMAIL = process.env.TEST_EMAIL || 'test@mihas.edu.zm'
-const TEST_PASSWORD = process.env.TEST_PASSWORD || 'TestPassword123!'
+const TEST_EMAIL = process.env.TEST_EMAIL
+const TEST_PASSWORD = process.env.TEST_PASSWORD
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173'
+
+if (!TEST_EMAIL) throw new Error('TEST_EMAIL env var required')
+if (!TEST_PASSWORD) throw new Error('TEST_PASSWORD env var required')
 
 async function measureLoginPerformance() {
   console.log('🚀 Starting login performance measurement...\n')

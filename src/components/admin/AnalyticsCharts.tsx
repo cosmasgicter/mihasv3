@@ -14,7 +14,7 @@ import {
 // Traffic overview — analytics removed in migration. Static empty shape.
 const useTrafficOverview = () => ({
   activeUsers: 0,
-  dailyCounts: [] as { date: string; count: number }[],
+  dailyCounts: [] as { date: string; count: number; label: string }[],
   isLoading: false,
   isError: false,
 })

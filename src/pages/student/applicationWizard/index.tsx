@@ -1,6 +1,6 @@
 import { ArrowLeft, ArrowRight, CheckCircle, Send, Info } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
 import { Button } from '@/components/ui/Button'
@@ -95,6 +95,12 @@ const ApplicationWizardContent = () => {
   const { formattedTime } = useEstimatedTime(currentStepIndex, totalSteps)
   const { shouldAnimate, prefersReducedMotion, isMobile } = useOptimizedAnimation()
   const progressPercent = Math.round(((currentStepIndex + 1) / totalSteps) * 100)
+
+  // Aria-live region announcement for screen readers on step transition
+  const [stepAnnouncement, setStepAnnouncement] = useState('')
+  useEffect(() => {
+    setStepAnnouncement(`Step ${currentStepIndex + 1} of ${totalSteps}: ${currentStepConfig.title}`)
+  }, [currentStepIndex, totalSteps, currentStepConfig.title])
 
   const getChecklistItems = () => {
     // Defensive: some test setups call this component without a populated form.watch()
@@ -231,6 +237,10 @@ const ApplicationWizardContent = () => {
       className={`min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 ${shouldAnimate ? "animate-fade-in" : ""}`} 
       
     >
+      {/* Visually hidden aria-live region for screen reader step announcements */}
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {stepAnnouncement}
+      </div>
       <div className="w-full">
         <Container size="md" className="py-4 sm:py-8">
           <div className="mb-8">
@@ -340,6 +350,7 @@ const ApplicationWizardContent = () => {
                 onClick={smartAutoSave.forceSave} 
                 disabled={smartAutoSave.isSaving} 
                 className="hover:bg-primary/10"
+                aria-label={saveNowLabel}
               >
                 <Send className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">{saveNowLabel}</span>
@@ -482,7 +493,7 @@ const ApplicationWizardContent = () => {
             <div className="order-2 sm:order-1">
               {currentStepIndex > 0 && (
                 <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
-                  <Button type="button" variant="outline" onClick={handlePrevStep} className="w-full sm:w-auto" disabled={loading || uploading}>
+                  <Button type="button" variant="outline" onClick={handlePrevStep} className="w-full sm:w-auto" disabled={loading || uploading} aria-label={`Go back to ${wizardSteps[currentStepIndex - 1]?.progressTitle || 'previous step'}`}>
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     {previousButtonLabel}
                   </Button>
@@ -493,7 +504,7 @@ const ApplicationWizardContent = () => {
             <div className="order-1 sm:order-2">
               {!isLastStep ? (
                 <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
-                  <Button type="button" onClick={handleNextStep} loading={loading || uploading} disabled={loading || uploading} className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <Button type="button" onClick={handleNextStep} loading={loading || uploading} disabled={loading || uploading} className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
                     {loading || uploading ? 'Processing...' : (<><span>Next Step</span><ArrowRight className="h-4 w-4 ml-2" /></>)}
                   </Button>
                 </div>
@@ -576,7 +587,10 @@ const ApplicationWizardContent = () => {
         onLoadDraft={(draftData) => {
           Object.keys(draftData).forEach(key => {
             if (draftData[key] !== undefined && draftData[key] !== null) {
-              form.setValue(key as any, draftData[key])
+              // form is typed via useWizardController (@ts-nocheck); key is a runtime
+              // string from draft data so we cast to the expected path type here.
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              form.setValue(key as Parameters<typeof form.setValue>[0], draftData[key])
             }
           })
         }}

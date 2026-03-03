@@ -37,12 +37,11 @@ export interface Column<T> {
   filterable?: boolean;
   width?: string;
   align?: 'left' | 'center' | 'right';
-  render?: (value: any, row: T, index: number) => React.ReactNode;
-  // For status columns
+  render?: (value: unknown, row: T, index: number) => React.ReactNode;
   statusMapping?: Record<string, 'operational' | 'degraded' | 'down' | 'idle' | 'pending' | 'success' | 'error' | 'warning'>;
 }
 
-export interface EnhancedDataTableProps<T extends Record<string, any>> {
+export interface EnhancedDataTableProps<T extends object> {
   data: T[];
   columns: Column<T>[];
   keyField: keyof T;
@@ -275,7 +274,7 @@ function TableSkeleton({ columns, rows }: { columns: number; rows: number }) {
 }
 
 // Main component
-export function EnhancedDataTable<T extends Record<string, any>>({
+export function EnhancedDataTable<T extends object>({
   data,
   columns,
   keyField,
@@ -307,8 +306,13 @@ export function EnhancedDataTable<T extends Record<string, any>>({
   const [searchQuery, setSearchQuery] = useState('');
 
   // Get nested value from object
-  const getNestedValue = useCallback((obj: T, path: string): any => {
-    return path.split('.').reduce((acc, part) => acc?.[part], obj as any);
+  const getNestedValue = useCallback((obj: T, path: string): unknown => {
+    return path.split('.').reduce((acc: unknown, part: string) => {
+      if (acc !== null && acc !== undefined && typeof acc === 'object') {
+        return (acc as Record<string, unknown>)[part]
+      }
+      return undefined
+    }, obj as unknown);
   }, []);
 
   // Filter data
@@ -399,7 +403,7 @@ export function EnhancedDataTable<T extends Record<string, any>>({
   }, [selectedRows, onSelectionChange]);
 
   // Render cell content
-  const renderCell = useCallback((column: Column<T>, row: T, index: number) => {
+  const renderCell = useCallback((column: Column<T>, row: T, index: number): React.ReactNode => {
     const value = getNestedValue(row, column.key as string);
 
     if (column.render) {
@@ -407,16 +411,22 @@ export function EnhancedDataTable<T extends Record<string, any>>({
     }
 
     // Handle status columns with StatusIndicator
-    if (column.statusMapping && value in column.statusMapping) {
+    // value must be a string key to index into statusMapping
+    if (column.statusMapping && (typeof value === 'string' || typeof value === 'number') && value in column.statusMapping) {
+      const statusKey = String(value);
       return (
         <StatusBadge
-          status={column.statusMapping[value]}
-          label={String(value).replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+          status={column.statusMapping[statusKey]}
+          label={statusKey.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
         />
       );
     }
 
-    return value ?? '-';
+    if (value === null || value === undefined) return '-';
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      return String(value);
+    }
+    return '-';
   }, [getNestedValue]);
 
   if (loading) {
@@ -449,8 +459,9 @@ export function EnhancedDataTable<T extends Record<string, any>>({
                 <button
                   onClick={() => setSearchQuery('')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label="Clear search"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-4 w-4" aria-hidden="true" />
                 </button>
               )}
             </div>

@@ -1,7 +1,7 @@
 /**
  * Ownership Check Utilities
  * 
- * These functions replace Supabase RLS policies with API-level ownership checks.
+ * These functions provide API-level ownership checks.
  * All checks are performed in the API middleware layer before database operations.
  * 
  * @see migrations/RLS_REPLACEMENT.md for the full mapping

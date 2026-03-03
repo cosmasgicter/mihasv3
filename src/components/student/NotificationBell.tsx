@@ -5,10 +5,15 @@ import { staggerChild, animateClasses } from '@/lib/animations'
 import { useStudentNotifications } from '@/hooks/useStudentNotifications'
 import { formatDate } from '@/lib/utils'
 import { sanitizeText } from '@/lib/sanitize'
+import { isSafeNavigationUrl } from '@/lib/urlSafety'
 import type { StudentNotification } from '@/types/notifications'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 export function NotificationBell() {
   const [showPanel, setShowPanel] = useState(false)
+  const focusTrapRef = useFocusTrap(showPanel)
+  useEscapeKey(showPanel, () => setShowPanel(false))
   const { 
     notifications, 
     loading, 
@@ -58,7 +63,11 @@ export function NotificationBell() {
       
       // Navigate after optimistic update (don't wait for server)
       if (notification.action_url) {
-        window.location.href = notification.action_url
+        if (isSafeNavigationUrl(notification.action_url)) {
+          window.location.href = notification.action_url
+        } else if (import.meta.env.DEV) {
+          console.warn('[NotificationBell] Blocked unsafe navigation URL:', notification.action_url)
+        }
       }
     } catch (error) {
       console.error('Failed to handle notification click')
@@ -73,9 +82,10 @@ export function NotificationBell() {
         size="sm"
         onClick={() => setShowPanel(!showPanel)}
         className="relative hover:bg-primary/5 flex items-center justify-center"
+        aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : 'Notifications'}
         data-testid="notification-bell"
       >
-        <Bell className="h-5 w-5 text-muted-foreground" />
+        <Bell className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
         {unreadCount > 0 && (
           <span
             className="absolute -top-1 -right-1 bg-error text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold animate-scale-in"
@@ -96,6 +106,10 @@ export function NotificationBell() {
             />
             
             <div
+              ref={focusTrapRef as React.RefObject<HTMLDivElement>}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Notifications"
               className="fixed md:absolute right-2 md:right-0 top-16 md:top-full md:mt-2 w-80 md:w-96 bg-card rounded-xl shadow-2xl border border-border z-[9999] max-h-[80vh] flex flex-col animate-scale-in"
               data-testid="notifications-panel"
             >
@@ -124,9 +138,10 @@ export function NotificationBell() {
                       variant="ghost"
                       size="sm"
                       onClick={() => setShowPanel(false)}
+                      aria-label="Close notifications"
                       data-testid="close-notifications"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </div>
                 </div>
@@ -190,9 +205,10 @@ export function NotificationBell() {
                                     console.error('Failed to delete notification')
                                   }
                                 }}
+                                aria-label={`Delete notification: ${sanitizeText(notification.title)}`}
                                 className="p-1 h-auto opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-error"
                               >
-                                <Trash2 className="h-3 w-3" />
+                                <Trash2 className="h-3 w-3" aria-hidden="true" />
                               </Button>
                             </div>
                           </div>

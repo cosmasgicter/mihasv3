@@ -71,7 +71,7 @@ export function useApplicationsData(params?: ApplicationsDataParams) {
         startDate: dateRange.start || undefined,
         endDate: dateRange.end || undefined,
       })
-      return result ?? { applications: [], totalCount: 0 }
+      return result ?? { applications: [], totalCount: 0, stats: undefined }
     },
     ...QUERY_CACHE_CONFIG.critical,
   })
