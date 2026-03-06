@@ -1,4 +1,4 @@
-# MIHAS - Application System
+# MIHAS - Application Management System 
 
 ## 🎯 Project Overview
 
