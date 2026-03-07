@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
 import { SkeletonTable } from '@/components/ui'
 import { BulkOperations } from './BulkOperations'
+import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus'
 
 // Institution code to name mapping
 const INSTITUTION_NAMES: Record<string, string> = {
@@ -26,7 +27,7 @@ export interface Application {
   phone: string
   program: string
   status: 'draft' | 'submitted' | 'under-review' | 'approved' | 'rejected'
-  paymentStatus: 'pending' | 'verified' | 'rejected'
+  paymentStatus: 'not_paid' | 'pending_review' | 'verified' | 'rejected'
   submittedAt: string
   institution: 'MIHAS' | 'KATC'
   trackingCode: string
@@ -91,7 +92,7 @@ export function EnhancedApplicationsTable({
 
       // Status filters
       if (filters.status && app.status !== filters.status) return false
-      if (filters.paymentStatus && app.paymentStatus !== filters.paymentStatus) return false
+      if (filters.paymentStatus && normalizePaymentStatus(app.paymentStatus) !== normalizePaymentStatus(filters.paymentStatus)) return false
       if (filters.program && app.program !== filters.program) return false
       if (filters.institution && app.institution !== filters.institution) return false
 
@@ -158,7 +159,7 @@ export function EnhancedApplicationsTable({
     const submitted = filteredAndSortedApplications.filter(app => app.status === 'submitted').length
     const underReview = filteredAndSortedApplications.filter(app => app.status === 'under-review').length
     const approved = filteredAndSortedApplications.filter(app => app.status === 'approved').length
-    const pendingPayment = filteredAndSortedApplications.filter(app => app.paymentStatus === 'pending').length
+    const pendingPayment = filteredAndSortedApplications.filter(app => normalizePaymentStatus(app.paymentStatus) === 'not_paid').length
 
     return { total, submitted, underReview, approved, pendingPayment }
   }, [filteredAndSortedApplications])
@@ -220,18 +221,20 @@ export function EnhancedApplicationsTable({
   }
 
   const getPaymentBadge = (status: string) => {
+    const normalizedStatus = normalizePaymentStatus(status)
     const styles = {
-      'pending': 'bg-accent/10 text-accent-foreground',
-      'verified': 'bg-accent/10 text-accent-foreground',
-      'rejected': 'bg-destructive/10 text-destructive-foreground'
-    }[status] || 'bg-accent text-foreground'
+      not_paid: 'bg-slate-100 text-slate-800',
+      pending_review: 'bg-orange-100 text-orange-800',
+      verified: 'bg-emerald-100 text-emerald-800',
+      rejected: 'bg-destructive/10 text-destructive-foreground'
+    }[normalizedStatus] || 'bg-accent text-foreground'
 
     return (
       <span className={cn(
         'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
         styles
       )}>
-        {status.toUpperCase()}
+        {getPaymentStatusLabel(normalizedStatus)}
       </span>
     )
   }
@@ -284,7 +287,7 @@ export function EnhancedApplicationsTable({
         <div className="bg-card p-4 rounded-lg border border-border">
           <div className="flex items-center">
             <Clock className="w-5 h-5 text-orange-600" />
-            <span className="ml-2 text-sm font-medium text-foreground">Payment</span>
+            <span className="ml-2 text-sm font-medium text-foreground">Awaiting Payment</span>
           </div>
           <p className="text-2xl font-bold text-foreground mt-1">{stats.pendingPayment}</p>
         </div>
@@ -361,10 +364,11 @@ export function EnhancedApplicationsTable({
               onChange={(e) => setFilters(prev => ({ ...prev, paymentStatus: e.target.value }))}
               className="flex min-h-[44px] w-full items-center rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             >
-              <option value="">All Payment Status</option>
-              <option value="pending">Pending</option>
+              <option value="">All Payment States</option>
+              <option value="not_paid">Awaiting Payment</option>
+              <option value="pending_review">Awaiting Proof Review</option>
               <option value="verified">Verified</option>
-              <option value="rejected">Rejected</option>
+              <option value="rejected">Rejected Proof</option>
             </select>
             
             <select

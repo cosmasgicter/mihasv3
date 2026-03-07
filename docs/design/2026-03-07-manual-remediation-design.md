@@ -169,6 +169,7 @@ Frontend upload code should therefore:
 - Convert `File` to base64 once.
 - Send JSON to `/api/documents?action=upload`.
 - Include `userId` and `applicationId` consistently in application-document uploads.
+- Keep the stored `extra_kyc` document key as an internal contract only; all user-visible student/admin labels should render that slot as `Identity Support Document`.
 - Avoid multipart unless the backend explicitly adds multipart parsing.
 - Retry only after a classified transient failure, not on every validation mismatch.
 - Retry budgets should stay intentionally low so deterministic backend failures do not flood the API or confuse the user with repeated upload attempts.
@@ -231,6 +232,7 @@ Admin/UI modeling rules:
 - Admin summary cards should expose separate counts for decision queue, proof-review queue, and payment follow-up so operational staff can tell whether action is required from admissions/finance or from the student.
 - Payment review decisions should capture reviewer notes in the audit trail, with rejection reasons required for `rejected`.
 - Application list/detail reads should expose the latest payment review metadata (reviewer identity, reviewed-at timestamp, latest note) so admin/student surfaces can explain the current payment state without extra stub logic.
+- Admin cards, filters, tables, detail modals, update toasts, and export/report metadata should all derive payment wording from the same canonical label helper instead of rendering raw enum replacements independently.
 - Rejected payments remain actionable from the student payments page and can be resubmitted or reopened to `pending_review` by admin review tools.
 - Student payment surfaces should group applications into:
   - `payment action required`: `not_paid` or `rejected`

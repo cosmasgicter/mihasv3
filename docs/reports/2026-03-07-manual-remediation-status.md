@@ -303,6 +303,11 @@ Session type: cross-session stabilization tracker
 
 ## Latest Implementation Batch
 
+- Finished the remaining admin applications wording/document-label cleanup:
+  - `src/components/admin/applications/ApplicationCard.tsx`, `src/components/admin/applications/ApplicationDetailModal.tsx`, `src/components/admin/applications/ApplicationsTable.tsx`, `src/components/admin/applications/ApplicationsTableView.tsx`, `src/components/admin/applications/ApplicationsFilters.tsx`, `src/components/admin/applications/FiltersPanel.tsx`, and `src/pages/admin/Applications.tsx` now use the canonical payment labels (`Awaiting Payment`, `Awaiting Proof Review`, `Rejected`, `Verified`) instead of raw enum string replacement or generic “Awaiting Review” copy
+  - admin payment update toasts now use the same canonical payment-state wording as the filters/cards/detail views instead of echoing raw enum values
+  - the remaining admin-facing `extra_kyc` copy was normalized to `Identity Support Document` in routed document/detail flows
+  - legacy secondary admin surfaces `src/components/admin/EnhancedApplicationsTable.tsx` and `src/components/admin/BulkOperations.tsx` were also aligned so they do not reintroduce the older generic `pending` wording if reused later
 - Finished the remaining student payment/shell alignment sweep:
   - added `src/lib/paymentStatus.ts` so the student dashboard, payment page, status page, detail page, and shared application-status component now use one canonical payment-state vocabulary (`Awaiting Payment`, `Awaiting Proof Review`, `Rejected`, `Verified`)
   - `src/components/student/DashboardStatusOverview.tsx` now treats drafts as a separate continue-draft concern, shows payment action required separately from submitted history, and stops surfacing a draft as the latest submitted application status
@@ -525,7 +530,7 @@ Resume from `docs/migration/codex.md`, `docs/reports/2026-03-07-claude-handover.
 The known implementation backlog is now largely closed. Continue with confirmation-driven work in this order:
 
 - run manual/browser QA across the refreshed student flows (draft recovery, submission, payments, notifications, logout, settings/session management) and fix only issues that are actually reproduced
-- run manual/browser QA across admin applications/dashboard/users/export/report flows and fix only remaining visible gaps
+- run manual/browser QA across admin applications/dashboard/users/export/report flows, with special attention to payment-state wording, detail modals, and document labels, and fix only remaining visible gaps
 - do deploy/manual confirmation on the new PWA/installability assets only if install prompts or live caching still show stale metadata after release
 
 Already implemented:
@@ -556,6 +561,7 @@ Already implemented:
 - admin users page now matches the shared admin layout, persists phone data on admin-created accounts, and makes reauthentication/session-revocation effects explicit when roles or permissions change
 - the student dashboard now keeps draft recovery in a single primary continue-draft surface, leaves submitted history free of duplicate draft rows, and uses canonical `/student/settings` links in quick actions and shell menus
 - admin exports now include payment-review metadata plus filter-aware filenames, and analytics report exports include payment/institution/filter context in downloaded files
+- routed admin application filters/cards/table/detail/toast flows now use the same canonical payment wording, and admin document labels now say `Identity Support Document` instead of `Extra KYC`
 - student settings now use a unified account-management layout for profile, notification-delivery, and security/session controls
 - student notifications now show delivery-number source plus portal-inbox refresh mode
 - education-step uploads now use a visible required/optional checklist with clearer per-card upload status

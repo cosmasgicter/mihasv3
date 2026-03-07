@@ -3,6 +3,10 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { FileText, CheckCircle } from 'lucide-react'
 import { useToastStore } from '@/components/ui/Toast'
 import { ApplicationCard, ApplicationSummary } from './ApplicationCard'
+import { getPaymentStatusLabel } from '@/lib/paymentStatus'
+
+const formatStatusLabel = (value: string) =>
+  value.replace(/_/g, ' ').replace(/\b\w/g, letter => letter.toUpperCase())
 
 interface ApplicationsTableProps {
   applications: ApplicationSummary[]
@@ -56,7 +60,7 @@ export function ApplicationsTable({
     try {
       setUpdatingStatus(id)
       await onStatusUpdate(id, status)
-      showSuccess('Status Updated', `Application status changed to ${status.replace('_', ' ')}`)
+      showSuccess('Status Updated', `Application status changed to ${formatStatusLabel(status)}`)
     } catch (error) {
       console.error('Failed to update status:', error)
       showError('Update Failed', error instanceof Error ? error.message : 'Failed to update application status')
@@ -69,7 +73,7 @@ export function ApplicationsTable({
     try {
       setUpdatingPayment(id)
       await onPaymentStatusUpdate(id, status, verificationNotes)
-      showSuccess('Payment Updated', `Payment status changed to ${status.replace('_', ' ')}`)
+      showSuccess('Payment Updated', `Payment status changed to ${getPaymentStatusLabel(status)}`)
     } catch (error) {
       console.error('Failed to update payment status:', error)
       showError('Update Failed', error instanceof Error ? error.message : 'Failed to update payment status')
