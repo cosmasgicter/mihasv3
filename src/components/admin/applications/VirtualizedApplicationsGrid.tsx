@@ -5,7 +5,7 @@ import { ApplicationCard, ApplicationSummary } from './ApplicationCard'
 interface VirtualizedApplicationsGridProps {
   applications: ApplicationSummary[]
   onStatusUpdate: (id: string, status: string) => void | Promise<void>
-  onPaymentStatusUpdate: (id: string, status: string) => void | Promise<void>
+  onPaymentStatusUpdate: (id: string, status: string, verificationNotes?: string) => void | Promise<void>
   onViewDetails: (id: string) => void
   updatingStatusId: string | null
   updatingPaymentId: string | null

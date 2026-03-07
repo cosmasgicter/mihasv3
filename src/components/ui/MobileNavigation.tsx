@@ -5,6 +5,7 @@ import { BaseNavigation, NavigationItem } from '@/components/navigation/BaseNavi
 import { GraduationCap, LayoutDashboard, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
+import { useSignOutAction } from '@/hooks/useSignOutAction'
 import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
 
 interface MobileNavigationProps {
@@ -12,23 +13,15 @@ interface MobileNavigationProps {
 }
 
 export function MobileNavigation({ className }: MobileNavigationProps) {
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
+  const { signOut, isSigningOut } = useSignOutAction()
   const navigate = useNavigate()
   const location = useLocation()
   const { isAdmin } = useRoleQuery({ user })
 
   // Requirements: 13.1, 13.2, 13.3, 13.4 - Improve Logout Performance
-  // Navigate immediately, don't wait for signOut to complete
   const handleSignOut = async () => {
-    // Navigate first for instant feedback - Requirements: 13.1
-    navigate('/')
-    
-    // Fire-and-forget signOut - Requirements: 13.3
-    signOut().catch((error) => {
-      console.error('Sign out failed:', error)
-      // Already navigated, so just log the error
-      // Requirements: 13.4 - Still redirect even if API fails
-    })
+    await signOut()
   }
 
   const dashboardPath = isAdmin ? '/admin/dashboard' : '/student/dashboard'
@@ -120,10 +113,11 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
             variant="outline"
             size="md"
             onClick={handleSignOut}
+            disabled={isSigningOut}
             className="border-border text-foreground hover:bg-accent"
           >
             <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
+            {isSigningOut ? 'Signing Out...' : 'Sign Out'}
           </Button>
         </>
       )}
@@ -144,10 +138,11 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
       {user && (
         <button
           onClick={handleSignOut}
+          disabled={isSigningOut}
           className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-destructive text-destructive-foreground rounded-xl hover:bg-destructive/90 shadow-lg hover:shadow-xl transition-all duration-200 font-medium min-h-[48px] touch-target mb-4"
         >
           <LogOut className="h-5 w-5" />
-          <span>Sign Out</span>
+          <span>{isSigningOut ? 'Signing Out...' : 'Sign Out'}</span>
         </button>
       )}
       {!user && (

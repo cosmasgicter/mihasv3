@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Notification Preferences Component
  * Allows users to manage their notification channel preferences with consent tracking
@@ -73,7 +72,7 @@ export function NotificationPreferences({ onPreferencesChange }: NotificationPre
   const loadPreferences = async () => {
     try {
       setLoading(true)
-      const response = await notificationService.getPreferences()
+      const response = await notificationService.getPreferences() as any
       
       if (response) {
         setPreferences(response.preferences)
@@ -98,7 +97,7 @@ export function NotificationPreferences({ onPreferencesChange }: NotificationPre
       
       const response = await notificationService.updatePreferences({
         [`${channel}_enabled`]: enabled
-      })
+      }) as any
 
       if (response) {
         setPreferences(response.preferences)
@@ -127,7 +126,7 @@ export function NotificationPreferences({ onPreferencesChange }: NotificationPre
       const response = await notificationService.updatePreferences({
         quiet_hours_start: quietHoursStart,
         quiet_hours_end: quietHoursEnd
-      })
+      }) as any
 
       if (response) {
         setPreferences(response.preferences)

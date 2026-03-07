@@ -1,16 +1,25 @@
-// @ts-nocheck
-import React, { useState, useCallback } from 'react'
-import { CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react'
+import React, { useState, useCallback, useMemo } from 'react'
+import { CheckCircle, XCircle, Clock, RotateCcw } from 'lucide-react'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Button,
+  Textarea,
+} from '@/components/ui'
 
 interface ApplicationApprovalActionsProps {
   applicationId: string
   currentStatus: string
   currentPaymentStatus: string
   onStatusUpdate: (id: string, status: string) => Promise<void>
-  onPaymentStatusUpdate: (id: string, status: string) => Promise<void>
+  onPaymentStatusUpdate: (id: string, status: string, verificationNotes?: string) => Promise<void>
   disabled?: boolean
 }
 
@@ -24,7 +33,44 @@ export function ApplicationApprovalActions({
 }: ApplicationApprovalActionsProps) {
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [updatingPayment, setUpdatingPayment] = useState(false)
+  const [paymentReviewDialogOpen, setPaymentReviewDialogOpen] = useState(false)
+  const [pendingPaymentStatus, setPendingPaymentStatus] = useState<string | null>(null)
+  const [paymentReviewNotes, setPaymentReviewNotes] = useState('')
+  const [paymentReviewError, setPaymentReviewError] = useState<string | null>(null)
   const confirmDialog = useConfirmDialog()
+
+  const paymentReviewCopy = useMemo(() => {
+    if (pendingPaymentStatus === 'verified') {
+      return {
+        title: 'Verify Payment',
+        description: 'Confirm that the uploaded proof is valid and the application fee has been received.',
+        confirmText: 'Verify payment',
+        notesLabel: 'Verification note',
+        notesPlaceholder: 'Optional context for this verification decision.',
+        notesRequired: false,
+      }
+    }
+
+    if (pendingPaymentStatus === 'rejected') {
+      return {
+        title: 'Reject Payment',
+        description: 'Explain why the proof was rejected so the student can correct and resubmit it.',
+        confirmText: 'Reject payment',
+        notesLabel: 'Rejection reason',
+        notesPlaceholder: 'State what is wrong with the submitted proof or payment details.',
+        notesRequired: true,
+      }
+    }
+
+    return {
+      title: 'Return Payment To Review',
+      description: 'Reopen this payment for review so the applicant can continue the payment process.',
+      confirmText: 'Return to review',
+      notesLabel: 'Review note',
+      notesPlaceholder: 'Optional context for why the payment is being reopened.',
+      notesRequired: false,
+    }
+  }, [pendingPaymentStatus])
 
   const handleStatusUpdate = useCallback(async (newStatus: string) => {
     if (updatingStatus || disabled) return
@@ -35,8 +81,7 @@ export function ApplicationApprovalActions({
         title: 'Payment Not Verified',
         message: 'This application cannot be approved because payment has not been verified. Please verify payment first.',
         confirmText: 'OK',
-        variant: 'danger',
-        showCancel: false
+        variant: 'danger'
       })
       return
     }
@@ -73,56 +118,66 @@ export function ApplicationApprovalActions({
         title: 'Update Failed',
         message: error instanceof Error ? error.message : 'Failed to update application status. Please try again.',
         confirmText: 'OK',
-        variant: 'danger',
-        showCancel: false
+        variant: 'danger'
       })
     } finally {
       setUpdatingStatus(false)
     }
   }, [applicationId, currentPaymentStatus, disabled, updatingStatus, onStatusUpdate, confirmDialog])
 
-  const handlePaymentUpdate = useCallback(async (newStatus: string) => {
+  const openPaymentReviewDialog = useCallback((newStatus: string) => {
     if (updatingPayment || disabled) return
-    
-    // Confirm payment actions
-    if (newStatus === 'verified') {
-      const confirmed = await confirmDialog.confirm({
-        title: 'Verify Payment',
-        message: 'Confirm that payment has been received and verified.',
-        confirmText: 'Verify',
-        variant: 'info'
-      })
-      if (!confirmed) return
+    setPendingPaymentStatus(newStatus)
+    setPaymentReviewNotes('')
+    setPaymentReviewError(null)
+    setPaymentReviewDialogOpen(true)
+  }, [disabled, updatingPayment])
+
+  const handlePaymentDialogOpenChange = useCallback((open: boolean) => {
+    setPaymentReviewDialogOpen(open)
+    if (!open) {
+      setPendingPaymentStatus(null)
+      setPaymentReviewNotes('')
+      setPaymentReviewError(null)
     }
-    
-    if (newStatus === 'rejected') {
-      const confirmed = await confirmDialog.confirm({
-        title: 'Reject Payment',
-        message: 'The payment will be marked as rejected. The applicant will be notified.',
-        confirmText: 'Reject',
-        variant: 'danger'
-      })
-      if (!confirmed) return
+  }, [])
+
+  const handlePaymentUpdate = useCallback(async () => {
+    if (!pendingPaymentStatus || updatingPayment || disabled) return
+
+    const normalizedNotes = paymentReviewNotes.trim()
+
+    if (paymentReviewCopy.notesRequired && !normalizedNotes) {
+      setPaymentReviewError('A rejection reason is required.')
+      return
     }
-    
+
     try {
       setUpdatingPayment(true)
-      await onPaymentStatusUpdate(applicationId, newStatus)
-      // Success - state will be updated by parent component
+      await onPaymentStatusUpdate(applicationId, pendingPaymentStatus, normalizedNotes || undefined)
+      handlePaymentDialogOpenChange(false)
     } catch (error) {
       console.error('Payment status update failed:', error)
-      // Show error to user
       await confirmDialog.confirm({
         title: 'Update Failed',
         message: error instanceof Error ? error.message : 'Failed to update payment status. Please try again.',
         confirmText: 'OK',
-        variant: 'danger',
-        showCancel: false
+        variant: 'danger'
       })
     } finally {
       setUpdatingPayment(false)
     }
-  }, [applicationId, disabled, updatingPayment, onPaymentStatusUpdate, confirmDialog])
+  }, [
+    applicationId,
+    confirmDialog,
+    disabled,
+    handlePaymentDialogOpenChange,
+    onPaymentStatusUpdate,
+    paymentReviewCopy.notesRequired,
+    paymentReviewNotes,
+    pendingPaymentStatus,
+    updatingPayment,
+  ])
 
   return (
     <div className="space-y-3">
@@ -216,7 +271,7 @@ export function ApplicationApprovalActions({
           {currentPaymentStatus === 'pending_review' && (
             <>
               <button
-                onClick={() => handlePaymentUpdate('verified')}
+                onClick={() => openPaymentReviewDialog('verified')}
                 disabled={updatingPayment || disabled}
                 className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
@@ -230,7 +285,7 @@ export function ApplicationApprovalActions({
                 )}
               </button>
               <button
-                onClick={() => handlePaymentUpdate('rejected')}
+                onClick={() => openPaymentReviewDialog('rejected')}
                 disabled={updatingPayment || disabled}
                 className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
@@ -244,6 +299,23 @@ export function ApplicationApprovalActions({
                 )}
               </button>
             </>
+          )}
+
+          {currentPaymentStatus === 'rejected' && (
+            <button
+              onClick={() => openPaymentReviewDialog('pending_review')}
+              disabled={updatingPayment || disabled}
+              className="flex-1 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+            >
+              {updatingPayment ? (
+                <LoadingSpinner size="sm" />
+              ) : (
+                <>
+                  <RotateCcw className="h-3 w-3" />
+                  Reopen Review
+                </>
+              )}
+            </button>
           )}
           
           {(currentPaymentStatus === 'verified' || currentPaymentStatus === 'rejected') && (
@@ -279,6 +351,47 @@ export function ApplicationApprovalActions({
         cancelText={confirmDialog.options.cancelText}
         variant={confirmDialog.options.variant}
       />
+      <Dialog open={paymentReviewDialogOpen} onOpenChange={handlePaymentDialogOpenChange}>
+        <DialogContent size="sm">
+          <DialogHeader>
+            <DialogTitle>{paymentReviewCopy.title}</DialogTitle>
+            <DialogDescription>{paymentReviewCopy.description}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              label={paymentReviewCopy.notesLabel}
+              value={paymentReviewNotes}
+              onChange={(event) => {
+                setPaymentReviewNotes(event.target.value)
+                if (paymentReviewError) {
+                  setPaymentReviewError(null)
+                }
+              }}
+              placeholder={paymentReviewCopy.notesPlaceholder}
+              error={paymentReviewError ?? undefined}
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handlePaymentDialogOpenChange(false)}
+              disabled={updatingPayment}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                void handlePaymentUpdate()
+              }}
+              disabled={updatingPayment}
+            >
+              {updatingPayment ? 'Saving...' : paymentReviewCopy.confirmText}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

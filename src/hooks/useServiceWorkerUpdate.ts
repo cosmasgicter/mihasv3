@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
-import { logReloadEvent, performReload, resolveBuildKey } from '@/lib/reloadControl'
+import { consumeAutoReloadGuard, logReloadEvent, performReload, resolveBuildKey } from '@/lib/reloadControl'
+import {
+  resolveServiceWorkerUpdateTrigger,
+  shouldAutoReloadForServiceWorkerUpdate,
+} from '@/lib/serviceWorkerUpdatePolicy'
 
 interface ServiceWorkerUpdateState {
   updateAvailable: boolean
@@ -152,6 +156,39 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
       if (event.data.type === 'cache-updated') {
         console.log('[SW Update] Cache updated to version:', event.data.version)
         setNewVersion(event.data.appVersion)
+
+        const pathname = window.location.pathname
+        const fingerprint =
+          (typeof event.data.appVersion === 'string' && event.data.appVersion) ||
+          (typeof event.data.version === 'string' && event.data.version) ||
+          'cache-updated'
+
+        if (shouldAutoReloadForServiceWorkerUpdate(pathname)) {
+          const details = {
+            source: 'cache-updated',
+            pathname,
+            appVersion: event.data.appVersion,
+          }
+
+          if (!consumeAutoReloadGuard({
+            reason: 'sw_controller_change',
+            buildKey,
+            details,
+            fingerprint,
+          })) {
+            return
+          }
+
+          performReload({
+            reason: 'sw_controller_change',
+            mode: 'auto',
+            buildKey,
+            details,
+          })
+          return
+        }
+
+        setUpdateAvailable(true)
       }
     }
 
@@ -221,7 +258,12 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
   }, [])
 
   const updateServiceWorker = async () => {
-    if (!waitingWorker) {
+    const action = resolveServiceWorkerUpdateTrigger({
+      hasWaitingWorker: Boolean(waitingWorker),
+      updateAvailable,
+    })
+
+    if (action === 'noop') {
       console.warn('[SW Update] No waiting worker available')
       return
     }
@@ -229,6 +271,22 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
     setIsUpdating(true)
 
     try {
+      if (action === 'reload') {
+        performReload({
+          reason: 'sw_controller_change',
+          mode: 'user',
+          buildKey,
+          details: { source: 'cache-updated-message' }
+        })
+        return
+      }
+
+      if (!waitingWorker) {
+        console.warn('[SW Update] Waiting worker disappeared before activation')
+        setIsUpdating(false)
+        return
+      }
+
       sessionStorage.setItem(SW_RELOAD_PENDING_KEY, '1')
       sessionStorage.removeItem(SW_RELOAD_HANDLED_KEY)
 

@@ -1,23 +1,21 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { formatDistanceToNow } from 'date-fns'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog'
-import { Clock, User, Shield, Edit, Trash2, Plus, Eye, Filter, Calendar } from 'lucide-react'
+import { adminAuditService, type AuditLogEntry } from '@/services/admin/audit'
 import { sanitizeForLog } from '@/lib/sanitize'
-
-interface ActivityLog {
-  id: string
-  user_id: string
-  action: string
-  target_user_id?: string
-  target_user_name?: string
-  details: Record<string, any>
-  ip_address?: string
-  user_agent?: string
-  created_at: string
-  performed_by?: string
-  performed_by_name?: string
-}
+import {
+  Activity,
+  Calendar,
+  Clock,
+  Database,
+  Globe,
+  Search,
+  Shield,
+  User,
+} from 'lucide-react'
 
 interface UserActivityLogProps {
   userId?: string
@@ -25,227 +23,238 @@ interface UserActivityLogProps {
   onClose: () => void
 }
 
-const ACTION_ICONS: Record<string, React.ReactNode> = {
-  'user.created': <Plus className="h-4 w-4 text-accent" />,
-  'user.updated': <Edit className="h-4 w-4 text-primary" />,
-  'user.deleted': <Trash2 className="h-4 w-4 text-destructive" />,
-  'user.role_changed': <Shield className="h-4 w-4 text-secondary" />,
-  'user.permissions_updated': <Shield className="h-4 w-4 text-orange-600" />,
-  'user.login': <User className="h-4 w-4 text-success" />,
-  'user.logout': <User className="h-4 w-4 text-foreground" />,
-  'user.password_changed': <Shield className="h-4 w-4 text-accent" />,
+function formatEntityLabel(value?: string) {
+  if (!value) {
+    return 'Unknown'
+  }
+
+  return value
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (match) => match.toUpperCase())
 }
 
-const ACTION_LABELS: Record<string, string> = {
-  'user.created': 'User Created',
-  'user.updated': 'Profile Updated',
-  'user.deleted': 'User Deleted',
-  'user.role_changed': 'Role Changed',
-  'user.permissions_updated': 'Permissions Updated',
-  'user.login': 'User Login',
-  'user.logout': 'User Logout',
-  'user.password_changed': 'Password Changed',
+function stringifyPayload(value: unknown) {
+  if (!value) {
+    return ''
+  }
+
+  try {
+    return JSON.stringify(value, null, 2)
+  } catch {
+    return String(value)
+  }
 }
 
 export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProps) {
-  const [activities, setActivities] = useState<ActivityLog[]>([])
+  const [activities, setActivities] = useState<AuditLogEntry[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [filter, setFilter] = useState('')
+  const [actionFilter, setActionFilter] = useState('')
   const [dateFilter, setDateFilter] = useState('')
 
   useEffect(() => {
-    if (isOpen) {
-      loadActivities()
+    if (!isOpen || !userId) {
+      return
     }
+
+    const loadActivities = async () => {
+      try {
+        setLoading(true)
+        setError('')
+
+        const response = await adminAuditService.list({
+          userId,
+          page: 1,
+          pageSize: 100,
+        })
+
+        setActivities(response.entries)
+      } catch (requestError: unknown) {
+        const errorMessage =
+          requestError instanceof Error ? requestError.message : 'Failed to load activity log'
+        console.error('Failed to load activity log:', sanitizeForLog(errorMessage))
+        setError(errorMessage)
+        setActivities([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    void loadActivities()
   }, [isOpen, userId])
 
-  const loadActivities = async () => {
-    try {
-      setLoading(true)
-      setError('')
-      
-      // In a real implementation, you would have an activity_logs table
-      // For now, we'll simulate some activity data
-      const mockActivities: ActivityLog[] = [
-        {
-          id: '1',
-          user_id: userId || '',
-          action: 'user.created',
-          details: { role: 'student' },
-          created_at: new Date(Date.now() - 86400000).toISOString(),
-          performed_by: 'admin-123',
-          performed_by_name: 'System Admin'
-        },
-        {
-          id: '2',
-          user_id: userId || '',
-          action: 'user.role_changed',
-          details: { from: 'student', to: 'admissions_officer' },
-          created_at: new Date(Date.now() - 43200000).toISOString(),
-          performed_by: 'admin-123',
-          performed_by_name: 'System Admin'
-        },
-        {
-          id: '3',
-          user_id: userId || '',
-          action: 'user.login',
-          details: { ip_address: '192.168.1.100' },
-          created_at: new Date(Date.now() - 3600000).toISOString(),
-        },
-        {
-          id: '4',
-          user_id: userId || '',
-          action: 'user.updated',
-          details: { fields: ['full_name', 'phone'] },
-          created_at: new Date(Date.now() - 1800000).toISOString(),
-          performed_by: userId,
-          performed_by_name: 'Self'
+  const filteredActivities = useMemo(() => {
+    return activities.filter((activity) => {
+      if (actionFilter) {
+        const haystack = [activity.action, activity.category, activity.actorEmail, activity.actorName]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+
+        if (!haystack.includes(actionFilter.toLowerCase())) {
+          return false
         }
-      ]
-      
-      setActivities(mockActivities)
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load activity log'
-      console.error('Failed to load activity log:', sanitizeForLog(errorMessage))
-      setError(errorMessage)
-    } finally {
-      setLoading(false)
-    }
-  }
+      }
 
-  const filteredActivities = activities.filter(activity => {
-    if (filter && !ACTION_LABELS[activity.action]?.toLowerCase().includes(filter.toLowerCase())) {
-      return false
-    }
-    if (dateFilter) {
-      const activityDate = new Date(activity.created_at).toDateString()
-      const filterDate = new Date(dateFilter).toDateString()
-      return activityDate === filterDate
-    }
-    return true
-  })
+      if (dateFilter) {
+        const activityDate = new Date(activity.createdAt).toDateString()
+        const filterDateValue = new Date(dateFilter).toDateString()
+        return activityDate === filterDateValue
+      }
 
-  const formatActivityDetails = (activity: ActivityLog) => {
-    switch (activity.action) {
-      case 'user.role_changed':
-        return `Role changed from ${activity.details.from} to ${activity.details.to}`
-      case 'user.updated':
-        return `Updated fields: ${activity.details.fields?.join(', ')}`
-      case 'user.login':
-        return activity.details.ip_address ? `Login from ${activity.details.ip_address}` : 'User login'
-      case 'user.permissions_updated':
-        return `Permissions updated: ${activity.details.permissions?.length || 0} permissions`
-      default:
-        return ACTION_LABELS[activity.action] || activity.action
-    }
-  }
+      return true
+    })
+  }, [actionFilter, activities, dateFilter])
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
+          <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-primary" />
-            <span>User Activity Log</span>
+            User Activity Log
           </DialogTitle>
         </DialogHeader>
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 p-4 bg-muted rounded-lg">
-          <div className="flex-1">
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Filter by action..."
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary"
-              />
-            </div>
-          </div>
-          <div className="sm:w-48">
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground h-4 w-4" />
-              <input
-                type="date"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary"
-              />
-            </div>
-          </div>
+        <div className="grid gap-4 rounded-2xl border border-border bg-muted/20 p-4 md:grid-cols-[minmax(0,1fr)_220px]">
+          <Input
+            label="Search activity"
+            value={actionFilter}
+            onChange={(event) => setActionFilter(event.target.value)}
+            placeholder="role changed, login, update, permissions"
+            icon={<Search className="h-4 w-4" />}
+          />
+          <Input
+            label="Specific day"
+            type="date"
+            value={dateFilter}
+            onChange={(event) => setDateFilter(event.target.value)}
+            icon={<Calendar className="h-4 w-4" />}
+          />
         </div>
 
-        {/* Activity List */}
         <div className="flex-1 overflow-y-auto">
-          {error && (
-            <div className="p-4 bg-destructive/5 border border-destructive/30 rounded-lg mb-4">
-              <p className="text-error">{error}</p>
+          {error ? (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+              <p className="text-sm text-destructive">{error}</p>
             </div>
-          )}
+          ) : null}
 
           {loading ? (
-            <div className="flex justify-center py-8">
+            <div className="flex justify-center py-10">
               <LoadingSpinner size="lg" />
             </div>
           ) : filteredActivities.length === 0 ? (
-            <div className="text-center py-8">
-              <Clock className="h-12 w-12 text-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">No Activity Found</h3>
-              <p className="text-foreground">
-                {filter || dateFilter ? 'No activities match your filters.' : 'No activity recorded for this user.'}
+            <div className="rounded-2xl border border-dashed border-border bg-muted/20 px-6 py-16 text-center">
+              <Activity className="mx-auto h-10 w-10 text-muted-foreground" />
+              <h3 className="mt-4 text-lg font-semibold text-foreground">No linked activity found</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {actionFilter || dateFilter
+                  ? 'No user activity matched the current filters.'
+                  : 'No audit events are currently linked to this user.'}
               </p>
             </div>
           ) : (
-            <div className="space-y-4 p-4">
-              {filteredActivities.map((activity) => (
-                <div key={activity.id} className="flex items-start space-x-4 p-4 bg-card border border-border rounded-lg hover:shadow-sm transition-shadow">
-                  <div className="flex-shrink-0 mt-1">
-                    {ACTION_ICONS[activity.action] || <Eye className="h-4 w-4 text-foreground" />}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h4 className="text-sm font-medium text-foreground">
-                        {ACTION_LABELS[activity.action] || activity.action}
-                      </h4>
-                      <time className="text-xs text-foreground">
-                        {new Date(activity.created_at).toLocaleString()}
-                      </time>
+            <div className="space-y-4">
+              {filteredActivities.map((activity) => {
+                const payloadText = stringifyPayload(activity.changes || activity.metadata)
+                const relativeTime = (() => {
+                  try {
+                    return formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })
+                  } catch {
+                    return activity.createdAt
+                  }
+                })()
+
+                const relationLabel =
+                  activity.actorId === userId
+                    ? 'Performed by this user'
+                    : activity.targetId === userId
+                      ? 'Targeted this user'
+                      : 'Linked to this user'
+
+                return (
+                  <div key={activity.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+                    <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                            {activity.category}
+                          </span>
+                          <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                            {relationLabel}
+                          </span>
+                        </div>
+
+                        <h4 className="mt-3 text-base font-semibold text-foreground">{activity.action}</h4>
+
+                        <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                          <div className="rounded-xl border border-border bg-muted/20 p-3">
+                            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              <User className="h-3.5 w-3.5" />
+                              Actor
+                            </div>
+                            <p className="mt-1 text-sm font-medium text-foreground">
+                              {activity.actorName || activity.actorEmail || 'System'}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {activity.actorRoles?.[0]?.replace(/_/g, ' ') || 'system'}
+                            </p>
+                          </div>
+
+                          <div className="rounded-xl border border-border bg-muted/20 p-3">
+                            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              <Database className="h-3.5 w-3.5" />
+                              Target
+                            </div>
+                            <p className="mt-1 text-sm font-medium text-foreground">
+                              {formatEntityLabel(activity.targetTable)}
+                            </p>
+                            <p className="truncate text-xs text-muted-foreground">{activity.targetId || 'No target id'}</p>
+                          </div>
+
+                          <div className="rounded-xl border border-border bg-muted/20 p-3">
+                            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              <Globe className="h-3.5 w-3.5" />
+                              Request IP
+                            </div>
+                            <p className="mt-1 text-sm font-medium text-foreground">{activity.requestIp || 'Unavailable'}</p>
+                          </div>
+
+                          <div className="rounded-xl border border-border bg-muted/20 p-3">
+                            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              <Shield className="h-3.5 w-3.5" />
+                              Time
+                            </div>
+                            <p className="mt-1 text-sm font-medium text-foreground">{relativeTime}</p>
+                            <p className="text-xs text-muted-foreground">{new Date(activity.createdAt).toLocaleString()}</p>
+                          </div>
+                        </div>
+
+                        {payloadText ? (
+                          <div className="mt-4">
+                            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              Payload
+                            </p>
+                            <pre className="max-h-48 overflow-auto rounded-lg bg-slate-950 p-3 text-xs text-slate-100">
+                              {payloadText}
+                            </pre>
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
-                    
-                    <p className="text-sm text-foreground mb-2">
-                      {formatActivityDetails(activity)}
-                    </p>
-                    
-                    {activity.performed_by_name && (
-                      <div className="flex items-center space-x-2 text-xs text-foreground">
-                        <User className="h-3 w-3" />
-                        <span>Performed by: {activity.performed_by_name}</span>
-                      </div>
-                    )}
-                    
-                    {activity.details.ip_address && (
-                      <div className="text-xs text-foreground mt-1">
-                        IP: {activity.details.ip_address}
-                      </div>
-                    )}
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
 
-        <div className="flex justify-between items-center p-4 border-t border-border">
-          <div className="text-sm text-foreground">
-            {filteredActivities.length} of {activities.length} activities
+        <div className="flex items-center justify-between border-t border-border pt-4">
+          <div className="text-sm text-muted-foreground">
+            {filteredActivities.length} of {activities.length} linked audit events
           </div>
-          <Button onClick={onClose} className="bg-primary hover:bg-primary text-white">
-            Close
-          </Button>
+          <Button onClick={onClose}>Close</Button>
         </div>
       </DialogContent>
     </Dialog>

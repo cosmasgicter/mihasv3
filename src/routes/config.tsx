@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React from 'react'
 
 // Lazy load ALL pages for optimal code splitting
@@ -16,7 +15,7 @@ const LandingPage = React.lazy(() => import('@/pages/LandingPage'))
 // Lazy load non-critical pages
 const StudentDashboard = React.lazy(() => import('@/pages/student/Dashboard'))
 const AuthCallbackPage = React.lazy(() => import('@/pages/auth/AuthCallbackPage'))
-const ApplicationWizard = React.lazy(() => import('@/pages/student/applicationWizard/index.tsx'))
+const ApplicationWizard = React.lazy(() => import('@/pages/student/applicationWizard/index'))
 const ApplicationStatus = React.lazy(() => import('@/pages/student/ApplicationStatus'))
 const ApplicationDetail = React.lazy(() => import('@/pages/student/ApplicationDetail'))
 const StudentSettings = React.lazy(() => import('@/pages/student/Settings'))
@@ -30,7 +29,7 @@ const AdminIntakes = React.lazy(() => import('@/pages/admin/Intakes'))
 const AdminUsers = React.lazy(() => import('@/pages/admin/Users'))
 const AdminSettings = React.lazy(() => import('@/pages/admin/Settings'))
 const AuditTrail = React.lazy(() => import('@/pages/admin/AuditTrail'))
-const PublicApplicationTracker = React.lazy(() => import('@/pages/public/tracker/index.tsx'))
+const PublicApplicationTracker = React.lazy(() => import('@/pages/public/tracker/index'))
 const ContactPage = React.lazy(() => import('@/pages/ContactPage'))
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'))
 
@@ -70,8 +69,8 @@ export const routes: RouteConfig[] = [
   { path: '/student/status', element: ApplicationStatus, guard: 'student', lazy: true },
   { path: '/application/:id', element: ApplicationStatus, guard: 'student', lazy: true },
   { path: '/student/application/:id', element: ApplicationDetail, guard: 'student', lazy: true },
-  { path: '/settings', element: StudentSettings, guard: 'student', lazy: true },
-  { path: '/student/profile', element: StudentSettings, guard: 'student', lazy: true },
+  { path: '/settings', element: <Navigate to="/student/settings" replace />, guard: 'student' },
+  { path: '/student/profile', element: <Navigate to="/student/settings" replace />, guard: 'student' },
   { path: '/student/settings', element: StudentSettings, guard: 'student', lazy: true },
   { path: '/student/notifications', element: StudentNotificationSettings, guard: 'student', lazy: true },
   { path: '/student/payment', element: StudentPayment, guard: 'student', lazy: true },

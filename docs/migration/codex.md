@@ -515,7 +515,7 @@ MEDIUM:
     - HEAD method tests (Vercel handler signature)
     FIX: Address these in a dedicated test cleanup pass.
 
-14. UI Duplicate Primitives (from Codex 5.3 audit)
+14. UI Duplicate Primitives (from Codex 5.4 audit)
     Card.tsx/card.tsx, Tooltip.tsx/tooltip.tsx, Skeleton.tsx/skeleton.tsx
     duplicates still exist in src/components/ui/.
     The input.tsx file is lowercase — all imports must use lowercase.

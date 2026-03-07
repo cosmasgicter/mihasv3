@@ -30,7 +30,7 @@ export function FiltersPanel({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-foreground" />
             <Input
-              placeholder="Search by name, email, or application number..."
+              placeholder="Search applicant, email, application number, programme, or institution..."
               value={searchTerm}
               onChange={(e) => onFilterChange('searchTerm', e.target.value)}
               className="pl-10"
@@ -73,10 +73,11 @@ export function FiltersPanel({
             onChange={(e) => onFilterChange('paymentFilter', e.target.value)}
             className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
           >
-            <option value="">All Payments</option>
-            <option value="pending_review">Pending Review</option>
+            <option value="">All Payment States</option>
+            <option value="not_paid">Awaiting Payment</option>
+            <option value="pending_review">Awaiting Review</option>
             <option value="verified">Verified</option>
-            <option value="rejected">Rejected</option>
+            <option value="rejected">Rejected Proof</option>
           </select>
         </div>
         

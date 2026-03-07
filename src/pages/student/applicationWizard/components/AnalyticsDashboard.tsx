@@ -2,16 +2,18 @@ import { useEffect, useState, useCallback } from 'react'
 import { BarChart3, Clock, TrendingUp, AlertCircle } from 'lucide-react'
 import { apiClient } from '@/services/client'
 import { animateClasses } from '@/lib/animations'
+import { buildWizardProgressSummary } from '../lib/progressSummary'
 
 interface AnalyticsStats {
   total_drafts: number
   completed_applications: number
-  avg_time_per_step: number
-  most_common_drop_off_step: string | null
 }
 
 interface AnalyticsDashboardProps {
   userId: string | undefined
+  completionPercentage: number
+  hasLocalDraft: boolean
+  lastSavedAt?: Date | string | null
 }
 
 /**
@@ -19,7 +21,12 @@ interface AnalyticsDashboardProps {
  * MIGRATED: Uses API client instead of direct Supabase calls
  * Requirements: 4.1, 4.2, 4.3, 4.4
  */
-export const AnalyticsDashboard = ({ userId }: AnalyticsDashboardProps) => {
+export const AnalyticsDashboard = ({
+  userId,
+  completionPercentage,
+  hasLocalDraft,
+  lastSavedAt
+}: AnalyticsDashboardProps) => {
   const [stats, setStats] = useState<AnalyticsStats | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -32,7 +39,6 @@ export const AnalyticsDashboard = ({ userId }: AnalyticsDashboardProps) => {
         total_drafts: number
         completed_applications: number
         total_applications: number
-        avg_time_hours: number
       }>('/applications?action=stats')
 
       if (!data) {
@@ -40,14 +46,9 @@ export const AnalyticsDashboard = ({ userId }: AnalyticsDashboardProps) => {
         return
       }
 
-      // Convert avg_time_hours to minutes for display
-      const avgTimeMinutes = Math.round((data.avg_time_hours || 0) * 60)
-
       setStats({
         completed_applications: data.completed_applications || 0,
         total_drafts: data.total_drafts || 0,
-        avg_time_per_step: avgTimeMinutes,
-        most_common_drop_off_step: null
       })
     } catch (error) {
       console.error('Failed to fetch analytics:', error)
@@ -62,10 +63,17 @@ export const AnalyticsDashboard = ({ userId }: AnalyticsDashboardProps) => {
 
   if (loading || !stats) return null
 
-  const total = stats.total_drafts + stats.completed_applications
-  const completionRate = total > 0
-    ? Math.round((stats.completed_applications / total) * 100)
-    : 0
+  const summary = buildWizardProgressSummary(
+    {
+      completedApplications: stats.completed_applications,
+      totalDrafts: stats.total_drafts
+    },
+    {
+      completionPercentage,
+      hasLocalDraft,
+      lastSavedAt
+    }
+  )
 
   return (
     <div
@@ -82,32 +90,25 @@ export const AnalyticsDashboard = ({ userId }: AnalyticsDashboardProps) => {
             <TrendingUp className="h-3.5 w-3.5" />
             <span className="text-xs font-medium">Completion</span>
           </div>
-          <p className="text-2xl font-bold text-foreground">{completionRate}%</p>
+          <p className="text-2xl font-bold text-foreground">{summary.completionPercentage}%</p>
         </div>
 
         <div className="bg-success/5 rounded p-3">
           <div className="flex items-center gap-2 text-success mb-1">
             <Clock className="h-3.5 w-3.5" />
-            <span className="text-xs font-medium">Avg Time</span>
+            <span className="text-xs font-medium">Last Save</span>
           </div>
-          <p className="text-2xl font-bold text-foreground">
-            {stats.avg_time_per_step > 60 
-              ? `${Math.round(stats.avg_time_per_step / 60)}h` 
-              : stats.avg_time_per_step > 0 
-                ? `${stats.avg_time_per_step}m` 
-                : '0m'
-            }
-          </p>
+          <p className="text-2xl font-bold text-foreground">{summary.activityLabel}</p>
         </div>
       </div>
 
       <div className="text-xs text-caption space-y-1">
-        <p>• {stats.completed_applications} completed</p>
-        <p>• {stats.total_drafts} in progress</p>
-        {stats.most_common_drop_off_step && (
+        <p>• {summary.completedCount} completed</p>
+        <p>• {summary.inProgressCount} in progress</p>
+        {summary.inProgressCount > 0 && (
           <p className="flex items-center gap-1 text-warning">
             <AlertCircle className="h-3 w-3" />
-            Most exits at: {stats.most_common_drop_off_step}
+            Keep going. Your current draft progress is shown above.
           </p>
         )}
       </div>

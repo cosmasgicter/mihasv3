@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/services/client'
 import { applicationService } from '@/services/applications'
@@ -31,6 +30,8 @@ export interface ApplicationCreateData {
   phone: string
   email: string
   residence_town: string
+  country?: string
+  nationality?: string
   next_of_kin_name?: string | null
   next_of_kin_phone?: string | null
   program: string
@@ -48,6 +49,8 @@ export interface ApplicationUpdateData {
   phone?: string
   email?: string
   residence_town?: string
+  country?: string
+  nationality?: string
   next_of_kin_name?: string | null
   next_of_kin_phone?: string | null
   program?: string
@@ -202,7 +205,7 @@ export const applicationsData = {
     const queryClient = useQueryClient()
     
     return useMutation({
-      mutationFn: (data: ApplicationCreateData) => applicationService.create(data),
+      mutationFn: (data: ApplicationCreateData) => applicationService.create(data as any),
       onSuccess: async () => {
         // Force immediate invalidation and refetch of all related queries
         await queryClient.invalidateQueries({ 
@@ -232,7 +235,7 @@ export const applicationsData = {
     
     return useMutation({
       mutationFn: ({ id, data }: { id: string; data: ApplicationUpdateData }) => 
-        applicationService.update(id, data),
+        applicationService.update(id, data as any),
       onSuccess: async (_, { id }) => {
         await queryClient.invalidateQueries({ 
           queryKey: QUERY_KEYS.applicationDetail(id),

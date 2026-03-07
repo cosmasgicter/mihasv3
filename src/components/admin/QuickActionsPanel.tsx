@@ -25,7 +25,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
   const quickActions = [
     {
       title: 'Applications',
-      description: `${stats.pendingApplications} pending review`,
+      description: `${stats.pendingApplications} in decision queue`,
       icon: FileText,
       href: '/admin/applications',
       color: 'from-blue-600 to-purple-600',
@@ -174,7 +174,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-primary">{stats.pendingApplications}</div>
-            <div className="text-sm text-muted-foreground">Pending</div>
+            <div className="text-sm text-muted-foreground">Decision Queue</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-secondary">{stats.totalPrograms}</div>

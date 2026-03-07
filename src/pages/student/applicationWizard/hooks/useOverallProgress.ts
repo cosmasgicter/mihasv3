@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
 import type { ApplicationFormData } from '../types'
+import { requiresImmediatePayment } from '../lib/paymentFlow'
 
 export interface OverallProgress {
   percentage: number
@@ -52,11 +53,13 @@ export const useOverallProgress = (
     const step1Total = 5
 
     // Step 2: Payment (3 fields)
-    const step2Fields = [
-      isFieldComplete(values.payment_method),
-      isFieldComplete(values.payer_name),
-      values.amount && values.amount >= 153
-    ]
+    const step2Fields = requiresImmediatePayment(values)
+      ? [
+          isFieldComplete(values.payment_method),
+          isFieldComplete(values.payer_name),
+          values.amount && values.amount >= 153
+        ]
+      : [true, true, true]
     const step2Completed = step2Fields.filter(Boolean).length
 
     // Step 3: Review (always 1/1 when reached)

@@ -10,6 +10,7 @@ import { validateServerEnv } from '../lib/envValidator';
 interface InstitutionRecord {
   id: string;
   name: string;
+  full_name?: string;
   code?: string;
   description?: string;
   is_active: boolean;
@@ -27,6 +28,9 @@ interface ProgramRow {
   tuition_fee: number | null;
   regulatory_body: string | null;
   accreditation_status: string | null;
+  institution_id: string | null;
+  institution_name: string | null;
+  institution_full_name: string | null;
   is_active: boolean | null;
   created_at: string;
   updated_at: string;
@@ -66,9 +70,37 @@ function normalizeProgram(row: ProgramRow) {
     tuition_fee: row.tuition_fee ? Number(row.tuition_fee) : null,
     regulatory_body: row.regulatory_body,
     accreditation_status: row.accreditation_status,
+    institution_id: row.institution_id,
+    institutions: row.institution_id ? {
+      id: row.institution_id,
+      name: row.institution_name ?? '',
+      full_name: row.institution_full_name ?? row.institution_name ?? '',
+    } : null,
     is_active: row.is_active !== false,
     created_at: row.created_at,
     updated_at: row.updated_at,
+  };
+}
+
+function generateProgramCode(name: string) {
+  return name
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 24)
+}
+
+function normalizeInstitution(record: InstitutionRecord) {
+  return {
+    id: record.id,
+    name: record.name,
+    full_name: record.full_name ?? record.name,
+    code: record.code ?? null,
+    description: record.description ?? '',
+    is_active: record.is_active !== false,
+    created_at: record.created_at,
+    updated_at: record.updated_at,
   };
 }
 
@@ -111,21 +143,25 @@ async function listPrograms(res: VercelResponse, includeInactive: boolean, shoul
   try {
     const result = await query<ProgramRow>(
       `SELECT
-        id,
-        name,
-        code,
-        description,
-        duration_months,
-        application_fee,
-        tuition_fee,
-        regulatory_body,
-        accreditation_status,
-        is_active,
-        created_at,
-        updated_at
-      FROM programs
-      WHERE ($1::boolean = true OR is_active = true)
-      ORDER BY name ASC`,
+        p.id,
+        p.name,
+        p.code,
+        p.description,
+        p.duration_months,
+        p.application_fee,
+        p.tuition_fee,
+        p.regulatory_body,
+        p.accreditation_status,
+        p.institution_id,
+        i.name AS institution_name,
+        i.full_name AS institution_full_name,
+        p.is_active,
+        p.created_at,
+        p.updated_at
+      FROM programs p
+      LEFT JOIN institutions i ON i.id = p.institution_id
+      WHERE ($1::boolean = true OR p.is_active = true)
+      ORDER BY p.name ASC`,
       [includeInactive]
     );
 
@@ -175,18 +211,19 @@ async function listIntakes(res: VercelResponse, includeInactive: boolean, should
 async function createProgram(req: VercelRequest, res: VercelResponse) {
   const body = req.body || {};
   const name = String(body.name || '').trim();
-  const code = String(body.code || '').trim();
+  const code = String(body.code || generateProgramCode(name)).trim();
   const description = typeof body.description === 'string' ? body.description.trim() : '';
-  const durationMonths = Number(body.duration_months);
+  const durationMonths = Number(body.duration_months ?? (Number(body.duration_years) * 12));
   const applicationFee = body.application_fee !== undefined ? Number(body.application_fee) : 153;
   const tuitionFee = body.tuition_fee !== undefined ? Number(body.tuition_fee) : null;
   const regulatoryBody = typeof body.regulatory_body === 'string' ? body.regulatory_body.trim() : null;
+  const institutionId = String(body.institution_id || '').trim();
 
   if (!name) {
     return sendError(res, 'Program name is required', HttpStatus.BAD_REQUEST);
   }
-  if (!code) {
-    return sendError(res, 'Program code is required', HttpStatus.BAD_REQUEST);
+  if (!institutionId) {
+    return sendError(res, 'Institution is required', HttpStatus.BAD_REQUEST);
   }
   if (!Number.isFinite(durationMonths) || durationMonths < 1 || durationMonths > 120) {
     return sendError(res, 'duration_months must be between 1 and 120', HttpStatus.BAD_REQUEST);
@@ -194,10 +231,10 @@ async function createProgram(req: VercelRequest, res: VercelResponse) {
 
   try {
     const result = await query<ProgramRow>(
-      `INSERT INTO programs (name, code, description, duration_months, application_fee, tuition_fee, regulatory_body, is_active, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW(), NOW())
+      `INSERT INTO programs (name, code, description, duration_months, application_fee, tuition_fee, regulatory_body, institution_id, is_active, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, NOW(), NOW())
        RETURNING *`,
-      [name, code, description || null, durationMonths, applicationFee, tuitionFee, regulatoryBody]
+      [name, code, description || null, durationMonths, applicationFee, tuitionFee, regulatoryBody, institutionId]
     );
 
     return sendSuccess(res, { program: normalizeProgram(result.rows[0]) });
@@ -210,12 +247,13 @@ async function updateProgram(req: VercelRequest, res: VercelResponse) {
   const body = req.body || {};
   const id = String(body.id || '').trim();
   const name = String(body.name || '').trim();
-  const code = String(body.code || '').trim();
+  const code = String(body.code || generateProgramCode(name)).trim();
   const description = typeof body.description === 'string' ? body.description.trim() : '';
-  const durationMonths = Number(body.duration_months);
+  const durationMonths = Number(body.duration_months ?? (Number(body.duration_years) * 12));
   const applicationFee = body.application_fee !== undefined ? Number(body.application_fee) : null;
   const tuitionFee = body.tuition_fee !== undefined ? Number(body.tuition_fee) : null;
   const regulatoryBody = typeof body.regulatory_body === 'string' ? body.regulatory_body.trim() : null;
+  const institutionId = String(body.institution_id || '').trim();
   const isActive = typeof body.is_active === 'boolean' ? body.is_active : undefined;
 
   if (!id) {
@@ -224,8 +262,8 @@ async function updateProgram(req: VercelRequest, res: VercelResponse) {
   if (!name) {
     return sendError(res, 'Program name is required', HttpStatus.BAD_REQUEST);
   }
-  if (!code) {
-    return sendError(res, 'Program code is required', HttpStatus.BAD_REQUEST);
+  if (!institutionId) {
+    return sendError(res, 'Institution is required', HttpStatus.BAD_REQUEST);
   }
   if (!Number.isFinite(durationMonths) || durationMonths < 1 || durationMonths > 120) {
     return sendError(res, 'duration_months must be between 1 and 120', HttpStatus.BAD_REQUEST);
@@ -241,11 +279,12 @@ async function updateProgram(req: VercelRequest, res: VercelResponse) {
            application_fee = COALESCE($6, application_fee),
            tuition_fee = $7,
            regulatory_body = $8,
-           is_active = COALESCE($9, is_active),
+           institution_id = $9,
+           is_active = COALESCE($10, is_active),
            updated_at = NOW()
        WHERE id = $1
        RETURNING *`,
-      [id, name, code, description || null, durationMonths, applicationFee, tuitionFee, regulatoryBody, isActive ?? null]
+      [id, name, code, description || null, durationMonths, applicationFee, tuitionFee, regulatoryBody, institutionId, isActive ?? null]
     );
 
     if (result.rowCount === 0) {
@@ -283,6 +322,132 @@ async function deleteProgram(req: VercelRequest, res: VercelResponse) {
     return sendSuccess(res, { deleted: true, id });
   } catch (error) {
     return handleError(res, error, 'catalog/delete-program');
+  }
+}
+
+async function listInstitutions(res: VercelResponse, includeInactive: boolean, shouldCache: boolean) {
+  try {
+    const result = await query<InstitutionRecord>(
+      `SELECT id, name, full_name, code, description, is_active, created_at, updated_at
+       FROM institutions
+       WHERE ($1::boolean = true OR is_active = true)
+       ORDER BY full_name ASC, name ASC`,
+      [includeInactive]
+    );
+
+    if (shouldCache) {
+      res.setHeader('Cache-Control', 'public, max-age=300');
+    }
+
+    return sendSuccess(res, { institutions: result.rows.map(normalizeInstitution) });
+  } catch (error) {
+    return handleError(res, error, 'catalog/list-institutions');
+  }
+}
+
+async function createInstitution(req: VercelRequest, res: VercelResponse) {
+  const body = req.body || {};
+  const name = String(body.name || '').trim();
+  const fullName = String(body.full_name || body.fullName || '').trim() || name;
+  const code = String(body.code || '').trim() || null;
+  const description = typeof body.description === 'string' ? body.description.trim() : '';
+
+  if (!name) {
+    return sendError(res, 'Institution name is required', HttpStatus.BAD_REQUEST);
+  }
+
+  try {
+    const result = await query<InstitutionRecord>(
+      `INSERT INTO institutions (name, full_name, code, description, is_active, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, true, NOW(), NOW())
+       RETURNING id, name, full_name, code, description, is_active, created_at, updated_at`,
+      [name, fullName, code, description || null]
+    );
+
+    return sendSuccess(res, { institution: normalizeInstitution(result.rows[0]) });
+  } catch (error) {
+    return handleError(res, error, 'catalog/create-institution');
+  }
+}
+
+async function updateInstitution(req: VercelRequest, res: VercelResponse) {
+  const body = req.body || {};
+  const id = String(body.id || '').trim();
+  const name = String(body.name || '').trim();
+  const fullName = String(body.full_name || body.fullName || '').trim() || name;
+  const code = String(body.code || '').trim() || null;
+  const description = typeof body.description === 'string' ? body.description.trim() : '';
+  const isActive = typeof body.is_active === 'boolean' ? body.is_active : undefined;
+
+  if (!id) {
+    return sendError(res, 'Institution id is required', HttpStatus.BAD_REQUEST);
+  }
+
+  if (!name) {
+    return sendError(res, 'Institution name is required', HttpStatus.BAD_REQUEST);
+  }
+
+  try {
+    const result = await query<InstitutionRecord>(
+      `UPDATE institutions
+       SET name = $2,
+           full_name = $3,
+           code = $4,
+           description = $5,
+           is_active = COALESCE($6, is_active),
+           updated_at = NOW()
+       WHERE id = $1
+       RETURNING id, name, full_name, code, description, is_active, created_at, updated_at`,
+      [id, name, fullName, code, description || null, isActive ?? null]
+    );
+
+    if (result.rowCount === 0) {
+      return sendError(res, 'Institution not found', HttpStatus.NOT_FOUND);
+    }
+
+    return sendSuccess(res, { institution: normalizeInstitution(result.rows[0]) });
+  } catch (error) {
+    return handleError(res, error, 'catalog/update-institution');
+  }
+}
+
+async function deleteInstitution(req: VercelRequest, res: VercelResponse) {
+  const body = req.body || {};
+  const id = String(body.id || req.query.id || '').trim();
+
+  if (!id) {
+    return sendError(res, 'Institution id is required', HttpStatus.BAD_REQUEST);
+  }
+
+  try {
+    const programCount = await query<{ count: string }>(
+      `SELECT COUNT(*)::text AS count
+       FROM programs
+       WHERE institution_id = $1
+         AND is_active = true`,
+      [id]
+    );
+
+    if (Number(programCount.rows[0]?.count ?? '0') > 0) {
+      return sendError(res, 'Cannot archive an institution that still has active programs', HttpStatus.CONFLICT);
+    }
+
+    const result = await query<{ id: string }>(
+      `UPDATE institutions
+       SET is_active = false,
+           updated_at = NOW()
+       WHERE id = $1 AND is_active = true
+       RETURNING id`,
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return sendError(res, 'Institution not found or already inactive', HttpStatus.NOT_FOUND);
+    }
+
+    return sendSuccess(res, { deleted: true, id });
+  } catch (error) {
+    return handleError(res, error, 'catalog/delete-institution');
   }
 }
 
@@ -451,15 +616,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       if (type === 'institutions') {
-        const result = await query<InstitutionRecord>(
-          'SELECT * FROM institutions WHERE is_active = true ORDER BY name ASC'
-        );
-
-        if (!authUser) {
-          res.setHeader('Cache-Control', 'public, max-age=300');
-        }
-
-        return sendSuccess(res, { institutions: result.rows });
+        return await listInstitutions(res, isAdmin, !authUser);
       }
 
       return sendError(res, 'Invalid type. Use: programs, intakes, subjects, or institutions', HttpStatus.BAD_REQUEST);
@@ -469,8 +626,8 @@ async function handler(req: VercelRequest, res: VercelResponse) {
       return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
     }
 
-    if (type !== 'programs' && type !== 'intakes') {
-      return sendError(res, 'Write operations are only supported for programs and intakes', HttpStatus.BAD_REQUEST);
+    if (!['programs', 'intakes', 'institutions'].includes(type)) {
+      return sendError(res, 'Write operations are only supported for programs, institutions, and intakes', HttpStatus.BAD_REQUEST);
     }
 
     const adminUser = await ensureAdmin(req, res);
@@ -482,6 +639,12 @@ async function handler(req: VercelRequest, res: VercelResponse) {
       if (req.method === 'POST') return await createProgram(req, res);
       if (req.method === 'PUT') return await updateProgram(req, res);
       return await deleteProgram(req, res);
+    }
+
+    if (type === 'institutions') {
+      if (req.method === 'POST') return await createInstitution(req, res);
+      if (req.method === 'PUT') return await updateInstitution(req, res);
+      return await deleteInstitution(req, res);
     }
 
     if (req.method === 'POST') return await createIntake(req, res);

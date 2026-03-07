@@ -11,7 +11,8 @@ inclusion: always
 | `src/` | React frontend | Primary modification target |
 | `api-src/` | API source TypeScript files | Edit these, then run bundle script |
 | `api/` | Bundled JS files for Vercel | DO NOT EDIT - auto-generated |
-| `lib/` | Shared utilities | Used by API endpoints |
+| `lib/` | Shared backend utilities | Used by API endpoints |
+| `lib/validation/` | Zod input validation schemas | One file per API domain |
 | `tests/` | Test files | Match test type to subdirectory |
 | `migrations/` | DB migrations | Append-only, never modify existing |
 | `public/` | Static assets, PWA | Rarely modify |
@@ -31,21 +32,41 @@ inclusion: always
 
 ```
 components/
-├── ui/        → Primitives (Button, Input, Card, Modal)
-├── admin/     → Admin dashboard components
-├── student/   → Student-facing components
-├── auth/      → Authentication flows
-└── forms/     → Form components, wizards
+├── ui/            → Primitives (Button, Input, Card, Modal, Toast, ConfirmDialog, PasswordInput)
+├── admin/         → Admin dashboard components
+├── student/       → Student-facing components
+├── auth/          → Authentication flows
+├── forms/         → Form components, wizards
+├── layout/        → Layout wrappers
+├── navigation/    → Nav components
+├── notifications/ → Notification UI
+├── pwa/           → PWA install prompts
+├── seo/           → SEO meta components
+├── icons/         → Icon components
+└── eligibility/   → Eligibility check UI
 
 pages/         → Route-level components (register in routes/)
-hooks/         → Custom hooks (useXxx.ts)
+hooks/         → Custom hooks (useXxx.ts) — 50+ hooks
 services/      → API clients, external integrations
 stores/        → Zustand stores (xxxStore.ts)
-lib/           → Utilities, configs
+lib/           → Frontend utilities, configs, security
 types/         → TypeScript definitions
 contexts/      → React context providers
 routes/        → Route config and guards
 ```
+
+### Key Frontend Utilities (`src/lib/`)
+| File | Purpose |
+|------|---------|
+| `csrfToken.ts` | CSRF token management for state-changing requests |
+| `secureStorage.ts` | Encrypted localStorage wrapper |
+| `urlSafety.ts` | Frontend URL validation and open redirect prevention |
+| `localStorageCache.ts` | TTL-based localStorage caching |
+| `apiErrorToast.ts` | Standardized API error toast notifications |
+| `securityUtils.ts` | Frontend security utilities |
+| `accessibility-utils.ts` | Accessibility helper functions |
+| `touch-target-utils.ts` | Touch target size utilities for mobile |
+| `performance-utils.ts` | Performance monitoring utilities |
 
 ## Naming Conventions
 
@@ -57,6 +78,7 @@ routes/        → Route config and guards
 | Types | PascalCase | `ApplicationFormData` |
 | API Functions | kebab-case `.ts` | `send-email.ts` |
 | Stores | camelCase + `Store` | `applicationStore.ts` |
+| Validators | domain `.ts` in `lib/validation/` | `auth.ts`, `applications.ts` |
 
 ## Import Rules
 
@@ -76,12 +98,14 @@ import { Button } from '../../../components/ui/Button'
 
 | Adding | Location | Notes |
 |--------|----------|-------|
-| Component | `src/components/{domain}/` | domain: admin, student, auth, forms, ui |
+| Component | `src/components/{domain}/` | domain: admin, student, auth, forms, ui, etc. |
 | Hook | `src/hooks/useXxx.ts` | Must prefix with `use` |
-| API endpoint | `api/{feature}.ts` | Add action to existing consolidated endpoint |
+| API endpoint | `api-src/{feature}.ts` | Add action to existing consolidated endpoint |
 | Page | `src/pages/` | Must register route in `src/routes/` |
 | Type | `src/types/` or co-locate | Co-locate component-specific types |
 | Store | `src/stores/xxxStore.ts` | Follow existing Zustand patterns |
+| Validation schema | `lib/validation/{domain}.ts` | One file per API domain, export from index.ts |
+| Migration | `migrations/add_{feature}.sql` | Append-only, use IF NOT EXISTS |
 
 ## State Management
 
@@ -106,69 +130,84 @@ Choose based on data type:
 api-src/                # Source TypeScript files
 ├── admin.ts           # ?action=dashboard|users|settings|stats|errors|migrate
 ├── applications.ts    # ?action=details|documents|grades|summary|review|export or ?id=xxx
-├── auth.ts            # ?action=login|logout|refresh|session|register
+├── auth.ts            # ?action=login|logout|refresh|session|register|reset-request|reset-confirm
 ├── bootstrap.ts       # Database bootstrap/seed operations
 ├── catalog.ts         # ?type=programs|intakes|subjects
-├── documents.ts       # ?action=upload|extract
+├── documents.ts       # ?action=upload|extract (with file content validation)
+├── email.ts           # Email sending endpoint
 ├── health.ts          # ?action=ping|db|env|arcjet (consolidated)
 ├── notifications.ts   # ?action=preferences|send
 ├── payments.ts        # ?action=receipt
-├── ping.ts            # Simple ping endpoint
 ├── sessions.ts        # ?action=track|list|revoke|revoke-all
 ├── [...path].ts       # Catch-all for unmatched routes
 └── tsconfig.json      # TypeScript config for API
 ```
 
-**Bundled files in `api/`** (JavaScript, auto-generated — 12 endpoints):
+**Bundled files in `api/`** (JavaScript, auto-generated — DO NOT EDIT):
 ```
-api/                   # Bundled JS files (DO NOT EDIT)
-├── admin.js
-├── applications.js
-├── auth.js
-├── bootstrap.js
-├── catalog.js
-├── documents.js
-├── health.js
-├── notifications.js
-├── payments.js
-├── ping.js
-├── sessions.js
-└── [...path].js
+api/
+├── admin.js           ├── email.js
+├── applications.js    ├── health.js
+├── auth.js            ├── notifications.js
+├── bootstrap.js       ├── payments.js
+├── catalog.js         ├── sessions.js
+├── documents.js       └── [...path].js
 ```
 
 **Shared utilities at PROJECT ROOT** (not api/lib/):
 ```
-lib/                   # Shared utilities
+lib/                   # Shared backend utilities
 ├── arcjet.ts          # Security perimeter (shield, bot, rate limits)
 ├── auth.ts            # Auth middleware exports (re-exports from auth/)
 ├── auth/              # Auth components
-│   ├── password.ts    # bcrypt hashing
-│   ├── jwt.ts         # JWT manager (jose)
-│   ├── cookies.ts     # HTTP-only cookies
+│   ├── password.ts    # bcrypt hashing (12 rounds)
+│   ├── jwt.ts         # JWT manager (jose, HS256)
+│   ├── cookies.ts     # HTTP-only cookie manager
 │   ├── middleware.ts  # getAuthUser, requireAuth, requireRole
 │   ├── ownership.ts   # Resource ownership checks
-│   ├── permissions.ts # RBAC (deterministic)
-│   └── legacy.ts      # Supabase token migration support
+│   └── permissions.ts # RBAC (deterministic, no DB lookup)
+├── validation/        # Zod input validation schemas
+│   ├── index.ts       # Re-exports all validators
+│   ├── middleware.ts  # validateInput() middleware
+│   ├── sanitize.ts    # XSS/SQL injection sanitization
+│   ├── zambian.ts     # Zambian formats (+260, NRC, ECZ grades)
+│   ├── auth.ts        # Auth schemas
+│   ├── applications.ts # Application schemas
+│   ├── admin.ts       # Admin schemas
+│   ├── documents.ts   # Document schemas
+│   ├── notifications.ts # Notification schemas
+│   ├── payments.ts    # Payment schemas
+│   ├── sessions.ts    # Session schemas
+│   └── email.ts       # Email schemas
 ├── base64.ts          # Base64 encoding utilities
 ├── cors.ts            # CORS handler
+├── csrf.ts            # CSRF token generation/validation (SHA-256 hashed)
 ├── db.ts              # Database abstraction (Neon serverless only)
+├── emailTemplates.ts  # Email template rendering
+├── envValidator.ts    # Environment variable validation
 ├── errorHandler.ts    # Sanitized errors (sendSuccess/sendError envelope)
+├── fileValidator.ts   # File content validation (magic bytes, MIME types)
 ├── neon-serverless.d.ts # Neon type declarations
+├── notificationPolicy.ts # Notification rate limiting/policy
 ├── queries.ts         # Typed query builders
 ├── rateLimiter.ts     # Rate limiting utilities
-├── auditLogger.ts     # Audit logging
-├── realtime.ts        # SSE + polling
+├── auditLogger.ts     # Audit logging (no PII, retention categories)
+├── realtime.ts        # SSE + polling (8s keepalive)
+├── realtimeBroker.ts  # SSE connection broker
+├── sessions.ts        # Device session manager
 ├── storage.ts         # R2 storage abstraction
-└── sessions.ts        # Device session manager
+└── urlValidator.ts    # URL validation, open redirect prevention
 ```
 
-**Pattern** (query parameter routing with Arcjet protection):
+**Pattern** (query parameter routing with Arcjet protection + validation):
 ```typescript
-// api/{feature}.ts
+// api-src/{feature}.ts
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleCors } from '../lib/cors';           // Note: ../lib/ (project root)
+import { handleCors } from '../lib/cors';
 import { withArcjetProtection } from '../lib/arcjet';
 import { requireAuth, requireRole } from '../lib/auth';
+import { validateInput } from '../lib/validation/middleware';
+import { someSchema } from '../lib/validation/feature';
 
 async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return;
@@ -177,26 +216,22 @@ async function handler(req: VercelRequest, res: VercelResponse) {
   
   switch (action) {
     case 'action1':
-      // Public action
+      // Validate input
+      const validated = validateInput(someSchema, req.body);
       break;
     case 'protected':
       const user = await requireAuth(req);
-      // Authenticated action
       break;
     case 'admin-only':
       const admin = await requireRole(req, ['admin', 'super_admin']);
-      // Admin action
       break;
     default:
       return res.status(400).json({ success: false, error: 'Invalid action' });
   }
 }
 
-// Export with Arcjet protection
 export default withArcjetProtection(handler, 'general');
 ```
-
-**Adding new functionality**: Add a new `case` to the appropriate consolidated endpoint's switch statement. Wrap with appropriate auth middleware.
 
 ## API Client Architecture (CRITICAL)
 
@@ -209,11 +244,26 @@ All API endpoints return `{ success: true, data: payload }` via `sendSuccess()` 
 
 When adding new frontend code, use `src/services/client.ts`.
 
+## Database Migrations
+
+```
+migrations/
+├── add_csrf_tokens_table.sql           # CSRF token storage
+├── add_password_reset_tokens_table.sql # Password reset tokens
+├── add_login_attempts_table.sql        # Login attempt tracking
+├── add_audit_retention_category.sql    # Audit log retention categories
+├── apply-migrations.ts                 # Migration runner script
+└── RLS_REPLACEMENT.md                  # RLS migration documentation
+```
+
+All migrations use `IF NOT EXISTS` for idempotent re-runs. Never modify existing migration files — create new ones.
+
 ## Removed Directories (Migration Complete)
 
 | Directory | Status |
 |-----------|--------|
 | `functions/` | DELETED - Fully migrated to `api/` (174 files removed) |
+| `lib/auth/legacy.ts` | DELETED - Supabase token migration no longer needed |
 | `api/admin/` | CONSOLIDATED into `api/admin.ts` |
 | `api/applications/` | CONSOLIDATED into `api/applications.ts` |
 | `api/auth/` | CONSOLIDATED into `api/auth.ts` |
@@ -225,9 +275,15 @@ When adding new frontend code, use `src/services/client.ts`.
 
 ## Testing
 
-| Type | Directory | Framework |
-|------|-----------|-----------|
-| Unit tests | `tests/unit/` | Vitest |
-| Property tests | `tests/property/` | fast-check |
-| Integration | `tests/integration/` | Vitest |
-| E2E flows | `tests/e2e/` | Playwright |
+| Type | Directory | Framework | Count |
+|------|-----------|-----------|-------|
+| Unit tests | `tests/unit/` | Vitest | 35+ test files |
+| Property tests | `tests/property/` | fast-check + Vitest | 80+ test files |
+| Integration | `tests/integration/` | Vitest | 6 test files |
+| E2E flows | `tests/e2e/` | Playwright | 2 spec files |
+| Auth tests | `tests/auth/` | Vitest | 1 test file |
+
+### Test Conventions
+- Use `// @vitest-environment node` directive for tests using Node.js fs/path modules
+- Property tests use `numRuns: 10` for fast CI execution
+- Test files co-located with source when component-specific, otherwise in `tests/`

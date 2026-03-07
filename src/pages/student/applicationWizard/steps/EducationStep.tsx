@@ -11,6 +11,28 @@ import { animateClasses, staggerChild } from '@/lib/animations'
 import type { EligibilityResult } from '@/lib/eligibilityEngine'
 
 import type { Grade12Subject, SubjectGrade } from '../types'
+import { EDUCATION_UPLOAD_COPY } from '../lib/educationCatalog'
+
+function getUploadStatus(file: File | null, isUploaded?: boolean) {
+  if (isUploaded) {
+    return {
+      label: 'Uploaded',
+      className: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    }
+  }
+
+  if (file) {
+    return {
+      label: 'Ready to upload',
+      className: 'border-blue-200 bg-blue-50 text-blue-700',
+    }
+  }
+
+  return {
+    label: 'Not added',
+    className: 'border-border bg-muted text-muted-foreground',
+  }
+}
 
 interface EducationStepProps {
   title: string
@@ -49,6 +71,8 @@ const EducationStep = ({
   handleResultSlipUpload,
   handleExtraKycUpload
 }: EducationStepProps) => {
+  const resultSlipStatus = getUploadStatus(resultSlipFile, uploadedFiles.result_slip)
+  const identityStatus = getUploadStatus(extraKycFile, uploadedFiles.extra_kyc)
 
   // Subject options for StandaloneSelect
   const getSubjectOptions = (currentSubjectId: string) => {
@@ -88,17 +112,19 @@ const EducationStep = ({
         <div>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
             <h3 className="text-md font-medium text-foreground">Grade 12 Subjects (Minimum 5 required)</h3>
-            <Button
-              type="button"
-              onClick={event => {
-                event.preventDefault()
-                addGrade()
-              }}
-              disabled={selectedGrades.length >= 10}
-              className="w-full sm:w-auto bg-primary hover:bg-primary touch-manipulation min-h-[44px]"
-            >
-              + Add New Subject
-            </Button>
+            {selectedGrades.length === 0 && (
+              <Button
+                type="button"
+                onClick={event => {
+                  event.preventDefault()
+                  addGrade()
+                }}
+                disabled={selectedGrades.length >= 10}
+                className="w-full sm:w-auto bg-primary hover:bg-primary touch-manipulation min-h-[44px]"
+              >
+                + Add Your First Subject
+              </Button>
+            )}
           </div>
 
           {eligibilityCheck && selectedGrades.length >= 5 && (
@@ -207,11 +233,75 @@ const EducationStep = ({
               </div>
             ))}
           </div>
+
+          {selectedGrades.length > 0 && selectedGrades.length < 10 && (
+            <div className="mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={event => {
+                  event.preventDefault()
+                  addGrade()
+                }}
+                className="w-full min-h-[44px] border-dashed"
+              >
+                + Add another subject below
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Document Uploads */}
+        <div className="rounded-2xl border border-border bg-muted/30 p-4 sm:p-5">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Document checklist</h3>
+              <p className="mt-2 text-sm text-foreground">
+                Keep academic evidence separate from identity support documents. The result slip is the main upload for this step; the identity document is only for supporting KYC verification when needed.
+              </p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2 lg:min-w-[22rem]">
+              <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Required</p>
+                <p className="mt-1 text-sm font-medium text-blue-950">Academic result slip</p>
+              </div>
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Optional</p>
+                <p className="mt-1 text-sm font-medium text-amber-950">NRC or passport copy</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
+          <div className="flex h-full flex-col rounded-xl border border-border bg-card p-4">
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Academic document</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Upload your result slip here so the wizard can prefill your academic record accurately.
+                </p>
+              </div>
+              <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700">
+                Required
+              </span>
+            </div>
+            <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Upload status</p>
+                <p className="mt-1 text-sm font-medium text-foreground">
+                  {resultSlipFile?.name || 'No result slip selected yet'}
+                </p>
+              </div>
+              <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${resultSlipStatus.className}`}>
+                {resultSlipStatus.label}
+              </span>
+            </div>
+            <div className="mb-3">
+              <p className="mt-1 text-sm text-muted-foreground">
+                Use this slot for your examination result slip only. The upload is used to extract subject names and grades automatically.
+              </p>
+            </div>
             <div
               className={`mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg ${animateClasses.slideUp}`}
             >
@@ -220,26 +310,60 @@ const EducationStep = ({
               </p>
             </div>
             <AnimatedFileUpload
-              label="Result Slip"
+              label={EDUCATION_UPLOAD_COPY.resultSlip.label}
               required
               accept=".pdf,.jpg,.jpeg,.png"
               onChange={handleResultSlipUpload}
               file={resultSlipFile}
               uploadProgress={uploadProgress.result_slip}
               isUploaded={uploadedFiles.result_slip}
-              helperText="Upload a clear scan or photo of your Grade 12 result slip"
+              helperText={EDUCATION_UPLOAD_COPY.resultSlip.helperText}
             />
           </div>
 
-          <div>
+          <div className="flex h-full flex-col rounded-xl border border-border bg-card p-4">
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Identity support document</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Only upload this when you want to support the KYC details already entered in the earlier step.
+                </p>
+              </div>
+              <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-700">
+                Optional
+              </span>
+            </div>
+            <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Upload status</p>
+                <p className="mt-1 text-sm font-medium text-foreground">
+                  {extraKycFile?.name || 'No identity support document selected'}
+                </p>
+              </div>
+              <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${identityStatus.className}`}>
+                {identityStatus.label}
+              </span>
+            </div>
+            <div className="mb-3">
+              <p className="mt-1 text-sm text-muted-foreground">
+                This slot is for a clear NRC or passport copy only. It is not another academic upload.
+              </p>
+            </div>
+            <div
+              className={`mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg ${animateClasses.slideUp}`}
+            >
+              <p className="text-sm text-amber-900">
+                Your identity details are captured in the KYC step. Upload this document only when you want to support verification with a clear NRC or passport copy.
+              </p>
+            </div>
             <AnimatedFileUpload
-              label="Extra KYC Documents (Optional)"
+              label={EDUCATION_UPLOAD_COPY.identityDocument.label}
               accept=".pdf,.jpg,.jpeg,.png"
               onChange={handleExtraKycUpload}
               file={extraKycFile}
               uploadProgress={uploadProgress.extra_kyc}
               isUploaded={uploadedFiles.extra_kyc}
-              helperText="Upload any additional supporting documents"
+              helperText={EDUCATION_UPLOAD_COPY.identityDocument.helperText}
             />
           </div>
         </div>

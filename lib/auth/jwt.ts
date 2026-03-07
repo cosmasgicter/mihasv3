@@ -25,7 +25,15 @@ import { SignJWT, jwtVerify, type JWTPayload as JoseJWTPayload } from "jose";
 /**
  * User role type - matches the roles defined in the system
  */
-export type UserRole = "super_admin" | "admin" | "reviewer" | "student";
+export type UserRole =
+  | "super_admin"
+  | "admin"
+  | "admissions_officer"
+  | "registrar"
+  | "finance_officer"
+  | "academic_head"
+  | "reviewer"
+  | "student";
 
 /**
  * Token type discriminator to prevent cross-use attacks
@@ -41,6 +49,7 @@ export interface AccessTokenPayload {
   email: string;
   role: UserRole;
   permissions: string[];
+  sid?: string;
   type: "access";
   iat?: number;
   exp?: number;
@@ -54,6 +63,7 @@ export interface AccessTokenPayload {
  */
 export interface RefreshTokenPayload {
   sub: string;           // User ID
+  sid?: string;
   type: "refresh";
   iat?: number;
   exp?: number;
@@ -122,7 +132,8 @@ export async function generateAccessToken(
   userId: string,
   email: string,
   role: UserRole,
-  permissions: string[]
+  permissions: string[],
+  sessionId?: string
 ): Promise<string> {
   // Validate required inputs
   if (!userId || userId.trim().length === 0) {
@@ -142,6 +153,7 @@ export async function generateAccessToken(
       email,
       role,
       permissions: permissions || [],
+      ...(sessionId ? { sid: sessionId } : {}),
       type: "access" as const,
     })
       .setProtectedHeader({ alg: ALGORITHM })
@@ -173,7 +185,7 @@ export async function generateAccessToken(
  * @example
  * const refreshToken = await generateRefreshToken("user-uuid");
  */
-export async function generateRefreshToken(userId: string): Promise<string> {
+export async function generateRefreshToken(userId: string, sessionId?: string): Promise<string> {
   // Validate required input
   if (!userId || userId.trim().length === 0) {
     throw new Error("User ID is required for refresh token generation");
@@ -183,6 +195,7 @@ export async function generateRefreshToken(userId: string): Promise<string> {
     const secret = getRefreshTokenSecret();
     
     const token = await new SignJWT({
+      ...(sessionId ? { sid: sessionId } : {}),
       type: "refresh" as const,
     })
       .setProtectedHeader({ alg: ALGORITHM })
@@ -258,6 +271,7 @@ export async function verifyAccessToken(token: string): Promise<AccessTokenPaylo
       permissions: Array.isArray(payload.permissions) 
         ? (payload.permissions as string[]) 
         : [],
+      sid: typeof payload.sid === "string" ? payload.sid : undefined,
       type: "access",
       iat: payload.iat,
       exp: payload.exp,
@@ -342,6 +356,7 @@ export async function verifyRefreshToken(token: string): Promise<RefreshTokenPay
     // Construct and return the typed payload
     const refreshPayload: RefreshTokenPayload = {
       sub: payload.sub,
+      sid: typeof payload.sid === "string" ? payload.sid : undefined,
       type: "refresh",
       iat: payload.iat,
       exp: payload.exp,

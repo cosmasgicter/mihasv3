@@ -1,6 +1,5 @@
 import { getApiBaseUrl } from '@/lib/apiConfig'
 import { logger } from '@/utils/logger'
-import { useToastStore } from '@/stores/toastStore'
 import { secureStorage } from '@/lib/secureStorage'
 import { getCsrfToken, setCsrfToken, clearCsrfToken } from '@/lib/csrfToken'
 
@@ -189,7 +188,6 @@ export async function logoutWithTwoPhaseClear() {
 
   if (!result.success) {
     logger.warn('Server logout failed after local logout clear', result)
-    useToastStore.getState().error('Sign out complete on this device', 'Server logout failed. Your local session was cleared.')
   }
 
   return result

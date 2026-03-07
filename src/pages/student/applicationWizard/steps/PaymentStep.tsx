@@ -30,8 +30,10 @@ const PaymentStep = ({
   uploadProgress,
   uploadedFiles
 }: PaymentStepProps) => {
-  const { register, control, formState: { errors } } = form
+  const { register, control, setValue, watch, formState: { errors } } = form
   const [paymentTarget, setPaymentTarget] = useState('Loading...')
+  const paymentOption = watch('payment_option') || 'pay_now'
+  const isPayLater = paymentOption === 'pay_later'
 
   useEffect(() => {
     getPaymentTarget()
@@ -60,6 +62,37 @@ const PaymentStep = ({
       <h2 className="text-lg font-semibold text-foreground mb-4">{title}</h2>
 
       <div className="space-y-6">
+        <div className="grid gap-3 lg:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => setValue('payment_option', 'pay_now', { shouldDirty: true, shouldValidate: false })}
+            className={`rounded-xl border p-4 text-left transition-colors ${
+              !isPayLater
+                ? 'border-primary bg-primary/5 shadow-sm'
+                : 'border-border bg-card hover:border-primary/40'
+            }`}
+          >
+            <p className="text-sm font-semibold text-foreground">Pay now</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Upload your proof of payment now and submit the application for payment review.
+            </p>
+          </button>
+          <button
+            type="button"
+            onClick={() => setValue('payment_option', 'pay_later', { shouldDirty: true, shouldValidate: false })}
+            className={`rounded-xl border p-4 text-left transition-colors ${
+              isPayLater
+                ? 'border-primary bg-primary/5 shadow-sm'
+                : 'border-border bg-card hover:border-primary/40'
+            }`}
+          >
+            <p className="text-sm font-semibold text-foreground">Pay later</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Submit the application now and complete payment later from the student dashboard payment section.
+            </p>
+          </button>
+        </div>
+
         <div
           className={`bg-gradient-to-r from-blue-50 to-green-50 border border-primary/30 rounded-lg p-4 ${animateClasses.scaleIn}`}
         >
@@ -102,84 +135,116 @@ const PaymentStep = ({
               </div>
             </div>
             <p className="text-foreground font-medium">✓ Secure payment processing</p>
-            <p className="text-foreground font-medium">✓ Instant payment verification</p>
-            <p className="text-foreground font-medium">✓ Automated receipt generation</p>
+            <p className="text-foreground font-medium">
+              {isPayLater ? '✓ Submit now and return later to complete payment' : '✓ Upload proof for admissions review'}
+            </p>
+            <p className="text-foreground font-medium">✓ Automated receipt generation after verification</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-          <div style={staggerChild(0)}>
-            <FormSelect
-              name="payment_method"
-              control={control}
-              options={paymentMethodOptions}
-              label="Payment Method"
-              placeholder="Select payment method"
-              error={errors.payment_method?.message}
-            />
+        {isPayLater ? (
+          <div className="rounded-xl border border-dashed border-primary/40 bg-primary/5 p-4">
+            <h3 className="text-sm font-semibold text-foreground">Complete payment later from your dashboard</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Your application will be submitted without proof of payment. After submission, open
+              the payment section on your dashboard to upload proof and send it for review.
+            </p>
           </div>
+        ) : (
+          <>
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold text-foreground">Payment details</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Provide the transfer details exactly as they appear on the mobile money or bank confirmation.
+                </p>
+              </div>
 
-          <div style={staggerChild(1)}>
-            <AnimatedInput
-              {...register('payer_name')}
-              label="Payer Name"
-              placeholder="Name of person who made payment"
-              error={errors.payer_name?.message}
-            />
-          </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                <div style={staggerChild(0)}>
+                  <FormSelect
+                    name="payment_method"
+                    control={control}
+                    options={paymentMethodOptions}
+                    label="Payment Method"
+                    placeholder="Select payment method"
+                    error={errors.payment_method?.message}
+                  />
+                </div>
 
-          <div style={staggerChild(2)}>
-            <AnimatedInput
-              {...register('payer_phone')}
-              label="Payer Phone"
-              placeholder="Phone number used for payment"
-              error={errors.payer_phone?.message}
-            />
-          </div>
+                <div style={staggerChild(1)}>
+                  <AnimatedInput
+                    {...register('payer_name')}
+                    label="Payer Name"
+                    placeholder="Name of person who made payment"
+                    error={errors.payer_name?.message}
+                  />
+                </div>
 
-          <div style={staggerChild(3)}>
-            <AnimatedInput
-              type="number"
-              {...register('amount', { valueAsNumber: true })}
-              label="Amount Paid"
-              defaultValue={153}
-              min={153}
-              error={errors.amount?.message}
-            />
-          </div>
+                <div style={staggerChild(2)}>
+                  <AnimatedInput
+                    {...register('payer_phone')}
+                    label="Payer Phone"
+                    placeholder="Phone number used for payment"
+                    error={errors.payer_phone?.message}
+                  />
+                </div>
 
-          <div style={staggerChild(4)}>
-            <AnimatedInput
-              type="datetime-local"
-              {...register('paid_at')}
-              label="Payment Date & Time"
-              error={errors.paid_at?.message}
-            />
-          </div>
+                <div style={staggerChild(3)}>
+                  <AnimatedInput
+                    type="number"
+                    {...register('amount', { valueAsNumber: true })}
+                    label="Amount Paid"
+                    defaultValue={153}
+                    min={153}
+                    error={errors.amount?.message}
+                  />
+                </div>
 
-          <div style={staggerChild(5)}>
-            <AnimatedInput
-              {...register('momo_ref')}
-              label="Mobile Money Reference (Optional)"
-              placeholder="Transaction reference number"
-              helperText="Enter your transaction reference for faster verification"
-              error={errors.momo_ref?.message}
-            />
-          </div>
-        </div>
+                <div style={staggerChild(4)}>
+                  <AnimatedInput
+                    type="datetime-local"
+                    {...register('paid_at')}
+                    label="Payment Date & Time"
+                    error={errors.paid_at?.message}
+                  />
+                </div>
 
-        <div>
-          <AnimatedFileUpload
-            label="Proof of Payment"
-            required
-            accept=".pdf,.jpg,.jpeg,.png"
-            onChange={handleProofOfPaymentUpload}
-            file={proofOfPaymentFile}
-            uploadProgress={uploadProgress.proof_of_payment}
-            isUploaded={uploadedFiles.proof_of_payment}
-            helperText="Upload a screenshot or PDF of your payment confirmation"
-          />
-        </div>
+                <div style={staggerChild(5)}>
+                  <AnimatedInput
+                    {...register('momo_ref')}
+                    label="Mobile Money Reference (Optional)"
+                    placeholder="Transaction reference number"
+                    helperText="Enter your transaction reference for faster verification"
+                    error={errors.momo_ref?.message}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold text-foreground">Proof of payment upload</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Upload the receipt or screenshot that admissions will use to confirm your payment and submit for review.
+                </p>
+              </div>
+
+              <AnimatedFileUpload
+                label="Proof of Payment"
+                required
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={handleProofOfPaymentUpload}
+                file={proofOfPaymentFile}
+                uploadProgress={uploadProgress.proof_of_payment}
+                isUploaded={uploadedFiles.proof_of_payment}
+                helperText="Upload a screenshot or PDF of your payment confirmation"
+              />
+
+              <p className="mt-3 text-sm font-medium text-foreground">Submit for review once your proof upload is complete.</p>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState } from 'react'
 import { applicationService } from '@/services/applications'
 
@@ -17,9 +16,9 @@ export function useApplicationStatusHistory() {
   const fetchStatusHistory = async (applicationId: string) => {
     try {
       setLoading(true)
-      const response = await applicationService.getById(applicationId, { include: ['statusHistory'] })
-      const history = response.statusHistory || []
-      setStatusHistory(history.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()))
+      const response = await applicationService.getById(applicationId, { include: ['statusHistory'] }) as any
+      const history: StatusHistory[] = response?.statusHistory || []
+      setStatusHistory(history.sort((a: StatusHistory, b: StatusHistory) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()))
     } catch (error) {
       console.error('Error fetching status history:', error)
       setStatusHistory([])

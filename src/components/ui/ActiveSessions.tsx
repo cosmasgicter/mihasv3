@@ -1,20 +1,19 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { format, formatDistanceToNow } from 'date-fns'
+import { RefreshCw, ShieldCheck } from 'lucide-react'
+
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui'
-import { formatDistanceToNow } from 'date-fns'
 import { sanitizeForDisplay } from '@/lib/sanitize'
-import { terminateAllOtherSessions } from '@/services/sessionService'
+import {
+  type DeviceSession,
+  type SessionDeviceInfo,
+  listActiveSessions,
+  terminateAllOtherSessions,
+  terminateSessionById,
+} from '@/services/sessionService'
 import { useToastStore } from '@/components/ui/Toast'
-
-interface DeviceSession {
-  id: string
-  device_id: string
-  device_info: string
-  last_activity: string
-  is_active: boolean
-  created_at: string
-}
 
 const isDeviceSession = (value: unknown): value is DeviceSession => {
   if (!value || typeof value !== 'object') return false
@@ -23,10 +22,7 @@ const isDeviceSession = (value: unknown): value is DeviceSession => {
 
   return (
     typeof session.id === 'string' &&
-    typeof session.device_id === 'string' &&
-    typeof session.device_info === 'string' &&
     typeof session.last_activity === 'string' &&
-    typeof session.is_active === 'boolean' &&
     typeof session.created_at === 'string'
   )
 }
@@ -36,6 +32,53 @@ const getValidSessions = (value: unknown): DeviceSession[] => {
   return value.filter(isDeviceSession)
 }
 
+function normalizeDeviceInfo(deviceInfo: DeviceSession['device_info']): SessionDeviceInfo {
+  if (typeof deviceInfo === 'string') {
+    try {
+      const parsed = JSON.parse(deviceInfo)
+      if (parsed && typeof parsed === 'object') {
+        return parsed as SessionDeviceInfo
+      }
+    } catch {
+      return { browser: deviceInfo, os: 'Unknown', device_type: 'unknown' }
+    }
+  }
+
+  if (deviceInfo && typeof deviceInfo === 'object') {
+    return deviceInfo
+  }
+
+  return { browser: 'Unknown', os: 'Unknown', device_type: 'unknown' }
+}
+
+function getDeviceIcon(info: SessionDeviceInfo) {
+  const type = info.device_type ?? (info.is_mobile ? 'mobile' : 'desktop')
+
+  switch (type) {
+    case 'mobile':
+      return '📱'
+    case 'tablet':
+      return '📱'
+    default:
+      return '💻'
+  }
+}
+
+function getDeviceHeadline(info: SessionDeviceInfo) {
+  const browser = sanitizeForDisplay(info.browser || 'Unknown browser') || 'Unknown browser'
+  const os = sanitizeForDisplay(info.os || 'Unknown OS') || 'Unknown OS'
+  return `${browser} on ${os}`
+}
+
+function getDeviceMeta(info: SessionDeviceInfo, ipAddress?: string | null) {
+  const parts = [
+    info.device_type ? sanitizeForDisplay(info.device_type) : null,
+    ipAddress ? `IP ${sanitizeForDisplay(ipAddress)}` : null,
+  ].filter(Boolean)
+
+  return parts.join(' • ')
+}
+
 export function ActiveSessions() {
   const { user } = useAuth()
   const [sessions, setSessions] = useState<DeviceSession[]>([])
@@ -43,35 +86,23 @@ export function ActiveSessions() {
   const [terminating, setTerminating] = useState<string | null>(null)
   const [terminatingAll, setTerminatingAll] = useState(false)
   const [hasSessionAccessIssue, setHasSessionAccessIssue] = useState(false)
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null)
   const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const { addToast } = useToastStore()
 
   const loadSessions = useCallback(async () => {
-    if (!user) return
-    
+    if (!user) {
+      setSessions([])
+      setLoading(false)
+      return
+    }
+
     try {
       setLoading(true)
-      
-      const response = await fetch('/api/sessions?action=list', {
-        credentials: 'include'
-      })
-
-      if (response.status === 401) {
-        setSessions([])
-        setHasSessionAccessIssue(true)
-        return
-      }
-      
-      if (!response.ok) {
-        setSessions([])
-        setHasSessionAccessIssue(false)
-        return
-      }
-      
-      const result = await response.json()
-      const parsedSessions = getValidSessions(result?.data?.sessions ?? [])
-      setSessions(parsedSessions)
-      setHasSessionAccessIssue(!Array.isArray(result?.data?.sessions))
+      const result = await listActiveSessions()
+      setSessions(getValidSessions(result.sessions))
+      setHasSessionAccessIssue(Boolean(result.accessIssue))
+      setLastSyncedAt(new Date().toISOString())
     } catch (error) {
       console.error('Failed to load sessions:', error)
       setSessions([])
@@ -82,10 +113,15 @@ export function ActiveSessions() {
   }, [user])
 
   useEffect(() => {
-    if (user) {
-      if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current)
-      loadTimeoutRef.current = setTimeout(loadSessions, 300)
+    if (!user) {
+      setSessions([])
+      setLoading(false)
+      return
     }
+
+    if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current)
+    loadTimeoutRef.current = setTimeout(loadSessions, 300)
+
     return () => {
       if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current)
     }
@@ -93,24 +129,20 @@ export function ActiveSessions() {
 
   const terminateSession = async (sessionId: string) => {
     if (!user) return
-    
+
     try {
       setTerminating(sessionId)
-      
-      const response = await fetch('/api/sessions?action=revoke', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ sessionId })
-      })
-      
-      if (response.ok) {
-        setSessions(prev => prev.filter(s => s.id !== sessionId))
+      const result = await terminateSessionById(sessionId)
+
+      if (result.success) {
+        setSessions(prev => prev.filter(session => session.id !== sessionId))
+        addToast('success', 'Session terminated')
+      } else {
+        addToast('error', result.error || 'Failed to terminate the selected session')
       }
     } catch (error) {
       console.error('Failed to terminate session:', error)
+      addToast('error', 'Failed to terminate the selected session')
     } finally {
       setTerminating(null)
     }
@@ -118,26 +150,24 @@ export function ActiveSessions() {
 
   const handleTerminateAllOtherSessions = async () => {
     if (!user) return
-    
-    const currentDeviceId = getCurrentDeviceId()
-    const otherSessionsCount = sessions.filter(s => s.device_id !== currentDeviceId).length
-    
+
+    const otherSessionsCount = sessions.filter(session => session.is_current === false).length
+
     if (otherSessionsCount === 0) {
       addToast('info', 'No other sessions to terminate')
       return
     }
-    
+
     try {
       setTerminatingAll(true)
       const result = await terminateAllOtherSessions()
-      
+
       if (result.success) {
-        // Update local state to remove terminated sessions
-        setSessions(prev => prev.filter(s => s.device_id === currentDeviceId))
-        
+        setSessions(prev => prev.filter(session => session.is_current))
+
         addToast(
           'success',
-          result.terminatedCount > 0 
+          result.terminatedCount > 0
             ? `Successfully terminated ${result.terminatedCount} session${result.terminatedCount > 1 ? 's' : ''}`
             : 'No other sessions to terminate'
         )
@@ -152,20 +182,19 @@ export function ActiveSessions() {
     }
   }
 
-  const getDeviceIcon = (deviceInfo: string) => {
-    const info = deviceInfo.toLowerCase()
-    if (info.includes('mobile') || info.includes('android') || info.includes('iphone')) {
-      return '📱'
-    } else if (info.includes('tablet') || info.includes('ipad')) {
-      return '📱'
-    } else {
-      return '💻'
-    }
-  }
+  const sortedSessions = useMemo(
+    () =>
+      [...sessions].sort((a, b) => {
+        if (a.is_current && !b.is_current) return -1
+        if (!a.is_current && b.is_current) return 1
+        return new Date(b.last_activity).getTime() - new Date(a.last_activity).getTime()
+      }),
+    [sessions]
+  )
 
-  const getCurrentDeviceId = () => {
-    return localStorage.getItem('device_id')
-  }
+  const currentSession = sortedSessions.find(session => session.is_current)
+  const otherSessionsCount = sortedSessions.filter(session => session.is_current === false).length
+  const lastSyncedLabel = lastSyncedAt ? format(new Date(lastSyncedAt), 'PPP p') : null
 
   if (loading) {
     return (
@@ -183,32 +212,64 @@ export function ActiveSessions() {
 
   return (
     <Card className="p-4">
-      <h3 className="text-lg font-semibold mb-4">Active Sessions</h3>
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">Active Sessions</h3>
+          <p className="text-sm text-muted-foreground">
+            Review devices that are signed in to your account and revoke any session you do not recognize.
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 sm:items-end">
+          <div className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm font-medium text-foreground">
+            {sortedSessions.length} active session{sortedSessions.length === 1 ? '' : 's'}
+          </div>
+          {lastSyncedLabel && (
+            <p className="text-xs text-muted-foreground">Last synced {lastSyncedLabel}</p>
+          )}
+        </div>
+      </div>
+
+      {currentSession && (
+        <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50/70 px-4 py-3">
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="mt-0.5 h-5 w-5 text-emerald-600" />
+            <div>
+              <p className="text-sm font-semibold text-foreground">Current device protected</p>
+              <p className="text-sm text-muted-foreground">
+                This page stays signed in on{' '}
+                <span className="font-medium text-foreground">
+                  {getDeviceHeadline(normalizeDeviceInfo(currentSession.device_info))}
+                </span>
+                . Use “Terminate all other sessions” if you need to remove access everywhere else without interrupting the current device.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {hasSessionAccessIssue && (
         <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
           Session details are temporarily unavailable. Your current session remains active.
         </div>
       )}
-      
-      {sessions.length === 0 ? (
+
+      {sortedSessions.length === 0 ? (
         <div className="text-center py-4">
-          <p className="text-foreground mb-2">Session tracking is not enabled yet.</p>
-          <p className="text-sm text-foreground">Your current session is active and secure.</p>
+          <p className="text-foreground mb-2">No active sessions were found for this account.</p>
+          <p className="text-sm text-foreground">Your current device will appear here after your next authenticated refresh.</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {sessions.map((session) => {
-            const isCurrentDevice = session.device_id === getCurrentDeviceId()
-            const deviceInfo = sanitizeForDisplay(session.device_info) || 'Unknown Device'
-            const browserInfo = sanitizeForDisplay(deviceInfo.split('|')[0]?.substring(0, 50)) || 'Unknown Browser'
-            const screenInfo = sanitizeForDisplay(deviceInfo.split('|')[1]) || ''
-            
+          {sortedSessions.map((session) => {
+            const deviceInfo = normalizeDeviceInfo(session.device_info)
+            const headline = getDeviceHeadline(deviceInfo)
+            const meta = getDeviceMeta(deviceInfo, session.ip_address)
+
             return (
               <div
                 key={session.id}
                 className={`flex items-center justify-between p-3 rounded-lg border ${
-                  isCurrentDevice ? 'bg-green-50 border-green-200' : 'bg-muted border-border'
+                  session.is_current ? 'bg-green-50 border-green-200' : 'bg-muted border-border'
                 }`}
               >
                 <div className="flex items-center space-x-3">
@@ -216,22 +277,23 @@ export function ActiveSessions() {
                   <div>
                     <div className="flex items-center space-x-2">
                       <p className="font-medium text-sm">
-                        {browserInfo}
-                        {isCurrentDevice && (
+                        {headline}
+                        {session.is_current && (
                           <span className="ml-2 px-2 py-1 bg-accent/10 text-accent-foreground text-xs rounded-full">
-                            Current Device
+                            Current session
                           </span>
                         )}
                       </p>
                     </div>
                     <p className="text-xs text-foreground">
-                      {screenInfo && `${screenInfo} • `}
+                      {meta ? `${meta} • ` : ''}
+                      Signed in {formatDistanceToNow(new Date(session.created_at), { addSuffix: true })} •{' '}
                       Last active {formatDistanceToNow(new Date(session.last_activity), { addSuffix: true })}
                     </p>
                   </div>
                 </div>
-                
-                {!isCurrentDevice && (
+
+                {session.is_current === false && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -247,14 +309,14 @@ export function ActiveSessions() {
           })}
         </div>
       )}
-      
+
       <div className="mt-4 pt-4 border-t space-y-2">
-        {sessions.filter(s => s.device_id !== getCurrentDeviceId()).length > 0 && (
+        {otherSessionsCount > 0 && (
           <Button
             variant="destructive"
             size="sm"
             onClick={handleTerminateAllOtherSessions}
-            disabled={terminatingAll || sessions.filter(s => s.device_id !== getCurrentDeviceId()).length === 0}
+            disabled={terminatingAll || otherSessionsCount === 0}
             className="w-full"
           >
             {terminatingAll ? 'Terminating All...' : 'Terminate All Other Sessions'}
@@ -264,8 +326,10 @@ export function ActiveSessions() {
           variant="outline"
           size="sm"
           onClick={loadSessions}
+          disabled={loading}
           className="w-full"
         >
+          <RefreshCw className="mr-2 h-4 w-4" />
           Refresh Sessions
         </Button>
       </div>

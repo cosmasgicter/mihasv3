@@ -1,10 +1,9 @@
 import React, { useState, useCallback } from 'react'
-import { Home, FileText, Bell, User, LayoutDashboard, Users, ChevronLeft, ChevronRight, ChevronDown, GraduationCap, Calendar, Settings, FileSearch, CreditCard } from 'lucide-react'
+import { Home, FileText, Bell, LayoutDashboard, Users, ChevronLeft, ChevronRight, ChevronDown, GraduationCap, Calendar, Settings, FileSearch, CreditCard } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { useRoleQuery, isReportManagerRole } from '@/hooks/auth/useRoleQuery'
+import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
 import { useSidebar } from '@/contexts/SidebarContext'
-import { designTokens } from '@/design-system/tokens'
 import { cn } from '@/lib/utils'
 
 interface NavItem {
@@ -50,20 +49,26 @@ const adminSections: NavSection[] = [
 
 const studentLinks: NavItem[] = [
   { to: '/student/dashboard', icon: Home, label: 'Dashboard' },
-  { to: '/apply', icon: FileText, label: 'Application' },
+  { to: '/student/application-wizard', icon: FileText, label: 'Application' },
   { to: '/student/payment', icon: CreditCard, label: 'Payment' },
   { to: '/student/interview', icon: Calendar, label: 'Interview' },
   { to: '/student/notifications', icon: Bell, label: 'Notifications' },
-  { to: '/student/profile', icon: User, label: 'Profile' },
+  { to: '/student/settings', icon: Settings, label: 'Settings' },
 ]
+
+const isRouteActive = (currentPath: string, itemPath: string) => {
+  if (itemPath === '/student/application-wizard') {
+    return currentPath === '/student/application-wizard' || currentPath === '/apply'
+  }
+
+  return currentPath === itemPath
+}
 
 export const DesktopSidebar = React.memo(function DesktopSidebar() {
   const location = useLocation()
   const { user, isAdmin } = useAuth()
-  const { userRole } = useRoleQuery({ user, enabled: Boolean(user) })
+  useRoleQuery({ user, enabled: Boolean(user) })
   const { collapsed, setCollapsed } = useSidebar()
-  const permissions = userRole?.permissions ?? []
-  const hasCapability = (required: string[]) => required.some(capability => permissions.includes(capability))
   const visibleAdminSections = adminSections
   
   // Track which sections are expanded (all expanded by default)
@@ -87,42 +92,36 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
 
   return (
     <aside
-      className="hidden md:flex flex-col fixed left-0 top-0 h-screen bg-card/95 backdrop-blur-xl border-r border-border shadow-xl z-40 transition-all duration-300 ease-in-out"
+      className="hidden md:flex flex-col fixed left-0 top-0 h-screen bg-gradient-to-b from-card via-card to-muted/70 backdrop-blur-xl border-r border-border/80 shadow-xl z-40 transition-all duration-300 ease-in-out"
       style={{ width: collapsed ? 'var(--sidebar-collapsed)' : 'var(--sidebar-expanded)' }}
     >
-      {/* Header with logo and collapse toggle */}
-      <div className={cn(
-        "flex items-center p-4 border-b border-border min-h-[64px]",
-        collapsed ? "flex-col gap-2 justify-center" : "justify-between"
-      )}>
-        {/* Logo - always visible */}
+      <div className="relative border-b border-border/80 px-3 py-4">
         <div className={cn(
-          "flex items-center",
-          collapsed ? "justify-center" : "gap-2"
+          'flex items-center rounded-2xl bg-white/70 px-3 py-3 shadow-sm ring-1 ring-border/60',
+          collapsed ? 'justify-center' : 'gap-3 pr-12'
         )} role="img" aria-label="Mukuba Institute of Health and Allied Sciences logo">
           <div className={cn(
-            "w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary",
-            "flex items-center justify-center shrink-0"
+            'h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shrink-0 shadow-md'
           )} aria-hidden="true">
-            <span className="text-white font-bold text-sm">M</span>
+            <span className="text-white font-bold text-sm">MI</span>
           </div>
-          
-          {/* Text - only when expanded */}
+
           {!collapsed && (
-            <span
-              className="text-lg font-bold text-foreground truncate transition-opacity duration-200 motion-reduce:transition-none"
-            >
-              {isAdmin ? 'MIHAS Admin' : 'MIHAS-KATC'}
-            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-primary/80">Portal</p>
+              <span className="block text-base font-bold text-foreground truncate transition-opacity duration-200 motion-reduce:transition-none">
+                {isAdmin ? 'MIHAS Admin' : 'MIHAS Student'}
+              </span>
+            </div>
           )}
         </div>
-        
-        {/* Toggle button */}
+
         <button
           onClick={() => setCollapsed(!collapsed)}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className={cn(
-            'p-2 rounded-lg hover:bg-accent transition-colors',
+            'absolute right-4 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full border border-border/70 bg-card shadow-sm',
+            'flex items-center justify-center hover:bg-accent transition-colors',
             'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
           )}
         >
@@ -135,7 +134,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
+      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-2">
         {isAdmin ? (
           visibleAdminSections.map((section) => (
             <SidebarSection
@@ -149,12 +148,17 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
           ))
         ) : (
           <div className="space-y-1">
+            {!collapsed && (
+              <div className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Student Workspace
+              </div>
+            )}
             {studentLinks.map((item) => (
               <SidebarNavItem
                 key={item.to}
                 item={item}
                 collapsed={collapsed}
-                isActive={location.pathname === item.to}
+                isActive={isRouteActive(location.pathname, item.to)}
               />
             ))}
           </div>
@@ -162,15 +166,20 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
       </nav>
 
       {/* Footer with system status */}
-      <div className="p-4 border-t border-border">
+      <div className="border-t border-border/80 p-4">
         {!collapsed ? (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground transition-opacity duration-200 motion-reduce:transition-none">
-            <div className="w-2 h-2 rounded-full bg-success animate-pulse motion-reduce:animate-none" />
-            <span>System Online</span>
+          <div className="flex items-center gap-3 rounded-2xl bg-white/70 px-3 py-3 text-xs text-muted-foreground shadow-sm ring-1 ring-border/60 transition-opacity duration-200 motion-reduce:transition-none">
+            <div className="w-2.5 h-2.5 rounded-full bg-success animate-pulse motion-reduce:animate-none" />
+            <div>
+              <p className="font-semibold text-foreground">System online</p>
+              <p className="text-[11px] text-muted-foreground">Admissions workspace ready</p>
+            </div>
           </div>
         ) : (
           <div className="flex justify-center transition-opacity duration-200 motion-reduce:transition-none" title="System Online" role="status">
-            <div className="w-2 h-2 rounded-full bg-success animate-pulse motion-reduce:animate-none" aria-hidden="true" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow-sm ring-1 ring-border/60">
+              <div className="w-2.5 h-2.5 rounded-full bg-success animate-pulse motion-reduce:animate-none" aria-hidden="true" />
+            </div>
             <span className="sr-only">System Online</span>
           </div>
         )}
@@ -205,7 +214,7 @@ function SidebarSection({
         <button
           onClick={onToggle}
           className={cn(
-            'w-full flex items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wider',
+            'w-full flex items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em]',
             'text-muted-foreground hover:text-foreground transition-colors',
             'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg',
             hasActiveItem && 'text-primary'
@@ -237,7 +246,7 @@ function SidebarSection({
                 key={item.to}
                 item={item}
                 collapsed={collapsed}
-                isActive={currentPath === item.to}
+                isActive={isRouteActive(currentPath, item.to)}
               />
             ))}
           </div>
@@ -265,13 +274,13 @@ function SidebarNavItem({
       to={item.to}
       aria-current={isActive ? 'page' : undefined}
       className={cn(
-        'relative flex items-center gap-3 px-3 py-2.5 rounded-lg group overflow-hidden',
+        'relative flex items-center gap-3 px-3 py-2.5 rounded-2xl group overflow-hidden',
         'transition-all duration-200',
         'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
         collapsed && 'justify-center',
         isActive
-          ? 'bg-primary/10 text-primary'
-          : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+          ? 'bg-primary text-primary-foreground shadow-md'
+          : 'text-muted-foreground hover:bg-white/80 hover:text-foreground'
       )}
       title={collapsed ? item.label : undefined}
     >
@@ -287,7 +296,7 @@ function SidebarNavItem({
         style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }}
         className={cn(
           'shrink-0 transition-colors duration-200',
-          isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
+          isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground'
         )}
       />
 
@@ -296,7 +305,7 @@ function SidebarNavItem({
         <span
           className={cn(
             'font-medium truncate transition-opacity duration-150 motion-reduce:transition-none',
-            isActive ? 'text-primary' : 'text-foreground'
+            isActive ? 'text-primary-foreground' : 'text-foreground'
           )}
           style={{ fontSize: 'var(--type-sm)' }}
         >
@@ -306,7 +315,7 @@ function SidebarNavItem({
 
       {/* Hover effect */}
       {!isActive && (
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-2xl" />
       )}
     </Link>
   )

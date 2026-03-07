@@ -13,6 +13,8 @@ interface WizardFormData {
   phone: string
   email: string
   residence_town: string
+  country?: string
+  nationality?: string
   next_of_kin_name?: string
   next_of_kin_phone?: string
   program: string

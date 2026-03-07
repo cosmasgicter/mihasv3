@@ -2,6 +2,7 @@
 import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { resolveLocalApiModulePath } from './src/lib/localApiResolver.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -60,7 +61,8 @@ const apiFiles = ['health', 'ping', 'auth', 'catalog', 'applications', 'admin', 
 
 for (const file of apiFiles) {
   try {
-    const module = await import(`./api/${file}.ts`);
+    const modulePath = resolveLocalApiModulePath(file, { rootDir: __dirname });
+    const module = await import(modulePath);
     const handler = module.default;
     if (handler) {
       app.all(`/api/${file}`, createVercelAdapter(handler));

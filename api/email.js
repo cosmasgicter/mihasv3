@@ -105,11 +105,15 @@ var init_db = __esm(() => {
 });
 
 // lib/queries.ts
-var USER_ROLES, AuditQueries;
+var USER_ROLES, AUDIT_ENTITY_PLACEHOLDER_ID = "00000000-0000-0000-0000-000000000000", AuditQueries;
 var init_queries = __esm(() => {
   USER_ROLES = {
     SUPER_ADMIN: "super_admin",
     ADMIN: "admin",
+    ADMISSIONS_OFFICER: "admissions_officer",
+    REGISTRAR: "registrar",
+    FINANCE_OFFICER: "finance_officer",
+    ACADEMIC_HEAD: "academic_head",
     REVIEWER: "reviewer",
     STUDENT: "student"
   };
@@ -120,7 +124,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+      VALUES ($1, $2, $3, COALESCE($4, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $5, $6, $7, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -139,7 +143,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, 'user', $1, $3, $4, $5, NOW())
+      VALUES ($1, $2, 'user', COALESCE($1, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $3, $4, $5, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -156,7 +160,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, 'authorization_failure', $2, $3, $4, $5, $6, NOW())
+      VALUES ($1, 'authorization_failure', $2, COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -177,7 +181,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, 'session', $3, $4, $5, $6, NOW())
+      VALUES ($1, $2, 'session', COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
       RETURNING id, created_at
     `,
       values: [

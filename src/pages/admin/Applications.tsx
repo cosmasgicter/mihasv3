@@ -4,7 +4,6 @@ import { useSearchParams } from 'react-router-dom'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import {
   FiltersPanel,
-  MetricsHeader,
   ApplicationsTable,
   ApplicationsTableView,
   ApplicationsSkeleton,
@@ -26,6 +25,7 @@ import {
   type ApplicationData
 } from '@/lib/exportUtils'
 import { calculatePointsFromSummary } from '@/utils/grades'
+import { buildApplicationsOverview } from '@/pages/admin/lib/applicationsOverview'
 import { 
   FileDown, 
   FileSpreadsheet, 
@@ -59,6 +59,14 @@ const mapRecordToApplication = (record: any): ApplicationData => {
   const points = record.points && Number(record.points) > 0 
     ? Number(record.points) 
     : calculatePointsFromSummary(record.grades_summary)
+
+  const paymentReviewedAt = record.last_payment_audit_at ?? record.payment_verified_at ?? ''
+  const paymentReviewedBy =
+    record.last_payment_audit_by_name ??
+    record.last_payment_audit_by_email ??
+    record.payment_verified_by_name ??
+    record.payment_verified_by_email ??
+    ''
   
   return {
     application_number: record.application_number ?? '',
@@ -69,17 +77,55 @@ const mapRecordToApplication = (record: any): ApplicationData => {
     intake: record.intake ?? '',
     institution: record.institution ?? '',
     status: record.status ?? '',
-    payment_status: record.payment_status ?? '',
+    payment_status: record.payment_status ?? 'not_paid',
     application_fee: Number(record.application_fee ?? 0),
-    paid_amount: Number(record.paid_amount ?? 0),
+    paid_amount: Number(record.paid_amount ?? record.amount ?? 0),
     submitted_at: record.submitted_at || record.created_at || '',
     created_at: record.created_at || record.submitted_at || '',
     grades_summary: record.grades_summary ?? '',
     total_subjects: Number(record.total_subjects ?? 0),
     points,
     age: Number(record.age ?? 0),
-    days_since_submission: Number(record.days_since_submission ?? 0)
+    days_since_submission: Number(record.days_since_submission ?? 0),
+    payment_reviewed_at: paymentReviewedAt,
+    payment_reviewed_by: paymentReviewedBy,
+    payment_review_notes: record.last_payment_audit_notes ?? '',
+    payment_reference: record.last_payment_reference ?? ''
   }
+}
+
+const buildApplicationsExportFileName = (filters: {
+  statusFilter?: string
+  paymentFilter?: string
+  programFilter?: string
+  institutionFilter?: string
+}) => {
+  const datePart = new Date().toISOString().split('T')[0]
+  const segments = ['applications']
+
+  if (filters.statusFilter) {
+    segments.push(`status-${filters.statusFilter}`)
+  }
+
+  if (filters.paymentFilter) {
+    segments.push(`payment-${filters.paymentFilter}`)
+  }
+
+  if (filters.programFilter) {
+    segments.push(`program-${filters.programFilter}`)
+  }
+
+  if (filters.institutionFilter) {
+    segments.push(`institution-${filters.institutionFilter}`)
+  }
+
+  segments.push(datePart)
+
+  return segments
+    .join('_')
+    .replace(/\s+/g, '_')
+    .replace(/[^a-zA-Z0-9_\-]/g, '')
+    .replace(/_+/g, '_')
 }
 
 const yieldToBrowser = () => new Promise<void>(resolve => setTimeout(resolve, 0))
@@ -183,12 +229,6 @@ export default function Applications() {
   // Track which application is currently being updated (for virtualized grid)
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
   const [updatingPaymentId, setUpdatingPaymentId] = useState<string | null>(null)
-  const [quickStats, setQuickStats] = useState({
-    todaySubmissions: 0,
-    pendingReview: 0,
-    approved: 0,
-    rejected: 0
-  })
 
   const activeFilters = useMemo(() => ({ ...filters }), [filters])
 
@@ -240,8 +280,7 @@ export default function Applications() {
 
     try {
       const stream = createExportStream()
-      const timestamp = new Date().toISOString().split('T')[0]
-      const filenameBase = `applications_${timestamp}`
+      const filenameBase = buildApplicationsExportFileName(activeFilters)
 
       if (format === 'csv') {
         await exportToCSV(stream, `${filenameBase}.csv`)
@@ -378,10 +417,14 @@ export default function Applications() {
   }, [updateStatus, showSuccess, showError])
 
   // Wrapper for updatePaymentStatus with error handling and toast notifications
-  const handlePaymentStatusUpdate = useCallback(async (applicationId: string, newPaymentStatus: string) => {
+  const handlePaymentStatusUpdate = useCallback(async (
+    applicationId: string,
+    newPaymentStatus: string,
+    verificationNotes?: string
+  ) => {
     try {
       setUpdatingPaymentId(applicationId)
-      await updatePaymentStatus(applicationId, newPaymentStatus)
+      await updatePaymentStatus(applicationId, newPaymentStatus, verificationNotes)
       showSuccess('Payment status updated', `Payment status changed to ${newPaymentStatus.replace('_', ' ')}.`)
     } catch (error) {
       console.error('Failed to update payment status:', error)
@@ -421,20 +464,9 @@ export default function Applications() {
     }
   }, [updateStatus, showSuccess, showError])
 
-  // Calculate quick stats
   const stats = useMemo(() => {
-    const today = new Date().toDateString()
-    return {
-      total: applications.length,
-      todaySubmissions: applications.filter(app => new Date(app.submitted_at || app.created_at).toDateString() === today).length,
-      pendingReview: applications.filter(app => app.status === 'submitted').length,
-      underReview: applications.filter(app => app.status === 'under_review').length,
-      approved: applications.filter(app => app.status === 'approved').length,
-      rejected: applications.filter(app => app.status === 'rejected').length,
-      paymentPending: applications.filter(app => app.payment_status === 'pending_review').length,
-      paymentVerified: applications.filter(app => app.payment_status === 'verified').length
-    }
-  }, [applications])
+    return buildApplicationsOverview(applications, pagination.totalCount)
+  }, [applications, pagination.totalCount])
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 ${animateClasses.fadeIn}`}>
@@ -525,19 +557,19 @@ export default function Applications() {
                 <AlertCircle className="h-4 w-4 text-accent" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Pending</p>
-                <p className="text-2xl font-bold text-foreground">{stats.pendingReview}</p>
+                <p className="text-xs text-muted-foreground">Decision Queue</p>
+                <p className="text-2xl font-bold text-foreground">{stats.decisionQueue}</p>
               </div>
             </div>
           </div>
           <div className="bg-card rounded-xl p-4 shadow-sm border border-border">
             <div className="flex items-center space-x-2">
-              <div className="p-2 bg-accent/10 rounded-lg">
-                <CheckCircle className="h-4 w-4 text-accent" />
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <CreditCard className="h-4 w-4 text-orange-600" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Approved</p>
-                <p className="text-2xl font-bold text-foreground">{stats.approved}</p>
+                <p className="text-xs text-muted-foreground">Proof Review</p>
+                <p className="text-2xl font-bold text-foreground">{stats.paymentPending}</p>
               </div>
             </div>
           </div>
@@ -547,8 +579,8 @@ export default function Applications() {
                 <XCircle className="h-4 w-4 text-destructive" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Rejected</p>
-                <p className="text-2xl font-bold text-foreground">{stats.rejected}</p>
+                <p className="text-xs text-muted-foreground">Payment Follow-up</p>
+                <p className="text-2xl font-bold text-foreground">{stats.paymentNotPaid + stats.paymentRejected}</p>
               </div>
             </div>
           </div>

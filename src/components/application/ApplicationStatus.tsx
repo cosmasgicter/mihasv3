@@ -1,5 +1,6 @@
 import React from 'react'
 import { CheckCircle, XCircle, Clock, AlertTriangle, FileText, Star } from 'lucide-react'
+import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus'
 
 interface ApplicationStatusProps {
   status: string
@@ -78,23 +79,29 @@ export function ApplicationStatus({
   }
 
   const getPaymentStatusConfig = (paymentStatus: string) => {
-    switch (paymentStatus) {
+    switch (normalizePaymentStatus(paymentStatus)) {
       case 'verified':
         return {
           color: 'text-success',
-          label: 'Payment Verified',
+          label: `Payment ${getPaymentStatusLabel(paymentStatus)}`,
           icon: CheckCircle
         }
       case 'rejected':
         return {
           color: 'text-error',
-          label: 'Payment Rejected',
+          label: `Payment ${getPaymentStatusLabel(paymentStatus)}`,
           icon: XCircle
+        }
+      case 'pending_review':
+        return {
+          color: 'text-warning',
+          label: `Payment ${getPaymentStatusLabel(paymentStatus)}`,
+          icon: Clock
         }
       default:
         return {
           color: 'text-warning',
-          label: 'Payment Pending',
+          label: `Payment ${getPaymentStatusLabel(paymentStatus)}`,
           icon: Clock
         }
     }

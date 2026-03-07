@@ -1,7 +1,8 @@
-import { defineConfig, type Plugin } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
+import { createDevApiProxyConfig } from './src/lib/devApiProxy'
 
 /**
  * Build-time validation for required VITE_* environment variables.
@@ -64,42 +65,45 @@ function envValidationPlugin(): Plugin {
  * - Cloudflare-specific settings
  * - Complex chunk splitting that caused createContext errors
  */
-export default defineConfig({
-  plugins: [
-    envValidationPlugin(),
-    react(),
-    VitePWA({
-      registerType: 'prompt',
-      strategies: 'injectManifest',
-      srcDir: 'src',
-      filename: 'service-worker.ts',
-      injectRegister: false,
-      injectManifest: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
-        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024
+export default defineConfig(({ mode, command }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+
+  return {
+    plugins: [
+      envValidationPlugin(),
+      react(),
+      VitePWA({
+        registerType: 'prompt',
+        strategies: 'injectManifest',
+        srcDir: 'src',
+        filename: 'service-worker.ts',
+        injectRegister: false,
+        injectManifest: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
+          maximumFileSizeToCacheInBytes: 3 * 1024 * 1024
+        },
+      })
+    ],
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
       },
-    })
-  ],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
     },
-  },
-  define: {
-    // Required for some libraries that expect global
-    global: 'globalThis',
-  },
-  build: {
-    target: 'es2022', // Modern browsers - Bun native support
-    minify: 'terser',
-    sourcemap: false, // Disable for production builds
-    chunkSizeWarningLimit: 500,
-    modulePreload: { polyfill: false }, // No polyfills for modern browsers
-    cssCodeSplit: true,
-    assetsInlineLimit: 4096, // Inline assets <4KB as base64
-    reportCompressedSize: false, // Faster builds
-    rollupOptions: {
-      output: {
+    define: {
+      // Required for some libraries that expect global
+      global: 'globalThis',
+    },
+    build: {
+      target: 'es2022', // Modern browsers - Bun native support
+      minify: 'terser',
+      sourcemap: false, // Disable for production builds
+      chunkSizeWarningLimit: 500,
+      modulePreload: { polyfill: false }, // No polyfills for modern browsers
+      cssCodeSplit: true,
+      assetsInlineLimit: 4096, // Inline assets <4KB as base64
+      reportCompressedSize: false, // Faster builds
+      rollupOptions: {
+        output: {
         /**
          * Manual Chunks - Minimal Safe Approach
          * 
@@ -147,35 +151,37 @@ export default defineConfig({
         },
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',
+        }
+      },
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+          pure_funcs: ['console.log', 'console.info', 'console.debug'],
+          passes: 2,
+          ecma: 2020
+        },
+        mangle: {
+          safari10: false // No Safari 10 support needed
+        },
+        format: {
+          ecma: 2020
+        }
       }
     },
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug'],
-        passes: 2,
-        ecma: 2020
-      },
-      mangle: {
-        safari10: false // No Safari 10 support needed
-      },
-      format: {
-        ecma: 2020
+    server: {
+      port: 5173,
+      host: '0.0.0.0',
+      strictPort: false,
+      cors: true,
+      proxy: command === 'serve' ? createDevApiProxyConfig(env) : undefined,
+      hmr: {
+        overlay: true
       }
+    },
+    preview: {
+      port: 4173,
+      host: '0.0.0.0'
     }
-  },
-  server: {
-    port: 5173,
-    host: '0.0.0.0',
-    strictPort: false,
-    cors: true,
-    hmr: {
-      overlay: true
-    }
-  },
-  preview: {
-    port: 4173,
-    host: '0.0.0.0'
   }
 })

@@ -5,6 +5,8 @@ import { sanitizeForLog } from '@/lib/security'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024
 const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'] as const
+const MAX_UPLOAD_RETRIES = 1
+const RETRY_DELAY_MS = 1200
 
 export type ApplicationFileType = 'result_slip' | 'extra_kyc' | 'proof_of_payment'
 
@@ -31,6 +33,30 @@ export interface UseApplicationFileUploadsResult {
 
 function isAllowedFileType(type: string): type is typeof ALLOWED_TYPES[number] {
   return (ALLOWED_TYPES as readonly string[]).includes(type)
+}
+
+function isRetryableUploadError(error: unknown): boolean {
+  const explicitRetryable = (error as { retryable?: unknown })?.retryable
+  if (typeof explicitRetryable === 'boolean') {
+    return explicitRetryable
+  }
+
+  if (!(error instanceof Error)) {
+    return false
+  }
+
+  const message = error.message.toLowerCase()
+  return (
+    message.includes('network') ||
+    message.includes('timeout') ||
+    message.includes('failed to fetch') ||
+    message.includes('408') ||
+    message.includes('425') ||
+    message.includes('429') ||
+    message.includes('502') ||
+    message.includes('503') ||
+    message.includes('504')
+  )
 }
 
 export function useApplicationFileUploads({
@@ -216,10 +242,7 @@ export function useApplicationFileUploads({
       if (uploadPromises.current[fileType]) {
         return uploadPromises.current[fileType]!
       }
-      
-      const MAX_RETRIES = 3
-      const RETRY_DELAY = 1000
-      
+
       const uploadPromise = trackUploadTask(async () => {
         if (!userId || !applicationId) {
           throw new Error('User or application ID not available')
@@ -256,7 +279,13 @@ export function useApplicationFileUploads({
           const result = await uploadApplicationFile(file, userId, applicationId, fileType)
 
           if (!result.success) {
-            throw new Error(result.error || 'Upload failed')
+            const uploadError = new Error(result.error || 'Upload failed') as Error & {
+              retryable?: boolean
+              statusCode?: number
+            }
+            uploadError.retryable = result.retryable
+            uploadError.statusCode = result.statusCode
+            throw uploadError
           }
 
           setUploadProgress(prev => ({ ...prev, [fileType]: 100 }))
@@ -264,20 +293,32 @@ export function useApplicationFileUploads({
 
           return result.url!
         } catch (error) {
-          console.error(`File upload error (attempt ${retryCount + 1}/${MAX_RETRIES + 1}):`, {
+          console.error(`File upload error (attempt ${retryCount + 1}/${MAX_UPLOAD_RETRIES + 1}):`, {
             error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error')
           })
-          
-          // Retry logic
-          if (retryCount < MAX_RETRIES) {
-            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retryCount + 1)))
+
+          const shouldRetry = retryCount < MAX_UPLOAD_RETRIES && isRetryableUploadError(error)
+
+          if (shouldRetry) {
+            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS * (retryCount + 1)))
             uploadPromises.current[fileType] = null
             return startUpload(file, fileType, retryCount + 1)
           }
-          
+
           setUploadedFiles(prev => ({ ...prev, [fileType]: false }))
           clearProgressEntry(fileType)
-          throw new Error(`Upload failed after ${MAX_RETRIES + 1} attempts: ${error instanceof Error ? error.message : 'Unknown error'}`)
+
+          if (error instanceof Error) {
+            throw new Error(
+              shouldRetry
+                ? error.message
+                : retryCount > 0
+                  ? `Upload failed after ${retryCount + 1} attempts: ${error.message}`
+                  : error.message
+            )
+          }
+
+          throw new Error('Upload failed')
         } finally {
           if (progressInterval) {
             clearInterval(progressInterval)

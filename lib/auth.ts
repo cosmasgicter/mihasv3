@@ -54,6 +54,10 @@ export const JWT_CONFIG = {
 export const USER_ROLES = {
   SUPER_ADMIN: "super_admin",
   ADMIN: "admin",
+  ADMISSIONS_OFFICER: "admissions_officer",
+  REGISTRAR: "registrar",
+  FINANCE_OFFICER: "finance_officer",
+  ACADEMIC_HEAD: "academic_head",
   REVIEWER: "reviewer",
   STUDENT: "student",
 } as const;
@@ -374,6 +378,28 @@ export function getPermissionsForRole(role: UserRole): string[] {
       "programs:read",
       "payments:read", "payments:verify",
       "documents:read", "documents:verify",
+      "analytics:read",
+    ],
+    [USER_ROLES.ADMISSIONS_OFFICER]: [
+      "applications:read", "applications:write", "applications:review",
+      "documents:read", "documents:verify",
+      "payments:read",
+    ],
+    [USER_ROLES.REGISTRAR]: [
+      "applications:read", "applications:review",
+      "programs:read",
+      "documents:read",
+      "analytics:read",
+    ],
+    [USER_ROLES.FINANCE_OFFICER]: [
+      "applications:read",
+      "payments:read", "payments:verify",
+      "documents:read",
+    ],
+    [USER_ROLES.ACADEMIC_HEAD]: [
+      "applications:read", "applications:review",
+      "programs:read",
+      "documents:read",
       "analytics:read",
     ],
     [USER_ROLES.REVIEWER]: [

@@ -132,7 +132,7 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
         ['Intake', safeText(data.intake_name, 'Not specified')],
         ['Institution', institutionName],
         ['Application Status', formatStatusLabel(data.status, 'Pending')],
-        ['Payment Status', formatStatusLabel(data.payment_status, 'Pending Review')]
+        ['Payment Status', formatStatusLabel(data.payment_status, 'Pending Payment')]
       ],
       theme: 'striped',
       headStyles: { fillColor: [249, 250, 251], textColor: [17, 24, 39] },

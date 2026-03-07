@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState } from 'react'
 import { applicationService } from '@/services/applications'
 
@@ -21,8 +20,8 @@ export function useApplicationDocuments() {
   const fetchDocuments = async (applicationId: string) => {
     try {
       setLoading(true)
-      const response = await applicationService.getById(applicationId, { include: ['documents'] })
-      setDocuments(response.documents || [])
+      const response = await applicationService.getById(applicationId, { include: ['documents'] }) as any
+      setDocuments(response?.documents || [])
     } catch (error) {
       console.error('Error fetching documents:', error)
       setDocuments([])

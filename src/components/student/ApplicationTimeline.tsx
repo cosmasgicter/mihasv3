@@ -180,8 +180,8 @@ function buildTimelineEvents(application: Application) {
     events.push({
       id: 'payment_pending',
       date: new Date().toISOString(),
-      title: 'Payment Pending Verification',
-      description: 'Your payment is being reviewed',
+      title: 'Payment Proof Under Review',
+      description: 'Your submitted payment proof is awaiting review',
       status: 'pending',
     });
   } else if (application.payment_status === 'rejected') {

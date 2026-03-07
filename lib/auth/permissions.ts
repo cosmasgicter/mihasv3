@@ -28,6 +28,10 @@ import { AuditQueries, type AuditEntityType } from "../queries";
 export const USER_ROLES = {
   SUPER_ADMIN: "super_admin",
   ADMIN: "admin",
+  ADMISSIONS_OFFICER: "admissions_officer",
+  REGISTRAR: "registrar",
+  FINANCE_OFFICER: "finance_officer",
+  ACADEMIC_HEAD: "academic_head",
   REVIEWER: "reviewer",
   STUDENT: "student",
 } as const;
@@ -41,6 +45,10 @@ export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];
 export const ALL_USER_ROLES: readonly UserRole[] = [
   USER_ROLES.SUPER_ADMIN,
   USER_ROLES.ADMIN,
+  USER_ROLES.ADMISSIONS_OFFICER,
+  USER_ROLES.REGISTRAR,
+  USER_ROLES.FINANCE_OFFICER,
+  USER_ROLES.ACADEMIC_HEAD,
   USER_ROLES.REVIEWER,
   USER_ROLES.STUDENT,
 ] as const;
@@ -114,6 +122,50 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "documents:read",
     "documents:verify",
     // Analytics access
+    "analytics:read",
+  ],
+
+  /**
+   * Admissions Officer - operational application review access
+   */
+  admissions_officer: [
+    "applications:read",
+    "applications:review",
+    "applications:write",
+    "documents:read",
+    "documents:verify",
+    "payments:read",
+  ],
+
+  /**
+   * Registrar - academic records and application oversight
+   */
+  registrar: [
+    "applications:read",
+    "applications:review",
+    "programs:read",
+    "documents:read",
+    "analytics:read",
+  ],
+
+  /**
+   * Finance Officer - payment verification access
+   */
+  finance_officer: [
+    "applications:read",
+    "payments:read",
+    "payments:verify",
+    "documents:read",
+  ],
+
+  /**
+   * Academic Head - review access plus analytics visibility
+   */
+  academic_head: [
+    "applications:read",
+    "applications:review",
+    "programs:read",
+    "documents:read",
     "analytics:read",
   ],
 

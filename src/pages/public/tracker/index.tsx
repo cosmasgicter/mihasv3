@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useCallback, useEffect } from 'react'
 import { Search } from 'lucide-react'
 import { useToastStore } from '@/components/ui/Toast'
@@ -93,8 +92,8 @@ export default function PublicApplicationTracker() {
   const buildSlipPayload = useCallback((email: string, userId?: string) => {
     if (!application) return null
     return {
-      public_tracking_code: null,
-      application_number: application.application_number,
+      public_tracking_code: application.application_number || '',
+      application_number: application.application_number || '',
       status: application.status,
       payment_status: application.payment_status,
       submitted_at: application.submitted_at,
@@ -108,7 +107,7 @@ export default function PublicApplicationTracker() {
       admin_feedback: application.admin_feedback,
       admin_feedback_date: application.admin_feedback_date,
       userId
-    }
+    } as any
   }, [application])
 
   const handleDownloadSlip = useCallback(async () => {
@@ -153,7 +152,7 @@ export default function PublicApplicationTracker() {
         return
       }
 
-      const result = await createApplicationSlip(payload, { toast })
+      const result = await createApplicationSlip(payload, { toast: toast as any })
 
       if (result.error) {
         toast.error('Download failed', result.error)
@@ -211,7 +210,7 @@ export default function PublicApplicationTracker() {
 
     try {
       setEmailLoading(true)
-      const result = await createApplicationSlip(payload, { toast, sendEmail: true })
+      const result = await createApplicationSlip(payload, { toast: toast as any, sendEmail: true })
 
       if (result.error || result.emailError) {
         const message = result.error || result.emailError || 'We could not email the slip.'
@@ -282,7 +281,7 @@ export default function PublicApplicationTracker() {
                   slipLoading={slipLoading}
                   emailLoading={emailLoading}
                   onShare={() => setShowShareModal(true)}
-                  onCopy={() => copyToClipboard(application.application_number)}
+                  onCopy={() => copyToClipboard(application.application_number || '')}
                   onDownloadSlip={handleDownloadSlip}
                   onEmailSlip={handleEmailSlip}
                 />

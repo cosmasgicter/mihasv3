@@ -77,8 +77,6 @@ export function FixedAdminDashboard() {
   const recentActivity = dashboard.recentActivity
 
   const totalApplications = stats.totalApplications || statusBreakdown.total || 0
-  const inReviewCount = (statusBreakdown.submitted ?? 0) + (statusBreakdown.under_review ?? 0)
-
   const approvalRate = useMemo(() => {
     const approved = stats.approvedApplications || statusBreakdown.approved || 0
     const rejected = stats.rejectedApplications || statusBreakdown.rejected || 0
@@ -235,12 +233,12 @@ export function FixedAdminDashboard() {
                 >
                   {integerFormatter.format(stats.pendingApplications)}
                 </div>
-                <div className="text-xs text-foreground">Pending</div>
+                <div className="text-xs text-foreground">Queue</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-foreground">Awaiting Review</div>
+            <div className="text-sm font-medium text-foreground">Decision Queue</div>
             <div className="text-xs text-accent mt-2">
-              In review: {formatCount(inReviewCount)}
+              Submitted + under review
             </div>
           </div>
   </div>

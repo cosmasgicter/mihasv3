@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Comprehensive Security Enhancements for MIHAS Application System
 // This file centralizes all security configurations and utilities
 
@@ -220,7 +219,7 @@ export class FileUploadSecurity {
     }
     
     // Check file type
-    if (!SECURITY_CONFIG.ALLOWED_FILE_TYPES.includes(file.type)) {
+    if (!(SECURITY_CONFIG.ALLOWED_FILE_TYPES as readonly string[]).includes(file.type)) {
       return {
         valid: false,
         error: 'File type not allowed'
@@ -252,7 +251,7 @@ export class FileUploadSecurity {
 export class SafeCodeExecution {
   private static readonly ALLOWED_OPERATORS = ['>=', '<=', '>', '<', '==', '!=', '+', '-', '*', '/', '%']
   
-  static evaluateCondition(left: any, operator: string, right: any): boolean {
+  static evaluateCondition(left: any, operator: string, right: any): boolean | number {
     if (!this.ALLOWED_OPERATORS.includes(operator)) {
       throw new Error('Invalid operator')
     }

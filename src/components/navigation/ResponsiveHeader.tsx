@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import {
   GraduationCap,
@@ -15,6 +15,7 @@ import {
 } from '@/components/icons'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
+import { useSignOutAction } from '@/hooks/useSignOutAction'
 import { SkipLink } from '@/components/ui/SkipLink'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { cn } from '@/lib/utils'
@@ -30,9 +31,9 @@ interface ResponsiveHeaderProps {
 }
 
 export function ResponsiveHeader({ className }: ResponsiveHeaderProps) {
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
   const { isAdmin } = useRoleQuery({ user })
-  const navigate = useNavigate()
+  const { signOut, isSigningOut } = useSignOutAction()
   const location = useLocation()
   const [open, setOpen] = useState(false)
   const menuToggleRef = useRef<HTMLButtonElement>(null)
@@ -73,8 +74,7 @@ export function ResponsiveHeader({ className }: ResponsiveHeaderProps) {
 
   const handleSignOut = async () => {
     closeMenu()
-    navigate('/')
-    await signOut().catch(() => undefined)
+    await signOut()
   }
 
   return (
@@ -116,9 +116,9 @@ export function ResponsiveHeader({ className }: ResponsiveHeaderProps) {
               </Button>
             )}
             {user && (
-              <Button size="sm" variant="outline" onClick={handleSignOut}>
+              <Button size="sm" variant="outline" onClick={handleSignOut} disabled={isSigningOut}>
                 <LogOut className="mr-2 h-4 w-4" />
-                Sign out
+                {isSigningOut ? 'Signing out...' : 'Sign out'}
               </Button>
             )}
           </nav>
@@ -171,7 +171,9 @@ export function ResponsiveHeader({ className }: ResponsiveHeaderProps) {
               <Link to="/auth/signup" onClick={closeMenu}>Start application</Link>
             </Button>
           ) : (
-            <Button variant="outline" className="mt-2 w-full min-h-[44px]" onClick={handleSignOut}>Sign out</Button>
+            <Button variant="outline" className="mt-2 w-full min-h-[44px]" onClick={handleSignOut} disabled={isSigningOut}>
+              {isSigningOut ? 'Signing out...' : 'Sign out'}
+            </Button>
           )}
         </nav>
       </div>

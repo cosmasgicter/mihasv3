@@ -18,8 +18,8 @@ export function RealTimeNotifications() {
     {
       id: '1',
       type: 'warning',
-      title: 'Pending Applications',
-      message: '5 new applications require review',
+      title: 'Decision Queue',
+      message: '5 submitted applications are waiting for review',
       timestamp: new Date(),
       read: false
     },

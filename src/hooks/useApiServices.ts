@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Application } from '@/types/database'
@@ -8,6 +7,7 @@ import { userService } from '@/services/admin/users'
 
 type UserUpdateInput = Parameters<typeof userService.update>[1]
 type RegistrationMetadata = Record<string, unknown>
+type UserPermissionsResponse = Awaited<ReturnType<typeof userService.getPermissions>>
 
 // Auth hooks
 export const useLogin = () => {
@@ -40,7 +40,7 @@ export const useApplications = () => {
 }
 
 export const useApplication = (id: string) => {
-  return useQuery<Application | null>({
+  return useQuery({
     queryKey: ['applications', id],
     queryFn: () => applicationService.getById(id),
     enabled: !!id
@@ -121,11 +121,11 @@ export const useDeleteUser = () => {
 }
 
 export const useUserPermissions = (userId?: string) => {
-  return useQuery({
+  return useQuery<UserPermissionsResponse | null>({
     queryKey: ['user-permissions', userId],
     queryFn: () => {
       if (!userId) {
-        return { data: [] }
+        return Promise.resolve(null)
       }
       return userService.getPermissions(userId)
     },

@@ -6,7 +6,7 @@ import { useToastStore } from '@/components/ui/Toast'
 export function BulkOperationsPanel() {
   const [loading, setLoading] = useState(false)
   const [emailData, setEmailData] = useState({ subject: '', message: '', userIds: [] as string[] })
-  const [statusData, setStatusData] = useState({ status: 'pending', applicationIds: [] as string[] })
+  const [statusData, setStatusData] = useState({ status: 'submitted', applicationIds: [] as string[] })
   const toast = useToastStore()
 
   const handleBulkEmail = async () => {
@@ -60,7 +60,7 @@ export function BulkOperationsPanel() {
       const result = await response.json()
       if (response.ok) {
         toast.success(`Updated ${result.success} applications. ${result.failed} failed.`)
-        setStatusData({ status: 'pending', applicationIds: [] })
+        setStatusData({ status: 'submitted', applicationIds: [] })
       } else {
         throw new Error(result.error)
       }
@@ -135,7 +135,7 @@ export function BulkOperationsPanel() {
             onChange={(e) => setStatusData({ ...statusData, status: e.target.value })}
             className="w-full px-3 py-2 border rounded-md"
           >
-            <option value="pending">Pending</option>
+            <option value="submitted">Submitted</option>
             <option value="under_review">Under Review</option>
             <option value="approved">Approved</option>
             <option value="rejected">Rejected</option>

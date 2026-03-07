@@ -36,6 +36,18 @@ export function normalizeSessionResult<T>(result: { success: boolean; data: T } 
   return result?.success ? result.data : null
 }
 
+export function resolveAuthLoadingState({
+  sessionLoading,
+}: {
+  sessionLoading: boolean
+  user: User | null
+  profileLoading: boolean
+}): boolean {
+  // Route bootstrap should wait for the session check only. Profile hydration
+  // can continue in parallel without blocking dashboard/page data loaders.
+  return sessionLoading
+}
+
 export function useSessionListener() {
   const queryClient = useQueryClient()
 
@@ -75,7 +87,11 @@ export function useSessionListener() {
     : null
 
   const isAdmin = checkIsAdmin(user)
-  const loading = sessionLoading || (Boolean(user) && profileLoading)
+  const loading = resolveAuthLoadingState({
+    sessionLoading,
+    user,
+    profileLoading,
+  })
 
   // signIn — clears cache, posts login, atomically sets query data
   const signIn = useCallback(async (email: string, password: string): Promise<SignInResult> => {
@@ -117,7 +133,7 @@ export function useSessionListener() {
       return { error: 'Please provide your full name (first and last name).' }
     }
 
-    const result = await authRequest<{ user?: User }>(
+    const result = await authRequest<{ user?: User; profile?: UserProfile }>(
       '/api/auth?action=register',
       {
         method: 'POST',
@@ -135,8 +151,11 @@ export function useSessionListener() {
     const userPayload = result.data?.user
     if (userPayload) {
       queryClient.setQueryData(['auth', 'session'], { user: userPayload })
+      if (result.data?.profile) {
+        queryClient.setQueryData(['user-profile', userPayload.id], result.data.profile)
+      }
       window.dispatchEvent(new CustomEvent('userLoggedIn', { detail: { userId: userPayload.id } }))
-      return { user: userPayload }
+      return { user: userPayload, profile: result.data?.profile ?? null }
     }
 
     return { user: null }
@@ -145,6 +164,9 @@ export function useSessionListener() {
   // signOut — two-phase clear, then reset query data
   const signOut = useCallback(async () => {
     await logoutWithTwoPhaseClear()
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('authSignedOut'))
+    }
     queryClient.setQueryData(['auth', 'session'], null)
     queryClient.removeQueries({ queryKey: ['user-profile'] })
   }, [queryClient])

@@ -1,40 +1,72 @@
-// @ts-nocheck
 import { useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
+import type { User, UserProfile } from '@/types/auth'
+import {
+  calculateCanonicalProfileCompletion,
+  getCanonicalResidenceCountry,
+  getCanonicalResidenceTown,
+  normalizeDateInputValue,
+} from '@/lib/profileFieldMapping'
+
+interface UserMetadata {
+  full_name?: string
+  phone?: string
+  residence_town?: string
+  residence_country?: string
+  country?: string
+  city?: string
+  sex?: string
+  date_of_birth?: string
+  next_of_kin_name?: string
+  next_of_kin_phone?: string
+  address?: string
+  nationality?: string
+}
 
 // Helper function to safely get user metadata
-export const getUserMetadata = (user: any) => {
+export const getUserMetadata = (user: User | null | undefined): UserMetadata => {
   if (!user?.user_metadata) return {}
   
   try {
-    const metadata = user.user_metadata
-    let signupData = {}
+    const metadata = user.user_metadata as Record<string, unknown>
+    let signupData: Record<string, unknown> = {}
     
     if (metadata.signup_data) {
       signupData = typeof metadata.signup_data === 'string' 
-        ? JSON.parse(metadata.signup_data) 
-        : metadata.signup_data
+        ? JSON.parse(metadata.signup_data) as Record<string, unknown>
+        : metadata.signup_data as Record<string, unknown>
     }
     
     return {
-      full_name: metadata.full_name || signupData.full_name,
-      phone: metadata.phone || signupData.phone,
-      city: metadata.city || signupData.city,
-      sex: metadata.sex || signupData.sex,
-      date_of_birth: metadata.date_of_birth || signupData.date_of_birth,
-      next_of_kin_name: metadata.next_of_kin_name || signupData.next_of_kin_name,
-      next_of_kin_phone: metadata.next_of_kin_phone || signupData.next_of_kin_phone,
-      address: metadata.address || signupData.address,
-      nationality: metadata.nationality || signupData.nationality
+      full_name: (metadata.full_name as string | undefined) || (signupData.full_name as string | undefined),
+      phone: (metadata.phone as string | undefined) || (signupData.phone as string | undefined),
+      residence_town: (metadata.residence_town as string | undefined) || (signupData.residence_town as string | undefined),
+      residence_country:
+        (metadata.residence_country as string | undefined) ||
+        (metadata.country as string | undefined) ||
+        (signupData.residence_country as string | undefined) ||
+        (signupData.country as string | undefined),
+      country:
+        (metadata.country as string | undefined) ||
+        (metadata.residence_country as string | undefined) ||
+        (signupData.country as string | undefined) ||
+        (signupData.residence_country as string | undefined),
+      city: (metadata.city as string | undefined) || (signupData.city as string | undefined),
+      sex: (metadata.sex as string | undefined) || (signupData.sex as string | undefined),
+      date_of_birth: (metadata.date_of_birth as string | undefined) || (signupData.date_of_birth as string | undefined),
+      next_of_kin_name: (metadata.next_of_kin_name as string | undefined) || (signupData.next_of_kin_name as string | undefined),
+      next_of_kin_phone: (metadata.next_of_kin_phone as string | undefined) || (signupData.next_of_kin_phone as string | undefined),
+      address: (metadata.address as string | undefined) || (signupData.address as string | undefined),
+      nationality: (metadata.nationality as string | undefined) || (signupData.nationality as string | undefined)
     }
-  } catch (error) {
+  } catch {
     return {}
   }
 }
 
 // Get the best available value from profile and metadata
-export const getBestValue = (profileValue: any, metadataValue: any, fallback = '') => {
+export const getBestValue = (profileValue: unknown, metadataValue: unknown, fallback = ''): string => {
   // Return the first non-empty, non-null, non-undefined value
   if (profileValue && typeof profileValue === 'string' && profileValue.trim() !== '' && profileValue !== 'Not provided') {
     return profileValue.trim()
@@ -46,26 +78,14 @@ export const getBestValue = (profileValue: any, metadataValue: any, fallback = '
 }
 
 // Calculate profile completion percentage
-export const calculateProfileCompletion = (profile: any, metadata: any) => {
-  const fields = [
-    'full_name', 'phone', 'date_of_birth', 'sex', 
-    'city', 'nationality', 'address'
-  ]
-  
-  let completedFields = 0
-  
-  fields.forEach(field => {
-    const value = getBestValue(profile?.[field], metadata?.[field], '')
-    if (value && value !== 'Not provided') {
-      completedFields++
-    }
-  })
-  
-  return Math.round((completedFields / fields.length) * 100)
+export const calculateProfileCompletion = (profile: UserProfile | null | undefined, metadata: UserMetadata): number => {
+  return calculateCanonicalProfileCompletion(profile, metadata)
 }
 
+type SetValueFn = (field: string, value: string) => void
+
 // Hook for auto-populating form fields
-export const useProfileAutoPopulation = (setValue?: any) => {
+export const useProfileAutoPopulation = (setValue?: SetValueFn) => {
   const { user } = useAuth()
   const { profile } = useProfileQuery()
   
@@ -78,9 +98,12 @@ export const useProfileAutoPopulation = (setValue?: any) => {
         const email = user.email || ''
         const fullName = getBestValue(profile?.full_name, metadata.full_name, email.split('@')[0] || '')
         const phone = getBestValue(profile?.phone, metadata.phone, '')
-        const dateOfBirth = getBestValue(profile?.date_of_birth, metadata.date_of_birth, '')
+        const dateOfBirth = normalizeDateInputValue(
+          getBestValue(profile?.date_of_birth, metadata.date_of_birth, '')
+        )
         const sex = getBestValue(profile?.sex, metadata.sex, '')
-        const residenceTown = getBestValue(profile?.city || profile?.address, metadata.city, '')
+        const residenceTown = getCanonicalResidenceTown(profile, metadata)
+        const residenceCountry = getCanonicalResidenceCountry(profile, metadata)
         const nextOfKinName = getBestValue(profile?.next_of_kin_name, metadata.next_of_kin_name, '')
         const nextOfKinPhone = getBestValue(profile?.next_of_kin_phone, metadata.next_of_kin_phone, '')
         
@@ -91,6 +114,7 @@ export const useProfileAutoPopulation = (setValue?: any) => {
         if (dateOfBirth) setValue('date_of_birth', dateOfBirth)
         if (sex && (sex === 'Male' || sex === 'Female')) setValue('sex', sex)
         if (residenceTown) setValue('residence_town', residenceTown)
+        if (residenceCountry) setValue('country', residenceCountry)
         if (nextOfKinName) setValue('next_of_kin_name', nextOfKinName)
         if (nextOfKinPhone) setValue('next_of_kin_phone', nextOfKinPhone)
         
@@ -104,7 +128,7 @@ export const useProfileAutoPopulation = (setValue?: any) => {
         console.error('Error in profile auto-population:', error)
       }
     }
-  }, [user?.id, profile?.id, setValue])
+  }, [user?.id, profile?.id, profile?.country, setValue])
   
   const metadata = getUserMetadata(user)
   const completionPercentage = calculateProfileCompletion(profile, metadata)

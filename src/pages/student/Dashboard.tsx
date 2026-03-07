@@ -10,11 +10,10 @@ import { ContinueApplication } from '@/components/application/ContinueApplicatio
 import { DocumentButtons } from '@/components/student/DocumentButtons'
 import { formatDate, getStatusColor } from '@/lib/utils'
 import { draftManager } from '@/lib/draftManager'
-import { sanitizeForLog, safeJsonParse, sanitizeForDisplay } from '@/lib/sanitize'
+import { sanitizeForLog, sanitizeForDisplay } from '@/lib/sanitize'
 import { getUserMetadata, getBestValue, calculateProfileCompletion } from '@/hooks/useProfileAutoPopulation'
 import { ProfileCompletionBadge } from '@/components/ui/ProfileAutoPopulationIndicator'
 import { clearAllDraftData } from '@/lib/draftCleanup'
-import { useDraftManager } from '@/hooks/useDraftManager'
 import { applicationService } from '@/services/applications'
 import { catalogService } from '@/services/catalog'
 import { DashboardStatusOverview } from '@/components/student/DashboardStatusOverview'
@@ -36,6 +35,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { getDisplayName } from '@/utils/userDisplayName'
 import { Seo } from '@/components/seo/Seo'
+import { applicationSessionManager } from '@/lib/applicationSession'
+import { requiresStudentPaymentAction } from '@/lib/paymentStatus'
 
 export default function StudentDashboard() {
   const { user } = useAuth()
@@ -46,8 +47,6 @@ export default function StudentDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [error, setError] = useState('')
   const [hasDraft, setHasDraft] = useState(false)
-  const [draftData, setDraftData] = useState<any>(null)
-  const [isDeletingDraft, setIsDeletingDraft] = useState(false)
   const [isClearingAllDrafts, setIsClearingAllDrafts] = useState(false)
   const [scheduledInterviews, setScheduledInterviews] = useState<ApplicationInterview[]>([])
   const hasLoadedRef = useRef(false)
@@ -108,44 +107,72 @@ export default function StudentDashboard() {
 
   // Listen for storage changes and draft cleared events to update draft status
   useEffect(() => {
-    const handleStorageChange = () => {
-      const savedDraft = localStorage.getItem('applicationWizardDraft')
-      if (savedDraft) {
-        const draft = safeJsonParse(savedDraft, null)
-        if (draft) {
-          setHasDraft(true)
-          setDraftData(draft)
-        } else {
-          setHasDraft(false)
-          setDraftData(null)
-        }
-      } else {
+    const handleStorageChange = async () => {
+      if (!user) {
         setHasDraft(false)
-        setDraftData(null)
+        return
       }
-    }
 
-    const handleDraftCleared = () => {
+      const draft = await applicationSessionManager.getLocalWizardDraft(user.id)
+      if (draft) {
+        setHasDraft(true)
+        return
+      }
+
       setHasDraft(false)
-      setDraftData(null)
-      loadDashboardData()
     }
 
-    const handleApplicationSubmitted = () => {
-      loadDashboardData()
+    const handleDraftCleared = async () => {
+      setHasDraft(false)
+      setApplications(prev => prev.filter(app => app.status !== 'draft'))
+      await loadDashboardData()
     }
 
-    const handleApplicationUpdated = () => {
-      loadDashboardData()
+    const handleApplicationSubmitted = async (event: Event) => {
+      const detail = (event as CustomEvent<{
+        applicationId?: string
+        submittedAt?: string
+        status?: string
+        paymentStatus?: string | null
+      }>).detail
+
+      setHasDraft(false)
+
+      if (detail?.applicationId) {
+        setApplications(prev =>
+          prev.map(app =>
+            app.id === detail.applicationId
+              ? {
+                  ...app,
+                  status: detail.status || 'submitted',
+                  submitted_at: detail.submittedAt || app.submitted_at || new Date().toISOString(),
+                  payment_status: detail.paymentStatus ?? app.payment_status,
+                }
+              : app
+          )
+        )
+      }
+
+      await loadDashboardData()
     }
 
-    const handleApplicationCreated = () => {
-      loadDashboardData()
+    const handleApplicationUpdated = async () => {
+      await loadDashboardData()
+    }
+
+    const handleApplicationCreated = async () => {
+      await loadDashboardData()
+    }
+
+    const handleDraftSaved = async () => {
+      await handleStorageChange()
+      await loadDashboardData()
     }
 
     window.addEventListener('storage', handleStorageChange)
     window.addEventListener('focus', handleStorageChange)
     window.addEventListener('draftCleared', handleDraftCleared)
+    window.addEventListener('applicationDraftSaved', handleDraftSaved)
     window.addEventListener('applicationSubmitted', handleApplicationSubmitted)
     window.addEventListener('applicationUpdated', handleApplicationUpdated)
     window.addEventListener('applicationCreated', handleApplicationCreated)
@@ -154,11 +181,12 @@ export default function StudentDashboard() {
       window.removeEventListener('storage', handleStorageChange)
       window.removeEventListener('focus', handleStorageChange)
       window.removeEventListener('draftCleared', handleDraftCleared)
+      window.removeEventListener('applicationDraftSaved', handleDraftSaved)
       window.removeEventListener('applicationSubmitted', handleApplicationSubmitted)
       window.removeEventListener('applicationUpdated', handleApplicationUpdated)
       window.removeEventListener('applicationCreated', handleApplicationCreated)
     }
-  }, [])
+  }, [user, profile?.user_id])
 
   const loadDashboardData = async () => {
     const isInitialLoad = !hasLoadedRef.current
@@ -179,17 +207,12 @@ export default function StudentDashboard() {
         setIsRefreshing(true)
       }
 
-      const savedDraft = localStorage.getItem('applicationWizardDraft')
-      if (savedDraft) {
-        const draft = safeJsonParse(savedDraft, null)
-        if (draft) {
-          setHasDraft(true)
-          setDraftData(draft)
-        } else {
-          console.error('Error parsing draft:', sanitizeForLog('Invalid JSON in localStorage'))
-          localStorage.removeItem('applicationWizardDraft')
-          setHasDraft(false)
-        }
+      const localDraft = user
+        ? await applicationSessionManager.getLocalWizardDraft(user.id)
+        : null
+
+      if (localDraft) {
+        setHasDraft(true)
       } else {
         setHasDraft(false)
       }
@@ -208,7 +231,6 @@ export default function StudentDashboard() {
 
       if (draftResponse?.applications && draftResponse.applications.length > 0) {
         setHasDraft(true)
-        setDraftData(draftResponse.applications[0])
       }
 
       const applicationsResponse = await applicationService.list({
@@ -222,7 +244,16 @@ export default function StudentDashboard() {
       // Check if request was aborted
       if (signal.aborted) return
 
-      setApplications((applicationsResponse?.applications || []) as Application[])
+      const loadedApplications = (applicationsResponse?.applications || []) as Application[]
+      setApplications(loadedApplications)
+
+      if (localDraft?.applicationId) {
+        const matchingApplication = loadedApplications.find(application => application.id === localDraft.applicationId)
+        if (matchingApplication && matchingApplication.status !== 'draft') {
+          clearAllDraftData()
+          setHasDraft(false)
+        }
+      }
 
       const intakesResponse = await catalogService.getIntakes() as { intakes: Intake[] }
 
@@ -290,24 +321,6 @@ export default function StudentDashboard() {
     return intakeName || 'Unknown Intake'
   }
 
-  const getDraftTimestamp = () => {
-    if (draftData?.savedAt) {
-      return formatDate(draftData.savedAt)
-    }
-    if (draftData?.updated_at) {
-      return formatDate(draftData.updated_at)
-    }
-    return 'Unknown'
-  }
-
-  const getDraftProgress = () => {
-    if (!draftData) return 'No progress'
-
-    const step = draftData.currentStep || draftData.step_completed || 1
-    const steps = ['KYC Info', 'Education', 'Payment', 'Review']
-    return `Step ${step}/4: ${steps[step - 1] || 'Unknown'}`
-  }
-
   const metadata = getUserMetadata(user)
   const profileCompletion = calculateProfileCompletion(profile, metadata)
   const displayName = sanitizeForDisplay(getDisplayName(profile, {
@@ -317,9 +330,7 @@ export default function StudentDashboard() {
   const firstName = displayName?.split(' ')[0] || 'Student'
 
   const {
-    draftApplications,
     submittedApplications,
-    hasLocalDraftOnly,
     totalDraftCount,
     hasPendingPayment
   } = useMemo(() => {
@@ -328,21 +339,12 @@ export default function StudentDashboard() {
     const hasLocalOnly = hasDraft && draftApps.length === 0
     const draftCount = draftApps.length + (hasLocalOnly ? 1 : 0)
 
-    // Check for pending payment and scheduled interviews
-    // Requirements: 2.3, 4.2 - Check for null, 'pending_review', or non-verified status
-    // Exclude draft applications from pending payment count
     const pendingPayment = applications.some(app =>
-      app.status !== 'draft' && (
-        app.payment_status === null ||
-        app.payment_status === 'pending_review' ||
-        app.payment_status !== 'verified'
-      )
+      app.status !== 'draft' && requiresStudentPaymentAction(app.payment_status)
     )
 
     return {
-      draftApplications: draftApps,
       submittedApplications: submittedApps,
-      hasLocalDraftOnly: hasLocalOnly,
       totalDraftCount: draftCount,
       hasPendingPayment: pendingPayment
     }
@@ -374,7 +376,6 @@ export default function StudentDashboard() {
       
       setApplications(prev => prev.filter(app => app.status !== 'draft'))
       setHasDraft(false)
-      setDraftData(null)
       setError('')
       useToastStore.getState().addToast('success', 'All drafts cleared successfully')
     } catch (error) {
@@ -484,193 +485,41 @@ export default function StudentDashboard() {
               <SectionCard
                 className="lg:col-span-2"
                 title="My applications"
-                description="Monitor each submission and jump back into drafts when you're ready."
+                description="Review submitted applications, payment progress, and document actions after you complete the draft above."
                 icon={<FileText className="h-5 w-5" />}
                 headerVariant="tinted"
                 contentClassName="p-0"
               >
-                {submittedApplications.length === 0 && draftApplications.length === 0 && !hasLocalDraftOnly ? (
-                  <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
-                    <div className="text-foreground"><FileText className="w-16 h-16" /></div>
-                    <div className="space-y-2">
-                      <h3 className="text-xl sm:text-2xl font-semibold text-foreground">No applications yet</h3>
-                      <p className="text-foreground">
-                        Start your journey by submitting your first application. We'll guide you every step of the way.
-                      </p>
+                {submittedApplications.length === 0 ? (
+                  totalDraftCount > 0 ? (
+                    <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
+                      <div className="text-warning"><Clock className="w-16 h-16" /></div>
+                      <div className="space-y-2">
+                        <h3 className="text-xl sm:text-2xl font-semibold text-foreground">Your application is still in draft</h3>
+                        <p className="text-foreground">
+                          Continue the saved draft above when you are ready. Submitted applications will appear here once you complete the full flow.
+                        </p>
+                      </div>
                     </div>
-                    <Link to="/student/application-wizard">
-                      <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:from-blue-700 hover:to-purple-700">
-                        <Plus className="mr-2 h-5 w-5" />
-                        New Application
-                      </Button>
-                    </Link>
-                  </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
+                      <div className="text-foreground"><FileText className="w-16 h-16" /></div>
+                      <div className="space-y-2">
+                        <h3 className="text-xl sm:text-2xl font-semibold text-foreground">No applications yet</h3>
+                        <p className="text-foreground">
+                          Start your journey by submitting your first application. We'll guide you every step of the way.
+                        </p>
+                      </div>
+                      <Link to="/student/application-wizard">
+                        <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:from-blue-700 hover:to-purple-700">
+                          <Plus className="mr-2 h-5 w-5" />
+                          New Application
+                        </Button>
+                      </Link>
+                    </div>
+                  )
                 ) : (
                   <div className="divide-y divide-border">
-                    {draftApplications.map((application, index) => (
-                      <div
-                        key={`draft-${application.id}`}
-                        className={`px-6 py-6 transition-colors hover:bg-yellow-50 border-l-4 border-l-yellow-400 ${animateClasses.slideUp}`}
-                        style={staggerChild(index)}
-                      >
-                        <div className="space-y-4">
-                          {/* Header */}
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex items-start gap-3 flex-1 min-w-0">
-                              <Clock className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-1" />
-                              <div className="flex-1 min-w-0">
-                                <h4 className="text-lg font-bold text-foreground break-words leading-tight">
-                                  {application.program || 'Draft Application'}
-                                </h4>
-                                <p className="text-sm font-medium text-muted-foreground mt-1">
-                                  Application #{application.application_number}
-                                </p>
-                              </div>
-                            </div>
-                            <span className="rounded-full bg-yellow-100 px-4 py-2 text-sm font-bold text-yellow-800 border border-yellow-300">
-                              DRAFT
-                            </span>
-                          </div>
-
-                          {/* Details Grid */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                              <span className="font-medium text-muted-foreground">Intake:</span>
-                              <span className="text-foreground break-words">{application.intake || 'Not selected'}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                              <span className="font-medium text-muted-foreground">Created:</span>
-                              <span className="text-foreground">{formatDate(application.created_at)}</span>
-                            </div>
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-gray-100">
-                            <Link to="/student/application-wizard" className="flex-1">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full border-yellow-400 text-yellow-700 hover:bg-yellow-100 font-medium"
-                              >
-                                Continue Draft
-                              </Button>
-                            </Link>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="sm:w-auto border-red-300 text-red-700 hover:bg-red-50 font-medium"
-                              onClick={async () => {
-                                const confirmed = await confirmDialog.confirm({
-                                  title: 'Delete Draft',
-                                  message: 'This draft will be permanently deleted.',
-                                  confirmText: 'Delete',
-                                  variant: 'danger'
-                                })
-                                if (!confirmed) return
-                                try {
-                                  await applicationService.delete(application.id)
-                                  setApplications(prev => prev.filter(app => app.id !== application.id))
-                                  setError('')
-                                  useToastStore.getState().addToast('success', 'Draft deleted successfully')
-                                  loadDashboardData() // Reload to clear cache
-                                } catch (error) {
-                                  console.error('Delete error:', error)
-                                  if (error instanceof Error && (error.message.includes('404') || error.message.includes('not found'))) {
-                                    setApplications(prev => prev.filter(app => app.id !== application.id))
-                                    useToastStore.getState().addToast('success', 'Draft removed')
-                                    loadDashboardData() // Reload to clear cache
-                                  } else {
-                                    const errorMsg = error instanceof Error ? error.message : 'Failed to delete draft'
-                                    setError(errorMsg)
-                                    useToastStore.getState().addToast('error', errorMsg)
-                                  }
-                                }
-                              }}
-                            >
-                              <X className="mr-2 h-4 w-4" />
-                              Delete
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-
-                    {hasLocalDraftOnly && (
-                      <div className="px-6 py-6 transition-colors hover:bg-yellow-50 border-l-4 border-l-yellow-400">
-                        <div className="space-y-4">
-                          {/* Header */}
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex items-start gap-3 flex-1 min-w-0">
-                              <Clock className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-1" />
-                              <div className="flex-1 min-w-0">
-                                <h4 className="text-lg font-bold text-foreground leading-tight">
-                                  {draftData?.formData?.program || 'Local Draft in Progress'}
-                                </h4>
-                                <p className="text-sm font-medium text-muted-foreground mt-1">
-                                  {getDraftProgress()}
-                                </p>
-                              </div>
-                            </div>
-                            <span className="rounded-full bg-yellow-100 px-4 py-2 text-sm font-bold text-yellow-800 border border-yellow-300">
-                              DRAFT
-                            </span>
-                          </div>
-
-                          {/* Details */}
-                          <div className="text-sm text-muted-foreground">
-                            <p>Last saved: {getDraftTimestamp()}</p>
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-gray-100">
-                            <Link to="/student/application-wizard" className="flex-1">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full border-yellow-400 text-yellow-700 hover:bg-yellow-100 font-medium"
-                              >
-                                Continue Draft
-                              </Button>
-                            </Link>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="sm:w-auto border-red-300 text-red-700 hover:bg-red-50 font-medium"
-                              onClick={async () => {
-                                const confirmed = await confirmDialog.confirm({
-                                  title: 'Delete Draft',
-                                  message: 'This local draft will be permanently deleted.',
-                                  confirmText: 'Delete',
-                                  variant: 'danger'
-                                })
-                                if (!confirmed) return
-                                try {
-                                  clearAllDraftData()
-                                  if (user) {
-                                    await draftManager.clearAllDrafts(user.id)
-                                  }
-                                  setHasDraft(false)
-                                  setDraftData(null)
-                                  setError('')
-                                  useToastStore.getState().addToast('success', 'Draft deleted successfully')
-                                } catch (error) {
-                                  console.error('Delete error:', error)
-                                  const errorMsg = error instanceof Error ? error.message : 'Failed to delete draft'
-                                  setError(errorMsg)
-                                  useToastStore.getState().addToast('error', errorMsg)
-                                }
-                              }}
-                            >
-                              <X className="mr-2 h-4 w-4" />
-                              Delete
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
                     {submittedApplications.map((application, index) => (
                       <div
                         key={application.id}
@@ -715,6 +564,7 @@ export default function StudentDashboard() {
                             <div className="flex-1">
                               <DocumentButtons 
                                 applicationId={application.id}
+                                applicationNumber={application.application_number}
                                 status={application.status}
                                 paymentStatus={application.payment_status}
                               />
@@ -766,7 +616,7 @@ export default function StudentDashboard() {
                       </p>
                     </div>
                   </div>
-                  <Link to="/settings" className="block">
+                  <Link to="/student/settings" className="block">
                     <Button
                       variant="outline"
                       size="sm"

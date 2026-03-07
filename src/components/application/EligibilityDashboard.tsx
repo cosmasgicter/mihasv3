@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useCallback, useEffect, useState } from 'react'
 import {
   BarChart,
@@ -86,7 +85,8 @@ export function EligibilityDashboard() {
     try {
       const data = await catalogService.getPrograms()
       if (data) {
-        const activePrograms = (data as Array<{ id: string; name: string; is_active?: boolean }>)
+        const programList = Array.isArray(data) ? data : (data as any).programs || []
+        const activePrograms = (programList as Array<{ id: string; name: string; is_active?: boolean }>)
           .filter(p => p.is_active !== false)
           .map(p => ({ id: p.id, name: p.name }))
         setPrograms(activePrograms)
@@ -311,7 +311,7 @@ export function EligibilityDashboard() {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"

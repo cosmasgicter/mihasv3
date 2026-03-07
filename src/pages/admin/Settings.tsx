@@ -1,17 +1,39 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { StandaloneSelect } from '@/components/ui/standalone-select'
-import { ArrowLeft, Plus, Edit2, Trash2, Save, X, Settings, Globe, Lock, Database, Grid, List } from 'lucide-react'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
-import { fetchSettings, createSetting, updateSetting, deleteSetting, importSettings, resetSettings, type SystemSetting } from '@/lib/api/adminApi'
-
-
+import {
+  fetchSettings,
+  createSetting,
+  updateSetting,
+  deleteSetting,
+  importSettings,
+  resetSettings,
+  type SystemSetting,
+} from '@/lib/api/adminApi'
+import {
+  ArrowLeft,
+  ChevronDown,
+  ChevronUp,
+  Database,
+  Edit2,
+  Globe,
+  Lock,
+  Phone,
+  Plus,
+  Save,
+  Settings,
+  Trash2,
+  Users,
+  X,
+} from 'lucide-react'
 
 type SettingValueType = 'string' | 'integer' | 'decimal' | 'boolean'
+type VisibilityFilter = 'all' | 'public' | 'private'
 
 interface NewSetting {
   key: string
@@ -22,67 +44,316 @@ interface NewSetting {
   is_public: boolean
 }
 
+interface GuidedSettingDraft {
+  value: string
+  description: string
+  category: string
+  is_public: boolean
+}
+
+interface SettingBlueprint {
+  key: string
+  label: string
+  description: string
+  category: string
+  valueType: SettingValueType
+  placeholder: string
+  is_public: boolean
+}
+
+interface GuidedSection {
+  id: string
+  title: string
+  description: string
+  icon: React.ReactNode
+  settingKeys: string[]
+}
+
+const SETTING_BLUEPRINTS: SettingBlueprint[] = [
+  {
+    key: 'site_name',
+    label: 'Portal name',
+    description: 'Primary platform title shown across public and authenticated screens.',
+    category: 'general',
+    valueType: 'string',
+    placeholder: 'MIHAS Application System',
+    is_public: true,
+  },
+  {
+    key: 'enable_online_applications',
+    label: 'Online applications',
+    description: 'Controls whether students can start or continue applications online.',
+    category: 'general',
+    valueType: 'boolean',
+    placeholder: 'true',
+    is_public: true,
+  },
+  {
+    key: 'contact_email',
+    label: 'Admissions email',
+    description: 'Primary email used for admissions contact, slip delivery, and public support messaging.',
+    category: 'contact',
+    valueType: 'string',
+    placeholder: '***REMOVED***',
+    is_public: true,
+  },
+  {
+    key: 'contact_phone',
+    label: 'Admissions phone',
+    description: 'Primary phone number shown to applicants and used by support surfaces.',
+    category: 'contact',
+    valueType: 'string',
+    placeholder: '+260-000-000-000',
+    is_public: true,
+  },
+  {
+    key: 'application_fee',
+    label: 'Application fee',
+    description: 'Default admissions application fee used in payment guidance and review.',
+    category: 'finance',
+    valueType: 'decimal',
+    placeholder: '153.00',
+    is_public: true,
+  },
+  {
+    key: 'max_applications_per_user',
+    label: 'Application limit per student',
+    description: 'Maximum number of application records a single student can submit.',
+    category: 'limits',
+    valueType: 'integer',
+    placeholder: '3',
+    is_public: false,
+  },
+]
+
+const GUIDED_SECTIONS: GuidedSection[] = [
+  {
+    id: 'experience',
+    title: 'Portal Experience',
+    description: 'Public-facing branding and the main online admissions switch.',
+    icon: <Settings className="h-5 w-5" />,
+    settingKeys: ['site_name', 'enable_online_applications'],
+  },
+  {
+    id: 'contact',
+    title: 'Admissions Contact',
+    description: 'Official contact details used across public pages and notification surfaces.',
+    icon: <Phone className="h-5 w-5" />,
+    settingKeys: ['contact_email', 'contact_phone'],
+  },
+  {
+    id: 'operations',
+    title: 'Admissions Operations',
+    description: 'Fee and intake guardrails that affect application processing.',
+    icon: <Users className="h-5 w-5" />,
+    settingKeys: ['application_fee', 'max_applications_per_user'],
+  },
+]
+
+const initialNewSetting: NewSetting = {
+  key: '',
+  value: '',
+  valueType: 'string',
+  description: '',
+  category: '',
+  is_public: false,
+}
+
+function inferValueType(value: string): SettingValueType {
+  const trimmed = value.trim().toLowerCase()
+  if (trimmed === 'true' || trimmed === 'false') return 'boolean'
+  if (/^-?\d+$/.test(trimmed)) return 'integer'
+  if (/^-?\d*\.?\d+$/.test(trimmed)) return 'decimal'
+  return 'string'
+}
+
+function getValueTypeClass(type: SettingValueType) {
+  if (type === 'boolean') return 'bg-purple-100 text-purple-800'
+  if (type === 'integer') return 'bg-primary/10 text-primary-foreground'
+  if (type === 'decimal') return 'bg-accent/10 text-accent-foreground'
+  return 'bg-accent text-foreground'
+}
+
+function validateSetting(
+  setting: Pick<NewSetting, 'key' | 'value'> | Partial<SystemSetting>,
+  valueType: SettingValueType
+) {
+  const errors: string[] = []
+
+  if (!setting.key?.trim()) {
+    errors.push('Setting key is required')
+  } else if (!/^[a-z0-9_]+$/.test(setting.key)) {
+    errors.push('Setting key must contain only lowercase letters, numbers, and underscores')
+  }
+
+  if (!setting.value?.trim()) {
+    errors.push('Setting value is required')
+  } else {
+    if (valueType === 'boolean' && !['true', 'false'].includes(setting.value.toLowerCase())) {
+      errors.push('Boolean value must be "true" or "false"')
+    } else if (valueType === 'integer' && !/^-?\d+$/.test(setting.value)) {
+      errors.push('Integer value must be a whole number')
+    } else if (valueType === 'decimal' && !/^-?\d*\.?\d+$/.test(setting.value)) {
+      errors.push('Decimal value must be a valid number')
+    }
+  }
+
+  return errors
+}
+
+function formatValue(value: string, type: SettingValueType) {
+  if (type === 'boolean') return value === 'true' ? 'Enabled' : 'Disabled'
+  if (type === 'decimal') return Number.parseFloat(value || '0').toFixed(2)
+  if (type === 'integer') return Number.parseInt(value || '0', 10).toLocaleString()
+  return value
+}
+
+function matchesVisibility(isPublic: boolean, filterType: VisibilityFilter) {
+  if (filterType === 'all') return true
+  if (filterType === 'public') return isPublic
+  return !isPublic
+}
+
+function buildGuidedDraft(blueprint: SettingBlueprint, setting?: SystemSetting): GuidedSettingDraft {
+  return {
+    value: setting?.value || '',
+    description: setting?.description || blueprint.description,
+    category: setting?.category || blueprint.category,
+    is_public: setting?.is_public ?? blueprint.is_public,
+  }
+}
+
 export default function AdminSettings() {
   const [settings, setSettings] = useState<SystemSetting[]>([])
+  const [guidedDrafts, setGuidedDrafts] = useState<Record<string, GuidedSettingDraft>>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [activeMutationKey, setActiveMutationKey] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterType, setFilterType] = useState<'all' | 'public' | 'private'>('all')
-  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table')
+  const [filterType, setFilterType] = useState<VisibilityFilter>('all')
   const [editForm, setEditForm] = useState<Partial<SystemSetting>>({})
+  const [newSetting, setNewSetting] = useState<NewSetting>(initialNewSetting)
   const confirmDialog = useConfirmDialog()
-  const [newSetting, setNewSetting] = useState<NewSetting>({
-    key: '',
-    value: '',
-    valueType: 'string',
-    description: '',
-    category: '',
-    is_public: false
-  })
+
+  const managedSettingKeys = useMemo(
+    () => new Set(SETTING_BLUEPRINTS.map((blueprint) => blueprint.key)),
+    []
+  )
 
   const loadSettings = useCallback(async () => {
     try {
       setLoading(true)
+      setError('')
       const data = await fetchSettings()
       setSettings(data)
-    } catch (error: any) {
-      setError(error.message)
+    } catch (requestError: any) {
+      setError(requestError.message || 'Failed to load settings')
     } finally {
       setLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    loadSettings()
+    void loadSettings()
   }, [loadSettings])
 
-
-
-  const inferValueType = (value: string): SettingValueType => {
-    const trimmed = value.trim().toLowerCase()
-    if (trimmed === 'true' || trimmed === 'false') return 'boolean'
-    if (/^-?\d+$/.test(trimmed)) return 'integer'
-    if (/^-?\d*\.\d+$/.test(trimmed)) return 'decimal'
-    return 'string'
-  }
-
-  const getValueTypeClass = (type: SettingValueType) => {
-    if (type === 'boolean') return 'bg-purple-100 text-purple-800'
-    if (type === 'integer') return 'bg-primary/10 text-primary-foreground'
-    if (type === 'decimal') return 'bg-accent/10 text-accent-foreground'
-    return 'bg-accent text-foreground'
-  }
+  useEffect(() => {
+    const nextDrafts: Record<string, GuidedSettingDraft> = {}
+    for (const blueprint of SETTING_BLUEPRINTS) {
+      const existing = settings.find((setting) => setting.key === blueprint.key)
+      nextDrafts[blueprint.key] = buildGuidedDraft(blueprint, existing)
+    }
+    setGuidedDrafts(nextDrafts)
+  }, [settings])
 
   useEffect(() => {
-    if (success) {
-      const timer = setTimeout(() => setSuccess(''), 3000)
-      return () => clearTimeout(timer)
+    if (!success) {
+      return
     }
+
+    const timer = setTimeout(() => setSuccess(''), 3000)
+    return () => clearTimeout(timer)
   }, [success])
+
+  useEffect(() => {
+    if (showAddForm) {
+      setShowAdvancedSettings(true)
+    }
+  }, [showAddForm])
+
+  const runReloadingMutation = async (operation: () => Promise<boolean>, successMessage: string) => {
+    try {
+      setSaving(true)
+      setError('')
+      const result = await operation()
+      if (!result) {
+        throw new Error('Operation failed')
+      }
+      setSuccess(successMessage)
+      await loadSettings()
+    } catch (requestError: any) {
+      setError(requestError.message || 'Unable to save settings')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleGuidedDraftChange = (
+    key: string,
+    field: keyof GuidedSettingDraft,
+    value: string | boolean
+  ) => {
+    setGuidedDrafts((current) => ({
+      ...current,
+      [key]: {
+        ...(current[key] || { value: '', description: '', category: '', is_public: false }),
+        [field]: value,
+      },
+    }))
+  }
+
+  const handleSaveGuidedSetting = async (blueprint: SettingBlueprint) => {
+    const draft = guidedDrafts[blueprint.key] || buildGuidedDraft(blueprint)
+    const validationErrors = validateSetting({ key: blueprint.key, value: draft.value }, blueprint.valueType)
+    if (validationErrors.length > 0) {
+      setError(validationErrors.join(', '))
+      return
+    }
+
+    const existing = settings.find((setting) => setting.key === blueprint.key)
+    try {
+      setActiveMutationKey(blueprint.key)
+      setError('')
+
+      const payload = {
+        key: blueprint.key,
+        value: draft.value,
+        description: draft.description || blueprint.description,
+        category: draft.category || blueprint.category,
+        is_public: draft.is_public,
+      }
+
+      const successResult = existing
+        ? await updateSetting(existing.id, payload)
+        : await createSetting(payload)
+
+      if (!successResult) {
+        throw new Error('Setting update failed')
+      }
+
+      setSuccess(`${blueprint.label} updated successfully`)
+      await loadSettings()
+    } catch (requestError: any) {
+      setError(requestError.message || `Failed to update ${blueprint.label}`)
+    } finally {
+      setActiveMutationKey(null)
+    }
+  }
 
   const handleEditStart = (setting: SystemSetting) => {
     setEditingId(setting.id)
@@ -101,74 +372,34 @@ export default function AdminSettings() {
       return
     }
 
-    try {
-      setSaving(true)
-      setError('')
-      const success = await updateSetting(id, {
-        value: editForm.value,
-        description: editForm.description,
-        is_public: editForm.is_public
-      })
-      if (!success) throw new Error('Update failed')
-      setSuccess('Setting updated successfully!')
-      setEditingId(null)
-      setEditForm({})
-      loadSettings()
-    } catch (error: any) {
-      setError(error.message)
-    } finally {
-      setSaving(false)
-    }
+    await runReloadingMutation(
+      () =>
+        updateSetting(id, {
+          value: editForm.value,
+          description: editForm.description,
+          category: editForm.category,
+          is_public: editForm.is_public,
+        }),
+      'Advanced setting updated successfully'
+    )
+
+    setEditingId(null)
+    setEditForm({})
   }
 
   const handleDelete = async (id: string, key: string) => {
     const confirmed = await confirmDialog.confirm({
-      title: 'Delete Setting',
+      title: 'Delete Advanced Setting',
       message: `The setting "${key}" will be permanently deleted.`,
       confirmText: 'Delete',
-      variant: 'danger'
+      variant: 'danger',
     })
     if (!confirmed) return
-    try {
-      setSaving(true)
-      setError('')
-      const success = await deleteSetting(id, key)
-      if (!success) throw new Error('Delete failed')
-      setSuccess('Setting deleted successfully!')
-      loadSettings()
-    } catch (error: any) {
-      setError(error.message)
-    } finally {
-      setSaving(false)
-    }
-  }
 
-  const validateSetting = (
-    setting: Pick<NewSetting, 'key' | 'value'> | Partial<SystemSetting>,
-    valueType: SettingValueType
-  ) => {
-    const errors: string[] = []
-    
-    if (!setting.key?.trim()) {
-      errors.push('Setting key is required')
-    } else if (!/^[a-z0-9_]+$/.test(setting.key)) {
-      errors.push('Setting key must contain only lowercase letters, numbers, and underscores')
-    }
-    
-    if (!setting.value?.trim()) {
-      errors.push('Setting value is required')
-    } else {
-      // Validate based on type
-      if (valueType === 'boolean' && !['true', 'false'].includes(setting.value.toLowerCase())) {
-        errors.push('Boolean value must be "true" or "false"')
-      } else if (valueType === 'integer' && !/^-?\d+$/.test(setting.value)) {
-        errors.push('Integer value must be a whole number')
-      } else if (valueType === 'decimal' && !/^-?\d*\.?\d+$/.test(setting.value)) {
-        errors.push('Decimal value must be a valid number')
-      }
-    }
-    
-    return errors
+    await runReloadingMutation(
+      () => deleteSetting(id, key),
+      'Advanced setting deleted successfully'
+    )
   }
 
   const handleAddNew = async () => {
@@ -178,77 +409,30 @@ export default function AdminSettings() {
       return
     }
 
-    try {
-      setSaving(true)
-      setError('')
-      
-      const success = await createSetting(newSetting)
-      if (!success) throw new Error('Create failed')
-      setSuccess('Setting added successfully!')
-      setShowAddForm(false)
-      setNewSetting({
-        key: '',
-        value: '',
-        valueType: 'string',
-        description: '',
-        category: '',
-        is_public: false
-      })
-      loadSettings()
-    } catch (error: any) {
-      setError(error.message)
-    } finally {
-      setSaving(false)
-    }
+    await runReloadingMutation(
+      () => createSetting(newSetting),
+      'Advanced setting added successfully'
+    )
+
+    setShowAddForm(false)
+    setNewSetting(initialNewSetting)
   }
-
-  const filteredSettings = settings.filter(setting => {
-    const matchesSearch = setting.key.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (setting.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
-    const matchesFilter = filterType === 'all' || 
-                         (filterType === 'public' && setting.is_public) ||
-                         (filterType === 'private' && !setting.is_public)
-    return matchesSearch && matchesFilter
-  })
-
-  const formatValue = (value: string, type: string) => {
-    if (type === 'boolean') return value === 'true' ? '✅ Yes' : '❌ No'
-    if (type === 'decimal') return parseFloat(value).toFixed(2)
-    if (type === 'integer') return parseInt(value).toLocaleString()
-    return value
-  }
-
-  const getSettingCategory = (key: string): string => {
-    if (key.includes('email') || key.includes('contact') || key.includes('phone')) return 'Contact'
-    if (key.includes('fee') || key.includes('payment') || key.includes('price')) return 'Financial'
-    if (key.includes('enable') || key.includes('allow') || key.includes('disable')) return 'Features'
-    if (key.includes('max') || key.includes('min') || key.includes('limit')) return 'Limits'
-    if (key.includes('site') || key.includes('name') || key.includes('title')) return 'General'
-    return 'Other'
-  }
-
-  const groupedSettings = filteredSettings.reduce((acc, setting) => {
-    const category = setting.category || getSettingCategory(setting.key)
-    if (!acc[category]) acc[category] = []
-    acc[category].push(setting)
-    return acc
-  }, {} as Record<string, SystemSetting[]>)
 
   const exportSettings = () => {
     const exportData = {
       exported_at: new Date().toISOString(),
-      settings: settings.map(({ id, created_at, updated_at, ...rest }) => rest)
+      settings: settings.map(({ id, created_at, updated_at, ...rest }) => rest),
     }
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `system-settings-${new Date().toISOString().split('T')[0]}.json`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `system-settings-${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(anchor)
+    anchor.click()
+    document.body.removeChild(anchor)
     URL.revokeObjectURL(url)
-    setSuccess('Settings exported successfully!')
+    setSuccess('Settings exported successfully')
   }
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -258,223 +442,164 @@ export default function AdminSettings() {
     try {
       const text = await file.text()
       const data = JSON.parse(text)
-      
+
       if (!data.settings || !Array.isArray(data.settings)) {
         throw new Error('Invalid file format')
       }
 
       setSaving(true)
       setError('')
-      
+
       const result = await importSettings(data.settings)
-      
       if (!result.success) {
         throw new Error(result.message || 'Import failed')
       }
-      
-      setSuccess(result.message || `Successfully imported ${data.settings.length} settings!`)
-      loadSettings()
-    } catch (error: any) {
-      setError(`Import failed: ${error.message}`)
+
+      setSuccess(result.message || `Successfully imported ${data.settings.length} settings`)
+      await loadSettings()
+    } catch (requestError: any) {
+      setError(`Import failed: ${requestError.message}`)
     } finally {
       setSaving(false)
       event.target.value = ''
     }
   }
 
-  const resetToDefaults = async () => {
+  const handleResetToDefaults = async () => {
     const confirmed = await confirmDialog.confirm({
-      title: 'Reset to Defaults',
-      message: 'All custom settings will be deleted and replaced with default values.',
+      title: 'Reset to Guided Defaults',
+      message: 'All current settings will be replaced with the default operational configuration.',
       confirmText: 'Reset',
-      variant: 'warning'
+      variant: 'warning',
     })
     if (!confirmed) return
-    
+
     try {
       setSaving(true)
       setError('')
-      
       const result = await resetSettings()
-      
       if (!result.success) {
         throw new Error(result.message || 'Reset failed')
       }
-      
-      setSuccess(result.message || 'Settings reset to defaults successfully!')
-      loadSettings()
-    } catch (error: any) {
-      setError(error.message)
+      setSuccess(result.message || 'Settings reset to defaults successfully')
+      await loadSettings()
+    } catch (requestError: any) {
+      setError(requestError.message || 'Reset failed')
     } finally {
       setSaving(false)
     }
   }
 
+  const filteredGuidedSections = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase()
+
+    return GUIDED_SECTIONS.map((section) => {
+      const blueprints = section.settingKeys
+        .map((key) => SETTING_BLUEPRINTS.find((blueprint) => blueprint.key === key))
+        .filter((blueprint): blueprint is SettingBlueprint => Boolean(blueprint))
+        .filter((blueprint) => {
+          const draft = guidedDrafts[blueprint.key] || buildGuidedDraft(blueprint)
+          const matchesSearch =
+            !normalizedSearch ||
+            blueprint.label.toLowerCase().includes(normalizedSearch) ||
+            blueprint.key.toLowerCase().includes(normalizedSearch) ||
+            blueprint.description.toLowerCase().includes(normalizedSearch)
+
+          return matchesSearch && matchesVisibility(draft.is_public, filterType)
+        })
+
+      return { ...section, blueprints }
+    }).filter((section) => section.blueprints.length > 0)
+  }, [filterType, guidedDrafts, searchTerm])
+
+  const filteredAdvancedSettings = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase()
+
+    return settings.filter((setting) => {
+      const matchesSearch =
+        !normalizedSearch ||
+        setting.key.toLowerCase().includes(normalizedSearch) ||
+        (setting.description?.toLowerCase().includes(normalizedSearch) ?? false)
+
+      return (
+        !managedSettingKeys.has(setting.key) &&
+        matchesSearch &&
+        matchesVisibility(setting.is_public, filterType)
+      )
+    })
+  }, [filterType, managedSettingKeys, searchTerm, settings])
+
+  const configuredBlueprintCount = SETTING_BLUEPRINTS.filter((blueprint) =>
+    settings.some((setting) => setting.key === blueprint.key)
+  ).length
+  const advancedSettingsCount = settings.filter((setting) => !managedSettingKeys.has(setting.key)).length
+  const publicSettingsCount = settings.filter((setting) => setting.is_public).length
+  const privateSettingsCount = settings.filter((setting) => !setting.is_public).length
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white">
-            <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-              <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
+      <div className="mx-auto max-w-7xl px-4 py-4 safe-area-bottom sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
+          <div className="bg-gradient-to-r from-indigo-500 via-blue-600 to-purple-600 p-6 text-white">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                 <Link to="/admin">
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 border-white">
+                  <Button variant="ghost" size="sm" className="border-white text-white hover:bg-white/20">
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
                   </Button>
                 </Link>
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold flex items-center">
-                    <Settings className="h-8 w-8 mr-3" />
-                    System Settings
+                  <h1 className="flex items-center gap-3 text-2xl font-bold sm:text-3xl">
+                    <Settings className="h-8 w-8" />
+                    Operational Settings
                   </h1>
-                  <p className="text-white/90 text-sm sm:text-base">Manage system configuration and preferences</p>
+                  <p className="text-sm text-white/90 sm:text-base">
+                    Configure the admissions portal through guided controls first, then use advanced keys only when needed.
+                  </p>
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Button 
-                  onClick={() => setShowAddForm(true)}
-                  className="bg-card/80 hover:bg-white/20 text-white border-white/30"
+
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={() => setShowAddForm((current) => !current)}
+                  className="border-white/30 bg-card/80 text-primary hover:bg-white"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Setting
-                </Button>
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={exportSettings}
-                    variant="outline"
-                    className="bg-white/10 hover:bg-white/20 text-white border-white/30"
-                    size="sm"
-                  >
-                    Export
-                  </Button>
-                  <label className="cursor-pointer">
-                    <span className="inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 overflow-hidden group h-9 px-4 text-sm bg-white/10 hover:bg-white/20 text-white border-white/30">
-                      Import
-                    </span>
-                    <input
-                      type="file"
-                      accept=".json"
-                      onChange={handleImport}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Statistics */}
-          <div className="p-6 border-b border-border bg-gradient-to-r from-blue-50 to-indigo-50">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-info-strong">{settings.length}</div>
-                <div className="text-sm text-foreground">Total Settings</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-warning-strong">{settings.filter(s => s.is_public).length}</div>
-                <div className="text-sm text-foreground">Public</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-destructive">{settings.filter(s => !s.is_public).length}</div>
-                <div className="text-sm text-foreground">Private</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-foreground">
-                  {new Set(settings.map(s => inferValueType(s.value))).size}
-                </div>
-                <div className="text-sm text-foreground">Data Types</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Filters and Search */}
-          <div className="p-6 border-b border-border bg-muted">
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="flex-1">
-                <Input
-                  placeholder="Search settings by key or description..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <div className="flex gap-1 mr-2">
-                  <Button
-                    variant={viewMode === 'table' ? 'primary' : 'outline'}
-                    onClick={() => setViewMode('table')}
-                    size="sm"
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === 'cards' ? 'primary' : 'outline'}
-                    onClick={() => setViewMode('cards')}
-                    size="sm"
-                  >
-                    <Grid className="h-4 w-4" />
-                  </Button>
-                </div>
-                <Button
-                  variant={filterType === 'all' ? 'primary' : 'outline'}
-                  onClick={() => setFilterType('all')}
-                  size="sm"
-                >
-                  All ({settings.length})
+                  {showAddForm ? 'Hide Advanced Key' : 'New Advanced Key'}
                 </Button>
                 <Button
-                  variant={filterType === 'public' ? 'primary' : 'outline'}
-                  onClick={() => setFilterType('public')}
-                  size="sm"
-                >
-                  <Globe className="h-4 w-4 mr-1" />
-                  Public ({settings.filter(s => s.is_public).length})
-                </Button>
-                <Button
-                  variant={filterType === 'private' ? 'primary' : 'outline'}
-                  onClick={() => setFilterType('private')}
-                  size="sm"
-                >
-                  <Lock className="h-4 w-4 mr-1" />
-                  Private ({settings.filter(s => !s.is_public).length})
-                </Button>
-                <Button
+                  onClick={exportSettings}
                   variant="outline"
-                  onClick={resetToDefaults}
-                  size="sm"
-                  className="text-destructive hover:text-error border-destructive/30 hover:border-red-400"
+                  className="border-white/30 bg-white/10 text-white hover:bg-white/20"
                 >
-                  Reset to Defaults
+                  Export
                 </Button>
+                <label className="cursor-pointer">
+                  <span className="inline-flex h-10 items-center justify-center rounded-lg border border-white/30 bg-white/10 px-4 text-sm font-semibold text-white transition-colors hover:bg-white/20">
+                    Import
+                  </span>
+                  <input type="file" accept=".json" onChange={handleImport} className="hidden" />
+                </label>
               </div>
             </div>
           </div>
 
-          {/* Content */}
-          <div className="p-6">
-
-            {error && (
-              <div className="rounded-xl bg-destructive/5 border border-destructive/30 p-4 mb-6">
-                <div className="flex items-center space-x-3">
-                  <div className="text-2xl">⚠️</div>
-                  <div className="text-error font-medium">{error}</div>
-                </div>
+          <div className="space-y-6 p-6">
+            {error ? (
+              <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-destructive">
+                {error}
               </div>
-            )}
+            ) : null}
 
-            {success && (
-              <div className="rounded-xl bg-accent/10 border border-accent/30 p-4 mb-6">
-                <div className="flex items-center space-x-3">
-                  <div className="text-2xl">✅</div>
-                  <div className="text-accent font-medium">{success}</div>
-                </div>
+            {success ? (
+              <div className="rounded-xl border border-accent/30 bg-accent/10 p-4 text-accent">
+                {success}
               </div>
-            )}
+            ) : null}
 
             {loading ? (
-              <div className="flex justify-center py-8 sm:py-16">
+              <div className="flex justify-center py-16">
                 <div className="text-center">
                   <LoadingSpinner size="lg" />
                   <p className="mt-4 text-lg text-foreground">Loading settings...</p>
@@ -482,294 +607,423 @@ export default function AdminSettings() {
               </div>
             ) : (
               <>
-                {/* Add New Setting Form */}
-                {showAddForm && (
-                  <div className="bg-primary/5 border border-primary/30 rounded-xl p-6 mb-6">
-                    <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-                      <Plus className="h-5 w-5 mr-2" />
-                      Add New Setting
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="grid gap-4 md:grid-cols-4">
+                  <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-primary">Guided Controls</p>
+                    <p className="mt-2 text-3xl font-bold text-foreground">{configuredBlueprintCount}/{SETTING_BLUEPRINTS.length}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Operational settings configured</p>
+                  </div>
+                  <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-primary">Public Settings</p>
+                    <p className="mt-2 text-3xl font-bold text-foreground">{publicSettingsCount}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Visible to applicants and portal surfaces</p>
+                  </div>
+                  <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-primary">Private Settings</p>
+                    <p className="mt-2 text-3xl font-bold text-foreground">{privateSettingsCount}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Operational settings only for staff workflows</p>
+                  </div>
+                  <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-primary">Advanced Keys</p>
+                    <p className="mt-2 text-3xl font-bold text-foreground">{advancedSettingsCount}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Custom keys outside the guided configuration</p>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-border bg-muted/30 p-4">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex-1">
                       <Input
-                        label="Setting Key"
-                        value={newSetting.key}
-                        onChange={(e) => setNewSetting({...newSetting, key: e.target.value})}
-                        placeholder="e.g., max_file_size"
+                        placeholder="Search guided controls or advanced keys..."
+                        value={searchTerm}
+                        onChange={(event) => setSearchTerm(event.target.value)}
                       />
-                      <StandaloneSelect
-                        value={newSetting.valueType}
-                        onChange={(value) => setNewSetting({...newSetting, valueType: value as SettingValueType})}
-                        options={[
-                          { value: 'string', label: 'String' },
-                          { value: 'integer', label: 'Integer' },
-                          { value: 'decimal', label: 'Decimal' },
-                          { value: 'boolean', label: 'Boolean' },
-                        ]}
-                        label="Type"
-                      />
-                      <Input
-                        label="Value"
-                        value={newSetting.value}
-                        onChange={(e) => setNewSetting({...newSetting, value: e.target.value})}
-                        placeholder={newSetting.valueType === 'boolean' ? 'true or false' : 'Enter value'}
-                      />
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          id="is_public"
-                          checked={newSetting.is_public}
-                          onChange={(e) => setNewSetting({...newSetting, is_public: e.target.checked})}
-                          className="rounded border-input text-primary focus:ring-blue-500"
-                        />
-                        <label htmlFor="is_public" className="text-sm font-medium text-foreground">
-                          Public Setting
-                        </label>
-                      </div>
                     </div>
-                    <Input
-                      label="Description"
-                      value={newSetting.description}
-                      onChange={(e) => setNewSetting({...newSetting, description: e.target.value})}
-                      placeholder="Brief description of this setting"
-                      className="mb-4"
-                    />
-                    <Input
-                      label="Category"
-                      value={newSetting.category}
-                      onChange={(e) => setNewSetting({...newSetting, category: e.target.value})}
-                      placeholder="e.g., general"
-                      className="mb-4"
-                    />
-                    <div className="flex space-x-3">
-                      <Button onClick={handleAddNew} loading={saving}>
-                        <Save className="h-4 w-4 mr-2" />
-                        Add Setting
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant={filterType === 'all' ? 'primary' : 'outline'}
+                        onClick={() => setFilterType('all')}
+                        size="sm"
+                      >
+                        All
                       </Button>
-                      <Button variant="outline" onClick={() => setShowAddForm(false)}>
-                        <X className="h-4 w-4 mr-2" />
-                        Cancel
+                      <Button
+                        variant={filterType === 'public' ? 'primary' : 'outline'}
+                        onClick={() => setFilterType('public')}
+                        size="sm"
+                      >
+                        <Globe className="h-4 w-4 mr-1" />
+                        Public
+                      </Button>
+                      <Button
+                        variant={filterType === 'private' ? 'primary' : 'outline'}
+                        onClick={() => setFilterType('private')}
+                        size="sm"
+                      >
+                        <Lock className="h-4 w-4 mr-1" />
+                        Private
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={handleResetToDefaults}
+                        size="sm"
+                        className="border-destructive/30 text-destructive hover:bg-destructive/5"
+                      >
+                        Reset to Defaults
                       </Button>
                     </div>
                   </div>
-                )}
+                </div>
 
-                {/* Settings Display */}
-                {viewMode === 'cards' ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {Object.entries(groupedSettings).map(([category, categorySettings]) => (
-                      <div key={category} className="space-y-3">
-                        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide px-2">
-                          {category}
-                        </h3>
-                        {categorySettings.map((setting) => (
-                          <div key={setting.id} className="bg-card border border-border rounded-xl p-4 hover:shadow-md transition-shadow">
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <Database className="h-4 w-4 text-foreground" />
-                                  <span className="text-sm font-semibold text-foreground">{setting.key}</span>
-                                </div>
-                                <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${
-                                  getValueTypeClass(inferValueType(setting.value))
-                                }`}>
-                                  {inferValueType(setting.value)}
-                                </span>
-                              </div>
-                              <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${
-                                setting.is_public ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
-                              }`}>
-                                {setting.is_public ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
-                              </span>
+                <div className="rounded-2xl border border-border bg-card p-5">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h2 className="text-lg font-semibold text-foreground">Guided Configuration</h2>
+                      <p className="text-sm text-muted-foreground">
+                        Use these operational controls for the main admissions settings instead of creating raw keys manually.
+                      </p>
+                    </div>
+                    <div className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                      {configuredBlueprintCount} configured
+                    </div>
+                  </div>
+
+                  <div className="mt-6 grid gap-6 xl:grid-cols-3">
+                    {filteredGuidedSections.length > 0 ? (
+                      filteredGuidedSections.map((section) => (
+                        <div key={section.id} className="rounded-2xl border border-border bg-muted/20 p-4">
+                          <div className="mb-4 flex items-start gap-3">
+                            <div className="rounded-xl bg-primary/10 p-3 text-primary">
+                              {section.icon}
                             </div>
-                            <div className="mb-3">
-                              <div className="text-lg font-bold text-foreground mb-1">
-                                {formatValue(setting.value, inferValueType(setting.value))}
-                              </div>
-                              <p className="text-xs text-foreground">{setting.description || 'No description'}</p>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleEditStart(setting)}
-                                className="flex-1"
-                              >
-                                <Edit2 className="h-3 w-3 mr-1" />
-                                Edit
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDelete(setting.id, setting.key)}
-                                className="text-destructive hover:text-error"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
+                            <div>
+                              <h3 className="font-semibold text-foreground">{section.title}</h3>
+                              <p className="text-sm text-muted-foreground">{section.description}</p>
                             </div>
                           </div>
-                        ))}
+
+                          <div className="space-y-4">
+                            {section.blueprints.map((blueprint) => {
+                              const existingSetting = settings.find((setting) => setting.key === blueprint.key)
+                              const draft = guidedDrafts[blueprint.key] || buildGuidedDraft(blueprint, existingSetting)
+                              const isSavingBlueprint = activeMutationKey === blueprint.key
+
+                              return (
+                                <div key={blueprint.key} className="rounded-xl border border-border bg-card p-4">
+                                  <div className="mb-3 flex items-start justify-between gap-3">
+                                    <div>
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <h4 className="font-semibold text-foreground">{blueprint.label}</h4>
+                                        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
+                                          existingSetting ? 'bg-accent/10 text-accent-foreground' : 'bg-amber-100 text-amber-800'
+                                        }`}>
+                                          {existingSetting ? 'Configured' : 'Missing'}
+                                        </span>
+                                      </div>
+                                      <p className="mt-1 text-sm text-muted-foreground">{blueprint.description}</p>
+                                      <p className="mt-1 text-xs font-mono text-muted-foreground">{blueprint.key}</p>
+                                    </div>
+                                    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getValueTypeClass(blueprint.valueType)}`}>
+                                      {blueprint.valueType}
+                                    </span>
+                                  </div>
+
+                                  <div className="space-y-3">
+                                    {blueprint.valueType === 'boolean' ? (
+                                      <StandaloneSelect
+                                        label="Value"
+                                        value={draft.value || 'false'}
+                                        onChange={(value) => handleGuidedDraftChange(blueprint.key, 'value', value)}
+                                        options={[
+                                          { value: 'true', label: 'Enabled' },
+                                          { value: 'false', label: 'Disabled' },
+                                        ]}
+                                      />
+                                    ) : (
+                                      <Input
+                                        label="Value"
+                                        value={draft.value}
+                                        onChange={(event) => handleGuidedDraftChange(blueprint.key, 'value', event.target.value)}
+                                        placeholder={blueprint.placeholder}
+                                      />
+                                    )}
+
+                                    <div className="grid gap-3 md:grid-cols-2">
+                                      <StandaloneSelect
+                                        label="Visibility"
+                                        value={draft.is_public ? 'public' : 'private'}
+                                        onChange={(value) => handleGuidedDraftChange(blueprint.key, 'is_public', value === 'public')}
+                                        options={[
+                                          { value: 'public', label: 'Public' },
+                                          { value: 'private', label: 'Private' },
+                                        ]}
+                                      />
+                                      <Input
+                                        label="Category"
+                                        value={draft.category}
+                                        onChange={(event) => handleGuidedDraftChange(blueprint.key, 'category', event.target.value)}
+                                        placeholder={blueprint.category}
+                                      />
+                                    </div>
+
+                                    <Input
+                                      label="Description"
+                                      value={draft.description}
+                                      onChange={(event) => handleGuidedDraftChange(blueprint.key, 'description', event.target.value)}
+                                      placeholder={blueprint.description}
+                                    />
+
+                                    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 px-3 py-2">
+                                      <div className="text-sm text-muted-foreground">
+                                        Live value: <span className="font-medium text-foreground">{formatValue(draft.value || blueprint.placeholder, blueprint.valueType)}</span>
+                                      </div>
+                                      <Button
+                                        onClick={() => void handleSaveGuidedSetting(blueprint)}
+                                        loading={isSavingBlueprint}
+                                        disabled={saving && !isSavingBlueprint}
+                                      >
+                                        <Save className="h-4 w-4 mr-2" />
+                                        Save
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="xl:col-span-3 rounded-2xl border border-dashed border-border bg-muted/20 px-6 py-12 text-center">
+                        <Settings className="mx-auto h-10 w-10 text-muted-foreground" />
+                        <h3 className="mt-4 text-lg font-semibold text-foreground">No guided controls match this filter</h3>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          Clear the search or visibility filter to resume configuring the main admissions controls.
+                        </p>
                       </div>
-                    ))}
+                    )}
                   </div>
-                ) : (
-                  <div className="bg-card border border-border rounded-xl overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-border">
-                      <thead className="bg-muted">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
-                            Setting Key
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
-                            Value
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
-                            Type
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
-                            Visibility
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
-                            Description
-                          </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-foreground uppercase tracking-wider">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-card divide-y divide-border">
-                        {filteredSettings.map((setting) => (
-                          <tr key={setting.id} className="hover:bg-muted">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <Database className="h-4 w-4 text-foreground mr-2" />
-                                <span className="text-sm font-medium text-foreground">{setting.key}</span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              {editingId === setting.id ? (
-                                <Input
-                                  value={editForm.value || ''}
-                                  onChange={(e) => setEditForm({...editForm, value: e.target.value})}
-                                  className="w-full"
-                                />
-                              ) : (
-                                <span className="text-sm text-foreground break-words">
-                                  {formatValue(setting.value, inferValueType(setting.value))}
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                getValueTypeClass(inferValueType(setting.value))
-                              }`}>
-                                {inferValueType(setting.value)}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              {editingId === setting.id ? (
-                                <input
-                                  type="checkbox"
-                                  checked={editForm.is_public || false}
-                                  onChange={(e) => setEditForm({...editForm, is_public: e.target.checked})}
-                                  className="rounded border-input text-primary focus:ring-blue-500"
-                                />
-                              ) : (
-                                <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${
-                                  setting.is_public ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
-                                }`}>
-                                  {setting.is_public ? (
-                                    <><Globe className="h-3 w-3 mr-1" /> Public</>
-                                  ) : (
-                                    <><Lock className="h-3 w-3 mr-1" /> Private</>
-                                  )}
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-6 py-4">
-                              {editingId === setting.id ? (
-                                <Input
-                                  value={editForm.description || ''}
-                                  onChange={(e) => setEditForm({...editForm, description: e.target.value})}
-                                  className="w-full"
-                                  placeholder="Description"
-                                />
-                              ) : (
-                                <span className="text-sm text-foreground break-words">
-                                  {setting.description || 'No description'}
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                              {editingId === setting.id ? (
-                                <div className="flex justify-end space-x-2">
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleEditSave(setting.id)}
-                                    loading={saving}
-                                    aria-label="Save setting"
-                                  >
-                                    <Save className="h-4 w-4" aria-hidden="true" />
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={handleEditCancel}
-                                    aria-label="Cancel editing"
-                                  >
-                                    <X className="h-4 w-4" aria-hidden="true" />
-                                  </Button>
-                                </div>
-                              ) : (
-                                <div className="flex justify-end space-x-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleEditStart(setting)}
-                                    aria-label={`Edit ${setting.key}`}
-                                  >
-                                    <Edit2 className="h-4 w-4" aria-hidden="true" />
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleDelete(setting.id, setting.key)}
-                                    className="text-destructive hover:text-error"
-                                    aria-label={`Delete ${setting.key}`}
-                                  >
-                                    <Trash2 className="h-4 w-4" aria-hidden="true" />
-                                  </Button>
-                                </div>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-                  
-                  {filteredSettings.length === 0 && (
-                    <div className="text-center py-6 sm:py-12">
-                      <Database className="h-12 w-12 text-foreground mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-foreground mb-2">No settings found</h3>
-                      <p className="text-foreground mb-4">
-                        {searchTerm ? 'No settings match your search criteria.' : 'No settings configured yet.'}
+                </div>
+
+                <div className="rounded-2xl border border-border bg-card">
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvancedSettings((current) => !current)}
+                    className="flex w-full items-center justify-between gap-4 p-5 text-left"
+                  >
+                    <div>
+                      <h2 className="text-lg font-semibold text-foreground">Advanced Keys</h2>
+                      <p className="text-sm text-muted-foreground">
+                        Use this section for non-standard keys not covered by the guided configuration above.
                       </p>
-                      {!searchTerm && (
-                        <Button onClick={() => setShowAddForm(true)}>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add First Setting
-                        </Button>
+                    </div>
+                    {showAdvancedSettings ? <ChevronUp className="h-5 w-5 text-muted-foreground" /> : <ChevronDown className="h-5 w-5 text-muted-foreground" />}
+                  </button>
+
+                  {showAdvancedSettings ? (
+                    <div className="border-t border-border p-5">
+                      {showAddForm ? (
+                        <div className="mb-6 rounded-2xl border border-primary/30 bg-primary/5 p-5">
+                          <div className="mb-4 flex items-center gap-2">
+                            <Plus className="h-5 w-5 text-primary" />
+                            <h3 className="font-semibold text-foreground">Create Advanced Key</h3>
+                          </div>
+
+                          <div className="grid gap-4 md:grid-cols-2">
+                            <Input
+                              label="Setting key"
+                              value={newSetting.key}
+                              onChange={(event) => setNewSetting((current) => ({ ...current, key: event.target.value }))}
+                              placeholder="e.g. sms_provider_name"
+                            />
+                            <StandaloneSelect
+                              value={newSetting.valueType}
+                              onChange={(value) => setNewSetting((current) => ({ ...current, valueType: value as SettingValueType }))}
+                              options={[
+                                { value: 'string', label: 'String' },
+                                { value: 'integer', label: 'Integer' },
+                                { value: 'decimal', label: 'Decimal' },
+                                { value: 'boolean', label: 'Boolean' },
+                              ]}
+                              label="Value type"
+                            />
+                            <Input
+                              label="Value"
+                              value={newSetting.value}
+                              onChange={(event) => setNewSetting((current) => ({ ...current, value: event.target.value }))}
+                              placeholder={newSetting.valueType === 'boolean' ? 'true or false' : 'Enter value'}
+                            />
+                            <StandaloneSelect
+                              value={newSetting.is_public ? 'public' : 'private'}
+                              onChange={(value) => setNewSetting((current) => ({ ...current, is_public: value === 'public' }))}
+                              options={[
+                                { value: 'public', label: 'Public' },
+                                { value: 'private', label: 'Private' },
+                              ]}
+                              label="Visibility"
+                            />
+                            <Input
+                              label="Description"
+                              value={newSetting.description}
+                              onChange={(event) => setNewSetting((current) => ({ ...current, description: event.target.value }))}
+                              placeholder="What this key controls"
+                            />
+                            <Input
+                              label="Category"
+                              value={newSetting.category}
+                              onChange={(event) => setNewSetting((current) => ({ ...current, category: event.target.value }))}
+                              placeholder="e.g. messaging"
+                            />
+                          </div>
+
+                          <div className="mt-4 flex gap-3">
+                            <Button onClick={() => void handleAddNew()} loading={saving}>
+                              <Save className="h-4 w-4 mr-2" />
+                              Save Advanced Key
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setShowAddForm(false)
+                                setNewSetting(initialNewSetting)
+                              }}
+                            >
+                              <X className="h-4 w-4 mr-2" />
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {filteredAdvancedSettings.length > 0 ? (
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full divide-y divide-border">
+                            <thead className="bg-muted/60">
+                              <tr>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Key</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Value</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Type</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Visibility</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Description</th>
+                                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border bg-card">
+                              {filteredAdvancedSettings.map((setting) => (
+                                <tr key={setting.id}>
+                                  <td className="px-4 py-4">
+                                    <div className="flex items-center gap-2">
+                                      <Database className="h-4 w-4 text-muted-foreground" />
+                                      <span className="font-medium text-foreground">{setting.key}</span>
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-4">
+                                    {editingId === setting.id ? (
+                                      <Input
+                                        value={editForm.value || ''}
+                                        onChange={(event) => setEditForm((current) => ({ ...current, value: event.target.value }))}
+                                      />
+                                    ) : (
+                                      <span className="text-sm text-foreground">
+                                        {formatValue(setting.value, inferValueType(setting.value))}
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-4">
+                                    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getValueTypeClass(inferValueType(setting.value))}`}>
+                                      {inferValueType(setting.value)}
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-4">
+                                    {editingId === setting.id ? (
+                                      <StandaloneSelect
+                                        value={editForm.is_public ? 'public' : 'private'}
+                                        onChange={(value) => setEditForm((current) => ({ ...current, is_public: value === 'public' }))}
+                                        options={[
+                                          { value: 'public', label: 'Public' },
+                                          { value: 'private', label: 'Private' },
+                                        ]}
+                                      />
+                                    ) : (
+                                      <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
+                                        setting.is_public ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
+                                      }`}>
+                                        {setting.is_public ? (
+                                          <>
+                                            <Globe className="h-3 w-3 mr-1" />
+                                            Public
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Lock className="h-3 w-3 mr-1" />
+                                            Private
+                                          </>
+                                        )}
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-4">
+                                    {editingId === setting.id ? (
+                                      <Input
+                                        value={editForm.description || ''}
+                                        onChange={(event) => setEditForm((current) => ({ ...current, description: event.target.value }))}
+                                        placeholder="Description"
+                                      />
+                                    ) : (
+                                      <span className="text-sm text-muted-foreground">{setting.description || 'No description'}</span>
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-4">
+                                    <div className="flex justify-end gap-2">
+                                      {editingId === setting.id ? (
+                                        <>
+                                          <Button size="sm" onClick={() => void handleEditSave(setting.id)} loading={saving}>
+                                            <Save className="h-4 w-4" />
+                                          </Button>
+                                          <Button size="sm" variant="outline" onClick={handleEditCancel}>
+                                            <X className="h-4 w-4" />
+                                          </Button>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Button size="sm" variant="outline" onClick={() => handleEditStart(setting)}>
+                                            <Edit2 className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => void handleDelete(setting.id, setting.key)}
+                                            className="border-destructive/30 text-destructive hover:bg-destructive/5"
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                        </>
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="rounded-2xl border border-dashed border-border bg-muted/20 px-6 py-12 text-center">
+                          <Database className="mx-auto h-10 w-10 text-muted-foreground" />
+                          <h3 className="mt-4 text-lg font-semibold text-foreground">No advanced keys found</h3>
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            The guided configuration covers the main admissions settings right now.
+                          </p>
+                        </div>
                       )}
                     </div>
-                  )}
+                  ) : null}
+                </div>
               </>
             )}
           </div>
         </div>
       </div>
+
       <ConfirmAlertDialog
         isOpen={confirmDialog.isOpen}
         onClose={confirmDialog.handleCancel}

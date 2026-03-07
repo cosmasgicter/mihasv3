@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Home, FileText, Bell, User, LayoutDashboard, Users, MoreHorizontal, GraduationCap, Calendar, Settings, FileSearch, CreditCard } from 'lucide-react'
+import { Home, FileText, Bell, LayoutDashboard, Users, MoreHorizontal, GraduationCap, Calendar, Settings, FileSearch, CreditCard } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
@@ -15,14 +15,14 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
 
   const studentMainLinks = [
     { to: '/student/dashboard', icon: Home, label: 'Home' },
-    { to: '/apply', icon: FileText, label: 'Apply' },
+    { to: '/student/application-wizard', icon: FileText, label: 'Apply' },
     { to: '/student/notifications', icon: Bell, label: 'Alerts' },
   ]
 
   const studentMoreLinks = [
     { to: '/student/payment', icon: CreditCard, label: 'Payments' },
     { to: '/student/interview', icon: Calendar, label: 'Interviews' },
-    { to: '/student/profile', icon: User, label: 'Profile' },
+    { to: '/student/settings', icon: Settings, label: 'Settings' },
   ]
 
   const adminMainLinks = [
@@ -50,8 +50,16 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
 
   const links = isAdmin ? adminMainLinks : studentMainLinks
 
+  const isRouteActive = (path: string) => {
+    if (path === '/student/application-wizard') {
+      return location.pathname === '/student/application-wizard' || location.pathname === '/apply'
+    }
+
+    return location.pathname === path
+  }
+
   const renderLink = ({ to, icon: Icon, label }: any) => {
-    const isActive = location.pathname === to
+    const isActive = isRouteActive(to)
     return (
       <Link
         key={to}
@@ -124,7 +132,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
           >
             <div className="py-2">
               {studentMoreLinks.map(({ to, icon: Icon, label }) => {
-                const isActive = location.pathname === to
+                const isActive = isRouteActive(to)
                 return (
                   <Link 
                     key={to} 

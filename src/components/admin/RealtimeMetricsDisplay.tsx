@@ -348,8 +348,8 @@ export function RealtimeMetricsDisplay({
     {
       value: pendingApplications,
       previousValue: showChangeIndicators ? previousValues.pendingApplications : undefined,
-      label: 'Pending',
-      description: 'Awaiting Review',
+      label: 'Queue',
+      description: 'Decision Queue',
       icon: Clock,
       color: 'yellow',
       trend: pendingApplications > 5 ? 'up' : 'stable',

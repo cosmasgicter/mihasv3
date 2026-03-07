@@ -12,7 +12,7 @@ interface ApplicationsTableProps {
   isLoadingMore: boolean
   onLoadMore: () => void | Promise<void>
   onStatusUpdate: (id: string, status: string) => void | Promise<void>
-  onPaymentStatusUpdate: (id: string, status: string) => void | Promise<void>
+  onPaymentStatusUpdate: (id: string, status: string, verificationNotes?: string) => void | Promise<void>
   onViewDetails: (id: string) => void
   selectedIds?: string[]
   onSelectionChange?: (ids: string[]) => void
@@ -65,11 +65,11 @@ export function ApplicationsTable({
     }
   }, [onStatusUpdate, showSuccess, showError])
 
-  const handlePaymentUpdate = useCallback(async (id: string, status: string) => {
+  const handlePaymentUpdate = useCallback(async (id: string, status: string, verificationNotes?: string) => {
     try {
       setUpdatingPayment(id)
-      await onPaymentStatusUpdate(id, status)
-      showSuccess('Payment Updated', `Payment status changed to ${status}`)
+      await onPaymentStatusUpdate(id, status, verificationNotes)
+      showSuccess('Payment Updated', `Payment status changed to ${status.replace('_', ' ')}`)
     } catch (error) {
       console.error('Failed to update payment status:', error)
       showError('Update Failed', error instanceof Error ? error.message : 'Failed to update payment status')

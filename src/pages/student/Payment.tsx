@@ -7,7 +7,7 @@
  * @requirements 1.2, 1.3, 1.4, 1.5, 2.1, 2.2, 2.3, 2.4, 2.5, 6.1, 6.3
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { 
   CreditCard, 
@@ -21,19 +21,30 @@ import {
   ArrowLeft
 } from 'lucide-react'
 import { Container } from '@/components/ui/Container'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, Input, Label } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
 import { applicationService } from '@/services/applications'
 import { useAuth } from '@/contexts/AuthContext'
+import { documentService } from '@/services/documents'
+import { buildApplicationPaymentUpdate, validatePaymentStep } from './applicationWizard/lib/paymentFlow'
+import {
+  getPaymentStatusLabel,
+  normalizePaymentStatus,
+  requiresStudentPaymentAction,
+} from '@/lib/paymentStatus'
 
 interface ApplicationWithPayment {
   id: string
   status: string
   payment_status: string | null
   payment_method: string | null
+  payer_name: string | null
+  payer_phone: string | null
   amount: number | null
+  paid_at: string | null
   momo_ref: string | null
+  last_payment_audit_notes: string | null
   created_at: string
   program: string | null
 }
@@ -45,6 +56,47 @@ interface ApplicationsListPayload {
   pageSize: number
 }
 
+interface PaymentCompletionForm {
+  payment_method: string
+  payer_name: string
+  payer_phone: string
+  amount: string
+  paid_at: string
+  momo_ref: string
+  file: File | null
+  error: string | null
+}
+
+function createDefaultPaymentForm(): PaymentCompletionForm {
+  return {
+    payment_method: 'MTN Money',
+    payer_name: '',
+    payer_phone: '',
+    amount: '153',
+    paid_at: '',
+    momo_ref: '',
+    file: null,
+    error: null
+  }
+}
+
+function toDateTimeLocalValue(value?: string | null): string {
+  if (!value) return ''
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return ''
+  }
+
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
 /**
  * Returns the appropriate badge variant and icon for a payment status
  * @requirements 2.3, 2.4 - Payment status indicators
@@ -54,7 +106,7 @@ function getPaymentStatusDisplay(paymentStatus: string | null): {
   label: string
   icon: React.ReactNode
 } {
-  switch (paymentStatus) {
+  switch (normalizePaymentStatus(paymentStatus)) {
     case 'verified':
       return {
         variant: 'success',
@@ -70,13 +122,13 @@ function getPaymentStatusDisplay(paymentStatus: string | null): {
     case 'pending_review':
       return {
         variant: 'warning',
-        label: 'Pending Review',
+        label: getPaymentStatusLabel(paymentStatus),
         icon: <Clock className="h-3.5 w-3.5" />
       }
     default:
       return {
         variant: 'secondary',
-        label: 'Not Paid',
+        label: getPaymentStatusLabel(paymentStatus),
         icon: <AlertCircle className="h-3.5 w-3.5" />
       }
   }
@@ -87,8 +139,39 @@ export default function PaymentPage() {
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [pendingApplications, setPendingApplications] = useState<ApplicationWithPayment[]>([])
   const [allApplications, setAllApplications] = useState<ApplicationWithPayment[]>([])
+  const [notice, setNotice] = useState<string | null>(null)
+  const [expandedApplicationId, setExpandedApplicationId] = useState<string | null>(null)
+  const [submittingApplicationId, setSubmittingApplicationId] = useState<string | null>(null)
+  const [paymentForms, setPaymentForms] = useState<Record<string, PaymentCompletionForm>>({})
+
+  const paymentActionRequiredApplications = useMemo(
+    () => allApplications.filter(app => requiresStudentPaymentAction(app.payment_status)),
+    [allApplications]
+  )
+
+  const paymentAwaitingReviewApplications = useMemo(
+    () => allApplications.filter(app => normalizePaymentStatus(app.payment_status) === 'pending_review'),
+    [allApplications]
+  )
+
+  const paymentVerifiedApplications = useMemo(
+    () => allApplications.filter(app => normalizePaymentStatus(app.payment_status) === 'verified'),
+    [allApplications]
+  )
+
+  const getPaymentForm = (applicationId: string) => paymentForms[applicationId] || createDefaultPaymentForm()
+
+  const updatePaymentForm = (applicationId: string, patch: Partial<PaymentCompletionForm>) => {
+    setPaymentForms(prev => ({
+      ...prev,
+      [applicationId]: {
+        ...createDefaultPaymentForm(),
+        ...prev[applicationId],
+        ...patch
+      }
+    }))
+  }
 
   async function fetchApplications() {
     if (!user?.id) {
@@ -118,20 +201,17 @@ export default function PaymentPage() {
         status: app.status,
         payment_status: app.payment_status,
         payment_method: app.payment_method,
+        payer_name: (app as any).payer_name ?? null,
+        payer_phone: (app as any).payer_phone ?? null,
         amount: app.amount,
+        paid_at: (app as any).paid_at ?? null,
         momo_ref: app.momo_ref,
+        last_payment_audit_notes: (app as any).last_payment_audit_notes ?? null,
         created_at: app.created_at,
         program: app.program
       }))
 
       setAllApplications(applications)
-      
-      // Filter for pending payments (null or pending_review)
-      // @requirements 2.1 - Query applications where payment_status is null or 'pending_review'
-      const pending = applications.filter(
-        app => app.payment_status === null || app.payment_status === 'pending_review'
-      )
-      setPendingApplications(pending)
     } catch (err) {
       console.error('Error fetching applications:', err)
       // @requirements 6.1 - Display error message on failure
@@ -147,6 +227,110 @@ export default function PaymentPage() {
 
   const handleContinueToWizard = () => {
     navigate('/student/application-wizard')
+  }
+
+  const handleTogglePaymentForm = (applicationId: string) => {
+    const application = allApplications.find(item => item.id === applicationId)
+    setExpandedApplicationId(prev => (prev === applicationId ? null : applicationId))
+    setPaymentForms(prev => {
+      if (prev[applicationId]) {
+        return prev
+      }
+
+      const seededForm = createDefaultPaymentForm()
+      if (!application) {
+        return { ...prev, [applicationId]: seededForm }
+      }
+
+      return {
+        ...prev,
+        [applicationId]: {
+          ...seededForm,
+          payment_method: application.payment_method || seededForm.payment_method,
+          payer_name: application.payer_name || '',
+          payer_phone: application.payer_phone || '',
+          amount: application.amount ? String(application.amount) : seededForm.amount,
+          paid_at: toDateTimeLocalValue(application.paid_at),
+          momo_ref: application.momo_ref || '',
+        }
+      }
+    })
+  }
+
+  const handleSubmitDeferredPayment = async (applicationId: string) => {
+    if (!user?.id) {
+      setError('Please sign in again to complete payment.')
+      return
+    }
+
+    const form = getPaymentForm(applicationId)
+    const amount = Number(form.amount)
+    const setFormError = (message: string | null) => updatePaymentForm(applicationId, { error: message })
+
+    const isValid = validatePaymentStep({
+      formData: {
+        payment_option: 'pay_now',
+        payment_method: form.payment_method as any,
+        payer_name: form.payer_name,
+        payer_phone: form.payer_phone,
+        amount,
+        paid_at: form.paid_at,
+        momo_ref: form.momo_ref,
+      } as any,
+      proofOfPaymentFile: form.file,
+      setError: () => setFormError(null),
+      showError: (message) => setFormError(message),
+    })
+
+    if (!isValid || !form.file) {
+      return
+    }
+
+    try {
+      setSubmittingApplicationId(applicationId)
+      setFormError(null)
+      setError(null)
+
+      const uploadResult = await documentService.upload({
+        file: form.file,
+        fileType: 'proof_of_payment',
+        applicationId,
+        userId: user.id,
+      }) as { url?: string }
+
+      if (!uploadResult?.url) {
+        throw new Error('Upload completed without a document URL')
+      }
+
+      const paymentUpdate = buildApplicationPaymentUpdate({
+        payment_option: 'pay_now',
+        payment_method: form.payment_method as any,
+        payer_name: form.payer_name,
+        payer_phone: form.payer_phone,
+        amount,
+        paid_at: form.paid_at,
+        momo_ref: form.momo_ref,
+      } as any, { markPendingReview: true })
+
+      await applicationService.update(applicationId, {
+        ...paymentUpdate,
+        pop_url: uploadResult.url,
+      } as any)
+
+      setNotice('Payment proof submitted for review.')
+      setExpandedApplicationId(null)
+      setPaymentForms(prev => {
+        const next = { ...prev }
+        delete next[applicationId]
+        return next
+      })
+      await fetchApplications()
+    } catch (submitError) {
+      const message = submitError instanceof Error ? submitError.message : 'Failed to submit payment'
+      setFormError(message)
+    } finally {
+      setSubmittingApplicationId(null)
+    }
   }
 
   const handleViewApplication = (applicationId: string) => {
@@ -184,9 +368,25 @@ export default function PaymentPage() {
             Application Payment
           </h1>
           <p className="text-muted-foreground">
-            Complete your application fee payment to proceed with your application.
+            Pay before submission or return here later to upload proof for any submitted application that still needs payment follow-up.
           </p>
         </div>
+
+        {notice && (
+          <Card className="mb-6 border-success/50 bg-success/5">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 text-success">
+                  <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                  <p>{notice}</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setNotice(null)}>
+                  Dismiss
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Error Display */}
         {/* @requirements 6.1 - Display error message on failure */}
@@ -212,6 +412,44 @@ export default function PaymentPage() {
         )}
 
         <div className="grid gap-6">
+          {allApplications.length > 0 && (
+            <div className="grid gap-3 md:grid-cols-3">
+              <Card className="border-warning/30 bg-warning/5">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="h-5 w-5 text-warning" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Payment Action Required</p>
+                      <p className="text-2xl font-bold text-foreground">{paymentActionRequiredApplications.length}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-primary/20 bg-primary/5">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-5 w-5 text-primary" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Awaiting Review</p>
+                      <p className="text-2xl font-bold text-foreground">{paymentAwaitingReviewApplications.length}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-success/30 bg-success/5">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-success" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Verified Payments</p>
+                      <p className="text-2xl font-bold text-foreground">{paymentVerifiedApplications.length}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {/* Main Payment Card */}
           {/* @requirements 1.2, 1.3 - Display K153 fee and payment instructions */}
           <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
@@ -223,7 +461,7 @@ export default function PaymentPage() {
                 <div>
                   <CardTitle>Complete Your Payment</CardTitle>
                   <CardDescription>
-                    Payment is required to submit your application
+                    You can pay in the wizard before submission or come back here later to finish payment for a submitted application.
                   </CardDescription>
                 </div>
               </div>
@@ -243,11 +481,11 @@ export default function PaymentPage() {
               <div className="bg-card rounded-lg p-4 border border-border">
                 <h3 className="font-medium text-foreground mb-2">Payment Instructions</h3>
                 <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
-                  <li>Continue to the application wizard</li>
-                  <li>Navigate to Step 3 (Payment Information)</li>
+                  <li>Continue to the application wizard and choose whether to pay now or pay later</li>
+                  <li>If you want to submit first, select <strong className="text-foreground">Pay later</strong> in Step 3</li>
                   <li>Send <strong className="text-foreground">K153</strong> to the provided mobile money number</li>
-                  <li>Upload your proof of payment</li>
-                  <li>Complete and submit your application</li>
+                  <li>Upload your proof of payment in the wizard or come back to this page later after submission</li>
+                  <li>Admissions and finance will review the proof before final payment clearance</li>
                 </ol>
               </div>
 
@@ -262,51 +500,255 @@ export default function PaymentPage() {
             </CardContent>
           </Card>
 
-          {/* Pending Applications - Applications needing payment */}
+          {/* Applications requiring student payment action */}
           {/* @requirements 1.4, 2.1, 2.2, 2.5 - List pending applications with status */}
-          {pendingApplications.length > 0 && (
+          {paymentActionRequiredApplications.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Clock className="h-5 w-5 text-warning" />
-                  Applications Awaiting Payment
+                  Payment Action Required
                 </CardTitle>
                 <CardDescription>
-                  These applications need payment to be completed
+                  These applications still need proof of payment or a corrected resubmission.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {pendingApplications.map((app) => {
+                  {paymentActionRequiredApplications.map((app) => {
                     const statusDisplay = getPaymentStatusDisplay(app.payment_status)
+                    const form = getPaymentForm(app.id)
+                    const canCompletePaymentHere = requiresStudentPaymentAction(app.payment_status)
+                    const isExpanded = expandedApplicationId === app.id
+                    const isSubmitting = submittingApplicationId === app.id
+                    const normalizedPaymentStatus = normalizePaymentStatus(app.payment_status)
+                    const isRejected = normalizedPaymentStatus === 'rejected'
+                    const cardToneClass = isRejected
+                      ? 'border-destructive/30 bg-destructive/5 hover:bg-destructive/10'
+                      : 'border-warning/30 bg-warning/5 hover:bg-warning/10'
+
                     return (
                       <div 
                         key={app.id}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border border-warning/30 bg-warning/5 hover:bg-warning/10 transition-colors"
+                        className={`rounded-lg border p-3 transition-colors ${cardToneClass}`}
                       >
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-foreground truncate">
-                            {app.program || 'Application'}
-                          </p>
-                          <div className="flex flex-wrap items-center gap-2 mt-1">
-                            <Badge variant={statusDisplay.variant} className="flex items-center gap-1">
-                              {statusDisplay.icon}
-                              {statusDisplay.label}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              Status: {app.status}
-                            </span>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-foreground truncate">
+                              {app.program || 'Application'}
+                            </p>
+                            <div className="flex flex-wrap items-center gap-2 mt-1">
+                              <Badge variant={statusDisplay.variant} className="flex items-center gap-1">
+                                {statusDisplay.icon}
+                                {statusDisplay.label}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                Status: {app.status}
+                              </span>
+                            </div>
+                            <p className="mt-2 text-xs text-muted-foreground">
+                              {normalizedPaymentStatus === 'not_paid'
+                                ? 'This application was submitted without payment. Upload proof here when you are ready.'
+                                : normalizedPaymentStatus === 'rejected'
+                                  ? 'Your previous payment proof was rejected. Update the details below and resubmit for review.'
+                                  : 'Payment proof has been submitted and is waiting for review.'}
+                            </p>
+                            {isRejected && app.last_payment_audit_notes && (
+                              <div className="mt-2 rounded-md border border-destructive/20 bg-background/80 px-3 py-2 text-xs text-foreground">
+                                <span className="font-medium text-destructive">Review note:</span>{' '}
+                                {app.last_payment_audit_notes}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            {canCompletePaymentHere && (
+                              <Button
+                                variant={isExpanded ? 'outline' : 'default'}
+                                size="sm"
+                                onClick={() => handleTogglePaymentForm(app.id)}
+                                className="min-h-[44px]"
+                              >
+                                {isExpanded
+                                  ? 'Hide Payment Form'
+                                  : isRejected
+                                    ? 'Resubmit Payment'
+                                    : 'Complete Payment'}
+                              </Button>
+                            )}
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleViewApplication(app.id)}
+                              className="min-h-[44px]"
+                            >
+                              View Application
+                            </Button>
                           </div>
                         </div>
-                        {/* @requirements 2.5 - View Application button */}
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleViewApplication(app.id)}
-                          className="flex-shrink-0 min-h-[44px] w-full sm:w-auto"
-                        >
-                          View Application
-                        </Button>
+
+                        {canCompletePaymentHere && isExpanded && (
+                          <div className={`mt-4 border-t pt-4 ${isRejected ? 'border-destructive/20' : 'border-warning/20'}`}>
+                            <div className="grid gap-4 md:grid-cols-2">
+                              <div className="space-y-2">
+                                <Label htmlFor={`payment-method-${app.id}`}>Payment Method</Label>
+                                <select
+                                  id={`payment-method-${app.id}`}
+                                  value={form.payment_method}
+                                  onChange={(event) => updatePaymentForm(app.id, { payment_method: event.target.value, error: null })}
+                                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                >
+                                  <option value="MTN Money">MTN Money</option>
+                                  <option value="Airtel Money">Airtel Money</option>
+                                  <option value="Zamtel Money">Zamtel Money</option>
+                                  <option value="Ewallet">Ewallet</option>
+                                  <option value="Bank To Cell">Bank To Cell</option>
+                                </select>
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor={`payer-name-${app.id}`}>Payer Name</Label>
+                                <Input
+                                  id={`payer-name-${app.id}`}
+                                  value={form.payer_name}
+                                  onChange={(event) => updatePaymentForm(app.id, { payer_name: event.target.value, error: null })}
+                                  placeholder="Name used for the payment"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor={`payer-phone-${app.id}`}>Payer Phone</Label>
+                                <Input
+                                  id={`payer-phone-${app.id}`}
+                                  value={form.payer_phone}
+                                  onChange={(event) => updatePaymentForm(app.id, { payer_phone: event.target.value, error: null })}
+                                  placeholder="Phone number used for payment"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor={`amount-${app.id}`}>Amount Paid</Label>
+                                <Input
+                                  id={`amount-${app.id}`}
+                                  type="number"
+                                  min={153}
+                                  value={form.amount}
+                                  onChange={(event) => updatePaymentForm(app.id, { amount: event.target.value, error: null })}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor={`paid-at-${app.id}`}>Payment Date &amp; Time</Label>
+                                <Input
+                                  id={`paid-at-${app.id}`}
+                                  type="datetime-local"
+                                  value={form.paid_at}
+                                  onChange={(event) => updatePaymentForm(app.id, { paid_at: event.target.value, error: null })}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor={`momo-ref-${app.id}`}>Reference Number</Label>
+                                <Input
+                                  id={`momo-ref-${app.id}`}
+                                  value={form.momo_ref}
+                                  onChange={(event) => updatePaymentForm(app.id, { momo_ref: event.target.value, error: null })}
+                                  placeholder="Transaction reference"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="mt-4 space-y-2">
+                              <Label htmlFor={`proof-${app.id}`}>Proof of Payment</Label>
+                              <Input
+                                id={`proof-${app.id}`}
+                                type="file"
+                                accept=".pdf,.jpg,.jpeg,.png"
+                                onChange={(event) => updatePaymentForm(app.id, {
+                                  file: event.target.files?.[0] || null,
+                                  error: null
+                                })}
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                Upload a screenshot or PDF of your payment confirmation.
+                              </p>
+                            </div>
+
+                            {form.error && (
+                              <p className="mt-3 text-sm text-destructive">{form.error}</p>
+                            )}
+
+                            <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                              <Button
+                                onClick={() => handleSubmitDeferredPayment(app.id)}
+                                loading={isSubmitting}
+                                className="min-h-[44px]"
+                              >
+                                Submit Payment for Review
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => handleTogglePaymentForm(app.id)}
+                                disabled={isSubmitting}
+                                className="min-h-[44px]"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {paymentAwaitingReviewApplications.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-primary" />
+                  Payment Under Review
+                </CardTitle>
+                <CardDescription>
+                  Proof has been received for these applications and is waiting for admissions or finance review.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {paymentAwaitingReviewApplications.map((app) => {
+                    const statusDisplay = getPaymentStatusDisplay(app.payment_status)
+
+                    return (
+                      <div
+                        key={app.id}
+                        className="rounded-lg border border-primary/20 bg-primary/5 p-3 transition-colors hover:bg-primary/10"
+                      >
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-foreground truncate">
+                              {app.program || 'Application'}
+                            </p>
+                            <div className="mt-1 flex flex-wrap items-center gap-2">
+                              <Badge variant={statusDisplay.variant} className="flex items-center gap-1">
+                                {statusDisplay.icon}
+                                {statusDisplay.label}
+                              </Badge>
+                              {app.payment_method && (
+                                <span className="text-xs text-muted-foreground">
+                                  via {app.payment_method}
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-2 text-xs text-muted-foreground">
+                              Your proof has already been submitted. No further payment action is needed until review is complete.
+                            </p>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewApplication(app.id)}
+                            className="min-h-[44px] w-full sm:w-auto"
+                          >
+                            View Application
+                          </Button>
+                        </div>
                       </div>
                     )
                   })}
@@ -317,7 +759,7 @@ export default function PaymentPage() {
 
           {/* All Applications with Payment Status */}
           {/* @requirements 2.3, 2.4 - Show verified and rejected payment status */}
-          {allApplications.filter(app => app.payment_status === 'verified' || app.payment_status === 'rejected').length > 0 && (
+          {paymentVerifiedApplications.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -325,17 +767,14 @@ export default function PaymentPage() {
                   Payment History
                 </CardTitle>
                 <CardDescription>
-                  Applications with completed payment processing
+                  Payments already verified and cleared for processing
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {allApplications
-                    .filter(app => app.payment_status === 'verified' || app.payment_status === 'rejected')
-                    .map((app) => {
+                  {paymentVerifiedApplications.map((app) => {
                       const statusDisplay = getPaymentStatusDisplay(app.payment_status)
                       const isVerified = app.payment_status === 'verified'
-                      const isRejected = app.payment_status === 'rejected'
                       
                       return (
                         <div 
@@ -343,7 +782,7 @@ export default function PaymentPage() {
                           className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border transition-colors ${
                             isVerified 
                               ? 'border-success/30 bg-success/5 hover:bg-success/10' 
-                              : 'border-destructive/30 bg-destructive/5 hover:bg-destructive/10'
+                              : 'border-border bg-card'
                           }`}
                         >
                           <div className="flex-1 min-w-0">
@@ -364,11 +803,6 @@ export default function PaymentPage() {
                               )}
                             </div>
                             {/* Show rejection reason hint for rejected payments */}
-                            {isRejected && (
-                              <p className="text-xs text-destructive mt-1">
-                                Payment was rejected. Please contact support or resubmit.
-                              </p>
-                            )}
                           </div>
                           <Button 
                             variant="outline" 

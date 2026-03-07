@@ -59,17 +59,20 @@ export function findBestSubjectId(parsedName: string, subjects: Array<{ id: stri
     // exact match on normalized or alias-normalized forms
     if (candidate === mappedTarget || candidate === target) return s.id
 
-    // substring or token overlap checks
-    if (candidate.includes(mappedTarget) || mappedTarget.includes(candidate) || candidate.includes(target) || target.includes(candidate)) {
-      return s.id
-    }
-
     // token overlap: if parsed name tokens largely overlap candidate tokens, accept immediately
     const targetTokens = mappedTarget.split(' ')
     const candidateTokens = candidate.split(' ')
     const common = targetTokens.filter(t => candidateTokens.includes(t)).length
     const overlap = common / Math.max(targetTokens.length, candidateTokens.length)
-    if (overlap >= 0.6) return s.id
+    if (overlap >= 0.6) {
+      const lengthPenalty = Math.abs(candidateTokens.length - targetTokens.length) / Math.max(targetTokens.length, candidateTokens.length)
+      const tokenScore = 0.1 + lengthPenalty
+      if (tokenScore < bestScore) {
+        bestScore = tokenScore
+        bestId = s.id
+      }
+      continue
+    }
 
     // compute Levenshtein-based relative distance
     const dist = levenshtein(mappedTarget, candidate)

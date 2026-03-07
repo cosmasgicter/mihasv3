@@ -68,7 +68,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  const chartData = [
  { label: 'Approved', value: data.applications.approved, color: 'bg-success', percentage: Math.round((data.applications.approved / data.applications.total) * 100) },
  { label: 'Rejected', value: data.applications.rejected, color: 'bg-error', percentage: Math.round((data.applications.rejected / data.applications.total) * 100) },
- { label: 'Pending', value: data.applications.pending, color: 'bg-warning', percentage: Math.round((data.applications.pending / data.applications.total) * 100) }
+ { label: 'Decision Queue', value: data.applications.pending, color: 'bg-warning', percentage: Math.round((data.applications.pending / data.applications.total) * 100) }
  ]
 
  return (
@@ -209,7 +209,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
  <span className="font-semibold text-warning-strong">{approvalRate}%</span>
  </div>
  <div className="flex justify-between">
- <span className="text-sm text-foreground">Pending Review</span>
+ <span className="text-sm text-foreground">Decision Queue</span>
  <span className="font-semibold text-warning-strong">{data.applications.pending}</span>
  </div>
  </div>

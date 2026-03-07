@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState } from 'react'
 import { animateClasses } from '@/lib/animations'
 import { EnhancedDashboard, type EnhancedDashboardMetrics } from '@/components/admin/EnhancedDashboard'
@@ -9,6 +8,7 @@ import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { Button } from '@/components/ui/Button'
 import { useQuery } from '@tanstack/react-query'
 import { adminDashboardService } from '@/services/admin/dashboard'
+import { getAdminDisplayName, shouldLoadAdminDashboard } from '@/pages/admin/lib/dashboardBootstrap'
 import { 
   BarChart3, 
   Activity, 
@@ -85,7 +85,7 @@ export default function EnhancedAdminDashboard() {
     )
   }
 
-  if (!user || !profile) {
+  if (!shouldLoadAdminDashboard(user)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="text-center">
@@ -120,7 +120,7 @@ export default function EnhancedAdminDashboard() {
                     <Rocket className="w-5 h-5" /> Enhanced Admin Dashboard
                   </h1>
                   <p className="text-lg sm:text-xl text-white/90">
-                    Welcome back, {profile?.full_name || 'Admin'}! Here's your system overview
+                    Welcome back, {getAdminDisplayName(profile, user)}! Here's your system overview
                   </p>
                   <div className="flex items-center space-x-4 mt-4 text-sm">
                     <div className="flex items-center space-x-2">

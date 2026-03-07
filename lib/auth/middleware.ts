@@ -19,6 +19,7 @@
 import type { VercelRequest } from "@vercel/node";
 import { verifyAccessToken, type AccessTokenPayload, type UserRole } from "./jwt";
 import { extractBearerToken, extractAccessTokenFromCookie } from "./cookies";
+import { isSessionActive } from "../sessions";
 
 /**
  * Auth context returned from middleware
@@ -29,6 +30,7 @@ export interface AuthContext {
   email: string;
   role: UserRole;
   permissions: string[];
+  sessionId?: string;
 }
 
 /**
@@ -119,6 +121,10 @@ export async function getAuthUser(req: VercelRequest): Promise<AuthContext | nul
 
   try {
     const payload = await verifyAccessToken(token);
+    const sessionValid = await validateTrackedSession(payload);
+    if (!sessionValid) {
+      return null;
+    }
     
     return mapPayloadToAuthContext(payload);
   } catch (error) {
@@ -169,9 +175,21 @@ export async function requireAuth(req: VercelRequest): Promise<AuthContext> {
 
   try {
     const payload = await verifyAccessToken(token);
+    const sessionValid = await validateTrackedSession(payload);
+    if (!sessionValid) {
+      throw new AuthenticationError(
+        "Session has expired or was revoked",
+        "SESSION_REVOKED",
+        401
+      );
+    }
     
     return mapPayloadToAuthContext(payload);
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      throw error;
+    }
+
     // Log verification failure without exposing token details
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.log("[AUTH] Token verification failed:", errorMessage);
@@ -271,7 +289,21 @@ function mapPayloadToAuthContext(payload: AccessTokenPayload): AuthContext {
     email: payload.email,
     role: payload.role,
     permissions: payload.permissions || [],
+    sessionId: payload.sid,
   };
+}
+
+async function validateTrackedSession(payload: AccessTokenPayload): Promise<boolean> {
+  if (!payload.sid) {
+    return true;
+  }
+
+  try {
+    return await isSessionActive(payload.sub, payload.sid);
+  } catch (error) {
+    console.log("[AUTH] Session validation failed:", error instanceof Error ? error.message : "Unknown error");
+    return false;
+  }
 }
 
 /**

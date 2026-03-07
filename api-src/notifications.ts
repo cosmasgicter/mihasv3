@@ -71,6 +71,9 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
     if (action === 'preferences') {
       return await handlePreferences(req, res);
     }
+    if (action === 'history') {
+      return await handleHistory(req, res);
+    }
     if (action === 'list') {
       return await handleList(req, res);
     }
@@ -155,15 +158,123 @@ async function handlePreferences(req: VercelRequest, res: VercelResponse) {
           quiet_hours_end ?? null,
         ],
       };
-      const result = await query<Record<string, unknown>>(upsertQ.text, upsertQ.values);
+      await query<Record<string, unknown>>(upsertQ.text, upsertQ.values);
+      const preferences = await getCanonicalPreferences(user.userId);
 
       console.log('[notifications/preferences] Updated for user:', user.userId.substring(0, 8) + '...');
-      return sendSuccess(res, { preferences: result.rows[0] });
+      return sendSuccess(res, { preferences });
     }
 
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   } catch (error) {
     return handleError(res, error, 'notifications/preferences');
+  }
+}
+
+async function handleHistory(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'GET') {
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
+  const user = await getAuthUser(req);
+  if (!user) {
+    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
+  }
+
+  const isAdmin = [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMISSIONS_OFFICER].includes(user.role);
+  if (!isAdmin) {
+    return sendError(res, 'Admin access required', HttpStatus.FORBIDDEN);
+  }
+
+  const applicationId = typeof req.query.applicationId === 'string' ? req.query.applicationId.trim() : '';
+  if (!applicationId) {
+    return sendError(res, 'applicationId is required', HttpStatus.BAD_REQUEST);
+  }
+
+  try {
+    const applicationResult = await query<{ user_id: string; application_number: string | null }>(
+      `SELECT user_id, application_number
+       FROM applications
+       WHERE id = $1
+       LIMIT 1`,
+      [applicationId]
+    );
+
+    if (applicationResult.rowCount === 0) {
+      return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
+    }
+
+    const application = applicationResult.rows[0];
+    const actionPath = `/student/application/${applicationId}`;
+    const legacyActionPath = `/application/${applicationId}`;
+    const values: Array<string> = [application.user_id, actionPath, legacyActionPath];
+    const filters = ['n.action_url = $2', 'n.action_url = $3'];
+
+    if (application.application_number) {
+      const searchPattern = `%${application.application_number.replace(/[%_]/g, '\\$&')}%`;
+      values.push(searchPattern);
+      filters.push(`n.message ILIKE $4 ESCAPE '\\'`, `n.title ILIKE $4 ESCAPE '\\'`);
+    }
+
+    const historyResult = await query<{
+      id: string;
+      title: string;
+      message: string;
+      type: string | null;
+      is_read: boolean;
+      action_url: string | null;
+      created_at: string;
+      read_at: string | null;
+      actor_id: string | null;
+      actor_name: string | null;
+    }>(
+      `SELECT
+         n.id,
+         n.title,
+         n.message,
+         n.type,
+         n.is_read,
+         n.action_url,
+         n.created_at,
+         n.read_at,
+         al.actor_id,
+         NULLIF(TRIM(CONCAT(COALESCE(actor.first_name, ''), ' ', COALESCE(actor.last_name, ''))), '') AS actor_name
+       FROM notifications n
+       LEFT JOIN audit_logs al
+         ON al.entity_type = 'notification'
+        AND al.entity_id = n.id::text
+        AND al.action IN ('admin_notification_send', 'application_notification_sent')
+       LEFT JOIN profiles actor ON actor.id = al.actor_id
+       WHERE n.user_id = $1
+         AND (${filters.join(' OR ')})
+       ORDER BY n.created_at DESC
+       LIMIT 100`,
+      values
+    );
+
+    const communications = historyResult.rows.map((item) => ({
+      id: item.id,
+      applicant_id: applicationId,
+      channel: 'in-app',
+      subject: item.title,
+      message: item.message,
+      template: null,
+      status: 'sent',
+      sent_by: item.actor_id || 'system',
+      sent_by_name: item.actor_name || 'System',
+      sent_at: item.created_at,
+      error_message: null,
+      action_url: item.action_url,
+      type: item.type || 'info',
+      read_at: item.read_at,
+    }));
+
+    return sendSuccess(res, {
+      communications,
+      lastContactedAt: historyResult.rows[0]?.created_at ?? null,
+    });
+  } catch (error) {
+    return handleError(res, error, 'notifications/history');
   }
 }
 
@@ -391,7 +502,7 @@ async function handleCheckDuplicate(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'user_id, title, and message are required', HttpStatus.BAD_REQUEST);
   }
 
-  const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
+  const isAdmin = [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMISSIONS_OFFICER].includes(user.role);
   if (targetUserId !== user.userId && !isAdmin) {
     return sendError(res, 'Forbidden', HttpStatus.FORBIDDEN);
   }
@@ -657,25 +768,75 @@ async function queueEmailForNotification(
 }
 
 async function getCanonicalPreferences(userId: string): Promise<Record<string, unknown>> {
-  const q = {
-    text: `SELECT * FROM user_notification_preferences WHERE user_id = $1 LIMIT 1`,
-    values: [userId],
-  };
-  const result = await query<Record<string, unknown>>(q.text, q.values);
+  const result = await query<Record<string, unknown> & { phone?: string | null }>(
+    `SELECT
+       p.phone,
+       np.email_enabled,
+       np.push_enabled,
+       np.sms_enabled,
+       np.whatsapp_enabled,
+       np.in_app_enabled,
+       np.application_updates,
+       np.payment_reminders,
+       np.interview_reminders,
+       np.marketing_emails,
+       np.quiet_hours_start,
+       np.quiet_hours_end,
+       np.timezone,
+       np.created_at,
+       np.updated_at
+     FROM profiles p
+     LEFT JOIN user_notification_preferences np ON np.user_id = p.id
+     WHERE p.id = $1
+     LIMIT 1`,
+    [userId]
+  );
+
+  const row = result.rows[0] ?? {};
+  const smsEnabled = row.sms_enabled ?? true;
+  const whatsappEnabled = row.whatsapp_enabled ?? true;
+  const updatedAt = (row.updated_at as string | null | undefined) ?? (row.created_at as string | null | undefined) ?? null;
 
   return {
     user_id: userId,
-    email_enabled: true,
-    push_enabled: true,
-    sms_enabled: result.rows[0]?.sms_enabled ?? true,
-    whatsapp_enabled: result.rows[0]?.whatsapp_enabled ?? true,
-    in_app_enabled: true,
-    application_updates: result.rows[0]?.application_updates ?? true,
-    payment_reminders: result.rows[0]?.payment_reminders ?? true,
-    interview_reminders: result.rows[0]?.interview_reminders ?? true,
-    marketing_emails: result.rows[0]?.marketing_emails ?? false,
-    quiet_hours_start: result.rows[0]?.quiet_hours_start ?? null,
-    quiet_hours_end: result.rows[0]?.quiet_hours_end ?? null,
+    phone: row.phone ?? null,
+    email_enabled: row.email_enabled ?? true,
+    push_enabled: row.push_enabled ?? true,
+    sms_enabled: smsEnabled,
+    whatsapp_enabled: whatsappEnabled,
+    in_app_enabled: row.in_app_enabled ?? true,
+    application_updates: row.application_updates ?? true,
+    payment_reminders: row.payment_reminders ?? true,
+    interview_reminders: row.interview_reminders ?? true,
+    marketing_emails: row.marketing_emails ?? false,
+    quiet_hours_start: row.quiet_hours_start ?? null,
+    quiet_hours_end: row.quiet_hours_end ?? null,
+    timezone: row.timezone ?? 'Africa/Lusaka',
+    frequency: 'realtime',
+    optimalTiming: true,
+    channels: [
+      { type: 'sms', enabled: Boolean(smsEnabled), priority: 2 },
+      { type: 'whatsapp', enabled: Boolean(whatsappEnabled), priority: 3 },
+    ],
+    sms_opt_in_at: smsEnabled ? updatedAt : null,
+    sms_opt_in_source: smsEnabled ? 'portal' : null,
+    sms_opt_in_actor: null,
+    sms_opt_out_at: smsEnabled ? null : updatedAt,
+    sms_opt_out_source: smsEnabled ? null : 'portal',
+    sms_opt_out_actor: null,
+    sms_opt_out_reason: smsEnabled ? null : 'Preference disabled',
+    whatsapp_opt_in_at: whatsappEnabled ? updatedAt : null,
+    whatsapp_opt_in_source: whatsappEnabled ? 'portal' : null,
+    whatsapp_opt_in_actor: null,
+    whatsapp_opt_out_at: whatsappEnabled ? null : updatedAt,
+    whatsapp_opt_out_source: whatsappEnabled ? null : 'portal',
+    whatsapp_opt_out_actor: null,
+    whatsapp_opt_out_reason: whatsappEnabled ? null : 'Preference disabled',
+    notification_types: {
+      application_update: row.application_updates ?? true,
+      interview_schedule: row.interview_reminders ?? true,
+      document_ready: row.application_updates ?? true,
+    },
   };
 }
 

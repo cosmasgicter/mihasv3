@@ -1,7 +1,6 @@
 // @ts-nocheck
 import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ApplicationSlipActions } from '@/components/student/ApplicationSlipActions'
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { DocumentButtons } from '@/components/student/DocumentButtons'
 import { InterviewDetails } from '@/components/student/InterviewDetails'
@@ -9,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { formatDate, getStatusColor } from '@/lib/utils'
 import { applicationService } from '@/services/applications'
 import type { ApplicationDetailResponse } from '@/services/applications'
+import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus'
 import { 
   ArrowLeft, 
   Calendar, 
@@ -127,6 +127,17 @@ export default function ApplicationDetail() {
     )
   }
 
+  const normalizedPaymentStatus = normalizePaymentStatus(application?.payment_status)
+  const paymentStatusLabel = getPaymentStatusLabel(application?.payment_status)
+  const paymentStatusColor =
+    normalizedPaymentStatus === 'verified'
+      ? 'text-success'
+      : normalizedPaymentStatus === 'pending_review'
+        ? 'text-warning'
+        : normalizedPaymentStatus === 'rejected'
+          ? 'text-error'
+          : 'text-muted-foreground'
+
   return (
     <div className="page-container bg-gradient-to-br from-blue-50 via-white to-purple-50">
       
@@ -178,6 +189,7 @@ export default function ApplicationDetail() {
             </div>
             <DocumentButtons 
               applicationId={application.id}
+              applicationNumber={application.application_number}
               status={application.status}
               paymentStatus={application.payment_status}
             />
@@ -317,11 +329,8 @@ export default function ApplicationDetail() {
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-foreground">Payment Status</label>
-                <p className={`font-medium ${
-                  application.payment_status === 'verified' ? 'text-success' : 
-                  application.payment_status === 'pending' ? 'text-warning' : 'text-error'
-                }`}>
-                  {(application.payment_status || 'pending').toUpperCase()}
+                <p className={`font-medium ${paymentStatusColor}`}>
+                  {paymentStatusLabel}
                 </p>
               </div>
               {application.payment_verified_at && (

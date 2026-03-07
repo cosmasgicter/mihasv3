@@ -12,6 +12,7 @@ import { uploadDocumentBodySchema, extractDocumentBodySchema, deleteDocumentBody
 import { logAuditEvent } from '../lib/auditLogger';
 import { validateServerEnv } from '../lib/envValidator';
 import { isAllowedUrl, isPrivateIP } from '../lib/urlValidator';
+import { validateMagicBytes } from '../lib/fileValidator';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_EXTRACT_RESPONSE_SIZE = 20 * 1024 * 1024; // 20MB
@@ -253,6 +254,11 @@ async function handleUpload(req: VercelRequest, res: VercelResponse, authUserId:
   const mimeType = contentType || fileType || 'application/octet-stream';
   if (!ALLOWED_TYPES.includes(mimeType)) {
     return sendError(res, 'Only PDF, JPG, JPEG, and PNG files are allowed', HttpStatus.BAD_REQUEST);
+  }
+
+  // Validate file content matches declared MIME type (Requirement 33)
+  if (!validateMagicBytes(fileBuffer, mimeType)) {
+    return sendError(res, 'File content does not match declared type', HttpStatus.BAD_REQUEST, 'INVALID_FILE_CONTENT');
   }
 
   // Only admins can upload on behalf of other users

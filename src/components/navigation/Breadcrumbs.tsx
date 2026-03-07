@@ -45,7 +45,7 @@ const ROUTE_LABELS: Record<string, string> = {
   'apply': 'Apply',
   'status': 'Status',
   'settings': 'Settings',
-  'profile': 'Profile',
+  'profile': 'Profile & Security',
   'notifications': 'Notifications',
   'programs': 'Programs',
   'intakes': 'Intakes',

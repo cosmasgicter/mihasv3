@@ -1,147 +1,135 @@
 # MIHAS - Application Management System 
 
-## 🎯 Project Overview
+## Project Overview
 
-MIHAS (Mukuba Institute of Health and Allied Sciences) Application System V3 - A complete TypeScript/React application system for student admissions with enterprise-grade eligibility checking.
+MIHAS (Mukuba Institute of Health and Allied Sciences) Application System V3 — a production TypeScript/React admissions portal for student applications, document management, payments, and interview scheduling.
 
-## 📁 Project Structure
+**Production URL**: ***REMOVED***
+
+## Project Structure
 
 ```
 mihasv3/
-├── src/                          # React frontend source code
-├── api/                          # Vercel Serverless Functions (8 consolidated endpoints)
-│   ├── _lib/                     # Shared utilities (cors, auth, db)
-│   ├── admin.ts                  # Admin dashboard & user management
-│   ├── applications.ts           # Application CRUD operations
-│   ├── auth.ts                   # Authentication endpoints
-│   ├── catalog.ts                # Programs, intakes, subjects
-│   ├── documents.ts              # Document upload & OCR
-│   ├── notifications.ts          # Email notifications
-│   ├── payments.ts               # Payment processing
-│   └── sessions.ts               # Session tracking
-├── tests/                        # Test files (unit, property, integration)
-├── docs/                         # Documentation
-│   ├── reports/                  # Analysis and audit reports
-│   ├── guides/                   # User guides and manuals
-│   └── analysis/                 # Technical analysis
-├── scripts/                      # Utility scripts
-├── supabase/                     # Database migrations and functions
-├── public/                       # Static assets, PWA files
-├── package.json                  # Dependencies (Bun)
-├── vercel.json                   # Vercel deployment config
-└── README.md                     # This file
+├── src/                  # React frontend (components, hooks, pages, stores, services)
+├── api-src/              # API source TypeScript (edit these)
+├── api/                  # Bundled Vercel Functions (DO NOT EDIT — auto-generated)
+├── lib/                  # Shared backend utilities (auth, validation, db, security)
+│   ├── auth/             # JWT, bcrypt, cookies, RBAC, middleware
+│   └── validation/       # Zod input validation schemas per API domain
+├── migrations/           # Database migrations (append-only)
+├── tests/                # Unit, property, integration, E2E tests
+│   ├── unit/             # Vitest unit tests
+│   ├── property/         # fast-check property-based tests
+│   ├── integration/      # Integration tests
+│   └── e2e/              # Playwright E2E specs
+├── public/               # Static assets, PWA files
+├── scripts/              # Build/deploy utilities
+├── docs/                 # Documentation
+├── vercel.json           # Vercel config + security headers
+└── package.json          # Dependencies (Bun)
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
-### Development
 ```bash
 bun install
 bun run dev
 ```
 
-### Production Build
+### Build & Deploy
 ```bash
-bunx --bun vite build
+bun run build                      # Production build
+bun run scripts/bundle-api.mjs     # Bundle api-src/ → api/
+bun run test                       # Run tests
+bun run lint                       # ESLint check
 ```
 
-### Testing
-```bash
-bun run test
-bun run test:property  # Property-based tests
-```
+## Technology Stack
 
-## 📖 Documentation
+| Layer | Technology |
+|-------|------------|
+| Runtime | Bun |
+| Frontend | React 18 + TypeScript + Vite |
+| Styling | Tailwind CSS + Radix UI |
+| State | Zustand (client) + React Query (server) |
+| Forms | React Hook Form + Zod |
+| Backend | Vercel Serverless Functions |
+| Database | Neon Serverless Postgres |
+| Auth | Custom JWT (jose) + bcrypt, HTTP-only cookies |
+| Security | Arcjet (WAF) + CSRF tokens + CSP headers + Zod validation |
+| Email | Resend (queue with retry) |
+| OCR | tesseract.js |
+| Real-time | SSE + polling |
+| Testing | Vitest + fast-check + Playwright |
 
-### For Developers
-- **Developer Onboarding**: `docs/DEVELOPER_ONBOARDING.md` ⭐ **START HERE**
-- **API Structure Guide**: `API_STRUCTURE_GUIDE.md`
+## Key Features
+
+- 4-step application wizard with 8-second auto-save
+- Enterprise eligibility checking (HPCZ, GNC/NMCZ, ECZ)
+- Role-based access control (student, admin, reviewer, super_admin)
+- Document upload with OCR and magic byte validation
+- Payment tracking and receipt generation
+- Interview scheduling
+- PWA with offline capability
+- Mobile-first responsive design
+
+## Security
+
+- CSRF protection on all state-changing endpoints
+- Content Security Policy, HSTS, X-Frame-Options via `vercel.json`
+- Arcjet shield rules, bot detection, rate limiting
+- JWT tokens in HTTP-only cookies with refresh rotation
+- Zod input validation on all API endpoints
+- File content validation (magic bytes + MIME type)
+- URL validation against open redirects
+- Login attempt tracking with progressive backoff and account lockout
+- Audit logging with retention categories (standard 90d / security 365d)
+- No PII in logs — email/IP stored as SHA-256 hashes only
+
+## API Endpoints
+
+Base URL: `***REMOVED***`
+
+| Endpoint | Description |
+|----------|-------------|
+| `/api/auth` | Login, logout, register, session, password reset |
+| `/api/admin` | Dashboard, user management, settings |
+| `/api/applications` | Application CRUD, review, export |
+| `/api/catalog` | Programs, intakes, subjects |
+| `/api/documents` | Document upload, OCR extraction |
+| `/api/email` | Email sending |
+| `/api/health` | Health checks (ping, db, env) |
+| `/api/notifications` | Notification preferences |
+| `/api/payments` | Payment operations |
+| `/api/sessions` | Device session management |
+
+All endpoints use query parameter routing (`?action=xxx`) and return `{ success, data }` envelope.
+
+## Database
+
+Neon Serverless Postgres (project: `wild-bar-37055823`). Key tables include:
+- `profiles`, `applications`, `application_documents`, `application_grades`
+- `programs`, `intakes`, `subjects`, `payments`, `documents`
+- `csrf_tokens`, `password_reset_tokens`, `login_attempts`
+- `audit_logs` (with `retention_category` column)
+- `device_sessions`, `notifications`, `email_queue`
+
+## Documentation
+
+- **Developer Onboarding**: `docs/DEVELOPER_ONBOARDING.md`
 - **API Reference**: `docs/API_REFERENCE.md`
-- **Troubleshooting**: `docs/TROUBLESHOOTING.md`
+- **Deployment Guide**: `docs/DEPLOYMENT_GUIDE.md`
+- **Design System**: `docs/DESIGN_SYSTEM.md`
 - **Changelog**: `docs/CHANGELOG.md`
 
-### For Users
-- **Student Guide**: `docs/guides/STUDENT_GUIDE.md`
-- **Admin Guide**: `docs/guides/ADMIN_GUIDE.md`
-
-### For DevOps
-- **Deployment Guide**: `docs/DEPLOYMENT_GUIDE.md` ⭐ **DEPLOY HERE**
-- **Performance Plan**: `docs/PERFORMANCE_OPTIMIZATION_PLAN.md`
-- **Documentation Plan**: `docs/DOCUMENTATION_IMPROVEMENT_PLAN.md`
-
-### Technical Reports
-- **System Status**: `docs/reports/SYSTEM_STATUS_SUMMARY.md`
-- **Security Audit**: `SECURITY_AUDIT_REPORT.md`
-- **Production Readiness**: `PRODUCTION_READINESS_REPORT.md`
-- **Unified Templates**: `docs/UNIFIED_TEMPLATES_SYSTEM.md`
-- **Complete Source Code**: `COMPLETE_SOURCE_CODE_FINAL.md` (2.6MB, 457 files)
-- **Realtime Sync Fix**: `REALTIME_FIX_INDEX.md` ⭐ **START HERE** | [Summary](REALTIME_SYNC_FIX_SUMMARY.md) | [Deploy](DEPLOYMENT_INSTRUCTIONS.md)
-
-## 🔧 Technology Stack
-
-- **Frontend**: React 18 + TypeScript + Vite
-- **Backend**: Supabase (PostgreSQL + Auth + Storage)
-- **Deployment**: Vercel (Static + Serverless Functions)
-- **Runtime**: Bun (all dev and prod commands)
-- **State**: Zustand + React Query (polling for real-time)
-- **Forms**: React Hook Form + Zod
-- **Styling**: Tailwind CSS + Radix UI
-
-## ✨ Key Features
-
-- 4-step application wizard
-- Enterprise eligibility checking (HPCZ, GNC/NMCZ, ECZ)
-- Auto-save every 8 seconds
-- Real-time eligibility assessment
-- Non-blocking design (students can always proceed)
-- Mobile-responsive
-- Offline capability (PWA)
-
-## 📊 System Statistics
-
-- **Database Tables**: 86
-- **Source Files**: 457
-- **Lines of Code**: ~56,000
-- **API Endpoints**: 8 consolidated (Vercel Hobby plan)
-- **React Components**: 120+
-- **Custom Hooks**: 38
-- **Property Tests**: 62 (8 test files)
-
-## 🔐 Security
-
-- 300+ security vulnerabilities fixed
-- Zero critical issues
-- Enterprise-grade security framework
-- Input sanitization and validation
-- Rate limiting and CSRF protection
-
-## ⚡ Kiro Powers
-
-This workspace has the following Kiro powers installed for enhanced development capabilities:
-
-| Power | Description | Keywords | MCP Server |
-|-------|-------------|----------|------------|
-| **supabase-hosted** | Build applications with Supabase's Postgres database, authentication, storage, and real-time subscriptions | database, postgres, auth, storage, realtime, backend, supabase, rls | supabase |
-| **strands** | Build AI agents with Strands Agent SDK using Bedrock, Anthropic, OpenAI, Gemini, or Llama models | agents, ai, llm, bedrock, anthropic, openai, gemini, strands, tools | strands-agents |
-| **aws-agentcore** | Amazon Bedrock AgentCore is an agentic platform for building, deploying, and operating effective agents | agentcore, bedrock, aws, agents, ai, development, agent | agentcore-mcp-server |
-
-### Using Powers
-
-Powers provide specialized tools through MCP servers. To use them:
-
-1. **Activate**: Use `action="activate"` with the power name to discover available tools and documentation
-2. **Use**: Use `action="use"` with powerName, serverName, toolName, and arguments
-3. **Read Guides**: Use `action="readSteering"` for detailed workflow guides
-
-## 📞 Support
+## Support
 
 - **Technical**: ***REMOVED***
 - **Admissions**: ***REMOVED***
 
 ---
 
-**Version**: 3.0 (Enterprise Eligibility System)  
-**Status**: Production Ready  
-**Hosting**: Vercel (migrated from Cloudflare)  
-**Last Updated**: 2026-01-30  
-**Documentation**: 100% Complete ✅
+**Version**: 3.1 (Quality Remediation Complete)
+**Status**: Production
+**Hosting**: Vercel
+**Last Updated**: 2026-03-07

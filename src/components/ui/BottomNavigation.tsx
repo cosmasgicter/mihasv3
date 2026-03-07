@@ -44,7 +44,7 @@ export const defaultStudentNavItems: BottomNavItem[] = [
   { href: '/student/dashboard', label: 'Dashboard', icon: Home, requiresAuth: true },
   { href: '/student/payment', label: 'Payment', icon: CreditCard, requiresAuth: true },
   { href: '/student/interview', label: 'Interview', icon: Calendar, requiresAuth: true },
-  { href: '/student/profile', label: 'Profile', icon: User, requiresAuth: true },
+  { href: '/student/settings', label: 'Settings', icon: Settings, requiresAuth: true },
 ]
 
 /**

@@ -11,7 +11,8 @@ import { Badge } from '@/components/ui'
 import { Alert } from '@/components/ui/Alert'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Mail, MessageSquare, Phone, Clock, CheckCircle, XCircle, AlertCircle, User } from 'lucide-react'
-// Types inlined after communicationService removal (legacy Supabase code)
+import { apiClient } from '@/services/client'
+
 interface CommunicationHistoryType {
   id: string
   applicant_id: string
@@ -24,15 +25,6 @@ interface CommunicationHistoryType {
   sent_by_name?: string
   sent_at: string
   error_message?: string
-}
-
-// Stub functions — communication history requires backend migration to Neon
-async function getCommunicationHistory(_applicantId: string): Promise<CommunicationHistoryType[]> {
-  return []
-}
-
-async function getLastContactedAt(_applicantId: string): Promise<string | null> {
-  return null
 }
 import { cn } from '@/lib/utils'
 
@@ -56,13 +48,13 @@ export function CommunicationHistory({ applicantId, className }: CommunicationHi
     setError(null)
 
     try {
-      const [historyData, lastContactedData] = await Promise.all([
-        getCommunicationHistory(applicantId),
-        getLastContactedAt(applicantId)
-      ])
+      const response = await apiClient.request<{
+        communications?: CommunicationHistoryType[]
+        lastContactedAt?: string | null
+      }>(`/notifications?action=history&applicationId=${encodeURIComponent(applicantId)}`)
 
-      setHistory(historyData)
-      setLastContacted(lastContactedData)
+      setHistory(response?.communications || [])
+      setLastContacted(response?.lastContactedAt || null)
     } catch (err) {
       console.error('Error loading communication history:', err)
       setError('Failed to load communication history')

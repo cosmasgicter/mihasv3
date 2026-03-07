@@ -57,11 +57,15 @@ const createSchema = (validProgramIds: string[], validIntakeOptions: string[]) =
       phone: z.string().min(10, 'Valid phone number is required'),
       email: z.string().email('Valid email is required'),
       residence_town: z.string().min(2, 'Residence town is required'),
+      country: z.string().optional(),
       nationality: z.string().optional(),
       next_of_kin_name: z.string().optional(),
       next_of_kin_phone: z.string().optional(),
       program: createProgramValidator(validProgramIds),
       intake: createIntakeValidator(validIntakeOptions),
+      payment_option: z
+        .enum(['pay_now', 'pay_later'])
+        .default('pay_now'),
       payment_method: z
         .enum(['MTN Money', 'Airtel Money', 'Zamtel Money', 'Ewallet', 'Bank To Cell'])
         .default('MTN Money'),

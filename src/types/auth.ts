@@ -10,7 +10,15 @@
 /**
  * User roles in the system
  */
-export type UserRole = 'student' | 'reviewer' | 'admin' | 'super_admin';
+export type UserRole =
+  | 'student'
+  | 'reviewer'
+  | 'admissions_officer'
+  | 'registrar'
+  | 'finance_officer'
+  | 'academic_head'
+  | 'admin'
+  | 'super_admin';
 
 /**
  * User type for custom JWT authentication
@@ -39,6 +47,8 @@ export interface UserProfile {
   role: string;
   date_of_birth?: string;
   sex?: string;
+  residence_town?: string;
+  country?: string;
   nationality?: string;
   address?: string;
   city?: string;
@@ -73,6 +83,7 @@ export interface SignInResult {
  */
 export interface SignUpResult {
   user?: User | null;
+  profile?: UserProfile | null;
   error?: string;
 }
 
@@ -110,6 +121,13 @@ export interface RegisterRequest {
   password: string;
   full_name?: string;
   phone?: string;
+  date_of_birth?: string;
+  sex?: string;
+  residence_town?: string;
+  country?: string;
+  nationality?: string;
+  next_of_kin_name?: string;
+  next_of_kin_phone?: string;
   role?: UserRole;
 }
 

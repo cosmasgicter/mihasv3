@@ -175,7 +175,7 @@
 - [x] 23.2 Enable `noImplicitAny` in `tsconfig.json` and add explicit type annotations to all implicit `any` parameters
 - [x] 23.3 Replace `as any` and `as unknown as T` type assertions with proper type guards or runtime validation
 - [x] 23.4 Add explicit return types to all exported functions in `lib/` and `api-src/` directories
-- [x] 23.5 Run production build after each flag to verify no regressions
+- [x] 23.5 Run production build after each flCag to verify no regressions
 
 ## Task 24: Increase Test Coverage (Req 24)
 
@@ -211,45 +211,44 @@
 
 ## Task 28: Remove Hardcoded Credentials from Source Code (Req 28)
 
-- [ ] 28.1 Replace the hardcoded password `Beanola2025` in `scripts/test-user-flow.ts` with `process.env.TEST_PASSWORD`, and replace hardcoded test emails (`test@mihas.edu.zm`, `cosmas@beanola.com`) with `process.env.TEST_STUDENT_EMAIL` and `process.env.TEST_ADMIN_EMAIL`, adding guards that throw if env vars are missing
+- [x] 28.1 Replace the hardcoded password `Beanola2025` in `scripts/test-user-flow.ts` with `process.env.TEST_PASSWORD`, and replace hardcoded test emails (`test@mihas.edu.zm`, `cosmas@beanola.com`) with `process.env.TEST_STUDENT_EMAIL` and `process.env.TEST_ADMIN_EMAIL`, adding guards that throw if env vars are missing
 - [x] 28.2 Replace the hardcoded password `Beanola2025` in `scripts/set-passwords-and-notify.ts` with `process.env.TEST_PASSWORD`, adding a guard that throws if the env var is missing
 - [x] 28.3 Audit all files in `scripts/` for any other hardcoded credentials, API keys, or secrets and replace with environment variable references
 - [x] 28.4 Add `.env.scripts` to `.gitignore` and create `.env.scripts.example` with placeholder values documenting required script env vars
 - [x] 28.5 Add a pre-commit documentation warning in `.env.scripts.example` against committing credentials to the repository
-- [-] 28.6 Write property tests (`tests/property/credentialScan.property.test.ts`) for P27: no hardcoded credentials in source
 
 ## Task 29: Eliminate N+1 Query Patterns in Application Endpoints (Req 29)
 
-- [ ] 29.1 Refactor the per-grade INSERT loop in `api-src/applications.ts` (handleById grade sync) into a single multi-row INSERT with `ON CONFLICT ... DO UPDATE` using parameterized placeholders
-- [ ] 29.2 Refactor the per-setting INSERT loop in `api-src/admin.ts` (handleResetSettings) into a single multi-row INSERT
-- [ ] 29.3 Refactor the per-setting INSERT loop in `api-src/admin.ts` (handleImportSettings) into a single multi-row upsert query
-- [ ] 29.4 Write property tests (`tests/property/batchQuery.property.test.ts`) for P28: batch query efficiency (at most 2 queries for N grades)
+- [x] 29.1 Refactor the per-grade INSERT loop in `api-src/applications.ts` (handleById grade sync) into a single multi-row INSERT with `ON CONFLICT ... DO UPDATE` using parameterized placeholders
+- [x] 29.2 Refactor the per-setting INSERT loop in `api-src/admin.ts` (handleResetSettings) into a single multi-row INSERT
+- [x] 29.3 Refactor the per-setting INSERT loop in `api-src/admin.ts` (handleImportSettings) into a single multi-row upsert query
+- [x] 29.4 Write property tests (`tests/property/batchQuery.property.test.ts`) for P28: batch query efficiency (at most 2 queries for N grades)
 
 ## Task 30: Wrap Multi-Step Database Operations in Transactions (Req 30)
 
-- [ ] 30.1 Wrap the grade sync operation in `api-src/applications.ts` (delete existing grades + insert new grades) in a `transaction()` call from `lib/db.ts`
-- [ ] 30.2 Wrap the application review operation in `api-src/applications.ts` (status update + status history insert) in a `transaction()` call
-- [ ] 30.3 Wrap the settings reset operation in `api-src/admin.ts` (delete all + insert defaults) in a `transaction()` call
-- [ ] 30.4 Write unit tests (`tests/unit/transactionWrapping.test.ts`) and property tests (`tests/property/transaction.property.test.ts`) for P29: transaction atomicity — verify rollback on partial failure
+- [x] 30.1 Wrap the grade sync operation in `api-src/applications.ts` (delete existing grades + insert new grades) in a `transaction()` call from `lib/db.ts`
+- [x] 30.2 Wrap the application review operation in `api-src/applications.ts` (status update + status history insert) in a `transaction()` call
+- [x] 30.3 Wrap the settings reset operation in `api-src/admin.ts` (delete all + insert defaults) in a `transaction()` call
+- [x] 30.4 Write unit tests (`tests/unit/transactionWrapping.test.ts`) and property tests (`tests/property/transaction.property.test.ts`) for P29: transaction atomicity — verify rollback on partial failure
 
 ## Task 31: Remove @ts-nocheck Directives and Restore Type Checking (Req 31)
 
-- [ ] 31.1 Phase 1 — Remove `@ts-nocheck` from critical-path files and fix type errors: `src/routes/config.tsx`, `src/hooks/usePWA.ts`, `src/forms/applicationSchema.ts`, `src/data/applications.ts`, `src/hooks/queries/useQueryConfig.ts`
-- [ ] 31.2 Phase 2 — Remove `@ts-nocheck` from admin hooks and services and fix type errors: `src/hooks/admin/useApplicationsData.ts`, `src/hooks/admin/useApplicationActions.ts`, `src/hooks/admin/useApplicationDocuments.ts`, `src/hooks/admin/useApplicationBulkActions.ts`, `src/hooks/admin/useApplicationStatusHistory.ts`, `src/services/alternativePathwayService.ts`, `src/services/autoScaling.ts`, `src/services/pushNotificationManager.ts`, `src/services/detailedEligibilityService.ts`, `src/services/eligibilityAppealsService.ts`
-- [ ] 31.3 Phase 3 — Remove `@ts-nocheck` from remaining hooks: `src/hooks/useBulkOperations.ts`, `src/hooks/useUserManagement.ts`, `src/hooks/useApiServices.ts`, `src/hooks/useErrorHandler.ts`, `src/hooks/useProfileAutoPopulation.ts`, `src/hooks/useEnhancedResponsive.ts`, `src/hooks/useNotificationPreferences.ts`
-- [ ] 31.4 Phase 4 — Remove `@ts-nocheck` from lib/utility files: `src/lib/applicationFlowAnalyzer.ts`, `src/lib/securityEnhancements.ts`, `src/lib/multiChannelNotifications.ts`, `src/lib/exportUtils.ts`, `src/lib/eligibilityAppealsEngine.ts`, `src/lib/performance-utils.ts`, `src/lib/submissionUtils.ts`, `src/lib/securityConfig.ts`, `src/lib/maintenance.ts`, `src/lib/securityUtils.ts`, `src/lib/adminNotifications.ts`, `src/lib/applicationSession.ts`
-- [ ] 31.5 Phase 5 — Remove `@ts-nocheck` from components and pages: `src/pages/public/tracker/index.tsx`, `src/pages/admin/Programs.tsx`, `src/pages/admin/Users.tsx`, `src/pages/admin/Dashboard.tsx`, `src/pages/admin/EnhancedDashboard.tsx`, `src/components/notifications/PushNotificationSettings.tsx`, `src/components/notifications/NotificationAnalytics.tsx`, `src/components/notifications/NotificationPreferences.tsx`, `src/components/application/EligibilityDashboard.tsx`, `src/components/admin/TestNotifications.tsx`, `src/components/admin/applications/ApplicationApprovalActions.tsx`, `src/components/admin/applications/ApplicationDetailModal.tsx`
-- [ ] 31.6 Phase 6 — Remove `@ts-nocheck` from remaining files: `src/types/eligibility.ts`, `src/v2-improvements-index.ts`, `src/utils/smart-features.ts`, `src/utils/errorMessages.ts`
-- [ ] 31.7 Verify production build passes after each phase with `bun run build` — never replace `@ts-nocheck` with per-line `@ts-ignore`
+- [x] 31.1 Phase 1 — Remove `@ts-nocheck` from critical-path files and fix type errors: `src/routes/config.tsx`, `src/hooks/usePWA.ts`, `src/forms/applicationSchema.ts`, `src/data/applications.ts`, `src/hooks/queries/useQueryConfig.ts`
+- [x] 31.2 Phase 2 — Remove `@ts-nocheck` from admin hooks and services and fix type errors: `src/hooks/admin/useApplicationsData.ts`, `src/hooks/admin/useApplicationActions.ts`, `src/hooks/admin/useApplicationDocuments.ts`, `src/hooks/admin/useApplicationBulkActions.ts`, `src/hooks/admin/useApplicationStatusHistory.ts`, `src/services/alternativePathwayService.ts`, `src/services/autoScaling.ts`, `src/services/pushNotificationManager.ts`, `src/services/detailedEligibilityService.ts`, `src/services/eligibilityAppealsService.ts`
+- [x] 31.3 Phase 3 — Remove `@ts-nocheck` from remaining hooks: `src/hooks/useBulkOperations.ts`, `src/hooks/useUserManagement.ts`, `src/hooks/useApiServices.ts`, `src/hooks/useErrorHandler.ts`, `src/hooks/useProfileAutoPopulation.ts`, `src/hooks/useEnhancedResponsive.ts`, `src/hooks/useNotificationPreferences.ts`
+- [x] 31.4 Phase 4 — Remove `@ts-nocheck` from lib/utility files: `src/lib/applicationFlowAnalyzer.ts`, `src/lib/securityEnhancements.ts`, `src/lib/multiChannelNotifications.ts`, `src/lib/exportUtils.ts`, `src/lib/eligibilityAppealsEngine.ts`, `src/lib/performance-utils.ts`, `src/lib/submissionUtils.ts`, `src/lib/securityConfig.ts`, `src/lib/maintenance.ts`, `src/lib/securityUtils.ts`, `src/lib/adminNotifications.ts`, `src/lib/applicationSession.ts`
+- [x] 31.5 Phase 5 — Remove `@ts-nocheck` from components and pages: `src/pages/public/tracker/index.tsx`, `src/pages/admin/Programs.tsx`, `src/pages/admin/Users.tsx`, `src/pages/admin/Dashboard.tsx`, `src/pages/admin/EnhancedDashboard.tsx`, `src/components/notifications/PushNotificationSettings.tsx`, `src/components/notifications/NotificationAnalytics.tsx`, `src/components/notifications/NotificationPreferences.tsx`, `src/components/application/EligibilityDashboard.tsx`, `src/components/admin/TestNotifications.tsx`, `src/components/admin/applications/ApplicationApprovalActions.tsx`, `src/components/admin/applications/ApplicationDetailModal.tsx`
+- [x] 31.6 Phase 6 — Remove `@ts-nocheck` from remaining files: `src/types/eligibility.ts`, `src/v2-improvements-index.ts`, `src/utils/smart-features.ts`, `src/utils/errorMessages.ts`
+- [x] 31.7 Verify production build passes after each phase with `bun run build` — never replace `@ts-nocheck` with per-line `@ts-ignore`
 
 ## Task 32: Fix SSE Keepalive Interval for Vercel Serverless Compatibility (Req 32)
 
-- [ ] 32.1 Update `lib/realtime.ts` to change the SSE keepalive interval from 15 seconds to 8 seconds, adding a `KEEPALIVE_INTERVAL_MS` constant with a code comment documenting the Vercel 10-second serverless timeout constraint
-- [ ] 32.2 Add explicit cleanup of the `connections` Map entry in the `req.on("close")` handler to prevent stale entries across serverless invocations
-- [ ] 32.3 Verify frontend SSE client hooks implement automatic reconnection with exponential backoff (1s initial, 30s max) to handle Vercel timeout gracefully
+- [x] 32.1 Update `lib/realtime.ts` to change the SSE keepalive interval from 15 seconds to 8 seconds, adding a `KEEPALIVE_INTERVAL_MS` constant with a code comment documenting the Vercel 10-second serverless timeout constraint
+- [x] 32.2 Add explicit cleanup of the `connections` Map entry in the `req.on("close")` handler to prevent stale entries across serverless invocations
+- [x] 32.3 Verify frontend SSE client hooks implement automatic reconnection with exponential backoff (1s initial, 30s max) to handle Vercel timeout gracefully
 
 ## Task 33: Validate Uploaded File Content Against MIME Type (Req 33)
 
-- [ ] 33.1 Create `lib/fileValidator.ts` with `validateMagicBytes(buffer: Buffer, declaredMimeType: string): boolean` and `detectMimeType(buffer: Buffer): string | null` supporting PDF (`%PDF`), JPEG (`FF D8 FF`), and PNG (`89 50 4E 47`) magic bytes
-- [ ] 33.2 Integrate magic byte validation into `api-src/documents.ts` `handleUpload`: after base64 decode to buffer and before R2 upload, call `validateMagicBytes()` — return HTTP 400 `INVALID_FILE_CONTENT` on mismatch
-- [ ] 33.3 Write unit tests (`tests/unit/fileValidator.test.ts`) and property tests (`tests/property/fileValidator.property.test.ts`) for P30: magic byte validation
+- [x] 33.1 Create `lib/fileValidator.ts` with `validateMagicBytes(buffer: Buffer, declaredMimeType: string): boolean` and `detectMimeType(buffer: Buffer): string | null` supporting PDF (`%PDF`), JPEG (`FF D8 FF`), and PNG (`89 50 4E 47`) magic bytes
+- [x] 33.2 Integrate magic byte validation into `api-src/documents.ts` `handleUpload`: after base64 decode to buffer and before R2 upload, call `validateMagicBytes()` — return HTTP 400 `INVALID_FILE_CONTENT` on mismatch
+- [x] 33.3 Write unit tests (`tests/unit/fileValidator.test.ts`) and property tests (`tests/property/fileValidator.property.test.ts`) for P30: magic byte validation

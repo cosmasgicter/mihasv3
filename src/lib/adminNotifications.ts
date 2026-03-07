@@ -1,9 +1,8 @@
-// @ts-nocheck
 import { apiClient } from '@/services/client'
 import { applicationService } from '@/services/applications'
 import { notificationService } from '@/services/notifications'
 import { NotificationService } from './notificationService'
-import { EmailService } from './emailService'
+import { emailService } from './emailService'
 import type { NotificationResult, BroadcastResult } from '@/types/notifications'
 
 export class AdminNotificationService {

@@ -28,7 +28,7 @@ interface UserData {
 }
 
 const REQUIRED_FIELDS = ['full_name', 'email', 'role']
-const VALID_ROLES = ['student', 'admissions_officer', 'registrar', 'finance_officer', 'academic_head', 'admin']
+const VALID_ROLES = ['student', 'reviewer', 'admissions_officer', 'registrar', 'finance_officer', 'academic_head', 'admin', 'super_admin']
 
 export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProps) {
   const [file, setFile] = useState<File | null>(null)

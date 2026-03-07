@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { applicationService } from '@/services/applications'

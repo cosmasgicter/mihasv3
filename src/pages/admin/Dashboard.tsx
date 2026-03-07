@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useCallback, useEffect, useState } from 'react'
 import { logger } from '@/lib/logger'
 import { useAuth } from '@/contexts/AuthContext'
@@ -31,7 +30,7 @@ import { QuickActionsPanel } from '@/components/admin/QuickActionsPanel'
 import { RealtimeMetricsDisplay } from '@/components/admin/RealtimeMetricsDisplay'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import OfflineAdminDashboard from '@/components/admin/OfflineAdminDashboard'
-import { getDisplayName } from '@/utils/userDisplayName'
+import { getAdminDisplayName, shouldLoadAdminDashboard } from '@/pages/admin/lib/dashboardBootstrap'
 
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 
@@ -53,7 +52,7 @@ interface DashboardStats {
 
 interface RecentActivity {
   id: string
-  type: 'application' | 'approval' | 'rejection' | 'system'
+  type: 'application' | 'approval' | 'rejection' | 'system' | 'review'
   message: string
   timestamp: string
   user?: string
@@ -165,8 +164,8 @@ export default function AdminDashboard() {
   useEffect(() => {
     logger.log('[Dashboard] useEffect triggered', { hasUser: !!user, hasProfile: !!profile, userId: user?.id, profileId: profile?.id })
     
-    if (!user || !profile) {
-      logger.log('[Dashboard] Skipping load - missing user or profile')
+    if (!shouldLoadAdminDashboard(user)) {
+      logger.log('[Dashboard] Skipping load - missing authenticated user')
       return
     }
 
@@ -194,7 +193,7 @@ export default function AdminDashboard() {
   }, [loadDashboardStats, profile, user])
 
   useEffect(() => {
-    if (!user || !profile) return
+    if (!shouldLoadAdminDashboard(user)) return
 
     // Fallback refresh if polling is not active
     if (!isPolling) {
@@ -265,26 +264,6 @@ export default function AdminDashboard() {
     )
   }
 
-  if (!profile) {
-    return (
-      <>
-        <Seo
-          title="Preparing Admin Profile | MIHAS-KATC Admissions"
-          description="Setting up your MIHAS-KATC admin profile before loading dashboard analytics and controls."
-          path="/admin/dashboard"
-          noindex
-        />
-      <UnifiedLoader
-        variant="page"
-        size="lg"
-        message="Setting up your profile"
-        label="Setting up admin profile"
-        className="min-h-screen"
-      />
-      </>
-    )
-  }
-
   const COLOR_CLASSES = {
     blue: 'bg-primary text-white',
     yellow: 'bg-warning text-white',
@@ -308,7 +287,7 @@ export default function AdminDashboard() {
     activeUsers: stats.activeUsers
   }
 
-  const adminDisplayName = sanitizeForDisplay(getDisplayName(profile, user))
+  const adminDisplayName = sanitizeForDisplay(getAdminDisplayName(profile, user))
   const adminFirstName = adminDisplayName.split(' ')[0] || 'Admin'
 
   return (

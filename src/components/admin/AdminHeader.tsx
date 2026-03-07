@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery';
+import { useSignOutAction } from '@/hooks/useSignOutAction';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useResponsive } from '@/hooks/useResponsive';
 import { designTokens } from '@/design-system/tokens';
@@ -28,7 +29,8 @@ interface AdminHeaderProps {
 }
 
 export function AdminHeader({ className }: AdminHeaderProps) {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
+  const { signOut, isSigningOut } = useSignOutAction();
   const { profile } = useProfileQuery();
   const { collapsed, setCollapsed } = useSidebar();
   const { isMobile, isTablet } = useResponsive();
@@ -195,11 +197,12 @@ export function AdminHeader({ className }: AdminHeaderProps) {
                 </Link>
                 <hr className="my-2 border-border" />
                 <button
-                  onClick={() => signOut()}
+                  onClick={() => { void signOut() }}
+                  disabled={isSigningOut}
                   className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors text-sm w-full"
                 >
                   <LogOut className="h-4 w-4" />
-                  <span>Sign Out</span>
+                  <span>{isSigningOut ? 'Signing Out...' : 'Sign Out'}</span>
                 </button>
               </div>
             </div>

@@ -19,7 +19,7 @@ import { AuthLoadingOverlay } from '@/components/ui/AuthLoadingOverlay';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { Seo } from '@/components/seo/Seo';
 import { staggerChild, animateClasses } from '@/lib/animations';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, FileText, KeyRound } from 'lucide-react';
 
 const signInSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -101,15 +101,17 @@ export default function SignInPage() {
       />
       {isAuthenticating && <AuthLoadingOverlay message="Signing you in..." />}
       <AuthLayout
-        title="Sign in to your account"
+        variant="signin"
+        panelBadge="Returning applicant"
+        title="Sign in to continue your application"
         description={
           <>
-            Or{' '}
+            New to MIHAS?{' '}
             <Link
               to="/auth/signup"
               className="font-semibold text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md"
             >
-              create a new account
+              Create an account first
             </Link>
           </>
         }
@@ -120,7 +122,7 @@ export default function SignInPage() {
                 <div className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-background px-3 text-muted-foreground">Need help?</span>
+                <span className="bg-background px-3 text-muted-foreground">Need account help?</span>
               </div>
             </div>
 
@@ -135,15 +137,33 @@ export default function SignInPage() {
           </div>
         }
       >
-        <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+        <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div
+            className={`rounded-2xl border border-cyan-200 bg-cyan-50/80 p-4 ${animateClasses.fadeIn}`}
+            style={staggerChild(0, 100)}
+          >
+            <div className="flex items-start gap-3">
+              <KeyRound className="mt-0.5 h-5 w-5 flex-shrink-0 text-cyan-900" />
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-slate-950">
+                  Use this page only if you already created an applicant account.
+                </p>
+                <p className="text-sm text-slate-700">
+                  Your saved drafts, submitted applications, payment follow-up, and portal notifications appear after sign-in.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div
             className={animateClasses.slideUp}
-            style={staggerChild(0, 100)}
+            style={staggerChild(1, 100)}
           >
             <AnimatedInput
               {...register('email')}
               type="email"
-              label="Email address"
+              label="Account email"
+              helperText="Use the email address you registered with."
               error={errors.email?.message}
               autoComplete="email"
               disabled={loading}
@@ -153,16 +173,32 @@ export default function SignInPage() {
 
           <div
             className={animateClasses.slideUp}
-            style={staggerChild(1, 100)}
+            style={staggerChild(2, 100)}
           >
             <PasswordInput
               {...register('password')}
-              label="Password"
+              label="Account password"
+              helperText="This is the password for your MIHAS portal account."
               error={errors.password?.message}
               autoComplete="current-password"
               disabled={loading}
               required
             />
+          </div>
+
+          <div
+            className={`rounded-2xl border border-border bg-muted/40 p-4 ${animateClasses.fadeIn}`}
+            style={staggerChild(3, 100)}
+          >
+            <div className="flex items-start gap-3">
+              <FileText className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-foreground">Do not register twice.</p>
+                <p className="text-sm text-muted-foreground">
+                  If you already signed up, use sign in so your existing drafts and notifications stay linked to one account.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Error message with CSS transition */}
@@ -177,7 +213,7 @@ export default function SignInPage() {
 
           <div
             className={animateClasses.slideUp}
-            style={staggerChild(2, 100)}
+            style={staggerChild(4, 100)}
           >
             <Button
               type="submit"
@@ -186,7 +222,7 @@ export default function SignInPage() {
               variant="gradient"
               size="lg"
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? 'Signing in...' : 'Sign in and open dashboard'}
             </Button>
           </div>
         </form>

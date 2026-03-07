@@ -1,10 +1,14 @@
-// @ts-nocheck
-
 /**
  * Push Notification Manager
  * Handles push notifications for mobile devices with scheduling and delivery tracking
  * Requirements: 9.4 - Enable push notifications, add scheduling and delivery tracking, implement preferences
  */
+
+export interface PushNotificationAction {
+  action: string
+  title: string
+  icon?: string
+}
 
 export interface PushNotificationPayload {
   title: string
@@ -14,7 +18,7 @@ export interface PushNotificationPayload {
   image?: string
   tag?: string
   data?: Record<string, any>
-  actions?: NotificationAction[]
+  actions?: PushNotificationAction[]
   requireInteraction?: boolean
   silent?: boolean
   timestamp?: number
@@ -84,7 +88,7 @@ class PushNotificationManager {
       }
 
       // Use existing vite-plugin-pwa service worker registration
-      this.registration = await navigator.serviceWorker.getRegistration()
+      this.registration = await navigator.serviceWorker.getRegistration() ?? null
 
       if (!this.registration) {
         console.warn('Push notifications unavailable: no service worker registration found')
@@ -127,7 +131,7 @@ class PushNotificationManager {
       if (!this.subscription && this.registration) {
         this.subscription = await this.registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey)
+          applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey) as BufferSource
         })
 
         // Send subscription to server
@@ -372,13 +376,10 @@ class PushNotificationManager {
       body: schedule.payload.body,
       icon: schedule.payload.icon || '/images/icon-192.png',
       badge: schedule.payload.badge || '/images/badge.png',
-      image: schedule.payload.image,
       tag: schedule.payload.tag,
       data: notificationPayload.data,
-      actions: schedule.payload.actions,
       requireInteraction: schedule.payload.requireInteraction,
-      silent: schedule.payload.silent,
-      timestamp: schedule.payload.timestamp || Date.now()
+      silent: schedule.payload.silent
     })
 
     // Update schedule status

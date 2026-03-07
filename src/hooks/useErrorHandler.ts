@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Error Handler Hook
  * 
@@ -15,11 +14,11 @@ import { formatError, isRetryableError, getRetryDelay } from '@/utils/errorMessa
 interface UseErrorHandlerOptions {
   showToast?: boolean;
   logError?: boolean;
-  onError?: (error: any) => void;
+  onError?: (error: unknown) => void;
 }
 
 interface ErrorState {
-  error: any | null;
+  error: unknown;
   isError: boolean;
   errorMessage: string | null;
 }
@@ -42,7 +41,7 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
   /**
    * Handle an error
    */
-  const handleError = useCallback((error: any) => {
+  const handleError = useCallback((error: unknown) => {
     // Log error if enabled
     if (logError) {
       console.error('Error occurred:', error);
@@ -93,7 +92,7 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
       fn: () => Promise<T>,
       maxAttempts: number = 3
     ): Promise<T> => {
-      let lastError: any;
+      let lastError: unknown;
       
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
@@ -131,8 +130,8 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
    * Wrap an async function with error handling
    */
   const withErrorHandling = useCallback(
-    <T extends (...args: any[]) => Promise<any>>(fn: T): T => {
-      return (async (...args: any[]) => {
+    <TArgs extends unknown[], TReturn>(fn: (...args: TArgs) => Promise<TReturn>): (...args: TArgs) => Promise<TReturn> => {
+      return async (...args: TArgs): Promise<TReturn> => {
         try {
           const result = await fn(...args);
           clearError();
@@ -141,7 +140,7 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
           handleError(error);
           throw error;
         }
-      }) as T;
+      };
     },
     [handleError, clearError]
   );
@@ -159,13 +158,13 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
  * Hook for form error handling
  */
 export function useFormErrorHandler() {
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [fieldErrors, setFieldErrorsState] = useState<Record<string, string>>({});
   
   /**
    * Set error for a specific field
    */
   const setFieldError = useCallback((field: string, message: string) => {
-    setFieldErrors(prev => ({
+    setFieldErrorsState(prev => ({
       ...prev,
       [field]: message,
     }));
@@ -175,7 +174,7 @@ export function useFormErrorHandler() {
    * Clear error for a specific field
    */
   const clearFieldError = useCallback((field: string) => {
-    setFieldErrors(prev => {
+    setFieldErrorsState(prev => {
       const newErrors = { ...prev };
       delete newErrors[field];
       return newErrors;
@@ -186,14 +185,14 @@ export function useFormErrorHandler() {
    * Clear all field errors
    */
   const clearAllErrors = useCallback(() => {
-    setFieldErrors({});
+    setFieldErrorsState({});
   }, []);
   
   /**
    * Set multiple field errors
    */
   const setFieldErrors = useCallback((errors: Record<string, string>) => {
-    setFieldErrors(errors);
+    setFieldErrorsState(errors);
   }, []);
   
   /**
@@ -225,7 +224,7 @@ export function useFormErrorHandler() {
  * Hook for async operation error handling
  */
 export function useAsyncError() {
-  const [error, setError] = useState<any | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const [isError, setIsError] = useState(false);
   
   /**
@@ -234,7 +233,7 @@ export function useAsyncError() {
   const execute = useCallback(async <T,>(
     fn: () => Promise<T>,
     onSuccess?: (result: T) => void,
-    onError?: (error: any) => void
+    onError?: (error: unknown) => void
   ): Promise<T | null> => {
     try {
       setError(null);

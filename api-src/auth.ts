@@ -17,7 +17,6 @@ import {
   verifyRefreshToken,
   type UserRole 
 } from "../lib/auth/jwt";
-import { getPermissionsForRole } from "../lib/auth/permissions";
 import { setAuthCookies, clearAuthCookies, extractAccessTokenFromCookie, extractRefreshTokenFromCookie, extractBearerToken } from "../lib/auth/cookies";
 import { withArcjetProtection, arcjetProtect } from "../lib/arcjet";
 import { handleError, sendSuccess, sendError, HttpStatus, logErrorAuditEvent } from "../lib/errorHandler";
@@ -27,6 +26,8 @@ import { generateToken as generateCsrfToken, rotateToken as rotateCsrfToken } fr
 import { validateBody, validateQuery } from "../lib/validation/middleware";
 import { loginBodySchema, registerBodySchema, passwordResetRequestBodySchema, passwordResetBodySchema, profileUpdateBodySchema, checkEmailQuerySchema } from "../lib/validation/auth";
 import { validateServerEnv } from "../lib/envValidator";
+import { createSession, deactivateAllSessions, deactivateSession, isSessionActive, parseDeviceInfo, updateActivity } from "../lib/sessions";
+import { getEffectivePermissionsForUser } from "../lib/auth/userPermissionOverrides";
 
 function deriveFullName(params: {
   full_name?: string | null;
@@ -210,6 +211,41 @@ function getClientIp(req: VercelRequest): string {
     return forwarded.split(',')[0].trim();
   }
   return req.socket?.remoteAddress || 'unknown';
+}
+
+function getRequestUserAgent(req: VercelRequest): string | null {
+  const userAgent = req.headers['user-agent'];
+  return typeof userAgent === 'string' ? userAgent : null;
+}
+
+async function createTrackedSession(req: VercelRequest, userId: string): Promise<string> {
+  const userAgent = getRequestUserAgent(req);
+  const session = await createSession({
+    userId,
+    deviceInfo: parseDeviceInfo(userAgent),
+    ipAddress: getClientIp(req),
+    userAgent,
+  });
+
+  return session.id;
+}
+
+async function ensureTrackedSession(
+  req: VercelRequest,
+  userId: string,
+  sessionId?: string
+): Promise<string> {
+  if (sessionId) {
+    const active = await isSessionActive(userId, sessionId);
+    if (!active) {
+      throw new Error('SESSION_REVOKED');
+    }
+
+    await updateActivity(sessionId).catch(() => {});
+    return sessionId;
+  }
+
+  return createTrackedSession(req, userId);
 }
 
 /**
@@ -623,9 +659,10 @@ async function handleLogin(req: VercelRequest, res: VercelResponse) {
   await recordLoginAttempt(emailHash, ipHash, true);
 
   // Generate tokens
-  const permissions = getPermissionsForRole(user.role);
-  const accessToken = await generateAccessToken(user.id, user.email, user.role, permissions);
-  const refreshToken = await generateRefreshToken(user.id);
+  const { permissions } = await getEffectivePermissionsForUser(user.id, user.role);
+  const sessionId = await createTrackedSession(req, user.id);
+  const accessToken = await generateAccessToken(user.id, user.email, user.role, permissions, sessionId);
+  const refreshToken = await generateRefreshToken(user.id, sessionId);
 
   // Set cookies
   setAuthCookies(res, accessToken, refreshToken);
@@ -654,7 +691,7 @@ async function handleLogin(req: VercelRequest, res: VercelResponse) {
  * Handle logout
  * POST /api/auth?action=logout
  * 
- * Deactivates ALL active sessions for the user, then clears auth cookies.
+ * Deactivates the current tracked session when available, then clears auth cookies.
  */
 async function handleLogout(req: VercelRequest, res: VercelResponse) {
   // Try to identify the user so we can deactivate their sessions
@@ -662,19 +699,26 @@ async function handleLogout(req: VercelRequest, res: VercelResponse) {
   if (token) {
     try {
       const payload = await verifyAccessToken(token);
-      // Deactivate all sessions for this user
-      await query(
-        `UPDATE device_sessions SET is_active = false WHERE user_id = $1 AND is_active = true`,
-        [payload.sub]
-      );
+      const ipAddress = getClientIp(req);
+      const userAgent = getRequestUserAgent(req);
+
+      if (payload.sid) {
+        await deactivateSession(payload.sid, payload.sub, ipAddress, userAgent);
+      } else {
+        await deactivateAllSessions(payload.sub, ipAddress, userAgent);
+      }
+
       // Audit trail
       try {
         await logAuditEvent({
           actor_id: payload.sub,
           action: 'user_logout',
           entity_type: 'session',
-          entity_id: payload.sub,
-          changes: { all_sessions_deactivated: true },
+          entity_id: payload.sid || payload.sub,
+          changes: {
+            current_session_deactivated: Boolean(payload.sid),
+            fallback_all_sessions_deactivated: !payload.sid,
+          },
         });
       } catch { /* non-blocking */ }
     } catch (logoutErr) {
@@ -738,7 +782,7 @@ async function recordRegistrationAttempt(ipHash: string): Promise<void> {
 /**
  * Handle registration
  * POST /api/auth?action=register
- * Body: { email, password, firstName, lastName }
+ * Body: { email, password, firstName, lastName, phone?, date_of_birth?, sex?, residence_town?, country?, nationality?, next_of_kin_name?, next_of_kin_phone? }
  *
  * Requirement 7.5: Rate-limited to 3 registrations per IP per 10-minute window.
  */
@@ -766,7 +810,22 @@ async function handleRegister(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Too many registration attempts. Please try again later.', HttpStatus.TOO_MANY_REQUESTS, 'RATE_LIMIT_EXCEEDED');
   }
 
-  const { email, password, firstName, lastName } = parsed;
+  const {
+    email,
+    password,
+    firstName,
+    lastName,
+    phone,
+    date_of_birth,
+    sex,
+    residence_town,
+    country,
+    nationality,
+    next_of_kin_name,
+    next_of_kin_phone,
+  } = parsed;
+
+  const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
 
   // Check if email exists
   const existing = await query(
@@ -783,21 +842,58 @@ async function handleRegister(req: VercelRequest, res: VercelResponse) {
 
   // Create user with student role
   const result = await query<{ id: string }>(
-    `INSERT INTO profiles (email, password_hash, role, first_name, last_name, is_active, created_at, updated_at)
-     VALUES ($1, $2, 'student', $3, $4, true, NOW(), NOW())
+    `INSERT INTO profiles (
+       email,
+       password_hash,
+       role,
+       first_name,
+       last_name,
+       full_name,
+       phone,
+       date_of_birth,
+       sex,
+       residence_town,
+       country,
+       nationality,
+       next_of_kin_name,
+       next_of_kin_phone,
+       is_active,
+       created_at,
+       updated_at
+     )
+     VALUES ($1, $2, 'student', $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, true, NOW(), NOW())
      RETURNING id`,
-    [email.toLowerCase(), passwordHash, firstName, lastName]
+    [
+      email.toLowerCase(),
+      passwordHash,
+      firstName,
+      lastName,
+      fullName,
+      phone || null,
+      date_of_birth || null,
+      sex || null,
+      residence_town || null,
+      country || 'Zambia',
+      nationality || 'Zambian',
+      next_of_kin_name || null,
+      next_of_kin_phone || null,
+    ]
   );
 
   const userId = result.rows[0].id;
 
   // Generate tokens
-  const permissions = getPermissionsForRole('student');
-  const accessToken = await generateAccessToken(userId, email.toLowerCase(), 'student', permissions);
-  const refreshToken = await generateRefreshToken(userId);
+  const { permissions } = await getEffectivePermissionsForUser(userId, 'student');
+  const sessionId = await createTrackedSession(req, userId);
+  const accessToken = await generateAccessToken(userId, email.toLowerCase(), 'student', permissions, sessionId);
+  const refreshToken = await generateRefreshToken(userId, sessionId);
 
   // Set cookies
   setAuthCookies(res, accessToken, refreshToken);
+
+  // Generate CSRF token for the newly authenticated session
+  const csrfToken = await generateCsrfToken(userId);
+  res.setHeader('X-CSRF-Token', csrfToken);
 
   // Record registration attempt for IP-based rate limiting (Requirement 7.5)
   await recordRegistrationAttempt(ipHash);
@@ -826,6 +922,22 @@ async function handleRegister(req: VercelRequest, res: VercelResponse) {
       full_name: deriveFullName({ firstName, lastName, email }),
       permissions,
     },
+    profile: {
+      id: userId,
+      email: email.toLowerCase(),
+      role: 'student',
+      first_name: firstName,
+      last_name: lastName,
+      full_name: fullName || deriveFullName({ firstName, lastName, email }),
+      phone: phone || null,
+      date_of_birth: date_of_birth || null,
+      sex: sex || null,
+      residence_town: residence_town || null,
+      country: country || 'Zambia',
+      nationality: nationality || 'Zambian',
+      next_of_kin_name: next_of_kin_name || null,
+      next_of_kin_phone: next_of_kin_phone || null,
+    },
   }, HttpStatus.CREATED);
 }
 
@@ -842,6 +954,16 @@ async function handleSession(req: VercelRequest, res: VercelResponse) {
 
   try {
     const payload = await verifyAccessToken(token);
+
+    if (payload.sid) {
+      const sessionActive = await isSessionActive(payload.sub, payload.sid);
+      if (!sessionActive) {
+        clearAuthCookies(res);
+        return sendSuccess(res, { user: null });
+      }
+
+      await updateActivity(payload.sid).catch(() => {});
+    }
     
     // Get fresh user data
     const result = await query<{
@@ -861,7 +983,7 @@ async function handleSession(req: VercelRequest, res: VercelResponse) {
     }
 
     const user = result.rows[0];
-    const permissions = payload.permissions;
+    const { permissions } = await getEffectivePermissionsForUser(user.id, user.role);
     return sendSuccess(res, {
       user: {
         id: user.id,
@@ -891,7 +1013,8 @@ async function handleRefresh(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { sub: userId } = await verifyRefreshToken(refreshTokenValue);
+    const refreshPayload = await verifyRefreshToken(refreshTokenValue);
+    const { sub: userId } = refreshPayload;
 
     // Get user data
     const result = await query<{
@@ -913,10 +1036,12 @@ async function handleRefresh(req: VercelRequest, res: VercelResponse) {
 
     const user = result.rows[0];
 
+    const sessionId = await ensureTrackedSession(req, user.id, refreshPayload.sid);
+
     // Generate new tokens
-    const permissions = getPermissionsForRole(user.role);
-    const newAccessToken = await generateAccessToken(user.id, user.email, user.role, permissions);
-    const newRefreshToken = await generateRefreshToken(user.id);
+    const { permissions } = await getEffectivePermissionsForUser(user.id, user.role);
+    const newAccessToken = await generateAccessToken(user.id, user.email, user.role, permissions, sessionId);
+    const newRefreshToken = await generateRefreshToken(user.id, sessionId);
 
     // Set new cookies
     setAuthCookies(res, newAccessToken, newRefreshToken);
@@ -936,8 +1061,11 @@ async function handleRefresh(req: VercelRequest, res: VercelResponse) {
         permissions,
       },
     });
-  } catch {
+  } catch (error) {
     clearAuthCookies(res);
+    if (error instanceof Error && error.message === 'SESSION_REVOKED') {
+      return sendError(res, 'Session has expired or was revoked', HttpStatus.UNAUTHORIZED);
+    }
     return sendError(res, 'Invalid refresh token', HttpStatus.UNAUTHORIZED);
   }
 }
@@ -977,7 +1105,7 @@ async function handleRoles(req: VercelRequest, res: VercelResponse) {
     }
 
     const user = result.rows[0];
-    const permissions = getPermissionsForRole(user.role);
+    const { permissions } = await getEffectivePermissionsForUser(user.id, user.role);
 
     return sendSuccess(res, {
       id: user.id,
@@ -1024,6 +1152,7 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
         date_of_birth: string | null;
         sex: string | null;
         residence_town: string | null;
+        country: string | null;
         nationality: string | null;
         nrc_number: string | null;
         address: string | null;
@@ -1031,7 +1160,7 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
         next_of_kin_name: string | null;
         next_of_kin_phone: string | null;
       }>(
-        `SELECT id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone
+        `SELECT id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, country, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone
          FROM profiles WHERE id = $1 LIMIT 1`,
         [payload.sub]
       );
@@ -1060,6 +1189,7 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
       'date_of_birth',
       'sex',
       'residence_town',
+      'country',
       'nationality',
       'nrc_number',
       'address',
@@ -1107,6 +1237,7 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
       date_of_birth: string | null;
       sex: string | null;
       residence_town: string | null;
+      country: string | null;
       nationality: string | null;
       nrc_number: string | null;
       address: string | null;
@@ -1117,7 +1248,7 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
       `UPDATE profiles
        SET ${setClauses.join(', ')}, updated_at = NOW()
        WHERE id = $${providedFields.length + 1}
-       RETURNING id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone`,
+       RETURNING id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, country, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone`,
       values
     );
 
@@ -1176,5 +1307,3 @@ async function handleCheckEmail(req: VercelRequest, res: VercelResponse) {
   // Return only availability status, no user data
   return sendSuccess(res, { available: existing.rows.length === 0 });
 }
-
-

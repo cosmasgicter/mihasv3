@@ -23,7 +23,15 @@ import { clearCsrfToken } from '@/lib/csrfToken';
 /**
  * User role type
  */
-export type UserRole = 'super_admin' | 'admin' | 'reviewer' | 'student';
+export type UserRole =
+  | 'super_admin'
+  | 'admin'
+  | 'admissions_officer'
+  | 'registrar'
+  | 'finance_officer'
+  | 'academic_head'
+  | 'reviewer'
+  | 'student';
 
 /**
  * User session info

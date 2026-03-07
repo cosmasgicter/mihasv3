@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useCallback } from 'react'
 import type { UserProfile } from '@/types/database'
 import { apiClient } from '@/services/client'
@@ -40,8 +39,8 @@ export function useUserManagement() {
       setLoading(true)
       setError(null)
 
-      const response = await createUserMutation.mutateAsync(userData)
-      return response.data
+      const response = await createUserMutation.mutateAsync(userData) as Record<string, unknown> | undefined
+      return (response?.data as UserProfile) ?? null
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create user'
       console.error('Failed to create user:', sanitizeForLog(errorMessage))

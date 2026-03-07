@@ -115,7 +115,7 @@ export default function OfflineAdminDashboard() {
             <div className="text-sm font-medium text-foreground">New Applications</div>
           </div>
 
-          {/* Pending Reviews */}
+          {/* Decision Queue */}
           <div
             className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border"
           >
@@ -125,12 +125,12 @@ export default function OfflineAdminDashboard() {
               </div>
               <div className="text-right">
                 <div className="text-xl sm:text-2xl font-bold text-foreground break-words">{stats.pendingApplications}</div>
-                <div className="text-xs text-foreground">Pending</div>
+                <div className="text-xs text-foreground">Queue</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-foreground">Awaiting Review</div>
+            <div className="text-sm font-medium text-foreground">Decision Queue</div>
             <Link to="/admin/applications?status=submitted" className="text-xs text-primary hover:underline mt-2 block">
-              Review now →
+              Open queue →
             </Link>
           </div>
 

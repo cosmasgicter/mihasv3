@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Application Flow Analyzer - Maps user journeys and identifies workflow bottlenecks
  * Implements Requirements 3.1, 3.2, 3.4 from MIHAS System Analysis spec
@@ -641,7 +640,12 @@ export class BottleneckDetectionEngine {
    * Analyze application processing times and identify delays
    */
   async analyzeProcessingTimes(journeyId: string): Promise<BottleneckMetrics[]> {
-    const journey = new UserJourneyMapper().journeys.get(journeyId)
+    const mapper = new UserJourneyMapper()
+    const journey = journeyId === 'student_application' 
+      ? mapper.getStudentApplicationJourney()
+      : journeyId === 'admin_review'
+        ? mapper.getAdminReviewJourney()
+        : null
     if (!journey) {
       throw new Error(`Journey not found: ${journeyId}`)
     }
@@ -1587,7 +1591,7 @@ export class AutomationOpportunityIdentifier {
   private groupOpportunitiesByWorkflow(opportunities: AutomationOpportunity[]): Map<string, AutomationOpportunity[]> {
     const groups = new Map<string, AutomationOpportunity[]>()
 
-    const workflowMapping = {
+    const workflowMapping: Record<string, string> = {
       'document_verification': 'Document Processing Workflow',
       'payment_verification': 'Payment Processing Workflow',
       'eligibility_calculation': 'Eligibility Assessment Workflow',

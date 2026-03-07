@@ -1,5 +1,18 @@
-// @ts-nocheck
 import { useState, useEffect, useCallback } from 'react'
+
+// Extend Navigator for Network Information API (not in all browsers)
+interface NetworkInformation {
+  effectiveType?: string
+  downlink?: number
+  rtt?: number
+  saveData?: boolean
+}
+
+declare global {
+  interface Navigator {
+    connection?: NetworkInformation
+  }
+}
 
 export interface ResponsiveBreakpoints {
   isMobile: boolean
@@ -90,7 +103,7 @@ export function useEnhancedResponsive(customBreakpoints?: Partial<ResponsiveConf
 
   useEffect(() => {
     // Throttled resize handler for better performance
-    let timeoutId: NodeJS.Timeout
+    let timeoutId: ReturnType<typeof setTimeout>
     
     const handleResize = () => {
       clearTimeout(timeoutId)

@@ -1,13 +1,12 @@
 /**
- * SignUpPage - Enhanced sign-up page with CSS animations
- * Uses Tailwind animation classes and shared animation utilities
- * 
+ * SignUpPage - Structured sign-up page with clearer account-creation labeling
+ *
  * @requirements 1.2 - CSS transitions/Tailwind instead of framer-motion
  * @requirements 1.5 - Preserve same visual transition behavior using CSS equivalents
  * @requirements 4.1, 4.3, 4.4, 4.8 - Zod validation, inline errors, loading state, type safety
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,48 +20,86 @@ import { PasswordInput } from '@/components/ui/PasswordInput';
 import { AuthLoadingOverlay } from '@/components/ui/AuthLoadingOverlay';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { NotificationService } from '@/lib/notificationService';
+import { DEFAULT_RESIDENCE_COUNTRY } from '@/lib/locationOptions';
 import { Seo } from '@/components/seo/Seo';
 import { staggerChild, animateClasses } from '@/lib/animations';
-import { 
+import { useResidenceLocationOptions } from '@/hooks/useResidenceLocationOptions';
+import { cn } from '@/lib/utils';
+import {
   Loader2,
-  AlertCircle, 
-  CheckCircle, 
+  AlertCircle,
+  CheckCircle,
   XCircle,
-  Users
+  Users,
+  KeyRound,
+  FileText,
+  MapPin,
+  type LucideIcon,
 } from 'lucide-react';
 
-/** Email availability check response shape */
 interface EmailCheckResponse {
   available: boolean;
 }
 
-export const signUpSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string(),
-  full_name: z.string().min(2, 'Full name must be at least 2 characters'),
-  phone: z.string().min(10, 'Please enter a valid phone number'),
-  date_of_birth: z.string()
-    .min(1, 'Date of birth is required')
-    .refine((date) => {
-      const parsed = new Date(date);
-      const year = parsed.getFullYear();
-      const currentYear = new Date().getFullYear();
-      return !isNaN(parsed.getTime()) && year >= 1900 && year <= currentYear - 16;
-    }, {
-      message: 'Please enter a valid date of birth (must be at least 16 years old)'
-    }),
-  sex: z.enum(['Male', 'Female'] as const, { error: 'Please select a sex' }),
-  residence_town: z.string().min(2, 'City is required'),
-  nationality: z.string().min(2, 'Nationality is required'),
-  next_of_kin_name: z.string().min(2, 'Next of kin name is required'),
-  next_of_kin_phone: z.string().min(10, 'Next of kin phone is required'),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+export const signUpSchema = z
+  .object({
+    email: z.string().email('Please enter a valid email address'),
+    password: z.string().min(6, 'Password must be at least 6 characters'),
+    confirmPassword: z.string(),
+    full_name: z.string().min(2, 'Full name must be at least 2 characters'),
+    phone: z.string().min(10, 'Please enter a valid phone number'),
+    date_of_birth: z
+      .string()
+      .min(1, 'Date of birth is required')
+      .refine(
+        (date) => {
+          const parsed = new Date(date);
+          const year = parsed.getFullYear();
+          const currentYear = new Date().getFullYear();
+          return !isNaN(parsed.getTime()) && year >= 1900 && year <= currentYear - 16;
+        },
+        {
+          message: 'Please enter a valid date of birth (must be at least 16 years old)',
+        },
+      ),
+    sex: z.enum(['Male', 'Female'] as const, { error: 'Please select a sex' }),
+    country: z.string().min(2, 'Country is required'),
+    residence_town: z.string().min(2, 'City is required'),
+    nationality: z.string().min(2, 'Nationality is required'),
+    next_of_kin_name: z.string().min(2, 'Next of kin name is required'),
+    next_of_kin_phone: z.string().min(10, 'Next of kin phone is required'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
 
 type SignUpForm = z.infer<typeof signUpSchema>;
+
+interface SignUpSectionProps {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  children: ReactNode;
+  className?: string;
+}
+
+function SignUpSection({ icon: Icon, title, description, children, className }: SignUpSectionProps) {
+  return (
+    <section className={cn('rounded-2xl border border-border bg-background p-5 shadow-sm', className)}>
+      <div className="mb-4 flex items-start gap-3">
+        <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <Icon className="h-5 w-5" />
+        </div>
+        <div>
+          <h3 className="text-base font-semibold text-foreground">{title}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+        </div>
+      </div>
+      {children}
+    </section>
+  );
+}
 
 export default function SignUpPage() {
   const navigate = useNavigate();
@@ -78,10 +115,18 @@ export default function SignUpPage() {
     register,
     handleSubmit,
     control,
+    watch,
     formState: { errors },
   } = useForm<SignUpForm>({
     resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      country: DEFAULT_RESIDENCE_COUNTRY,
+    },
   });
+
+  const selectedCountry = watch('country');
+  const { countryOptions, cityOptions, loadingCountries, loadingCities } = useResidenceLocationOptions(selectedCountry);
+  const residenceTownDatalistId = 'signup-residence-town-options';
 
   const checkEmailAvailability = useCallback(async (email: string) => {
     if (!email || !email.includes('@')) {
@@ -91,8 +136,9 @@ export default function SignUpPage() {
 
     setEmailChecking(true);
     try {
-      // MIGRATED: Using new API client instead of legacy authApi
-      const response = await apiClient.request<EmailCheckResponse>(`/auth?action=check-email&email=${encodeURIComponent(email)}`);
+      const response = await apiClient.request<EmailCheckResponse>(
+        `/auth?action=check-email&email=${encodeURIComponent(email)}`,
+      );
 
       const isAvailable = (response as EmailCheckResponse)?.available ?? null;
       setEmailAvailable(isAvailable);
@@ -122,7 +168,6 @@ export default function SignUpPage() {
 
     try {
       const { confirmPassword: _confirmPassword, ...userData } = data;
-
       const result = await signUp(data.email, data.password, {
         ...userData,
       });
@@ -131,17 +176,14 @@ export default function SignUpPage() {
         throw new Error(result.error);
       }
 
-      // Success - account was created and backend returned authenticated user data
       setSuccess('Account created successfully! You are now signed in.');
       setLoading(false);
       setIsRegistering(false);
 
-      // Send welcome notification
       if (result.user?.id) {
         NotificationService.sendWelcomeNotification(result.user.id, userData.full_name).catch(console.error);
       }
 
-      // Redirect to dashboard
       setTimeout(() => {
         navigate('/student/dashboard');
       }, 1500);
@@ -153,17 +195,18 @@ export default function SignUpPage() {
     }
   };
 
-  // Success state
   if (success) {
     return (
       <>
-      <Seo
-        title="Create Account | MIHAS-KATC Admissions Portal"
-        description="Create your MIHAS-KATC admissions account to start your nursing or allied health application and submit required details securely."
-        path="/auth/signup"
-      />
+        <Seo
+          title="Create Account | MIHAS-KATC Admissions Portal"
+          description="Create your MIHAS-KATC admissions account to start your nursing or allied health application and submit required details securely."
+          path="/auth/signup"
+        />
         {isRegistering && <AuthLoadingOverlay message="Creating your account..." />}
         <AuthLayout
+          variant="signup"
+          panelBadge="Account ready"
           title="Account created successfully!"
           description={success}
         >
@@ -175,7 +218,7 @@ export default function SignUpPage() {
             <div className="space-y-3">
               <Link to="/student/dashboard" className="block">
                 <Button className="w-full" variant="gradient" size="lg">
-                  Go to Dashboard Now
+                  Go to dashboard now
                 </Button>
               </Link>
             </div>
@@ -194,10 +237,12 @@ export default function SignUpPage() {
       />
       {isRegistering && <AuthLoadingOverlay message="Creating your account..." />}
       <AuthLayout
-        title="Create your account"
+        variant="signup"
+        panelBadge="New applicant registration"
+        title="Create your admissions account"
         description={
           <>
-            Already have an account?{' '}
+            This page creates your secure portal account first. Programme choice, academic details, and document upload come after sign-in. Already registered?{' '}
             <Link
               to="/auth/signin"
               className="font-semibold text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md"
@@ -207,197 +252,244 @@ export default function SignUpPage() {
           </>
         }
       >
-        <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          {/* Personal Information Section */}
+        <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
           <div
-            className={`space-y-4 ${animateClasses.slideUp}`}
+            className={`rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 ${animateClasses.fadeIn}`}
             style={staggerChild(0, 100)}
           >
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <AnimatedInput
-                {...register('full_name')}
-                type="text"
-                label="Full Name"
-                error={errors.full_name?.message}
-                required
-              />
-
-              <div className="relative">
-                <AnimatedInput
-                  {...register('email', {
-                    onBlur: (e) => checkEmailAvailability(e.target.value)
-                  })}
-                  type="email"
-                  label="Email Address"
-                  error={errors.email?.message || (emailAvailable === false ? 'This email is already registered' : undefined)}
-                  autoComplete="email"
-                  required
-                  className={emailAvailable === true ? 'border-green-500 focus:ring-green-500' : emailAvailable === false ? 'border-red-500 focus:ring-red-500' : ''}
-                />
-
-                {/* Email Status Indicator */}
-                {emailChecking && (
-                  <div className={`mt-2 flex items-center gap-2 text-sm text-blue-600 ${animateClasses.fadeIn}`}>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="font-medium">Checking availability...</span>
-                  </div>
-                )}
-
-                {!emailChecking && emailAvailable === true && (
-                  <div className={`mt-2 flex items-center gap-2 text-sm text-green-600 ${animateClasses.fadeIn}`}>
-                    <CheckCircle className="h-4 w-4" />
-                    <span className="font-medium">Email available</span>
-                  </div>
-                )}
-
-                {!emailChecking && emailAvailable === false && (
-                  <div className={`mt-2 flex items-center gap-2 text-sm text-red-600 ${animateClasses.fadeIn}`}>
-                    <XCircle className="h-4 w-4" />
-                    <span className="font-medium">
-                      Already registered.{' '}
-                      <Link to="/auth/signin" className="underline hover:text-red-700">
-                        Sign in
-                      </Link>
-                    </span>
-                  </div>
-                )}
+            <div className="flex items-start gap-3">
+              <FileText className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-900" />
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-slate-950">
+                  Create one account first, then start your application after sign-in.
+                </p>
+                <p className="text-sm text-slate-700">
+                  The details below are reused to prefill your profile and keep the application wizard consistent with your account.
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Password Section */}
-          <div
-            className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${animateClasses.slideUp}`}
-            style={staggerChild(1, 100)}
-          >
-            <PasswordInput
-              {...register('password')}
-              label="Create Password"
-              error={errors.password?.message}
-              helperText="Must be at least 6 characters"
-              autoComplete="new-password"
-              disabled={loading}
-              required
-            />
+          <div className={animateClasses.slideUp} style={staggerChild(1, 100)}>
+            <SignUpSection
+              icon={KeyRound}
+              title="Portal access"
+              description="Set the details you will use every time you return to the admissions portal."
+            >
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <AnimatedInput
+                  {...register('full_name')}
+                  type="text"
+                  label="Full name"
+                  helperText="Use the same name that should appear on your application records."
+                  error={errors.full_name?.message}
+                  required
+                />
 
-            <PasswordInput
-              {...register('confirmPassword')}
-              label="Confirm Password"
-              error={errors.confirmPassword?.message}
-              autoComplete="new-password"
-              disabled={loading}
-              required
-            />
+                <div className="relative">
+                  <AnimatedInput
+                    {...register('email', {
+                      onBlur: (e) => checkEmailAvailability(e.target.value),
+                    })}
+                    type="email"
+                    label="Account email"
+                    helperText="This becomes your sign-in username."
+                    error={errors.email?.message || (emailAvailable === false ? 'This email is already registered' : undefined)}
+                    autoComplete="email"
+                    required
+                    className={
+                      emailAvailable === true
+                        ? 'border-green-500 focus:ring-green-500'
+                        : emailAvailable === false
+                          ? 'border-red-500 focus:ring-red-500'
+                          : ''
+                    }
+                  />
+
+                  {emailChecking && (
+                    <div className={`mt-2 flex items-center gap-2 text-sm text-blue-600 ${animateClasses.fadeIn}`}>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="font-medium">Checking availability...</span>
+                    </div>
+                  )}
+
+                  {!emailChecking && emailAvailable === true && (
+                    <div className={`mt-2 flex items-center gap-2 text-sm text-green-600 ${animateClasses.fadeIn}`}>
+                      <CheckCircle className="h-4 w-4" />
+                      <span className="font-medium">Email available</span>
+                    </div>
+                  )}
+
+                  {!emailChecking && emailAvailable === false && (
+                    <div className={`mt-2 flex items-center gap-2 text-sm text-red-600 ${animateClasses.fadeIn}`}>
+                      <XCircle className="h-4 w-4" />
+                      <span className="font-medium">
+                        Already registered.{' '}
+                        <Link to="/auth/signin" className="underline hover:text-red-700">
+                          Sign in
+                        </Link>
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <PasswordInput
+                  {...register('password')}
+                  label="Create password"
+                  error={errors.password?.message}
+                  helperText="Use at least 6 characters."
+                  autoComplete="new-password"
+                  disabled={loading}
+                  required
+                />
+
+                <PasswordInput
+                  {...register('confirmPassword')}
+                  label="Confirm password"
+                  helperText="Repeat the same password to confirm it."
+                  error={errors.confirmPassword?.message}
+                  autoComplete="new-password"
+                  disabled={loading}
+                  required
+                />
+              </div>
+            </SignUpSection>
           </div>
 
-          {/* Contact Information */}
-          <div
-            className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${animateClasses.slideUp}`}
-            style={staggerChild(2, 100)}
-          >
-            <AnimatedInput
-              {...register('phone')}
-              type="tel"
-              label="Phone Number"
-              error={errors.phone?.message}
-              required
-            />
+          <div className={animateClasses.slideUp} style={staggerChild(2, 100)}>
+            <SignUpSection
+              icon={FileText}
+              title="Profile basics"
+              description="These details appear on your account immediately and carry forward into your application."
+            >
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <AnimatedInput
+                  {...register('phone')}
+                  type="tel"
+                  label="Phone number"
+                  helperText="Use the number that should receive application updates."
+                  error={errors.phone?.message}
+                  required
+                />
 
-            <AnimatedInput
-              {...register('date_of_birth')}
-              type="date"
-              label="Date of Birth"
-              error={errors.date_of_birth?.message}
-              required
-            />
+                <AnimatedInput
+                  {...register('date_of_birth')}
+                  type="date"
+                  label="Date of birth"
+                  error={errors.date_of_birth?.message}
+                  required
+                />
+
+                <FormSelect
+                  name="sex"
+                  control={control}
+                  options={[
+                    { value: 'Male', label: 'Male' },
+                    { value: 'Female', label: 'Female' },
+                  ]}
+                  label="Sex"
+                  placeholder="Select sex"
+                  error={errors.sex?.message}
+                  disabled={loading}
+                  required
+                />
+              </div>
+            </SignUpSection>
           </div>
 
-          {/* Demographics */}
-          <div
-            className={`grid grid-cols-1 gap-4 sm:grid-cols-3 ${animateClasses.slideUp}`}
-            style={staggerChild(3, 100)}
-          >
-            <FormSelect
-              name="sex"
-              control={control}
-              options={[
-                { value: 'Male', label: 'Male' },
-                { value: 'Female', label: 'Female' },
-              ]}
-              label="Sex"
-              placeholder="Select Sex"
-              error={errors.sex?.message}
-              disabled={loading}
-              required
-            />
+          <div className={animateClasses.slideUp} style={staggerChild(3, 100)}>
+            <SignUpSection
+              icon={MapPin}
+              title="Residence and identity"
+              description="Capture where you currently live so your student profile and application wizard stay aligned."
+            >
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <FormSelect
+                  name="country"
+                  control={control}
+                  options={countryOptions}
+                  label="Country of residence"
+                  placeholder="Select country"
+                  error={errors.country?.message}
+                  disabled={loading || loadingCountries}
+                  helperText="Defaults to Zambia. Change it only if you currently live elsewhere."
+                  required
+                />
 
-            <AnimatedInput
-              {...register('residence_town')}
-              type="text"
-              label="City/Town"
-              placeholder="Kitwe"
-              error={errors.residence_town?.message}
-              disabled={loading}
-              required
-            />
+                <AnimatedInput
+                  {...register('residence_town')}
+                  type="text"
+                  label="City or town"
+                  list={residenceTownDatalistId}
+                  placeholder={selectedCountry === DEFAULT_RESIDENCE_COUNTRY ? 'Kitwe' : 'Start typing your city or town'}
+                  error={errors.residence_town?.message}
+                  helperText={
+                    loadingCities
+                      ? 'Loading city and town options...'
+                      : `Suggestions are filtered for ${selectedCountry || DEFAULT_RESIDENCE_COUNTRY}. You can still type your town manually.`
+                  }
+                  disabled={loading}
+                  required
+                />
+                <datalist id={residenceTownDatalistId}>
+                  {cityOptions.map((option) => (
+                    <option key={option.value} value={option.value} />
+                  ))}
+                </datalist>
 
-            <AnimatedInput
-              {...register('nationality')}
-              type="text"
-              label="Nationality"
-              placeholder="Zambian"
-              error={errors.nationality?.message}
-              disabled={loading}
-              required
-            />
+                <AnimatedInput
+                  {...register('nationality')}
+                  type="text"
+                  label="Nationality"
+                  placeholder="Zambian"
+                  helperText="This is your citizenship, not your current residence."
+                  error={errors.nationality?.message}
+                  disabled={loading}
+                  required
+                />
+              </div>
+            </SignUpSection>
           </div>
 
-          {/* Next of Kin Section */}
-          <div
-            className={`rounded-xl border border-border bg-muted/30 p-5 ${animateClasses.slideUp}`}
-            style={staggerChild(4, 100)}
-          >
-            <div className="flex items-center gap-2 mb-4">
-              <Users className="h-5 w-5 text-muted-foreground" />
-              <h3 className="text-base font-semibold text-foreground">Next of Kin</h3>
-            </div>
-            <p className="text-sm text-muted-foreground mb-4">
-              Provide the details of a trusted contact we can reach in case of emergencies.
-            </p>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <AnimatedInput
-                {...register('next_of_kin_name')}
-                type="text"
-                label="Next of Kin Name"
-                error={errors.next_of_kin_name?.message}
-                required
-              />
+          <div className={animateClasses.slideUp} style={staggerChild(4, 100)}>
+            <SignUpSection
+              icon={Users}
+              title="Emergency contact"
+              description="Provide a trusted contact we can reach if we cannot contact you directly."
+              className="bg-muted/20"
+            >
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <AnimatedInput
+                  {...register('next_of_kin_name')}
+                  type="text"
+                  label="Next of kin name"
+                  error={errors.next_of_kin_name?.message}
+                  required
+                />
 
-              <AnimatedInput
-                {...register('next_of_kin_phone')}
-                type="tel"
-                label="Next of Kin Phone"
-                error={errors.next_of_kin_phone?.message}
-                required
-              />
-            </div>
+                <AnimatedInput
+                  {...register('next_of_kin_phone')}
+                  type="tel"
+                  label="Next of kin phone"
+                  error={errors.next_of_kin_phone?.message}
+                  required
+                />
+              </div>
+            </SignUpSection>
           </div>
 
-          {/* Error Message */}
           {error && (
             <div className={`overflow-hidden ${animateClasses.fadeIn}`}>
               <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 shadow-sm">
-                <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-destructive" />
                 <div className="text-sm font-medium text-destructive">{error}</div>
               </div>
             </div>
           )}
 
-          {/* Submit Button */}
-          <div
-            className={animateClasses.slideUp}
-            style={staggerChild(6, 100)}
-          >
+          <div className={animateClasses.slideUp} style={staggerChild(5, 100)}>
             <Button
               type="submit"
               className="w-full"
@@ -405,15 +497,11 @@ export default function SignUpPage() {
               variant="gradient"
               size="lg"
             >
-              {loading ? 'Creating Account...' : 'Create Account'}
+              {loading ? 'Creating account...' : 'Create account and continue'}
             </Button>
           </div>
 
-          {/* Terms */}
-          <p
-            className={`text-center text-xs text-muted-foreground ${animateClasses.fadeIn}`}
-            style={staggerChild(7, 100)}
-          >
+          <p className={`text-center text-xs text-muted-foreground ${animateClasses.fadeIn}`} style={staggerChild(6, 100)}>
             By creating an account, you agree to our{' '}
             <Link to="/terms" className="text-primary hover:underline">
               Terms of Service
@@ -422,6 +510,7 @@ export default function SignUpPage() {
             <Link to="/privacy" className="text-primary hover:underline">
               Privacy Policy
             </Link>
+            .
           </p>
         </form>
       </AuthLayout>

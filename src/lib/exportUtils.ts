@@ -1,4 +1,3 @@
-// @ts-nocheck
 export interface ApplicationData {
   application_number: string
   full_name: string
@@ -18,6 +17,10 @@ export interface ApplicationData {
   points: number
   age: number
   days_since_submission: number
+  payment_reviewed_at: string
+  payment_reviewed_by: string
+  payment_review_notes: string
+  payment_reference: string
 }
 
 type ApplicationDataSource =
@@ -43,7 +46,11 @@ const HEADERS = [
   'Total Subjects',
   'Points (Best 5)',
   'Age',
-  'Days Since Submission'
+  'Days Since Submission',
+  'Payment Reviewed At',
+  'Payment Reviewed By',
+  'Payment Review Notes',
+  'Payment Reference'
 ] as const
 
 const YIELD_INTERVAL = 250
@@ -119,7 +126,11 @@ const mapToRowValues = (application: ApplicationData) => ({
   total_subjects: safeNumber(application.total_subjects),
   points: safeNumber(application.points),
   age: safeNumber(application.age),
-  days_since_submission: safeNumber(application.days_since_submission)
+  days_since_submission: safeNumber(application.days_since_submission),
+  payment_reviewed_at: formatDate(application.payment_reviewed_at),
+  payment_reviewed_by: safeText(application.payment_reviewed_by),
+  payment_review_notes: safeText(application.payment_review_notes),
+  payment_reference: safeText(application.payment_reference)
 })
 
 export async function exportToCSV(
@@ -152,7 +163,11 @@ export async function exportToCSV(
       toCsvValue(row.total_subjects),
       toCsvValue(row.points),
       toCsvValue(row.age),
-      toCsvValue(row.days_since_submission)
+      toCsvValue(row.days_since_submission),
+      toCsvValue(row.payment_reviewed_at),
+      toCsvValue(row.payment_reviewed_by),
+      toCsvValue(row.payment_review_notes),
+      toCsvValue(row.payment_reference)
     ].join(','))
 
     processed += 1
@@ -199,7 +214,7 @@ export async function exportToExcel(
 ) {
   const XLSX = await import('xlsx')
   const workbook = XLSX.utils.book_new()
-  const worksheet = XLSX.utils.aoa_to_sheet([HEADERS])
+  const worksheet = XLSX.utils.aoa_to_sheet([[...HEADERS]])
 
   let batch: Array<Array<string | number>> = []
   let processed = 0
@@ -224,7 +239,11 @@ export async function exportToExcel(
       row.total_subjects,
       row.points,
       row.age,
-      row.days_since_submission
+      row.days_since_submission,
+      row.payment_reviewed_at,
+      row.payment_reviewed_by,
+      row.payment_review_notes,
+      row.payment_reference
     ])
 
     processed += 1
@@ -278,7 +297,11 @@ export async function exportToPDF(
       row.total_subjects.toString(),
       row.points.toString(),
       row.age.toString(),
-      row.days_since_submission.toString()
+      row.days_since_submission.toString(),
+      row.payment_reviewed_at,
+      row.payment_reviewed_by,
+      row.payment_review_notes,
+      row.payment_reference
     ])
 
     processed += 1
@@ -288,7 +311,7 @@ export async function exportToPDF(
     }
   }
 
-  const exportTimestamp = new Date().toLocaleString()
+  const exportTimestamp = new Date().toLocaleString();
 
   (doc as any).autoTable({
     head: [Array.from(HEADERS)],
@@ -320,7 +343,7 @@ export async function exportToPDF(
       doc.text(`Generated: ${exportTimestamp}`, data.settings.margin.left, 22)
       
       const pageCount = doc.internal.pages.length - 1
-      const pageNum = doc.internal.getCurrentPageInfo().pageNumber
+      const pageNum = (doc.internal as any).getCurrentPageInfo().pageNumber
       doc.setFontSize(8)
       doc.text(`Page ${pageNum} of ${pageCount}`, data.settings.margin.left, doc.internal.pageSize.height - 10)
     }
@@ -776,7 +799,8 @@ export async function exportUsersToPDF<TRecord extends Record<string, unknown>>(
   })
 
   const pdfBytes = await pdfDoc.save()
-  const blob = new Blob([pdfBytes], { type: 'application/pdf' })
+  const pdfBuffer = pdfBytes.buffer.slice(pdfBytes.byteOffset, pdfBytes.byteOffset + pdfBytes.byteLength) as ArrayBuffer
+  const blob = new Blob([pdfBuffer], { type: 'application/pdf' })
   const filename = options.filename ?? 'users-export.pdf'
 
   if (typeof document !== 'undefined' && options.download !== false) {

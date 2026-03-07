@@ -78,6 +78,31 @@ async function query(queryText, params) {
   getDatabaseConfig();
   return executeNeonQuery(queryText, params);
 }
+async function transaction(operations) {
+  if (operations.length === 0) {
+    return [];
+  }
+  const results = [];
+  try {
+    await query("BEGIN");
+    for (const op of operations) {
+      const result = await query(op.text, op.values);
+      results.push(result);
+    }
+    await query("COMMIT");
+    return results;
+  } catch (error) {
+    try {
+      await query("ROLLBACK");
+    } catch (rollbackError) {
+      console.error("[DB] Rollback failed:", rollbackError.message);
+    }
+    if (error instanceof DatabaseError) {
+      throw new DatabaseError(`Transaction failed: ${error.message}`, DatabaseErrorCode.TRANSACTION_ERROR, { query: error.query, originalError: error });
+    }
+    throw new DatabaseError(`Transaction failed: ${error.message}`, DatabaseErrorCode.TRANSACTION_ERROR, { originalError: error });
+  }
+}
 var DatabaseErrorCode, DatabaseError;
 var init_db = __esm(() => {
   DatabaseErrorCode = {
@@ -105,7 +130,7 @@ var init_db = __esm(() => {
 });
 
 // lib/queries.ts
-var AuditQueries;
+var AUDIT_ENTITY_PLACEHOLDER_ID = "00000000-0000-0000-0000-000000000000", AuditQueries;
 var init_queries = __esm(() => {
   AuditQueries = {
     log: (input) => ({
@@ -114,7 +139,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+      VALUES ($1, $2, $3, COALESCE($4, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $5, $6, $7, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -133,7 +158,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, 'user', $1, $3, $4, $5, NOW())
+      VALUES ($1, $2, 'user', COALESCE($1, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $3, $4, $5, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -150,7 +175,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, 'authorization_failure', $2, $3, $4, $5, $6, NOW())
+      VALUES ($1, 'authorization_failure', $2, COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -171,7 +196,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, 'session', $3, $4, $5, $6, NOW())
+      VALUES ($1, $2, 'session', COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -14741,7 +14766,15 @@ var registerBodySchema = exports_external.object({
   email: emailSchema,
   password: passwordSchema,
   firstName: nonEmptySanitizedString,
-  lastName: nonEmptySanitizedString
+  lastName: nonEmptySanitizedString,
+  phone: optionalSanitizedString,
+  date_of_birth: optionalSanitizedString,
+  sex: optionalSanitizedString,
+  residence_town: optionalSanitizedString,
+  country: optionalSanitizedString,
+  nationality: optionalSanitizedString,
+  next_of_kin_name: optionalSanitizedString,
+  next_of_kin_phone: optionalSanitizedString
 });
 var passwordResetRequestBodySchema = exports_external.object({
   email: emailSchema
@@ -14758,6 +14791,7 @@ var profileUpdateBodySchema = exports_external.object({
   date_of_birth: optionalSanitizedString,
   sex: optionalSanitizedString,
   residence_town: optionalSanitizedString,
+  country: optionalSanitizedString,
   nationality: optionalSanitizedString,
   nrc_number: optionalSanitizedString,
   address: optionalSanitizedString,
@@ -14771,7 +14805,16 @@ var checkEmailQuerySchema = exports_external.object({
 });
 
 // lib/validation/admin.ts
-var roleSchema = exports_external.enum(["student", "reviewer", "admin", "super_admin"]);
+var roleSchema = exports_external.enum([
+  "student",
+  "reviewer",
+  "admissions_officer",
+  "registrar",
+  "finance_officer",
+  "academic_head",
+  "admin",
+  "super_admin"
+]);
 var adminRegisterBodySchema = exports_external.object({
   email: emailSchema,
   password: passwordSchema,
@@ -14786,6 +14829,17 @@ var adminSetPasswordBodySchema = exports_external.object({
 var updateRoleBodySchema = exports_external.object({
   userId: nonEmptySanitizedString,
   role: roleSchema
+});
+var updateUserBodySchema = exports_external.object({
+  userId: nonEmptySanitizedString,
+  email: emailSchema,
+  full_name: nonEmptySanitizedString,
+  phone: optionalSanitizedString,
+  role: roleSchema
+});
+var userPermissionsBodySchema = exports_external.object({
+  userId: nonEmptySanitizedString,
+  permissions: exports_external.array(sanitizedString).optional()
 });
 var createSettingBodySchema = exports_external.object({
   key: nonEmptySanitizedString,
@@ -14815,7 +14869,121 @@ var migrateBodySchema = exports_external.object({
   secret: optionalSanitizedString
 });
 
+// lib/auth/permissions.ts
+init_queries();
+var USER_ROLES = {
+  SUPER_ADMIN: "super_admin",
+  ADMIN: "admin",
+  ADMISSIONS_OFFICER: "admissions_officer",
+  REGISTRAR: "registrar",
+  FINANCE_OFFICER: "finance_officer",
+  ACADEMIC_HEAD: "academic_head",
+  REVIEWER: "reviewer",
+  STUDENT: "student"
+};
+var ALL_USER_ROLES = [
+  USER_ROLES.SUPER_ADMIN,
+  USER_ROLES.ADMIN,
+  USER_ROLES.ADMISSIONS_OFFICER,
+  USER_ROLES.REGISTRAR,
+  USER_ROLES.FINANCE_OFFICER,
+  USER_ROLES.ACADEMIC_HEAD,
+  USER_ROLES.REVIEWER,
+  USER_ROLES.STUDENT
+];
+var ROLE_PERMISSIONS = {
+  super_admin: [
+    "users:read",
+    "users:write",
+    "users:delete",
+    "applications:read",
+    "applications:write",
+    "applications:review",
+    "programs:read",
+    "programs:write",
+    "payments:read",
+    "payments:verify",
+    "documents:read",
+    "documents:verify",
+    "analytics:read",
+    "settings:read",
+    "settings:write"
+  ],
+  admin: [
+    "users:read",
+    "applications:read",
+    "applications:write",
+    "applications:review",
+    "programs:read",
+    "payments:read",
+    "payments:verify",
+    "documents:read",
+    "documents:verify",
+    "analytics:read"
+  ],
+  admissions_officer: [
+    "applications:read",
+    "applications:review",
+    "applications:write",
+    "documents:read",
+    "documents:verify",
+    "payments:read"
+  ],
+  registrar: [
+    "applications:read",
+    "applications:review",
+    "programs:read",
+    "documents:read",
+    "analytics:read"
+  ],
+  finance_officer: [
+    "applications:read",
+    "payments:read",
+    "payments:verify",
+    "documents:read"
+  ],
+  academic_head: [
+    "applications:read",
+    "applications:review",
+    "programs:read",
+    "documents:read",
+    "analytics:read"
+  ],
+  reviewer: [
+    "applications:read",
+    "applications:review",
+    "documents:read"
+  ],
+  student: [
+    "applications:create",
+    "applications:read_own",
+    "applications:update_own",
+    "documents:upload_own",
+    "documents:read_own",
+    "payments:make_own",
+    "payments:read_own",
+    "profile:read_own",
+    "profile:update_own"
+  ]
+};
+function getPermissionsForRole(role) {
+  const permissions = ROLE_PERMISSIONS[role];
+  if (!permissions) {
+    console.warn(`[PERMISSIONS] Unknown role requested: ${role}`);
+    return [];
+  }
+  return [...permissions];
+}
+
 // api-src/admin.ts
+function splitFullName(fullName) {
+  const normalized = fullName.trim().replace(/\s+/g, " ");
+  const [firstName, ...rest] = normalized.split(" ");
+  return {
+    firstName,
+    lastName: rest.join(" ") || firstName
+  };
+}
 async function handler(req, res) {
   if (handleCors(req, res))
     return;
@@ -14843,11 +15011,14 @@ async function handler(req, res) {
         await handleDashboard(res);
         return;
       case "users":
+        await handleUsers(req, res, auth);
+        return;
+      case "user-permissions":
         if (req.method !== "GET") {
           sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
           return;
         }
-        await handleUsers(req, res);
+        await handleUserPermissions(req, res);
         return;
       case "settings":
         await handleSettings(req, res, auth);
@@ -14933,7 +15104,7 @@ async function handler(req, res) {
         await handleAppeals(req, res);
         return;
       default:
-        sendError(res, "Invalid action. Valid actions: dashboard, users, settings, register, migrate, stats, errors, set-password, import-settings, reset-settings, eligibility-rules, eligibility-assessments, audit-log, appeals", HttpStatus.BAD_REQUEST);
+        sendError(res, "Invalid action. Valid actions: dashboard, users, user-permissions, settings, register, migrate, stats, errors, set-password, import-settings, reset-settings, eligibility-rules, eligibility-assessments, audit-log, appeals", HttpStatus.BAD_REQUEST);
         return;
     }
   } catch (error48) {
@@ -15151,7 +15322,19 @@ async function handleDashboard(res) {
     handleError(res, error48, "admin/dashboard");
   }
 }
-async function handleUsers(req, res) {
+async function handleUsers(req, res, auth) {
+  if (req.method === "PUT" || req.method === "POST") {
+    await handleUpdateUser(req, res, auth);
+    return;
+  }
+  if (req.method === "DELETE") {
+    await handleDeactivateUser(req, res, auth);
+    return;
+  }
+  if (req.method !== "GET") {
+    sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+    return;
+  }
   let page = parseInt(req.query.page || "1", 10);
   let limit = parseInt(req.query.limit || "50", 10);
   if (isNaN(page) || page < 1)
@@ -15163,9 +15346,13 @@ async function handleUsers(req, res) {
   const offset = (page - 1) * limit;
   const role = req.query.role;
   const search = req.query.search;
+  const includeInactive = req.query.includeInactive === "true";
   const conditions = [];
   const params = [];
   let paramIndex = 1;
+  if (!includeInactive) {
+    conditions.push("is_active = true");
+  }
   if (role) {
     conditions.push(`role = $${paramIndex}`);
     params.push(role);
@@ -15196,12 +15383,185 @@ async function handleUsers(req, res) {
     handleError(res, error48, "admin/users");
   }
 }
+async function handleDeactivateUser(req, res, auth) {
+  const userId = req.query.userId?.trim();
+  if (!userId) {
+    sendError(res, "userId is required", HttpStatus.BAD_REQUEST);
+    return;
+  }
+  if (userId === auth.userId) {
+    sendError(res, "Cannot deactivate your own account", HttpStatus.FORBIDDEN);
+    return;
+  }
+  try {
+    const targetResult = await query("SELECT id, role, is_active, email FROM profiles WHERE id = $1 LIMIT 1", [userId]);
+    if (targetResult.rows.length === 0) {
+      sendError(res, "User not found", HttpStatus.NOT_FOUND);
+      return;
+    }
+    const targetUser = targetResult.rows[0];
+    if (!targetUser.is_active) {
+      sendSuccess(res, {
+        userId,
+        alreadyDeactivated: true,
+        message: "User account is already inactive"
+      });
+      return;
+    }
+    if (targetUser.role === "super_admin") {
+      sendError(res, "Super admin accounts cannot be deactivated", HttpStatus.FORBIDDEN);
+      return;
+    }
+    if (targetUser.role === "admin" && auth.role !== "super_admin") {
+      sendError(res, "Only super_admin can deactivate admin accounts", HttpStatus.FORBIDDEN);
+      return;
+    }
+    const result = await query(`UPDATE profiles
+       SET is_active = false,
+           refresh_token_hash = NULL,
+           updated_at = NOW()
+       WHERE id = $1 AND is_active = true
+       RETURNING id, email, role, is_active, updated_at`, [userId]);
+    if (result.rows.length === 0) {
+      sendSuccess(res, {
+        userId,
+        alreadyDeactivated: true,
+        message: "User account is already inactive"
+      });
+      return;
+    }
+    const sessionResult = await query(`UPDATE device_sessions
+       SET is_active = false
+       WHERE user_id = $1 AND is_active = true`, [userId]);
+    try {
+      await query(`UPDATE user_roles
+         SET is_active = false,
+             updated_at = NOW()
+         WHERE user_id = $1`, [userId]);
+    } catch {}
+    await logAuditEvent({
+      actor_id: auth.userId,
+      action: "user_deactivated",
+      entity_type: "user",
+      entity_id: userId,
+      changes: {
+        role: targetUser.role,
+        deactivated: true,
+        sessions_revoked: sessionResult.rowCount ?? 0
+      }
+    });
+    sendSuccess(res, {
+      user: {
+        ...result.rows[0],
+        user_id: result.rows[0].id
+      },
+      revokedSessions: sessionResult.rowCount ?? 0,
+      message: "User deactivated successfully"
+    });
+  } catch (error48) {
+    handleError(res, error48, "admin/deactivate-user");
+  }
+}
+async function handleUserPermissions(req, res) {
+  const userId = req.query.userId?.trim();
+  if (!userId) {
+    sendError(res, "userId is required", HttpStatus.BAD_REQUEST);
+    return;
+  }
+  try {
+    const result = await query("SELECT id, role FROM profiles WHERE id = $1 LIMIT 1", [userId]);
+    if (result.rows.length === 0) {
+      sendError(res, "User not found", HttpStatus.NOT_FOUND);
+      return;
+    }
+    const user = result.rows[0];
+    sendSuccess(res, {
+      userId: user.id,
+      role: user.role,
+      permissions: getPermissionsForRole(user.role),
+      source: "role"
+    });
+  } catch (error48) {
+    handleError(res, error48, "admin/user-permissions");
+  }
+}
+async function handleUpdateUser(req, res, auth) {
+  const parsed = validateBody(updateUserBodySchema, req, res);
+  if (!parsed)
+    return;
+  const { userId, email: email3, full_name, phone, role } = parsed;
+  const { firstName, lastName } = splitFullName(full_name);
+  if ((role === "admin" || role === "super_admin") && auth.role !== "super_admin") {
+    sendError(res, "Only super_admin can assign admin or super_admin roles", HttpStatus.FORBIDDEN);
+    return;
+  }
+  if (userId === auth.userId && role !== auth.role) {
+    sendError(res, "Cannot change your own role", HttpStatus.FORBIDDEN);
+    return;
+  }
+  try {
+    const existing = await query("SELECT id FROM profiles WHERE email = $1 AND id <> $2 LIMIT 1", [email3.toLowerCase(), userId]);
+    if (existing.rows.length > 0) {
+      sendError(res, "Email already registered to another user", HttpStatus.CONFLICT);
+      return;
+    }
+    const result = await query(`UPDATE profiles
+       SET email = $1,
+           first_name = $2,
+           last_name = $3,
+           full_name = $4,
+           phone = $5,
+           role = $6,
+           updated_at = NOW()
+       WHERE id = $7
+       RETURNING id, email, first_name, last_name, full_name, phone, role, updated_at`, [email3.toLowerCase(), firstName, lastName, full_name.trim(), phone || null, role, userId]);
+    if (result.rows.length === 0) {
+      sendError(res, "User not found", HttpStatus.NOT_FOUND);
+      return;
+    }
+    try {
+      await query(`INSERT INTO user_roles (user_id, role, is_active, created_at, updated_at)
+         VALUES ($1, $2, true, NOW(), NOW())
+         ON CONFLICT (user_id)
+         DO UPDATE SET role = EXCLUDED.role, is_active = true, updated_at = NOW()`, [userId, role]);
+    } catch {}
+    await logAuditEvent({
+      actor_id: auth.userId,
+      action: "user_updated",
+      entity_type: "user",
+      entity_id: userId,
+      changes: {
+        email: email3.toLowerCase(),
+        full_name: full_name.trim(),
+        phone: phone || null,
+        role
+      }
+    });
+    sendSuccess(res, {
+      user: {
+        ...result.rows[0],
+        user_id: result.rows[0].id
+      }
+    });
+  } catch (error48) {
+    handleError(res, error48, "admin/update-user");
+  }
+}
 async function handleRegisterUser(req, res, auth) {
   const parsed = validateBody(adminRegisterBodySchema, req, res);
   if (!parsed)
     return;
   const { email: email3, password, firstName, lastName, role } = parsed;
-  const validRoles = ["student", "reviewer", "admin", "super_admin"];
+  const validRoles = [
+    "student",
+    "reviewer",
+    "admissions_officer",
+    "registrar",
+    "finance_officer",
+    "academic_head",
+    "admin",
+    "super_admin"
+  ];
   const userRole = role && validRoles.includes(role) ? role : "student";
   if ((userRole === "admin" || userRole === "super_admin") && auth.role !== "super_admin") {
     sendError(res, "Only super_admin can assign admin or super_admin roles", HttpStatus.FORBIDDEN);
@@ -15457,27 +15817,29 @@ async function handleImportSettings(req, res, auth) {
   }
   const imported = [];
   const errors3 = [];
-  for (const setting of settings) {
-    try {
-      await query(`INSERT INTO settings (key, value, description, category, is_public, updated_by, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-         ON CONFLICT (key) 
-         DO UPDATE SET 
-           value = EXCLUDED.value,
-           description = EXCLUDED.description,
-           category = EXCLUDED.category,
-           is_public = EXCLUDED.is_public,
-           updated_by = EXCLUDED.updated_by,
-           updated_at = NOW()`, [
-        setting.key,
-        JSON.stringify(setting.value),
-        setting.description || null,
-        setting.category || null,
-        setting.is_public ?? false,
-        auth.userId
-      ]);
+  try {
+    const values = [];
+    const placeholders = [];
+    settings.forEach((setting, i) => {
+      const offset = i * 6;
+      placeholders.push(`($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, NOW(), NOW())`);
+      values.push(setting.key, JSON.stringify(setting.value), setting.description || null, setting.category || null, setting.is_public ?? false, auth.userId);
+    });
+    await query(`INSERT INTO settings (key, value, description, category, is_public, updated_by, created_at, updated_at)
+       VALUES ${placeholders.join(", ")}
+       ON CONFLICT (key)
+       DO UPDATE SET
+         value = EXCLUDED.value,
+         description = EXCLUDED.description,
+         category = EXCLUDED.category,
+         is_public = EXCLUDED.is_public,
+         updated_by = EXCLUDED.updated_by,
+         updated_at = NOW()`, values);
+    for (const setting of settings) {
       imported.push(setting.key);
-    } catch (e) {
+    }
+  } catch (e) {
+    for (const setting of settings) {
       errors3.push(`${setting.key}: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
@@ -15499,7 +15861,6 @@ async function handleImportSettings(req, res, auth) {
 }
 async function handleResetSettings(res, auth) {
   try {
-    await query("DELETE FROM settings WHERE 1=1");
     const defaultSettings = [
       {
         key: "site_name",
@@ -15544,17 +15905,22 @@ async function handleResetSettings(res, auth) {
         is_public: true
       }
     ];
-    for (const setting of defaultSettings) {
-      await query(`INSERT INTO settings (key, value, description, category, is_public, updated_by, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())`, [
-        setting.key,
-        JSON.stringify(setting.value),
-        setting.description,
-        setting.category,
-        setting.is_public,
-        auth.userId
-      ]);
+    const ops = [{ text: "DELETE FROM settings WHERE 1=1", values: [] }];
+    if (defaultSettings.length > 0) {
+      const values = [];
+      const placeholders = [];
+      defaultSettings.forEach((setting, i) => {
+        const offset = i * 6;
+        placeholders.push(`($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, NOW(), NOW())`);
+        values.push(setting.key, JSON.stringify(setting.value), setting.description, setting.category, setting.is_public, auth.userId);
+      });
+      ops.push({
+        text: `INSERT INTO settings (key, value, description, category, is_public, updated_by, created_at, updated_at)
+         VALUES ${placeholders.join(", ")}`,
+        values
+      });
     }
+    await transaction(ops);
     await logAuditEvent({
       actor_id: auth.userId,
       action: "settings_reset_to_defaults",

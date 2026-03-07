@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Performance Utilities
  * 
@@ -373,7 +372,7 @@ export function requestIdleCallback(
   }
   
   // Fallback for browsers without requestIdleCallback
-  return window.setTimeout(callback, options?.timeout || 1) as unknown as number
+  return globalThis.setTimeout(callback, options?.timeout || 1) as unknown as number
 }
 
 /**
@@ -383,6 +382,6 @@ export function cancelIdleCallback(id: number): void {
   if (typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
     window.cancelIdleCallback(id)
   } else {
-    window.clearTimeout(id)
+    globalThis.clearTimeout(id)
   }
 }
