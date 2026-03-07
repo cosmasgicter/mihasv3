@@ -1035,6 +1035,7 @@ async function verifyAccessToken(token) {
       email: payload.email,
       role: payload.role,
       permissions: Array.isArray(payload.permissions) ? payload.permissions : [],
+      sid: typeof payload.sid === "string" ? payload.sid : undefined,
       type: "access",
       iat: payload.iat,
       exp: payload.exp,
@@ -1219,6 +1220,16 @@ async function deactivateOtherSessions(userId, currentSessionId, ipAddress = nul
   }
   return { success: true, deactivatedCount: result.rowCount, sessionIds };
 }
+async function isSessionActive(userId, sessionId) {
+  const result = await query(`SELECT id
+     FROM device_sessions
+     WHERE id = $1
+       AND user_id = $2
+       AND is_active = true
+       AND expires_at > NOW()
+     LIMIT 1`, [sessionId, userId]);
+  return result.rowCount > 0;
+}
 
 // lib/realtimeBroker.ts
 var userEvents = new Map;
@@ -1261,6 +1272,10 @@ async function getAuthUser(req) {
   }
   try {
     const payload = await verifyAccessToken(token);
+    const sessionValid = await validateTrackedSession(payload);
+    if (!sessionValid) {
+      return null;
+    }
     return mapPayloadToAuthContext(payload);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -1273,8 +1288,20 @@ function mapPayloadToAuthContext(payload) {
     userId: payload.sub,
     email: payload.email,
     role: payload.role,
-    permissions: payload.permissions || []
+    permissions: payload.permissions || [],
+    sessionId: payload.sid
   };
+}
+async function validateTrackedSession(payload) {
+  if (!payload.sid) {
+    return true;
+  }
+  try {
+    return await isSessionActive(payload.sub, payload.sid);
+  } catch (error) {
+    console.log("[AUTH] Session validation failed:", error instanceof Error ? error.message : "Unknown error");
+    return false;
+  }
 }
 
 // lib/csrf.ts
@@ -14935,7 +14962,7 @@ async function getUserFromRequest(req) {
     return null;
   try {
     const payload = await verifyAccessToken(token);
-    return { userId: payload.sub, sessionId: undefined };
+    return { userId: payload.sub, sessionId: payload.sid };
   } catch {
     return null;
   }

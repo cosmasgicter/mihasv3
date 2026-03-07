@@ -1,4 +1,4 @@
-import type { ChangeEvent } from 'react'
+import { type ChangeEvent, useEffect, useRef } from 'react'
 
 import { X } from 'lucide-react'
 
@@ -71,6 +71,16 @@ const EducationStep = ({
   handleResultSlipUpload,
   handleExtraKycUpload
 }: EducationStepProps) => {
+  const lastSubjectRef = useRef<HTMLDivElement>(null)
+  const prevGradeCountRef = useRef(selectedGrades.length)
+
+  useEffect(() => {
+    if (selectedGrades.length > prevGradeCountRef.current && lastSubjectRef.current) {
+      lastSubjectRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+    prevGradeCountRef.current = selectedGrades.length
+  }, [selectedGrades.length])
+
   const resultSlipStatus = getUploadStatus(resultSlipFile, uploadedFiles.result_slip)
   const identityStatus = getUploadStatus(extraKycFile, uploadedFiles.extra_kyc)
 
@@ -165,6 +175,7 @@ const EducationStep = ({
             {selectedGrades.map((grade, index) => (
               <div
                 key={index}
+                ref={index === selectedGrades.length - 1 ? lastSubjectRef : undefined}
                 className={`flex flex-col sm:grid sm:grid-cols-12 items-stretch sm:items-center gap-3 p-3 sm:p-4 bg-muted rounded-lg ${animateClasses.slideUp}`}
                 style={staggerChild(index)}
               >

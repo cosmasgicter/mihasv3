@@ -1,7 +1,8 @@
-import { CheckCircle, Download, Mail, Send } from 'lucide-react'
+import { CheckCircle, Download, Mail, Send, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { animateClasses } from '@/lib/animations'
 
 import type { SubmittedApplicationSummary } from '../hooks/useApplicationSlip'
@@ -26,6 +27,7 @@ interface SubmissionSuccessProps {
   emailLoading: boolean
   onDownload: () => Promise<void>
   onEmail: () => Promise<void>
+  onDismissSlipProgress?: () => void
 }
 
 const formatPaymentStatusLabel = (status?: string | null) => {
@@ -72,10 +74,33 @@ const SubmissionSuccess = ({
   slipLoading,
   emailLoading,
   onDownload,
-  onEmail
+  onEmail,
+  onDismissSlipProgress
 }: SubmissionSuccessProps) => (
   <div className="min-h-screen bg-muted flex items-center justify-center py-6 sm:py-12 px-4">
     <div className="max-w-lg w-full">
+      {/* Dismissible slip generation overlay */}
+      {(persistingSlip || slipLoading) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="relative bg-card rounded-lg shadow-xl p-6 max-w-sm w-full mx-4 text-center">
+            <button
+              type="button"
+              onClick={onDismissSlipProgress}
+              className="absolute top-3 right-3 p-1 rounded-sm hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label="Close slip progress"
+            >
+              <X className="h-4 w-4 text-foreground" />
+            </button>
+            <LoadingSpinner />
+            <p className="mt-4 text-sm font-medium text-foreground">
+              {persistingSlip ? 'Generating application slip...' : 'Preparing your slip...'}
+            </p>
+            <p className="mt-1 text-xs text-caption">
+              You can close this and download the slip later.
+            </p>
+          </div>
+        </div>
+      )}
       <div
         className={`bg-card rounded-lg shadow-lg p-4 sm:p-8 text-center ${animateClasses.scaleIn}`}
       >

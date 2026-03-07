@@ -24,7 +24,7 @@ export interface PageHeaderProps {
 }
 
 const variantStyles: Record<NonNullable<PageHeaderProps['variant']>, string> = {
- gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-card/20 shadow-2xl',
+ gradient: 'bg-gradient-to-r from-blue-600/90 to-indigo-600/85 text-white border-card/20 shadow-2xl',
  surface: 'bg-card text-foreground border border-border shadow-xl',
  subtle: 'bg-card/90 text-foreground border border-card/60 shadow-lg backdrop-blur-sm'
 }

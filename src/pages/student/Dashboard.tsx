@@ -412,7 +412,7 @@ export default function StudentDashboard() {
             {isRefreshing && (
               <div className="rounded-full bg-white px-6 py-3 shadow-lg animate-fade-in">
                 <div className="h-1 w-full overflow-hidden rounded-full bg-blue-100">
-                  <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 animate-pulse" />
+                  <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-blue-500/80 via-indigo-500/75 to-blue-600/80 animate-pulse" />
                 </div>
                 <span className="sr-only">Refreshing dashboard data</span>
               </div>
@@ -511,7 +511,7 @@ export default function StudentDashboard() {
                         </p>
                       </div>
                       <Link to="/student/application-wizard">
-                        <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:from-blue-700 hover:to-purple-700">
+                        <Button className="bg-gradient-to-r from-blue-600/90 to-indigo-600/85 text-white shadow-lg hover:from-blue-700/90 hover:to-indigo-700/85">
                           <Plus className="mr-2 h-5 w-5" />
                           New Application
                         </Button>

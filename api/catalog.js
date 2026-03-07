@@ -997,6 +997,7 @@ async function verifyAccessToken(token) {
       email: payload.email,
       role: payload.role,
       permissions: Array.isArray(payload.permissions) ? payload.permissions : [],
+      sid: typeof payload.sid === "string" ? payload.sid : undefined,
       type: "access",
       iat: payload.iat,
       exp: payload.exp,
@@ -1071,6 +1072,20 @@ function extractAccessTokenFromCookie(req) {
   return token;
 }
 
+// lib/sessions.ts
+init_db();
+init_queries();
+async function isSessionActive(userId, sessionId) {
+  const result = await query(`SELECT id
+     FROM device_sessions
+     WHERE id = $1
+       AND user_id = $2
+       AND is_active = true
+       AND expires_at > NOW()
+     LIMIT 1`, [sessionId, userId]);
+  return result.rowCount > 0;
+}
+
 // lib/auth/middleware.ts
 function extractToken(req) {
   const cookieToken = extractAccessTokenFromCookie(req);
@@ -1090,6 +1105,10 @@ async function getAuthUser(req) {
   }
   try {
     const payload = await verifyAccessToken(token);
+    const sessionValid = await validateTrackedSession(payload);
+    if (!sessionValid) {
+      return null;
+    }
     return mapPayloadToAuthContext(payload);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -1102,8 +1121,20 @@ function mapPayloadToAuthContext(payload) {
     userId: payload.sub,
     email: payload.email,
     role: payload.role,
-    permissions: payload.permissions || []
+    permissions: payload.permissions || [],
+    sessionId: payload.sid
   };
+}
+async function validateTrackedSession(payload) {
+  if (!payload.sid) {
+    return true;
+  }
+  try {
+    return await isSessionActive(payload.sub, payload.sid);
+  } catch (error) {
+    console.log("[AUTH] Session validation failed:", error instanceof Error ? error.message : "Unknown error");
+    return false;
+  }
 }
 
 // api-src/catalog.ts
@@ -1178,6 +1209,18 @@ function normalizeProgram(row) {
 }
 function generateProgramCode(name) {
   return name.trim().toUpperCase().replace(/[^A-Z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 24);
+}
+function normalizeInstitution(record) {
+  return {
+    id: record.id,
+    name: record.name,
+    full_name: record.full_name ?? record.name,
+    code: record.code ?? null,
+    description: record.description ?? "",
+    is_active: record.is_active !== false,
+    created_at: record.created_at,
+    updated_at: record.updated_at
+  };
 }
 function normalizeIntake(row) {
   return {
@@ -1360,6 +1403,97 @@ async function deleteProgram(req, res) {
     return handleError(res, error, "catalog/delete-program");
   }
 }
+async function listInstitutions(res, includeInactive, shouldCache) {
+  try {
+    const result = await query(`SELECT id, name, full_name, code, description, is_active, created_at, updated_at
+       FROM institutions
+       WHERE ($1::boolean = true OR is_active = true)
+       ORDER BY full_name ASC, name ASC`, [includeInactive]);
+    if (shouldCache) {
+      res.setHeader("Cache-Control", "public, max-age=300");
+    }
+    return sendSuccess(res, { institutions: result.rows.map(normalizeInstitution) });
+  } catch (error) {
+    return handleError(res, error, "catalog/list-institutions");
+  }
+}
+async function createInstitution(req, res) {
+  const body = req.body || {};
+  const name = String(body.name || "").trim();
+  const fullName = String(body.full_name || body.fullName || "").trim() || name;
+  const code = String(body.code || "").trim() || null;
+  const description = typeof body.description === "string" ? body.description.trim() : "";
+  if (!name) {
+    return sendError(res, "Institution name is required", HttpStatus.BAD_REQUEST);
+  }
+  try {
+    const result = await query(`INSERT INTO institutions (name, full_name, code, description, is_active, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, true, NOW(), NOW())
+       RETURNING id, name, full_name, code, description, is_active, created_at, updated_at`, [name, fullName, code, description || null]);
+    return sendSuccess(res, { institution: normalizeInstitution(result.rows[0]) });
+  } catch (error) {
+    return handleError(res, error, "catalog/create-institution");
+  }
+}
+async function updateInstitution(req, res) {
+  const body = req.body || {};
+  const id = String(body.id || "").trim();
+  const name = String(body.name || "").trim();
+  const fullName = String(body.full_name || body.fullName || "").trim() || name;
+  const code = String(body.code || "").trim() || null;
+  const description = typeof body.description === "string" ? body.description.trim() : "";
+  const isActive = typeof body.is_active === "boolean" ? body.is_active : undefined;
+  if (!id) {
+    return sendError(res, "Institution id is required", HttpStatus.BAD_REQUEST);
+  }
+  if (!name) {
+    return sendError(res, "Institution name is required", HttpStatus.BAD_REQUEST);
+  }
+  try {
+    const result = await query(`UPDATE institutions
+       SET name = $2,
+           full_name = $3,
+           code = $4,
+           description = $5,
+           is_active = COALESCE($6, is_active),
+           updated_at = NOW()
+       WHERE id = $1
+       RETURNING id, name, full_name, code, description, is_active, created_at, updated_at`, [id, name, fullName, code, description || null, isActive ?? null]);
+    if (result.rowCount === 0) {
+      return sendError(res, "Institution not found", HttpStatus.NOT_FOUND);
+    }
+    return sendSuccess(res, { institution: normalizeInstitution(result.rows[0]) });
+  } catch (error) {
+    return handleError(res, error, "catalog/update-institution");
+  }
+}
+async function deleteInstitution(req, res) {
+  const body = req.body || {};
+  const id = String(body.id || req.query.id || "").trim();
+  if (!id) {
+    return sendError(res, "Institution id is required", HttpStatus.BAD_REQUEST);
+  }
+  try {
+    const programCount = await query(`SELECT COUNT(*)::text AS count
+       FROM programs
+       WHERE institution_id = $1
+         AND is_active = true`, [id]);
+    if (Number(programCount.rows[0]?.count ?? "0") > 0) {
+      return sendError(res, "Cannot archive an institution that still has active programs", HttpStatus.CONFLICT);
+    }
+    const result = await query(`UPDATE institutions
+       SET is_active = false,
+           updated_at = NOW()
+       WHERE id = $1 AND is_active = true
+       RETURNING id`, [id]);
+    if (result.rowCount === 0) {
+      return sendError(res, "Institution not found or already inactive", HttpStatus.NOT_FOUND);
+    }
+    return sendSuccess(res, { deleted: true, id });
+  } catch (error) {
+    return handleError(res, error, "catalog/delete-institution");
+  }
+}
 async function createIntake(req, res) {
   const body = req.body || {};
   const name = String(body.name || "").trim();
@@ -1487,19 +1621,15 @@ async function handler(req, res) {
         return sendSuccess(res, { subjects: result.rows });
       }
       if (type === "institutions") {
-        const result = await query("SELECT * FROM institutions WHERE is_active = true ORDER BY name ASC");
-        if (!authUser) {
-          res.setHeader("Cache-Control", "public, max-age=300");
-        }
-        return sendSuccess(res, { institutions: result.rows });
+        return await listInstitutions(res, isAdmin, !authUser);
       }
       return sendError(res, "Invalid type. Use: programs, intakes, subjects, or institutions", HttpStatus.BAD_REQUEST);
     }
     if (!["POST", "PUT", "DELETE"].includes(req.method || "")) {
       return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
     }
-    if (type !== "programs" && type !== "intakes") {
-      return sendError(res, "Write operations are only supported for programs and intakes", HttpStatus.BAD_REQUEST);
+    if (!["programs", "intakes", "institutions"].includes(type)) {
+      return sendError(res, "Write operations are only supported for programs, institutions, and intakes", HttpStatus.BAD_REQUEST);
     }
     const adminUser = await ensureAdmin(req, res);
     if (!adminUser) {
@@ -1511,6 +1641,13 @@ async function handler(req, res) {
       if (req.method === "PUT")
         return await updateProgram(req, res);
       return await deleteProgram(req, res);
+    }
+    if (type === "institutions") {
+      if (req.method === "POST")
+        return await createInstitution(req, res);
+      if (req.method === "PUT")
+        return await updateInstitution(req, res);
+      return await deleteInstitution(req, res);
     }
     if (req.method === "POST")
       return await createIntake(req, res);

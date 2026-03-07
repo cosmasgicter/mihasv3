@@ -71,10 +71,10 @@
   --color-error-border: #fca5a5;      /* Error border */
   --color-error-text: #991b1b;        /* 7.73:1 on white */
   
-  /* Gradient Colors */
-  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  --gradient-secondary: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
-  --gradient-accent: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+  /* Gradient Colors — balanced saturation */
+  --gradient-primary: linear-gradient(135deg, #3b82f6e6 0%, #6366f1d9 100%);
+  --gradient-secondary: linear-gradient(135deg, #06b6d4e6 0%, #3b82f6e6 100%);
+  --gradient-accent: linear-gradient(135deg, #f59e0be6 0%, #ef4444e6 100%);
   
   /* ===== TYPOGRAPHY SYSTEM ===== */
   /* Font Families */

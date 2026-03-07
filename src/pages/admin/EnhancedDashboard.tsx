@@ -111,7 +111,7 @@ export default function EnhancedAdminDashboard() {
         <div 
           className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}
         >
-          <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600/90 via-indigo-600/85 to-blue-700/90 rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
             <div className="absolute inset-0 bg-black/10"></div>
             <div className="relative z-10">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
@@ -181,7 +181,7 @@ export default function EnhancedAdminDashboard() {
                     onClick={() => setActiveTab(tab.id as any)}
                     className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
                       activeTab === tab.id
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                        ? 'bg-gradient-to-r from-blue-600/90 to-indigo-600/85 text-white shadow-lg'
                         : 'text-foreground hover:bg-muted'
                     }`}
                   >
