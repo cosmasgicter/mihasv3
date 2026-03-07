@@ -14,11 +14,13 @@ interface BulkUserOperationsProps {
 
 const AVAILABLE_ROLES = [
   { value: 'student', label: 'Student' },
+  { value: 'reviewer', label: 'Reviewer' },
   { value: 'admissions_officer', label: 'Admissions Officer' },
   { value: 'registrar', label: 'Registrar' },
   { value: 'finance_officer', label: 'Finance Officer' },
   { value: 'academic_head', label: 'Academic Head' },
   { value: 'admin', label: 'Administrator' },
+  { value: 'super_admin', label: 'Super Admin' },
 ]
 
 export function BulkUserOperations({ 
@@ -112,7 +114,7 @@ export function BulkUserOperations({
                 className="text-destructive border-destructive/30 hover:bg-destructive/5"
               >
                 <Trash2 className="h-4 w-4 mr-1" />
-                Delete Users
+                Deactivate Users
               </Button>
             )}
           </div>
@@ -204,25 +206,25 @@ export function BulkUserOperations({
         </DialogContent>
       </Dialog>
 
-      {/* Bulk Delete Dialog */}
+      {/* Bulk Deactivate Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2 text-destructive">
               <Trash2 className="h-5 w-5" />
-              <span>Delete Users</span>
+              <span>Deactivate Users</span>
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-foreground">
-              Are you sure you want to delete {selectedUsers.length} selected user{selectedUsers.length !== 1 ? 's' : ''}?
+              Deactivate {selectedUsers.length} selected user{selectedUsers.length !== 1 ? 's' : ''}?
             </p>
             <div className="bg-destructive/5 border border-destructive/30 rounded-lg p-3">
               <div className="flex items-start space-x-2">
                 <AlertTriangle className="h-4 w-4 text-destructive mt-0.5" />
                 <div className="text-sm text-error">
-                  <p className="font-medium">This action cannot be undone!</p>
-                  <p>All user data and associated records will be permanently deleted.</p>
+                  <p className="font-medium">Sign-in access will be removed immediately.</p>
+                  <p>User records stay available for audit/history, but the selected accounts will become inactive.</p>
                 </div>
               </div>
             </div>
@@ -240,7 +242,7 @@ export function BulkUserOperations({
               loading={loading}
               variant="destructive"
             >
-              Delete Users
+              Deactivate Users
             </Button>
           </DialogFooter>
         </DialogContent>

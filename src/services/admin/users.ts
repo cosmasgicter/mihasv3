@@ -13,6 +13,21 @@ const splitFullName = (fullName: string): { firstName: string; lastName: string 
   }
 }
 
+export interface AdminUserMutationResult {
+  user?: Record<string, any>
+  revokedSessions?: number
+  message?: string
+}
+
+export interface AdminUserPermissionsResult {
+  userId: string
+  role: string
+  permissions: string[]
+  defaultPermissions?: string[]
+  source: string
+  revokedSessions?: number
+}
+
 export const userService = {
   list: async () => {
     const response = await apiClient.request<{
@@ -40,20 +55,41 @@ export const userService = {
   },
   getById: (_id: string) => Promise.reject(new Error('User detail endpoint is not supported by /api/admin yet')),
   getRole: (_id: string) => Promise.reject(new Error('User role endpoint is not supported by /api/admin yet')),
-  getPermissions: (_id: string) => Promise.reject(new Error('User permissions endpoint is not supported by /api/admin yet')),
+  getPermissions: async (id: string) => {
+    return apiClient.request<AdminUserPermissionsResult>(`/api/admin?action=user-permissions&userId=${encodeURIComponent(id)}`)
+  },
   create: (data: { email: string; password: string; full_name: string; phone?: string; role: string }) =>
-    apiClient.request('/api/admin?action=register', {
+    apiClient.request<AdminUserMutationResult>('/api/admin?action=register', {
       method: 'POST',
       body: JSON.stringify({
         email: data.email,
         password: data.password,
+        phone: data.phone,
         ...splitFullName(data.full_name),
         role: data.role,
       })
     }),
-  update: (_id: string, _data: { full_name: string; email: string; phone?: string; role: string }) =>
-    Promise.reject(new Error('User update is not supported by /api/admin yet')),
-  updatePermissions: (_id: string, _permissions: string[]) =>
-    Promise.reject(new Error('User permissions update is not supported by /api/admin yet')),
-  remove: (_id: string) => Promise.reject(new Error('User delete is not supported by /api/admin yet')),
+  update: (id: string, data: { full_name: string; email: string; phone?: string; role: string }) =>
+    apiClient.request<AdminUserMutationResult>('/api/admin?action=users', {
+      method: 'PUT',
+      body: JSON.stringify({
+        userId: id,
+        full_name: data.full_name,
+        email: data.email,
+        phone: data.phone,
+        role: data.role,
+      })
+    }),
+  updatePermissions: (id: string, permissions: string[]) =>
+    apiClient.request<AdminUserPermissionsResult>('/api/admin?action=user-permissions', {
+      method: 'PUT',
+      body: JSON.stringify({
+        userId: id,
+        permissions,
+      })
+    }),
+  remove: (id: string) =>
+    apiClient.request<AdminUserMutationResult>(`/api/admin?action=users&userId=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }),
 }

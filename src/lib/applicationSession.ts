@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Application Session Manager
  * 
@@ -56,6 +55,87 @@ class ApplicationSessionManager {
 
   constructor() {
     this.sessionId = generateSecureToken(16)
+  }
+
+  private getStoredWizardDraft(): Record<string, any> | null {
+    const savedDraft = localStorage.getItem('applicationWizardDraft')
+    if (!savedDraft) {
+      return null
+    }
+
+    const draft = safeJsonParse<Record<string, any> | null>(savedDraft, null)
+    if (!draft) {
+      localStorage.removeItem('applicationWizardDraft')
+      return null
+    }
+
+    return draft
+  }
+
+  private shouldDiscardLocalDraft(error: unknown): boolean {
+    if (!(error instanceof Error)) {
+      return false
+    }
+
+    const message = error.message.toLowerCase()
+    return (
+      message.includes('resource not found') ||
+      message.includes('not found') ||
+      message.includes('access denied') ||
+      message.includes('authentication required') ||
+      message.includes('permission')
+    )
+  }
+
+  async getLocalWizardDraft(userId?: string): Promise<Record<string, any> | null> {
+    const draft = this.getStoredWizardDraft()
+    if (!draft) {
+      return null
+    }
+
+    const draftOwnerId = typeof draft.userId === 'string'
+      ? draft.userId
+      : typeof draft.user_id === 'string'
+        ? draft.user_id
+        : null
+
+    if (userId && draftOwnerId && draftOwnerId !== userId) {
+      this.clearAllLocalStorage()
+      return null
+    }
+
+    if (draft.applicationId) {
+      try {
+        const application = await applicationService.getById(String(draft.applicationId))
+        const status = application?.application?.status
+        if (status && status !== 'draft') {
+          this.clearAllLocalStorage()
+          return null
+        }
+      } catch (error) {
+        if (this.shouldDiscardLocalDraft(error)) {
+          this.clearAllLocalStorage()
+          return null
+        }
+      }
+    }
+
+    return draft
+  }
+
+  private buildLocalDraftInfo(draft: Record<string, any>) {
+    const steps = ['Basic KYC', 'Education', 'Payment', 'Submit']
+    const step = Math.min(Math.max(Number(draft.currentStep) || 1, 1), steps.length)
+    const savedTime = draft.savedAt ? new Date(draft.savedAt).getTime() : Date.now()
+    const expiresAt = new Date(savedTime + 24 * 60 * 60 * 1000).toISOString()
+
+    return {
+      exists: true,
+      step,
+      lastSaved: draft.savedAt,
+      progress: `Step ${step}/4: ${steps[step - 1]}`,
+      expiresAt
+    }
   }
 
   // Initialize session management
@@ -148,7 +228,7 @@ class ApplicationSessionManager {
     try {
       const savedDraft = localStorage.getItem('applicationDraft')
       if (savedDraft) {
-        const draft = safeJsonParse(savedDraft, null)
+        const draft = safeJsonParse<Record<string, any> | null>(savedDraft, null)
         if (!draft) return
         // Update last saved timestamp
         draft.last_saved_at = new Date().toISOString()
@@ -191,18 +271,13 @@ class ApplicationSessionManager {
       }
 
       // Fallback to localStorage
-      const localDraft = localStorage.getItem('applicationDraft')
+      const localDraft = await this.getLocalWizardDraft(userId)
       if (localDraft) {
-        const draft = safeJsonParse(localDraft, null)
-        if (!draft) {
-          localStorage.removeItem('applicationDraft')
-          return null
+        if (!localDraft.user_id || localDraft.user_id === userId) {
+          return localDraft as ApplicationDraft
         }
-        if (draft.user_id === userId) {
-          return draft
-        } else {
-          localStorage.removeItem('applicationDraft')
-        }
+
+        localStorage.removeItem('applicationWizardDraft')
       }
 
       return null
@@ -221,10 +296,22 @@ class ApplicationSessionManager {
       // Step 2: Clear intervals to stop auto-save
       this.cleanup()
 
-      // Step 3: Database cleanup via API (don't fail if this doesn't work)
-      await Promise.allSettled([
-        applicationService.delete(userId).catch(() => {})
-      ])
+      // Step 3: Database cleanup via API (delete actual draft application ids, not the user id)
+      try {
+        const draftList = await applicationService.list({
+          mine: true,
+          status: 'draft',
+          pageSize: 50
+        })
+        const draftIds = (draftList?.applications ?? [])
+          .map(application => application?.id)
+          .filter((id): id is string => typeof id === 'string' && id.length > 0)
+
+        if (draftIds.length > 0) {
+          await Promise.allSettled(draftIds.map(id => applicationService.delete(id)))
+        }
+      } catch (cleanupError) {
+      }
 
       // Step 4: Set deletion flag for other components
       try {
@@ -304,7 +391,7 @@ class ApplicationSessionManager {
     // Keep data but mark as expired
     const localDraft = localStorage.getItem('applicationDraft')
     if (localDraft) {
-      const draft = safeJsonParse(localDraft, null)
+      const draft = safeJsonParse<Record<string, any> | null>(localDraft, null)
       if (draft) {
         draft.expired = true
         try {
@@ -341,24 +428,9 @@ class ApplicationSessionManager {
     expiresAt?: string
   }> {
     try {
-      // Check localStorage first
-      const localDraft = localStorage.getItem('applicationWizardDraft')
+      const localDraft = await this.getLocalWizardDraft(userId)
       if (localDraft) {
-        const draft = safeJsonParse(localDraft, null)
-        if (draft) {
-          const steps = ['Basic KYC', 'Education', 'Payment', 'Submit']
-          const savedTime = draft.savedAt ? new Date(draft.savedAt).getTime() : Date.now()
-          const expiresAt = new Date(savedTime + 24 * 60 * 60 * 1000).toISOString()
-          return {
-            exists: true,
-            step: draft.currentStep || 1,
-            lastSaved: draft.savedAt,
-            progress: `Step ${draft.currentStep || 1}/4: ${steps[(draft.currentStep || 1) - 1]}`,
-            expiresAt
-          }
-        } else {
-          localStorage.removeItem('applicationWizardDraft')
-        }
+        return this.buildLocalDraftInfo(localDraft)
       }
 
       // Check database for draft applications via API
@@ -374,7 +446,7 @@ class ApplicationSessionManager {
         if (app.result_slip_url) currentStep = 3
         else if (app.program && app.full_name) currentStep = 2
         
-        const createdTime = new Date(app.created_at).getTime()
+        const createdTime = new Date(app.created_at || Date.now()).getTime()
         const expiresAt = new Date(createdTime + 24 * 60 * 60 * 1000).toISOString()
         
         return {

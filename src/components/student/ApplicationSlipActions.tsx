@@ -1,58 +1,104 @@
 import React, { useState } from 'react'
+import { Download, Loader2, Mail } from 'lucide-react'
+
 import { Button } from '@/components/ui/Button'
-import { Download, Mail, Loader2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { getApiBaseUrl } from '@/lib/apiConfig'
+import { createApplicationSlip } from '@/lib/slipService'
+import type { ApplicationSlipData } from '@/lib/applicationSlip'
+import { applicationService } from '@/services/applications'
 import { toast } from '@/hooks/useToast'
-// Dynamic import for PDF generation
 
 interface ApplicationSlipActionsProps {
   applicationId: string
-  applicationNumber: string
+  applicationNumber?: string
+}
+
+function buildSlipPayload(application: Record<string, any>, fallbackEmail?: string, userId?: string): ApplicationSlipData | null {
+  const email = application.email || fallbackEmail
+  const trackingCode = application.public_tracking_code
+
+  if (!email || !trackingCode || !application.application_number) {
+    return null
+  }
+
+  return {
+    public_tracking_code: trackingCode,
+    application_number: application.application_number,
+    status: application.status || 'submitted',
+    payment_status: application.payment_status ?? null,
+    submitted_at: application.submitted_at ?? null,
+    updated_at: application.updated_at ?? null,
+    program_name: application.program ?? application.program_name ?? null,
+    intake_name: application.intake ?? application.intake_name ?? null,
+    institution: application.institution ?? null,
+    institution_name: application.institution_name ?? null,
+    full_name: application.full_name ?? null,
+    email,
+    phone: application.phone ?? null,
+    nationality: application.nationality ?? null,
+    admin_feedback: application.admin_feedback ?? null,
+    admin_feedback_date: application.admin_feedback_date ?? null,
+    userId,
+  }
 }
 
 export function ApplicationSlipActions({ applicationId, applicationNumber }: ApplicationSlipActionsProps) {
   const { user } = useAuth()
-  const apiBaseUrl = getApiBaseUrl()
   const [isDownloading, setIsDownloading] = useState(false)
   const [isEmailing, setIsEmailing] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
 
+  const prepareSlip = async (sendEmail: boolean) => {
+    const response = await applicationService.getById(applicationId)
+    const application = response?.application
+
+    if (!application) {
+      throw new Error('Application details are unavailable')
+    }
+
+    const slipPayload = buildSlipPayload(application as Record<string, any>, user?.email, user?.id)
+    if (!slipPayload) {
+      throw new Error('Missing application details required for the slip')
+    }
+
+    const result = await createApplicationSlip(slipPayload, {
+      sendEmail,
+      toast: {
+        showSuccess: (title, message) => toast.success(title, message),
+        showError: (title, message) => toast.error(title, message),
+        showInfo: (title, message) => toast.info(title, message),
+        showWarning: (title, message) => toast.warning(title, message),
+      }
+    })
+
+    if (result.error) {
+      throw new Error(result.error)
+    }
+
+    return result
+  }
+
   const handleDownload = async () => {
     setIsDownloading(true)
     try {
-      const response = await fetch(`${apiBaseUrl}/applications/generate/slip`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ applicationId })
-      })
+      const result = await prepareSlip(false)
+      const resolvedApplicationNumber = applicationNumber || applicationId
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || 'Failed to generate slip')
+      if (!result.blob) {
+        throw new Error('The slip could not be generated for download')
       }
 
-      const result = await response.json()
-      if (!result.success || !result.data) {
-        throw new Error('Invalid response from server')
-      }
-
-      const { generateApplicationSlip } = await import('@/lib/applicationSlip');
-      const blob = await generateApplicationSlip({ ...result.data, email: user?.email || '', userId: user?.id })
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `application-slip-${applicationNumber}.pdf`
-      document.body.appendChild(a)
-      a.click()
+      const url = window.URL.createObjectURL(result.blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `application-slip-${resolvedApplicationNumber}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
     } catch (error) {
       console.error('Download failed:', error)
-      toast.error('Download Failed', error.message)
+      toast.error('Download Failed', error instanceof Error ? error.message : 'Unable to download the slip')
     } finally {
       setIsDownloading(false)
     }
@@ -61,30 +107,17 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
   const handleEmailRequest = async () => {
     setIsEmailing(true)
     try {
-      const response = await fetch(`${apiBaseUrl}/applications/email/slip`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ applicationId })
-      })
+      const result = await prepareSlip(true)
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || 'Failed to send email')
+      if (result.emailError) {
+        throw new Error(result.emailError)
       }
 
-      const result = await response.json()
-      if (result.success) {
-        setEmailSent(true)
-        setTimeout(() => setEmailSent(false), 5000)
-      } else {
-        throw new Error(result.error || 'Failed to send email')
-      }
+      setEmailSent(true)
+      window.setTimeout(() => setEmailSent(false), 5000)
     } catch (error) {
       console.error('Email failed:', error)
-      toast.error('Email Failed', error.message)
+      toast.error('Email Failed', error instanceof Error ? error.message : 'Unable to email the slip')
     } finally {
       setIsEmailing(false)
     }
@@ -122,9 +155,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
       </Button>
 
       {emailSent && (
-        <div
-          className="text-sm text-accent font-medium animate-fade-in"
-        >
+        <div className="text-sm text-accent font-medium animate-fade-in">
           ✓ Application slip will be sent to your email shortly
         </div>
       )}

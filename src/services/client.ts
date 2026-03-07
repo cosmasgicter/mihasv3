@@ -249,7 +249,9 @@ class ApiClient {
         ...restOptions
       } = options;
 
-      const baseHeaders = this.getBaseHeaders();
+      const isFormDataRequest =
+        typeof FormData !== 'undefined' && restOptions.body instanceof FormData;
+      const baseHeaders = isFormDataRequest ? {} : this.getBaseHeaders();
       const requestHeaders = {
         ...baseHeaders,
         ...this.normalizeHeaders(headers),

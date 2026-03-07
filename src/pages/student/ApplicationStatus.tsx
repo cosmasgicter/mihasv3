@@ -9,6 +9,12 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { formatDate } from '@/lib/utils'
 import { applicationService } from '@/services/applications'
 import { staggerChild, animateClasses } from '@/lib/animations'
+import { DocumentButtons } from '@/components/student/DocumentButtons'
+import {
+  getPaymentStatusLabel,
+  normalizePaymentStatus,
+  requiresStudentPaymentAction,
+} from '@/lib/paymentStatus'
 import {
   ArrowLeft,
   FileText,
@@ -192,6 +198,13 @@ export default function ApplicationStatus() {
   const interview = application.interview
   const hasActiveInterview = Boolean(interview && interview.status !== 'cancelled')
   const statusLabel = application.status.replace('_', ' ').toUpperCase()
+  const paymentReviewNote =
+    typeof application.last_payment_audit_notes === 'string' && application.last_payment_audit_notes.trim().length > 0
+      ? application.last_payment_audit_notes.trim()
+      : null
+  const needsPaymentAttention = requiresStudentPaymentAction(application.payment_status)
+  const paymentStatusLabel = getPaymentStatusLabel(application.payment_status)
+  const normalizedPaymentStatus = normalizePaymentStatus(application.payment_status)
 
   return (
     
@@ -208,7 +221,7 @@ export default function ApplicationStatus() {
           <PageHeader
             icon={<FileText className="h-6 w-6" />}
             title={`Application #${application.application_number}`}
-            description={`${application.program.length > 40 ? application.program.substring(0, 40) + '...' : application.program} • Submitted on ${formatDate(application.submitted_at)}`}
+            description={`${application.program?.length > 40 ? application.program.substring(0, 40) + '...' : application.program || 'Programme pending'} • Submitted on ${formatDate(application.submitted_at)}`}
             stats={[
               {
                 label: 'Current status',
@@ -363,11 +376,16 @@ export default function ApplicationStatus() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-foreground">Amount paid:</span>
-                        <span className="font-semibold">K{application.amount || application.application_fee || 'Not provided'}</span>
+                        <span className="font-semibold">
+                          K{application.paid_amount ?? application.amount ?? application.application_fee ?? 'Not provided'}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-foreground">Payment status:</span>
-                        <span className="font-semibold">{application.payment_status}</span>
+                        <span className="font-semibold">
+                          {paymentStatusLabel}
+                          {normalizedPaymentStatus === 'pending_review' ? ' (proof received)' : ''}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -415,7 +433,7 @@ export default function ApplicationStatus() {
                           <FileText className="h-5 w-5 text-accent" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-foreground">Extra KYC documents</p>
+                          <p className="text-sm font-semibold text-foreground">Identity document (NRC or Passport)</p>
                           <p className="text-xs font-medium text-warning-strong">✓ Uploaded</p>
                         </div>
                       </div>
@@ -468,6 +486,29 @@ export default function ApplicationStatus() {
 
             <div className="space-y-6">
               <SectionCard
+                title="Documents and records"
+                description="Download your application slip and other available documents."
+                icon={<Download className="h-5 w-5" />}
+              >
+                <DocumentButtons
+                  applicationId={application.id}
+                  applicationNumber={application.application_number}
+                  status={application.status}
+                  paymentStatus={application.payment_status}
+                />
+              </SectionCard>
+
+              {paymentReviewNote && (
+                <SectionCard
+                  title="Latest payment review note"
+                  description="Use this guidance if you need to correct or complete payment."
+                  icon={<CreditCard className="h-5 w-5" />}
+                >
+                  <p className="text-sm text-foreground">{paymentReviewNote}</p>
+                </SectionCard>
+              )}
+
+              <SectionCard
                 title="Quick information"
                 description="Essential application details at a glance."
                 icon={<User className="h-5 w-5" />}
@@ -498,7 +539,14 @@ export default function ApplicationStatus() {
 
               <SectionCard title="Next actions" description="Stay in control of your application." icon={<FileText className="h-5 w-5" />}>
                 <div className="flex flex-col gap-3">
-                  <Link to="/apply">
+                  {needsPaymentAttention && (
+                    <Link to="/student/payment">
+                      <Button variant="outline" className="w-full">
+                        {application.payment_status === 'rejected' ? 'Fix payment and resubmit' : 'Open payments'}
+                      </Button>
+                    </Link>
+                  )}
+                  <Link to="/student/application-wizard">
                     <Button variant="outline" className="w-full">
                       Submit new application
                     </Button>

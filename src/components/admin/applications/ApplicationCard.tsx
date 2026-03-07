@@ -5,6 +5,7 @@ import { ApplicationApprovalActions } from './ApplicationApprovalActions'
 import { DraftBadge } from './DraftBadge'
 import { useToastStore } from '@/components/ui/Toast'
 import { CommunicationModal, type CommunicationData } from '@/components/admin/CommunicationModal'
+import { applicationService } from '@/services/applications'
 
 // Institution code to name mapping
 export const INSTITUTION_NAMES: Record<string, string> = {
@@ -34,7 +35,7 @@ export interface ApplicationSummary {
   payment_verified_by: string | null
   payment_verified_by_name: string | null
   payment_verified_by_email: string | null
-  last_payment_audit_id: number | null
+  last_payment_audit_id: string | null
   last_payment_audit_at: string | null
   last_payment_audit_by_name: string | null
   last_payment_audit_by_email: string | null
@@ -61,7 +62,7 @@ export interface ApplicationSummary {
 export interface ApplicationCardProps {
   application: ApplicationSummary
   onStatusUpdate: (id: string, status: string) => void | Promise<void>
-  onPaymentStatusUpdate: (id: string, status: string) => void | Promise<void>
+  onPaymentStatusUpdate: (id: string, status: string, verificationNotes?: string) => void | Promise<void>
   onViewDetails: (id: string) => void
   updatingStatus: boolean
   updatingPayment: boolean
@@ -106,6 +107,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
   // Internalized getPaymentBadge function with useCallback
   const getPaymentBadge = useCallback((paymentStatus: string) => {
     const paymentConfig = {
+      not_paid: { color: 'bg-slate-100 text-slate-800 border border-slate-300', icon: Clock },
       pending_review: { color: 'bg-orange-100 text-orange-800 border border-orange-300', icon: Clock },
       verified: { color: 'bg-emerald-100 text-emerald-800 border border-emerald-300', icon: CheckCircle },
       rejected: { color: 'bg-rose-100 text-rose-800 border border-rose-300', icon: XCircle }
@@ -124,17 +126,19 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
 
   const handleSendMessage = async (data: CommunicationData) => {
     try {
-      const response = await fetch('/api/notifications?action=send', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: app.email,
-          subject: `Message from MIHAS Admissions`,
-          message: data.message,
-        }),
+      const title = data.subject?.trim() || (
+        data.channel === 'sms'
+          ? 'SMS update from MIHAS Admissions'
+          : data.channel === 'in-app'
+            ? 'Portal update from MIHAS Admissions'
+            : 'Message from MIHAS Admissions'
+      )
+
+      await applicationService.sendNotification(app.id, {
+        title,
+        message: data.message,
       })
-      if (!response.ok) throw new Error('Failed to send message')
+
       showSuccess('Message Sent', 'Your message has been sent successfully')
     } catch {
       throw new Error('Failed to send message')
@@ -276,6 +280,17 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
         )}
       </div>
 
+      {app.last_payment_audit_notes && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <div className="text-xs font-medium uppercase tracking-wide text-amber-900 mb-1">
+            Latest Payment Review Note
+          </div>
+          <div className="text-sm text-foreground break-words">
+            {app.last_payment_audit_notes}
+          </div>
+        </div>
+      )}
+
       {app.grades_summary && (
         <div className="mb-4 rounded-lg border border-border bg-muted p-3">
           <div className="text-xs font-medium uppercase tracking-wide text-foreground mb-2">
@@ -301,7 +316,9 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
         currentStatus={app.status}
         currentPaymentStatus={app.payment_status}
         onStatusUpdate={async (id, status) => { await onStatusUpdate(id, status) }}
-        onPaymentStatusUpdate={async (id, status) => { await onPaymentStatusUpdate(id, status) }}
+        onPaymentStatusUpdate={async (id, status, verificationNotes) => {
+          await onPaymentStatusUpdate(id, status, verificationNotes)
+        }}
         disabled={updatingStatus || updatingPayment}
       />
 

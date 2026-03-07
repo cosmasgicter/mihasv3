@@ -49,6 +49,7 @@ const SubmitStep = ({
   const formValues = form.watch()
   const programLabel = selectedProgramName?.trim() || formValues.program
   const institutionLabel = selectedInstitutionLabel?.trim() || ''
+  const isPayLater = formValues.payment_option === 'pay_later'
 
   return (
     <div
@@ -79,8 +80,8 @@ const SubmitStep = ({
               <div className={`flex items-center ${resultSlipFile ? 'text-success' : 'text-error'}`}>
                 {resultSlipFile ? '✓' : '✗'} Result Slip Uploaded
               </div>
-              <div className={`flex items-center ${proofOfPaymentFile ? 'text-success' : 'text-error'}`}>
-                {proofOfPaymentFile ? '✓' : '✗'} Proof of Payment Uploaded
+              <div className={`flex items-center ${isPayLater || proofOfPaymentFile ? 'text-success' : 'text-error'}`}>
+                {isPayLater || proofOfPaymentFile ? '✓' : '✗'} {isPayLater ? 'Payment will be completed later' : 'Proof of Payment Uploaded'}
               </div>
             </div>
           </div>
@@ -137,10 +138,10 @@ const SubmitStep = ({
               </div>
             )}
             <p>
-              <strong>Documents:</strong> {resultSlipFile ? '✓' : '✗'} Result slip, {extraKycFile ? '✓' : '✗'} Extra KYC
+              <strong>Documents:</strong> {resultSlipFile ? '✓' : '✗'} Result slip, {extraKycFile ? '✓' : '✗'} Identity document
             </p>
             <p>
-              <strong>Payment:</strong> {proofOfPaymentFile ? '✓' : '✗'} Proof of payment uploaded
+              <strong>Payment:</strong> {isPayLater ? 'Pay later selected' : proofOfPaymentFile ? '✓ Proof of payment uploaded' : '✗ Proof of payment missing'}
             </p>
           </div>
         </div>

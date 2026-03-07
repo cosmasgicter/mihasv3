@@ -1,15 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { User, Settings, LogOut, ChevronDown } from 'lucide-react'
+import { User, LogOut, ChevronDown, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
+import { useSignOutAction } from '@/hooks/useSignOutAction'
 import { cn } from '@/lib/utils'
 
 export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false)
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
   const { profile } = useProfileQuery()
+  const { signOut, isSigningOut } = useSignOutAction()
   const menuRef = useRef<HTMLDivElement>(null)
   
   const fullName = profile?.full_name || (user?.user_metadata?.full_name as string) || 'User'
@@ -27,14 +29,9 @@ export function UserMenu() {
   }, [])
 
   // Requirements: 13.1, 13.2, 13.3, 13.4 - Improve Logout Performance
-  // Fire-and-forget signOut - don't wait for API call
   const handleSignOut = async () => {
     setIsOpen(false)
-    // Fire-and-forget - Requirements: 13.3
-    signOut().catch((error) => {
-      console.error('Sign out failed:', error)
-      // Requirements: 13.4 - Still clear local state even if API fails
-    })
+    await signOut()
   }
 
   return (
@@ -78,29 +75,21 @@ export function UserMenu() {
           </div>
           
           <Link
-            to="/profile"
+            to="/student/settings"
             className="flex items-center px-4 py-2 text-sm text-foreground hover:bg-muted"
             onClick={() => setIsOpen(false)}
           >
-            <User className="w-4 h-4 mr-3" />
-            Profile
-          </Link>
-          
-          <Link
-            to="/settings"
-            className="flex items-center px-4 py-2 text-sm text-foreground hover:bg-muted"
-            onClick={() => setIsOpen(false)}
-          >
-            <Settings className="w-4 h-4 mr-3" />
-            Settings
+            <Shield className="w-4 h-4 mr-3" />
+            Profile & Security
           </Link>
           
           <button
             onClick={handleSignOut}
+            disabled={isSigningOut}
             className="flex items-center w-full px-4 py-2 text-sm text-destructive hover:bg-destructive/10"
           >
             <LogOut className="w-4 h-4 mr-3" />
-            Sign Out
+            {isSigningOut ? 'Signing Out...' : 'Sign Out'}
           </button>
         </div>
       )}

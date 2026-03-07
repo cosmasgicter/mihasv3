@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Notification Preferences Hook
  * Provides state management and operations for user notification preferences
@@ -10,6 +9,11 @@ import { notificationService } from '@/services/notifications'
 import { useAuth } from './useAuth'
 import { toast } from './useToast'
 import type { NotificationPreferences, PreferenceAuditEntry, ConsentStatus } from '@/types/notifications'
+
+interface PreferencesResponse {
+  preferences: NotificationPreferences
+  audit_trail?: PreferenceAuditEntry[]
+}
 
 interface UseNotificationPreferencesReturn {
   preferences: NotificationPreferences | null
@@ -49,7 +53,7 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
       setLoading(true)
       setError(null)
       
-      const response = await notificationService.getPreferences(true, 50)
+      const response = await notificationService.getPreferences() as PreferencesResponse | null
       
       if (response) {
         setPreferences(response.preferences)
@@ -70,7 +74,7 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
   const updateChannelConsent = useCallback(async (
     channel: string, 
     enabled: boolean, 
-    reason?: string
+    _reason?: string
   ): Promise<boolean> => {
     if (!user) return false
 
@@ -78,52 +82,41 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
       setSaving(true)
       setError(null)
       
-      const response = await notificationService.updatePreferences({
-        action: 'update_channel',
-        channel,
-        enabled,
-        reason: reason || `User ${enabled ? 'enabled' : 'disabled'} ${channel} notifications`
-      })
+      const payload: Record<string, boolean> = {}
+      payload[`${channel}_enabled`] = enabled
+      const response = await notificationService.updatePreferences(payload as Parameters<typeof notificationService.updatePreferences>[0]) as PreferencesResponse | null
 
       if (response) {
         setPreferences(response.preferences)
         
-        toast({
-          title: 'Preferences Updated',
-          description: `${channel} notifications ${enabled ? 'enabled' : 'disabled'}`,
-          variant: 'success'
-        })
+        toast.success(
+          'Preferences Updated',
+          `${channel} notifications ${enabled ? 'enabled' : 'disabled'}`
+        )
         
         // Reload to get updated audit trail
         await loadPreferences()
         return true
       } else {
         setError('Failed to update preferences')
-        toast({
-          title: 'Error',
-          description: 'Failed to update preferences',
-          variant: 'destructive'
-        })
+        toast.error('Error', 'Failed to update preferences')
         return false
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update preferences'
       setError(errorMessage)
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive'
-      })
+      toast.error('Error', errorMessage)
       return false
     } finally {
       setSaving(false)
     }
   }, [user, loadPreferences])
 
+
   // Update multiple channels at once
   const updateMultipleChannels = useCallback(async (
     channels: Record<string, boolean>, 
-    reason?: string
+    _reason?: string
   ): Promise<boolean> => {
     if (!user) return false
 
@@ -131,41 +124,32 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
       setSaving(true)
       setError(null)
       
-      const response = await notificationService.updatePreferences({
-        action: 'update_multiple_channels',
-        channels,
-        reason: reason || 'Bulk channel preference update'
-      })
+      const payload: Record<string, boolean> = {}
+      for (const [channel, enabled] of Object.entries(channels)) {
+        payload[`${channel}_enabled`] = enabled
+      }
+      const response = await notificationService.updatePreferences(payload as Parameters<typeof notificationService.updatePreferences>[0]) as PreferencesResponse | null
 
       if (response) {
         setPreferences(response.preferences)
         
-        toast({
-          title: 'Preferences Updated',
-          description: 'Multiple channel preferences updated successfully',
-          variant: 'success'
-        })
+        toast.success(
+          'Preferences Updated',
+          'Multiple channel preferences updated successfully'
+        )
         
         // Reload to get updated audit trail
         await loadPreferences()
         return true
       } else {
         setError('Failed to update preferences')
-        toast({
-          title: 'Error',
-          description: 'Failed to update preferences',
-          variant: 'destructive'
-        })
+        toast.error('Error', 'Failed to update preferences')
         return false
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update preferences'
       setError(errorMessage)
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive'
-      })
+      toast.error('Error', errorMessage)
       return false
     } finally {
       setSaving(false)
@@ -176,8 +160,8 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
   const updateQuietHours = useCallback(async (
     start: string, 
     end: string, 
-    timezone: string, 
-    reason?: string
+    _timezone: string, 
+    _reason?: string
   ): Promise<boolean> => {
     if (!user) return false
 
@@ -186,42 +170,30 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
       setError(null)
       
       const response = await notificationService.updatePreferences({
-        action: 'update_quiet_hours',
         quiet_hours_start: start,
         quiet_hours_end: end,
-        timezone,
-        reason: reason || 'Quiet hours preference update'
-      })
+      }) as PreferencesResponse | null
 
       if (response) {
         setPreferences(response.preferences)
         
-        toast({
-          title: 'Quiet Hours Updated',
-          description: 'Your quiet hours preferences have been saved',
-          variant: 'success'
-        })
+        toast.success(
+          'Quiet Hours Updated',
+          'Your quiet hours preferences have been saved'
+        )
         
         // Reload to get updated audit trail
         await loadPreferences()
         return true
       } else {
         setError('Failed to update quiet hours')
-        toast({
-          title: 'Error',
-          description: 'Failed to update quiet hours',
-          variant: 'destructive'
-        })
+        toast.error('Error', 'Failed to update quiet hours')
         return false
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update quiet hours'
       setError(errorMessage)
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive'
-      })
+      toast.error('Error', errorMessage)
       return false
     } finally {
       setSaving(false)
@@ -233,8 +205,9 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
     if (!user || !preferences) return null
 
     // Derive consent status from loaded preferences — no separate endpoint needed
-    const enabled = Boolean(preferences[`${channel}_enabled` as keyof NotificationPreferences])
-    return { channel, enabled } as ConsentStatus
+    const key = `${channel}_enabled` as keyof NotificationPreferences
+    const enabled = Boolean(preferences[key])
+    return { success: true, user_id: user.id, channel, enabled } satisfies ConsentStatus
   }, [user, preferences])
 
   // Export preferences data
@@ -242,7 +215,6 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
     if (!user || !preferences) return
 
     try {
-      // Export current preferences as a local download — no separate backend endpoint needed
       const exportData = {
         userId: user.id,
         preferences,
@@ -262,23 +234,15 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
 
-      toast({
-        title: 'Export Complete',
-        description: 'Your preferences have been exported',
-        variant: 'success'
-      })
+      toast.success('Export Complete', 'Your preferences have been exported')
     } catch (err) {
       console.error('Error exporting preferences:', err)
-      toast({
-        title: 'Export Failed',
-        description: 'Failed to export preferences',
-        variant: 'destructive'
-      })
+      toast.error('Export Failed', 'Failed to export preferences')
     }
   }, [user, preferences, auditTrail])
 
   // Revoke all consents — update all channels to disabled via preferences endpoint
-  const revokeAllConsents = useCallback(async (reason?: string): Promise<boolean> => {
+  const revokeAllConsents = useCallback(async (_reason?: string): Promise<boolean> => {
     if (!user) return false
 
     try {
@@ -292,34 +256,22 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
         payment_reminders: false,
         interview_reminders: false,
         marketing_emails: false
-      })
+      }) as PreferencesResponse | null
 
       if (response) {
-        toast({
-          title: 'Consents Revoked',
-          description: 'All notification consents have been revoked',
-          variant: 'success'
-        })
+        toast.success('Consents Revoked', 'All notification consents have been revoked')
         
         await loadPreferences()
         return true
       } else {
         setError('Failed to revoke consents')
-        toast({
-          title: 'Error',
-          description: 'Failed to revoke consents',
-          variant: 'destructive'
-        })
+        toast.error('Error', 'Failed to revoke consents')
         return false
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to revoke consents'
       setError(errorMessage)
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive'
-      })
+      toast.error('Error', errorMessage)
       return false
     } finally {
       setSaving(false)

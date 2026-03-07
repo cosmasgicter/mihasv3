@@ -20,7 +20,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleCors } from '../lib/cors';
-import { query } from '../lib/db';
+import { query, transaction } from '../lib/db';
 import { handleError, sendSuccess, sendError, HttpStatus, logErrorAuditEvent } from '../lib/errorHandler';
 import { withArcjetProtection } from '../lib/arcjet';
 import { requireRole, AuthenticationError, AuthorizationError, type AuthContext } from '../lib/auth/middleware';
@@ -29,7 +29,21 @@ import { logAuditEvent } from '../lib/auditLogger';
 import { requireCsrf } from '../lib/csrf';
 import { validateBody } from '../lib/validation/middleware';
 import { validateServerEnv } from '../lib/envValidator';
-import { adminRegisterBodySchema, adminSetPasswordBodySchema, updateRoleBodySchema, createSettingBodySchema, importSettingsBodySchema } from '../lib/validation/admin';
+import {
+  adminRegisterBodySchema,
+  adminSetPasswordBodySchema,
+  updateRoleBodySchema,
+  updateUserBodySchema,
+  userPermissionsBodySchema,
+  createSettingBodySchema,
+  importSettingsBodySchema
+} from '../lib/validation/admin';
+import { getPermissionsForRole } from '../lib/auth/permissions';
+import {
+  getEffectivePermissionsForUser,
+  isPermissionOverrideTableMissing,
+  validatePermissionList,
+} from '../lib/auth/userPermissionOverrides';
 
 /**
  * System setting interface matching database schema
@@ -44,6 +58,43 @@ interface SystemSetting {
   updated_by?: string;
   created_at?: string;
   updated_at?: string;
+}
+
+function splitFullName(fullName: string): { firstName: string; lastName: string } {
+  const normalized = fullName.trim().replace(/\s+/g, ' ');
+  const [firstName, ...rest] = normalized.split(' ');
+
+  return {
+    firstName,
+    lastName: rest.join(' ') || firstName,
+  };
+}
+
+async function revokeUserSessions(userId: string): Promise<number> {
+  await query(
+    `UPDATE profiles
+     SET refresh_token_hash = NULL,
+         updated_at = NOW()
+     WHERE id = $1`,
+    [userId]
+  );
+
+  const sessionResult = await query(
+    `UPDATE device_sessions
+     SET is_active = false
+     WHERE user_id = $1 AND is_active = true`,
+    [userId]
+  );
+
+  return sessionResult.rowCount ?? 0;
+}
+
+function samePermissions(left: string[], right: string[]): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  return left.every((permission, index) => permission === right[index]);
 }
 
 /**
@@ -87,11 +138,15 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
         return;
 
       case 'users':
-        if (req.method !== 'GET') {
+        await handleUsers(req, res, auth);
+        return;
+
+      case 'user-permissions':
+        if (req.method !== 'GET' && req.method !== 'PUT') {
           sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
           return;
         }
-        await handleUsers(req, res);
+        await handleUserPermissions(req, res, auth);
         return;
 
       case 'settings':
@@ -191,7 +246,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
         return;
 
       default:
-        sendError(res, 'Invalid action. Valid actions: dashboard, users, settings, register, migrate, stats, errors, set-password, import-settings, reset-settings, eligibility-rules, eligibility-assessments, audit-log, appeals', HttpStatus.BAD_REQUEST);
+        sendError(res, 'Invalid action. Valid actions: dashboard, users, user-permissions, settings, register, migrate, stats, errors, set-password, import-settings, reset-settings, eligibility-rules, eligibility-assessments, audit-log, appeals', HttpStatus.BAD_REQUEST);
         return;
     }
   } catch (error) {
@@ -501,7 +556,22 @@ async function handleDashboard(res: VercelResponse): Promise<void> {
  *   - role (filter by role)
  *   - search (filter by name or email, case-insensitive)
  */
-async function handleUsers(req: VercelRequest, res: VercelResponse): Promise<void> {
+async function handleUsers(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+  if (req.method === 'PUT' || req.method === 'POST') {
+    await handleUpdateUser(req, res, auth);
+    return;
+  }
+
+  if (req.method === 'DELETE') {
+    await handleDeactivateUser(req, res, auth);
+    return;
+  }
+
+  if (req.method !== 'GET') {
+    sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+    return;
+  }
+
   let page = parseInt(req.query.page as string || '1', 10);
   let limit = parseInt(req.query.limit as string || '50', 10);
 
@@ -512,11 +582,16 @@ async function handleUsers(req: VercelRequest, res: VercelResponse): Promise<voi
   const offset = (page - 1) * limit;
   const role = req.query.role as string | undefined;
   const search = req.query.search as string | undefined;
+  const includeInactive = (req.query.includeInactive as string | undefined) === 'true';
 
   // Build WHERE clauses for optional filters
   const conditions: string[] = [];
   const params: (string | number)[] = [];
   let paramIndex = 1;
+
+  if (!includeInactive) {
+    conditions.push('is_active = true');
+  }
 
   if (role) {
     conditions.push(`role = $${paramIndex}`);
@@ -561,6 +636,365 @@ async function handleUsers(req: VercelRequest, res: VercelResponse): Promise<voi
   }
 }
 
+async function handleDeactivateUser(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+  const userId = (req.query.userId as string | undefined)?.trim();
+
+  if (!userId) {
+    sendError(res, 'userId is required', HttpStatus.BAD_REQUEST);
+    return;
+  }
+
+  if (userId === auth.userId) {
+    sendError(res, 'Cannot deactivate your own account', HttpStatus.FORBIDDEN);
+    return;
+  }
+
+  try {
+    const targetResult = await query<{
+      id: string;
+      role: string;
+      is_active: boolean;
+      email: string | null;
+    }>(
+      'SELECT id, role, is_active, email FROM profiles WHERE id = $1 LIMIT 1',
+      [userId]
+    );
+
+    if (targetResult.rows.length === 0) {
+      sendError(res, 'User not found', HttpStatus.NOT_FOUND);
+      return;
+    }
+
+    const targetUser = targetResult.rows[0];
+
+    if (!targetUser.is_active) {
+      sendSuccess(res, {
+        userId,
+        alreadyDeactivated: true,
+        message: 'User account is already inactive',
+      });
+      return;
+    }
+
+    if (targetUser.role === 'super_admin') {
+      sendError(res, 'Super admin accounts cannot be deactivated', HttpStatus.FORBIDDEN);
+      return;
+    }
+
+    if (targetUser.role === 'admin' && auth.role !== 'super_admin') {
+      sendError(res, 'Only super_admin can deactivate admin accounts', HttpStatus.FORBIDDEN);
+      return;
+    }
+
+    const result = await query<{
+      id: string;
+      email: string;
+      role: string;
+      is_active: boolean;
+      updated_at: string;
+    }>(
+      `UPDATE profiles
+       SET is_active = false,
+           refresh_token_hash = NULL,
+           updated_at = NOW()
+       WHERE id = $1 AND is_active = true
+       RETURNING id, email, role, is_active, updated_at`,
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      sendSuccess(res, {
+        userId,
+        alreadyDeactivated: true,
+        message: 'User account is already inactive',
+      });
+      return;
+    }
+
+    const sessionResult = await query(
+      `UPDATE device_sessions
+       SET is_active = false
+       WHERE user_id = $1 AND is_active = true`,
+      [userId]
+    );
+
+    try {
+      await query(
+        `UPDATE user_roles
+         SET is_active = false,
+             updated_at = NOW()
+         WHERE user_id = $1`,
+        [userId]
+      );
+    } catch {
+      // user_roles table is optional in some environments
+    }
+
+    await logAuditEvent({
+      actor_id: auth.userId,
+      action: 'user_deactivated',
+      entity_type: 'user',
+      entity_id: userId,
+      changes: {
+        role: targetUser.role,
+        deactivated: true,
+        sessions_revoked: sessionResult.rowCount ?? 0,
+      },
+    });
+
+    sendSuccess(res, {
+      user: {
+        ...result.rows[0],
+        user_id: result.rows[0].id,
+      },
+      revokedSessions: sessionResult.rowCount ?? 0,
+      message: 'User deactivated successfully',
+    });
+  } catch (error) {
+    handleError(res, error, 'admin/deactivate-user');
+  }
+}
+
+async function handleUserPermissions(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+  if (req.method === 'PUT') {
+    const parsed = validateBody(userPermissionsBodySchema, req, res);
+    if (!parsed || !Array.isArray(parsed.permissions)) {
+      sendError(res, 'permissions array is required', HttpStatus.BAD_REQUEST);
+      return;
+    }
+
+    const { userId, permissions: requestedPermissions } = parsed;
+
+    if (userId === auth.userId) {
+      sendError(res, 'Cannot change your own permissions', HttpStatus.FORBIDDEN);
+      return;
+    }
+
+    const { normalized, invalid } = validatePermissionList(requestedPermissions);
+    if (invalid.length > 0) {
+      sendError(res, `Invalid permissions: ${invalid.join(', ')}`, HttpStatus.BAD_REQUEST);
+      return;
+    }
+
+    try {
+      const targetResult = await query<{ id: string; role: Parameters<typeof getPermissionsForRole>[0] }>(
+        'SELECT id, role FROM profiles WHERE id = $1 LIMIT 1',
+        [userId]
+      );
+
+      if (targetResult.rows.length === 0) {
+        sendError(res, 'User not found', HttpStatus.NOT_FOUND);
+        return;
+      }
+
+      const user = targetResult.rows[0];
+      if ((user.role === 'admin' || user.role === 'super_admin') && auth.role !== 'super_admin') {
+        sendError(res, 'Only super_admin can change permissions for admin accounts', HttpStatus.FORBIDDEN);
+        return;
+      }
+
+      const defaultPermissions = [...getPermissionsForRole(user.role)].sort();
+      const source = samePermissions(normalized, defaultPermissions) ? 'role' : 'override';
+
+      try {
+        if (source === 'role') {
+          await query('DELETE FROM user_permission_overrides WHERE user_id = $1', [userId]);
+        } else {
+          await query(
+            `INSERT INTO user_permission_overrides (user_id, permissions, updated_by, created_at, updated_at)
+             VALUES ($1, $2::text[], $3, NOW(), NOW())
+             ON CONFLICT (user_id)
+             DO UPDATE SET
+               permissions = EXCLUDED.permissions,
+               updated_by = EXCLUDED.updated_by,
+               updated_at = NOW()`,
+            [userId, normalized, auth.userId]
+          );
+        }
+      } catch (error) {
+        if (isPermissionOverrideTableMissing(error)) {
+          sendError(
+            res,
+            'Permission overrides require migration 010_user_permission_overrides.sql to be applied first',
+            HttpStatus.SERVICE_UNAVAILABLE,
+            'SERVICE_UNAVAILABLE'
+          );
+          return;
+        }
+
+        throw error;
+      }
+
+      const revokedSessions = await revokeUserSessions(userId);
+
+      await logAuditEvent({
+        actor_id: auth.userId,
+        action: 'user.permissions_updated',
+        entity_type: 'user',
+        entity_id: userId,
+        changes: {
+          role: user.role,
+          permission_source: source,
+          permissions: normalized,
+          revoked_sessions: revokedSessions,
+        },
+      });
+
+      sendSuccess(res, {
+        userId: user.id,
+        role: user.role,
+        permissions: source === 'override' ? normalized : defaultPermissions,
+        defaultPermissions,
+        source,
+        revokedSessions,
+      });
+    } catch (error) {
+      handleError(res, error, 'admin/update-user-permissions');
+    }
+    return;
+  }
+
+  const userId = (req.query.userId as string | undefined)?.trim();
+
+  if (!userId) {
+    sendError(res, 'userId is required', HttpStatus.BAD_REQUEST);
+    return;
+  }
+
+  try {
+    const result = await query<{ id: string; role: Parameters<typeof getPermissionsForRole>[0] }>(
+      'SELECT id, role FROM profiles WHERE id = $1 LIMIT 1',
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      sendError(res, 'User not found', HttpStatus.NOT_FOUND);
+      return;
+    }
+
+    const user = result.rows[0];
+    const { permissions, source } = await getEffectivePermissionsForUser(user.id, user.role);
+    sendSuccess(res, {
+      userId: user.id,
+      role: user.role,
+      permissions,
+      defaultPermissions: getPermissionsForRole(user.role),
+      source,
+    });
+  } catch (error) {
+    handleError(res, error, 'admin/user-permissions');
+  }
+}
+
+async function handleUpdateUser(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+  const parsed = validateBody(updateUserBodySchema, req, res);
+  if (!parsed) return;
+
+  const { userId, email, full_name, phone, role } = parsed;
+  const { firstName, lastName } = splitFullName(full_name);
+
+  if ((role === 'admin' || role === 'super_admin') && auth.role !== 'super_admin') {
+    sendError(res, 'Only super_admin can assign admin or super_admin roles', HttpStatus.FORBIDDEN);
+    return;
+  }
+
+  if (userId === auth.userId && role !== auth.role) {
+    sendError(res, 'Cannot change your own role', HttpStatus.FORBIDDEN);
+    return;
+  }
+
+  try {
+    const currentUserResult = await query<{ id: string; role: string }>(
+      'SELECT id, role FROM profiles WHERE id = $1 LIMIT 1',
+      [userId]
+    );
+
+    if (currentUserResult.rows.length === 0) {
+      sendError(res, 'User not found', HttpStatus.NOT_FOUND);
+      return;
+    }
+
+    const currentUser = currentUserResult.rows[0];
+    const existing = await query<{ id: string }>(
+      'SELECT id FROM profiles WHERE email = $1 AND id <> $2 LIMIT 1',
+      [email.toLowerCase(), userId]
+    );
+
+    if (existing.rows.length > 0) {
+      sendError(res, 'Email already registered to another user', HttpStatus.CONFLICT);
+      return;
+    }
+
+    const result = await query<{
+      id: string;
+      email: string;
+      first_name: string | null;
+      last_name: string | null;
+      full_name: string | null;
+      phone: string | null;
+      role: string;
+      updated_at: string;
+    }>(
+      `UPDATE profiles
+       SET email = $1,
+           first_name = $2,
+           last_name = $3,
+           full_name = $4,
+           phone = $5,
+           role = $6,
+           updated_at = NOW()
+       WHERE id = $7
+       RETURNING id, email, first_name, last_name, full_name, phone, role, updated_at`,
+      [email.toLowerCase(), firstName, lastName, full_name.trim(), phone || null, role, userId]
+    );
+
+    if (result.rows.length === 0) {
+      sendError(res, 'User not found', HttpStatus.NOT_FOUND);
+      return;
+    }
+
+    try {
+      await query(
+        `INSERT INTO user_roles (user_id, role, is_active, created_at, updated_at)
+         VALUES ($1, $2, true, NOW(), NOW())
+         ON CONFLICT (user_id)
+         DO UPDATE SET role = EXCLUDED.role, is_active = true, updated_at = NOW()`,
+        [userId, role]
+      );
+    } catch {
+      // user_roles table is optional in some environments
+    }
+
+    const roleChanged = currentUser.role !== role;
+    const revokedSessions = roleChanged ? await revokeUserSessions(userId) : 0;
+
+    await logAuditEvent({
+      actor_id: auth.userId,
+      action: 'user_updated',
+      entity_type: 'user',
+      entity_id: userId,
+      changes: {
+        email: email.toLowerCase(),
+        full_name: full_name.trim(),
+        phone: phone || null,
+        role,
+        role_changed: roleChanged,
+        revoked_sessions: revokedSessions,
+      },
+    });
+
+    sendSuccess(res, {
+      user: {
+        ...result.rows[0],
+        user_id: result.rows[0].id,
+      },
+      revokedSessions,
+    });
+  } catch (error) {
+    handleError(res, error, 'admin/update-user');
+  }
+}
+
 /**
  * Register new user (admin only)
  * MIGRATED: Using direct SQL instead of legacy admin SDK
@@ -570,10 +1004,19 @@ async function handleRegisterUser(req: VercelRequest, res: VercelResponse, auth:
   const parsed = validateBody(adminRegisterBodySchema, req, res);
   if (!parsed) return;
 
-  const { email, password, firstName, lastName, role } = parsed;
+  const { email, password, firstName, lastName, phone, role } = parsed;
 
   // Validate role
-  const validRoles = ['student', 'reviewer', 'admin', 'super_admin'];
+  const validRoles = [
+    'student',
+    'reviewer',
+    'admissions_officer',
+    'registrar',
+    'finance_officer',
+    'academic_head',
+    'admin',
+    'super_admin',
+  ];
   const userRole = role && validRoles.includes(role) ? role : 'student';
 
   // Only super_admin can assign admin or super_admin roles (Requirement 14.3, 14.4)
@@ -598,11 +1041,22 @@ async function handleRegisterUser(req: VercelRequest, res: VercelResponse, auth:
     const passwordHash = await hashPassword(password);
 
     // Create user profile
-    const result = await query<{ id: string; email: string; first_name: string; last_name: string; role: string; created_at: string }>(
-      `INSERT INTO profiles (email, password_hash, first_name, last_name, role, email_verified, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, true, NOW(), NOW())
-       RETURNING id, email, first_name, last_name, role, created_at`,
-      [email.toLowerCase(), passwordHash, firstName, lastName, userRole]
+    const fullName = `${firstName} ${lastName}`.trim();
+
+    const result = await query<{
+      id: string;
+      email: string;
+      first_name: string;
+      last_name: string;
+      full_name: string;
+      phone: string | null;
+      role: string;
+      created_at: string;
+    }>(
+      `INSERT INTO profiles (email, password_hash, first_name, last_name, full_name, phone, role, email_verified, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW(), NOW())
+       RETURNING id, email, first_name, last_name, full_name, phone, role, created_at`,
+      [email.toLowerCase(), passwordHash, firstName, lastName, fullName, phone || null, userRole]
     );
 
     if (result.rows.length === 0) {
@@ -979,31 +1433,40 @@ async function handleImportSettings(req: VercelRequest, res: VercelResponse, aut
   const imported: string[] = [];
   const errors: string[] = [];
 
-  for (const setting of settings) {
-    try {
-      // Upsert: insert or update on conflict
-      await query(
-        `INSERT INTO settings (key, value, description, category, is_public, updated_by, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-         ON CONFLICT (key) 
-         DO UPDATE SET 
-           value = EXCLUDED.value,
-           description = EXCLUDED.description,
-           category = EXCLUDED.category,
-           is_public = EXCLUDED.is_public,
-           updated_by = EXCLUDED.updated_by,
-           updated_at = NOW()`,
-        [
-          setting.key,
-          JSON.stringify(setting.value),
-          setting.description || null,
-          setting.category || null,
-          setting.is_public ?? false,
-          auth.userId,
-        ]
+  // Batch upsert all settings in a single multi-row query (eliminates N+1 pattern)
+  try {
+    const values: unknown[] = [];
+    const placeholders: string[] = [];
+    settings.forEach((setting: { key: string; value: unknown; description?: string; category?: string; is_public?: boolean }, i: number) => {
+      const offset = i * 6;
+      placeholders.push(`($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, NOW(), NOW())`);
+      values.push(
+        setting.key,
+        JSON.stringify(setting.value),
+        setting.description || null,
+        setting.category || null,
+        setting.is_public ?? false,
+        auth.userId,
       );
+    });
+    await query(
+      `INSERT INTO settings (key, value, description, category, is_public, updated_by, created_at, updated_at)
+       VALUES ${placeholders.join(', ')}
+       ON CONFLICT (key)
+       DO UPDATE SET
+         value = EXCLUDED.value,
+         description = EXCLUDED.description,
+         category = EXCLUDED.category,
+         is_public = EXCLUDED.is_public,
+         updated_by = EXCLUDED.updated_by,
+         updated_at = NOW()`,
+      values
+    );
+    for (const setting of settings) {
       imported.push(setting.key);
-    } catch (e) {
+    }
+  } catch (e) {
+    for (const setting of settings) {
       errors.push(`${setting.key}: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
@@ -1037,10 +1500,7 @@ async function handleImportSettings(req: VercelRequest, res: VercelResponse, aut
  */
 async function handleResetSettings(res: VercelResponse, auth: AuthContext): Promise<void> {
   try {
-    // Delete all existing settings
-    await query('DELETE FROM settings WHERE 1=1');
-
-    // Insert default settings
+    // Default settings to insert after clearing
     const defaultSettings = [
       {
         key: 'site_name',
@@ -1086,20 +1546,32 @@ async function handleResetSettings(res: VercelResponse, auth: AuthContext): Prom
       },
     ];
 
-    for (const setting of defaultSettings) {
-      await query(
-        `INSERT INTO settings (key, value, description, category, is_public, updated_by, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())`,
-        [
+    // Wrap delete + batch insert in a transaction for atomicity (Req 30.3)
+    const ops = [{ text: 'DELETE FROM settings WHERE 1=1', values: [] as unknown[] }];
+
+    if (defaultSettings.length > 0) {
+      const values: unknown[] = [];
+      const placeholders: string[] = [];
+      defaultSettings.forEach((setting, i) => {
+        const offset = i * 6;
+        placeholders.push(`($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, NOW(), NOW())`);
+        values.push(
           setting.key,
           JSON.stringify(setting.value),
           setting.description,
           setting.category,
           setting.is_public,
           auth.userId,
-        ]
-      );
+        );
+      });
+      ops.push({
+        text: `INSERT INTO settings (key, value, description, category, is_public, updated_by, created_at, updated_at)
+         VALUES ${placeholders.join(', ')}`,
+        values,
+      });
     }
+
+    await transaction(ops);
 
     // Log the reset event
     await logAuditEvent({
@@ -1197,16 +1669,18 @@ async function handleUpdateRole(req: VercelRequest, res: VercelResponse, auth: A
       // user_roles table might not exist, ignore error
     }
 
+    const revokedSessions = await revokeUserSessions(userId);
+
     // Log the event
     await logAuditEvent({
       actor_id: auth.userId,
       action: 'user_role_updated',
       entity_type: 'user',
       entity_id: userId,
-      changes: { new_role: role },
+      changes: { new_role: role, revoked_sessions: revokedSessions },
     });
 
-    sendSuccess(res, { user: result.rows[0] });
+    sendSuccess(res, { user: result.rows[0], revokedSessions });
   } catch (error) {
     handleError(res, error, 'admin/update-role');
   }
@@ -1241,54 +1715,137 @@ async function handleAuditLog(req: VercelRequest, res: VercelResponse): Promise<
   if (pageSize > 200) pageSize = 200;
 
   const filterAction = (req.query.filter_action as string | undefined)?.trim();
+  const filterActorEmail = (req.query.filter_actor_email as string | undefined)?.trim();
+  const filterUserId = (req.query.filter_user_id as string | undefined)?.trim();
   const filterEntityType = (req.query.filter_entity_type as string | undefined)?.trim();
+  const filterCategory = (req.query.filter_category as string | undefined)?.trim();
   const filterFrom = req.query.filter_from as string | undefined;
   const filterTo = req.query.filter_to as string | undefined;
   const offset = (page - 1) * pageSize;
+  const categorySql = `
+    CASE
+      WHEN LOWER(al.action) ~ '(login|signin|logout|signout|register|signup|auth|password|session|refresh)' THEN 'Authentication'
+      WHEN LOWER(al.action) ~ '(create|insert|add|update|modify|edit|delete|remove|archive|restore)' THEN 'Data'
+      WHEN LOWER(al.action) ~ '(view|read|get|download|export)' THEN 'Access'
+      WHEN LOWER(al.action) ~ '(settings|config|permission|role|admin|security|maintenance)' THEN 'System'
+      WHEN LOWER(al.action) ~ '(email|notification|message|sms|communication)' THEN 'Communication'
+      WHEN LOWER(al.action) ~ '(analytics|report|dashboard|metric)' THEN 'Analytics'
+      ELSE 'General'
+    END
+  `;
+  const fromSql = `
+    FROM audit_logs al
+    LEFT JOIN profiles actor ON actor.id = al.actor_id
+  `;
 
   try {
     const whereClauses: string[] = [];
     const params: unknown[] = [];
 
     if (filterAction) {
-      params.push(filterAction);
-      whereClauses.push(`action = $${params.length}`);
+      params.push(`%${filterAction}%`);
+      whereClauses.push(`al.action ILIKE $${params.length}`);
+    }
+
+    if (filterActorEmail) {
+      params.push(`%${filterActorEmail}%`);
+      whereClauses.push(`COALESCE(actor.email, '') ILIKE $${params.length}`);
+    }
+
+    if (filterUserId) {
+      params.push(filterUserId);
+      whereClauses.push(`(al.actor_id = $${params.length}::uuid OR al.entity_id = $${params.length}::uuid)`);
     }
 
     if (filterEntityType) {
       params.push(filterEntityType);
-      whereClauses.push(`entity_type = $${params.length}`);
+      whereClauses.push(`al.entity_type = $${params.length}`);
+    }
+
+    if (filterCategory) {
+      params.push(filterCategory);
+      whereClauses.push(`(${categorySql}) = $${params.length}`);
     }
 
     if (filterFrom) {
       params.push(filterFrom);
-      whereClauses.push(`created_at >= $${params.length}::timestamptz`);
+      whereClauses.push(`al.created_at >= $${params.length}::timestamptz`);
     }
 
     if (filterTo) {
       params.push(filterTo);
-      whereClauses.push(`created_at <= $${params.length}::timestamptz`);
+      whereClauses.push(`al.created_at <= $${params.length}::timestamptz`);
     }
 
     const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
-    const countQuery = `SELECT COUNT(*) as count FROM audit_logs ${whereSql}`;
+    const countQuery = `SELECT COUNT(*) as count ${fromSql} ${whereSql}`;
     const entriesQuery = `
-      SELECT id, actor_id, action, entity_type, entity_id, changes, ip_address, user_agent, created_at
-      FROM audit_logs
+      SELECT
+        al.id,
+        al.actor_id,
+        actor.email AS actor_email,
+        COALESCE(
+          NULLIF(actor.full_name, ''),
+          NULLIF(TRIM(CONCAT_WS(' ', actor.first_name, actor.last_name)), ''),
+          actor.email
+        ) AS actor_name,
+        actor.role AS actor_role,
+        al.action,
+        ${categorySql} AS category,
+        al.entity_type,
+        al.entity_id,
+        al.changes,
+        al.ip_address,
+        al.user_agent,
+        al.created_at
+      ${fromSql}
       ${whereSql}
-      ORDER BY created_at DESC
+      ORDER BY al.created_at DESC
       LIMIT $${params.length + 1}
       OFFSET $${params.length + 2}
     `;
+    const uniqueActorsQuery = `
+      SELECT COUNT(DISTINCT al.actor_id) as count
+      ${fromSql}
+      ${whereSql}
+    `;
+    const categoryBreakdownQuery = `
+      SELECT ${categorySql} AS label, COUNT(*) as count
+      ${fromSql}
+      ${whereSql}
+      GROUP BY 1
+      ORDER BY COUNT(*) DESC
+    `;
+    const entityBreakdownQuery = `
+      SELECT al.entity_type AS label, COUNT(*) as count
+      ${fromSql}
+      ${whereSql}
+      GROUP BY 1
+      ORDER BY COUNT(*) DESC
+      LIMIT 8
+    `;
+    const actionBreakdownQuery = `
+      SELECT al.action AS label, COUNT(*) as count
+      ${fromSql}
+      ${whereSql}
+      GROUP BY 1
+      ORDER BY COUNT(*) DESC
+      LIMIT 8
+    `;
 
-    const [countResult, entriesResult] = await Promise.all([
+    const [countResult, entriesResult, uniqueActorsResult, categoryBreakdownResult, entityBreakdownResult, actionBreakdownResult] = await Promise.all([
       query<{ count: string }>(countQuery, params),
       query<Record<string, unknown>>(entriesQuery, [...params, pageSize, offset]),
+      query<{ count: string }>(uniqueActorsQuery, params),
+      query<{ label: string; count: string }>(categoryBreakdownQuery, params),
+      query<{ label: string; count: string }>(entityBreakdownQuery, params),
+      query<{ label: string; count: string }>(actionBreakdownQuery, params),
     ]);
 
     const totalCount = parseInt(countResult.rows[0]?.count || '0', 10);
     const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+    const uniqueActors = parseInt(uniqueActorsResult.rows[0]?.count || '0', 10);
 
     sendSuccess(res, {
       entries: entriesResult.rows,
@@ -1296,6 +1853,12 @@ async function handleAuditLog(req: VercelRequest, res: VercelResponse): Promise<
       page,
       pageSize,
       totalPages,
+      summary: {
+        uniqueActors,
+        categoryBreakdown: categoryBreakdownResult.rows,
+        entityBreakdown: entityBreakdownResult.rows,
+        actionBreakdown: actionBreakdownResult.rows,
+      },
     });
   } catch (error) {
     handleError(res, error, 'admin/audit-log');

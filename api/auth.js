@@ -481,7 +481,7 @@ var ACCESS_TOKEN_EXPIRATION = "15m", REFRESH_TOKEN_EXPIRATION = "7d", TOKEN_ISSU
 var init_jwt = () => {};
 
 // lib/queries.ts
-var AuditQueries;
+var AUDIT_ENTITY_PLACEHOLDER_ID = "00000000-0000-0000-0000-000000000000", AuditQueries;
 var init_queries = __esm(() => {
   AuditQueries = {
     log: (input) => ({
@@ -490,7 +490,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+      VALUES ($1, $2, $3, COALESCE($4, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $5, $6, $7, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -509,7 +509,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, 'user', $1, $3, $4, $5, NOW())
+      VALUES ($1, $2, 'user', COALESCE($1, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $3, $4, $5, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -526,7 +526,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, 'authorization_failure', $2, $3, $4, $5, $6, NOW())
+      VALUES ($1, 'authorization_failure', $2, COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -547,7 +547,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, 'session', $3, $4, $5, $6, NOW())
+      VALUES ($1, $2, 'session', COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -1387,12 +1387,20 @@ init_queries();
 var USER_ROLES = {
   SUPER_ADMIN: "super_admin",
   ADMIN: "admin",
+  ADMISSIONS_OFFICER: "admissions_officer",
+  REGISTRAR: "registrar",
+  FINANCE_OFFICER: "finance_officer",
+  ACADEMIC_HEAD: "academic_head",
   REVIEWER: "reviewer",
   STUDENT: "student"
 };
 var ALL_USER_ROLES = [
   USER_ROLES.SUPER_ADMIN,
   USER_ROLES.ADMIN,
+  USER_ROLES.ADMISSIONS_OFFICER,
+  USER_ROLES.REGISTRAR,
+  USER_ROLES.FINANCE_OFFICER,
+  USER_ROLES.ACADEMIC_HEAD,
   USER_ROLES.REVIEWER,
   USER_ROLES.STUDENT
 ];
@@ -1424,6 +1432,34 @@ var ROLE_PERMISSIONS = {
     "payments:verify",
     "documents:read",
     "documents:verify",
+    "analytics:read"
+  ],
+  admissions_officer: [
+    "applications:read",
+    "applications:review",
+    "applications:write",
+    "documents:read",
+    "documents:verify",
+    "payments:read"
+  ],
+  registrar: [
+    "applications:read",
+    "applications:review",
+    "programs:read",
+    "documents:read",
+    "analytics:read"
+  ],
+  finance_officer: [
+    "applications:read",
+    "payments:read",
+    "payments:verify",
+    "documents:read"
+  ],
+  academic_head: [
+    "applications:read",
+    "applications:review",
+    "programs:read",
+    "documents:read",
     "analytics:read"
   ],
   reviewer: [
@@ -15178,7 +15214,15 @@ var registerBodySchema = exports_external.object({
   email: emailSchema,
   password: passwordSchema,
   firstName: nonEmptySanitizedString,
-  lastName: nonEmptySanitizedString
+  lastName: nonEmptySanitizedString,
+  phone: optionalSanitizedString,
+  date_of_birth: optionalSanitizedString,
+  sex: optionalSanitizedString,
+  residence_town: optionalSanitizedString,
+  country: optionalSanitizedString,
+  nationality: optionalSanitizedString,
+  next_of_kin_name: optionalSanitizedString,
+  next_of_kin_phone: optionalSanitizedString
 });
 var passwordResetRequestBodySchema = exports_external.object({
   email: emailSchema
@@ -15195,6 +15239,7 @@ var profileUpdateBodySchema = exports_external.object({
   date_of_birth: optionalSanitizedString,
   sex: optionalSanitizedString,
   residence_town: optionalSanitizedString,
+  country: optionalSanitizedString,
   nationality: optionalSanitizedString,
   nrc_number: optionalSanitizedString,
   address: optionalSanitizedString,
@@ -15687,15 +15732,61 @@ async function handleRegister(req, res) {
     res.setHeader("Retry-After", String(regLimit.retryAfterSeconds));
     return sendError(res, "Too many registration attempts. Please try again later.", HttpStatus.TOO_MANY_REQUESTS, "RATE_LIMIT_EXCEEDED");
   }
-  const { email: email3, password, firstName, lastName } = parsed;
+  const {
+    email: email3,
+    password,
+    firstName,
+    lastName,
+    phone,
+    date_of_birth,
+    sex,
+    residence_town,
+    country,
+    nationality,
+    next_of_kin_name,
+    next_of_kin_phone
+  } = parsed;
+  const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
   const existing = await query("SELECT id FROM profiles WHERE email = $1", [email3.toLowerCase()]);
   if (existing.rows.length > 0) {
     return sendError(res, "Email already registered", HttpStatus.CONFLICT);
   }
   const passwordHash = await hashPassword(password);
-  const result = await query(`INSERT INTO profiles (email, password_hash, role, first_name, last_name, is_active, created_at, updated_at)
-     VALUES ($1, $2, 'student', $3, $4, true, NOW(), NOW())
-     RETURNING id`, [email3.toLowerCase(), passwordHash, firstName, lastName]);
+  const result = await query(`INSERT INTO profiles (
+       email,
+       password_hash,
+       role,
+       first_name,
+       last_name,
+       full_name,
+       phone,
+       date_of_birth,
+       sex,
+       residence_town,
+       country,
+       nationality,
+       next_of_kin_name,
+       next_of_kin_phone,
+       is_active,
+       created_at,
+       updated_at
+     )
+     VALUES ($1, $2, 'student', $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, true, NOW(), NOW())
+     RETURNING id`, [
+    email3.toLowerCase(),
+    passwordHash,
+    firstName,
+    lastName,
+    fullName,
+    phone || null,
+    date_of_birth || null,
+    sex || null,
+    residence_town || null,
+    country || "Zambia",
+    nationality || "Zambian",
+    next_of_kin_name || null,
+    next_of_kin_phone || null
+  ]);
   const userId = result.rows[0].id;
   const permissions = getPermissionsForRole("student");
   const accessToken = await generateAccessToken(userId, email3.toLowerCase(), "student", permissions);
@@ -15723,6 +15814,22 @@ async function handleRegister(req, res) {
       lastName,
       full_name: deriveFullName({ firstName, lastName, email: email3 }),
       permissions
+    },
+    profile: {
+      id: userId,
+      email: email3.toLowerCase(),
+      role: "student",
+      first_name: firstName,
+      last_name: lastName,
+      full_name: fullName || deriveFullName({ firstName, lastName, email: email3 }),
+      phone: phone || null,
+      date_of_birth: date_of_birth || null,
+      sex: sex || null,
+      residence_town: residence_town || null,
+      country: country || "Zambia",
+      nationality: nationality || "Zambian",
+      next_of_kin_name: next_of_kin_name || null,
+      next_of_kin_phone: next_of_kin_phone || null
     }
   }, HttpStatus.CREATED);
 }
@@ -15831,7 +15938,7 @@ async function handleProfile(req, res) {
   try {
     const payload = await verifyAccessToken(token);
     if (req.method === "GET") {
-      const result2 = await query(`SELECT id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone
+      const result2 = await query(`SELECT id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, country, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone
          FROM profiles WHERE id = $1 LIMIT 1`, [payload.sub]);
       if (result2.rows.length === 0) {
         clearAuthCookies(res);
@@ -15854,6 +15961,7 @@ async function handleProfile(req, res) {
       "date_of_birth",
       "sex",
       "residence_town",
+      "country",
       "nationality",
       "nrc_number",
       "address",
@@ -15885,7 +15993,7 @@ async function handleProfile(req, res) {
     const result = await query(`UPDATE profiles
        SET ${setClauses.join(", ")}, updated_at = NOW()
        WHERE id = $${providedFields.length + 1}
-       RETURNING id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone`, values);
+       RETURNING id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, country, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone`, values);
     if (result.rows.length === 0) {
       return sendError(res, "Profile not found", HttpStatus.NOT_FOUND);
     }

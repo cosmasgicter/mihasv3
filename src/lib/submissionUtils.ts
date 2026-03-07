@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Submission Utilities
  * 
@@ -32,6 +31,11 @@ interface SubmissionStatus {
 interface EmailReceipt {
   to: string;
   subject: string;
+  applicationNumber: string;
+  trackingCode: string;
+  programName: string;
+  submissionDate: string;
+  paymentStatus: string;
   [key: string]: unknown;
 }
 

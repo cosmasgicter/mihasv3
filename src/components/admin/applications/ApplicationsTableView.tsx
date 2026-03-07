@@ -52,6 +52,7 @@ const APPLICATION_STATUS_MAPPING: Record<string, 'operational' | 'degraded' | 'd
 };
 
 const PAYMENT_STATUS_MAPPING: Record<string, 'operational' | 'degraded' | 'down' | 'idle' | 'pending' | 'success' | 'error' | 'warning'> = {
+  not_paid: 'idle',
   pending_review: 'pending',
   verified: 'success',
   rejected: 'error',

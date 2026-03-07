@@ -21,6 +21,14 @@ interface MigrationFile {
   order: number;
 }
 
+const MIGRATION_HISTORY_TABLE_SQL = `
+  CREATE TABLE IF NOT EXISTS migration_history (
+    id BIGSERIAL PRIMARY KEY,
+    migration_name VARCHAR(255) NOT NULL UNIQUE,
+    applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+`;
+
 async function getMigrationFiles(): Promise<MigrationFile[]> {
   const files = readdirSync(MIGRATIONS_DIR)
     .filter(f => f.endsWith('.sql'))
@@ -46,6 +54,30 @@ async function executeRawSql(sql: NeonQueryFunction<false, false>, statement: st
   const strings = [statement] as unknown as TemplateStringsArray;
   Object.defineProperty(strings, 'raw', { value: [statement] });
   return sql(strings);
+}
+
+async function ensureMigrationHistory(sql: NeonQueryFunction<false, false>): Promise<void> {
+  await executeRawSql(sql, MIGRATION_HISTORY_TABLE_SQL);
+}
+
+async function getAppliedMigrations(sql: NeonQueryFunction<false, false>): Promise<Set<string>> {
+  const rows = await executeRawSql(
+    sql,
+    'SELECT migration_name FROM migration_history ORDER BY applied_at ASC;'
+  );
+
+  return new Set(
+    (rows as Array<{ migration_name: string }>).map((row) => row.migration_name)
+  );
+}
+
+async function recordMigration(sql: NeonQueryFunction<false, false>, fileName: string): Promise<void> {
+  await executeRawSql(
+    sql,
+    `INSERT INTO migration_history (migration_name)
+     VALUES ('${fileName.replace(/'/g, "''")}')
+     ON CONFLICT (migration_name) DO NOTHING;`
+  );
 }
 
 async function runMigration(sql: NeonQueryFunction<false, false>, file: MigrationFile): Promise<void> {
@@ -152,6 +184,9 @@ async function main() {
     console.error('❌ Failed to connect to database:', (error as Error).message);
     process.exit(1);
   }
+
+  await ensureMigrationHistory(sql);
+  const appliedMigrations = await getAppliedMigrations(sql);
   
   // Get migration files
   const migrations = await getMigrationFiles();
@@ -160,7 +195,13 @@ async function main() {
   
   // Run migrations in order
   for (const migration of migrations) {
+    if (appliedMigrations.has(migration.name)) {
+      console.log(`\n⏭️  Skipping already applied migration: ${migration.name}`);
+      continue;
+    }
+
     await runMigration(sql, migration);
+    await recordMigration(sql, migration.name);
   }
   
   console.log('\n' + '━'.repeat(50));

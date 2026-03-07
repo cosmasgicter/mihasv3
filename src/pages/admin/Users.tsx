@@ -1,24 +1,52 @@
-// @ts-nocheck
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { UserProfile } from '@/types/database'
 import { Button } from '@/components/ui/Button'
-import { LoadingState } from '@/components/ui/LoadingState'
 import { TableSkeleton, CardSkeleton } from '@/components/ui'
 import { Input } from '@/components/ui/input'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/Dialog'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/Dialog'
+import { Container } from '@/components/ui/Container'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { SectionCard } from '@/components/ui/SectionCard'
 import { UserStats } from '@/components/admin/UserStats'
 import { BulkUserOperations } from '@/components/admin/BulkUserOperations'
 import { UserActivityLog } from '@/components/admin/UserActivityLog'
 import { UserExport } from '@/components/admin/UserExport'
 import { UserImport } from '@/components/admin/UserImport'
+import { UserPermissions } from '@/components/admin/UserPermissions'
 import {
   useUsers,
-  useCreateUser
+  useCreateUser,
+  useUpdateUser,
+  useDeleteUser,
+  useUserPermissions,
+  useUpdateUserPermissions,
 } from '@/hooks/useApiServices'
-import { ArrowLeft, Users, Shield, User, Plus, Edit, Trash2, Search, Filter, UserPlus, Settings, Eye, EyeOff, BarChart3, CheckSquare, Square, Lock, Clock, Download, Upload, Phone, Calendar, Trophy } from 'lucide-react'
+import {
+  ArrowLeft,
+  BarChart3,
+  Calendar,
+  CheckSquare,
+  Download,
+  Eye,
+  EyeOff,
+  Filter,
+  Lock,
+  Phone,
+  Search,
+  Shield,
+  Square,
+  Trophy,
+  Upload,
+  User,
+  UserPlus,
+  UserX,
+  Users as UsersIcon,
+} from 'lucide-react'
+import { useToastStore } from '@/components/ui/Toast'
 import { sanitizeForLog } from '@/lib/security'
 import { sanitizeForDisplay } from '@/lib/sanitize'
+import type { AdminUserMutationResult } from '@/services/admin/users'
 
 interface CreateUserForm {
   email: string
@@ -37,18 +65,80 @@ interface EditUserForm {
 
 const AVAILABLE_ROLES = [
   { value: 'student', label: 'Student', description: 'Regular student user' },
+  { value: 'reviewer', label: 'Reviewer', description: 'Can review submitted applications' },
   { value: 'admissions_officer', label: 'Admissions Officer', description: 'Can review applications' },
   { value: 'registrar', label: 'Registrar', description: 'Academic records management' },
   { value: 'finance_officer', label: 'Finance Officer', description: 'Payment verification' },
   { value: 'academic_head', label: 'Academic Head', description: 'Department oversight' },
   { value: 'admin', label: 'Administrator', description: 'Full system access' },
+  { value: 'super_admin', label: 'Super Admin', description: 'Platform-wide administrative control' },
 ]
+
+const ADMIN_ROLES = new Set(['admin', 'super_admin'])
+
+const getRoleLabel = (role: string) => {
+  const roleMatch = AVAILABLE_ROLES.find((entry) => entry.value === role)
+  return roleMatch ? roleMatch.label : role.replace(/_/g, ' ').toUpperCase()
+}
+
+const getRoleDescription = (role: string) => {
+  const roleMatch = AVAILABLE_ROLES.find((entry) => entry.value === role)
+  return roleMatch?.description || 'Operational access role'
+}
+
+const getRoleIcon = (role: string) => {
+  if (ADMIN_ROLES.has(role)) {
+    return <Shield className="h-4 w-4 text-destructive" />
+  }
+
+  if (role !== 'student') {
+    return <Shield className="h-4 w-4 text-primary" />
+  }
+
+  return <User className="h-4 w-4 text-foreground" />
+}
+
+const getRoleColor = (role: string) => {
+  if (ADMIN_ROLES.has(role)) {
+    return 'border-destructive/30 bg-destructive/5 text-destructive'
+  }
+
+  if (role !== 'student') {
+    return 'border-primary/30 bg-primary/5 text-primary'
+  }
+
+  return 'border-border bg-muted text-foreground'
+}
+
+const formatJoinDate = (value?: string) => {
+  if (!value) {
+    return 'Unknown'
+  }
+
+  try {
+    return new Date(value).toLocaleDateString()
+  } catch {
+    return 'Unknown'
+  }
+}
+
+const getSessionSummary = (count?: number) => {
+  if (!count) {
+    return 'No active sessions needed revocation.'
+  }
+
+  return `${count} active session${count === 1 ? '' : 's'} revoked.`
+}
 
 export default function AdminUsers() {
   const { data: usersData, isLoading: loading, error: queryError, refetch } = useUsers()
   const createUserMutation = useCreateUser()
+  const updateUserMutation = useUpdateUser()
+  const deleteUserMutation = useDeleteUser()
+  const updatePermissionsMutation = useUpdateUserPermissions()
+  const { success: showSuccess, info: showInfo } = useToastStore()
 
-  const users = usersData?.users || []
+  const users = (usersData?.users || []) as UserProfile[]
   const totalCount = usersData?.totalCount ?? users.length
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
@@ -56,60 +146,91 @@ export default function AdminUsers() {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showPermissionsDialog, setShowPermissionsDialog] = useState(false)
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null)
   const [createForm, setCreateForm] = useState<CreateUserForm>({
     email: '',
     password: '',
     full_name: '',
     phone: '',
-    role: 'student'
+    role: 'student',
   })
   const [editForm, setEditForm] = useState<EditUserForm>({
     full_name: '',
     email: '',
     phone: '',
-    role: 'student'
+    role: 'student',
   })
   const [showPassword, setShowPassword] = useState(false)
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [showStats, setShowStats] = useState(false)
-  const [showBulkOps, setShowBulkOps] = useState(false)
   const [showActivityLog, setShowActivityLog] = useState(false)
   const [activityLogUserId, setActivityLogUserId] = useState<string | null>(null)
   const [showExportDialog, setShowExportDialog] = useState(false)
   const [showImportDialog, setShowImportDialog] = useState(false)
 
-
+  const selectedUserId = selectedUser?.user_id || selectedUser?.id
+  const permissionsQuery = useUserPermissions(showPermissionsDialog ? selectedUserId : undefined)
 
   useEffect(() => {
     if (queryError) {
       setError(queryError instanceof Error ? queryError.message : 'Failed to load users')
+      return
     }
+
+    setError('')
   }, [queryError])
 
   const filteredUsers = useMemo(() => {
     let filtered = users
-    
+
     if (searchTerm) {
-      filtered = filtered.filter(user => 
-        user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.phone?.includes(searchTerm)
+      const normalizedSearch = searchTerm.toLowerCase()
+      filtered = filtered.filter((user) =>
+        user.full_name?.toLowerCase().includes(normalizedSearch) ||
+        user.email?.toLowerCase().includes(normalizedSearch) ||
+        user.phone?.includes(searchTerm),
       )
     }
-    
+
     if (roleFilter) {
-      filtered = filtered.filter(user => user.role === roleFilter)
+      filtered = filtered.filter((user) => user.role === roleFilter)
     }
-    
+
     return filtered
-  }, [users, searchTerm, roleFilter])
+  }, [roleFilter, searchTerm, users])
+
+  const filteredCount = filteredUsers.length
+  const selectedCount = selectedUsers.length
+  const hasActiveFilters = Boolean(searchTerm || roleFilter)
+  const staffCount = useMemo(() => users.filter((user) => user.role !== 'student').length, [users])
+  const privilegedCount = useMemo(() => users.filter((user) => ADMIN_ROLES.has(user.role)).length, [users])
+  const newThisMonthCount = useMemo(() => {
+    const cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() - 30)
+
+    return users.filter((user) => {
+      if (!user.created_at) {
+        return false
+      }
+
+      const createdAt = new Date(user.created_at)
+      return Number.isFinite(createdAt.getTime()) && createdAt >= cutoff
+    }).length
+  }, [users])
 
   const createUser = async () => {
     try {
-      await createUserMutation.mutateAsync(createForm)
+      const result = await createUserMutation.mutateAsync(createForm) as AdminUserMutationResult
+      setError('')
       setShowCreateDialog(false)
       setCreateForm({ email: '', password: '', full_name: '', phone: '', role: 'student' })
+      showSuccess('User created', `${createForm.full_name} can now sign in as ${getRoleLabel(createForm.role)}.`)
+      showInfo('Secure handoff', 'Share the temporary password through a trusted channel and ask the user to change it after first sign-in.')
+
+      if (result?.message) {
+        showInfo('Admin API', result.message)
+      }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create user'
       console.error('Failed to create user:', sanitizeForLog(errorMessage))
@@ -117,26 +238,120 @@ export default function AdminUsers() {
     }
   }
 
-  const handleUserSelect = (userId: string) => {
-    if (selectedUsers.includes(userId)) {
-      setSelectedUsers(selectedUsers.filter(id => id !== userId))
-    } else {
-      setSelectedUsers([...selectedUsers, userId])
+  const openEditDialog = (user: UserProfile) => {
+    setSelectedUser(user)
+    setEditForm({
+      full_name: user.full_name || '',
+      email: user.email || '',
+      phone: user.phone || '',
+      role: user.role || 'student',
+    })
+    setShowEditDialog(true)
+  }
+
+  const openPermissionsDialog = (user: UserProfile) => {
+    setSelectedUser(user)
+    setShowPermissionsDialog(true)
+  }
+
+  const openDeleteDialog = (user: UserProfile) => {
+    setSelectedUser(user)
+    setShowDeleteDialog(true)
+  }
+
+  const updateUser = async () => {
+    if (!selectedUserId) {
+      return
     }
+
+    try {
+      const roleChanged = selectedUser?.role !== editForm.role
+      const result = await updateUserMutation.mutateAsync({
+        id: selectedUserId,
+        data: editForm,
+      }) as AdminUserMutationResult
+
+      setError('')
+      setShowEditDialog(false)
+      setSelectedUser(null)
+      showSuccess('User updated', roleChanged ? `${editForm.full_name} now has the ${getRoleLabel(editForm.role)} role.` : 'Profile details were updated.')
+
+      if (result?.revokedSessions) {
+        showInfo('Reauthentication required', getSessionSummary(result.revokedSessions))
+      }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update user'
+      console.error('Failed to update user:', sanitizeForLog(errorMessage))
+      setError(errorMessage)
+    }
+  }
+
+  const deactivateUser = async () => {
+    if (!selectedUserId) {
+      return
+    }
+
+    try {
+      const userName = selectedUser?.full_name || selectedUser?.email || 'User'
+      const result = await deleteUserMutation.mutateAsync(selectedUserId) as AdminUserMutationResult
+      setError('')
+      setShowDeleteDialog(false)
+      setSelectedUser(null)
+      setSelectedUsers((current) => current.filter((id) => id !== selectedUserId))
+      showSuccess('User deactivated', `${userName} no longer has access to the portal.`)
+
+      if (result?.revokedSessions) {
+        showInfo('Sessions revoked', getSessionSummary(result.revokedSessions))
+      }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to deactivate user'
+      console.error('Failed to deactivate user:', sanitizeForLog(errorMessage))
+      setError(errorMessage)
+    }
+  }
+
+  const savePermissions = async (permissions: string[]) => {
+    if (!selectedUserId) {
+      return
+    }
+
+    try {
+      const result = await updatePermissionsMutation.mutateAsync({
+        id: selectedUserId,
+        permissions,
+      })
+      await refetch()
+      setError('')
+      showSuccess(
+        'Permissions updated',
+        result.source === 'override'
+          ? 'Custom access is now active for this user.'
+          : 'Role-derived access has been restored for this user.',
+      )
+      showInfo('Reauthentication required', getSessionSummary(result.revokedSessions))
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update permissions'
+      console.error('Failed to update permissions:', sanitizeForLog(errorMessage))
+      setError(errorMessage)
+      throw err
+    }
+  }
+
+  const handleUserSelect = (userId: string) => {
+    setSelectedUsers((current) =>
+      current.includes(userId)
+        ? current.filter((id) => id !== userId)
+        : [...current, userId],
+    )
   }
 
   const handleSelectAll = () => {
     if (selectedUsers.length === filteredUsers.length) {
       setSelectedUsers([])
-    } else {
-      setSelectedUsers(filteredUsers.map(user => user.user_id))
+      return
     }
-  }
 
-  const unsupportedUserManagementMessage = 'Edit, delete, and permissions updates are not yet supported by /api/admin.'
-
-  const notifyUnsupportedOperation = () => {
-    setError(unsupportedUserManagementMessage)
+    setSelectedUsers(filteredUsers.map((user) => user.user_id || user.id).filter((id): id is string => Boolean(id)))
   }
 
   const openActivityLog = (userId: string) => {
@@ -144,665 +359,643 @@ export default function AdminUsers() {
     setShowActivityLog(true)
   }
 
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case 'admin':
-      case 'super_admin':
-        return <Shield className="h-4 w-4 text-error" />
-      case 'admissions_officer':
-      case 'registrar':
-      case 'finance_officer':
-      case 'academic_head':
-        return <Shield className="h-4 w-4 text-primary" />
-      default:
-        return <User className="h-4 w-4 text-foreground" />
-    }
-  }
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'admin':
-      case 'super_admin':
-        return 'bg-destructive/10 text-destructive-foreground'
-      case 'admissions_officer':
-      case 'registrar':
-      case 'finance_officer':
-      case 'academic_head':
-        return 'bg-primary/10 text-primary-foreground'
-      default:
-        return 'bg-accent text-foreground'
-    }
-  }
-
-  const getRoleLabel = (role: string) => {
-    const roleObj = AVAILABLE_ROLES.find(r => r.value === role)
-    return roleObj ? roleObj.label : role.replace('_', ' ').toUpperCase()
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container-mobile py-4 sm:py-6 lg:py-8 safe-area-bottom">
-        <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden">
-          {/* Header - Mobile First */}
-          <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 p-6 text-white">
-            <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-              <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
-                <Link to="/admin">
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 border-white">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back
-                  </Button>
-                </Link>
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold">👥 User Management</h1>
-                  <p className="text-white/90 text-sm sm:text-base">Manage user accounts (create is currently supported)</p>
-                </div>
-              </div>
-              <div className="flex flex-col sm:flex-row items-end sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    onClick={() => setShowStats(!showStats)}
-                    variant="ghost"
-                    size="sm"
-                    className="text-white hover:bg-white/20 border-white min-h-[44px]"
-                  >
-                    <BarChart3 className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">{showStats ? 'Hide Stats' : 'Show Stats'}</span>
-                  </Button>
-                  <Button
-                    onClick={() => setShowImportDialog(true)}
-                    variant="ghost"
-                    size="sm"
-                    className="text-white hover:bg-white/20 border-white min-h-[44px]"
-                  >
-                    <Upload className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Import</span>
-                  </Button>
-                  <Button
-                    onClick={() => setShowExportDialog(true)}
-                    variant="ghost"
-                    size="sm"
-                    className="text-white hover:bg-white/20 border-white min-h-[44px]"
-                    aria-label="Export users"
-                  >
-                    <Download className="h-4 w-4 sm:mr-2" aria-hidden="true" />
-                    <span className="hidden sm:inline">Export</span>
-                  </Button>
-                  <Button
-                    onClick={() => setShowCreateDialog(true)}
-                    className="bg-card text-secondary hover:bg-accent font-semibold min-h-[44px]"
-                    size="sm"
-                  >
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Add User
-                  </Button>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl sm:text-3xl font-bold">{filteredUsers.length}</div>
-                  <div className="text-sm text-white/80">Users Found</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Search and Filters */}
-          <div className="p-6 border-b border-border bg-muted">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground h-4 w-4" />
-                  <input
-                    type="text"
-                    placeholder="Search users by name, email, or phone..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  />
-                </div>
-              </div>
-              <div className="sm:w-48">
-                <div className="relative">
-                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground h-4 w-4" />
-                  <select
-                    value={roleFilter}
-                    onChange={(e) => setRoleFilter(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 appearance-none bg-card"
-                  >
-                    <option value="">All Roles</option>
-                    {AVAILABLE_ROLES.map(role => (
-                      <option key={role.value} value={role.value}>{role.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* User Statistics */}
-          {showStats && (
-            <div className="p-6 border-b border-border bg-gradient-to-r from-muted to-purple-50">
-              <UserStats users={users} />
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+      <Container size="lg" className="space-y-6 py-4 sm:py-8 safe-area-bottom">
+        <PageHeader
+          eyebrow="Administration"
+          title="User management"
+          description="Create accounts, adjust operational roles, manage effective permissions, and review account activity from one aligned admin surface."
+          icon={<UsersIcon className="h-6 w-6" />}
+          variant="gradient"
+          actions={(
+            <>
+              <Link to="/admin">
+                <Button variant="ghost" size="sm" className="border-white text-white hover:bg-white/20">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+              </Link>
+              <Button
+                onClick={() => setShowStats((current) => !current)}
+                variant="ghost"
+                size="sm"
+                className="border-white text-white hover:bg-white/20"
+              >
+                <BarChart3 className="mr-2 h-4 w-4" />
+                {showStats ? 'Hide stats' : 'Show stats'}
+              </Button>
+              <Button
+                onClick={() => setShowImportDialog(true)}
+                variant="ghost"
+                size="sm"
+                className="border-white text-white hover:bg-white/20"
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                Import
+              </Button>
+              <Button
+                onClick={() => setShowExportDialog(true)}
+                variant="ghost"
+                size="sm"
+                className="border-white text-white hover:bg-white/20"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Export
+              </Button>
+              <Button
+                onClick={() => setShowCreateDialog(true)}
+                size="sm"
+                className="bg-card font-semibold text-slate-900 hover:bg-white"
+              >
+                <UserPlus className="mr-2 h-4 w-4" />
+                Add user
+              </Button>
+            </>
           )}
+          stats={[
+            { label: 'Active users', value: totalCount, icon: <UsersIcon className="h-5 w-5" />, accent: 'primary' },
+            { label: 'Staff accounts', value: staffCount, icon: <Shield className="h-5 w-5" />, accent: 'secondary' },
+            { label: 'Admin accounts', value: privilegedCount, icon: <Lock className="h-5 w-5" />, accent: 'warning' },
+            { label: 'New in 30 days', value: newThisMonthCount, icon: <Calendar className="h-5 w-5" />, accent: 'neutral' },
+          ]}
+        >
+          <p className="max-w-2xl text-sm text-white/90">
+            Role changes and custom permission overrides revoke active sessions automatically. Deactivated accounts leave the live directory but remain visible in audit history.
+          </p>
+        </PageHeader>
 
-          {/* Bulk Operations */}
-          {selectedUsers.length > 0 && (
-            <div className="p-6 border-b border-border bg-primary/5">
-              <BulkUserOperations
-                users={filteredUsers}
-                selectedUsers={selectedUsers}
-                onSelectionChange={setSelectedUsers}
-                onOperationComplete={() => refetch()}
-              />
-            </div>
-          )}
-
-          {/* Content */}
-          <div className="p-6">
-
-            {error && (
-              <div className="rounded-xl bg-destructive/5 border border-destructive/30 p-6 mb-6">
-                <div className="flex items-center space-x-3">
-                  <div className="text-4xl">😱</div>
-                  <div className="text-error font-medium">{error}</div>
-                </div>
-              </div>
-            )}
-
-            {loading ? (
-              <>
-                {/* Mobile Skeleton View */}
-                <div className="block lg:hidden space-y-4">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <CardSkeleton key={i} />
+        <SectionCard
+          title="Filter and operate"
+          description="Search the active directory, narrow by role, and keep the user operations workflow aligned with how access is really enforced."
+          icon={<Filter className="h-5 w-5" />}
+          actions={hasActiveFilters ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSearchTerm('')
+                setRoleFilter('')
+              }}
+            >
+              Clear filters
+            </Button>
+          ) : undefined}
+        >
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]">
+            <Input
+              label="Search users"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search by name, email, or phone"
+              icon={<Search className="h-4 w-4" />}
+              helperText="The directory only shows active accounts by default."
+            />
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-foreground">
+                Role
+              </label>
+              <div className="relative">
+                <Filter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground" />
+                <select
+                  value={roleFilter}
+                  onChange={(event) => setRoleFilter(event.target.value)}
+                  className="h-11 w-full rounded-lg border border-input bg-background pl-10 pr-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="">All roles</option>
+                  {AVAILABLE_ROLES.map((role) => (
+                    <option key={role.value} value={role.value}>
+                      {role.label}
+                    </option>
                   ))}
-                </div>
-                {/* Desktop Skeleton View */}
-                <div className="hidden lg:block">
-                  <TableSkeleton rows={8} columns={5} />
-                </div>
-              </>
-            ) : filteredUsers.length === 0 ? (
-              <div className="text-center py-8 sm:py-16">
-                <div className="text-8xl mb-6">👥</div>
-                <h3 className="text-2xl font-bold text-foreground mb-2">
-                  {searchTerm || roleFilter ? 'No Matching Users' : 'No Users Found'}
-                </h3>
-                <p className="text-foreground mb-6 max-w-md mx-auto">
-                  {searchTerm || roleFilter 
-                    ? 'Try adjusting your search or filter criteria.'
-                    : 'No users have been registered yet. Users will appear here once they sign up for the system.'}
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  {(searchTerm || roleFilter) && (
-                    <Button 
-                      onClick={() => {
-                        setSearchTerm('')
-                        setRoleFilter('')
-                      }} 
-                      variant="outline"
-                    >
-                      Clear Filters
-                    </Button>
-                  )}
-                  <Button onClick={() => refetch()} className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-white font-semibold">
-                    Refresh Users
-                  </Button>
-                </div>
-                {users.length > 0 && (
-                  <p className="text-sm text-foreground mt-4">
-                    Total users in system: {totalCount}
-                  </p>
-                )}
+                </select>
               </div>
-            ) : (
-              <>
-                {/* Mobile Cards View */}
-                <div className="block lg:hidden space-y-4">
-                  {filteredUsers.map((user) => (
-                    <div key={user.user_id} className="bg-muted rounded-xl p-4 border border-border">
-                      <div className="flex items-start space-x-3 mb-3">
-                        <div className="flex-shrink-0 flex items-center space-x-2">
+              <p className="mt-1.5 text-sm text-foreground">Use role filtering before running bulk actions or exports.</p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary">Access changes</p>
+              <p className="mt-2 text-base font-semibold text-foreground">Role and permission saves force reauthentication</p>
+              <p className="mt-2 text-sm text-foreground">
+                Admin role updates and custom permission overrides revoke active sessions so the next login receives fresh claims.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-border bg-muted/50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Operational directory</p>
+              <p className="mt-2 text-base font-semibold text-foreground">Deactivated users stay in history, not the live list</p>
+              <p className="mt-2 text-sm text-foreground">
+                Account deactivation removes sign-in access immediately while preserving audit continuity and prior application ownership.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-border bg-muted/50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Account creation</p>
+              <p className="mt-2 text-base font-semibold text-foreground">Phone, role, and seeded profile basics are captured together</p>
+              <p className="mt-2 text-sm text-foreground">
+                New users now leave this screen with the contact details and initial operational role the rest of the admin system expects.
+              </p>
+            </div>
+          </div>
+        </SectionCard>
+
+        {showStats && (
+          <SectionCard
+            title="Directory statistics"
+            description="Use this summary when reviewing staffing mix before imports, bulk changes, or audit follow-up."
+            icon={<BarChart3 className="h-5 w-5" />}
+          >
+            <UserStats users={users} />
+          </SectionCard>
+        )}
+
+        {selectedCount > 0 && (
+          <SectionCard
+            title={`Bulk operations (${selectedCount} selected)`}
+            description="Bulk changes apply only to the currently selected active accounts."
+            icon={<CheckSquare className="h-5 w-5" />}
+          >
+            <BulkUserOperations
+              users={filteredUsers}
+              selectedUsers={selectedUsers}
+              onSelectionChange={setSelectedUsers}
+              onOperationComplete={() => refetch()}
+            />
+          </SectionCard>
+        )}
+
+        <SectionCard
+          title="Active user directory"
+          description={`${filteredCount} of ${totalCount} active accounts are currently shown.`}
+          icon={<User className="h-5 w-5" />}
+          actions={(
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              Refresh users
+            </Button>
+          )}
+        >
+          {error && (
+            <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
+              <p className="text-sm font-medium text-destructive">User operations issue</p>
+              <p className="mt-1 text-sm text-foreground">{error}</p>
+            </div>
+          )}
+
+          {loading ? (
+            <>
+              <div className="block space-y-4 lg:hidden">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <CardSkeleton key={index} />
+                ))}
+              </div>
+              <div className="hidden lg:block">
+                <TableSkeleton rows={8} columns={5} />
+              </div>
+            </>
+          ) : filteredUsers.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border bg-muted/40 px-6 py-12 text-center">
+              <UsersIcon className="mx-auto h-12 w-12 text-foreground" />
+              <h3 className="mt-4 text-xl font-semibold text-foreground">
+                {hasActiveFilters ? 'No matching users' : 'No active users found'}
+              </h3>
+              <p className="mx-auto mt-2 max-w-md text-sm text-foreground">
+                {hasActiveFilters
+                  ? 'Adjust the search query or role filter to widen the directory.'
+                  : 'Users will appear here once accounts are created or imported into the system.'}
+              </p>
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                {hasActiveFilters && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchTerm('')
+                      setRoleFilter('')
+                    }}
+                  >
+                    Clear filters
+                  </Button>
+                )}
+                <Button onClick={() => refetch()}>Refresh users</Button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="rounded-2xl border border-border bg-muted/40 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-foreground">Showing the operational active-user directory.</p>
+                    <p className="text-sm text-foreground">
+                      Open a user to edit role, inspect activity history, or manage effective permissions without leaving this screen.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-xs text-foreground">
+                    <span className="rounded-full border border-border bg-card px-2.5 py-1">
+                      Filtered: {filteredCount}
+                    </span>
+                    <span className="rounded-full border border-border bg-card px-2.5 py-1">
+                      Selected: {selectedCount}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="block space-y-4 lg:hidden">
+                {filteredUsers.map((user) => {
+                  const userId = user.user_id || user.id
+                  const isSelected = selectedUsers.includes(userId)
+
+                  return (
+                    <div key={userId} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+                      <div className="flex items-start gap-3">
+                        <button
+                          onClick={() => handleUserSelect(userId)}
+                          className="mt-1 text-primary hover:text-primary"
+                          aria-label={isSelected ? 'Deselect user' : 'Select user'}
+                        >
+                          {isSelected ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+                        </button>
+                        <div className="mt-1">{getRoleIcon(user.role)}</div>
+                        <div className="min-w-0 flex-1 space-y-2">
+                          <div className="space-y-1">
+                            <h3 className="truncate text-base font-semibold text-foreground" title={user.full_name || 'No name provided'}>
+                              {sanitizeForDisplay(user.full_name) || 'No name provided'}
+                            </h3>
+                            <p className="truncate text-sm text-foreground">{sanitizeForDisplay(user.email)}</p>
+                            <p className="truncate text-sm text-foreground">
+                              {sanitizeForDisplay(user.phone) || 'No phone on file'}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium ${getRoleColor(user.role)}`}>
+                              {getRoleLabel(user.role)}
+                            </span>
+                            <span className="rounded-full border border-border bg-muted px-3 py-1 text-xs text-foreground">
+                              Joined {formatJoinDate(user.created_at)}
+                            </span>
+                          </div>
+                          <p className="text-sm text-foreground">{getRoleDescription(user.role)}</p>
+                          <p className="font-mono text-xs text-foreground/80">
+                            User ID: {userId.slice(0, 8)}...
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-4">
+                        <Button variant="outline" size="sm" onClick={() => openEditDialog(user)}>
+                          Edit
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => openPermissionsDialog(user)}>
+                          Permissions
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => openActivityLog(userId)}>
+                          Activity
+                        </Button>
+                        {user.role !== 'super_admin' && (
+                          <Button variant="outline" size="sm" className="border-destructive/30 text-destructive hover:bg-destructive/5" onClick={() => openDeleteDialog(user)}>
+                            Deactivate
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div className="hidden overflow-x-auto lg:block">
+                <table className="min-w-full divide-y divide-border">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground">
+                        <div className="flex items-center gap-2">
                           <button
-                            onClick={() => handleUserSelect(user.user_id)}
-                            className="text-primary hover:text-primary-foreground"
+                            onClick={handleSelectAll}
+                            className="text-primary hover:text-primary"
+                            aria-label={selectedUsers.length === filteredUsers.length ? 'Deselect all users' : 'Select all users'}
                           >
-                            {selectedUsers.includes(user.user_id) ? (
+                            {selectedUsers.length === filteredUsers.length && filteredUsers.length > 0 ? (
                               <CheckSquare className="h-4 w-4" />
                             ) : (
                               <Square className="h-4 w-4" />
                             )}
                           </button>
-                          {getRoleIcon(user.role)}
+                          <span>User</span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-lg text-foreground truncate" title={user.full_name || 'No name provided'}>
-                            {sanitizeForDisplay(user.full_name) || 'No name provided'}
-                          </h3>
-                          <p className="text-sm text-foreground truncate" title={user.email}>{sanitizeForDisplay(user.email)}</p>
-                          {user.phone && (
-                            <p className="text-sm text-foreground truncate" title={user.phone}>{sanitizeForDisplay(user.phone)}</p>
-                          )}
-                          <p className="text-xs text-foreground mt-1">
-                            ID: {user.user_id?.slice(0, 8) || 'N/A'}...
-                          </p>
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground">
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4" />
+                          Contact
                         </div>
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
-                          getRoleColor(user.role)
-                        }`}>
-                          {getRoleLabel(user.role)}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between pt-3 border-t border-border">
-                        <div className="text-xs text-foreground">
-                          Joined: {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground">
+                        <div className="flex items-center gap-2">
+                          <Trophy className="h-4 w-4" />
+                          Role
                         </div>
-                        <div className="flex flex-wrap gap-2 justify-end">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={notifyUnsupportedOperation}
-                            className="text-primary border-blue-300 hover:bg-primary/5 min-h-[44px] min-w-[44px]"
-                          >
-                            <Edit className="h-3 w-3 mr-1" />
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={notifyUnsupportedOperation}
-                            className="text-secondary border-purple-300 hover:bg-secondary/5 min-h-[44px] min-w-[44px]"
-                          >
-                            <Lock className="h-3 w-3 mr-1" />
-                            Perms
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openActivityLog(user.user_id)}
-                            className="text-foreground border-input hover:bg-muted min-h-[44px] min-w-[44px]"
-                          >
-                            <Clock className="h-3 w-3 mr-1" />
-                            Log
-                          </Button>
-                          {user.role !== 'super_admin' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={notifyUnsupportedOperation}
-                              className="text-destructive border-destructive/30 hover:bg-destructive/5 min-h-[44px] min-w-[44px]"
-                            >
-                              <Trash2 className="h-3 w-3 mr-1" />
-                              Del
-                            </Button>
-                          )}
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          Joined
                         </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-foreground">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border bg-card">
+                    {filteredUsers.map((user) => {
+                      const userId = user.user_id || user.id
+                      const isSelected = selectedUsers.includes(userId)
 
-                {/* Desktop Table View */}
-                <div className="hidden lg:block overflow-x-auto -mx-6">
-                  <div className="inline-block min-w-full px-6">
-                  <table className="min-w-full divide-y divide-border">
-                    <thead className="bg-gradient-to-r from-muted to-purple-50">
-                      <tr>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={handleSelectAll}
-                              className="text-primary hover:text-primary-foreground"
-                            >
-                              {selectedUsers.length === filteredUsers.length && filteredUsers.length > 0 ? (
-                                <CheckSquare className="h-4 w-4" />
-                              ) : (
-                                <Square className="h-4 w-4" />
-                              )}
-                            </button>
-                            <span><User className="w-5 h-5" /> User</span>
-                          </div>
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
-                          <Phone className="w-5 h-5" /> Contact
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
-                          <Trophy className="w-5 h-5" /> Role
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
-                          <Calendar className="w-5 h-5" /> Joined
-                        </th>
-                        <th className="px-6 py-4 text-right text-sm font-bold text-foreground uppercase tracking-wider">
-                          ⚙️ Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-card divide-y divide-border">
-                      {filteredUsers.map((user) => (
-                        <tr key={user.user_id} className="hover:bg-secondary/5 transition-colors">
-                          <td className="px-6 py-4">
-                            <div className="flex items-center">
+                      return (
+                        <tr key={userId} className="hover:bg-muted/30">
+                          <td className="px-4 py-4 align-top">
+                            <div className="flex items-start gap-3">
                               <button
-                                onClick={() => handleUserSelect(user.user_id)}
-                                className="text-primary hover:text-primary-foreground mr-3"
+                                onClick={() => handleUserSelect(userId)}
+                                className="mt-0.5 text-primary hover:text-primary"
+                                aria-label={isSelected ? 'Deselect user' : 'Select user'}
                               >
-                                {selectedUsers.includes(user.user_id) ? (
-                                  <CheckSquare className="h-4 w-4" />
-                                ) : (
-                                  <Square className="h-4 w-4" />
-                                )}
+                                {isSelected ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
                               </button>
-                              {getRoleIcon(user.role)}
-                              <div className="ml-3 min-w-0">
-                                <div className="text-sm font-semibold text-foreground truncate" title={user.full_name || 'No name provided'}>
+                              <div className="mt-0.5">{getRoleIcon(user.role)}</div>
+                              <div className="min-w-0 space-y-1">
+                                <p className="truncate text-sm font-semibold text-foreground" title={user.full_name || 'No name provided'}>
                                   {sanitizeForDisplay(user.full_name) || 'No name provided'}
-                                </div>
-                                <div className="text-xs text-foreground font-mono truncate">
-                                  ID: {user.user_id?.slice(0, 8) || 'N/A'}...
-                                </div>
+                                </p>
+                                <p className="truncate text-sm text-foreground">{sanitizeForDisplay(user.email)}</p>
+                                <p className="font-mono text-xs text-foreground/80">ID: {userId.slice(0, 8)}...</p>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4">
-                            <div className="min-w-0 max-w-xs">
-                              <div className="text-sm text-foreground truncate" title={user.email}>{sanitizeForDisplay(user.email)}</div>
-                              {user.phone && (
-                                <div className="text-sm text-foreground truncate" title={user.phone}>{sanitizeForDisplay(user.phone)}</div>
-                              )}
+                          <td className="px-4 py-4 align-top">
+                            <div className="max-w-xs space-y-1">
+                              <p className="truncate text-sm text-foreground">{sanitizeForDisplay(user.phone) || 'No phone on file'}</p>
+                              <p className="text-xs text-foreground">Phone is also used by downstream notifications and profile autopopulation.</p>
                             </div>
                           </td>
-                          <td className="px-6 py-4">
-                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
-                              getRoleColor(user.role)
-                            }`}>
-                              {getRoleLabel(user.role)}
-                            </span>
+                          <td className="px-4 py-4 align-top">
+                            <div className="space-y-2">
+                              <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium ${getRoleColor(user.role)}`}>
+                                {getRoleLabel(user.role)}
+                              </span>
+                              <p className="max-w-xs text-xs text-foreground">{getRoleDescription(user.role)}</p>
+                            </div>
                           </td>
-                          <td className="px-6 py-4 text-sm text-foreground">
-                            {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
+                          <td className="px-4 py-4 align-top text-sm text-foreground">
+                            {formatJoinDate(user.created_at)}
                           </td>
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end space-x-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={notifyUnsupportedOperation}
-                                className="text-primary border-blue-300 hover:bg-primary/5"
-                                disabled
-                              >
-                                <Edit className="h-3 w-3 mr-1" />
+                          <td className="px-4 py-4 align-top">
+                            <div className="flex justify-end gap-2">
+                              <Button variant="outline" size="sm" onClick={() => openEditDialog(user)}>
                                 Edit
                               </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={notifyUnsupportedOperation}
-                                className="text-secondary border-purple-300 hover:bg-secondary/5"
-                                disabled
-                              >
-                                <Lock className="h-3 w-3 mr-1" />
+                              <Button variant="outline" size="sm" onClick={() => openPermissionsDialog(user)}>
                                 Permissions
                               </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openActivityLog(user.user_id)}
-                                className="text-foreground border-input hover:bg-muted"
-                                disabled
-                              >
-                                <Clock className="h-3 w-3 mr-1" />
+                              <Button variant="outline" size="sm" onClick={() => openActivityLog(userId)}>
                                 Activity
                               </Button>
                               {user.role !== 'super_admin' && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={notifyUnsupportedOperation}
-                                  className="text-destructive border-destructive/30 hover:bg-destructive/5"
-                                  disabled
-                                >
-                                  <Trash2 className="h-3 w-3 mr-1" />
-                                  Delete
+                                <Button variant="outline" size="sm" className="border-destructive/30 text-destructive hover:bg-destructive/5" onClick={() => openDeleteDialog(user)}>
+                                  Deactivate
                                 </Button>
                               )}
                             </div>
                           </td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </SectionCard>
 
-      {/* Create User Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
-              <UserPlus className="h-5 w-5 text-secondary" />
-              <span>Create New User</span>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              label="Full Name"
-              value={createForm.full_name}
-              onChange={(e) => setCreateForm({ ...createForm, full_name: e.target.value })}
-              placeholder="Enter full name"
-              required
-            />
-            <Input
-              label="Email"
-              type="email"
-              value={createForm.email}
-              onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
-              placeholder="Enter email address"
-              required
-            />
-            <div className="relative">
+        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <UserPlus className="h-5 w-5 text-primary" />
+                <span>Create user</span>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-border bg-muted/50 p-4">
+                <p className="text-sm font-medium text-foreground">Create the account with its operational role from the start.</p>
+                <p className="mt-1 text-sm text-foreground">
+                  The phone number captured here now feeds the same profile/contact flows used elsewhere in the system.
+                </p>
+              </div>
               <Input
-                label="Password"
-                type={showPassword ? 'text' : 'password'}
-                value={createForm.password}
-                onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
-                placeholder="Enter password"
+                label="Full name"
+                value={createForm.full_name}
+                onChange={(event) => setCreateForm({ ...createForm, full_name: event.target.value })}
+                placeholder="Enter full name"
                 required
               />
-              <button
-                type="button"
-                className="absolute right-3 top-4 sm:p-8 text-foreground hover:text-foreground"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
-              </button>
-            </div>
-            <Input
-              label="Phone"
-              value={createForm.phone}
-              onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
-              placeholder="Enter phone number"
-            />
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">
-                Role <span className="text-error">*</span>
-              </label>
-              <select
-                value={createForm.role}
-                onChange={(e) => setCreateForm({ ...createForm, role: e.target.value })}
-                className="w-full px-3 py-2 border border-input rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              <Input
+                label="Email"
+                type="email"
+                value={createForm.email}
+                onChange={(event) => setCreateForm({ ...createForm, email: event.target.value })}
+                placeholder="Enter email address"
                 required
-              >
-                {AVAILABLE_ROLES.map(role => (
-                  <option key={role.value} value={role.value}>
-                    {role.label} - {role.description}
-                  </option>
-                ))}
-              </select>
+              />
+              <div className="relative">
+                <Input
+                  label="Temporary password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={createForm.password}
+                  onChange={(event) => setCreateForm({ ...createForm, password: event.target.value })}
+                  placeholder="Enter password"
+                  helperText="Share this securely with the user after creation."
+                  required
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-[2.75rem] text-foreground hover:text-foreground"
+                  onClick={() => setShowPassword((current) => !current)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
+                </button>
+              </div>
+              <Input
+                label="Phone"
+                value={createForm.phone}
+                onChange={(event) => setCreateForm({ ...createForm, phone: event.target.value })}
+                placeholder="Enter phone number"
+              />
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-foreground">
+                  Role <span className="text-destructive">*</span>
+                </label>
+                <select
+                  value={createForm.role}
+                  onChange={(event) => setCreateForm({ ...createForm, role: event.target.value })}
+                  className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  required
+                >
+                  {AVAILABLE_ROLES.map((role) => (
+                    <option key={role.value} value={role.value}>
+                      {role.label} - {role.description}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowCreateDialog(false)}
-              disabled={createUserMutation.isPending}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={createUser}
-              loading={createUserMutation.isPending}
-              className="bg-secondary hover:bg-purple-700 text-white"
-            >
-              Create User
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowCreateDialog(false)} disabled={createUserMutation.isPending}>
+                Cancel
+              </Button>
+              <Button onClick={createUser} loading={createUserMutation.isPending}>
+                Create user
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-      {/* Edit User Dialog */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
-              <Edit className="h-5 w-5 text-primary" />
-              <span>Edit User</span>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              label="Full Name"
-              value={editForm.full_name}
-              onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
-              placeholder="Enter full name"
-              required
-            />
-            <Input
-              label="Email"
-              type="email"
-              value={editForm.email}
-              onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-              placeholder="Enter email address"
-              required
-            />
-            <Input
-              label="Phone"
-              value={editForm.phone}
-              onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-              placeholder="Enter phone number"
-            />
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">
-                Role <span className="text-error">*</span>
-              </label>
-              <select
-                value={editForm.role}
-                onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                className="w-full px-3 py-2 border border-input rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                required
-                disabled={selectedUser?.role === 'super_admin'}
-              >
-                {AVAILABLE_ROLES.map(role => (
-                  <option key={role.value} value={role.value}>
-                    {role.label} - {role.description}
-                  </option>
-                ))}
-              </select>
-              {selectedUser?.role === 'super_admin' && (
-                <p className="text-xs text-foreground mt-1">Super admin role cannot be changed</p>
+        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" />
+                <span>Edit user</span>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              {selectedUser && (
+                <div className="rounded-2xl border border-border bg-muted/50 p-4">
+                  <p className="text-sm font-medium text-foreground">{sanitizeForDisplay(selectedUser.email)}</p>
+                  <p className="mt-1 text-sm text-foreground">
+                    Changing the assigned role revokes active sessions so the user signs in again with fresh access.
+                  </p>
+                </div>
               )}
+              <Input
+                label="Full name"
+                value={editForm.full_name}
+                onChange={(event) => setEditForm({ ...editForm, full_name: event.target.value })}
+                placeholder="Enter full name"
+                required
+              />
+              <Input
+                label="Email"
+                type="email"
+                value={editForm.email}
+                onChange={(event) => setEditForm({ ...editForm, email: event.target.value })}
+                placeholder="Enter email address"
+                required
+              />
+              <Input
+                label="Phone"
+                value={editForm.phone}
+                onChange={(event) => setEditForm({ ...editForm, phone: event.target.value })}
+                placeholder="Enter phone number"
+              />
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-foreground">
+                  Role <span className="text-destructive">*</span>
+                </label>
+                <select
+                  value={editForm.role}
+                  onChange={(event) => setEditForm({ ...editForm, role: event.target.value })}
+                  className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  required
+                  disabled={selectedUser?.role === 'super_admin'}
+                >
+                  {AVAILABLE_ROLES.map((role) => (
+                    <option key={role.value} value={role.value}>
+                      {role.label} - {role.description}
+                    </option>
+                  ))}
+                </select>
+                {selectedUser?.role === 'super_admin' ? (
+                  <p className="mt-1.5 text-sm text-foreground">Super admin access is locked from this dialog.</p>
+                ) : (
+                  <p className="mt-1.5 text-sm text-foreground">Role changes end active sessions and require the user to sign in again.</p>
+                )}
+              </div>
             </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowEditDialog(false)}
-              disabled
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={notifyUnsupportedOperation}
-              loading={false}
-              className="bg-primary hover:bg-primary text-white"
-            >
-              Update User
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowEditDialog(false)} disabled={updateUserMutation.isPending}>
+                Cancel
+              </Button>
+              <Button onClick={updateUser} loading={updateUserMutation.isPending}>
+                Update user
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-      {/* Delete User Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2 text-destructive">
-              <Trash2 className="h-5 w-5" />
-              <span>Delete User</span>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="text-foreground">
-              Are you sure you want to delete <strong>{sanitizeForDisplay(selectedUser?.full_name)}</strong>? 
-              This action cannot be undone and will remove all user data.
-            </p>
-            <div className="mt-4 p-3 bg-destructive/5 border border-destructive/30 rounded-lg">
-              <p className="text-sm text-error">
-                ⚠️ This will permanently delete the user profile and cannot be reversed.
+        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-destructive">
+                <UserX className="h-5 w-5" />
+                <span>Deactivate user</span>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-1">
+              <p className="text-sm text-foreground">
+                Deactivate <strong>{sanitizeForDisplay(selectedUser?.full_name || selectedUser?.email)}</strong>?
               </p>
+              <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
+                <p className="text-sm font-medium text-destructive">This removes live sign-in access immediately.</p>
+                <p className="mt-1 text-sm text-foreground">
+                  Existing sessions are revoked, but audit history and owned records remain intact for operational traceability.
+                </p>
+              </div>
             </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleteDialog(false)}
-              disabled
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={notifyUnsupportedOperation}
-              loading={false}
-              variant="destructive"
-            >
-              Delete User
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowDeleteDialog(false)} disabled={deleteUserMutation.isPending}>
+                Cancel
+              </Button>
+              <Button onClick={deactivateUser} loading={deleteUserMutation.isPending} variant="destructive">
+                Deactivate user
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-      {/* User Activity Log Dialog */}
-      <UserActivityLog
-        userId={activityLogUserId || undefined}
-        isOpen={showActivityLog}
-        onClose={() => {
-          setShowActivityLog(false)
-          setActivityLogUserId(null)
-        }}
-      />
+        {selectedUser && (
+          <UserPermissions
+            user={selectedUser}
+            isOpen={showPermissionsDialog}
+            onClose={() => setShowPermissionsDialog(false)}
+            onSave={savePermissions}
+            initialPermissions={permissionsQuery.data?.permissions ?? null}
+            permissionSource={permissionsQuery.data?.source ?? 'role'}
+            isLoading={permissionsQuery.isLoading || updatePermissionsMutation.isPending}
+          />
+        )}
 
-      {/* User Export Dialog */}
-      <UserExport
-        users={users}
-        isOpen={showExportDialog}
-        onClose={() => setShowExportDialog(false)}
-      />
+        <UserActivityLog
+          userId={activityLogUserId || undefined}
+          isOpen={showActivityLog}
+          onClose={() => {
+            setShowActivityLog(false)
+            setActivityLogUserId(null)
+          }}
+        />
 
-      {/* User Import Dialog */}
-      <UserImport
-        isOpen={showImportDialog}
-        onClose={() => setShowImportDialog(false)}
-        onImportComplete={() => {
-          setShowImportDialog(false)
-          refetch()
-        }}
-      />
+        <UserExport
+          users={users}
+          isOpen={showExportDialog}
+          onClose={() => setShowExportDialog(false)}
+        />
+
+        <UserImport
+          isOpen={showImportDialog}
+          onClose={() => setShowImportDialog(false)}
+          onImportComplete={() => {
+            setShowImportDialog(false)
+            refetch()
+          }}
+        />
+      </Container>
     </div>
   )
 }

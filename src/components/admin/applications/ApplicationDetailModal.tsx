@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { formatDate } from '@/lib/utils'
@@ -458,7 +457,7 @@ export function ApplicationDetailModal({
  include: ['grades', 'statusHistory', 'documents', 'interview'] 
  })
  
- const payload = response || {}
+ const payload: any = response || {}
  const primaryApplication = payload?.application || application
 
  setApplicationData({
@@ -606,8 +605,8 @@ export function ApplicationDetailModal({
  const shouldSchedule = !currentInterview || currentInterview.status === 'cancelled'
 
  const updatedInterview = shouldSchedule
- ? await applicationService.scheduleInterview(application.id, payload)
- : await applicationService.rescheduleInterview(application.id, payload)
+ ? await applicationService.scheduleInterview(application!.id, payload)
+ : await applicationService.rescheduleInterview(application!.id, payload)
 
  if (!updatedInterview) {
  throw new Error('No interview data was returned by the server.')
@@ -637,7 +636,7 @@ export function ApplicationDetailModal({
  setIsCancellingInterview(true)
  setInterviewNotice(null)
 
- const updatedInterview = await applicationService.cancelInterview(application.id, {
+ const updatedInterview = await applicationService.cancelInterview(application!.id, {
  notes: interviewForm.notes.trim() || undefined
  })
 
@@ -1005,6 +1004,29 @@ export function ApplicationDetailModal({
  {(application.payment_verified_by_name || application.payment_verified_by_email) && (
  <p className="text-sm text-warning-strong">
  By: {application.payment_verified_by_name || application.payment_verified_by_email}
+ </p>
+ )}
+ </div>
+ )}
+ {(applicationData?.application?.last_payment_audit_at || application.last_payment_audit_at || applicationData?.application?.last_payment_audit_notes || application.last_payment_audit_notes) && (
+ <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+ <div className="flex items-center gap-2 mb-2">
+ <Clock className="h-4 w-4 text-amber-700" />
+ <p className="font-medium text-amber-900">Latest Payment Review</p>
+ </div>
+ {(applicationData?.application?.last_payment_audit_at || application.last_payment_audit_at) && (
+ <p className="text-sm text-amber-900/80 mb-1">
+ Reviewed on {formatDate(applicationData?.application?.last_payment_audit_at || application.last_payment_audit_at || '')}
+ </p>
+ )}
+ {(applicationData?.application?.last_payment_audit_by_name || application.last_payment_audit_by_name || applicationData?.application?.last_payment_audit_by_email || application.last_payment_audit_by_email) && (
+ <p className="text-sm text-amber-900/80 mb-2">
+ By: {applicationData?.application?.last_payment_audit_by_name || application.last_payment_audit_by_name || applicationData?.application?.last_payment_audit_by_email || application.last_payment_audit_by_email}
+ </p>
+ )}
+ {(applicationData?.application?.last_payment_audit_notes || application.last_payment_audit_notes) && (
+ <p className="text-sm text-foreground bg-background/80 rounded-md px-3 py-2">
+ {applicationData?.application?.last_payment_audit_notes || application.last_payment_audit_notes}
  </p>
  )}
  </div>

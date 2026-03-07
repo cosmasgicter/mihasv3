@@ -6,12 +6,15 @@
  */
 
 import { sanitizeForLog } from './security'
+import { fileToBase64 } from '@/utils/file-helpers'
 
 export interface UploadResult {
   success: boolean
   url?: string
   path?: string
   error?: string
+  retryable?: boolean
+  statusCode?: number
 }
 
 export interface StorageConfig {
@@ -73,7 +76,8 @@ export async function uploadApplicationFile(
     if (file.size > 10 * 1024 * 1024) {
       return {
         success: false,
-        error: 'File size must be less than 10MB'
+        error: 'File size must be less than 10MB',
+        retryable: false,
       }
     }
 
@@ -82,43 +86,62 @@ export async function uploadApplicationFile(
     if (!allowedTypes.includes(file.type)) {
       return {
         success: false,
-        error: 'Only PDF, JPG, JPEG, and PNG files are allowed'
+        error: 'Only PDF, JPG, JPEG, and PNG files are allowed',
+        retryable: false,
       }
     }
 
-    // Create form data for upload
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('applicationId', applicationId)
-    formData.append('documentType', fileType)
+    const fileData = await fileToBase64(file)
 
-    // Upload via API
     const response = await fetch('/api/documents?action=upload', {
       method: 'POST',
       credentials: 'include',
-      body: formData
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        file: fileData,
+        fileName: file.name,
+        contentType: file.type,
+        applicationId,
+        userId,
+        documentType: fileType
+      })
     })
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
+      const statusCode = response.status
+      const retryable = [408, 425, 429, 502, 503, 504].includes(statusCode)
       return {
         success: false,
-        error: errorData.error || `Upload failed: ${response.status}`
+        error: errorData.error || `Upload failed: ${response.status}`,
+        retryable,
+        statusCode,
       }
     }
 
     const data = await response.json()
+    const payload = data?.data ?? data
     
     return {
       success: true,
-      path: data.path,
-      url: data.url
+      path: payload.path,
+      url: payload.url
     }
   } catch (error) {
     console.error('Upload error:', error)
+    const message = error instanceof Error ? error.message : 'Upload failed'
+    const lowerMessage = message.toLowerCase()
+    const retryable =
+      lowerMessage.includes('network') ||
+      lowerMessage.includes('timeout') ||
+      lowerMessage.includes('failed to fetch') ||
+      lowerMessage.includes('load failed')
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Upload failed'
+      error: message,
+      retryable,
     }
   }
 }
@@ -182,16 +205,20 @@ export async function uploadFile(
       }
     }
 
-    // Create form data for upload
-    const formData = new FormData()
-    formData.append('file', file)
-    if (path) formData.append('path', path)
+    const fileData = await fileToBase64(file)
 
-    // Upload via API
     const response = await fetch('/api/documents?action=upload', {
       method: 'POST',
       credentials: 'include',
-      body: formData
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        file: fileData,
+        fileName: file.name,
+        contentType: file.type,
+        documentType: path || 'document'
+      })
     })
 
     if (!response.ok) {
@@ -204,11 +231,12 @@ export async function uploadFile(
     }
 
     const data = await response.json()
+    const payload = data?.data ?? data
     
     return {
       success: true,
-      path: data.path,
-      url: data.url
+      path: payload.path,
+      url: payload.url
     }
   } catch (error) {
     console.error('Upload error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })

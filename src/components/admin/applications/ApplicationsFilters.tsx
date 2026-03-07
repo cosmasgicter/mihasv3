@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Button } from '@/components/ui/Button'
 import { 
   Search, 
@@ -140,7 +140,7 @@ export function ApplicationsFilters({
             <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search applications..."
+              placeholder="Search by applicant, email, application number, programme, or institution..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
               className="form-input-mobile w-full pl-10 sm:pl-12 pr-4 py-3 border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
@@ -155,12 +155,12 @@ export function ApplicationsFilters({
             onChange={(e) => onStatusFilterChange(e.target.value)}
             className="form-input-mobile w-full px-3 sm:px-4 py-3 border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
           >
-            <option value="all">All Status</option>
-            <option value="draft"><FileEdit className="w-5 h-5" /> Draft</option>
-            <option value="submitted"><FileText className="w-5 h-5" /> Submitted</option>
-            <option value="under_review"><Search className="w-5 h-5" /> Under Review</option>
-            <option value="approved">✅ Approved</option>
-            <option value="rejected">❌ Rejected</option>
+            <option value="all">All Application Statuses</option>
+            <option value="draft">Draft</option>
+            <option value="submitted">Submitted</option>
+            <option value="under_review">Under Review</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
           </select>
         </div>
         
@@ -174,11 +174,11 @@ export function ApplicationsFilters({
             }}
             className="form-input-mobile w-full px-3 sm:px-4 py-3 border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
           >
-            <option value="date-desc"><Calendar className="w-5 h-5" /> Newest</option>
-            <option value="date-asc"><Calendar className="w-5 h-5" /> Oldest</option>
-            <option value="name-asc"><User className="w-5 h-5" /> A-Z</option>
-            <option value="name-desc"><User className="w-5 h-5" /> Z-A</option>
-            <option value="status-asc"><BarChart3 className="w-5 h-5" /> Status</option>
+            <option value="date-desc">Newest</option>
+            <option value="date-asc">Oldest</option>
+            <option value="name-asc">Applicant A-Z</option>
+            <option value="name-desc">Applicant Z-A</option>
+            <option value="status-asc">Status</option>
           </select>
         </div>
       </div>
@@ -199,6 +199,9 @@ export function ApplicationsFilters({
                 Clear All
               </Button>
             </div>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Use payment filters to separate unpaid pay-later applications from proof that is already waiting for finance review.
+            </p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Date Range */}
@@ -259,10 +262,11 @@ export function ApplicationsFilters({
                   onChange={(e) => onPaymentStatusFilterChange(e.target.value)}
                   className="w-full px-3 py-2 border border-input rounded-lg text-sm"
                 >
-                  <option value="all">All Payment Status</option>
-                  <option value="pending_review">Pending Review</option>
+                  <option value="all">All Payment States</option>
+                  <option value="not_paid">Awaiting Payment</option>
+                  <option value="pending_review">Awaiting Review</option>
                   <option value="verified">Verified</option>
-                  <option value="rejected">Rejected</option>
+                  <option value="rejected">Rejected Proof</option>
                 </select>
               </div>
             </div>

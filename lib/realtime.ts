@@ -117,13 +117,10 @@ export function initializeSSE(
     sendSSEEvent(res, event);
   });
   
-  // Handle connection close
-  req.on("close", () => {
-    connections.delete(connectionId);
-    console.log(`[SSE] Connection closed: ${connectionId}`);
-  });
-  
-  // Send keepalive every 15 seconds (within Vercel 10s timeout + buffer)
+  // Vercel serverless functions timeout at 10 seconds.
+  // Keepalive must fire before timeout to maintain the connection.
+  const KEEPALIVE_INTERVAL_MS = 8000;
+
   const keepalive = setInterval(() => {
     try {
       sendSSEEvent(res, {
@@ -138,7 +135,15 @@ export function initializeSSE(
       clearInterval(keepalive);
       connections.delete(connectionId);
     }
-  }, 15000);
+  }, KEEPALIVE_INTERVAL_MS);
+
+  // Handle connection close — clear keepalive and remove from connections
+  // to prevent stale entries across serverless invocations
+  req.on("close", () => {
+    clearInterval(keepalive);
+    connections.delete(connectionId);
+    console.log(`[SSE] Connection closed: ${connectionId}`);
+  });
   
   console.log(`[SSE] Connection established: ${connectionId}`);
   return true;

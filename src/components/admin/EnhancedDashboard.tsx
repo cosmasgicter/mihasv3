@@ -22,7 +22,7 @@ export interface EnhancedDashboardMetrics {
 
 export interface EnhancedDashboardActivity {
   id: string
-  type: 'application' | 'approval' | 'rejection' | 'system'
+  type: 'application' | 'approval' | 'rejection' | 'system' | 'review'
   message: string
   timestamp: string | number
   user?: string
@@ -80,12 +80,12 @@ export function EnhancedDashboard({
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-foreground">{metrics.pendingApplications}</div>
-                <div className="text-xs text-muted-foreground">Pending</div>
+                <div className="text-xs text-muted-foreground">Queue</div>
               </div>
             </div>
-            <div className="text-sm font-medium text-foreground">Awaiting Review</div>
+            <div className="text-sm font-medium text-foreground">Decision Queue</div>
             {metrics.pendingApplications > 0 && (
-              <div className="text-xs text-accent mt-2">Requires attention</div>
+              <div className="text-xs text-accent mt-2">Submitted + under review</div>
             )}
           </div>
         </div>

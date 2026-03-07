@@ -1,20 +1,22 @@
-import { Download, FileText, Award } from 'lucide-react'
+import { Download, Award } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useDocumentGeneration } from '@/hooks/useDocumentGeneration'
 import { useToastStore } from '@/components/ui/Toast'
 import { logger } from '@/lib/logger'
+import { ApplicationSlipActions } from '@/components/student/ApplicationSlipActions'
 
 interface DocumentButtonsProps {
   applicationId: string
+  applicationNumber?: string
   status: string
-  paymentStatus: string
+  paymentStatus: string | null
 }
 
-export function DocumentButtons({ applicationId, status, paymentStatus }: DocumentButtonsProps) {
+export function DocumentButtons({ applicationId, applicationNumber, status, paymentStatus }: DocumentButtonsProps) {
   const { generateDocument, loading } = useDocumentGeneration()
   const { addToast } = useToastStore()
 
-  const handleDownload = async (type: 'slip' | 'acceptance' | 'receipt') => {
+  const handleDownload = async (type: 'acceptance' | 'receipt') => {
     logger.debug('[DocumentButtons] handleDownload called for type:', type)
     const success = await generateDocument(type, applicationId)
     logger.debug('[DocumentButtons] generateDocument returned:', success)
@@ -27,18 +29,11 @@ export function DocumentButtons({ applicationId, status, paymentStatus }: Docume
 
   return (
     <div className="flex flex-wrap gap-2">
-      {/* Application Slip - Always available after submission */}
       {status !== 'draft' && (
-        <Button
-          onClick={() => handleDownload('slip')}
-          disabled={loading}
-          variant="outline"
-          size="sm"
-          className="gap-2"
-        >
-          <FileText className="w-4 h-4" />
-          Application Slip
-        </Button>
+        <ApplicationSlipActions
+          applicationId={applicationId}
+          applicationNumber={applicationNumber}
+        />
       )}
 
       {/* Acceptance Letter - Only for approved */}

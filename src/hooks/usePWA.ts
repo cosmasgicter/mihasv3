@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * PWA Management Hook
  * Handles PWA installation, native features, and app-like experience
@@ -200,7 +199,7 @@ export function usePWA() {
 
     try {
       const registration = await navigator.serviceWorker.ready
-      await registration.sync.register(tag)
+      await (registration as any).sync.register(tag)
       return true
     } catch (error) {
       console.error('Failed to register background sync:', error)
@@ -231,10 +230,13 @@ export function usePWA() {
   const handleShortcut = useCallback((shortcutId: string) => {
     switch (shortcutId) {
       case 'new-application':
-        window.location.href = '/apply'
+        window.location.href = '/student/application-wizard'
         break
       case 'dashboard':
-        window.location.href = '/dashboard'
+        window.location.href = '/student/dashboard'
+        break
+      case 'applications':
+        window.location.href = '/student/dashboard'
         break
       default:
         console.log('Unknown shortcut:', shortcutId)

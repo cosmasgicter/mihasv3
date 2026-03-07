@@ -1,9 +1,23 @@
-// @ts-nocheck
 // Centralized security utilities for MIHAS/KATC application system
-import { sanitizeText, sanitizeForLog, sanitizeHtml, sanitizeObject } from './sanitize'
+import { sanitizeText, sanitizeForLog } from './sanitize'
+import { sanitizeHtml } from './security'
+
+/** Recursively sanitize all string values in an object */
+function sanitizeObject<T>(data: T): T {
+  if (data === null || data === undefined) return data
+  if (typeof data === 'string') return sanitizeText(data) as unknown as T
+  if (typeof data !== 'object') return data
+  if (Array.isArray(data)) return data.map(item => sanitizeObject(item)) as unknown as T
+
+  const result: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
+    result[key] = sanitizeObject(value)
+  }
+  return result as T
+}
 
 // Input validation with security checks
-export const validateAndSanitizeInput = (input: any, type: 'text' | 'email' | 'number' | 'html' = 'text'): string => {
+export const validateAndSanitizeInput = (input: unknown, type: 'text' | 'email' | 'number' | 'html' = 'text'): string => {
   if (input === null || input === undefined) return ''
   
   switch (type) {
@@ -20,12 +34,12 @@ export const validateAndSanitizeInput = (input: any, type: 'text' | 'email' | 'n
       return sanitizeHtml(String(input))
     
     default:
-      return sanitizeText(input)
+      return sanitizeText(String(input))
   }
 }
 
 // Secure logging wrapper
-export const secureLog = (level: 'info' | 'warn' | 'error', message: string, data?: any): void => {
+export const secureLog = (level: 'info' | 'warn' | 'error', message: string, data?: unknown): void => {
   const sanitizedMessage = sanitizeForLog(message)
   const sanitizedData = data ? sanitizeForLog(data) : undefined
   
@@ -41,12 +55,7 @@ export const secureLog = (level: 'info' | 'warn' | 'error', message: string, dat
 }
 
 // Application-specific sanitization
-export const sanitizeApplicationData = (data: any): any => {
-  const allowedKeys = [
-    'full_name', 'email', 'phone', 'program', 'status', 'notes',
-    'grade_subject', 'grade_value', 'institution_name'
-  ]
-  
+export const sanitizeApplicationData = (data: Record<string, unknown>): Record<string, unknown> => {
   return sanitizeObject(data)
 }
 
@@ -54,7 +63,7 @@ export const sanitizeApplicationData = (data: any): any => {
 export const createSafeError = (message: string, code?: string): Error => {
   const error = new Error(sanitizeText(message))
   if (code) {
-    (error as any).code = sanitizeText(code)
+    (error as Error & { code: string }).code = sanitizeText(code)
   }
   return error
 }

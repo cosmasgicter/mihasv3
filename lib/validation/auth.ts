@@ -42,6 +42,14 @@ export const registerBodySchema = z.object({
   password: passwordSchema,
   firstName: nonEmptySanitizedString,
   lastName: nonEmptySanitizedString,
+  phone: optionalSanitizedString,
+  date_of_birth: optionalSanitizedString,
+  sex: optionalSanitizedString,
+  residence_town: optionalSanitizedString,
+  country: optionalSanitizedString,
+  nationality: optionalSanitizedString,
+  next_of_kin_name: optionalSanitizedString,
+  next_of_kin_phone: optionalSanitizedString,
 });
 
 /** Password reset request body (forgot-password) */
@@ -64,6 +72,7 @@ export const profileUpdateBodySchema = z.object({
   date_of_birth: optionalSanitizedString,
   sex: optionalSanitizedString,
   residence_town: optionalSanitizedString,
+  country: optionalSanitizedString,
   nationality: optionalSanitizedString,
   nrc_number: optionalSanitizedString,
   address: optionalSanitizedString,

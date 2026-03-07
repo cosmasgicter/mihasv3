@@ -19,10 +19,11 @@ inclusion: always
 | State | Zustand (client), React Query (server) | No Redux, SSE/polling for real-time |
 | Routing | React Router v6 | Lazy-load all page components |
 | Backend | Vercel Functions + Neon Postgres | Custom Bun-native auth, Neon serverless Postgres |
-| Security | Arcjet | Shield rules, bot detection, rate limiting |
+| Security | Arcjet + CSRF + CSP | Shield rules, bot detection, rate limiting, CSRF tokens, security headers |
 | Auth | Custom JWT (jose) | HTTP-only cookies, bcrypt passwords |
 | Email | Resend | Queue with retry on failure |
 | OCR | tesseract.js | Only AI feature retained |
+| Validation | Zod | Server-side input validation for all API endpoints |
 
 ## Code Conventions
 
@@ -71,38 +72,57 @@ lib/                   # PROJECT ROOT - shared utilities
 │   ├── password.ts    # bcrypt hashing (12 rounds)
 │   ├── jwt.ts         # JWT manager (jose, HS256)
 │   ├── cookies.ts     # HTTP-only cookie manager
-│   ├── middleware.ts  # Auth middleware
+│   ├── middleware.ts  # Auth middleware (getAuthUser, requireAuth, requireRole)
 │   ├── ownership.ts   # Resource ownership checks
-│   ├── permissions.ts # RBAC (deterministic, no DB lookup)
-│   └── legacy.ts      # Supabase token migration support
+│   └── permissions.ts # RBAC (deterministic, no DB lookup)
+├── validation/        # Zod input validation schemas for all API endpoints
+│   ├── index.ts       # Re-exports all validators
+│   ├── middleware.ts  # validateInput() middleware for request validation
+│   ├── sanitize.ts    # Input sanitization (XSS, SQL injection prevention)
+│   ├── zambian.ts     # Zambian-specific formats (+260 phones, NRC, ECZ grades)
+│   ├── auth.ts        # Auth endpoint schemas (login, register, reset)
+│   ├── applications.ts # Application endpoint schemas
+│   ├── admin.ts       # Admin endpoint schemas
+│   ├── documents.ts   # Document upload schemas
+│   ├── notifications.ts # Notification schemas
+│   ├── payments.ts    # Payment schemas
+│   ├── sessions.ts    # Session schemas
+│   └── email.ts       # Email validation schemas
 ├── base64.ts          # Base64 encoding utilities
 ├── cors.ts            # CORS handler for Vercel
+├── csrf.ts            # CSRF token generation, hashing, and validation
 ├── db.ts              # Database abstraction (Neon serverless only)
+├── emailTemplates.ts  # Email template rendering
+├── envValidator.ts    # Environment variable validation at startup
 ├── errorHandler.ts    # Sanitized error responses (sendSuccess/sendError)
+├── fileValidator.ts   # File content validation (magic bytes, MIME type verification)
 ├── neon-serverless.d.ts # Neon type declarations
+├── notificationPolicy.ts # Notification rate limiting and policy enforcement
 ├── queries.ts         # Typed query builders
 ├── rateLimiter.ts     # Rate limiting utilities
-├── auditLogger.ts     # Audit logging (no PII)
-├── realtime.ts        # SSE + polling fallback
+├── auditLogger.ts     # Audit logging (no PII, retention categories)
+├── realtime.ts        # SSE + polling fallback (8s keepalive)
+├── realtimeBroker.ts  # SSE connection broker
+├── sessions.ts        # Device session manager
 ├── storage.ts         # R2 storage abstraction
-└── sessions.ts        # Device session manager
+└── urlValidator.ts    # URL validation and open redirect prevention
 
 api-src/               # API source TypeScript (edit these, then bundle)
 ├── admin.ts           # ?action=dashboard|users|settings|stats|errors|migrate
 ├── applications.ts    # ?action=details|documents|grades|summary|review|export or ?id=xxx
-├── auth.ts            # ?action=login|logout|refresh|session|register
+├── auth.ts            # ?action=login|logout|refresh|session|register|reset-request|reset-confirm
 ├── bootstrap.ts       # Database bootstrap/seed operations
 ├── catalog.ts         # ?type=programs|intakes|subjects
-├── documents.ts       # ?action=upload|extract
+├── documents.ts       # ?action=upload|extract (with file content validation)
+├── email.ts           # Email sending endpoint
 ├── health.ts          # ?action=ping|db|env|arcjet (consolidated)
 ├── notifications.ts   # ?action=preferences|send
 ├── payments.ts        # ?action=receipt
-├── ping.ts            # Simple ping endpoint
 ├── sessions.ts        # ?action=track|list|revoke|revoke-all
 ├── [...path].ts       # Catch-all for unmatched routes
 └── tsconfig.json      # TypeScript config for API
 
-api/                   # Bundled JS files (12 endpoints — DO NOT EDIT)
+api/                   # Bundled JS files (DO NOT EDIT)
 ```
 
 ### Vercel Function Pattern (Query Parameter Routing)
@@ -147,6 +167,8 @@ export default withArcjetProtection(handler, 'general');
 - Handle errors gracefully—never expose stack traces
 - Log errors but never log PII
 - Add new functionality as cases in existing consolidated endpoints
+- Validate all inputs with Zod schemas from `lib/validation/`
+- Validate file uploads with `lib/fileValidator.ts` (magic bytes + MIME type)
 
 ### API Response Envelope (CRITICAL)
 All API endpoints wrap responses via `sendSuccess(res, payload)` from `lib/errorHandler.ts`:
@@ -162,7 +184,7 @@ Two API client modules exist — be aware of which one a file uses:
 
 When adding new frontend code, prefer `src/services/client.ts` (the newer client). Never manually unwrap `response.data` or check `response.success` on results from either client — both handle unwrapping internally.
 
-### Security Conventions (Arcjet + Custom Auth)
+### Security Conventions (Arcjet + Custom Auth + CSRF + CSP)
 - Wrap all sensitive routes with `withArcjetProtection()` before handler logic
 - Use `requireAuth()` middleware for authenticated routes
 - Use `requireRole(['admin', 'super_admin'])` for admin-only routes
@@ -171,6 +193,25 @@ When adding new frontend code, prefer `src/services/client.ts` (the newer client
 - Return 403 with code `SECURITY_VIOLATION` for Arcjet blocks
 - Return 401 without revealing email/password specificity on login failure
 - Rotate refresh tokens on every use (replay attack prevention)
+- CSRF tokens required on all state-changing (POST/PUT/DELETE) endpoints
+- Security headers enforced via `vercel.json` (CSP, HSTS, X-Frame-Options, etc.)
+- File uploads validated with magic byte verification (`lib/fileValidator.ts`)
+- URL inputs validated against open redirect attacks (`lib/urlValidator.ts`)
+- All user inputs sanitized via `lib/validation/sanitize.ts`
+
+### Input Validation (CRITICAL)
+All API endpoints must validate inputs using Zod schemas from `lib/validation/`:
+```typescript
+import { validateInput } from '../lib/validation/middleware';
+import { loginSchema } from '../lib/validation/auth';
+
+// In handler:
+const validated = validateInput(loginSchema, req.body);
+if (!validated.success) {
+  return res.status(400).json({ success: false, error: validated.error });
+}
+const { email, password } = validated.data;
+```
 
 ## Build & Deployment
 
@@ -183,6 +224,7 @@ When adding new frontend code, prefer `src/services/client.ts` (the newer client
 | `bun run preview` | Preview production build |
 | `bun run test` | Run Vitest tests |
 | `bun run lint` | ESLint check |
+| `bun run scripts/bundle-api.mjs` | Bundle api-src/ → api/ |
 
 ### Environment Variables
 Required in Vercel dashboard and `.env`:
@@ -244,19 +286,21 @@ EMAIL_FROM=noreply@mihas.edu.zm
 | JWT tokens | jose | Bun-native, HS256 signing |
 | Password hashing | bcrypt | 12 rounds minimum |
 | Security perimeter | @arcjet/node | Shield, bot detection, rate limiting |
-| Database (Neon) | @neondatabase/serverless | For Neon migration |
+| Database (Neon) | @neondatabase/serverless | Neon serverless Postgres |
+| Input validation | zod | Server-side schema validation for all endpoints |
 | PDF generation | jspdf, pdf-lib | Server-side preferred |
 | Excel export | xlsx, exceljs | Use exceljs for styling |
-| File uploads | react-dropzone | With validation |
+| File uploads | react-dropzone | With magic byte validation |
 | Charts | recharts | Lazy-load chart components |
 | OCR | tesseract.js | Web worker for performance—ONLY AI feature |
 | Real-time | SSE + polling | Bun-native, replaces Supabase Realtime |
+| Property testing | fast-check | Property-based tests in tests/property/ |
 
 ## Configuration Files
 
 | File | Purpose |
 |------|---------|
-| `vercel.json` | Vercel deployment config |
+| `vercel.json` | Vercel deployment config + security headers (CSP, HSTS, etc.) |
 | `bunfig.toml` | Bun runtime configuration |
 | `vite.config.ts` | Vite build settings (simplified) |
 | `tailwind.config.js` | Design tokens and theme |
@@ -271,6 +315,7 @@ EMAIL_FROM=noreply@mihas.edu.zm
 | `.cfignore` | Cloudflare-specific |
 | `functions/` directory | Fully migrated to `api/` (174 files, 26K lines removed) |
 | `api/*/` subdirectories | Consolidated into single-file endpoints |
+| `lib/auth/legacy.ts` | Supabase token migration no longer needed |
 | Supabase (all) | Fully migrated to Neon Postgres |
 | Supabase Realtime | Replaced with Bun-native SSE/polling |
 | Supabase Auth SDK | Replaced with custom JWT auth (jose + bcrypt) |
@@ -285,6 +330,15 @@ EMAIL_FROM=noreply@mihas.edu.zm
 - Use the **Neon MCP** for all database operations
 - Never use Supabase MCP - it's not connected to this project
 - Connection string format: `DATABASE_URL=postgres://...@...neon.tech/...`
+- Neon project ID: `wild-bar-37055823` (mihasApplication)
+
+### Database Tables (New — Quality Remediation)
+| Table | Purpose |
+|-------|---------|
+| `csrf_tokens` | CSRF token hashes per user (SHA-256, one active per user) |
+| `password_reset_tokens` | Hashed reset tokens with 1-hour expiry, single-use |
+| `login_attempts` | Failed/successful login tracking (hashed email/IP, no PII) |
+| `audit_logs.retention_category` | `'standard'` (90-day) or `'security'` (365-day) retention |
 
 ### Database Operations
 ```typescript
@@ -305,6 +359,24 @@ API Request → Extract from Cookie/Bearer → Verify JWT → AuthContext
 Token Expired → Auto-refresh via /api/auth?action=refresh → Rotate both tokens
 ```
 
+### CSRF Protection Flow
+```
+Login → Generate CSRF token → Store SHA-256 hash in csrf_tokens table
+     ↓
+State-changing request → Include CSRF token in X-CSRF-Token header
+     ↓
+Server → Hash received token → Compare with stored hash → Allow/Deny
+```
+
+### Password Reset Flow
+```
+Request reset → Generate token → Store SHA-256 hash in password_reset_tokens
+     ↓
+Email link with raw token → User clicks → Verify hash → Single-use consumption
+     ↓
+Rate limited: 3 requests per email per 15 minutes
+```
+
 ### Role-Based Access Control
 | Role | Permissions (deterministic, no DB lookup) |
 |------|------------------------------------------|
@@ -320,6 +392,22 @@ Token Expired → Auto-refresh via /api/auth?action=refresh → Rotate both toke
 | /api/sessions/* | 30 requests | 10 minutes |
 | /api/admin/* | 20 requests | 10 minutes |
 | /api/notifications/* | 50 requests | 10 minutes |
+
+### Login Attempt Protection
+| Threshold | Action |
+|-----------|--------|
+| 5 failures per email | 15-minute progressive backoff |
+| 10 consecutive failures | 30-minute account lock + notification email |
+
+## Security Headers (vercel.json)
+
+All responses include:
+- `Content-Security-Policy` — restricts script/style/connect sources
+- `Strict-Transport-Security` — HSTS with 1-year max-age
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: DENY`
+- `Permissions-Policy` — disables camera, microphone, geolocation, payment
+- `Referrer-Policy: strict-origin-when-cross-origin`
 
 ## Production API Endpoints
 
@@ -338,9 +426,12 @@ Base URL: `https://apply.mihas.edu.zm`
 | `/api/auth?action=logout` | POST | User logout |
 | `/api/auth?action=session` | GET | Get current session |
 | `/api/auth?action=register` | POST | User registration |
+| `/api/auth?action=reset-request` | POST | Request password reset |
+| `/api/auth?action=reset-confirm` | POST | Confirm password reset |
 | `/api/admin` | GET/POST | Admin operations (auth required) |
 | `/api/applications` | GET/POST | Application management (auth required) |
 | `/api/documents` | POST | Document upload/OCR (auth required) |
+| `/api/email` | POST | Email sending (auth required) |
 | `/api/payments` | GET/POST | Payment operations (auth required) |
 | `/api/sessions` | GET/POST | Session management (auth required) |
 | `/api/notifications` | GET/POST | Notification preferences (auth required) |

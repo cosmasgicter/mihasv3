@@ -32,6 +32,15 @@ export interface Application {
   submitted_at?: string;
   payment_status?: string;
   payment_verified_at?: string;
+  payment_verified_by?: string | null;
+  payment_verified_by_name?: string | null;
+  payment_verified_by_email?: string | null;
+  last_payment_audit_id?: string | null;
+  last_payment_audit_at?: string | null;
+  last_payment_audit_by_name?: string | null;
+  last_payment_audit_by_email?: string | null;
+  last_payment_audit_notes?: string | null;
+  last_payment_reference?: string | null;
   review_started_at?: string;
   decision_date?: string;
   decision_reason?: string;

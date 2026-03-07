@@ -1,32 +1,35 @@
-// @ts-nocheck
 import { applicationsData } from '@/data/applications'
+
+interface BulkApiResponse {
+  successCount?: number
+  [key: string]: unknown
+}
 
 export function useBulkOperations() {
   const bulkUpdateStatusMutation = applicationsData.useBulkUpdateStatus()
   const bulkUpdatePaymentStatusMutation = applicationsData.useBulkUpdatePaymentStatus()
   const bulkDeleteMutation = applicationsData.useBulkDelete()
 
-  const bulkUpdateStatus = async (applicationIds: string[], newStatus: string) => {
-    const response = await bulkUpdateStatusMutation.mutateAsync({ applicationIds, status: newStatus })
-    return response?.successCount || applicationIds.length
+  const bulkUpdateStatus = async (applicationIds: string[], newStatus: string): Promise<number> => {
+    const response = await bulkUpdateStatusMutation.mutateAsync({ applicationIds, status: newStatus }) as BulkApiResponse | undefined
+    return response?.successCount ?? applicationIds.length
   }
 
-  const bulkUpdatePaymentStatus = async (applicationIds: string[], newPaymentStatus: string) => {
-    const response = await bulkUpdatePaymentStatusMutation.mutateAsync({ applicationIds, paymentStatus: newPaymentStatus })
-    return response?.successCount || applicationIds.length
+  const bulkUpdatePaymentStatus = async (applicationIds: string[], newPaymentStatus: string): Promise<number> => {
+    const response = await bulkUpdatePaymentStatusMutation.mutateAsync({ applicationIds, paymentStatus: newPaymentStatus }) as BulkApiResponse | undefined
+    return response?.successCount ?? applicationIds.length
   }
 
-  const bulkDeleteApplications = async (applicationIds: string[]) => {
-    const response = await bulkDeleteMutation.mutateAsync(applicationIds)
+  const bulkDeleteApplications = async (applicationIds: string[]): Promise<{ successCount: number; errorCount: number; errors: string[] }> => {
+    const response = await bulkDeleteMutation.mutateAsync(applicationIds) as BulkApiResponse | undefined
     return {
-      successCount: response?.successCount || applicationIds.length,
+      successCount: response?.successCount ?? applicationIds.length,
       errorCount: 0,
       errors: []
     }
   }
 
-  const bulkSendNotifications = async (applicationIds: string[], notification: { title: string; message: string }) => {
-    // This would need to be added to the data module if needed
+  const bulkSendNotifications = async (_applicationIds: string[], _notification: { title: string; message: string }): Promise<never> => {
     throw new Error('Bulk notifications not implemented in data module yet')
   }
 

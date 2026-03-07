@@ -80,6 +80,7 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
         'date_of_birth',
         'sex',
         'residence_town',
+        'country',
         'nationality',
         'next_of_kin_name',
         'next_of_kin_phone'

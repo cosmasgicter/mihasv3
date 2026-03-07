@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { TrendingUp, Users, Clock, CheckCircle, XCircle, CreditCard } from 'lucide-react'
+import { TrendingUp, Users, Clock, AlertCircle, CreditCard } from 'lucide-react'
 
 interface ApplicationSummary {
   status: string
@@ -31,40 +31,45 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
     
     const pendingReview = applications.filter(app => app.status === 'submitted').length
     const underReview = applications.filter(app => app.status === 'under_review').length
-    const approved = applications.filter(app => app.status === 'approved').length
-    const rejected = applications.filter(app => app.status === 'rejected').length
-    
+    const decisionQueue = pendingReview + underReview
+
+    const paymentNotPaid = applications.filter(
+      app => !app.payment_status || app.payment_status === 'not_paid'
+    ).length
     const paymentPending = applications.filter(app => app.payment_status === 'pending_review').length
-    const paymentVerified = applications.filter(app => app.payment_status === 'verified').length
-    
+    const paymentRejected = applications.filter(app => app.payment_status === 'rejected').length
+    const paymentAttention = paymentNotPaid + paymentRejected
+
     const submissionTrend = todaySubmissions - yesterdaySubmissions
-    const approvalRate = applications.length > 0 ? (approved / applications.length) * 100 : 0
-    
+
     return {
       todaySubmissions,
       submissionTrend,
       pendingReview,
       underReview,
-      approved,
-      rejected,
+      decisionQueue,
+      paymentNotPaid,
       paymentPending,
-      paymentVerified,
-      approvalRate,
-      total: applications.length
+      paymentRejected,
+      paymentAttention,
     }
   }, [applications])
 
   const MetricCard = ({ 
     title, 
     value, 
+    description,
     icon: Icon, 
-    color, 
+    iconClass,
+    iconContainerClass,
     trend 
   }: { 
     title: string
     value: number | string
+    description: string
     icon: any
-    color: string
+    iconClass: string
+    iconContainerClass: string
     trend?: number 
   }) => (
     <div className="bg-card rounded-xl p-4 sm:p-6 border border-border shadow-sm">
@@ -72,6 +77,7 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
         <div>
           <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
           <p className="text-2xl sm:text-3xl font-bold text-foreground">{value}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{description}</p>
           {trend !== undefined && (
             <div className={`flex items-center mt-1 text-sm ${
               trend > 0 ? 'text-success' : trend < 0 ? 'text-error' : 'text-muted-foreground'
@@ -81,8 +87,8 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
             </div>
           )}
         </div>
-        <div className={`p-3 rounded-lg ${color.replace('text-', 'bg-').replace('-600', '-100')}`}>
-          <Icon className={`h-6 w-6 ${color}`} />
+        <div className={`p-3 rounded-lg ${iconContainerClass}`}>
+          <Icon className={`h-6 w-6 ${iconClass}`} />
         </div>
       </div>
     </div>
@@ -91,32 +97,40 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
       <MetricCard
-        title="Today"
+        title="New Today"
         value={metrics.todaySubmissions}
         icon={Users}
-        color="text-primary"
+        description="Submitted today"
+        iconClass="text-primary"
+        iconContainerClass="bg-primary/10"
         trend={metrics.submissionTrend}
       />
       
       <MetricCard
-        title="Pending Review"
-        value={metrics.pendingReview}
+        title="Decision Queue"
+        value={metrics.decisionQueue}
         icon={Clock}
-        color="text-accent"
+        description={`${metrics.pendingReview} submitted, ${metrics.underReview} under review`}
+        iconClass="text-indigo-600"
+        iconContainerClass="bg-indigo-100"
       />
       
       <MetricCard
-        title="Approval Rate"
-        value={`${metrics.approvalRate.toFixed(1)}%`}
-        icon={CheckCircle}
-        color="text-accent"
-      />
-      
-      <MetricCard
-        title="Payment Pending"
+        title="Proof Review"
         value={metrics.paymentPending}
         icon={CreditCard}
-        color="text-orange-600"
+        description="Proof submitted and awaiting review"
+        iconClass="text-orange-600"
+        iconContainerClass="bg-orange-100"
+      />
+
+      <MetricCard
+        title="Payment Follow-up"
+        value={metrics.paymentAttention}
+        icon={AlertCircle}
+        description={`${metrics.paymentNotPaid} unpaid, ${metrics.paymentRejected} rejected proofs`}
+        iconClass="text-rose-600"
+        iconContainerClass="bg-rose-100"
       />
     </div>
   )

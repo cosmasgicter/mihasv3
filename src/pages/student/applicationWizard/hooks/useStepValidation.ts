@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
 import type { ApplicationFormData } from '../types'
+import { requiresImmediatePayment } from '../lib/paymentFlow'
 
 export interface StepValidation {
   isValid: boolean
@@ -69,6 +70,15 @@ export const useStepValidation = (
         }
       },
       2: () => {
+        if (!requiresImmediatePayment(values)) {
+          return {
+            isValid: true,
+            completedFields: 1,
+            totalFields: 1,
+            missingFields: []
+          }
+        }
+
         const fields = [
           { label: 'Payment Method', complete: isFieldComplete(values.payment_method) },
           { label: 'Payer Name', complete: isFieldComplete(values.payer_name) },

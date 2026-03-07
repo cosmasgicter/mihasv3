@@ -11,6 +11,7 @@ interface ApplicationPreviewProps {
 
 export const ApplicationPreview = ({ form, programName, intakeName }: ApplicationPreviewProps) => {
   const values = form.watch()
+  const isPayLater = values.payment_option === 'pay_later'
 
   return (
     <div
@@ -44,16 +45,24 @@ export const ApplicationPreview = ({ form, programName, intakeName }: Applicatio
           <CreditCard className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="font-medium text-foreground">Payment</p>
-            <p className="text-caption truncate">
-              {values.payment_method || 'Not provided'}
-            </p>
-            <p className="text-caption truncate">
-              Ref: {values.payment_reference || 'Not provided'}
-            </p>
+            {isPayLater ? (
+              <>
+                <p className="text-caption truncate">Pay later selected</p>
+                <p className="text-caption truncate">Complete payment from your dashboard</p>
+              </>
+            ) : (
+              <>
+                <p className="text-caption truncate">
+                  {values.payment_method || 'Not provided'}
+                </p>
+                <p className="text-caption truncate">
+                  Ref: {values.momo_ref || 'Not provided'}
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>
     </div>
   )
 }
-

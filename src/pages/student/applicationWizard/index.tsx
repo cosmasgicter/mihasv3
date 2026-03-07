@@ -90,7 +90,7 @@ const ApplicationWizardContent = () => {
   const smartAutoSave = useSmartAutoSave({
     onSave: saveDraft,
     watchValues,
-    enabled: !loading && !uploading
+    enabled: !loading && !uploading && !restoringDraft && !success
   })
   const { formattedTime } = useEstimatedTime(currentStepIndex, totalSteps)
   const { shouldAnimate, prefersReducedMotion, isMobile } = useOptimizedAnimation()
@@ -127,11 +127,16 @@ const ApplicationWizardContent = () => {
           { label: 'Result slip uploaded', completed: !!resultSlipFile || !!uploadedFiles.result_slip }
         ]
       case 2:
-        return [
-          { label: 'Payment method selected', completed: !!values.payment_method },
-          { label: 'Payment reference provided', completed: !!(values.momo_ref) },
-          { label: 'Proof of payment uploaded', completed: !!popFile || !!uploadedFiles.proof_of_payment }
-        ]
+        return values.payment_option === 'pay_later'
+          ? [
+              { label: 'Pay later selected', completed: true },
+              { label: 'Payment will be completed from the dashboard', completed: true }
+            ]
+          : [
+              { label: 'Payment method selected', completed: !!values.payment_method },
+              { label: 'Payment reference provided', completed: !!(values.momo_ref) },
+              { label: 'Proof of payment uploaded', completed: !!popFile || !!uploadedFiles.proof_of_payment }
+            ]
       case 3:
         return [
           { label: 'Application reviewed', completed: true },
@@ -144,6 +149,10 @@ const ApplicationWizardContent = () => {
 
   // Keyboard shortcuts
   useEffect(() => {
+    if (success) {
+      return
+    }
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && !loading && !uploading) {
         if (e.key === 'ArrowRight' && !isLastStep) {
@@ -163,7 +172,7 @@ const ApplicationWizardContent = () => {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentStepIndex, isLastStep, loading, uploading, handleNextStep, handlePrevStep, saveDraft, setError])
+  }, [currentStepIndex, isLastStep, loading, uploading, success, handleNextStep, handlePrevStep, saveDraft, setError])
 
   if (authLoading || restoringDraft) {
     return (
@@ -536,7 +545,18 @@ const ApplicationWizardContent = () => {
                 draftName="Current Application"
               />
               
-              <AnalyticsDashboard userId={user?.id} />
+              <AnalyticsDashboard
+                userId={user?.id}
+                completionPercentage={overallProgress.percentage}
+                hasLocalDraft={
+                  overallProgress.completedFields > 0 ||
+                  currentStepIndex > 0 ||
+                  Boolean(smartAutoSave.lastSaved) ||
+                  isDraftSaving ||
+                  draftSaved
+                }
+                lastSavedAt={smartAutoSave.lastSaved}
+              />
               
               <div
                 className={`bg-primary/5 border border-primary/20 rounded-lg p-4 ${shouldAnimate ? "animate-fade-in" : ""}`}

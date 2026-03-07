@@ -173,3 +173,18 @@ export async function updateActivity(sessionId: string): Promise<boolean> {
   const result = await query<{ id: string }>(updateQuery.text, updateQuery.values);
   return result.rowCount > 0;
 }
+
+export async function isSessionActive(userId: string, sessionId: string): Promise<boolean> {
+  const result = await query<{ id: string }>(
+    `SELECT id
+     FROM device_sessions
+     WHERE id = $1
+       AND user_id = $2
+       AND is_active = true
+       AND expires_at > NOW()
+     LIMIT 1`,
+    [sessionId, userId]
+  );
+
+  return result.rowCount > 0;
+}

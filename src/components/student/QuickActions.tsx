@@ -9,7 +9,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Plus, 
-  FileText, 
   User, 
   CreditCard, 
   Calendar,
@@ -141,17 +140,9 @@ export function QuickActions({
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {/* Primary action - Continue draft or Start new */}
-          <div className={`${animateClasses.fadeIn} opacity-0`} style={staggerChild(itemIndex++)}>
-            {hasDrafts ? (
-              <ActionCard
-                icon={<FileText className="h-5 w-5" />}
-                title="Continue Draft"
-                description="Resume your application"
-                href="/student/application-wizard"
-                variant="warning"
-              />
-            ) : (
+          {/* Primary action - only show when no dedicated continue-draft card is present */}
+          {!hasDrafts && (
+            <div className={`${animateClasses.fadeIn} opacity-0`} style={staggerChild(itemIndex++)}>
               <ActionCard
                 icon={<Plus className="h-5 w-5" />}
                 title="Start New Application"
@@ -159,8 +150,8 @@ export function QuickActions({
                 href="/student/application-wizard"
                 variant="primary"
               />
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Pending payment action */}
           {hasPendingPayment && (
@@ -194,7 +185,7 @@ export function QuickActions({
               icon={<User className="h-5 w-5" />}
               title="Profile Settings"
               description="Update your personal information"
-              href="/settings"
+              href="/student/settings"
               variant="neutral"
             />
           </div>

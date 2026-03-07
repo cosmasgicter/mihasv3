@@ -1,73 +1,147 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { formatDistanceToNow, format } from 'date-fns'
+import { Link } from 'react-router-dom'
+import { format, formatDistanceToNow } from 'date-fns'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { useToastStore } from '@/components/ui/Toast'
 import {
   adminAuditService,
+  type AuditCategory,
   type AuditLogEntry,
   type AuditLogFilters,
-  type AuditLogResponse
+  type AuditLogResponse,
 } from '@/services/admin/audit'
 import {
-  Shield,
-  Search,
-  Filter,
-  RefreshCw,
-  User,
-  Database,
-  Clock,
-  Eye,
-  FileText,
+  exportAuditEntriesToCsv,
+  exportAuditEntriesToJson,
+  exportAuditEntriesToPdf,
+  type AuditExportFormat,
+} from '@/lib/auditExports'
+import {
   Activity,
   AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Calendar,
-  Download,
+  ArrowLeft,
+  BarChart3,
+  BellRing,
   ChevronLeft,
   ChevronRight,
-  Settings,
-  Trash2,
-  Edit,
-  Plus,
-  UserCheck,
-  Lock,
-  Unlock,
-  Mail,
-  Phone,
-  MapPin,
+  Clock3,
+  Database,
+  Download,
+  Eye,
+  EyeOff,
+  Filter,
   Globe,
-  Zap,
-  TrendingUp,
-  BarChart3
+  RefreshCw,
+  Search,
+  Settings,
+  Shield,
+  User,
 } from 'lucide-react'
 
 const DEFAULT_PAGE_SIZE = 20
+
+const CATEGORY_OPTIONS: AuditCategory[] = [
+  'Authentication',
+  'Data',
+  'Access',
+  'System',
+  'Communication',
+  'Analytics',
+  'General',
+]
+
+const ENTITY_OPTIONS = [
+  { value: '', label: 'All entities' },
+  { value: 'applications', label: 'Applications' },
+  { value: 'profiles', label: 'Profiles' },
+  { value: 'users', label: 'Users' },
+  { value: 'programs', label: 'Programs' },
+  { value: 'institutions', label: 'Institutions' },
+  { value: 'payments', label: 'Payments' },
+  { value: 'documents', label: 'Documents' },
+  { value: 'notifications', label: 'Notifications' },
+  { value: 'settings', label: 'Settings' },
+]
+
+const PAGE_SIZE_OPTIONS = [20, 50, 100]
 
 function sanitizeFilters(filters: AuditLogFilters): AuditLogFilters {
   const entries = Object.entries(filters).filter(([, value]) => {
     if (value === undefined || value === null) {
       return false
     }
+
     if (typeof value === 'string') {
       return value.trim().length > 0
     }
+
     return true
   })
 
   return Object.fromEntries(entries)
 }
 
-function AuditListItem({ entry }: { entry: AuditLogEntry }) {
-  const [showDetails, setShowDetails] = useState(false)
+function formatCategoryStyles(category: AuditCategory) {
+  if (category === 'Authentication') {
+    return 'border-emerald-200 bg-emerald-50 text-emerald-700'
+  }
 
-  const metadataLength = useMemo(
-    () => (entry.metadata ? Object.keys(entry.metadata).length : 0),
-    [entry.metadata]
-  )
-  
+  if (category === 'Data') {
+    return 'border-blue-200 bg-blue-50 text-blue-700'
+  }
+
+  if (category === 'Access') {
+    return 'border-slate-200 bg-slate-50 text-slate-700'
+  }
+
+  if (category === 'System') {
+    return 'border-violet-200 bg-violet-50 text-violet-700'
+  }
+
+  if (category === 'Communication') {
+    return 'border-amber-200 bg-amber-50 text-amber-700'
+  }
+
+  if (category === 'Analytics') {
+    return 'border-cyan-200 bg-cyan-50 text-cyan-700'
+  }
+
+  return 'border-border bg-muted text-foreground'
+}
+
+function formatEntityLabel(entityType: string | undefined) {
+  if (!entityType) {
+    return 'Unknown'
+  }
+
+  return entityType
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (match) => match.toUpperCase())
+}
+
+function stringifyPayload(value: unknown) {
+  if (!value) {
+    return ''
+  }
+
+  try {
+    return JSON.stringify(value, null, 2)
+  } catch {
+    return String(value)
+  }
+}
+
+function AuditEntryCard({ entry }: { entry: AuditLogEntry }) {
+  const [expanded, setExpanded] = useState(false)
+
   const relativeTime = useMemo(() => {
     try {
       return formatDistanceToNow(new Date(entry.createdAt), { addSuffix: true })
@@ -78,250 +152,130 @@ function AuditListItem({ entry }: { entry: AuditLogEntry }) {
 
   const exactTime = useMemo(() => {
     try {
-      return format(new Date(entry.createdAt), 'MMM dd, yyyy HH:mm:ss')
+      return format(new Date(entry.createdAt), 'dd MMM yyyy HH:mm:ss')
     } catch {
       return entry.createdAt
     }
   }, [entry.createdAt])
 
-  const getActionDetails = (action: string) => {
-    const actionLower = action.toLowerCase()
-    
-    // Authentication actions
-    if (actionLower.includes('login') || actionLower.includes('signin')) {
-      return { icon: <UserCheck className="h-4 w-4" />, color: 'text-success', bg: 'bg-green-50', border: 'border-green-200', label: 'User Login', category: 'Authentication' }
-    }
-    if (actionLower.includes('logout') || actionLower.includes('signout')) {
-      return { icon: <Lock className="h-4 w-4" />, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200', label: 'User Logout', category: 'Authentication' }
-    }
-    if (actionLower.includes('register') || actionLower.includes('signup')) {
-      return { icon: <Plus className="h-4 w-4" />, color: 'text-primary', bg: 'bg-blue-50', border: 'border-blue-200', label: 'User Registration', category: 'Authentication' }
-    }
-    
-    // CRUD operations
-    if (actionLower.includes('create') || actionLower.includes('insert') || actionLower.includes('add')) {
-      return { icon: <Plus className="h-4 w-4" />, color: 'text-success', bg: 'bg-green-50', border: 'border-green-200', label: 'Created Record', category: 'Data' }
-    }
-    if (actionLower.includes('update') || actionLower.includes('modify') || actionLower.includes('edit')) {
-      return { icon: <Edit className="h-4 w-4" />, color: 'text-primary', bg: 'bg-blue-50', border: 'border-blue-200', label: 'Updated Record', category: 'Data' }
-    }
-    if (actionLower.includes('delete') || actionLower.includes('remove')) {
-      return { icon: <Trash2 className="h-4 w-4" />, color: 'text-error', bg: 'bg-red-50', border: 'border-red-200', label: 'Deleted Record', category: 'Data' }
-    }
-    if (actionLower.includes('view') || actionLower.includes('read') || actionLower.includes('get')) {
-      return { icon: <Eye className="h-4 w-4" />, color: 'text-foreground', bg: 'bg-muted', border: 'border-border', label: 'Viewed Record', category: 'Access' }
-    }
-    
-    // System actions
-    if (actionLower.includes('settings') || actionLower.includes('config')) {
-      return { icon: <Settings className="h-4 w-4" />, color: 'text-secondary', bg: 'bg-purple-50', border: 'border-purple-200', label: 'System Settings', category: 'System' }
-    }
-    if (actionLower.includes('email') || actionLower.includes('notification')) {
-      return { icon: <Mail className="h-4 w-4" />, color: 'text-secondary', bg: 'bg-indigo-50', border: 'border-indigo-200', label: 'Email/Notification', category: 'Communication' }
-    }
-    if (actionLower.includes('analytics') || actionLower.includes('report')) {
-      return { icon: <BarChart3 className="h-4 w-4" />, color: 'text-teal-600', bg: 'bg-teal-50', border: 'border-teal-200', label: 'Analytics/Report', category: 'Analytics' }
-    }
-    
-    // Default
-    return { icon: <Activity className="h-4 w-4" />, color: 'text-foreground', bg: 'bg-muted', border: 'border-border', label: 'System Action', category: 'General' }
-  }
-
-  const actionDetails = getActionDetails(entry.action)
-  
-  const getTableDisplayName = (table: string) => {
-    const tableMap: Record<string, string> = {
-      'applications': 'Applications',
-      'users': 'Users',
-      'programs': 'Programs', 
-      'intakes': 'Intakes',
-      'documents': 'Documents',
-      'notifications': 'Notifications',
-      'settings': 'Settings',
-      'audit_logs': 'Audit Logs'
-    }
-    return tableMap[table] || table
-  }
+  const actorDisplay = entry.actorName || entry.actorEmail || 'System'
+  const actorRole = entry.actorRoles?.[0]
+    ? entry.actorRoles[0].replace(/_/g, ' ')
+    : 'system'
+  const payloadText = stringifyPayload(entry.changes || entry.metadata)
 
   return (
-    <div className={`group bg-card border rounded-xl hover:shadow-lg transition-all duration-300 ${actionDetails.border} ${actionDetails.bg} hover:scale-[1.01]`}>
-      {/* Main List Item */}
-      <div 
-        className="p-4 cursor-pointer"
-        onClick={() => setShowDetails(!showDetails)}
-      >
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          {/* Left Side - Action Info */}
-          <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
-            {/* Action Icon */}
-            <div className={`p-2 rounded-lg ${actionDetails.bg} ${actionDetails.color} flex-shrink-0`}>
-              {actionDetails.icon}
+    <div className="rounded-2xl border border-border bg-card shadow-sm">
+      <div className="flex flex-col gap-4 p-5 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${formatCategoryStyles(entry.category)}`}>
+              {entry.category}
+            </span>
+            <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+              {formatEntityLabel(entry.targetTable)}
+            </span>
+          </div>
+
+          <h3 className="mt-3 text-lg font-semibold text-foreground">{entry.action}</h3>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-xl border border-border bg-muted/20 p-3">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <User className="h-3.5 w-3.5" />
+                Actor
+              </div>
+              <p className="mt-1 text-sm font-medium text-foreground">{actorDisplay}</p>
+              <p className="text-xs text-muted-foreground">{actorRole}</p>
             </div>
-            
-            {/* Action Details */}
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-2 mb-1">
-                <h3 className="font-semibold text-foreground truncate">{actionDetails.label}</h3>
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${actionDetails.color} ${actionDetails.bg} border ${actionDetails.border}`}>
-                  {actionDetails.category}
-                </span>
+
+            <div className="rounded-xl border border-border bg-muted/20 p-3">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <Database className="h-3.5 w-3.5" />
+                Target
               </div>
-              
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-foreground">
-                {/* Actor */}
-                <div className="flex items-center space-x-1 min-w-0">
-                  <User className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate max-w-[10rem] sm:max-w-[12rem]">{entry.actorEmail || 'System'}</span>
-                </div>
-                
-                {/* Target */}
-                {entry.targetTable && (
-                  <div className="flex items-center space-x-1 min-w-0">
-                    <Database className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate">{getTableDisplayName(entry.targetTable)}</span>
-                    {entry.targetId && (
-                      <span className="text-xs text-foreground font-mono hidden sm:inline">#{entry.targetId}</span>
-                    )}
-                  </div>
-                )}
-                
-                {/* IP Address - hidden on mobile to save space */}
-                {entry.requestIp && (
-                  <div className="hidden sm:flex items-center space-x-1">
-                    <Globe className="h-3 w-3 flex-shrink-0" />
-                    <span className="font-mono text-xs">{entry.requestIp}</span>
-                  </div>
-                )}
+              <p className="mt-1 text-sm font-medium text-foreground">{formatEntityLabel(entry.targetTable)}</p>
+              <p className="truncate text-xs text-muted-foreground">{entry.targetId || 'No target id'}</p>
+            </div>
+
+            <div className="rounded-xl border border-border bg-muted/20 p-3">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <Globe className="h-3.5 w-3.5" />
+                Request IP
               </div>
+              <p className="mt-1 text-sm font-medium text-foreground">{entry.requestIp || 'Unavailable'}</p>
+              <p className="text-xs text-muted-foreground">Captured from request context</p>
+            </div>
+
+            <div className="rounded-xl border border-border bg-muted/20 p-3">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <Clock3 className="h-3.5 w-3.5" />
+                Time
+              </div>
+              <p className="mt-1 text-sm font-medium text-foreground">{relativeTime}</p>
+              <p className="text-xs text-muted-foreground">{exactTime}</p>
             </div>
           </div>
-          
-          {/* Right Side - Time */}
-          <div className="flex items-center justify-between sm:justify-end space-x-3 flex-shrink-0 pl-9 sm:pl-0">
-            <div className="text-left sm:text-right">
-              <div className="text-sm font-medium text-foreground">{relativeTime}</div>
-              <div className="text-xs text-foreground">{exactTime}</div>
-            </div>
-            <ChevronRight className={`h-4 w-4 text-foreground transition-transform duration-200 ${showDetails ? 'rotate-90' : ''}`} />
-          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setExpanded((current) => !current)}
+          >
+            {expanded ? (
+              <>
+                <EyeOff className="h-4 w-4" />
+                Hide details
+              </>
+            ) : (
+              <>
+                <Eye className="h-4 w-4" />
+                View details
+              </>
+            )}
+          </Button>
         </div>
       </div>
-      
-      {/* Expanded Details */}
-      {showDetails && (
-        <div className="border-t border-border p-4 bg-muted/50">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Actor Details */}
-            <div className="bg-card rounded-lg p-3 border border-border">
-              <div className="flex items-center gap-2 mb-3">
-                <User className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold text-foreground">Actor Information</span>
-              </div>
-              <div className="space-y-2">
+
+      {expanded ? (
+        <div className="border-t border-border bg-muted/15 p-5">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="rounded-xl border border-border bg-card p-4">
+              <h4 className="text-sm font-semibold text-foreground">Request context</h4>
+              <dl className="mt-3 space-y-3 text-sm">
                 <div>
-                  <span className="text-xs font-medium text-foreground">Email:</span>
-                  <p className="text-sm text-foreground">{entry.actorEmail || 'Unknown'}</p>
+                  <dt className="font-medium text-muted-foreground">Actor email</dt>
+                  <dd className="text-foreground">{entry.actorEmail || 'Unavailable'}</dd>
                 </div>
                 <div>
-                  <span className="text-xs font-medium text-foreground">User ID:</span>
-                  <p className="text-sm font-mono text-foreground">{entry.actorId || 'N/A'}</p>
+                  <dt className="font-medium text-muted-foreground">Actor id</dt>
+                  <dd className="break-all font-mono text-foreground">{entry.actorId || 'System'}</dd>
                 </div>
-                {(entry.actorRoles?.length ?? 0) > 0 && (
-                  <div>
-                    <span className="text-xs font-medium text-foreground">Roles:</span>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {(entry.actorRoles ?? []).map((role, index) => (
-                        <span
-                          key={`${entry.id}-${role}-${index}`}
-                          className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary-foreground"
-                        >
-                          {role.replace('_', ' ').toUpperCase()}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+                <div>
+                  <dt className="font-medium text-muted-foreground">User agent</dt>
+                  <dd className="break-words text-foreground">{entry.userAgent || 'Unavailable'}</dd>
+                </div>
+              </dl>
             </div>
-            
-            {/* Request Details */}
-            <div className="bg-card rounded-lg p-3 border border-border">
-              <div className="flex items-center gap-2 mb-3">
-                <Activity className="h-4 w-4 text-secondary" />
-                <span className="text-sm font-semibold text-foreground">Request Details</span>
-              </div>
-              <div className="space-y-2">
-                <div>
-                  <span className="text-xs font-medium text-foreground">Action:</span>
-                  <p className="text-sm font-mono text-foreground">{entry.action}</p>
-                </div>
-                {entry.requestId && (
-                  <div>
-                    <span className="text-xs font-medium text-foreground">Request ID:</span>
-                    <p className="text-sm font-mono text-foreground">{entry.requestId}</p>
-                  </div>
-                )}
-                {entry.requestIp && (
-                  <div>
-                    <span className="text-xs font-medium text-foreground">IP Address:</span>
-                    <p className="text-sm font-mono text-foreground">{entry.requestIp}</p>
-                  </div>
-                )}
-                {entry.userAgent && (
-                  <div>
-                    <span className="text-xs font-medium text-foreground">User Agent:</span>
-                    <p className="text-xs text-foreground truncate" title={entry.userAgent}>{entry.userAgent}</p>
-                  </div>
-                )}
-              </div>
+
+            <div className="rounded-xl border border-border bg-card p-4">
+              <h4 className="text-sm font-semibold text-foreground">Change payload</h4>
+              {payloadText ? (
+                <pre className="mt-3 max-h-72 overflow-auto rounded-lg bg-slate-950 p-3 text-xs text-slate-100">
+                  {payloadText}
+                </pre>
+              ) : (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  No structured payload was captured for this event.
+                </p>
+              )}
             </div>
           </div>
-          
-          {/* Target Information */}
-          {entry.targetTable && (
-            <div className="bg-card rounded-lg p-3 border border-border mt-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Database className="h-4 w-4 text-accent" />
-                <span className="text-sm font-semibold text-foreground">Target Information</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <span className="text-xs font-medium text-foreground">Table:</span>
-                  <p className="text-sm text-foreground">{getTableDisplayName(entry.targetTable)}</p>
-                </div>
-                {entry.targetId && (
-                  <div>
-                    <span className="text-xs font-medium text-foreground">Record ID:</span>
-                    <p className="text-sm font-mono text-foreground">{entry.targetId}</p>
-                  </div>
-                )}
-                {entry.targetLabel && (
-                  <div>
-                    <span className="text-xs font-medium text-foreground">Label:</span>
-                    <p className="text-sm text-foreground">{entry.targetLabel}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-          
-          {/* Metadata */}
-          {metadataLength > 0 && (
-            <div className="bg-card rounded-lg p-3 border border-border mt-4">
-              <div className="flex items-center gap-2 mb-3">
-                <FileText className="h-4 w-4 text-secondary" />
-                <span className="text-sm font-semibold text-foreground">Additional Data</span>
-                <span className="text-xs bg-skeleton px-2 py-0.5 rounded-full">
-                  {metadataLength} fields
-                </span>
-              </div>
-              <pre className="text-xs bg-accent p-3 rounded-lg overflow-auto max-h-40 border font-mono">
-                {JSON.stringify(entry.metadata, null, 2)}
-              </pre>
-            </div>
-          )}
         </div>
-      )}
+      ) : null}
     </div>
   )
 }
@@ -333,7 +287,7 @@ export default function AuditTrailPage() {
     targetTable: '',
     category: '',
     from: '',
-    to: ''
+    to: '',
   })
   const [appliedFilters, setAppliedFilters] = useState<AuditLogFilters>({})
   const [page, setPage] = useState(1)
@@ -341,7 +295,8 @@ export default function AuditTrailPage() {
   const [response, setResponse] = useState<AuditLogResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [showFilters, setShowFilters] = useState(false)
+  const [showFilters, setShowFilters] = useState(true)
+  const [exportingFormat, setExportingFormat] = useState<AuditExportFormat | null>(null)
   const { error: showError, success: showSuccess, info: showInfo } = useToastStore()
 
   const loadAuditEntries = useCallback(async () => {
@@ -352,31 +307,21 @@ export default function AuditTrailPage() {
       const payload = await adminAuditService.list({
         ...appliedFilters,
         page,
-        pageSize
+        pageSize,
       })
-      
-      // Ensure payload has proper structure
-      const safePayload = {
-        entries: Array.isArray(payload?.entries) ? payload.entries : [],
-        page: payload?.page || 1,
-        pageSize: payload?.pageSize || DEFAULT_PAGE_SIZE,
-        totalPages: payload?.totalPages || 1,
-        totalCount: payload?.totalCount || 0
-      }
-      
-      setResponse(safePayload)
-      if (safePayload.entries.length === 0 && Object.keys(appliedFilters).length > 0) {
-        showInfo('No results', 'No audit entries match your current filters.')
+
+      setResponse(payload)
+
+      if (payload.entries.length === 0 && Object.keys(appliedFilters).length > 0) {
+        showInfo('No results', 'No audit records match the current filter set.')
       }
     } catch (requestError) {
       const message =
-        requestError instanceof Error
-          ? requestError.message
-          : 'Failed to load audit log entries'
+        requestError instanceof Error ? requestError.message : 'Failed to load audit activity'
+
       setError(message)
-      showError('Load failed', message)
-      // Set empty response on error
-      setResponse({ entries: [], page: 1, pageSize: DEFAULT_PAGE_SIZE, totalPages: 1, totalCount: 0 })
+      setResponse(null)
+      showError('Audit load failed', message)
     } finally {
       setLoading(false)
     }
@@ -389,476 +334,509 @@ export default function AuditTrailPage() {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setPage(1)
-    const filters = sanitizeFilters(formFilters)
-    setAppliedFilters(filters)
-    showSuccess('Filters applied', 'Audit log has been filtered according to your criteria.')
+    setAppliedFilters(sanitizeFilters(formFilters))
+    showSuccess('Filters applied', 'Audit activity has been refreshed with the selected filters.')
   }
 
   const handleReset = () => {
-    setFormFilters({ action: '', actorEmail: '', targetTable: '', category: '', from: '', to: '' })
-    setPage(1)
+    const cleared = {
+      action: '',
+      actorEmail: '',
+      targetTable: '',
+      category: '',
+      from: '',
+      to: '',
+    }
+
+    setFormFilters(cleared)
     setAppliedFilters({})
-    showInfo('Filters cleared', 'All filters have been reset.')
+    setPage(1)
+    showInfo('Filters cleared', 'Audit activity is back to the default view.')
   }
 
-  const handleRefresh = () => {
-    void loadAuditEntries()
-    showInfo('Refreshing', 'Loading latest audit entries...')
-  }
-
-  const exportAuditLog = () => {
-    if (!response?.entries.length) {
-      showError('No data', 'No audit entries to export.')
+  const handleExport = useCallback(async (format: AuditExportFormat) => {
+    if (!response?.entries.length || exportingFormat) {
       return
     }
-    
-    const csv = [
-      'Timestamp,Action,Category,Actor Email,Actor ID,Target Table,Target ID,Request IP,User Agent',
-      ...response.entries.map(entry => {
-        const actionDetails = (() => {
-          const actionLower = entry.action.toLowerCase()
-          if (actionLower.includes('login') || actionLower.includes('signin')) return 'Authentication'
-          if (actionLower.includes('logout') || actionLower.includes('signout')) return 'Authentication'
-          if (actionLower.includes('register') || actionLower.includes('signup')) return 'Authentication'
-          if (actionLower.includes('create') || actionLower.includes('insert') || actionLower.includes('add')) return 'Data'
-          if (actionLower.includes('update') || actionLower.includes('modify') || actionLower.includes('edit')) return 'Data'
-          if (actionLower.includes('delete') || actionLower.includes('remove')) return 'Data'
-          if (actionLower.includes('view') || actionLower.includes('read') || actionLower.includes('get')) return 'Access'
-          if (actionLower.includes('settings') || actionLower.includes('config')) return 'System'
-          if (actionLower.includes('email') || actionLower.includes('notification')) return 'Communication'
-          if (actionLower.includes('analytics') || actionLower.includes('report')) return 'Analytics'
-          return 'General'
-        })()
-        
-        return `"${entry.createdAt}","${entry.action}","${actionDetails}","${entry.actorEmail || ''}","${entry.actorId || ''}","${entry.targetTable || ''}","${entry.targetId || ''}","${entry.requestIp || ''}","${(entry.userAgent || '').replace(/"/g, "'")}"`
-      })
-    ].join('\n')
-    
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `mihas-audit-log-${new Date().toISOString().split('T')[0]}.csv`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-    
-    showSuccess('Export complete', 'Audit log has been downloaded as CSV.')
-  }
 
-  const canGoBack = (response?.page ?? 1) > 1
-  const canGoForward = (response?.page ?? 1) < (response?.totalPages ?? 1)
+    setExportingFormat(format)
+
+    try {
+      const payload = {
+        entries: response.entries,
+        filters: appliedFilters,
+        summary: response.summary,
+        filenameBase: `mihas-audit-${new Date().toISOString().slice(0, 10)}`,
+      }
+
+      if (format === 'csv') {
+        exportAuditEntriesToCsv(payload)
+      } else if (format === 'json') {
+        exportAuditEntriesToJson(payload)
+      } else {
+        await exportAuditEntriesToPdf(payload)
+      }
+
+      showSuccess('Export complete', `Audit activity exported as ${format.toUpperCase()}.`)
+    } catch (requestError) {
+      const message =
+        requestError instanceof Error ? requestError.message : 'Unable to export audit activity right now.'
+      showError('Export failed', message)
+    } finally {
+      setExportingFormat(null)
+    }
+  }, [appliedFilters, exportingFormat, response, showError, showSuccess])
+
+  const summary = response?.summary
+  const topCategory = useMemo(() => {
+    if (!summary) {
+      return null
+    }
+
+    return Object.entries(summary.categoryBreakdown).sort((left, right) => right[1] - left[1])[0] || null
+  }, [summary])
+
+  const topEntity = summary?.entityBreakdown[0] || null
+  const activeFilterCount = Object.keys(appliedFilters).length
+  const canGoBack = (response?.page || 1) > 1
+  const canGoForward = (response?.page || 1) < (response?.totalPages || 1)
+
+  const visiblePages = useMemo(() => {
+    const currentPage = response?.page || 1
+    const totalPages = response?.totalPages || 1
+    const start = Math.max(1, currentPage - 2)
+    const end = Math.min(totalPages, start + 4)
+    const pages: number[] = []
+
+    for (let pageNumber = start; pageNumber <= end; pageNumber += 1) {
+      pages.push(pageNumber)
+    }
+
+    return pages
+  }, [response?.page, response?.totalPages])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 max-w-full overflow-x-hidden">
-      
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-card/95 backdrop-blur-sm border-b border-border px-4 py-3 sm:px-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 rounded-xl">
-              <Shield className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-foreground">System Audit Trail</h1>
-              <p className="text-xs text-foreground">
-                {response?.totalCount || 0} security events tracked
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className="sm:hidden"
-              aria-label="Toggle filters"
-              aria-expanded={showFilters}
-            >
-              <Filter className="h-4 w-4" aria-hidden="true" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={loading}
-              aria-label="Refresh audit log"
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} aria-hidden="true" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={exportAuditLog}
-              disabled={!response?.entries.length}
-              aria-label="Export audit log"
-            >
-              <Download className="h-4 w-4" aria-hidden="true" />
-            </Button>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl">
+          <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 px-6 py-7 text-white">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-start gap-4">
+                <div className="rounded-2xl bg-white/10 p-3">
+                  <Shield className="h-7 w-7" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold sm:text-3xl">Audit Trail</h1>
+                  <p className="mt-1 max-w-2xl text-sm text-white/85 sm:text-base">
+                    Review real operational history across authentication, application management, settings, and staff actions.
+                  </p>
+                </div>
+              </div>
 
-      <div className="px-4 py-4 sm:px-6">
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-primary/30">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-primary uppercase tracking-wide">Total Events</p>
-                <p className="text-2xl font-bold text-primary-foreground">{response?.totalCount || 0}</p>
-              </div>
-              <div className="p-3 bg-primary rounded-xl">
-                <Activity className="h-5 w-5 text-white" />
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-accent/30">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-accent uppercase tracking-wide">This Page</p>
-                <p className="text-2xl font-bold text-accent-foreground">{response?.entries?.length || 0}</p>
-              </div>
-              <div className="p-3 bg-accent rounded-xl">
-                <FileText className="h-5 w-5 text-white" />
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-input/30">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-secondary uppercase tracking-wide">Page {response?.page || 1}</p>
-                <p className="text-2xl font-bold text-foreground-foreground">of {response?.totalPages || 1}</p>
-              </div>
-              <div className="p-3 bg-secondary rounded-xl">
-                <BarChart3 className="h-5 w-5 text-white" />
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-orange-600 uppercase tracking-wide">Per Page</p>
-                <p className="text-2xl font-bold text-orange-900">{pageSize}</p>
-              </div>
-              <div className="p-3 bg-orange-500 rounded-xl">
-                <TrendingUp className="h-5 w-5 text-white" />
-              </div>
-            </div>
-          </div>
-        </div>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild variant="outline" className="border-white/25 bg-white/10 text-white hover:bg-white/20">
+                  <Link to="/admin">
+                    <ArrowLeft className="h-4 w-4" />
+                    Back
+                  </Link>
+                </Button>
 
-        {/* Mobile Filters Panel */}
-        {showFilters && (
-          <div className="bg-card rounded-xl p-4 shadow-sm border border-border mb-6 sm:hidden">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1"><Search className="w-5 h-5" /> Search Actions</label>
-                <Input
-                  value={formFilters.action}
-                  onChange={event => setFormFilters(filters => ({ ...filters, action: event.target.value }))}
-                  placeholder="e.g. login, create, update, delete"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1"><User className="w-5 h-5" /> User Email</label>
-                <Input
-                  value={formFilters.actorEmail}
-                  onChange={event => setFormFilters(filters => ({ ...filters, actorEmail: event.target.value }))}
-                  placeholder="user@example.com"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">🗂️ Data Type</label>
-                <select
-                  value={formFilters.targetTable}
-                  onChange={event => setFormFilters(filters => ({ ...filters, targetTable: event.target.value }))}
-                  className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary"
+                <Button
+                  variant="outline"
+                  className="border-white/25 bg-white/10 text-white hover:bg-white/20"
+                  onClick={() => setShowFilters((current) => !current)}
                 >
-                  <option value="">All data types</option>
-                  <option value="applications">Applications</option>
-                  <option value="users">Users</option>
-                  <option value="programs">Programs</option>
-                  <option value="intakes">Intakes</option>
-                  <option value="documents">Documents</option>
-                  <option value="notifications">Notifications</option>
-                  <option value="settings">Settings</option>
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">From</label>
-                  <Input
-                    type="datetime-local"
-                    value={formFilters.from}
-                    onChange={event => setFormFilters(filters => ({ ...filters, from: event.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">To</label>
-                  <Input
-                    type="datetime-local"
-                    value={formFilters.to}
-                    onChange={event => setFormFilters(filters => ({ ...filters, to: event.target.value }))}
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit" className="flex-1">
-                  <Search className="h-4 w-4 mr-2" />
-                  Apply
+                  <Filter className="h-4 w-4" />
+                  {showFilters ? 'Hide filters' : 'Show filters'}
                 </Button>
-                <Button type="button" variant="outline" onClick={handleReset}>
-                  Reset
+
+                <Button
+                  variant="outline"
+                  className="border-white/25 bg-white/10 text-white hover:bg-white/20"
+                  onClick={() => void loadAuditEntries()}
+                  loading={loading}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Refresh
                 </Button>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="border-white/25 bg-white/10 text-white hover:bg-white/20"
+                      disabled={!response?.entries.length || Boolean(exportingFormat)}
+                      loading={Boolean(exportingFormat)}
+                    >
+                      <Download className="h-4 w-4" />
+                      {exportingFormat ? `Exporting ${exportingFormat.toUpperCase()}` : 'Export'}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onSelect={() => void handleExport('csv')}>
+                      Export CSV
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => void handleExport('json')}>
+                      Export JSON
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => void handleExport('pdf')}>
+                      Export PDF
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-            </form>
+            </div>
           </div>
-        )}
 
-        {/* Desktop Filters */}
-        <div className="hidden sm:block bg-card rounded-xl p-6 shadow-sm border border-border mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="h-5 w-5 text-foreground" />
-            <h2 className="text-lg font-semibold text-foreground">Filters</h2>
-          </div>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1"><Search className="w-5 h-5" /> Search Actions</label>
-              <Input
-                value={formFilters.action}
-                onChange={event => setFormFilters(filters => ({ ...filters, action: event.target.value }))}
-                placeholder="e.g. login, create, update, delete"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1"><User className="w-5 h-5" /> User Email</label>
-              <Input
-                value={formFilters.actorEmail}
-                onChange={event => setFormFilters(filters => ({ ...filters, actorEmail: event.target.value }))}
-                placeholder="user@example.com"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">🗂️ Data Type</label>
-              <select
-                value={formFilters.targetTable}
-                onChange={event => setFormFilters(filters => ({ ...filters, targetTable: event.target.value }))}
-                className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary"
-              >
-                <option value="">All data types</option>
-                <option value="applications">Applications</option>
-                <option value="users">Users</option>
-                <option value="programs">Programs</option>
-                <option value="intakes">Intakes</option>
-                <option value="documents">Documents</option>
-                <option value="notifications">Notifications</option>
-                <option value="settings">Settings</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">📂 Category</label>
-              <select
-                value={formFilters.category}
-                onChange={event => setFormFilters(filters => ({ ...filters, category: event.target.value }))}
-                className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary"
-              >
-                <option value="">All categories</option>
-                <option value="Authentication">Authentication</option>
-                <option value="Data">Data Operations</option>
-                <option value="Access">Access & Views</option>
-                <option value="System">System Settings</option>
-                <option value="Communication">Communications</option>
-                <option value="Analytics">Analytics</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">From</label>
-              <Input
-                type="datetime-local"
-                value={formFilters.from}
-                onChange={event => setFormFilters(filters => ({ ...filters, from: event.target.value }))}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">To</label>
-              <Input
-                type="datetime-local"
-                value={formFilters.to}
-                onChange={event => setFormFilters(filters => ({ ...filters, to: event.target.value }))}
-              />
-            </div>
-            <div className="flex items-end gap-2">
-              <Button type="submit" className="flex items-center gap-2">
-                <Search className="h-4 w-4" />
-                Apply Filters
-              </Button>
-              <Button type="button" variant="outline" onClick={handleReset}>
-                Reset
-              </Button>
-            </div>
-          </form>
-        </div>
-
-        {/* Error Display */}
-        {error && (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 mb-6">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="h-5 w-5 text-error flex-shrink-0" />
-              <div>
-                <h3 className="text-sm font-medium text-destructive-foreground">Error Loading Audit Log</h3>
-                <p className="text-sm text-error mt-1">{error}</p>
+          <div className="space-y-6 p-6">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-2xl border border-border bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total events</p>
+                    <p className="mt-2 text-3xl font-bold text-foreground">{response?.totalCount || 0}</p>
+                  </div>
+                  <div className="rounded-xl bg-slate-900 p-3 text-white">
+                    <Activity className="h-5 w-5" />
+                  </div>
+                </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefresh}
-                className="ml-auto text-destructive border-destructive/30 hover:bg-destructive/5"
-              >
-                <RefreshCw className="h-4 w-4 mr-1" />
-                Retry
-              </Button>
-            </div>
-          </div>
-        )}
 
-        {/* Loading State */}
-        {loading ? (
-          <div className="space-y-6">
-            {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="bg-card rounded-xl border border-border p-6 animate-pulse">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 bg-skeleton rounded" />
-                    <div>
-                      <div className="h-5 bg-skeleton rounded w-32 mb-2" />
-                      <div className="h-4 bg-accent rounded w-24" />
+              <div className="rounded-2xl border border-border bg-gradient-to-br from-blue-50 to-blue-100 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Unique actors</p>
+                    <p className="mt-2 text-3xl font-bold text-foreground">{summary?.uniqueActors || 0}</p>
+                  </div>
+                  <div className="rounded-xl bg-blue-600 p-3 text-white">
+                    <User className="h-5 w-5" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-border bg-gradient-to-br from-emerald-50 to-emerald-100 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Top category</p>
+                    <p className="mt-2 text-xl font-bold text-foreground">{topCategory?.[0] || 'None yet'}</p>
+                    <p className="text-sm text-muted-foreground">{topCategory ? `${topCategory[1]} events` : 'No activity loaded'}</p>
+                  </div>
+                  <div className="rounded-xl bg-emerald-600 p-3 text-white">
+                    <Settings className="h-5 w-5" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-border bg-gradient-to-br from-amber-50 to-amber-100 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Most active entity</p>
+                    <p className="mt-2 text-xl font-bold text-foreground">{topEntity ? formatEntityLabel(topEntity.label) : 'None yet'}</p>
+                    <p className="text-sm text-muted-foreground">{topEntity ? `${topEntity.count} events` : 'No entity activity loaded'}</p>
+                  </div>
+                  <div className="rounded-xl bg-amber-600 p-3 text-white">
+                    <Database className="h-5 w-5" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(340px,1fr)]">
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-lg font-semibold text-foreground">Category breakdown</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Current counts reflect the active filter set, not a hard-coded summary.
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
+                    {activeFilterCount} filters active
+                  </div>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                  {CATEGORY_OPTIONS.map((category) => (
+                    <div key={category} className="rounded-xl border border-border bg-muted/20 p-4">
+                      <div className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${formatCategoryStyles(category)}`}>
+                        {category}
+                      </div>
+                      <p className="mt-3 text-2xl font-bold text-foreground">
+                        {summary?.categoryBreakdown[category] || 0}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <h2 className="text-lg font-semibold text-foreground">Most frequent actions</h2>
+                <p className="text-sm text-muted-foreground">
+                  The timeline below is backed by live action frequencies from the audit API.
+                </p>
+
+                <div className="mt-4 space-y-3">
+                  {(summary?.actionBreakdown || []).length > 0 ? (
+                    summary?.actionBreakdown.map((item) => (
+                      <div key={item.label} className="flex items-center justify-between rounded-xl border border-border bg-muted/20 px-4 py-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-foreground">{item.label}</p>
+                          <p className="text-xs text-muted-foreground">Ranked from current filter set</p>
+                        </div>
+                        <div className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+                          {item.count}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-8 text-center">
+                      <BarChart3 className="mx-auto h-8 w-8 text-muted-foreground" />
+                      <p className="mt-3 text-sm text-muted-foreground">No action summary is available for the current view yet.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {showFilters ? (
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <div className="mb-4 flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-primary" />
+                  <h2 className="text-lg font-semibold text-foreground">Filter activity</h2>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    <Input
+                      label="Action search"
+                      value={formFilters.action}
+                      onChange={(event) => setFormFilters((current) => ({ ...current, action: event.target.value }))}
+                      placeholder="login, payment, settings, notification"
+                      icon={<Search className="h-4 w-4" />}
+                    />
+
+                    <Input
+                      label="Actor email"
+                      value={formFilters.actorEmail}
+                      onChange={(event) => setFormFilters((current) => ({ ...current, actorEmail: event.target.value }))}
+                      placeholder="staff@mihas.edu.zm"
+                      icon={<User className="h-4 w-4" />}
+                    />
+
+                    <div className="w-full">
+                      <label className="mb-1.5 block text-sm font-medium text-foreground">Entity</label>
+                      <select
+                        value={formFilters.targetTable}
+                        onChange={(event) => setFormFilters((current) => ({ ...current, targetTable: event.target.value }))}
+                        className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        {ENTITY_OPTIONS.map((option) => (
+                          <option key={option.value || 'all'} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="w-full">
+                      <label className="mb-1.5 block text-sm font-medium text-foreground">Category</label>
+                      <select
+                        value={formFilters.category}
+                        onChange={(event) => setFormFilters((current) => ({ ...current, category: event.target.value }))}
+                        className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        <option value="">All categories</option>
+                        {CATEGORY_OPTIONS.map((category) => (
+                          <option key={category} value={category}>
+                            {category}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <Input
+                      label="From"
+                      type="datetime-local"
+                      value={formFilters.from}
+                      onChange={(event) => setFormFilters((current) => ({ ...current, from: event.target.value }))}
+                    />
+
+                    <Input
+                      label="To"
+                      type="datetime-local"
+                      value={formFilters.to}
+                      onChange={(event) => setFormFilters((current) => ({ ...current, to: event.target.value }))}
+                    />
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button type="submit">
+                      <Search className="h-4 w-4" />
+                      Apply filters
+                    </Button>
+                    <Button type="button" variant="outline" onClick={handleReset}>
+                      Reset
+                    </Button>
+                    <div className="ml-auto flex items-center gap-2 text-sm text-muted-foreground">
+                      <span>Page size</span>
+                      <select
+                        value={pageSize}
+                        onChange={(event) => {
+                          setPageSize(Number.parseInt(event.target.value, 10) || DEFAULT_PAGE_SIZE)
+                          setPage(1)
+                        }}
+                        className="h-10 rounded-lg border border-input bg-background px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        {PAGE_SIZE_OPTIONS.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
-                  <div className="h-4 bg-accent rounded w-20" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div className="h-20 bg-accent rounded-lg" />
-                  <div className="h-20 bg-accent rounded-lg" />
-                </div>
-                <div className="h-16 bg-muted rounded-lg" />
+                </form>
               </div>
-            ))}
-          </div>
-        ) : response?.entries?.length ? (
-          <>
-            {/* Audit List */}
-            <div className="space-y-3 mb-6">
-              {response.entries.map(entry => (
-                <AuditListItem key={entry.id} entry={entry} />
-              ))}
-            </div>
-            
-            {/* Pagination */}
-            <div className="bg-card rounded-xl p-6 border border-border shadow-sm">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="text-sm text-foreground">
-                    Showing page <span className="font-semibold text-foreground">{response.page}</span> of{' '}
-                    <span className="font-semibold text-foreground">{response.totalPages}</span>
+            ) : null}
+
+            {error ? (
+              <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="mt-0.5 h-5 w-5 text-destructive" />
+                    <div>
+                      <h3 className="font-semibold text-foreground">Audit activity could not be loaded</h3>
+                      <p className="mt-1 text-sm text-destructive">{error}</p>
+                    </div>
                   </div>
-                  <div className="h-4 w-px bg-muted" />
-                  <div className="text-sm text-foreground">
-                    <span className="font-semibold text-foreground">{response.totalCount}</span> total entries
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <label className="text-sm text-foreground">Page size:</label>
-                  <Input
-                    type="number"
-                    min={5}
-                    max={100}
-                    value={pageSize}
-                    onChange={event => {
-                      const next = Number.parseInt(event.target.value, 10)
-                      if (!Number.isNaN(next)) {
-                        setPageSize(Math.min(Math.max(next, 5), 100))
-                        setPage(1)
-                      }
-                    }}
-                    className="w-20"
-                  />
+                  <Button variant="outline" onClick={() => void loadAuditEntries()}>
+                    <RefreshCw className="h-4 w-4" />
+                    Retry
+                  </Button>
                 </div>
               </div>
-              
-              <div className="flex items-center justify-between mt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  disabled={!canGoBack}
-                  onClick={() => canGoBack && setPage(page - 1)}
-                  className="flex items-center gap-2"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Previous
-                </Button>
-                
-                <div className="flex items-center gap-2">
-                  {Array.from({ length: Math.min(response.totalPages, 5) }, (_, i) => {
-                    const pageNum = i + 1
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => setPage(pageNum)}
-                        className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                          pageNum === response.page
-                            ? 'bg-primary text-white'
-                            : 'text-foreground hover:bg-accent'
-                        }`}
+            ) : null}
+
+            {loading ? (
+              <div className="flex justify-center py-20">
+                <div className="text-center">
+                  <LoadingSpinner size="lg" />
+                  <p className="mt-4 text-sm text-muted-foreground">Loading audit activity...</p>
+                </div>
+              </div>
+            ) : response?.entries.length ? (
+              <>
+                <div className="space-y-4">
+                  {response.entries.map((entry) => (
+                    <AuditEntryCard key={entry.id} entry={entry} />
+                  ))}
+                </div>
+
+                <div className="rounded-2xl border border-border bg-card p-5">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      Showing page <span className="font-semibold text-foreground">{response.page}</span> of{' '}
+                      <span className="font-semibold text-foreground">{response.totalPages}</span> with{' '}
+                      <span className="font-semibold text-foreground">{response.totalCount}</span> matching events
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={!canGoBack}
+                        onClick={() => canGoBack && setPage((current) => current - 1)}
                       >
-                        {pageNum}
-                      </button>
-                    )
-                  })}
+                        <ChevronLeft className="h-4 w-4" />
+                        Previous
+                      </Button>
+
+                      <div className="flex items-center gap-1">
+                        {visiblePages.map((pageNumber) => (
+                          <button
+                            key={pageNumber}
+                            type="button"
+                            onClick={() => setPage(pageNumber)}
+                            className={`h-10 min-w-10 rounded-lg px-3 text-sm font-semibold transition-colors ${
+                              pageNumber === response.page
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted text-foreground hover:bg-muted/80'
+                            }`}
+                          >
+                            {pageNumber}
+                          </button>
+                        ))}
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={!canGoForward}
+                        onClick={() => canGoForward && setPage((current) => current + 1)}
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!canGoForward}
-                  onClick={() => canGoForward && setPage(page + 1)}
-                  className="flex items-center gap-2"
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+              </>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-border bg-muted/20 px-6 py-16 text-center">
+                <Shield className="mx-auto h-10 w-10 text-muted-foreground" />
+                <h3 className="mt-4 text-lg font-semibold text-foreground">No audit activity found</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {activeFilterCount > 0
+                    ? 'No events match the current filter set. Clear or broaden the filters to see more activity.'
+                    : 'Audit records will appear here as staff and system actions are captured.'}
+                </p>
+                <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+                  {activeFilterCount > 0 ? (
+                    <Button variant="outline" onClick={handleReset}>
+                      Clear filters
+                    </Button>
+                  ) : null}
+                  <Button onClick={() => void loadAuditEntries()}>
+                    <RefreshCw className="h-4 w-4" />
+                    Refresh
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <Shield className="h-4 w-4 text-primary" />
+                  Authentication coverage
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Login, logout, session, password, and registration activity now resolve into the audit category filter and summary cards.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <BellRing className="h-4 w-4 text-primary" />
+                  Communication visibility
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Notification and email actions now surface inside the same category model used by the admin activity timeline.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <BarChart3 className="h-4 w-4 text-primary" />
+                  Export-ready view
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Export the visible audit result set as CSV, JSON, or PDF directly from this page.
+                </p>
               </div>
             </div>
-          </>
-        ) : (
-          <div className="text-center py-10 sm:py-20 bg-gradient-to-br from-muted to-muted rounded-xl border border-border">
-            <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-6">
-              <Shield className="h-10 w-10 text-foreground" />
-            </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2">No Security Events Found</h3>
-            <p className="text-foreground mb-6 max-w-md mx-auto">
-              {Object.keys(appliedFilters).length > 0 
-                ? 'No audit entries match your current search criteria. Try adjusting your filters.' 
-                : 'No audit entries have been recorded yet. System activity will appear here.'
-              }
-            </p>
-            {Object.keys(appliedFilters).length > 0 && (
-              <Button onClick={handleReset} variant="outline" className="mr-2">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Clear Filters
-              </Button>
-            )}
-            <Button onClick={handleRefresh} variant="primary">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
           </div>
-        )}
+        </div>
       </div>
     </div>
   )

@@ -29,7 +29,7 @@ interface SubmissionSuccessProps {
 }
 
 const formatPaymentStatusLabel = (status?: string | null) => {
-  if (!status) return 'Pending Review'
+  if (!status) return 'Pending Payment'
   return status
     .split('_')
     .map(part => part.charAt(0).toUpperCase() + part.slice(1))
@@ -42,6 +42,9 @@ const getPaymentStatusStyles = (status?: string | null) => {
       return 'bg-emerald-100 text-emerald-800 border-emerald-200'
     case 'rejected':
       return 'bg-rose-100 text-rose-800 border-rose-200'
+    case null:
+    case undefined:
+      return 'bg-sky-100 text-sky-800 border-sky-200'
     case 'pending_review':
     default:
       return 'bg-amber-100 text-amber-800 border-amber-200'
@@ -54,6 +57,9 @@ const getPaymentStatusDescription = (status?: string | null) => {
       return 'Payment verified — you are all set.'
     case 'rejected':
       return 'Payment issue detected — please contact support.'
+    case null:
+    case undefined:
+      return 'Payment is still pending — complete it later from the student payment page.'
     case 'pending_review':
     default:
       return 'Payment submitted — awaiting verification by admissions.'
@@ -117,7 +123,9 @@ const SubmissionSuccess = ({
         </div>
 
         <p className="text-foreground mb-6">
-          Your application is now under review. You'll receive notifications about status updates.
+          {submittedApplication.paymentStatus == null
+            ? 'Your application has been submitted. Complete payment later from your dashboard when you are ready.'
+            : 'Your application is now under review. You will receive notifications about status updates.'}
         </p>
 
         <div className="space-y-3 mb-6">
@@ -132,6 +140,11 @@ const SubmissionSuccess = ({
         </div>
 
         <div className="space-y-3">
+          {submittedApplication.paymentStatus == null && (
+            <Link to="/student/payment">
+              <Button variant="outline" className="w-full">Complete Payment Later</Button>
+            </Link>
+          )}
           <Link to="/student/dashboard">
             <Button className="w-full bg-primary hover:bg-primary">Go to Dashboard</Button>
           </Link>

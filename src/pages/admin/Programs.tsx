@@ -1,7 +1,6 @@
-// @ts-nocheck
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { programService, catalogService } from '@/services/catalog'
+import { institutionService, programService } from '@/services/catalog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -9,20 +8,32 @@ import { StandaloneSelect } from '@/components/ui/standalone-select'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogDescription
 } from '@/components/ui/Dialog'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { Pencil, Trash2, Plus, ArrowLeft, GraduationCap, FileEdit } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  ArrowLeft,
+  Building2,
+  GraduationCap,
+  Pencil,
+  Plus,
+  School,
+  Trash2,
+} from 'lucide-react'
 
 interface Institution {
   id: string
   name: string
+  full_name?: string
   code?: string
   description?: string
-  is_active: boolean
+  is_active?: boolean
 }
 
 interface Program {
@@ -31,436 +42,1107 @@ interface Program {
   description?: string
   duration_years: number
   institution_id: string
-  is_active: boolean
-  institutions?: Institution
+  is_active?: boolean
+  institutions?: Institution | null
+}
+
+type CatalogTab = 'programs' | 'institutions'
+type InstitutionStatus = 'active' | 'archived'
+type ProgramDialogTarget = 'create-program' | 'edit-program' | null
+
+const initialProgramForm = {
+  name: '',
+  description: '',
+  duration_years: 1,
+  institution_id: '',
+}
+
+const initialInstitutionForm = {
+  name: '',
+  full_name: '',
+  code: '',
+  description: '',
+  status: 'active' as InstitutionStatus,
+}
+
+function isInstitutionActive(institution: Institution) {
+  return institution.is_active !== false
+}
+
+function getInstitutionDisplayName(institution: Institution) {
+  return institution.full_name?.trim() || institution.name
+}
+
+function getInstitutionOptionLabel(institution: Institution) {
+  const name = getInstitutionDisplayName(institution)
+  return institution.code ? `${name} (${institution.code})` : name
 }
 
 export default function AdminPrograms() {
+  const [activeTab, setActiveTab] = useState<CatalogTab>('programs')
   const [programs, setPrograms] = useState<Program[]>([])
   const [institutions, setInstitutions] = useState<Institution[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [showCreate, setShowCreate] = useState(false)
-  const [showEdit, setShowEdit] = useState(false)
-  const [showDelete, setShowDelete] = useState(false)
-  const [currentProgram, setCurrentProgram] = useState<Program | null>(null)
   const [saving, setSaving] = useState(false)
 
-  const [form, setForm] = useState({
-    name: '',
-    description: '',
-    duration_years: 1,
-    institution_id: ''
-  })
+  const [showProgramCreate, setShowProgramCreate] = useState(false)
+  const [showProgramEdit, setShowProgramEdit] = useState(false)
+  const [showProgramDelete, setShowProgramDelete] = useState(false)
+  const [currentProgram, setCurrentProgram] = useState<Program | null>(null)
+  const [programForm, setProgramForm] = useState(initialProgramForm)
+
+  const [showInstitutionCreate, setShowInstitutionCreate] = useState(false)
+  const [showInstitutionEdit, setShowInstitutionEdit] = useState(false)
+  const [showInstitutionDelete, setShowInstitutionDelete] = useState(false)
+  const [currentInstitution, setCurrentInstitution] = useState<Institution | null>(null)
+  const [institutionForm, setInstitutionForm] = useState(initialInstitutionForm)
+  const [institutionCreateReturnTarget, setInstitutionCreateReturnTarget] = useState<ProgramDialogTarget>(null)
+
+  const activeInstitutions = institutions.filter(isInstitutionActive)
+
+  const loadCatalog = useCallback(async (showLoadingState = false) => {
+    try {
+      if (showLoadingState) {
+        setLoading(true)
+      }
+
+      setError('')
+
+      const [programResponse, institutionResponse] = await Promise.all([
+        programService.list(),
+        institutionService.list(),
+      ])
+
+      const sortedPrograms = (programResponse?.programs || []).sort((a: Program, b: Program) =>
+        a.name.localeCompare(b.name)
+      )
+      const sortedInstitutions = (institutionResponse?.institutions || []).sort(
+        (a: Institution, b: Institution) => getInstitutionDisplayName(a).localeCompare(getInstitutionDisplayName(b))
+      )
+
+      setPrograms(sortedPrograms)
+      setInstitutions(sortedInstitutions)
+    } catch (err: any) {
+      setError(err.message || 'Failed to load catalog')
+    } finally {
+      if (showLoadingState) {
+        setLoading(false)
+      }
+    }
+  }, [])
 
   useEffect(() => {
-    loadPrograms()
-    loadInstitutions()
+    void loadCatalog(true)
+  }, [loadCatalog])
+
+  const getInstitutionProgramCount = useCallback(
+    (institutionId: string) =>
+      programs.filter((program) => program.institution_id === institutionId && program.is_active !== false).length,
+    [programs]
+  )
+
+  const handleProgramFieldChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { name, value } = event.target
+      setProgramForm((current) => ({
+        ...current,
+        [name]: name === 'duration_years' ? Number(value) : value,
+      }))
+    },
+    []
+  )
+
+  const handleInstitutionFieldChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { name, value } = event.target
+      setInstitutionForm((current) => ({
+        ...current,
+        [name]: value,
+      }))
+    },
+    []
+  )
+
+  const handleTabChange = useCallback((value: string) => {
+    setActiveTab(value === 'institutions' ? 'institutions' : 'programs')
+    setError('')
   }, [])
 
-  const loadPrograms = async () => {
-    try {
-      setLoading(true)
-      setError('')
-      const response = await programService.list()
-      // After unwrap, response is { programs: Program[] } directly
-      const sortedPrograms = (response?.programs || []).sort((a: Program, b: Program) => a.name.localeCompare(b.name))
-      setPrograms(sortedPrograms)
-    } catch (err: any) {
-      setError(err.message || 'Failed to load programs')
-    } finally {
-      setLoading(false)
+  const openProgramCreate = useCallback(() => {
+    if (activeInstitutions.length === 0) {
+      setActiveTab('institutions')
+      setInstitutionCreateReturnTarget(null)
+      setInstitutionForm(initialInstitutionForm)
+      setShowInstitutionCreate(true)
+      setError('Create an institution before adding programs.')
+      return
     }
-  }
 
-  const loadInstitutions = async () => {
-    try {
-      const response = await catalogService.getInstitutions()
-      // After unwrap, response is { institutions: Institution[] } directly
-      setInstitutions(response?.institutions || [])
-    } catch (err: any) {
-      console.error('Error loading institutions:', err.message)
-    }
-  }
+    setError('')
+    setCurrentProgram(null)
+    setProgramForm({
+      ...initialProgramForm,
+      institution_id: activeInstitutions[0]?.id || '',
+    })
+    setShowProgramCreate(true)
+  }, [activeInstitutions])
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setForm((f) => ({
-      ...f,
-      [name]: name === 'duration_years' ? Number(value) : value
-    }))
-  }, [])
-
-  const handleInstitutionChange = useCallback((value: string) => {
-    setForm((f) => ({
-      ...f,
-      institution_id: value
-    }))
-  }, [])
-
-  const openCreate = useCallback(() => {
-    setForm({ name: '', description: '', duration_years: 1, institution_id: '' })
-    setShowCreate(true)
-  }, [])
-
-  const openEdit = useCallback((program: Program) => {
+  const openProgramEdit = useCallback((program: Program) => {
+    setError('')
     setCurrentProgram(program)
-    setForm({
+    setProgramForm({
       name: program.name,
       description: program.description || '',
       duration_years: program.duration_years,
-      institution_id: program.institution_id
+      institution_id: program.institution_id,
     })
-    setShowEdit(true)
+    setShowProgramEdit(true)
   }, [])
 
-  const openDelete = useCallback((program: Program) => {
+  const openProgramDelete = useCallback((program: Program) => {
+    setError('')
     setCurrentProgram(program)
-    setShowDelete(true)
+    setShowProgramDelete(true)
   }, [])
 
-  const closeCreate = useCallback(() => setShowCreate(false), [])
-  const closeEdit = useCallback(() => setShowEdit(false), [])
-  const closeDelete = useCallback(() => setShowDelete(false), [])
+  const openInstitutionCreate = useCallback((returnTarget: ProgramDialogTarget = null) => {
+    setError('')
+    setCurrentInstitution(null)
+    setInstitutionCreateReturnTarget(returnTarget)
+    setInstitutionForm(initialInstitutionForm)
+    setShowInstitutionCreate(true)
+  }, [])
 
-  const handleOperation = async (operation: () => any, onSuccess: () => void) => {
+  const openInstitutionEdit = useCallback((institution: Institution) => {
+    setError('')
+    setCurrentInstitution(institution)
+    setInstitutionForm({
+      name: institution.name,
+      full_name: institution.full_name || '',
+      code: institution.code || '',
+      description: institution.description || '',
+      status: isInstitutionActive(institution) ? 'active' : 'archived',
+    })
+    setShowInstitutionEdit(true)
+  }, [])
+
+  const openInstitutionDelete = useCallback((institution: Institution) => {
+    setError('')
+    setCurrentInstitution(institution)
+    setShowInstitutionDelete(true)
+  }, [])
+
+  const openInstitutionCreateFromProgram = useCallback((target: Exclude<ProgramDialogTarget, null>) => {
+    setError('')
+    setCurrentInstitution(null)
+    setInstitutionCreateReturnTarget(target)
+    setInstitutionForm(initialInstitutionForm)
+    if (target === 'create-program') {
+      setShowProgramCreate(false)
+    } else {
+      setShowProgramEdit(false)
+    }
+    setShowInstitutionCreate(true)
+  }, [])
+
+  const handleOperation = async (operation: () => Promise<void>, onSuccess: () => void) => {
     try {
       setSaving(true)
+      setError('')
       await operation()
       onSuccess()
-      await loadPrograms()
+      await loadCatalog(false)
     } catch (err: any) {
-      setError(err.message)
+      setError(err.message || 'Unable to save changes')
     } finally {
       setSaving(false)
     }
   }
 
   const createProgram = () => {
-    // Validate form
-    if (!form.name.trim()) {
+    if (!programForm.name.trim()) {
       setError('Program name is required')
       return
     }
-    if (!form.institution_id) {
+    if (!programForm.institution_id) {
       setError('Institution is required')
       return
     }
-    if (form.duration_years < 1 || form.duration_years > 10) {
+    if (programForm.duration_years < 1 || programForm.duration_years > 10) {
       setError('Duration must be between 1 and 10 years')
       return
     }
-    
-    handleOperation(
-      () => programService.create({
-        name: form.name.trim(),
-        description: form.description.trim(),
-        duration_years: form.duration_years,
-        institution_id: form.institution_id
-      }),
-      () => setShowCreate(false)
+
+    void handleOperation(
+      async () => {
+        await programService.create({
+          name: programForm.name.trim(),
+          description: programForm.description.trim(),
+          duration_years: programForm.duration_years,
+          institution_id: programForm.institution_id,
+        })
+      },
+      () => {
+        setShowProgramCreate(false)
+        setProgramForm(initialProgramForm)
+      }
     )
   }
 
   const updateProgram = () => {
-    if (!currentProgram) return
-    
-    // Validate form
-    if (!form.name.trim()) {
+    if (!currentProgram) {
+      return
+    }
+    if (!programForm.name.trim()) {
       setError('Program name is required')
       return
     }
-    if (!form.institution_id) {
+    if (!programForm.institution_id) {
       setError('Institution is required')
       return
     }
-    if (form.duration_years < 1 || form.duration_years > 10) {
+    if (programForm.duration_years < 1 || programForm.duration_years > 10) {
       setError('Duration must be between 1 and 10 years')
       return
     }
-    
-    handleOperation(
-      () => programService.update({
-        id: currentProgram.id,
-        name: form.name.trim(),
-        description: form.description.trim(),
-        duration_years: form.duration_years,
-        institution_id: form.institution_id
-      }),
+
+    void handleOperation(
+      async () => {
+        await programService.update({
+          id: currentProgram.id,
+          name: programForm.name.trim(),
+          description: programForm.description.trim(),
+          duration_years: programForm.duration_years,
+          institution_id: programForm.institution_id,
+        })
+      },
       () => {
-        setShowEdit(false)
+        setShowProgramEdit(false)
         setCurrentProgram(null)
       }
     )
   }
 
   const deleteProgram = () => {
-    if (!currentProgram) return
-    handleOperation(
-      () => programService.delete(currentProgram.id),
+    if (!currentProgram) {
+      return
+    }
+
+    void handleOperation(
+      async () => {
+        await programService.delete(currentProgram.id)
+      },
       () => {
-        setShowDelete(false)
+        setShowProgramDelete(false)
         setCurrentProgram(null)
       }
     )
   }
 
+  const createInstitution = () => {
+    const name = institutionForm.name.trim()
+    const returnTarget = institutionCreateReturnTarget
+
+    if (!name) {
+      setError('Institution name is required')
+      return
+    }
+
+    void handleOperation(
+      async () => {
+        const response = await institutionService.create({
+          name,
+          full_name: institutionForm.full_name.trim() || name,
+          code: institutionForm.code.trim() || undefined,
+          description: institutionForm.description.trim() || undefined,
+        })
+
+        const createdInstitution = response?.institution
+        if (createdInstitution?.id) {
+          setProgramForm((current) => ({
+            ...current,
+            institution_id: createdInstitution.id,
+          }))
+        }
+      },
+      () => {
+        setShowInstitutionCreate(false)
+        setInstitutionCreateReturnTarget(null)
+        setInstitutionForm(initialInstitutionForm)
+        if (returnTarget === 'create-program') {
+          setShowProgramCreate(true)
+        }
+        if (returnTarget === 'edit-program') {
+          setShowProgramEdit(true)
+        }
+      }
+    )
+  }
+
+  const updateInstitution = () => {
+    if (!currentInstitution) {
+      return
+    }
+
+    const name = institutionForm.name.trim()
+
+    if (!name) {
+      setError('Institution name is required')
+      return
+    }
+
+    void handleOperation(
+      async () => {
+        await institutionService.update({
+          id: currentInstitution.id,
+          name,
+          full_name: institutionForm.full_name.trim() || name,
+          code: institutionForm.code.trim() || undefined,
+          description: institutionForm.description.trim() || undefined,
+          is_active: institutionForm.status === 'active',
+        })
+      },
+      () => {
+        setShowInstitutionEdit(false)
+        setCurrentInstitution(null)
+      }
+    )
+  }
+
+  const deleteInstitution = () => {
+    if (!currentInstitution) {
+      return
+    }
+
+    void handleOperation(
+      async () => {
+        await institutionService.delete(currentInstitution.id)
+      },
+      () => {
+        setShowInstitutionDelete(false)
+        setCurrentInstitution(null)
+      }
+    )
+  }
+
+  const totalPrograms = programs.length
+  const totalInstitutions = institutions.length
+  const archivedInstitutions = institutions.filter((institution) => !isInstitutionActive(institution)).length
+  const currentInstitutionProgramCount = currentInstitution ? getInstitutionProgramCount(currentInstitution.id) : 0
+
+  const renderProgramGrid = () => {
+    if (programs.length === 0) {
+      return (
+        <div className="rounded-2xl border border-dashed border-border bg-muted/40 px-6 py-14 text-center">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <GraduationCap className="h-10 w-10" />
+          </div>
+          <h3 className="text-2xl font-bold text-foreground">No Programs Yet</h3>
+          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+            Build the institution catalog first, then add the academic programs students can apply for.
+          </p>
+          <div className="mt-6 flex justify-center">
+            <Button onClick={activeInstitutions.length > 0 ? openProgramCreate : () => openInstitutionCreate()}>
+              <Plus className="h-4 w-4 mr-2" />
+              {activeInstitutions.length > 0 ? 'Create First Program' : 'Create Institution First'}
+            </Button>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <>
+        <div className="block space-y-4 sm:hidden">
+          {programs.map((program) => (
+            <div key={program.id} className="rounded-xl border border-border bg-muted/40 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-2">
+                  <h3 className="text-lg font-bold text-foreground">{program.name}</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary">
+                      {program.institutions?.name || 'Unknown institution'}
+                    </Badge>
+                    <Badge variant="outline">
+                      {program.duration_years} year{program.duration_years !== 1 ? 's' : ''}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {program.description || 'No description provided yet.'}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openProgramEdit(program)}
+                  className="flex-1 text-primary"
+                >
+                  <Pencil className="h-4 w-4 mr-1" />
+                  Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openProgramDelete(program)}
+                  className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5"
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Archive
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="hidden overflow-x-auto sm:block">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-muted/60">
+              <tr>
+                <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider text-foreground">
+                  Program
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider text-foreground">
+                  Institution
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider text-foreground">
+                  Duration
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider text-foreground">
+                  Description
+                </th>
+                <th className="px-6 py-4 text-right text-sm font-bold uppercase tracking-wider text-foreground">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border bg-card">
+              {programs.map((program) => (
+                <tr key={program.id} className="transition-colors hover:bg-primary/5">
+                  <td className="px-6 py-4 font-semibold text-foreground">{program.name}</td>
+                  <td className="px-6 py-4">
+                    <Badge variant="secondary">
+                      {program.institutions?.name || 'Unknown institution'}
+                    </Badge>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-muted-foreground">
+                    {program.duration_years} year{program.duration_years !== 1 ? 's' : ''}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-muted-foreground">
+                    <div className="max-w-sm truncate">
+                      {program.description || 'No description provided yet.'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openProgramEdit(program)}
+                        aria-label={`Edit ${program.name}`}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openProgramDelete(program)}
+                        className="text-destructive border-destructive/30 hover:bg-destructive/5"
+                        aria-label={`Archive ${program.name}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </>
+    )
+  }
+
+  const renderInstitutionGrid = () => {
+    if (institutions.length === 0) {
+      return (
+        <div className="rounded-2xl border border-dashed border-border bg-muted/40 px-6 py-14 text-center">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Building2 className="h-10 w-10" />
+          </div>
+          <h3 className="text-2xl font-bold text-foreground">No Institutions Yet</h3>
+          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+            Add institutions here first so program setup, admissions routing, and student applications stay aligned.
+          </p>
+          <div className="mt-6 flex justify-center">
+            <Button onClick={() => openInstitutionCreate()}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create First Institution
+            </Button>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <>
+        <div className="block space-y-4 sm:hidden">
+          {institutions.map((institution) => {
+            const activeProgramCount = getInstitutionProgramCount(institution.id)
+            const archived = !isInstitutionActive(institution)
+
+            return (
+              <div key={institution.id} className="rounded-xl border border-border bg-muted/40 p-4">
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-lg font-bold text-foreground">{institution.name}</h3>
+                      {institution.full_name && institution.full_name !== institution.name ? (
+                        <p className="text-sm text-muted-foreground">{institution.full_name}</p>
+                      ) : null}
+                    </div>
+                    <Badge variant={archived ? 'outline' : 'success'}>
+                      {archived ? 'Archived' : 'Active'}
+                    </Badge>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {institution.code ? <Badge variant="secondary">{institution.code}</Badge> : null}
+                    <Badge variant="outline">
+                      {activeProgramCount} active program{activeProgramCount !== 1 ? 's' : ''}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {institution.description || 'No institution summary provided yet.'}
+                  </p>
+                </div>
+                <div className="mt-4 flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openInstitutionEdit(institution)}
+                    className="flex-1 text-primary"
+                  >
+                    <Pencil className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openInstitutionDelete(institution)}
+                    disabled={archived || activeProgramCount > 0}
+                    className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Archive
+                  </Button>
+                </div>
+                {activeProgramCount > 0 ? (
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Move or archive the linked programs before archiving this institution.
+                  </p>
+                ) : null}
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="hidden overflow-x-auto sm:block">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-muted/60">
+              <tr>
+                <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider text-foreground">
+                  Institution
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider text-foreground">
+                  Code
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider text-foreground">
+                  Status
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider text-foreground">
+                  Active Programs
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider text-foreground">
+                  Description
+                </th>
+                <th className="px-6 py-4 text-right text-sm font-bold uppercase tracking-wider text-foreground">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border bg-card">
+              {institutions.map((institution) => {
+                const activeProgramCount = getInstitutionProgramCount(institution.id)
+                const archived = !isInstitutionActive(institution)
+
+                return (
+                  <tr key={institution.id} className="transition-colors hover:bg-primary/5">
+                    <td className="px-6 py-4">
+                      <div className="font-semibold text-foreground">{institution.name}</div>
+                      {institution.full_name && institution.full_name !== institution.name ? (
+                        <div className="text-xs text-muted-foreground">{institution.full_name}</div>
+                      ) : null}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">{institution.code || '—'}</td>
+                    <td className="px-6 py-4">
+                      <Badge variant={archived ? 'outline' : 'success'}>
+                        {archived ? 'Archived' : 'Active'}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">{activeProgramCount}</td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
+                      <div className="max-w-sm truncate">
+                        {institution.description || 'No institution summary provided yet.'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openInstitutionEdit(institution)}
+                          aria-label={`Edit ${institution.name}`}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openInstitutionDelete(institution)}
+                          disabled={archived || activeProgramCount > 0}
+                          className="text-destructive border-destructive/30 hover:bg-destructive/5"
+                          aria-label={`Archive ${institution.name}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </>
+    )
+  }
+
+  const primaryActionLabel =
+    activeTab === 'institutions' || activeInstitutions.length === 0 ? 'Add Institution' : 'Add Program'
+  const primaryActionHandler =
+    activeTab === 'institutions' || activeInstitutions.length === 0
+      ? () => openInstitutionCreate()
+      : openProgramCreate
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container-mobile py-4 sm:py-6 lg:py-8 safe-area-bottom">
-        <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden">
-          {/* Header - Mobile First */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
-            <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-              <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
+          <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 p-6 text-white">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                 <Link to="/admin">
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 border-white">
+                  <Button variant="ghost" size="sm" className="border-white text-white hover:bg-white/20">
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
                   </Button>
                 </Link>
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold"><GraduationCap className="w-5 h-5" /> Programs</h1>
-                  <p className="text-white/90 text-sm sm:text-base">Manage academic programs</p>
+                  <h1 className="flex items-center gap-2 text-2xl font-bold sm:text-3xl">
+                    <GraduationCap className="h-7 w-7" />
+                    Programs & Institutions
+                  </h1>
+                  <p className="text-sm text-white/90 sm:text-base">
+                    Manage the academic catalog and the institutions that own each program.
+                  </p>
                 </div>
               </div>
-              <Button 
-                onClick={openCreate}
-                className="bg-card text-primary hover:bg-accent font-semibold shadow-lg"
+              <Button
+                onClick={primaryActionHandler}
+                className="bg-card font-semibold text-primary shadow-lg hover:bg-accent"
               >
-                <Plus className="h-4 w-4 mr-2" /> Add Program
+                <Plus className="h-4 w-4 mr-2" />
+                {primaryActionLabel}
               </Button>
             </div>
           </div>
 
-          {/* Content */}
-          <div className="p-6">
-
+          <div className="space-y-6 p-6">
             {loading ? (
-              <div className="flex justify-center py-8 sm:py-16">
+              <div className="flex justify-center py-16">
                 <div className="text-center">
                   <LoadingSpinner size="lg" />
-                  <p className="mt-4 text-lg text-foreground">Loading programs...</p>
+                  <p className="mt-4 text-lg text-foreground">Loading catalog...</p>
                 </div>
-              </div>
-            ) : error ? (
-              <div className="rounded-xl bg-destructive/5 border border-destructive/30 p-6 text-center">
-                <div className="text-6xl mb-4">😱</div>
-                <p className="text-destructive font-medium text-lg">{error}</p>
-                <Button 
-                  onClick={loadPrograms} 
-                  variant="outline" 
-                  className="mt-4 text-destructive border-destructive/30 hover:bg-destructive/5"
-                >
-                  Try Again
-                </Button>
-              </div>
-            ) : programs.length === 0 ? (
-              <div className="text-center py-8 sm:py-16">
-                <div className="text-8xl mb-6"><GraduationCap className="w-5 h-5" /></div>
-                <h3 className="text-2xl font-bold text-foreground mb-2">No Programs Yet</h3>
-                <p className="text-foreground mb-6 max-w-md mx-auto">
-                  Start by creating your first academic program. Programs define the courses and duration for student applications.
-                </p>
-                <Button onClick={openCreate} className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold">
-                  <Plus className="h-5 w-5 mr-2" />
-                  Create First Program
-                </Button>
               </div>
             ) : (
               <>
-                {/* Mobile Cards View */}
-                <div className="block sm:hidden space-y-4">
-                  {programs.map((program) => (
-                    <div key={program.id} className="bg-muted rounded-xl p-4 border border-border">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h3 className="font-bold text-lg text-foreground">{program.name}</h3>
-                          <p className="text-sm text-foreground mt-1">
-                            Duration: {program.duration_years} year{program.duration_years !== 1 ? 's' : ''}
-                          </p>
-                          <p className="text-sm text-primary font-medium mt-1">
-                            {program.institutions?.name || 'Unknown Institution'}
-                          </p>
-                          {program.description && (
-                            <p className="text-sm text-foreground mt-2 line-clamp-2">{program.description}</p>
-                          )}
-                        </div>
+                {error ? (
+                  <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-destructive">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-sm font-semibold">Catalog action needs attention</p>
+                        <p className="text-sm">{error}</p>
                       </div>
-                      <div className="flex space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => openEdit(program)}
-                          className="flex-1 text-primary border-blue-300 hover:bg-primary/5 min-h-[44px]"
-                        >
-                          <Pencil className="h-4 w-4 mr-1" />
-                          Edit
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => openDelete(program)}
-                          className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5 min-h-[44px]"
-                        >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Delete
-                        </Button>
-                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={() => void loadCatalog(false)}
+                        className="border-destructive/30 text-destructive hover:bg-destructive/5"
+                      >
+                        Reload Catalog
+                      </Button>
                     </div>
-                  ))}
+                  </div>
+                ) : null}
+
+                <div className="grid gap-4 md:grid-cols-3">
+                  <Card className="border-primary/10 bg-gradient-to-br from-primary/5 to-transparent">
+                    <CardHeader className="pb-3">
+                      <CardDescription>Total Programs</CardDescription>
+                      <CardTitle className="flex items-center gap-2 text-3xl">
+                        <GraduationCap className="h-6 w-6 text-primary" />
+                        {totalPrograms}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">
+                        Active application options configured across the platform.
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-primary/10 bg-gradient-to-br from-primary/5 to-transparent">
+                    <CardHeader className="pb-3">
+                      <CardDescription>Institutions</CardDescription>
+                      <CardTitle className="flex items-center gap-2 text-3xl">
+                        <Building2 className="h-6 w-6 text-primary" />
+                        {totalInstitutions}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">
+                        Institutions available for program assignment and admissions routing.
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-primary/10 bg-gradient-to-br from-primary/5 to-transparent">
+                    <CardHeader className="pb-3">
+                      <CardDescription>Archived Institutions</CardDescription>
+                      <CardTitle className="flex items-center gap-2 text-3xl">
+                        <School className="h-6 w-6 text-primary" />
+                        {archivedInstitutions}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">
+                        Archived institutions stay visible for admin clean-up and controlled reactivation.
+                      </p>
+                    </CardContent>
+                  </Card>
                 </div>
 
-                {/* Desktop Table View */}
-                <div className="hidden sm:block overflow-x-auto -mx-6">
-                  <div className="inline-block min-w-full px-6">
-                  <table className="min-w-full divide-y divide-border">
-                    <thead className="bg-gradient-to-r from-muted to-blue-50">
-                      <tr>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
-                          <GraduationCap className="w-5 h-5" /> Program Name
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
-                          🏫 Institution
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
-                          🕰️ Duration
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
-                          <FileEdit className="w-5 h-5" /> Description
-                        </th>
-                        <th className="px-6 py-4 text-right text-sm font-bold text-foreground uppercase tracking-wider">
-                          ⚙️ Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-card divide-y divide-border">
-                      {programs.map((program) => (
-                        <tr key={program.id} className="hover:bg-primary/5 transition-colors">
-                          <td className="px-6 py-4">
-                            <div className="font-semibold text-foreground">{program.name}</div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-accent/10 text-accent-foreground">
-                              {program.institutions?.name || 'Unknown'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary-foreground">
-                              {program.duration_years} year{program.duration_years !== 1 ? 's' : ''}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="text-sm text-foreground max-w-xs truncate">
-                              {program.description || 'No description provided'}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end space-x-2">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => openEdit(program)}
-                                className="text-primary border-blue-300 hover:bg-primary/5"
-                                aria-label={`Edit ${program.name}`}
-                              >
-                                <Pencil className="h-4 w-4" aria-hidden="true" />
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => openDelete(program)}
-                                className="text-destructive border-destructive/30 hover:bg-destructive/5"
-                                aria-label={`Delete ${program.name}`}
-                              >
-                                <Trash2 className="h-4 w-4" aria-hidden="true" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  </div>
-                </div>
+                <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+                  <TabsList className="grid w-full max-w-md grid-cols-2">
+                    <TabsTrigger value="programs">Programs</TabsTrigger>
+                    <TabsTrigger value="institutions">Institutions</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="programs" className="space-y-6">
+                    {activeInstitutions.length === 0 ? (
+                      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            <p className="font-semibold">Programs need an institution first</p>
+                            <p className="text-sm text-amber-800">
+                              Create at least one active institution before adding or reassigning programs.
+                            </p>
+                          </div>
+                          <Button onClick={() => openInstitutionCreate()}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Institution
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {renderProgramGrid()}
+                  </TabsContent>
+
+                  <TabsContent value="institutions" className="space-y-6">
+                    <div className="rounded-xl border border-border bg-muted/30 p-4">
+                      <p className="text-sm font-semibold text-foreground">Institution management rules</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Institutions can be edited or archived here. Archiving is blocked while active programs still point to the institution.
+                      </p>
+                    </div>
+
+                    {renderInstitutionGrid()}
+                  </TabsContent>
+                </Tabs>
               </>
             )}
           </div>
         </div>
       </div>
 
-      {/* Create Program Dialog */}
-      <Dialog open={showCreate} onOpenChange={setShowCreate}>
-        <DialogContent>
+      <Dialog open={showProgramCreate} onOpenChange={setShowProgramCreate}>
+        <DialogContent size="lg">
           <DialogHeader>
             <DialogTitle>Create Program</DialogTitle>
-            <DialogDescription>Enter program details below.</DialogDescription>
+            <DialogDescription>Add the academic program details and assign it to an institution.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <Input label="Name" name="name" value={form.name} onChange={handleChange} required />
+            <Input label="Program name" name="name" value={programForm.name} onChange={handleProgramFieldChange} required />
             <StandaloneSelect
               label="Institution"
-              value={form.institution_id}
-              onValueChange={handleInstitutionChange}
+              value={programForm.institution_id}
+              onChange={(value) => setProgramForm((current) => ({ ...current, institution_id: value }))}
               placeholder="Select an institution"
-              options={institutions.map((institution) => ({
+              options={activeInstitutions.map((institution) => ({
                 value: institution.id,
-                label: institution.name
+                label: getInstitutionOptionLabel(institution),
               }))}
               required
             />
-            <Textarea label="Description" name="description" value={form.description} onChange={handleChange} />
-            <Input label="Duration (years)" type="number" name="duration_years" value={form.duration_years} onChange={handleChange} />
+            <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2">
+              <p className="text-sm text-muted-foreground">Need a new institution before saving this program?</p>
+              <Button variant="ghost" size="sm" onClick={() => openInstitutionCreateFromProgram('create-program')}>
+                <Plus className="h-4 w-4 mr-1" />
+                Add institution
+              </Button>
+            </div>
+            <Textarea
+              label="Program description"
+              name="description"
+              value={programForm.description}
+              onChange={handleProgramFieldChange}
+              helperText="Use this to clarify the course focus for admissions teams and applicants."
+            />
+            <Input
+              label="Duration (years)"
+              type="number"
+              min={1}
+              max={10}
+              name="duration_years"
+              value={programForm.duration_years}
+              onChange={handleProgramFieldChange}
+            />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={closeCreate} disabled={saving}>Cancel</Button>
-            <Button onClick={createProgram} loading={saving}>Create</Button>
+            <Button variant="outline" onClick={() => setShowProgramCreate(false)} disabled={saving}>Cancel</Button>
+            <Button onClick={createProgram} loading={saving}>Create Program</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Program Dialog */}
-      <Dialog open={showEdit} onOpenChange={setShowEdit}>
-        <DialogContent>
+      <Dialog open={showProgramEdit} onOpenChange={setShowProgramEdit}>
+        <DialogContent size="lg">
           <DialogHeader>
             <DialogTitle>Edit Program</DialogTitle>
-            <DialogDescription>Update program details below.</DialogDescription>
+            <DialogDescription>Update the academic program details and institution ownership.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <Input label="Name" name="name" value={form.name} onChange={handleChange} required />
+            <Input label="Program name" name="name" value={programForm.name} onChange={handleProgramFieldChange} required />
             <StandaloneSelect
               label="Institution"
-              value={form.institution_id}
-              onValueChange={handleInstitutionChange}
+              value={programForm.institution_id}
+              onChange={(value) => setProgramForm((current) => ({ ...current, institution_id: value }))}
               placeholder="Select an institution"
-              options={institutions.map((institution) => ({
+              options={activeInstitutions.map((institution) => ({
                 value: institution.id,
-                label: institution.name
+                label: getInstitutionOptionLabel(institution),
               }))}
               required
             />
-            <Textarea label="Description" name="description" value={form.description} onChange={handleChange} />
-            <Input label="Duration (years)" type="number" name="duration_years" value={form.duration_years} onChange={handleChange} />
+            <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2">
+              <p className="text-sm text-muted-foreground">Need to register a missing institution first?</p>
+              <Button variant="ghost" size="sm" onClick={() => openInstitutionCreateFromProgram('edit-program')}>
+                <Plus className="h-4 w-4 mr-1" />
+                Add institution
+              </Button>
+            </div>
+            <Textarea
+              label="Program description"
+              name="description"
+              value={programForm.description}
+              onChange={handleProgramFieldChange}
+              helperText="Use this to clarify the course focus for admissions teams and applicants."
+            />
+            <Input
+              label="Duration (years)"
+              type="number"
+              min={1}
+              max={10}
+              name="duration_years"
+              value={programForm.duration_years}
+              onChange={handleProgramFieldChange}
+            />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={closeEdit} disabled={saving}>Cancel</Button>
-            <Button onClick={updateProgram} loading={saving}>Save</Button>
+            <Button variant="outline" onClick={() => setShowProgramEdit(false)} disabled={saving}>Cancel</Button>
+            <Button onClick={updateProgram} loading={saving}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Program Dialog */}
-      <Dialog open={showDelete} onOpenChange={setShowDelete}>
+      <Dialog open={showProgramDelete} onOpenChange={setShowProgramDelete}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Program</DialogTitle>
+            <DialogTitle>Archive Program</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{currentProgram?.name}"? This action cannot be undone.
+              Archive "{currentProgram?.name}" to remove it from active admissions setup while keeping historical records.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={closeDelete} disabled={saving}>Cancel</Button>
-            <Button variant="danger" onClick={deleteProgram} loading={saving}>Delete</Button>
+            <Button variant="outline" onClick={() => setShowProgramDelete(false)} disabled={saving}>Cancel</Button>
+            <Button variant="danger" onClick={deleteProgram} loading={saving}>Archive Program</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showInstitutionCreate} onOpenChange={(open) => {
+        setShowInstitutionCreate(open)
+        if (!open) {
+          setInstitutionCreateReturnTarget(null)
+        }
+      }}>
+        <DialogContent size="lg">
+          <DialogHeader>
+            <DialogTitle>Create Institution</DialogTitle>
+            <DialogDescription>Add the institution first so programs can be assigned to it immediately.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <Input
+              label="Institution name"
+              name="name"
+              value={institutionForm.name}
+              onChange={handleInstitutionFieldChange}
+              helperText="Use the short operational name used throughout the system."
+              required
+            />
+            <Input
+              label="Full name"
+              name="full_name"
+              value={institutionForm.full_name}
+              onChange={handleInstitutionFieldChange}
+              helperText="Optional, but recommended for formal reports and applicant-facing labels."
+            />
+            <Input
+              label="Institution code"
+              name="code"
+              value={institutionForm.code}
+              onChange={handleInstitutionFieldChange}
+              helperText="Short internal code such as MIHAS."
+            />
+            <Textarea
+              label="Description"
+              name="description"
+              value={institutionForm.description}
+              onChange={handleInstitutionFieldChange}
+              helperText="Briefly describe the institution for admins managing programs and applications."
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowInstitutionCreate(false)} disabled={saving}>Cancel</Button>
+            <Button onClick={createInstitution} loading={saving}>Create Institution</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showInstitutionEdit} onOpenChange={setShowInstitutionEdit}>
+        <DialogContent size="lg">
+          <DialogHeader>
+            <DialogTitle>Edit Institution</DialogTitle>
+            <DialogDescription>Update institution details and control whether it stays active in the admissions catalog.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <Input
+              label="Institution name"
+              name="name"
+              value={institutionForm.name}
+              onChange={handleInstitutionFieldChange}
+              helperText="Use the short operational name used throughout the system."
+              required
+            />
+            <Input
+              label="Full name"
+              name="full_name"
+              value={institutionForm.full_name}
+              onChange={handleInstitutionFieldChange}
+              helperText="Optional, but recommended for formal reports and applicant-facing labels."
+            />
+            <Input
+              label="Institution code"
+              name="code"
+              value={institutionForm.code}
+              onChange={handleInstitutionFieldChange}
+              helperText="Short internal code such as MIHAS."
+            />
+            <Textarea
+              label="Description"
+              name="description"
+              value={institutionForm.description}
+              onChange={handleInstitutionFieldChange}
+              helperText="Briefly describe the institution for admins managing programs and applications."
+            />
+            <StandaloneSelect
+              label="Status"
+              value={institutionForm.status}
+              onChange={(value) =>
+                setInstitutionForm((current) => ({
+                  ...current,
+                  status: value === 'archived' ? 'archived' : 'active',
+                }))
+              }
+              options={[
+                { value: 'active', label: 'Active' },
+                { value: 'archived', label: 'Archived' },
+              ]}
+              helperText="Archived institutions remain visible to admins but should not receive new programs."
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowInstitutionEdit(false)} disabled={saving}>Cancel</Button>
+            <Button onClick={updateInstitution} loading={saving}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showInstitutionDelete} onOpenChange={setShowInstitutionDelete}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Archive Institution</DialogTitle>
+            <DialogDescription>
+              {currentInstitution ? (
+                <>
+                  Archive "{currentInstitution.name}" once there are no active programs still linked to it.
+                </>
+              ) : null}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+            {currentInstitutionProgramCount > 0 ? (
+              <>
+                This institution still has {currentInstitutionProgramCount} active program{currentInstitutionProgramCount !== 1 ? 's' : ''}.
+                Reassign or archive those programs before archiving the institution.
+              </>
+            ) : (
+              <>The institution will be removed from active program assignment but stay available for historical admin records.</>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowInstitutionDelete(false)} disabled={saving}>Cancel</Button>
+            <Button
+              variant="danger"
+              onClick={deleteInstitution}
+              loading={saving}
+              disabled={saving || currentInstitutionProgramCount > 0 || !currentInstitution || !isInstitutionActive(currentInstitution)}
+            >
+              Archive Institution
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

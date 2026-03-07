@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState } from 'react'
 import { useBulkOperations } from '@/hooks/useBulkOperations'
 import { exportToCSV, exportToExcel } from '@/lib/exportUtils'
@@ -72,9 +71,9 @@ export function useApplicationBulkActions() {
     const filename = `applications_${new Date().toISOString().split('T')[0]}`
 
     if (format === 'csv') {
-      await exportToCSV(dataToExport, `${filename}.csv`)
+      await exportToCSV(dataToExport as any, `${filename}.csv`)
     } else {
-      await exportToExcel(dataToExport, `${filename}.xlsx`)
+      await exportToExcel(dataToExport as any, `${filename}.xlsx`)
     }
   }
 

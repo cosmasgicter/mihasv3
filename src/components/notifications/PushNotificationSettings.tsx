@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useEffect } from 'react'
 import { 
   Bell, 
@@ -63,12 +62,12 @@ export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> =
             setPreferences(prev => ({
               ...prev,
               applications: userPrefs.applicationUpdates,
-              interviews: userPrefs.interviewReminders,
-              payments: userPrefs.paymentNotifications,
-              system: userPrefs.systemAlerts,
-              quietHours: userPrefs.quietHours,
-              quietStart: userPrefs.quietStart,
-              quietEnd: userPrefs.quietEnd
+              interviews: userPrefs.deadlineAlerts,
+              payments: userPrefs.paymentReminders,
+              system: userPrefs.systemNotifications,
+              quietHours: userPrefs.quietHours.enabled,
+              quietStart: userPrefs.quietHours.start,
+              quietEnd: userPrefs.quietHours.end
             }))
           }
         }
@@ -99,7 +98,14 @@ export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> =
         
         await pushNotificationManager.updatePreferences(user.id, {
           pushEnabled: true,
-          ...preferences
+          applicationUpdates: preferences.applications,
+          paymentReminders: preferences.payments,
+          systemNotifications: preferences.system,
+          quietHours: {
+            enabled: preferences.quietHours,
+            start: preferences.quietStart,
+            end: preferences.quietEnd
+          }
         })
         
         // Send test notification
@@ -151,12 +157,13 @@ export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> =
       await pushNotificationManager.updatePreferences(user.id, {
         pushEnabled: isEnabled,
         applicationUpdates: newPreferences.applications,
-        interviewReminders: newPreferences.interviews,
-        paymentNotifications: newPreferences.payments,
-        systemAlerts: newPreferences.system,
-        quietHours: newPreferences.quietHours,
-        quietStart: newPreferences.quietStart,
-        quietEnd: newPreferences.quietEnd
+        paymentReminders: newPreferences.payments,
+        systemNotifications: newPreferences.system,
+        quietHours: {
+          enabled: newPreferences.quietHours as boolean,
+          start: newPreferences.quietStart as string,
+          end: newPreferences.quietEnd as string
+        }
       })
     } catch (err) {
       console.error('Failed to update preference:', err)

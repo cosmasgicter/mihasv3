@@ -46,6 +46,7 @@ const ENDPOINT_TO_BACKEND: Record<string, string> = {
   '/api/auth': 'api-src/auth.ts',
   '/api/catalog': 'api-src/catalog.ts',
   '/api/documents': 'api-src/documents.ts',
+  '/api/email': 'api-src/email.ts',
   '/api/health': 'api-src/health.ts',
   '/api/notifications': 'api-src/notifications.ts',
   '/api/payments': 'api-src/payments.ts',

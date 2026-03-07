@@ -198,54 +198,33 @@ export function useApplicationSlip({
   }, [submittedApplication, slipCache, persistingSlip, slipPayload, toast, triggerDownload, createApplicationSlip])
 
   const handleEmailSlip = useCallback(async () => {
-    if (!submittedApplication?.applicationNumber) {
+    if (!submittedApplication?.applicationNumber || !slipPayload) {
       toast.showError?.('Slip unavailable', 'Missing application details for slip delivery.')
       return
     }
 
     try {
       setEmailLoading(true)
-      toast.showInfo?.('Preparing slip', 'Generating your application slip...')
-
-      // Email endpoint generates slip on-demand, no need to download first
-
-      toast.showInfo?.('Sending email', 'Sending your application slip...')
-
-      // Call endpoint with cookie-based auth
-      const emailResponse = await fetch('/api/applications?action=email-slip', {
-        method: 'POST',
-        credentials: 'include', // CRITICAL: Send HTTP-only cookies
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          applicationNumber: submittedApplication.applicationNumber,
-          email: submittedApplication.email
-        })
+      const result = await createApplicationSlip(slipPayload, {
+        toast,
+        sendEmail: true
       })
 
-      // Handle non-JSON responses (like 405 errors)
-      let result
-      const contentType = emailResponse.headers.get('content-type')
-      if (contentType?.includes('application/json')) {
-        result = await emailResponse.json()
-      } else {
-        const text = await emailResponse.text()
-        result = { error: text || 'Server error' }
+      if (result.error) {
+        throw new Error(result.error)
       }
 
-      if (!emailResponse.ok) {
-        if (emailResponse.status === 401) {
-          throw new Error('Please sign in to send email')
-        }
-        if (emailResponse.status === 405) {
-          throw new Error('Email service temporarily unavailable. Please try downloading the slip instead.')
-        }
-        throw new Error(result.error || `Server error (${emailResponse.status})`)
+      if (result.emailError) {
+        throw new Error(result.emailError)
       }
 
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to send email')
+      if (result.publicUrl || result.documentId || result.path) {
+        setSlipCache(prev => ({
+          objectUrl: prev?.objectUrl,
+          publicUrl: result.publicUrl || prev?.publicUrl,
+          path: result.path || prev?.path,
+          documentId: result.documentId || prev?.documentId
+        }))
       }
 
       toast.showSuccess?.('Email sent', `Application slip has been sent to ${submittedApplication.email}`)
@@ -256,7 +235,7 @@ export function useApplicationSlip({
     } finally {
       setEmailLoading(false)
     }
-  }, [submittedApplication, toast])
+  }, [createApplicationSlip, slipPayload, submittedApplication, toast])
 
   return {
     slipCache,

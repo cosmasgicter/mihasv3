@@ -9,6 +9,8 @@ import { ProfileCompletionBadge } from '@/components/ui/ProfileAutoPopulationInd
 import { animateClasses, staggerChild } from '@/lib/animations'
 import { FieldHelp } from '../components/FieldHelp'
 import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
+import { useResidenceLocationOptions } from '@/hooks/useResidenceLocationOptions'
+import { DEFAULT_RESIDENCE_COUNTRY } from '@/lib/locationOptions'
 
 import type { WizardFormData, WizardProgram, WizardIntake } from '../types'
 
@@ -37,6 +39,9 @@ const BasicKycStep = ({
     formState: { errors }
   } = form
   const { shouldAnimate } = useOptimizedAnimation()
+  const selectedCountry = form.watch('country')
+  const { countryOptions, cityOptions, loadingCountries, loadingCities } = useResidenceLocationOptions(selectedCountry)
+  const residenceTownDatalistId = 'wizard-residence-town-options'
 
   const selectedProgramDetails = useMemo(
     () => programs.find(program => program.id === selectedProgram),
@@ -87,6 +92,10 @@ const BasicKycStep = ({
           </p>
         </div>
       )}
+
+      <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">
+        Your account details help us pre-fill this step. This KYC section is the admissions record we will review for your application, so confirm that your names, contact details, programme, and identity information are correct here.
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <div className="lg:col-span-2" style={shouldAnimate ? staggerChild(0) : undefined}>
@@ -175,14 +184,35 @@ const BasicKycStep = ({
         </div>
 
         <div style={shouldAnimate ? staggerChild(7) : undefined}>
-          <AnimatedInput
-            {...register('residence_town')}
-            label="Residence Town *"
-            error={errors.residence_town?.message}
+          <FormSelect
+            name="country"
+            control={control}
+            label="Country of Residence"
+            options={countryOptions}
+            placeholder="Select country"
+            disabled={loadingCountries}
+            helperText="Defaults to Zambia. Change it only if you currently live elsewhere."
+            error={(errors as any).country?.message}
           />
         </div>
 
         <div style={shouldAnimate ? staggerChild(8) : undefined}>
+          <AnimatedInput
+            {...register('residence_town')}
+            list={residenceTownDatalistId}
+            label="Residence Town *"
+            error={errors.residence_town?.message}
+            placeholder={selectedCountry === DEFAULT_RESIDENCE_COUNTRY ? 'Kitwe' : 'Start typing your city or town'}
+            helperText={loadingCities ? 'Loading city and town options...' : `Suggestions are filtered for ${selectedCountry || DEFAULT_RESIDENCE_COUNTRY}. You can still type your town manually.`}
+          />
+          <datalist id={residenceTownDatalistId}>
+            {cityOptions.map(option => (
+              <option key={option.value} value={option.value} />
+            ))}
+          </datalist>
+        </div>
+
+        <div style={shouldAnimate ? staggerChild(9) : undefined}>
           <AnimatedInput
             {...register('nationality')}
             label="Nationality"
@@ -191,7 +221,7 @@ const BasicKycStep = ({
           />
         </div>
 
-        <div style={shouldAnimate ? staggerChild(9) : undefined}>
+        <div style={shouldAnimate ? staggerChild(10) : undefined}>
           <AnimatedInput
             {...register('next_of_kin_name')}
             label="Next of Kin Name (Optional)"
@@ -199,7 +229,7 @@ const BasicKycStep = ({
           />
         </div>
 
-        <div style={shouldAnimate ? staggerChild(10) : undefined}>
+        <div style={shouldAnimate ? staggerChild(11) : undefined}>
           <AnimatedInput
             {...register('next_of_kin_phone')}
             label="Next of Kin Phone (Optional)"
@@ -207,7 +237,7 @@ const BasicKycStep = ({
           />
         </div>
 
-        <div style={shouldAnimate ? staggerChild(11) : undefined}>
+        <div style={shouldAnimate ? staggerChild(12) : undefined}>
           <FormSelect
             name="program"
             control={control}
@@ -223,7 +253,7 @@ const BasicKycStep = ({
           />
         </div>
 
-        <div style={shouldAnimate ? staggerChild(12) : undefined}>
+        <div style={shouldAnimate ? staggerChild(13) : undefined}>
           <FormSelect
             name="intake"
             control={control}

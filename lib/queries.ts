@@ -26,6 +26,10 @@ import { QueryConfig } from './db';
 export const USER_ROLES = {
   SUPER_ADMIN: 'super_admin',
   ADMIN: 'admin',
+  ADMISSIONS_OFFICER: 'admissions_officer',
+  REGISTRAR: 'registrar',
+  FINANCE_OFFICER: 'finance_officer',
+  ACADEMIC_HEAD: 'academic_head',
   REVIEWER: 'reviewer',
   STUDENT: 'student',
 } as const;
@@ -190,6 +194,8 @@ export interface AuditLogInput {
   ip_address?: string | null;
   user_agent?: string | null;
 }
+
+const AUDIT_ENTITY_PLACEHOLDER_ID = '00000000-0000-0000-0000-000000000000';
 
 // ============================================================================
 // User Query Builders
@@ -758,7 +764,7 @@ export const AuditQueries = {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+      VALUES ($1, $2, $3, COALESCE($4, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $5, $6, $7, NOW())
       RETURNING id, created_at
     `,
     values: [
@@ -789,7 +795,7 @@ export const AuditQueries = {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, 'user', $1, $3, $4, $5, NOW())
+      VALUES ($1, $2, 'user', COALESCE($1, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $3, $4, $5, NOW())
       RETURNING id, created_at
     `,
     values: [
@@ -819,7 +825,7 @@ export const AuditQueries = {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, 'authorization_failure', $2, $3, $4, $5, $6, NOW())
+      VALUES ($1, 'authorization_failure', $2, COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
       RETURNING id, created_at
     `,
     values: [
@@ -851,7 +857,7 @@ export const AuditQueries = {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, 'session', $3, $4, $5, $6, NOW())
+      VALUES ($1, $2, 'session', COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
       RETURNING id, created_at
     `,
     values: [
@@ -1227,7 +1233,7 @@ export const ApplicationQueries = {
     // Build dynamic update query
     const allowedFields = [
       'full_name', 'nrc_number', 'passport_number', 'date_of_birth', 'sex',
-      'phone', 'email', 'residence_town', 'next_of_kin_name', 'next_of_kin_phone',
+      'phone', 'email', 'residence_town', 'country', 'nationality', 'next_of_kin_name', 'next_of_kin_phone',
       'program', 'intake', 'institution', 'result_slip_url', 'extra_kyc_url',
       'payment_method', 'payer_name', 'payer_phone', 'amount', 'paid_at',
       'momo_ref', 'pop_url', 'payment_status', 'status', 'submitted_at'

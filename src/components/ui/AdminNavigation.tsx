@@ -3,9 +3,9 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import * as NavigationMenu from '@radix-ui/react-navigation-menu'
 import { Button } from './Button'
 import { BaseNavigation, NavigationItem } from '@/components/navigation/BaseNavigation'
-import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
+import { useSignOutAction } from '@/hooks/useSignOutAction'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { 
   Settings, 
@@ -25,7 +25,7 @@ interface AdminNavigationProps {
 }
 
 export function AdminNavigation({ className }: AdminNavigationProps) {
-  const { signOut } = useAuth()
+  const { signOut, isSigningOut } = useSignOutAction()
   const { profile } = useProfileQuery()
   const { userRole } = useRoleQuery()
   const isMobile = useIsMobile()
@@ -33,17 +33,8 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
   const location = useLocation()
 
   // Requirements: 13.1, 13.2, 13.3, 13.4 - Improve Logout Performance
-  // Navigate immediately, don't wait for signOut to complete
   const handleSignOut = async () => {
-    // Navigate first for instant feedback - Requirements: 13.1
-    navigate('/', { replace: true })
-    
-    // Fire-and-forget signOut - Requirements: 13.3
-    signOut().catch((error) => {
-      console.error('Sign out error:', error)
-      // Already navigated, so just log the error
-      // Requirements: 13.4 - Still redirect even if API fails
-    })
+    await signOut()
   }
 
   const navigationItems: NavigationItem[] = [
@@ -128,10 +119,11 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
             variant="outline" 
             size="sm" 
             onClick={handleSignOut}
+            disabled={isSigningOut}
             className="ml-2 text-destructive border-destructive/30 hover:bg-destructive/5 hover:border-destructive/30 whitespace-nowrap flex items-center logout-button"
           >
             <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
+            {isSigningOut ? 'Signing Out...' : 'Sign Out'}
           </Button>
         </NavigationMenu.Item>
       </NavigationMenu.List>
@@ -167,11 +159,12 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
       {/* Sign Out */}
       <button 
         onClick={handleSignOut}
+        disabled={isSigningOut}
         className="w-full flex items-center justify-between px-4 py-4 rounded-xl transition-all duration-200 min-h-[48px] touch-target bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground shadow-lg hover:shadow-xl"
       >
         <div className="flex items-center space-x-3">
           <LogOut className="h-5 w-5" />
-          <span className="font-semibold">Sign Out</span>
+          <span className="font-semibold">{isSigningOut ? 'Signing Out...' : 'Sign Out'}</span>
         </div>
       </button>
 

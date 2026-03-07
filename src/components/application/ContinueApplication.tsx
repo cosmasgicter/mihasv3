@@ -34,6 +34,27 @@ export function ContinueApplication() {
     }
   }, [user])
 
+  useEffect(() => {
+    const handleDraftChanged = () => {
+      loadDraftInfo()
+    }
+
+    const handleApplicationSubmitted = () => {
+      setDraftInfo({ exists: false })
+      loadDraftInfo()
+    }
+
+    window.addEventListener('applicationDraftSaved', handleDraftChanged)
+    window.addEventListener('draftCleared', handleDraftChanged)
+    window.addEventListener('applicationSubmitted', handleApplicationSubmitted)
+
+    return () => {
+      window.removeEventListener('applicationDraftSaved', handleDraftChanged)
+      window.removeEventListener('draftCleared', handleDraftChanged)
+      window.removeEventListener('applicationSubmitted', handleApplicationSubmitted)
+    }
+  }, [user, profile?.user_id])
+
   // Update timer every minute
   useEffect(() => {
     if (!draftInfo.exists || !draftInfo.expiresAt) return
@@ -127,27 +148,7 @@ export function ContinueApplication() {
   }
 
   if (!draftInfo.exists) {
-    return (
-      <div
-        className={cn(
-          baseCardClasses,
-          'flex flex-col gap-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-primary/20 text-primary-900 sm:flex-row sm:items-center sm:justify-between'
-        )}
-      >
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold">Ready to apply?</h2>
-          <p className="text-sm sm:text-base text-primary-800">
-            Start your application to join programs at Kalulushi Training Centre or Mukuba Institute of Health and Applied Sciences.
-          </p>
-        </div>
-        <Link to="/student/application-wizard" className="flex-shrink-0">
-          <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:from-blue-700 hover:to-purple-700">
-            <FileText className="mr-2 h-4 w-4" />
-            Start application
-          </Button>
-        </Link>
-      </div>
-    )
+    return null
   }
 
   const cardTone = isExpiringSoon()

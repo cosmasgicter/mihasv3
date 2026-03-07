@@ -15,7 +15,7 @@ interface UserExportProps {
 type ExportField = UserPDFFieldDefinition<UserProfile> & { description: string }
 
 interface ExportOptions {
-  format: 'csv' | 'json' | 'pdf'
+  format: 'csv' | 'json' | 'pdf' | 'excel'
   fields: Array<keyof UserProfile & string>
   filters: {
     roles: string[]
@@ -35,6 +35,8 @@ const AVAILABLE_FIELDS: ExportField[] = [
   { id: 'role', label: 'Role', description: 'User role' },
   { id: 'date_of_birth', label: 'Date of Birth', description: 'Birth date' },
   { id: 'sex', label: 'Gender', description: 'Gender' },
+  { id: 'country', label: 'Residence Country', description: 'Country of residence' },
+  { id: 'residence_town', label: 'Residence Town', description: 'Town or city of residence' },
   { id: 'nationality', label: 'Nationality', description: 'Nationality' },
   { id: 'address', label: 'Address', description: 'Physical address' },
   { id: 'city', label: 'City', description: 'City of residence' },
@@ -46,6 +48,7 @@ const AVAILABLE_FIELDS: ExportField[] = [
 
 const AVAILABLE_ROLES = [
   'student',
+  'reviewer',
   'admissions_officer',
   'registrar',
   'finance_officer',
@@ -64,10 +67,46 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
         start: '',
         end: ''
       },
-      includeInactive: true
+      includeInactive: false
     }
   })
   const [exporting, setExporting] = useState(false)
+
+  const sanitizeFileSegment = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+
+  const buildExportRows = (data: UserProfile[]) =>
+    data.map(user => {
+      const row: Record<string, unknown> = {}
+
+      exportOptions.fields.forEach(fieldId => {
+        const field = AVAILABLE_FIELDS.find(item => item.id === fieldId)
+        const rawValue = (user as Record<string, unknown>)[fieldId]
+        row[field?.label || fieldId] = rawValue ?? ''
+      })
+
+      return row
+    })
+
+  const buildExportFileStem = () => {
+    const datePart = new Date().toISOString().split('T')[0]
+    const rolePart =
+      exportOptions.filters.roles.length > 0
+        ? sanitizeFileSegment(exportOptions.filters.roles.join('-'))
+        : 'all-roles'
+    const activityPart = exportOptions.filters.includeInactive ? 'all-users' : 'active-users'
+    const dateRangePart =
+      exportOptions.filters.dateRange.start || exportOptions.filters.dateRange.end
+        ? sanitizeFileSegment(
+            `${exportOptions.filters.dateRange.start || 'any'}-${exportOptions.filters.dateRange.end || 'any'}`
+          )
+        : 'all-dates'
+
+    return `users_export_${activityPart}_${rolePart}_${dateRangePart}_${datePart}`
+  }
 
   const handleFieldToggle = (fieldId: string) => {
     if (exportOptions.fields.includes(fieldId)) {
@@ -128,6 +167,10 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
   const getFilteredUsers = () => {
     let filtered = users
 
+    if (!exportOptions.filters.includeInactive) {
+      filtered = filtered.filter(user => user.is_active !== false)
+    }
+
     // Filter by roles
     if (exportOptions.filters.roles.length > 0) {
       filtered = filtered.filter(user => exportOptions.filters.roles.includes(user.role))
@@ -140,6 +183,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
     }
     if (exportOptions.filters.dateRange.end) {
       const endDate = new Date(exportOptions.filters.dateRange.end)
+      endDate.setHours(23, 59, 59, 999)
       filtered = filtered.filter(user => new Date(user.created_at ?? 0) <= endDate)
     }
 
@@ -147,14 +191,12 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
   }
 
   const exportToCSV = (data: UserProfile[]) => {
-    const headers = exportOptions.fields.map(fieldId => {
-      const field = AVAILABLE_FIELDS.find(f => f.id === fieldId)
-      return field?.label || fieldId
-    })
+    const exportRows = buildExportRows(data)
+    const headers = Object.keys(exportRows[0] ?? {})
 
-    const rows = data.map(user => {
-      return exportOptions.fields.map(fieldId => {
-        const value = (user as Record<string, unknown>)[fieldId]
+    const rows = exportRows.map(row =>
+      headers.map(header => {
+        const value = row[header]
         if (value === null || value === undefined) return ''
         if (typeof value === 'string') {
           const sanitized = String(value).replace(/["\r\n]/g, '').substring(0, 1000)
@@ -162,7 +204,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
         }
         return String(value || '').substring(0, 1000)
       })
-    })
+    )
 
     const csvContent = [headers, ...rows]
       .map(row => row.join(','))
@@ -172,27 +214,26 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
     const link = document.createElement('a')
     const url = URL.createObjectURL(blob)
     link.setAttribute('href', url)
-    link.setAttribute('download', `users_export_${new Date().toISOString().split('T')[0]}.csv`)
+    link.setAttribute('download', `${buildExportFileStem()}.csv`)
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    URL.revokeObjectURL(url)
   }
 
   const exportToJSON = (data: UserProfile[]) => {
-    const exportData = data.map(user => {
-      const filtered: Record<string, unknown> = {}
-      exportOptions.fields.forEach(fieldId => {
-        const value = (user as Record<string, unknown>)[fieldId]
-        filtered[fieldId] = typeof value === 'string' ? String(value).substring(0, 1000) : value
-      })
-      return filtered
-    })
+    const exportData = buildExportRows(data)
 
     const jsonContent = JSON.stringify({
       exportDate: new Date().toISOString(),
       totalRecords: exportData.length,
       fields: exportOptions.fields,
+      filters: {
+        roles: exportOptions.filters.roles,
+        dateRange: exportOptions.filters.dateRange,
+        includeInactive: exportOptions.filters.includeInactive
+      },
       data: exportData
     }, null, 2)
 
@@ -200,11 +241,21 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
     const link = document.createElement('a')
     const url = URL.createObjectURL(blob)
     link.setAttribute('href', url)
-    link.setAttribute('download', `users_export_${new Date().toISOString().split('T')[0]}.json`)
+    link.setAttribute('download', `${buildExportFileStem()}.json`)
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  const exportToExcel = async (data: UserProfile[]) => {
+    const XLSX = await import('xlsx')
+    const exportRows = buildExportRows(data)
+    const worksheet = XLSX.utils.json_to_sheet(exportRows)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Users')
+    XLSX.writeFile(workbook, `${buildExportFileStem()}.xlsx`)
   }
 
   const handleExport = async () => {
@@ -224,6 +275,10 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
           exportToCSV(filteredUsers)
           exportCompleted = true
           break
+        case 'excel':
+          await exportToExcel(filteredUsers)
+          exportCompleted = true
+          break
         case 'json':
           exportToJSON(filteredUsers)
           exportCompleted = true
@@ -241,6 +296,8 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
             metadataLines.push(`Roles: ${exportOptions.filters.roles.map(role => role.replace(/_/g, ' ')).join(', ')}`)
           }
 
+          metadataLines.push(`Include inactive accounts: ${exportOptions.filters.includeInactive ? 'Yes' : 'No'}`)
+
           if (exportOptions.filters.dateRange.start || exportOptions.filters.dateRange.end) {
             metadataLines.push(
               `Registered: ${exportOptions.filters.dateRange.start || 'Any'} to ${exportOptions.filters.dateRange.end || 'Any'}`
@@ -248,7 +305,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
           }
 
           await exportUsersToPDF(filteredUsers, exportOptions.fields, AVAILABLE_FIELDS, {
-            filename: `users_export_${new Date().toISOString().split('T')[0]}.pdf`,
+            filename: `${buildExportFileStem()}.pdf`,
             metadata: metadataLines
           })
           exportCompleted = true
@@ -283,9 +340,10 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
           {/* Export Format */}
           <div>
             <h3 className="text-lg font-medium text-foreground mb-3">Export Format</h3>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 { value: 'csv', label: 'CSV', icon: <FileSpreadsheet className="h-5 w-5" />, description: 'Comma-separated values' },
+                { value: 'excel', label: 'Excel', icon: <FileSpreadsheet className="h-5 w-5" />, description: 'Spreadsheet workbook' },
                 { value: 'json', label: 'JSON', icon: <FileText className="h-5 w-5" />, description: 'JavaScript Object Notation' },
                 { value: 'pdf', label: 'PDF', icon: <FileText className="h-5 w-5" />, description: 'Portable Document Format' }
               ].map(format => (
@@ -436,6 +494,25 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                 />
               </div>
             </div>
+
+            <div className="mt-4 flex items-center gap-3 rounded-lg border border-border p-3">
+              <input
+                id="include-inactive-users"
+                type="checkbox"
+                checked={exportOptions.filters.includeInactive}
+                onChange={(e) => setExportOptions({
+                  ...exportOptions,
+                  filters: {
+                    ...exportOptions.filters,
+                    includeInactive: e.target.checked
+                  }
+                })}
+                className="h-4 w-4 rounded border-input"
+              />
+              <label htmlFor="include-inactive-users" className="text-sm text-foreground">
+                Include inactive/deactivated accounts in this export
+              </label>
+            </div>
           </div>
 
           {/* Preview */}
@@ -455,6 +532,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
               {exportOptions.filters.roles.length > 0 && (
                 <p>Roles: {exportOptions.filters.roles.join(', ')}</p>
               )}
+              <p>Account scope: {exportOptions.filters.includeInactive ? 'Active and inactive users' : 'Active users only'}</p>
               {(exportOptions.filters.dateRange.start || exportOptions.filters.dateRange.end) && (
                 <p>
                   Date Range: {exportOptions.filters.dateRange.start || 'Any'} to {exportOptions.filters.dateRange.end || 'Any'}

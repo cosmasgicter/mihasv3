@@ -38,7 +38,7 @@ async function getUserFromRequest(req: VercelRequest): Promise<{ userId: string;
 
   try {
     const payload = await verifyAccessToken(token);
-    return { userId: payload.sub, sessionId: undefined };
+    return { userId: payload.sub, sessionId: payload.sid };
   } catch {
     return null;
   }

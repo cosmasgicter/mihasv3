@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { Bell, X, CheckCircle, AlertTriangle, Info, Clock, Trash2, Lightbulb } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Bell, X, CheckCircle, AlertTriangle, Info, Trash2, Lightbulb } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { useStudentNotifications } from '@/hooks/useStudentNotifications'
@@ -20,7 +21,10 @@ export function NotificationBell() {
     unreadCount, 
     markAsRead, 
     markAllAsRead, 
-    deleteNotification 
+    deleteNotification,
+    refresh,
+    isPolling,
+    lastLoadedAt,
   } = useStudentNotifications()
 
   const getIcon = (type: string) => {
@@ -74,6 +78,14 @@ export function NotificationBell() {
     }
   }
 
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllAsRead()
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error)
+    }
+  }
+
   return (
     <div className="relative z-50">
       {/* Notification Bell */}
@@ -120,14 +132,24 @@ export function NotificationBell() {
                     <h3 className="font-bold text-foreground flex items-center gap-2"><Bell className="w-5 h-5" /> Notifications</h3>
                     <p className="text-xs text-muted-foreground">
                       {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up!'}
+                      {isPolling && ' · auto-refresh on'}
                     </p>
                   </div>
                   <div className="flex items-center space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => refresh()}
+                      disabled={loading}
+                      className="text-xs text-primary hover:bg-primary/10"
+                    >
+                      Refresh
+                    </Button>
                     {unreadCount > 0 && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={markAllAsRead}
+                        onClick={handleMarkAllRead}
                         className="text-xs text-primary hover:bg-primary/10"
                         data-testid="mark-all-read"
                       >
@@ -222,9 +244,19 @@ export function NotificationBell() {
               {/* Footer */}
               {notifications.length > 0 && (
                 <div className="p-3 border-t border-border bg-muted">
-                  <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
-                    <Lightbulb className="w-5 h-5" /> Click notifications to mark as read
-                  </p>
+                  <div className="flex flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-center flex items-center justify-center gap-1 sm:text-left">
+                      <Lightbulb className="w-5 h-5" /> Click notifications to mark as read
+                    </p>
+                    <div className="flex items-center justify-center gap-3 sm:justify-end">
+                      {lastLoadedAt && (
+                        <span>Synced {formatDate(lastLoadedAt)}</span>
+                      )}
+                      <Link to="/student/notifications" className="font-medium text-primary hover:underline" onClick={() => setShowPanel(false)}>
+                        Open inbox
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

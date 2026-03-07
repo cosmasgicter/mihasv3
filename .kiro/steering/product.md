@@ -13,8 +13,10 @@ Live production admissions platform for Mukuba Institute of Health and Allied Sc
 | Never remove auto-save | 8-second interval prevents data loss for students |
 | Never block on external API failures | HPCZ, GNC/NMCZ, ECZ APIs are unreliable—always provide fallbacks |
 | Never log PII | Student applications contain medical credentials and personal data |
-| Maintain backward compatibility | 86 database tables with existing data |
+| Maintain backward compatibility | 90+ database tables with existing data |
 | Preserve offline functionality | PWA must work on unreliable Zambian connections |
+| Validate all API inputs | Zod schemas required on every endpoint |
+| CSRF protection on state-changing requests | All POST/PUT/DELETE require CSRF token |
 
 ## User Roles
 
@@ -63,10 +65,12 @@ The admin interface has been simplified:
 | Rule | Details |
 |------|---------|
 | Payment timing | Required before interview scheduling |
-| Documents | Requirements vary by program |
+| Documents | Requirements vary by program; validated with magic byte verification |
 | Grading | Zambian ECZ: 1-9 scale (1-6 = pass, 7-9 = fail) |
 | Interviews | First-come-first-served with admin override |
-| Audit | All state changes require audit trail entries |
+| Audit | All state changes require audit trail entries with retention categories |
+| Password reset | Token-based, 1-hour expiry, single-use, rate-limited (3/email/15min) |
+| Login protection | Progressive backoff after 5 failures, 30-min lock after 10 |
 
 ## Performance Targets
 
@@ -76,6 +80,22 @@ The admin interface has been simplified:
 | Wizard navigation | <100ms |
 | Auto-save | Silent, no UI blocking |
 | Offline mode | Core features functional |
+| Lighthouse score | >90 |
+
+## Security Posture
+
+| Layer | Implementation |
+|-------|---------------|
+| Transport | HSTS (1-year), TLS-only |
+| Headers | CSP, X-Frame-Options DENY, nosniff, Permissions-Policy |
+| Auth | JWT in HTTP-only cookies, refresh token rotation |
+| CSRF | SHA-256 hashed tokens in `csrf_tokens` table |
+| Rate limiting | Arcjet perimeter + per-email login attempt tracking |
+| Input validation | Zod schemas on all API endpoints |
+| File uploads | Magic byte verification + MIME type validation |
+| URL handling | Open redirect prevention on all URL inputs |
+| Audit | Retention categories: standard (90d) / security (365d) |
+| PII | Never logged; email/IP stored as SHA-256 hashes only |
 
 ## External Integrations
 
@@ -97,8 +117,8 @@ The admin interface has been simplified:
 | Supabase Realtime | REMOVED - Replaced with Bun-native SSE/polling |
 | Supabase Auth SDK | REMOVED - Replaced with custom JWT auth |
 | Twilio (SMS/WhatsApp) | REMOVED - Simplification |
-| Sentry | REMOVED - Analytics deleted |
-| Umami | REMOVED - Analytics deleted |
+| Sentry | REMOVED - Error monitoring removed |
+| Umami | REMOVED - Analytics removed |
 
 ## Development Checklist
 
@@ -107,12 +127,16 @@ When modifying code, verify:
 - [ ] Zambian data formats (+260 phone numbers, ECZ grades 1-9)
 - [ ] Mobile responsiveness (most users are on mobile)
 - [ ] Graceful degradation for external API calls
-- [ ] Accessibility (screen reader support)
-- [ ] Audit trails for state changes (no PII in logs)
+- [ ] Accessibility (screen reader support, focus traps, escape key handling)
+- [ ] Audit trails for state changes (no PII in logs, use retention categories)
 - [ ] Using Bun commands (not npm)
 - [ ] API endpoints in `api-src/` directory (source), bundled to `api/` (never edit `api/` directly)
 - [ ] SSE/polling for real-time data (not Supabase Realtime)
 - [ ] Arcjet protection on sensitive routes
 - [ ] HTTP-only cookies for auth tokens (not localStorage)
 - [ ] Deterministic RBAC from JWT (no DB lookup for permissions)
-- [ ] API responses use `sendSuccess()` envelope — frontend clients unwrap automatically, never check `response.success` on service results
+- [ ] API responses use `sendSuccess()` envelope — frontend clients unwrap automatically
+- [ ] All API inputs validated with Zod schemas from `lib/validation/`
+- [ ] File uploads validated with magic byte verification (`lib/fileValidator.ts`)
+- [ ] CSRF tokens on state-changing requests
+- [ ] URL inputs validated against open redirects

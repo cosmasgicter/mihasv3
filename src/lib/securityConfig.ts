@@ -1,10 +1,9 @@
-// @ts-nocheck
 /**
  * Security configuration and Content Security Policy setup
  * Prevents code injection vulnerabilities including Function() constructor usage
  */
 
-import { initializeSecurityPatches } from './securityPatches'
+// Security patches module removed during migration cleanup
 
 /**
  * Content Security Policy configuration

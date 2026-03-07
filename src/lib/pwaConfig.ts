@@ -52,6 +52,12 @@ export const PWA_CONFIG = {
     '/offline.html',
     '/manifest.json',
     '/favicon.ico',
+    '/icons/icon-192x192.png',
+    '/icons/icon-512x512.png',
+    '/icons/icon-192x192-maskable.png',
+    '/icons/icon-512x512-maskable.png',
+    '/screenshots/student-dashboard-wide.png',
+    '/screenshots/application-wizard-mobile.png',
     '/images/placeholder.svg',
     '/images/logos/mihas-logo.png',
     '/images/logos/katc-logo.png'
@@ -62,9 +68,14 @@ export const PWA_CONFIG = {
     // Always cache these routes
     cache: [
       '/dashboard',
+      '/student/dashboard',
       '/apply',
-      '/profile',
-      '/applications'
+      '/student/application-wizard',
+      '/student/settings',
+      '/student/payment',
+      '/student/notifications',
+      '/admin/dashboard',
+      '/admin/applications'
     ],
 
     // Never cache these routes

@@ -78,6 +78,31 @@ async function query(queryText, params) {
   getDatabaseConfig();
   return executeNeonQuery(queryText, params);
 }
+async function transaction(operations) {
+  if (operations.length === 0) {
+    return [];
+  }
+  const results = [];
+  try {
+    await query("BEGIN");
+    for (const op of operations) {
+      const result = await query(op.text, op.values);
+      results.push(result);
+    }
+    await query("COMMIT");
+    return results;
+  } catch (error) {
+    try {
+      await query("ROLLBACK");
+    } catch (rollbackError) {
+      console.error("[DB] Rollback failed:", rollbackError.message);
+    }
+    if (error instanceof DatabaseError) {
+      throw new DatabaseError(`Transaction failed: ${error.message}`, DatabaseErrorCode.TRANSACTION_ERROR, { query: error.query, originalError: error });
+    }
+    throw new DatabaseError(`Transaction failed: ${error.message}`, DatabaseErrorCode.TRANSACTION_ERROR, { originalError: error });
+  }
+}
 var DatabaseErrorCode, DatabaseError;
 var init_db = __esm(() => {
   DatabaseErrorCode = {
@@ -105,7 +130,7 @@ var init_db = __esm(() => {
 });
 
 // lib/queries.ts
-var AuditQueries, ApplicationQueries, DocumentQueries, GradeQueries, StatusHistoryQueries;
+var AUDIT_ENTITY_PLACEHOLDER_ID = "00000000-0000-0000-0000-000000000000", AuditQueries, ApplicationQueries, DocumentQueries, GradeQueries, StatusHistoryQueries;
 var init_queries = __esm(() => {
   AuditQueries = {
     log: (input) => ({
@@ -114,7 +139,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+      VALUES ($1, $2, $3, COALESCE($4, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $5, $6, $7, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -133,7 +158,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, 'user', $1, $3, $4, $5, NOW())
+      VALUES ($1, $2, 'user', COALESCE($1, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $3, $4, $5, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -150,7 +175,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, 'authorization_failure', $2, $3, $4, $5, $6, NOW())
+      VALUES ($1, 'authorization_failure', $2, COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -171,7 +196,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, 'session', $3, $4, $5, $6, NOW())
+      VALUES ($1, $2, 'session', COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -360,6 +385,8 @@ var init_queries = __esm(() => {
         "phone",
         "email",
         "residence_town",
+        "country",
+        "nationality",
         "next_of_kin_name",
         "next_of_kin_phone",
         "program",
@@ -1390,6 +1417,158 @@ function publishRealtimeEvent(userId, event) {
 // api-src/applications.ts
 init_auditLogger();
 
+// lib/emailTemplates.ts
+var PORTAL_URL = "https://apply.mihas.edu.zm";
+function esc(value) {
+  const lookup = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  };
+  return String(value ?? "").replace(/[&<>"']/g, (ch) => lookup[ch] ?? ch);
+}
+function greeting(name) {
+  return name ? `Dear ${esc(name)},` : "Hello,";
+}
+function actionButton(url, label) {
+  return `<tr><td style="padding:24px 0;">
+    <a href="${esc(url)}" style="display:inline-block;padding:12px 28px;background-color:#0ea5e9;color:#ffffff;font-weight:600;border-radius:6px;text-decoration:none;font-size:15px;">${esc(label)}</a>
+  </td></tr>`;
+}
+function wrapLayout(content) {
+  const year = new Date().getFullYear();
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MIHAS Notification</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f6f9;font-family:'Helvetica Neue',Arial,sans-serif;color:#1f2937;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f6f9;padding:32px 0;">
+    <tr><td align="center">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:8px;overflow:hidden;">
+        <!-- Header -->
+        <tr>
+          <td style="background-color:#0f172a;padding:24px 40px;text-align:center;">
+            <h1 style="margin:0;font-size:20px;color:#ffffff;font-weight:700;letter-spacing:0.5px;">Mukuba Institute of Health and Allied Sciences</h1>
+            <p style="margin:4px 0 0;font-size:13px;color:#94a3b8;">MIHAS Admissions Portal</p>
+          </td>
+        </tr>
+        <!-- Body -->
+        <tr>
+          <td style="padding:32px 40px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              ${content}
+            </table>
+          </td>
+        </tr>
+        <!-- Footer -->
+        <tr>
+          <td style="padding:20px 40px;background-color:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#64748b;line-height:1.6;">
+              &copy; ${year} Mukuba Institute of Health and Allied Sciences (MIHAS). All rights reserved.<br/>
+              This is an automated message. Please do not reply directly to this email.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+function welcomeTemplate(data) {
+  const rows = `
+    <tr><td style="font-size:16px;line-height:1.6;">
+      <p style="margin:0 0 16px;">${greeting(data.recipientName)}</p>
+      <p style="margin:0 0 16px;">Welcome to MIHAS! Your account has been created successfully. You can now begin your application through our admissions portal.</p>
+      <p style="margin:0 0 4px;">Here is what to do next:</p>
+      <ul style="margin:0 0 16px;padding-left:20px;color:#374151;">
+        <li>Complete your profile information</li>
+        <li>Start a new application</li>
+        <li>Upload required documents</li>
+      </ul>
+    </td></tr>
+    ${actionButton(data.actionUrl || PORTAL_URL, "Go to Portal")}`;
+  return wrapLayout(rows);
+}
+function applicationSubmittedTemplate(data) {
+  const rows = `
+    <tr><td style="font-size:16px;line-height:1.6;">
+      <p style="margin:0 0 16px;">${greeting(data.recipientName)}</p>
+      <p style="margin:0 0 16px;">Your application has been submitted successfully. Our admissions team will review it and notify you of any updates.</p>
+      ${data.applicationNumber ? `<p style="margin:0 0 8px;"><strong>Application Number:</strong> ${esc(data.applicationNumber)}</p>` : ""}
+      ${data.programName ? `<p style="margin:0 0 16px;"><strong>Programme:</strong> ${esc(data.programName)}</p>` : ""}
+      <p style="margin:0;">You can track your application status at any time through the portal.</p>
+    </td></tr>
+    ${actionButton(data.actionUrl || PORTAL_URL, "Track Application")}`;
+  return wrapLayout(rows);
+}
+function statusChangeTemplate(data) {
+  const statusDisplay = data.status ? data.status.replace(/[_\s]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "Updated";
+  const rows = `
+    <tr><td style="font-size:16px;line-height:1.6;">
+      <p style="margin:0 0 16px;">${greeting(data.recipientName)}</p>
+      <p style="margin:0 0 16px;">The status of your application has been updated.</p>
+      ${data.applicationNumber ? `<p style="margin:0 0 8px;"><strong>Application Number:</strong> ${esc(data.applicationNumber)}</p>` : ""}
+      <p style="margin:0 0 8px;"><strong>New Status:</strong> ${esc(statusDisplay)}</p>
+      ${data.programName ? `<p style="margin:0 0 16px;"><strong>Programme:</strong> ${esc(data.programName)}</p>` : ""}
+      <p style="margin:0;">Log in to the portal for full details.</p>
+    </td></tr>
+    ${actionButton(data.actionUrl || PORTAL_URL, "View Application")}`;
+  return wrapLayout(rows);
+}
+function paymentVerifiedTemplate(data) {
+  const rows = `
+    <tr><td style="font-size:16px;line-height:1.6;">
+      <p style="margin:0 0 16px;">${greeting(data.recipientName)}</p>
+      <p style="margin:0 0 16px;">Your payment has been verified. Thank you for completing this step in the admissions process.</p>
+      ${data.applicationNumber ? `<p style="margin:0 0 8px;"><strong>Application Number:</strong> ${esc(data.applicationNumber)}</p>` : ""}
+      ${data.programName ? `<p style="margin:0 0 16px;"><strong>Programme:</strong> ${esc(data.programName)}</p>` : ""}
+      <p style="margin:0;">You will be notified of the next steps shortly.</p>
+    </td></tr>
+    ${actionButton(data.actionUrl || PORTAL_URL, "View Application")}`;
+  return wrapLayout(rows);
+}
+function interviewScheduledTemplate(data) {
+  const rows = `
+    <tr><td style="font-size:16px;line-height:1.6;">
+      <p style="margin:0 0 16px;">${greeting(data.recipientName)}</p>
+      <p style="margin:0 0 16px;">An interview has been scheduled for your application. Please review the details below and make sure to attend on time.</p>
+      ${data.applicationNumber ? `<p style="margin:0 0 8px;"><strong>Application Number:</strong> ${esc(data.applicationNumber)}</p>` : ""}
+      ${data.interviewDate ? `<p style="margin:0 0 8px;"><strong>Date &amp; Time:</strong> ${esc(data.interviewDate)}</p>` : ""}
+      ${data.interviewLocation ? `<p style="margin:0 0 8px;"><strong>Location:</strong> ${esc(data.interviewLocation)}</p>` : ""}
+      ${data.programName ? `<p style="margin:0 0 16px;"><strong>Programme:</strong> ${esc(data.programName)}</p>` : ""}
+      <p style="margin:0;">If you need to reschedule, please contact the admissions office as soon as possible.</p>
+    </td></tr>
+    ${actionButton(data.actionUrl || PORTAL_URL, "View Details")}`;
+  return wrapLayout(rows);
+}
+function genericTemplate(data) {
+  const rows = `
+    <tr><td style="font-size:16px;line-height:1.6;">
+      <p style="margin:0 0 16px;">${greeting(data.recipientName)}</p>
+      <p style="margin:0 0 16px;">${esc(data.message || "You have a new notification from MIHAS. Please log in to the portal for details.")}</p>
+    </td></tr>
+    ${actionButton(data.actionUrl || PORTAL_URL, "Go to Portal")}`;
+  return wrapLayout(rows);
+}
+var TEMPLATE_MAP = {
+  welcome: welcomeTemplate,
+  "application-submitted": applicationSubmittedTemplate,
+  "status-change": statusChangeTemplate,
+  "payment-verified": paymentVerifiedTemplate,
+  "interview-scheduled": interviewScheduledTemplate,
+  generic: genericTemplate
+};
+function renderEmailTemplate(templateName, data) {
+  const render = TEMPLATE_MAP[templateName] || TEMPLATE_MAP["generic"];
+  return render(data);
+}
+
 // lib/csrf.ts
 init_db();
 import { randomBytes, createHash } from "crypto";
@@ -2092,7 +2271,7 @@ __export(exports_util, {
   finalizeIssue: () => finalizeIssue,
   extend: () => extend,
   escapeRegex: () => escapeRegex,
-  esc: () => esc,
+  esc: () => esc2,
   defineLazy: () => defineLazy,
   createTransparentProxy: () => createTransparentProxy,
   cloneDef: () => cloneDef,
@@ -2243,7 +2422,7 @@ function randomString(length = 10) {
   }
   return str;
 }
-function esc(str) {
+function esc2(str) {
   return JSON.stringify(str);
 }
 function slugify(input) {
@@ -4469,7 +4648,7 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
     const doc = new Doc(["shape", "payload", "ctx"]);
     const normalized = _normalized.value;
     const parseStr = (key) => {
-      const k = esc(key);
+      const k = esc2(key);
       return `shape[${k}]._zod.run({ value: input[${k}], issues: [] }, ctx)`;
     };
     doc.write(`const input = payload.value;`);
@@ -4481,7 +4660,7 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
     doc.write(`const newResult = {};`);
     for (const key of normalized.keys) {
       const id = ids[key];
-      const k = esc(key);
+      const k = esc2(key);
       const schema = shape[key];
       const isOptionalOut = schema?._zod?.optout === "optional";
       doc.write(`const ${id} = ${parseStr(key)};`);
@@ -15026,6 +15205,7 @@ var createApplicationBodySchema = exports_external.object({
   phone: nonEmptySanitizedString,
   email: exports_external.string().email("Invalid email"),
   residence_town: nonEmptySanitizedString,
+  country: optionalSanitizedString,
   nationality: optionalSanitizedString,
   next_of_kin_name: optionalSanitizedString,
   next_of_kin_phone: optionalSanitizedString,
@@ -15044,6 +15224,7 @@ var updateApplicationBodySchema = exports_external.object({
   phone: optionalSanitizedString,
   email: exports_external.string().email().optional(),
   residence_town: optionalSanitizedString,
+  country: optionalSanitizedString,
   nationality: optionalSanitizedString,
   nrc_number: optionalSanitizedString,
   passport_number: optionalSanitizedString,
@@ -15233,6 +15414,7 @@ async function handleCreate(req, res, userId) {
       "phone",
       "email",
       "residence_town",
+      "country",
       "nationality",
       "next_of_kin_name",
       "next_of_kin_phone",
@@ -15253,6 +15435,7 @@ async function handleCreate(req, res, userId) {
       body.phone,
       body.email,
       body.residence_town,
+      body.country || "Zambia",
       body.nationality || "Zambian",
       body.next_of_kin_name || null,
       body.next_of_kin_phone || null,
@@ -15518,12 +15701,14 @@ async function handleReview(req, res, userId, isAdmin) {
         return sendError(res, "Cannot approve without verified payment", HttpStatus.BAD_REQUEST);
       }
       const updateQ = ApplicationQueries.updateStatus(application_id, status, userId, notes);
-      const updateResult = await query(updateQ.text, updateQ.values);
+      const historyQ = StatusHistoryQueries.create(application_id, status, userId, notes);
+      const [updateResult] = await transaction([
+        { text: updateQ.text, values: updateQ.values },
+        { text: historyQ.text, values: historyQ.values }
+      ]);
       if (updateResult.rowCount === 0) {
         return sendError(res, "Application not found", HttpStatus.NOT_FOUND);
       }
-      const historyQ = StatusHistoryQueries.create(application_id, status, userId, notes);
-      await query(historyQ.text, historyQ.values);
       try {
         await logAuditEvent({
           actor_id: userId,
@@ -15614,6 +15799,7 @@ async function handleById(req, res, userId, isAdmin, applicationId) {
           try {
             const notificationTitle = "Application approved";
             const notificationMessage = `Your application ${app.application_number || applicationId} has been approved.`;
+            const actionUrl = `/student/application/${applicationId}`;
             updateResult2 = await query(`WITH updated_application AS (
                UPDATE applications
                SET
@@ -15629,14 +15815,14 @@ async function handleById(req, res, userId, isAdmin, applicationId) {
                FROM updated_application
                RETURNING id
              ), notification_insert AS (
-               INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
-               SELECT user_id, $5, $6, 'success', false, NOW()
+               INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at)
+               SELECT user_id, $5, $6, 'success', $7, false, NOW()
                FROM updated_application
                WHERE $2 = 'approved'
                RETURNING id
              )
              SELECT ua.*
-             FROM updated_application ua`, [applicationId, status, userId, notes || null, notificationTitle, notificationMessage]);
+             FROM updated_application ua`, [applicationId, status, userId, notes || null, notificationTitle, notificationMessage, actionUrl]);
           } catch (error48) {
             const message = error48.message?.toLowerCase() || "";
             if (message.includes("notifications")) {
@@ -15709,6 +15895,7 @@ async function handleById(req, res, userId, isAdmin, applicationId) {
           }
           const notificationTitle = paymentStatus === "verified" ? "Payment Verified" : paymentStatus === "rejected" ? "Payment Rejected" : "Payment Status Updated";
           const notificationMessage = paymentStatus === "verified" ? `Your payment for application ${app.application_number || applicationId} has been verified.` : paymentStatus === "rejected" ? `Your payment for application ${app.application_number || applicationId} was rejected. Please resubmit your payment proof.` : `Your payment status for application ${app.application_number || applicationId} has been updated to ${paymentStatus}.`;
+          const actionUrl = `/student/application/${applicationId}`;
           let updateResult2;
           try {
             updateResult2 = await query(`WITH updated_application AS (
@@ -15721,8 +15908,8 @@ async function handleById(req, res, userId, isAdmin, applicationId) {
                WHERE id = $1
                RETURNING *
              ), notification_insert AS (
-               INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
-               SELECT user_id, $4, $5, $6, false, NOW()
+               INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at)
+               SELECT user_id, $4, $5, $6, $7, false, NOW()
                FROM updated_application
                RETURNING id
              )
@@ -15733,7 +15920,8 @@ async function handleById(req, res, userId, isAdmin, applicationId) {
               paymentStatus === "verified" ? userId : null,
               notificationTitle,
               notificationMessage,
-              paymentStatus === "verified" ? "success" : paymentStatus === "rejected" ? "error" : "info"
+              paymentStatus === "verified" ? "success" : paymentStatus === "rejected" ? "error" : "info",
+              actionUrl
             ]);
           } catch (notifError) {
             const message = notifError.message?.toLowerCase() || "";
@@ -15782,6 +15970,100 @@ async function handleById(req, res, userId, isAdmin, applicationId) {
           });
           console.log("[applications] Payment status updated:", applicationId, paymentStatus);
           return sendSuccess(res, updateResult2.rows[0]);
+        }
+        if (action === "send_notification") {
+          if (!isAdmin) {
+            return sendError(res, "Forbidden: admin access required", HttpStatus.FORBIDDEN);
+          }
+          const { title, message } = payload;
+          if (!title?.trim() || !message?.trim()) {
+            return sendError(res, "Missing required fields: title, message", HttpStatus.BAD_REQUEST);
+          }
+          const actionUrl = `/student/application/${applicationId}`;
+          const notificationResult = await query(`INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at)
+           VALUES ($1, $2, $3, 'info', $4, false, NOW())
+           RETURNING *`, [app.user_id, title.trim(), message.trim(), actionUrl]);
+          let emailQueued = false;
+          if (app.email) {
+            try {
+              const htmlBody = renderEmailTemplate("generic", {
+                recipientName: app.full_name || undefined,
+                message: message.trim(),
+                actionUrl
+              });
+              await query(`INSERT INTO email_queue (
+                 recipient_email,
+                 recipient_name,
+                 subject,
+                 body,
+                 html_body,
+                 template_name,
+                 template_data,
+                 status,
+                 priority
+               )
+               VALUES ($1, $2, $3, $4, $5, 'generic', $6, 'pending', 5)`, [
+                app.email,
+                app.full_name || null,
+                title.trim(),
+                message.trim(),
+                htmlBody,
+                JSON.stringify({
+                  recipientName: app.full_name || null,
+                  message: message.trim(),
+                  actionUrl,
+                  applicationNumber: app.application_number || null
+                })
+              ]);
+              emailQueued = true;
+            } catch (emailQueueError) {
+              console.error("[applications] Failed to queue notification email:", emailQueueError);
+            }
+          }
+          try {
+            await logAuditEvent({
+              actor_id: userId,
+              action: "application_notification_sent",
+              entity_type: "notification",
+              entity_id: notificationResult.rows[0]?.id || null,
+              changes: {
+                application_id: applicationId,
+                target_user_id: app.user_id,
+                email_queued: emailQueued
+              }
+            });
+          } catch (auditError) {
+            console.error("[applications] Failed to create notification audit log:", auditError);
+          }
+          const now = new Date().toISOString();
+          const version2 = Date.now();
+          publishRealtimeEvent(app.user_id, {
+            event_id: `notification:${applicationId}:${version2}`,
+            event_type: "notification",
+            entity_id: applicationId,
+            version: version2,
+            created_at: now,
+            payload: {
+              title: title.trim(),
+              content: message.trim(),
+              action_url: actionUrl
+            }
+          });
+          publishRealtimeEvent(app.user_id, {
+            event_id: `dashboard_refresh:${applicationId}:${version2}`,
+            event_type: "dashboard_refresh",
+            entity_id: applicationId,
+            version: version2,
+            created_at: now,
+            payload: {
+              reason: "admin_notification_sent",
+              application_id: applicationId
+            }
+          });
+          return sendSuccess(res, {
+            notification: notificationResult.rows[0],
+            email_queued: emailQueued
+          });
         }
         if (action === "schedule_interview") {
           if (!isAdmin) {
@@ -15911,13 +16193,23 @@ async function handleById(req, res, userId, isAdmin, applicationId) {
             return sendError(res, "Grades must be an array", HttpStatus.BAD_REQUEST);
           }
           const deleteQ = GradeQueries.deleteByApplication(applicationId);
-          await query(deleteQ.text, deleteQ.values);
+          const ops = [{ text: deleteQ.text, values: deleteQ.values }];
           if (grades.length > 0) {
-            for (const g of grades) {
-              const upsertQ = GradeQueries.upsert(applicationId, g.subject_id, g.grade);
-              await query(upsertQ.text, upsertQ.values);
-            }
+            const values = [];
+            const placeholders = [];
+            grades.forEach((g, i) => {
+              const offset = i * 3;
+              placeholders.push(`($${offset + 1}, $${offset + 2}, $${offset + 3})`);
+              values.push(applicationId, g.subject_id, g.grade);
+            });
+            ops.push({
+              text: `INSERT INTO application_grades (application_id, subject_id, grade)
+             VALUES ${placeholders.join(", ")}
+             ON CONFLICT (application_id, subject_id) DO UPDATE SET grade = EXCLUDED.grade`,
+              values
+            });
           }
+          await transaction(ops);
           console.log("[applications] Grades synced:", applicationId);
           return sendSuccess(res, { synced: true });
         }

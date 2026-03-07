@@ -105,7 +105,7 @@ var init_db = __esm(() => {
 });
 
 // lib/queries.ts
-var AuditQueries, CatalogQueries;
+var AUDIT_ENTITY_PLACEHOLDER_ID = "00000000-0000-0000-0000-000000000000", AuditQueries, CatalogQueries;
 var init_queries = __esm(() => {
   AuditQueries = {
     log: (input) => ({
@@ -114,7 +114,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+      VALUES ($1, $2, $3, COALESCE($4, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $5, $6, $7, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -133,7 +133,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, 'user', $1, $3, $4, $5, NOW())
+      VALUES ($1, $2, 'user', COALESCE($1, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $3, $4, $5, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -150,7 +150,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, 'authorization_failure', $2, $3, $4, $5, $6, NOW())
+      VALUES ($1, 'authorization_failure', $2, COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -171,7 +171,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, 'session', $3, $4, $5, $6, NOW())
+      VALUES ($1, $2, 'session', COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -1165,10 +1165,19 @@ function normalizeProgram(row) {
     tuition_fee: row.tuition_fee ? Number(row.tuition_fee) : null,
     regulatory_body: row.regulatory_body,
     accreditation_status: row.accreditation_status,
+    institution_id: row.institution_id,
+    institutions: row.institution_id ? {
+      id: row.institution_id,
+      name: row.institution_name ?? "",
+      full_name: row.institution_full_name ?? row.institution_name ?? ""
+    } : null,
     is_active: row.is_active !== false,
     created_at: row.created_at,
     updated_at: row.updated_at
   };
+}
+function generateProgramCode(name) {
+  return name.trim().toUpperCase().replace(/[^A-Z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 24);
 }
 function normalizeIntake(row) {
   return {
@@ -1203,21 +1212,25 @@ async function ensureAdmin(req, res) {
 async function listPrograms(res, includeInactive, shouldCache) {
   try {
     const result = await query(`SELECT
-        id,
-        name,
-        code,
-        description,
-        duration_months,
-        application_fee,
-        tuition_fee,
-        regulatory_body,
-        accreditation_status,
-        is_active,
-        created_at,
-        updated_at
-      FROM programs
-      WHERE ($1::boolean = true OR is_active = true)
-      ORDER BY name ASC`, [includeInactive]);
+        p.id,
+        p.name,
+        p.code,
+        p.description,
+        p.duration_months,
+        p.application_fee,
+        p.tuition_fee,
+        p.regulatory_body,
+        p.accreditation_status,
+        p.institution_id,
+        i.name AS institution_name,
+        i.full_name AS institution_full_name,
+        p.is_active,
+        p.created_at,
+        p.updated_at
+      FROM programs p
+      LEFT JOIN institutions i ON i.id = p.institution_id
+      WHERE ($1::boolean = true OR p.is_active = true)
+      ORDER BY p.name ASC`, [includeInactive]);
     if (shouldCache) {
       res.setHeader("Cache-Control", "public, max-age=300");
     }
@@ -1256,25 +1269,26 @@ async function listIntakes(res, includeInactive, shouldCache) {
 async function createProgram(req, res) {
   const body = req.body || {};
   const name = String(body.name || "").trim();
-  const code = String(body.code || "").trim();
+  const code = String(body.code || generateProgramCode(name)).trim();
   const description = typeof body.description === "string" ? body.description.trim() : "";
-  const durationMonths = Number(body.duration_months);
+  const durationMonths = Number(body.duration_months ?? Number(body.duration_years) * 12);
   const applicationFee = body.application_fee !== undefined ? Number(body.application_fee) : 153;
   const tuitionFee = body.tuition_fee !== undefined ? Number(body.tuition_fee) : null;
   const regulatoryBody = typeof body.regulatory_body === "string" ? body.regulatory_body.trim() : null;
+  const institutionId = String(body.institution_id || "").trim();
   if (!name) {
     return sendError(res, "Program name is required", HttpStatus.BAD_REQUEST);
   }
-  if (!code) {
-    return sendError(res, "Program code is required", HttpStatus.BAD_REQUEST);
+  if (!institutionId) {
+    return sendError(res, "Institution is required", HttpStatus.BAD_REQUEST);
   }
   if (!Number.isFinite(durationMonths) || durationMonths < 1 || durationMonths > 120) {
     return sendError(res, "duration_months must be between 1 and 120", HttpStatus.BAD_REQUEST);
   }
   try {
-    const result = await query(`INSERT INTO programs (name, code, description, duration_months, application_fee, tuition_fee, regulatory_body, is_active, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW(), NOW())
-       RETURNING *`, [name, code, description || null, durationMonths, applicationFee, tuitionFee, regulatoryBody]);
+    const result = await query(`INSERT INTO programs (name, code, description, duration_months, application_fee, tuition_fee, regulatory_body, institution_id, is_active, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, NOW(), NOW())
+       RETURNING *`, [name, code, description || null, durationMonths, applicationFee, tuitionFee, regulatoryBody, institutionId]);
     return sendSuccess(res, { program: normalizeProgram(result.rows[0]) });
   } catch (error) {
     return handleError(res, error, "catalog/create-program");
@@ -1284,12 +1298,13 @@ async function updateProgram(req, res) {
   const body = req.body || {};
   const id = String(body.id || "").trim();
   const name = String(body.name || "").trim();
-  const code = String(body.code || "").trim();
+  const code = String(body.code || generateProgramCode(name)).trim();
   const description = typeof body.description === "string" ? body.description.trim() : "";
-  const durationMonths = Number(body.duration_months);
+  const durationMonths = Number(body.duration_months ?? Number(body.duration_years) * 12);
   const applicationFee = body.application_fee !== undefined ? Number(body.application_fee) : null;
   const tuitionFee = body.tuition_fee !== undefined ? Number(body.tuition_fee) : null;
   const regulatoryBody = typeof body.regulatory_body === "string" ? body.regulatory_body.trim() : null;
+  const institutionId = String(body.institution_id || "").trim();
   const isActive = typeof body.is_active === "boolean" ? body.is_active : undefined;
   if (!id) {
     return sendError(res, "Program id is required", HttpStatus.BAD_REQUEST);
@@ -1297,8 +1312,8 @@ async function updateProgram(req, res) {
   if (!name) {
     return sendError(res, "Program name is required", HttpStatus.BAD_REQUEST);
   }
-  if (!code) {
-    return sendError(res, "Program code is required", HttpStatus.BAD_REQUEST);
+  if (!institutionId) {
+    return sendError(res, "Institution is required", HttpStatus.BAD_REQUEST);
   }
   if (!Number.isFinite(durationMonths) || durationMonths < 1 || durationMonths > 120) {
     return sendError(res, "duration_months must be between 1 and 120", HttpStatus.BAD_REQUEST);
@@ -1312,10 +1327,11 @@ async function updateProgram(req, res) {
            application_fee = COALESCE($6, application_fee),
            tuition_fee = $7,
            regulatory_body = $8,
-           is_active = COALESCE($9, is_active),
+           institution_id = $9,
+           is_active = COALESCE($10, is_active),
            updated_at = NOW()
        WHERE id = $1
-       RETURNING *`, [id, name, code, description || null, durationMonths, applicationFee, tuitionFee, regulatoryBody, isActive ?? null]);
+       RETURNING *`, [id, name, code, description || null, durationMonths, applicationFee, tuitionFee, regulatoryBody, institutionId, isActive ?? null]);
     if (result.rowCount === 0) {
       return sendError(res, "Program not found", HttpStatus.NOT_FOUND);
     }

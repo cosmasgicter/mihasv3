@@ -1,18 +1,21 @@
 import { apiClient } from './client'
+import { fileToBase64 } from '@/utils/file-helpers'
 
 export const documentService = {
   /** Upload a document. Maps to POST /api/documents?action=upload */
-  upload: (data: { file: File; fileType: string; applicationId: string; userId?: string }) => {
-    const formData = new FormData()
-    formData.append('file', data.file)
-    formData.append('fileType', data.fileType)
-    formData.append('applicationId', data.applicationId)
-    if (data.userId) formData.append('userId', data.userId)
-    
+  upload: async (data: { file: File; fileType: string; applicationId: string; userId?: string }) => {
+    const file = await fileToBase64(data.file)
+
     return apiClient.request('/documents?action=upload', {
       method: 'POST',
-      body: formData,
-      headers: {} // Let browser set Content-Type for FormData
+      body: JSON.stringify({
+        file,
+        fileName: data.file.name,
+        contentType: data.file.type,
+        applicationId: data.applicationId,
+        userId: data.userId,
+        documentType: data.fileType,
+      })
     })
   },
 

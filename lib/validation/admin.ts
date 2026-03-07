@@ -5,7 +5,16 @@ import { z } from 'zod';
 import { sanitizedString, nonEmptySanitizedString, optionalSanitizedString } from './sanitize';
 import { emailSchema, passwordSchema } from './auth';
 
-const roleSchema = z.enum(['student', 'reviewer', 'admin', 'super_admin']);
+const roleSchema = z.enum([
+  'student',
+  'reviewer',
+  'admissions_officer',
+  'registrar',
+  'finance_officer',
+  'academic_head',
+  'admin',
+  'super_admin',
+]);
 
 /** POST — admin register user */
 export const adminRegisterBodySchema = z.object({
@@ -13,6 +22,7 @@ export const adminRegisterBodySchema = z.object({
   password: passwordSchema,
   firstName: nonEmptySanitizedString,
   lastName: nonEmptySanitizedString,
+  phone: optionalSanitizedString,
   role: roleSchema.optional(),
 });
 
@@ -26,6 +36,21 @@ export const adminSetPasswordBodySchema = z.object({
 export const updateRoleBodySchema = z.object({
   userId: nonEmptySanitizedString,
   role: roleSchema,
+});
+
+/** PUT — update an existing user */
+export const updateUserBodySchema = z.object({
+  userId: nonEmptySanitizedString,
+  email: emailSchema,
+  full_name: nonEmptySanitizedString,
+  phone: optionalSanitizedString,
+  role: roleSchema,
+});
+
+/** GET/PUT — view effective permissions for a user */
+export const userPermissionsBodySchema = z.object({
+  userId: nonEmptySanitizedString,
+  permissions: z.array(sanitizedString).optional(),
 });
 
 /** POST — create setting */

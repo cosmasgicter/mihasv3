@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Query cache configuration and auth query hooks.
  *
@@ -96,11 +95,11 @@ export const useOptimisticMutation = <TData = any, TVariables = any>(
       if (context?.previousData !== undefined) {
         queryClient.setQueryData(queryKey, context.previousData)
       }
-      options?.onError?.(err, variables, context)
+      options?.onError?.(err, variables, context, {} as any)
     },
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, {} as any)
     },
     ...options
   })

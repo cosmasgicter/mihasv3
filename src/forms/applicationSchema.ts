@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { z } from 'zod'
 import type { Program, Intake } from '@/types/database'
 
@@ -7,7 +6,7 @@ export const DEFAULT_PROGRAMS: Program[] = [
     id: 'diploma-clinical-medicine',
     name: 'Diploma in Clinical Medicine',
     description: 'HPCZ Accredited - Prepares students for clinical officer practice',
-    duration_years: 3,
+    duration_months: 36,
     institution_id: 'katc',
     is_active: true,
     created_at: '',
@@ -17,7 +16,7 @@ export const DEFAULT_PROGRAMS: Program[] = [
     id: 'diploma-environmental-health',
     name: 'Diploma in Environmental Health',
     description: 'ECZ Accredited - Environmental health and safety specialization',
-    duration_years: 3,
+    duration_months: 36,
     institution_id: 'katc',
     is_active: true,
     created_at: '',
@@ -27,7 +26,7 @@ export const DEFAULT_PROGRAMS: Program[] = [
     id: 'diploma-registered-nursing',
     name: 'Diploma in Registered Nursing',
     description: 'NMCZ Accredited - Professional nursing practice preparation',
-    duration_years: 3,
+    duration_months: 36,
     institution_id: 'mihas',
     is_active: true,
     created_at: '',
@@ -39,13 +38,9 @@ export const DEFAULT_INTAKES: Intake[] = [
   {
     id: 'january-2026',
     name: 'January 2026 Intake',
-    year: 2026,
-    semester: 'First Semester',
     start_date: '2026-01-15',
     end_date: '2026-06-30',
     application_deadline: '2025-12-15',
-    total_capacity: 200,
-    available_spots: 200,
     is_active: true,
     created_at: '',
     updated_at: ''
@@ -53,13 +48,9 @@ export const DEFAULT_INTAKES: Intake[] = [
   {
     id: 'july-2026',
     name: 'July 2026 Intake',
-    year: 2026,
-    semester: 'Second Semester',
     start_date: '2026-07-15',
     end_date: '2026-12-31',
     application_deadline: '2026-06-15',
-    total_capacity: 200,
-    available_spots: 200,
     is_active: true,
     created_at: '',
     updated_at: ''
@@ -72,8 +63,8 @@ export const applicationSchema = z.object({
   nrc_number: z.string().optional(),
   passport_number: z.string().optional(),
   date_of_birth: z.string().min(1, 'Date of birth is required'),
-  sex: z.enum(['Male', 'Female'], { required_error: 'Please select sex' }),
-  marital_status: z.enum(['Single', 'Married', 'Divorced', 'Widowed'], { required_error: 'Please select marital status' }),
+  sex: z.enum(['Male', 'Female'], { error: 'Please select sex' }),
+  marital_status: z.enum(['Single', 'Married', 'Divorced', 'Widowed'], { error: 'Please select marital status' }),
   nationality: z.string().min(1, 'Nationality is required'),
   province: z.string().min(1, 'Province is required'),
   district: z.string().min(1, 'District is required'),
@@ -116,8 +107,8 @@ export const applicationSchema = z.object({
   information_accuracy: z.boolean().optional(),
   professional_conduct: z.boolean().optional()
 }).superRefine((data, ctx) => {
-  const hasNrc = data.nrc_number?.trim().length > 0
-  const hasPassport = data.passport_number?.trim().length > 0
+  const hasNrc = (data.nrc_number?.trim().length ?? 0) > 0
+  const hasPassport = (data.passport_number?.trim().length ?? 0) > 0
   
   if (!hasNrc && !hasPassport) {
     ctx.addIssue({

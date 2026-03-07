@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useMemo, useState } from 'react'
+import React, { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import {
@@ -31,6 +31,8 @@ interface ReportConfig {
   includeEligibility: boolean
   format: ReportFormat
 }
+
+type ReportApplicationRow = Awaited<ReturnType<typeof applicationService.exportApplications>>['applications'][number]
 
 type DocumentFormState = {
   studentName: string
@@ -167,6 +169,33 @@ export function ReportsGenerator() {
   } | null>(null)
   const [previewMode, setPreviewMode] = useState<'html' | 'text'>('html')
 
+  const loadApplicationsForReport = useCallback(async () => {
+    const rows: ReportApplicationRow[] = []
+    let page = 0
+
+    while (true) {
+      const response = await applicationService.exportApplications({
+        page,
+        limit: 500
+      })
+
+      const batch = response?.applications ?? []
+      if (!batch.length) {
+        break
+      }
+
+      rows.push(...batch)
+
+      if (!response.hasMore || batch.length < 500) {
+        break
+      }
+
+      page += 1
+    }
+
+    return rows
+  }, [])
+
   const templateOptions = useMemo(
     () => Object.values(DOCUMENT_TEMPLATE_DEFINITIONS),
     []
@@ -226,8 +255,18 @@ export function ReportsGenerator() {
       const reviewNotes = typeof app.review_notes === 'string' ? app.review_notes : ''
       const decisionDate = typeof app.decision_date === 'string' ? app.decision_date : undefined
       const applicationFee = typeof app.application_fee === 'number' ? app.application_fee : undefined
-      const amount = typeof app.amount === 'number' ? app.amount : undefined
-      const momoRef = typeof app.momo_ref === 'string' ? app.momo_ref : ''
+      const paidAmount =
+        typeof app.paid_amount === 'number'
+          ? app.paid_amount
+          : typeof app.amount === 'number'
+            ? app.amount
+            : undefined
+      const paymentReference =
+        typeof app.last_payment_reference === 'string' && app.last_payment_reference.trim()
+          ? app.last_payment_reference
+          : typeof app.momo_ref === 'string'
+            ? app.momo_ref
+            : ''
 
       setDocumentForm(prev => ({
         ...prev,
@@ -256,10 +295,10 @@ export function ReportsGenerator() {
         staffEmail: prev.staffEmail,
         staffPhone: prev.staffPhone,
         paymentAmountDue: applicationFee ? String(applicationFee) : prev.paymentAmountDue,
-        paymentAmountPaid: amount ? String(amount) : prev.paymentAmountPaid,
+        paymentAmountPaid: paidAmount ? String(paidAmount) : prev.paymentAmountPaid,
         paymentBalance: prev.paymentBalance,
         paymentDueDate: prev.paymentDueDate,
-        paymentReference: momoRef || prev.paymentReference,
+        paymentReference: paymentReference || prev.paymentReference,
         paymentLastPaymentDate: prev.paymentLastPaymentDate,
         paymentBreakdown: prev.paymentBreakdown
       }))
@@ -390,39 +429,97 @@ export function ReportsGenerator() {
 
       setLoading(true)
 
-      // Fetch application data via new service
-      const appsData = await applicationService.list({ pageSize: 1000 })
-      
-      const applications = (appsData?.applications || []).filter(app => {
-        const createdAt = new Date(app.created_at ?? 0)
+      const reportRows = await loadApplicationsForReport()
+      const endDate = new Date(config.endDate)
+      endDate.setHours(23, 59, 59, 999)
+
+      const applications = reportRows.filter(app => {
+        const createdAt = new Date(app.submitted_at || app.created_at || 0)
         const startDate = new Date(config.startDate)
-        const endDate = new Date(config.endDate)
         return createdAt >= startDate && createdAt <= endDate
       })
 
-      // Calculate statistics
-      const stats = {
-        totalApplications: applications?.length || 0,
-        submittedApplications: applications?.filter(app => app.status === 'submitted').length || 0,
-        approvedApplications: applications?.filter(app => app.status === 'approved').length || 0,
-        rejectedApplications: applications?.filter(app => app.status === 'rejected').length || 0,
-        pendingApplications: applications?.filter(app => ['submitted', 'under_review'].includes(app.status)).length || 0
+      const totalApplications = applications.length
+      const approvedApplications = applications.filter(app => app.status === 'approved').length
+      const rejectedApplications = applications.filter(app => app.status === 'rejected').length
+      const pendingApplications = applications.filter(app => ['submitted', 'under_review'].includes(app.status)).length
+      const submittedApplications = applications.filter(app => app.status === 'submitted').length
+      const paymentVerified = applications.filter(app => app.payment_status === 'verified').length
+      const paymentPendingReview = applications.filter(app => app.payment_status === 'pending_review').length
+      const paymentRejected = applications.filter(app => app.payment_status === 'rejected').length
+      const paymentNotPaid = applications.filter(app => !app.payment_status || app.payment_status === 'not_paid').length
+      const applicationsWithPhone = applications.filter(app => Boolean(app.phone?.trim())).length
+      const applicationsWithGrades = applications.filter(app => Number(app.total_subjects ?? 0) > 0).length
+      const totalSubjectsSubmitted = applications.reduce((sum, app) => sum + Number(app.total_subjects ?? 0), 0)
+      const cumulativeBestFivePoints = applications.reduce((sum, app) => sum + Number(app.points ?? 0), 0)
+      const totalPaidAmount = applications.reduce((sum, app) => sum + Number(app.paid_amount ?? 0), 0)
+
+      const stats: Record<string, number | string> = {
+        totalApplications,
+        submittedApplications,
+        approvedApplications,
+        rejectedApplications,
+        pendingApplications,
+        paymentVerified,
+        paymentPendingReview,
+        paymentRejected,
+        paymentNotPaid,
+        totalPaidAmount: totalPaidAmount.toFixed(2),
+        applicationsWithPhone,
+        contactCoverage:
+          totalApplications > 0
+            ? `${((applicationsWithPhone / totalApplications) * 100).toFixed(2)}%`
+            : '0.00%',
       }
 
-      // Program breakdown
-      const programStats = applications?.reduce((acc: Record<string, { total: number; approved: number; rejected: number; pending: number }>, app) => {
-        const programName = app.program || 'Unknown'
-        if (!acc[programName]) {
-          acc[programName] = { total: 0, approved: 0, rejected: 0, pending: 0 }
-        }
-        acc[programName].total++
-        if (app.status === 'approved') acc[programName].approved++
-        if (app.status === 'rejected') acc[programName].rejected++
-        if (['submitted', 'under_review'].includes(app.status)) acc[programName].pending++
+      if (config.includeEngagement) {
+        stats.averageDaysSinceSubmission =
+          totalApplications > 0
+            ? (
+                applications.reduce((sum, app) => sum + Number(app.days_since_submission ?? 0), 0) / totalApplications
+              ).toFixed(1)
+            : '0.0'
+        stats.averagePaidAmount =
+          totalApplications > 0
+            ? (totalPaidAmount / totalApplications).toFixed(2)
+            : '0.00'
+      }
+
+      if (config.includeEligibility) {
+        stats.applicationsWithGrades = applicationsWithGrades
+        stats.averageSubjectsSubmitted =
+          applicationsWithGrades > 0 ? (totalSubjectsSubmitted / applicationsWithGrades).toFixed(1) : '0.0'
+        stats.averageBestFivePoints =
+          applicationsWithGrades > 0 ? (cumulativeBestFivePoints / applicationsWithGrades).toFixed(1) : '0.0'
+      }
+
+      const programStats = config.includePrograms
+        ? applications.reduce((acc: Record<string, { total: number; approved: number; rejected: number; pending: number }>, app) => {
+            const programName = app.program || 'Unknown'
+            if (!acc[programName]) {
+              acc[programName] = { total: 0, approved: 0, rejected: 0, pending: 0 }
+            }
+            acc[programName].total++
+            if (app.status === 'approved') acc[programName].approved++
+            if (app.status === 'rejected') acc[programName].rejected++
+            if (['submitted', 'under_review'].includes(app.status)) acc[programName].pending++
+            return acc
+          }, {})
+        : undefined
+
+      const institutionStats = applications.reduce((acc: Record<string, number>, app) => {
+        const institutionName = app.institution || 'Unknown'
+        acc[institutionName] = (acc[institutionName] || 0) + 1
         return acc
       }, {})
 
-      // Generate report data
+      const paymentBreakdown = {
+        Verified: paymentVerified,
+        'Awaiting Proof Review': paymentPendingReview,
+        'Rejected Proof': paymentRejected,
+        'Awaiting Payment': paymentNotPaid,
+      }
+
       const reportName = `${config.type.charAt(0).toUpperCase() + config.type.slice(1)} Report - ${config.startDate} to ${config.endDate}`
 
       const reportData = {
@@ -430,16 +527,28 @@ export function ReportsGenerator() {
         generatedAt: new Date().toISOString(),
         statistics: stats,
         programBreakdown: programStats,
-        approvalRate: stats.totalApplications > 0
-          ? ((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100).toFixed(2)
-          : '0',
+        approvalRate:
+          approvedApplications + rejectedApplications > 0
+            ? ((approvedApplications / (approvedApplications + rejectedApplications)) * 100).toFixed(2)
+            : '0',
         metadata: {
           reportType: config.type,
           includePrograms: config.includePrograms,
           includeEngagement: config.includeEngagement,
           includeEligibility: config.includeEligibility,
           exportFormat: config.format,
-          reportTitle: reportName
+          reportTitle: reportName,
+          totalRows: totalApplications,
+          appliedFilters: {
+            'Report type': config.type,
+            'Start date': config.startDate,
+            'End date': config.endDate,
+            Programs: config.includePrograms ? 'Included' : 'Excluded',
+            Engagement: config.includeEngagement ? 'Included' : 'Excluded',
+            Eligibility: config.includeEligibility ? 'Included' : 'Excluded',
+          },
+          institutionBreakdown: institutionStats,
+          paymentBreakdown,
         }
       }
 
@@ -468,6 +577,7 @@ export function ReportsGenerator() {
   const reportFormats = [
     { value: 'pdf' as ReportFormat, label: 'PDF Document', description: 'Ready-to-share summary', icon: FileDown },
     { value: 'excel' as ReportFormat, label: 'Excel Workbook', description: 'Multi-sheet analytics', icon: FileSpreadsheet },
+    { value: 'csv' as ReportFormat, label: 'CSV Export', description: 'Spreadsheet-friendly flat export', icon: FileSpreadsheet },
     { value: 'json' as ReportFormat, label: 'JSON Export', description: 'Raw data for developers', icon: FileText }
   ]
 

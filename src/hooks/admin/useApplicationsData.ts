@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { applicationService } from '@/services/applications'
@@ -21,7 +20,7 @@ interface ApplicationSummary {
   payment_verified_by: string | null
   payment_verified_by_name: string | null
   payment_verified_by_email: string | null
-  last_payment_audit_id: number | null
+  last_payment_audit_id: string | null
   last_payment_audit_at: string | null
   last_payment_audit_by_name: string | null
   last_payment_audit_by_email: string | null
@@ -84,7 +83,7 @@ const mapApplicationRow = (row: any): ApplicationSummary => ({
   intake: row.intake ?? '',
   institution: row.institution ?? '',
   status: row.status ?? 'draft',
-  payment_status: row.payment_status ?? 'pending_review',
+  payment_status: row.payment_status ?? 'not_paid',
   payment_verified_at: row.payment_verified_at ?? null,
   payment_verified_by: row.payment_verified_by ?? null,
   payment_verified_by_name: row.payment_verified_by_name ?? null,

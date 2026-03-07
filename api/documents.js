@@ -105,7 +105,7 @@ var init_db = __esm(() => {
 });
 
 // lib/queries.ts
-var AuditQueries;
+var AUDIT_ENTITY_PLACEHOLDER_ID = "00000000-0000-0000-0000-000000000000", AuditQueries;
 var init_queries = __esm(() => {
   AuditQueries = {
     log: (input) => ({
@@ -114,7 +114,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+      VALUES ($1, $2, $3, COALESCE($4, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $5, $6, $7, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -133,7 +133,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, 'user', $1, $3, $4, $5, NOW())
+      VALUES ($1, $2, 'user', COALESCE($1, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $3, $4, $5, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -150,7 +150,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, 'authorization_failure', $2, $3, $4, $5, $6, NOW())
+      VALUES ($1, 'authorization_failure', $2, COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -171,7 +171,7 @@ var init_queries = __esm(() => {
         actor_id, action, entity_type, entity_id,
         changes, ip_address, user_agent, created_at
       )
-      VALUES ($1, $2, 'session', $3, $4, $5, $6, NOW())
+      VALUES ($1, $2, 'session', COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -15077,6 +15077,27 @@ function isAllowedUrl(url2) {
   return allowedDomains.includes(hostname3.toLowerCase());
 }
 
+// lib/fileValidator.ts
+var MAGIC_BYTES = {
+  "application/pdf": { bytes: [37, 80, 68, 70], offset: 0 },
+  "image/jpeg": { bytes: [255, 216, 255], offset: 0 },
+  "image/png": { bytes: [137, 80, 78, 71], offset: 0 }
+};
+var MIME_ALIASES = {
+  "image/jpg": "image/jpeg"
+};
+function validateMagicBytes(buffer, declaredMimeType) {
+  const normalizedType = MIME_ALIASES[declaredMimeType] ?? declaredMimeType;
+  const signature = MAGIC_BYTES[normalizedType];
+  if (!signature) {
+    return false;
+  }
+  if (buffer.length < signature.offset + signature.bytes.length) {
+    return false;
+  }
+  return signature.bytes.every((byte, i) => buffer[signature.offset + i] === byte);
+}
+
 // api-src/documents.ts
 var MAX_FILE_SIZE = 10 * 1024 * 1024;
 var MAX_EXTRACT_RESPONSE_SIZE = 20 * 1024 * 1024;
@@ -15250,6 +15271,9 @@ async function handleUpload(req, res, authUserId, userRole) {
   const mimeType = contentType || fileType || "application/octet-stream";
   if (!ALLOWED_TYPES.includes(mimeType)) {
     return sendError(res, "Only PDF, JPG, JPEG, and PNG files are allowed", HttpStatus.BAD_REQUEST);
+  }
+  if (!validateMagicBytes(fileBuffer, mimeType)) {
+    return sendError(res, "File content does not match declared type", HttpStatus.BAD_REQUEST, "INVALID_FILE_CONTENT");
   }
   const effectiveUserId = isAdmin(userRole) && userId ? userId : authUserId;
   const timestamp = Date.now();

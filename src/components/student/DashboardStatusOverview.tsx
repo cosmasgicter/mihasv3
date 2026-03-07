@@ -9,11 +9,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   FileText, 
-  Clock, 
   CheckCircle, 
-  XCircle, 
   AlertCircle,
-  Calendar,
   CreditCard,
   TrendingUp
 } from 'lucide-react';
@@ -22,14 +19,13 @@ import { StatusIndicator, StatusBadge } from '@/components/8starlabs';
 import { cn } from '@/lib/utils';
 import { animateClasses, staggerChild } from '@/lib/animations';
 import type { Application } from '@/types/database';
+import { requiresStudentPaymentAction } from '@/lib/paymentStatus';
 
 interface DashboardStatusOverviewProps {
   applications: Application[];
   totalDraftCount: number;
   className?: string;
 }
-
-type ApplicationStatusType = 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected' | 'pending_payment' | 'interview_scheduled';
 
 // Map application status to 8starlabs status types
 const statusMapping: Record<string, 'operational' | 'degraded' | 'down' | 'idle' | 'pending' | 'success' | 'error' | 'warning'> = {
@@ -141,51 +137,57 @@ export function DashboardStatusOverview({
 }: DashboardStatusOverviewProps) {
 
   // Calculate metrics
-  const submittedCount = applications.filter(app => app.status !== 'draft').length;
-  const underReviewCount = applications.filter(app => app.status === 'under_review').length;
-  const approvedCount = applications.filter(app => app.status === 'approved').length;
-  const pendingPaymentCount = applications.filter(app => 
-    app.status === 'submitted' && app.payment_status !== 'verified'
+  const submittedApplications = applications.filter(app => app.status !== 'draft');
+  const submittedCount = submittedApplications.length;
+  const underReviewCount = submittedApplications.filter(app => app.status === 'under_review').length;
+  const approvedCount = submittedApplications.filter(app => app.status === 'approved').length;
+  const paymentActionRequiredCount = submittedApplications.filter(app =>
+    requiresStudentPaymentAction(app.payment_status)
   ).length;
 
-  // Get the most recent application for status display (including drafts so users can continue)
-  // Sort by created_at (most recently created first) for consistent ordering
-  // For submitted apps, prefer submitted_at if available
-  const latestApplication = applications.length > 0 
-    ? [...applications]
+  // The dedicated continue-draft card owns draft recovery. This overview should
+  // only summarize submitted applications and payment follow-up.
+  const latestApplication = submittedApplications.length > 0 
+    ? [...submittedApplications]
         .sort((a, b) => {
-          // Use submitted_at for submitted apps, created_at for drafts
           const getRelevantDate = (app: Application) => {
-            if (app.status !== 'draft' && app.submitted_at) {
+            if (app.submitted_at) {
               return new Date(app.submitted_at).getTime();
             }
             return new Date(app.created_at ?? 0).getTime();
           };
-          return getRelevantDate(b) - getRelevantDate(a); // Most recent first
+          return getRelevantDate(b) - getRelevantDate(a);
         })[0]
     : null;
   
-  // Determine the correct link for the latest application
-  const latestApplicationLink = latestApplication?.status === 'draft'
-    ? '/student/application-wizard'
-    : `/student/application/${latestApplication?.id}`;
+  const latestApplicationLink = latestApplication
+    ? `/student/application/${latestApplication.id}`
+    : '/student/dashboard';
 
   const metrics = [
     {
-      title: 'Total Applications',
-      value: applications.length,
+      title: 'Submitted Applications',
+      value: submittedCount,
       icon: <FileText className="h-5 w-5" />,
-      description: `${submittedCount} submitted`,
+      description:
+        totalDraftCount > 0
+          ? `${totalDraftCount} draft${totalDraftCount > 1 ? 's' : ''} saved separately`
+          : submittedCount > 0
+            ? 'Live application history'
+            : 'No submitted applications yet',
       accent: 'primary' as const,
-      href: undefined,
+      href: submittedCount > 0 ? '/student/dashboard' : undefined,
     },
     {
-      title: 'Drafts in Progress',
-      value: totalDraftCount,
-      icon: <Clock className="h-5 w-5" />,
-      description: totalDraftCount > 0 ? 'Continue where you left off' : 'No drafts',
-      accent: totalDraftCount > 0 ? 'warning' as const : 'neutral' as const,
-      href: totalDraftCount > 0 ? '/student/application-wizard' : undefined,
+      title: 'Payment Action Required',
+      value: paymentActionRequiredCount,
+      icon: <CreditCard className="h-5 w-5" />,
+      description:
+        paymentActionRequiredCount > 0
+          ? 'Finish payment or resubmit proof'
+          : 'No payment follow-up needed',
+      accent: paymentActionRequiredCount > 0 ? 'warning' as const : 'neutral' as const,
+      href: paymentActionRequiredCount > 0 ? '/student/payment' : undefined,
     },
     {
       title: 'Under Review',
@@ -258,7 +260,7 @@ export function DashboardStatusOverview({
       )}
 
       {/* Pending Payment Alert */}
-      {pendingPaymentCount > 0 && (
+      {paymentActionRequiredCount > 0 && (
         <div
           className={`${animateClasses.scaleIn} opacity-0 rounded-xl border border-warning/30 bg-warning/10 p-4`}
           style={staggerChild(5)}
@@ -270,8 +272,8 @@ export function DashboardStatusOverview({
                 Payment Required
               </p>
               <p className="text-sm text-muted-foreground mt-1">
-                You have {pendingPaymentCount} application{pendingPaymentCount > 1 ? 's' : ''} awaiting payment. 
-                Complete payment to proceed with your application.
+                You have {paymentActionRequiredCount} application{paymentActionRequiredCount > 1 ? 's' : ''} that still need payment follow-up.
+                Finish payment or resubmit corrected proof to keep processing moving.
               </p>
               <Link 
                 to="/student/payment"
