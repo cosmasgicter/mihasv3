@@ -69,6 +69,7 @@ Stabilize the MIHAS application platform end to end so that:
 - Education subject entry must allow adding the next subject in place without scrolling to the top.
 - Zambia subject catalog must include legacy and current subject variants.
 - Upload requirements must distinguish result slip, NRC/passport identity documents, and proof of payment with clear intent.
+- The stored `extra_kyc` document slot may remain as a backend/storage key, but all user-visible student/admin copy must describe it as an `Identity Support Document` rather than generic `Extra KYC`.
 - Payment entry must clearly separate payment details from proof-of-payment upload, and the pay-later branch must point users back to the dashboard payments section.
 
 ### R5. Payments
@@ -81,6 +82,7 @@ Stabilize the MIHAS application platform end to end so that:
 - Payment review by admins must patch payment status without server errors, capture review notes, and support reopening a rejected payment back to review.
 - Admin payment tools must distinguish unpaid (`not paid yet`) applications from `pending_review` applications where proof has already been submitted.
 - Admin queue summaries and filter copy must use labels that match those distinct payment states.
+- Admin application cards, tables, filters, detail modals, export metadata, and payment-update toasts must all reuse that same canonical payment wording instead of raw enum strings.
 - Payment-related notifications, receipts/slips, and dashboard status badges must stay in sync.
 
 ### R6. Catalog, Program, Institution

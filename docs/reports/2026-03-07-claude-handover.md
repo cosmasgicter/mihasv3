@@ -84,6 +84,8 @@ These major clusters are already in place:
 - analytics report exports now include applied filters plus payment and institution breakdown sections across CSV/PDF/Excel/JSON outputs
 - active admin dashboard/report surfaces now present submitted-plus-under-review work as the `Decision Queue`, and report payment breakdown labels now distinguish `Awaiting Payment`, `Awaiting Proof Review`, `Rejected Proof`, and `Verified`
 - admin applications queue summaries and filter labels now distinguish decision queue, proof review, and payment follow-up so unpaid applications are no longer presented as if proof had already been submitted
+- routed admin application filters, cards, table views, detail modals, and payment-update toasts now use the same canonical payment wording instead of raw enum replacement or generic `Awaiting Review` copy
+- admin-facing document/detail flows now label the stored `extra_kyc` slot as `Identity Support Document`, matching the student-side KYC wording cleanup
 - the student payments page now separates action-required items from proof already under review, and verified history remains a separate section
 - student payment/dashboard/detail/status/timeline surfaces now share one canonical payment-state model, so `pending_review` no longer appears as if the student still needs to pay immediately
 - the student dashboard overview now treats drafts as a separate continue-draft concern instead of presenting a saved draft as the latest submitted application status
@@ -253,7 +255,7 @@ These are no longer core implementation blockers, but they may still need follow
 Do these in order:
 
 1. run manual/browser QA against the refreshed student flows and fix only issues that are actually reproduced
-2. run manual/browser QA against admin dashboard/applications/users/export/report flows and fix only issues that are actually reproduced
+2. run manual/browser QA against admin dashboard/applications/users/export/report flows, with special attention to payment-state labels, detail modals, and identity-document wording, and fix only issues that are actually reproduced
 3. only revisit PWA metadata if live deploy/manual install prompts still show stale cached assets
 
 ## Constraints To Keep
@@ -276,4 +278,4 @@ Because the user asked for implementation-first:
 
 ## Resume Prompt For Claude
 
-Use `docs/migration/codex.md` as the authoritative schema/platform reference, then continue from `docs/reports/2026-03-07-manual-remediation-status.md` and this handover. The known implementation backlog is now mostly closed, so treat the next session as QA-driven remediation rather than open-ended feature work. Reproduce issues in the refreshed student/admin flows, fix only what is still genuinely broken, keep migrations intact, keep docs updated, and revisit PWA metadata only if live deploy/manual install prompts still show stale cached assets.
+Use `docs/migration/codex.md` as the authoritative schema/platform reference, then continue from `docs/reports/2026-03-07-manual-remediation-status.md` and this handover. The known implementation backlog is now mostly closed, including the last visible admin payment/document wording drift, so treat the next session as QA-driven remediation rather than open-ended feature work. Reproduce issues in the refreshed student/admin flows, fix only what is still genuinely broken, keep migrations intact, keep docs updated, and revisit PWA metadata only if live deploy/manual install prompts still show stale cached assets.

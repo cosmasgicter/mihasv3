@@ -6,10 +6,11 @@
  */
 
 import React, { useCallback, useMemo } from 'react';
-import { Eye, FileText, Mail, Phone, Calendar, User, AlertTriangle } from 'lucide-react';
+import { Eye, FileText, Mail, User } from 'lucide-react';
 import { EnhancedDataTable, type Column } from '@/components/admin/EnhancedDataTable';
 import { DraftBadge } from '@/components/admin/applications/DraftBadge';
 import { cn } from '@/lib/utils';
+import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus';
 
 interface ApplicationSummary {
   id: string;
@@ -42,26 +43,9 @@ interface ApplicationsTableViewProps {
   className?: string;
 }
 
-// Status mapping for 8starlabs StatusIndicator
-const APPLICATION_STATUS_MAPPING: Record<string, 'operational' | 'degraded' | 'down' | 'idle' | 'pending' | 'success' | 'error' | 'warning'> = {
-  draft: 'idle',
-  submitted: 'pending',
-  under_review: 'warning',
-  approved: 'success',
-  rejected: 'error',
-};
-
-const PAYMENT_STATUS_MAPPING: Record<string, 'operational' | 'degraded' | 'down' | 'idle' | 'pending' | 'success' | 'error' | 'warning'> = {
-  not_paid: 'idle',
-  pending_review: 'pending',
-  verified: 'success',
-  rejected: 'error',
-};
-
 export function ApplicationsTableView({
   applications,
   onViewDetails,
-  onStatusUpdate,
   selectedIds = [],
   onSelectionChange,
   loading = false,
@@ -164,7 +148,21 @@ export function ApplicationsTableView({
       sortable: true,
       filterable: true,
       align: 'center',
-      statusMapping: PAYMENT_STATUS_MAPPING,
+      render: (value: string) => {
+        const normalized = normalizePaymentStatus(value);
+        const badgeStyles: Record<string, string> = {
+          not_paid: 'bg-slate-100 text-slate-800 border-slate-300',
+          pending_review: 'bg-orange-100 text-orange-800 border-orange-300',
+          verified: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+          rejected: 'bg-rose-100 text-rose-800 border-rose-300',
+        };
+
+        return (
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${badgeStyles[normalized]}`}>
+            {getPaymentStatusLabel(normalized)}
+          </span>
+        );
+      },
     },
     {
       key: 'points',

@@ -26,6 +26,7 @@ import {
 } from '@/lib/exportUtils'
 import { calculatePointsFromSummary } from '@/utils/grades'
 import { buildApplicationsOverview } from '@/pages/admin/lib/applicationsOverview'
+import { getPaymentStatusLabel } from '@/lib/paymentStatus'
 import { 
   FileDown, 
   FileSpreadsheet, 
@@ -54,6 +55,9 @@ const sanitizeSearchTerm = (value: string) => {
     .replace(/[%_]/g, match => `\\${match}`)
     .replace(/,/g, '\\,')
 }
+
+const formatStatusLabel = (value: string) =>
+  value.replace(/_/g, ' ').replace(/\b\w/g, letter => letter.toUpperCase())
 
 const mapRecordToApplication = (record: any): ApplicationData => {
   const points = record.points && Number(record.points) > 0 
@@ -338,7 +342,7 @@ export default function Applications() {
     
     const documents: Array<{ name: string; url: string }> = []
     if (selectedApp.result_slip_url) documents.push({ name: 'Result Slip', url: selectedApp.result_slip_url })
-    if (selectedApp.extra_kyc_url) documents.push({ name: 'Extra KYC', url: selectedApp.extra_kyc_url })
+    if (selectedApp.extra_kyc_url) documents.push({ name: 'Identity Support Document', url: selectedApp.extra_kyc_url })
     if (selectedApp.pop_url) documents.push({ name: 'Proof of Payment', url: selectedApp.pop_url })
     
     if (documents.length === 0) {
@@ -406,7 +410,7 @@ export default function Applications() {
     try {
       setUpdatingStatusId(applicationId)
       await updateStatus(applicationId, newStatus)
-      showSuccess('Status updated', `Application status changed to ${newStatus.replace('_', ' ')}.`)
+      showSuccess('Status updated', `Application status changed to ${formatStatusLabel(newStatus)}.`)
     } catch (error) {
       console.error('Failed to update application status:', error)
       showError('Status update failed', error instanceof Error ? error.message : 'Unable to update application status. Please try again.')
@@ -425,7 +429,7 @@ export default function Applications() {
     try {
       setUpdatingPaymentId(applicationId)
       await updatePaymentStatus(applicationId, newPaymentStatus, verificationNotes)
-      showSuccess('Payment status updated', `Payment status changed to ${newPaymentStatus.replace('_', ' ')}.`)
+      showSuccess('Payment status updated', `Payment status changed to ${getPaymentStatusLabel(newPaymentStatus)}.`)
     } catch (error) {
       console.error('Failed to update payment status:', error)
       showError('Payment update failed', error instanceof Error ? error.message : 'Unable to update payment status. Please try again.')

@@ -6,6 +6,7 @@ import { DraftBadge } from './DraftBadge'
 import { useToastStore } from '@/components/ui/Toast'
 import { CommunicationModal, type CommunicationData } from '@/components/admin/CommunicationModal'
 import { applicationService } from '@/services/applications'
+import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus'
 
 // Institution code to name mapping
 export const INSTITUTION_NAMES: Record<string, string> = {
@@ -106,6 +107,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
 
   // Internalized getPaymentBadge function with useCallback
   const getPaymentBadge = useCallback((paymentStatus: string) => {
+    const normalizedStatus = normalizePaymentStatus(paymentStatus)
     const paymentConfig = {
       not_paid: { color: 'bg-slate-100 text-slate-800 border border-slate-300', icon: Clock },
       pending_review: { color: 'bg-orange-100 text-orange-800 border border-orange-300', icon: Clock },
@@ -113,13 +115,13 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
       rejected: { color: 'bg-rose-100 text-rose-800 border border-rose-300', icon: XCircle }
     }
 
-    const config = paymentConfig[paymentStatus as keyof typeof paymentConfig] || paymentConfig.pending_review
+    const config = paymentConfig[normalizedStatus]
     const Icon = config.icon
 
     return (
       <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
         <Icon className="h-3 w-3" />
-        {paymentStatus.replace('_', ' ').toUpperCase()}
+        {getPaymentStatusLabel(normalizedStatus)}
       </span>
     )
   }, [])

@@ -10,6 +10,7 @@ import { SendNotificationModal } from './SendNotificationModal'
 import { CommunicationHistory } from '@/components/admin/CommunicationHistory'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus'
 
 // Institution code to name mapping
 const INSTITUTION_NAMES: Record<string, string> = {
@@ -287,7 +288,7 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
  allDocuments.push({
  id: 'extra_kyc',
  document_type: 'extra_kyc',
- document_name: 'Extra KYC Documents',
+ document_name: 'Identity Support Document',
  file_url: application.extra_kyc_url,
  verification_status: 'pending',
  system_generated: false
@@ -708,10 +709,12 @@ export function ApplicationDetailModal({
  }
 
  const getPaymentIcon = (status: string) => {
- switch (status) {
+ switch (normalizePaymentStatus(status)) {
+ case 'not_paid': return <Clock className="h-5 w-5 text-slate-700" />
+ case 'pending_review': return <Clock className="h-5 w-5 text-orange-700" />
  case 'verified': return <CheckCircle className="h-5 w-5 text-accent" />
  case 'rejected': return <XCircle className="h-5 w-5 text-destructive" />
- default: return <Clock className="h-5 w-5 text-accent" />
+ default: return <Clock className="h-5 w-5 text-slate-700" />
  }
  }
 
@@ -723,6 +726,14 @@ export function ApplicationDetailModal({
  { id: 'communications', label: 'Communications', icon: MessageSquare },
  { id: 'history', label: 'History', icon: History }
  ] as const
+
+ const paymentStatusLabel = getPaymentStatusLabel(application.payment_status)
+ const paymentStatusTextClass = {
+ 'Awaiting Payment': 'text-slate-900',
+ 'Awaiting Proof Review': 'text-orange-900',
+ Verified: 'text-green-900',
+ Rejected: 'text-red-900'
+ }[paymentStatusLabel] || 'text-foreground'
 
  const handleGenerateAcceptance = async () => {
  try {
@@ -839,11 +850,11 @@ export function ApplicationDetailModal({
  
  <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-xl">
  <div className="flex items-center gap-3">
- {getPaymentIcon(application.payment_status || 'pending')}
+ {getPaymentIcon(application.payment_status || 'not_paid')}
  <div>
  <p className="text-sm font-medium text-foreground">Payment Status</p>
- <p className="text-lg font-bold text-green-900 capitalize">
- {(application.payment_status || 'pending').replace('_', ' ')}
+ <p className={`text-lg font-bold ${paymentStatusTextClass}`}>
+ {paymentStatusLabel}
  </p>
  </div>
  </div>
