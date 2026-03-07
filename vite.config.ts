@@ -80,7 +80,9 @@ export default defineConfig(({ mode, command }) => {
         injectRegister: false,
         injectManifest: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
-          maximumFileSizeToCacheInBytes: 3 * 1024 * 1024
+          // Allow caching the largest current app chunk (~8.2MB) so production
+          // builds don't fail when generating the service-worker precache.
+          maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
         },
       })
     ],
