@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
 import { useSidebar } from '@/contexts/SidebarContext'
+import { Tooltip } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 interface NavItem {
@@ -95,19 +96,21 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
       className="hidden md:flex flex-col fixed left-0 top-0 h-screen bg-gradient-to-b from-card via-card to-muted/70 backdrop-blur-xl border-r border-border/80 shadow-xl z-40 transition-all duration-300 ease-in-out"
       style={{ width: collapsed ? 'var(--sidebar-collapsed)' : 'var(--sidebar-expanded)' }}
     >
-      <div className="relative border-b border-border/80 px-3 py-4">
+      {/* Header / Logo area */}
+      <div className={cn(
+        'border-b border-border/80 py-4 transition-all duration-300',
+        collapsed ? 'px-2' : 'px-3'
+      )}>
         <div className={cn(
-          'flex items-center rounded-2xl bg-white/70 px-3 py-3 shadow-sm ring-1 ring-border/60',
-          collapsed ? 'justify-center' : 'gap-3 pr-12'
+          'flex items-center rounded-2xl bg-white/70 shadow-sm ring-1 ring-border/60 transition-all duration-300',
+          collapsed ? 'justify-center px-2 py-3' : 'gap-3 px-3 py-3'
         )} role="img" aria-label="Mukuba Institute of Health and Allied Sciences logo">
-          <div className={cn(
-            'h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shrink-0 shadow-md'
-          )} aria-hidden="true">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shrink-0 shadow-md" aria-hidden="true">
             <span className="text-white font-bold text-sm">MI</span>
           </div>
 
           {!collapsed && (
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold uppercase tracking-[0.16em] text-primary/80">Portal</p>
               <span className="block text-base font-bold text-foreground truncate transition-opacity duration-200 motion-reduce:transition-none">
                 {isAdmin ? 'MIHAS Admin' : 'MIHAS Student'}
@@ -116,25 +119,34 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
           )}
         </div>
 
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className={cn(
-            'absolute right-4 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full border border-border/70 bg-card shadow-sm',
-            'flex items-center justify-center hover:bg-accent transition-colors',
-            'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
-          )}
-        >
-          {collapsed ? (
-            <ChevronRight style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }} />
-          ) : (
-            <ChevronLeft style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }} />
-          )}
-        </button>
+        {/* Collapse toggle — below logo when collapsed, inline when expanded */}
+        <div className={cn(
+          'flex transition-all duration-300',
+          collapsed ? 'justify-center mt-3' : 'justify-end mt-2'
+        )}>
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className={cn(
+              'h-8 w-8 rounded-full border border-border/70 bg-card shadow-sm',
+              'flex items-center justify-center hover:bg-accent transition-colors',
+              'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
+            )}
+          >
+            {collapsed ? (
+              <ChevronRight style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }} />
+            ) : (
+              <ChevronLeft style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }} />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-2">
+      <nav className={cn(
+        'flex-1 overflow-y-auto py-4 space-y-2',
+        collapsed ? 'px-1.5' : 'px-2'
+      )}>
         {isAdmin ? (
           visibleAdminSections.map((section) => (
             <SidebarSection
@@ -166,7 +178,10 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
       </nav>
 
       {/* Footer with system status */}
-      <div className="border-t border-border/80 p-4">
+      <div className={cn(
+        'border-t border-border/80',
+        collapsed ? 'p-2' : 'p-4'
+      )}>
         {!collapsed ? (
           <div className="flex items-center gap-3 rounded-2xl bg-white/70 px-3 py-3 text-xs text-muted-foreground shadow-sm ring-1 ring-border/60 transition-opacity duration-200 motion-reduce:transition-none">
             <div className="w-2.5 h-2.5 rounded-full bg-success animate-pulse motion-reduce:animate-none" />
@@ -176,12 +191,14 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
             </div>
           </div>
         ) : (
-          <div className="flex justify-center transition-opacity duration-200 motion-reduce:transition-none" title="System Online" role="status">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow-sm ring-1 ring-border/60">
-              <div className="w-2.5 h-2.5 rounded-full bg-success animate-pulse motion-reduce:animate-none" aria-hidden="true" />
+          <Tooltip content="System Online" side="right">
+            <div className="flex justify-center transition-opacity duration-200 motion-reduce:transition-none" role="status">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow-sm ring-1 ring-border/60">
+                <div className="w-2.5 h-2.5 rounded-full bg-success animate-pulse motion-reduce:animate-none" aria-hidden="true" />
+              </div>
+              <span className="sr-only">System Online</span>
             </div>
-            <span className="sr-only">System Online</span>
-          </div>
+          </Tooltip>
         )}
       </div>
     </aside>
@@ -232,6 +249,11 @@ function SidebarSection({
         </button>
       )}
 
+      {/* When collapsed, show a thin divider between sections instead of header */}
+      {collapsed && (
+        <div className="mx-3 my-1 border-t border-border/40" />
+      )}
+
       {/* Section items */}
       {(collapsed || expanded) && (
         <div
@@ -269,23 +291,22 @@ function SidebarNavItem({
 }: SidebarNavItemProps) {
   const Icon = item.icon
 
-  return (
+  const linkContent = (
     <Link
       to={item.to}
       aria-current={isActive ? 'page' : undefined}
       className={cn(
-        'relative flex items-center gap-3 px-3 py-2.5 rounded-2xl group overflow-hidden',
+        'relative flex items-center rounded-2xl group overflow-hidden',
         'transition-all duration-200',
         'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
-        collapsed && 'justify-center',
+        collapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5',
         isActive
           ? 'bg-primary text-primary-foreground shadow-md'
           : 'text-muted-foreground hover:bg-white/80 hover:text-foreground'
       )}
-      title={collapsed ? item.label : undefined}
     >
-      {/* Active indicator */}
-      {isActive && (
+      {/* Active indicator — only show when expanded */}
+      {isActive && !collapsed && (
         <div
           className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full transition-opacity duration-200 motion-reduce:transition-none"
         />
@@ -319,4 +340,15 @@ function SidebarNavItem({
       )}
     </Link>
   )
+
+  // Wrap with tooltip when collapsed
+  if (collapsed) {
+    return (
+      <Tooltip content={item.label} side="right">
+        {linkContent}
+      </Tooltip>
+    )
+  }
+
+  return linkContent
 }

@@ -35,7 +35,7 @@ describe('profile field mapping utilities', () => {
     ).toBe('Ndola')
   })
 
-  it('reaches 100 percent when all canonical profile fields are present', () => {
+  it('reaches 100 percent when all core registration fields are present', () => {
     const completion = calculateCanonicalProfileCompletion(
       {
         full_name: 'Jane Doe',
@@ -43,6 +43,23 @@ describe('profile field mapping utilities', () => {
         date_of_birth: '1998-01-01T00:00:00.000Z',
         sex: 'Female',
         residence_town: 'Lusaka',
+        country: 'Zambia',
+      },
+      {},
+    )
+
+    expect(completion).toBe(100)
+  })
+
+  it('reaches 100 percent even without optional next_of_kin and nationality fields', () => {
+    const completion = calculateCanonicalProfileCompletion(
+      {
+        full_name: 'Jane Doe',
+        phone: '+260971234567',
+        date_of_birth: '1998-01-01',
+        sex: 'Female',
+        residence_town: 'Lusaka',
+        country: 'Zambia',
         nationality: 'Zambian',
         next_of_kin_name: 'John Doe',
         next_of_kin_phone: '+260977000000',
@@ -50,6 +67,7 @@ describe('profile field mapping utilities', () => {
       {},
     )
 
+    // nationality and next_of_kin are not part of core fields — still 100%
     expect(completion).toBe(100)
   })
 
@@ -61,11 +79,24 @@ describe('profile field mapping utilities', () => {
         date_of_birth: '1998-01-01',
         sex: 'Female',
         residence_town: 'Lusaka',
-        nationality: 'Zambian',
+        country: 'Zambia',
       },
       {},
     )
 
-    expect(completion).toBeGreaterThan(71)
+    expect(completion).toBe(100)
+  })
+
+  it('reflects partial completion when some registration fields are missing', () => {
+    const completion = calculateCanonicalProfileCompletion(
+      {
+        full_name: 'Jane Doe',
+        phone: '+260971234567',
+      },
+      {},
+    )
+
+    // 2 out of 6 core fields = 33%
+    expect(completion).toBe(33)
   })
 })

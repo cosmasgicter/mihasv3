@@ -91,6 +91,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
     if (action === 'schedule-interview') return await handleScheduleInterview(req, res, user.userId, isAdmin);
     if (action === 'stats') return await handleStats(req, res, user.userId);
     if (action === 'export') return await handleExport(req, res, isAdmin);
+    if (action === 'email-slip') return await handleEmailSlip(req, res, user.userId, isAdmin);
     if (action === 'versions') return await handleVersions(req, res, user.userId);
 
     // Handle CRUD by ID
@@ -277,7 +278,7 @@ async function handleCreate(
       body.status || 'draft'
     ];
 
-    const placeholders = values.map((_, i) => `${i + 1}`).join(', ');
+    const placeholders = values.map((_, i) => `$${i + 1}`).join(', ');
 
     const result = await query<ApplicationRecord>(
       `INSERT INTO applications (${fields.join(', ')})
@@ -1658,6 +1659,87 @@ async function handleExport(
  * Handle versions action - Get/create application versions
  * NOTE: application_versions table does not exist — returns graceful empty responses
  */
+async function handleEmailSlip(
+  req: VercelRequest,
+  res: VercelResponse,
+  userId: string,
+  isAdmin: boolean
+) {
+  if (req.method !== 'POST') {
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
+  const { applicationId, email } = req.body || {};
+  if (!applicationId || !email) {
+    return sendError(res, 'Missing required fields: applicationId, email', HttpStatus.BAD_REQUEST);
+  }
+
+  // Fetch application
+  const appQ = ApplicationQueries.findById(applicationId);
+  const appResult = await query<ApplicationRecord>(appQ.text, appQ.values);
+
+  if (appResult.rowCount === 0) {
+    return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
+  }
+
+  const app = appResult.rows[0];
+
+  // Verify ownership or admin role
+  if (app.user_id !== userId && !isAdmin) {
+    return sendError(res, 'Access denied', HttpStatus.FORBIDDEN);
+  }
+
+  try {
+    const htmlBody = renderEmailTemplate('application-submitted', {
+      recipientName: app.full_name || undefined,
+      applicationNumber: app.application_number || undefined,
+      programName: (app as Record<string, unknown>).program as string || undefined,
+      actionUrl: `***REMOVED***/student/application/${applicationId}`,
+    });
+
+    await query(
+      `INSERT INTO email_queue (
+         recipient_email,
+         recipient_name,
+         subject,
+         body,
+         html_body,
+         template_name,
+         template_data,
+         status,
+         priority
+       )
+       VALUES ($1, $2, $3, $4, $5, 'application-submitted', $6, 'pending', 5)`,
+      [
+        email,
+        app.full_name || null,
+        `Application Slip - ${app.application_number || applicationId}`,
+        `Your application slip for ${app.application_number || applicationId}`,
+        htmlBody,
+        JSON.stringify({
+          recipientName: app.full_name || null,
+          applicationNumber: app.application_number || null,
+          programName: (app as Record<string, unknown>).program || null,
+        }),
+      ]
+    );
+
+    try {
+      await logAuditEvent({
+        actor_id: userId,
+        action: 'application_slip_emailed',
+        entity_type: 'application',
+        entity_id: applicationId,
+        changes: { recipient: email.substring(0, 3) + '***' },
+      });
+    } catch { /* non-blocking */ }
+
+    return sendSuccess(res, { emailed: true });
+  } catch (error) {
+    return handleError(res, error, 'applications/email-slip');
+  }
+}
+
 async function handleVersions(
   req: VercelRequest,
   res: VercelResponse,

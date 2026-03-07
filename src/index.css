@@ -222,7 +222,7 @@ input, textarea, select {
   }
   
   .text-vibrant {
-    @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-blue-600/90 to-indigo-600/85 bg-clip-text text-transparent;
   }
   
   /* Performance-optimized animations */

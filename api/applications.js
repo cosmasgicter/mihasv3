@@ -1146,6 +1146,7 @@ async function verifyAccessToken(token) {
       email: payload.email,
       role: payload.role,
       permissions: Array.isArray(payload.permissions) ? payload.permissions : [],
+      sid: typeof payload.sid === "string" ? payload.sid : undefined,
       type: "access",
       iat: payload.iat,
       exp: payload.exp,
@@ -1220,6 +1221,20 @@ function extractAccessTokenFromCookie(req) {
   return token;
 }
 
+// lib/sessions.ts
+init_db();
+init_queries();
+async function isSessionActive(userId, sessionId) {
+  const result = await query(`SELECT id
+     FROM device_sessions
+     WHERE id = $1
+       AND user_id = $2
+       AND is_active = true
+       AND expires_at > NOW()
+     LIMIT 1`, [sessionId, userId]);
+  return result.rowCount > 0;
+}
+
 // lib/auth/middleware.ts
 function extractToken(req) {
   const cookieToken = extractAccessTokenFromCookie(req);
@@ -1239,6 +1254,10 @@ async function getAuthUser(req) {
   }
   try {
     const payload = await verifyAccessToken(token);
+    const sessionValid = await validateTrackedSession(payload);
+    if (!sessionValid) {
+      return null;
+    }
     return mapPayloadToAuthContext(payload);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -1251,8 +1270,20 @@ function mapPayloadToAuthContext(payload) {
     userId: payload.sub,
     email: payload.email,
     role: payload.role,
-    permissions: payload.permissions || []
+    permissions: payload.permissions || [],
+    sessionId: payload.sid
   };
+}
+async function validateTrackedSession(payload) {
+  if (!payload.sid) {
+    return true;
+  }
+  try {
+    return await isSessionActive(payload.sub, payload.sid);
+  } catch (error) {
+    console.log("[AUTH] Session validation failed:", error instanceof Error ? error.message : "Unknown error");
+    return false;
+  }
 }
 
 // lib/arcjet.ts
@@ -15331,6 +15362,8 @@ async function handler(req, res) {
       return await handleStats(req, res, user.userId);
     if (action === "export")
       return await handleExport(req, res, isAdmin);
+    if (action === "email-slip")
+      return await handleEmailSlip(req, res, user.userId, isAdmin);
     if (action === "versions")
       return await handleVersions(req, res, user.userId);
     if (id)
@@ -15344,6 +15377,41 @@ async function handler(req, res) {
     return handleError(res, error48, "applications");
   }
 }
+var APPLICATION_PAYMENT_METADATA_SELECT = `
+  a.*,
+  NULLIF(TRIM(CONCAT_WS(' ', verifier.first_name, verifier.last_name)), '') AS payment_verified_by_name,
+  verifier.email AS payment_verified_by_email,
+  payment_audit.id AS last_payment_audit_id,
+  payment_audit.created_at AS last_payment_audit_at,
+  payment_audit.actor_name AS last_payment_audit_by_name,
+  payment_audit.actor_email AS last_payment_audit_by_email,
+  payment_audit.notes AS last_payment_audit_notes,
+  COALESCE(NULLIF(a.momo_ref, ''), NULLIF(a.pop_url, '')) AS last_payment_reference
+`;
+var APPLICATION_PAYMENT_METADATA_JOINS = `
+  LEFT JOIN profiles verifier
+    ON verifier.id = a.payment_verified_by
+  LEFT JOIN LATERAL (
+    SELECT
+      al.id::text AS id,
+      al.created_at::text AS created_at,
+      NULLIF(TRIM(CONCAT_WS(' ', actor.first_name, actor.last_name)), '') AS actor_name,
+      actor.email AS actor_email,
+      COALESCE(
+        NULLIF(TRIM(al.changes->>'notes'), ''),
+        NULLIF(TRIM(al.changes->>'verification_notes'), ''),
+        NULLIF(TRIM(al.changes->>'reason'), '')
+      ) AS notes
+    FROM audit_logs al
+    LEFT JOIN profiles actor
+      ON actor.id = al.actor_id
+    WHERE al.entity_type = 'payment'
+      AND al.entity_id = a.id
+      AND al.action IN ('payment_verified', 'payment_rejected', 'payment_status_updated')
+    ORDER BY al.created_at DESC, al.id DESC
+    LIMIT 1
+  ) payment_audit ON true
+`;
 function isValidTrackingCode(code) {
   const value = code.trim();
   if (!value || value.length > 50)
@@ -15444,7 +15512,7 @@ async function handleCreate(req, res, userId) {
       body.institution,
       body.status || "draft"
     ];
-    const placeholders = values.map((_, i) => `${i + 1}`).join(", ");
+    const placeholders = values.map((_, i) => `$${i + 1}`).join(", ");
     const result = await query(`INSERT INTO applications (${fields.join(", ")})
        VALUES (${placeholders})
        RETURNING *`, values);
@@ -15477,43 +15545,52 @@ async function handleDetails(req, res, userId, isAdmin) {
     const values = [];
     let paramIndex = 1;
     if (!isAdmin || mine === "true") {
-      conditions.push(`user_id = $${paramIndex}`);
+      conditions.push(`a.user_id = $${paramIndex}`);
       values.push(userId);
       paramIndex++;
     }
     if (status) {
-      conditions.push(`status = $${paramIndex}`);
+      conditions.push(`a.status = $${paramIndex}`);
       values.push(status);
       paramIndex++;
     }
     if (search) {
       const searchPattern = `%${search.replace(/[%_]/g, "\\$&")}%`;
-      conditions.push(`(full_name ILIKE $${paramIndex} OR email ILIKE $${paramIndex} OR application_number ILIKE $${paramIndex})`);
+      conditions.push(`(a.full_name ILIKE $${paramIndex} OR a.email ILIKE $${paramIndex} OR a.application_number ILIKE $${paramIndex})`);
       values.push(searchPattern);
       paramIndex++;
     }
     if (payment) {
-      conditions.push(`payment_status = $${paramIndex}`);
-      values.push(payment);
-      paramIndex++;
+      if (payment === "not_paid") {
+        conditions.push(`a.payment_status IS NULL`);
+      } else {
+        conditions.push(`a.payment_status = $${paramIndex}`);
+        values.push(payment);
+        paramIndex++;
+      }
     }
     if (program) {
-      conditions.push(`program = $${paramIndex}`);
+      conditions.push(`a.program = $${paramIndex}`);
       values.push(program);
       paramIndex++;
     }
     if (institution) {
-      conditions.push(`institution = $${paramIndex}`);
+      conditions.push(`a.institution = $${paramIndex}`);
       values.push(institution);
       paramIndex++;
     }
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-    const sortColumn = sortBy === "date" ? "created_at" : sortBy === "name" ? "full_name" : "created_at";
-    const countResult = await query(`SELECT COUNT(*) as count FROM applications ${whereClause}`, values);
+    const sortColumn = sortBy === "date" ? "a.created_at" : sortBy === "name" ? "a.full_name" : "a.created_at";
+    const countResult = await query(`SELECT COUNT(*) as count FROM applications a ${whereClause}`, values);
     const totalCount = parseInt(countResult.rows[0]?.count || "0", 10);
     const offset = (page - 1) * pageSize;
     const dataValues = [...values, pageSize, offset];
-    const result = await query(`SELECT * FROM applications ${whereClause} ORDER BY ${sortColumn} ${sortOrder} LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`, dataValues);
+    const result = await query(`SELECT ${APPLICATION_PAYMENT_METADATA_SELECT}
+       FROM applications a
+       ${APPLICATION_PAYMENT_METADATA_JOINS}
+       ${whereClause}
+       ORDER BY ${sortColumn} ${sortOrder}
+       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`, dataValues);
     return sendSuccess(res, {
       applications: result.rows,
       totalCount,
@@ -15893,8 +15970,15 @@ async function handleById(req, res, userId, isAdmin, applicationId) {
           if (!validPaymentStatuses.includes(paymentStatus)) {
             return sendError(res, `Invalid payment status. Must be one of: ${validPaymentStatuses.join(", ")}`, HttpStatus.BAD_REQUEST);
           }
-          const notificationTitle = paymentStatus === "verified" ? "Payment Verified" : paymentStatus === "rejected" ? "Payment Rejected" : "Payment Status Updated";
-          const notificationMessage = paymentStatus === "verified" ? `Your payment for application ${app.application_number || applicationId} has been verified.` : paymentStatus === "rejected" ? `Your payment for application ${app.application_number || applicationId} was rejected. Please resubmit your payment proof.` : `Your payment status for application ${app.application_number || applicationId} has been updated to ${paymentStatus}.`;
+          const normalizedVerificationNotes = typeof verificationNotes === "string" ? verificationNotes.trim().slice(0, 1000) : "";
+          if (paymentStatus === "rejected" && !normalizedVerificationNotes) {
+            return sendError(res, "Rejection notes are required when rejecting a payment.", HttpStatus.BAD_REQUEST);
+          }
+          if ((paymentStatus === "verified" || paymentStatus === "rejected") && !app.pop_url) {
+            return sendError(res, "Payment proof is required before a payment can be reviewed.", HttpStatus.CONFLICT);
+          }
+          const notificationTitle = paymentStatus === "verified" ? "Payment Verified" : paymentStatus === "rejected" ? "Payment Rejected" : app.payment_status === "rejected" ? "Payment Resubmission Reopened" : "Payment Under Review";
+          const notificationMessage = paymentStatus === "verified" ? `Your payment for application ${app.application_number || applicationId} has been verified.` : paymentStatus === "rejected" ? `Your payment for application ${app.application_number || applicationId} was rejected. Please resubmit your payment proof.` : app.payment_status === "rejected" ? `Your payment for application ${app.application_number || applicationId} is back under review.` : `Your payment for application ${app.application_number || applicationId} is currently under review.`;
           const actionUrl = `/student/application/${applicationId}`;
           let updateResult2;
           try {
@@ -15920,7 +16004,7 @@ async function handleById(req, res, userId, isAdmin, applicationId) {
               paymentStatus === "verified" ? userId : null,
               notificationTitle,
               notificationMessage,
-              paymentStatus === "verified" ? "success" : paymentStatus === "rejected" ? "error" : "info",
+              paymentStatus === "verified" ? "success" : paymentStatus === "rejected" ? "warning" : "info",
               actionUrl
             ]);
           } catch (notifError) {
@@ -15939,7 +16023,11 @@ async function handleById(req, res, userId, isAdmin, applicationId) {
               action: paymentStatus === "verified" ? "payment_verified" : paymentStatus === "rejected" ? "payment_rejected" : "payment_status_updated",
               entity_type: "payment",
               entity_id: applicationId,
-              changes: { payment_status: paymentStatus }
+              changes: {
+                payment_status: paymentStatus,
+                previous_payment_status: app.payment_status,
+                notes: normalizedVerificationNotes || null
+              }
             });
           } catch (auditError) {
             console.error("[applications] Failed to create payment audit log:", auditError);
@@ -15954,7 +16042,8 @@ async function handleById(req, res, userId, isAdmin, applicationId) {
             created_at: now,
             payload: {
               application_id: applicationId,
-              payment_status: paymentStatus
+              payment_status: paymentStatus,
+              review_notes: normalizedVerificationNotes || null
             }
           });
           publishRealtimeEvent(app.user_id, {
@@ -15966,6 +16055,18 @@ async function handleById(req, res, userId, isAdmin, applicationId) {
             payload: {
               reason: "payment_status_changed",
               application_id: applicationId
+            }
+          });
+          publishRealtimeEvent(app.user_id, {
+            event_id: `notification:${applicationId}:${version2}`,
+            event_type: "notification",
+            entity_id: applicationId,
+            version: version2,
+            created_at: now,
+            payload: {
+              title: notificationTitle,
+              content: notificationMessage,
+              action_url: actionUrl
             }
           });
           console.log("[applications] Payment status updated:", applicationId, paymentStatus);
@@ -16227,8 +16328,11 @@ async function handleById(req, res, userId, isAdmin, applicationId) {
   }
 }
 async function fetchApplicationDetails(id, include) {
-  const appQ = ApplicationQueries.findById(id);
-  const appResult = await query(appQ.text, appQ.values);
+  const appResult = await query(`SELECT ${APPLICATION_PAYMENT_METADATA_SELECT}
+     FROM applications a
+     ${APPLICATION_PAYMENT_METADATA_JOINS}
+     WHERE a.id = $1
+     LIMIT 1`, [id]);
   if (appResult.rowCount === 0) {
     return null;
   }
@@ -16298,9 +16402,13 @@ async function handleExport(req, res, isAdmin) {
     }
     const payment = req.query.payment;
     if (payment) {
-      conditions.push(`payment_status = $${paramIndex}`);
-      values.push(payment);
-      paramIndex++;
+      if (payment === "not_paid") {
+        conditions.push(`payment_status IS NULL`);
+      } else {
+        conditions.push(`payment_status = $${paramIndex}`);
+        values.push(payment);
+        paramIndex++;
+      }
     }
     const program = req.query.program;
     if (program) {
@@ -16319,25 +16427,82 @@ async function handleExport(req, res, isAdmin) {
     values.push(offset);
     const result = await query(`
     SELECT 
-      id,
-      application_number,
-      full_name,
-      email,
-      phone,
-      program,
-      intake,
-      institution,
-      status,
-      payment_status,
-      COALESCE(application_fee, 0) as application_fee,
-      COALESCE(amount, 0) as amount,
-      submitted_at,
-      created_at,
-      COALESCE(EXTRACT(YEAR FROM AGE(date_of_birth))::int, 0) as age,
-      COALESCE(EXTRACT(DAY FROM NOW() - submitted_at)::int, 0) as days_since_submission
+      applications.id,
+      applications.application_number,
+      applications.full_name,
+      applications.email,
+      applications.phone,
+      applications.program,
+      applications.intake,
+      applications.institution,
+      applications.status,
+      applications.payment_status,
+      COALESCE(applications.application_fee, 0) as application_fee,
+      COALESCE(applications.amount, 0) as paid_amount,
+      applications.submitted_at,
+      applications.created_at,
+      COALESCE((
+        SELECT json_agg(
+          json_build_object(
+            'subject', COALESCE(s.name, g.subject_id),
+            'grade', g.grade
+          )
+          ORDER BY COALESCE(s.name, g.subject_id)
+        )::text
+        FROM application_grades g
+        LEFT JOIN subjects s ON s.id = g.subject_id
+        WHERE g.application_id = applications.id
+      ), '[]') as grades_summary,
+      COALESCE((
+        SELECT COUNT(*)::int
+        FROM application_grades g
+        WHERE g.application_id = applications.id
+      ), 0) as total_subjects,
+      COALESCE((
+        SELECT SUM(best_five.grade)::int
+        FROM (
+          SELECT g.grade::int as grade
+          FROM application_grades g
+          WHERE g.application_id = applications.id
+            AND g.grade BETWEEN 1 AND 9
+          ORDER BY g.grade ASC
+          LIMIT 5
+        ) as best_five
+      ), 0) as points,
+      COALESCE(EXTRACT(YEAR FROM AGE(applications.date_of_birth))::int, 0) as age,
+      COALESCE(EXTRACT(DAY FROM NOW() - COALESCE(applications.submitted_at, applications.created_at))::int, 0) as days_since_submission,
+      applications.payment_verified_at,
+      NULLIF(TRIM(CONCAT_WS(' ', verifier.first_name, verifier.last_name)), '') AS payment_verified_by_name,
+      verifier.email AS payment_verified_by_email,
+      payment_audit.created_at AS last_payment_audit_at,
+      payment_audit.actor_name AS last_payment_audit_by_name,
+      payment_audit.actor_email AS last_payment_audit_by_email,
+      payment_audit.notes AS last_payment_audit_notes,
+      COALESCE(NULLIF(applications.momo_ref, ''), NULLIF(applications.pop_url, '')) AS last_payment_reference
     FROM applications
+    LEFT JOIN profiles verifier
+      ON verifier.id = applications.payment_verified_by
+    LEFT JOIN LATERAL (
+      SELECT
+        al.created_at::text AS created_at,
+        NULLIF(TRIM(CONCAT_WS(' ', actor.first_name, actor.last_name)), '') AS actor_name,
+        actor.email AS actor_email,
+        COALESCE(
+          NULLIF(TRIM(al.changes->>'notes'), ''),
+          NULLIF(TRIM(al.changes->>'verification_notes'), ''),
+          NULLIF(TRIM(al.changes->>'reason'), '')
+        ) AS notes
+      FROM audit_logs al
+      LEFT JOIN profiles actor
+        ON actor.id = al.actor_id
+      WHERE al.entity_type = 'payment'
+        AND al.entity_id = applications.id
+        AND al.action IN ('payment_verified', 'payment_rejected', 'payment_status_updated')
+      ORDER BY al.created_at DESC, al.id DESC
+      LIMIT 1
+    ) payment_audit ON true
     ${whereClause}
-    ORDER BY created_at DESC
+    ORDER BY applications.created_at DESC
     LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
   `, values);
     return sendSuccess(res, {
@@ -16348,6 +16513,67 @@ async function handleExport(req, res, isAdmin) {
     });
   } catch (error48) {
     return handleError(res, error48, "applications/export");
+  }
+}
+async function handleEmailSlip(req, res, userId, isAdmin) {
+  if (req.method !== "POST") {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
+  const { applicationId, email: email3 } = req.body || {};
+  if (!applicationId || !email3) {
+    return sendError(res, "Missing required fields: applicationId, email", HttpStatus.BAD_REQUEST);
+  }
+  const appQ = ApplicationQueries.findById(applicationId);
+  const appResult = await query(appQ.text, appQ.values);
+  if (appResult.rowCount === 0) {
+    return sendError(res, "Application not found", HttpStatus.NOT_FOUND);
+  }
+  const app = appResult.rows[0];
+  if (app.user_id !== userId && !isAdmin) {
+    return sendError(res, "Access denied", HttpStatus.FORBIDDEN);
+  }
+  try {
+    const htmlBody = renderEmailTemplate("application-submitted", {
+      recipientName: app.full_name || undefined,
+      applicationNumber: app.application_number || undefined,
+      programName: app.program || undefined,
+      actionUrl: `***REMOVED***/student/application/${applicationId}`
+    });
+    await query(`INSERT INTO email_queue (
+         recipient_email,
+         recipient_name,
+         subject,
+         body,
+         html_body,
+         template_name,
+         template_data,
+         status,
+         priority
+       )
+       VALUES ($1, $2, $3, $4, $5, 'application-submitted', $6, 'pending', 5)`, [
+      email3,
+      app.full_name || null,
+      `Application Slip - ${app.application_number || applicationId}`,
+      `Your application slip for ${app.application_number || applicationId}`,
+      htmlBody,
+      JSON.stringify({
+        recipientName: app.full_name || null,
+        applicationNumber: app.application_number || null,
+        programName: app.program || null
+      })
+    ]);
+    try {
+      await logAuditEvent({
+        actor_id: userId,
+        action: "application_slip_emailed",
+        entity_type: "application",
+        entity_id: applicationId,
+        changes: { recipient: email3.substring(0, 3) + "***" }
+      });
+    } catch {}
+    return sendSuccess(res, { emailed: true });
+  } catch (error48) {
+    return handleError(res, error48, "applications/email-slip");
   }
 }
 async function handleVersions(req, res, userId) {

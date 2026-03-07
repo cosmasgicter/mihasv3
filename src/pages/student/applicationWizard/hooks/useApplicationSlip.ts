@@ -50,6 +50,7 @@ export interface UseApplicationSlipResult {
   emailLoading: boolean
   handleDownloadSlip: () => Promise<void>
   handleEmailSlip: () => Promise<void>
+  dismissSlipProgress: () => void
 }
 
 export function useApplicationSlip({
@@ -93,6 +94,12 @@ export function useApplicationSlip({
 
   // Disabled automatic slip generation to prevent rate limiting and errors
   // Slip is now generated only when user clicks download or email buttons
+
+  const dismissSlipProgress = useCallback(() => {
+    setPersistingSlip(false)
+    setSlipLoading(false)
+    setEmailLoading(false)
+  }, [])
 
   const triggerDownload = useCallback((url: string, filename: string) => {
     const link = document.createElement('a')
@@ -243,7 +250,8 @@ export function useApplicationSlip({
     slipLoading,
     emailLoading,
     handleDownloadSlip,
-    handleEmailSlip
+    handleEmailSlip,
+    dismissSlipProgress
   }
 }
 

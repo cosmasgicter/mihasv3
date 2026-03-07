@@ -2,26 +2,6 @@
 <html lang="en" class="light" style="color-scheme: light;">
   <head>
     <meta charset="UTF-8" />
-    <script>
-      (function() {
-        if (typeof window !== 'undefined') {
-          const originalError = console.error;
-          console.error = function(...args) {
-            const message = args.join(' ');
-            if (
-              message.includes('Could not establish connection') ||
-              message.includes('Receiving end does not exist') ||
-              message.includes('Extension context invalidated') ||
-              message.includes('chrome-extension://') ||
-              message.includes('Private Access Token challenge')
-            ) {
-              return;
-            }
-            originalError.apply(console, args);
-          };
-        }
-      })();
-    </script>
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
     <meta name="referrer" content="no-referrer-when-downgrade" />

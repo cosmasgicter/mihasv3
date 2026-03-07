@@ -938,6 +938,7 @@ async function verifyAccessToken(token) {
       email: payload.email,
       role: payload.role,
       permissions: Array.isArray(payload.permissions) ? payload.permissions : [],
+      sid: typeof payload.sid === "string" ? payload.sid : undefined,
       type: "access",
       iat: payload.iat,
       exp: payload.exp,
@@ -1012,6 +1013,20 @@ function extractAccessTokenFromCookie(req) {
   return token;
 }
 
+// lib/sessions.ts
+init_db();
+init_queries();
+async function isSessionActive(userId, sessionId) {
+  const result = await query(`SELECT id
+     FROM device_sessions
+     WHERE id = $1
+       AND user_id = $2
+       AND is_active = true
+       AND expires_at > NOW()
+     LIMIT 1`, [sessionId, userId]);
+  return result.rowCount > 0;
+}
+
 // lib/auth/middleware.ts
 class AuthenticationError extends Error {
   statusCode;
@@ -1052,6 +1067,10 @@ async function getAuthUser(req) {
   }
   try {
     const payload = await verifyAccessToken(token);
+    const sessionValid = await validateTrackedSession(payload);
+    if (!sessionValid) {
+      return null;
+    }
     return mapPayloadToAuthContext(payload);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -1066,8 +1085,15 @@ async function requireAuth(req) {
   }
   try {
     const payload = await verifyAccessToken(token);
+    const sessionValid = await validateTrackedSession(payload);
+    if (!sessionValid) {
+      throw new AuthenticationError("Session has expired or was revoked", "SESSION_REVOKED", 401);
+    }
     return mapPayloadToAuthContext(payload);
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      throw error;
+    }
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.log("[AUTH] Token verification failed:", errorMessage);
     if (errorMessage.includes("expired")) {
@@ -1092,8 +1118,20 @@ function mapPayloadToAuthContext(payload) {
     userId: payload.sub,
     email: payload.email,
     role: payload.role,
-    permissions: payload.permissions || []
+    permissions: payload.permissions || [],
+    sessionId: payload.sid
   };
+}
+async function validateTrackedSession(payload) {
+  if (!payload.sid) {
+    return true;
+  }
+  try {
+    return await isSessionActive(payload.sub, payload.sid);
+  } catch (error) {
+    console.log("[AUTH] Session validation failed:", error instanceof Error ? error.message : "Unknown error");
+    return false;
+  }
 }
 
 // lib/auth/password.ts
@@ -14820,6 +14858,7 @@ var adminRegisterBodySchema = exports_external.object({
   password: passwordSchema,
   firstName: nonEmptySanitizedString,
   lastName: nonEmptySanitizedString,
+  phone: optionalSanitizedString,
   role: roleSchema.optional()
 });
 var adminSetPasswordBodySchema = exports_external.object({
@@ -14975,6 +15014,75 @@ function getPermissionsForRole(role) {
   return [...permissions];
 }
 
+// lib/auth/userPermissionOverrides.ts
+init_db();
+function toDatabaseErrorCode(error48) {
+  if (!error48 || typeof error48 !== "object" || !("code" in error48)) {
+    return null;
+  }
+  const code = error48.code;
+  return typeof code === "string" ? code : null;
+}
+function isPermissionOverrideTableMissing(error48) {
+  return toDatabaseErrorCode(error48) === "42P01";
+}
+function getAllKnownPermissions() {
+  const permissions = new Set;
+  for (const rolePermissions of Object.values(ROLE_PERMISSIONS)) {
+    for (const permission of rolePermissions) {
+      permissions.add(permission);
+    }
+  }
+  return Array.from(permissions).sort();
+}
+var KNOWN_PERMISSION_SET = new Set(getAllKnownPermissions());
+function validatePermissionList(permissions) {
+  const invalid = new Set;
+  const normalized = new Set;
+  for (const rawPermission of permissions) {
+    const permission = rawPermission.trim();
+    if (!permission) {
+      continue;
+    }
+    if (!KNOWN_PERMISSION_SET.has(permission)) {
+      invalid.add(permission);
+      continue;
+    }
+    normalized.add(permission);
+  }
+  return {
+    normalized: Array.from(normalized).sort(),
+    invalid: Array.from(invalid).sort()
+  };
+}
+async function getPermissionOverrideForUser(userId) {
+  try {
+    const result = await query("SELECT permissions FROM user_permission_overrides WHERE user_id = $1 LIMIT 1", [userId]);
+    if (result.rows.length === 0) {
+      return null;
+    }
+    return validatePermissionList(result.rows[0].permissions || []).normalized;
+  } catch (error48) {
+    if (isPermissionOverrideTableMissing(error48)) {
+      return null;
+    }
+    throw error48;
+  }
+}
+async function getEffectivePermissionsForUser(userId, role) {
+  const overridePermissions = await getPermissionOverrideForUser(userId);
+  if (overridePermissions !== null) {
+    return {
+      permissions: overridePermissions,
+      source: "override"
+    };
+  }
+  return {
+    permissions: getPermissionsForRole(role),
+    source: "role"
+  };
+}
+
 // api-src/admin.ts
 function splitFullName(fullName) {
   const normalized = fullName.trim().replace(/\s+/g, " ");
@@ -14983,6 +15091,22 @@ function splitFullName(fullName) {
     firstName,
     lastName: rest.join(" ") || firstName
   };
+}
+async function revokeUserSessions(userId) {
+  await query(`UPDATE profiles
+     SET refresh_token_hash = NULL,
+         updated_at = NOW()
+     WHERE id = $1`, [userId]);
+  const sessionResult = await query(`UPDATE device_sessions
+     SET is_active = false
+     WHERE user_id = $1 AND is_active = true`, [userId]);
+  return sessionResult.rowCount ?? 0;
+}
+function samePermissions(left, right) {
+  if (left.length !== right.length) {
+    return false;
+  }
+  return left.every((permission, index) => permission === right[index]);
 }
 async function handler(req, res) {
   if (handleCors(req, res))
@@ -15014,11 +15138,11 @@ async function handler(req, res) {
         await handleUsers(req, res, auth);
         return;
       case "user-permissions":
-        if (req.method !== "GET") {
+        if (req.method !== "GET" && req.method !== "PUT") {
           sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
           return;
         }
-        await handleUserPermissions(req, res);
+        await handleUserPermissions(req, res, auth);
         return;
       case "settings":
         await handleSettings(req, res, auth);
@@ -15462,7 +15586,81 @@ async function handleDeactivateUser(req, res, auth) {
     handleError(res, error48, "admin/deactivate-user");
   }
 }
-async function handleUserPermissions(req, res) {
+async function handleUserPermissions(req, res, auth) {
+  if (req.method === "PUT") {
+    const parsed = validateBody(userPermissionsBodySchema, req, res);
+    if (!parsed || !Array.isArray(parsed.permissions)) {
+      sendError(res, "permissions array is required", HttpStatus.BAD_REQUEST);
+      return;
+    }
+    const { userId: userId2, permissions: requestedPermissions } = parsed;
+    if (userId2 === auth.userId) {
+      sendError(res, "Cannot change your own permissions", HttpStatus.FORBIDDEN);
+      return;
+    }
+    const { normalized, invalid } = validatePermissionList(requestedPermissions);
+    if (invalid.length > 0) {
+      sendError(res, `Invalid permissions: ${invalid.join(", ")}`, HttpStatus.BAD_REQUEST);
+      return;
+    }
+    try {
+      const targetResult = await query("SELECT id, role FROM profiles WHERE id = $1 LIMIT 1", [userId2]);
+      if (targetResult.rows.length === 0) {
+        sendError(res, "User not found", HttpStatus.NOT_FOUND);
+        return;
+      }
+      const user = targetResult.rows[0];
+      if ((user.role === "admin" || user.role === "super_admin") && auth.role !== "super_admin") {
+        sendError(res, "Only super_admin can change permissions for admin accounts", HttpStatus.FORBIDDEN);
+        return;
+      }
+      const defaultPermissions = [...getPermissionsForRole(user.role)].sort();
+      const source = samePermissions(normalized, defaultPermissions) ? "role" : "override";
+      try {
+        if (source === "role") {
+          await query("DELETE FROM user_permission_overrides WHERE user_id = $1", [userId2]);
+        } else {
+          await query(`INSERT INTO user_permission_overrides (user_id, permissions, updated_by, created_at, updated_at)
+             VALUES ($1, $2::text[], $3, NOW(), NOW())
+             ON CONFLICT (user_id)
+             DO UPDATE SET
+               permissions = EXCLUDED.permissions,
+               updated_by = EXCLUDED.updated_by,
+               updated_at = NOW()`, [userId2, normalized, auth.userId]);
+        }
+      } catch (error48) {
+        if (isPermissionOverrideTableMissing(error48)) {
+          sendError(res, "Permission overrides require migration 010_user_permission_overrides.sql to be applied first", HttpStatus.SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE");
+          return;
+        }
+        throw error48;
+      }
+      const revokedSessions = await revokeUserSessions(userId2);
+      await logAuditEvent({
+        actor_id: auth.userId,
+        action: "user.permissions_updated",
+        entity_type: "user",
+        entity_id: userId2,
+        changes: {
+          role: user.role,
+          permission_source: source,
+          permissions: normalized,
+          revoked_sessions: revokedSessions
+        }
+      });
+      sendSuccess(res, {
+        userId: user.id,
+        role: user.role,
+        permissions: source === "override" ? normalized : defaultPermissions,
+        defaultPermissions,
+        source,
+        revokedSessions
+      });
+    } catch (error48) {
+      handleError(res, error48, "admin/update-user-permissions");
+    }
+    return;
+  }
   const userId = req.query.userId?.trim();
   if (!userId) {
     sendError(res, "userId is required", HttpStatus.BAD_REQUEST);
@@ -15475,11 +15673,13 @@ async function handleUserPermissions(req, res) {
       return;
     }
     const user = result.rows[0];
+    const { permissions, source } = await getEffectivePermissionsForUser(user.id, user.role);
     sendSuccess(res, {
       userId: user.id,
       role: user.role,
-      permissions: getPermissionsForRole(user.role),
-      source: "role"
+      permissions,
+      defaultPermissions: getPermissionsForRole(user.role),
+      source
     });
   } catch (error48) {
     handleError(res, error48, "admin/user-permissions");
@@ -15500,6 +15700,12 @@ async function handleUpdateUser(req, res, auth) {
     return;
   }
   try {
+    const currentUserResult = await query("SELECT id, role FROM profiles WHERE id = $1 LIMIT 1", [userId]);
+    if (currentUserResult.rows.length === 0) {
+      sendError(res, "User not found", HttpStatus.NOT_FOUND);
+      return;
+    }
+    const currentUser = currentUserResult.rows[0];
     const existing = await query("SELECT id FROM profiles WHERE email = $1 AND id <> $2 LIMIT 1", [email3.toLowerCase(), userId]);
     if (existing.rows.length > 0) {
       sendError(res, "Email already registered to another user", HttpStatus.CONFLICT);
@@ -15525,6 +15731,8 @@ async function handleUpdateUser(req, res, auth) {
          ON CONFLICT (user_id)
          DO UPDATE SET role = EXCLUDED.role, is_active = true, updated_at = NOW()`, [userId, role]);
     } catch {}
+    const roleChanged = currentUser.role !== role;
+    const revokedSessions = roleChanged ? await revokeUserSessions(userId) : 0;
     await logAuditEvent({
       actor_id: auth.userId,
       action: "user_updated",
@@ -15534,14 +15742,17 @@ async function handleUpdateUser(req, res, auth) {
         email: email3.toLowerCase(),
         full_name: full_name.trim(),
         phone: phone || null,
-        role
+        role,
+        role_changed: roleChanged,
+        revoked_sessions: revokedSessions
       }
     });
     sendSuccess(res, {
       user: {
         ...result.rows[0],
         user_id: result.rows[0].id
-      }
+      },
+      revokedSessions
     });
   } catch (error48) {
     handleError(res, error48, "admin/update-user");
@@ -15551,7 +15762,7 @@ async function handleRegisterUser(req, res, auth) {
   const parsed = validateBody(adminRegisterBodySchema, req, res);
   if (!parsed)
     return;
-  const { email: email3, password, firstName, lastName, role } = parsed;
+  const { email: email3, password, firstName, lastName, phone, role } = parsed;
   const validRoles = [
     "student",
     "reviewer",
@@ -15574,9 +15785,10 @@ async function handleRegisterUser(req, res, auth) {
       return;
     }
     const passwordHash = await hashPassword(password);
-    const result = await query(`INSERT INTO profiles (email, password_hash, first_name, last_name, role, email_verified, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, true, NOW(), NOW())
-       RETURNING id, email, first_name, last_name, role, created_at`, [email3.toLowerCase(), passwordHash, firstName, lastName, userRole]);
+    const fullName = `${firstName} ${lastName}`.trim();
+    const result = await query(`INSERT INTO profiles (email, password_hash, first_name, last_name, full_name, phone, role, email_verified, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW(), NOW())
+       RETURNING id, email, first_name, last_name, full_name, phone, role, created_at`, [email3.toLowerCase(), passwordHash, firstName, lastName, fullName, phone || null, userRole]);
     if (result.rows.length === 0) {
       sendError(res, "Failed to create user", HttpStatus.INTERNAL_SERVER_ERROR);
       return;
@@ -15970,14 +16182,15 @@ async function handleUpdateRole(req, res, auth) {
          ON CONFLICT (user_id) 
          DO UPDATE SET role = EXCLUDED.role, is_active = true, updated_at = NOW()`, [userId, role]);
     } catch {}
+    const revokedSessions = await revokeUserSessions(userId);
     await logAuditEvent({
       actor_id: auth.userId,
       action: "user_role_updated",
       entity_type: "user",
       entity_id: userId,
-      changes: { new_role: role }
+      changes: { new_role: role, revoked_sessions: revokedSessions }
     });
-    sendSuccess(res, { user: result.rows[0] });
+    sendSuccess(res, { user: result.rows[0], revokedSessions });
   } catch (error48) {
     handleError(res, error48, "admin/update-role");
   }
@@ -15996,51 +16209,137 @@ async function handleAuditLog(req, res) {
   if (pageSize > 200)
     pageSize = 200;
   const filterAction = req.query.filter_action?.trim();
+  const filterActorEmail = req.query.filter_actor_email?.trim();
+  const filterUserId = req.query.filter_user_id?.trim();
   const filterEntityType = req.query.filter_entity_type?.trim();
+  const filterCategory = req.query.filter_category?.trim();
   const filterFrom = req.query.filter_from;
   const filterTo = req.query.filter_to;
   const offset = (page - 1) * pageSize;
+  const categorySql = `
+    CASE
+      WHEN LOWER(al.action) ~ '(login|signin|logout|signout|register|signup|auth|password|session|refresh)' THEN 'Authentication'
+      WHEN LOWER(al.action) ~ '(create|insert|add|update|modify|edit|delete|remove|archive|restore)' THEN 'Data'
+      WHEN LOWER(al.action) ~ '(view|read|get|download|export)' THEN 'Access'
+      WHEN LOWER(al.action) ~ '(settings|config|permission|role|admin|security|maintenance)' THEN 'System'
+      WHEN LOWER(al.action) ~ '(email|notification|message|sms|communication)' THEN 'Communication'
+      WHEN LOWER(al.action) ~ '(analytics|report|dashboard|metric)' THEN 'Analytics'
+      ELSE 'General'
+    END
+  `;
+  const fromSql = `
+    FROM audit_logs al
+    LEFT JOIN profiles actor ON actor.id = al.actor_id
+  `;
   try {
     const whereClauses = [];
     const params = [];
     if (filterAction) {
-      params.push(filterAction);
-      whereClauses.push(`action = $${params.length}`);
+      params.push(`%${filterAction}%`);
+      whereClauses.push(`al.action ILIKE $${params.length}`);
+    }
+    if (filterActorEmail) {
+      params.push(`%${filterActorEmail}%`);
+      whereClauses.push(`COALESCE(actor.email, '') ILIKE $${params.length}`);
+    }
+    if (filterUserId) {
+      params.push(filterUserId);
+      whereClauses.push(`(al.actor_id = $${params.length}::uuid OR al.entity_id = $${params.length}::uuid)`);
     }
     if (filterEntityType) {
       params.push(filterEntityType);
-      whereClauses.push(`entity_type = $${params.length}`);
+      whereClauses.push(`al.entity_type = $${params.length}`);
+    }
+    if (filterCategory) {
+      params.push(filterCategory);
+      whereClauses.push(`(${categorySql}) = $${params.length}`);
     }
     if (filterFrom) {
       params.push(filterFrom);
-      whereClauses.push(`created_at >= $${params.length}::timestamptz`);
+      whereClauses.push(`al.created_at >= $${params.length}::timestamptz`);
     }
     if (filterTo) {
       params.push(filterTo);
-      whereClauses.push(`created_at <= $${params.length}::timestamptz`);
+      whereClauses.push(`al.created_at <= $${params.length}::timestamptz`);
     }
     const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
-    const countQuery = `SELECT COUNT(*) as count FROM audit_logs ${whereSql}`;
+    const countQuery = `SELECT COUNT(*) as count ${fromSql} ${whereSql}`;
     const entriesQuery = `
-      SELECT id, actor_id, action, entity_type, entity_id, changes, ip_address, user_agent, created_at
-      FROM audit_logs
+      SELECT
+        al.id,
+        al.actor_id,
+        actor.email AS actor_email,
+        COALESCE(
+          NULLIF(actor.full_name, ''),
+          NULLIF(TRIM(CONCAT_WS(' ', actor.first_name, actor.last_name)), ''),
+          actor.email
+        ) AS actor_name,
+        actor.role AS actor_role,
+        al.action,
+        ${categorySql} AS category,
+        al.entity_type,
+        al.entity_id,
+        al.changes,
+        al.ip_address,
+        al.user_agent,
+        al.created_at
+      ${fromSql}
       ${whereSql}
-      ORDER BY created_at DESC
+      ORDER BY al.created_at DESC
       LIMIT $${params.length + 1}
       OFFSET $${params.length + 2}
     `;
-    const [countResult, entriesResult] = await Promise.all([
+    const uniqueActorsQuery = `
+      SELECT COUNT(DISTINCT al.actor_id) as count
+      ${fromSql}
+      ${whereSql}
+    `;
+    const categoryBreakdownQuery = `
+      SELECT ${categorySql} AS label, COUNT(*) as count
+      ${fromSql}
+      ${whereSql}
+      GROUP BY 1
+      ORDER BY COUNT(*) DESC
+    `;
+    const entityBreakdownQuery = `
+      SELECT al.entity_type AS label, COUNT(*) as count
+      ${fromSql}
+      ${whereSql}
+      GROUP BY 1
+      ORDER BY COUNT(*) DESC
+      LIMIT 8
+    `;
+    const actionBreakdownQuery = `
+      SELECT al.action AS label, COUNT(*) as count
+      ${fromSql}
+      ${whereSql}
+      GROUP BY 1
+      ORDER BY COUNT(*) DESC
+      LIMIT 8
+    `;
+    const [countResult, entriesResult, uniqueActorsResult, categoryBreakdownResult, entityBreakdownResult, actionBreakdownResult] = await Promise.all([
       query(countQuery, params),
-      query(entriesQuery, [...params, pageSize, offset])
+      query(entriesQuery, [...params, pageSize, offset]),
+      query(uniqueActorsQuery, params),
+      query(categoryBreakdownQuery, params),
+      query(entityBreakdownQuery, params),
+      query(actionBreakdownQuery, params)
     ]);
     const totalCount = parseInt(countResult.rows[0]?.count || "0", 10);
     const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+    const uniqueActors = parseInt(uniqueActorsResult.rows[0]?.count || "0", 10);
     sendSuccess(res, {
       entries: entriesResult.rows,
       totalCount,
       page,
       pageSize,
-      totalPages
+      totalPages,
+      summary: {
+        uniqueActors,
+        categoryBreakdown: categoryBreakdownResult.rows,
+        entityBreakdown: entityBreakdownResult.rows,
+        actionBreakdown: actionBreakdownResult.rows
+      }
     });
   } catch (error48) {
     handleError(res, error48, "admin/audit-log");

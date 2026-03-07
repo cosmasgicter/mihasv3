@@ -239,16 +239,19 @@ export default function SignUpPage() {
       <AuthLayout
         variant="signup"
         panelBadge="New applicant registration"
-        title="Create your admissions account"
+        title="Create a new account"
         description={
           <>
-            This page creates your secure portal account first. Programme choice, academic details, and document upload come after sign-in. Already registered?{' '}
-            <Link
-              to="/auth/signin"
-              className="font-semibold text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md"
-            >
-              Sign in here
-            </Link>
+            Set up your secure portal account to begin the admissions process. Programme choice, academic details, and document upload come after sign-in.{' '}
+            <span className="block mt-2">
+              Already have an account?{' '}
+              <Link
+                to="/auth/signin"
+                className="font-semibold text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md"
+              >
+                Sign in instead
+              </Link>
+            </span>
           </>
         }
       >
@@ -512,6 +515,18 @@ export default function SignUpPage() {
             </Link>
             .
           </p>
+
+          <div className={`text-center ${animateClasses.fadeIn}`} style={staggerChild(7, 100)}>
+            <p className="text-sm text-muted-foreground">
+              Already have an account?{' '}
+              <Link
+                to="/auth/signin"
+                className="font-semibold text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md"
+              >
+                Sign in
+              </Link>
+            </p>
+          </div>
         </form>
       </AuthLayout>
     </>

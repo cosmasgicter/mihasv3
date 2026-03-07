@@ -78,7 +78,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
   const action = req.query.action as string;
 
   // CSRF validation for state-changing actions (skip login, register, forgot-password, reset-password, password-reset-request, password-reset — unauthenticated)
-  const csrfExemptActions = ['login', 'register', 'forgot-password', 'reset-password', 'password-reset-request', 'password-reset'];
+  const csrfExemptActions = ['login', 'register', 'forgot-password', 'reset-password', 'password-reset-request', 'password-reset', 'refresh'];
   if (!csrfExemptActions.includes(action)) {
     const { requireCsrf } = await import('../lib/csrf');
     if (await requireCsrf(req, res)) return;

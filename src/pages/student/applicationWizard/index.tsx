@@ -64,12 +64,14 @@ const ApplicationWizardContent = () => {
     uploadedFiles,
     isDraftSaving,
     draftSaved,
+    draftLoaded,
     submittedApplication,
     persistingSlip,
     slipLoading,
     emailLoading,
     handleDownloadSlip,
     handleEmailSlip,
+    dismissSlipProgress,
     handleResultSlipUpload,
     handleExtraKycUpload,
     handleProofOfPaymentUpload,
@@ -90,7 +92,7 @@ const ApplicationWizardContent = () => {
   const smartAutoSave = useSmartAutoSave({
     onSave: saveDraft,
     watchValues,
-    enabled: !loading && !uploading && !restoringDraft && !success
+    enabled: draftLoaded && !loading && !uploading && !restoringDraft && !success
   })
   const { formattedTime } = useEstimatedTime(currentStepIndex, totalSteps)
   const { shouldAnimate, prefersReducedMotion, isMobile } = useOptimizedAnimation()
@@ -219,6 +221,7 @@ const ApplicationWizardContent = () => {
         emailLoading={emailLoading}
         onDownload={handleDownloadSlip}
         onEmail={handleEmailSlip}
+        onDismissSlipProgress={dismissSlipProgress}
       />
     )
   }

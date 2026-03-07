@@ -331,7 +331,7 @@ function getRefreshTokenSecret() {
   }
   return new TextEncoder().encode(secret);
 }
-async function generateAccessToken(userId, email, role, permissions) {
+async function generateAccessToken(userId, email, role, permissions, sessionId) {
   if (!userId || userId.trim().length === 0) {
     throw new Error("User ID is required for access token generation");
   }
@@ -347,6 +347,7 @@ async function generateAccessToken(userId, email, role, permissions) {
       email,
       role,
       permissions: permissions || [],
+      ...sessionId ? { sid: sessionId } : {},
       type: "access"
     }).setProtectedHeader({ alg: ALGORITHM }).setSubject(userId).setIssuedAt().setExpirationTime(ACCESS_TOKEN_EXPIRATION).setIssuer(TOKEN_ISSUER).setAudience(TOKEN_AUDIENCE).sign(secret);
     return token;
@@ -355,13 +356,14 @@ async function generateAccessToken(userId, email, role, permissions) {
     throw new Error("Failed to generate access token");
   }
 }
-async function generateRefreshToken(userId) {
+async function generateRefreshToken(userId, sessionId) {
   if (!userId || userId.trim().length === 0) {
     throw new Error("User ID is required for refresh token generation");
   }
   try {
     const secret = getRefreshTokenSecret();
     const token = await new SignJWT({
+      ...sessionId ? { sid: sessionId } : {},
       type: "refresh"
     }).setProtectedHeader({ alg: ALGORITHM }).setSubject(userId).setIssuedAt().setExpirationTime(REFRESH_TOKEN_EXPIRATION).setIssuer(TOKEN_ISSUER).setAudience(TOKEN_AUDIENCE).sign(secret);
     return token;
@@ -398,6 +400,7 @@ async function verifyAccessToken(token) {
       email: payload.email,
       role: payload.role,
       permissions: Array.isArray(payload.permissions) ? payload.permissions : [],
+      sid: typeof payload.sid === "string" ? payload.sid : undefined,
       type: "access",
       iat: payload.iat,
       exp: payload.exp,
@@ -447,6 +450,7 @@ async function verifyRefreshToken(token) {
     }
     const refreshPayload = {
       sub: payload.sub,
+      sid: typeof payload.sid === "string" ? payload.sid : undefined,
       type: "refresh",
       iat: payload.iat,
       exp: payload.exp,
@@ -480,9 +484,210 @@ async function verifyRefreshToken(token) {
 var ACCESS_TOKEN_EXPIRATION = "15m", REFRESH_TOKEN_EXPIRATION = "7d", TOKEN_ISSUER = "mihas-auth", TOKEN_AUDIENCE = "mihas-app", ALGORITHM = "HS256";
 var init_jwt = () => {};
 
+// lib/auth/cookies.ts
+function isProduction() {
+  const env = process["env"];
+  return env.NODE_ENV === "production";
+}
+function buildCookieString(name, value, maxAge, path = "/") {
+  const parts = [
+    `${name}=${value}`,
+    `Max-Age=${maxAge}`,
+    `Path=${path}`,
+    "HttpOnly",
+    "SameSite=Lax"
+  ];
+  if (isProduction()) {
+    parts.push("Secure");
+  }
+  return parts.join("; ");
+}
+function setAuthCookies(res, accessToken, refreshToken) {
+  const accessCookie = buildCookieString(ACCESS_TOKEN_COOKIE, accessToken, ACCESS_TOKEN_MAX_AGE, "/");
+  const refreshCookie = buildCookieString(REFRESH_TOKEN_COOKIE, refreshToken, REFRESH_TOKEN_MAX_AGE, REFRESH_TOKEN_PATH);
+  res.setHeader("Set-Cookie", [accessCookie, refreshCookie]);
+}
+function clearAuthCookies(res) {
+  const clearAccessCookie = buildCookieString(ACCESS_TOKEN_COOKIE, "", 0, "/");
+  const clearRefreshCookie = buildCookieString(REFRESH_TOKEN_COOKIE, "", 0, REFRESH_TOKEN_PATH);
+  res.setHeader("Set-Cookie", [clearAccessCookie, clearRefreshCookie]);
+}
+function parseCookies(req) {
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader) {
+    return {};
+  }
+  const cookies = {};
+  const pairs = cookieHeader.split(";");
+  for (const pair of pairs) {
+    const equalsIndex = pair.indexOf("=");
+    if (equalsIndex > 0) {
+      const name = pair.substring(0, equalsIndex).trim();
+      const value = pair.substring(equalsIndex + 1);
+      cookies[name] = value;
+    }
+  }
+  return cookies;
+}
+function extractBearerToken(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return null;
+  }
+  const bearerPrefix = "Bearer ";
+  if (!authHeader.startsWith(bearerPrefix)) {
+    return null;
+  }
+  const token = authHeader.substring(bearerPrefix.length).trim();
+  if (token.length === 0) {
+    return null;
+  }
+  return token;
+}
+function extractAccessTokenFromCookie(req) {
+  const cookies = parseCookies(req);
+  const token = cookies[ACCESS_TOKEN_COOKIE];
+  if (!token || token.length === 0) {
+    return null;
+  }
+  return token;
+}
+function extractRefreshTokenFromCookie(req) {
+  const cookies = parseCookies(req);
+  const token = cookies[REFRESH_TOKEN_COOKIE];
+  if (!token || token.length === 0) {
+    return null;
+  }
+  return token;
+}
+var ACCESS_TOKEN_COOKIE = "access_token", REFRESH_TOKEN_COOKIE = "refresh_token", ACCESS_TOKEN_MAX_AGE = 900, REFRESH_TOKEN_MAX_AGE = 604800, REFRESH_TOKEN_PATH = "/api/auth";
+
 // lib/queries.ts
-var AUDIT_ENTITY_PLACEHOLDER_ID = "00000000-0000-0000-0000-000000000000", AuditQueries;
+var AUDIT_ENTITY_PLACEHOLDER_ID = "00000000-0000-0000-0000-000000000000", SessionQueries, AuditQueries;
 var init_queries = __esm(() => {
+  SessionQueries = {
+    create: (id, userId, deviceInfo, ipAddress, userAgent) => ({
+      text: `
+      INSERT INTO device_sessions (
+        id, user_id, device_info, ip_address, user_agent,
+        is_active, last_activity, created_at, expires_at
+      )
+      VALUES (
+        $1, $2, $3, $4, $5,
+        true, NOW(), NOW(), NOW() + INTERVAL '1 hour'
+      )
+      RETURNING id, user_id, is_active, last_activity, created_at, expires_at
+    `,
+      values: [id, userId, JSON.stringify(deviceInfo), ipAddress, userAgent]
+    }),
+    findById: (id) => ({
+      text: `
+      SELECT 
+        id, user_id, device_info, ip_address, user_agent,
+        is_active, last_activity, created_at, expires_at
+      FROM device_sessions
+      WHERE id = $1
+      LIMIT 1
+    `,
+      values: [id]
+    }),
+    updateActivity: (id) => ({
+      text: `
+      UPDATE device_sessions
+      SET last_activity = NOW()
+      WHERE id = $1 AND is_active = true
+      RETURNING id, last_activity
+    `,
+      values: [id]
+    }),
+    deactivate: (id) => ({
+      text: `
+      UPDATE device_sessions
+      SET is_active = false
+      WHERE id = $1
+      RETURNING id
+    `,
+      values: [id]
+    }),
+    deactivateAllForUser: (userId) => ({
+      text: `
+      UPDATE device_sessions
+      SET is_active = false
+      WHERE user_id = $1 AND is_active = true
+      RETURNING id
+    `,
+      values: [userId]
+    }),
+    deactivateAllExcept: (userId, currentSessionId) => ({
+      text: `
+      UPDATE device_sessions
+      SET is_active = false
+      WHERE user_id = $1 AND id != $2 AND is_active = true
+      RETURNING id
+    `,
+      values: [userId, currentSessionId]
+    }),
+    getActiveForUser: (userId) => ({
+      text: `
+      SELECT 
+        id, user_id, device_info, ip_address, user_agent,
+        last_activity, created_at, expires_at
+      FROM device_sessions
+      WHERE user_id = $1 AND is_active = true AND expires_at > NOW()
+      ORDER BY last_activity DESC
+    `,
+      values: [userId]
+    }),
+    countActiveForUser: (userId) => ({
+      text: `
+      SELECT COUNT(*) as count
+      FROM device_sessions
+      WHERE user_id = $1 AND is_active = true AND expires_at > NOW()
+    `,
+      values: [userId]
+    }),
+    deactivateExpired: () => ({
+      text: `
+      UPDATE device_sessions
+      SET is_active = false
+      WHERE is_active = true 
+        AND (expires_at < NOW() OR last_activity < NOW() - INTERVAL '1 hour')
+      RETURNING id, user_id
+    `,
+      values: []
+    }),
+    deleteOldInactive: (daysOld) => ({
+      text: `
+      DELETE FROM device_sessions
+      WHERE is_active = false 
+        AND created_at < NOW() - INTERVAL '1 day' * $1
+      RETURNING id
+    `,
+      values: [daysOld]
+    }),
+    isValid: (id) => ({
+      text: `
+      SELECT EXISTS(
+        SELECT 1 FROM device_sessions
+        WHERE id = $1 
+          AND is_active = true 
+          AND expires_at > NOW()
+      ) as is_valid
+    `,
+      values: [id]
+    }),
+    extendExpiration: (id, days) => ({
+      text: `
+      UPDATE device_sessions
+      SET 
+        expires_at = NOW() + INTERVAL '1 day' * $2,
+        last_activity = NOW()
+      WHERE id = $1 AND is_active = true
+      RETURNING id, expires_at
+    `,
+      values: [id, days]
+    })
+  };
   AuditQueries = {
     log: (input) => ({
       text: `
@@ -656,84 +861,6 @@ var init_queries = __esm(() => {
     })
   };
 });
-
-// lib/auth/cookies.ts
-function isProduction() {
-  const env = process["env"];
-  return env.NODE_ENV === "production";
-}
-function buildCookieString(name, value, maxAge, path = "/") {
-  const parts = [
-    `${name}=${value}`,
-    `Max-Age=${maxAge}`,
-    `Path=${path}`,
-    "HttpOnly",
-    "SameSite=Lax"
-  ];
-  if (isProduction()) {
-    parts.push("Secure");
-  }
-  return parts.join("; ");
-}
-function setAuthCookies(res, accessToken, refreshToken) {
-  const accessCookie = buildCookieString(ACCESS_TOKEN_COOKIE, accessToken, ACCESS_TOKEN_MAX_AGE, "/");
-  const refreshCookie = buildCookieString(REFRESH_TOKEN_COOKIE, refreshToken, REFRESH_TOKEN_MAX_AGE, REFRESH_TOKEN_PATH);
-  res.setHeader("Set-Cookie", [accessCookie, refreshCookie]);
-}
-function clearAuthCookies(res) {
-  const clearAccessCookie = buildCookieString(ACCESS_TOKEN_COOKIE, "", 0, "/");
-  const clearRefreshCookie = buildCookieString(REFRESH_TOKEN_COOKIE, "", 0, REFRESH_TOKEN_PATH);
-  res.setHeader("Set-Cookie", [clearAccessCookie, clearRefreshCookie]);
-}
-function parseCookies(req) {
-  const cookieHeader = req.headers.cookie;
-  if (!cookieHeader) {
-    return {};
-  }
-  const cookies = {};
-  const pairs = cookieHeader.split(";");
-  for (const pair of pairs) {
-    const equalsIndex = pair.indexOf("=");
-    if (equalsIndex > 0) {
-      const name = pair.substring(0, equalsIndex).trim();
-      const value = pair.substring(equalsIndex + 1);
-      cookies[name] = value;
-    }
-  }
-  return cookies;
-}
-function extractBearerToken(req) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return null;
-  }
-  const bearerPrefix = "Bearer ";
-  if (!authHeader.startsWith(bearerPrefix)) {
-    return null;
-  }
-  const token = authHeader.substring(bearerPrefix.length).trim();
-  if (token.length === 0) {
-    return null;
-  }
-  return token;
-}
-function extractAccessTokenFromCookie(req) {
-  const cookies = parseCookies(req);
-  const token = cookies[ACCESS_TOKEN_COOKIE];
-  if (!token || token.length === 0) {
-    return null;
-  }
-  return token;
-}
-function extractRefreshTokenFromCookie(req) {
-  const cookies = parseCookies(req);
-  const token = cookies[REFRESH_TOKEN_COOKIE];
-  if (!token || token.length === 0) {
-    return null;
-  }
-  return token;
-}
-var ACCESS_TOKEN_COOKIE = "access_token", REFRESH_TOKEN_COOKIE = "refresh_token", ACCESS_TOKEN_MAX_AGE = 900, REFRESH_TOKEN_MAX_AGE = 604800, REFRESH_TOKEN_PATH = "/api/auth";
 
 // lib/auditLogger.ts
 var exports_auditLogger = {};
@@ -1181,6 +1308,98 @@ var init_errorHandler = __esm(() => {
   };
 });
 
+// lib/sessions.ts
+function generateSessionId() {
+  return crypto.randomUUID();
+}
+function parseDeviceInfo(userAgent) {
+  if (!userAgent) {
+    return { browser: "Unknown", os: "Unknown", device_type: "unknown", is_mobile: false };
+  }
+  const ua = userAgent.toLowerCase();
+  let browser = "Unknown";
+  if (ua.includes("firefox"))
+    browser = "Firefox";
+  else if (ua.includes("edg/"))
+    browser = "Edge";
+  else if (ua.includes("chrome"))
+    browser = "Chrome";
+  else if (ua.includes("safari") && !ua.includes("chrome"))
+    browser = "Safari";
+  let os = "Unknown";
+  if (ua.includes("windows"))
+    os = "Windows";
+  else if (ua.includes("mac os x"))
+    os = "macOS";
+  else if (ua.includes("linux"))
+    os = "Linux";
+  else if (ua.includes("android"))
+    os = "Android";
+  else if (ua.includes("iphone") || ua.includes("ipad"))
+    os = "iOS";
+  const is_mobile = ua.includes("mobile") || ua.includes("android") || ua.includes("iphone");
+  const device_type = ua.includes("tablet") || ua.includes("ipad") ? "tablet" : is_mobile ? "mobile" : "desktop";
+  return { browser, os, device_type, is_mobile };
+}
+async function createSession(input) {
+  const { userId, deviceInfo, ipAddress, userAgent } = input;
+  const sessionId = generateSessionId();
+  const createQuery = SessionQueries.create(sessionId, userId, deviceInfo, ipAddress, userAgent);
+  const result = await query(createQuery.text, createQuery.values);
+  if (result.rows.length === 0)
+    throw new Error("Failed to create session");
+  const session = result.rows[0];
+  const auditQuery = AuditQueries.logSessionEvent(userId, "session_create", sessionId, ipAddress, userAgent, { device_type: deviceInfo.device_type, browser: deviceInfo.browser, os: deviceInfo.os });
+  query(auditQuery.text, auditQuery.values).catch(() => {});
+  return {
+    id: session.id,
+    userId: session.user_id,
+    isActive: session.is_active,
+    lastActivity: new Date(session.last_activity),
+    createdAt: new Date(session.created_at),
+    expiresAt: new Date(session.expires_at)
+  };
+}
+async function deactivateSession(sessionId, userId, ipAddress = null, userAgent = null) {
+  const deactivateQuery = SessionQueries.deactivate(sessionId);
+  const result = await query(deactivateQuery.text, deactivateQuery.values);
+  const success = result.rowCount > 0;
+  if (success) {
+    const auditQuery = AuditQueries.logSessionEvent(userId, "session_revoke", sessionId, ipAddress, userAgent);
+    query(auditQuery.text, auditQuery.values).catch(() => {});
+  }
+  return { success, sessionId };
+}
+async function deactivateAllSessions(userId, ipAddress = null, userAgent = null) {
+  const deactivateQuery = SessionQueries.deactivateAllForUser(userId);
+  const result = await query(deactivateQuery.text, deactivateQuery.values);
+  const sessionIds = result.rows.map((row) => row.id);
+  if (result.rowCount > 0) {
+    const auditQuery = AuditQueries.logSessionEvent(userId, "session_revoke_all", null, ipAddress, userAgent, { deactivated_count: result.rowCount });
+    query(auditQuery.text, auditQuery.values).catch(() => {});
+  }
+  return { success: true, deactivatedCount: result.rowCount, sessionIds };
+}
+async function updateActivity(sessionId) {
+  const updateQuery = SessionQueries.updateActivity(sessionId);
+  const result = await query(updateQuery.text, updateQuery.values);
+  return result.rowCount > 0;
+}
+async function isSessionActive(userId, sessionId) {
+  const result = await query(`SELECT id
+     FROM device_sessions
+     WHERE id = $1
+       AND user_id = $2
+       AND is_active = true
+       AND expires_at > NOW()
+     LIMIT 1`, [sessionId, userId]);
+  return result.rowCount > 0;
+}
+var init_sessions = __esm(() => {
+  init_db();
+  init_queries();
+});
+
 // lib/auth/middleware.ts
 function extractToken(req) {
   const cookieToken = extractAccessTokenFromCookie(req);
@@ -1200,6 +1419,10 @@ async function getAuthUser(req) {
   }
   try {
     const payload = await verifyAccessToken(token);
+    const sessionValid = await validateTrackedSession(payload);
+    if (!sessionValid) {
+      return null;
+    }
     return mapPayloadToAuthContext(payload);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -1212,11 +1435,24 @@ function mapPayloadToAuthContext(payload) {
     userId: payload.sub,
     email: payload.email,
     role: payload.role,
-    permissions: payload.permissions || []
+    permissions: payload.permissions || [],
+    sessionId: payload.sid
   };
+}
+async function validateTrackedSession(payload) {
+  if (!payload.sid) {
+    return true;
+  }
+  try {
+    return await isSessionActive(payload.sub, payload.sid);
+  } catch (error) {
+    console.log("[AUTH] Session validation failed:", error instanceof Error ? error.message : "Unknown error");
+    return false;
+  }
 }
 var init_middleware = __esm(() => {
   init_jwt();
+  init_sessions();
 });
 
 // lib/csrf.ts
@@ -1382,111 +1618,6 @@ async function migrateSha256ToBcrypt(userId, password) {
 // api-src/auth.ts
 init_jwt();
 
-// lib/auth/permissions.ts
-init_queries();
-var USER_ROLES = {
-  SUPER_ADMIN: "super_admin",
-  ADMIN: "admin",
-  ADMISSIONS_OFFICER: "admissions_officer",
-  REGISTRAR: "registrar",
-  FINANCE_OFFICER: "finance_officer",
-  ACADEMIC_HEAD: "academic_head",
-  REVIEWER: "reviewer",
-  STUDENT: "student"
-};
-var ALL_USER_ROLES = [
-  USER_ROLES.SUPER_ADMIN,
-  USER_ROLES.ADMIN,
-  USER_ROLES.ADMISSIONS_OFFICER,
-  USER_ROLES.REGISTRAR,
-  USER_ROLES.FINANCE_OFFICER,
-  USER_ROLES.ACADEMIC_HEAD,
-  USER_ROLES.REVIEWER,
-  USER_ROLES.STUDENT
-];
-var ROLE_PERMISSIONS = {
-  super_admin: [
-    "users:read",
-    "users:write",
-    "users:delete",
-    "applications:read",
-    "applications:write",
-    "applications:review",
-    "programs:read",
-    "programs:write",
-    "payments:read",
-    "payments:verify",
-    "documents:read",
-    "documents:verify",
-    "analytics:read",
-    "settings:read",
-    "settings:write"
-  ],
-  admin: [
-    "users:read",
-    "applications:read",
-    "applications:write",
-    "applications:review",
-    "programs:read",
-    "payments:read",
-    "payments:verify",
-    "documents:read",
-    "documents:verify",
-    "analytics:read"
-  ],
-  admissions_officer: [
-    "applications:read",
-    "applications:review",
-    "applications:write",
-    "documents:read",
-    "documents:verify",
-    "payments:read"
-  ],
-  registrar: [
-    "applications:read",
-    "applications:review",
-    "programs:read",
-    "documents:read",
-    "analytics:read"
-  ],
-  finance_officer: [
-    "applications:read",
-    "payments:read",
-    "payments:verify",
-    "documents:read"
-  ],
-  academic_head: [
-    "applications:read",
-    "applications:review",
-    "programs:read",
-    "documents:read",
-    "analytics:read"
-  ],
-  reviewer: [
-    "applications:read",
-    "applications:review",
-    "documents:read"
-  ],
-  student: [
-    "applications:create",
-    "applications:read_own",
-    "applications:update_own",
-    "documents:upload_own",
-    "documents:read_own",
-    "payments:make_own",
-    "payments:read_own",
-    "profile:read_own",
-    "profile:update_own"
-  ]
-};
-function getPermissionsForRole(role) {
-  const permissions = ROLE_PERMISSIONS[role];
-  if (!permissions) {
-    console.warn(`[PERMISSIONS] Unknown role requested: ${role}`);
-    return [];
-  }
-  return [...permissions];
-}
 // lib/arcjet.ts
 import arcjet, { shield, detectBot, fixedWindow } from "@arcjet/node";
 var ARCJET_KEY = process.env.ARCJET_KEY;
@@ -15292,6 +15423,186 @@ function validateServerEnv() {
 }
 
 // api-src/auth.ts
+init_sessions();
+
+// lib/auth/userPermissionOverrides.ts
+init_db();
+
+// lib/auth/permissions.ts
+init_queries();
+var USER_ROLES = {
+  SUPER_ADMIN: "super_admin",
+  ADMIN: "admin",
+  ADMISSIONS_OFFICER: "admissions_officer",
+  REGISTRAR: "registrar",
+  FINANCE_OFFICER: "finance_officer",
+  ACADEMIC_HEAD: "academic_head",
+  REVIEWER: "reviewer",
+  STUDENT: "student"
+};
+var ALL_USER_ROLES = [
+  USER_ROLES.SUPER_ADMIN,
+  USER_ROLES.ADMIN,
+  USER_ROLES.ADMISSIONS_OFFICER,
+  USER_ROLES.REGISTRAR,
+  USER_ROLES.FINANCE_OFFICER,
+  USER_ROLES.ACADEMIC_HEAD,
+  USER_ROLES.REVIEWER,
+  USER_ROLES.STUDENT
+];
+var ROLE_PERMISSIONS = {
+  super_admin: [
+    "users:read",
+    "users:write",
+    "users:delete",
+    "applications:read",
+    "applications:write",
+    "applications:review",
+    "programs:read",
+    "programs:write",
+    "payments:read",
+    "payments:verify",
+    "documents:read",
+    "documents:verify",
+    "analytics:read",
+    "settings:read",
+    "settings:write"
+  ],
+  admin: [
+    "users:read",
+    "applications:read",
+    "applications:write",
+    "applications:review",
+    "programs:read",
+    "payments:read",
+    "payments:verify",
+    "documents:read",
+    "documents:verify",
+    "analytics:read"
+  ],
+  admissions_officer: [
+    "applications:read",
+    "applications:review",
+    "applications:write",
+    "documents:read",
+    "documents:verify",
+    "payments:read"
+  ],
+  registrar: [
+    "applications:read",
+    "applications:review",
+    "programs:read",
+    "documents:read",
+    "analytics:read"
+  ],
+  finance_officer: [
+    "applications:read",
+    "payments:read",
+    "payments:verify",
+    "documents:read"
+  ],
+  academic_head: [
+    "applications:read",
+    "applications:review",
+    "programs:read",
+    "documents:read",
+    "analytics:read"
+  ],
+  reviewer: [
+    "applications:read",
+    "applications:review",
+    "documents:read"
+  ],
+  student: [
+    "applications:create",
+    "applications:read_own",
+    "applications:update_own",
+    "documents:upload_own",
+    "documents:read_own",
+    "payments:make_own",
+    "payments:read_own",
+    "profile:read_own",
+    "profile:update_own"
+  ]
+};
+function getPermissionsForRole(role) {
+  const permissions = ROLE_PERMISSIONS[role];
+  if (!permissions) {
+    console.warn(`[PERMISSIONS] Unknown role requested: ${role}`);
+    return [];
+  }
+  return [...permissions];
+}
+
+// lib/auth/userPermissionOverrides.ts
+function toDatabaseErrorCode(error48) {
+  if (!error48 || typeof error48 !== "object" || !("code" in error48)) {
+    return null;
+  }
+  const code = error48.code;
+  return typeof code === "string" ? code : null;
+}
+function isPermissionOverrideTableMissing(error48) {
+  return toDatabaseErrorCode(error48) === "42P01";
+}
+function getAllKnownPermissions() {
+  const permissions = new Set;
+  for (const rolePermissions of Object.values(ROLE_PERMISSIONS)) {
+    for (const permission of rolePermissions) {
+      permissions.add(permission);
+    }
+  }
+  return Array.from(permissions).sort();
+}
+var KNOWN_PERMISSION_SET = new Set(getAllKnownPermissions());
+function validatePermissionList(permissions) {
+  const invalid = new Set;
+  const normalized = new Set;
+  for (const rawPermission of permissions) {
+    const permission = rawPermission.trim();
+    if (!permission) {
+      continue;
+    }
+    if (!KNOWN_PERMISSION_SET.has(permission)) {
+      invalid.add(permission);
+      continue;
+    }
+    normalized.add(permission);
+  }
+  return {
+    normalized: Array.from(normalized).sort(),
+    invalid: Array.from(invalid).sort()
+  };
+}
+async function getPermissionOverrideForUser(userId) {
+  try {
+    const result = await query("SELECT permissions FROM user_permission_overrides WHERE user_id = $1 LIMIT 1", [userId]);
+    if (result.rows.length === 0) {
+      return null;
+    }
+    return validatePermissionList(result.rows[0].permissions || []).normalized;
+  } catch (error48) {
+    if (isPermissionOverrideTableMissing(error48)) {
+      return null;
+    }
+    throw error48;
+  }
+}
+async function getEffectivePermissionsForUser(userId, role) {
+  const overridePermissions = await getPermissionOverrideForUser(userId);
+  if (overridePermissions !== null) {
+    return {
+      permissions: overridePermissions,
+      source: "override"
+    };
+  }
+  return {
+    permissions: getPermissionsForRole(role),
+    source: "role"
+  };
+}
+
+// api-src/auth.ts
 function deriveFullName(params) {
   const normalize = (value) => {
     if (!value)
@@ -15325,7 +15636,7 @@ async function handler(req, res) {
     return sendError(res, `Server misconfiguration: ${details}`, HttpStatus.SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE");
   }
   const action = req.query.action;
-  const csrfExemptActions = ["login", "register", "forgot-password", "reset-password", "password-reset-request", "password-reset"];
+  const csrfExemptActions = ["login", "register", "forgot-password", "reset-password", "password-reset-request", "password-reset", "refresh"];
   if (!csrfExemptActions.includes(action)) {
     const { requireCsrf: requireCsrf2 } = await Promise.resolve().then(() => (init_csrf(), exports_csrf));
     if (await requireCsrf2(req, res))
@@ -15421,6 +15732,31 @@ function getClientIp(req) {
     return forwarded.split(",")[0].trim();
   }
   return req.socket?.remoteAddress || "unknown";
+}
+function getRequestUserAgent(req) {
+  const userAgent = req.headers["user-agent"];
+  return typeof userAgent === "string" ? userAgent : null;
+}
+async function createTrackedSession(req, userId) {
+  const userAgent = getRequestUserAgent(req);
+  const session = await createSession({
+    userId,
+    deviceInfo: parseDeviceInfo(userAgent),
+    ipAddress: getClientIp(req),
+    userAgent
+  });
+  return session.id;
+}
+async function ensureTrackedSession(req, userId, sessionId) {
+  if (sessionId) {
+    const active = await isSessionActive(userId, sessionId);
+    if (!active) {
+      throw new Error("SESSION_REVOKED");
+    }
+    await updateActivity(sessionId).catch(() => {});
+    return sessionId;
+  }
+  return createTrackedSession(req, userId);
 }
 async function recordLoginAttempt(emailHash, ipHash, success2) {
   try {
@@ -15645,9 +15981,10 @@ async function handleLogin(req, res) {
     return sendError(res, "Invalid credentials", HttpStatus.UNAUTHORIZED);
   }
   await recordLoginAttempt(emailHash, ipHash, true);
-  const permissions = getPermissionsForRole(user.role);
-  const accessToken = await generateAccessToken(user.id, user.email, user.role, permissions);
-  const refreshToken = await generateRefreshToken(user.id);
+  const { permissions } = await getEffectivePermissionsForUser(user.id, user.role);
+  const sessionId = await createTrackedSession(req, user.id);
+  const accessToken = await generateAccessToken(user.id, user.email, user.role, permissions, sessionId);
+  const refreshToken = await generateRefreshToken(user.id, sessionId);
   setAuthCookies(res, accessToken, refreshToken);
   const csrfToken = await generateToken(user.id);
   res.setHeader("X-CSRF-Token", csrfToken);
@@ -15668,14 +16005,23 @@ async function handleLogout(req, res) {
   if (token) {
     try {
       const payload = await verifyAccessToken(token);
-      await query(`UPDATE device_sessions SET is_active = false WHERE user_id = $1 AND is_active = true`, [payload.sub]);
+      const ipAddress = getClientIp(req);
+      const userAgent = getRequestUserAgent(req);
+      if (payload.sid) {
+        await deactivateSession(payload.sid, payload.sub, ipAddress, userAgent);
+      } else {
+        await deactivateAllSessions(payload.sub, ipAddress, userAgent);
+      }
       try {
         await logAuditEvent({
           actor_id: payload.sub,
           action: "user_logout",
           entity_type: "session",
-          entity_id: payload.sub,
-          changes: { all_sessions_deactivated: true }
+          entity_id: payload.sid || payload.sub,
+          changes: {
+            current_session_deactivated: Boolean(payload.sid),
+            fallback_all_sessions_deactivated: !payload.sid
+          }
         });
       } catch {}
     } catch (logoutErr) {
@@ -15788,10 +16134,13 @@ async function handleRegister(req, res) {
     next_of_kin_phone || null
   ]);
   const userId = result.rows[0].id;
-  const permissions = getPermissionsForRole("student");
-  const accessToken = await generateAccessToken(userId, email3.toLowerCase(), "student", permissions);
-  const refreshToken = await generateRefreshToken(userId);
+  const { permissions } = await getEffectivePermissionsForUser(userId, "student");
+  const sessionId = await createTrackedSession(req, userId);
+  const accessToken = await generateAccessToken(userId, email3.toLowerCase(), "student", permissions, sessionId);
+  const refreshToken = await generateRefreshToken(userId, sessionId);
   setAuthCookies(res, accessToken, refreshToken);
+  const csrfToken = await generateToken(userId);
+  res.setHeader("X-CSRF-Token", csrfToken);
   await recordRegistrationAttempt(ipHash);
   try {
     await logAuditEvent({
@@ -15840,13 +16189,21 @@ async function handleSession(req, res) {
   }
   try {
     const payload = await verifyAccessToken(token);
+    if (payload.sid) {
+      const sessionActive = await isSessionActive(payload.sub, payload.sid);
+      if (!sessionActive) {
+        clearAuthCookies(res);
+        return sendSuccess(res, { user: null });
+      }
+      await updateActivity(payload.sid).catch(() => {});
+    }
     const result = await query("SELECT id, email, role, first_name, last_name FROM profiles WHERE id = $1", [payload.sub]);
     if (result.rows.length === 0) {
       clearAuthCookies(res);
       return sendSuccess(res, { user: null });
     }
     const user = result.rows[0];
-    const permissions = payload.permissions;
+    const { permissions } = await getEffectivePermissionsForUser(user.id, user.role);
     return sendSuccess(res, {
       user: {
         id: user.id,
@@ -15868,16 +16225,18 @@ async function handleRefresh(req, res) {
     return sendError(res, "No refresh token", HttpStatus.UNAUTHORIZED);
   }
   try {
-    const { sub: userId } = await verifyRefreshToken(refreshTokenValue);
+    const refreshPayload = await verifyRefreshToken(refreshTokenValue);
+    const { sub: userId } = refreshPayload;
     const result = await query("SELECT id, email, role, first_name, last_name, is_active FROM profiles WHERE id = $1", [userId]);
     if (result.rows.length === 0 || !result.rows[0].is_active) {
       clearAuthCookies(res);
       return sendError(res, "User not found or inactive", HttpStatus.UNAUTHORIZED);
     }
     const user = result.rows[0];
-    const permissions = getPermissionsForRole(user.role);
-    const newAccessToken = await generateAccessToken(user.id, user.email, user.role, permissions);
-    const newRefreshToken = await generateRefreshToken(user.id);
+    const sessionId = await ensureTrackedSession(req, user.id, refreshPayload.sid);
+    const { permissions } = await getEffectivePermissionsForUser(user.id, user.role);
+    const newAccessToken = await generateAccessToken(user.id, user.email, user.role, permissions, sessionId);
+    const newRefreshToken = await generateRefreshToken(user.id, sessionId);
     setAuthCookies(res, newAccessToken, newRefreshToken);
     const newCsrfToken = await rotateToken(user.id);
     res.setHeader("X-CSRF-Token", newCsrfToken);
@@ -15892,8 +16251,11 @@ async function handleRefresh(req, res) {
         permissions
       }
     });
-  } catch {
+  } catch (error48) {
     clearAuthCookies(res);
+    if (error48 instanceof Error && error48.message === "SESSION_REVOKED") {
+      return sendError(res, "Session has expired or was revoked", HttpStatus.UNAUTHORIZED);
+    }
     return sendError(res, "Invalid refresh token", HttpStatus.UNAUTHORIZED);
   }
 }
@@ -15913,7 +16275,7 @@ async function handleRoles(req, res) {
       return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
     }
     const user = result.rows[0];
-    const permissions = getPermissionsForRole(user.role);
+    const { permissions } = await getEffectivePermissionsForUser(user.id, user.role);
     return sendSuccess(res, {
       id: user.id,
       user_id: user.id,

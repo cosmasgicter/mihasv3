@@ -275,8 +275,8 @@ function FormPanel({
   const resolvedPanelBadge = panelBadge ?? (variant !== 'default' ? config.badgeLabel : null);
 
   return (
-    <div className="flex flex-col justify-center px-4 py-12 sm:px-6 lg:px-12 xl:px-16">
-      <div className="mx-auto w-full max-w-2xl">
+    <div className="flex flex-1 flex-col justify-center px-4 py-8 sm:px-6 sm:py-12 lg:px-12 xl:px-16">
+      <div className="mx-auto w-full max-w-xl lg:max-w-2xl">
         <Link
           to={backLinkHref}
           className="inline-flex items-center gap-2 rounded-md px-2 py-1 -ml-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
@@ -285,14 +285,14 @@ function FormPanel({
           {backLinkLabel}
         </Link>
 
-        <div className="mt-6 flex items-center lg:hidden" role="img" aria-label="Mukuba Institute of Health and Allied Sciences logo">
+        <div className="mt-4 flex items-center lg:hidden" role="img" aria-label="Mukuba Institute of Health and Allied Sciences logo">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-sky-700 via-cyan-600 to-slate-900 text-white shadow-lg" aria-hidden="true">
             <GraduationCap className="h-6 w-6" />
           </div>
           <span className="ml-3 text-lg font-semibold text-foreground">MIHAS</span>
         </div>
 
-        <div className={cn('mt-6 rounded-2xl border bg-gradient-to-r p-4 lg:hidden', config.mobileCardClass)}>
+        <div className={cn('mt-4 rounded-2xl border bg-gradient-to-r p-4 lg:hidden', config.mobileCardClass)}>
           <p className="text-sm leading-relaxed text-muted-foreground">{config.mobileSummary}</p>
           <div className="mt-3 flex flex-wrap gap-3">
             {config.mobileFeatures.map((feature) => (
@@ -304,8 +304,8 @@ function FormPanel({
           </div>
         </div>
 
-        <div className="mt-8 rounded-[28px] border border-border/70 bg-background/90 p-6 shadow-xl backdrop-blur sm:p-8">
-          <div className="space-y-6">
+        <div className="mt-6 rounded-[28px] border border-border/70 bg-background/90 p-5 shadow-xl backdrop-blur sm:p-8">
+          <div className="space-y-5">
             {resolvedPanelBadge && (
               <div>
                 <span className={cn('inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]', config.panelBadgeClass)}>
@@ -319,7 +319,7 @@ function FormPanel({
                 {title}
               </h2>
               {description && (
-                <div className="mt-3 text-base text-muted-foreground">
+                <div className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
                   {description}
                 </div>
               )}
@@ -328,7 +328,7 @@ function FormPanel({
             <div>{children}</div>
 
             {footer && (
-              <div className="border-t border-border pt-8">
+              <div className="border-t border-border pt-6">
                 {footer}
               </div>
             )}
@@ -364,11 +364,11 @@ export function AuthLayout({
 
           <div
             className={cn(
-              'flex flex-1 flex-col',
+              'flex flex-1 flex-col overflow-y-auto',
               showBranding ? 'lg:w-1/2 xl:w-[45%]' : 'w-full',
             )}
           >
-            <div className={cn('h-2 bg-gradient-to-r lg:hidden', config.mobileGradientClass)} />
+            <div className={cn('h-1.5 bg-gradient-to-r lg:hidden', config.mobileGradientClass)} />
 
             <FormPanel
               title={title}

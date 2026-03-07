@@ -97,17 +97,18 @@ export function calculateCanonicalProfileCompletion(
   profile?: CanonicalProfileFields | null,
   metadata?: CanonicalProfileFields | null,
 ): number {
-  const values = [
+  // Core fields populated during registration — these define profile completeness.
+  // Registration writes: first_name, last_name (→ full_name), phone, date_of_birth,
+  // sex, residence_town, country to the profiles table.
+  const coreValues = [
     pickFirstText(profile?.full_name, metadata?.full_name),
     pickFirstText(profile?.phone, metadata?.phone),
     normalizeDateInputValue(pickFirstText(profile?.date_of_birth, metadata?.date_of_birth)),
     pickFirstText(profile?.sex, metadata?.sex),
     getCanonicalResidenceTown(profile, metadata),
-    pickFirstText(profile?.nationality, metadata?.nationality),
-    pickFirstText(profile?.next_of_kin_name, metadata?.next_of_kin_name),
-    pickFirstText(profile?.next_of_kin_phone, metadata?.next_of_kin_phone),
+    pickFirstText(profile?.country, metadata?.country),
   ]
 
-  const completedFields = values.filter(hasText).length
-  return Math.round((completedFields / values.length) * 100)
+  const completedFields = coreValues.filter(hasText).length
+  return Math.round((completedFields / coreValues.length) * 100)
 }

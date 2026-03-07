@@ -89,12 +89,14 @@ interface UseWizardControllerResult {
   uploadedFiles: Record<string, boolean>
   isDraftSaving: boolean
   draftSaved: boolean
+  draftLoaded: boolean
   submittedApplication: SubmittedApplicationSummary | null
   persistingSlip: boolean
   slipLoading: boolean
   emailLoading: boolean
   handleDownloadSlip: () => Promise<void>
   handleEmailSlip: () => Promise<void>
+  dismissSlipProgress: () => void
   handleResultSlipUpload: ReturnType<typeof useApplicationFileUploads>['handleResultSlipUpload']
   handleExtraKycUpload: ReturnType<typeof useApplicationFileUploads>['handleExtraKycUpload']
   handleProofOfPaymentUpload: ReturnType<typeof useApplicationFileUploads>['handleProofOfPaymentUpload']
@@ -410,7 +412,7 @@ const useWizardController = (): UseWizardControllerResult => {
     }
   }, [submittedApplication, user?.email, user?.id])
 
-  const { persistingSlip, slipLoading, emailLoading, handleDownloadSlip, handleEmailSlip } = useApplicationSlip({
+  const { persistingSlip, slipLoading, emailLoading, handleDownloadSlip, handleEmailSlip, dismissSlipProgress } = useApplicationSlip({
     submittedApplication,
     slipPayload,
     success,
@@ -853,25 +855,8 @@ const useWizardController = (): UseWizardControllerResult => {
     queryClient,
   ])
 
-  useEffect(() => {
-    // Don't start auto-save until draft is loaded and not restoring
-    if (!draftLoaded || restoringDraft || !user || success) return
-    
-    // Use setInterval for reliable 8-second auto-save
-    const intervalId = setInterval(() => {
-      const formData = getValues()
-      // Only save when form has data
-      const hasData = Object.values(formData).some(v => v !== undefined && v !== null && v !== '')
-      
-      if (hasData) {
-        saveDraft()
-      }
-    }, 8000)
-
-    return () => {
-      clearInterval(intervalId)
-    }
-  }, [draftLoaded, restoringDraft, user, success, getValues, saveDraft])
+  // Auto-save is handled by useSmartAutoSave (via useAutoSave) in the wizard component.
+  // No redundant setInterval needed here — useSmartAutoSave calls saveDraft every 8 seconds.
 
   const addGrade = useCallback(() => {
     setSelectedGrades(prev => (prev.length < 10 ? [...prev, { subject_id: '', grade: 1 }] : prev))
@@ -1392,12 +1377,14 @@ const useWizardController = (): UseWizardControllerResult => {
     uploadedFiles,
     isDraftSaving,
     draftSaved,
+    draftLoaded,
     submittedApplication,
     persistingSlip,
     slipLoading,
     emailLoading,
     handleDownloadSlip,
     handleEmailSlip,
+    dismissSlipProgress,
     handleResultSlipUpload,
     handleExtraKycUpload,
     handleProofOfPaymentUpload: handleProofOfPaymentUploadWrapped,

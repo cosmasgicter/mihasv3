@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { intakeService } from '@/services/catalog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
+import { normalizeDateInputValue } from '@/lib/profileFieldMapping'
 import {
   Dialog,
   DialogContent,
@@ -150,9 +151,9 @@ export default function AdminIntakes() {
     reset({
       name: intake.name,
       year: intake.year,
-      start_date: intake.start_date,
-      end_date: intake.end_date,
-      application_deadline: intake.application_deadline,
+      start_date: normalizeDateInputValue(intake.start_date),
+      end_date: normalizeDateInputValue(intake.end_date),
+      application_deadline: normalizeDateInputValue(intake.application_deadline),
       total_capacity: intake.total_capacity,
       available_spots: intake.available_spots,
     })

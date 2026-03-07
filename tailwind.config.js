@@ -133,7 +133,7 @@ module.exports = {
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-vibrant': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        'gradient-vibrant': 'linear-gradient(135deg, #3b82f6e6 0%, #6366f1d9 100%)',
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-out',
