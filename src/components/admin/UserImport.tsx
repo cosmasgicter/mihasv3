@@ -193,12 +193,10 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
               continue
             }
 
-            // Create user via admin API (which handles auth user creation)
+            // Create user via admin register endpoint
             const password = userData.password || `temp${Math.random().toString(36).slice(-8)}`
-            const response = await fetch('/api/admin?action=create-user', {
+            const createResult = await apiClient.request<{ user?: unknown; message?: string }>('/admin?action=register', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
               body: JSON.stringify({
                 email: userData.email,
                 password: password,
@@ -208,9 +206,8 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
               })
             })
 
-            const createResult = await response.json()
-            if (!createResult.success) {
-              throw new Error(createResult.error || 'Failed to create user')
+            if (!createResult?.user) {
+              throw new Error(createResult?.message || 'Failed to create user')
             }
 
             result.success++
