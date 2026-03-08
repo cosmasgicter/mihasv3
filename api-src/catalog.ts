@@ -5,6 +5,7 @@ import { CatalogQueries, SubjectRecord } from '../lib/queries';
 import { withArcjetProtection } from '../lib/arcjet';
 import { getAuthUser } from '../lib/auth/middleware';
 import { requireCsrf } from '../lib/csrf';
+import { logAuditEvent } from '../lib/auditLogger';
 import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
 import { validateServerEnv } from '../lib/envValidator';
 import {
@@ -166,6 +167,36 @@ async function ensureAdmin(req: VercelRequest, res: VercelResponse) {
   return user;
 }
 
+function getHeaderValue(header: string | string[] | undefined): string | null {
+  if (Array.isArray(header)) {
+    return header[0] ?? null;
+  }
+  return header ?? null;
+}
+
+async function logCatalogAuditEvent(input: {
+  req: VercelRequest;
+  actorId: string;
+  action: string;
+  entityType: 'program' | 'intake' | 'institution';
+  entityId: string;
+  changes?: Record<string, unknown>;
+}) {
+  const forwardedFor = getHeaderValue(input.req.headers['x-forwarded-for']);
+  const ipAddress = forwardedFor ? forwardedFor.split(',')[0]?.trim() ?? null : null;
+  const userAgent = getHeaderValue(input.req.headers['user-agent']);
+
+  await logAuditEvent({
+    actor_id: input.actorId,
+    action: input.action,
+    entity_type: input.entityType,
+    entity_id: input.entityId,
+    changes: input.changes,
+    ip_address: ipAddress,
+    user_agent: userAgent,
+  });
+}
+
 async function listPrograms(res: VercelResponse, includeInactive: boolean, shouldCache: boolean) {
   try {
     const result = await query<ProgramRow>(
@@ -235,7 +266,7 @@ async function listIntakes(res: VercelResponse, includeInactive: boolean, should
   }
 }
 
-async function createProgram(req: VercelRequest, res: VercelResponse) {
+async function createProgram(req: VercelRequest, res: VercelResponse, actorId: string) {
   const parsed = validateBody(createProgramBodySchema, req, res);
   if (!parsed) return;
 
@@ -258,13 +289,26 @@ async function createProgram(req: VercelRequest, res: VercelResponse) {
       [name, code, description || null, durationMonths, applicationFee, tuitionFee, regulatoryBody, institutionId]
     );
 
+    await logCatalogAuditEvent({
+      req,
+      actorId,
+      action: 'catalog_program_created',
+      entityType: 'program',
+      entityId: result.rows[0].id,
+      changes: {
+        code,
+        institution_id: institutionId,
+        duration_months: durationMonths,
+      },
+    });
+
     return sendSuccess(res, { program: normalizeProgram(result.rows[0]) });
   } catch (error) {
     return handleError(res, error, 'catalog/create-program');
   }
 }
 
-async function updateProgram(req: VercelRequest, res: VercelResponse) {
+async function updateProgram(req: VercelRequest, res: VercelResponse, actorId: string) {
   const parsed = validateBody(updateProgramBodySchema, req, res);
   if (!parsed) return;
 
@@ -303,13 +347,26 @@ async function updateProgram(req: VercelRequest, res: VercelResponse) {
       return sendError(res, 'Program not found', HttpStatus.NOT_FOUND);
     }
 
+    await logCatalogAuditEvent({
+      req,
+      actorId,
+      action: 'catalog_program_updated',
+      entityType: 'program',
+      entityId: result.rows[0].id,
+      changes: {
+        code,
+        institution_id: institutionId,
+        is_active: isActive ?? undefined,
+      },
+    });
+
     return sendSuccess(res, { program: normalizeProgram(result.rows[0]) });
   } catch (error) {
     return handleError(res, error, 'catalog/update-program');
   }
 }
 
-async function deleteProgram(req: VercelRequest, res: VercelResponse) {
+async function deleteProgram(req: VercelRequest, res: VercelResponse, actorId: string) {
   const id = parseDeleteId(req, res);
   if (!id) return;
 
@@ -326,6 +383,15 @@ async function deleteProgram(req: VercelRequest, res: VercelResponse) {
     if (result.rowCount === 0) {
       return sendError(res, 'Program not found or already inactive', HttpStatus.NOT_FOUND);
     }
+
+    await logCatalogAuditEvent({
+      req,
+      actorId,
+      action: 'catalog_program_archived',
+      entityType: 'program',
+      entityId: result.rows[0].id,
+      changes: { is_active: false },
+    });
 
     return sendSuccess(res, { deleted: true, id });
   } catch (error) {
@@ -353,7 +419,7 @@ async function listInstitutions(res: VercelResponse, includeInactive: boolean, s
   }
 }
 
-async function createInstitution(req: VercelRequest, res: VercelResponse) {
+async function createInstitution(req: VercelRequest, res: VercelResponse, actorId: string) {
   const parsed = validateBody(createInstitutionBodySchema, req, res);
   if (!parsed) return;
 
@@ -370,13 +436,22 @@ async function createInstitution(req: VercelRequest, res: VercelResponse) {
       [name, fullName, code, description || null]
     );
 
+    await logCatalogAuditEvent({
+      req,
+      actorId,
+      action: 'catalog_institution_created',
+      entityType: 'institution',
+      entityId: result.rows[0].id,
+      changes: { code, full_name: fullName },
+    });
+
     return sendSuccess(res, { institution: normalizeInstitution(result.rows[0]) });
   } catch (error) {
     return handleError(res, error, 'catalog/create-institution');
   }
 }
 
-async function updateInstitution(req: VercelRequest, res: VercelResponse) {
+async function updateInstitution(req: VercelRequest, res: VercelResponse, actorId: string) {
   const parsed = validateBody(updateInstitutionBodySchema, req, res);
   if (!parsed) return;
 
@@ -405,13 +480,22 @@ async function updateInstitution(req: VercelRequest, res: VercelResponse) {
       return sendError(res, 'Institution not found', HttpStatus.NOT_FOUND);
     }
 
+    await logCatalogAuditEvent({
+      req,
+      actorId,
+      action: 'catalog_institution_updated',
+      entityType: 'institution',
+      entityId: result.rows[0].id,
+      changes: { code, is_active: isActive ?? undefined },
+    });
+
     return sendSuccess(res, { institution: normalizeInstitution(result.rows[0]) });
   } catch (error) {
     return handleError(res, error, 'catalog/update-institution');
   }
 }
 
-async function deleteInstitution(req: VercelRequest, res: VercelResponse) {
+async function deleteInstitution(req: VercelRequest, res: VercelResponse, actorId: string) {
   const id = parseDeleteId(req, res);
   if (!id) return;
 
@@ -441,13 +525,22 @@ async function deleteInstitution(req: VercelRequest, res: VercelResponse) {
       return sendError(res, 'Institution not found or already inactive', HttpStatus.NOT_FOUND);
     }
 
+    await logCatalogAuditEvent({
+      req,
+      actorId,
+      action: 'catalog_institution_archived',
+      entityType: 'institution',
+      entityId: result.rows[0].id,
+      changes: { is_active: false },
+    });
+
     return sendSuccess(res, { deleted: true, id });
   } catch (error) {
     return handleError(res, error, 'catalog/delete-institution');
   }
 }
 
-async function createIntake(req: VercelRequest, res: VercelResponse) {
+async function createIntake(req: VercelRequest, res: VercelResponse, actorId: string) {
   const parsed = validateBody(createIntakeBodySchema, req, res);
   if (!parsed) return;
 
@@ -470,13 +563,26 @@ async function createIntake(req: VercelRequest, res: VercelResponse) {
       [name, year, semester, startDate, endDate, applicationDeadline, maxCapacity]
     );
 
+    await logCatalogAuditEvent({
+      req,
+      actorId,
+      action: 'catalog_intake_created',
+      entityType: 'intake',
+      entityId: result.rows[0].id,
+      changes: {
+        year,
+        semester,
+        max_capacity: maxCapacity,
+      },
+    });
+
     return sendSuccess(res, { intake: normalizeIntake(result.rows[0]) });
   } catch (error) {
     return handleError(res, error, 'catalog/create-intake');
   }
 }
 
-async function updateIntake(req: VercelRequest, res: VercelResponse) {
+async function updateIntake(req: VercelRequest, res: VercelResponse, actorId: string) {
   const parsed = validateBody(updateIntakeBodySchema, req, res);
   if (!parsed) return;
 
@@ -513,13 +619,26 @@ async function updateIntake(req: VercelRequest, res: VercelResponse) {
       return sendError(res, 'Intake not found', HttpStatus.NOT_FOUND);
     }
 
+    await logCatalogAuditEvent({
+      req,
+      actorId,
+      action: 'catalog_intake_updated',
+      entityType: 'intake',
+      entityId: result.rows[0].id,
+      changes: {
+        max_capacity: maxCapacity,
+        current_enrollment: currentEnrollment ?? undefined,
+        is_active: isActive ?? undefined,
+      },
+    });
+
     return sendSuccess(res, { intake: normalizeIntake(result.rows[0]) });
   } catch (error) {
     return handleError(res, error, 'catalog/update-intake');
   }
 }
 
-async function deleteIntake(req: VercelRequest, res: VercelResponse) {
+async function deleteIntake(req: VercelRequest, res: VercelResponse, actorId: string) {
   const id = parseDeleteId(req, res);
   if (!id) return;
 
@@ -536,6 +655,15 @@ async function deleteIntake(req: VercelRequest, res: VercelResponse) {
     if (result.rowCount === 0) {
       return sendError(res, 'Intake not found or already inactive', HttpStatus.NOT_FOUND);
     }
+
+    await logCatalogAuditEvent({
+      req,
+      actorId,
+      action: 'catalog_intake_archived',
+      entityType: 'intake',
+      entityId: result.rows[0].id,
+      changes: { is_active: false },
+    });
 
     return sendSuccess(res, { deleted: true, id });
   } catch (error) {
@@ -611,20 +739,20 @@ async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (type === 'programs') {
-      if (req.method === 'POST') return await createProgram(req, res);
-      if (req.method === 'PUT') return await updateProgram(req, res);
-      return await deleteProgram(req, res);
+      if (req.method === 'POST') return await createProgram(req, res, adminUser.userId);
+      if (req.method === 'PUT') return await updateProgram(req, res, adminUser.userId);
+      return await deleteProgram(req, res, adminUser.userId);
     }
 
     if (type === 'institutions') {
-      if (req.method === 'POST') return await createInstitution(req, res);
-      if (req.method === 'PUT') return await updateInstitution(req, res);
-      return await deleteInstitution(req, res);
+      if (req.method === 'POST') return await createInstitution(req, res, adminUser.userId);
+      if (req.method === 'PUT') return await updateInstitution(req, res, adminUser.userId);
+      return await deleteInstitution(req, res, adminUser.userId);
     }
 
-    if (req.method === 'POST') return await createIntake(req, res);
-    if (req.method === 'PUT') return await updateIntake(req, res);
-    return await deleteIntake(req, res);
+    if (req.method === 'POST') return await createIntake(req, res, adminUser.userId);
+    if (req.method === 'PUT') return await updateIntake(req, res, adminUser.userId);
+    return await deleteIntake(req, res, adminUser.userId);
   } catch (error) {
     return handleError(res, error, 'catalog');
   }
