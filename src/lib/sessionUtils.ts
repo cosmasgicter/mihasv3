@@ -7,6 +7,8 @@
  * @module sessionUtils
  */
 
+import { apiClient } from '@/services/client';
+
 export interface SessionResult {
   authenticated: boolean;
   error: string | null;
@@ -41,19 +43,8 @@ function getAllowedHosts(): string[] {
  */
 export async function checkSession(): Promise<SessionResult> {
   try {
-    const response = await fetch('/api/auth?action=session', {
-      method: 'GET',
-      credentials: 'include', // Send HTTP-only cookies
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-    if (!response.ok) {
-      return { authenticated: false, error: 'Session expired or invalid' };
-    }
-
-    const data = await response.json();
-    
-    if (data.success && data.data?.user) {
+    const data = await apiClient.request<{ user?: unknown }>('/auth?action=session');
+    if (data?.user) {
       return { authenticated: true, error: null };
     }
 

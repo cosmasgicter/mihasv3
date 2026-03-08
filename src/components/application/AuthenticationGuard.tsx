@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { AlertCircle, RefreshCw } from 'lucide-react'
+import { apiClient } from '@/services/client'
 
 interface AuthenticationGuardProps {
   children: React.ReactNode
@@ -32,13 +33,8 @@ export function AuthenticationGuard({ children, onAuthenticationRequired }: Auth
       }
 
       // Verify session is still valid via API
-      const response = await fetch('/api/auth?action=session', {
-        credentials: 'include'
-      })
-      
-      const result = await response.json()
-      
-      if (!result.success || !result.user) {
+      const result = await apiClient.request<{ user?: unknown }>('/auth?action=session')
+      if (!result?.user) {
         setAuthError('Your session has expired. Please sign in again.')
         onAuthenticationRequired?.()
         return

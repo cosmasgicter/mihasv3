@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { logger } from '@/utils/logger'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { apiClient } from '@/services/client'
 
 export default function AuthCallbackPage() {
   const navigate = useNavigate()
@@ -19,23 +20,10 @@ export default function AuthCallbackPage() {
 
         if (token && token.length > 0) {
           // Exchange the auth code for a session via our custom API
-          const response = await fetch('/api/auth?action=callback', {
+          await apiClient.request('/auth?action=callback', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
             body: JSON.stringify({ token })
           })
-
-          const result = await response.json()
-
-          if (!result.success) {
-            logger.error('Error exchanging code for session:', result.error)
-            setError(result.error || 'Authentication failed')
-            timeoutId = setTimeout(() => {
-              navigate('/auth/signin?error=' + encodeURIComponent(result.error || 'Authentication failed'))
-            }, 3000)
-            return
-          }
 
           // Successfully signed in, redirect to dashboard
           navigate('/dashboard')

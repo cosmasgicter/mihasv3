@@ -13,10 +13,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Button } from '@/components/ui/Button';
-import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { animateClasses } from '@/lib/animations';
 import { Seo } from '@/components/seo/Seo';
+import { apiClient } from '@/services/client';
 import {
   Loader2,
   AlertCircle,
@@ -45,7 +45,6 @@ type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
 type ResetState = 'verifying' | 'ready' | 'success' | 'error';
 
 export default function ResetPasswordPage() {
-  const { updatePassword } = useAuth();
   const [status, setStatus] = useState<ResetState>('verifying');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -76,23 +75,12 @@ export default function ResetPasswordPage() {
 
     const verifyResetToken = async () => {
       try {
-        // Verify the reset token via our custom API
-        const response = await fetch('/api/auth?action=verify-reset-token', {
+        await apiClient.request('/auth?action=verify-reset-token', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
           body: JSON.stringify({ token })
-        });
-
-        const result = await response.json();
+        })
 
         if (!isMounted) return;
-
-        if (!result.success) {
-          setError(result.error || 'This password reset link is invalid or has expired.');
-          setStatus('error');
-          return;
-        }
 
         // Store the token for use when submitting the new password
         setResetToken(token);
@@ -122,23 +110,13 @@ export default function ResetPasswordPage() {
 
     try {
       // Use the custom API to reset password with the token
-      const response = await fetch('/api/auth?action=reset-password', {
+      await apiClient.request('/auth?action=reset-password', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ 
           token: resetToken,
           password: values.password 
         })
-      });
-
-      const result = await response.json();
-
-      if (!result.success) {
-        setError(result.error || 'Failed to update password');
-        setLoading(false);
-        return;
-      }
+      })
 
       reset({ password: '', confirmPassword: '' });
       setStatus('success');
