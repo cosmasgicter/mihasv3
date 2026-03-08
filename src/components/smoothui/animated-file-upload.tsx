@@ -79,7 +79,7 @@ export const AnimatedFileUpload = forwardRef<HTMLInputElement, AnimatedFileUploa
             className="block text-sm font-medium text-foreground mb-2"
           >
             {label}
-            {required && <span className="text-error ml-1">*</span>}
+            {required && <span className="text-destructive ml-1">*</span>}
           </label>
         )}
 
@@ -105,7 +105,7 @@ export const AnimatedFileUpload = forwardRef<HTMLInputElement, AnimatedFileUploa
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            aria-invalid={!!error}
+            aria-invalid={error ? 'true' : undefined}
             aria-required={required || undefined}
             aria-describedby={error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined}
           />

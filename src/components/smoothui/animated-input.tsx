@@ -55,6 +55,7 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
             )}
           >
             {label}
+            {props.required && <span className="text-destructive ml-1">*</span>}
           </label>
         )}
         
@@ -83,8 +84,8 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
             onFocus={handleFocus}
             onBlur={handleBlur}
             onChange={handleChange}
-            aria-invalid={!!error}
-            aria-required={props.required || (label ? label.trimEnd().endsWith('*') : false) || undefined}
+            aria-invalid={error ? 'true' : undefined}
+            aria-required={props.required || undefined}
             aria-describedby={error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined}
             {...props}
           />
