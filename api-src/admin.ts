@@ -32,6 +32,8 @@ import { validateServerEnv } from '../lib/envValidator';
 import {
   adminRegisterBodySchema,
   adminSetPasswordBodySchema,
+  bulkEmailBodySchema,
+  bulkStatusBodySchema,
   updateRoleBodySchema,
   updateUserBodySchema,
   userPermissionsBodySchema,
@@ -177,6 +179,30 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
         await handleErrorStatistics(res);
         return;
 
+      case 'bulk-email':
+        if (req.method !== 'POST') {
+          sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleBulkEmail(req, res, auth);
+        return;
+
+      case 'bulk-status':
+        if (req.method !== 'POST') {
+          sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleBulkStatus(req, res, auth);
+        return;
+
+      case 'export-users':
+        if (req.method !== 'GET') {
+          sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleExportUsers(res, auth);
+        return;
+
       case 'migrate':
         if (req.method !== 'POST') {
           sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
@@ -246,7 +272,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
         return;
 
       default:
-        sendError(res, 'Invalid action. Valid actions: dashboard, users, user-permissions, settings, register, migrate, stats, errors, set-password, import-settings, reset-settings, eligibility-rules, eligibility-assessments, audit-log, appeals', HttpStatus.BAD_REQUEST);
+        sendError(res, 'Invalid action. Valid actions: dashboard, users, user-permissions, settings, register, migrate, stats, errors, bulk-email, bulk-status, export-users, set-password, import-settings, reset-settings, eligibility-rules, eligibility-assessments, audit-log, appeals', HttpStatus.BAD_REQUEST);
         return;
     }
   } catch (error) {
@@ -633,6 +659,236 @@ async function handleUsers(req: VercelRequest, res: VercelResponse, auth: AuthCo
     });
   } catch (error) {
     handleError(res, error, 'admin/users');
+  }
+}
+
+async function handleBulkEmail(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+  const parsed = validateBody(bulkEmailBodySchema, req, res);
+  if (!parsed) return;
+
+  const { subject, message, userIds } = parsed;
+  const dedupedUserIds = Array.from(new Set(userIds.map((id) => id.trim()).filter(Boolean)));
+
+  if (dedupedUserIds.length === 0) {
+    sendError(res, 'At least one target user is required', HttpStatus.BAD_REQUEST);
+    return;
+  }
+
+  try {
+    const recipients = await query<{ id: string; full_name: string | null; email: string | null }>(
+      `SELECT id, full_name, email
+       FROM profiles
+       WHERE id::text = ANY($1::text[])
+         AND is_active = true`,
+      [dedupedUserIds]
+    );
+
+    const recipientById = new Map(recipients.rows.map((row) => [row.id, row]));
+    let success = 0;
+    let failed = 0;
+    const errors: string[] = [];
+
+    for (const targetId of dedupedUserIds) {
+      const recipient = recipientById.get(targetId);
+      if (!recipient) {
+        failed++;
+        errors.push(`User not found or inactive: ${targetId}`);
+        continue;
+      }
+
+      if (!recipient.email) {
+        failed++;
+        errors.push(`User email missing: ${targetId}`);
+        continue;
+      }
+
+      try {
+        await transaction([
+          {
+            text: `INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
+                   VALUES ($1, $2, $3, 'info', false, NOW())`,
+            values: [targetId, subject, message],
+          },
+          {
+            text: `INSERT INTO email_queue (
+                     recipient_email,
+                     recipient_name,
+                     subject,
+                     body,
+                     html_body,
+                     template_name,
+                     template_data,
+                     status,
+                     priority
+                   )
+                   VALUES ($1, $2, $3, $4, $5, 'generic', $6, 'pending', 5)`,
+            values: [
+              recipient.email,
+              recipient.full_name,
+              subject,
+              message,
+              `<p>${message}</p>`,
+              JSON.stringify({ actorId: auth.userId, targetUserId: targetId }),
+            ],
+          },
+        ]);
+        success++;
+      } catch {
+        failed++;
+        errors.push(`Failed to queue notification for user: ${targetId}`);
+      }
+    }
+
+    await logAuditEvent({
+      actor_id: auth.userId,
+      action: 'bulk_notification_sent',
+      entity_type: 'notification',
+      entity_id: 'bulk',
+      changes: {
+        target_count: dedupedUserIds.length,
+        success,
+        failed,
+      },
+    });
+
+    sendSuccess(res, { success, failed, errors });
+  } catch (error) {
+    handleError(res, error, 'admin/bulk-email');
+  }
+}
+
+async function handleBulkStatus(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+  const parsed = validateBody(bulkStatusBodySchema, req, res);
+  if (!parsed) return;
+
+  const { status, applicationIds } = parsed;
+  const dedupedApplicationIds = Array.from(new Set(applicationIds.map((id) => id.trim()).filter(Boolean)));
+
+  if (dedupedApplicationIds.length === 0) {
+    sendError(res, 'At least one application is required', HttpStatus.BAD_REQUEST);
+    return;
+  }
+
+  let success = 0;
+  let failed = 0;
+  const errors: string[] = [];
+
+  for (const applicationId of dedupedApplicationIds) {
+    try {
+      const appResult = await query<{ id: string; payment_status: string | null }>(
+        `SELECT id, payment_status
+         FROM applications
+         WHERE id = $1
+         LIMIT 1`,
+        [applicationId]
+      );
+
+      if (appResult.rowCount === 0) {
+        failed++;
+        errors.push(`Application not found: ${applicationId}`);
+        continue;
+      }
+
+      const app = appResult.rows[0];
+      if (status === 'approved' && app.payment_status !== 'verified') {
+        failed++;
+        errors.push(`Payment not verified: ${applicationId}`);
+        continue;
+      }
+
+      await transaction([
+        {
+          text: `UPDATE applications
+                 SET status = $2,
+                     reviewed_by = $3,
+                     review_started_at = COALESCE(review_started_at, NOW()),
+                     updated_at = NOW()
+                 WHERE id = $1`,
+          values: [applicationId, status, auth.userId],
+        },
+        {
+          text: `INSERT INTO application_status_history (id, application_id, status, changed_by, notes, created_at)
+                 VALUES (gen_random_uuid(), $1, $2, $3, $4, NOW())`,
+          values: [applicationId, status, auth.userId, 'Bulk status update'],
+        },
+      ]);
+
+      success++;
+    } catch {
+      failed++;
+      errors.push(`Failed status update: ${applicationId}`);
+    }
+  }
+
+  try {
+    await logAuditEvent({
+      actor_id: auth.userId,
+      action: 'bulk_status_updated',
+      entity_type: 'application',
+      entity_id: 'bulk',
+      changes: {
+        status,
+        target_count: dedupedApplicationIds.length,
+        success,
+        failed,
+      },
+    });
+  } catch {
+    // Non-blocking audit failure for response path consistency
+  }
+
+  sendSuccess(res, { success, failed, errors });
+}
+
+async function handleExportUsers(res: VercelResponse, auth: AuthContext): Promise<void> {
+  try {
+    const result = await query<{
+      id: string;
+      full_name: string | null;
+      email: string | null;
+      phone: string | null;
+      role: string | null;
+      is_active: boolean | null;
+      created_at: string | null;
+    }>(
+      `SELECT id, full_name, email, phone, role, is_active, created_at
+       FROM profiles
+       ORDER BY created_at DESC`
+    );
+
+    const csvRows = [
+      'id,full_name,email,phone,role,is_active,created_at',
+      ...result.rows.map((row) => {
+        const values = [
+          row.id,
+          row.full_name || '',
+          row.email || '',
+          row.phone || '',
+          row.role || '',
+          row.is_active ? 'true' : 'false',
+          row.created_at || '',
+        ];
+        return values
+          .map((value) => `"${String(value).replace(/"/g, '""')}"`)
+          .join(',');
+      }),
+    ].join('\n');
+
+    await logAuditEvent({
+      actor_id: auth.userId,
+      action: 'users_exported',
+      entity_type: 'user',
+      entity_id: 'bulk',
+      changes: {
+        exported_count: result.rows.length,
+      },
+    });
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="users-export-${Date.now()}.csv"`);
+    res.status(HttpStatus.OK).send(csvRows);
+  } catch (error) {
+    handleError(res, error, 'admin/export-users');
   }
 }
 

@@ -14907,6 +14907,23 @@ var importSettingsBodySchema = exports_external.object({
 var migrateBodySchema = exports_external.object({
   secret: optionalSanitizedString
 });
+var applicationStatusSchema = exports_external.enum([
+  "draft",
+  "submitted",
+  "under_review",
+  "approved",
+  "rejected",
+  "pending_documents"
+]);
+var bulkEmailBodySchema = exports_external.object({
+  subject: nonEmptySanitizedString.max(200),
+  message: nonEmptySanitizedString.max(5000),
+  userIds: exports_external.array(nonEmptySanitizedString).min(1).max(500)
+});
+var bulkStatusBodySchema = exports_external.object({
+  status: applicationStatusSchema,
+  applicationIds: exports_external.array(nonEmptySanitizedString).min(1).max(500)
+});
 
 // lib/auth/permissions.ts
 init_queries();
@@ -15168,6 +15185,27 @@ async function handler(req, res) {
         }
         await handleErrorStatistics(res);
         return;
+      case "bulk-email":
+        if (req.method !== "POST") {
+          sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleBulkEmail(req, res, auth);
+        return;
+      case "bulk-status":
+        if (req.method !== "POST") {
+          sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleBulkStatus(req, res, auth);
+        return;
+      case "export-users":
+        if (req.method !== "GET") {
+          sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+          return;
+        }
+        await handleExportUsers(res, auth);
+        return;
       case "migrate":
         if (req.method !== "POST") {
           sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
@@ -15228,7 +15266,7 @@ async function handler(req, res) {
         await handleAppeals(req, res);
         return;
       default:
-        sendError(res, "Invalid action. Valid actions: dashboard, users, user-permissions, settings, register, migrate, stats, errors, set-password, import-settings, reset-settings, eligibility-rules, eligibility-assessments, audit-log, appeals", HttpStatus.BAD_REQUEST);
+        sendError(res, "Invalid action. Valid actions: dashboard, users, user-permissions, settings, register, migrate, stats, errors, bulk-email, bulk-status, export-users, set-password, import-settings, reset-settings, eligibility-rules, eligibility-assessments, audit-log, appeals", HttpStatus.BAD_REQUEST);
         return;
     }
   } catch (error48) {
@@ -15505,6 +15543,194 @@ async function handleUsers(req, res, auth) {
     });
   } catch (error48) {
     handleError(res, error48, "admin/users");
+  }
+}
+async function handleBulkEmail(req, res, auth) {
+  const parsed = validateBody(bulkEmailBodySchema, req, res);
+  if (!parsed)
+    return;
+  const { subject, message, userIds } = parsed;
+  const dedupedUserIds = Array.from(new Set(userIds.map((id) => id.trim()).filter(Boolean)));
+  if (dedupedUserIds.length === 0) {
+    sendError(res, "At least one target user is required", HttpStatus.BAD_REQUEST);
+    return;
+  }
+  try {
+    const recipients = await query(`SELECT id, full_name, email
+       FROM profiles
+       WHERE id::text = ANY($1::text[])
+         AND is_active = true`, [dedupedUserIds]);
+    const recipientById = new Map(recipients.rows.map((row) => [row.id, row]));
+    let success2 = 0;
+    let failed = 0;
+    const errors3 = [];
+    for (const targetId of dedupedUserIds) {
+      const recipient = recipientById.get(targetId);
+      if (!recipient) {
+        failed++;
+        errors3.push(`User not found or inactive: ${targetId}`);
+        continue;
+      }
+      if (!recipient.email) {
+        failed++;
+        errors3.push(`User email missing: ${targetId}`);
+        continue;
+      }
+      try {
+        await transaction([
+          {
+            text: `INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
+                   VALUES ($1, $2, $3, 'info', false, NOW())`,
+            values: [targetId, subject, message]
+          },
+          {
+            text: `INSERT INTO email_queue (
+                     recipient_email,
+                     recipient_name,
+                     subject,
+                     body,
+                     html_body,
+                     template_name,
+                     template_data,
+                     status,
+                     priority
+                   )
+                   VALUES ($1, $2, $3, $4, $5, 'generic', $6, 'pending', 5)`,
+            values: [
+              recipient.email,
+              recipient.full_name,
+              subject,
+              message,
+              `<p>${message}</p>`,
+              JSON.stringify({ actorId: auth.userId, targetUserId: targetId })
+            ]
+          }
+        ]);
+        success2++;
+      } catch {
+        failed++;
+        errors3.push(`Failed to queue notification for user: ${targetId}`);
+      }
+    }
+    await logAuditEvent({
+      actor_id: auth.userId,
+      action: "bulk_notification_sent",
+      entity_type: "notification",
+      entity_id: "bulk",
+      changes: {
+        target_count: dedupedUserIds.length,
+        success: success2,
+        failed
+      }
+    });
+    sendSuccess(res, { success: success2, failed, errors: errors3 });
+  } catch (error48) {
+    handleError(res, error48, "admin/bulk-email");
+  }
+}
+async function handleBulkStatus(req, res, auth) {
+  const parsed = validateBody(bulkStatusBodySchema, req, res);
+  if (!parsed)
+    return;
+  const { status, applicationIds } = parsed;
+  const dedupedApplicationIds = Array.from(new Set(applicationIds.map((id) => id.trim()).filter(Boolean)));
+  if (dedupedApplicationIds.length === 0) {
+    sendError(res, "At least one application is required", HttpStatus.BAD_REQUEST);
+    return;
+  }
+  let success2 = 0;
+  let failed = 0;
+  const errors3 = [];
+  for (const applicationId of dedupedApplicationIds) {
+    try {
+      const appResult = await query(`SELECT id, payment_status
+         FROM applications
+         WHERE id = $1
+         LIMIT 1`, [applicationId]);
+      if (appResult.rowCount === 0) {
+        failed++;
+        errors3.push(`Application not found: ${applicationId}`);
+        continue;
+      }
+      const app = appResult.rows[0];
+      if (status === "approved" && app.payment_status !== "verified") {
+        failed++;
+        errors3.push(`Payment not verified: ${applicationId}`);
+        continue;
+      }
+      await transaction([
+        {
+          text: `UPDATE applications
+                 SET status = $2,
+                     reviewed_by = $3,
+                     review_started_at = COALESCE(review_started_at, NOW()),
+                     updated_at = NOW()
+                 WHERE id = $1`,
+          values: [applicationId, status, auth.userId]
+        },
+        {
+          text: `INSERT INTO application_status_history (id, application_id, status, changed_by, notes, created_at)
+                 VALUES (gen_random_uuid(), $1, $2, $3, $4, NOW())`,
+          values: [applicationId, status, auth.userId, "Bulk status update"]
+        }
+      ]);
+      success2++;
+    } catch {
+      failed++;
+      errors3.push(`Failed status update: ${applicationId}`);
+    }
+  }
+  try {
+    await logAuditEvent({
+      actor_id: auth.userId,
+      action: "bulk_status_updated",
+      entity_type: "application",
+      entity_id: "bulk",
+      changes: {
+        status,
+        target_count: dedupedApplicationIds.length,
+        success: success2,
+        failed
+      }
+    });
+  } catch {}
+  sendSuccess(res, { success: success2, failed, errors: errors3 });
+}
+async function handleExportUsers(res, auth) {
+  try {
+    const result = await query(`SELECT id, full_name, email, phone, role, is_active, created_at
+       FROM profiles
+       ORDER BY created_at DESC`);
+    const csvRows = [
+      "id,full_name,email,phone,role,is_active,created_at",
+      ...result.rows.map((row) => {
+        const values = [
+          row.id,
+          row.full_name || "",
+          row.email || "",
+          row.phone || "",
+          row.role || "",
+          row.is_active ? "true" : "false",
+          row.created_at || ""
+        ];
+        return values.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(",");
+      })
+    ].join(`
+`);
+    await logAuditEvent({
+      actor_id: auth.userId,
+      action: "users_exported",
+      entity_type: "user",
+      entity_id: "bulk",
+      changes: {
+        exported_count: result.rows.length
+      }
+    });
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="users-export-${Date.now()}.csv"`);
+    res.status(HttpStatus.OK).send(csvRows);
+  } catch (error48) {
+    handleError(res, error48, "admin/export-users");
   }
 }
 async function handleDeactivateUser(req, res, auth) {

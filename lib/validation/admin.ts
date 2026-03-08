@@ -87,3 +87,25 @@ export const importSettingsBodySchema = z.object({
 export const migrateBodySchema = z.object({
   secret: optionalSanitizedString,
 });
+
+const applicationStatusSchema = z.enum([
+  'draft',
+  'submitted',
+  'under_review',
+  'approved',
+  'rejected',
+  'pending_documents',
+]);
+
+/** POST — bulk admin email */
+export const bulkEmailBodySchema = z.object({
+  subject: nonEmptySanitizedString.max(200),
+  message: nonEmptySanitizedString.max(5000),
+  userIds: z.array(nonEmptySanitizedString).min(1).max(500),
+});
+
+/** POST — bulk application status update */
+export const bulkStatusBodySchema = z.object({
+  status: applicationStatusSchema,
+  applicationIds: z.array(nonEmptySanitizedString).min(1).max(500),
+});

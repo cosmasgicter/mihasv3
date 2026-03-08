@@ -14979,6 +14979,23 @@ var importSettingsBodySchema = exports_external.object({
 var migrateBodySchema = exports_external.object({
   secret: optionalSanitizedString
 });
+var applicationStatusSchema2 = exports_external.enum([
+  "draft",
+  "submitted",
+  "under_review",
+  "approved",
+  "rejected",
+  "pending_documents"
+]);
+var bulkEmailBodySchema = exports_external.object({
+  subject: nonEmptySanitizedString.max(200),
+  message: nonEmptySanitizedString.max(5000),
+  userIds: exports_external.array(nonEmptySanitizedString).min(1).max(500)
+});
+var bulkStatusBodySchema = exports_external.object({
+  status: applicationStatusSchema2,
+  applicationIds: exports_external.array(nonEmptySanitizedString).min(1).max(500)
+});
 // lib/validation/documents.ts
 var uploadDocumentBodySchema = exports_external.object({
   file: exports_external.string().min(1, "File data is required"),
