@@ -85,19 +85,22 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
     return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
 
-  // Determine if user is admin (check role string directly for flexibility)
-  const adminRoles = ['admin', 'super_admin', 'admissions_officer'];
-  const isAdmin = adminRoles.includes(user.role);
+  const isAdmin = user.role === 'admin' || user.role === 'super_admin' || user.role === 'admissions_officer';
+  const canReadAllApplications = isAdmin
+    || user.permissions.includes('applications:read')
+    || user.permissions.includes('applications:review');
+  const canReviewApplications = user.permissions.includes('applications:review');
+  const canVerifyPayments = user.permissions.includes('payments:verify');
 
   const id = req.query.id as string;
 
   try {
     // Handle specific actions
-    if (action === 'details') return await handleDetails(req, res, user.userId, isAdmin);
+    if (action === 'details') return await handleDetails(req, res, user.userId, canReadAllApplications);
     if (action === 'documents') return await handleDocuments(res);
     if (action === 'grades') return await handleGrades(res);
     if (action === 'summary') return await handleSummary(res);
-    if (action === 'review') return await handleReview(req, res, user.userId, isAdmin);
+    if (action === 'review') return await handleReview(req, res, user.userId, canReviewApplications);
     if (action === 'interviews') return await handleInterviews(req, res, user.userId);
     if (action === 'schedule-interview') return await handleScheduleInterview(req, res, user.userId, isAdmin);
     if (action === 'stats') return await handleStats(req, res, user.userId);
@@ -106,10 +109,10 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
     if (action === 'versions') return await handleVersions(req, res, user.userId);
 
     // Handle CRUD by ID
-    if (id) return await handleById(req, res, user.userId, isAdmin, id);
+    if (id) return await handleById(req, res, user.userId, isAdmin, canReadAllApplications, canReviewApplications, canVerifyPayments, id);
 
     // Default: list applications (GET) or create application (POST)
-    if (req.method === 'GET') return await handleDetails(req, res, user.userId, isAdmin);
+    if (req.method === 'GET') return await handleDetails(req, res, user.userId, canReadAllApplications);
     if (req.method === 'POST') return await handleCreate(req, res, user.userId);
 
     return sendError(res, 'Invalid request', HttpStatus.BAD_REQUEST);
@@ -338,7 +341,7 @@ async function handleDetails(
   req: VercelRequest,
   res: VercelResponse,
   userId: string,
-  isAdmin: boolean
+  canReadAllApplications: boolean
 ) {
   if (req.method !== 'GET') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
@@ -365,7 +368,7 @@ async function handleDetails(
     let paramIndex = 1;
 
     // Scope to user unless admin
-    if (!isAdmin || mine === 'true') {
+    if (!canReadAllApplications || mine === 'true') {
       conditions.push(`a.user_id = $${paramIndex}`);
       values.push(userId);
       paramIndex++;
@@ -675,10 +678,10 @@ async function handleReview(
   req: VercelRequest,
   res: VercelResponse,
   userId: string,
-  isAdmin: boolean
+  canReviewApplications: boolean
 ) {
-  if (!isAdmin) {
-    return sendError(res, 'Admin access required', HttpStatus.FORBIDDEN);
+  if (!canReviewApplications) {
+    return sendError(res, 'Review permission required', HttpStatus.FORBIDDEN);
   }
 
   try {
@@ -762,13 +765,16 @@ async function handleById(
   res: VercelResponse, 
   userId: string, 
   isAdmin: boolean, 
+  canReadAllApplications: boolean,
+  canReviewApplications: boolean,
+  canVerifyPayments: boolean,
   applicationId: string
 ) {
   try {
   // GET - Fetch application details
   if (req.method === 'GET') {
     // Check ownership for non-admin users
-    if (!isAdmin) {
+    if (!canReadAllApplications) {
       const ownerQ = ApplicationQueries.checkOwnership(applicationId, userId);
       const ownerResult = await query<{ is_owner: boolean }>(ownerQ.text, ownerQ.values);
       if (!ownerResult.rows[0]?.is_owner) {
@@ -842,6 +848,10 @@ async function handleById(
       const { action, ...payload } = body;
 
       if (action === 'update_status') {
+        if (!canReviewApplications) {
+          return sendError(res, 'Review permission required', HttpStatus.FORBIDDEN);
+        }
+
         const parsedPayload = validatePatchPayload(patchUpdateStatusSchema, payload, res);
         if (!parsedPayload) return;
 
@@ -964,6 +974,10 @@ async function handleById(
       }
 
       if (action === 'update_payment_status') {
+        if (!canVerifyPayments) {
+          return sendError(res, 'Payment verification permission required', HttpStatus.FORBIDDEN);
+        }
+
         const parsedPayload = validatePatchPayload(patchUpdatePaymentStatusSchema, payload, res);
         if (!parsedPayload) return;
 
