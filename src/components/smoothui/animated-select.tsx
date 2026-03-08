@@ -65,6 +65,7 @@ export const AnimatedSelect = forwardRef<HTMLSelectElement, AnimatedSelectProps>
             )}
           >
             {label}
+            {props.required && <span className="text-destructive ml-1">*</span>}
           </label>
         )}
         
@@ -92,7 +93,8 @@ export const AnimatedSelect = forwardRef<HTMLSelectElement, AnimatedSelectProps>
             onFocus={handleFocus}
             onBlur={handleBlur}
             onChange={handleChange}
-            aria-invalid={!!error}
+            aria-invalid={error ? 'true' : undefined}
+            aria-required={props.required || undefined}
             aria-describedby={error ? `${selectId}-error` : helperText ? `${selectId}-helper` : undefined}
             {...props}
           >
