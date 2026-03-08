@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { applicationService } from '@/services/applications'
 import { notificationService } from '@/services/notifications'
@@ -124,8 +124,14 @@ export function useApplicationSubmit() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const submitInFlightRef = useRef(false)
 
   const submitApplication = async (data: WizardFormData, applicationId: string, popUrl: string) => {
+    if (submitInFlightRef.current) {
+      return
+    }
+
+    submitInFlightRef.current = true
     try {
       setLoading(true)
       setError('')
@@ -210,6 +216,7 @@ export function useApplicationSubmit() {
       
       setError(errorMessage)
     } finally {
+      submitInFlightRef.current = false
       setLoading(false)
     }
   }
