@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-const { queryMock } = vi.hoisted(() => ({
+const { queryMock, getAuthUserMock, requireCsrfMock } = vi.hoisted(() => ({
   queryMock: vi.fn(),
+  getAuthUserMock: vi.fn<(...args: unknown[]) => Promise<any>>(),
+  requireCsrfMock: vi.fn<(...args: unknown[]) => Promise<boolean>>(),
 }))
 
 vi.mock('../../../lib/cors', () => ({
@@ -18,7 +20,10 @@ vi.mock('../../../lib/arcjet', () => ({
 }))
 
 vi.mock('../../../lib/auth/middleware', () => ({
-  getAuthUser: vi.fn(async () => null),
+  getAuthUser: getAuthUserMock,
+}))
+vi.mock('../../../lib/csrf', () => ({
+  requireCsrf: requireCsrfMock,
 }))
 
 vi.mock('../../../lib/errorHandler', () => ({
@@ -81,6 +86,8 @@ function createRes(): VercelResponse & { _status: number; _json: any } {
 describe('api-src/catalog programs', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    getAuthUserMock.mockResolvedValue(null)
+    requireCsrfMock.mockResolvedValue(false)
   })
 
   it('returns institution linkage for program records', async () => {
@@ -122,6 +129,59 @@ describe('api-src/catalog programs', () => {
         name: 'MIHAS',
         full_name: 'Mukuba Institute of Health and Allied Sciences',
       },
+    })
+  })
+
+  it('enforces CSRF on admin write operations', async () => {
+    getAuthUserMock.mockResolvedValue({
+      userId: 'admin-1',
+      email: 'admin@example.com',
+      role: 'admin',
+      permissions: [],
+    })
+    requireCsrfMock.mockResolvedValue(true)
+
+    const req = createReq({
+      method: 'POST',
+      query: { type: 'programs' },
+      body: {
+        name: 'Registered Nursing',
+        institution_id: 'inst-1',
+        duration_months: 36,
+      },
+    })
+    const res = createRes()
+
+    await handler(req, res)
+
+    expect(requireCsrfMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('rejects invalid program payloads via schema validation', async () => {
+    getAuthUserMock.mockResolvedValue({
+      userId: 'admin-1',
+      email: 'admin@example.com',
+      role: 'admin',
+      permissions: [],
+    })
+
+    const req = createReq({
+      method: 'POST',
+      query: { type: 'programs' },
+      body: {
+        name: '',
+        institution_id: '',
+        duration_months: 0,
+      },
+    })
+    const res = createRes()
+
+    await handler(req, res)
+
+    expect(res._status).toBe(400)
+    expect(res._json).toMatchObject({
+      success: false,
+      code: 'VALIDATION_ERROR',
     })
   })
 })
