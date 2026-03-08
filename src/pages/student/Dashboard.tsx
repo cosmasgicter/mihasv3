@@ -28,6 +28,8 @@ import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { Container } from '@/components/ui/Container'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { ErrorBanner } from '@/components/ui/ErrorDisplay'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { useStudentDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useStudentDashboardPolling } from '@/hooks/useStudentDashboardPolling'
 import { useApplicationUpdates } from '@/hooks/useRealtime'
@@ -60,7 +62,7 @@ export default function StudentDashboard() {
       loadDashboardData()
     },
     onError: (error) => {
-      console.error('Manual refresh failed:', error)
+      console.error('Manual refresh failed:', sanitizeForLog(error))
       useToastStore.getState().addToast('error', 'Failed to refresh data')
     }
   })
@@ -72,10 +74,7 @@ export default function StudentDashboard() {
       // Reload local data when application changes are detected
       loadDashboardData()
     },
-    onDataChange: () => {
-      // Could show a toast or update notification badge here
-      console.log('[StudentDashboard] Data updated via polling')
-    }
+    onDataChange: () => {},
   })
 
   // Realtime application status updates via useRealtime polling
@@ -279,7 +278,10 @@ export default function StudentDashboard() {
           setScheduledInterviews(scheduledOnly as ApplicationInterview[])
         } catch (interviewError) {
           // Silently handle interview fetch errors - not critical for dashboard
-          console.warn('Could not fetch interview data:', interviewError)
+          console.warn(
+            'Could not fetch interview data:',
+            sanitizeForLog(interviewError instanceof Error ? interviewError.message : String(interviewError)),
+          )
           setScheduledInterviews([])
         }
       }
@@ -305,7 +307,7 @@ export default function StudentDashboard() {
       case 'approved':
         return <CheckCircle className="h-5 w-5 text-success" />
       case 'rejected':
-        return <XCircle className="h-5 w-5 text-red-800" />
+        return <XCircle className="h-5 w-5 text-destructive" />
       case 'under_review':
         return <Clock className="h-5 w-5 text-primary" />
       default:
@@ -379,7 +381,7 @@ export default function StudentDashboard() {
       setError('')
       useToastStore.getState().addToast('success', 'All drafts cleared successfully')
     } catch (error) {
-      console.error('Clear drafts error:', error)
+      console.error('Clear drafts error:', sanitizeForLog(error))
       const errorMsg = error instanceof Error ? error.message : 'Failed to clear drafts'
       setError(errorMsg)
       useToastStore.getState().addToast('error', errorMsg)
@@ -411,8 +413,8 @@ export default function StudentDashboard() {
           <div className="space-y-6 sm:space-y-8">
             {isRefreshing && (
               <div className="rounded-full bg-white px-6 py-3 shadow-lg animate-fade-in">
-                <div className="h-1 w-full overflow-hidden rounded-full bg-blue-100">
-                  <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-blue-500/80 via-indigo-500/75 to-blue-600/80 animate-pulse" />
+                <div className="h-1 w-full overflow-hidden rounded-full bg-primary/10">
+                  <div className="h-full w-1/3 rounded-full bg-gradient-vibrant animate-pulse" />
                 </div>
                 <span className="sr-only">Refreshing dashboard data</span>
               </div>
@@ -428,10 +430,10 @@ export default function StudentDashboard() {
                   {/* Polling status indicator */}
                   <span className="inline-flex items-center gap-1.5">
                     <span className="relative flex">
-                      <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                      <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping" style={{ animationDuration: '2s' }} />
+                      <span className="w-2 h-2 bg-success rounded-full animate-pulse" />
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-success/75 animate-ping" style={{ animationDuration: '2s' }} />
                     </span>
-                    <span className="text-xs font-medium text-green-600 dark:text-green-400">Live</span>
+                    <span className="text-xs font-medium text-success">Live</span>
                   </span>
                 </span>
               }
@@ -453,24 +455,12 @@ export default function StudentDashboard() {
             />
 
             {error && (
-              <div
-                className={`rounded-2xl border border-red-300 bg-red-50 px-6 py-5 text-red-800 shadow-lg ${animateClasses.slideUp}`}
-              >
-                <div className="flex items-start gap-3">
-                  <XCircle className="h-6 w-6 flex-shrink-0" />
-                  <div className="flex-1">
-                    <p className="font-semibold">Dashboard Error</p>
-                    <p className="text-sm text-destructive/80">{error}</p>
-                  </div>
-                  <button
-                    onClick={() => setError('')}
-                    className="flex-shrink-0 p-1 rounded-md hover:bg-red-100 transition-colors"
-                    aria-label="Dismiss error"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
+              <ErrorBanner
+                error={{ status: 500, message: error }}
+                className={animateClasses.slideUp}
+                onDismiss={() => setError('')}
+                onRetry={() => loadDashboardData()}
+              />
             )}
 
             {/* Status Overview with 8starlabs StatusIndicator */}
@@ -492,30 +482,28 @@ export default function StudentDashboard() {
               >
                 {submittedApplications.length === 0 ? (
                   totalDraftCount > 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
-                      <div className="text-warning"><Clock className="w-16 h-16" /></div>
-                      <div className="space-y-2">
-                        <h3 className="text-xl sm:text-2xl font-semibold text-foreground">Your application is still in draft</h3>
-                        <p className="text-foreground">
-                          Continue the saved draft above when you are ready. Submitted applications will appear here once you complete the full flow.
-                        </p>
-                      </div>
+                    <div className="px-6 py-12">
+                      <EmptyState
+                        icon={Clock}
+                        title="Your application is still in draft"
+                        description="Continue the saved draft above when you are ready. Submitted applications will appear here once you complete the full flow."
+                      />
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
-                      <div className="text-foreground"><FileText className="w-16 h-16" /></div>
-                      <div className="space-y-2">
-                        <h3 className="text-xl sm:text-2xl font-semibold text-foreground">No applications yet</h3>
-                        <p className="text-foreground">
-                          Start your journey by submitting your first application. We'll guide you every step of the way.
-                        </p>
-                      </div>
-                      <Link to="/student/application-wizard">
-                        <Button className="bg-gradient-to-r from-blue-600/90 to-indigo-600/85 text-white shadow-lg hover:from-blue-700/90 hover:to-indigo-700/85">
-                          <Plus className="mr-2 h-5 w-5" />
-                          New Application
-                        </Button>
-                      </Link>
+                    <div className="px-6 py-12">
+                      <EmptyState
+                        icon={FileText}
+                        title="No applications yet"
+                        description="Start your journey by submitting your first application. We'll guide you every step of the way."
+                        action={(
+                          <Link to="/student/application-wizard">
+                            <Button variant="primary">
+                              <Plus className="mr-2 h-5 w-5" />
+                              New Application
+                            </Button>
+                          </Link>
+                        )}
+                      />
                     </div>
                   )
                 ) : (
@@ -523,7 +511,7 @@ export default function StudentDashboard() {
                     {submittedApplications.map((application, index) => (
                       <div
                         key={application.id}
-                        className={`px-6 py-6 transition-colors hover:bg-blue-50 border-l-4 border-l-transparent hover:border-l-blue-500 ${animateClasses.slideUp}`}
+                        className={`border-l-4 border-l-transparent px-6 py-6 transition-colors hover:border-l-primary hover:bg-muted/30 ${animateClasses.slideUp}`}
                         style={staggerChild(index, 50)}
                       >
                         <div className="space-y-4">
@@ -560,7 +548,7 @@ export default function StudentDashboard() {
                           </div>
 
                           {/* Actions */}
-                          <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-gray-100">
+                          <div className="flex flex-col gap-3 border-t border-border pt-2 sm:flex-row">
                             <div className="flex-1">
                               <DocumentButtons 
                                 applicationId={application.id}
@@ -570,11 +558,7 @@ export default function StudentDashboard() {
                               />
                             </div>
                             <Link to={`/student/application/${application.id}`} className="sm:w-auto">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full sm:w-auto border-primary text-primary hover:bg-primary hover:text-white font-medium"
-                              >
+                              <Button variant="outline" size="sm" className="w-full sm:w-auto">
                                 View Details
                               </Button>
                             </Link>
@@ -617,11 +601,7 @@ export default function StudentDashboard() {
                     </div>
                   </div>
                   <Link to="/student/settings" className="block">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-4 w-full border-primary text-primary hover:bg-primary hover:text-white"
-                    >
+                    <Button variant="outline" size="sm" className="mt-4 w-full">
                       Update profile
                     </Button>
                   </Link>
@@ -636,17 +616,19 @@ export default function StudentDashboard() {
                     {intakes.slice(0, 3).map((intake, index) => (
                       <div
                         key={intake.id}
-                        className={`rounded-xl border border-orange-300 bg-orange-50 px-4 py-3 ${animateClasses.slideUp}`}
+                        className={`rounded-xl border border-warning/30 bg-warning/5 px-4 py-3 ${animateClasses.slideUp}`}
                         style={staggerChild(index, 100)}
                       >
                         <p className="text-sm font-semibold text-foreground">{intake.name}</p>
-                        <p className="text-xs font-semibold text-orange-700">Deadline: {formatDate(intake.application_deadline)}</p>
+                        <p className="text-xs font-semibold text-warning">Deadline: {formatDate(intake.application_deadline)}</p>
                       </div>
                     ))}
                     {intakes.length === 0 && (
-                      <p className="rounded-xl bg-muted px-4 py-4 text-center text-sm text-foreground">
-                        No upcoming deadlines yet. Check back soon.
-                      </p>
+                      <EmptyState
+                        icon={Calendar}
+                        title="No upcoming deadlines yet"
+                        description="Check back soon for the next intake and application deadline."
+                      />
                     )}
                   </div>
                 </SectionCard>

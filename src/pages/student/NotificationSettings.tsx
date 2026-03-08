@@ -285,7 +285,7 @@ export default function NotificationSettings() {
           </div>
           <span
             className={`px-3 py-1 rounded-full text-xs font-semibold ${
-              optedIn ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-accent text-foreground border border-border'
+              optedIn ? 'bg-success/5 text-success border border-success/30' : 'bg-accent text-foreground border border-border'
             }`}
           >
             {optedIn ? 'Enabled' : 'Disabled'}
@@ -398,11 +398,11 @@ export default function NotificationSettings() {
 
         {success && (
           <div
-            className={`rounded-xl bg-emerald-50 border border-emerald-200 p-4 sm:p-6 mb-6 shadow-lg ${animateClasses.slideUp}`}
+            className={`rounded-xl bg-success/5 border border-success/30 p-4 sm:p-6 mb-6 shadow-lg ${animateClasses.slideUp}`}
           >
             <div className="flex items-center space-x-3">
               <div className="text-3xl">✅</div>
-              <div className="text-emerald-700 font-medium">{success}</div>
+              <div className="text-success font-medium">{success}</div>
             </div>
           </div>
         )}

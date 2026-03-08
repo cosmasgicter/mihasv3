@@ -31,6 +31,8 @@ import {
 } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 
 interface ApplicationTimeline {
   status: string
@@ -75,7 +77,7 @@ export default function ApplicationStatus() {
 
       setApplication(response.application as ApplicationWithDetails)
     } catch (error: any) {
-      logger.error('Error loading application details:', error)
+      logger.error('Failed to load application details')
       setError(error.message || 'Failed to load application')
     } finally {
       setLoading(false)
@@ -160,37 +162,24 @@ export default function ApplicationStatus() {
 
   if (loading) {
     return (
-      
           <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <div className="flex min-h-[40vh] items-center justify-center">
             <LoadingSpinner size="lg" />
           </div>
         </div>
-      
     )
   }
 
   if (error || !application) {
     return (
-      
           <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <SectionCard className="mx-auto max-w-xl text-center" title="Application not found" icon={<AlertCircle className="h-5 w-5" />}>
-            <p className="text-foreground">
-              {error || 'The application you are looking for does not exist or you do not have permission to view it.'}
-            </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-              <Link to="/student/dashboard">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700">
-                  Back to dashboard
-                </Button>
-              </Link>
-              <Button variant="outline" onClick={() => navigate(-1)}>
-                Go back
-              </Button>
-            </div>
-          </SectionCard>
+          <ErrorDisplay
+            error={{ status: error ? 404 : 500, message: error || 'Application not found or access denied' }}
+            onRetry={loadApplicationDetails}
+            onAction={() => navigate('/student/dashboard')}
+            className="max-w-2xl"
+          />
         </div>
-      
     )
   }
 
@@ -212,7 +201,7 @@ export default function ApplicationStatus() {
         <div className="space-y-6 sm:space-y-8">
           <Link
             to="/student/dashboard"
-            className="inline-flex items-center text-primary transition-colors hover:text-primary/80"
+            className="inline-flex items-center rounded-full border border-border/70 bg-card px-3 py-2 text-sm font-medium text-primary shadow-sm transition-colors hover:bg-primary/5"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to dashboard
@@ -290,10 +279,10 @@ export default function ApplicationStatus() {
                       style={staggerChild(index, 50)}
                     >
                       <div
-                        className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full shadow-lg ${
+                        className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border shadow-sm ${
                           step.completed
-                            ? 'bg-gradient-to-br from-green-500 to-green-600 text-white'
-                            : 'bg-accent text-foreground'
+                            ? 'border-success/20 bg-success/10 text-success'
+                            : 'border-border bg-accent text-foreground'
                         }`}
                       >
                         {step.completed ? <CheckCircle className="h-5 w-5" /> : getStatusIcon(step.status)}
@@ -415,7 +404,6 @@ export default function ApplicationStatus() {
                         variant="outline"
                         size="sm"
                         onClick={() => window.open(application.result_slip_url as string, '_blank')}
-                        className="border-blue-300 text-primary hover:bg-primary/10"
                       >
                         <Eye className="mr-1 h-4 w-4" />
                         View
@@ -441,7 +429,6 @@ export default function ApplicationStatus() {
                         variant="outline"
                         size="sm"
                         onClick={() => window.open(application.extra_kyc_url as string, '_blank')}
-                        className="border-green-300 text-accent hover:bg-accent/10"
                       >
                         <Eye className="mr-1 h-4 w-4" />
                         View
@@ -467,7 +454,6 @@ export default function ApplicationStatus() {
                         variant="outline"
                         size="sm"
                         onClick={() => window.open(application.pop_url as string, '_blank')}
-                        className="border-purple-300 text-foreground hover:bg-muted"
                       >
                         <Eye className="mr-1 h-4 w-4" />
                         View
@@ -476,9 +462,11 @@ export default function ApplicationStatus() {
                   )}
 
                   {!application.result_slip_url && !application.extra_kyc_url && !application.pop_url && (
-                    <p className="rounded-xl bg-muted px-4 py-6 text-center text-sm text-foreground">
-                      No supporting documents uploaded.
-                    </p>
+                    <EmptyState
+                      icon={FileText}
+                      title="No supporting documents uploaded"
+                      description="Uploaded documents will appear here once they are available for review."
+                    />
                   )}
                 </div>
               </SectionCard>

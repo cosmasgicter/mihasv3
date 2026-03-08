@@ -1,13 +1,16 @@
 import type { ChangeEvent } from 'react'
 import { useEffect, useState } from 'react'
 
-import { CreditCard } from 'lucide-react'
+import { CreditCard, Radio } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 
 import { AnimatedInput } from '@/components/smoothui/animated-input'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
 import { FormSelect } from '@/components/ui/form-select'
 import { AnimatedFileUpload } from '@/components/smoothui/animated-file-upload'
+import { SectionCard } from '@/components/ui/SectionCard'
 import { animateClasses, staggerChild } from '@/lib/animations'
+import { cn } from '@/lib/utils'
 
 import type { WizardFormData } from '../types'
 
@@ -31,17 +34,30 @@ const PaymentStep = ({
   uploadedFiles
 }: PaymentStepProps) => {
   const { register, control, setValue, watch, formState: { errors } } = form
-  const [paymentTarget, setPaymentTarget] = useState('Loading...')
+  const [paymentTarget, setPaymentTarget] = useState<string | null>(null)
+  const [paymentTargetStatus, setPaymentTargetStatus] = useState<'loading' | 'ready' | 'unavailable'>('loading')
   const paymentOption = watch('payment_option') || 'pay_now'
   const isPayLater = paymentOption === 'pay_later'
 
   useEffect(() => {
+    let isActive = true
+
+    setPaymentTargetStatus('loading')
     getPaymentTarget()
-      .then(setPaymentTarget)
-      .catch((error) => {
-        console.error('Failed to load payment target:', error)
-        setPaymentTarget('Payment information unavailable')
+      .then((target) => {
+        if (!isActive) return
+        setPaymentTarget(target)
+        setPaymentTargetStatus('ready')
       })
+      .catch(() => {
+        if (!isActive) return
+        setPaymentTarget(null)
+        setPaymentTargetStatus('unavailable')
+      })
+
+    return () => {
+      isActive = false
+    }
   }, [getPaymentTarget])
 
   // Payment method options
@@ -53,200 +69,226 @@ const PaymentStep = ({
     { value: 'Bank To Cell', label: 'Bank To Cell' },
   ]
 
+  const paymentChoices = [
+    {
+      value: 'pay_now',
+      title: 'Pay now',
+      description: 'Upload your proof of payment now and send the application to admissions for payment review.',
+    },
+    {
+      value: 'pay_later',
+      title: 'Pay later',
+      description: 'Submit the application first and complete payment later from the dashboard payment section.',
+    },
+  ] as const
+
   return (
-    <div
-      key="step3"
-      className={`bg-card rounded-lg shadow-lg p-4 sm:p-6 border border-border ${animateClasses.fadeIn}`}
+    <SectionCard
+      title={title}
+      description="Choose how you want to complete payment. The application can continue even if payment verification is delayed."
+      icon={<CreditCard className="h-5 w-5" />}
+      className={animateClasses.fadeIn}
+      contentClassName="space-y-6"
       data-testid="payment-step"
     >
-      <h2 className="text-lg font-semibold text-foreground mb-4">{title}</h2>
-
-      <div className="space-y-6">
-        <div className="grid gap-3 lg:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => setValue('payment_option', 'pay_now', { shouldDirty: true, shouldValidate: false })}
-            className={`rounded-xl border p-4 text-left transition-colors ${
-              !isPayLater
-                ? 'border-primary bg-primary/5 shadow-sm'
-                : 'border-border bg-card hover:border-primary/40'
-            }`}
-          >
-            <p className="text-sm font-semibold text-foreground">Pay now</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Upload your proof of payment now and submit the application for payment review.
-            </p>
-          </button>
-          <button
-            type="button"
-            onClick={() => setValue('payment_option', 'pay_later', { shouldDirty: true, shouldValidate: false })}
-            className={`rounded-xl border p-4 text-left transition-colors ${
-              isPayLater
-                ? 'border-primary bg-primary/5 shadow-sm'
-                : 'border-border bg-card hover:border-primary/40'
-            }`}
-          >
-            <p className="text-sm font-semibold text-foreground">Pay later</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Submit the application now and complete payment later from the student dashboard payment section.
-            </p>
-          </button>
-        </div>
-
+      <fieldset className="space-y-3">
+        <legend id="payment-option-legend" className="text-sm font-semibold text-foreground">
+          Choose when you want to complete payment
+        </legend>
+        <p className="text-sm text-muted-foreground" id="payment-option-hint">
+          Pick the option that matches your situation. You can still submit without blocking on payment verification.
+        </p>
         <div
-          className={`bg-gradient-to-r from-blue-50 to-green-50 border border-primary/30 rounded-lg p-4 ${animateClasses.scaleIn}`}
+          role="radiogroup"
+          aria-labelledby="payment-option-legend"
+          aria-describedby="payment-option-hint"
+          className="grid gap-3 lg:grid-cols-2"
         >
-          <div className="flex items-start sm:items-center mb-3">
-            <CreditCard className="h-5 w-5 text-primary mr-2" />
-            <h3 className="text-sm sm:text-md font-medium text-primary-foreground leading-snug">
-              Payment Required - Multiple Options Available
-            </h3>
-          </div>
-          <div className="space-y-2 text-sm">
-            <p className="text-foreground font-semibold">
-              <strong>Application Fee:</strong> K153.00
-            </p>
-            <p className="text-foreground font-semibold">
-              <strong>Payment Target:</strong> {paymentTarget}
-            </p>
-            <div className="bg-card rounded-md p-3 mt-3">
-              <p className="text-foreground font-medium mb-2">Available Payment Methods:</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                <div className="flex items-center text-foreground font-medium">
-                  <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
-                  MTN Money
+          {paymentChoices.map(choice => {
+            const checked = paymentOption === choice.value
+
+            return (
+              <label
+                key={choice.value}
+                className={cn(
+                  'block cursor-pointer rounded-2xl border bg-card p-4 transition-all',
+                  'focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
+                  checked ? 'border-primary bg-primary/5 shadow-sm' : 'border-border hover:border-primary/40'
+                )}
+              >
+                <input
+                  type="radio"
+                  name="payment_option"
+                  value={choice.value}
+                  checked={checked}
+                  onChange={() => setValue('payment_option', choice.value, { shouldDirty: true, shouldValidate: false })}
+                  className="sr-only"
+                />
+                <div className="flex items-start gap-3">
+                  <span
+                    className={cn(
+                      'mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full border',
+                      checked ? 'border-primary bg-primary text-primary-foreground' : 'border-border text-transparent'
+                    )}
+                    aria-hidden="true"
+                  >
+                    <Radio className="h-3 w-3" />
+                  </span>
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-foreground">{choice.title}</p>
+                    <p className="text-sm text-muted-foreground">{choice.description}</p>
+                  </div>
                 </div>
-                <div className="flex items-center text-foreground font-medium">
-                  <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
-                  Airtel Money (Cross Network)
-                </div>
-                <div className="flex items-center text-foreground font-medium">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                  Zamtel Money (Cross Network)
-                </div>
-                <div className="flex items-center text-foreground font-medium">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                  Ewallet
-                </div>
-                <div className="flex items-center text-foreground font-medium">
-                  <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
-                  Bank To Cell
-                </div>
-              </div>
-            </div>
-            <p className="text-foreground font-medium">✓ Secure payment processing</p>
-            <p className="text-foreground font-medium">
-              {isPayLater ? '✓ Submit now and return later to complete payment' : '✓ Upload proof for admissions review'}
-            </p>
-            <p className="text-foreground font-medium">✓ Automated receipt generation after verification</p>
-          </div>
+              </label>
+            )
+          })}
         </div>
+      </fieldset>
 
-        {isPayLater ? (
-          <div className="rounded-xl border border-dashed border-primary/40 bg-primary/5 p-4">
-            <h3 className="text-sm font-semibold text-foreground">Complete payment later from your dashboard</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Your application will be submitted without proof of payment. After submission, open
-              the payment section on your dashboard to upload proof and send it for review.
-            </p>
+      <Alert variant="info" className={animateClasses.scaleIn}>
+        <AlertTitle className="text-foreground">Application fee and payment instructions</AlertTitle>
+        <AlertDescription className="space-y-4 text-muted-foreground">
+          <dl className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-border/70 bg-card px-3 py-2">
+              <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Application fee</dt>
+              <dd className="mt-1 text-base font-semibold text-foreground">K153.00</dd>
+            </div>
+            <div className="rounded-xl border border-border/70 bg-card px-3 py-2">
+              <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Payment target</dt>
+              <dd className="mt-1 text-base font-semibold text-foreground">
+                {paymentTargetStatus === 'loading' && 'Checking payment details...'}
+                {paymentTargetStatus === 'ready' && paymentTarget}
+                {paymentTargetStatus === 'unavailable' && 'Temporarily unavailable'}
+              </dd>
+            </div>
+          </dl>
+
+          <div className="rounded-xl border border-border/70 bg-card px-3 py-3">
+            <p className="text-sm font-semibold text-foreground">Available payment methods</p>
+            <ul className="mt-2 grid gap-2 text-sm text-foreground sm:grid-cols-2">
+              {paymentMethodOptions.map(option => (
+                <li key={option.value} className="rounded-lg bg-muted/60 px-3 py-2">
+                  {option.label}
+                </li>
+              ))}
+            </ul>
           </div>
-        ) : (
-          <>
-            <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
-              <div className="mb-4">
-                <h3 className="text-sm font-semibold text-foreground">Payment details</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Provide the transfer details exactly as they appear on the mobile money or bank confirmation.
-                </p>
+
+          <ul className="space-y-2 text-sm text-foreground">
+            <li>Secure payment verification remains non-blocking while you complete the application.</li>
+            <li>{isPayLater ? 'You can submit now and return later to upload payment proof from the dashboard.' : 'Upload proof of payment so admissions can review it alongside your application.'}</li>
+            <li>Receipts are generated after payment verification is completed.</li>
+          </ul>
+
+          {paymentTargetStatus === 'unavailable' && (
+            <p className="text-sm font-medium text-foreground">
+              Payment contact details are temporarily unavailable. You can still continue and choose <span className="font-semibold">Pay later</span> if needed.
+            </p>
+          )}
+        </AlertDescription>
+      </Alert>
+
+      {isPayLater ? (
+        <Alert variant="warning">
+          <AlertTitle className="text-foreground">Complete payment later from your dashboard</AlertTitle>
+          <AlertDescription className="text-muted-foreground">
+            Your application will be submitted without proof of payment. After submission, open the dashboard payment section to upload proof and send it for review.
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <>
+          <SectionCard
+            title="Payment details"
+            description="Provide the transfer details exactly as they appear on the mobile money or bank confirmation."
+            padding="sm"
+            className="shadow-none"
+          >
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
+              <div style={staggerChild(0)}>
+                <FormSelect
+                  name="payment_method"
+                  control={control}
+                  options={paymentMethodOptions}
+                  label="Payment method"
+                  placeholder="Select payment method"
+                  error={errors.payment_method?.message}
+                />
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                <div style={staggerChild(0)}>
-                  <FormSelect
-                    name="payment_method"
-                    control={control}
-                    options={paymentMethodOptions}
-                    label="Payment Method"
-                    placeholder="Select payment method"
-                    error={errors.payment_method?.message}
-                  />
-                </div>
+              <div style={staggerChild(1)}>
+                <AnimatedInput
+                  {...register('payer_name')}
+                  label="Payer name"
+                  placeholder="Name of person who made payment"
+                  error={errors.payer_name?.message}
+                />
+              </div>
 
-                <div style={staggerChild(1)}>
-                  <AnimatedInput
-                    {...register('payer_name')}
-                    label="Payer Name"
-                    placeholder="Name of person who made payment"
-                    error={errors.payer_name?.message}
-                  />
-                </div>
+              <div style={staggerChild(2)}>
+                <AnimatedInput
+                  {...register('payer_phone')}
+                  label="Payer phone"
+                  placeholder="Phone number used for payment"
+                  error={errors.payer_phone?.message}
+                />
+              </div>
 
-                <div style={staggerChild(2)}>
-                  <AnimatedInput
-                    {...register('payer_phone')}
-                    label="Payer Phone"
-                    placeholder="Phone number used for payment"
-                    error={errors.payer_phone?.message}
-                  />
-                </div>
+              <div style={staggerChild(3)}>
+                <AnimatedInput
+                  type="number"
+                  {...register('amount', { valueAsNumber: true })}
+                  label="Amount paid"
+                  defaultValue={153}
+                  min={153}
+                  error={errors.amount?.message}
+                />
+              </div>
 
-                <div style={staggerChild(3)}>
-                  <AnimatedInput
-                    type="number"
-                    {...register('amount', { valueAsNumber: true })}
-                    label="Amount Paid"
-                    defaultValue={153}
-                    min={153}
-                    error={errors.amount?.message}
-                  />
-                </div>
+              <div style={staggerChild(4)}>
+                <AnimatedInput
+                  type="datetime-local"
+                  {...register('paid_at')}
+                  label="Payment date and time"
+                  error={errors.paid_at?.message}
+                />
+              </div>
 
-                <div style={staggerChild(4)}>
-                  <AnimatedInput
-                    type="datetime-local"
-                    {...register('paid_at')}
-                    label="Payment Date & Time"
-                    error={errors.paid_at?.message}
-                  />
-                </div>
-
-                <div style={staggerChild(5)}>
-                  <AnimatedInput
-                    {...register('momo_ref')}
-                    label="Mobile Money Reference (Optional)"
-                    placeholder="Transaction reference number"
-                    helperText="Enter your transaction reference for faster verification"
-                    error={errors.momo_ref?.message}
-                  />
-                </div>
+              <div style={staggerChild(5)}>
+                <AnimatedInput
+                  {...register('momo_ref')}
+                  label="Mobile money reference (optional)"
+                  placeholder="Transaction reference number"
+                  helperText="Enter your transaction reference for faster verification"
+                  error={errors.momo_ref?.message}
+                />
               </div>
             </div>
+          </SectionCard>
 
-            <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
-              <div className="mb-4">
-                <h3 className="text-sm font-semibold text-foreground">Proof of payment upload</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Upload the receipt or screenshot that admissions will use to confirm your payment and submit for review.
-                </p>
-              </div>
+          <SectionCard
+            title="Proof of payment upload"
+            description="Upload the receipt or screenshot that admissions will use to confirm your payment."
+            padding="sm"
+            className="shadow-none"
+          >
+            <AnimatedFileUpload
+              label="Proof of payment"
+              required
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={handleProofOfPaymentUpload}
+              file={proofOfPaymentFile}
+              uploadProgress={uploadProgress.proof_of_payment}
+              isUploaded={uploadedFiles.proof_of_payment}
+              helperText="Upload a screenshot or PDF of your payment confirmation"
+            />
 
-              <AnimatedFileUpload
-                label="Proof of Payment"
-                required
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={handleProofOfPaymentUpload}
-                file={proofOfPaymentFile}
-                uploadProgress={uploadProgress.proof_of_payment}
-                isUploaded={uploadedFiles.proof_of_payment}
-                helperText="Upload a screenshot or PDF of your payment confirmation"
-              />
-
-              <p className="mt-3 text-sm font-medium text-foreground">Submit for review once your proof upload is complete.</p>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+            <p className="text-sm font-medium text-foreground">
+              Submit for review once your proof upload is complete.
+            </p>
+          </SectionCard>
+        </>
+      )}
+    </SectionCard>
   )
 }
 

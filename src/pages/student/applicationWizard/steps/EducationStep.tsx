@@ -17,7 +17,7 @@ function getUploadStatus(file: File | null, isUploaded?: boolean) {
   if (isUploaded) {
     return {
       label: 'Uploaded',
-      className: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+      className: 'border-success/30 bg-success/5 text-success',
     }
   }
 

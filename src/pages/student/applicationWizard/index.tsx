@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, CheckCircle, Send, Info } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CheckCircle, Send } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 
@@ -8,6 +8,8 @@ import { Container } from '@/components/ui/Container'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { SimpleErrorBoundary } from '@/components/ui/SimpleErrorBoundary'
 import { SaveStatusIndicator, CompactSaveStatusIndicator } from '@/components/ui/SaveStatusIndicator'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
+import { SectionCard } from '@/components/ui/SectionCard'
 
 import SubmissionSuccess from './components/SubmissionSuccess'
 import { StepChecklist } from './components/StepChecklist'
@@ -245,9 +247,9 @@ const ApplicationWizardContent = () => {
 
 
   return (
-    <div 
-      className={`min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 ${shouldAnimate ? "animate-fade-in" : ""}`} 
-      
+    <main
+      id="application-wizard-content"
+      className={`min-h-screen bg-gradient-to-br from-background via-background to-primary/5 ${shouldAnimate ? "animate-fade-in" : ""}`}
     >
       {/* Visually hidden aria-live region for screen reader step announcements */}
       <div aria-live="polite" aria-atomic="true" className="sr-only">
@@ -256,7 +258,10 @@ const ApplicationWizardContent = () => {
       <div className="w-full">
         <Container size="md" className="py-4 sm:py-8">
           <div className="mb-8">
-            <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-primary mb-4">
+            <Link
+              to="/student/dashboard"
+              className="mb-4 inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-3 py-2 text-sm font-medium text-primary shadow-sm transition-colors hover:bg-primary/5"
+            >
               <ArrowLeft style={{ width: 'var(--icon-size-sm)', height: 'var(--icon-size-sm)', marginRight: '0.5rem' }} />
               Back to Dashboard
             </Link>
@@ -285,9 +290,16 @@ const ApplicationWizardContent = () => {
               </p>
               <div className="mt-2 space-y-2">
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-border rounded-full h-2 overflow-hidden">
+                  <div
+                    className="flex-1 overflow-hidden rounded-full bg-border"
+                    role="progressbar"
+                    aria-label="Application progress"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={progressPercent}
+                  >
                     <div
-                      className="h-full bg-gradient-to-r from-primary to-success transition-all duration-500 ease-out"
+                      className="h-2 bg-gradient-to-r from-primary to-success transition-all duration-500 ease-out"
                       style={{ width: `${progressPercent}%` }}
                     />
                   </div>
@@ -350,7 +362,7 @@ const ApplicationWizardContent = () => {
               
               {/* Legacy changed fields indicator */}
               {smartAutoSave.changedFields.length > 0 && smartAutoSave.saveStatus !== 'saving' && (
-                <span className="text-xs text-warning hidden md:inline">
+                <span className="hidden text-xs font-medium text-warning md:inline">
                   {smartAutoSave.changedFields.length} unsaved change{smartAutoSave.changedFields.length > 1 ? 's' : ''}
                 </span>
               )}
@@ -389,47 +401,35 @@ const ApplicationWizardContent = () => {
         <Container size="md">
 
         {error && (
-          <div className="rounded-md bg-destructive/10 border border-destructive/30 p-4 mb-6 animate-slide-up">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-destructive" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
+          <Alert variant="error" className="mb-6 animate-slide-up">
+            <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <AlertTitle className="text-foreground">Something needs attention</AlertTitle>
+                <AlertDescription className="mt-1 text-foreground">{error}</AlertDescription>
               </div>
-              <div className="ml-3 flex-1">
-                <h3 className="text-sm font-medium text-destructive">Error</h3>
-                <div className="text-sm text-foreground mt-1">{error}</div>
-                <button
-                  type="button"
-                  onClick={() => setError('')}
-                  className="mt-2 text-xs text-destructive hover:text-destructive/80 underline"
-                >
-                  Dismiss
-                </button>
-              </div>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setError('')}>
+                Dismiss
+              </Button>
             </div>
-          </div>
+          </Alert>
         )}
 
         {!stepValidation.isValid && !isLastStep && stepValidation.completedFields > 0 && (
-          <div className="rounded-md bg-warning/10 border border-warning/30 p-4 mb-6 animate-slide-up">
-            <div className="flex items-start">
-              <Info className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
-              <div className="ml-3 flex-1">
-                <h3 className="text-sm font-medium text-warning">Incomplete Step</h3>
-                <div className="text-sm text-foreground mt-1">
-                  You can proceed, but we recommend completing all fields for a better application.
-                </div>
-                {stepValidation.missingFields.length > 0 && (
-                  <ul className="mt-2 text-xs text-caption list-disc list-inside space-y-1">
-                    {stepValidation.missingFields.map((field, idx) => (
-                      <li key={idx}>{field}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+          <Alert variant="warning" className="mb-6 animate-slide-up">
+            <div className="flex-1">
+              <AlertTitle className="text-foreground">This step is still incomplete</AlertTitle>
+              <AlertDescription className="mt-1 text-foreground">
+                You can continue, but finishing these items now usually reduces rework during admissions review.
+              </AlertDescription>
+              {stepValidation.missingFields.length > 0 && (
+                <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-muted-foreground">
+                  {stepValidation.missingFields.map((field, idx) => (
+                    <li key={idx}>{field}</li>
+                  ))}
+                </ul>
+              )}
             </div>
-          </div>
+          </Alert>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -516,13 +516,13 @@ const ApplicationWizardContent = () => {
             <div className="order-1 sm:order-2">
               {!isLastStep ? (
                 <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
-                  <Button type="button" onClick={handleNextStep} loading={loading || uploading} disabled={loading || uploading} className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
+                  <Button type="button" variant="primary" onClick={handleNextStep} loading={loading || uploading} disabled={loading || uploading} className="w-full sm:w-auto" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
                     {loading || uploading ? 'Processing...' : (<><span>Next Step</span><ArrowRight className="h-4 w-4 ml-2" /></>)}
                   </Button>
                 </div>
               ) : (
                 <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
-                  <Button type="submit" loading={loading} disabled={loading || !confirmSubmission} className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <Button type="submit" variant="success" loading={loading} disabled={loading || !confirmSubmission} className="w-full sm:w-auto">
                     {loading ? 'Submitting...' : (<><Send className="h-4 w-4 mr-2" />Submit Application</>)}
                   </Button>
                 </div>
@@ -532,7 +532,7 @@ const ApplicationWizardContent = () => {
             </form>
           </div>
 
-          <div className="lg:col-span-1">
+          <aside className="lg:col-span-1" aria-labelledby="wizard-support-heading">
             <div className="sticky top-6 space-y-4">
               <ApplicationPreview
                 form={form}
@@ -561,11 +561,13 @@ const ApplicationWizardContent = () => {
                 lastSavedAt={smartAutoSave.lastSaved}
               />
               
-              <div
-                className={`bg-primary/5 border border-primary/20 rounded-lg p-4 ${shouldAnimate ? "animate-fade-in" : ""}`}
+              <SectionCard
+                title={WIZARD_COPY.quickTipsTitle}
+                className={shouldAnimate ? 'animate-fade-in' : ''}
+                padding="sm"
               >
-                <h3 className="text-sm font-semibold text-primary mb-2">{WIZARD_COPY.quickTipsTitle}</h3>
-                <ul className="text-xs text-foreground space-y-2">
+                <h3 id="wizard-support-heading" className="sr-only">Application support tools</h3>
+                <ul className="space-y-2 text-xs text-foreground">
                   {currentStepIndex === 0 && (
                     <>
                       {WIZARD_COPY.quickTipsByStep.basicKyc.map((tip) => (
@@ -595,9 +597,9 @@ const ApplicationWizardContent = () => {
                     </>
                   )}
                 </ul>
-              </div>
+              </SectionCard>
             </div>
-          </div>
+          </aside>
         </div>
         </Container>
       </div>
@@ -622,7 +624,7 @@ const ApplicationWizardContent = () => {
           setError('')
         }}
       />
-    </div>
+    </main>
   )
 }
 

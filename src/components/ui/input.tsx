@@ -10,7 +10,6 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, helperText, icon, type = 'text', ...props }, ref) => {
-    const [isFocused, setIsFocused] = React.useState(false)
     const inputId = props.id ?? React.useId()
 
     const describedByIds = [
@@ -48,18 +47,11 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               className
             )}
             ref={ref}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
             aria-invalid={error ? 'true' : 'false'}
             aria-required={props.required || undefined}
             aria-describedby={describedByIds.length > 0 ? describedByIds.join(' ') : undefined}
             {...props}
           />
-          {isFocused && (
-            <div
-              className="absolute inset-0 rounded-lg border-2 border-ring pointer-events-none transition-opacity duration-200 opacity-100"
-            />
-          )}
         </div>
         {error && (
           <p
@@ -71,7 +63,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </p>
         )}
         {helperText && !error && (
-          <p id={`${inputId}-helper`} className="mt-1.5 text-sm text-foreground">
+          <p id={`${inputId}-helper`} className="mt-1.5 text-sm text-muted-foreground">
             {helperText}
           </p>
         )}

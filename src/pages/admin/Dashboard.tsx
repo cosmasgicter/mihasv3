@@ -305,8 +305,8 @@ export default function AdminDashboard() {
         <div 
           className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}
         >
-          <div className="bg-gradient-to-r from-blue-600/90 via-indigo-600/85 to-blue-700/90 rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-            <div className="absolute inset-0 bg-black/10"></div>
+          <div className="bg-gradient-vibrant rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-foreground/10"></div>
             <div className="relative z-10">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
                 <div>
@@ -331,7 +331,7 @@ export default function AdminDashboard() {
                     </div>
                     {/* Polling status indicator */}
                     <div className="flex items-center space-x-2">
-                      <div className={`w-2 h-2 rounded-full ${isPolling ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`}></div>
+                      <div className={`w-2 h-2 rounded-full ${isPolling ? 'bg-success animate-pulse' : 'bg-muted-foreground/50'}`}></div>
                       <span className="text-xs">{isPolling ? 'Live' : 'Paused'}</span>
                     </div>
                   </div>

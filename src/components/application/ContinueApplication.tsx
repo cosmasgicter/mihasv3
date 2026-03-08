@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
+import { SectionCard } from '@/components/ui/SectionCard'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { applicationSessionManager } from '@/lib/applicationSession'
 import { cn, formatDate } from '@/lib/utils'
-import { FileText, Clock, AlertTriangle, Trash2, RefreshCw } from 'lucide-react'
-import { clearAllDraftData } from '@/lib/draftCleanup'
+import { FileText, AlertTriangle, Trash2, RefreshCw } from 'lucide-react'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { toast } from '@/hooks/useToast'
@@ -73,8 +74,8 @@ export function ContinueApplication() {
       setLoading(true)
       const info = await applicationSessionManager.getDraftInfo(profile?.user_id || user.id)
       setDraftInfo(info)
-    } catch (error) {
-      console.error('Error loading draft info:', error)
+    } catch {
+      setDraftInfo({ exists: false })
     } finally {
       setLoading(false)
     }
@@ -100,12 +101,10 @@ export function ContinueApplication() {
         // Dispatch event to notify other components
         window.dispatchEvent(new CustomEvent('draftCleared'))
       } else {
-        console.error('Failed to delete draft:', result.error)
-        toast.error('Delete Failed', result.error || 'Unknown error')
+        toast.error('Delete Failed', 'We could not remove your saved draft. Please try again.')
       }
-    } catch (error) {
-      console.error('Error deleting draft:', error)
-      toast.error('Delete Failed', 'Please try again')
+    } catch {
+      toast.error('Delete Failed', 'We could not remove your saved draft. Please try again.')
     } finally {
       setDeleting(false)
     }
@@ -134,16 +133,14 @@ export function ContinueApplication() {
     return `${minutes}m`
   }
 
-  const baseCardClasses = 'rounded-2xl border px-6 py-6 transition-colors shadow-md backdrop-blur-sm'
-
   if (loading) {
     return (
-      <div className={cn(baseCardClasses, 'bg-card/90 border-border/80 text-foreground')}>
+      <SectionCard className="border-border/80 bg-card/90 text-foreground shadow-md" padding="sm">
         <div className="flex items-center gap-3">
           <RefreshCw className="h-5 w-5 animate-spin text-primary" />
           <span>Checking for saved applications...</span>
         </div>
-      </div>
+      </SectionCard>
     )
   }
 
@@ -151,12 +148,15 @@ export function ContinueApplication() {
     return null
   }
 
-  const cardTone = isExpiringSoon()
-    ? 'bg-amber-50/90 border-amber-200 text-amber-900'
-    : 'bg-card/90 border-border/80 text-foreground'
-
   return (
-    <div className={cn(baseCardClasses, 'flex flex-col gap-5', cardTone)}>
+    <SectionCard
+      className={cn(
+        'shadow-md backdrop-blur-sm',
+        isExpiringSoon() ? 'border-warning/30 bg-warning/5' : 'border-border/80 bg-card/90'
+      )}
+      padding="sm"
+    >
+      <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex-1">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -196,7 +196,7 @@ export function ContinueApplication() {
 
         <div className="flex flex-col gap-3 sm:w-60">
           <Link to="/student/application-wizard" className="w-full">
-            <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:from-blue-700 hover:to-purple-700">
+            <Button variant="primary" className="w-full">
               <FileText className="mr-2 h-4 w-4" />
               Continue application
             </Button>
@@ -226,13 +226,14 @@ export function ContinueApplication() {
       </div>
 
       {isExpiringSoon() && (
-        <div className="rounded-2xl border border-warning/30 bg-amber-100/60 px-4 py-3 text-sm text-amber-900">
-          <div className="flex items-start gap-2">
-            <Clock className="mt-0.5 h-4 w-4" />
-            <span>Finish your application soon to keep your saved progress active.</span>
-          </div>
-        </div>
+        <Alert variant="warning">
+          <AlertTitle className="text-foreground">Draft expiring soon</AlertTitle>
+          <AlertDescription className="text-foreground">
+            Finish your application soon to keep your saved progress active.
+          </AlertDescription>
+        </Alert>
       )}
+      </div>
       <ConfirmAlertDialog
         isOpen={confirmDialog.isOpen}
         onClose={confirmDialog.handleCancel}
@@ -243,6 +244,6 @@ export function ContinueApplication() {
         cancelText={confirmDialog.options.cancelText}
         variant={confirmDialog.options.variant}
       />
-    </div>
+    </SectionCard>
   )
 }

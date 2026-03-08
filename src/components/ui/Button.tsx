@@ -29,7 +29,7 @@ const buttonVariants = cva(
         danger: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 active:scale-[0.98]',
         success: 'bg-success text-white shadow-sm hover:bg-success/90 active:scale-[0.98]',
         warning: 'bg-warning text-white shadow-sm hover:bg-warning/90 active:scale-[0.98]',
-        gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:from-blue-700 hover:to-purple-700 hover:shadow-xl active:scale-[0.98]',
+        gradient: 'bg-gradient-to-r from-primary via-primary to-info text-primary-foreground shadow-lg hover:from-primary hover:via-primary hover:to-info/90 hover:shadow-xl active:scale-[0.98]',
       },
       size: {
         default: 'h-10 px-4 text-sm',           // 40px - standard

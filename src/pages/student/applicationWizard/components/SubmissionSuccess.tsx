@@ -41,15 +41,15 @@ const formatPaymentStatusLabel = (status?: string | null) => {
 const getPaymentStatusStyles = (status?: string | null) => {
   switch (status) {
     case 'verified':
-      return 'bg-emerald-100 text-emerald-800 border-emerald-200'
+      return 'bg-success/10 text-success border-success/30'
     case 'rejected':
-      return 'bg-rose-100 text-rose-800 border-rose-200'
+      return 'bg-destructive/10 text-destructive border-destructive/30'
     case null:
     case undefined:
-      return 'bg-sky-100 text-sky-800 border-sky-200'
+      return 'bg-info/10 text-info border-info/30'
     case 'pending_review':
     default:
-      return 'bg-amber-100 text-amber-800 border-amber-200'
+      return 'bg-warning/10 text-warning border-warning/30'
   }
 }
 
@@ -154,7 +154,7 @@ const SubmissionSuccess = ({
         </p>
 
         <div className="space-y-3 mb-6">
-          <Button onClick={onDownload} loading={slipLoading} className="w-full bg-emerald-600 hover:bg-emerald-700">
+          <Button onClick={onDownload} loading={slipLoading} className="w-full bg-success hover:bg-success/90">
             <Download className="h-5 w-5 mr-2" />
             Download Application Slip
           </Button>
