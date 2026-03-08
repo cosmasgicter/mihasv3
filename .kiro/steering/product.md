@@ -135,7 +135,7 @@ When modifying code, verify:
 - [ ] Arcjet protection on sensitive routes
 - [ ] HTTP-only cookies for auth tokens (not localStorage)
 - [ ] Deterministic RBAC from JWT (no DB lookup for permissions)
-- [ ] API responses use `sendSuccess()` envelope — frontend clients unwrap automatically
+- [ ] API responses use `sendSuccess()` envelope — `ApiClient` (`src/services/client.ts`) unwraps automatically
 - [ ] All API inputs validated with Zod schemas from `lib/validation/`
 - [ ] File uploads validated with magic byte verification (`lib/fileValidator.ts`)
 - [ ] CSRF tokens on state-changing requests

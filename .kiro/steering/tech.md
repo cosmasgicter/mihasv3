@@ -135,9 +135,9 @@ import { query } from '../lib/db';
 
 async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return; // Handle OPTIONS preflight
-  
+
   const action = req.query.action as string;
-  
+
   try {
     switch (action) {
       case 'action1':
@@ -177,13 +177,8 @@ All API endpoints wrap responses via `sendSuccess(res, payload)` from `lib/error
 ```
 The frontend `ApiClient` (`src/services/client.ts`) automatically unwraps this envelope via `unwrapApiResponse()`. Frontend services receive the inner payload directly — never check `response.success` or `response.data` on service results.
 
-### Dual API Client Architecture (IMPORTANT)
-Two API client modules exist — be aware of which one a file uses:
-1. `src/lib/apiClient.ts` — older module, has its own `data.data ?? data` unwrap. Used by some hooks via direct `authFetch()`.
-2. `src/services/client.ts` — newer `ApiClient` class, unwraps `{ success, data }` envelope automatically. Used by all service modules (`src/services/*.ts`).
 
-When adding new frontend code, prefer `src/services/client.ts` (the newer client). Never manually unwrap `response.data` or check `response.success` on results from either client — both handle unwrapping internally.
-
+The older `src/lib/apiClient.ts` module has been removed. All frontend code now uses `src/services/client.ts` exclusively.
 ### Security Conventions (Arcjet + Custom Auth + CSRF + CSP)
 - Wrap all sensitive routes with `withArcjetProtection()` before handler logic
 - Use `requireAuth()` middleware for authenticated routes
