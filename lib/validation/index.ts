@@ -28,7 +28,17 @@ export {
 } from './applications';
 
 // Admin schemas
-export { adminRegisterBodySchema, adminSetPasswordBodySchema, updateRoleBodySchema, createSettingBodySchema, updateSettingBodySchema, importSettingsBodySchema, migrateBodySchema } from './admin';
+export {
+  adminRegisterBodySchema,
+  adminSetPasswordBodySchema,
+  updateRoleBodySchema,
+  createSettingBodySchema,
+  updateSettingBodySchema,
+  importSettingsBodySchema,
+  migrateBodySchema,
+  bulkEmailBodySchema,
+  bulkStatusBodySchema,
+} from './admin';
 
 // Document schemas
 export { uploadDocumentBodySchema, extractDocumentBodySchema, deleteDocumentBodySchema, signedUrlBodySchema, registerSlipBodySchema, resolveReferenceBodySchema } from './documents';

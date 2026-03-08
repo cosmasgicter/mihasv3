@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/Button'
-import { Mail, RefreshCw, Download, Upload } from 'lucide-react'
+import { Mail, RefreshCw, Download } from 'lucide-react'
 import { useToastStore } from '@/components/ui/Toast'
+import { apiClient } from '@/services/client'
 
 export function BulkOperationsPanel() {
   const [loading, setLoading] = useState(false)
@@ -17,22 +18,12 @@ export function BulkOperationsPanel() {
 
     setLoading(true)
     try {
-      const response = await fetch('/api/admin?action=bulk-email', {
+      const result = await apiClient.request<{ success?: number; failed?: number; errors?: string[] }>('/admin?action=bulk-email', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
         body: JSON.stringify(emailData)
       })
-
-      const result = await response.json()
-      if (response.ok) {
-        toast.success(`Sent ${result.success} emails. ${result.failed} failed.`)
-        setEmailData({ subject: '', message: '', userIds: [] })
-      } else {
-        throw new Error(result.error)
-      }
+      toast.success(`Sent ${result?.success ?? 0} emails. ${result?.failed ?? 0} failed.`)
+      setEmailData({ subject: '', message: '', userIds: [] })
     } catch (error: any) {
       toast.error(error.message || 'Failed to send emails')
     } finally {
@@ -48,22 +39,12 @@ export function BulkOperationsPanel() {
 
     setLoading(true)
     try {
-      const response = await fetch('/api/admin?action=bulk-status', {
+      const result = await apiClient.request<{ success?: number; failed?: number; errors?: string[] }>('/admin?action=bulk-status', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
         body: JSON.stringify(statusData)
       })
-
-      const result = await response.json()
-      if (response.ok) {
-        toast.success(`Updated ${result.success} applications. ${result.failed} failed.`)
-        setStatusData({ status: 'submitted', applicationIds: [] })
-      } else {
-        throw new Error(result.error)
-      }
+      toast.success(`Updated ${result?.success ?? 0} applications. ${result?.failed ?? 0} failed.`)
+      setStatusData({ status: 'submitted', applicationIds: [] })
     } catch (error: any) {
       toast.error(error.message || 'Failed to update status')
     } finally {
