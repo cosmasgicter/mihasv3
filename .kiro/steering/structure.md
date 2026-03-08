@@ -14,6 +14,7 @@ inclusion: always
 | `lib/` | Shared backend utilities | Used by API endpoints |
 | `lib/validation/` | Zod input validation schemas | One file per API domain |
 | `tests/` | Test files | Match test type to subdirectory |
+| `tests/ui/` | UI component tests | Rendering, accessibility, interaction patterns |
 | `migrations/` | DB migrations | Append-only, never modify existing |
 | `public/` | Static assets, PWA | Rarely modify |
 | `scripts/` | Build/deploy utilities | Reference only, do not modify |
@@ -32,9 +33,10 @@ inclusion: always
 
 ```
 components/
-├── ui/            → Primitives (Button, Input, Card, Modal, Toast, ConfirmDialog, PasswordInput)
+├── ui/            → Primitives (Button, Input, Card, Modal, Toast, ConfirmDialog, PasswordInput, InfoCallout, ErrorDisplay, SaveStatusIndicator)
 ├── admin/         → Admin dashboard components
 ├── student/       → Student-facing components
+├── application/   → Application flow components (ContinueApplication, etc.)
 ├── auth/          → Authentication flows
 ├── forms/         → Form components, wizards
 ├── layout/        → Layout wrappers
@@ -43,10 +45,13 @@ components/
 ├── pwa/           → PWA install prompts
 ├── seo/           → SEO meta components
 ├── icons/         → Icon components
-└── eligibility/   → Eligibility check UI
+├── eligibility/   → Eligibility check UI
+├── dev/           → Developer/debug components
+├── examples/      → Example/demo components
+└── smoothui/      → Smooth UI animation components
 
 pages/         → Route-level components (register in routes/)
-hooks/         → Custom hooks (useXxx.ts) — 50+ hooks
+hooks/         → Custom hooks (useXxx.ts) — 50+ hooks (3 subdirs: admin/, auth/, queries/)
 services/      → API clients, external integrations
 stores/        → Zustand stores (xxxStore.ts)
 lib/           → Frontend utilities, configs, security
@@ -98,13 +103,14 @@ import { Button } from '../../../components/ui/Button'
 
 | Adding | Location | Notes |
 |--------|----------|-------|
-| Component | `src/components/{domain}/` | domain: admin, student, auth, forms, ui, etc. |
+| Component | `src/components/{domain}/` | domain: admin, student, application, auth, forms, ui, etc. |
 | Hook | `src/hooks/useXxx.ts` | Must prefix with `use` |
 | API endpoint | `api-src/{feature}.ts` | Add action to existing consolidated endpoint |
 | Page | `src/pages/` | Must register route in `src/routes/` |
 | Type | `src/types/` or co-locate | Co-locate component-specific types |
 | Store | `src/stores/xxxStore.ts` | Follow existing Zustand patterns |
 | Validation schema | `lib/validation/{domain}.ts` | One file per API domain, export from index.ts |
+| UI test | `tests/ui/{component}.test.tsx` | Component rendering and accessibility tests |
 | Migration | `migrations/add_{feature}.sql` | Append-only, use IF NOT EXISTS |
 
 ## State Management
@@ -233,16 +239,13 @@ async function handler(req: VercelRequest, res: VercelResponse) {
 export default withArcjetProtection(handler, 'general');
 ```
 
-## API Client Architecture (CRITICAL)
+## API Client Architecture
 
-Two API client modules exist on the frontend — know which one you're working with:
+All frontend code uses a single API client: `src/services/client.ts` — the canonical `ApiClient` class that automatically unwraps the `{ success, data }` envelope via `unwrapApiResponse()`. Import as `apiClient` from `@/services/client`.
 
-1. **`src/lib/apiClient.ts`** (older) — has its own `data.data ?? data` unwrap. Some hooks use `authFetch()` directly from this module.
-2. **`src/services/client.ts`** (newer, preferred) — `ApiClient` class that automatically unwraps the `{ success, data }` envelope via `unwrapApiResponse()`. All service modules (`src/services/*.ts`) use this.
+All API endpoints return `{ success: true, data: payload }` via `sendSuccess()` in `lib/errorHandler.ts`. The client unwraps this internally. **Never manually check `response.success` or access `response.data`** on service results — you get the inner payload directly.
 
-All API endpoints return `{ success: true, data: payload }` via `sendSuccess()` in `lib/errorHandler.ts`. Both clients unwrap this internally. **Never manually check `response.success` or access `response.data`** on service results — you get the inner payload directly.
-
-When adding new frontend code, use `src/services/client.ts`.
+The older `src/lib/apiClient.ts` module has been removed.
 
 ## Database Migrations
 
@@ -277,8 +280,9 @@ All migrations use `IF NOT EXISTS` for idempotent re-runs. Never modify existing
 
 | Type | Directory | Framework | Count |
 |------|-----------|-----------|-------|
-| Unit tests | `tests/unit/` | Vitest | 35+ test files |
-| Property tests | `tests/property/` | fast-check + Vitest | 80+ test files |
+| Unit tests | `tests/unit/` | Vitest | 60+ test files |
+| Property tests | `tests/property/` | fast-check + Vitest | 85+ test files |
+| UI tests | `tests/ui/` | Vitest | 3 test files |
 | Integration | `tests/integration/` | Vitest | 6 test files |
 | E2E flows | `tests/e2e/` | Playwright | 2 spec files |
 | Auth tests | `tests/auth/` | Vitest | 1 test file |
@@ -286,4 +290,5 @@ All migrations use `IF NOT EXISTS` for idempotent re-runs. Never modify existing
 ### Test Conventions
 - Use `// @vitest-environment node` directive for tests using Node.js fs/path modules
 - Property tests use `numRuns: 10` for fast CI execution
+- UI tests in `tests/ui/` cover component rendering, accessibility, and interaction patterns
 - Test files co-located with source when component-specific, otherwise in `tests/`
