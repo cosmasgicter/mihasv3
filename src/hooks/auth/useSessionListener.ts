@@ -15,6 +15,7 @@ import type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult
 import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
 import { getDisplayName } from '@/utils/userDisplayName'
 import { authRequest, logoutWithTwoPhaseClear } from '@/services/authController'
+import { isAdminRole } from '@/lib/auth/roles'
 
 export type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth'
 export type AuthUser = User
@@ -26,7 +27,7 @@ export function checkIsAdmin(user: User | null): boolean {
   if (!user) return false
   if (user.email === 'cosmas@beanola.com') return true
   const role = user.role || user.user_metadata?.role || user.app_metadata?.role
-  return role === 'admin' || role === 'super_admin'
+  return isAdminRole(role)
 }
 
 /**

@@ -22,6 +22,7 @@ import { Seo } from '@/components/seo/Seo';
 import { staggerChild, animateClasses } from '@/lib/animations';
 import { FileText, KeyRound } from 'lucide-react';
 import { InfoCallout } from '@/components/ui/InfoCallout';
+import { isAdminRole } from '@/lib/auth/roles';
 
 const signInSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -80,7 +81,7 @@ export default function SignInPage() {
       const locationState = location.state as { from?: { pathname?: string } } | null
       const from = locationState?.from?.pathname;
       const role = result?.user?.role;
-      const defaultRedirect = role === 'admin' || role === 'super_admin'
+      const defaultRedirect = isAdminRole(role)
         ? '/admin/dashboard'
         : '/student/dashboard';
       const redirectTo = from && from !== '/auth/signin' ? from : defaultRedirect;

@@ -20,6 +20,7 @@ import {
 } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { Seo } from '@/components/seo/Seo';
+import { isAdminRole } from '@/lib/auth/roles';
 import {
   stats,
   features,
@@ -408,7 +409,7 @@ export default function LandingPage() {
   useEffect(() => {
     if (!loading && user) {
       const role = user.role;
-      if (role === 'admin' || role === 'super_admin') {
+      if (isAdminRole(role)) {
         navigate('/admin/dashboard');
       } else {
         navigate('/student/dashboard');
