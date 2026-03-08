@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-const { queryMock, getAuthUserMock, requireCsrfMock } = vi.hoisted(() => ({
+const { queryMock, getAuthUserMock, requireCsrfMock, logAuditEventMock } = vi.hoisted(() => ({
   queryMock: vi.fn(),
   getAuthUserMock: vi.fn<(...args: unknown[]) => Promise<any>>(),
   requireCsrfMock: vi.fn<(...args: unknown[]) => Promise<boolean>>(),
+  logAuditEventMock: vi.fn(async () => undefined),
 }))
 
 vi.mock('../../../lib/cors', () => ({
@@ -24,6 +25,9 @@ vi.mock('../../../lib/auth/middleware', () => ({
 }))
 vi.mock('../../../lib/csrf', () => ({
   requireCsrf: requireCsrfMock,
+}))
+vi.mock('../../../lib/auditLogger', () => ({
+  logAuditEvent: logAuditEventMock,
 }))
 
 vi.mock('../../../lib/errorHandler', () => ({
@@ -183,5 +187,62 @@ describe('api-src/catalog programs', () => {
       success: false,
       code: 'VALIDATION_ERROR',
     })
+  })
+
+  it('writes an audit trail on successful catalog mutation', async () => {
+    getAuthUserMock.mockResolvedValue({
+      userId: 'admin-1',
+      email: 'admin@example.com',
+      role: 'admin',
+      permissions: [],
+    })
+
+    queryMock.mockResolvedValueOnce({
+      rows: [
+        {
+          id: 'prog-2',
+          name: 'Diploma in Midwifery',
+          code: 'MID-01',
+          description: 'desc',
+          duration_months: 36,
+          application_fee: 153,
+          tuition_fee: null,
+          regulatory_body: 'NMCZ',
+          accreditation_status: 'active',
+          institution_id: 'mihas-id',
+          institution_name: 'MIHAS',
+          institution_full_name: 'Mukuba Institute of Health and Allied Sciences',
+          is_active: true,
+          created_at: '2026-03-01T00:00:00.000Z',
+          updated_at: '2026-03-01T00:00:00.000Z',
+        },
+      ],
+      rowCount: 1,
+    })
+
+    const req = createReq({
+      method: 'POST',
+      query: { type: 'programs' },
+      headers: {
+        'x-forwarded-for': '127.0.0.1',
+        'user-agent': 'vitest',
+      },
+      body: {
+        name: 'Diploma in Midwifery',
+        institution_id: 'mihas-id',
+        duration_months: 36,
+      },
+    })
+    const res = createRes()
+
+    await handler(req, res)
+
+    expect(res._status).toBe(200)
+    expect(logAuditEventMock).toHaveBeenCalledTimes(1)
+    expect(logAuditEventMock).toHaveBeenCalledWith(expect.objectContaining({
+      actor_id: 'admin-1',
+      entity_type: 'program',
+      action: 'catalog_program_created',
+    }))
   })
 })

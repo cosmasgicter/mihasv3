@@ -1177,6 +1177,7 @@ async function requireCsrf(req, res) {
 }
 
 // api-src/catalog.ts
+init_auditLogger();
 init_errorHandler();
 
 // lib/envValidator.ts
@@ -15235,6 +15236,26 @@ async function ensureAdmin(req, res) {
   }
   return user;
 }
+function getHeaderValue(header) {
+  if (Array.isArray(header)) {
+    return header[0] ?? null;
+  }
+  return header ?? null;
+}
+async function logCatalogAuditEvent(input) {
+  const forwardedFor = getHeaderValue(input.req.headers["x-forwarded-for"]);
+  const ipAddress = forwardedFor ? forwardedFor.split(",")[0]?.trim() ?? null : null;
+  const userAgent = getHeaderValue(input.req.headers["user-agent"]);
+  await logAuditEvent({
+    actor_id: input.actorId,
+    action: input.action,
+    entity_type: input.entityType,
+    entity_id: input.entityId,
+    changes: input.changes,
+    ip_address: ipAddress,
+    user_agent: userAgent
+  });
+}
 async function listPrograms(res, includeInactive, shouldCache) {
   try {
     const result = await query(`SELECT
@@ -15292,7 +15313,7 @@ async function listIntakes(res, includeInactive, shouldCache) {
     return handleError(res, error48, "catalog/list-intakes");
   }
 }
-async function createProgram(req, res) {
+async function createProgram(req, res, actorId) {
   const parsed = validateBody(createProgramBodySchema, req, res);
   if (!parsed)
     return;
@@ -15308,12 +15329,24 @@ async function createProgram(req, res) {
     const result = await query(`INSERT INTO programs (name, code, description, duration_months, application_fee, tuition_fee, regulatory_body, institution_id, is_active, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, NOW(), NOW())
        RETURNING *`, [name, code, description || null, durationMonths, applicationFee, tuitionFee, regulatoryBody, institutionId]);
+    await logCatalogAuditEvent({
+      req,
+      actorId,
+      action: "catalog_program_created",
+      entityType: "program",
+      entityId: result.rows[0].id,
+      changes: {
+        code,
+        institution_id: institutionId,
+        duration_months: durationMonths
+      }
+    });
     return sendSuccess(res, { program: normalizeProgram(result.rows[0]) });
   } catch (error48) {
     return handleError(res, error48, "catalog/create-program");
   }
 }
-async function updateProgram(req, res) {
+async function updateProgram(req, res, actorId) {
   const parsed = validateBody(updateProgramBodySchema, req, res);
   if (!parsed)
     return;
@@ -15344,12 +15377,24 @@ async function updateProgram(req, res) {
     if (result.rowCount === 0) {
       return sendError(res, "Program not found", HttpStatus.NOT_FOUND);
     }
+    await logCatalogAuditEvent({
+      req,
+      actorId,
+      action: "catalog_program_updated",
+      entityType: "program",
+      entityId: result.rows[0].id,
+      changes: {
+        code,
+        institution_id: institutionId,
+        is_active: isActive ?? undefined
+      }
+    });
     return sendSuccess(res, { program: normalizeProgram(result.rows[0]) });
   } catch (error48) {
     return handleError(res, error48, "catalog/update-program");
   }
 }
-async function deleteProgram(req, res) {
+async function deleteProgram(req, res, actorId) {
   const id = parseDeleteId(req, res);
   if (!id)
     return;
@@ -15362,6 +15407,14 @@ async function deleteProgram(req, res) {
     if (result.rowCount === 0) {
       return sendError(res, "Program not found or already inactive", HttpStatus.NOT_FOUND);
     }
+    await logCatalogAuditEvent({
+      req,
+      actorId,
+      action: "catalog_program_archived",
+      entityType: "program",
+      entityId: result.rows[0].id,
+      changes: { is_active: false }
+    });
     return sendSuccess(res, { deleted: true, id });
   } catch (error48) {
     return handleError(res, error48, "catalog/delete-program");
@@ -15381,7 +15434,7 @@ async function listInstitutions(res, includeInactive, shouldCache) {
     return handleError(res, error48, "catalog/list-institutions");
   }
 }
-async function createInstitution(req, res) {
+async function createInstitution(req, res, actorId) {
   const parsed = validateBody(createInstitutionBodySchema, req, res);
   if (!parsed)
     return;
@@ -15393,12 +15446,20 @@ async function createInstitution(req, res) {
     const result = await query(`INSERT INTO institutions (name, full_name, code, description, is_active, created_at, updated_at)
        VALUES ($1, $2, $3, $4, true, NOW(), NOW())
        RETURNING id, name, full_name, code, description, is_active, created_at, updated_at`, [name, fullName, code, description || null]);
+    await logCatalogAuditEvent({
+      req,
+      actorId,
+      action: "catalog_institution_created",
+      entityType: "institution",
+      entityId: result.rows[0].id,
+      changes: { code, full_name: fullName }
+    });
     return sendSuccess(res, { institution: normalizeInstitution(result.rows[0]) });
   } catch (error48) {
     return handleError(res, error48, "catalog/create-institution");
   }
 }
-async function updateInstitution(req, res) {
+async function updateInstitution(req, res, actorId) {
   const parsed = validateBody(updateInstitutionBodySchema, req, res);
   if (!parsed)
     return;
@@ -15421,12 +15482,20 @@ async function updateInstitution(req, res) {
     if (result.rowCount === 0) {
       return sendError(res, "Institution not found", HttpStatus.NOT_FOUND);
     }
+    await logCatalogAuditEvent({
+      req,
+      actorId,
+      action: "catalog_institution_updated",
+      entityType: "institution",
+      entityId: result.rows[0].id,
+      changes: { code, is_active: isActive ?? undefined }
+    });
     return sendSuccess(res, { institution: normalizeInstitution(result.rows[0]) });
   } catch (error48) {
     return handleError(res, error48, "catalog/update-institution");
   }
 }
-async function deleteInstitution(req, res) {
+async function deleteInstitution(req, res, actorId) {
   const id = parseDeleteId(req, res);
   if (!id)
     return;
@@ -15446,12 +15515,20 @@ async function deleteInstitution(req, res) {
     if (result.rowCount === 0) {
       return sendError(res, "Institution not found or already inactive", HttpStatus.NOT_FOUND);
     }
+    await logCatalogAuditEvent({
+      req,
+      actorId,
+      action: "catalog_institution_archived",
+      entityType: "institution",
+      entityId: result.rows[0].id,
+      changes: { is_active: false }
+    });
     return sendSuccess(res, { deleted: true, id });
   } catch (error48) {
     return handleError(res, error48, "catalog/delete-institution");
   }
 }
-async function createIntake(req, res) {
+async function createIntake(req, res, actorId) {
   const parsed = validateBody(createIntakeBodySchema, req, res);
   if (!parsed)
     return;
@@ -15469,12 +15546,24 @@ async function createIntake(req, res) {
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, 0, true, NOW(), NOW())
       RETURNING *`, [name, year, semester, startDate, endDate, applicationDeadline, maxCapacity]);
+    await logCatalogAuditEvent({
+      req,
+      actorId,
+      action: "catalog_intake_created",
+      entityType: "intake",
+      entityId: result.rows[0].id,
+      changes: {
+        year,
+        semester,
+        max_capacity: maxCapacity
+      }
+    });
     return sendSuccess(res, { intake: normalizeIntake(result.rows[0]) });
   } catch (error48) {
     return handleError(res, error48, "catalog/create-intake");
   }
 }
-async function updateIntake(req, res) {
+async function updateIntake(req, res, actorId) {
   const parsed = validateBody(updateIntakeBodySchema, req, res);
   if (!parsed)
     return;
@@ -15505,12 +15594,24 @@ async function updateIntake(req, res) {
     if (result.rowCount === 0) {
       return sendError(res, "Intake not found", HttpStatus.NOT_FOUND);
     }
+    await logCatalogAuditEvent({
+      req,
+      actorId,
+      action: "catalog_intake_updated",
+      entityType: "intake",
+      entityId: result.rows[0].id,
+      changes: {
+        max_capacity: maxCapacity,
+        current_enrollment: currentEnrollment ?? undefined,
+        is_active: isActive ?? undefined
+      }
+    });
     return sendSuccess(res, { intake: normalizeIntake(result.rows[0]) });
   } catch (error48) {
     return handleError(res, error48, "catalog/update-intake");
   }
 }
-async function deleteIntake(req, res) {
+async function deleteIntake(req, res, actorId) {
   const id = parseDeleteId(req, res);
   if (!id)
     return;
@@ -15523,6 +15624,14 @@ async function deleteIntake(req, res) {
     if (result.rowCount === 0) {
       return sendError(res, "Intake not found or already inactive", HttpStatus.NOT_FOUND);
     }
+    await logCatalogAuditEvent({
+      req,
+      actorId,
+      action: "catalog_intake_archived",
+      entityType: "intake",
+      entityId: result.rows[0].id,
+      changes: { is_active: false }
+    });
     return sendSuccess(res, { deleted: true, id });
   } catch (error48) {
     return handleError(res, error48, "catalog/delete-intake");
@@ -15580,23 +15689,23 @@ async function handler(req, res) {
     }
     if (type === "programs") {
       if (req.method === "POST")
-        return await createProgram(req, res);
+        return await createProgram(req, res, adminUser.userId);
       if (req.method === "PUT")
-        return await updateProgram(req, res);
-      return await deleteProgram(req, res);
+        return await updateProgram(req, res, adminUser.userId);
+      return await deleteProgram(req, res, adminUser.userId);
     }
     if (type === "institutions") {
       if (req.method === "POST")
-        return await createInstitution(req, res);
+        return await createInstitution(req, res, adminUser.userId);
       if (req.method === "PUT")
-        return await updateInstitution(req, res);
-      return await deleteInstitution(req, res);
+        return await updateInstitution(req, res, adminUser.userId);
+      return await deleteInstitution(req, res, adminUser.userId);
     }
     if (req.method === "POST")
-      return await createIntake(req, res);
+      return await createIntake(req, res, adminUser.userId);
     if (req.method === "PUT")
-      return await updateIntake(req, res);
-    return await deleteIntake(req, res);
+      return await updateIntake(req, res, adminUser.userId);
+    return await deleteIntake(req, res, adminUser.userId);
   } catch (error48) {
     return handleError(res, error48, "catalog");
   }
