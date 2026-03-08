@@ -14,7 +14,7 @@ export interface AutoSaveOptions {
   onRestore?: (data: AutoSaveData) => void // Callback when data is restored
   onError?: (error: Error) => void // Callback when error occurs
   enabled?: boolean // Enable/disable auto-save (default: true)
-  clearOnSubmit?: boolean // Clear saved data on form submission (default: true)
+  clearOnSubmit?: boolean // Clear saved data on explicit form submission (default: false)
 }
 
 /**
@@ -33,7 +33,6 @@ export function useAutoSave(
     onRestore,
     onError,
     enabled = true,
-    clearOnSubmit = true
   } = options
 
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
@@ -52,20 +51,30 @@ export function useAutoSave(
   const previousDataRef = useRef<string>('')
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const saveCountdownRef = useRef<NodeJS.Timeout | null>(null)
+  const inFlightSaveRef = useRef(false)
+  const latestDataRef = useRef<AutoSaveData>(data)
+  const saveAttemptsRef = useRef(0)
+
+  useEffect(() => {
+    latestDataRef.current = data
+  }, [data])
   
   // Generate unique storage key based on location and custom key
   const storageKey = `${key}_${location.pathname}_${location.search}`
 
   // Save data to localStorage with network interruption handling and retry logic
   const saveData = useCallback(async () => {
-    if (!enabled || !data || Object.keys(data).length === 0) return
+    const currentData = latestDataRef.current
+    if (!enabled || !currentData || Object.keys(currentData).length === 0) return
+    if (inFlightSaveRef.current) return
 
+    inFlightSaveRef.current = true
     try {
       setIsSaving(true)
       setSaveStatus('saving')
       setSaveError(null)
       
-      const dataString = JSON.stringify(data)
+      const dataString = JSON.stringify(currentData)
       
       // Only save if data has changed
       if (dataString === previousDataRef.current) {
@@ -75,38 +84,38 @@ export function useAutoSave(
       }
 
       const savePayload = {
-        data: stripPiiFields(data as Record<string, unknown>),
+        data: stripPiiFields(currentData as Record<string, unknown>),
         timestamp: new Date().toISOString(),
         url: location.pathname + location.search,
         userAgent: navigator.userAgent,
         isOnline: navigator.onLine,
-        saveAttempt: saveAttempts + 1,
+        saveAttempt: saveAttemptsRef.current + 1,
         version: Date.now() // For conflict resolution
       }
 
       // Always save to localStorage first (works offline) — PII stripped
       cachedSetItem(storageKey, JSON.stringify(savePayload))
-      
-      // Add to save queue for retry mechanism
-      setSaveQueue(prev => [...prev, data])
-      
+
       // If online, attempt cloud save with retry logic
       if (navigator.onLine && onSave) {
         try {
-          await onSave(data)
-          // Remove from queue on successful save
-          setSaveQueue(prev => prev.slice(1))
+          await onSave(currentData)
+          setSaveQueue([])
           setSaveAttempts(0)
+          saveAttemptsRef.current = 0
         } catch (cloudError) {
           console.warn('Cloud save failed, data saved locally:', cloudError)
-          setSaveAttempts(prev => prev + 1)
+          const nextAttempts = saveAttemptsRef.current + 1
+          saveAttemptsRef.current = nextAttempts
+          setSaveAttempts(nextAttempts)
+          setSaveQueue(prev => [...prev, currentData])
           
           // Implement exponential backoff for retries
-          const retryDelay = Math.min(1000 * Math.pow(2, saveAttempts), 30000) // Max 30 seconds
+          const retryDelay = Math.min(1000 * Math.pow(2, nextAttempts - 1), 30000) // Max 30 seconds
           
-          if (saveAttempts < 5) { // Max 5 retry attempts
+          if (nextAttempts < 5) { // Max 5 retry attempts
             retryTimeoutRef.current = setTimeout(() => {
-              saveData() // Retry save
+              void saveData() // Retry save
             }, retryDelay)
           } else {
             setSaveStatus('error')
@@ -132,33 +141,48 @@ export function useAutoSave(
       console.error('Auto-save failed:', error)
       setSaveStatus('error')
       setSaveError(error instanceof Error ? error.message : 'Save failed')
-      setSaveAttempts(prev => prev + 1)
+      const nextAttempts = saveAttemptsRef.current + 1
+      saveAttemptsRef.current = nextAttempts
+      setSaveAttempts(nextAttempts)
       onError?.(error as Error)
     } finally {
+      inFlightSaveRef.current = false
       setIsSaving(false)
     }
-  }, [data, enabled, storageKey, location, onSave, onError, isOnline, saveAttempts, interval])
+  }, [enabled, storageKey, location.pathname, location.search, onSave, onError, interval])
 
   // Process save queue when coming back online
   const processSaveQueue = useCallback(async () => {
-    if (!navigator.onLine || saveQueue.length === 0 || !onSave) return
+    if (!navigator.onLine || saveQueue.length === 0 || !onSave || inFlightSaveRef.current) return
     
+    inFlightSaveRef.current = true
     try {
       setSaveStatus('saving')
       
       // Process queued saves in order
-      for (const queuedData of saveQueue) {
-        await onSave(queuedData)
+      for (let index = 0; index < saveQueue.length; index += 1) {
+        const queuedData = saveQueue[index]
+        try {
+          await onSave(queuedData)
+        } catch (error) {
+          setSaveQueue(saveQueue.slice(index))
+          setSaveStatus('error')
+          setSaveError('Failed to sync queued changes')
+          return
+        }
       }
       
       setSaveQueue([])
       setSaveAttempts(0)
+      saveAttemptsRef.current = 0
       setSaveStatus('saved')
       
     } catch (error) {
       console.error('Failed to process save queue:', error)
       setSaveStatus('error')
       setSaveError('Failed to sync queued changes')
+    } finally {
+      inFlightSaveRef.current = false
     }
   }, [saveQueue, onSave])
 
@@ -281,7 +305,7 @@ export function useAutoSave(
 
   // Force save immediately
   const forceSave = useCallback(() => {
-    saveData()
+    void saveData()
   }, [saveData])
 
   // Monitor online/offline status
@@ -290,7 +314,7 @@ export function useAutoSave(
       setIsOnline(true)
       setSaveStatus('saved')
       // Process queued saves when coming back online
-      processSaveQueue()
+      void processSaveQueue()
     }
     
     const handleOffline = () => {
@@ -321,7 +345,9 @@ export function useAutoSave(
   useEffect(() => {
     if (!enabled) return
 
-    intervalRef.current = setInterval(saveData, interval)
+    intervalRef.current = setInterval(() => {
+      void saveData()
+    }, interval)
 
     return () => {
       if (intervalRef.current) {
@@ -337,7 +363,7 @@ export function useAutoSave(
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
         // Save before leaving
-        saveData()
+        void saveData()
         
         // Show warning dialog
         const message = 'You have unsaved changes. Are you sure you want to leave?'
@@ -349,7 +375,7 @@ export function useAutoSave(
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden' && hasUnsavedChanges) {
-        saveData()
+        void saveData()
       }
     }
 
@@ -361,15 +387,6 @@ export function useAutoSave(
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [enabled, hasUnsavedChanges, saveData])
-
-  // Clear data when location changes (new form)
-  useEffect(() => {
-    return () => {
-      if (clearOnSubmit) {
-        clearSavedData()
-      }
-    }
-  }, [location.pathname, clearOnSubmit, clearSavedData])
 
   // Cleanup timeouts on unmount
   useEffect(() => {
