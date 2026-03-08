@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { useToastStore } from '@/components/ui/Toast'
-import { Calendar, Clock, MapPin, Video, X } from 'lucide-react'
+import { Calendar, MapPin, Video } from 'lucide-react'
+import { apiClient } from '@/services/client'
 
 interface InterviewSchedulerProps {
   applicationId: string
@@ -24,14 +25,10 @@ export function InterviewScheduler({ applicationId, onSuccess, onCancel }: Inter
     setLoading(true)
 
     try {
-      const response = await fetch('/api/applications?action=schedule-interview', {
+      await apiClient.request('/applications?action=schedule-interview', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ applicationId, ...formData })
       })
-
-      if (!response.ok) throw new Error('Failed to schedule interview')
 
       addToast('success', 'Interview scheduled successfully')
       onSuccess?.()
