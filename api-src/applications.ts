@@ -22,8 +22,19 @@ import { logAuditEvent } from '../lib/auditLogger';
 import { renderEmailTemplate } from '../lib/emailTemplates';
 import { requireCsrf } from '../lib/csrf';
 import { validateBody } from '../lib/validation/middleware';
-import { createApplicationBodySchema, reviewApplicationBodySchema } from '../lib/validation/applications';
+import {
+  createApplicationBodySchema,
+  patchCancelInterviewSchema,
+  patchRescheduleInterviewSchema,
+  patchScheduleInterviewSchema,
+  patchSendNotificationSchema,
+  patchSyncGradesSchema,
+  patchUpdatePaymentStatusSchema,
+  patchUpdateStatusSchema,
+  reviewApplicationBodySchema,
+} from '../lib/validation/applications';
 import { validateServerEnv } from '../lib/envValidator';
+import { z } from 'zod';
 
 /**
  * Consolidated Applications API
@@ -115,6 +126,31 @@ interface PublicTrackingResult {
   submitted_at: string | null;
   updated_at: string | null;
   feedback_summary: string | null;
+}
+
+function validatePatchPayload<T>(
+  schema: z.ZodType<T>,
+  payload: unknown,
+  res: VercelResponse
+): T | null {
+  const parsed = schema.safeParse(payload);
+  if (parsed.success) {
+    return parsed.data;
+  }
+
+  const fieldErrors: Record<string, string> = {};
+  for (const issue of parsed.error.issues) {
+    const path = issue.path.join('.') || '_root';
+    fieldErrors[path] = issue.message;
+  }
+
+  res.status(HttpStatus.BAD_REQUEST).json({
+    success: false,
+    error: 'Validation failed',
+    code: 'VALIDATION_ERROR',
+    fieldErrors,
+  });
+  return null;
 }
 
 type ApplicationPaymentMetadataRow = ApplicationRecord & {
@@ -806,11 +842,10 @@ async function handleById(
       const { action, ...payload } = body;
 
       if (action === 'update_status') {
-        const { status, notes } = payload;
-        const validStatuses = ['draft', 'submitted', 'under_review', 'approved', 'rejected', 'pending_documents'];
-        if (!validStatuses.includes(status)) {
-          return sendError(res, `Invalid status. Must be one of: ${validStatuses.join(', ')}`, HttpStatus.BAD_REQUEST);
-        }
+        const parsedPayload = validatePatchPayload(patchUpdateStatusSchema, payload, res);
+        if (!parsedPayload) return;
+
+        const { status, notes } = parsedPayload;
         if (status === 'approved' && app.payment_status !== 'verified') {
           return sendError(res, 'Cannot approve without verified payment', HttpStatus.BAD_REQUEST);
         }
@@ -929,11 +964,10 @@ async function handleById(
       }
 
       if (action === 'update_payment_status') {
-        const { paymentStatus, verificationNotes } = payload;
-        const validPaymentStatuses = ['pending_review', 'verified', 'rejected'];
-        if (!validPaymentStatuses.includes(paymentStatus)) {
-          return sendError(res, `Invalid payment status. Must be one of: ${validPaymentStatuses.join(', ')}`, HttpStatus.BAD_REQUEST);
-        }
+        const parsedPayload = validatePatchPayload(patchUpdatePaymentStatusSchema, payload, res);
+        if (!parsedPayload) return;
+
+        const { paymentStatus, verificationNotes } = parsedPayload;
 
         const normalizedVerificationNotes = typeof verificationNotes === 'string'
           ? verificationNotes.trim().slice(0, 1000)
@@ -1076,10 +1110,9 @@ async function handleById(
           return sendError(res, 'Forbidden: admin access required', HttpStatus.FORBIDDEN);
         }
 
-        const { title, message } = payload as { title?: string; message?: string };
-        if (!title?.trim() || !message?.trim()) {
-          return sendError(res, 'Missing required fields: title, message', HttpStatus.BAD_REQUEST);
-        }
+        const parsedPayload = validatePatchPayload(patchSendNotificationSchema, payload, res);
+        if (!parsedPayload) return;
+        const { title, message } = parsedPayload;
 
         const actionUrl = `/student/application/${applicationId}`;
         const notificationResult = await query<Record<string, unknown>>(
@@ -1184,14 +1217,10 @@ async function handleById(
         if (!isAdmin) {
           return sendError(res, 'Forbidden: admin access required', HttpStatus.FORBIDDEN);
         }
-        const { scheduledAt, mode: interviewMode, location: interviewLocation, notes: interviewNotes } = payload;
-        if (!scheduledAt || !interviewMode || !interviewLocation) {
-          return sendError(res, 'Missing required fields: scheduledAt, mode, location', HttpStatus.BAD_REQUEST);
-        }
+        const parsedPayload = validatePatchPayload(patchScheduleInterviewSchema, payload, res);
+        if (!parsedPayload) return;
+        const { scheduledAt, mode: interviewMode, location: interviewLocation, notes: interviewNotes } = parsedPayload;
         const normalizedMode = interviewMode === 'in-person' ? 'in_person' : interviewMode;
-        if (!['in_person', 'virtual', 'phone'].includes(normalizedMode)) {
-          return sendError(res, 'Invalid mode. Use: in-person, in_person, virtual, or phone', HttpStatus.BAD_REQUEST);
-        }
         const interviewResult = await query<{
           id: string; application_id: string; scheduled_at: string; mode: string;
           location: string; notes: string | null; status: string;
@@ -1236,10 +1265,9 @@ async function handleById(
         if (!isAdmin) {
           return sendError(res, 'Forbidden: admin access required', HttpStatus.FORBIDDEN);
         }
-        const { scheduledAt, mode: reschedMode, location: reschedLocation, notes: reschedNotes } = payload;
-        if (!scheduledAt) {
-          return sendError(res, 'Missing required field: scheduledAt', HttpStatus.BAD_REQUEST);
-        }
+        const parsedPayload = validatePatchPayload(patchRescheduleInterviewSchema, payload, res);
+        if (!parsedPayload) return;
+        const { scheduledAt, mode: reschedMode, location: reschedLocation, notes: reschedNotes } = parsedPayload;
         // Find the latest scheduled interview for this application
         const existingInterview = await query<{ id: string }>(
           `SELECT id FROM application_interviews WHERE application_id = $1 AND status IN ('scheduled', 'rescheduled')
@@ -1292,7 +1320,9 @@ async function handleById(
         if (!isAdmin) {
           return sendError(res, 'Forbidden: admin access required', HttpStatus.FORBIDDEN);
         }
-        const { notes: cancelNotes } = payload;
+        const parsedPayload = validatePatchPayload(patchCancelInterviewSchema, payload, res);
+        if (!parsedPayload) return;
+        const { notes: cancelNotes } = parsedPayload;
         const existingInterview = await query<{ id: string }>(
           `SELECT id FROM application_interviews WHERE application_id = $1 AND status IN ('scheduled', 'rescheduled')
            ORDER BY created_at DESC LIMIT 1`,
@@ -1328,10 +1358,9 @@ async function handleById(
       }
 
       if (action === 'sync_grades') {
-        const { grades } = payload;
-        if (!Array.isArray(grades)) {
-          return sendError(res, 'Grades must be an array', HttpStatus.BAD_REQUEST);
-        }
+        const parsedPayload = validatePatchPayload(patchSyncGradesSchema, payload, res);
+        if (!parsedPayload) return;
+        const { grades } = parsedPayload;
 
         // Wrap delete + batch insert in a transaction for atomicity (Req 30.1)
         const deleteQ = GradeQueries.deleteByApplication(applicationId);

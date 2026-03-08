@@ -14825,6 +14825,8 @@ var applicationStatusSchema = exports_external.enum([
   "rejected",
   "pending_documents"
 ]);
+var paymentStatusSchema = exports_external.enum(["pending_review", "verified", "rejected"]);
+var interviewModeSchema = exports_external.enum(["in-person", "in_person", "virtual", "phone"]);
 var institutionSchema = exports_external.enum(["MIHAS", "KATC"]);
 var createApplicationBodySchema = exports_external.object({
   application_number: nonEmptySanitizedString,
@@ -14878,6 +14880,39 @@ var scheduleInterviewBodySchema = exports_external.object({
   interview_time: optionalSanitizedString,
   location: optionalSanitizedString,
   notes: optionalSanitizedString
+});
+var patchUpdateStatusSchema = exports_external.object({
+  status: applicationStatusSchema,
+  notes: optionalSanitizedString
+});
+var patchUpdatePaymentStatusSchema = exports_external.object({
+  paymentStatus: paymentStatusSchema,
+  verificationNotes: optionalSanitizedString
+});
+var patchSendNotificationSchema = exports_external.object({
+  title: nonEmptySanitizedString,
+  message: nonEmptySanitizedString
+});
+var patchScheduleInterviewSchema = exports_external.object({
+  scheduledAt: nonEmptySanitizedString,
+  mode: interviewModeSchema,
+  location: nonEmptySanitizedString,
+  notes: optionalSanitizedString
+});
+var patchRescheduleInterviewSchema = exports_external.object({
+  scheduledAt: nonEmptySanitizedString,
+  mode: interviewModeSchema.optional(),
+  location: optionalSanitizedString,
+  notes: optionalSanitizedString
+});
+var patchCancelInterviewSchema = exports_external.object({
+  notes: optionalSanitizedString
+});
+var patchSyncGradesSchema = exports_external.object({
+  grades: exports_external.array(exports_external.object({
+    subject_id: nonEmptySanitizedString,
+    grade: eczGradeSchema
+  }))
 });
 // lib/validation/admin.ts
 var roleSchema = exports_external.enum([

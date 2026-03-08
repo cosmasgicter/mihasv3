@@ -8,6 +8,8 @@ import { eczGradeSchema } from './zambian';
 const applicationStatusSchema = z.enum([
   'draft', 'submitted', 'under_review', 'approved', 'rejected', 'pending_documents',
 ]);
+const paymentStatusSchema = z.enum(['pending_review', 'verified', 'rejected']);
+const interviewModeSchema = z.enum(['in-person', 'in_person', 'virtual', 'phone']);
 
 const institutionSchema = z.enum(['MIHAS', 'KATC']);
 
@@ -72,4 +74,44 @@ export const scheduleInterviewBodySchema = z.object({
   interview_time: optionalSanitizedString,
   location: optionalSanitizedString,
   notes: optionalSanitizedString,
+});
+
+export const patchUpdateStatusSchema = z.object({
+  status: applicationStatusSchema,
+  notes: optionalSanitizedString,
+});
+
+export const patchUpdatePaymentStatusSchema = z.object({
+  paymentStatus: paymentStatusSchema,
+  verificationNotes: optionalSanitizedString,
+});
+
+export const patchSendNotificationSchema = z.object({
+  title: nonEmptySanitizedString,
+  message: nonEmptySanitizedString,
+});
+
+export const patchScheduleInterviewSchema = z.object({
+  scheduledAt: nonEmptySanitizedString,
+  mode: interviewModeSchema,
+  location: nonEmptySanitizedString,
+  notes: optionalSanitizedString,
+});
+
+export const patchRescheduleInterviewSchema = z.object({
+  scheduledAt: nonEmptySanitizedString,
+  mode: interviewModeSchema.optional(),
+  location: optionalSanitizedString,
+  notes: optionalSanitizedString,
+});
+
+export const patchCancelInterviewSchema = z.object({
+  notes: optionalSanitizedString,
+});
+
+export const patchSyncGradesSchema = z.object({
+  grades: z.array(z.object({
+    subject_id: nonEmptySanitizedString,
+    grade: eczGradeSchema,
+  })),
 });
