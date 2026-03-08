@@ -15375,12 +15375,14 @@ async function handler(req, res) {
   if (!user) {
     return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
   }
-  const adminRoles = ["admin", "super_admin", "admissions_officer"];
-  const isAdmin = adminRoles.includes(user.role);
+  const isAdmin = user.role === "admin" || user.role === "super_admin" || user.role === "admissions_officer";
+  const canReadAllApplications = isAdmin || user.permissions.includes("applications:read") || user.permissions.includes("applications:review");
+  const canReviewApplications = user.permissions.includes("applications:review");
+  const canVerifyPayments = user.permissions.includes("payments:verify");
   const id = req.query.id;
   try {
     if (action === "details")
-      return await handleDetails(req, res, user.userId, isAdmin);
+      return await handleDetails(req, res, user.userId, canReadAllApplications);
     if (action === "documents")
       return await handleDocuments(res);
     if (action === "grades")
@@ -15388,7 +15390,7 @@ async function handler(req, res) {
     if (action === "summary")
       return await handleSummary(res);
     if (action === "review")
-      return await handleReview(req, res, user.userId, isAdmin);
+      return await handleReview(req, res, user.userId, canReviewApplications);
     if (action === "interviews")
       return await handleInterviews(req, res, user.userId);
     if (action === "schedule-interview")
@@ -15402,9 +15404,9 @@ async function handler(req, res) {
     if (action === "versions")
       return await handleVersions(req, res, user.userId);
     if (id)
-      return await handleById(req, res, user.userId, isAdmin, id);
+      return await handleById(req, res, user.userId, isAdmin, canReadAllApplications, canReviewApplications, canVerifyPayments, id);
     if (req.method === "GET")
-      return await handleDetails(req, res, user.userId, isAdmin);
+      return await handleDetails(req, res, user.userId, canReadAllApplications);
     if (req.method === "POST")
       return await handleCreate(req, res, user.userId);
     return sendError(res, "Invalid request", HttpStatus.BAD_REQUEST);
@@ -15578,7 +15580,7 @@ async function handleCreate(req, res, userId) {
     return handleError(res, error48, "applications/create");
   }
 }
-async function handleDetails(req, res, userId, isAdmin) {
+async function handleDetails(req, res, userId, canReadAllApplications) {
   if (req.method !== "GET") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
   }
@@ -15597,7 +15599,7 @@ async function handleDetails(req, res, userId, isAdmin) {
     const conditions = [];
     const values = [];
     let paramIndex = 1;
-    if (!isAdmin || mine === "true") {
+    if (!canReadAllApplications || mine === "true") {
       conditions.push(`a.user_id = $${paramIndex}`);
       values.push(userId);
       paramIndex++;
@@ -15802,9 +15804,9 @@ async function handleStats(req, res, userId) {
     return handleError(res, error48, "applications/stats");
   }
 }
-async function handleReview(req, res, userId, isAdmin) {
-  if (!isAdmin) {
-    return sendError(res, "Admin access required", HttpStatus.FORBIDDEN);
+async function handleReview(req, res, userId, canReviewApplications) {
+  if (!canReviewApplications) {
+    return sendError(res, "Review permission required", HttpStatus.FORBIDDEN);
   }
   try {
     if (req.method === "GET") {
@@ -15858,10 +15860,10 @@ async function handleReview(req, res, userId, isAdmin) {
     return handleError(res, error48, "applications/review");
   }
 }
-async function handleById(req, res, userId, isAdmin, applicationId) {
+async function handleById(req, res, userId, isAdmin, canReadAllApplications, canReviewApplications, canVerifyPayments, applicationId) {
   try {
     if (req.method === "GET") {
-      if (!isAdmin) {
+      if (!canReadAllApplications) {
         const ownerQ = ApplicationQueries.checkOwnership(applicationId, userId);
         const ownerResult = await query(ownerQ.text, ownerQ.values);
         if (!ownerResult.rows[0]?.is_owner) {
@@ -15917,6 +15919,9 @@ async function handleById(req, res, userId, isAdmin, applicationId) {
       if (req.method === "PATCH" && body.action) {
         const { action, ...payload } = body;
         if (action === "update_status") {
+          if (!canReviewApplications) {
+            return sendError(res, "Review permission required", HttpStatus.FORBIDDEN);
+          }
           const parsedPayload = validatePatchPayload(patchUpdateStatusSchema, payload, res);
           if (!parsedPayload)
             return;
@@ -16017,6 +16022,9 @@ async function handleById(req, res, userId, isAdmin, applicationId) {
           return sendSuccess(res, updateResult2.rows[0]);
         }
         if (action === "update_payment_status") {
+          if (!canVerifyPayments) {
+            return sendError(res, "Payment verification permission required", HttpStatus.FORBIDDEN);
+          }
           const parsedPayload = validatePatchPayload(patchUpdatePaymentStatusSchema, payload, res);
           if (!parsedPayload)
             return;
