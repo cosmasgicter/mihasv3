@@ -4,8 +4,21 @@ import { query } from '../lib/db';
 import { CatalogQueries, SubjectRecord } from '../lib/queries';
 import { withArcjetProtection } from '../lib/arcjet';
 import { getAuthUser } from '../lib/auth/middleware';
+import { requireCsrf } from '../lib/csrf';
 import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
 import { validateServerEnv } from '../lib/envValidator';
+import {
+  catalogTypeQuerySchema,
+  createIntakeBodySchema,
+  createInstitutionBodySchema,
+  createProgramBodySchema,
+  deleteCatalogEntityQuerySchema,
+  updateIntakeBodySchema,
+  updateInstitutionBodySchema,
+  updateProgramBodySchema,
+  validateBody,
+  validateQuery,
+} from '../lib/validation';
 
 interface InstitutionRecord {
   id: string;
@@ -89,6 +102,20 @@ function generateProgramCode(name: string) {
     .replace(/[^A-Z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 24)
+}
+
+function parseDeleteId(req: VercelRequest, res: VercelResponse): string | null {
+  const result = deleteCatalogEntityQuerySchema.safeParse({
+    id: req.query.id ?? req.body?.id,
+  });
+
+  if (!result.success) {
+    const firstIssue = result.error.issues[0];
+    sendError(res, firstIssue?.message || 'Validation failed', HttpStatus.BAD_REQUEST, 'VALIDATION_ERROR');
+    return null;
+  }
+
+  return result.data.id;
 }
 
 function normalizeInstitution(record: InstitutionRecord) {
@@ -209,25 +236,19 @@ async function listIntakes(res: VercelResponse, includeInactive: boolean, should
 }
 
 async function createProgram(req: VercelRequest, res: VercelResponse) {
-  const body = req.body || {};
-  const name = String(body.name || '').trim();
-  const code = String(body.code || generateProgramCode(name)).trim();
-  const description = typeof body.description === 'string' ? body.description.trim() : '';
-  const durationMonths = Number(body.duration_months ?? (Number(body.duration_years) * 12));
-  const applicationFee = body.application_fee !== undefined ? Number(body.application_fee) : 153;
-  const tuitionFee = body.tuition_fee !== undefined ? Number(body.tuition_fee) : null;
-  const regulatoryBody = typeof body.regulatory_body === 'string' ? body.regulatory_body.trim() : null;
-  const institutionId = String(body.institution_id || '').trim();
+  const parsed = validateBody(createProgramBodySchema, req, res);
+  if (!parsed) return;
 
-  if (!name) {
-    return sendError(res, 'Program name is required', HttpStatus.BAD_REQUEST);
-  }
-  if (!institutionId) {
-    return sendError(res, 'Institution is required', HttpStatus.BAD_REQUEST);
-  }
-  if (!Number.isFinite(durationMonths) || durationMonths < 1 || durationMonths > 120) {
-    return sendError(res, 'duration_months must be between 1 and 120', HttpStatus.BAD_REQUEST);
-  }
+  const name = parsed.name;
+  const code = String(parsed.code || generateProgramCode(name)).trim();
+  const description = parsed.description ?? '';
+  const durationMonths = Number(parsed.duration_months ?? (Number(parsed.duration_years) * 12));
+  const applicationFee = parsed.application_fee !== undefined && parsed.application_fee !== null
+    ? Number(parsed.application_fee)
+    : 153;
+  const tuitionFee = parsed.tuition_fee !== undefined ? parsed.tuition_fee : null;
+  const regulatoryBody = parsed.regulatory_body ?? null;
+  const institutionId = parsed.institution_id;
 
   try {
     const result = await query<ProgramRow>(
@@ -244,30 +265,21 @@ async function createProgram(req: VercelRequest, res: VercelResponse) {
 }
 
 async function updateProgram(req: VercelRequest, res: VercelResponse) {
-  const body = req.body || {};
-  const id = String(body.id || '').trim();
-  const name = String(body.name || '').trim();
-  const code = String(body.code || generateProgramCode(name)).trim();
-  const description = typeof body.description === 'string' ? body.description.trim() : '';
-  const durationMonths = Number(body.duration_months ?? (Number(body.duration_years) * 12));
-  const applicationFee = body.application_fee !== undefined ? Number(body.application_fee) : null;
-  const tuitionFee = body.tuition_fee !== undefined ? Number(body.tuition_fee) : null;
-  const regulatoryBody = typeof body.regulatory_body === 'string' ? body.regulatory_body.trim() : null;
-  const institutionId = String(body.institution_id || '').trim();
-  const isActive = typeof body.is_active === 'boolean' ? body.is_active : undefined;
+  const parsed = validateBody(updateProgramBodySchema, req, res);
+  if (!parsed) return;
 
-  if (!id) {
-    return sendError(res, 'Program id is required', HttpStatus.BAD_REQUEST);
-  }
-  if (!name) {
-    return sendError(res, 'Program name is required', HttpStatus.BAD_REQUEST);
-  }
-  if (!institutionId) {
-    return sendError(res, 'Institution is required', HttpStatus.BAD_REQUEST);
-  }
-  if (!Number.isFinite(durationMonths) || durationMonths < 1 || durationMonths > 120) {
-    return sendError(res, 'duration_months must be between 1 and 120', HttpStatus.BAD_REQUEST);
-  }
+  const id = parsed.id;
+  const name = parsed.name;
+  const code = String(parsed.code || generateProgramCode(name)).trim();
+  const description = parsed.description ?? '';
+  const durationMonths = Number(parsed.duration_months ?? (Number(parsed.duration_years) * 12));
+  const applicationFee = parsed.application_fee !== undefined && parsed.application_fee !== null
+    ? Number(parsed.application_fee)
+    : null;
+  const tuitionFee = parsed.tuition_fee !== undefined ? parsed.tuition_fee : null;
+  const regulatoryBody = parsed.regulatory_body ?? null;
+  const institutionId = parsed.institution_id;
+  const isActive = parsed.is_active;
 
   try {
     const result = await query<ProgramRow>(
@@ -298,12 +310,8 @@ async function updateProgram(req: VercelRequest, res: VercelResponse) {
 }
 
 async function deleteProgram(req: VercelRequest, res: VercelResponse) {
-  const body = req.body || {};
-  const id = String(body.id || req.query.id || '').trim();
-
-  if (!id) {
-    return sendError(res, 'Program id is required', HttpStatus.BAD_REQUEST);
-  }
+  const id = parseDeleteId(req, res);
+  if (!id) return;
 
   try {
     const result = await query<{ id: string }>(
@@ -346,15 +354,13 @@ async function listInstitutions(res: VercelResponse, includeInactive: boolean, s
 }
 
 async function createInstitution(req: VercelRequest, res: VercelResponse) {
-  const body = req.body || {};
-  const name = String(body.name || '').trim();
-  const fullName = String(body.full_name || body.fullName || '').trim() || name;
-  const code = String(body.code || '').trim() || null;
-  const description = typeof body.description === 'string' ? body.description.trim() : '';
+  const parsed = validateBody(createInstitutionBodySchema, req, res);
+  if (!parsed) return;
 
-  if (!name) {
-    return sendError(res, 'Institution name is required', HttpStatus.BAD_REQUEST);
-  }
+  const name = parsed.name;
+  const fullName = parsed.full_name || parsed.fullName || name;
+  const code = parsed.code || null;
+  const description = parsed.description ?? '';
 
   try {
     const result = await query<InstitutionRecord>(
@@ -371,21 +377,15 @@ async function createInstitution(req: VercelRequest, res: VercelResponse) {
 }
 
 async function updateInstitution(req: VercelRequest, res: VercelResponse) {
-  const body = req.body || {};
-  const id = String(body.id || '').trim();
-  const name = String(body.name || '').trim();
-  const fullName = String(body.full_name || body.fullName || '').trim() || name;
-  const code = String(body.code || '').trim() || null;
-  const description = typeof body.description === 'string' ? body.description.trim() : '';
-  const isActive = typeof body.is_active === 'boolean' ? body.is_active : undefined;
+  const parsed = validateBody(updateInstitutionBodySchema, req, res);
+  if (!parsed) return;
 
-  if (!id) {
-    return sendError(res, 'Institution id is required', HttpStatus.BAD_REQUEST);
-  }
-
-  if (!name) {
-    return sendError(res, 'Institution name is required', HttpStatus.BAD_REQUEST);
-  }
+  const id = parsed.id;
+  const name = parsed.name;
+  const fullName = parsed.full_name || parsed.fullName || name;
+  const code = parsed.code || null;
+  const description = parsed.description ?? '';
+  const isActive = parsed.is_active;
 
   try {
     const result = await query<InstitutionRecord>(
@@ -412,12 +412,8 @@ async function updateInstitution(req: VercelRequest, res: VercelResponse) {
 }
 
 async function deleteInstitution(req: VercelRequest, res: VercelResponse) {
-  const body = req.body || {};
-  const id = String(body.id || req.query.id || '').trim();
-
-  if (!id) {
-    return sendError(res, 'Institution id is required', HttpStatus.BAD_REQUEST);
-  }
+  const id = parseDeleteId(req, res);
+  if (!id) return;
 
   try {
     const programCount = await query<{ count: string }>(
@@ -452,26 +448,16 @@ async function deleteInstitution(req: VercelRequest, res: VercelResponse) {
 }
 
 async function createIntake(req: VercelRequest, res: VercelResponse) {
-  const body = req.body || {};
-  const name = String(body.name || '').trim();
-  const year = Number(body.year);
-  const semester = typeof body.semester === 'string' ? body.semester.trim() : null;
-  const startDate = String(body.start_date || '').trim();
-  const endDate = String(body.end_date || '').trim();
-  const applicationDeadline = String(body.application_deadline || '').trim();
-  const maxCapacity = Number(body.max_capacity || body.total_capacity);
+  const parsed = validateBody(createIntakeBodySchema, req, res);
+  if (!parsed) return;
 
-  if (!name || !startDate || !endDate || !applicationDeadline) {
-    return sendError(res, 'name, start_date, end_date, and application_deadline are required', HttpStatus.BAD_REQUEST);
-  }
-
-  if (!Number.isFinite(year) || year < 2000) {
-    return sendError(res, 'Valid year is required', HttpStatus.BAD_REQUEST);
-  }
-
-  if (!Number.isFinite(maxCapacity) || maxCapacity < 1) {
-    return sendError(res, 'max_capacity must be at least 1', HttpStatus.BAD_REQUEST);
-  }
+  const name = parsed.name;
+  const year = Number(parsed.year);
+  const semester = parsed.semester ?? null;
+  const startDate = parsed.start_date;
+  const endDate = parsed.end_date;
+  const applicationDeadline = parsed.application_deadline;
+  const maxCapacity = Number(parsed.max_capacity || parsed.total_capacity);
 
   try {
     const result = await query<IntakeRow>(
@@ -491,30 +477,19 @@ async function createIntake(req: VercelRequest, res: VercelResponse) {
 }
 
 async function updateIntake(req: VercelRequest, res: VercelResponse) {
-  const body = req.body || {};
-  const id = String(body.id || '').trim();
-  const name = String(body.name || '').trim();
-  const year = Number(body.year);
-  const semester = typeof body.semester === 'string' ? body.semester.trim() : null;
-  const startDate = String(body.start_date || '').trim();
-  const endDate = String(body.end_date || '').trim();
-  const applicationDeadline = String(body.application_deadline || '').trim();
-  const maxCapacity = Number(body.max_capacity || body.total_capacity);
-  const currentEnrollment = body.current_enrollment !== undefined ? Number(body.current_enrollment) : null;
-  const isActive = typeof body.is_active === 'boolean' ? body.is_active : undefined;
+  const parsed = validateBody(updateIntakeBodySchema, req, res);
+  if (!parsed) return;
 
-  if (!id) {
-    return sendError(res, 'Intake id is required', HttpStatus.BAD_REQUEST);
-  }
-  if (!name || !startDate || !endDate || !applicationDeadline) {
-    return sendError(res, 'name, start_date, end_date, and application_deadline are required', HttpStatus.BAD_REQUEST);
-  }
-  if (!Number.isFinite(year) || year < 2000) {
-    return sendError(res, 'Valid year is required', HttpStatus.BAD_REQUEST);
-  }
-  if (!Number.isFinite(maxCapacity) || maxCapacity < 1) {
-    return sendError(res, 'max_capacity must be at least 1', HttpStatus.BAD_REQUEST);
-  }
+  const id = parsed.id;
+  const name = parsed.name;
+  const year = Number(parsed.year);
+  const semester = parsed.semester ?? null;
+  const startDate = parsed.start_date;
+  const endDate = parsed.end_date;
+  const applicationDeadline = parsed.application_deadline;
+  const maxCapacity = Number(parsed.max_capacity || parsed.total_capacity);
+  const currentEnrollment = parsed.current_enrollment !== undefined ? Number(parsed.current_enrollment) : null;
+  const isActive = parsed.is_active;
 
   try {
     const result = await query<IntakeRow>(
@@ -545,12 +520,8 @@ async function updateIntake(req: VercelRequest, res: VercelResponse) {
 }
 
 async function deleteIntake(req: VercelRequest, res: VercelResponse) {
-  const body = req.body || {};
-  const id = String(body.id || req.query.id || '').trim();
-
-  if (!id) {
-    return sendError(res, 'Intake id is required', HttpStatus.BAD_REQUEST);
-  }
+  const id = parseDeleteId(req, res);
+  if (!id) return;
 
   try {
     const result = await query<{ id: string }>(
@@ -589,7 +560,9 @@ async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
 
-  const type = (req.query.type as string) || 'programs';
+  const parsedQuery = validateQuery(catalogTypeQuerySchema, req, res);
+  if (!parsedQuery) return;
+  const type = parsedQuery.type;
 
   try {
     const authUser = await getAuthUser(req);
@@ -625,6 +598,8 @@ async function handler(req: VercelRequest, res: VercelResponse) {
     if (!['POST', 'PUT', 'DELETE'].includes(req.method || '')) {
       return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
     }
+
+    if (await requireCsrf(req, res)) return;
 
     if (!['programs', 'intakes', 'institutions'].includes(type)) {
       return sendError(res, 'Write operations are only supported for programs, institutions, and intakes', HttpStatus.BAD_REQUEST);

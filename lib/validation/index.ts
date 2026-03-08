@@ -23,6 +23,18 @@ export { uploadDocumentBodySchema, extractDocumentBodySchema, deleteDocumentBody
 // Payment schemas
 export { receiptQuerySchema } from './payments';
 
+// Catalog schemas
+export {
+  catalogTypeQuerySchema,
+  createProgramBodySchema,
+  updateProgramBodySchema,
+  deleteCatalogEntityQuerySchema,
+  createInstitutionBodySchema,
+  updateInstitutionBodySchema,
+  createIntakeBodySchema,
+  updateIntakeBodySchema,
+} from './catalog';
+
 // Session schemas
 export { revokeSessionBodySchema, revokeAllSessionsBodySchema, pollQuerySchema } from './sessions';
 
