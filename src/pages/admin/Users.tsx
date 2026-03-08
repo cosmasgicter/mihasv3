@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { UserProfile } from '@/types/database'
 import { Button } from '@/components/ui/Button'
-import { TableSkeleton, CardSkeleton } from '@/components/ui'
+import { TableSkeleton, CardSkeleton } from '@/components/ui/LoadingState'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/Dialog'
 import { Container } from '@/components/ui/Container'
@@ -360,7 +360,7 @@ export default function AdminUsers() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <Container size="lg" className="space-y-6 py-4 sm:py-8 safe-area-bottom">
         <PageHeader
           eyebrow="Administration"
@@ -406,7 +406,7 @@ export default function AdminUsers() {
               <Button
                 onClick={() => setShowCreateDialog(true)}
                 size="sm"
-                className="bg-card font-semibold text-slate-900 hover:bg-white"
+                className="bg-card font-semibold text-foreground hover:bg-white"
               >
                 <UserPlus className="mr-2 h-4 w-4" />
                 Add user

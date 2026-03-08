@@ -6,7 +6,7 @@
  * @requirements 4.1, 4.3, 4.4, 4.8 - Zod validation, inline errors, loading state, type safety
  */
 
-import { useState, useCallback, type ReactNode } from 'react';
+import { useState, useCallback, useId, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,15 +19,16 @@ import { FormSelect } from '@/components/ui/form-select';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { AuthLoadingOverlay } from '@/components/ui/AuthLoadingOverlay';
 import { AuthLayout } from '@/components/auth/AuthLayout';
+import { ErrorBanner } from '@/components/ui/ErrorDisplay';
 import { NotificationService } from '@/lib/notificationService';
 import { DEFAULT_RESIDENCE_COUNTRY } from '@/lib/locationOptions';
 import { Seo } from '@/components/seo/Seo';
 import { staggerChild, animateClasses } from '@/lib/animations';
 import { useResidenceLocationOptions } from '@/hooks/useResidenceLocationOptions';
 import { cn } from '@/lib/utils';
+import { sanitizeForLog } from '@/lib/security';
 import {
   Loader2,
-  AlertCircle,
   CheckCircle,
   XCircle,
   Users,
@@ -36,6 +37,7 @@ import {
   MapPin,
   type LucideIcon,
 } from 'lucide-react';
+import { InfoCallout } from '@/components/ui/InfoCallout';
 
 interface EmailCheckResponse {
   available: boolean;
@@ -85,19 +87,24 @@ interface SignUpSectionProps {
 }
 
 function SignUpSection({ icon: Icon, title, description, children, className }: SignUpSectionProps) {
+  const descriptionId = useId();
+
   return (
-    <section className={cn('rounded-2xl border border-border bg-background p-5 shadow-sm', className)}>
-      <div className="mb-4 flex items-start gap-3">
-        <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+    <fieldset
+      aria-describedby={descriptionId}
+      className={cn('rounded-2xl border border-border/70 bg-card/60 p-5 shadow-sm', className)}
+    >
+      <legend className="text-base font-semibold text-foreground">{title}</legend>
+      <div className="mb-4 mt-3 flex items-start gap-3">
+        <div className="mt-0.5 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
           <Icon className="h-5 w-5" />
         </div>
         <div>
-          <h3 className="text-base font-semibold text-foreground">{title}</h3>
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+          <p id={descriptionId} className="text-sm text-muted-foreground">{description}</p>
         </div>
       </div>
       {children}
-    </section>
+    </fieldset>
   );
 }
 
@@ -148,7 +155,7 @@ export default function SignUpPage() {
         setError('');
       }
     } catch (err) {
-      console.warn('Email check error:', err);
+      console.warn('Email check error:', sanitizeForLog(err instanceof Error ? err.message : String(err)));
       setEmailAvailable(null);
     } finally {
       setEmailChecking(false);
@@ -181,7 +188,12 @@ export default function SignUpPage() {
       setIsRegistering(false);
 
       if (result.user?.id) {
-        NotificationService.sendWelcomeNotification(result.user.id, userData.full_name).catch(console.error);
+        NotificationService.sendWelcomeNotification(result.user.id, userData.full_name).catch((notificationError) => {
+          console.error(
+            'Welcome notification error:',
+            sanitizeForLog(notificationError instanceof Error ? notificationError.message : String(notificationError)),
+          );
+        });
       }
 
       setTimeout(() => {
@@ -256,22 +268,13 @@ export default function SignUpPage() {
         }
       >
         <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
-          <div
-            className={`rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 ${animateClasses.fadeIn}`}
-            style={staggerChild(0, 100)}
-          >
-            <div className="flex items-start gap-3">
-              <FileText className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-900" />
-              <div className="space-y-2">
-                <p className="text-sm font-semibold text-slate-950">
-                  Create one account first, then start your application after sign-in.
-                </p>
-                <p className="text-sm text-slate-700">
-                  The details below are reused to prefill your profile and keep the application wizard consistent with your account.
-                </p>
-              </div>
-            </div>
-          </div>
+          <InfoCallout
+            icon={FileText}
+            variant="success"
+            title="Create one account first, then start your application after sign-in."
+            description="The details below are reused to prefill your profile and keep the application wizard consistent with your account."
+            className={animateClasses.fadeIn}
+          />
 
           <div className={animateClasses.slideUp} style={staggerChild(1, 100)}>
             <SignUpSection
@@ -309,31 +312,33 @@ export default function SignUpPage() {
                     }
                   />
 
-                  {emailChecking && (
-                    <div className={`mt-2 flex items-center gap-2 text-sm text-blue-600 ${animateClasses.fadeIn}`}>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="font-medium">Checking availability...</span>
-                    </div>
-                  )}
+                  <div className="mt-2 min-h-6" aria-live="polite">
+                    {emailChecking && (
+                      <div className={`flex items-center gap-2 text-sm text-primary ${animateClasses.fadeIn}`} role="status">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="font-medium">Checking availability...</span>
+                      </div>
+                    )}
 
-                  {!emailChecking && emailAvailable === true && (
-                    <div className={`mt-2 flex items-center gap-2 text-sm text-green-600 ${animateClasses.fadeIn}`}>
-                      <CheckCircle className="h-4 w-4" />
-                      <span className="font-medium">Email available</span>
-                    </div>
-                  )}
+                    {!emailChecking && emailAvailable === true && (
+                      <div className={`flex items-center gap-2 text-sm text-success ${animateClasses.fadeIn}`} role="status">
+                        <CheckCircle className="h-4 w-4" />
+                        <span className="font-medium">Email available</span>
+                      </div>
+                    )}
 
-                  {!emailChecking && emailAvailable === false && (
-                    <div className={`mt-2 flex items-center gap-2 text-sm text-red-600 ${animateClasses.fadeIn}`}>
-                      <XCircle className="h-4 w-4" />
-                      <span className="font-medium">
-                        Already registered.{' '}
-                        <Link to="/auth/signin" className="underline hover:text-red-700">
-                          Sign in
-                        </Link>
-                      </span>
-                    </div>
-                  )}
+                    {!emailChecking && emailAvailable === false && (
+                      <div className={`flex items-center gap-2 text-sm text-destructive ${animateClasses.fadeIn}`} role="alert">
+                        <XCircle className="h-4 w-4" />
+                        <span className="font-medium">
+                          Already registered.{' '}
+                          <Link to="/auth/signin" className="underline underline-offset-2 hover:text-destructive">
+                            Sign in
+                          </Link>
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -484,12 +489,11 @@ export default function SignUpPage() {
           </div>
 
           {error && (
-            <div className={`overflow-hidden ${animateClasses.fadeIn}`}>
-              <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 shadow-sm">
-                <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-destructive" />
-                <div className="text-sm font-medium text-destructive">{error}</div>
-              </div>
-            </div>
+            <ErrorBanner
+              error={{ status: 400, message: error }}
+              className={animateClasses.fadeIn}
+              onDismiss={() => setError('')}
+            />
           )}
 
           <div className={animateClasses.slideUp} style={staggerChild(5, 100)}>

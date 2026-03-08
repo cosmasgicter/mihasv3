@@ -43,6 +43,7 @@ describe('auth page form markup', () => {
 
     expect(markup).toContain('aria-label="Show characters"')
     expect(markup).not.toContain('aria-label="Show password"')
+    expect(markup).not.toContain('tabindex="-1"')
   })
 
   it('disables native browser validation on the sign-in form so inline errors can render', () => {
@@ -55,6 +56,18 @@ describe('auth page form markup', () => {
     expect(markup).toContain('<form class="space-y-6" novalidate="">')
   })
 
+  it('groups sign-in credentials inside a labelled fieldset', () => {
+    const markup = renderToStaticMarkup(
+      <MemoryRouter initialEntries={['/login']}>
+        <SignInPage />
+      </MemoryRouter>,
+    )
+
+    expect(markup).toContain('<legend class="text-sm font-semibold text-foreground">Applicant sign-in details</legend>')
+    expect(markup).toContain('>Account email<')
+    expect(markup).toContain('>Account password<')
+  })
+
   it('disables native browser validation on the sign-up form so inline errors can render', () => {
     const markup = renderToStaticMarkup(
       <MemoryRouter initialEntries={['/auth/signup']}>
@@ -63,5 +76,18 @@ describe('auth page form markup', () => {
     )
 
     expect(markup).toContain('<form class="space-y-6" novalidate="">')
+  })
+
+  it('groups sign-up fields into labelled sections', () => {
+    const markup = renderToStaticMarkup(
+      <MemoryRouter initialEntries={['/auth/signup']}>
+        <SignUpPage />
+      </MemoryRouter>,
+    )
+
+    expect(markup).toContain('<legend class="text-base font-semibold text-foreground">Portal access</legend>')
+    expect(markup).toContain('<legend class="text-base font-semibold text-foreground">Profile basics</legend>')
+    expect(markup).toContain('<legend class="text-base font-semibold text-foreground">Residence and identity</legend>')
+    expect(markup).toContain('<legend class="text-base font-semibold text-foreground">Emergency contact</legend>')
   })
 })

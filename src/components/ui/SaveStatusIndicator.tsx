@@ -2,7 +2,6 @@ import React from 'react'
 import { 
   CheckCircle, 
   AlertCircle, 
-  Wifi, 
   WifiOff, 
   Clock, 
   RefreshCw,
@@ -10,6 +9,7 @@ import {
   Save
 } from 'lucide-react'
 import { Button } from './Button'
+import { cn } from '@/lib/utils'
 
 export interface SaveStatusIndicatorProps {
   status: 'idle' | 'saving' | 'saved' | 'error' | 'offline' | 'conflict'
@@ -40,6 +40,15 @@ export const SaveStatusIndicator: React.FC<SaveStatusIndicatorProps> = ({
   onResolveConflict,
   className = ''
 }) => {
+  const statusToneClasses = {
+    idle: 'border-border/70 bg-card text-muted-foreground',
+    saving: 'border-primary/20 bg-primary/5 text-primary',
+    saved: 'border-success/20 bg-success/5 text-success',
+    error: 'border-destructive/20 bg-destructive/5 text-destructive',
+    offline: 'border-warning/20 bg-warning/5 text-warning',
+    conflict: 'border-warning/20 bg-warning/5 text-warning'
+  } as const
+
   const getStatusIcon = () => {
     switch (status) {
       case 'saving':
@@ -108,45 +117,53 @@ export const SaveStatusIndicator: React.FC<SaveStatusIndicatorProps> = ({
   }
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div className={cn('relative flex flex-col gap-2', className)}>
       <div
-        className="flex items-center gap-2 transition-all duration-200"
+        className={cn(
+          'flex flex-col gap-3 rounded-xl border px-3 py-2 shadow-sm transition-all duration-200 sm:flex-row sm:items-start sm:justify-between',
+          statusToneClasses[status]
+        )}
       >
-        {getStatusIcon()}
-        
-        <div className="flex flex-col">
-          <span className={`text-sm font-medium ${getStatusColor()}`}>
-            {getStatusText()}
-          </span>
+        <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className="flex min-w-0 items-start gap-2"
+        >
+          <div className="pt-0.5">
+            {getStatusIcon()}
+          </div>
           
-          {/* Additional status information */}
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            {lastSaved && status === 'saved' && (
-              <span>{formatLastSaved()}</span>
-            )}
+          <div className="min-w-0 space-y-1">
+            <span className={`block text-sm font-medium ${getStatusColor()}`}>
+              {getStatusText()}
+            </span>
             
-            {timeUntilNextSave && status !== 'saving' && (
-              <span>Next save in {timeUntilNextSave}</span>
-            )}
-            
-            {saveQueue > 0 && (
-              <span className="text-warning">
-                {saveQueue} queued
-              </span>
-            )}
-            
-            {!isOnline && (
-              <div className="flex items-center gap-1">
-                <WifiOff className="h-3 w-3" />
-                <span>Offline</span>
-              </div>
-            )}
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+              {lastSaved && status === 'saved' && (
+                <span>{formatLastSaved()}</span>
+              )}
+              
+              {timeUntilNextSave && status !== 'saving' && (
+                <span>Next save in {timeUntilNextSave}</span>
+              )}
+              
+              {saveQueue > 0 && (
+                <span className="font-medium text-warning">
+                  {saveQueue} queued
+                </span>
+              )}
+              
+              {!isOnline && (
+                <span className="inline-flex items-center gap-1">
+                  <WifiOff className="h-3 w-3" />
+                  Offline
+                </span>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Action buttons */}
-      <div className="flex items-center gap-1">
+        
         {status === 'error' && onForceSave && (
           <Button
             variant="ghost"
@@ -155,12 +172,12 @@ export const SaveStatusIndicator: React.FC<SaveStatusIndicatorProps> = ({
             className="h-8 px-2 text-xs"
           >
             <Save className="h-3 w-3 mr-1" />
-            Retry
+            Retry save
           </Button>
         )}
         
         {status === 'conflict' && onResolveConflict && (
-          <div className="flex gap-1">
+          <div className="flex flex-wrap gap-1">
             <Button
               variant="ghost"
               size="sm"
@@ -181,10 +198,10 @@ export const SaveStatusIndicator: React.FC<SaveStatusIndicatorProps> = ({
         )}
       </div>
 
-      {/* Error details tooltip */}
       {saveError && status === 'error' && (
         <div
-          className="absolute top-full left-0 mt-1 p-2 bg-destructive/10 border border-destructive/20 rounded text-xs text-destructive max-w-xs z-10 animate-fade-in"
+          role="alert"
+          className="max-w-sm rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive animate-fade-in"
         >
           {saveError}
         </div>
@@ -221,7 +238,12 @@ export const CompactSaveStatusIndicator: React.FC<SaveStatusIndicatorProps> = ({
   }
 
   return (
-    <div className={`flex items-center gap-1 ${className}`}>
+    <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      className={`flex items-center gap-1 ${className}`}
+    >
       <div
         className="flex items-center gap-1 transition-all duration-200"
       >

@@ -17,9 +17,11 @@ import { AnimatedInput } from '@/components/smoothui/animated-input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { AuthLoadingOverlay } from '@/components/ui/AuthLoadingOverlay';
 import { AuthLayout } from '@/components/auth/AuthLayout';
+import { ErrorBanner } from '@/components/ui/ErrorDisplay';
 import { Seo } from '@/components/seo/Seo';
 import { staggerChild, animateClasses } from '@/lib/animations';
-import { AlertCircle, FileText, KeyRound } from 'lucide-react';
+import { FileText, KeyRound } from 'lucide-react';
+import { InfoCallout } from '@/components/ui/InfoCallout';
 
 const signInSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -147,27 +149,23 @@ export default function SignInPage() {
         }
       >
         <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
-          <div
-            className={`rounded-2xl border border-cyan-200 bg-cyan-50/80 p-4 ${animateClasses.fadeIn}`}
-            style={staggerChild(0, 100)}
-          >
-            <div className="flex items-start gap-3">
-              <KeyRound className="mt-0.5 h-5 w-5 flex-shrink-0 text-cyan-900" />
-              <div className="space-y-2">
-                <p className="text-sm font-semibold text-slate-950">
-                  Use this page only if you already created an applicant account.
-                </p>
-                <p className="text-sm text-slate-700">
-                  Your saved drafts, submitted applications, payment follow-up, and portal notifications appear after sign-in.
-                </p>
-              </div>
-            </div>
-          </div>
+          <InfoCallout
+            icon={KeyRound}
+            variant="info"
+            title="Use this page only if you already created an applicant account."
+            description="Your saved drafts, submitted applications, payment follow-up, and portal notifications appear after sign-in."
+            className={animateClasses.fadeIn}
+          />
 
-          <div
-            className={animateClasses.slideUp}
+          <fieldset
+            className={`space-y-5 rounded-2xl border border-border/70 bg-card/60 p-5 shadow-sm ${animateClasses.slideUp}`}
             style={staggerChild(1, 100)}
           >
+            <legend className="text-sm font-semibold text-foreground">Applicant sign-in details</legend>
+            <p className="text-sm text-muted-foreground">
+              Use the same account email and password you created during applicant registration.
+            </p>
+
             <AnimatedInput
               {...register('email')}
               type="email"
@@ -178,12 +176,7 @@ export default function SignInPage() {
               disabled={loading}
               required
             />
-          </div>
 
-          <div
-            className={animateClasses.slideUp}
-            style={staggerChild(2, 100)}
-          >
             <PasswordInput
               {...register('password')}
               label="Account password"
@@ -193,31 +186,23 @@ export default function SignInPage() {
               disabled={loading}
               required
             />
-          </div>
+          </fieldset>
 
-          <div
-            className={`rounded-2xl border border-border bg-muted/40 p-4 ${animateClasses.fadeIn}`}
-            style={staggerChild(3, 100)}
-          >
-            <div className="flex items-start gap-3">
-              <FileText className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
-              <div className="space-y-1">
-                <p className="text-sm font-semibold text-foreground">Do not register twice.</p>
-                <p className="text-sm text-muted-foreground">
-                  If you already signed up, use sign in so your existing drafts and notifications stay linked to one account.
-                </p>
-              </div>
-            </div>
-          </div>
+          <InfoCallout
+            icon={FileText}
+            variant="neutral"
+            title="Do not register twice."
+            description="If you already signed up, use sign in so your existing drafts and notifications stay linked to one account."
+            className={animateClasses.fadeIn}
+          />
 
           {/* Error message with CSS transition */}
           {error && (
-            <div className={`overflow-hidden ${animateClasses.fadeIn}`}>
-              <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 shadow-sm">
-                <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-                <div className="text-sm font-medium text-destructive">{error}</div>
-              </div>
-            </div>
+            <ErrorBanner
+              error={{ status: 401, message: error }}
+              className={animateClasses.fadeIn}
+              onDismiss={() => setError('')}
+            />
           )}
 
           <div

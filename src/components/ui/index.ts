@@ -7,8 +7,8 @@ export { FormSelect } from './form-select'
 export type { FormSelectProps, SelectOption } from './form-select'
 export { Checkbox, CheckboxWithLabel } from './checkbox'
 export { RadioGroup, RadioGroupItem } from './radio-group'
-/** @deprecated Prefer RadioGroup primitives from '@/components/ui/radio-group'. */
-export { Radio } from './Radio'
+/** @deprecated Prefer RadioGroup primitives from '@/components/ui/radio-group'. Import directly from './Radio' if needed. */
+// export { Radio } from './Radio'  — barrel re-export removed
 export { Switch } from './switch'
 export { Label } from './label'
 
@@ -60,8 +60,7 @@ export { SkipLinks, MainContent, NavigationLandmark, FooterLandmark } from './Sk
 export { BottomNavigation, BottomNavigationSpacer, defaultStudentNavItems, defaultPublicNavItems } from './BottomNavigation'
 
 // Deprecated - Use Breadcrumbs from '@/components/navigation/Breadcrumbs' instead
-/** @deprecated Use Breadcrumbs from '@/components/navigation/Breadcrumbs' for full-featured breadcrumbs */
-export { Breadcrumbs } from './Breadcrumbs'
+// Barrel re-export removed — import directly from '@/components/ui/Breadcrumbs' if needed.
 
 // Data Display Components
 export { Table } from './Table'
@@ -84,16 +83,8 @@ export {
 } from './UnifiedLoader'
 export type { UnifiedLoaderProps } from './UnifiedLoader'
 
-// Loading Components (backward-compatible aliases)
-/** @deprecated Prefer skeleton primitives from '@/components/ui/skeleton'. */
-export { TableSkeleton, CardSkeleton } from './LoadingState'
-
-/** @deprecated Prefer UnifiedLoader variants from '@/components/ui'. */
-export { LoadingSpinner } from './LoadingSpinner'
-/** @deprecated Prefer Button loading prop from '@/components/ui'. */
-export { LoadingButton } from './LoadingButton'
-/** @deprecated Prefer UnifiedLoader variant="overlay" from '@/components/ui'. */
-export { LoadingOverlay } from './LoadingOverlay'
+// Legacy loading components — import directly from their files if needed.
+// Barrel re-exports removed to reduce bundle surface and discourage deprecated usage.
 export { ProgressIndicator, CircularProgress, IndeterminateProgress } from './ProgressIndicator'
 
 // Form Components
@@ -106,13 +97,13 @@ export { FormFeedback, InlineFormFeedback, FormSubmitButton } from './FormFeedba
 // Utility Components
 export { ErrorBoundary } from './ErrorBoundary'
 export { EmptyState } from './EmptyState'
+export { InfoCallout } from './InfoCallout'
 export { PageHeader } from './PageHeader'
 export { PageLayout } from './PageLayout'
 export { StatusIcon } from './StatusIcon'
 
 // Deprecated - Use OfflineIndicator from '@/components/pwa/OfflineIndicator' instead
-/** @deprecated Use OfflineIndicator from '@/components/pwa/OfflineIndicator' instead */
-export { OfflineIndicator } from './OfflineIndicator'
+// Barrel re-export removed — import directly from '@/components/ui/OfflineIndicator' if needed.
 
 // Accessibility Components
 export { 
@@ -126,6 +117,5 @@ export {
   VisuallyHidden 
 } from './HeadingHierarchy'
 
-// Deprecated select wrapper
-/** @deprecated Prefer Select from '@/components/ui/select'. */
-export { StandaloneSelect } from './standalone-select'
+// Deprecated select wrapper — import directly from '@/components/ui/standalone-select' if needed.
+// Barrel re-export removed.

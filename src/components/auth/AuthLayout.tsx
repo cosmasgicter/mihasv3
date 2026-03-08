@@ -59,6 +59,7 @@ interface AuthVariantConfig {
   features: AuthFeature[];
   mobileFeatures: Array<{ icon: LucideIcon; text: string }>;
   stats: AuthStat[];
+  panelMaxWidthClass: string;
 }
 
 const layoutVariants: Record<AuthLayoutVariant, AuthVariantConfig> = {
@@ -104,6 +105,7 @@ const layoutVariants: Record<AuthLayoutVariant, AuthVariantConfig> = {
       { value: '92%', label: 'Placement Rate' },
       { value: '6+', label: 'Programs' },
     ],
+    panelMaxWidthClass: 'max-w-2xl',
     mobileSummary:
       'Access your personalized portal to monitor applications and stay connected with our admissions team.',
   },
@@ -149,6 +151,7 @@ const layoutVariants: Record<AuthLayoutVariant, AuthVariantConfig> = {
       { value: '24/7', label: 'Dashboard access' },
       { value: 'Live', label: 'Application updates' },
     ],
+    panelMaxWidthClass: 'max-w-xl',
     mobileSummary:
       'Use sign in if you already created an applicant account and want to continue with saved progress.',
   },
@@ -194,6 +197,7 @@ const layoutVariants: Record<AuthLayoutVariant, AuthVariantConfig> = {
       { value: '4', label: 'Profile sections' },
       { value: 'Next', label: 'Start application' },
     ],
+    panelMaxWidthClass: 'max-w-3xl',
     mobileSummary:
       'This page creates your secure portal account first. Programme choice and application details come after sign in.',
   },
@@ -276,7 +280,7 @@ function FormPanel({
 
   return (
     <div className="flex flex-1 flex-col justify-center px-4 py-8 sm:px-6 sm:py-12 lg:px-12 xl:px-16">
-      <div className="mx-auto w-full max-w-xl lg:max-w-2xl">
+      <div className={cn('mx-auto w-full', config.panelMaxWidthClass)}>
         <Link
           to={backLinkHref}
           className="inline-flex items-center gap-2 rounded-md px-2 py-1 -ml-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
@@ -304,7 +308,7 @@ function FormPanel({
           </div>
         </div>
 
-        <div className="mt-6 rounded-[28px] border border-border/70 bg-background/90 p-5 shadow-xl backdrop-blur sm:p-8">
+        <div className="mt-6 rounded-[28px] border border-border/70 bg-background/90 p-5 shadow-xl backdrop-blur sm:p-8 lg:p-9">
           <div className="space-y-5">
             {resolvedPanelBadge && (
               <div>

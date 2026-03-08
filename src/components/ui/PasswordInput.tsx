@@ -11,7 +11,6 @@ export interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLI
 export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
   ({ className, label, error, helperText, id, ...props }, ref) => {
     const [showPassword, setShowPassword] = useState(false)
-    const [isFocused, setIsFocused] = React.useState(false)
     const generatedId = React.useId()
     const inputId = id ?? generatedId
     const errorId = `${inputId}-error`
@@ -32,7 +31,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
             id={inputId}
             type={showPassword ? 'text' : 'password'}
             className={cn(
-              'w-full h-10 px-3 pr-10 rounded-lg',
+              'w-full min-h-[44px] h-11 px-3 pr-10 rounded-lg',
               'bg-background',
               'border border-input',
               'text-foreground',
@@ -43,8 +42,6 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
               error && 'border-destructive focus:ring-destructive',
               className
             )}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
             aria-invalid={error ? 'true' : 'false'}
             aria-required={props.required || undefined}
             aria-describedby={error ? errorId : helperText ? helperId : undefined}
@@ -54,7 +51,6 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-0 top-0 h-10 w-10 flex items-center justify-center text-caption hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring rounded-r-lg"
             aria-label={showPassword ? 'Hide characters' : 'Show characters'}
-            tabIndex={-1}
           >
             {showPassword ? (
               <EyeOff className="h-5 w-5" />
@@ -62,11 +58,6 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
               <Eye className="h-5 w-5" />
             )}
           </button>
-          {isFocused && (
-            <div
-              className="absolute inset-0 rounded-lg border-2 border-ring pointer-events-none transition-opacity duration-200 opacity-100"
-            />
-          )}
         </div>
         {error && (
           <p
@@ -78,7 +69,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
           </p>
         )}
         {helperText && !error && (
-          <p id={helperId} className="mt-1.5 text-sm text-caption">
+          <p id={helperId} className="mt-1.5 text-sm text-muted-foreground">
             {helperText}
           </p>
         )}

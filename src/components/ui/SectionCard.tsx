@@ -16,14 +16,13 @@ const paddingScale: Record<PaddingScale, string> = {
   lg: 'px-8 py-8'
 }
 
-export interface SectionCardProps {
+export interface SectionCardProps extends Omit<React.HTMLAttributes<HTMLElement>, 'title'> {
   title?: React.ReactNode
   description?: React.ReactNode
   icon?: React.ReactNode
   actions?: React.ReactNode
   children: React.ReactNode
   footer?: React.ReactNode
-  className?: string
   contentClassName?: string
   headerClassName?: string
   padding?: PaddingScale
@@ -43,13 +42,15 @@ export function SectionCard({
   headerClassName,
   padding = 'md',
   headerVariant = 'default',
-  stickyHeader = false
+  stickyHeader = false,
+  ...props
 }: SectionCardProps) {
   const hasHeader = Boolean(title || description || icon || actions)
 
   return (
     <section
       className={cn('rounded-2xl border border-border/70 bg-card shadow-lg backdrop-blur-sm', className)}
+      {...props}
     >
       {hasHeader && (
         <div
@@ -83,4 +84,3 @@ export function SectionCard({
     </section>
   )
 }
-
