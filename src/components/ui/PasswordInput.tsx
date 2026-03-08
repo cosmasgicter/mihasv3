@@ -36,20 +36,22 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
               'border border-input',
               'text-foreground',
               'placeholder:text-muted-foreground',
+              'hover:border-primary/50 hover:bg-accent/30',
               'focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent',
               'transition-all duration-200',
               'disabled:opacity-50 disabled:cursor-not-allowed',
-              error && 'border-destructive focus:ring-destructive',
+              'disabled:hover:border-input disabled:hover:bg-background',
+              error && 'border-destructive focus:ring-destructive/50 focus:border-destructive hover:border-destructive/70',
               className
             )}
-            aria-invalid={error ? 'true' : 'false'}
+            aria-invalid={error ? 'true' : undefined}
             aria-required={props.required || undefined}
             aria-describedby={error ? errorId : helperText ? helperId : undefined}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-0 top-0 h-10 w-10 flex items-center justify-center text-caption hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring rounded-r-lg"
+            className="absolute right-0 top-0 min-h-[44px] h-11 w-11 flex items-center justify-center text-caption hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring rounded-r-lg touch-manipulation"
             aria-label={showPassword ? 'Hide characters' : 'Show characters'}
           >
             {showPassword ? (
@@ -62,7 +64,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
         {error && (
           <p
             id={errorId}
-            className="mt-1.5 text-sm text-destructive animate-fade-in"
+            className="mt-1.5 text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1 duration-150 motion-reduce:animate-none"
             role="alert"
           >
             {error}
