@@ -558,16 +558,16 @@ export const SessionQueries = {
   ): QueryConfig => ({
     text: `
       INSERT INTO device_sessions (
-        id, user_id, device_info, ip_address, user_agent,
+        id, user_id, device_id, session_token, device_info, ip_address, user_agent,
         is_active, last_activity, created_at, expires_at
       )
       VALUES (
-        $1, $2, $3, $4, $5,
-        true, NOW(), NOW(), NOW() + INTERVAL '1 hour'
+        $1, $2, $3, $4, $5, $6, $7,
+        true, NOW(), NOW(), NOW() + INTERVAL '30 days'
       )
       RETURNING id, user_id, is_active, last_activity, created_at, expires_at
     `,
-    values: [id, userId, JSON.stringify(deviceInfo), ipAddress, userAgent],
+    values: [id, userId, id, id, JSON.stringify(deviceInfo), ipAddress, userAgent],
   }),
 
   /**
