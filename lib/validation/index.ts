@@ -12,7 +12,20 @@ export { nrcSchema, zambianPhoneSchema, eczGradeSchema, optionalNrcSchema, optio
 export { emailSchema, passwordSchema, loginBodySchema, registerBodySchema, passwordResetRequestBodySchema, passwordResetBodySchema, profileUpdateBodySchema, checkEmailQuerySchema } from './auth';
 
 // Application schemas
-export { createApplicationBodySchema, reviewApplicationBodySchema, updateApplicationBodySchema, trackApplicationQuerySchema, scheduleInterviewBodySchema } from './applications';
+export {
+  createApplicationBodySchema,
+  reviewApplicationBodySchema,
+  updateApplicationBodySchema,
+  trackApplicationQuerySchema,
+  scheduleInterviewBodySchema,
+  patchUpdateStatusSchema,
+  patchUpdatePaymentStatusSchema,
+  patchSendNotificationSchema,
+  patchScheduleInterviewSchema,
+  patchRescheduleInterviewSchema,
+  patchCancelInterviewSchema,
+  patchSyncGradesSchema,
+} from './applications';
 
 // Admin schemas
 export { adminRegisterBodySchema, adminSetPasswordBodySchema, updateRoleBodySchema, createSettingBodySchema, updateSettingBodySchema, importSettingsBodySchema, migrateBodySchema } from './admin';
