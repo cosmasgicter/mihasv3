@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { CheckCircle, XCircle, RefreshCw, AlertTriangle } from 'lucide-react'
 import { sanitizeForLog } from '@/lib/sanitizer'
+import { apiClient } from '@/services/client'
 
 interface AuthStatusCheckerProps {
   onStatusChange?: (isAuthenticated: boolean) => void
@@ -33,11 +34,8 @@ export function AuthStatusChecker({ onStatusChange }: AuthStatusCheckerProps) {
       const hasUser = !!user?.id
       
       // Check session validity via API
-      const response = await fetch('/api/auth?action=session', {
-        credentials: 'include'
-      })
-      const sessionResult = await response.json()
-      const hasValidSession = sessionResult.success && !!sessionResult.user
+      const sessionResult = await apiClient.request<{ user?: unknown; error?: string }>('/auth?action=session')
+      const hasValidSession = !!sessionResult?.user
       
       // Check if user can actually make authenticated requests
       // If we have a valid session from the API, we can submit applications
@@ -47,7 +45,7 @@ export function AuthStatusChecker({ onStatusChange }: AuthStatusCheckerProps) {
         isAuthenticated: hasUser,
         hasValidSession,
         canSubmitApplication,
-        error: sessionResult.error
+        error: sessionResult?.error
       }
       
       setAuthStatus(newStatus)
