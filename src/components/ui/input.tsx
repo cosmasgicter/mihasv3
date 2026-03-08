@@ -22,6 +22,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label htmlFor={inputId} className="block text-sm font-medium text-foreground mb-1.5">
             {label}
+            {props.required && <span className="text-destructive ml-1">*</span>}
           </label>
         )}
         <div className="relative">
@@ -39,15 +40,17 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               'border border-input',
               'text-foreground',
               'placeholder:text-muted-foreground',
+              'hover:border-primary/50 hover:bg-accent/30',
               'focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent',
               'transition-all duration-200',
               'disabled:opacity-50 disabled:cursor-not-allowed',
-              error && 'border-error focus:ring-red-500 focus:ring-red-400',
+              'disabled:hover:border-input disabled:hover:bg-background',
+              error && 'border-destructive focus:ring-destructive/50 focus:border-destructive hover:border-destructive/70',
               icon && 'pl-10',
               className
             )}
             ref={ref}
-            aria-invalid={error ? 'true' : 'false'}
+            aria-invalid={error ? 'true' : undefined}
             aria-required={props.required || undefined}
             aria-describedby={describedByIds.length > 0 ? describedByIds.join(' ') : undefined}
             {...props}
@@ -56,7 +59,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {error && (
           <p
             id={`${inputId}-error`}
-            className="mt-1.5 text-sm text-destructive animate-fade-in"
+            className="mt-1.5 text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1 duration-150 motion-reduce:animate-none"
             role="alert"
           >
             {error}
