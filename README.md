@@ -107,12 +107,19 @@ All endpoints use query parameter routing (`?action=xxx`) and return `{ success,
 
 ## Database
 
-Neon Serverless Postgres (project: `wild-bar-37055823`). Key tables include:
-- `profiles`, `applications`, `application_documents`, `application_grades`
-- `programs`, `intakes`, `subjects`, `payments`, `documents`
-- `csrf_tokens`, `password_reset_tokens`, `login_attempts`
-- `audit_logs` (with `retention_category` column)
-- `device_sessions`, `notifications`, `email_queue`
+Neon Serverless Postgres (project: `wild-bar-37055823`). 28 tables total:
+
+**Core application tables**: `profiles`, `applications`, `application_documents`, `application_grades`, `application_interviews`, `application_status_history`, `application_drafts`
+
+**Catalog tables**: `programs`, `intakes`, `program_intakes`, `course_requirements`, `subjects`, `institutions`
+
+**Financial**: `payments`
+
+**Communication**: `notifications`, `user_notification_preferences`, `email_queue`
+
+**Security & auth**: `csrf_tokens`, `password_reset_tokens`, `login_attempts`, `device_sessions`, `idempotency_keys`
+
+**System**: `audit_logs`, `settings`, `user_permission_overrides`, `documents` (legacy, unused), `document_migration_log`, `migration_history`
 
 ## Documentation
 
@@ -129,7 +136,7 @@ Neon Serverless Postgres (project: `wild-bar-37055823`). Key tables include:
 
 ---
 
-**Version**: 3.1 (Quality Remediation Complete)
+**Version**: 3.2 (Forensic DB Analysis Complete)
 **Status**: Production
 **Hosting**: Vercel
-**Last Updated**: 2026-03-07
+**Last Updated**: 2026-03-09

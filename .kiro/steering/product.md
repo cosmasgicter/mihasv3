@@ -13,7 +13,7 @@ Live production admissions platform for Mukuba Institute of Health and Allied Sc
 | Never remove auto-save | 8-second interval prevents data loss for students |
 | Never block on external API failures | HPCZ, GNC/NMCZ, ECZ APIs are unreliable—always provide fallbacks |
 | Never log PII | Student applications contain medical credentials and personal data |
-| Maintain backward compatibility | 90+ database tables with existing data |
+| Maintain backward compatibility | 28 database tables with existing data |
 | Preserve offline functionality | PWA must work on unreliable Zambian connections |
 | Validate all API inputs | Zod schemas required on every endpoint |
 | CSRF protection on state-changing requests | All POST/PUT/DELETE require CSRF token |
