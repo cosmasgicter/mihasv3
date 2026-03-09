@@ -1745,6 +1745,8 @@ export interface SubjectRecord {
   id: string;
   name: string;
   code: string | null;
+  category: string | null;
+  is_core: boolean;
   is_active: boolean;
   created_at: string;
 }
@@ -1883,6 +1885,13 @@ export interface NotificationPreferencesRecord {
   email_enabled: boolean;
   push_enabled: boolean;
   sms_enabled: boolean;
+  application_updates: boolean;
+  payment_reminders: boolean;
+  interview_reminders: boolean;
+  marketing_emails: boolean;
+  quiet_hours_start: string | null;
+  quiet_hours_end: string | null;
+  timezone: string;
   created_at: string;
   updated_at: string;
 }

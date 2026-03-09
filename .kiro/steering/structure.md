@@ -255,6 +255,11 @@ migrations/
 ├── add_password_reset_tokens_table.sql # Password reset tokens
 ├── add_login_attempts_table.sql        # Login attempt tracking
 ├── add_audit_retention_category.sql    # Audit log retention categories
+├── add_idempotency_and_status_history.sql # Idempotency keys + status history columns
+├── normalize_data.sql                  # Data normalization (phone, nationality)
+├── seed_and_normalize_data.sql         # Schema additions + data seeding
+├── seed_program_intakes_and_requirements.sql # Program-intake links + course requirements
+├── fix_forensic_analysis_round2.sql    # Round 2 forensic fixes
 ├── apply-migrations.ts                 # Migration runner script
 └── RLS_REPLACEMENT.md                  # RLS migration documentation
 ```
