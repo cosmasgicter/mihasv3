@@ -197,6 +197,27 @@ export interface AuditLogInput {
 
 const AUDIT_ENTITY_PLACEHOLDER_ID = '00000000-0000-0000-0000-000000000000';
 
+/**
+ * UUID v4 regex for validating entity_id values before casting.
+ * Non-UUID values (e.g. 'bulk', 'all') are replaced with the placeholder UUID
+ * and the original value is preserved in the changes JSONB column.
+ */
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function sanitizeEntityId(entityId: string | null): string {
+  if (!entityId) return AUDIT_ENTITY_PLACEHOLDER_ID;
+  return UUID_REGEX.test(entityId) ? entityId : AUDIT_ENTITY_PLACEHOLDER_ID;
+}
+
+function mergeEntityIdIntoChanges(
+  entityId: string | null,
+  changes: Record<string, unknown> | undefined
+): Record<string, unknown> | undefined {
+  if (!entityId || UUID_REGEX.test(entityId)) return changes;
+  // Non-UUID entity_id — preserve original value in changes
+  return { ...changes, _entity_id_label: entityId };
+}
+
 // ============================================================================
 // User Query Builders
 // Requirement 6.7: Provide typed query builders for common operations (users)
@@ -758,25 +779,29 @@ export const AuditQueries = {
    * NOTE: The changes parameter should never contain PII.
    * Sanitize all data before passing to this query.
    */
-  log: (input: AuditLogInput): QueryConfig => ({
-    text: `
-      INSERT INTO audit_logs (
-        actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      )
-      VALUES ($1, $2, $3, COALESCE($4, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $5, $6, $7, NOW())
-      RETURNING id, created_at
-    `,
-    values: [
-      input.actor_id,
-      input.action,
-      input.entity_type,
-      input.entity_id,
-      input.changes ? JSON.stringify(input.changes) : null,
-      input.ip_address || null,
-      input.user_agent || null,
-    ],
-  }),
+  log: (input: AuditLogInput): QueryConfig => {
+    const safeEntityId = sanitizeEntityId(input.entity_id);
+    const mergedChanges = mergeEntityIdIntoChanges(input.entity_id, input.changes);
+    return {
+      text: `
+        INSERT INTO audit_logs (
+          actor_id, action, entity_type, entity_id,
+          changes, ip_address, user_agent, created_at
+        )
+        VALUES ($1, $2, $3, $4::uuid, $5, $6, $7, NOW())
+        RETURNING id, created_at
+      `,
+      values: [
+        input.actor_id,
+        input.action,
+        input.entity_type,
+        safeEntityId,
+        mergedChanges ? JSON.stringify(mergedChanges) : null,
+        input.ip_address || null,
+        input.user_agent || null,
+      ],
+    };
+  },
 
   /**
    * Log authentication event (login, logout, etc.)
@@ -1234,7 +1259,7 @@ export const ApplicationQueries = {
     // Build dynamic update query
     const allowedFields = [
       'full_name', 'nrc_number', 'passport_number', 'date_of_birth', 'sex',
-      'phone', 'email', 'residence_town', 'country', 'nationality', 'next_of_kin_name', 'next_of_kin_phone',
+      'phone', 'email', 'residence_town', 'nationality', 'next_of_kin_name', 'next_of_kin_phone',
       'program', 'intake', 'institution', 'result_slip_url', 'extra_kyc_url',
       'payment_method', 'payer_name', 'payer_phone', 'amount', 'paid_at',
       'momo_ref', 'pop_url', 'payment_status', 'status', 'submitted_at'
@@ -1676,13 +1701,15 @@ export const StatusHistoryQueries = {
 export interface ProgramRecord {
   id: string;
   name: string;
+  code: string;
   description: string | null;
-  duration_years: number;
-  department: string | null;
-  qualification_level: string | null;
-  entry_requirements: string | null;
-  fees_per_year: number | null;
-  institution_id: string;
+  duration_months: number | null;
+  application_fee: number | null;
+  tuition_fee: number | null;
+  requirements: unknown | null;
+  regulatory_body: string | null;
+  accreditation_status: string | null;
+  institution_id: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -1702,9 +1729,10 @@ export interface IntakeRecord {
   semester: string | null;
   start_date: string;
   end_date: string;
+  application_start_date: string | null;
   application_deadline: string;
-  total_capacity: number;
-  available_spots: number;
+  max_capacity: number;
+  current_enrollment: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;

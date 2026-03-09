@@ -365,14 +365,14 @@ Comprehensive production remediation for the MIHAS Application System covering 3
     - All dynamically inserted content in live regions
     - _Requirements: 28.1, 28.2, 28.3, 28.4, 28.5_
 
-- [ ] 23. Comprehensive integration and property-based tests (Req 29)
-  - [ ] 23.1 Write integration test for complete auth flow
+- [x] 23. Comprehensive integration and property-based tests (Req 29)
+  - [x] 23.1 Write integration test for complete auth flow
     - Register → login → session check → token refresh → logout with CSRF handling
     - _Requirements: 29.1_
-  - [ ] 23.2 Write integration test for application submission flow
+  - [x] 23.2 Write integration test for application submission flow
     - Create draft → auto-save → submit → verify status change → verify dashboard update
     - _Requirements: 29.2_
-  - [ ] 23.3 Write integration test for admin review flow
+  - [x] 23.3 Write integration test for admin review flow
     - List applications → view detail → change status → verify audit log → verify notification
     - _Requirements: 29.3_
 
