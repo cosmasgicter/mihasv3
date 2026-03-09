@@ -558,8 +558,19 @@ function extractRefreshTokenFromCookie(req) {
 var ACCESS_TOKEN_COOKIE = "access_token", REFRESH_TOKEN_COOKIE = "refresh_token", ACCESS_TOKEN_MAX_AGE = 900, REFRESH_TOKEN_MAX_AGE = 604800, REFRESH_TOKEN_PATH = "/api/auth";
 
 // lib/queries.ts
-var AUDIT_ENTITY_PLACEHOLDER_ID = "00000000-0000-0000-0000-000000000000", SessionQueries, AuditQueries;
+function sanitizeEntityId(entityId) {
+  if (!entityId)
+    return AUDIT_ENTITY_PLACEHOLDER_ID;
+  return UUID_REGEX.test(entityId) ? entityId : AUDIT_ENTITY_PLACEHOLDER_ID;
+}
+function mergeEntityIdIntoChanges(entityId, changes) {
+  if (!entityId || UUID_REGEX.test(entityId))
+    return changes;
+  return { ...changes, _entity_id_label: entityId };
+}
+var AUDIT_ENTITY_PLACEHOLDER_ID = "00000000-0000-0000-0000-000000000000", UUID_REGEX, SessionQueries, AuditQueries;
 var init_queries = __esm(() => {
+  UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   SessionQueries = {
     create: (id, userId, deviceInfo, ipAddress, userAgent) => ({
       text: `
@@ -684,25 +695,29 @@ var init_queries = __esm(() => {
     })
   };
   AuditQueries = {
-    log: (input) => ({
-      text: `
-      INSERT INTO audit_logs (
-        actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
-      )
-      VALUES ($1, $2, $3, COALESCE($4, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $5, $6, $7, NOW())
-      RETURNING id, created_at
-    `,
-      values: [
-        input.actor_id,
-        input.action,
-        input.entity_type,
-        input.entity_id,
-        input.changes ? JSON.stringify(input.changes) : null,
-        input.ip_address || null,
-        input.user_agent || null
-      ]
-    }),
+    log: (input) => {
+      const safeEntityId = sanitizeEntityId(input.entity_id);
+      const mergedChanges = mergeEntityIdIntoChanges(input.entity_id, input.changes);
+      return {
+        text: `
+        INSERT INTO audit_logs (
+          actor_id, action, entity_type, entity_id,
+          changes, ip_address, user_agent, created_at
+        )
+        VALUES ($1, $2, $3, $4::uuid, $5, $6, $7, NOW())
+        RETURNING id, created_at
+      `,
+        values: [
+          input.actor_id,
+          input.action,
+          input.entity_type,
+          safeEntityId,
+          mergedChanges ? JSON.stringify(mergedChanges) : null,
+          input.ip_address || null,
+          input.user_agent || null
+        ]
+      };
+    },
     logAuthEvent: (actorId, action, success, ipAddress, userAgent, additionalInfo) => ({
       text: `
       INSERT INTO audit_logs (
@@ -16082,7 +16097,6 @@ async function handleRegister(req, res) {
     date_of_birth,
     sex,
     residence_town,
-    country,
     nationality,
     next_of_kin_name,
     next_of_kin_phone
@@ -16104,7 +16118,6 @@ async function handleRegister(req, res) {
        date_of_birth,
        sex,
        residence_town,
-       country,
        nationality,
        next_of_kin_name,
        next_of_kin_phone,
@@ -16112,7 +16125,7 @@ async function handleRegister(req, res) {
        created_at,
        updated_at
      )
-     VALUES ($1, $2, 'student', $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, true, NOW(), NOW())
+     VALUES ($1, $2, 'student', $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, true, NOW(), NOW())
      RETURNING id`, [
     email3.toLowerCase(),
     passwordHash,
@@ -16123,7 +16136,6 @@ async function handleRegister(req, res) {
     date_of_birth || null,
     sex || null,
     residence_town || null,
-    country || "Zambia",
     nationality || "Zambian",
     next_of_kin_name || null,
     next_of_kin_phone || null
@@ -16170,7 +16182,6 @@ async function handleRegister(req, res) {
       date_of_birth: date_of_birth || null,
       sex: sex || null,
       residence_town: residence_town || null,
-      country: country || "Zambia",
       nationality: nationality || "Zambian",
       next_of_kin_name: next_of_kin_name || null,
       next_of_kin_phone: next_of_kin_phone || null
@@ -16295,7 +16306,7 @@ async function handleProfile(req, res) {
   try {
     const payload = await verifyAccessToken(token);
     if (req.method === "GET") {
-      const result2 = await query(`SELECT id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, country, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone
+      const result2 = await query(`SELECT id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone
          FROM profiles WHERE id = $1 LIMIT 1`, [payload.sub]);
       if (result2.rows.length === 0) {
         clearAuthCookies(res);
@@ -16318,9 +16329,7 @@ async function handleProfile(req, res) {
       "date_of_birth",
       "sex",
       "residence_town",
-      "country",
       "nationality",
-      "citizenship",
       "nrc_number",
       "address",
       "avatar_url",
@@ -16338,9 +16347,6 @@ async function handleProfile(req, res) {
       if (!updates.last_name)
         updates.last_name = parts.slice(1).join(" ") || undefined;
     }
-    if (updates.nationality && typeof updates.nationality === "string") {
-      updates.citizenship = updates.nationality;
-    }
     const providedFields = Object.keys(updates).filter(isAllowedField);
     if (providedFields.length === 0) {
       return sendError(res, "No valid fields to update", HttpStatus.BAD_REQUEST);
@@ -16354,7 +16360,7 @@ async function handleProfile(req, res) {
     const result = await query(`UPDATE profiles
        SET ${setClauses.join(", ")}, updated_at = NOW()
        WHERE id = $${providedFields.length + 1}
-       RETURNING id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, country, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone`, values);
+       RETURNING id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone`, values);
     if (result.rows.length === 0) {
       return sendError(res, "Profile not found", HttpStatus.NOT_FOUND);
     }

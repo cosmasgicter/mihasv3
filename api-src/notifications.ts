@@ -131,35 +131,32 @@ async function handlePreferences(req: VercelRequest, res: VercelResponse, user: 
     }
 
     if (req.method === 'POST') {
-      const { sms_enabled, whatsapp_enabled, application_updates, payment_reminders, interview_reminders, marketing_emails, quiet_hours_start, quiet_hours_end } = req.body;
+      const { sms_enabled, application_updates, payment_reminders, interview_reminders, marketing_emails, quiet_hours_start, quiet_hours_end } = req.body;
 
       const upsertQ = {
         text: `
           INSERT INTO user_notification_preferences (
-            user_id, email_enabled, push_enabled, sms_enabled, whatsapp_enabled, in_app_enabled,
+            user_id, email_enabled, push_enabled, sms_enabled,
             application_updates, payment_reminders, interview_reminders, marketing_emails,
             quiet_hours_start, quiet_hours_end, updated_at, created_at
           )
-          VALUES ($1, true, true, COALESCE($2, true), COALESCE($3, true), true, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+          VALUES ($1, true, true, COALESCE($2, true), $3, $4, $5, $6, $7, $8, NOW(), NOW())
           ON CONFLICT (user_id) DO UPDATE SET
             email_enabled = true,
             push_enabled = true,
             sms_enabled = COALESCE($2, user_notification_preferences.sms_enabled, true),
-            whatsapp_enabled = COALESCE($3, user_notification_preferences.whatsapp_enabled, true),
-            in_app_enabled = true,
-            application_updates = COALESCE($4, user_notification_preferences.application_updates, true),
-            payment_reminders = COALESCE($5, user_notification_preferences.payment_reminders, true),
-            interview_reminders = COALESCE($6, user_notification_preferences.interview_reminders, true),
-            marketing_emails = COALESCE($7, user_notification_preferences.marketing_emails, false),
-            quiet_hours_start = COALESCE($8, user_notification_preferences.quiet_hours_start),
-            quiet_hours_end = COALESCE($9, user_notification_preferences.quiet_hours_end),
+            application_updates = COALESCE($3, user_notification_preferences.application_updates, true),
+            payment_reminders = COALESCE($4, user_notification_preferences.payment_reminders, true),
+            interview_reminders = COALESCE($5, user_notification_preferences.interview_reminders, true),
+            marketing_emails = COALESCE($6, user_notification_preferences.marketing_emails, false),
+            quiet_hours_start = COALESCE($7, user_notification_preferences.quiet_hours_start),
+            quiet_hours_end = COALESCE($8, user_notification_preferences.quiet_hours_end),
             updated_at = NOW()
           RETURNING *
         `,
         values: [
           user.userId,
           sms_enabled ?? true,
-          whatsapp_enabled ?? true,
           application_updates ?? true,
           payment_reminders ?? true,
           interview_reminders ?? true,
@@ -447,9 +444,10 @@ async function createNotificationWithDedup(
   }
 
   // Create notification with idempotency key
+  // NOTE: notifications table has no 'channel' column — omit it from INSERT
   const result = await query<Record<string, unknown>>(
-    `INSERT INTO notifications (id, user_id, type, title, message, idempotency_key, channel, action_url, is_read, created_at)
-     VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, false, NOW())
+    `INSERT INTO notifications (id, user_id, type, title, message, idempotency_key, action_url, is_read, created_at)
+     VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, false, NOW())
      RETURNING *`,
     [
       userId,
@@ -457,7 +455,6 @@ async function createNotificationWithDedup(
       extra?.title || message,
       message,
       idempotencyKey,
-      channel,
       extra?.action_url || null,
     ]
   );
@@ -553,8 +550,8 @@ async function handleCreate(req: VercelRequest, res: VercelResponse, user: AuthC
     }
 
     const created = await query<Record<string, unknown>>(
-      `INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at, idempotency_key, channel)
-       VALUES ($1, $2, $3, $4, $5, false, NOW(), $6, 'in_app')
+      `INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at, idempotency_key)
+       VALUES ($1, $2, $3, $4, $5, false, NOW(), $6)
        RETURNING *`,
       [targetUserId, title, message, notificationType, action_url || null, idempotencyKey]
     );
@@ -744,8 +741,6 @@ async function getCanonicalPreferences(userId: string): Promise<Record<string, u
        np.email_enabled,
        np.push_enabled,
        np.sms_enabled,
-       np.whatsapp_enabled,
-       np.in_app_enabled,
        np.application_updates,
        np.payment_reminders,
        np.interview_reminders,
@@ -764,7 +759,6 @@ async function getCanonicalPreferences(userId: string): Promise<Record<string, u
 
   const row = result.rows[0] ?? {};
   const smsEnabled = row.sms_enabled ?? true;
-  const whatsappEnabled = row.whatsapp_enabled ?? true;
   const updatedAt = (row.updated_at as string | null | undefined) ?? (row.created_at as string | null | undefined) ?? null;
 
   return {
@@ -773,8 +767,8 @@ async function getCanonicalPreferences(userId: string): Promise<Record<string, u
     email_enabled: row.email_enabled ?? true,
     push_enabled: row.push_enabled ?? true,
     sms_enabled: smsEnabled,
-    whatsapp_enabled: whatsappEnabled,
-    in_app_enabled: row.in_app_enabled ?? true,
+    whatsapp_enabled: false,
+    in_app_enabled: true,
     application_updates: row.application_updates ?? true,
     payment_reminders: row.payment_reminders ?? true,
     interview_reminders: row.interview_reminders ?? true,
@@ -786,7 +780,6 @@ async function getCanonicalPreferences(userId: string): Promise<Record<string, u
     optimalTiming: true,
     channels: [
       { type: 'sms', enabled: Boolean(smsEnabled), priority: 2 },
-      { type: 'whatsapp', enabled: Boolean(whatsappEnabled), priority: 3 },
     ],
     sms_opt_in_at: smsEnabled ? updatedAt : null,
     sms_opt_in_source: smsEnabled ? 'portal' : null,
@@ -795,13 +788,13 @@ async function getCanonicalPreferences(userId: string): Promise<Record<string, u
     sms_opt_out_source: smsEnabled ? null : 'portal',
     sms_opt_out_actor: null,
     sms_opt_out_reason: smsEnabled ? null : 'Preference disabled',
-    whatsapp_opt_in_at: whatsappEnabled ? updatedAt : null,
-    whatsapp_opt_in_source: whatsappEnabled ? 'portal' : null,
+    whatsapp_opt_in_at: null,
+    whatsapp_opt_in_source: null,
     whatsapp_opt_in_actor: null,
-    whatsapp_opt_out_at: whatsappEnabled ? null : updatedAt,
-    whatsapp_opt_out_source: whatsappEnabled ? null : 'portal',
+    whatsapp_opt_out_at: null,
+    whatsapp_opt_out_source: null,
     whatsapp_opt_out_actor: null,
-    whatsapp_opt_out_reason: whatsappEnabled ? null : 'Preference disabled',
+    whatsapp_opt_out_reason: null,
     notification_types: {
       application_update: row.application_updates ?? true,
       interview_schedule: row.interview_reminders ?? true,

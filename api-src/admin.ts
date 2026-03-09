@@ -807,8 +807,8 @@ async function handleBulkStatus(req: VercelRequest, res: VercelResponse, auth: A
           values: [applicationId, status, auth.userId],
         },
         {
-          text: `INSERT INTO application_status_history (id, application_id, status, changed_by, notes, created_at)
-                 VALUES (gen_random_uuid(), $1, $2, $3, $4, NOW())`,
+          text: `INSERT INTO application_status_history (id, application_id, status, new_status, changed_by, notes, created_at)
+                 VALUES (gen_random_uuid(), $1, $2, $2, $3, $4, NOW())`,
           values: [applicationId, status, auth.userId, 'Bulk status update'],
         },
       ]);

@@ -363,7 +363,7 @@ async function handleCreate(
     const fields = [
       'user_id', 'application_number', 'public_tracking_code', 'full_name',
       'nrc_number', 'passport_number', 'date_of_birth', 'sex', 'phone', 'email',
-      'residence_town', 'country', 'nationality', 'next_of_kin_name', 'next_of_kin_phone',
+      'residence_town', 'nationality', 'next_of_kin_name', 'next_of_kin_phone',
       'program', 'intake', 'institution', 'status'
     ];
 
@@ -379,7 +379,6 @@ async function handleCreate(
       body.phone,
       body.email,
       body.residence_town,
-      body.country || 'Zambia',
       body.nationality || 'Zambian',
       body.next_of_kin_name || null,
       body.next_of_kin_phone || null,
@@ -1565,7 +1564,7 @@ async function handleById(
         // Optimistic concurrency: only update if incoming version > stored version
         const allowedFields = [
           'full_name', 'nrc_number', 'passport_number', 'date_of_birth', 'sex',
-          'phone', 'email', 'residence_town', 'country', 'nationality',
+          'phone', 'email', 'residence_town', 'nationality',
           'next_of_kin_name', 'next_of_kin_phone',
           'program', 'intake', 'institution',
           'result_slip_url', 'extra_kyc_url',

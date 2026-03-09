@@ -819,7 +819,6 @@ async function handleRegister(req: VercelRequest, res: VercelResponse) {
     date_of_birth,
     sex,
     residence_town,
-    country,
     nationality,
     next_of_kin_name,
     next_of_kin_phone,
@@ -853,7 +852,6 @@ async function handleRegister(req: VercelRequest, res: VercelResponse) {
        date_of_birth,
        sex,
        residence_town,
-       country,
        nationality,
        next_of_kin_name,
        next_of_kin_phone,
@@ -861,7 +859,7 @@ async function handleRegister(req: VercelRequest, res: VercelResponse) {
        created_at,
        updated_at
      )
-     VALUES ($1, $2, 'student', $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, true, NOW(), NOW())
+     VALUES ($1, $2, 'student', $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, true, NOW(), NOW())
      RETURNING id`,
     [
       email.toLowerCase(),
@@ -873,7 +871,6 @@ async function handleRegister(req: VercelRequest, res: VercelResponse) {
       date_of_birth || null,
       sex || null,
       residence_town || null,
-      country || 'Zambia',
       nationality || 'Zambian',
       next_of_kin_name || null,
       next_of_kin_phone || null,
@@ -933,7 +930,6 @@ async function handleRegister(req: VercelRequest, res: VercelResponse) {
       date_of_birth: date_of_birth || null,
       sex: sex || null,
       residence_town: residence_town || null,
-      country: country || 'Zambia',
       nationality: nationality || 'Zambian',
       next_of_kin_name: next_of_kin_name || null,
       next_of_kin_phone: next_of_kin_phone || null,
@@ -1152,7 +1148,6 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
         date_of_birth: string | null;
         sex: string | null;
         residence_town: string | null;
-        country: string | null;
         nationality: string | null;
         nrc_number: string | null;
         address: string | null;
@@ -1160,7 +1155,7 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
         next_of_kin_name: string | null;
         next_of_kin_phone: string | null;
       }>(
-        `SELECT id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, country, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone
+        `SELECT id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone
          FROM profiles WHERE id = $1 LIMIT 1`,
         [payload.sub]
       );
@@ -1189,9 +1184,7 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
       'date_of_birth',
       'sex',
       'residence_town',
-      'country',
       'nationality',
-      'citizenship',
       'nrc_number',
       'address',
       'avatar_url',
@@ -1213,10 +1206,7 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
       if (!updates.last_name) updates.last_name = parts.slice(1).join(' ') || undefined;
     }
 
-    // If nationality is provided, keep citizenship in sync for backward compatibility (Req 32.2, 32.5)
-    if (updates.nationality && typeof updates.nationality === 'string') {
-      (updates as Record<string, unknown>).citizenship = updates.nationality;
-    }
+    // Nationality is the canonical field — citizenship column has been removed from the DB
 
     const providedFields = Object.keys(updates).filter(isAllowedField);
 
@@ -1243,7 +1233,6 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
       date_of_birth: string | null;
       sex: string | null;
       residence_town: string | null;
-      country: string | null;
       nationality: string | null;
       nrc_number: string | null;
       address: string | null;
@@ -1254,7 +1243,7 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
       `UPDATE profiles
        SET ${setClauses.join(', ')}, updated_at = NOW()
        WHERE id = $${providedFields.length + 1}
-       RETURNING id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, country, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone`,
+       RETURNING id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone`,
       values
     );
 
