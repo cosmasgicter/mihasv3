@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleCors } from '../lib/cors';
 import { query } from '../lib/db';
-import { getAuthUser } from '../lib/auth/middleware';
+import { requireAuth, AuthenticationError, AuthorizationError, type AuthContext } from '../lib/auth/middleware';
 import { withArcjetProtection } from '../lib/arcjet';
 import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
 import { checkDocumentUploadAccess, isAdmin } from '../lib/auth/ownership';
@@ -12,7 +12,7 @@ import { uploadDocumentBodySchema, extractDocumentBodySchema, deleteDocumentBody
 import { logAuditEvent } from '../lib/auditLogger';
 import { validateServerEnv } from '../lib/envValidator';
 import { isAllowedUrl, isPrivateIP } from '../lib/urlValidator';
-import { validateMagicBytes } from '../lib/fileValidator';
+import { validateMagicBytes, detectMimeType } from '../lib/fileValidator';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_EXTRACT_RESPONSE_SIZE = 20 * 1024 * 1024; // 20MB
@@ -49,11 +49,19 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
   // CSRF validation for state-changing requests
   if (await requireCsrf(req, res)) return;
 
-  // Get authenticated user
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
+  // Require authentication for all actions (Req 9.1)
+  let user: AuthContext;
+  try {
+    user = await requireAuth(req);
+  } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return sendError(res, error.message, error.statusCode, error.code);
+    }
+    throw error;
   }
+
+  // Reviewers are read-only — block write operations (Req 9.4)
+  const isReviewerOnly = user.role === 'reviewer';
 
   const action = req.query.action as string || 'upload';
 
@@ -63,11 +71,17 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
         if (req.method !== 'POST') {
           return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
         }
+        if (isReviewerOnly) {
+          return sendError(res, 'Insufficient permissions', HttpStatus.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS');
+        }
         return await handleUpload(req, res, user.userId, user.role);
 
       case 'extract':
         if (req.method !== 'POST') {
           return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+        }
+        if (isReviewerOnly) {
+          return sendError(res, 'Insufficient permissions', HttpStatus.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS');
         }
         return await handleExtract(req, res, user.userId, user.role);
 
@@ -81,6 +95,9 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
         if (req.method !== 'DELETE' && req.method !== 'POST') {
           return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
         }
+        if (isReviewerOnly) {
+          return sendError(res, 'Insufficient permissions', HttpStatus.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS');
+        }
         return await handleDelete(req, res, user.userId, user.role);
 
       case 'signed-url':
@@ -92,6 +109,9 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
       case 'register-slip':
         if (req.method !== 'POST') {
           return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+        }
+        if (isReviewerOnly) {
+          return sendError(res, 'Insufficient permissions', HttpStatus.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS');
         }
         return await handleRegisterSlip(req, res, user.userId, user.role);
 
@@ -256,9 +276,13 @@ async function handleUpload(req: VercelRequest, res: VercelResponse, authUserId:
     return sendError(res, 'Only PDF, JPG, JPEG, and PNG files are allowed', HttpStatus.BAD_REQUEST);
   }
 
-  // Validate file content matches declared MIME type (Requirement 33)
+  // Validate file content matches declared MIME type (Requirements 17.3, 17.4)
   if (!validateMagicBytes(fileBuffer, mimeType)) {
-    return sendError(res, 'File content does not match declared type', HttpStatus.BAD_REQUEST, 'INVALID_FILE_CONTENT');
+    const detectedType = detectMimeType(fileBuffer);
+    const reason = detectedType
+      ? `File content is ${detectedType}, but declared as ${mimeType}`
+      : `File content does not match the declared type (${mimeType})`;
+    return sendError(res, reason, HttpStatus.BAD_REQUEST, 'FILE_CONTENT_MISMATCH');
   }
 
   // Only admins can upload on behalf of other users
@@ -523,6 +547,16 @@ async function handleExtract(req: VercelRequest, res: VercelResponse, authUserId
       return sendError(res, 'Document fetch timed out', HttpStatus.BAD_REQUEST, 'INVALID_DOCUMENT_URL');
     }
     return sendError(res, 'Failed to fetch document', HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  // Validate fetched content is actually a PDF (Requirements 17.3, 17.4)
+  const fetchedBuffer = Buffer.from(pdfBytes);
+  if (!validateMagicBytes(fetchedBuffer, 'application/pdf')) {
+    const detectedType = detectMimeType(fetchedBuffer);
+    const reason = detectedType
+      ? `Fetched document is ${detectedType}, expected PDF`
+      : 'Fetched document is not a valid PDF';
+    return sendError(res, reason, HttpStatus.BAD_REQUEST, 'FILE_CONTENT_MISMATCH');
   }
 
   const { PDFDocument } = await import('pdf-lib');

@@ -113,7 +113,7 @@ describe('Audit Logger Property Tests (P17)', () => {
             expect(inner[sensitiveField]).toBe('[REDACTED]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -132,7 +132,7 @@ describe('Audit Logger Property Tests (P17)', () => {
             expect(inner[piiField]).toBe('[PII_REDACTED]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });

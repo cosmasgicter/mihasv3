@@ -652,6 +652,16 @@ function sendError(res, message, status = HttpStatus.BAD_REQUEST, code = ErrorCo
   };
   return res.status(status).json(response);
 }
+function sendValidationError(res, fieldErrors, message = "Validation failed") {
+  res.setHeader("Content-Type", "application/json");
+  const response = {
+    success: false,
+    error: sanitizeError(message),
+    code: ErrorCode.VALIDATION_ERROR,
+    fieldErrors
+  };
+  return res.status(HttpStatus.BAD_REQUEST).json(response);
+}
 var HttpStatus, ErrorCode, AuthError;
 var init_errorHandler = __esm(() => {
   HttpStatus = {
@@ -1206,12 +1216,7 @@ function validateBody(schema, req, res) {
   const result = schema.safeParse(req.body || {});
   if (!result.success) {
     const fieldErrors = formatZodErrors(result.error);
-    res.status(HttpStatus.BAD_REQUEST).json({
-      success: false,
-      error: "Validation failed",
-      code: "VALIDATION_ERROR",
-      fieldErrors
-    });
+    sendValidationError(res, fieldErrors);
     return null;
   }
   return result.data;
@@ -14916,8 +14921,8 @@ var applicationStatusSchema = exports_external.enum([
   "pending_documents"
 ]);
 var bulkEmailBodySchema = exports_external.object({
-  subject: nonEmptySanitizedString.max(200),
-  message: nonEmptySanitizedString.max(5000),
+  subject: exports_external.string().max(200).transform((s) => s.trim()).pipe(exports_external.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed").refine((s) => s.length > 0, "Must not be empty")),
+  message: exports_external.string().max(5000).transform((s) => s.trim()).pipe(exports_external.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed").refine((s) => s.length > 0, "Must not be empty")),
   userIds: exports_external.array(nonEmptySanitizedString).min(1).max(500)
 });
 var bulkStatusBodySchema = exports_external.object({

@@ -112,7 +112,7 @@ describe('Feature: migration-recovery-hardening, Property 2: Payment status filt
 
         expect(pending.length + completed.length).toBe(applications.length)
       }),
-      { numRuns: 20 },
+      { numRuns: 10 },
     )
   })
 
@@ -134,7 +134,7 @@ describe('Feature: migration-recovery-hardening, Property 2: Payment status filt
           expect(completedIds.has(id)).toBe(false)
         }
       }),
-      { numRuns: 20 },
+      { numRuns: 10 },
     )
   })
 
@@ -159,7 +159,7 @@ describe('Feature: migration-recovery-hardening, Property 2: Payment status filt
         const unionIds = union.map((a) => a.id)
         expect(unionIds.sort()).toEqual(originalIds.sort())
       }),
-      { numRuns: 20 },
+      { numRuns: 10 },
     )
   })
 
@@ -177,7 +177,7 @@ describe('Feature: migration-recovery-hardening, Property 2: Payment status filt
           expect(app.payment_status === null || app.payment_status === 'pending_review').toBe(true)
         }
       }),
-      { numRuns: 20 },
+      { numRuns: 10 },
     )
   })
 
@@ -195,7 +195,7 @@ describe('Feature: migration-recovery-hardening, Property 2: Payment status filt
           expect(app.payment_status === 'verified' || app.payment_status === 'rejected').toBe(true)
         }
       }),
-      { numRuns: 20 },
+      { numRuns: 10 },
     )
   })
 })

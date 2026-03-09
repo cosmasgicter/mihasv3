@@ -1,4 +1,5 @@
 // Dynamic import
+import { formatDate } from '@/lib/dateFormat'
 
 export const pdfGenerator = {
   async generateAcceptanceLetter(application: {
@@ -26,7 +27,7 @@ export const pdfGenerator = {
     
     // Date
     doc.setFontSize(10)
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 60)
+    doc.text(`Date: ${formatDate(new Date())}`, 20, 60)
     
     // Application Number
     doc.text(`Application Number: ${application.application_number}`, 20, 70)
@@ -83,7 +84,7 @@ export const pdfGenerator = {
     // Receipt Number
     doc.setFontSize(10)
     doc.text(`Receipt No: ${application.application_number}-${Date.now()}`, 20, 50)
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 57)
+    doc.text(`Date: ${formatDate(new Date())}`, 20, 57)
     
     // Student Details
     doc.setFontSize(12)
@@ -105,7 +106,7 @@ export const pdfGenerator = {
     doc.text(`Amount Paid: K${application.paid_amount || 0}`, 20, 132)
     doc.text(`Payment Method: ${application.payment_method || 'N/A'}`, 20, 139)
     if (application.paid_at) {
-      doc.text(`Payment Date: ${new Date(application.paid_at).toLocaleDateString()}`, 20, 146)
+      doc.text(`Payment Date: ${formatDate(application.paid_at)}`, 20, 146)
     }
     
     // Status

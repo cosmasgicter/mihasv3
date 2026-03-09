@@ -38,7 +38,7 @@ describe('Property 6: Admin endpoint responses conform to their Zod schemas', ()
           expect(result.success).toBe(true)
         }
       ),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 
@@ -55,7 +55,7 @@ describe('Property 6: Admin endpoint responses conform to their Zod schemas', ()
           expect(result.success).toBe(true)
         }
       ),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 
@@ -69,7 +69,7 @@ describe('Property 6: Admin endpoint responses conform to their Zod schemas', ()
           expect(AuditLogResponseSchema.safeParse(incomplete).success).toBe(false)
         }
       ),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 })

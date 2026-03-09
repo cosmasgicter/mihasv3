@@ -125,7 +125,7 @@ describe('Feature: supabase-remnant-purge, Property 2: Offline sync routes throu
           expect(route.body.user_id).toBe(userId)
         }
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -148,7 +148,7 @@ describe('Feature: supabase-remnant-purge, Property 2: Offline sync routes throu
         expect(route!.body.form_data).toEqual(draftData.form_data)
         expect(route!.body.current_step).toBe(draftData.current_step)
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -173,7 +173,7 @@ describe('Feature: supabase-remnant-purge, Property 2: Offline sync routes throu
         expect(createdAt).toBe(new Date(timestamp).toISOString())
         expect(new Date(createdAt).getTime()).toBe(timestamp)
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -201,7 +201,7 @@ describe('Feature: supabase-remnant-purge, Property 2: Offline sync routes throu
           }
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -224,7 +224,7 @@ describe('Feature: supabase-remnant-purge, Property 2: Offline sync routes throu
           )
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 })

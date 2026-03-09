@@ -2,6 +2,7 @@ import React from 'react'
 import { CheckCircle, Download, Mail, ExternalLink, Copy } from 'lucide-react'
 import { Button } from './Button'
 import { toast } from '@/hooks/useToast'
+import { formatDate } from '@/lib/dateFormat'
 
 interface SubmissionConfirmationProps {
   referenceNumber: string
@@ -102,7 +103,7 @@ export const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({
                   Submission Date
                 </label>
                 <p className="mt-1 text-foreground">
-                  {new Date(submissionDate).toLocaleDateString()}
+                  {formatDate(submissionDate)}
                 </p>
               </div>
               

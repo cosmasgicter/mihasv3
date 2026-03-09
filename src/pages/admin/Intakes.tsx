@@ -4,6 +4,7 @@ import { intakeService } from '@/services/catalog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
 import { normalizeDateInputValue } from '@/lib/profileFieldMapping'
+import { formatDate } from '@/lib/dateFormat'
 import {
   Dialog,
   DialogContent,
@@ -65,14 +66,7 @@ export interface IntakeForm {
   available_spots: number
 }
 
-const formatDate = (dateString: string | null): string => {
-  if (!dateString) return 'Invalid date'
-  try {
-    return new Date(dateString).toLocaleDateString()
-  } catch {
-    return 'Invalid date'
-  }
-}
+// formatDate imported from @/lib/dateFormat handles null/invalid dates
 
 const IntakeFormFields = ({ register, errors }: { register: any; errors: any }) => (
   <div className="space-y-4 py-4">

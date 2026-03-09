@@ -173,6 +173,22 @@ input, textarea, select {
   font-size: 16px;
 }
 
+/* Ensure all form inputs meet 44px minimum touch target on mobile */
+@media (max-width: 639px) {
+  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    min-height: 44px;
+  }
+
+  /* Ensure links and buttons in nav meet touch targets */
+  nav a,
+  nav button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
 @layer utilities {
   /* Skip link for keyboard navigation accessibility
    * Uses sr-only pattern: hidden by default, visible on focus

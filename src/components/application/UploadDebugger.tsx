@@ -4,6 +4,7 @@ import { Upload, CheckCircle, AlertCircle, X } from 'lucide-react'
 import { uploadApplicationFile } from '@/lib/storage'
 import { useAuth } from '@/contexts/AuthContext'
 import { sanitizeForLog } from '@/lib/security'
+import { formatTimestamp } from '@/lib/dateFormat'
 
 export function UploadDebugger() {
   const { user } = useAuth()
@@ -15,7 +16,7 @@ export function UploadDebugger() {
   const [logs, setLogs] = useState<string[]>([])
 
   const addLog = (message: string) => {
-    const timestamp = new Date().toLocaleTimeString()
+    const timestamp = formatTimestamp(new Date())
     const sanitizedMessage = sanitizeForLog(message)
     setLogs(prev => [...prev, `[${timestamp}] ${sanitizedMessage}`])
   }

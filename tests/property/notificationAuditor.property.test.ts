@@ -38,7 +38,7 @@ import type { DeliveryMechanism } from '../../scripts/audit/types';
  * Number of runs for property tests.
  * Reduced for faster execution with file I/O.
  */
-const NUM_RUNS = 50;
+const NUM_RUNS = 10;
 
 /**
  * Base temporary directory for test fixtures

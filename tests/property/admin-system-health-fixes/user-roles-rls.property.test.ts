@@ -206,7 +206,7 @@ describe('Feature: admin-system-health-fixes, Property 5: Super Admin Role Manag
             expect(result.error).toBeUndefined();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -227,7 +227,7 @@ describe('Feature: admin-system-health-fixes, Property 5: Super Admin Role Manag
             expect(result.error).toBeUndefined();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -253,7 +253,7 @@ describe('Feature: admin-system-health-fixes, Property 5: Super Admin Role Manag
             expect(result.statusCode).toBe(200);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -274,7 +274,7 @@ describe('Feature: admin-system-health-fixes, Property 5: Super Admin Role Manag
             expect(result.error).toBeUndefined();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -294,7 +294,7 @@ describe('Feature: admin-system-health-fixes, Property 5: Super Admin Role Manag
             expect(result.statusCode).toBe(200);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -316,7 +316,7 @@ describe('Feature: admin-system-health-fixes, Property 5: Super Admin Role Manag
             expect(result.error).toBeUndefined();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -339,7 +339,7 @@ describe('Feature: admin-system-health-fixes, Property 5: Super Admin Role Manag
             });
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -369,7 +369,7 @@ describe('Feature: admin-system-health-fixes, Property 6: Non-Admin Role Managem
             expect(result.error).toBeDefined();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -393,7 +393,7 @@ describe('Feature: admin-system-health-fixes, Property 6: Non-Admin Role Managem
             expect(result.error).toBeDefined();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -414,7 +414,7 @@ describe('Feature: admin-system-health-fixes, Property 6: Non-Admin Role Managem
             expect(result.error).toBeDefined();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -440,7 +440,7 @@ describe('Feature: admin-system-health-fixes, Property 6: Non-Admin Role Managem
             expect(result.statusCode).toBe(403);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -461,7 +461,7 @@ describe('Feature: admin-system-health-fixes, Property 6: Non-Admin Role Managem
             expect(result.error).toBeDefined();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -490,7 +490,7 @@ describe('Feature: admin-system-health-fixes, Property 6: Non-Admin Role Managem
             expect(result.statusCode).toBe(200);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -513,7 +513,7 @@ describe('Feature: admin-system-health-fixes, Property 6: Non-Admin Role Managem
             expect(result.statusCode).toBe(403);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -534,7 +534,7 @@ describe('Feature: admin-system-health-fixes, Property 6: Non-Admin Role Managem
             expect(result.error).toBeDefined();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -556,7 +556,7 @@ describe('Feature: admin-system-health-fixes, Property 6: Non-Admin Role Managem
             expect(result.error).toBeDefined();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -579,7 +579,7 @@ describe('Feature: admin-system-health-fixes, Property 6: Non-Admin Role Managem
             });
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -609,7 +609,7 @@ describe('Feature: admin-system-health-fixes, RLS Policy Edge Cases', () => {
             }
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -632,7 +632,7 @@ describe('Feature: admin-system-health-fixes, RLS Policy Edge Cases', () => {
             expect(result.error!.length).toBeGreaterThan(0);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });

@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const mockUseQuery = vi.fn()
 const mockUseAuthCheck = vi.fn()
 const mockUseSessionListener = vi.fn()
+const mockUseAuth = vi.fn()
 const mockUseDebouncedLoading = vi.fn()
 
 vi.mock('@tanstack/react-query', () => ({
@@ -58,6 +59,10 @@ vi.mock('@/hooks/auth/useSessionListener', () => ({
 
 vi.mock('@/components/admin/AdminErrorBoundary', () => ({
   AdminErrorBoundary: ({ children }: { children: React.ReactNode }) => children,
+}))
+
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => mockUseAuth(),
 }))
 
 vi.mock('@/components/student/StudentErrorBoundary', () => ({
@@ -121,6 +126,7 @@ describe('route guards with normalized session-backed auth state', () => {
   beforeEach(() => {
     mockUseAuthCheck.mockReset()
     mockUseSessionListener.mockReset()
+    mockUseAuth.mockReset()
     mockUseDebouncedLoading.mockReset()
     mockUseDebouncedLoading.mockReturnValue(true)
   })
@@ -137,7 +143,7 @@ describe('route guards with normalized session-backed auth state', () => {
   })
 
   it('AdminRoute returns null while loading', () => {
-    mockUseSessionListener.mockReturnValue({
+    mockUseAuth.mockReturnValue({
       user: null,
       isAdmin: false,
       loading: true,
@@ -161,7 +167,7 @@ describe('route guards with normalized session-backed auth state', () => {
   })
 
   it('StudentRoute redirects admins to admin dashboard', () => {
-    mockUseSessionListener.mockReturnValue({
+    mockUseAuth.mockReturnValue({
       user: { id: 'admin-1', email: 'admin@example.com' },
       isAdmin: true,
       loading: false,
@@ -176,7 +182,7 @@ describe('route guards with normalized session-backed auth state', () => {
   })
 
   it('AdminRoute redirects logged-in students to student dashboard', () => {
-    mockUseSessionListener.mockReturnValue({
+    mockUseAuth.mockReturnValue({
       user: { id: 'student-1', email: 'student@example.com', role: 'student' },
       isAdmin: false,
       loading: false,
@@ -190,7 +196,7 @@ describe('route guards with normalized session-backed auth state', () => {
   })
 
   it('AdminRoute allows logged-in admins from session role source', () => {
-    mockUseSessionListener.mockReturnValue({
+    mockUseAuth.mockReturnValue({
       user: { id: 'admin-2', email: 'admin@example.com', role: 'admin' },
       isAdmin: true,
       loading: false,
@@ -203,7 +209,7 @@ describe('route guards with normalized session-backed auth state', () => {
   })
 
   it('AdminRoute redirects unauthenticated users to signin', () => {
-    mockUseSessionListener.mockReturnValue({
+    mockUseAuth.mockReturnValue({
       user: null,
       isAdmin: false,
       loading: false,

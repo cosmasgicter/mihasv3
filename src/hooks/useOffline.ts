@@ -8,7 +8,8 @@ import { offlineSyncService, OfflineSyncStatus } from '@/services/offlineSync'
 const emptyStatus: OfflineSyncStatus = {
   isPending: false,
   pendingRequests: 0,
-  failedRequests: 0
+  failedRequests: 0,
+  failedItems: []
 }
 
 export function useOffline() {
@@ -70,12 +71,18 @@ export function useOffline() {
     await updateSyncStatus()
   }, [updateSyncStatus])
 
+  const retryFailedItem = useCallback(async (itemId: string) => {
+    await offlineSyncService.retryFailedItem(itemId)
+    await updateSyncStatus()
+  }, [updateSyncStatus])
+
   return {
     isOnline,
     syncStatus,
     queueRequest,
     syncNow,
     clearFailed,
+    retryFailedItem,
   }
 }
 

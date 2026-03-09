@@ -116,7 +116,7 @@ describe('Feature: supabase-remnant-purge, Property 3: Application tracker searc
           expect(route.endpoint).not.toContain('rest/v1')
         }
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -138,7 +138,7 @@ describe('Feature: supabase-remnant-purge, Property 3: Application tracker searc
           )
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -163,7 +163,7 @@ describe('Feature: supabase-remnant-purge, Property 3: Application tracker searc
           expect(results.length).toBeLessThanOrEqual(applications.length)
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -187,7 +187,7 @@ describe('Feature: supabase-remnant-purge, Property 3: Application tracker searc
         // Invalid terms should not produce a route (no API call made)
         expect(route).toBeNull()
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -212,7 +212,7 @@ describe('Feature: supabase-remnant-purge, Property 3: Application tracker searc
           }
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 })

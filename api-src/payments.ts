@@ -1,7 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleCors } from '../lib/cors';
 import { query } from '../lib/db';
-import { getAuthUser } from '../lib/auth/middleware';
+import { requireAuth, AuthenticationError, type AuthContext } from '../lib/auth/middleware';
+import { isAdmin as isAdminRole } from '../lib/auth/ownership';
 import { withArcjetProtection } from '../lib/arcjet';
 import { USER_ROLES } from '../lib/queries';
 import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
@@ -37,12 +38,18 @@ async function handler(req: VercelRequest, res: VercelResponse) {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
+  // Require authentication (Req 9.1)
+  let user: AuthContext;
+  try {
+    user = await requireAuth(req);
+  } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return sendError(res, error.message, error.statusCode, error.code);
+    }
+    throw error;
   }
 
-  const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
+  const isAdmin = isAdminRole(user.role);
   const action = req.query.action as string || 'receipt';
 
   try {

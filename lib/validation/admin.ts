@@ -99,8 +99,8 @@ const applicationStatusSchema = z.enum([
 
 /** POST — bulk admin email */
 export const bulkEmailBodySchema = z.object({
-  subject: nonEmptySanitizedString.max(200),
-  message: nonEmptySanitizedString.max(5000),
+  subject: z.string().max(200).transform((s) => s.trim()).pipe(z.string().refine((s) => !s.includes('\0'), 'Null bytes not allowed').refine((s) => s.length > 0, 'Must not be empty')),
+  message: z.string().max(5000).transform((s) => s.trim()).pipe(z.string().refine((s) => !s.includes('\0'), 'Null bytes not allowed').refine((s) => s.length > 0, 'Must not be empty')),
   userIds: z.array(nonEmptySanitizedString).min(1).max(500),
 });
 

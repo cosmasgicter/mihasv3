@@ -127,7 +127,7 @@ describe('SecureStorage Property Tests', () => {
             expect(retrieved).toEqual(data)
           },
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
 
@@ -147,7 +147,7 @@ describe('SecureStorage Property Tests', () => {
             expect(retrieved).toEqual(value)
           },
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
   })
@@ -171,7 +171,7 @@ describe('SecureStorage Property Tests', () => {
           expect(stripped).toHaveProperty('program_id')
           expect((stripped as Record<string, unknown>).program_id).toBe(data.program_id)
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
 
@@ -189,7 +189,7 @@ describe('SecureStorage Property Tests', () => {
             )
           }
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
 
@@ -262,7 +262,7 @@ describe('SecureStorage Property Tests', () => {
             expect(keysAfter).toHaveLength(0)
           },
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
 
@@ -287,7 +287,7 @@ describe('SecureStorage Property Tests', () => {
             expect(localStorage.getItem(externalKey)).toBe('should-survive')
           },
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
   })

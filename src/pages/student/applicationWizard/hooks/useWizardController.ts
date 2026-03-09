@@ -20,7 +20,6 @@ import { createApplicationSlip } from '@/lib/slipService'
 import type { ApplicationSlipData } from '@/lib/applicationSlip'
 import { sanitizeForLog } from '@/lib/security'
 import { findBestSubjectId } from '@/lib/subjectMatcher'
-import { getSessionToken } from '@/lib/sessionUtils'
 import { apiClient } from '@/services/client'
 import { applicationService } from '@/services/applications'
 import { logger } from '@/utils/logger'
@@ -80,6 +79,7 @@ interface UseWizardControllerResult {
   subjects: Array<{ id: string; name: string; code: string }>
   hasAutoPopulatedData: boolean
   completionPercentage: number
+  missingFields: { key: string; label: string }[]
   confirmSubmission: boolean
   setConfirmSubmission: (value: boolean) => void
   resultSlipFile: File | null
@@ -433,7 +433,7 @@ const useWizardController = (): UseWizardControllerResult => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [currentStepIndex, success])
 
-  const { completionPercentage, hasAutoPopulatedData } = useProfileAutoPopulation(setValue)
+  const { completionPercentage, missingFields, hasAutoPopulatedData } = useProfileAutoPopulation(setValue)
 
   useEffect(() => {
     const currentIntake = watch('intake')
@@ -1368,6 +1368,7 @@ const useWizardController = (): UseWizardControllerResult => {
     subjects,
     hasAutoPopulatedData,
     completionPercentage,
+    missingFields,
     confirmSubmission,
     setConfirmSubmission,
     resultSlipFile,

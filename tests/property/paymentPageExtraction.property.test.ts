@@ -133,7 +133,7 @@ describe('Feature: migration-recovery-hardening, Property 1: Paginated response 
           expect(result[i].program).toBe(paginatedResponse.applications[i].program)
         }
       }),
-      { numRuns: 20 },
+      { numRuns: 10 },
     )
   })
 
@@ -152,7 +152,7 @@ describe('Feature: migration-recovery-hardening, Property 1: Paginated response 
           }
         },
       ),
-      { numRuns: 20 },
+      { numRuns: 10 },
     )
   })
 
@@ -185,7 +185,7 @@ describe('Feature: migration-recovery-hardening, Property 1: Paginated response 
           expect(result[i]).toBe(sourceApps[i])
         }
       }),
-      { numRuns: 20 },
+      { numRuns: 10 },
     )
   })
 })

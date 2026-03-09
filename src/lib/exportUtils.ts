@@ -1,3 +1,5 @@
+import { formatDate as _fmtDate, formatTimestamp as _fmtTimestamp } from '@/lib/dateFormat'
+
 export interface ApplicationData {
   application_number: string
   full_name: string
@@ -89,9 +91,8 @@ async function* iterateApplicationData(source: ApplicationDataSource): AsyncGene
 
 const formatDate = (value?: string | null) => {
   if (!value) return ''
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  return date.toLocaleDateString()
+  const result = _fmtDate(value)
+  return result === 'Not available' ? '' : result
 }
 
 const safeNumber = (value: number | null | undefined) => {
@@ -311,7 +312,7 @@ export async function exportToPDF(
     }
   }
 
-  const exportTimestamp = new Date().toLocaleString();
+  const exportTimestamp = _fmtTimestamp(new Date());
 
   (doc as any).autoTable({
     head: [Array.from(HEADERS)],
@@ -388,17 +389,15 @@ const inferDateLikeValue = (rawValue: unknown, fieldId: string) => {
   if (!rawValue) return ''
 
   if (rawValue instanceof Date) {
-    return rawValue.toLocaleDateString()
+    return _fmtDate(rawValue)
   }
 
   if (typeof rawValue === 'string') {
     const trimmed = rawValue.trim()
     if (!trimmed) return ''
     if (/date/i.test(fieldId) || /_at$/.test(fieldId)) {
-      const parsed = new Date(trimmed)
-      if (!Number.isNaN(parsed.getTime())) {
-        return parsed.toLocaleDateString()
-      }
+      const result = _fmtDate(trimmed)
+      return result === 'Not available' ? '' : result
     }
   }
 
@@ -471,7 +470,7 @@ export async function exportUsersToPDF<TRecord extends Record<string, unknown>>(
     }
 
     if (rawValue instanceof Date) {
-      return rawValue.toLocaleDateString()
+      return _fmtDate(rawValue)
     }
 
     return sanitizeUserPdfText(String(rawValue))
@@ -635,7 +634,7 @@ export async function exportUsersToPDF<TRecord extends Record<string, unknown>>(
     const tableWidth = width - margins.left - margins.right
 
     const title = options.title ?? 'Users Export'
-    const generatedAt = (options.generatedAt ?? new Date()).toLocaleString()
+    const generatedAt = _fmtTimestamp(options.generatedAt ?? new Date())
     const metadataLines = (options.metadata ?? []).filter(Boolean)
 
     page.drawText(title, {

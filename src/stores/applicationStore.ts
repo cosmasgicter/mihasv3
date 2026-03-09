@@ -31,7 +31,8 @@ export const useApplicationStore = create<ApplicationState>()(immer((set) => ({
   error: null,
 
   setApplications: (applications) => set((state) => {
-    state.applications = applications
+    // Bound to 50 items to prevent unbounded memory growth in long sessions
+    state.applications = applications.slice(0, 50)
   }),
 
   setPrograms: (programs) => set((state) => {
@@ -56,6 +57,10 @@ export const useApplicationStore = create<ApplicationState>()(immer((set) => ({
 
   addApplication: (application) => set((state) => {
     state.applications.push(application)
+    // Bound to 50 items to prevent unbounded memory growth
+    if (state.applications.length > 50) {
+      state.applications = state.applications.slice(-50)
+    }
   }),
 
   updateApplication: (id, updates) => set((state) => {

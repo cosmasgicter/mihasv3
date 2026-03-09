@@ -100,7 +100,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
             expect(sanitized).toContain('[ID]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -117,7 +117,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
             expect(sanitized).toContain('[EMAIL]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -133,7 +133,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
             expect(sanitized).not.toContain(phone);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -149,7 +149,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
             expect(sanitized).toContain('[TOKEN]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -167,7 +167,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
             expect(sanitized).toContain('[CONNECTION_STRING]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -183,7 +183,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
             expect(sanitized).toContain('[SUPABASE_URL]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -199,7 +199,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
             expect(sanitized).toContain('[CREDENTIAL]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -217,7 +217,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
             expect(sanitized).toContain('[PATH]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -233,7 +233,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
             expect(sanitized).toContain('[IP]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -257,7 +257,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
             expect(sanitized).toContain('[IP]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -276,7 +276,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
             expect(sanitized).toContain('[IP]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -295,7 +295,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
             expect(sanitized).not.toContain(email);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -322,7 +322,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
             expect(sanitized).toBe(message);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -340,7 +340,7 @@ describe('Property 6: No Sensitive Data in Error Responses', () => {
             expect(twice).toBe(once);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });

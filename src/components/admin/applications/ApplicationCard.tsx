@@ -7,6 +7,7 @@ import { useToastStore } from '@/components/ui/Toast'
 import { CommunicationModal, type CommunicationData } from '@/components/admin/CommunicationModal'
 import { applicationService } from '@/services/applications'
 import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus'
+import { formatDate } from '@/lib/dateFormat'
 
 // Institution code to name mapping
 export const INSTITUTION_NAMES: Record<string, string> = {
@@ -145,14 +146,6 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
     } catch {
       throw new Error('Failed to send message')
     }
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    })
   }
 
   const getPointsColor = (points: number) => {

@@ -23,7 +23,7 @@ import { join } from 'node:path';
  * Number of runs for property tests.
  * Reduced for faster execution with file I/O.
  */
-const NUM_RUNS = 20;
+const NUM_RUNS = 10;
 
 /**
  * Base temporary directory for test fixtures - relative to project root

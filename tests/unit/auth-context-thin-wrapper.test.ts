@@ -51,16 +51,18 @@ describe('Auth hook consolidation - task 2.2 verification', () => {
     expect(content).toContain('redirectToSignIn')
   })
 
-  it('AdminRoute imports from useSessionListener', () => {
+  it('AdminRoute imports from AuthContext (useAuth)', () => {
     const content = fs.readFileSync(path.join(srcRoot, 'components/AdminRoute.tsx'), 'utf-8')
     expect(content).not.toContain('useOptimizedAuthState')
-    expect(content).toContain("import { useSessionListener }")
+    expect(content).not.toContain('useAuthStore')
+    expect(content).toContain("import { useAuth } from '@/contexts/AuthContext'")
   })
 
-  it('StudentRoute imports from useSessionListener', () => {
+  it('StudentRoute imports from AuthContext (useAuth)', () => {
     const content = fs.readFileSync(path.join(srcRoot, 'components/StudentRoute.tsx'), 'utf-8')
     expect(content).not.toContain('useOptimizedAuthState')
-    expect(content).toContain("import { useSessionListener }")
+    expect(content).not.toContain('useAuthStore')
+    expect(content).toContain("import { useAuth } from '@/contexts/AuthContext'")
   })
 
   it('ProtectedRoute imports useAuthCheck from useSessionListener', () => {

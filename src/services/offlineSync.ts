@@ -1,4 +1,5 @@
 import { offlineStorage } from '@/lib/offlineStorage'
+import { setCsrfToken, getCsrfToken } from '@/lib/csrfToken'
 import { sanitizeForLog } from '@/lib/security'
 import { apiClient } from '@/services/client'
 import {
@@ -14,6 +15,8 @@ export interface OfflineSyncStatus {
   lastSyncAt?: Date
   pendingRequests: number
   failedRequests: number
+  /** Items that have permanently failed (maxRetries reached) — for UI surfacing */
+  failedItems: Array<{ id: string; type: OfflineRecordType; timestamp: number }>
 }
 
 /**
@@ -29,18 +32,105 @@ async function getCurrentUser(): Promise<{ id: string } | null> {
 }
 
 /**
+ * Fetch a fresh CSRF token from the server session endpoint.
+ * Updates the in-memory CSRF store and returns the new token.
+ */
+async function refreshCsrfToken(): Promise<string | null> {
+  try {
+    const response = await fetch('/api/auth?action=session', {
+      method: 'GET',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' }
+    })
+    const csrfHeader = response.headers.get('X-CSRF-Token')
+    if (csrfHeader) {
+      setCsrfToken(csrfHeader)
+      return csrfHeader
+    }
+    // Try to extract from response body as fallback
+    if (response.ok) {
+      const data = await response.json()
+      const token = data?.data?.csrfToken || data?.csrfToken
+      if (token) {
+        setCsrfToken(token)
+        return token
+      }
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Fetch the server version for a given application draft to handle 409 conflicts.
+ * Returns the server-side form data and version, or null on failure.
+ */
+async function fetchServerVersion(userId: string): Promise<{
+  form_data: Record<string, unknown>
+  version: number
+} | null> {
+  try {
+    const data = await apiClient.request<{
+      form_data?: Record<string, unknown>
+      version?: number
+    }>(`/applications?action=details&user_id=${encodeURIComponent(userId)}`)
+    if (data && typeof data.version === 'number') {
+      return { form_data: data.form_data || {}, version: data.version }
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Merge local and server form data. Server wins for conflicting keys,
+ * client wins for keys that only exist locally (new fields).
+ */
+function mergeFormData(
+  localData: Record<string, unknown>,
+  serverData: Record<string, unknown>
+): Record<string, unknown> {
+  return { ...localData, ...serverData }
+}
+
+/** Error type with HTTP status code attached */
+interface HttpError extends Error {
+  status?: number
+}
+
+/**
+ * Extract HTTP status code from an error thrown by apiClient or fetch.
+ */
+function getErrorStatus(error: unknown): number | undefined {
+  if (error && typeof error === 'object' && 'status' in error) {
+    return (error as HttpError).status
+  }
+  if (error instanceof Error) {
+    // ApiErrorHandler produces messages like "Access denied..." for 403
+    // and "Conflict detected..." for 409 — check message patterns
+    if (error.message.includes('Access denied') || error.message.includes('CSRF')) return 403
+    if (error.message.includes('Conflict detected')) return 409
+  }
+  return undefined
+}
+
+/**
  * Unified offline sync service using IndexedDB exclusively.
  *
  * All queued operations are stored in IndexedDB via offlineStorage.
  * Retry counts are persisted in the IndexedDB record itself.
- * Sync processes items in FIFO order (sorted by timestamp).
- * Failed items remain in the queue with an incremented retryCount (max 3).
+ * Sync processes items in strict FIFO order (sorted by timestamp).
+ * On first failure, processing stops — item N+1 is never processed until N succeeds or fails permanently.
+ * Failed items (maxRetries reached) are marked with status: 'failed' for UI surfacing.
  */
 class OfflineSyncService {
   private isProcessing = false
   private maxRetries = 3
   private initialized = false
   private periodicSyncInterval: number | null = null
+  private onlineHandler: (() => void) | null = null
 
   // Store data offline
   async storeOffline<TType extends OfflineRecordType>(
@@ -59,7 +149,10 @@ class OfflineSyncService {
     }
   }
 
-  // Process sync queue when online — FIFO order, retry with persisted count
+  /**
+   * Process sync queue when online — strict FIFO order.
+   * Breaks on first failure: item N+1 is never attempted until item N succeeds or is moved to failed.
+   */
   async processOfflineData() {
     if (this.isProcessing || !navigator.onLine) {
       return
@@ -73,12 +166,19 @@ class OfflineSyncService {
 
       const offlineData = await offlineStorage.getAll(user.id)
 
-      // Sort by timestamp for FIFO ordering
+      // Sort by timestamp for strict FIFO ordering
       const sorted = offlineData.sort((a, b) => a.timestamp - b.timestamp)
 
       for (const item of sorted) {
-        // Skip items that have exceeded max retries
+        // Skip items already permanently failed
+        if (item.status === 'failed') {
+          continue
+        }
+
+        // Check if item has exceeded max retries — mark as failed
         if ((item.retryCount ?? 0) >= this.maxRetries) {
+          await offlineStorage.update(item.id, { status: 'failed' })
+          console.error('Max retries reached for item', sanitizeForLog(String(item.id)), '— marked as failed')
           continue
         }
 
@@ -86,14 +186,64 @@ class OfflineSyncService {
           await this.syncToServer(item)
           await offlineStorage.remove(item.id)
         } catch (error) {
-          console.error('Failed to sync offline data:', error)
+          const status = getErrorStatus(error)
 
+          // Handle CSRF 403: fetch fresh token and retry once
+          if (status === 403) {
+            const freshToken = await refreshCsrfToken()
+            if (freshToken) {
+              try {
+                await this.syncToServer(item)
+                await offlineStorage.remove(item.id)
+                continue // CSRF retry succeeded, move to next item
+              } catch (retryError) {
+                // CSRF retry also failed — fall through to increment retry count
+                console.error('CSRF retry failed for item', sanitizeForLog(String(item.id)))
+              }
+            }
+          }
+
+          // Handle version conflict 409: fetch server version, merge, retry
+          if (status === 409 && item.type === 'application_draft') {
+            const serverVersion = await fetchServerVersion(item.userId)
+            if (serverVersion) {
+              try {
+                const draftData = item.data as OfflineApplicationDraftData
+                const mergedFormData = mergeFormData(
+                  draftData.form_data as unknown as Record<string, unknown>,
+                  serverVersion.form_data
+                )
+                // Retry with merged data and server's version + 1
+                const mergedItem: OfflineQueueItem = {
+                  ...item,
+                  data: {
+                    ...draftData,
+                    form_data: mergedFormData,
+                    version: serverVersion.version + 1
+                  } as OfflineApplicationDraftData
+                }
+                await this.syncToServer(mergedItem)
+                await offlineStorage.remove(item.id)
+                continue // Merge retry succeeded, move to next item
+              } catch (mergeRetryError) {
+                console.error('Version conflict merge retry failed for item', sanitizeForLog(String(item.id)))
+              }
+            }
+          }
+
+          // Increment retry count
           const newRetryCount = (item.retryCount ?? 0) + 1
-          await offlineStorage.update(item.id, { retryCount: newRetryCount })
+          const updates: { retryCount: number; status?: 'failed' } = { retryCount: newRetryCount }
 
           if (newRetryCount >= this.maxRetries) {
-            console.error('Max retries reached for item', sanitizeForLog(String(item.id)), 'keeping as failed')
+            updates.status = 'failed'
+            console.error('Max retries reached for item', sanitizeForLog(String(item.id)), '— marked as failed')
           }
+
+          await offlineStorage.update(item.id, updates)
+
+          // Strict FIFO: break on first failure — do NOT continue to next item
+          break
         }
       }
     } catch (error) {
@@ -116,6 +266,7 @@ class OfflineSyncService {
             form_data: draftData.form_data,
             uploaded_files: draftData.uploaded_files,
             current_step: draftData.current_step,
+            version: draftData.version,
             is_offline_sync: true,
             updated_at: new Date().toISOString()
           })
@@ -143,7 +294,7 @@ class OfflineSyncService {
     }
   }
 
-  // Initialize service with event listeners
+  // Initialize service with event listeners — idempotent
   async init() {
     if (this.initialized) {
       return
@@ -155,10 +306,13 @@ class OfflineSyncService {
       // Silently handle initialization errors
     }
 
-    // Listen for online events
-    window.addEventListener('online', () => {
+    // Store handler reference for cleanup
+    this.onlineHandler = () => {
       this.processOfflineData()
-    })
+    }
+
+    // Listen for online events
+    window.addEventListener('online', this.onlineHandler)
 
     this.periodicSyncInterval = window.setInterval(() => {
       if (navigator.onLine) {
@@ -172,6 +326,21 @@ class OfflineSyncService {
     if (navigator.onLine) {
       setTimeout(() => this.processOfflineData(), 1000)
     }
+  }
+
+  // Destroy service — clears interval and removes all listeners
+  destroy() {
+    if (this.periodicSyncInterval !== null) {
+      clearInterval(this.periodicSyncInterval)
+      this.periodicSyncInterval = null
+    }
+
+    if (this.onlineHandler) {
+      window.removeEventListener('online', this.onlineHandler)
+      this.onlineHandler = null
+    }
+
+    this.initialized = false
   }
 
   // Check if online
@@ -196,18 +365,40 @@ class OfflineSyncService {
       return {
         isPending: this.isProcessing,
         pendingRequests: 0,
-        failedRequests: 0
+        failedRequests: 0,
+        failedItems: []
       }
     }
 
     const offlineData = await offlineStorage.getAll(user.id)
-    const pendingItems = offlineData.filter((item) => (item.retryCount ?? 0) < this.maxRetries).length
-    const failedItems = offlineData.filter((item) => (item.retryCount ?? 0) >= this.maxRetries).length
+    const pendingItems = offlineData.filter(
+      (item) => item.status !== 'failed' && (item.retryCount ?? 0) < this.maxRetries
+    ).length
+    const failed = offlineData.filter(
+      (item) => item.status === 'failed' || (item.retryCount ?? 0) >= this.maxRetries
+    )
 
     return {
       isPending: this.isProcessing,
       pendingRequests: pendingItems,
-      failedRequests: failedItems
+      failedRequests: failed.length,
+      failedItems: failed.map((item) => ({
+        id: item.id,
+        type: item.type,
+        timestamp: item.timestamp
+      }))
+    }
+  }
+
+  /**
+   * Retry a specific failed item by resetting its retry count and status.
+   * The item will be picked up on the next sync cycle.
+   */
+  async retryFailedItem(itemId: string): Promise<void> {
+    await offlineStorage.update(itemId, { retryCount: 0, status: 'pending' })
+    // Trigger a sync cycle immediately
+    if (navigator.onLine) {
+      this.processOfflineData()
     }
   }
 
@@ -219,7 +410,7 @@ class OfflineSyncService {
 
     const offlineData = await offlineStorage.getAll(user.id)
     for (const item of offlineData) {
-      if ((item.retryCount ?? 0) >= this.maxRetries) {
+      if (item.status === 'failed' || (item.retryCount ?? 0) >= this.maxRetries) {
         await offlineStorage.remove(item.id)
       }
     }

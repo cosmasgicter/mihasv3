@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleCors } from '../lib/cors';
 import { query } from '../lib/db';
-import { getAuthUser } from '../lib/auth/middleware';
+import { requireAuth, AuthenticationError, AuthorizationError, type AuthContext } from '../lib/auth/middleware';
 import { withArcjetProtection } from '../lib/arcjet';
 import { USER_ROLES } from '../lib/queries';
 import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
@@ -65,53 +65,63 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
   // CSRF validation for state-changing requests
   if (await requireCsrf(req, res)) return;
 
+  // Require authentication for all notification actions (Req 9.1)
+  let user: AuthContext;
+  try {
+    user = await requireAuth(req);
+  } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return sendError(res, error.message, error.statusCode, error.code);
+    }
+    throw error;
+  }
+
   const action = req.query.action as string || 'preferences';
 
   try {
     if (action === 'preferences') {
-      return await handlePreferences(req, res);
+      return await handlePreferences(req, res, user);
     }
     if (action === 'history') {
-      return await handleHistory(req, res);
+      return await handleHistory(req, res, user);
     }
     if (action === 'list') {
-      return await handleList(req, res);
+      return await handleList(req, res, user);
     }
     if (action === 'mark-read') {
-      return await handleMarkRead(req, res);
+      return await handleMarkRead(req, res, user);
     }
     if (action === 'mark-all-read') {
-      return await handleMarkAllRead(req, res);
+      return await handleMarkAllRead(req, res, user);
     }
     if (action === 'delete') {
-      return await handleDelete(req, res);
+      return await handleDelete(req, res, user);
     }
     if (action === 'check-duplicate') {
-      return await handleCheckDuplicate(req, res);
+      return await handleCheckDuplicate(req, res, user);
     }
     if (action === 'create') {
-      return await handleCreate(req, res);
+      return await handleCreate(req, res, user);
     }
     if (action === 'send') {
-      return await handleSend(req, res);
+      return await handleSend(req, res, user);
     }
     if (action === 'push-subscribe') {
-      return await handlePushSubscribe(req, res);
+      return await handlePushSubscribe(req, res, user);
     }
     if (action === 'push-send') {
-      return await handlePushSend(req, res);
+      return await handlePushSend(req, res, user);
     }
     return sendError(res, 'Invalid action', HttpStatus.BAD_REQUEST);
   } catch (error) {
+    if (error instanceof AuthorizationError) {
+      return sendError(res, error.message, error.statusCode, error.code);
+    }
     return handleError(res, error, 'notifications');
   }
 }
 
-async function handlePreferences(req: VercelRequest, res: VercelResponse) {
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
-  }
+async function handlePreferences(req: VercelRequest, res: VercelResponse, user: AuthContext) {
 
   try {
     if (req.method === 'GET') {
@@ -171,14 +181,9 @@ async function handlePreferences(req: VercelRequest, res: VercelResponse) {
   }
 }
 
-async function handleHistory(req: VercelRequest, res: VercelResponse) {
+async function handleHistory(req: VercelRequest, res: VercelResponse, user: AuthContext) {
   if (req.method !== 'GET') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
-  }
-
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
 
   const isAdmin = [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMISSIONS_OFFICER].includes(user.role);
@@ -282,14 +287,9 @@ async function handleHistory(req: VercelRequest, res: VercelResponse) {
  * List notifications for the authenticated user
  * GET /api/notifications?action=list
  */
-async function handleList(req: VercelRequest, res: VercelResponse) {
+async function handleList(req: VercelRequest, res: VercelResponse, user: AuthContext) {
   if (req.method !== 'GET') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
-  }
-
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
 
   try {
@@ -331,14 +331,9 @@ async function handleList(req: VercelRequest, res: VercelResponse) {
  * PUT /api/notifications?action=mark-read
  * Body: { notificationId }
  */
-async function handleMarkRead(req: VercelRequest, res: VercelResponse) {
+async function handleMarkRead(req: VercelRequest, res: VercelResponse, user: AuthContext) {
   if (req.method !== 'PUT') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
-  }
-
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
 
   const parsed = validateBody(markReadBodySchema, req, res);
@@ -362,14 +357,9 @@ async function handleMarkRead(req: VercelRequest, res: VercelResponse) {
  * Mark all notifications as read for the authenticated user
  * PUT /api/notifications?action=mark-all-read
  */
-async function handleMarkAllRead(req: VercelRequest, res: VercelResponse) {
+async function handleMarkAllRead(req: VercelRequest, res: VercelResponse, user: AuthContext) {
   if (req.method !== 'PUT') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
-  }
-
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
 
   try {
@@ -389,14 +379,9 @@ async function handleMarkAllRead(req: VercelRequest, res: VercelResponse) {
  * DELETE /api/notifications?action=delete
  * Body: { notificationId }
  */
-async function handleDelete(req: VercelRequest, res: VercelResponse) {
+async function handleDelete(req: VercelRequest, res: VercelResponse, user: AuthContext) {
   if (req.method !== 'DELETE') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
-  }
-
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
 
   const parsed = validateBody(deleteNotificationBodySchema, req, res);
@@ -485,14 +470,9 @@ async function createNotificationWithDedup(
 }
 
 
-async function handleCheckDuplicate(req: VercelRequest, res: VercelResponse) {
+async function handleCheckDuplicate(req: VercelRequest, res: VercelResponse, user: AuthContext) {
   if (req.method !== 'POST') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
-  }
-
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
 
   const { user_id, title, message, type, entity_type, entity_id } = req.body || {};
@@ -504,7 +484,7 @@ async function handleCheckDuplicate(req: VercelRequest, res: VercelResponse) {
 
   const isAdmin = [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMISSIONS_OFFICER].includes(user.role);
   if (targetUserId !== user.userId && !isAdmin) {
-    return sendError(res, 'Forbidden', HttpStatus.FORBIDDEN);
+    return sendError(res, 'Insufficient permissions', HttpStatus.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS');
   }
 
   try {
@@ -530,14 +510,9 @@ async function handleCheckDuplicate(req: VercelRequest, res: VercelResponse) {
   }
 }
 
-async function handleCreate(req: VercelRequest, res: VercelResponse) {
+async function handleCreate(req: VercelRequest, res: VercelResponse, user: AuthContext) {
   if (req.method !== 'POST') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
-  }
-
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
   }
 
   const parsed = validateBody(createNotificationBodySchema, req, res);
@@ -553,7 +528,7 @@ async function handleCreate(req: VercelRequest, res: VercelResponse) {
 
   const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
   if (targetUserId !== user.userId && !isAdmin) {
-    return sendError(res, 'Forbidden', HttpStatus.FORBIDDEN);
+    return sendError(res, 'Insufficient permissions', HttpStatus.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS');
   }
 
   try {
@@ -605,20 +580,15 @@ async function handleCreate(req: VercelRequest, res: VercelResponse) {
   }
 }
 
-async function handleSend(req: VercelRequest, res: VercelResponse) {
+async function handleSend(req: VercelRequest, res: VercelResponse, user: AuthContext) {
   if (req.method !== 'POST') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
-  }
-
-  // Check admin role
-  const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
-  if (!isAdmin) {
-    return sendError(res, 'Admin access required', HttpStatus.FORBIDDEN);
+  // Require admin role for sending notifications to other users (Req 9.2)
+  const isAdminUser = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
+  if (!isAdminUser) {
+    return sendError(res, 'Insufficient permissions', HttpStatus.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS');
   }
 
   const parsed = validateBody(sendNotificationBodySchema, req, res);
@@ -840,7 +810,7 @@ async function getCanonicalPreferences(userId: string): Promise<Record<string, u
   };
 }
 
-async function handlePushSubscribe(req: VercelRequest, res: VercelResponse) {
+async function handlePushSubscribe(req: VercelRequest, res: VercelResponse, _user: AuthContext) {
   // push_subscriptions table does not exist — return graceful responses
   if (req.method === 'POST') {
     return sendSuccess(res, { subscribed: false, message: 'Push notifications not yet configured' });
@@ -851,7 +821,7 @@ async function handlePushSubscribe(req: VercelRequest, res: VercelResponse) {
   return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
 }
 
-async function handlePushSend(req: VercelRequest, res: VercelResponse) {
+async function handlePushSend(req: VercelRequest, res: VercelResponse, _user: AuthContext) {
   // push_subscriptions table does not exist — return graceful response
   return sendSuccess(res, { sent: 0, message: 'Push notifications not yet configured' });
 }

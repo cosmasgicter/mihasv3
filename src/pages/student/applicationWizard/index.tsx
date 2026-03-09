@@ -57,6 +57,7 @@ const ApplicationWizardContent = () => {
     subjects,
     hasAutoPopulatedData,
     completionPercentage,
+    missingFields,
     confirmSubmission,
     setConfirmSubmission,
     resultSlipFile,
@@ -440,6 +441,7 @@ const ApplicationWizardContent = () => {
                 form={form}
                 hasAutoPopulatedData={hasAutoPopulatedData}
                 completionPercentage={completionPercentage}
+                missingFields={missingFields}
                 selectedProgram={selectedProgram}
                 programs={programs}
                 intakes={intakes}

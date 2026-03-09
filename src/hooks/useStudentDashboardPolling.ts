@@ -19,6 +19,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { applicationService } from '@/services/applications'
 
+/** Threshold in ms after which polling stops entirely when tab is hidden */
+const HIDDEN_PAUSE_THRESHOLD = 300000 // 5 minutes
+
 export interface StudentApplication {
   id: string
   application_number: string
@@ -78,6 +81,7 @@ export function useStudentDashboardPolling(
   const previousFingerprintRef = useRef<string | null>(null)
   const onDataChangeRef = useRef<typeof onDataChange>(onDataChange)
   const onApplicationChangeRef = useRef<typeof onApplicationChange>(onApplicationChange)
+  const hiddenSinceRef = useRef<number | null>(null)
 
   useEffect(() => {
     onDataChangeRef.current = onDataChange
@@ -86,6 +90,26 @@ export function useStudentDashboardPolling(
   useEffect(() => {
     onApplicationChangeRef.current = onApplicationChange
   }, [onApplicationChange])
+
+  // Track page visibility to pause polling when hidden > 5 minutes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        hiddenSinceRef.current = Date.now()
+      } else {
+        hiddenSinceRef.current = null
+        // Invalidate to get fresh data when tab becomes visible again
+        if (user?.id) {
+          queryClient.invalidateQueries({ queryKey: ['student-dashboard-polling', user.id] })
+        }
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [queryClient, user?.id])
 
   const fetchData = useCallback(async (): Promise<StudentDashboardData> => {
     if (!user?.id) {
@@ -125,7 +149,17 @@ export function useStudentDashboardPolling(
     queryFn: fetchData,
     enabled: enabled && !!user?.id,
     refetchInterval: enabled
-      ? () => (document.visibilityState === 'visible' ? pollingInterval : pollingInterval * 2)
+      ? () => {
+          if (document.visibilityState === 'visible') {
+            return pollingInterval
+          }
+          // Tab is hidden — check how long
+          const hiddenSince = hiddenSinceRef.current
+          if (hiddenSince && Date.now() - hiddenSince >= HIDDEN_PAUSE_THRESHOLD) {
+            return false // Stop polling entirely after 5 minutes hidden
+          }
+          return pollingInterval * 2
+        }
       : false,
     staleTime: pollingInterval / 2,
   })

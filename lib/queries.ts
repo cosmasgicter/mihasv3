@@ -1105,6 +1105,7 @@ export interface ApplicationRecord {
   public_tracking_code: string | null;
   reviewed_by: string | null;
   review_started_at: string | null;
+  version: number;
   created_at: string;
   updated_at: string;
 }
@@ -1603,10 +1604,15 @@ export const GradeQueries = {
 export interface StatusHistoryRecord {
   id: string;
   application_id: string;
+  old_status?: string | null;
   status: ApplicationStatus;
   changed_by: string;
   notes: string | null;
   created_at: string;
+  changed_by_profile?: {
+    email: string;
+    full_name: string | null;
+  };
 }
 
 /**
@@ -1620,27 +1626,40 @@ export const StatusHistoryQueries = {
     applicationId: string,
     status: ApplicationStatus,
     changedBy: string,
-    notes?: string
+    notes?: string,
+    oldStatus?: string
   ): QueryConfig => ({
     text: `
       INSERT INTO application_status_history (
-        id, application_id, status, changed_by, notes, created_at
+        id, application_id, old_status, new_status, changed_by, notes, created_at
       )
-      VALUES (gen_random_uuid(), $1, $2, $3, $4, NOW())
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NOW())
       RETURNING *
     `,
-    values: [applicationId, status, changedBy, notes || null],
+    values: [applicationId, oldStatus || null, status, changedBy, notes || null],
   }),
 
   /**
-   * Find history by application ID
+   * Find history by application ID (with admin profile info)
    */
   findByApplicationId: (applicationId: string): QueryConfig => ({
     text: `
-      SELECT *
-      FROM application_status_history
-      WHERE application_id = $1
-      ORDER BY created_at DESC
+      SELECT
+        h.id,
+        h.application_id,
+        h.old_status,
+        h.new_status AS status,
+        h.changed_by,
+        h.notes,
+        h.created_at,
+        json_build_object(
+          'email', p.email,
+          'full_name', NULLIF(TRIM(CONCAT_WS(' ', p.first_name, p.last_name)), '')
+        ) AS changed_by_profile
+      FROM application_status_history h
+      LEFT JOIN profiles p ON p.id = h.changed_by
+      WHERE h.application_id = $1
+      ORDER BY h.created_at DESC
     `,
     values: [applicationId],
   }),

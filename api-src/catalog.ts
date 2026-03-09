@@ -3,7 +3,7 @@ import { handleCors } from '../lib/cors';
 import { query } from '../lib/db';
 import { CatalogQueries, SubjectRecord } from '../lib/queries';
 import { withArcjetProtection } from '../lib/arcjet';
-import { getAuthUser } from '../lib/auth/middleware';
+import { getAuthUser, requireAuth, AuthenticationError, AuthorizationError, type AuthContext } from '../lib/auth/middleware';
 import { requireCsrf } from '../lib/csrf';
 import { logAuditEvent } from '../lib/auditLogger';
 import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
@@ -152,15 +152,19 @@ function normalizeIntake(row: IntakeRow) {
 }
 
 async function ensureAdmin(req: VercelRequest, res: VercelResponse) {
-  const user = await getAuthUser(req);
-
-  if (!user) {
-    sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
-    return null;
+  let user: AuthContext;
+  try {
+    user = await requireAuth(req);
+  } catch (error) {
+    if (error instanceof AuthenticationError) {
+      sendError(res, error.message, error.statusCode, error.code);
+      return null;
+    }
+    throw error;
   }
 
   if (!isAdminRole(user.role)) {
-    sendError(res, 'Forbidden: admin access required', HttpStatus.FORBIDDEN);
+    sendError(res, 'Insufficient permissions', HttpStatus.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS');
     return null;
   }
 

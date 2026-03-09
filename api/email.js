@@ -637,6 +637,16 @@ function sendError(res, message, status = HttpStatus.BAD_REQUEST, code = ErrorCo
   };
   return res.status(status).json(response);
 }
+function sendValidationError(res, fieldErrors, message = "Validation failed") {
+  res.setHeader("Content-Type", "application/json");
+  const response = {
+    success: false,
+    error: sanitizeError(message),
+    code: ErrorCode.VALIDATION_ERROR,
+    fieldErrors
+  };
+  return res.status(HttpStatus.BAD_REQUEST).json(response);
+}
 var HttpStatus, ErrorCode, AuthError;
 var init_errorHandler = __esm(() => {
   HttpStatus = {
@@ -901,6 +911,27 @@ async function isSessionActive(userId, sessionId) {
 }
 
 // lib/auth/middleware.ts
+class AuthenticationError extends Error {
+  statusCode;
+  code;
+  constructor(message, code = "AUTHENTICATION_REQUIRED", statusCode = 401) {
+    super(message);
+    this.name = "AuthenticationError";
+    this.code = code;
+    this.statusCode = statusCode;
+  }
+}
+
+class AuthorizationError extends Error {
+  statusCode;
+  code;
+  constructor(message, code = "INSUFFICIENT_PERMISSIONS", statusCode = 403) {
+    super(message);
+    this.name = "AuthorizationError";
+    this.code = code;
+    this.statusCode = statusCode;
+  }
+}
 function extractToken(req) {
   const cookieToken = extractAccessTokenFromCookie(req);
   if (cookieToken) {
@@ -928,6 +959,33 @@ async function getAuthUser(req) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.log("[AUTH] Token verification failed:", errorMessage);
     return null;
+  }
+}
+async function requireAuth(req) {
+  const token = extractToken(req);
+  if (!token) {
+    throw new AuthenticationError("Authentication required", "AUTHENTICATION_REQUIRED", 401);
+  }
+  try {
+    const payload = await verifyAccessToken(token);
+    const sessionValid = await validateTrackedSession(payload);
+    if (!sessionValid) {
+      throw new AuthenticationError("Session has expired or was revoked", "SESSION_REVOKED", 401);
+    }
+    return mapPayloadToAuthContext(payload);
+  } catch (error) {
+    if (error instanceof AuthenticationError) {
+      throw error;
+    }
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.log("[AUTH] Token verification failed:", errorMessage);
+    if (errorMessage.includes("expired")) {
+      throw new AuthenticationError("Access token has expired", "TOKEN_EXPIRED", 401);
+    }
+    if (errorMessage.includes("signature")) {
+      throw new AuthenticationError("Invalid token", "INVALID_TOKEN", 401);
+    }
+    throw new AuthenticationError("Authentication failed", "AUTHENTICATION_FAILED", 401);
   }
 }
 function mapPayloadToAuthContext(payload) {
@@ -1271,12 +1329,7 @@ function validateBody(schema, req, res) {
   const result = schema.safeParse(req.body || {});
   if (!result.success) {
     const fieldErrors = formatZodErrors(result.error);
-    res.status(HttpStatus.BAD_REQUEST).json({
-      success: false,
-      error: "Validation failed",
-      code: "VALIDATION_ERROR",
-      fieldErrors
-    });
+    sendValidationError(res, fieldErrors);
     return null;
   }
   return result.data;
@@ -14883,31 +14936,43 @@ async function handler(req, res) {
   }
   if (await requireCsrf(req, res))
     return;
+  let user;
+  try {
+    user = await requireAuth(req);
+  } catch (error48) {
+    if (error48 instanceof AuthenticationError) {
+      return sendError(res, error48.message, error48.statusCode, error48.code);
+    }
+    throw error48;
+  }
   const action = req.query.action;
   try {
     switch (action) {
       case "send":
-        return await handleSend(req, res);
+        return await handleSend(req, res, user);
       case "process-queue":
-        return await handleProcessQueue(req, res);
+        return await handleProcessQueue(req, res, user);
       case "retry-failed":
-        return await handleRetryFailed(req, res);
+        return await handleRetryFailed(req, res, user);
       case "queue-status":
-        return await handleQueueStatus(req, res);
+        return await handleQueueStatus(req, res, user);
       default:
         return sendError(res, "Invalid action", HttpStatus.BAD_REQUEST);
     }
   } catch (error48) {
+    if (error48 instanceof AuthorizationError) {
+      return sendError(res, error48.message, error48.statusCode, error48.code);
+    }
     return handleError(res, error48, "email");
   }
 }
-async function handleSend(req, res) {
+async function handleSend(req, res, user) {
   if (req.method !== "POST") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
   }
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
+  const isAdminUser = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
+  if (!isAdminUser) {
+    return sendError(res, "Insufficient permissions", HttpStatus.FORBIDDEN, "INSUFFICIENT_PERMISSIONS");
   }
   const parsed = validateBody(sendEmailBodySchema, req, res);
   if (!parsed)
@@ -14945,17 +15010,13 @@ async function handleSend(req, res) {
     return handleError(res, error48, "email/send");
   }
 }
-async function handleProcessQueue(req, res) {
+async function handleProcessQueue(req, res, user) {
   if (req.method !== "POST") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
   }
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
-  }
-  const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
-  if (!isAdmin) {
-    return sendError(res, "Admin access required", HttpStatus.FORBIDDEN);
+  const isAdminUser = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
+  if (!isAdminUser) {
+    return sendError(res, "Insufficient permissions", HttpStatus.FORBIDDEN, "INSUFFICIENT_PERMISSIONS");
   }
   if (!process.env.RESEND_API_KEY) {
     return sendError(res, "RESEND_API_KEY is not configured", HttpStatus.SERVICE_UNAVAILABLE);
@@ -15016,17 +15077,13 @@ async function handleProcessQueue(req, res) {
     return handleError(res, error48, "email/process-queue");
   }
 }
-async function handleRetryFailed(req, res) {
+async function handleRetryFailed(req, res, user) {
   if (req.method !== "POST") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
   }
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
-  }
-  const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
-  if (!isAdmin) {
-    return sendError(res, "Admin access required", HttpStatus.FORBIDDEN);
+  const isAdminUser = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
+  if (!isAdminUser) {
+    return sendError(res, "Insufficient permissions", HttpStatus.FORBIDDEN, "INSUFFICIENT_PERMISSIONS");
   }
   try {
     const result = await query(`WITH updated AS (
@@ -15052,17 +15109,13 @@ async function handleRetryFailed(req, res) {
     return handleError(res, error48, "email/retry-failed");
   }
 }
-async function handleQueueStatus(req, res) {
+async function handleQueueStatus(req, res, user) {
   if (req.method !== "GET") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
   }
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
-  }
-  const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
-  if (!isAdmin) {
-    return sendError(res, "Admin access required", HttpStatus.FORBIDDEN);
+  const isAdminUser = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
+  if (!isAdminUser) {
+    return sendError(res, "Insufficient permissions", HttpStatus.FORBIDDEN, "INSUFFICIENT_PERMISSIONS");
   }
   try {
     const result = await query(`SELECT status, COUNT(*)::text AS count FROM email_queue GROUP BY status`);

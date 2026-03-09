@@ -33,6 +33,8 @@ export type OfflineDataPayloadMap = {
   form_submission: OfflineFormSubmissionData
 }
 
+export type OfflineQueueItemStatus = 'pending' | 'failed'
+
 export type OfflineQueueItem<TType extends OfflineRecordType = OfflineRecordType> = {
   id: string
   type: TType
@@ -40,6 +42,7 @@ export type OfflineQueueItem<TType extends OfflineRecordType = OfflineRecordType
   timestamp: number
   userId: string
   retryCount: number
+  status?: OfflineQueueItemStatus
 }
 
 export type NewOfflineQueueItem<TType extends OfflineRecordType = OfflineRecordType> = Omit<

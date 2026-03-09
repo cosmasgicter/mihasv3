@@ -84,10 +84,4 @@ export async function makeAuthenticatedRequest(
   });
 }
 
-/**
- * @deprecated Use makeAuthenticatedRequest instead
- * This function is kept for backward compatibility during migration
- */
-export async function getSessionToken(): Promise<SessionResult> {
-  return checkSession();
-}
+

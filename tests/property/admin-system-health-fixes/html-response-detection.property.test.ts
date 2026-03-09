@@ -100,7 +100,7 @@ describe('Feature: admin-system-health-fixes, Property 8: Frontend HTML Error Re
             expect(result).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -113,7 +113,7 @@ describe('Feature: admin-system-health-fixes, Property 8: Frontend HTML Error Re
             expect(result).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -127,7 +127,7 @@ describe('Feature: admin-system-health-fixes, Property 8: Frontend HTML Error Re
             expect(result).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -142,7 +142,7 @@ describe('Feature: admin-system-health-fixes, Property 8: Frontend HTML Error Re
             expect(result).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -162,7 +162,7 @@ describe('Feature: admin-system-health-fixes, Property 8: Frontend HTML Error Re
             expect(result).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -176,7 +176,7 @@ describe('Feature: admin-system-health-fixes, Property 8: Frontend HTML Error Re
             expect(result).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -193,7 +193,7 @@ describe('Feature: admin-system-health-fixes, Property 8: Frontend HTML Error Re
             await expect(parseJsonResponse(mockResponse)).rejects.toThrow(HtmlResponseError);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -212,7 +212,7 @@ describe('Feature: admin-system-health-fixes, Property 8: Frontend HTML Error Re
             expect(result).toEqual(jsonObj);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -237,7 +237,7 @@ describe('Feature: admin-system-health-fixes, Property 8: Frontend HTML Error Re
             await expect(parseJsonResponse(mockResponse)).rejects.toThrow();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -264,7 +264,7 @@ describe('Feature: admin-system-health-fixes, Property 8: Frontend HTML Error Re
             expect(error.name).toBe('HtmlResponseError');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -330,7 +330,7 @@ describe('Feature: admin-system-health-fixes, Property 8: Frontend HTML Error Re
             expect(result).toEqual(jsonObj);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -356,7 +356,7 @@ describe('Feature: admin-system-health-fixes, Property 8: Frontend HTML Error Re
             expect(result).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });

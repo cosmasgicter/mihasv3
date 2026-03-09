@@ -132,12 +132,14 @@ export function useApplicationStatusUpdate(options: UseApplicationStatusUpdateOp
     },
 
     onSuccess: (result) => {
-      // Invalidate all related queries to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: ['applications'] })
+      // Invalidate targeted query keys for admin status change (Req 15.2)
+      // Specific application + admin lists — NOT queryClient.clear()
       queryClient.invalidateQueries({ queryKey: ['applications', result.application.id] })
+      queryClient.invalidateQueries({ queryKey: ['admin-applications'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-polling'] })
+      queryClient.invalidateQueries({ queryKey: ['applications'] })
       queryClient.invalidateQueries({ queryKey: ['application-stats'] })
       queryClient.invalidateQueries({ queryKey: ['application-history'] })
-      queryClient.invalidateQueries({ queryKey: ['admin-dashboard'] })
 
       // Show success toast
       toast.success(

@@ -11,6 +11,7 @@ import {
   ArrowDown
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { formatTimestamp } from '@/lib/dateFormat'
 
 export interface EnhancedDashboardMetrics {
   todayApplications: number
@@ -161,7 +162,7 @@ export function EnhancedDashboard({
                 }`}></div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{activity.message}</p>
-                  <p className="text-xs text-muted-foreground">{new Date(activity.timestamp).toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">{formatTimestamp(activity.timestamp)}</p>
                 </div>
               </div>
             )) : (

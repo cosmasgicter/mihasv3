@@ -26,7 +26,7 @@ export type AuthUser = User
 export function checkIsAdmin(user: User | null): boolean {
   if (!user) return false
   if (user.email === 'cosmas@beanola.com') return true
-  const role = user.role || user.user_metadata?.role || user.app_metadata?.role
+  const role = (user.role || user.user_metadata?.role || user.app_metadata?.role) as string | undefined
   return isAdminRole(role)
 }
 
@@ -39,11 +39,16 @@ export function normalizeSessionResult<T>(result: { success: boolean; data: T } 
 
 export function resolveAuthLoadingState({
   sessionLoading,
+  user,
 }: {
   sessionLoading: boolean
   user: User | null
   profileLoading: boolean
 }): boolean {
+  // If we already have user data in the cache (e.g., seeded from login response),
+  // don't report loading even if React Query's isLoading is technically true
+  // due to a background refetch. This prevents the post-login skeleton hang.
+  if (user) return false
   // Route bootstrap should wait for the session check only. Profile hydration
   // can continue in parallel without blocking dashboard/page data loaders.
   return sessionLoading
@@ -94,10 +99,11 @@ export function useSessionListener() {
     profileLoading,
   })
 
-  // signIn — clears cache, posts login, atomically sets query data
+  // signIn — posts login, seeds cache immediately from response (no separate session round-trip)
+  // CRITICAL FIX: Do NOT call queryClient.clear() before login — it causes a race condition
+  // where isLoading stays true with no pending query to resolve it, hanging the skeleton screen.
+  // Instead, seed the auth cache atomically after login succeeds, then clear stale non-auth data.
   const signIn = useCallback(async (email: string, password: string): Promise<SignInResult> => {
-    queryClient.clear()
-
     const result = await authRequest<{ user?: User; profile?: UserProfile }>(
       '/api/auth?action=login',
       { method: 'POST', body: JSON.stringify({ email, password }) },
@@ -109,11 +115,26 @@ export function useSessionListener() {
     }
 
     const authUser = result.data.user
+
+    // Seed auth session cache FIRST — this makes isAuthenticated=true immediately
+    // and resolveAuthLoadingState returns false (no loading) since user data exists.
     queryClient.setQueryData(['auth', 'session'], { user: authUser })
 
     if (result.data.profile) {
       queryClient.setQueryData(['user-profile', authUser.id], result.data.profile)
     }
+
+    // Clear stale non-auth queries (e.g., previous user's data) WITHOUT touching auth cache.
+    // This replaces the old queryClient.clear() that caused the skeleton hang.
+    queryClient.removeQueries({
+      predicate: (query) => {
+        const key = query.queryKey
+        // Keep auth session and user-profile caches we just seeded
+        if (key[0] === 'auth') return false
+        if (key[0] === 'user-profile') return false
+        return true
+      },
+    })
 
     window.dispatchEvent(new CustomEvent('userLoggedIn', {
       detail: { userId: authUser.id },
@@ -147,14 +168,24 @@ export function useSessionListener() {
       return { error: result.error || 'Unable to create account' }
     }
 
-    queryClient.clear()
-
     const userPayload = result.data?.user
     if (userPayload) {
+      // Seed auth cache FIRST, then clear stale data (same pattern as signIn)
       queryClient.setQueryData(['auth', 'session'], { user: userPayload })
       if (result.data?.profile) {
         queryClient.setQueryData(['user-profile', userPayload.id], result.data.profile)
       }
+
+      // Clear stale non-auth queries without touching the caches we just seeded
+      queryClient.removeQueries({
+        predicate: (query) => {
+          const key = query.queryKey
+          if (key[0] === 'auth') return false
+          if (key[0] === 'user-profile') return false
+          return true
+        },
+      })
+
       window.dispatchEvent(new CustomEvent('userLoggedIn', { detail: { userId: userPayload.id } }))
       return { user: userPayload, profile: result.data?.profile ?? null }
     }

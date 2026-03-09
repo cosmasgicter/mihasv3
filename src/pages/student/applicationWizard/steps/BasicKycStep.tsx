@@ -7,10 +7,13 @@ import { AnimatedInput } from '@/components/smoothui/animated-input'
 import { FormSelect } from '@/components/ui/form-select'
 import { ProfileCompletionBadge } from '@/components/ui/ProfileAutoPopulationIndicator'
 import { animateClasses, staggerChild } from '@/lib/animations'
+import { formatDate } from '@/lib/dateFormat'
 import { FieldHelp } from '../components/FieldHelp'
 import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
 import { useResidenceLocationOptions } from '@/hooks/useResidenceLocationOptions'
 import { DEFAULT_RESIDENCE_COUNTRY } from '@/lib/locationOptions'
+
+import { NATIONALITY_OPTIONS } from '@/lib/nationalityOptions'
 
 import type { WizardFormData, WizardProgram, WizardIntake } from '../types'
 
@@ -18,6 +21,7 @@ interface BasicKycStepProps {
   form: UseFormReturn<WizardFormData>
   hasAutoPopulatedData: boolean
   completionPercentage: number
+  missingFields?: { key: string; label: string }[]
   selectedProgram?: WizardFormData['program']
   programs: WizardProgram[]
   intakes: WizardIntake[]
@@ -28,6 +32,7 @@ const BasicKycStep = ({
   form,
   hasAutoPopulatedData,
   completionPercentage,
+  missingFields,
   selectedProgram,
   programs,
   intakes,
@@ -55,15 +60,7 @@ const BasicKycStep = ({
 
   const formatDeadline = (date: string | undefined) => {
     if (!date) return ''
-    try {
-      return new Date(date).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      })
-    } catch {
-      return ''
-    }
+    return formatDate(date)
   }
 
   return (
@@ -75,7 +72,7 @@ const BasicKycStep = ({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
         <h2 className="text-lg font-semibold text-foreground">{title}</h2>
         {hasAutoPopulatedData && (
-          <ProfileCompletionBadge completionPercentage={completionPercentage} />
+          <ProfileCompletionBadge completionPercentage={completionPercentage} missingFields={missingFields} />
         )}
       </div>
 
@@ -213,11 +210,13 @@ const BasicKycStep = ({
         </div>
 
         <div style={shouldAnimate ? staggerChild(9) : undefined}>
-          <AnimatedInput
-            {...register('nationality')}
+          <FormSelect
+            name="nationality"
+            control={control}
             label="Nationality"
+            options={NATIONALITY_OPTIONS}
+            placeholder="Select nationality"
             error={errors.nationality?.message}
-            placeholder="e.g., Zambian"
           />
         </div>
 
@@ -242,13 +241,24 @@ const BasicKycStep = ({
             name="program"
             control={control}
             label="Program"
-            options={programs.map(program => {
-              const institutionName = program.institutions?.full_name || program.institutions?.name
-              const label = institutionName ? `${program.name} (${institutionName})` : program.name
-              return { value: program.id, label }
-            })}
-            placeholder="Select program"
+            options={
+              [...programs]
+                .sort((a, b) => {
+                  const instA = a.institutions?.name || ''
+                  const instB = b.institutions?.name || ''
+                  const cmp = instA.localeCompare(instB)
+                  return cmp !== 0 ? cmp : (a.name || '').localeCompare(b.name || '')
+                })
+                .map(program => {
+                  const institutionName = program.institutions?.full_name || program.institutions?.name
+                  const label = institutionName ? `${program.name} — ${institutionName}` : program.name
+                  return { value: program.id, label }
+                })
+            }
+            placeholder="Select programme"
             error={errors.program?.message}
+            disabled={programs.length === 0}
+            helperText={programs.length === 0 ? 'No programmes available for the current intake' : undefined}
             required
           />
         </div>

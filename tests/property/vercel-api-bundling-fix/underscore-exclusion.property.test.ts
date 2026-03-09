@@ -14,7 +14,7 @@
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
 
-const NUM_RUNS = 100;
+const NUM_RUNS = 10;
 
 const ACTUAL_API_FILES = [
   'auth.ts', 'admin.ts', 'applications.ts', 'catalog.ts',

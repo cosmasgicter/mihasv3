@@ -1,5 +1,5 @@
 import React from 'react'
-import { User } from 'lucide-react'
+import { User, Menu } from 'lucide-react'
 import { UserMenu } from '@/components/ui/UserMenu'
 import { NotificationBell } from '@/components/student/NotificationBell'
 import { useAuth } from '@/contexts/AuthContext'
@@ -13,7 +13,7 @@ import { getDisplayName } from '@/utils/userDisplayName'
 export const Header = React.memo(function Header() {
   const { user, isAdmin } = useAuth()
   const { profile } = useProfileQuery()
-  const { collapsed } = useSidebar()
+  const { collapsed, setMobileOpen } = useSidebar()
   const { isMobile } = useResponsive()
   const scrollDirection = useScrollDirection()
 
@@ -41,8 +41,17 @@ export const Header = React.memo(function Header() {
     >
       <div className="flex items-center justify-between h-16 px-3 sm:px-4 md:px-6">
         <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1 overflow-hidden">
+          {/* Hamburger menu — mobile only */}
+          <button
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open navigation menu"
+            className="md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+
           <h2 className="font-semibold text-foreground flex items-center gap-2 min-w-0 max-w-full animate-fade-in" style={{ fontSize: 'var(--type-sm)' }}>
-            <User style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }} />
+            <User className="flex-shrink-0" style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }} />
             <span className="truncate">{fullName}</span>
           </h2>
         </div>

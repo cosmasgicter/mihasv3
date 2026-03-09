@@ -81,9 +81,8 @@ export const getStatusEmoji = (status: string) => {
   }
 }
 
+import { formatDate } from '@/lib/dateFormat'
+
 export const formatDisplayDate = (value?: string | null) => {
-  if (!value) return 'Not available'
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) return 'Not available'
-  return parsed.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  return formatDate(value)
 }

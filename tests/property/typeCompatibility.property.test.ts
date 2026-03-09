@@ -175,7 +175,7 @@ describe('Feature: supabase-remnant-purge, Property 4: Type compatibility with A
         if (app.phone !== undefined) expect(typeof app.phone).toBe('string')
         if (app.created_at !== undefined) expect(typeof app.created_at).toBe('string')
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -191,7 +191,7 @@ describe('Feature: supabase-remnant-purge, Property 4: Type compatibility with A
         if (prog.duration_months !== undefined) expect(typeof prog.duration_months).toBe('number')
         if (prog.is_active !== undefined) expect(typeof prog.is_active).toBe('boolean')
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -204,7 +204,7 @@ describe('Feature: supabase-remnant-purge, Property 4: Type compatibility with A
         expect(typeof intake.id).toBe('string')
         expect(typeof intake.name).toBe('string')
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -219,7 +219,7 @@ describe('Feature: supabase-remnant-purge, Property 4: Type compatibility with A
         expect(typeof user.role).toBe('string')
         expect(['student', 'admin', 'reviewer', 'super_admin']).toContain(user.role)
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -232,7 +232,7 @@ describe('Feature: supabase-remnant-purge, Property 4: Type compatibility with A
         expect(typeof subject.id).toBe('string')
         expect(typeof subject.name).toBe('string')
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 })

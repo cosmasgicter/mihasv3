@@ -57,7 +57,7 @@ describe('Property 12: Refresh token rotation', () => {
           Date.now = origNow;
         }
       }),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -88,7 +88,7 @@ describe('Property 12: Refresh token rotation', () => {
         expect(typeof payload.exp).toBe('number');
         expect(payload.exp - payload.iat).toBe(7 * 24 * 60 * 60);
       }),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 });

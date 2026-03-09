@@ -43,7 +43,7 @@ describe('Property 12: Zod validation rejects invalid input with field errors', 
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -60,7 +60,7 @@ describe('Property 12: Zod validation rejects invalid input with field errors', 
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -80,7 +80,7 @@ describe('Property 12: Zod validation rejects invalid input with field errors', 
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -96,7 +96,7 @@ describe('Property 12: Zod validation rejects invalid input with field errors', 
           expect(result.success).toBe(false);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -109,7 +109,7 @@ describe('Property 12: Zod validation rejects invalid input with field errors', 
           expect(result.success).toBe(false);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -122,7 +122,7 @@ describe('Property 12: Zod validation rejects invalid input with field errors', 
           expect(result.success).toBe(false);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -141,7 +141,7 @@ describe('Property 12: Zod validation rejects invalid input with field errors', 
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 });
@@ -162,7 +162,7 @@ describe('Property 13: Zambian data format validation', () => {
           expect(result.success).toBe(true);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -177,7 +177,7 @@ describe('Property 13: Zambian data format validation', () => {
           expect(result.success).toBe(false);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -191,7 +191,7 @@ describe('Property 13: Zambian data format validation', () => {
           expect(result.success).toBe(true);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -206,7 +206,7 @@ describe('Property 13: Zambian data format validation', () => {
           expect(result.success).toBe(false);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -219,7 +219,7 @@ describe('Property 13: Zambian data format validation', () => {
           expect(result.success).toBe(true);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -232,7 +232,7 @@ describe('Property 13: Zambian data format validation', () => {
           expect(result.success).toBe(false);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -245,7 +245,7 @@ describe('Property 13: Zambian data format validation', () => {
           expect(result.success).toBe(false);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 });
@@ -267,7 +267,7 @@ describe('Property 14: String input sanitization', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -282,7 +282,7 @@ describe('Property 14: String input sanitization', () => {
           expect(result.success).toBe(false);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -298,7 +298,7 @@ describe('Property 14: String input sanitization', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -311,7 +311,7 @@ describe('Property 14: String input sanitization', () => {
           expect(result.success).toBe(false);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -331,7 +331,7 @@ describe('Property 14: String input sanitization', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 });

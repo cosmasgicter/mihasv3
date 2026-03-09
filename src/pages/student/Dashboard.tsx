@@ -11,7 +11,7 @@ import { DocumentButtons } from '@/components/student/DocumentButtons'
 import { formatDate, getStatusColor } from '@/lib/utils'
 import { draftManager } from '@/lib/draftManager'
 import { sanitizeForLog, sanitizeForDisplay } from '@/lib/sanitize'
-import { getUserMetadata, getBestValue, calculateProfileCompletion } from '@/hooks/useProfileAutoPopulation'
+import { getUserMetadata, getBestValue, calculateProfileCompletion, getProfileMissingFields } from '@/hooks/useProfileAutoPopulation'
 import { ProfileCompletionBadge } from '@/components/ui/ProfileAutoPopulationIndicator'
 import { clearAllDraftData } from '@/lib/draftCleanup'
 import { applicationService } from '@/services/applications'
@@ -325,6 +325,7 @@ export default function StudentDashboard() {
 
   const metadata = getUserMetadata(user)
   const profileCompletion = calculateProfileCompletion(profile, metadata)
+  const profileMissingFields = getProfileMissingFields(profile, metadata)
   const displayName = sanitizeForDisplay(getDisplayName(profile, {
     ...user,
     full_name: getBestValue(user?.full_name, metadata.full_name),
@@ -449,7 +450,7 @@ export default function StudentDashboard() {
                     <RefreshCw className={`h-4 w-4 ${(isRefreshing || isManualRefreshing) ? 'animate-spin' : ''}`} />
                     {(isRefreshing || isManualRefreshing) ? 'Refreshing...' : 'Refresh'}
                   </Button>
-                  <ProfileCompletionBadge completionPercentage={profileCompletion} />
+                  <ProfileCompletionBadge completionPercentage={profileCompletion} missingFields={profileMissingFields} />
                 </div>
               }
             />
@@ -466,7 +467,6 @@ export default function StudentDashboard() {
             {/* Status Overview with 8starlabs StatusIndicator */}
             <DashboardStatusOverview 
               applications={applications}
-              totalDraftCount={totalDraftCount}
             />
 
             <ContinueApplication />

@@ -1,24 +1,25 @@
 import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
-import { useSessionListener } from '@/hooks/auth/useSessionListener'
+import { useAuth } from '@/contexts/AuthContext'
 import { AdminErrorBoundary } from '@/components/admin/AdminErrorBoundary'
+import { AppShellSkeleton } from '@/components/ui/AppShellSkeleton'
 
 interface AdminRouteProps {
   children: React.ReactNode
 }
 
 /**
- * Admin route guard using optimized auth state checks
- * Leverages React Query caching to avoid redundant profile fetches
- * Preserves intended destination for redirect after login
- * Requirements: 4.5, 11.5
+ * Admin route guard deriving auth state exclusively from useAuth() (AuthContext).
+ * This ensures a single source of truth for auth state across all route guards.
+ * Preserves intended destination for redirect after login.
+ * Requirements: 1.4, 1.5, 4.5, 11.5
  */
 export function AdminRoute({ children }: AdminRouteProps) {
-  const { user, isAdmin, loading: isLoading } = useSessionListener()
+  const { user, isAdmin, loading } = useAuth()
   const location = useLocation()
   
-  if (isLoading) {
-    return null
+  if (loading) {
+    return <AppShellSkeleton />
   }
 
   if (!user) {

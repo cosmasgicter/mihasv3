@@ -24,15 +24,10 @@ __export(exports_db, {
   transaction: () => transaction,
   sessionQueries: () => sessionQueries,
   query: () => query,
-  getDatabaseType: () => detectDatabaseType,
-  detectDatabaseType: () => detectDatabaseType,
   auditQueries: () => auditQueries,
   DatabaseErrorCode: () => DatabaseErrorCode,
   DatabaseError: () => DatabaseError
 });
-function detectDatabaseType() {
-  return "neon";
-}
 function getDatabaseConfig() {
   const url = process.env.DATABASE_URL;
   if (!url) {
@@ -1208,6 +1203,16 @@ function sendError(res, message, status = HttpStatus.BAD_REQUEST, code = ErrorCo
   };
   return res.status(status).json(response);
 }
+function sendValidationError(res, fieldErrors, message = "Validation failed") {
+  res.setHeader("Content-Type", "application/json");
+  const response = {
+    success: false,
+    error: sanitizeError(message),
+    code: ErrorCode.VALIDATION_ERROR,
+    fieldErrors
+  };
+  return res.status(HttpStatus.BAD_REQUEST).json(response);
+}
 var HttpStatus, ErrorCode, AuthError;
 var init_errorHandler = __esm(() => {
   HttpStatus = {
@@ -1772,12 +1777,7 @@ function validateBody(schema, req, res) {
   const result = schema.safeParse(req.body || {});
   if (!result.success) {
     const fieldErrors = formatZodErrors(result.error);
-    res.status(HttpStatus.BAD_REQUEST).json({
-      success: false,
-      error: "Validation failed",
-      code: "VALIDATION_ERROR",
-      fieldErrors
-    });
+    sendValidationError(res, fieldErrors);
     return null;
   }
   return result.data;
@@ -1786,12 +1786,7 @@ function validateQuery(schema, req, res) {
   const result = schema.safeParse(req.query || {});
   if (!result.success) {
     const fieldErrors = formatZodErrors(result.error);
-    res.status(HttpStatus.BAD_REQUEST).json({
-      success: false,
-      error: "Validation failed",
-      code: "VALIDATION_ERROR",
-      fieldErrors
-    });
+    sendValidationError(res, fieldErrors);
     return null;
   }
   return result.data;
@@ -16325,6 +16320,7 @@ async function handleProfile(req, res) {
       "residence_town",
       "country",
       "nationality",
+      "citizenship",
       "nrc_number",
       "address",
       "avatar_url",
@@ -16341,6 +16337,9 @@ async function handleProfile(req, res) {
         updates.first_name = parts[0] || undefined;
       if (!updates.last_name)
         updates.last_name = parts.slice(1).join(" ") || undefined;
+    }
+    if (updates.nationality && typeof updates.nationality === "string") {
+      updates.citizenship = updates.nationality;
     }
     const providedFields = Object.keys(updates).filter(isAllowedField);
     if (providedFields.length === 0) {

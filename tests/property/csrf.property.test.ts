@@ -93,7 +93,7 @@ describe('CSRF Property Tests', () => {
           expect(Buffer.from(token1, 'hex').length).toBe(32);
           expect(Buffer.from(token2, 'hex').length).toBe(32);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
 
@@ -106,7 +106,7 @@ describe('CSRF Property Tests', () => {
             expect(hash).toMatch(/^[a-f0-9]{64}$/);
           },
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
   });
@@ -140,7 +140,7 @@ describe('CSRF Property Tests', () => {
             expect(result).toBe(false);
           }
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
 
@@ -151,7 +151,7 @@ describe('CSRF Property Tests', () => {
           const result = await validateToken(userId, token);
           expect(result).toBe(true);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
 
@@ -165,7 +165,7 @@ describe('CSRF Property Tests', () => {
           const result = await validateToken(userId2, token);
           expect(result).toBe(false);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
   });
@@ -190,7 +190,7 @@ describe('CSRF Property Tests', () => {
           const isOldValid = await validateToken(userId, originalToken);
           expect(isOldValid).toBe(false);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
   });

@@ -56,7 +56,7 @@ describe('Skeleton consistency', () => {
 
   it('does not use legacy smooth-skeleton classes in deprecated enhanced skeleton helpers', () => {
     const card = renderToStaticMarkup(<LegacySkeletonCard />)
-    const table = renderToStaticMarkup(<LegacySkeletonTable rows={2} cols={2} />)
+    const table = renderToStaticMarkup(<LegacySkeletonTable />)
     const form = renderToStaticMarkup(<LegacySkeletonForm />)
 
     expect(card).not.toContain('smooth-skeleton')

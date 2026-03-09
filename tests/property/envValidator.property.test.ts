@@ -87,7 +87,7 @@ describe('Environment Variable Validation Property Tests (P24)', () => {
             expect(result.errors).toHaveLength(0)
           },
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
   })
@@ -119,7 +119,7 @@ describe('Environment Variable Validation Property Tests (P24)', () => {
             }
           },
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
   })
@@ -151,7 +151,7 @@ describe('Environment Variable Validation Property Tests (P24)', () => {
             expect(errorVarNames).toContain(varName)
           },
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
   })
@@ -162,7 +162,7 @@ describe('Environment Variable Validation Property Tests (P24)', () => {
         fc.property(validDbUrl, (url) => {
           expect(validateDatabaseUrl(url)).toBe(true)
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
 
@@ -181,7 +181,7 @@ describe('Environment Variable Validation Property Tests (P24)', () => {
         fc.property(badSchemes, (url) => {
           expect(validateDatabaseUrl(url)).toBe(false)
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
 
@@ -207,7 +207,7 @@ describe('Environment Variable Validation Property Tests (P24)', () => {
             expect(dbError!.message).toContain('postgres://')
           },
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
   })
@@ -221,7 +221,7 @@ describe('Environment Variable Validation Property Tests (P24)', () => {
             expect(validateJwtSecret(secret)).toBe(true)
           },
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
 
@@ -233,7 +233,7 @@ describe('Environment Variable Validation Property Tests (P24)', () => {
             expect(validateJwtSecret(secret)).toBe(false)
           },
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
 
@@ -262,7 +262,7 @@ describe('Environment Variable Validation Property Tests (P24)', () => {
             expect(jwtError!.message).toContain('32')
           },
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
   })

@@ -115,3 +115,9 @@ export const patchSyncGradesSchema = z.object({
     grade: eczGradeSchema,
   })),
 });
+
+/** PATCH — save draft with optimistic concurrency version check */
+export const patchSaveDraftSchema = z.object({
+  version: z.number().int().positive('Version must be a positive integer'),
+  data: z.record(z.string(), z.unknown()),
+});

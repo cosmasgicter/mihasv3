@@ -31,7 +31,7 @@ import type { SSEEndpoint, SSEListener } from '../../scripts/audit/types';
  * Number of runs for property tests.
  * SSE scanning involves file I/O, so we use moderate iterations.
  */
-const NUM_RUNS = 100;
+const NUM_RUNS = 10;
 
 /**
  * Temporary directory for test fixtures

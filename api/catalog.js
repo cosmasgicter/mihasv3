@@ -711,6 +711,16 @@ function sendError(res, message, status = HttpStatus.BAD_REQUEST, code = ErrorCo
   };
   return res.status(status).json(response);
 }
+function sendValidationError(res, fieldErrors, message = "Validation failed") {
+  res.setHeader("Content-Type", "application/json");
+  const response = {
+    success: false,
+    error: sanitizeError(message),
+    code: ErrorCode.VALIDATION_ERROR,
+    fieldErrors
+  };
+  return res.status(HttpStatus.BAD_REQUEST).json(response);
+}
 var HttpStatus, ErrorCode, AuthError;
 var init_errorHandler = __esm(() => {
   HttpStatus = {
@@ -1087,6 +1097,16 @@ async function isSessionActive(userId, sessionId) {
 }
 
 // lib/auth/middleware.ts
+class AuthenticationError extends Error {
+  statusCode;
+  code;
+  constructor(message, code = "AUTHENTICATION_REQUIRED", statusCode = 401) {
+    super(message);
+    this.name = "AuthenticationError";
+    this.code = code;
+    this.statusCode = statusCode;
+  }
+}
 function extractToken(req) {
   const cookieToken = extractAccessTokenFromCookie(req);
   if (cookieToken) {
@@ -1114,6 +1134,33 @@ async function getAuthUser(req) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.log("[AUTH] Token verification failed:", errorMessage);
     return null;
+  }
+}
+async function requireAuth(req) {
+  const token = extractToken(req);
+  if (!token) {
+    throw new AuthenticationError("Authentication required", "AUTHENTICATION_REQUIRED", 401);
+  }
+  try {
+    const payload = await verifyAccessToken(token);
+    const sessionValid = await validateTrackedSession(payload);
+    if (!sessionValid) {
+      throw new AuthenticationError("Session has expired or was revoked", "SESSION_REVOKED", 401);
+    }
+    return mapPayloadToAuthContext(payload);
+  } catch (error) {
+    if (error instanceof AuthenticationError) {
+      throw error;
+    }
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.log("[AUTH] Token verification failed:", errorMessage);
+    if (errorMessage.includes("expired")) {
+      throw new AuthenticationError("Access token has expired", "TOKEN_EXPIRED", 401);
+    }
+    if (errorMessage.includes("signature")) {
+      throw new AuthenticationError("Invalid token", "INVALID_TOKEN", 401);
+    }
+    throw new AuthenticationError("Authentication failed", "AUTHENTICATION_FAILED", 401);
   }
 }
 function mapPayloadToAuthContext(payload) {
@@ -14914,6 +14961,10 @@ var patchSyncGradesSchema = exports_external.object({
     grade: eczGradeSchema
   }))
 });
+var patchSaveDraftSchema = exports_external.object({
+  version: exports_external.number().int().positive("Version must be a positive integer"),
+  data: exports_external.record(exports_external.string(), exports_external.unknown())
+});
 // lib/validation/admin.ts
 var roleSchema = exports_external.enum([
   "student",
@@ -14988,8 +15039,8 @@ var applicationStatusSchema2 = exports_external.enum([
   "pending_documents"
 ]);
 var bulkEmailBodySchema = exports_external.object({
-  subject: nonEmptySanitizedString.max(200),
-  message: nonEmptySanitizedString.max(5000),
+  subject: exports_external.string().max(200).transform((s) => s.trim()).pipe(exports_external.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed").refine((s) => s.length > 0, "Must not be empty")),
+  message: exports_external.string().max(5000).transform((s) => s.trim()).pipe(exports_external.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed").refine((s) => s.length > 0, "Must not be empty")),
   userIds: exports_external.array(nonEmptySanitizedString).min(1).max(500)
 });
 var bulkStatusBodySchema = exports_external.object({
@@ -15154,7 +15205,7 @@ var updatePreferencesBodySchema = exports_external.object({
   email_notifications: exports_external.boolean().optional(),
   push_notifications: exports_external.boolean().optional(),
   sms_notifications: exports_external.boolean().optional(),
-  notification_types: exports_external.record(exports_external.boolean()).optional()
+  notification_types: exports_external.record(exports_external.string(), exports_external.boolean()).optional()
 }).partial();
 // lib/validation/email.ts
 var sendEmailBodySchema = exports_external.object({
@@ -15180,12 +15231,7 @@ function validateBody(schema, req, res) {
   const result = schema.safeParse(req.body || {});
   if (!result.success) {
     const fieldErrors = formatZodErrors(result.error);
-    res.status(HttpStatus.BAD_REQUEST).json({
-      success: false,
-      error: "Validation failed",
-      code: "VALIDATION_ERROR",
-      fieldErrors
-    });
+    sendValidationError(res, fieldErrors);
     return null;
   }
   return result.data;
@@ -15194,12 +15240,7 @@ function validateQuery(schema, req, res) {
   const result = schema.safeParse(req.query || {});
   if (!result.success) {
     const fieldErrors = formatZodErrors(result.error);
-    res.status(HttpStatus.BAD_REQUEST).json({
-      success: false,
-      error: "Validation failed",
-      code: "VALIDATION_ERROR",
-      fieldErrors
-    });
+    sendValidationError(res, fieldErrors);
     return null;
   }
   return result.data;
@@ -15277,13 +15318,18 @@ function normalizeIntake(row) {
   };
 }
 async function ensureAdmin(req, res) {
-  const user = await getAuthUser(req);
-  if (!user) {
-    sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
-    return null;
+  let user;
+  try {
+    user = await requireAuth(req);
+  } catch (error48) {
+    if (error48 instanceof AuthenticationError) {
+      sendError(res, error48.message, error48.statusCode, error48.code);
+      return null;
+    }
+    throw error48;
   }
   if (!isAdminRole(user.role)) {
-    sendError(res, "Forbidden: admin access required", HttpStatus.FORBIDDEN);
+    sendError(res, "Insufficient permissions", HttpStatus.FORBIDDEN, "INSUFFICIENT_PERMISSIONS");
     return null;
   }
   return user;

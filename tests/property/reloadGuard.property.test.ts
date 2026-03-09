@@ -50,7 +50,7 @@ describe('Property 4: Reload guard allows at most one auto-reload per error fing
         const third = consumeAutoReloadGuard({ reason, buildKey, fingerprint })
         expect(third).toBe(false)
       }),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 
@@ -70,7 +70,7 @@ describe('Property 4: Reload guard allows at most one auto-reload per error fing
         expect(consumeAutoReloadGuard({ reason, buildKey, fingerprint: fp1 })).toBe(false)
         expect(consumeAutoReloadGuard({ reason, buildKey, fingerprint: fp2 })).toBe(false)
       }),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 })

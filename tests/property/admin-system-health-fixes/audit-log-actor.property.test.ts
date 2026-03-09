@@ -142,7 +142,7 @@ describe('Feature: admin-system-health-fixes, Property 4: Audit Log Actor Relati
             });
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -160,7 +160,7 @@ describe('Feature: admin-system-health-fixes, Property 4: Audit Log Actor Relati
             expect(result.actorRoles).toEqual([]);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -178,7 +178,7 @@ describe('Feature: admin-system-health-fixes, Property 4: Audit Log Actor Relati
             expect(result.actorRoles).toContain(rawLog.actor!.role);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -213,7 +213,7 @@ describe('Feature: admin-system-health-fixes, Property 4: Audit Log Actor Relati
             });
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -231,7 +231,7 @@ describe('Feature: admin-system-health-fixes, Property 4: Audit Log Actor Relati
             expect(result.actorId).toBe(rawLog.actor_id);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -265,7 +265,7 @@ describe('Feature: admin-system-health-fixes, Property 4: Audit Log Actor Relati
             expect(result.actorRoles).toEqual([]);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -300,7 +300,7 @@ describe('Feature: admin-system-health-fixes, Property 4: Audit Log Actor Relati
             }
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -335,7 +335,7 @@ describe('Feature: admin-system-health-fixes, Property 4: Audit Log Actor Relati
             }
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });

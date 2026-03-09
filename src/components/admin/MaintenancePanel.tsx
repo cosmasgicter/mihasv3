@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { formatTimestamp } from '@/lib/dateFormat'
 import { 
   Play, 
   Clock, 
@@ -139,9 +140,9 @@ export function MaintenancePanel() {
                   <p className="text-sm text-foreground mb-2">{task.description}</p>
                   <div className="flex items-center space-x-4 text-xs text-foreground">
                     <span>Schedule: {task.schedule}</span>
-                    <span>Next: {task.nextRun.toLocaleString()}</span>
+                    <span>Next: {formatTimestamp(task.nextRun)}</span>
                     {task.lastRun && (
-                      <span>Last: {task.lastRun.toLocaleString()}</span>
+                      <span>Last: {formatTimestamp(task.lastRun)}</span>
                     )}
                     {task.duration && (
                       <span>Duration: {task.duration}ms</span>
@@ -181,7 +182,7 @@ export function MaintenancePanel() {
                   <div>
                     <span className="font-medium">{log.task_name}</span>
                     <div className="text-sm text-foreground">
-                      {new Date(log.executed_at).toLocaleString()} • {log.duration}ms
+                      {formatTimestamp(log.executed_at)} • {log.duration}ms
                     </div>
                     {log.error_message && (
                       <div className="text-sm text-destructive mt-1">{log.error_message}</div>

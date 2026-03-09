@@ -32,13 +32,13 @@ const buttonVariants = cva(
         gradient: 'bg-gradient-to-r from-primary via-primary to-info text-primary-foreground shadow-lg hover:from-primary hover:via-primary hover:to-info/90 hover:shadow-xl active:scale-[0.98]',
       },
       size: {
-        default: 'h-10 px-4 text-sm',           // 40px - standard
-        xs: 'h-8 px-2 text-xs',                  // 32px - extra small
-        sm: 'h-9 px-3 text-sm',                  // 36px - small
-        md: 'h-10 px-4 text-base',               // 40px - medium (same as default)
+        default: 'h-11 px-4 text-sm',           // 44px - meets touch target minimum
+        xs: 'h-9 px-2 text-xs',                  // 36px - small contexts, still accessible
+        sm: 'h-10 px-3 text-sm',                 // 40px - small
+        md: 'h-11 px-4 text-base',               // 44px - medium (meets touch target)
         lg: 'h-11 px-6 text-lg',                 // 44px - large
         xl: 'h-12 px-8 text-xl',                 // 48px - extra large
-        icon: 'h-10 w-10 p-0',                   // 40px - icon only
+        icon: 'h-11 w-11 p-0',                   // 44px - icon only, meets touch target
       },
     },
     defaultVariants: {

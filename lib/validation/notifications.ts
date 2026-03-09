@@ -49,5 +49,5 @@ export const updatePreferencesBodySchema = z.object({
   email_notifications: z.boolean().optional(),
   push_notifications: z.boolean().optional(),
   sms_notifications: z.boolean().optional(),
-  notification_types: z.record(z.boolean()).optional(),
+  notification_types: z.record(z.string(), z.boolean()).optional(),
 }).partial();

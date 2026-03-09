@@ -155,3 +155,97 @@ describe('Magic Byte Validation Property Tests (P30)', () => {
     });
   });
 });
+
+
+/**
+ * Property 9: File magic byte validation idempotency
+ *
+ * Feature: production-remediation
+ *
+ * For any file buffer and declared MIME type, calling validateMagicBytes(buffer, mimeType)
+ * twice on the same inputs must return the same boolean result. Additionally, for any buffer
+ * whose actual magic bytes match a supported type, detectMimeType(buffer) must return that type.
+ *
+ * **Validates: Requirements 17.3, 17.6**
+ */
+describe('File Magic Byte Validation Idempotency (Property 9)', () => {
+  describe('P9.1: validateMagicBytes is idempotent for valid magic bytes + matching MIME', () => {
+    it('calling validateMagicBytes twice on the same buffer and MIME type returns the same result', () => {
+      fc.assert(
+        fc.property(signatureArb, trailingBytesArb, (sig, trailing) => {
+          const buffer = Buffer.concat([
+            Buffer.from(sig.prefix),
+            Buffer.from(trailing),
+          ]);
+          const first = validateMagicBytes(buffer, sig.mimeType);
+          const second = validateMagicBytes(buffer, sig.mimeType);
+          expect(first).toBe(second);
+        }),
+        { numRuns: 10 },
+      );
+    });
+  });
+
+  describe('P9.2: validateMagicBytes is idempotent for arbitrary buffers and MIME types', () => {
+    it('calling validateMagicBytes twice on random buffer + random MIME returns the same result', () => {
+      const anyMimeArb = fc.constantFrom(
+        'application/pdf',
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'text/plain',
+        'application/octet-stream',
+      );
+
+      fc.assert(
+        fc.property(
+          fc.uint8Array({ minLength: 0, maxLength: 128 }),
+          anyMimeArb,
+          (arr, mime) => {
+            const buffer = Buffer.from(arr);
+            const first = validateMagicBytes(buffer, mime);
+            const second = validateMagicBytes(buffer, mime);
+            expect(first).toBe(second);
+          },
+        ),
+        { numRuns: 10 },
+      );
+    });
+  });
+
+  describe('P9.3: detectMimeType is idempotent for buffers with known magic bytes', () => {
+    it('calling detectMimeType twice on the same buffer returns the same type', () => {
+      fc.assert(
+        fc.property(signatureArb, trailingBytesArb, (sig, trailing) => {
+          const buffer = Buffer.concat([
+            Buffer.from(sig.prefix),
+            Buffer.from(trailing),
+          ]);
+          const first = detectMimeType(buffer);
+          const second = detectMimeType(buffer);
+          expect(first).toBe(second);
+          // Additionally, for buffers with known magic bytes, detectMimeType must return that type
+          expect(first).toBe(sig.mimeType);
+        }),
+        { numRuns: 10 },
+      );
+    });
+  });
+
+  describe('P9.4: detectMimeType is idempotent for arbitrary buffers', () => {
+    it('calling detectMimeType twice on any random buffer returns the same result', () => {
+      fc.assert(
+        fc.property(
+          fc.uint8Array({ minLength: 0, maxLength: 128 }),
+          (arr) => {
+            const buffer = Buffer.from(arr);
+            const first = detectMimeType(buffer);
+            const second = detectMimeType(buffer);
+            expect(first).toBe(second);
+          },
+        ),
+        { numRuns: 10 },
+      );
+    });
+  });
+});

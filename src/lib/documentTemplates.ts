@@ -1,5 +1,6 @@
 // Dynamic imports for PDF generation
 import { sanitizeHtml } from './security';
+import { formatDate as _formatDate } from '@/lib/dateFormat';
 
 export type DocumentTemplateId =
   | 'offerLetter'
@@ -155,15 +156,8 @@ const formatNumber = (value: number, token: string) => {
 };
 
 const formatDate = (value: string | Date) => {
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return typeof value === 'string' ? value : '';
-  }
-  return date.toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+  const result = _formatDate(value);
+  return result === 'Not available' ? (typeof value === 'string' ? value : '') : result;
 };
 
 const formatTokenValue = (token: string, rawValue: unknown): string => {

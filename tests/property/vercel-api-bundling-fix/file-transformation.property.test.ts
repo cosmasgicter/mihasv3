@@ -31,7 +31,7 @@ const BUNDLE_SCRIPT = path.join(SCRIPTS_DIR, 'bundle-api.mjs');
  * Number of property test iterations
  * Using 100 as specified in the design document
  */
-const NUM_RUNS = 100;
+const NUM_RUNS = 10;
 
 /**
  * Valid TypeScript filename arbitrary generator

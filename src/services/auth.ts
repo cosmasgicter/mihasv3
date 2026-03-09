@@ -28,11 +28,5 @@ export const authService = {
     apiClient.request('/auth?action=login', {
       method: 'POST',
       body: JSON.stringify(data)
-    }),
-  /** @deprecated Use login instead */
-  signin: (data: LoginData) =>
-    apiClient.request('/auth?action=login', {
-      method: 'POST',
-      body: JSON.stringify(data)
     })
 }

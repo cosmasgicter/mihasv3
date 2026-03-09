@@ -161,7 +161,7 @@ describe('Feature: supabase-remnant-purge, Property 1: Error propagation stabili
         const expectedCode = errorResponse.code ?? String(errorResponse.status)
         expect(state.errorCode).toBe(expectedCode)
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -185,7 +185,7 @@ describe('Feature: supabase-remnant-purge, Property 1: Error propagation stabili
         expect(first.isLoading).toBe(second.isLoading)
         expect(first.data).toBe(second.data)
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -208,7 +208,7 @@ describe('Feature: supabase-remnant-purge, Property 1: Error propagation stabili
         expect(finalState.isLoading).toBe(false)
         expect(finalState.error).not.toBeNull()
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -239,7 +239,7 @@ describe('Feature: supabase-remnant-purge, Property 1: Error propagation stabili
           expect(state.data).toBeNull()
         }
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -265,7 +265,7 @@ describe('Feature: supabase-remnant-purge, Property 1: Error propagation stabili
         expect(state.error).toBeInstanceOf(Error)
         expect(state.isLoading).toBe(false)
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 })

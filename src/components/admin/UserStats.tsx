@@ -3,6 +3,7 @@ import { Calendar, Shield, TrendingUp, User, Users } from 'lucide-react'
 
 import { useUserManagement } from '@/hooks/useUserManagement'
 import { sanitizeForDisplay } from '@/lib/sanitize'
+import { formatDate } from '@/lib/dateFormat'
 import { UserProfile } from '@/types/database'
 import { UserStatsSummary } from '@/types/users'
 
@@ -190,7 +191,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
                     {getRoleLabel(user.role)}
                   </span>
                   <p className="text-xs text-foreground mt-1">
-                    {new Date(user.created_at ?? 0).toLocaleDateString()}
+                    {formatDate(user.created_at ?? 0)}
                   </p>
                 </div>
               </div>

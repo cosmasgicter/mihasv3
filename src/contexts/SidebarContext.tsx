@@ -3,6 +3,8 @@ import React, { createContext, useContext, useState, useMemo, useCallback, useEf
 interface SidebarContextType {
   collapsed: boolean
   setCollapsed: (collapsed: boolean) => void
+  mobileOpen: boolean
+  setMobileOpen: (open: boolean) => void
 }
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined)
@@ -22,10 +24,14 @@ function getInitialCollapsedState() {
 
 export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(getInitialCollapsedState)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
-  // Memoize setCollapsed to prevent re-renders
   const handleSetCollapsed = useCallback((value: boolean) => {
     setCollapsed(value)
+  }, [])
+
+  const handleSetMobileOpen = useCallback((value: boolean) => {
+    setMobileOpen(value)
   }, [])
 
   useEffect(() => {
@@ -35,11 +41,38 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [collapsed])
 
-  // Memoize context value to prevent unnecessary re-renders
+  // Close mobile sidebar on Escape key
+  useEffect(() => {
+    if (!mobileOpen) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileOpen(false)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [mobileOpen])
+
+  // Prevent body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [mobileOpen])
+
   const value = useMemo(() => ({
     collapsed,
-    setCollapsed: handleSetCollapsed
-  }), [collapsed, handleSetCollapsed])
+    setCollapsed: handleSetCollapsed,
+    mobileOpen,
+    setMobileOpen: handleSetMobileOpen
+  }), [collapsed, handleSetCollapsed, mobileOpen, handleSetMobileOpen])
 
   return (
     <SidebarContext.Provider value={value}>

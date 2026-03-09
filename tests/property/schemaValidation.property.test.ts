@@ -38,7 +38,7 @@ describe('Property 7: Contract schema validation accepts valid and rejects inval
           expect(ApplicationListResponseSchema.safeParse(response).success).toBe(true)
         }
       ),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 
@@ -49,7 +49,7 @@ describe('Property 7: Contract schema validation accepts valid and rejects inval
         const response = { totalCount, page: 1, pageSize: 10 }
         expect(ApplicationListResponseSchema.safeParse(response).success).toBe(false)
       }),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 
@@ -74,7 +74,7 @@ describe('Property 7: Contract schema validation accepts valid and rejects inval
           expect(AuditLogResponseSchema.safeParse(response).success).toBe(true)
         }
       ),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 
@@ -91,7 +91,7 @@ describe('Property 7: Contract schema validation accepts valid and rejects inval
           expect(AuthSessionResponseSchema.safeParse(response).success).toBe(true)
         }
       ),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 })

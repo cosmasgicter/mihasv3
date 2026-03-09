@@ -24,6 +24,8 @@ interface AnimatedFileUploadProps {
   required?: boolean;
   id?: string;
   className?: string;
+  /** When true, shows a prominent progress bar during upload (for files > 1MB) */
+  showProgressBar?: boolean;
 }
 
 export const AnimatedFileUpload = forwardRef<HTMLInputElement, AnimatedFileUploadProps>(
@@ -39,6 +41,7 @@ export const AnimatedFileUpload = forwardRef<HTMLInputElement, AnimatedFileUploa
     required,
     id,
     className,
+    showProgressBar,
   }, ref) => {
     const [isDragging, setIsDragging] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
@@ -70,6 +73,8 @@ export const AnimatedFileUpload = forwardRef<HTMLInputElement, AnimatedFileUploa
 
     const isUploading = uploadProgress !== undefined && uploadProgress < 100;
     const showSuccess = isUploaded || (uploadProgress === 100);
+    const isLargeFile = file ? file.size > 1 * 1024 * 1024 : false;
+    const shouldShowProgressBar = showProgressBar ?? isLargeFile;
 
     return (
       <div className={cn('relative', className)}>
@@ -112,22 +117,48 @@ export const AnimatedFileUpload = forwardRef<HTMLInputElement, AnimatedFileUploa
 
           {isUploading ? (
             <div className="text-center animate-fade-in">
-              <div
-                className="w-12 h-12 mx-auto mb-3 rounded-full border-4 border-primary/20 border-t-primary animate-spin motion-reduce:animate-none"
-              />
-              <p className="text-sm font-medium text-foreground">Uploading...</p>
-              <div className="mt-2 w-full max-w-xs mx-auto">
-                <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                  <span>{file?.name}</span>
-                  <span>{uploadProgress}%</span>
-                </div>
-                <div className="h-2 bg-border rounded-full overflow-hidden">
+              {shouldShowProgressBar ? (
+                <>
+                  <Upload className="w-10 h-10 mx-auto mb-3 text-primary animate-pulse" />
+                  <p className="text-sm font-medium text-foreground">Uploading{file ? ` ${file.name}` : ''}...</p>
+                  <div className="mt-3 w-full max-w-sm mx-auto">
+                    <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
+                      <span className="truncate max-w-[70%]">{file?.name}</span>
+                      <span className="font-medium text-primary">{uploadProgress}%</span>
+                    </div>
+                    <div className="h-3 bg-border rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-primary rounded-full transition-all duration-300 ease-out"
+                        style={{ width: `${uploadProgress}%` }}
+                        role="progressbar"
+                        aria-valuenow={uploadProgress}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-label={`Upload progress: ${uploadProgress}%`}
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
                   <div
-                    className="h-full bg-primary rounded-full transition-all duration-300 ease-out"
-                    style={{ width: `${uploadProgress}%` }}
+                    className="w-12 h-12 mx-auto mb-3 rounded-full border-4 border-primary/20 border-t-primary animate-spin motion-reduce:animate-none"
                   />
-                </div>
-              </div>
+                  <p className="text-sm font-medium text-foreground">Uploading...</p>
+                  <div className="mt-2 w-full max-w-xs mx-auto">
+                    <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                      <span>{file?.name}</span>
+                      <span>{uploadProgress}%</span>
+                    </div>
+                    <div className="h-2 bg-border rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-primary rounded-full transition-all duration-300 ease-out"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           ) : showSuccess ? (
             <div className="text-center animate-scale-in">

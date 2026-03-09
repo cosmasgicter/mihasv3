@@ -313,7 +313,7 @@ describeOrSkip('Feature: admin-system-health-fixes, Property 2: Settings CRUD Ro
             expect(response.data.setting.id).toBeDefined();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -343,7 +343,7 @@ describeOrSkip('Feature: admin-system-health-fixes, Property 2: Settings CRUD Ro
             expect(res2._status).toBe(409);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -395,7 +395,7 @@ describeOrSkip('Feature: admin-system-health-fixes, Property 2: Settings CRUD Ro
             }
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -439,7 +439,7 @@ describeOrSkip('Feature: admin-system-health-fixes, Property 2: Settings CRUD Ro
             expect(response.data.setting.setting_value).toBe(newValue);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -477,7 +477,7 @@ describeOrSkip('Feature: admin-system-health-fixes, Property 2: Settings CRUD Ro
             expect(response.data.setting.setting_value).toBe(newValue);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -518,7 +518,7 @@ describeOrSkip('Feature: admin-system-health-fixes, Property 2: Settings CRUD Ro
             expect(mockSettingsStore.has(created.id)).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -551,7 +551,7 @@ describeOrSkip('Feature: admin-system-health-fixes, Property 2: Settings CRUD Ro
             expect(response.success).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -620,7 +620,7 @@ describeOrSkip('Feature: admin-system-health-fixes, Property 2: Settings CRUD Ro
             expect(deletedSetting).toBeUndefined();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });

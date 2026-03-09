@@ -1,5 +1,6 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
+import { formatRelative } from '@/lib/dateFormat'
 
 interface DraftBadgeProps {
   completionPercentage: number
@@ -11,19 +12,7 @@ interface DraftBadgeProps {
  * Formats a date string to a relative time format (e.g., "2 hours ago")
  */
 function formatRelativeTime(dateString: string): string {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMinutes = Math.floor(diffMs / (1000 * 60))
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-  if (diffMinutes < 1) return 'just now'
-  if (diffMinutes < 60) return `${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`
-  if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`
-  if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`
-  
-  return date.toLocaleDateString()
+  return formatRelative(dateString)
 }
 
 export function DraftBadge({ completionPercentage, lastUpdated, className }: DraftBadgeProps) {

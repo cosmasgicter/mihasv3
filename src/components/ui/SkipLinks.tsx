@@ -69,16 +69,7 @@ export function SkipLinks({ links = defaultSkipLinks, className }: SkipLinksProp
   )
 }
 
-/**
- * Single Skip Link Component (for backward compatibility)
- * 
- * @deprecated Import SkipLink directly from '@/components/ui/SkipLink' instead.
- * This re-export is maintained for backward compatibility only.
- * 
- * Requirements: 4.1, 4.2, 4.3, 4.4 - Skip link visibility and correct targets
- */
-// Re-export from the canonical SkipLink component for backward compatibility
-export { SkipLink } from './SkipLink'
+
 
 /**
  * Main Content Wrapper

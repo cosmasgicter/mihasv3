@@ -11,7 +11,8 @@ import { offlineSyncService, type OfflineSyncStatus } from '@/services/offlineSy
 const emptyStatus: OfflineSyncStatus = {
   isPending: false,
   pendingRequests: 0,
-  failedRequests: 0
+  failedRequests: 0,
+  failedItems: []
 }
 
 export const OfflineIndicator: React.FC = () => {
@@ -120,9 +121,36 @@ export const OfflineIndicator: React.FC = () => {
             {syncStatus.failedRequests > 0 && (
               <div className="flex items-start gap-2 text-xs text-destructive">
                 <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                <p>
-                  {syncStatus.failedRequests} {syncStatus.failedRequests === 1 ? 'change' : 'changes'} failed to sync
-                </p>
+                <div>
+                  <p>
+                    {syncStatus.failedRequests} {syncStatus.failedRequests === 1 ? 'change' : 'changes'} failed to sync
+                  </p>
+                  {syncStatus.failedItems.length > 0 && (
+                    <ul className="mt-1 space-y-1">
+                      {syncStatus.failedItems.map((item) => (
+                        <li key={item.id} className="flex items-center justify-between gap-2">
+                          <span className="truncate">
+                            {item.type === 'application_draft' ? 'Draft save' :
+                             item.type === 'form_submission' ? 'Form submission' :
+                             'Document upload'}
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={async (e) => {
+                              e.stopPropagation()
+                              await offlineSyncService.retryFailedItem(item.id)
+                              await refreshSyncStatus()
+                            }}
+                            className="h-5 px-1.5 text-[10px] shrink-0"
+                          >
+                            Retry
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
             )}
 

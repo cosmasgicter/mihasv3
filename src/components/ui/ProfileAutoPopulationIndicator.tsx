@@ -1,5 +1,5 @@
-import React from 'react'
-import { CheckCircle, User } from 'lucide-react'
+import React, { useState } from 'react'
+import { CheckCircle, ChevronDown, ChevronUp, User } from 'lucide-react'
 
 interface ProfileAutoPopulationIndicatorProps {
   isPopulated: boolean
@@ -21,21 +21,57 @@ export function ProfileAutoPopulationIndicator({ isPopulated, fieldName }: Profi
 
 interface ProfileCompletionBadgeProps {
   completionPercentage: number
+  missingFields?: { key: string; label: string }[]
 }
 
-export function ProfileCompletionBadge({ completionPercentage }: ProfileCompletionBadgeProps) {
+export function ProfileCompletionBadge({ completionPercentage, missingFields = [] }: ProfileCompletionBadgeProps) {
+  const [expanded, setExpanded] = useState(false)
+
   const getColor = () => {
+    if (completionPercentage >= 100) return 'bg-green-100 text-green-800 border-green-300'
     if (completionPercentage >= 80) return 'bg-green-100 text-green-800 border-green-300'
     if (completionPercentage >= 60) return 'bg-yellow-100 text-yellow-800 border-yellow-300'
     return 'bg-red-100 text-red-800 border-red-300'
   }
 
+  const hasMissing = completionPercentage < 100 && missingFields.length > 0
+
   return (
-    <div
-      className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full border text-sm font-medium animate-fade-in ${getColor()}`}
-    >
-      <User className="h-4 w-4" />
-      <span>Profile {completionPercentage}% Complete</span>
+    <div className="relative">
+      <button
+        type="button"
+        onClick={hasMissing ? () => setExpanded(!expanded) : undefined}
+        className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full border text-sm font-medium animate-fade-in ${getColor()} ${hasMissing ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+        aria-expanded={hasMissing ? expanded : undefined}
+        aria-label={`Profile ${completionPercentage}% complete${hasMissing ? `. ${missingFields.length} field${missingFields.length === 1 ? '' : 's'} missing. Click to see details.` : ''}`}
+      >
+        <User className="h-4 w-4" />
+        <span>Profile {completionPercentage}% Complete</span>
+        {hasMissing && (
+          expanded
+            ? <ChevronUp className="h-3 w-3 ml-1" />
+            : <ChevronDown className="h-3 w-3 ml-1" />
+        )}
+      </button>
+
+      {hasMissing && expanded && (
+        <div
+          className="absolute right-0 top-full mt-2 z-50 w-64 rounded-lg border border-border bg-white shadow-lg p-3"
+          role="tooltip"
+        >
+          <p className="text-xs font-semibold text-muted-foreground mb-2">
+            Missing fields ({missingFields.length}):
+          </p>
+          <ul className="space-y-1">
+            {missingFields.map(({ key, label }) => (
+              <li key={key} className="flex items-center gap-2 text-sm text-foreground">
+                <span className="h-1.5 w-1.5 rounded-full bg-red-400 flex-shrink-0" />
+                {label}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   )
 }

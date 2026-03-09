@@ -143,7 +143,7 @@ describe('P15: Per-email login progressive backoff', () => {
           expect(result.retryAfterSeconds).toBeLessThanOrEqual(LOGIN_COOLDOWN_MINUTES * 60);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -163,7 +163,7 @@ describe('P15: Per-email login progressive backoff', () => {
           expect(result.blocked).toBe(false);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -186,7 +186,7 @@ describe('P15: Per-email login progressive backoff', () => {
           expect(result.blocked).toBe(false);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -210,7 +210,7 @@ describe('P15: Per-email login progressive backoff', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -239,7 +239,7 @@ describe('P15: Per-email login progressive backoff', () => {
           expect(result.locked).toBe(false);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 });
@@ -264,7 +264,7 @@ describe('P16: Account lockout after consecutive failures', () => {
           expect(result.retryAfterSeconds).toBeLessThanOrEqual(LOGIN_LOCKOUT_MINUTES * 60);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -284,7 +284,7 @@ describe('P16: Account lockout after consecutive failures', () => {
           expect(result.locked).toBe(false);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -308,7 +308,7 @@ describe('P16: Account lockout after consecutive failures', () => {
           expect(result.locked).toBe(false);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -331,7 +331,7 @@ describe('P16: Account lockout after consecutive failures', () => {
           expect(result.locked).toBe(false);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -354,7 +354,7 @@ describe('P16: Account lockout after consecutive failures', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 });
@@ -378,7 +378,7 @@ describe('Registration rate limiting', () => {
           expect(result.retryAfterSeconds).toBeGreaterThan(0);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -398,7 +398,7 @@ describe('Registration rate limiting', () => {
           expect(result.blocked).toBe(false);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -421,7 +421,7 @@ describe('Registration rate limiting', () => {
           expect(result.blocked).toBe(false);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 });

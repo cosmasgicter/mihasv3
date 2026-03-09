@@ -151,6 +151,9 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
   // Event handlers map: event type -> Set of handlers
   const handlers = new Map<string, Set<EventHandler>>();
 
+  // Store visibility change handler reference for cleanup
+  let visibilityChangeHandler: (() => void) | null = null;
+
   /**
    * Dispatch event data to all registered handlers
    */
@@ -190,6 +193,8 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
     if (retryCount >= maxRetries) {
       console.log(`[SSEClient] Max retries (${maxRetries}) reached, giving up`);
       onError?.(new Error(`Max reconnection attempts (${maxRetries}) reached`));
+      // Dispatch error event to all subscribed error handlers
+      dispatchEvent('error', { type: 'max_retries_exceeded' });
       return;
     }
 
@@ -348,6 +353,15 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
     intentionalDisconnect = true;
     wasConnectedBeforeHidden = false;
     closeConnection();
+
+    // Remove visibilitychange listener to prevent memory leaks
+    if (visibilityChangeHandler && typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', visibilityChangeHandler);
+      visibilityChangeHandler = null;
+    }
+
+    // Clear all event handlers to prevent memory accumulation
+    handlers.clear();
   }
 
   /**
@@ -407,7 +421,8 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
 
   // Set up visibility change listener for battery-friendly behavior
   if (batteryFriendly && typeof document !== 'undefined') {
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    visibilityChangeHandler = handleVisibilityChange;
+    document.addEventListener('visibilitychange', visibilityChangeHandler);
   }
 
   // Return SSE client interface

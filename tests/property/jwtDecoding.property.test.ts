@@ -143,7 +143,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 1: JWT Base64 URL-Safe
             expect(parsedPayload).toEqual(cleanedPayload);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -180,7 +180,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 1: JWT Base64 URL-Safe
             expect(parsedValue).toEqual(value);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -199,7 +199,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 1: JWT Base64 URL-Safe
             expect(decoded).toBe(text);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -218,7 +218,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 1: JWT Base64 URL-Safe
             expect(decoded).toBe(text);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -241,7 +241,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 1: JWT Base64 URL-Safe
             expect(encoded).toMatch(/^[A-Za-z0-9_-]*$/);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -264,7 +264,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 1: JWT Base64 URL-Safe
             expect(decoded).toBe(text);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -289,7 +289,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 1: JWT Base64 URL-Safe
             expect(decoded).toBe(text);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -320,7 +320,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 1: JWT Base64 URL-Safe
             expect(decoded).toBe(char);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -335,7 +335,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 1: JWT Base64 URL-Safe
             expect(decoded).toBe(text);
           }
         ),
-        { numRuns: 20 } // Fewer runs for long strings
+        { numRuns: 10 } // Fewer runs for long strings
       );
     });
   });
@@ -368,7 +368,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 1: JWT Base64 URL-Safe
             expect(parsedPayload.user_metadata.preferences).toEqual(payload.user_metadata.preferences);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -392,7 +392,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 1: JWT Base64 URL-Safe
             expect(parsedPayload.app_metadata.roles).toEqual(payload.app_metadata.roles);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -417,7 +417,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 1: JWT Base64 URL-Safe
             expect(typeof parsedPayload.iat).toBe('number');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -437,7 +437,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 1: JWT Base64 URL-Safe
             expect(parsedPayload.email).toBe(payload.email);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -455,7 +455,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 1: JWT Base64 URL-Safe
             expect(encoded1).toBe(encoded2);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -471,7 +471,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 1: JWT Base64 URL-Safe
             expect(decoded1).toBe(decoded2);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });

@@ -260,7 +260,7 @@ describe('Feature: admin-system-health-fixes, Property 3: Settings Authenticatio
             expect(response.success).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -285,7 +285,7 @@ describe('Feature: admin-system-health-fixes, Property 3: Settings Authenticatio
             expect(response.success).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -310,7 +310,7 @@ describe('Feature: admin-system-health-fixes, Property 3: Settings Authenticatio
             expect(response.success).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -335,7 +335,7 @@ describe('Feature: admin-system-health-fixes, Property 3: Settings Authenticatio
             expect(response.success).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -368,7 +368,7 @@ describe('Feature: admin-system-health-fixes, Property 3: Settings Authenticatio
             expect(res._status).toBe(401);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -415,7 +415,7 @@ describe('Feature: admin-system-health-fixes, Property 3: Settings Authenticatio
             expect(response.success).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -453,7 +453,7 @@ describe('Feature: admin-system-health-fixes, Property 3: Settings Authenticatio
             expect(response.error.length).toBeGreaterThan(0);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });

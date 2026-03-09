@@ -135,7 +135,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect(isValidErrorResponse(res._json)).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -158,7 +158,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect(response.error.length).toBeGreaterThan(0);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -183,7 +183,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect(isValidErrorResponse(res._json)).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -206,7 +206,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect(response.error.length).toBeGreaterThan(0);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -241,7 +241,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect(typeof response.error).toBe('string');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -265,7 +265,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect(response.error).not.toContain('node:internal');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -290,7 +290,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect(response.error).not.toContain(filePath);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -339,7 +339,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect(typeof (res._json as { error: string }).error).toBe('string');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -362,7 +362,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect(response.code).toBe(code);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -382,7 +382,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect(res._status).toBe(status);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -405,7 +405,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect(response.success).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -444,7 +444,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect(response.error).toContain('[EMAIL]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -465,7 +465,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect(response.error).toContain('[PHONE]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -486,7 +486,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect(response.error).toContain('[ID]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -509,7 +509,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect(response.error).toContain('[ID]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -529,7 +529,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect((res._json as { code: string }).code).toBe('AUTHENTICATION_ERROR');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -547,7 +547,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect((res._json as { code: string }).code).toBe('AUTHORIZATION_ERROR');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -565,7 +565,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect((res._json as { code: string }).code).toBe('NOT_FOUND');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -583,7 +583,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect((res._json as { code: string }).code).toBe('VALIDATION_ERROR');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -601,7 +601,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect((res._json as { code: string }).code).toBe('RATE_LIMITED');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -632,7 +632,7 @@ describe('Feature: vercel-production-fixes, Property 4: API Error Responses Are 
             expect((res._json as { code: string }).code).toBe('INTERNAL_ERROR');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });

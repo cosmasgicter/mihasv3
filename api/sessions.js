@@ -750,6 +750,16 @@ function sendError(res, message, status = HttpStatus.BAD_REQUEST, code = ErrorCo
   };
   return res.status(status).json(response);
 }
+function sendValidationError(res, fieldErrors, message = "Validation failed") {
+  res.setHeader("Content-Type", "application/json");
+  const response = {
+    success: false,
+    error: sanitizeError(message),
+    code: ErrorCode.VALIDATION_ERROR,
+    fieldErrors
+  };
+  return res.status(HttpStatus.BAD_REQUEST).json(response);
+}
 var HttpStatus, ErrorCode, AuthError;
 var init_errorHandler = __esm(() => {
   HttpStatus = {
@@ -1231,29 +1241,17 @@ async function isSessionActive(userId, sessionId) {
   return result.rowCount > 0;
 }
 
-// lib/realtimeBroker.ts
-var userEvents = new Map;
-var seenEventIds = new Set;
-var deliveryLatencyTotal = 0;
-function pollRealtimeEvents(userId, lastEventId) {
-  const list = userEvents.get(userId) || [];
-  if (!lastEventId)
-    return list.slice(-25);
-  const index = list.findIndex((event) => event.event_id === lastEventId);
-  if (index === -1)
-    return list.slice(-25);
-  return list.slice(index + 1);
-}
-function recordDeliveryLatency(createdAtIso) {
-  const latency = Math.max(0, Date.now() - new Date(createdAtIso).getTime());
-  deliveryLatencyTotal += latency;
-}
-
-// lib/csrf.ts
-init_db();
-import { randomBytes, createHash } from "crypto";
-
 // lib/auth/middleware.ts
+class AuthenticationError extends Error {
+  statusCode;
+  code;
+  constructor(message, code = "AUTHENTICATION_REQUIRED", statusCode = 401) {
+    super(message);
+    this.name = "AuthenticationError";
+    this.code = code;
+    this.statusCode = statusCode;
+  }
+}
 function extractToken(req) {
   const cookieToken = extractAccessTokenFromCookie(req);
   if (cookieToken) {
@@ -1283,6 +1281,33 @@ async function getAuthUser(req) {
     return null;
   }
 }
+async function requireAuth(req) {
+  const token = extractToken(req);
+  if (!token) {
+    throw new AuthenticationError("Authentication required", "AUTHENTICATION_REQUIRED", 401);
+  }
+  try {
+    const payload = await verifyAccessToken(token);
+    const sessionValid = await validateTrackedSession(payload);
+    if (!sessionValid) {
+      throw new AuthenticationError("Session has expired or was revoked", "SESSION_REVOKED", 401);
+    }
+    return mapPayloadToAuthContext(payload);
+  } catch (error) {
+    if (error instanceof AuthenticationError) {
+      throw error;
+    }
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.log("[AUTH] Token verification failed:", errorMessage);
+    if (errorMessage.includes("expired")) {
+      throw new AuthenticationError("Access token has expired", "TOKEN_EXPIRED", 401);
+    }
+    if (errorMessage.includes("signature")) {
+      throw new AuthenticationError("Invalid token", "INVALID_TOKEN", 401);
+    }
+    throw new AuthenticationError("Authentication failed", "AUTHENTICATION_FAILED", 401);
+  }
+}
 function mapPayloadToAuthContext(payload) {
   return {
     userId: payload.sub,
@@ -1304,7 +1329,27 @@ async function validateTrackedSession(payload) {
   }
 }
 
+// lib/realtimeBroker.ts
+var userEvents = new Map;
+var seenEventIds = new Set;
+var deliveryLatencyTotal = 0;
+function pollRealtimeEvents(userId, lastEventId) {
+  const list = userEvents.get(userId) || [];
+  if (!lastEventId)
+    return list.slice(-25);
+  const index = list.findIndex((event) => event.event_id === lastEventId);
+  if (index === -1)
+    return list.slice(-25);
+  return list.slice(index + 1);
+}
+function recordDeliveryLatency(createdAtIso) {
+  const latency = Math.max(0, Date.now() - new Date(createdAtIso).getTime());
+  deliveryLatencyTotal += latency;
+}
+
 // lib/csrf.ts
+init_db();
+import { randomBytes, createHash } from "crypto";
 init_errorHandler();
 var TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 function hashToken(raw) {
@@ -1394,12 +1439,7 @@ function validateBody(schema, req, res) {
   const result = schema.safeParse(req.body || {});
   if (!result.success) {
     const fieldErrors = formatZodErrors(result.error);
-    res.status(HttpStatus.BAD_REQUEST).json({
-      success: false,
-      error: "Validation failed",
-      code: "VALIDATION_ERROR",
-      fieldErrors
-    });
+    sendValidationError(res, fieldErrors);
     return null;
   }
   return result.data;
@@ -14956,17 +14996,6 @@ var pollQuerySchema = exports_external.object({
 
 // api-src/sessions.ts
 init_auditLogger();
-async function getUserFromRequest(req) {
-  const token = extractAccessTokenFromCookie(req) || extractBearerToken(req);
-  if (!token)
-    return null;
-  try {
-    const payload = await verifyAccessToken(token);
-    return { userId: payload.sub, sessionId: payload.sid };
-  } catch {
-    return null;
-  }
-}
 async function handler(req, res) {
   if (handleCors(req, res))
     return;
@@ -14979,25 +15008,30 @@ async function handler(req, res) {
     return;
   const action = req.query.action;
   try {
-    const auth = await getUserFromRequest(req);
-    if (!auth) {
-      return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
+    let user;
+    try {
+      user = await requireAuth(req);
+    } catch (error48) {
+      if (error48 instanceof AuthenticationError) {
+        return sendError(res, error48.message, error48.statusCode, error48.code);
+      }
+      throw error48;
     }
     const ipAddress = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress || null;
     const userAgent = req.headers["user-agent"] || null;
     switch (action) {
       case "list":
-        return await handleList(req, res, auth.userId, auth.sessionId);
+        return await handleList(req, res, user.userId, user.sessionId);
       case "track":
-        return await handleTrack(req, res, auth.userId, ipAddress, userAgent);
+        return await handleTrack(req, res, user.userId, ipAddress, userAgent);
       case "revoke":
-        return await handleRevoke(req, res, auth.userId, ipAddress, userAgent);
+        return await handleRevoke(req, res, user.userId, ipAddress, userAgent);
       case "revoke-all":
-        return await handleRevokeAll(req, res, auth.userId, auth.sessionId, ipAddress, userAgent);
+        return await handleRevokeAll(req, res, user.userId, user.sessionId, ipAddress, userAgent);
       case "connect":
-        return await handleConnect(req, res, auth.userId);
+        return await handleConnect(req, res, user.userId);
       case "poll":
-        return await handlePoll(req, res, auth.userId);
+        return await handlePoll(req, res, user.userId);
       default:
         return sendError(res, "Invalid action. Use: list, track, revoke, revoke-all, connect, poll", HttpStatus.BAD_REQUEST);
     }

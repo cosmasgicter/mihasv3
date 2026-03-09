@@ -2,7 +2,7 @@
 import QRCode from 'qrcode';
 
 import { getApiBaseUrl } from './apiConfig';
-import { formatDate } from './utils';
+import { formatTimestamp } from './dateFormat';
 import { sanitizeForLog } from './security';
 import { apiClient } from '@/services/client';
 
@@ -49,11 +49,7 @@ function formatStatusLabel(value: string | null | undefined, fallback = 'Unknown
 
 function formatDateTime(value?: string | null): string {
   if (!value) return 'Not available';
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return 'Not available';
-  const datePart = formatDate(parsed);
-  const timePart = parsed.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  return `${datePart} ${timePart}`;
+  return formatTimestamp(value);
 }
 
 function buildTrackingUrl(code: string): string {
