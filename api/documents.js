@@ -627,6 +627,16 @@ function sendError(res, message, status = HttpStatus.BAD_REQUEST, code = ErrorCo
   };
   return res.status(status).json(response);
 }
+function sendValidationError(res, fieldErrors, message = "Validation failed") {
+  res.setHeader("Content-Type", "application/json");
+  const response = {
+    success: false,
+    error: sanitizeError(message),
+    code: ErrorCode.VALIDATION_ERROR,
+    fieldErrors
+  };
+  return res.status(HttpStatus.BAD_REQUEST).json(response);
+}
 var HttpStatus, ErrorCode, AuthError;
 var init_errorHandler = __esm(() => {
   HttpStatus = {
@@ -891,6 +901,16 @@ async function isSessionActive(userId, sessionId) {
 }
 
 // lib/auth/middleware.ts
+class AuthenticationError extends Error {
+  statusCode;
+  code;
+  constructor(message, code = "AUTHENTICATION_REQUIRED", statusCode = 401) {
+    super(message);
+    this.name = "AuthenticationError";
+    this.code = code;
+    this.statusCode = statusCode;
+  }
+}
 function extractToken(req) {
   const cookieToken = extractAccessTokenFromCookie(req);
   if (cookieToken) {
@@ -918,6 +938,33 @@ async function getAuthUser(req) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.log("[AUTH] Token verification failed:", errorMessage);
     return null;
+  }
+}
+async function requireAuth(req) {
+  const token = extractToken(req);
+  if (!token) {
+    throw new AuthenticationError("Authentication required", "AUTHENTICATION_REQUIRED", 401);
+  }
+  try {
+    const payload = await verifyAccessToken(token);
+    const sessionValid = await validateTrackedSession(payload);
+    if (!sessionValid) {
+      throw new AuthenticationError("Session has expired or was revoked", "SESSION_REVOKED", 401);
+    }
+    return mapPayloadToAuthContext(payload);
+  } catch (error) {
+    if (error instanceof AuthenticationError) {
+      throw error;
+    }
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.log("[AUTH] Token verification failed:", errorMessage);
+    if (errorMessage.includes("expired")) {
+      throw new AuthenticationError("Access token has expired", "TOKEN_EXPIRED", 401);
+    }
+    if (errorMessage.includes("signature")) {
+      throw new AuthenticationError("Invalid token", "INVALID_TOKEN", 401);
+    }
+    throw new AuthenticationError("Authentication failed", "AUTHENTICATION_FAILED", 401);
   }
 }
 function mapPayloadToAuthContext(payload) {
@@ -1436,12 +1483,7 @@ function validateBody(schema, req, res) {
   const result = schema.safeParse(req.body || {});
   if (!result.success) {
     const fieldErrors = formatZodErrors(result.error);
-    res.status(HttpStatus.BAD_REQUEST).json({
-      success: false,
-      error: "Validation failed",
-      code: "VALIDATION_ERROR",
-      fieldErrors
-    });
+    sendValidationError(res, fieldErrors);
     return null;
   }
   return result.data;
@@ -15128,6 +15170,18 @@ function validateMagicBytes(buffer, declaredMimeType) {
   }
   return signature.bytes.every((byte, i) => buffer[signature.offset + i] === byte);
 }
+function detectMimeType(buffer) {
+  for (const [mimeType, signature] of Object.entries(MAGIC_BYTES)) {
+    if (buffer.length < signature.offset + signature.bytes.length) {
+      continue;
+    }
+    const matches = signature.bytes.every((byte, i) => buffer[signature.offset + i] === byte);
+    if (matches) {
+      return mimeType;
+    }
+  }
+  return null;
+}
 
 // api-src/documents.ts
 var MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -15147,10 +15201,16 @@ async function handler(req, res) {
   }
   if (await requireCsrf(req, res))
     return;
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
+  let user;
+  try {
+    user = await requireAuth(req);
+  } catch (error48) {
+    if (error48 instanceof AuthenticationError) {
+      return sendError(res, error48.message, error48.statusCode, error48.code);
+    }
+    throw error48;
   }
+  const isReviewerOnly = user.role === "reviewer";
   const action = req.query.action || "upload";
   try {
     switch (action) {
@@ -15158,10 +15218,16 @@ async function handler(req, res) {
         if (req.method !== "POST") {
           return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
         }
+        if (isReviewerOnly) {
+          return sendError(res, "Insufficient permissions", HttpStatus.FORBIDDEN, "INSUFFICIENT_PERMISSIONS");
+        }
         return await handleUpload(req, res, user.userId, user.role);
       case "extract":
         if (req.method !== "POST") {
           return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+        }
+        if (isReviewerOnly) {
+          return sendError(res, "Insufficient permissions", HttpStatus.FORBIDDEN, "INSUFFICIENT_PERMISSIONS");
         }
         return await handleExtract(req, res, user.userId, user.role);
       case "download":
@@ -15173,6 +15239,9 @@ async function handler(req, res) {
         if (req.method !== "DELETE" && req.method !== "POST") {
           return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
         }
+        if (isReviewerOnly) {
+          return sendError(res, "Insufficient permissions", HttpStatus.FORBIDDEN, "INSUFFICIENT_PERMISSIONS");
+        }
         return await handleDelete(req, res, user.userId, user.role);
       case "signed-url":
         if (req.method !== "GET" && req.method !== "POST") {
@@ -15182,6 +15251,9 @@ async function handler(req, res) {
       case "register-slip":
         if (req.method !== "POST") {
           return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+        }
+        if (isReviewerOnly) {
+          return sendError(res, "Insufficient permissions", HttpStatus.FORBIDDEN, "INSUFFICIENT_PERMISSIONS");
         }
         return await handleRegisterSlip(req, res, user.userId, user.role);
       case "resolve-reference":
@@ -15304,7 +15376,9 @@ async function handleUpload(req, res, authUserId, userRole) {
     return sendError(res, "Only PDF, JPG, JPEG, and PNG files are allowed", HttpStatus.BAD_REQUEST);
   }
   if (!validateMagicBytes(fileBuffer, mimeType)) {
-    return sendError(res, "File content does not match declared type", HttpStatus.BAD_REQUEST, "INVALID_FILE_CONTENT");
+    const detectedType = detectMimeType(fileBuffer);
+    const reason = detectedType ? `File content is ${detectedType}, but declared as ${mimeType}` : `File content does not match the declared type (${mimeType})`;
+    return sendError(res, reason, HttpStatus.BAD_REQUEST, "FILE_CONTENT_MISMATCH");
   }
   const effectiveUserId = isAdmin(userRole) && userId ? userId : authUserId;
   const timestamp = Date.now();
@@ -15495,6 +15569,12 @@ async function handleExtract(req, res, authUserId, userRole) {
       return sendError(res, "Document fetch timed out", HttpStatus.BAD_REQUEST, "INVALID_DOCUMENT_URL");
     }
     return sendError(res, "Failed to fetch document", HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+  const fetchedBuffer = Buffer.from(pdfBytes);
+  if (!validateMagicBytes(fetchedBuffer, "application/pdf")) {
+    const detectedType = detectMimeType(fetchedBuffer);
+    const reason = detectedType ? `Fetched document is ${detectedType}, expected PDF` : "Fetched document is not a valid PDF";
+    return sendError(res, reason, HttpStatus.BAD_REQUEST, "FILE_CONTENT_MISMATCH");
   }
   const { PDFDocument } = await import("pdf-lib");
   let pdfDoc;

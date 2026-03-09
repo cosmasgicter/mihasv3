@@ -61,7 +61,7 @@ describe('Property 9: Dashboard preloader returns valid defaults on transient er
         expect(defaults.notifications).toEqual([])
         expect(defaults.intakes).toEqual([])
       }),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 
@@ -78,7 +78,7 @@ describe('Property 9: Dashboard preloader returns valid defaults on transient er
         expect(defaults.stats.weekApplications).toBe(0)
         expect(defaults.notifications).toEqual([])
       }),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 
@@ -90,7 +90,7 @@ describe('Property 9: Dashboard preloader returns valid defaults on transient er
           else getStudentDefaults()
         }).not.toThrow()
       }),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 })

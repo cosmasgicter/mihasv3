@@ -2,11 +2,11 @@
  * Zod validation middleware for Vercel serverless functions.
  *
  * Parses request body or query against a Zod schema.
- * On failure, sends HTTP 400 with field-level error messages via sendError().
+ * On failure, sends HTTP 400 with field-level error messages via sendValidationError().
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
-import { sendError, HttpStatus } from '../errorHandler';
+import { sendValidationError } from '../errorHandler';
 
 /**
  * Format Zod errors into a field-level error map.
@@ -32,12 +32,7 @@ export function validateBody<T extends z.ZodTypeAny>(
   const result = schema.safeParse(req.body || {});
   if (!result.success) {
     const fieldErrors = formatZodErrors(result.error);
-    res.status(HttpStatus.BAD_REQUEST).json({
-      success: false,
-      error: 'Validation failed',
-      code: 'VALIDATION_ERROR',
-      fieldErrors,
-    });
+    sendValidationError(res, fieldErrors);
     return null;
   }
   return result.data;
@@ -55,12 +50,7 @@ export function validateQuery<T extends z.ZodTypeAny>(
   const result = schema.safeParse(req.query || {});
   if (!result.success) {
     const fieldErrors = formatZodErrors(result.error);
-    res.status(HttpStatus.BAD_REQUEST).json({
-      success: false,
-      error: 'Validation failed',
-      code: 'VALIDATION_ERROR',
-      fieldErrors,
-    });
+    sendValidationError(res, fieldErrors);
     return null;
   }
   return result.data;

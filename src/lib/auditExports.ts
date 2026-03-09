@@ -1,4 +1,5 @@
 import type { AuditLogEntry, AuditLogFilters, AuditLogSummary } from '@/services/admin/audit'
+import { formatTimestamp, toDateInputValue } from '@/lib/dateFormat'
 
 export type AuditExportFormat = 'csv' | 'json' | 'pdf'
 
@@ -14,7 +15,7 @@ function sanitizeFileSegment(value: string) {
 }
 
 function buildFileName(filenameBase: string | undefined, extension: string) {
-  const safeBase = sanitizeFileSegment(filenameBase || `audit-log-${new Date().toISOString().slice(0, 10)}`)
+  const safeBase = sanitizeFileSegment(filenameBase || `audit-log-${toDateInputValue(new Date())}`)
   return `${safeBase || 'audit-log'}.${extension}`
 }
 
@@ -131,7 +132,7 @@ export async function exportAuditEntriesToPdf({
   await import('jspdf-autotable')
 
   const doc = new jsPDF({ orientation: 'landscape' })
-  const exportTime = new Date().toLocaleString()
+  const exportTime = formatTimestamp(new Date())
   let startY = 16
 
   doc.setFontSize(18)

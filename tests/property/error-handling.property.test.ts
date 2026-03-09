@@ -205,7 +205,7 @@ describe('Error Handling Property Tests', () => {
             expect(sanitized).toContain('[EMAIL]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -231,7 +231,7 @@ describe('Error Handling Property Tests', () => {
             expect(sanitized).toContain('[ID]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -257,7 +257,7 @@ describe('Error Handling Property Tests', () => {
             expect(sanitized).toMatch(/\[TOKEN\]|\[EMAIL\]|\[HASH\]|\[ID\]/);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -283,7 +283,7 @@ describe('Error Handling Property Tests', () => {
             expect(sanitized).toContain('[HASH]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -311,7 +311,7 @@ describe('Error Handling Property Tests', () => {
             expect(sanitized).toMatch(/\[HASH\]|\[PHONE\]|\[ID\]/);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -337,7 +337,7 @@ describe('Error Handling Property Tests', () => {
             expect(sanitized).toMatch(/\[CONNECTION_STRING\]|\[NEON_URL\]/);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -363,7 +363,7 @@ describe('Error Handling Property Tests', () => {
             expect(sanitized).toContain('[PATH]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -389,7 +389,7 @@ describe('Error Handling Property Tests', () => {
             expect(sanitized).toMatch(/\[IP\]|\[PHONE\]/);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });

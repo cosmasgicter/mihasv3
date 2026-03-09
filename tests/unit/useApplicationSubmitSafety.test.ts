@@ -7,7 +7,7 @@ const hookContent = fs.readFileSync(HOOK_PATH, 'utf-8')
 
 describe('useApplicationSubmit safety invariants', () => {
   it('prevents duplicate in-flight submissions', () => {
-    expect(hookContent).toContain('submitInFlightRef')
-    expect(hookContent).toContain('if (submitInFlightRef.current)')
+    expect(hookContent).toContain('isSubmittingRef')
+    expect(hookContent).toContain('if (isSubmittingRef.current)')
   })
 })

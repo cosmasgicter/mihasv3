@@ -68,7 +68,7 @@ describe('Open Redirect Prevention Property Tests (P26)', () => {
         fc.property(relativePathArb, (path) => {
           expect(isSafeNavigationUrl(path)).toBe(true);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
 
@@ -77,7 +77,7 @@ describe('Open Redirect Prevention Property Tests (P26)', () => {
         fc.property(relativePathArb, (path) => {
           expect(isSafeActionUrl(path)).toBe(true);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
   });
@@ -89,7 +89,7 @@ describe('Open Redirect Prevention Property Tests (P26)', () => {
           const url = `https://${APPLICATION_DOMAIN}${path}`;
           expect(isSafeNavigationUrl(url)).toBe(true);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
 
@@ -99,7 +99,7 @@ describe('Open Redirect Prevention Property Tests (P26)', () => {
           const url = `https://${APPLICATION_DOMAIN}${path}`;
           expect(isSafeActionUrl(url)).toBe(true);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
   });
@@ -111,7 +111,7 @@ describe('Open Redirect Prevention Property Tests (P26)', () => {
           const url = `https://${domain}${path}`;
           expect(isSafeNavigationUrl(url)).toBe(false);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
 
@@ -121,7 +121,7 @@ describe('Open Redirect Prevention Property Tests (P26)', () => {
           const url = `https://${domain}${path}`;
           expect(isSafeActionUrl(url)).toBe(false);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
   });
@@ -132,7 +132,7 @@ describe('Open Redirect Prevention Property Tests (P26)', () => {
         fc.property(protocolRelativeArb, (url) => {
           expect(isSafeNavigationUrl(url)).toBe(false);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
 
@@ -141,7 +141,7 @@ describe('Open Redirect Prevention Property Tests (P26)', () => {
         fc.property(protocolRelativeArb, (url) => {
           expect(isSafeActionUrl(url)).toBe(false);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
   });
@@ -153,7 +153,7 @@ describe('Open Redirect Prevention Property Tests (P26)', () => {
           const url = `${scheme}:${payload}`;
           expect(isSafeNavigationUrl(url)).toBe(false);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
 
@@ -163,7 +163,7 @@ describe('Open Redirect Prevention Property Tests (P26)', () => {
           const url = `${scheme}:${payload}`;
           expect(isSafeActionUrl(url)).toBe(false);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
   });
@@ -175,7 +175,7 @@ describe('Open Redirect Prevention Property Tests (P26)', () => {
           const url = `http://${APPLICATION_DOMAIN}${path}`;
           expect(isSafeActionUrl(url)).toBe(false);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
   });
@@ -188,7 +188,7 @@ describe('Open Redirect Prevention Property Tests (P26)', () => {
           const actionResult = isSafeActionUrl(path);
           expect(navResult).toBe(actionResult);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
   });

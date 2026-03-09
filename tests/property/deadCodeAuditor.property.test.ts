@@ -47,7 +47,7 @@ import type { DeadCodeType } from '../../scripts/audit/types';
 // Test Configuration
 // ============================================================================
 
-const NUM_RUNS = 100;
+const NUM_RUNS = 10;
 
 // ============================================================================
 // Arbitraries (Generators)

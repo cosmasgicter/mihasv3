@@ -30,8 +30,8 @@ interface FileWithProgress {
 
 export function EnhancedFileUpload({
   onFileSelect,
-  accept = ['image/*', '.pdf', '.doc', '.docx'],
-  maxSize = 5 * 1024 * 1024, // 5MB default
+  accept = ['image/*', '.pdf'],
+  maxSize = 10 * 1024 * 1024, // 10MB per Req 17.2
   maxFiles = 5,
   disabled = false,
   value = [],
@@ -153,10 +153,9 @@ export function EnhancedFileUpload({
   const { getRootProps, getInputProps, isDragActive: dzIsDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'],
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
       'application/pdf': ['.pdf'],
-      'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
     },
     maxSize,
     maxFiles: maxFiles - files.length,

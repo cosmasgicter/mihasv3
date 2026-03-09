@@ -83,6 +83,32 @@ async function requestRefresh(baseUrl: string): Promise<boolean> {
   return refreshResponse.ok
 }
 
+/**
+ * Module-level promise lock for token refresh deduplication.
+ * When the first 401 triggers a refresh, subsequent 401s await the same promise
+ * instead of initiating parallel refresh requests.
+ */
+let refreshPromise: Promise<boolean> | null = null;
+
+/**
+ * Deduplicated token refresh. If a refresh is already in-flight, returns the
+ * existing promise. Otherwise starts a new refresh and clears the lock on
+ * completion (success or failure).
+ */
+async function deduplicatedRefresh(baseUrl: string): Promise<boolean> {
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+  refreshPromise = requestRefresh(baseUrl);
+  try {
+    const result = await refreshPromise;
+    return result;
+  } finally {
+    refreshPromise = null;
+  }
+}
+
+
 async function parseResponse<T>(response: Response): Promise<AuthApiEnvelope<T>> {
   try {
     return (await response.json()) as AuthApiEnvelope<T>
@@ -141,10 +167,21 @@ export async function authRequest<T = unknown>(
     }
 
     if (response.status === 401 && attemptRefreshOn401) {
-      const refreshSucceeded = await requestRefresh(baseUrl)
+      const refreshSucceeded = await deduplicatedRefresh(baseUrl)
 
       if (refreshSucceeded) {
+        // Retry the original request once with the new token
         response = await performRequest()
+      } else {
+        // Refresh failed — clear auth state and redirect
+        if (redirectOnUnauthorized) {
+          hardClearAuthState()
+        }
+        return {
+          success: false,
+          error: 'Session expired. Please sign in again.',
+          code: 'SESSION_EXPIRED',
+        }
       }
     }
 

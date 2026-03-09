@@ -29,6 +29,7 @@ export interface ErrorResponse {
   success: false;
   error: string;
   code: string;
+  fieldErrors?: Record<string, string>;
 }
 
 /**
@@ -604,6 +605,34 @@ export function sendError(
   };
 
   return res.status(status).json(response);
+}
+
+/**
+ * Send a validation error response with field-level errors.
+ * 
+ * Used when Zod schema validation fails and field-level error details are needed.
+ * Produces: { success: false, error: 'Validation failed', code: 'VALIDATION_ERROR', fieldErrors: { ... } }
+ * 
+ * @param res - Vercel response object
+ * @param fieldErrors - Map of field paths to error messages
+ * @param message - Error message (default: 'Validation failed')
+ * @returns The response object
+ */
+export function sendValidationError(
+  res: VercelResponse,
+  fieldErrors: Record<string, string>,
+  message: string = 'Validation failed'
+): VercelResponse {
+  res.setHeader('Content-Type', 'application/json');
+  
+  const response: ErrorResponse = {
+    success: false,
+    error: sanitizeError(message),
+    code: ErrorCode.VALIDATION_ERROR,
+    fieldErrors,
+  };
+
+  return res.status(HttpStatus.BAD_REQUEST).json(response);
 }
 
 /**

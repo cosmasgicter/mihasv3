@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { catalogService, programService, intakeService } from '@/services/catalog'
+import { QUERY_CACHE_CONFIG } from '@/lib/queryCacheConfig'
 
 // Query Keys
 const QUERY_KEYS = {
@@ -16,7 +17,7 @@ export const catalogData = {
     return useQuery({
       queryKey: QUERY_KEYS.programs,
       queryFn: () => catalogService.getPrograms(),
-      staleTime: 300000 // 5 minutes
+      ...QUERY_CACHE_CONFIG.static,
     })
   },
 
@@ -25,7 +26,7 @@ export const catalogData = {
     return useQuery({
       queryKey: QUERY_KEYS.intakes,
       queryFn: () => catalogService.getIntakes(),
-      staleTime: 300000 // 5 minutes
+      ...QUERY_CACHE_CONFIG.static,
     })
   },
 
@@ -34,7 +35,7 @@ export const catalogData = {
     return useQuery({
       queryKey: QUERY_KEYS.subjects,
       queryFn: () => catalogService.getSubjects(),
-      staleTime: 600000 // 10 minutes
+      ...QUERY_CACHE_CONFIG.static,
     })
   },
 

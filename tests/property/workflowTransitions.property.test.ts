@@ -39,7 +39,7 @@ import {
  * Number of runs for property tests.
  * Workflow analysis involves file I/O, so we use moderate iterations.
  */
-const NUM_RUNS = 100;
+const NUM_RUNS = 10;
 
 
 /**

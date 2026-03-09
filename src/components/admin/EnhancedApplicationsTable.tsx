@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { SkeletonTable } from '@/components/ui'
 import { BulkOperations } from './BulkOperations'
 import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus'
+import { formatDate } from '@/lib/dateFormat'
 
 // Institution code to name mapping
 const INSTITUTION_NAMES: Record<string, string> = {
@@ -525,7 +526,7 @@ export function EnhancedApplicationsTable({
                   </td>
                   
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                    {new Date(application.submittedAt).toLocaleDateString()}
+                    {formatDate(application.submittedAt)}
                   </td>
                   
                   <td className="px-6 py-4 whitespace-nowrap">

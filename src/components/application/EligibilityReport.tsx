@@ -2,6 +2,7 @@ import React from 'react'
 import { Download, FileText, CheckCircle, XCircle, AlertTriangle, Clock } from 'lucide-react'
 import { EligibilityAssessment, MissingRequirement } from '../../lib/eligibilityEngine'
 import { Button } from '../ui/Button'
+import { formatDate, formatTimestamp } from '@/lib/dateFormat'
 
 interface EligibilityReportProps {
   assessment: EligibilityAssessment
@@ -63,8 +64,8 @@ export function EligibilityReport({
   }
 
   const generateReportContent = () => {
-    const date = new Date().toLocaleDateString()
-    const time = new Date().toLocaleTimeString()
+    const date = formatDate(new Date())
+    const time = formatTimestamp(new Date())
     
     return `
 ELIGIBILITY ASSESSMENT REPORT
@@ -139,7 +140,7 @@ For appeals or queries, please contact the admissions office.
                 Eligibility Assessment Report
               </h1>
               <p className="text-foreground">
-                Generated on {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
+                Generated on {formatTimestamp(new Date())}
               </p>
             </div>
           </div>
@@ -168,7 +169,7 @@ For appeals or queries, please contact the admissions office.
         <div className="space-y-3">
           <h2 className="text-lg font-semibold text-foreground">Assessment Summary</h2>
           <div className="space-y-2 text-sm">
-            <div><strong>Assessment Date:</strong> {new Date().toLocaleDateString()}</div>
+            <div><strong>Assessment Date:</strong> {formatDate(new Date())}</div>
             <div><strong>Requirements Met:</strong> {assessment.detailed_breakdown.requirements_met}/{assessment.detailed_breakdown.total_requirements}</div>
             <div><strong>Overall Score:</strong> {Math.round(assessment.overall_score)}%</div>
           </div>
@@ -295,7 +296,7 @@ For appeals or queries, please contact the admissions office.
           
           <div className="mt-4 pt-4 border-t border-border">
             <p className="text-xs text-foreground">
-              This report was generated automatically by the Eligibility Assessment System on {new Date().toLocaleString()}.
+              This report was generated automatically by the Eligibility Assessment System on {formatTimestamp(new Date())}.
               Report ID: {assessment.id}
             </p>
           </div>

@@ -1,24 +1,25 @@
 import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
-import { useSessionListener } from '@/hooks/auth/useSessionListener'
+import { useAuth } from '@/contexts/AuthContext'
 import { StudentErrorBoundary } from '@/components/student/StudentErrorBoundary'
+import { AppShellSkeleton } from '@/components/ui/AppShellSkeleton'
 
 interface StudentRouteProps {
   children: React.ReactNode
 }
 
 /**
- * Student route guard using optimized auth state checks
- * Leverages React Query caching to avoid redundant session validations
- * Preserves intended destination for redirect after login
- * Requirements: 4.5, 11.1, 11.5, 11.8
+ * Student route guard deriving auth state exclusively from useAuth() (AuthContext).
+ * This ensures a single source of truth for auth state across all route guards.
+ * Preserves intended destination for redirect after login.
+ * Requirements: 1.4, 1.5, 4.5, 11.1, 11.5, 11.8
  */
 export function StudentRoute({ children }: StudentRouteProps) {
-  const { user, isAdmin, loading: isLoading } = useSessionListener()
+  const { user, isAdmin, loading } = useAuth()
   const location = useLocation()
 
-  if (isLoading) {
-    return null
+  if (loading) {
+    return <AppShellSkeleton />
   }
 
   if (!user) {

@@ -1191,6 +1191,7 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
       'residence_town',
       'country',
       'nationality',
+      'citizenship',
       'nrc_number',
       'address',
       'avatar_url',
@@ -1212,6 +1213,11 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
       if (!updates.last_name) updates.last_name = parts.slice(1).join(' ') || undefined;
     }
 
+    // If nationality is provided, keep citizenship in sync for backward compatibility (Req 32.2, 32.5)
+    if (updates.nationality && typeof updates.nationality === 'string') {
+      (updates as Record<string, unknown>).citizenship = updates.nationality;
+    }
+
     const providedFields = Object.keys(updates).filter(isAllowedField);
 
     if (providedFields.length === 0) {
@@ -1220,7 +1226,7 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
 
     const values: unknown[] = [];
     const setClauses = providedFields.map((field, index) => {
-      values.push(updates[field] ?? null);
+      values.push((updates as Record<string, unknown>)[field] ?? null);
       return `${field} = $${index + 1}`;
     });
 

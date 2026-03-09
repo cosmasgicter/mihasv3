@@ -14,12 +14,13 @@ export function useApplicationActions() {
       setUpdating(applicationId)
       await applicationService.updateStatus(applicationId, newStatus, feedback)
       
-      // Invalidate all related queries immediately
+      // Invalidate targeted query keys for admin status change (Req 15.2)
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['applications'] }),
-        queryClient.invalidateQueries({ queryKey: ['application-stats'] }),
         queryClient.invalidateQueries({ queryKey: ['applications', applicationId] }),
-        queryClient.refetchQueries({ queryKey: ['applications'] })
+        queryClient.invalidateQueries({ queryKey: ['application-stats'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-applications'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-dashboard-polling'] }),
       ])
     } catch (error) {
       console.error('Error updating application status:', error)
@@ -44,6 +45,8 @@ export function useApplicationActions() {
       
       queryClient.invalidateQueries({ queryKey: ['applications'] })
       queryClient.invalidateQueries({ queryKey: ['application-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-applications'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-polling'] })
     } catch (error) {
       console.error('Error deleting application:', error)
       throw error
@@ -57,6 +60,7 @@ export function useApplicationActions() {
       setLoading(true)
       await applicationService.sendNotification(applicationId, notification)
       queryClient.invalidateQueries({ queryKey: ['applications'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-applications'] })
     } catch (error) {
       console.error('Error sending notification:', error)
       throw error
@@ -76,7 +80,9 @@ export function useApplicationActions() {
       })
       
       queryClient.invalidateQueries({ queryKey: ['applications'] })
+      queryClient.invalidateQueries({ queryKey: ['applications', applicationId] })
       queryClient.invalidateQueries({ queryKey: ['application-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-applications'] })
     } catch (error) {
       console.error('Error submitting feedback:', error)
       throw error

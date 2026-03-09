@@ -25,6 +25,7 @@ import {
   GraduationCap
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { formatDate } from '@/lib/dateFormat'
 
 interface Application {
   id: string
@@ -372,7 +373,7 @@ export function EnhancedApplicationsManager({
                   </div>
                   <div className="flex items-center space-x-2 text-sm text-foreground">
                     <Calendar className="h-4 w-4" />
-                    <span>Created {new Date(application.created_at).toLocaleDateString()}</span>
+                    <span>Created {formatDate(application.created_at)}</span>
                   </div>
                 </div>
 
@@ -489,7 +490,7 @@ export function EnhancedApplicationsManager({
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-foreground">
-                      {new Date(application.created_at).toLocaleDateString()}
+                      {formatDate(application.created_at)}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end space-x-2">

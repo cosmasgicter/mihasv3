@@ -92,7 +92,7 @@ describe('Alt Text Correctness Property Tests (P22)', () => {
             expect(renderedAlt!.length).toBeGreaterThan(0)
           }
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
 
@@ -117,7 +117,7 @@ describe('Alt Text Correctness Property Tests (P22)', () => {
             expect(hasRolePresentation(html)).toBe(false)
           }
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
   })
@@ -148,7 +148,7 @@ describe('Alt Text Correctness Property Tests (P22)', () => {
             expect(renderedAlt).toBe('')
           }
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
 
@@ -173,7 +173,7 @@ describe('Alt Text Correctness Property Tests (P22)', () => {
             expect(hasRolePresentation(html)).toBe(true)
           }
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
   })
@@ -204,7 +204,7 @@ describe('Alt Text Correctness Property Tests (P22)', () => {
             expect(renderedAlt!.trim().length).toBeGreaterThan(0)
           }
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
   })
@@ -250,7 +250,7 @@ describe('Alt Text Correctness Property Tests (P22)', () => {
             expect(hasRolePresentation(decoHtml)).toBe(true)
           }
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
   })

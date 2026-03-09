@@ -13,7 +13,7 @@ export const QUERY_CACHE_CONFIG = {
   },
   /** Catalog data (programs, intakes, subjects) — rarely changes */
   static: {
-    staleTime: 5 * 60_000,    // 5 minutes
+    staleTime: 10 * 60_000,   // 10 minutes
     gcTime: 30 * 60_000,      // 30 minutes
     refetchOnWindowFocus: false,
     retry: 1,

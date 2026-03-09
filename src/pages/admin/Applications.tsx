@@ -40,6 +40,7 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  CreditCard,
   Eye,
   Send,
   Download,
@@ -406,11 +407,18 @@ export default function Applications() {
   }, [refreshCurrentPage, showInfo])
 
   // Wrapper for updateStatus with error handling and toast notifications
-  const handleStatusUpdate = useCallback(async (applicationId: string, newStatus: string) => {
+  const handleStatusUpdate = useCallback(async (applicationId: string, newStatus: string, options?: { notes?: string; force?: boolean }) => {
     try {
       setUpdatingStatusId(applicationId)
-      await updateStatus(applicationId, newStatus)
+      const result = await updateStatus(applicationId, newStatus, options)
+      
+      // If the API returned a payment warning, pass it through without showing success toast
+      if (result && typeof result === 'object' && 'warning' in result && (result as any).warning === true) {
+        return result
+      }
+      
       showSuccess('Status updated', `Application status changed to ${formatStatusLabel(newStatus)}.`)
+      return result
     } catch (error) {
       console.error('Failed to update application status:', error)
       showError('Status update failed', error instanceof Error ? error.message : 'Unable to update application status. Please try again.')

@@ -45,6 +45,36 @@ function nextId(): string {
 
 const DEFAULT_DURATION = 5000;
 const ERROR_DURATION = 8000;
+const DEDUP_WINDOW_MS = 3000;
+
+/**
+ * Simple hash for deduplication — combines type + title + message.
+ */
+function toastHash(type: string, title: string, message?: string): string {
+  return `${type}::${title}::${message ?? ''}`;
+}
+
+/** Recent toast hashes with their timestamps for 3-second dedup window (Req 16.4) */
+const recentToasts = new Map<string, number>();
+
+/**
+ * Returns true if a toast with the same hash was shown within the last 3 seconds.
+ * Cleans up stale entries on each call.
+ */
+function isDuplicate(hash: string): boolean {
+  const now = Date.now();
+  // Prune expired entries
+  for (const [key, ts] of recentToasts) {
+    if (now - ts > DEDUP_WINDOW_MS) {
+      recentToasts.delete(key);
+    }
+  }
+  if (recentToasts.has(hash)) {
+    return true;
+  }
+  recentToasts.set(hash, now);
+  return false;
+}
 
 function scheduleRemoval(id: string, duration: number) {
   if (duration <= 0) return;
@@ -62,6 +92,7 @@ export const useToastStore = create<ToastStore>((set) => ({
     // Support legacy signature: addToast('error', 'Something failed')
     if (typeof optionsOrType === 'string') {
       const type = optionsOrType as ToastType;
+      if (isDuplicate(toastHash(type, message || ''))) return;
       const duration = type === 'error' ? ERROR_DURATION : DEFAULT_DURATION;
       set((state) => ({
         toasts: [...state.toasts, { id, type, title: message || '', duration }],
@@ -72,6 +103,7 @@ export const useToastStore = create<ToastStore>((set) => ({
 
     // Object signature: addToast({ type, title, message?, action?, duration? })
     const opts = optionsOrType;
+    if (isDuplicate(toastHash(opts.type, opts.title, opts.message))) return;
     const duration = opts.duration ?? (opts.type === 'error' ? ERROR_DURATION : DEFAULT_DURATION);
     set((state) => ({
       toasts: [
@@ -93,6 +125,7 @@ export const useToastStore = create<ToastStore>((set) => ({
     set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
 
   success: (title, message?) => {
+    if (isDuplicate(toastHash('success', title, message))) return;
     const id = nextId();
     set((state) => ({
       toasts: [...state.toasts, { id, type: 'success', title, message, duration: DEFAULT_DURATION }],
@@ -101,6 +134,7 @@ export const useToastStore = create<ToastStore>((set) => ({
   },
 
   error: (title, message?) => {
+    if (isDuplicate(toastHash('error', title, message))) return;
     const id = nextId();
     set((state) => ({
       toasts: [...state.toasts, { id, type: 'error', title, message, duration: ERROR_DURATION }],
@@ -109,6 +143,7 @@ export const useToastStore = create<ToastStore>((set) => ({
   },
 
   errorWithRetry: (title, onRetry, message?) => {
+    if (isDuplicate(toastHash('error', title, message))) return;
     const id = nextId();
     set((state) => ({
       toasts: [
@@ -127,6 +162,7 @@ export const useToastStore = create<ToastStore>((set) => ({
   },
 
   warning: (title, message?) => {
+    if (isDuplicate(toastHash('warning', title, message))) return;
     const id = nextId();
     set((state) => ({
       toasts: [...state.toasts, { id, type: 'warning', title, message, duration: DEFAULT_DURATION }],
@@ -135,6 +171,7 @@ export const useToastStore = create<ToastStore>((set) => ({
   },
 
   info: (title, message?) => {
+    if (isDuplicate(toastHash('info', title, message))) return;
     const id = nextId();
     set((state) => ({
       toasts: [...state.toasts, { id, type: 'info', title, message, duration: DEFAULT_DURATION }],
@@ -146,18 +183,31 @@ export const useToastStore = create<ToastStore>((set) => ({
 // Alias for backward compatibility
 export const useToast = useToastStore;
 
+/** Exposed for testing — clears the dedup map */
+export function _clearRecentToasts() {
+  recentToasts.clear();
+}
+
 export function ToastContainer() {
   const { toasts, removeToast } = useToastStore();
 
+  const errorToasts = toasts.filter((t) => t.type === 'error');
+  const otherToasts = toasts.filter((t) => t.type !== 'error');
+
   return (
-    <div
-      className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none sm:max-w-md"
-      aria-live="polite"
-      aria-relevant="additions removals"
-    >
-      {toasts.map((toast) => (
-        <ToastItem key={toast.id} toast={toast} onClose={() => removeToast(toast.id)} />
-      ))}
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none sm:max-w-md">
+      {/* Assertive region for error toasts (Req 28.1) */}
+      <div aria-live="assertive" aria-relevant="additions removals" aria-atomic="false">
+        {errorToasts.map((toast) => (
+          <ToastItem key={toast.id} toast={toast} onClose={() => removeToast(toast.id)} />
+        ))}
+      </div>
+      {/* Polite region for success/info/warning toasts (Req 28.1) */}
+      <div aria-live="polite" aria-relevant="additions removals" aria-atomic="false">
+        {otherToasts.map((toast) => (
+          <ToastItem key={toast.id} toast={toast} onClose={() => removeToast(toast.id)} />
+        ))}
+      </div>
     </div>
   );
 }

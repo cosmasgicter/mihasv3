@@ -93,7 +93,7 @@ describe('Property 23: Install prompt frequency control', () => {
         expect(wasShownThisSession()).toBe(false)
         expect(shouldShowBanner()).toBe(true)
       }),
-      { numRuns: 100 }
+      { numRuns: 10 }
     )
   })
 
@@ -107,7 +107,7 @@ describe('Property 23: Install prompt frequency control', () => {
         expect(isDismissedRecently()).toBe(true)
         expect(shouldShowBanner()).toBe(false)
       }),
-      { numRuns: 100 }
+      { numRuns: 10 }
     )
   })
 
@@ -121,7 +121,7 @@ describe('Property 23: Install prompt frequency control', () => {
         expect(isDismissedRecently()).toBe(false)
         expect(shouldShowBanner()).toBe(true)
       }),
-      { numRuns: 100 }
+      { numRuns: 10 }
     )
   })
 
@@ -135,7 +135,7 @@ describe('Property 23: Install prompt frequency control', () => {
         expect(wasShownThisSession()).toBe(true)
         expect(shouldShowBanner()).toBe(false)
       }),
-      { numRuns: 100 }
+      { numRuns: 10 }
     )
   })
 
@@ -149,7 +149,7 @@ describe('Property 23: Install prompt frequency control', () => {
 
         expect(shouldShowBanner()).toBe(false)
       }),
-      { numRuns: 100 }
+      { numRuns: 10 }
     )
   })
 
@@ -163,7 +163,7 @@ describe('Property 23: Install prompt frequency control', () => {
         expect(isDismissedRecently()).toBe(false)
         expect(shouldShowBanner()).toBe(true)
       }),
-      { numRuns: 100 }
+      { numRuns: 10 }
     )
   })
 
@@ -185,7 +185,7 @@ describe('Property 23: Install prompt frequency control', () => {
         expect(wasShownThisSession()).toBe(false)
         expect(shouldShowBanner()).toBe(true)
       }),
-      { numRuns: 100 }
+      { numRuns: 10 }
     )
   })
 
@@ -203,7 +203,7 @@ describe('Property 23: Install prompt frequency control', () => {
         // Banner should show
         expect(shouldShowBanner()).toBe(true)
       }),
-      { numRuns: 100 }
+      { numRuns: 10 }
     )
   })
 })

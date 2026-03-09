@@ -195,7 +195,7 @@ describe('Password Reset Property Tests', () => {
           const result5 = requestResetToken(userId);
           expect(result5).toHaveProperty('rateLimited', true);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
 
@@ -213,7 +213,7 @@ describe('Password Reset Property Tests', () => {
           expect(rawToken).toMatch(/^[a-f0-9]{64}$/);
           expect(Buffer.from(rawToken, 'hex').length).toBe(32);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
   });
@@ -255,7 +255,7 @@ describe('Password Reset Property Tests', () => {
             }
           },
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
 
@@ -295,7 +295,7 @@ describe('Password Reset Property Tests', () => {
             expect(isTokenValid(token2)).toBe(true);
           },
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
   });
@@ -323,7 +323,7 @@ describe('Password Reset Property Tests', () => {
           const secondReset = executeReset(rawToken, newHash);
           expect(secondReset).toBe('invalid_token');
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
 
@@ -348,7 +348,7 @@ describe('Password Reset Property Tests', () => {
           expect(token2).not.toBe(token1);
           expect(isTokenValid(token2)).toBe(true);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
   });

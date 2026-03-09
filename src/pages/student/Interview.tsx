@@ -9,6 +9,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import { formatDate, formatTimestamp } from '@/lib/dateFormat'
 import { 
   Calendar, 
   Clock, 
@@ -152,19 +153,9 @@ function extractMeetingLink(notes: string | null): string | null {
  * @requirements 4.1 - Display scheduled_at date and time
  */
 function formatDateTime(dateString: string): { date: string; time: string } {
-  const date = new Date(dateString)
   return {
-    date: date.toLocaleDateString('en-ZM', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }),
-    time: date.toLocaleTimeString('en-ZM', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    })
+    date: formatDate(dateString),
+    time: formatTimestamp(dateString),
   }
 }
 

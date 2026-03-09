@@ -1,0 +1,401 @@
+# Implementation Plan: Production Remediation
+
+## Overview
+
+Comprehensive production remediation for the MIHAS Application System covering 35 requirements across state management, API correctness, offline/PWA, code cleanup, UI/UX, accessibility, testing, and deployment. Tasks are ordered by priority: critical user-facing bugs first, then security/state, then UX, then cleanup, then testing/deployment.
+
+## Tasks
+
+- [x] 1. CRITICAL: Fix post-login skeleton hang and auth state unification (Reqs 34, 1)
+  - [x] 1.1 Refactor `authStore.ts` to remove `user`, `isAuthenticated`, `setUser` fields — retain only retry/backoff/error state
+    - Remove user identity fields from Zustand store
+    - Update all consumers to use `useAuth()` from AuthContext instead
+    - _Requirements: 1.1, 1.2, 1.3_
+  - [x] 1.2 Update `useSessionListener.ts` to seed React Query cache immediately on login
+    - After `signIn` succeeds, call `queryClient.setQueryData(['auth', 'session'], { user })` and `setQueryData(['user-profile', id], profile)` from the login response
+    - Remove the separate session check round-trip after login
+    - _Requirements: 34.1, 34.4, 14.8_
+  - [x] 1.3 Add 5-second timeout safety net in `ProtectedRoute.tsx`
+    - If `loading` is still `true` 5 seconds after login, force `invalidateQueries(['auth', 'session'])` and show "Still loading..." with reload link
+    - _Requirements: 14.7, 34.3_
+  - [x] 1.4 Update all route guards (`ProtectedRoute`, `StudentRoute`, `AdminRoute`) to derive auth state exclusively from `useAuth()`
+    - Remove any direct `useAuthStore()` reads for user identity
+    - _Requirements: 1.4, 1.5_
+  - [x] 1.5 Write property test for login cache seeding (Property 17)
+    - **Property 17: Login cache seeding**
+    - Generate random user objects with roles, verify React Query cache at `['auth', 'session']` contains the user immediately after `signIn` resolves
+    - **Validates: Requirements 34.1, 34.4**
+  - [x] 1.6 Write unit test for login skeleton timeout
+    - Verify force-refetch triggers after 5s when loading persists post-login
+    - _Requirements: 34.3, 14.7_
+  - [x] 1.7 Write unit test for auth state unification
+    - Verify `authStore` no longer exposes `user` or `isAuthenticated`
+    - _Requirements: 1.1, 1.2, 1.3_
+
+- [x] 2. Checkpoint — Verify login flow works
+  - Ensure all tests pass, run `bun run build` to verify no breakage, ask the user if questions arise.
+
+- [x] 3. CRITICAL: Clean sign-in / sign-up pages (Req 31)
+  - [x] 3.1 Refactor sign-in page to minimal layout
+    - Logo/institution name, email, password, sign-in button, "Forgot password?" link, "Create account" link
+    - Remove verbose helper text, info callouts, multi-paragraph explanations
+    - Center-aligned card on desktop, full-width on mobile
+    - _Requirements: 31.1, 31.3, 31.6, 31.7_
+  - [x] 3.2 Refactor sign-up page to minimal layout
+    - First name, last name, email, phone, password, confirm password, submit
+    - Concise labels, proper `htmlFor`/`id` pairing
+    - 320px minimum width support, 44x44px touch targets
+    - _Requirements: 31.2, 31.4, 31.5_
+
+- [x] 4. CRITICAL: Database normalization migration (Req 33)
+  - [x] 4.1 Create `migrations/normalize_data.sql` migration script
+    - Normalize `profiles`: fill null required fields, normalize phone to +260, copy citizenship → nationality
+    - Normalize `applications`: validate status enum, ensure valid user_id, consistent timestamps
+    - Clean orphans: applications without users, documents without applications, payments without applications
+    - Normalize `programs`/`intakes`: valid institution_id, non-empty names, start_date < end_date
+    - All UPDATEs use `WHERE` conditions for idempotency
+    - Log summary counts (no PII)
+    - _Requirements: 33.1, 33.2, 33.3, 33.4, 33.5, 33.6, 33.7, 33.8_
+  - [x] 4.2 Add `version` column to `applications` table and `nationality` column to `profiles` table
+    - `ALTER TABLE applications ADD COLUMN IF NOT EXISTS version INTEGER NOT NULL DEFAULT 1;`
+    - `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS nationality TEXT;`
+    - _Requirements: 2.5, 32.2_
+  - [x] 4.3 Create `idempotency_keys` table and `application_status_history` table
+    - Create tables per design data models section
+    - Add indexes for performance
+    - _Requirements: 3.3, 26.1_
+  - [x] 4.4 Write property test for normalization post-conditions (Property 15)
+    - **Property 15: Database normalization post-conditions**
+    - Generate random dirty records, run normalization logic, verify all post-conditions hold
+    - **Validates: Requirements 33.2, 33.3, 33.4, 33.5, 33.6**
+  - [x] 4.5 Write property test for migration idempotency (Property 16)
+    - **Property 16: Normalization migration idempotency**
+    - Run normalization twice on random data, verify identical results
+    - **Validates: Requirements 33.7**
+
+- [x] 5. CRITICAL: Fix loading/skeleton states (Req 14)
+  - [x] 5.1 Implement unified skeleton pattern across pages
+    - One skeleton per content area (no nesting)
+    - Skeleton matches target layout dimensions
+    - Error state with retry button on fetch failure (no infinite skeleton)
+    - _Requirements: 14.1, 14.3, 14.4, 14.5_
+  - [x] 5.2 Fix app shell skeleton for initial auth check
+    - Show minimal header + content area placeholder during session check
+    - _Requirements: 14.2_
+
+- [x] 6. Checkpoint — Verify critical fixes, git push and deploy
+  - Ensure all tests pass, run `bun run build`, bundle API with `bun run scripts/bundle-api.mjs`, git push for Vercel deployment. Ask the user if questions arise.
+  - _Requirements: 35.1, 35.5_
+
+- [x] 7. Fix state and race conditions (Reqs 2, 3, 4, 5, 6, 7)
+  - [x] 7.1 Fix auto-save race conditions in `useAutoSave.ts`
+    - Replace `useState(isSaving)` with `useRef(isSavingRef)` to avoid stale closures
+    - Add `AbortController` ref; abort on unmount
+    - Add monotonic `versionRef` incremented on each save
+    - Queue manual saves when auto-save is in-flight
+    - _Requirements: 2.1, 2.2, 2.3, 2.4_
+  - [x] 7.2 Add server-side version check in `api-src/applications.ts` for draft saves
+    - `save_draft` action checks `WHERE version < $newVersion`, returns 409 on conflict
+    - _Requirements: 2.5_
+  - [x] 7.3 Write property test for auto-save version ordering (Property 1)
+    - **Property 1: Auto-save version ordering**
+    - Generate random sequences of version numbers, verify server rejects out-of-order
+    - **Validates: Requirements 2.5**
+  - [x] 7.4 Write property test for auto-save data round-trip (Property 2)
+    - **Property 2: Auto-save data round-trip**
+    - Generate arbitrary JSON-serializable objects, verify `JSON.parse(JSON.stringify(x))` deep equals `x`
+    - **Validates: Requirements 2.6**
+  - [x] 7.5 Implement double-submit prevention
+    - Create `useApplicationSubmit` hook with `isSubmitting` ref, button disable, duplicate click ignore
+    - Generate `crypto.randomUUID()` idempotency key stored in form state
+    - Server: store idempotency key in `idempotency_keys` table, return cached response if key exists within 24h
+    - On network failure: re-enable button, preserve same idempotency key
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
+  - [x] 7.6 Write property test for idempotency key deduplication (Property 3)
+    - **Property 3: Idempotency key deduplication**
+    - Generate random UUIDs and payloads, verify duplicate submissions return same response
+    - **Validates: Requirements 3.3**
+  - [x] 7.7 Implement multi-tab auth sync via BroadcastChannel
+    - Create `src/lib/authBroadcast.ts` with `BroadcastChannel('mihas-auth')` and `storage` event fallback
+    - Broadcast logout, login, and CSRF token update events
+    - On logout broadcast: clear React Query auth cache, clear authStore, redirect to sign-in
+    - On login broadcast: invalidate session query
+    - On CSRF update: call `setCsrfToken()` with broadcast token
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
+  - [x] 7.8 Write property test for multi-tab auth broadcast (Property 8)
+    - **Property 8: Multi-tab auth broadcast consistency**
+    - Generate random auth events, verify all receivers get correct payload
+    - **Validates: Requirements 4.1, 4.2, 4.3, 4.4**
+  - [x] 7.9 Fix SSE connection lifecycle in `sseClient.ts`
+    - `connect()` closes existing EventSource before creating new one
+    - `disconnect()` closes EventSource, clears reconnection timeouts, removes `visibilitychange` listener, clears `handlers` Map
+    - On `maxRetries`: emit error event with `{ type: 'max_retries_exceeded' }`, stop reconnection
+    - Add `RealtimeStatusContext` exposing `status: 'connected' | 'reconnecting' | 'disconnected'`
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
+  - [x] 7.10 Fix polling interval management
+    - `useStudentDashboardPolling`: `refetchInterval` returns `false` when tab hidden > 5 minutes
+    - `useAdminDashboardPolling`: same pattern
+    - React Query `enabled: false` on unmount
+    - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
+    
+  - [x] 7.11 Harden token refresh race condition in `authController.ts`
+    - Module-level `refreshPromise` lock: first 401 triggers refresh, subsequent 401s await same promise
+    - On refresh success: update CSRF token, set `refreshPromise = null`
+    - On refresh failure (401/403): `hardClearAuthState()` once, redirect to sign-in
+    - Max 1 refresh attempt per original request
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
+  - [x] 7.12 Write property test for token refresh deduplication (Property 14)
+    - **Property 14: Token refresh deduplication**
+    - Simulate N concurrent 401s, verify single refresh call issued
+    - **Validates: Requirements 7.1, 7.3, 7.5**
+
+- [x] 8. Checkpoint — Verify state/race condition fixes
+  - Ensure all tests pass, run `bun run build`, git push for deployment. Ask the user if questions arise.
+  - _Requirements: 35.1, 35.3_
+
+- [x] 9. API correctness (Reqs 8, 9)
+  - [x] 9.1 Audit and fix API envelope consistency across all `api-src/*.ts` files
+    - Ensure every response path uses `sendSuccess()` or `sendError()` from `lib/errorHandler.ts`
+    - Remove any bare `res.json()` calls
+    - Enhance `unwrapApiResponse()` to check `Content-Type` header for non-JSON responses
+    - _Requirements: 8.1, 8.2, 8.3, 8.4_
+  - [x] 9.2 Write property test for API envelope structure (Property 7)
+    - **Property 7: API envelope structure**
+    - Generate random endpoint-action pairs, verify response shape matches `{ success, data }` or `{ success, error, code }`
+    - **Validates: Requirements 8.1, 8.2, 8.5**
+  - [x] 9.3 Audit and fix RBAC enforcement across all `api-src/*.ts` files
+    - Ensure every authenticated action calls `requireAuth(req)` before business logic
+    - Ensure every admin action calls `requireRole(req, ['admin', 'super_admin'])`
+    - Ensure student-scoped endpoints check ownership via `lib/auth/ownership.ts`
+    - Ensure reviewer write attempts return 403 `INSUFFICIENT_PERMISSIONS`
+    - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
+  - [x] 9.4 Write property test for RBAC determinism (Property 4)
+    - **Property 4: RBAC determinism and correctness**
+    - Generate random role-action pairs, verify `hasPermission` is pure and correct
+    - **Validates: Requirements 9.1, 9.2, 9.3, 9.4, 9.5, 9.6**
+
+- [x] 10. Form cleanup — nationality/citizenship (Req 32)
+  - [x] 10.1 Replace dual nationality/citizenship fields with single "Nationality" dropdown
+    - Remove "Citizenship" field from profile form
+    - "Zambian" as default/first option, others alphabetical
+    - Store in `nationality` column, keep `citizenship` in sync
+    - _Requirements: 32.1, 32.2, 32.4, 32.5_
+  - [x] 10.2 Write unit test for nationality migration
+    - Verify citizenship → nationality copy logic
+    - _Requirements: 32.3_
+
+- [x] 11. UI/UX consistency — error display, cache invalidation (Reqs 15, 16)
+  - [x] 11.1 Fix React Query cache invalidation patterns
+    - Application submit → invalidate `['student-dashboard-polling']`, `['applications']`
+    - Admin status change → invalidate `['applications', appId]`, `['admin-applications']`
+    - `queryClient.clear()` only on login/logout
+    - Token refresh does NOT invalidate data caches
+    - Implement `getInvalidationPatterns()` in ApiClient
+    - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5_
+  - [x] 11.2 Standardize error display and recovery
+    - Create `src/lib/errorMessages.ts` with error code → user-friendly message map
+    - Add 3-second deduplication window in `useToastStore` for same error message hash
+    - Wizard save errors: inline near save indicator, not toast
+    - Network errors: "Connection error. Please check your internet and try again." + retry button
+    - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5, 16.6_
+
+- [x] 12. File upload validation end-to-end (Req 17)
+  - [x] 12.1 Add client-side file validation before upload
+    - Check extension against `['.pdf', '.jpg', '.jpeg', '.png']`
+    - Check `file.size <= 10 * 1024 * 1024`
+    - Show progress bar for files > 1MB
+    - _Requirements: 17.1, 17.2, 17.5_
+  - [x] 12.2 Ensure server-side magic byte validation in `api-src/documents.ts`
+    - Call `lib/fileValidator.ts` after base64 decode
+    - Return specific rejection reason in error response
+    - _Requirements: 17.3, 17.4_
+  - [x] 12.3 Write property test for file magic byte validation idempotency (Property 9)
+    - **Property 9: File magic byte validation idempotency**
+    - Generate random buffers with known magic bytes, verify idempotent detection
+    - **Validates: Requirements 17.3, 17.6**
+
+- [x] 13. Data accuracy — profile completion and application statistics (Reqs 18, 19)
+  - [x] 13.1 Fix profile completion calculation
+    - Define required fields: `first_name`, `last_name`, `email`, `phone`, `date_of_birth`, `gender`, `nrc_number`, `address`, `next_of_kin`
+    - Calculate `filledCount / 9 * 100`
+    - Show missing fields list when < 100%
+    - Update in real-time as fields are filled
+    - _Requirements: 18.1, 18.2, 18.3, 18.4, 18.5_
+  - [x] 13.2 Write property test for profile completion calculation (Property 10)
+    - **Property 10: Profile completion calculation**
+    - Generate random subsets of 9 required fields, verify percentage and missing list
+    - **Validates: Requirements 18.1, 18.2, 18.4**
+  - [x] 13.3 Fix application statistics accuracy on student dashboard
+    - In-progress = `status IN ('draft', 'submitted')`
+    - Completed = `status IN ('approved', 'rejected', 'waitlisted')`
+    - Remove hardcoded/placeholder values
+    - Zero applications: display "0" with prompt to start new application
+    - Derive all stats from React Query cache
+    - _Requirements: 19.1, 19.2, 19.3, 19.4, 19.5_
+  - [x] 13.4 Write property test for application statistics accuracy (Property 11)
+    - **Property 11: Application statistics accuracy**
+    - Generate random application lists with random statuses, verify counts
+    - **Validates: Requirements 19.1, 19.2**
+
+- [x] 14. Checkpoint — Verify UI/UX and data accuracy fixes, git push and deploy
+  - Ensure all tests pass, run `bun run build`, bundle API, git push for Vercel deployment. Ask the user if questions arise.
+  - _Requirements: 35.1, 35.3_
+
+- [x] 15. Mobile responsiveness and performance (Reqs 20, 21, 24)
+  - [x] 15.1 Fix mobile responsiveness issues
+    - Minimum 44x44px touch targets on all interactive elements
+    - Wizard step navigation usable on 320px screens (horizontal scroll or dropdown)
+    - Admin sidebar: hamburger toggle on mobile, overlay with backdrop
+    - Modals: scrollable with sticky close button
+    - Form inputs: stack vertically below `sm:` breakpoint
+    - _Requirements: 20.1, 20.2, 20.3, 20.4, 20.5_
+  - [x] 15.2 Fix memory leaks in long-running sessions
+    - Audit all `useEffect` hooks for missing cleanup of `setInterval`, `setTimeout`, `addEventListener`
+    - `OfflineSyncService.destroy()` clears interval and removes listeners
+    - `SSEClient.disconnect()` removes `visibilitychange` listener
+    - `applicationStore.applications` bounded to 50 items
+    - _Requirements: 21.1, 21.2, 21.3, 21.4, 21.5_
+  - [x] 15.3 Add request timeout and retry configuration to ApiClient
+    - Default timeout: 30s, health/session: 10s
+    - Retry: 2 attempts for network/5xx with exponential backoff (1s, 3s)
+    - No retry for 4xx or user-aborted requests
+    - Timeout error: "Request timed out. Please try again." + retry button
+    - _Requirements: 24.1, 24.2, 24.3, 24.4, 24.5_
+
+- [x] 16. Date formatting and navigation consistency (Reqs 22, 23)
+  - [x] 16.1 Create `src/lib/dateFormat.ts` utility and replace all inline date formatting
+    - `formatDate(iso)` → "15 Jan 2025"
+    - `formatTimestamp(iso)` → "15 Jan 2025, 14:30"
+    - `formatRelative(iso)` → "2 hours ago" (within 7 days), absolute after
+    - `toDateInputValue(iso)` → "2025-01-15" for `<input type="date">`
+    - Replace all inline `new Date().toLocaleDateString()` calls across components
+    - _Requirements: 22.1, 22.2, 22.3, 22.4, 22.5_
+  - [x] 16.2 Write property test for date formatting round-trip (Property 12)
+    - **Property 12: Date formatting round-trip**
+    - Generate random valid dates, verify format/parse round-trip preserves year/month/day
+    - **Validates: Requirements 22.1, 22.2, 22.3**
+  - [x] 16.3 Write property test for relative time formatting threshold (Property 13)
+    - **Property 13: Relative time formatting threshold**
+    - Generate timestamps at various offsets, verify relative vs absolute output at 7-day boundary
+    - **Validates: Requirements 22.5**
+  - [x] 16.4 Fix navigation and sidebar behavior
+    - Active route highlighting via `useLocation()` match
+    - Collapsed state: icon-only with tooltips, persisted in `localStorage['sidebar-collapsed']`
+    - Mobile: overlay with backdrop, Escape to close
+    - Role-based menu filtering from `useAuth()`
+    - _Requirements: 23.1, 23.2, 23.3, 23.4, 23.5_
+
+- [x] 17. Offline/PWA hardening (Reqs 10, 11)
+  - [x] 17.1 Harden offline sync queue in `offlineSync.ts`
+    - On 403 (CSRF mismatch): fetch fresh CSRF token, then retry
+    - On 409 (version conflict): fetch server version, merge (server wins for conflicts)
+    - Strict FIFO: break processing loop on first failure
+    - `init()` idempotency: check `this.initialized` flag
+    - `destroy()` method: clear `periodicSyncInterval`, remove `online` listener
+    - Items at `maxRetries`: set `status: 'failed'` in IndexedDB, surface in UI with manual retry
+    - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
+  - [x] 17.2 Write property test for offline queue FIFO ordering (Property 5)
+    - **Property 5: Offline queue FIFO ordering**
+    - Generate random queue items with timestamps, verify processing order matches ascending timestamp sort
+    - **Validates: Requirements 10.3**
+  - [x] 17.3 Write property test for offline sync init idempotency (Property 6)
+    - **Property 6: Offline sync init idempotency**
+    - Call `init()` N times (1-10), verify single listener/interval active
+    - **Validates: Requirements 10.4**
+  - [x] 17.4 Strengthen service worker cache strategy in `service-worker.ts`
+    - Static assets: `StaleWhileRevalidate` with cache name `static-v1`
+    - API calls: `NetworkFirst` with 5s timeout, fallback to cache
+    - Pre-cache wizard chunks and app shell on install
+    - Cache limits: 50MB total, 100 entries per bucket, LRU eviction
+    - Offline indicator: API responses from cache include `X-From-Cache: true` header
+    - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
+
+- [x] 18. Checkpoint — Verify mobile, performance, offline fixes, git push and deploy
+  - Ensure all tests pass, run `bun run build`, bundle API, git push for Vercel deployment. Ask the user if questions arise.
+  - _Requirements: 35.1, 35.3_
+
+- [x] 19. Code cleanup — remove dead admin code and migration remnants (Reqs 12, 13)
+  - [x] 19.1 Remove admin complexity remnants
+    - Remove dead workflow engine code, predictive analytics, bulk notification, AI features (except OCR)
+    - Verify zero imports before each removal
+    - Remove: `src/utils/smart-features.ts`, `src/utils/smart-matching.ts`, `src/services/mcpService.ts`, `src/lib/regulatoryComplianceChecker.ts`, `src/lib/regulatoryGuidelines.ts`, `src/components/8starlabs/`, `src/components/examples/`, `src/examples/`
+    - Run `bun run build` + `bun run test` after each removal batch
+    - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6_
+  - [x] 19.2 Remove migration remnants and dead modules
+    - Remove: `src/lib/migration/`, `src/lib/connectionFix.ts`, `src/lib/hardReload.ts`, `src/lib/reloadControl.ts`, `src/lib/devApiProxy.ts`, `src/lib/localApiResolver.ts`, `src/lib/authDebug.ts` (if no active imports)
+    - Remove dead env variable references in `.env.*` files-0
+    - Remove `src/data/` directory if only mock data
+    - Remove `src/v2-improvements-index.ts` if not imported
+    - Remove `@deprecated` exports with zero consumers
+    - Run `bun run build` + `bun run test` after removal
+    - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6_
+
+- [x] 20. Feature completeness — catalog, admin review, notifications (Reqs 25, 26, 27)
+  - [x] 20.1 Fix catalog data integrity
+    - Programs fetched with institution name via JOIN
+    - Auto-populate institution on program selection
+    - Empty list: "No programmes available for the current intake"x93j
+    - Cache: `staleTime: 10 * 60 * 1000` (10 minutes) 
+    - _Requirements: 25.1, 25.2, 25.3, 25.4, 25.5_
+  - [x] 20.2 Harden admin application review flow
+    - Status change → insert into `application_status_history` with admin ID, timestamp, notes
+    - Status change → send notification email via Resend
+    - Status history timeline on detail page
+    - Payment warning (advisory, overridable)
+    - Server-side pagination with total count
+    - _Requirements: 26.1, 26.2, 26.3, 26.4, 26.5_
+  - [x] 20.3 Fix notification system end-to-end
+    - Fetch from `/api/notifications?action=preferences`
+    - Polling-based unread badge increment
+    - Phone number from profile (not hardcoded "No number on file")
+    - Optimistic read status update
+    - Push API feature detection with fallback message
+    - _Requirements: 27.1, 27.2, 27.3, 27.4, 27.5_
+
+- [x] 21. Checkpoint — Verify feature completeness and code cleanup, git push and deploy
+  - Ensure all tests pass, run `bun run build`, bundle API, git push for Vercel deployment. Ask the user if questions arise.
+  - _Requirements: 35.1, 35.3_
+
+- [x] 22. Accessibility — dynamic content (Req 28)
+  - [x] 22.1 Add aria-live regions for dynamic content
+    - Error toasts: `aria-live="assertive"`
+    - Success/info toasts: `aria-live="polite"`
+    - Auto-save announcement: `aria-live="polite"` visually hidden region
+    - Skip navigation links at page top
+    - All dynamically inserted content in live regions
+    - _Requirements: 28.1, 28.2, 28.3, 28.4, 28.5_
+
+- [ ] 23. Comprehensive integration and property-based tests (Req 29)
+  - [ ] 23.1 Write integration test for complete auth flow
+    - Register → login → session check → token refresh → logout with CSRF handling
+    - _Requirements: 29.1_
+  - [ ] 23.2 Write integration test for application submission flow
+    - Create draft → auto-save → submit → verify status change → verify dashboard update
+    - _Requirements: 29.2_
+  - [ ] 23.3 Write integration test for admin review flow
+    - List applications → view detail → change status → verify audit log → verify notification
+    - _Requirements: 29.3_
+
+- [x] 24. Build stability and final verification (Req 30)
+  - [x] 24.1 Verify production build stability
+    - `bun run build` with zero TypeScript errors and zero Vite warnings
+    - Main bundle < 500KB gzipped
+    - `bun run test` passes all existing + new tests
+    - No new `@ts-ignore`, `@ts-nocheck`, or `as any` introduced
+    - _Requirements: 30.1, 30.2, 30.3, 30.4, 30.5_
+
+- [x] 25. Final checkpoint — Full test suite, production build, git push and deploy
+  - Ensure all tests pass, run `bun run build`, bundle API with `bun run scripts/bundle-api.mjs`, git push for final Vercel deployment. Verify on live site at apply.mihas.edu.zm. Ask the user if questions arise.
+  - _Requirements: 30.1, 30.2, 30.3, 35.1, 35.2, 35.5_
+
+## Notes
+
+- Tasks marked with `*` are optional and can be skipped for faster MVP
+- Each task references specific requirements for traceability
+- Checkpoints ensure incremental validation and deployment
+- Property tests validate universal correctness properties from the design document (17 total)
+- Unit tests validate specific examples and edge cases
+- All 17 correctness properties are covered: P1 (7.3), P2 (7.4), P3 (7.6), P4 (9.4), P5 (17.2), P6 (17.3), P7 (9.2), P8 (7.8), P9 (12.3), P10 (13.2), P11 (13.4), P12 (16.2), P13 (16.3), P14 (7.12), P15 (4.4), P16 (4.5), P17 (1.5)
+- Git push and deploy after every major group per Req 35
+- API source files are in `api-src/`, bundled to `api/` via `bun run scripts/bundle-api.mjs`
+- All code uses TypeScript with the project's existing patterns (React 18, Zustand, React Query, Zod, Vitest, fast-check)

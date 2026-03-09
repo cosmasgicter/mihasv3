@@ -8,6 +8,7 @@ class AuthPersistence {
   private static instance: AuthPersistence
   private sessionCheckInterval: NodeJS.Timeout | null = null
   private isChecking = false
+  private visibilityHandler: (() => void) | null = null
 
   static getInstance(): AuthPersistence {
     if (!AuthPersistence.instance) {
@@ -28,11 +29,12 @@ class AuthPersistence {
 
     // Check session on visibility change
     if (typeof document !== 'undefined') {
-      document.addEventListener('visibilitychange', () => {
+      this.visibilityHandler = () => {
         if (!document.hidden) {
           this.checkAndRefreshSession()
         }
-      })
+      }
+      document.addEventListener('visibilitychange', this.visibilityHandler)
     }
 
     // Initial session check (delayed to avoid interfering with login)
@@ -64,6 +66,10 @@ class AuthPersistence {
     if (this.sessionCheckInterval) {
       clearInterval(this.sessionCheckInterval)
       this.sessionCheckInterval = null
+    }
+    if (this.visibilityHandler && typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.visibilityHandler)
+      this.visibilityHandler = null
     }
   }
 }

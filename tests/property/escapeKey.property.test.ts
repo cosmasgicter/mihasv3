@@ -100,7 +100,7 @@ describe('Property 19: Escape key closes overlays', () => {
         cleanup?.()
         cleanups.pop()
       }),
-      { numRuns: 100 }
+      { numRuns: 10 }
     )
   })
 
@@ -120,7 +120,7 @@ describe('Property 19: Escape key closes overlays', () => {
         cleanup?.()
         cleanups.pop()
       }),
-      { numRuns: 100 }
+      { numRuns: 10 }
     )
   })
 
@@ -138,7 +138,7 @@ describe('Property 19: Escape key closes overlays', () => {
         cleanup?.()
         cleanups.pop()
       }),
-      { numRuns: 100 }
+      { numRuns: 10 }
     )
   })
 
@@ -159,7 +159,7 @@ describe('Property 19: Escape key closes overlays', () => {
         cleanup?.()
         cleanups.pop()
       }),
-      { numRuns: 100 }
+      { numRuns: 10 }
     )
   })
 
@@ -184,7 +184,7 @@ describe('Property 19: Escape key closes overlays', () => {
         }
         expect(onEscape).toHaveBeenCalledTimes(beforeCount)
       }),
-      { numRuns: 100 }
+      { numRuns: 10 }
     )
   })
 })

@@ -3,6 +3,7 @@
  * Card-based layout with key metrics and status indicators
  * 
  * @requirements 5.1, 5.3, 5.5, 5.6 - Student Dashboard status display
+ * @requirements 19.1, 19.2, 19.3, 19.4, 19.5 - Application statistics accuracy
  */
 
 import React from 'react';
@@ -12,18 +13,20 @@ import {
   CheckCircle, 
   AlertCircle,
   CreditCard,
-  TrendingUp
+  TrendingUp,
+  Plus
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { StatusIndicator, StatusBadge } from '@/components/8starlabs';
+import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { animateClasses, staggerChild } from '@/lib/animations';
 import type { Application } from '@/types/database';
 import { requiresStudentPaymentAction } from '@/lib/paymentStatus';
+import { computeApplicationStats } from '@/lib/applicationStats';
 
 interface DashboardStatusOverviewProps {
   applications: Application[];
-  totalDraftCount: number;
   className?: string;
 }
 
@@ -132,21 +135,19 @@ function MetricCard({
 
 export function DashboardStatusOverview({ 
   applications, 
-  totalDraftCount,
   className 
 }: DashboardStatusOverviewProps) {
 
-  // Calculate metrics
-  const submittedApplications = applications.filter(app => app.status !== 'draft');
-  const submittedCount = submittedApplications.length;
-  const underReviewCount = submittedApplications.filter(app => app.status === 'under_review').length;
-  const approvedCount = submittedApplications.filter(app => app.status === 'approved').length;
-  const paymentActionRequiredCount = submittedApplications.filter(app =>
-    requiresStudentPaymentAction(app.payment_status)
+  // Derive all statistics from the applications list (React Query cache)
+  // Requirements 19.1-19.5: accurate stats, no hardcoded/placeholder values
+  const stats = computeApplicationStats(applications);
+
+  const paymentActionRequiredCount = applications.filter(app =>
+    app.status !== 'draft' && requiresStudentPaymentAction(app.payment_status)
   ).length;
 
-  // The dedicated continue-draft card owns draft recovery. This overview should
-  // only summarize submitted applications and payment follow-up.
+  // Latest non-draft application for the status card
+  const submittedApplications = applications.filter(app => app.status !== 'draft');
   const latestApplication = submittedApplications.length > 0 
     ? [...submittedApplications]
         .sort((a, b) => {
@@ -166,17 +167,24 @@ export function DashboardStatusOverview({
 
   const metrics = [
     {
-      title: 'Submitted Applications',
-      value: submittedCount,
+      title: 'In Progress',
+      value: stats.inProgress,
       icon: <FileText className="h-5 w-5" />,
       description:
-        totalDraftCount > 0
-          ? `${totalDraftCount} draft${totalDraftCount > 1 ? 's' : ''} saved separately`
-          : submittedCount > 0
-            ? 'Live application history'
-            : 'No submitted applications yet',
-      accent: 'primary' as const,
-      href: submittedCount > 0 ? '/student/dashboard' : undefined,
+        stats.inProgress > 0
+          ? 'Draft or submitted'
+          : 'No applications in progress',
+      accent: stats.inProgress > 0 ? 'primary' as const : 'neutral' as const,
+    },
+    {
+      title: 'Completed',
+      value: stats.completed,
+      icon: <CheckCircle className="h-5 w-5" />,
+      description:
+        stats.completed > 0
+          ? 'Approved, rejected, or waitlisted'
+          : 'No completed applications yet',
+      accent: stats.completed > 0 ? 'success' as const : 'neutral' as const,
     },
     {
       title: 'Payment Action Required',
@@ -190,23 +198,26 @@ export function DashboardStatusOverview({
       href: paymentActionRequiredCount > 0 ? '/student/payment' : undefined,
     },
     {
-      title: 'Under Review',
-      value: underReviewCount,
+      title: 'Total Applications',
+      value: stats.total,
       icon: <AlertCircle className="h-5 w-5" />,
-      description: underReviewCount > 0 ? 'Being processed' : 'None pending',
-      accent: underReviewCount > 0 ? 'primary' as const : 'neutral' as const,
-    },
-    {
-      title: 'Approved',
-      value: approvedCount,
-      icon: <CheckCircle className="h-5 w-5" />,
-      description: approvedCount > 0 ? 'Congratulations!' : 'Awaiting decision',
-      accent: approvedCount > 0 ? 'success' as const : 'neutral' as const,
+      description:
+        stats.total > 0
+          ? 'All applications'
+          : 'Start your first application',
+      accent: stats.total > 0 ? 'primary' as const : 'neutral' as const,
     },
   ];
 
   return (
     <div className={cn('space-y-6', className)}>
+      {/* Visually hidden live region for screen reader announcements on polling updates (Req 28.3) */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true" role="status">
+        {stats.total > 0
+          ? `${stats.inProgress} application${stats.inProgress !== 1 ? 's' : ''} in progress, ${stats.completed} completed`
+          : 'No applications yet'}
+      </div>
+
       {/* Metrics Grid */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {metrics.map((metric, index) => (
@@ -220,9 +231,30 @@ export function DashboardStatusOverview({
         ))}
       </div>
 
+      {/* Requirement 19.4: Zero applications prompt */}
+      {stats.total === 0 && (
+        <div
+          className={`${animateClasses.slideUp} opacity-0 rounded-xl border border-primary/20 bg-primary/5 p-5 text-center`}
+          style={staggerChild(4)}
+        >
+          <p className="font-medium text-foreground mb-2">
+            You have no applications yet
+          </p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Start your admissions journey by creating your first application.
+          </p>
+          <Link to="/student/application-wizard">
+            <Button variant="primary" size="sm">
+              <Plus className="mr-2 h-4 w-4" />
+              New Application
+            </Button>
+          </Link>
+        </div>
+      )}
+
       {/* Current Application Status */}
       {latestApplication && (
-        <div className={`${animateClasses.slideUp} opacity-0`} style={staggerChild(4)}>
+        <div className={`${animateClasses.slideUp} opacity-0`} style={staggerChild(5)}>
           <Card className="border-border/50">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -263,7 +295,7 @@ export function DashboardStatusOverview({
       {paymentActionRequiredCount > 0 && (
         <div
           className={`${animateClasses.scaleIn} opacity-0 rounded-xl border border-warning/30 bg-warning/10 p-4`}
-          style={staggerChild(5)}
+          style={staggerChild(6)}
         >
           <div className="flex items-start gap-3">
             <CreditCard className="h-5 w-5 text-warning shrink-0 mt-0.5" />

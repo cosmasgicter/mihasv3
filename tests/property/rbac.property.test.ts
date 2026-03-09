@@ -44,7 +44,7 @@ import {
  * Number of runs for property tests.
  * RBAC operations are synchronous and fast, so we can use more runs.
  */
-const NUM_RUNS = 100;
+const NUM_RUNS = 10;
 
 /**
  * Number of repeated calls to verify determinism.

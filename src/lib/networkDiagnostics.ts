@@ -59,10 +59,6 @@ export class NetworkDiagnostics {
     }
   }
 
-  /** @deprecated Use testApiConnection instead */
-  async testSupabaseConnection(): Promise<{ status: 'online' | 'offline' | 'error', error?: string }> {
-    return this.testApiConnection()
-  }
   
   async waitForConnection(maxWait = 10000): Promise<boolean> {
     const start = Date.now()

@@ -10,6 +10,7 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { UserStats } from '@/components/admin/UserStats'
 import { BulkUserOperations } from '@/components/admin/BulkUserOperations'
+import { formatDate } from '@/lib/dateFormat'
 import { UserActivityLog } from '@/components/admin/UserActivityLog'
 import { UserExport } from '@/components/admin/UserExport'
 import { UserImport } from '@/components/admin/UserImport'
@@ -114,12 +115,8 @@ const formatJoinDate = (value?: string) => {
   if (!value) {
     return 'Unknown'
   }
-
-  try {
-    return new Date(value).toLocaleDateString()
-  } catch {
-    return 'Unknown'
-  }
+  const result = formatDate(value)
+  return result === 'Not available' ? 'Unknown' : result
 }
 
 const getSessionSummary = (count?: number) => {
@@ -324,11 +321,11 @@ export default function AdminUsers() {
       setError('')
       showSuccess(
         'Permissions updated',
-        result.source === 'override'
+        result?.source === 'override'
           ? 'Custom access is now active for this user.'
           : 'Role-derived access has been restored for this user.',
       )
-      showInfo('Reauthentication required', getSessionSummary(result.revokedSessions))
+      showInfo('Reauthentication required', getSessionSummary(result?.revokedSessions))
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update permissions'
       console.error('Failed to update permissions:', sanitizeForLog(errorMessage))

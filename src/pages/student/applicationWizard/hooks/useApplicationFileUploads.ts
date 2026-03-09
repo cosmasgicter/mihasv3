@@ -3,8 +3,10 @@ import type { ChangeEvent } from 'react'
 
 import { sanitizeForLog } from '@/lib/security'
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024
-const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'] as const
+export const MAX_FILE_SIZE = 10 * 1024 * 1024
+export const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'] as const
+export const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png'] as const
+export const LARGE_FILE_THRESHOLD = 1 * 1024 * 1024 // 1MB — show progress bar above this
 const MAX_UPLOAD_RETRIES = 1
 const RETRY_DELAY_MS = 1200
 
@@ -31,8 +33,21 @@ export interface UseApplicationFileUploadsResult {
   trackUploadTask: <T>(task: () => Promise<T>) => Promise<T>
 }
 
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
+}
+
 function isAllowedFileType(type: string): type is typeof ALLOWED_TYPES[number] {
   return (ALLOWED_TYPES as readonly string[]).includes(type)
+}
+
+function hasAllowedExtension(fileName: string): boolean {
+  const lowerName = fileName.toLowerCase()
+  return (ALLOWED_EXTENSIONS as readonly string[]).some(ext => lowerName.endsWith(ext))
 }
 
 function isRetryableUploadError(error: unknown): boolean {
@@ -164,7 +179,27 @@ export function useApplicationFileUploads({
       }
 
       if (file.size > MAX_FILE_SIZE) {
-        onValidationError?.('File size must be less than 10MB')
+        onValidationError?.('File size must be less than 10MB. Your file is ' + formatFileSize(file.size) + '.')
+        if (target) {
+          target.value = ''
+        }
+        switch (fileType) {
+          case 'result_slip':
+            setResultSlipFile(null)
+            break
+          case 'extra_kyc':
+            setExtraKycFile(null)
+            break
+          case 'proof_of_payment':
+            setProofOfPaymentFile(null)
+            break
+        }
+        resetUploadedState(fileType)
+        return false
+      }
+
+      if (!hasAllowedExtension(file.name)) {
+        onValidationError?.('Only PDF, JPG, JPEG, and PNG files are allowed. Please select a supported file type.')
         if (target) {
           target.value = ''
         }
@@ -184,7 +219,7 @@ export function useApplicationFileUploads({
       }
 
       if (!isAllowedFileType(file.type)) {
-        onValidationError?.('Only PDF, JPG, JPEG, and PNG files are allowed')
+        onValidationError?.('Only PDF, JPG, JPEG, and PNG files are allowed. Please select a supported file type.')
         if (target) {
           target.value = ''
         }

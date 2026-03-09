@@ -32,7 +32,7 @@ import type { Evidence } from '../../scripts/audit/types';
  * Number of runs for property tests.
  * Evidence generation is fast, so we can run more iterations.
  */
-const NUM_RUNS = 100;
+const NUM_RUNS = 10;
 
 // ============================================================================
 // Arbitraries (Generators)

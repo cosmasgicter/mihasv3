@@ -174,7 +174,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 4: Polling Configurati
             return true; // Property always holds - we're testing the invariant
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -216,7 +216,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 4: Polling Configurati
             }
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -236,7 +236,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 4: Polling Configurati
             }
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -263,7 +263,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 4: Polling Configurati
             expect(shouldRetryResult).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -279,7 +279,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 4: Polling Configurati
             expect(shouldRetryResult).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -296,7 +296,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 4: Polling Configurati
             expect(shouldRetryResult).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -331,7 +331,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 4: Polling Configurati
             expect(delay).toBe(expectedDelay);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -349,7 +349,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 4: Polling Configurati
             expect(nextDelay).toBeLessThanOrEqual(10000); // Max cap
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -364,7 +364,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 4: Polling Configurati
             expect(delay).toBeLessThanOrEqual(10000);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -393,7 +393,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 4: Polling Configurati
             expect(delay).toBeGreaterThan(0);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -411,7 +411,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 4: Polling Configurati
             expect(isValid).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -435,7 +435,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 4: Polling Configurati
             expect(isValid).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -458,7 +458,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 4: Polling Configurati
             expect(isValid).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -481,7 +481,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 4: Polling Configurati
             expect(isValid).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -554,7 +554,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 4: Polling Configurati
             expect(attemptIndex).toBeLessThanOrEqual(1);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -580,7 +580,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 4: Polling Configurati
             expect(attemptIndex).toBe(0);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });

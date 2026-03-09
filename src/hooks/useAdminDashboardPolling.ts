@@ -17,6 +17,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { apiClient } from '@/services/client'
 
+/** Threshold in ms after which polling stops entirely when tab is hidden */
+const HIDDEN_PAUSE_THRESHOLD = 300000 // 5 minutes
+
 export interface AdminDashboardStats {
   totalApplications: number
   pendingApplications: number
@@ -64,10 +67,29 @@ export function useAdminDashboardPolling(
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const previousFingerprintRef = useRef<string | null>(null)
   const onDataChangeRef = useRef<typeof onDataChange>(onDataChange)
+  const hiddenSinceRef = useRef<number | null>(null)
 
   useEffect(() => {
     onDataChangeRef.current = onDataChange
   }, [onDataChange])
+
+  // Track page visibility to pause polling when hidden > 5 minutes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        hiddenSinceRef.current = Date.now()
+      } else {
+        hiddenSinceRef.current = null
+        // Invalidate to get fresh data when tab becomes visible again
+        queryClient.invalidateQueries({ queryKey: ['admin-dashboard-polling'] })
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [queryClient])
 
   const fetchStats = useCallback(async (): Promise<AdminDashboardStats> => {
     try {
@@ -101,7 +123,17 @@ export function useAdminDashboardPolling(
     queryFn: fetchStats,
     enabled,
     refetchInterval: enabled
-      ? () => (document.visibilityState === 'visible' ? pollingInterval : pollingInterval * 2)
+      ? () => {
+          if (document.visibilityState === 'visible') {
+            return pollingInterval
+          }
+          // Tab is hidden — check how long
+          const hiddenSince = hiddenSinceRef.current
+          if (hiddenSince && Date.now() - hiddenSince >= HIDDEN_PAUSE_THRESHOLD) {
+            return false // Stop polling entirely after 5 minutes hidden
+          }
+          return pollingInterval * 2
+        }
       : false,
     staleTime: pollingInterval / 2,
   })

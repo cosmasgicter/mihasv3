@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { useToastStore } from '../../src/components/ui/Toast';
+import { useToastStore, _clearRecentToasts } from '../../src/components/ui/Toast';
 
 describe('Toast Store', () => {
   beforeEach(() => {
-    // Reset store between tests
+    // Reset store and dedup map between tests
     useToastStore.setState({ toasts: [] });
+    _clearRecentToasts();
     vi.useFakeTimers();
   });
 
@@ -133,5 +134,36 @@ describe('Toast Store', () => {
     useToastStore.getState().error('C');
     const ids = useToastStore.getState().toasts.map((t) => t.id);
     expect(new Set(ids).size).toBe(3);
+  });
+
+  it('deduplicates identical toasts within 3-second window (Req 16.4)', () => {
+    useToastStore.getState().error('Failed', 'Server error');
+    useToastStore.getState().error('Failed', 'Server error');
+    useToastStore.getState().error('Failed', 'Server error');
+    expect(useToastStore.getState().toasts).toHaveLength(1);
+  });
+
+  it('allows same toast after 3-second dedup window expires', () => {
+    useToastStore.getState().error('Failed', 'Server error');
+    expect(useToastStore.getState().toasts).toHaveLength(1);
+
+    // Advance past the 3-second dedup window
+    vi.advanceTimersByTime(3001);
+
+    useToastStore.getState().error('Failed', 'Server error');
+    expect(useToastStore.getState().toasts).toHaveLength(2);
+  });
+
+  it('allows different messages within dedup window', () => {
+    useToastStore.getState().error('Failed', 'Error A');
+    useToastStore.getState().error('Failed', 'Error B');
+    expect(useToastStore.getState().toasts).toHaveLength(2);
+  });
+
+  it('deduplicates errorWithRetry toasts by title+message', () => {
+    const retryFn = vi.fn();
+    useToastStore.getState().errorWithRetry('Network error', retryFn, 'Please try again');
+    useToastStore.getState().errorWithRetry('Network error', retryFn, 'Please try again');
+    expect(useToastStore.getState().toasts).toHaveLength(1);
   });
 });

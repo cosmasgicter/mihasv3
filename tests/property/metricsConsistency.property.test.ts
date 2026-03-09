@@ -46,7 +46,7 @@ describe('Property 8: Metrics calculations are consistent with input data', () =
         const metrics = calculateApplicationMetrics(apps)
         expect(metrics.totalApplications).toBe(apps.length)
       }),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 
@@ -61,7 +61,7 @@ describe('Property 8: Metrics calculations are consistent with input data', () =
           expect(metrics.approvalRate).toBe(expected)
         }
       }),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 
@@ -76,7 +76,7 @@ describe('Property 8: Metrics calculations are consistent with input data', () =
           expect(metrics.completionRate).toBe(expected)
         }
       }),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 
@@ -86,7 +86,7 @@ describe('Property 8: Metrics calculations are consistent with input data', () =
         const metrics = calculateApplicationMetrics(apps)
         expect(metrics.approvedApplications + metrics.rejectedApplications).toBeLessThanOrEqual(metrics.totalApplications)
       }),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 })

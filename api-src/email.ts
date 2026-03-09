@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleCors } from '../lib/cors';
 import { query } from '../lib/db';
-import { getAuthUser } from '../lib/auth/middleware';
+import { requireAuth, requireRole, AuthenticationError, AuthorizationError, type AuthContext } from '../lib/auth/middleware';
 import { withArcjetProtection } from '../lib/arcjet';
 import { sendSuccess, sendError, handleError, HttpStatus } from '../lib/errorHandler';
 import { USER_ROLES } from '../lib/queries';
@@ -17,7 +17,7 @@ import { validateServerEnv } from '../lib/envValidator';
  *
  * PROTECTED: Arcjet rate limiting
  *
- * POST /api/email?action=send           - Queue a single email (any authenticated user)
+ * POST /api/email?action=send           - Queue a single email (admin only)
  * POST /api/email?action=process-queue   - Process pending emails via Resend (admin only)
  * POST /api/email?action=retry-failed    - Reset failed emails to pending (admin only)
  * GET  /api/email?action=queue-status    - Get email queue counts by status (admin only)
@@ -35,22 +35,36 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
   // CSRF validation for state-changing requests
   if (await requireCsrf(req, res)) return;
 
+  // Require authentication for all email actions (Req 9.1)
+  let user: AuthContext;
+  try {
+    user = await requireAuth(req);
+  } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return sendError(res, error.message, error.statusCode, error.code);
+    }
+    throw error;
+  }
+
   const action = req.query.action as string;
 
   try {
     switch (action) {
       case 'send':
-        return await handleSend(req, res);
+        return await handleSend(req, res, user);
       case 'process-queue':
-        return await handleProcessQueue(req, res);
+        return await handleProcessQueue(req, res, user);
       case 'retry-failed':
-        return await handleRetryFailed(req, res);
+        return await handleRetryFailed(req, res, user);
       case 'queue-status':
-        return await handleQueueStatus(req, res);
+        return await handleQueueStatus(req, res, user);
       default:
         return sendError(res, 'Invalid action', HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
+    if (error instanceof AuthorizationError) {
+      return sendError(res, error.message, error.statusCode, error.code);
+    }
     return handleError(res, error, 'email');
   }
 }
@@ -60,14 +74,15 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
  * Any authenticated user can call this action.
  * Validates recipient, subject, body. Optionally renders HTML from a template.
  */
-async function handleSend(req: VercelRequest, res: VercelResponse) {
+async function handleSend(req: VercelRequest, res: VercelResponse, user: AuthContext) {
   if (req.method !== 'POST') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
+  // Require admin role for sending emails (Req 9.2)
+  const isAdminUser = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
+  if (!isAdminUser) {
+    return sendError(res, 'Insufficient permissions', HttpStatus.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS');
   }
 
   const parsed = validateBody(sendEmailBodySchema, req, res);
@@ -121,19 +136,15 @@ async function handleSend(req: VercelRequest, res: VercelResponse) {
  * Process pending emails from the queue via Resend API.
  * Admin or super_admin only. Processes up to 10 emails per call.
  */
-async function handleProcessQueue(req: VercelRequest, res: VercelResponse) {
+async function handleProcessQueue(req: VercelRequest, res: VercelResponse, user: AuthContext) {
   if (req.method !== 'POST') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
-  }
-
-  const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
-  if (!isAdmin) {
-    return sendError(res, 'Admin access required', HttpStatus.FORBIDDEN);
+  // Require admin role (Req 9.2)
+  const isAdminUser = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
+  if (!isAdminUser) {
+    return sendError(res, 'Insufficient permissions', HttpStatus.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS');
   }
 
   if (!process.env.RESEND_API_KEY) {
@@ -230,19 +241,15 @@ async function handleProcessQueue(req: VercelRequest, res: VercelResponse) {
  * Reset all failed emails back to pending for reprocessing.
  * Admin or super_admin only.
  */
-async function handleRetryFailed(req: VercelRequest, res: VercelResponse) {
+async function handleRetryFailed(req: VercelRequest, res: VercelResponse, user: AuthContext) {
   if (req.method !== 'POST') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
-  }
-
-  const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
-  if (!isAdmin) {
-    return sendError(res, 'Admin access required', HttpStatus.FORBIDDEN);
+  // Require admin role (Req 9.2)
+  const isAdminUser = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
+  if (!isAdminUser) {
+    return sendError(res, 'Insufficient permissions', HttpStatus.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS');
   }
 
   try {
@@ -280,19 +287,15 @@ async function handleRetryFailed(req: VercelRequest, res: VercelResponse) {
  * Get email queue counts grouped by status.
  * Admin or super_admin only.
  */
-async function handleQueueStatus(req: VercelRequest, res: VercelResponse) {
+async function handleQueueStatus(req: VercelRequest, res: VercelResponse, user: AuthContext) {
   if (req.method !== 'GET') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
-  }
-
-  const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
-  if (!isAdmin) {
-    return sendError(res, 'Admin access required', HttpStatus.FORBIDDEN);
+  // Require admin role (Req 9.2)
+  const isAdminUser = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
+  if (!isAdminUser) {
+    return sendError(res, 'Insufficient permissions', HttpStatus.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS');
   }
 
   try {

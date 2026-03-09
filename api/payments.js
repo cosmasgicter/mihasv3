@@ -105,18 +105,8 @@ var init_db = __esm(() => {
 });
 
 // lib/queries.ts
-var USER_ROLES, AUDIT_ENTITY_PLACEHOLDER_ID = "00000000-0000-0000-0000-000000000000", AuditQueries;
+var AUDIT_ENTITY_PLACEHOLDER_ID = "00000000-0000-0000-0000-000000000000", AuditQueries;
 var init_queries = __esm(() => {
-  USER_ROLES = {
-    SUPER_ADMIN: "super_admin",
-    ADMIN: "admin",
-    ADMISSIONS_OFFICER: "admissions_officer",
-    REGISTRAR: "registrar",
-    FINANCE_OFFICER: "finance_officer",
-    ACADEMIC_HEAD: "academic_head",
-    REVIEWER: "reviewer",
-    STUDENT: "student"
-  };
   AuditQueries = {
     log: (input) => ({
       text: `
@@ -637,6 +627,16 @@ function sendError(res, message, status = HttpStatus.BAD_REQUEST, code = ErrorCo
   };
   return res.status(status).json(response);
 }
+function sendValidationError(res, fieldErrors, message = "Validation failed") {
+  res.setHeader("Content-Type", "application/json");
+  const response = {
+    success: false,
+    error: sanitizeError(message),
+    code: ErrorCode.VALIDATION_ERROR,
+    fieldErrors
+  };
+  return res.status(HttpStatus.BAD_REQUEST).json(response);
+}
 var HttpStatus, ErrorCode, AuthError;
 var init_errorHandler = __esm(() => {
   HttpStatus = {
@@ -901,6 +901,16 @@ async function isSessionActive(userId, sessionId) {
 }
 
 // lib/auth/middleware.ts
+class AuthenticationError extends Error {
+  statusCode;
+  code;
+  constructor(message, code = "AUTHENTICATION_REQUIRED", statusCode = 401) {
+    super(message);
+    this.name = "AuthenticationError";
+    this.code = code;
+    this.statusCode = statusCode;
+  }
+}
 function extractToken(req) {
   const cookieToken = extractAccessTokenFromCookie(req);
   if (cookieToken) {
@@ -912,22 +922,31 @@ function extractToken(req) {
   }
   return null;
 }
-async function getAuthUser(req) {
+async function requireAuth(req) {
   const token = extractToken(req);
   if (!token) {
-    return null;
+    throw new AuthenticationError("Authentication required", "AUTHENTICATION_REQUIRED", 401);
   }
   try {
     const payload = await verifyAccessToken(token);
     const sessionValid = await validateTrackedSession(payload);
     if (!sessionValid) {
-      return null;
+      throw new AuthenticationError("Session has expired or was revoked", "SESSION_REVOKED", 401);
     }
     return mapPayloadToAuthContext(payload);
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      throw error;
+    }
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.log("[AUTH] Token verification failed:", errorMessage);
-    return null;
+    if (errorMessage.includes("expired")) {
+      throw new AuthenticationError("Access token has expired", "TOKEN_EXPIRED", 401);
+    }
+    if (errorMessage.includes("signature")) {
+      throw new AuthenticationError("Invalid token", "INVALID_TOKEN", 401);
+    }
+    throw new AuthenticationError("Authentication failed", "AUTHENTICATION_FAILED", 401);
   }
 }
 function mapPayloadToAuthContext(payload) {
@@ -949,6 +968,13 @@ async function validateTrackedSession(payload) {
     console.log("[AUTH] Session validation failed:", error instanceof Error ? error.message : "Unknown error");
     return false;
   }
+}
+
+// lib/auth/ownership.ts
+init_db();
+var ADMIN_ROLES = ["admin", "super_admin"];
+function isAdmin(role) {
+  return ADMIN_ROLES.includes(role);
 }
 
 // lib/arcjet.ts
@@ -1063,7 +1089,6 @@ var aj = ARCJET_KEY ? arcjet({
 }) : null;
 
 // api-src/payments.ts
-init_queries();
 init_errorHandler();
 
 // lib/validation/middleware.ts
@@ -1080,12 +1105,7 @@ function validateQuery(schema, req, res) {
   const result = schema.safeParse(req.query || {});
   if (!result.success) {
     const fieldErrors = formatZodErrors(result.error);
-    res.status(HttpStatus.BAD_REQUEST).json({
-      success: false,
-      error: "Validation failed",
-      code: "VALIDATION_ERROR",
-      fieldErrors
-    });
+    sendValidationError(res, fieldErrors);
     return null;
   }
   return result.data;
@@ -14691,22 +14711,27 @@ async function handler(req, res) {
   if (req.method !== "GET") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
   }
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
+  let user;
+  try {
+    user = await requireAuth(req);
+  } catch (error48) {
+    if (error48 instanceof AuthenticationError) {
+      return sendError(res, error48.message, error48.statusCode, error48.code);
+    }
+    throw error48;
   }
-  const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
+  const isAdmin2 = isAdmin(user.role);
   const action = req.query.action || "receipt";
   try {
     if (action === "receipt") {
-      return await handleReceipt(req, res, user.userId, isAdmin);
+      return await handleReceipt(req, res, user.userId, isAdmin2);
     }
     return sendError(res, "Invalid action", HttpStatus.BAD_REQUEST);
   } catch (error48) {
     return handleError(res, error48, "payments");
   }
 }
-async function handleReceipt(req, res, userId, isAdmin) {
+async function handleReceipt(req, res, userId, isAdmin2) {
   const parsed = validateQuery(receiptQuerySchema, req, res);
   if (!parsed)
     return;
@@ -14721,7 +14746,7 @@ async function handleReceipt(req, res, userId, isAdmin) {
       return sendError(res, "Application not found", HttpStatus.NOT_FOUND);
     }
     const application = appResult.rows[0];
-    if (!isAdmin && application.user_id !== userId) {
+    if (!isAdmin2 && application.user_id !== userId) {
       return sendError(res, "Access denied", HttpStatus.FORBIDDEN);
     }
     if (application.payment_status !== "verified") {

@@ -58,6 +58,7 @@ const StepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
       className={cn(
         'flex flex-col items-center relative flex-1 group outline-none',
         'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg',
+        'min-w-0',
         isClickable ? 'cursor-pointer' : 'cursor-default',
         shouldAnimate && 'transition-transform duration-200 hover:scale-105 active:scale-95'
       )}
@@ -155,16 +156,17 @@ const MobileStepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
       className={cn(
         'flex items-center gap-3 w-full p-2 rounded-lg transition-colors',
         'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+        'min-h-[44px]',
         isClickable ? 'cursor-pointer hover:bg-accent/50' : 'cursor-default',
         isCurrent && 'bg-primary/5'
       )}
       aria-label={`Step ${step.id}: ${step.progressTitle}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
       aria-current={isCurrent ? 'step' : undefined}
     >
-      {/* Step circle */}
+      {/* Step circle — 44px touch target */}
       <div
         className={cn(
-          'w-10 h-10 rounded-full flex items-center justify-center',
+          'w-11 h-11 rounded-full flex items-center justify-center',
           'text-sm font-semibold border-2 flex-shrink-0 transition-all duration-300',
           isCompleted
             ? 'bg-success border-success text-white'

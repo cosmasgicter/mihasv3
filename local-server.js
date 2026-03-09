@@ -2,10 +2,21 @@
 import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { resolveLocalApiModulePath } from './src/lib/localApiResolver.ts';
+import { existsSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+/**
+ * Resolve the path to a local API module, preferring bundled JS over source TS.
+ */
+function resolveLocalApiModulePath(name, { rootDir = __dirname } = {}) {
+  const bundled = join(rootDir, 'api', `${name}.js`);
+  if (existsSync(bundled)) return bundled;
+  const source = join(rootDir, 'api-src', `${name}.ts`);
+  if (existsSync(source)) return source;
+  throw new Error(`No API module found for "${name}"`);
+}
 
 const app = express();
 app.use(express.json());

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatTimestamp } from '@/lib/dateFormat'
 import { XCircle, User, Clock, CheckCircle, FileText, CreditCard, Mail, Phone, Calendar, MapPin, Users, GraduationCap, Building, AlertCircle, Download, Send, History, Eye, MessageSquare } from 'lucide-react'
 import { applicationService } from '@/services/applications'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
@@ -119,7 +119,7 @@ interface ApplicationDetailModalProps {
  onSendNotification: (title: string, message: string) => Promise<void>
  onViewDocuments: () => void
  onViewHistory: () => void
- onUpdateStatus: (id: string, status: string) => Promise<void>
+ onUpdateStatus: (id: string, status: string, options?: { notes?: string; force?: boolean }) => Promise<any>
  onGenerateAcceptanceLetter: () => Promise<void>
  onGenerateFinanceReceipt: () => Promise<void>
 }
@@ -400,6 +400,7 @@ export function ApplicationDetailModal({
  const [adminFeedback, setAdminFeedback] = useState('')
  const [savingFeedback, setSavingFeedback] = useState(false)
  const [showNotificationModal, setShowNotificationModal] = useState(false)
+ const [paymentWarning, setPaymentWarning] = useState<{ applicationId: string; status: string } | null>(null)
  const focusTrapRef = useFocusTrap(show && !!application)
  useEscapeKey(show && !!application, onClose)
 
@@ -494,13 +495,8 @@ export function ApplicationDetailModal({
 
  const formatInterviewDateTime = (value?: string | null) => {
  if (!value) return 'Not scheduled'
- const date = new Date(value)
- if (Number.isNaN(date.getTime())) {
- return 'Not scheduled'
- }
- const datePart = formatDate(date.toISOString())
- const timePart = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
- return `${datePart} • ${timePart}`
+ const result = formatTimestamp(value)
+ return result === 'Not available' ? 'Not scheduled' : result
  }
 
  const formatInterviewModeLabel = (mode?: string | null) => {
@@ -654,6 +650,28 @@ export function ApplicationDetailModal({
  } finally {
  setIsCancellingInterview(false)
  }
+ }
+
+ // Handle status update with payment warning support (Req 26.4)
+ const handleStatusWithWarning = async (appId: string, newStatus: string) => {
+   const result = await onUpdateStatus(appId, newStatus)
+   if (result && typeof result === 'object' && 'warning' in result && result.warning === true) {
+     setPaymentWarning({ applicationId: appId, status: newStatus })
+     return
+   }
+   window.dispatchEvent(new CustomEvent('applicationUpdated', { detail: { applicationId: appId } }))
+   setTimeout(() => loadApplicationDetails(), 100)
+ }
+
+ const handlePaymentWarningConfirm = async () => {
+   if (!paymentWarning) return
+   try {
+     await onUpdateStatus(paymentWarning.applicationId, paymentWarning.status, { force: true })
+     window.dispatchEvent(new CustomEvent('applicationUpdated', { detail: { applicationId: paymentWarning.applicationId } }))
+     setTimeout(() => loadApplicationDetails(), 100)
+   } finally {
+     setPaymentWarning(null)
+   }
  }
 
  if (!show || !application) return null
@@ -1316,9 +1334,7 @@ export function ApplicationDetailModal({
  <Button
  loading={updating === application.id}
  onClick={async () => {
- await onUpdateStatus(application.id, 'under_review')
- window.dispatchEvent(new CustomEvent('applicationUpdated', { detail: { applicationId: application.id } }))
- setTimeout(() => loadApplicationDetails(), 100)
+ await handleStatusWithWarning(application.id, 'under_review')
  }}
  variant="primary"
  >
@@ -1331,9 +1347,7 @@ export function ApplicationDetailModal({
  <Button
  loading={updating === application.id}
  onClick={async () => {
- await onUpdateStatus(application.id, 'approved')
- window.dispatchEvent(new CustomEvent('applicationUpdated', { detail: { applicationId: application.id } }))
- setTimeout(() => loadApplicationDetails(), 100)
+ await handleStatusWithWarning(application.id, 'approved')
  }}
  variant="success"
  >
@@ -1343,9 +1357,7 @@ export function ApplicationDetailModal({
  <Button
  loading={updating === application.id}
  onClick={async () => {
- await onUpdateStatus(application.id, 'rejected')
- window.dispatchEvent(new CustomEvent('applicationUpdated', { detail: { applicationId: application.id } }))
- setTimeout(() => loadApplicationDetails(), 100)
+ await handleStatusWithWarning(application.id, 'rejected')
  }}
  variant="destructive"
  >
@@ -1363,6 +1375,39 @@ export function ApplicationDetailModal({
  </div>
  </div>
       
+      {/* Payment Warning Dialog (Req 26.4) */}
+      {paymentWarning && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[70]">
+          <div className="bg-card rounded-xl max-w-md w-full p-6 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-amber-100 rounded-lg">
+                <AlertCircle className="h-5 w-5 text-amber-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">Payment Not Verified</h3>
+            </div>
+            <p className="text-sm text-foreground mb-6">
+              Payment has not been verified for this application. Are you sure you want to approve it? This action can be overridden.
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPaymentWarning(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => { void handlePaymentWarningConfirm() }}
+              >
+                Approve Anyway
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <SendNotificationModal
         show={showNotificationModal}
         applicationNumber={application.application_number}

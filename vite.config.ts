@@ -2,7 +2,6 @@ import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
-import { createDevApiProxyConfig } from './src/lib/devApiProxy'
 
 /**
  * Build-time validation for required VITE_* environment variables.
@@ -176,7 +175,13 @@ export default defineConfig(({ mode, command }) => {
       host: '0.0.0.0',
       strictPort: false,
       cors: true,
-      proxy: command === 'serve' ? createDevApiProxyConfig(env) : undefined,
+      proxy: command === 'serve' ? {
+        '/api': {
+          target: env.VITE_DEV_API_PROXY_TARGET || `http://127.0.0.1:${env.VITE_DEV_API_PORT || '3001'}`,
+          changeOrigin: true,
+          secure: false,
+        }
+      } : undefined,
       hmr: {
         overlay: true
       }

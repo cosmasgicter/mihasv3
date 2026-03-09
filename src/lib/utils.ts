@@ -2,6 +2,10 @@ import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { sanitizeForLog, sanitizeHtml, sanitizeFilePath } from './security'
 
+
+// Re-export centralized date formatting for backward compatibility
+export { formatDate, formatTimestamp, formatRelative, toDateInputValue } from './dateFormat'
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
@@ -26,22 +30,7 @@ export function validateTouchTarget(element: HTMLElement): boolean {
 }
 
 // Date formatting helper used across the application
-export function formatDate(value?: string | number | Date | null): string {
-  if (!value) {
-    return 'Not available'
-  }
-
-  const date = value instanceof Date ? value : new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return 'Invalid date'
-  }
-
-  return date.toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
-}
+// formatDate is now re-exported from ./dateFormat above
 
 export function safeJsonParse<T>(value: string | null | undefined, fallback: T): T {
   if (!value) {
@@ -355,19 +344,6 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } | nul
 
 export function rgbToHex(r: number, g: number, b: number): string {
   return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
-}
-
-// Date utilities
-export function formatRelativeTime(date: Date): string {
-  const now = new Date()
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-  
-  if (diffInSeconds < 60) return 'Just now'
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`
-  if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`
-  
-  return date.toLocaleDateString()
 }
 
 // Validation utilities

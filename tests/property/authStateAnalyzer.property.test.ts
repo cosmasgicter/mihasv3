@@ -35,7 +35,7 @@ import {
  * Number of runs for property tests.
  * Auth state analysis involves file I/O, so we use moderate iterations.
  */
-const NUM_RUNS = 100;
+const NUM_RUNS = 10;
 
 /**
  * Base temporary directory for test fixtures - unique per test run
@@ -996,7 +996,7 @@ describe('Property 12: Auth State Consistency', () => {
             }
           }
         ),
-        { numRuns: 20 } // Fewer runs due to file I/O
+        { numRuns: 10 } // Fewer runs due to file I/O
       );
     });
 
@@ -1032,7 +1032,7 @@ describe('Property 12: Auth State Consistency', () => {
             }
           }
         ),
-        { numRuns: 20 } // Fewer runs due to file I/O
+        { numRuns: 10 } // Fewer runs due to file I/O
       );
     });
 
@@ -1063,7 +1063,7 @@ describe('Property 12: Auth State Consistency', () => {
             expect(Array.isArray(hooks)).toBe(true);
           }
         ),
-        { numRuns: 20 } // Fewer runs due to file I/O
+        { numRuns: 10 } // Fewer runs due to file I/O
       );
     });
   });

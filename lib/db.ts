@@ -40,12 +40,6 @@ export interface QueryResult<T = Record<string, unknown>> {
 }
 
 /**
- * Database type enumeration
- * @deprecated - Now always 'neon' after migration
- */
-export type DatabaseType = 'neon';
-
-/**
  * Database error codes for typed error handling
  */
 export const DatabaseErrorCode = {
@@ -92,14 +86,6 @@ export class DatabaseError extends Error {
 // ============================================================================
 // Configuration
 // ============================================================================
-
-/**
- * Detect database type - always returns 'neon' after migration
- * @deprecated - Kept for backward compatibility
- */
-export function detectDatabaseType(): DatabaseType {
-  return 'neon';
-}
 
 /**
  * Get database configuration
@@ -679,8 +665,4 @@ export const auditQueries = {
   }),
 };
 
-// ============================================================================
-// Exports for backward compatibility
-// ============================================================================
 
-export { detectDatabaseType as getDatabaseType };

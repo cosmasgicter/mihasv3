@@ -3,7 +3,7 @@
 import { cleanupOutdatedCaches, matchPrecache, precacheAndRoute } from 'workbox-precaching'
 import { clientsClaim } from 'workbox-core'
 import { registerRoute, setCatchHandler } from 'workbox-routing'
-import { CacheFirst, NetworkFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies'
+import { NetworkFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies'
 import { ExpirationPlugin } from 'workbox-expiration'
 import { CacheableResponsePlugin } from 'workbox-cacheable-response'
 
@@ -62,6 +62,14 @@ const CACHE_VERSION = `v${APP_VERSION}`
 const CACHE_PREFIX = 'mihas-app'
 const LEGACY_CACHE_PREFIXES = ['mihas-v2-cache']
 
+// Cache bucket names
+const STATIC_CACHE = 'static-v1'
+const API_CACHE = `${CACHE_PREFIX}-api-${CACHE_VERSION}`
+
+// Cache limits: 50MB total budget, 100 entries per bucket
+const MAX_ENTRIES_PER_BUCKET = 100
+const CACHE_BUDGET_BYTES = 50 * 1024 * 1024 // 50MB
+
 // Offline fallback asset used when image requests fail
 const IMAGE_FALLBACK_URL = '/images/placeholder.svg'
 
@@ -85,6 +93,50 @@ clientsClaim()
 precacheAndRoute(WB_MANIFEST)
 cleanupOutdatedCaches()
 
+// ============================================================================
+// CACHE BUDGET ENFORCEMENT
+// ============================================================================
+
+/**
+ * Enforce total cache budget across all buckets.
+ * Evicts LRU entries from the largest cache when total exceeds CACHE_BUDGET_BYTES.
+ */
+const enforceCacheBudget = async (): Promise<void> => {
+  try {
+    const estimate = await navigator.storage?.estimate?.()
+    if (!estimate?.usage || estimate.usage <= CACHE_BUDGET_BYTES) return
+
+    const cacheNames = await caches.keys()
+    const ownCaches = cacheNames.filter(
+      (name) => name.startsWith(CACHE_PREFIX) || name === STATIC_CACHE
+    )
+
+    // Find the largest cache and evict oldest entries
+    let largestCache = ''
+    let largestSize = 0
+    for (const name of ownCaches) {
+      const cache = await caches.open(name)
+      const keys = await cache.keys()
+      if (keys.length > largestSize) {
+        largestSize = keys.length
+        largestCache = name
+      }
+    }
+
+    if (largestCache && largestSize > 0) {
+      const cache = await caches.open(largestCache)
+      const keys = await cache.keys()
+      // Evict oldest 10% of entries (LRU approximation)
+      const evictCount = Math.max(1, Math.floor(keys.length * 0.1))
+      for (let i = 0; i < evictCount; i++) {
+        await cache.delete(keys[i])
+      }
+    }
+  } catch {
+    // Storage estimate not available — skip budget enforcement
+  }
+}
+
 
 const imageFallbackResponse = async (): Promise<Response> => {
   const fallbackResponse = await caches.match(IMAGE_FALLBACK_URL)
@@ -101,231 +153,184 @@ const imageFallbackResponse = async (): Promise<Response> => {
   }
 }
 
+/**
+ * Wraps a cached API response with X-From-Cache: true header so the frontend
+ * can display an "offline data" indicator when serving stale data.
+ */
+const addFromCacheHeader = (response: Response): Response => {
+  const headers = new Headers(response.headers)
+  headers.set('X-From-Cache', 'true')
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  })
+}
+
 
 // ============================================================================
-// STATIC ASSETS - CacheFirst Strategy
+// STATIC ASSETS — StaleWhileRevalidate with cache name `static-v1`
 // ============================================================================
 
-// Google Fonts - Cache first with long expiration
+// Google Fonts
 registerRoute(
   ({ url }) => url.origin === 'https://fonts.googleapis.com',
-  new CacheFirst({
-    cacheName: `${CACHE_PREFIX}-google-fonts-${CACHE_VERSION}`,
+  new StaleWhileRevalidate({
+    cacheName: STATIC_CACHE,
     plugins: [
       new ExpirationPlugin({
-        maxEntries: 10,
+        maxEntries: MAX_ENTRIES_PER_BUCKET,
         maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
         purgeOnQuotaError: true
       }),
-      new CacheableResponsePlugin({
-        statuses: [0, 200]
-      })
+      new CacheableResponsePlugin({ statuses: [0, 200] })
     ]
   })
 )
 
-// Landing page accreditation/program images - deterministic cache strategy
+// All images — StaleWhileRevalidate into static-v1
 registerRoute(
-  ({ request, url }) =>
-    request.destination === 'image' &&
-    (url.pathname.startsWith('/images/programs/') || url.pathname.startsWith('/images/accreditation/')),
+  ({ request }) => request.destination === 'image',
   new StaleWhileRevalidate({
-    cacheName: `${CACHE_PREFIX}-landing-images-${CACHE_VERSION}`,
+    cacheName: STATIC_CACHE,
     plugins: [
       new ExpirationPlugin({
-        maxEntries: 40,
-        maxAgeSeconds: 60 * 60 * 24 * 14, // 14 days
-        purgeOnQuotaError: true
-      }),
-      new CacheableResponsePlugin({
-        statuses: [0, 200]
-      })
-    ]
-  }),
-  'GET'
-)
-
-// Images - Cache first with 30-day expiration
-registerRoute(
-  ({ request, url }) =>
-    request.destination === 'image' &&
-    !url.pathname.startsWith('/images/programs/') &&
-    !url.pathname.startsWith('/images/accreditation/'),
-  new CacheFirst({
-    cacheName: `${CACHE_PREFIX}-images-${CACHE_VERSION}`,
-    plugins: [
-      new ExpirationPlugin({
-        maxEntries: 100,
+        maxEntries: MAX_ENTRIES_PER_BUCKET,
         maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
         purgeOnQuotaError: true
       }),
-      new CacheableResponsePlugin({
-        statuses: [0, 200]
-      })
+      new CacheableResponsePlugin({ statuses: [0, 200] })
     ]
   }),
   'GET'
 )
 
-// CSS and JavaScript hashed bundles - stale-while-revalidate
+// CSS and JavaScript bundles — StaleWhileRevalidate into static-v1
 registerRoute(
   ({ request, url }) => {
-    if (url.origin !== self.location.origin) {
-      return false
-    }
-
-    const isStaticBundle = /\/assets\/.+-[a-z0-9]{8,}\.(?:js|css)$/i.test(url.pathname)
-    const isStyleOrScript = request.destination === 'style' || request.destination === 'script'
-    return isStyleOrScript && isStaticBundle
+    if (url.origin !== self.location.origin) return false
+    return request.destination === 'style' || request.destination === 'script'
   },
   new StaleWhileRevalidate({
-    cacheName: `${CACHE_PREFIX}-hashed-bundles-${CACHE_VERSION}`,
+    cacheName: STATIC_CACHE,
     plugins: [
       new ExpirationPlugin({
-        maxEntries: 60,
+        maxEntries: MAX_ENTRIES_PER_BUCKET,
         maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
         purgeOnQuotaError: true
       }),
-      new CacheableResponsePlugin({
-        statuses: [0, 200]
-      })
+      new CacheableResponsePlugin({ statuses: [0, 200] })
     ]
   })
 )
 
-// Fonts - Cache first with long expiration
+// Fonts — StaleWhileRevalidate into static-v1
 registerRoute(
   ({ request }) => request.destination === 'font',
-  new CacheFirst({
-    cacheName: `${CACHE_PREFIX}-fonts-${CACHE_VERSION}`,
+  new StaleWhileRevalidate({
+    cacheName: STATIC_CACHE,
     plugins: [
       new ExpirationPlugin({
-        maxEntries: 30,
+        maxEntries: MAX_ENTRIES_PER_BUCKET,
         maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
         purgeOnQuotaError: true
       }),
-      new CacheableResponsePlugin({
-        statuses: [0, 200]
-      })
+      new CacheableResponsePlugin({ statuses: [0, 200] })
     ]
   })
 )
-
 
 
 // ============================================================================
-// API RESPONSES - NetworkFirst Strategy
+// AUTH ENDPOINTS — NetworkOnly (never cache auth)
 // ============================================================================
 
-// Vercel API - Network Only for high volatility
-// High volatility endpoints (applications, realtime)
 registerRoute(
-  ({ url }) => 
-    url.pathname.startsWith('/api/applications') ||
-    url.pathname.startsWith('/applications') ||
-    url.pathname.startsWith('/notifications'),
-  new NetworkOnly({
-    plugins: [
-      new CacheableResponsePlugin({
-        statuses: [0, 200]
-      })
-    ]
-  })
-)
-
-// Medium volatility endpoints (user data, profiles)
-registerRoute(
-  ({ url }) => 
-    url.pathname.startsWith('/api/users') ||
-    url.pathname.startsWith('/api/profiles'),
-  new NetworkOnly({
-    plugins: [
-      new CacheableResponsePlugin({
-        statuses: [0, 200]
-      })
-    ]
-  })
-)
-
-// Low volatility endpoints (analytics, reports, catalog)
-registerRoute(
-  ({ url }) => 
-    url.pathname.startsWith('/api/analytics') ||
-    url.pathname.startsWith('/analytics') ||
-    url.pathname.startsWith('/catalog') ||
-    url.pathname.startsWith('/api/catalog'),
-  new NetworkOnly({
-    plugins: [
-      new CacheableResponsePlugin({
-        statuses: [0, 200]
-      })
-    ]
-  })
-)
-
-// Generic API fallback - Network Only
-registerRoute(
-  ({ url }) => 
-    url.pathname.startsWith('/api/') ||
-    url.pathname.startsWith('/admin/') ||
-    url.pathname.startsWith('/documents/') ||
-    url.pathname.startsWith('/payments/'),
-  new NetworkOnly({
-    plugins: [
-      new CacheableResponsePlugin({
-        statuses: [0, 200]
-      })
-    ]
-  })
-)
-
-// ============================================================================
-// SPECIAL CASES
-// ============================================================================
-
-// Auth endpoints - Network only (never cache)
-registerRoute(
-  ({ url }) => 
+  ({ url }) =>
     url.pathname.startsWith('/api/auth') ||
     url.pathname.startsWith('/auth/'),
   new NetworkOnly()
 )
 
-// HTML Documents - Network first with 1-hour cache fallback
+
+// ============================================================================
+// API RESPONSES — NetworkFirst with 5s timeout, fallback to cache
+// Cached responses include X-From-Cache: true header for offline indicator
+// ============================================================================
+
+// All non-auth API endpoints — NetworkFirst with 5s timeout
+registerRoute(
+  ({ url }) =>
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/applications') ||
+    url.pathname.startsWith('/notifications') ||
+    url.pathname.startsWith('/admin/') ||
+    url.pathname.startsWith('/documents/') ||
+    url.pathname.startsWith('/payments/') ||
+    url.pathname.startsWith('/catalog'),
+  {
+    handle: async ({ request, event }) => {
+      const networkFirst = new NetworkFirst({
+        cacheName: API_CACHE,
+        networkTimeoutSeconds: 5,
+        plugins: [
+          new ExpirationPlugin({
+            maxEntries: MAX_ENTRIES_PER_BUCKET,
+            maxAgeSeconds: 60 * 60 * 24, // 24 hours
+            purgeOnQuotaError: true
+          }),
+          new CacheableResponsePlugin({ statuses: [0, 200] })
+        ]
+      })
+
+      const response = await networkFirst.handle({ request, event: event as ExtendableEvent })
+
+      // If the response came from cache (offline), tag it with X-From-Cache
+      // Workbox NetworkFirst returns the cached response when the network fails.
+      // We detect this by checking if the response headers lack typical fresh indicators
+      // or by checking if the response was already in cache before the request.
+      const cache = await caches.open(API_CACHE)
+      const cachedResponse = await cache.match(request)
+      if (cachedResponse && response && response.headers.get('date') === cachedResponse.headers.get('date')) {
+        return addFromCacheHeader(response)
+      }
+
+      return response
+    }
+  }
+)
+
+// HTML Documents — NetworkFirst with 5s timeout (app shell)
 registerRoute(
   ({ request }) => request.destination === 'document',
   new NetworkFirst({
-    cacheName: `${CACHE_PREFIX}-pages-${CACHE_VERSION}`,
+    cacheName: STATIC_CACHE,
     networkTimeoutSeconds: 5,
     plugins: [
       new ExpirationPlugin({
-        maxEntries: 20,
+        maxEntries: MAX_ENTRIES_PER_BUCKET,
         maxAgeSeconds: 60 * 60, // 1 hour
         purgeOnQuotaError: true
       }),
-      new CacheableResponsePlugin({
-        statuses: [0, 200]
-      })
+      new CacheableResponsePlugin({ statuses: [0, 200] })
     ]
   })
 )
 
-// Stale-while-revalidate for non-critical resources
+// Non-critical resources — StaleWhileRevalidate into static-v1
 registerRoute(
-  ({ url }) => 
+  ({ url }) =>
     url.pathname.startsWith('/generate/') ||
     url.pathname.startsWith('/interview/'),
   new StaleWhileRevalidate({
-    cacheName: `${CACHE_PREFIX}-swr-${CACHE_VERSION}`,
+    cacheName: STATIC_CACHE,
     plugins: [
       new ExpirationPlugin({
-        maxEntries: 30,
+        maxEntries: MAX_ENTRIES_PER_BUCKET,
         maxAgeSeconds: 60 * 60 * 24, // 24 hours
         purgeOnQuotaError: true
       }),
-      new CacheableResponsePlugin({
-        statuses: [0, 200]
-      })
+      new CacheableResponsePlugin({ statuses: [0, 200] })
     ]
   })
 )
@@ -334,7 +339,7 @@ registerRoute(
 // CACHE MANAGEMENT
 // ============================================================================
 
-// Clean up old cache versions on activation
+// Clean up old cache versions on activation and enforce cache budget
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
@@ -344,7 +349,9 @@ self.addEventListener('activate', (event) => {
       const oldCaches = cacheNames.filter((name) => {
         const isLegacyCache = LEGACY_CACHE_PREFIXES.some((prefix) => name.startsWith(prefix))
         const isCurrentPrefixOutdated = name.startsWith(CACHE_PREFIX) && !name.includes(CACHE_VERSION)
-        return isLegacyCache || isCurrentPrefixOutdated
+        // Keep static-v1 across versions (it's version-independent)
+        const isStaticCache = name === STATIC_CACHE
+        return (isLegacyCache || isCurrentPrefixOutdated) && !isStaticCache
       })
       
       if (oldCaches.length > 0) {
@@ -358,6 +365,9 @@ self.addEventListener('activate', (event) => {
       } else {
         console.log('[Service Worker] No old caches to delete')
       }
+
+      // Enforce 50MB total cache budget
+      await enforceCacheBudget()
       
       // Notify clients about cache update
       const clients = await self.clients.matchAll()

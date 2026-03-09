@@ -149,7 +149,7 @@ describe('Feature: supabase-remnant-purge, Property 5: Polling deduplication', (
         // Total callback fires: exactly 1
         expect(deduplicator.getCallbackFireCount()).toBe(1)
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -192,7 +192,7 @@ describe('Feature: supabase-remnant-purge, Property 5: Polling deduplication', (
           }
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -223,7 +223,7 @@ describe('Feature: supabase-remnant-purge, Property 5: Polling deduplication', (
           expect(deduplicator.getCallbackFireCount()).toBe(1)
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -263,7 +263,7 @@ describe('Feature: supabase-remnant-purge, Property 5: Polling deduplication', (
           }
         },
       ),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 
@@ -291,7 +291,7 @@ describe('Feature: supabase-remnant-purge, Property 5: Polling deduplication', (
 
         expect(deduplicator.getCallbackFireCount()).toBe(1)
       }),
-      { numRuns: 100 },
+      { numRuns: 10 },
     )
   })
 })

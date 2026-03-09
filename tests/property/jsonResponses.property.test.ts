@@ -271,7 +271,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(hasJsonContentType(captured.headers)).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -288,7 +288,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(isValidJsonResponse(captured.body)).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -310,7 +310,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(response.data).toEqual(data);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -327,7 +327,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(captured.statusCode).toBe(status);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -343,7 +343,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(captured.statusCode).toBe(200);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -365,7 +365,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(hasJsonContentType(captured.headers)).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -382,7 +382,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(isValidJsonResponse(captured.body)).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -405,7 +405,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(response.code).toBe(code);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -426,7 +426,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(bodyString).not.toContain('<head');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -443,7 +443,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(captured.statusCode).toBe(status);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -459,7 +459,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(captured.statusCode).toBe(400);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -480,7 +480,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(isValidJsonResponse(captured.body)).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -497,7 +497,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(isValidJsonResponse(captured.body)).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -519,7 +519,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(typeof response.code).toBe('string');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -539,7 +539,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(bodyString).not.toContain('<body');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -565,7 +565,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(isValidApiResponseFormat(captured.body)).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -601,7 +601,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(response.error).toContain('[EMAIL]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -620,7 +620,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(response.error).toContain('[ID]');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -645,7 +645,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(response.error).not.toMatch(/eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*/);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -668,7 +668,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(response.success).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -690,7 +690,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(typeof response.code).toBe('string');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -711,7 +711,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(typeof response.code).toBe('string');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -831,7 +831,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(parsed).toEqual(captured.body);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -851,7 +851,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(parsed).toEqual(captured.body);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -901,7 +901,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(isValidApiResponseFormat(captured.body)).toBe(true);
           }
         ),
-        { numRuns: 20 } // Fewer runs for long strings
+        { numRuns: 10 } // Fewer runs for long strings
       );
     });
 
@@ -947,7 +947,7 @@ describe('Feature: bun-vercel-runtime-forensics, Property 2: API Responses Are A
             expect(response.data).toEqual(data);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });

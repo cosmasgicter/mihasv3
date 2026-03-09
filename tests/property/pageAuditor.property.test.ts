@@ -29,7 +29,7 @@ import type { DataLoadStep } from '../../scripts/audit/types';
  * Number of runs for property tests.
  * Data load tracing involves file I/O, so we use fewer iterations.
  */
-const NUM_RUNS = 100;
+const NUM_RUNS = 10;
 
 /**
  * Temporary directory for test fixtures

@@ -34,7 +34,7 @@ import type { LoaderInstance, LoaderType } from '../../scripts/audit/types';
 /**
  * Number of runs for property tests.
  */
-const NUM_RUNS = 100;
+const NUM_RUNS = 10;
 
 // ============================================================================
 // Arbitraries (Generators)

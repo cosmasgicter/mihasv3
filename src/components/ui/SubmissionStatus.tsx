@@ -1,6 +1,7 @@
 import React from 'react'
 import { CheckCircle, AlertCircle, Clock, RefreshCw, X } from 'lucide-react'
 import { SubmissionStatus as Status } from '@/types/submission'
+import { formatTimestamp } from '@/lib/dateFormat'
 
 interface SubmissionStatusProps {
   status: Status
@@ -58,7 +59,7 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
               <p className="text-sm text-foreground">Step: {status.step}</p>
             )}
             <p className="text-xs text-foreground">
-              {new Date(status.timestamp).toLocaleString()}
+              {formatTimestamp(status.timestamp)}
             </p>
           </div>
         </div>

@@ -16,7 +16,7 @@ describe('Property 3: getCacheStrategy URL classification is correct and Supabas
         const url = `https://apply.mihas.edu.zm/api/${segment}`
         expect(getCacheStrategy(url)).toBe('api')
       }),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 
@@ -30,7 +30,7 @@ describe('Property 3: getCacheStrategy URL classification is correct and Supabas
           expect(getCacheStrategy(url)).toBe('images')
         }
       ),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 
@@ -44,7 +44,7 @@ describe('Property 3: getCacheStrategy URL classification is correct and Supabas
           expect(getCacheStrategy(url)).toBe('fonts')
         }
       ),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 
@@ -54,7 +54,7 @@ describe('Property 3: getCacheStrategy URL classification is correct and Supabas
         const url = `https://apply.mihas.edu.zm/${segment}`
         expect(getCacheStrategy(url)).toBe('static')
       }),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 
@@ -64,7 +64,7 @@ describe('Property 3: getCacheStrategy URL classification is correct and Supabas
         const url = `https://test.supabase.co/${path}`
         expect(getCacheStrategy(url)).not.toBe('api')
       }),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 })

@@ -248,19 +248,30 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
     hasMore: applications.length < totalCount
   }), [applications.length, currentPage, pageSize, totalCount])
 
-  const updateStatus = useCallback(async (applicationId: string, newStatus: string) => {
+  const updateStatus = useCallback(async (applicationId: string, newStatus: string, options?: { notes?: string; force?: boolean }) => {
     const previousApplications = applications
     try {
       setApplications(prev => prev.map(app => 
         app.id === applicationId ? { ...app, status: newStatus } : app
       ))
-      await applicationService.updateStatus(applicationId, newStatus)
+      const result = await applicationService.updateStatus(applicationId, newStatus, options?.notes, options?.force)
+      
+      // Check for advisory payment warning (Req 26.4)
+      if (result && typeof result === 'object' && 'warning' in result && (result as any).warning === true) {
+        // Revert optimistic update — this was just a warning, not a real update
+        setApplications(previousApplications)
+        return result as any
+      }
+      
       await Promise.allSettled([
         queryClient.invalidateQueries({ queryKey: ['applications'] }),
+        queryClient.invalidateQueries({ queryKey: ['applications', applicationId] }),
         queryClient.invalidateQueries({ queryKey: ['application-stats'] }),
-        queryClient.invalidateQueries({ queryKey: ['admin-dashboard'] })
+        queryClient.invalidateQueries({ queryKey: ['admin-applications'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-dashboard-polling'] })
       ])
       await loadPage(currentPage, 'refresh')
+      return result
     } catch (error) {
       console.error('Failed to update status:', error)
       setApplications(previousApplications)
@@ -281,7 +292,10 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
       await applicationService.updatePaymentStatus(applicationId, newPaymentStatus, verificationNotes)
       await Promise.allSettled([
         queryClient.invalidateQueries({ queryKey: ['applications'] }),
+        queryClient.invalidateQueries({ queryKey: ['applications', applicationId] }),
         queryClient.invalidateQueries({ queryKey: ['application-stats'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-applications'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-dashboard-polling'] }),
         queryClient.invalidateQueries({ queryKey: ['payment-status'] })
       ])
       await loadPage(currentPage, 'refresh')

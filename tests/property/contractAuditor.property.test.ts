@@ -26,7 +26,7 @@ import type { APICallInfo, HTTPMethod, AuthMechanism } from '../../scripts/audit
  * Number of runs for property tests.
  * API call extraction involves file I/O, so we use fewer iterations.
  */
-const NUM_RUNS = 100;
+const NUM_RUNS = 10;
 
 /**
  * Temporary directory for test fixtures

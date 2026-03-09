@@ -3,6 +3,7 @@ import { useEmailNotifications } from '@/hooks/useEmailNotifications'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { sanitizeForDisplay } from '@/lib/sanitize'
+import { formatTimestamp } from '@/lib/dateFormat'
 import { Mail, CheckCircle, XCircle, Clock } from 'lucide-react'
 
 export default function EmailNotifications() {
@@ -77,10 +78,10 @@ export default function EmailNotifications() {
                   </p>
                   
                   <p className="text-xs text-foreground">
-                    {new Date(notification.created_at).toLocaleString()}
+                    {formatTimestamp(notification.created_at)}
                     {notification.sent_at && (
                       <span className="ml-2">
-                        • Sent: {new Date(notification.sent_at).toLocaleString()}
+                        • Sent: {formatTimestamp(notification.sent_at)}
                       </span>
                     )}
                   </p>

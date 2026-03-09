@@ -54,6 +54,10 @@ export function useAutoSave(
   const inFlightSaveRef = useRef(false)
   const latestDataRef = useRef<AutoSaveData>(data)
   const saveAttemptsRef = useRef(0)
+  const abortControllerRef = useRef<AbortController | null>(null)
+  const versionRef = useRef(0)
+  const pendingManualSaveRef = useRef(false)
+  const mountedRef = useRef(true)
 
   useEffect(() => {
     latestDataRef.current = data
@@ -63,25 +67,48 @@ export function useAutoSave(
   const storageKey = `${key}_${location.pathname}_${location.search}`
 
   // Save data to localStorage with network interruption handling and retry logic
-  const saveData = useCallback(async () => {
+  const saveData = useCallback(async (isManual = false) => {
     const currentData = latestDataRef.current
     if (!enabled || !currentData || Object.keys(currentData).length === 0) return
-    if (inFlightSaveRef.current) return
+    
+    // If a save is already in-flight, queue manual saves for later
+    if (inFlightSaveRef.current) {
+      if (isManual) {
+        pendingManualSaveRef.current = true
+      }
+      return
+    }
 
     inFlightSaveRef.current = true
+    
+    // Create a new AbortController for this save
+    const abortController = new AbortController()
+    abortControllerRef.current = abortController
+    
+    // Increment monotonic version
+    versionRef.current += 1
+    const currentVersion = versionRef.current
+    
     try {
-      setIsSaving(true)
-      setSaveStatus('saving')
-      setSaveError(null)
+      if (mountedRef.current) {
+        setIsSaving(true)
+        setSaveStatus('saving')
+        setSaveError(null)
+      }
       
       const dataString = JSON.stringify(currentData)
       
-      // Only save if data has changed
-      if (dataString === previousDataRef.current) {
-        setIsSaving(false)
-        setSaveStatus('saved')
+      // Only save if data has changed (skip for manual saves to ensure latest is persisted)
+      if (!isManual && dataString === previousDataRef.current) {
+        if (mountedRef.current) {
+          setIsSaving(false)
+          setSaveStatus('saved')
+        }
         return
       }
+      
+      // Check if aborted before proceeding
+      if (abortController.signal.aborted) return
 
       const savePayload = {
         data: stripPiiFields(currentData as Record<string, unknown>),
@@ -90,7 +117,7 @@ export function useAutoSave(
         userAgent: navigator.userAgent,
         isOnline: navigator.onLine,
         saveAttempt: saveAttemptsRef.current + 1,
-        version: Date.now() // For conflict resolution
+        version: currentVersion
       }
 
       // Always save to localStorage first (works offline) — PII stripped
@@ -99,16 +126,24 @@ export function useAutoSave(
       // If online, attempt cloud save with retry logic
       if (navigator.onLine && onSave) {
         try {
+          if (abortController.signal.aborted) return
           await onSave(currentData)
-          setSaveQueue([])
-          setSaveAttempts(0)
+          if (mountedRef.current) {
+            setSaveQueue([])
+            setSaveAttempts(0)
+          }
           saveAttemptsRef.current = 0
         } catch (cloudError) {
+          // If aborted (unmount), don't update state
+          if (abortController.signal.aborted) return
+          
           console.warn('Cloud save failed, data saved locally:', cloudError)
           const nextAttempts = saveAttemptsRef.current + 1
           saveAttemptsRef.current = nextAttempts
-          setSaveAttempts(nextAttempts)
-          setSaveQueue(prev => [...prev, currentData])
+          if (mountedRef.current) {
+            setSaveAttempts(nextAttempts)
+            setSaveQueue(prev => [...prev, currentData])
+          }
           
           // Implement exponential backoff for retries
           const retryDelay = Math.min(1000 * Math.pow(2, nextAttempts - 1), 30000) // Max 30 seconds
@@ -117,7 +152,7 @@ export function useAutoSave(
             retryTimeoutRef.current = setTimeout(() => {
               void saveData() // Retry save
             }, retryDelay)
-          } else {
+          } else if (mountedRef.current) {
             setSaveStatus('error')
             setSaveError('Failed to sync with server after multiple attempts')
             onError?.(new Error('Max retry attempts exceeded'))
@@ -126,28 +161,48 @@ export function useAutoSave(
           // Don't throw - local save succeeded
         }
       }
+      
+      // If aborted, don't update state
+      if (abortController.signal.aborted) return
 
       previousDataRef.current = dataString
-      setLastSaved(new Date())
-      setIsDirty(false)
-      setHasUnsavedChanges(false)
-      setSaveStatus(navigator.onLine ? 'saved' : 'offline')
-      
-      // Schedule next save
-      const nextSave = new Date(Date.now() + interval)
-      setNextSaveTime(nextSave)
+      if (mountedRef.current) {
+        setLastSaved(new Date())
+        setIsDirty(false)
+        setHasUnsavedChanges(false)
+        setSaveStatus(navigator.onLine ? 'saved' : 'offline')
+        
+        // Schedule next save
+        const nextSave = new Date(Date.now() + interval)
+        setNextSaveTime(nextSave)
+      }
       
     } catch (error) {
+      if (abortController.signal.aborted) return
+      
       console.error('Auto-save failed:', error)
-      setSaveStatus('error')
-      setSaveError(error instanceof Error ? error.message : 'Save failed')
-      const nextAttempts = saveAttemptsRef.current + 1
-      saveAttemptsRef.current = nextAttempts
-      setSaveAttempts(nextAttempts)
+      if (mountedRef.current) {
+        setSaveStatus('error')
+        setSaveError(error instanceof Error ? error.message : 'Save failed')
+        const nextAttempts = saveAttemptsRef.current + 1
+        saveAttemptsRef.current = nextAttempts
+        setSaveAttempts(nextAttempts)
+      }
       onError?.(error as Error)
     } finally {
       inFlightSaveRef.current = false
-      setIsSaving(false)
+      if (abortControllerRef.current === abortController) {
+        abortControllerRef.current = null
+      }
+      if (mountedRef.current) {
+        setIsSaving(false)
+      }
+      
+      // Process pending manual save if one was queued
+      if (pendingManualSaveRef.current && !abortController.signal.aborted) {
+        pendingManualSaveRef.current = false
+        void saveData(true)
+      }
     }
   }, [enabled, storageKey, location.pathname, location.search, onSave, onError, interval])
 
@@ -303,9 +358,9 @@ export function useAutoSave(
     setHasUnsavedChanges(false)
   }, [storageKey])
 
-  // Force save immediately
+  // Force save immediately (manual trigger)
   const forceSave = useCallback(() => {
-    void saveData()
+    void saveData(true)
   }, [saveData])
 
   // Monitor online/offline status
@@ -388,9 +443,14 @@ export function useAutoSave(
     }
   }, [enabled, hasUnsavedChanges, saveData])
 
-  // Cleanup timeouts on unmount
+  // Cleanup timeouts and abort in-flight saves on unmount
   useEffect(() => {
+    mountedRef.current = true
     return () => {
+      mountedRef.current = false
+      // Abort any in-flight save request
+      abortControllerRef.current?.abort()
+      abortControllerRef.current = null
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current)
       }

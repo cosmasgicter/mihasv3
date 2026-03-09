@@ -1,4 +1,6 @@
 // Minimal email service
+import { formatTimestamp } from '@/lib/dateFormat'
+
 export const emailService = {
   async sendNotificationEmail(to: string, title: string, message: string) {
     return fetch('/send-email', {
@@ -50,14 +52,7 @@ export const emailService = {
   },
 
   async sendInterviewSchedule(to: string, applicationNumber: string, scheduledAt: string, mode: string, location?: string) {
-    const date = new Date(scheduledAt).toLocaleString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    const date = formatTimestamp(scheduledAt)
 
     return fetch('/send-email', {
       method: 'POST',

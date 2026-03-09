@@ -12,10 +12,108 @@ import { fetchWithCache, invalidateCache } from '@/utils/api-cache';
 import { ApiErrorHandler } from '@/lib/apiErrorHandler';
 import { logger } from '@/utils/logger';
 import { getCsrfToken, setCsrfToken } from '@/lib/csrfToken';
+import { TIMEOUT_ERROR_MESSAGE } from '@/lib/errorMessages';
 
 import type { FetchWithCacheOptions } from '@/utils/api-cache';
 
 const API_BASE = getApiBaseUrl();
+
+/** Default request timeout in milliseconds (30s) */
+const DEFAULT_TIMEOUT = 30_000;
+/** Shorter timeout for health check and session validation requests (10s) */
+const SHORT_TIMEOUT = 10_000;
+/** Maximum retry attempts for network/5xx errors */
+const MAX_RETRIES = 2;
+/** Backoff delays in ms for each retry attempt (1s, 3s) */
+const RETRY_DELAYS = [1_000, 3_000];
+
+/** Endpoints that use the shorter timeout */
+const SHORT_TIMEOUT_PATTERNS = ['/api/health', '/api/auth?action=session'];
+
+/**
+ * Determine the appropriate timeout for a given endpoint.
+ * Health checks and session validation use 10s; everything else uses 30s.
+ */
+function getTimeoutForEndpoint(endpoint: string): number {
+  for (const pattern of SHORT_TIMEOUT_PATTERNS) {
+    if (endpoint.startsWith(pattern) || endpoint.includes(pattern)) {
+      return SHORT_TIMEOUT;
+    }
+  }
+  return DEFAULT_TIMEOUT;
+}
+
+/**
+ * Check whether a failed request should be retried.
+ * Retries network errors and 5xx server errors.
+ * Does NOT retry 4xx client errors or user-aborted requests.
+ */
+function isRetryableFailure(error: unknown): boolean {
+  // Never retry user-aborted requests
+  if (error instanceof DOMException && error.name === 'AbortError') return false;
+  if (error instanceof Error && error.name === 'AbortError') return false;
+
+  // Timeout errors (our custom TimeoutError) are retryable
+  if (error instanceof Error && error.name === 'TimeoutError') return true;
+
+  // Network errors (TypeError from fetch) are retryable
+  if (error instanceof TypeError) return true;
+
+  // Check for 5xx status in error metadata
+  const errWithStatus = error as { status?: number };
+  if (typeof errWithStatus?.status === 'number') {
+    return errWithStatus.status >= 500;
+  }
+
+  // Check error message for network-related failures
+  if (error instanceof Error) {
+    const msg = error.message.toLowerCase();
+    if (
+      msg.includes('network') ||
+      msg.includes('failed to fetch') ||
+      msg.includes('load failed') ||
+      msg.includes('net::err')
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Create an AbortController that auto-aborts after `ms` milliseconds.
+ * If an external signal is provided, it is linked so that external abort
+ * also cancels the timeout controller.
+ */
+function createTimeoutController(
+  ms: number,
+  externalSignal?: AbortSignal | null
+): { controller: AbortController; clear: () => void } {
+  const controller = new AbortController();
+  const timer = setTimeout(() => {
+    const err = new DOMException(TIMEOUT_ERROR_MESSAGE, 'TimeoutError');
+    controller.abort(err);
+  }, ms);
+
+  const clear = () => clearTimeout(timer);
+
+  // If the caller already has an AbortSignal (e.g. from navigation), link it
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      clear();
+      controller.abort(externalSignal.reason);
+    } else {
+      const onExternalAbort = () => {
+        clear();
+        controller.abort(externalSignal.reason);
+      };
+      externalSignal.addEventListener('abort', onExternalAbort, { once: true });
+    }
+  }
+
+  return { controller, clear };
+}
 
 class ApiClient {
   private normalizeEndpoint(endpoint: string, method: string): string {
@@ -168,15 +266,31 @@ class ApiClient {
    * Unwrap the { success, data } envelope returned by API endpoints.
    * All Vercel API endpoints return { success: true, data: T } via sendSuccess().
    * This method extracts the inner `data` so callers get the payload directly.
+   * 
+   * Non-JSON responses (file downloads, CSV exports, SSE streams) are returned
+   * as-is since they won't have the envelope structure. When a Content-Type is
+   * provided and it is not application/json, the response is returned without
+   * attempting envelope unwrapping.
+   * 
+   * Requirements: 8.3, 8.4
    */
-  private unwrapApiResponse<TResponse>(response: TResponse | null): TResponse | null {
+  private unwrapApiResponse<TResponse>(response: TResponse | null, contentType?: string): TResponse | null {
     if (response === null || response === undefined) return null;
-    if (typeof response === 'object' && !Array.isArray(response)) {
-      const obj = response as Record<string, unknown>;
-      if ('success' in obj && 'data' in obj) {
-        return (obj.data ?? null) as TResponse | null;
-      }
+
+    // If Content-Type is known and not JSON, skip envelope unwrapping entirely
+    if (contentType && !contentType.includes('application/json')) {
+      return response;
     }
+
+    // Non-JSON responses (strings, buffers) pass through without unwrapping
+    if (typeof response !== 'object' || Array.isArray(response)) {
+      return response;
+    }
+    const obj = response as Record<string, unknown>;
+    if ('success' in obj && 'data' in obj && obj.success === true) {
+      return (obj.data ?? null) as TResponse | null;
+    }
+    // Error envelope or non-envelope object — return as-is
     return response;
   }
 
@@ -221,6 +335,98 @@ class ApiClient {
     return Array.from(targets);
   }
 
+  /**
+   * Maps an API endpoint + HTTP method to the React Query keys that should be
+   * invalidated after a successful mutation. This ensures consistent cache
+   * invalidation across all mutation paths.
+   *
+   * Usage: after a mutation succeeds, call
+   *   `queryClient.invalidateQueries({ queryKey })` for each key returned.
+   *
+   * Rules:
+   * - Application submit → invalidate ['student-dashboard-polling'], ['applications']
+   * - Admin status change → invalidate ['applications', appId], ['admin-applications'],
+   *   ['admin-dashboard-polling'], ['application-stats']
+   * - Login/logout → queryClient.clear() (handled separately in auth flow)
+   * - Token refresh → does NOT invalidate data caches
+   *
+   * @param endpoint  The API endpoint path (e.g. '/api/applications?id=xxx')
+   * @param method    The HTTP method (e.g. 'POST', 'PUT')
+   * @returns Array of React Query key arrays to invalidate
+   *
+   * Requirements: 15.1, 15.2, 15.3, 15.4, 15.5
+   */
+  getQueryInvalidationPatterns(
+    endpoint: string,
+    method: string
+  ): string[][] {
+    const upper = method.toUpperCase();
+    const url = new URL(endpoint, 'http://localhost');
+    const pathname = url.pathname.replace(/^\/api\//, '');
+    const action = url.searchParams.get('action') ?? '';
+    const id = url.searchParams.get('id') ?? '';
+
+    // Token refresh — never invalidate data caches (Req 15.5)
+    if (pathname === 'auth' && action === 'refresh') {
+      return [];
+    }
+
+    // Login/logout — handled by queryClient.clear() in auth flow (Req 15.4)
+    if (pathname === 'auth' && (action === 'login' || action === 'logout' || action === 'register')) {
+      return [];
+    }
+
+    // Application mutations (student-side)
+    if (pathname === 'applications' && ['POST', 'PUT', 'PATCH'].includes(upper)) {
+      const keys: string[][] = [
+        ['applications'],
+        ['student-dashboard-polling'],
+        ['application-stats'],
+      ];
+      if (id) {
+        keys.push(['applications', id]);
+      }
+      return keys;
+    }
+
+    // Admin actions
+    if (pathname === 'admin' && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(upper)) {
+      const keys: string[][] = [
+        ['admin-applications'],
+        ['admin-dashboard-polling'],
+        ['application-stats'],
+      ];
+      // If the admin action targets a specific application, also invalidate it
+      if (id) {
+        keys.push(['applications', id]);
+      }
+      // Status changes also affect the general applications list
+      if (action === 'update-status' || action === 'review') {
+        keys.push(['applications']);
+        keys.push(['application-history']);
+      }
+      return keys;
+    }
+
+    // Document uploads
+    if (pathname === 'documents' && ['POST', 'PUT'].includes(upper)) {
+      return [['applications'], ['documents']];
+    }
+
+    // Payment mutations
+    if (pathname === 'payments' && ['POST', 'PUT'].includes(upper)) {
+      return [['applications'], ['payment-status']];
+    }
+
+    // Notification mutations
+    if (pathname === 'notifications' && ['POST', 'PUT'].includes(upper)) {
+      return [['notification_preferences']];
+    }
+
+    // Default: no automatic React Query invalidation
+    return [];
+  }
+
   private invalidateRelatedCaches(
     endpoint: string,
     customTargets?: string | string[] | false
@@ -238,17 +444,82 @@ class ApiClient {
     const normalizedEndpoint = this.normalizeEndpoint(endpoint, method);
     const service = normalizedEndpoint.split('/')[2] || 'unknown';
 
-    try {
-      const {
-        cacheTTL,
-        skipCache,
-        useCache,
-        cacheKey,
-        invalidateCache: invalidateTargets,
-        headers,
-        ...restOptions
-      } = options;
+    const timeoutMs = options.timeout ?? getTimeoutForEndpoint(normalizedEndpoint);
+    const maxRetries = options.retries ?? MAX_RETRIES;
 
+    // Outer retry loop for network/5xx errors
+    let lastError: unknown;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      // Wait before retry (skip delay on first attempt)
+      if (attempt > 0) {
+        const delay = RETRY_DELAYS[attempt - 1] ?? RETRY_DELAYS[RETRY_DELAYS.length - 1];
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+
+      try {
+        const result = await this.executeRequest<TResponse>(
+          normalizedEndpoint,
+          method,
+          service,
+          start,
+          timeoutMs,
+          options
+        );
+        return result;
+      } catch (error) {
+        lastError = error;
+
+        // Don't retry if the user aborted or it's a 4xx error
+        if (!isRetryableFailure(error)) {
+          throw error;
+        }
+
+        // Don't retry if we've exhausted attempts
+        if (attempt >= maxRetries) {
+          throw error;
+        }
+
+        // Log retry attempt (dev only — terser strips console.log in prod)
+        logger.warn(
+          `[API Client] Retrying ${method} ${normalizedEndpoint} (attempt ${attempt + 1}/${maxRetries})`
+        );
+      }
+    }
+
+    // Should not reach here, but just in case
+    throw lastError;
+  }
+
+  /**
+   * Execute a single request attempt with timeout support.
+   * Extracted from `request()` to keep the retry loop clean.
+   */
+  private async executeRequest<TResponse>(
+    normalizedEndpoint: string,
+    method: string,
+    service: string,
+    start: number,
+    timeoutMs: number,
+    options: ApiRequestOptions
+  ): Promise<TResponse | null> {
+    const {
+      cacheTTL,
+      skipCache,
+      useCache,
+      cacheKey,
+      invalidateCache: invalidateTargets,
+      headers,
+      timeout: _timeout,
+      retries: _retries,
+      signal: externalSignal,
+      ...restOptions
+    } = options;
+
+    // Create timeout-aware AbortController, linked to any external signal
+    const { controller: timeoutController, clear: clearTimeout_ } =
+      createTimeoutController(timeoutMs, externalSignal as AbortSignal | null);
+
+    try {
       const isFormDataRequest =
         typeof FormData !== 'undefined' && restOptions.body instanceof FormData;
       const baseHeaders = isFormDataRequest ? {} : this.getBaseHeaders();
@@ -270,43 +541,36 @@ class ApiClient {
         method,
         headers: requestHeaders,
         credentials: 'include', // CRITICAL: Send HTTP-only cookies
+        signal: timeoutController.signal,
       };
 
       if (method === 'GET') {
         const shouldUseCache = (useCache ?? true) && !(skipCache ?? false);
         const url = `${API_BASE}${normalizedEndpoint}`;
 
-        let responseMeta: { ok: boolean; statusCode: number; duration: number } | null = null;
+        let responseContentType = '';
 
         // Build fetch options for cached GET requests
         const fetchOptions = {
           method,
           headers: requestHeaders,
           credentials: 'include' as RequestCredentials,
+          signal: timeoutController.signal,
           useLocalCache: shouldUseCache,
           ...(cacheTTL !== undefined ? { cacheTTL } : {}),
           ...(cacheKey ? { cacheKey } : {}),
           transformResponse: (response: Response) =>
             this.parseJsonSafely<TResponse>(response, service, normalizedEndpoint),
-          onResponse: (response: Response, duration: number) => {
-            responseMeta = {
-              ok: response.ok,
-              statusCode: response.status,
-              duration,
-            };
+          onResponse: (response: Response, _duration: number) => {
+            responseContentType = response.headers.get('content-type') ?? '';
           },
         } as RequestInit & FetchWithCacheOptions;
 
         const data = await fetchWithCache<TResponse | null>(url, fetchOptions);
 
-        if (responseMeta) {
-          // monitoring removed
-        } else {
-          // monitoring removed
-        }
-
         // Unwrap { success, data } envelope from API responses
-        return this.unwrapApiResponse<TResponse>(data);
+        // Pass content-type so non-JSON responses skip unwrapping (Req 8.4)
+        return this.unwrapApiResponse<TResponse>(data, responseContentType);
       }
 
       const response = await fetch(`${API_BASE}${normalizedEndpoint}`, requestInit);
@@ -318,7 +582,7 @@ class ApiClient {
       }
 
       const duration = Date.now() - start;
-      // monitoring removed
+      void duration; // monitoring removed
 
       if (!response.ok) {
         let errorMessage = `API Error: ${response.statusText}`;
@@ -338,16 +602,32 @@ class ApiClient {
           logger.warn('[API Client] 401 Unauthorized - session may have expired');
         }
 
-        // monitoring removed
+        // Create error with status for retry logic
+        const statusError = new Error(errorMessage) as Error & { status: number };
+        statusError.status = response.status;
 
-        // Enhance error message for better UX
+        // For 5xx errors, throw the raw status error so retry logic can inspect it
+        if (response.status >= 500) {
+          throw statusError;
+        }
+
+        // For 4xx errors, enhance and throw (no retry)
         const enhancedError = ApiErrorHandler.enhanceError({
           endpoint: normalizedEndpoint,
           method,
           statusCode: response.status,
-          originalError: new Error(errorMessage),
+          originalError: statusError,
         });
         throw enhancedError;
+      }
+
+      // For non-JSON responses (file downloads, CSV), return raw response
+      const contentType = response.headers.get('content-type') ?? '';
+      if (contentType && !contentType.includes('application/json')) {
+        // Non-JSON response — return raw body without envelope unwrapping
+        const rawBody = await response.text();
+        this.invalidateRelatedCaches(normalizedEndpoint, invalidateTargets);
+        return (rawBody || null) as TResponse | null;
       }
 
       const payload = await this.parseJsonSafely<TResponse>(response, service, normalizedEndpoint);
@@ -355,23 +635,37 @@ class ApiClient {
       this.invalidateRelatedCaches(normalizedEndpoint, invalidateTargets);
 
       // Unwrap { success, data } envelope from API responses
-      return this.unwrapApiResponse<TResponse>(payload);
+      // Pass content-type so non-JSON responses skip unwrapping (Req 8.4)
+      return this.unwrapApiResponse<TResponse>(payload, contentType);
     } catch (error) {
-      // Check if this is an abort error (request cancelled)
+      // Convert timeout AbortError to a named TimeoutError for retry logic
+      if (
+        error instanceof DOMException &&
+        error.name === 'AbortError' &&
+        timeoutController.signal.aborted
+      ) {
+        // Check if it was our timeout (not an external abort)
+        if (!externalSignal || !(externalSignal as AbortSignal).aborted) {
+          const timeoutError = new Error(TIMEOUT_ERROR_MESSAGE);
+          timeoutError.name = 'TimeoutError';
+          throw timeoutError;
+        }
+      }
+
+      // Check if this is an abort error (request cancelled by user/navigation)
       const isAbortError =
         error instanceof Error &&
         (error.name === 'AbortError' ||
           error.message?.includes('aborted') ||
           error.message?.includes('cancelled'));
 
-      // Don't log or track abort errors (normal cancellation)
-      if (!isAbortError) {
-        const duration = Date.now() - start;
-        void duration; // monitoring removed
-      }
-
       // For abort errors, just rethrow without enhancement
       if (isAbortError) {
+        throw error;
+      }
+
+      // For retryable errors (network/5xx), rethrow as-is so the retry loop handles them
+      if (isRetryableFailure(error)) {
         throw error;
       }
 
@@ -383,7 +677,7 @@ class ApiClient {
 
       // Enhance error if not already enhanced
       if (!(error instanceof Error) || !error.message.includes('Please')) {
-        const errorWithStatus = error as { status?: number }
+        const errorWithStatus = error as { status?: number };
         const errorStatusCode =
           typeof errorWithStatus?.status === 'number' ? errorWithStatus.status : undefined;
         const enhancedError = ApiErrorHandler.enhanceError({
@@ -396,6 +690,8 @@ class ApiClient {
       }
 
       throw error;
+    } finally {
+      clearTimeout_();
     }
   }
 }
@@ -437,4 +733,8 @@ export interface ApiRequestOptions extends Omit<RequestInit, 'cache'> {
   useCache?: boolean;
   cacheKey?: string;
   invalidateCache?: string | string[] | false;
+  /** Request timeout in milliseconds. Defaults to 30s (10s for health/session). */
+  timeout?: number;
+  /** Max retry attempts for network/5xx errors. Defaults to 2. Set 0 to disable. */
+  retries?: number;
 }

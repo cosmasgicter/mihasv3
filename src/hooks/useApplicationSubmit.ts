@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { applicationService } from '@/services/applications'
 import { notificationService } from '@/services/notifications'
@@ -115,23 +115,54 @@ const retryWithBackoff = async <T>(
 }
 
 /**
- * Consolidated application submission hook.
- * Provides submit logic with retry, cache invalidation, and notification handling.
- * Submit button should be disabled while `loading` is true to prevent duplicate submissions.
+ * Generate a unique idempotency key for submission deduplication.
+ * Uses crypto.randomUUID() when available, falls back to a timestamp-based key.
+ */
+function generateIdempotencyKey(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  // Fallback for environments without crypto.randomUUID
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
+}
+
+/**
+ * Consolidated application submission hook with double-submit prevention.
+ *
+ * - Uses `useRef` for `isSubmitting` to avoid stale closures
+ * - Generates a `crypto.randomUUID()` idempotency key stored in state
+ * - On submit: checks isSubmitting ref, sets it true, disables button, calls API with idempotency key header
+ * - On success: resets state and generates a new idempotency key
+ * - On network failure: re-enables button but preserves the same idempotency key for retry
+ *
+ * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5
  */
 export function useApplicationSubmit() {
   const queryClient = useQueryClient()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
-  const submitInFlightRef = useRef(false)
 
-  const submitApplication = async (data: WizardFormData, applicationId: string, popUrl: string) => {
-    if (submitInFlightRef.current) {
+  // Ref-based submitting flag to avoid stale closures (Req 3.2)
+  const isSubmittingRef = useRef(false)
+
+  // Idempotency key: generated once, preserved across retries on network failure (Req 3.3, 3.5)
+  const idempotencyKeyRef = useRef<string>(generateIdempotencyKey())
+
+  /**
+   * Reset the idempotency key (called on successful submission only).
+   */
+  const resetIdempotencyKey = useCallback(() => {
+    idempotencyKeyRef.current = generateIdempotencyKey()
+  }, [])
+
+  const submitApplication = useCallback(async (data: WizardFormData, applicationId: string, popUrl: string) => {
+    // Double-click guard: ignore if already submitting (Req 3.1, 3.2)
+    if (isSubmittingRef.current) {
       return
     }
 
-    submitInFlightRef.current = true
+    isSubmittingRef.current = true
     try {
       setLoading(true)
       setError('')
@@ -139,7 +170,7 @@ export function useApplicationSubmit() {
       // Verify user authentication via cookie-based session
       const sessionData = await apiClient.request<{ user?: { id: string; role?: string } }>('/api/auth?action=session')
       const user = sessionData?.user
-      
+
       if (!user) {
         throw new Error('Authentication session expired. Please sign in again.')
       }
@@ -157,11 +188,20 @@ export function useApplicationSubmit() {
         submitted_at: new Date().toISOString()
       }
 
-      // Update the application via applicationService with retry logic
+      // Submit with idempotency key header for server-side deduplication (Req 3.3)
+      const cleanId = applicationId.replace(/^applications-/, '')
       const updatedApp = await retryWithBackoff(
-        () => applicationService.update(applicationId, updateData)
+        () => apiClient.request<{ id: string; application_number?: string }>(`/applications?id=${cleanId}`, {
+          method: 'PUT',
+          body: JSON.stringify(updateData),
+          headers: {
+            'X-Idempotency-Key': idempotencyKeyRef.current,
+          },
+        }),
+        3,
+        1000
       )
-      
+
       if (!updatedApp) {
         throw new Error('Application not found or access denied')
       }
@@ -171,6 +211,7 @@ export function useApplicationSubmit() {
         queryClient.invalidateQueries({ queryKey: ['applications'] }),
         queryClient.invalidateQueries({ queryKey: ['application-stats'] }),
         queryClient.invalidateQueries({ queryKey: ['application_drafts'] }),
+        queryClient.invalidateQueries({ queryKey: ['student-dashboard-polling'] }),
         queryClient.refetchQueries({ queryKey: ['applications'] })
       ])
 
@@ -196,16 +237,20 @@ export function useApplicationSubmit() {
       window.dispatchEvent(new CustomEvent('applicationCreated'))
 
       setSuccess(true)
-      
+
+      // On success: generate a new idempotency key for any future submissions
+      resetIdempotencyKey()
+
     } catch (error) {
       console.error('Error submitting application:', error)
-      
+
       let errorMessage = 'Failed to submit application'
-      
+
       if (error instanceof Error) {
         if (error.message?.includes('auth') || error.message?.includes('JWT') || error.message?.includes('session')) {
           errorMessage = 'Authentication error. Please sign in again and try submitting.'
-        } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        } else if (error.message?.includes('network') || error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
+          // Network failure: re-enable button but keep same idempotency key (Req 3.5)
           errorMessage = 'Network error. Please check your connection and try again.'
         } else if (error.message?.includes('403') || error.message?.includes('permission')) {
           errorMessage = 'Permission denied. Please ensure you are signed in and try again.'
@@ -213,13 +258,22 @@ export function useApplicationSubmit() {
           errorMessage = error.message
         }
       }
-      
+
+      // NOTE: On error, we do NOT reset the idempotency key.
+      // This ensures retries use the same key for server-side deduplication (Req 3.5).
       setError(errorMessage)
     } finally {
-      submitInFlightRef.current = false
+      isSubmittingRef.current = false
       setLoading(false)
     }
-  }
+  }, [queryClient, resetIdempotencyKey])
 
-  return { submitApplication, loading, error, success }
+  return {
+    submitApplication,
+    loading,
+    error,
+    success,
+    /** Current idempotency key — exposed for testing */
+    idempotencyKey: idempotencyKeyRef.current,
+  }
 }

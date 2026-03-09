@@ -1,7 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleCors } from '../lib/cors';
 import { query, transaction } from '../lib/db';
-import { getAuthUser } from '../lib/auth/middleware';
+import { requireAuth, AuthenticationError, AuthorizationError, type AuthContext } from '../lib/auth/middleware';
+import { checkApplicationOwnership, checkApplicationModifyAccess, isAdmin as isAdminRole, isReviewer as isReviewerRole } from '../lib/auth/ownership';
 import { arcjetProtect, withArcjetProtection } from '../lib/arcjet';
 import { 
   ApplicationQueries, 
@@ -16,7 +17,7 @@ import {
   PaymentStatus,
   USER_ROLES
 } from '../lib/queries';
-import { handleError, sendSuccess, sendError, HttpStatus } from '../lib/errorHandler';
+import { handleError, sendSuccess, sendError, sendValidationError, HttpStatus } from '../lib/errorHandler';
 import { publishRealtimeEvent } from '../lib/realtimeBroker';
 import { logAuditEvent } from '../lib/auditLogger';
 import { renderEmailTemplate } from '../lib/emailTemplates';
@@ -31,10 +32,65 @@ import {
   patchSyncGradesSchema,
   patchUpdatePaymentStatusSchema,
   patchUpdateStatusSchema,
+  patchSaveDraftSchema,
   reviewApplicationBodySchema,
 } from '../lib/validation/applications';
 import { validateServerEnv } from '../lib/envValidator';
 import { z } from 'zod';
+
+// --- Idempotency key helpers (Req 3.3) ---
+
+interface IdempotencyRecord {
+  key: string;
+  endpoint: string;
+  response_json: unknown;
+  created_at: string;
+}
+
+/**
+ * Check if an idempotency key already exists and is not expired (24h window).
+ * Returns the cached response if found, null otherwise.
+ */
+async function checkIdempotencyKey(key: string, endpoint: string): Promise<unknown | null> {
+  if (!key) return null;
+  try {
+    const result = await query<IdempotencyRecord>(
+      `SELECT response_json FROM idempotency_keys
+       WHERE key = $1 AND endpoint = $2
+       AND created_at > NOW() - INTERVAL '24 hours'`,
+      [key, endpoint]
+    );
+    if (result.rowCount > 0) {
+      return result.rows[0].response_json;
+    }
+    return null;
+  } catch (err) {
+    console.error('[idempotency] Error checking key:', err);
+    return null;
+  }
+}
+
+/**
+ * Store an idempotency key with its response for future deduplication.
+ * Also cleans up expired keys older than 24 hours.
+ */
+async function storeIdempotencyKey(key: string, endpoint: string, responseData: unknown): Promise<void> {
+  if (!key) return;
+  try {
+    await query(
+      `INSERT INTO idempotency_keys (key, endpoint, response_json, created_at)
+       VALUES ($1, $2, $3, NOW())
+       ON CONFLICT (key) DO UPDATE SET response_json = $3, created_at = NOW()`,
+      [key, endpoint, JSON.stringify(responseData)]
+    );
+    // Periodic cleanup: delete expired keys (non-blocking, best-effort)
+    query(
+      `DELETE FROM idempotency_keys WHERE created_at < NOW() - INTERVAL '24 hours'`
+    ).catch((err) => console.error('[idempotency] Cleanup error:', err));
+  } catch (err) {
+    console.error('[idempotency] Error storing key:', err);
+  }
+}
 
 /**
  * Consolidated Applications API
@@ -79,18 +135,26 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
   // CSRF validation for state-changing requests
   if (await requireCsrf(req, res)) return;
 
-  // Get authenticated user (supports both cookie and Bearer token)
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
+  // Require authentication for all other actions (Req 9.1)
+  let user: AuthContext;
+  try {
+    user = await requireAuth(req);
+  } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return sendError(res, error.message, error.statusCode, error.code);
+    }
+    throw error;
   }
 
-  const isAdmin = user.role === 'admin' || user.role === 'super_admin' || user.role === 'admissions_officer';
+  const isAdmin = isAdminRole(user.role) || user.role === 'admissions_officer';
+  const isReviewer = isReviewerRole(user.role);
   const canReadAllApplications = isAdmin
     || user.permissions.includes('applications:read')
     || user.permissions.includes('applications:review');
   const canReviewApplications = user.permissions.includes('applications:review');
   const canVerifyPayments = user.permissions.includes('payments:verify');
+  // Reviewers are read-only — block write operations (Req 9.4)
+  const isReviewerOnly = user.role === 'reviewer';
 
   const id = req.query.id as string;
 
@@ -100,7 +164,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
     if (action === 'documents') return await handleDocuments(res);
     if (action === 'grades') return await handleGrades(res);
     if (action === 'summary') return await handleSummary(res);
-    if (action === 'review') return await handleReview(req, res, user.userId, canReviewApplications);
+    if (action === 'review') return await handleReview(req, res, user.userId, canReviewApplications, isReviewerOnly);
     if (action === 'interviews') return await handleInterviews(req, res, user.userId);
     if (action === 'schedule-interview') return await handleScheduleInterview(req, res, user.userId, isAdmin);
     if (action === 'stats') return await handleStats(req, res, user.userId);
@@ -109,14 +173,27 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
     if (action === 'versions') return await handleVersions(req, res, user.userId);
 
     // Handle CRUD by ID
-    if (id) return await handleById(req, res, user.userId, isAdmin, canReadAllApplications, canReviewApplications, canVerifyPayments, id);
+    if (id) return await handleById(req, res, user.userId, isAdmin, canReadAllApplications, canReviewApplications, canVerifyPayments, id, isReviewerOnly);
 
     // Default: list applications (GET) or create application (POST)
     if (req.method === 'GET') return await handleDetails(req, res, user.userId, canReadAllApplications);
-    if (req.method === 'POST') return await handleCreate(req, res, user.userId);
+    if (req.method === 'POST') {
+      // Reviewers cannot create applications (Req 9.4)
+      if (isReviewerOnly) {
+        return sendError(res, 'Insufficient permissions', HttpStatus.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS');
+      }
+      return await handleCreate(req, res, user.userId);
+    }
 
     return sendError(res, 'Invalid request', HttpStatus.BAD_REQUEST);
   } catch (error) {
+    // Handle authentication/authorization errors explicitly (Req 9.1, 9.3)
+    if (error instanceof AuthenticationError) {
+      return sendError(res, error.message, error.statusCode, error.code);
+    }
+    if (error instanceof AuthorizationError) {
+      return sendError(res, error.message, error.statusCode, error.code);
+    }
     return handleError(res, error, 'applications');
   }
 }
@@ -147,12 +224,7 @@ function validatePatchPayload<T>(
     fieldErrors[path] = issue.message;
   }
 
-  res.status(HttpStatus.BAD_REQUEST).json({
-    success: false,
-    error: 'Validation failed',
-    code: 'VALIDATION_ERROR',
-    fieldErrors,
-  });
+  sendValidationError(res, fieldErrors);
   return null;
 }
 
@@ -678,10 +750,11 @@ async function handleReview(
   req: VercelRequest,
   res: VercelResponse,
   userId: string,
-  canReviewApplications: boolean
+  canReviewApplications: boolean,
+  isReviewerOnly: boolean
 ) {
   if (!canReviewApplications) {
-    return sendError(res, 'Review permission required', HttpStatus.FORBIDDEN);
+    return sendError(res, 'Review permission required', HttpStatus.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS');
   }
 
   try {
@@ -692,10 +765,15 @@ async function handleReview(
     }
 
     if (req.method === 'POST') {
+      // Reviewers can read/review but cannot write status changes (Req 9.4)
+      if (isReviewerOnly) {
+        return sendError(res, 'Insufficient permissions', HttpStatus.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS');
+      }
       const parsed = validateBody(reviewApplicationBodySchema, req, res);
       if (!parsed) return;
 
       const { application_id, status, notes } = parsed;
+      const force = req.body?.force === true;
 
       const validStatuses: ApplicationStatus[] = ['draft', 'submitted', 'under_review', 'approved', 'rejected', 'pending_documents'];
       if (!validStatuses.includes(status as ApplicationStatus)) {
@@ -710,8 +788,14 @@ async function handleReview(
         return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
       }
 
-      if (status === 'approved' && existingApp.payment_status !== 'verified') {
-        return sendError(res, 'Cannot approve without verified payment', HttpStatus.BAD_REQUEST);
+      // Payment warning — advisory only, admin can override with force flag (Req 26.4)
+      if (status === 'approved' && existingApp.payment_status !== 'verified' && !force) {
+        return sendSuccess(res, {
+          warning: true,
+          message: 'Payment has not been verified for this application. You can still approve by confirming the override.',
+          application_id,
+          requested_status: status,
+        });
       }
 
       // Wrap status update + history insert in a transaction for atomicity (Req 30.2)
@@ -725,7 +809,8 @@ async function handleReview(
         application_id,
         status as ApplicationStatus,
         userId,
-        notes
+        notes,
+        existingApp.status
       );
 
       const [updateResult] = await transaction<ApplicationRecord>([
@@ -750,6 +835,44 @@ async function handleReview(
         console.error('[applications/review] Failed to create audit log:', auditError);
       }
 
+      // Queue notification email to student via Resend (Req 26.2)
+      if (existingApp.email) {
+        try {
+          const statusDisplay = status.replace(/[_\s]+/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+          const actionUrl = `/student/application/${application_id}`;
+          const htmlBody = renderEmailTemplate('status-change', {
+            recipientName: existingApp.full_name || undefined,
+            applicationNumber: existingApp.application_number || undefined,
+            programName: existingApp.program || undefined,
+            status,
+            actionUrl,
+          });
+
+          await query(
+            `INSERT INTO email_queue (
+               recipient_email, recipient_name, subject, body, html_body,
+               template_name, template_data, status, priority
+             ) VALUES ($1, $2, $3, $4, $5, 'status-change', $6, 'pending', 3)`,
+            [
+              existingApp.email,
+              existingApp.full_name || null,
+              `Application Status Update: ${statusDisplay}`,
+              `Your application status has been updated to: ${statusDisplay}`,
+              htmlBody,
+              JSON.stringify({
+                recipientName: existingApp.full_name || null,
+                applicationNumber: existingApp.application_number || null,
+                programName: existingApp.program || null,
+                status,
+                actionUrl,
+              }),
+            ]
+          );
+        } catch (emailError) {
+          console.error('[applications/review] Failed to queue status change email:', emailError);
+        }
+      }
+
       console.log('[applications/review] Application reviewed:', application_id, status);
       return sendSuccess(res, { application: updateResult.rows[0] });
     }
@@ -768,7 +891,8 @@ async function handleById(
   canReadAllApplications: boolean,
   canReviewApplications: boolean,
   canVerifyPayments: boolean,
-  applicationId: string
+  applicationId: string,
+  isReviewerOnly: boolean
 ) {
   try {
   // GET - Fetch application details
@@ -807,6 +931,11 @@ async function handleById(
 
   // DELETE
   if (req.method === 'DELETE') {
+    // Reviewers cannot delete applications (Req 9.4)
+    if (isReviewerOnly) {
+      return sendError(res, 'Insufficient permissions', HttpStatus.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS');
+    }
+
     // Check ownership
     const appQ = ApplicationQueries.findById(applicationId);
     const appResult = await query<ApplicationRecord>(appQ.text, appQ.values);
@@ -829,6 +958,11 @@ async function handleById(
 
   // PUT/PATCH
   if (req.method === 'PUT' || req.method === 'PATCH') {
+    // Reviewers cannot modify applications (Req 9.4)
+    if (isReviewerOnly) {
+      return sendError(res, 'Insufficient permissions', HttpStatus.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS');
+    }
+
     // Check ownership
     const appQ = ApplicationQueries.findById(applicationId);
     const appResult = await query<ApplicationRecord>(appQ.text, appQ.values);
@@ -856,8 +990,16 @@ async function handleById(
         if (!parsedPayload) return;
 
         const { status, notes } = parsedPayload;
-        if (status === 'approved' && app.payment_status !== 'verified') {
-          return sendError(res, 'Cannot approve without verified payment', HttpStatus.BAD_REQUEST);
+        const force = payload.force === true;
+
+        // Payment warning — advisory only, admin can override with force flag (Req 26.4)
+        if (status === 'approved' && app.payment_status !== 'verified' && !force) {
+          return sendSuccess(res, {
+            warning: true,
+            message: 'Payment has not been verified for this application. You can still approve by confirming the override.',
+            application_id: applicationId,
+            requested_status: status,
+          });
         }
 
         let updateResult;
@@ -877,8 +1019,8 @@ async function handleById(
                WHERE id = $1
                RETURNING *
              ), history_insert AS (
-               INSERT INTO application_status_history (id, application_id, status, changed_by, notes, created_at)
-               SELECT gen_random_uuid(), id, $2, $3, $4, NOW()
+               INSERT INTO application_status_history (id, application_id, old_status, new_status, changed_by, notes, created_at)
+               SELECT gen_random_uuid(), id, $8, $2, $3, $4, NOW()
                FROM updated_application
                RETURNING id
              ), notification_insert AS (
@@ -890,7 +1032,7 @@ async function handleById(
              )
              SELECT ua.*
              FROM updated_application ua`,
-            [applicationId, status, userId, notes || null, notificationTitle, notificationMessage, actionUrl]
+            [applicationId, status, userId, notes || null, notificationTitle, notificationMessage, actionUrl, app.status || null]
           );
         } catch (error) {
           const message = (error as Error).message?.toLowerCase() || '';
@@ -926,6 +1068,44 @@ async function handleById(
           });
         } catch (auditError) {
           console.error('[applications] Failed to create status change audit log:', auditError);
+        }
+
+        // Queue notification email to student via Resend (Req 26.2)
+        if (app.email) {
+          try {
+            const statusDisplay = status.replace(/[_\s]+/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+            const actionUrl = `/student/application/${applicationId}`;
+            const htmlBody = renderEmailTemplate('status-change', {
+              recipientName: app.full_name || undefined,
+              applicationNumber: app.application_number || undefined,
+              programName: app.program || undefined,
+              status,
+              actionUrl,
+            });
+
+            await query(
+              `INSERT INTO email_queue (
+                 recipient_email, recipient_name, subject, body, html_body,
+                 template_name, template_data, status, priority
+               ) VALUES ($1, $2, $3, $4, $5, 'status-change', $6, 'pending', 3)`,
+              [
+                app.email,
+                app.full_name || null,
+                `Application Status Update: ${statusDisplay}`,
+                `Your application status has been updated to: ${statusDisplay}`,
+                htmlBody,
+                JSON.stringify({
+                  recipientName: app.full_name || null,
+                  applicationNumber: app.application_number || null,
+                  programName: app.program || null,
+                  status,
+                  actionUrl,
+                }),
+              ]
+            );
+          } catch (emailError) {
+            console.error('[applications] Failed to queue status change email:', emailError);
+          }
         }
 
         const now = new Date().toISOString();
@@ -1371,6 +1551,74 @@ async function handleById(
         return sendSuccess(res, { interview: cancelResult.rows[0] });
       }
 
+      if (action === 'save_draft') {
+        // Only the owner can save drafts (already checked above)
+        if (app.status !== 'draft') {
+          return sendError(res, 'Can only save drafts for applications in draft status', HttpStatus.BAD_REQUEST, 'INVALID_STATUS');
+        }
+
+        const parsedPayload = validatePatchPayload(patchSaveDraftSchema, payload, res);
+        if (!parsedPayload) return;
+
+        const { version: newVersion, data: draftData } = parsedPayload;
+
+        // Optimistic concurrency: only update if incoming version > stored version
+        const allowedFields = [
+          'full_name', 'nrc_number', 'passport_number', 'date_of_birth', 'sex',
+          'phone', 'email', 'residence_town', 'country', 'nationality',
+          'next_of_kin_name', 'next_of_kin_phone',
+          'program', 'intake', 'institution',
+          'result_slip_url', 'extra_kyc_url',
+          'payment_method', 'payer_name', 'payer_phone', 'amount', 'paid_at',
+          'momo_ref', 'pop_url',
+        ];
+
+        const setClauses: string[] = [];
+        const values: unknown[] = [applicationId, newVersion];
+        let paramIdx = 3;
+
+        for (const field of allowedFields) {
+          if (field in (draftData as Record<string, unknown>)) {
+            setClauses.push(`${field} = $${paramIdx}`);
+            values.push((draftData as Record<string, unknown>)[field]);
+            paramIdx++;
+          }
+        }
+
+        setClauses.push(`version = $2`);
+        setClauses.push(`updated_at = NOW()`);
+
+        const updateResult = await query<ApplicationRecord>(
+          `UPDATE applications
+           SET ${setClauses.join(', ')}
+           WHERE id = $1 AND version < $2
+           RETURNING *`,
+          values
+        );
+
+        if (updateResult.rowCount === 0) {
+          // Either the application doesn't exist or version conflict
+          const currentApp = await query<{ version: number }>(
+            `SELECT version FROM applications WHERE id = $1`,
+            [applicationId]
+          );
+          if (currentApp.rowCount === 0) {
+            return sendError(res, 'Application not found', HttpStatus.NOT_FOUND, 'NOT_FOUND');
+          }
+          return sendError(
+            res,
+            'Version conflict: a newer version already exists on the server',
+            HttpStatus.CONFLICT,
+            'VERSION_CONFLICT'
+          );
+        }
+
+        return sendSuccess(res, {
+          ...updateResult.rows[0],
+          version: newVersion,
+        });
+      }
+
       if (action === 'sync_grades') {
         const parsedPayload = validatePatchPayload(patchSyncGradesSchema, payload, res);
         if (!parsedPayload) return;
@@ -1403,7 +1651,19 @@ async function handleById(
       }
     }
 
-    // Regular update
+    // Regular update — with idempotency check for submissions (Req 3.3)
+    const idempotencyKey = (req.headers['x-idempotency-key'] as string) || '';
+    const isSubmission = body.status === 'submitted';
+
+    // If this is a submission with an idempotency key, check for duplicate
+    if (isSubmission && idempotencyKey) {
+      const cachedResponse = await checkIdempotencyKey(idempotencyKey, `applications/${applicationId}/submit`);
+      if (cachedResponse) {
+        // Return the cached response for duplicate submission (Req 3.3)
+        return sendSuccess(res, cachedResponse);
+      }
+    }
+
     const updateQ = ApplicationQueries.update(applicationId, body);
     const updateResult = await query<ApplicationRecord>(updateQ.text, updateQ.values);
     
@@ -1411,7 +1671,14 @@ async function handleById(
       return sendError(res, 'Update failed', HttpStatus.BAD_REQUEST);
     }
 
-    return sendSuccess(res, updateResult.rows[0]);
+    const responseData = updateResult.rows[0];
+
+    // Store idempotency key for successful submissions (Req 3.3)
+    if (isSubmission && idempotencyKey) {
+      await storeIdempotencyKey(idempotencyKey, `applications/${applicationId}/submit`, responseData);
+    }
+
+    return sendSuccess(res, responseData);
   }
 
   return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
@@ -1736,7 +2003,7 @@ async function handleEmailSlip(
     const htmlBody = renderEmailTemplate('application-submitted', {
       recipientName: app.full_name || undefined,
       applicationNumber: app.application_number || undefined,
-      programName: (app as Record<string, unknown>).program as string || undefined,
+      programName: (app as unknown as Record<string, unknown>).program as string || undefined,
       actionUrl: `https://apply.mihas.edu.zm/student/application/${applicationId}`,
     });
 
@@ -1762,7 +2029,7 @@ async function handleEmailSlip(
         JSON.stringify({
           recipientName: app.full_name || null,
           applicationNumber: app.application_number || null,
-          programName: (app as Record<string, unknown>).program || null,
+          programName: (app as unknown as Record<string, unknown>).program || null,
         }),
       ]
     );

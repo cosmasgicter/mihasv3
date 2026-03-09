@@ -637,6 +637,16 @@ function sendError(res, message, status = HttpStatus.BAD_REQUEST, code = ErrorCo
   };
   return res.status(status).json(response);
 }
+function sendValidationError(res, fieldErrors, message = "Validation failed") {
+  res.setHeader("Content-Type", "application/json");
+  const response = {
+    success: false,
+    error: sanitizeError(message),
+    code: ErrorCode.VALIDATION_ERROR,
+    fieldErrors
+  };
+  return res.status(HttpStatus.BAD_REQUEST).json(response);
+}
 var HttpStatus, ErrorCode, AuthError;
 var init_errorHandler = __esm(() => {
   HttpStatus = {
@@ -901,6 +911,27 @@ async function isSessionActive(userId, sessionId) {
 }
 
 // lib/auth/middleware.ts
+class AuthenticationError extends Error {
+  statusCode;
+  code;
+  constructor(message, code = "AUTHENTICATION_REQUIRED", statusCode = 401) {
+    super(message);
+    this.name = "AuthenticationError";
+    this.code = code;
+    this.statusCode = statusCode;
+  }
+}
+
+class AuthorizationError extends Error {
+  statusCode;
+  code;
+  constructor(message, code = "INSUFFICIENT_PERMISSIONS", statusCode = 403) {
+    super(message);
+    this.name = "AuthorizationError";
+    this.code = code;
+    this.statusCode = statusCode;
+  }
+}
 function extractToken(req) {
   const cookieToken = extractAccessTokenFromCookie(req);
   if (cookieToken) {
@@ -928,6 +959,33 @@ async function getAuthUser(req) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.log("[AUTH] Token verification failed:", errorMessage);
     return null;
+  }
+}
+async function requireAuth(req) {
+  const token = extractToken(req);
+  if (!token) {
+    throw new AuthenticationError("Authentication required", "AUTHENTICATION_REQUIRED", 401);
+  }
+  try {
+    const payload = await verifyAccessToken(token);
+    const sessionValid = await validateTrackedSession(payload);
+    if (!sessionValid) {
+      throw new AuthenticationError("Session has expired or was revoked", "SESSION_REVOKED", 401);
+    }
+    return mapPayloadToAuthContext(payload);
+  } catch (error) {
+    if (error instanceof AuthenticationError) {
+      throw error;
+    }
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.log("[AUTH] Token verification failed:", errorMessage);
+    if (errorMessage.includes("expired")) {
+      throw new AuthenticationError("Access token has expired", "TOKEN_EXPIRED", 401);
+    }
+    if (errorMessage.includes("signature")) {
+      throw new AuthenticationError("Invalid token", "INVALID_TOKEN", 401);
+    }
+    throw new AuthenticationError("Authentication failed", "AUTHENTICATION_FAILED", 401);
   }
 }
 function mapPayloadToAuthContext(payload) {
@@ -1293,12 +1351,7 @@ function validateBody(schema, req, res) {
   const result = schema.safeParse(req.body || {});
   if (!result.success) {
     const fieldErrors = formatZodErrors(result.error);
-    res.status(HttpStatus.BAD_REQUEST).json({
-      success: false,
-      error: "Validation failed",
-      code: "VALIDATION_ERROR",
-      fieldErrors
-    });
+    sendValidationError(res, fieldErrors);
     return null;
   }
   return result.data;
@@ -14876,7 +14929,7 @@ var updatePreferencesBodySchema = exports_external.object({
   email_notifications: exports_external.boolean().optional(),
   push_notifications: exports_external.boolean().optional(),
   sms_notifications: exports_external.boolean().optional(),
-  notification_types: exports_external.record(exports_external.boolean()).optional()
+  notification_types: exports_external.record(exports_external.string(), exports_external.boolean()).optional()
 }).partial();
 
 // api-src/notifications.ts
@@ -14958,51 +15011,59 @@ async function handler(req, res) {
   }
   if (await requireCsrf(req, res))
     return;
+  let user;
+  try {
+    user = await requireAuth(req);
+  } catch (error48) {
+    if (error48 instanceof AuthenticationError) {
+      return sendError(res, error48.message, error48.statusCode, error48.code);
+    }
+    throw error48;
+  }
   const action = req.query.action || "preferences";
   try {
     if (action === "preferences") {
-      return await handlePreferences(req, res);
+      return await handlePreferences(req, res, user);
     }
     if (action === "history") {
-      return await handleHistory(req, res);
+      return await handleHistory(req, res, user);
     }
     if (action === "list") {
-      return await handleList(req, res);
+      return await handleList(req, res, user);
     }
     if (action === "mark-read") {
-      return await handleMarkRead(req, res);
+      return await handleMarkRead(req, res, user);
     }
     if (action === "mark-all-read") {
-      return await handleMarkAllRead(req, res);
+      return await handleMarkAllRead(req, res, user);
     }
     if (action === "delete") {
-      return await handleDelete(req, res);
+      return await handleDelete(req, res, user);
     }
     if (action === "check-duplicate") {
-      return await handleCheckDuplicate(req, res);
+      return await handleCheckDuplicate(req, res, user);
     }
     if (action === "create") {
-      return await handleCreate(req, res);
+      return await handleCreate(req, res, user);
     }
     if (action === "send") {
-      return await handleSend(req, res);
+      return await handleSend(req, res, user);
     }
     if (action === "push-subscribe") {
-      return await handlePushSubscribe(req, res);
+      return await handlePushSubscribe(req, res, user);
     }
     if (action === "push-send") {
-      return await handlePushSend(req, res);
+      return await handlePushSend(req, res, user);
     }
     return sendError(res, "Invalid action", HttpStatus.BAD_REQUEST);
   } catch (error48) {
+    if (error48 instanceof AuthorizationError) {
+      return sendError(res, error48.message, error48.statusCode, error48.code);
+    }
     return handleError(res, error48, "notifications");
   }
 }
-async function handlePreferences(req, res) {
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
-  }
+async function handlePreferences(req, res, user) {
   try {
     if (req.method === "GET") {
       const preferences = await getCanonicalPreferences(user.userId);
@@ -15055,13 +15116,9 @@ async function handlePreferences(req, res) {
     return handleError(res, error48, "notifications/preferences");
   }
 }
-async function handleHistory(req, res) {
+async function handleHistory(req, res, user) {
   if (req.method !== "GET") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
-  }
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
   }
   const isAdmin = [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMISSIONS_OFFICER].includes(user.role);
   if (!isAdmin) {
@@ -15134,13 +15191,9 @@ async function handleHistory(req, res) {
     return handleError(res, error48, "notifications/history");
   }
 }
-async function handleList(req, res) {
+async function handleList(req, res, user) {
   if (req.method !== "GET") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
-  }
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
   }
   try {
     const result = await query(`SELECT id, title, message, type, is_read, action_url, created_at, read_at
@@ -15161,13 +15214,9 @@ async function handleList(req, res) {
     return handleError(res, error48, "notifications/list");
   }
 }
-async function handleMarkRead(req, res) {
+async function handleMarkRead(req, res, user) {
   if (req.method !== "PUT") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
-  }
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
   }
   const parsed = validateBody(markReadBodySchema, req, res);
   if (!parsed)
@@ -15180,13 +15229,9 @@ async function handleMarkRead(req, res) {
     return handleError(res, error48, "notifications/mark-read");
   }
 }
-async function handleMarkAllRead(req, res) {
+async function handleMarkAllRead(req, res, user) {
   if (req.method !== "PUT") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
-  }
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
   }
   try {
     await query(`UPDATE notifications SET is_read = true, read_at = NOW() WHERE user_id = $1 AND is_read = false`, [user.userId]);
@@ -15195,13 +15240,9 @@ async function handleMarkAllRead(req, res) {
     return handleError(res, error48, "notifications/mark-all-read");
   }
 }
-async function handleDelete(req, res) {
+async function handleDelete(req, res, user) {
   if (req.method !== "DELETE") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
-  }
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
   }
   const parsed = validateBody(deleteNotificationBodySchema, req, res);
   if (!parsed)
@@ -15247,13 +15288,9 @@ async function createNotificationWithDedup(userId, eventType, entityId, entityTy
     notification: result.rows[0]
   };
 }
-async function handleCheckDuplicate(req, res) {
+async function handleCheckDuplicate(req, res, user) {
   if (req.method !== "POST") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
-  }
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
   }
   const { user_id, title, message, type, entity_type, entity_id } = req.body || {};
   const targetUserId = user_id || user.userId;
@@ -15262,7 +15299,7 @@ async function handleCheckDuplicate(req, res) {
   }
   const isAdmin = [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMISSIONS_OFFICER].includes(user.role);
   if (targetUserId !== user.userId && !isAdmin) {
-    return sendError(res, "Forbidden", HttpStatus.FORBIDDEN);
+    return sendError(res, "Insufficient permissions", HttpStatus.FORBIDDEN, "INSUFFICIENT_PERMISSIONS");
   }
   try {
     const normalizedType = type || "info";
@@ -15276,13 +15313,9 @@ async function handleCheckDuplicate(req, res) {
     return handleError(res, error48, "notifications/check-duplicate");
   }
 }
-async function handleCreate(req, res) {
+async function handleCreate(req, res, user) {
   if (req.method !== "POST") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
-  }
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
   }
   const parsed = validateBody(createNotificationBodySchema, req, res);
   if (!parsed)
@@ -15294,7 +15327,7 @@ async function handleCreate(req, res) {
   }
   const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
   if (targetUserId !== user.userId && !isAdmin) {
-    return sendError(res, "Forbidden", HttpStatus.FORBIDDEN);
+    return sendError(res, "Insufficient permissions", HttpStatus.FORBIDDEN, "INSUFFICIENT_PERMISSIONS");
   }
   try {
     const notificationType = type || "info";
@@ -15326,17 +15359,13 @@ async function handleCreate(req, res) {
     return handleError(res, error48, "notifications/create");
   }
 }
-async function handleSend(req, res) {
+async function handleSend(req, res, user) {
   if (req.method !== "POST") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
   }
-  const user = await getAuthUser(req);
-  if (!user) {
-    return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED);
-  }
-  const isAdmin = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
-  if (!isAdmin) {
-    return sendError(res, "Admin access required", HttpStatus.FORBIDDEN);
+  const isAdminUser = user.role === USER_ROLES.ADMIN || user.role === USER_ROLES.SUPER_ADMIN;
+  if (!isAdminUser) {
+    return sendError(res, "Insufficient permissions", HttpStatus.FORBIDDEN, "INSUFFICIENT_PERMISSIONS");
   }
   const parsed = validateBody(sendNotificationBodySchema, req, res);
   if (!parsed)
@@ -15495,7 +15524,7 @@ async function getCanonicalPreferences(userId) {
     }
   };
 }
-async function handlePushSubscribe(req, res) {
+async function handlePushSubscribe(req, res, _user) {
   if (req.method === "POST") {
     return sendSuccess(res, { subscribed: false, message: "Push notifications not yet configured" });
   }
@@ -15504,7 +15533,7 @@ async function handlePushSubscribe(req, res) {
   }
   return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
 }
-async function handlePushSend(req, res) {
+async function handlePushSend(req, res, _user) {
   return sendSuccess(res, { sent: 0, message: "Push notifications not yet configured" });
 }
 var notifications_default = withArcjetProtection(handler, "general");

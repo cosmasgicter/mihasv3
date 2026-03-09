@@ -2,9 +2,12 @@
 /**
  * Frontend Auth Unit Tests
  * 
- * Tests for auth store and hooks functionality.
+ * Tests for auth store retry/backoff/error functionality.
+ * User identity is now managed by React Query via useSessionListener,
+ * not by the auth store.
  * 
  * REQUIREMENTS:
+ * - 1.1: authStore retains only retry/backoff/error state
  * - 10.4: Test automatic token refresh on 401
  * - 10.7: Test exponential backoff prevents retry storms
  * - Test logout clears local state
@@ -12,11 +15,9 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock the auth store
+// Mock the auth store (retry/backoff/error only — no user identity)
 const createMockAuthStore = () => {
   let state = {
-    user: null as { id: string; email: string; role: string } | null,
-    isAuthenticated: false,
     isLoading: false,
     error: null as string | null,
     retryCount: 0,
@@ -31,13 +32,6 @@ const createMockAuthStore = () => {
     setState: (newState: Partial<typeof state>) => {
       state = { ...state, ...newState };
     },
-    setUser: (user: typeof state.user) => {
-      state.user = user;
-      state.isAuthenticated = !!user;
-      state.error = null;
-      state.retryCount = 0;
-      state.lastRetryTime = 0;
-    },
     setLoading: (loading: boolean) => {
       state.isLoading = loading;
     },
@@ -45,8 +39,7 @@ const createMockAuthStore = () => {
       state.error = error;
     },
     clearAuth: () => {
-      state.user = null;
-      state.isAuthenticated = false;
+      state.isLoading = false;
       state.error = null;
       state.retryCount = 0;
       state.lastRetryTime = 0;
@@ -54,6 +47,10 @@ const createMockAuthStore = () => {
     incrementRetry: () => {
       state.retryCount += 1;
       state.lastRetryTime = Date.now();
+    },
+    resetRetry: () => {
+      state.retryCount = 0;
+      state.lastRetryTime = 0;
     },
     canRetry: () => {
       if (state.retryCount >= MAX_RETRIES) {
@@ -73,7 +70,7 @@ const createMockAuthStore = () => {
   };
 };
 
-describe('Auth Store', () => {
+describe('Auth Store (Retry/Backoff/Error Only)', () => {
   let store: ReturnType<typeof createMockAuthStore>;
 
   beforeEach(() => {
@@ -85,43 +82,19 @@ describe('Auth Store', () => {
     vi.useRealTimers();
   });
 
-  describe('setUser', () => {
-    it('should set user and mark as authenticated', () => {
-      const user = { id: '123', email: 'test@example.com', role: 'student' };
-      store.setUser(user);
-
-      const state = store.getState();
-      expect(state.user).toEqual(user);
-      expect(state.isAuthenticated).toBe(true);
-      expect(state.error).toBeNull();
-    });
-
-    it('should reset retry count on successful login', () => {
-      // Simulate failed attempts
-      store.incrementRetry();
-      store.incrementRetry();
-      expect(store.getState().retryCount).toBe(2);
-
-      // Successful login
-      store.setUser({ id: '123', email: 'test@example.com', role: 'student' });
-      expect(store.getState().retryCount).toBe(0);
-    });
-  });
-
   describe('clearAuth', () => {
-    it('should clear all auth state', () => {
-      // Set up authenticated state
-      store.setUser({ id: '123', email: 'test@example.com', role: 'student' });
+    it('should clear all retry/error state', () => {
       store.incrementRetry();
+      store.incrementRetry();
+      store.setError('Some error');
+      store.setLoading(true);
 
-      // Clear auth
       store.clearAuth();
 
       const state = store.getState();
-      expect(state.user).toBeNull();
-      expect(state.isAuthenticated).toBe(false);
       expect(state.error).toBeNull();
       expect(state.retryCount).toBe(0);
+      expect(state.isLoading).toBe(false);
     });
   });
 
@@ -160,26 +133,21 @@ describe('Auth Store', () => {
     });
 
     it('should block retries after max attempts', () => {
-      // Exhaust all retries
       for (let i = 0; i < 5; i++) {
         store.incrementRetry();
-        vi.advanceTimersByTime(10000); // Advance past any delay
+        vi.advanceTimersByTime(10000);
       }
 
-      // Should be blocked even after waiting
       expect(store.canRetry()).toBe(false);
     });
 
-    it('should reset retry count on successful login', () => {
-      // Fail a few times
+    it('should allow retries again after resetRetry', () => {
       store.incrementRetry();
       store.incrementRetry();
       store.incrementRetry();
 
-      // Successful login resets
-      store.setUser({ id: '123', email: 'test@example.com', role: 'student' });
+      store.resetRetry();
 
-      // Should be able to retry again
       expect(store.canRetry()).toBe(true);
       expect(store.getState().retryCount).toBe(0);
     });
@@ -201,7 +169,6 @@ describe('Auth Fetch with 401 Handling', () => {
     vi.restoreAllMocks();
   });
 
-  // Simplified authFetch for testing
   async function authFetch<T>(url: string, options: RequestInit = {}): Promise<{ success: boolean; data?: T; error?: string; code?: string }> {
     const response = await fetch(url, {
       ...options,
@@ -214,7 +181,6 @@ describe('Auth Fetch with 401 Handling', () => {
 
     const data = await response.json();
 
-    // Handle 401 - try to refresh token
     if (response.status === 401 && data.code !== 'INVALID_CREDENTIALS') {
       const refreshResponse = await fetch('/api/auth?action=refresh', {
         method: 'POST',
@@ -222,7 +188,6 @@ describe('Auth Fetch with 401 Handling', () => {
       });
 
       if (refreshResponse.ok) {
-        // Retry the original request
         const retryResponse = await fetch(url, {
           ...options,
           credentials: 'include',
@@ -245,20 +210,17 @@ describe('Auth Fetch with 401 Handling', () => {
   }
 
   it('should retry request after successful token refresh on 401', async () => {
-    // First call returns 401
     mockFetch
       .mockResolvedValueOnce({
         ok: false,
         status: 401,
         json: () => Promise.resolve({ success: false, error: 'Token expired', code: 'TOKEN_EXPIRED' }),
       })
-      // Refresh succeeds
       .mockResolvedValueOnce({
         ok: true,
         status: 200,
         json: () => Promise.resolve({ success: true }),
       })
-      // Retry succeeds
       .mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -273,14 +235,12 @@ describe('Auth Fetch with 401 Handling', () => {
   });
 
   it('should throw error when refresh fails', async () => {
-    // First call returns 401
     mockFetch
       .mockResolvedValueOnce({
         ok: false,
         status: 401,
         json: () => Promise.resolve({ success: false, error: 'Token expired', code: 'TOKEN_EXPIRED' }),
       })
-      // Refresh fails
       .mockResolvedValueOnce({
         ok: false,
         status: 401,
@@ -292,7 +252,6 @@ describe('Auth Fetch with 401 Handling', () => {
   });
 
   it('should not retry on INVALID_CREDENTIALS error', async () => {
-    // Login failure with invalid credentials
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 401,
@@ -304,7 +263,6 @@ describe('Auth Fetch with 401 Handling', () => {
       body: JSON.stringify({ email: 'test@example.com', password: 'wrong' }),
     })).rejects.toThrow('Invalid credentials');
 
-    // Should NOT attempt refresh
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
@@ -324,37 +282,19 @@ describe('Auth Fetch with 401 Handling', () => {
 });
 
 describe('Logout Behavior', () => {
-  it('should clear local state on logout', () => {
+  it('should clear retry/error state on logout', () => {
     const store = createMockAuthStore();
 
-    // Set up authenticated state
-    store.setUser({ id: '123', email: 'test@example.com', role: 'student' });
     store.setError('Some previous error');
+    store.incrementRetry();
+    store.setLoading(true);
 
-    // Verify authenticated
-    expect(store.getState().isAuthenticated).toBe(true);
-
-    // Logout
     store.clearAuth();
 
-    // Verify cleared
     const state = store.getState();
-    expect(state.user).toBeNull();
-    expect(state.isAuthenticated).toBe(false);
     expect(state.error).toBeNull();
-  });
-
-  it('should clear state even on logout API error', () => {
-    const store = createMockAuthStore();
-
-    // Set up authenticated state
-    store.setUser({ id: '123', email: 'test@example.com', role: 'student' });
-
-    // Simulate logout error handling - still clears local state
-    store.clearAuth();
-
-    expect(store.getState().isAuthenticated).toBe(false);
-    expect(store.getState().user).toBeNull();
+    expect(state.retryCount).toBe(0);
+    expect(state.isLoading).toBe(false);
   });
 });
 

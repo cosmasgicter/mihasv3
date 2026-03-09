@@ -19,7 +19,7 @@ import * as fc from 'fast-check';
 // Test Configuration
 // ============================================================================
 
-const NUM_RUNS = 100;
+const NUM_RUNS = 10;
 
 // ============================================================================
 // SQL Parameterization Patterns

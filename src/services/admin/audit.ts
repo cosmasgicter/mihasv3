@@ -219,8 +219,8 @@ function mapAuditEntry(log: BackendAuditEntry): AuditLogEntry {
     createdAt: log.created_at,
     targetTable: log.entity_type,
     targetId: log.entity_id,
-    requestIp: log.ip_address,
-    metadata: log.changes,
+    requestIp: log.ip_address ?? undefined,
+    metadata: log.changes ?? undefined,
   }
 }
 

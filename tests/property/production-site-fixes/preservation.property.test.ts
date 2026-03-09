@@ -249,8 +249,8 @@ describe('Preservation: Static Queries, Auth Flows & CSRF Enforcement', () => {
           }
 
           // Values array: [id, ...field_values]
-          expect(result.values.length).toBe(count + 1);
-          expect(result.values[0]).toBe('test-id');
+          expect(result.values!.length).toBe(count + 1);
+          expect(result.values![0]).toBe('test-id');
         }),
         { numRuns: 10 },
       );

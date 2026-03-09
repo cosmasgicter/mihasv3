@@ -21,13 +21,15 @@ export interface SSEStatusDetail {
   lastConnectedAt?: Date | null
 }
 
+export type RealtimeConnectionStatus = 'connected' | 'reconnecting' | 'disconnected'
+
 export interface RealtimeStatusContextValue {
   /** Whether realtime is currently connected */
   isConnected: boolean
   /** Whether a reconnection is in progress */
   isReconnecting: boolean
   /** Current status string */
-  status: string
+  status: RealtimeConnectionStatus
   /** Timestamp of last successful connection */
   lastConnectedAt: Date | null
   /** Trigger a manual reconnection */
@@ -63,7 +65,7 @@ export function triggerSSEReconnect(): void {
 export function RealtimeStatusProvider({ children }: RealtimeStatusProviderProps) {
   const [isConnected, setIsConnected] = useState(false)
   const [isReconnecting, setIsReconnecting] = useState(false)
-  const [status, setStatus] = useState('disconnected')
+  const [status, setStatus] = useState<RealtimeConnectionStatus>('disconnected')
   const [lastConnectedAt, setLastConnectedAt] = useState<Date | null>(null)
   
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
@@ -78,7 +80,12 @@ export function RealtimeStatusProvider({ children }: RealtimeStatusProviderProps
 
     // Debounce rapid status updates
     debounceTimerRef.current = setTimeout(() => {
-      setStatus(detail.status)
+      // Map SSE status to typed RealtimeConnectionStatus
+      const mappedStatus: RealtimeConnectionStatus =
+        detail.status === 'connected' ? 'connected' :
+        detail.status === 'connecting' ? 'reconnecting' :
+        'disconnected'
+      setStatus(mappedStatus)
       
       if (detail.connected) {
         setIsConnected(true)
@@ -86,6 +93,9 @@ export function RealtimeStatusProvider({ children }: RealtimeStatusProviderProps
         setLastConnectedAt(new Date())
       } else {
         setIsConnected(false)
+        if (detail.status === 'connecting') {
+          setIsReconnecting(true)
+        }
       }
     }, DEBOUNCE_MS)
   }, [])
@@ -176,7 +186,7 @@ export function useRealtimeStatus(): RealtimeStatusContextValue {
     return {
       isConnected: false,
       isReconnecting: false,
-      status: 'disconnected',
+      status: 'disconnected' as RealtimeConnectionStatus,
       lastConnectedAt: null,
       reconnect: () => {}
     }

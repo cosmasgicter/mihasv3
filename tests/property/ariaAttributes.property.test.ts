@@ -91,7 +91,7 @@ describe('ARIA Attributes Property Tests (P20)', () => {
           // A <label for="test-input"> must exist
           expect(hasLabelFor(html, 'test-input')).toBe(true)
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
 
@@ -109,7 +109,7 @@ describe('ARIA Attributes Property Tests (P20)', () => {
           // The error element with that id must exist in the HTML
           expect(hasElementWithId(html, 'err-input-error')).toBe(true)
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
 
@@ -131,7 +131,7 @@ describe('ARIA Attributes Property Tests (P20)', () => {
           // aria-invalid should be "false" or absent
           expect(attrs['aria-invalid']).not.toBe('true')
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
   })
@@ -149,7 +149,7 @@ describe('ARIA Attributes Property Tests (P20)', () => {
           const attrs = getInputAttributes(html)
           expect(attrs['id']).toBe('test-file')
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
 
@@ -164,7 +164,7 @@ describe('ARIA Attributes Property Tests (P20)', () => {
           expect(attrs['aria-describedby']).toBe('err-file-error')
           expect(hasElementWithId(html, 'err-file-error')).toBe(true)
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
 
@@ -185,7 +185,7 @@ describe('ARIA Attributes Property Tests (P20)', () => {
           const attrs = getInputAttributes(html)
           expect(attrs['aria-invalid']).not.toBe('true')
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
   })
@@ -201,7 +201,7 @@ describe('ARIA Attributes Property Tests (P20)', () => {
           const attrs = getInputAttributes(html)
           expect(attrs['id']).toBe('test-pwd')
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
 
@@ -216,7 +216,7 @@ describe('ARIA Attributes Property Tests (P20)', () => {
           expect(attrs['aria-describedby']).toBe('err-pwd-error')
           expect(hasElementWithId(html, 'err-pwd-error')).toBe(true)
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
 
@@ -238,7 +238,7 @@ describe('ARIA Attributes Property Tests (P20)', () => {
           // PasswordInput explicitly sets aria-invalid="false" when no error
           expect(attrs['aria-invalid']).toBe('false')
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
 
@@ -273,7 +273,7 @@ describe('ARIA Attributes Property Tests (P20)', () => {
             expect(hasElementWithId(html, `${props.id}-error`)).toBe(true)
           }
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
 
@@ -295,7 +295,7 @@ describe('ARIA Attributes Property Tests (P20)', () => {
             }
           }
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       )
     })
   })

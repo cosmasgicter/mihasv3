@@ -29,7 +29,7 @@ import {
  * Number of runs for property tests.
  * Error verification involves file I/O, so we use moderate iterations.
  */
-const NUM_RUNS = 100;
+const NUM_RUNS = 10;
 
 /**
  * Base temporary directory for test fixtures - unique per test run

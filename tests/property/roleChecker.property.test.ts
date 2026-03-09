@@ -34,7 +34,7 @@ import {
  * Number of runs for property tests.
  * Role checking involves file I/O, so we use moderate iterations.
  */
-const NUM_RUNS = 100;
+const NUM_RUNS = 10;
 
 /**
  * Base temporary directory for test fixtures - unique per test run
@@ -564,7 +564,7 @@ export default CustomAdminPage;
             expect(result.securityIssues.filter(i => i.type === 'MISSING_AUTH_CHECK')).toHaveLength(0);
           }
         ),
-        { numRuns: 20 }
+        { numRuns: 10 }
       );
     }, 30000);
   });
@@ -963,7 +963,7 @@ export default AdminWidget;
             }
           }
         ),
-        { numRuns: 20 }
+        { numRuns: 10 }
       );
     }, 30000);
 

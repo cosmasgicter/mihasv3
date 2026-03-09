@@ -17,6 +17,7 @@ import { AlertCircle, Bell, Clock, Download, History, Mail, MessageSquare, Smart
 import { notificationService } from '@/services/notifications'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToastStore } from '@/components/ui/Toast'
+import { formatDate, formatTimestamp } from '@/lib/dateFormat'
 import type { NotificationPreferences, PreferenceAuditEntry } from '@/types/notifications'
 
 interface NotificationPreferencesProps {
@@ -274,7 +275,7 @@ export function NotificationPreferences({ onPreferencesChange }: NotificationPre
                         </div>
                         {consentAt && (
                           <div className="text-xs text-muted-foreground mt-1">
-                            Consented: {new Date(consentAt).toLocaleDateString()}
+                            Consented: {formatDate(consentAt)}
                           </div>
                         )}
                       </div>
@@ -411,10 +412,10 @@ export function NotificationPreferences({ onPreferencesChange }: NotificationPre
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-medium">
-                        {new Date(entry.created_at).toLocaleDateString()}
+                        {formatDate(entry.created_at)}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {new Date(entry.created_at).toLocaleTimeString()}
+                        {formatTimestamp(entry.created_at)}
                       </div>
                     </div>
                   </div>

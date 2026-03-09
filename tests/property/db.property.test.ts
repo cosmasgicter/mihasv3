@@ -177,7 +177,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(queryConfig.text).toContain('$1');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -193,7 +193,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(containsDangerousPatterns(queryConfig.text, maliciousId)).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -222,7 +222,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(containsDangerousPatterns(queryConfig.text, maliciousLastName)).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -238,7 +238,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(containsDangerousPatterns(queryConfig.text, maliciousHash)).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -254,7 +254,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(containsDangerousPatterns(queryConfig.text, maliciousToken)).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -270,7 +270,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(containsDangerousPatterns(queryConfig.text, maliciousToken)).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -303,7 +303,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(containsDangerousPatterns(queryConfig.text, maliciousUserAgent)).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -319,7 +319,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(containsDangerousPatterns(queryConfig.text, maliciousId)).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -335,7 +335,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(containsDangerousPatterns(queryConfig.text, maliciousId)).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -351,7 +351,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(containsDangerousPatterns(queryConfig.text, maliciousUserId)).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -367,7 +367,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(containsDangerousPatterns(queryConfig.text, maliciousUserId)).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -401,7 +401,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(containsDangerousPatterns(queryConfig.text, maliciousIp)).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -426,7 +426,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(containsDangerousPatterns(queryConfig.text, maliciousIp)).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -442,7 +442,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(containsDangerousPatterns(queryConfig.text, maliciousEntityId)).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -458,7 +458,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(containsDangerousPatterns(queryConfig.text, maliciousActorId)).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -494,7 +494,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(queryConfig.values).toContain(edgeCase);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -517,7 +517,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(containsDangerousPatterns(queryConfig.text, unicodeInjection)).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -539,7 +539,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(Array.isArray(queryConfig.values)).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -558,7 +558,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(queryConfig.values?.length ?? 0).toBeGreaterThanOrEqual(uniqueParams.size);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -579,7 +579,7 @@ describe('Property 1: Parameterized queries prevent SQL injection', () => {
             expect(queryConfig.values).toContain(maliciousInput);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });

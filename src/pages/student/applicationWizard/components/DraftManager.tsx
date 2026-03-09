@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { FileText, Plus, Trash2, Edit2, Clock, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { animateClasses, staggerChild } from '@/lib/animations'
+import { formatTimestamp } from '@/lib/dateFormat'
 import { useMultiDraft } from '../hooks/useMultiDraft'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
@@ -59,13 +60,8 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
     }
   }
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+  const formatDraftDate = (date: string) => {
+    return formatTimestamp(date)
   }
 
   return (
@@ -208,7 +204,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
                       
                       <div className="flex items-center gap-2 text-xs text-caption mb-3">
                         <Clock className="h-3 w-3" />
-                        <span>Updated {formatDate(draft.updated_at)}</span>
+                        <span>Updated {formatDraftDate(draft.updated_at)}</span>
                       </div>
 
                       {draft.id !== currentDraftId && (

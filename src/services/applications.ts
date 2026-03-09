@@ -84,10 +84,10 @@ export const applicationService = {
     return { success: true }
   },
 
-  updateStatus: (id: string, status: Application['status'], notes?: string) =>
+  updateStatus: (id: string, status: Application['status'], notes?: string, force?: boolean) =>
     apiClient.request<Application>(`/applications?id=${id}`, {
       method: 'PATCH',
-      body: JSON.stringify({ action: 'update_status', status, notes }),
+      body: JSON.stringify({ action: 'update_status', status, notes, ...(force ? { force: true } : {}) }),
       invalidateCache: [`/applications?id=${id}`, '/applications']
     }),
 

@@ -1,6 +1,7 @@
 // Dynamic imports for heavy libraries
 export type { ReportFormat, ProgramBreakdownStats, ReportExportData } from './reportExports.types'
 import type { ReportFormat, ReportExportData } from './reportExports.types'
+import { formatTimestamp } from '@/lib/dateFormat'
 
 // jspdf-autotable adds lastAutoTable to the jsPDF instance at runtime
 interface JsPDFWithAutoTable {
@@ -70,7 +71,7 @@ export const exportReportAsCsv = (reportData: ReportExportData, fileName: string
 
   pushRow(['Report Title', reportData.metadata?.reportTitle || 'Analytics Report'])
   pushRow(['Reporting Period', reportData.period || ''])
-  pushRow(['Generated', reportData.generatedAt ? new Date(reportData.generatedAt).toLocaleString() : ''])
+  pushRow(['Generated', reportData.generatedAt ? formatTimestamp(reportData.generatedAt) : ''])
   pushRow([])
 
   if (reportData.statistics && Object.keys(reportData.statistics).length > 0) {
@@ -115,7 +116,7 @@ export const exportReportAsPdf = async (reportData: ReportExportData, fileName: 
   }
 
   if (reportData.generatedAt) {
-    doc.text(`Generated: ${new Date(reportData.generatedAt).toLocaleString()}`, marginLeft, currentY)
+    doc.text(`Generated: ${formatTimestamp(reportData.generatedAt)}`, marginLeft, currentY)
     currentY += 10
   }
 
@@ -262,7 +263,7 @@ export const exportReportAsExcel = async (reportData: ReportExportData, fileName
   }
 
   if (reportData.generatedAt) {
-    summarySheet.addRow({ metric: 'Generated', value: new Date(reportData.generatedAt).toLocaleString() })
+    summarySheet.addRow({ metric: 'Generated', value: formatTimestamp(reportData.generatedAt) })
   }
 
   if (reportData.approvalRate !== undefined) {

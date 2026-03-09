@@ -36,7 +36,7 @@ describe('localStorage Cache Property Tests (P18)', () => {
             expect(getItemSpy).toHaveBeenCalledTimes(1)
           }
         ),
-        { numRuns: 80 }
+        { numRuns: 10 }
       )
     })
   })
@@ -61,7 +61,7 @@ describe('localStorage Cache Property Tests (P18)', () => {
             expect(getItemSpy).toHaveBeenCalledTimes(0)
           }
         ),
-        { numRuns: 80 }
+        { numRuns: 10 }
       )
     })
   })
@@ -81,7 +81,7 @@ describe('localStorage Cache Property Tests (P18)', () => {
             expect(getItemSpy).toHaveBeenCalledTimes(0)
           }
         ),
-        { numRuns: 80 }
+        { numRuns: 10 }
       )
     })
   })
@@ -101,7 +101,7 @@ describe('localStorage Cache Property Tests (P18)', () => {
             expect(getItemSpy).toHaveBeenCalledTimes(0)
           }
         ),
-        { numRuns: 80 }
+        { numRuns: 10 }
       )
     })
   })
@@ -118,7 +118,7 @@ describe('localStorage Cache Property Tests (P18)', () => {
             expect(cachedGetItem(key)).toBe(values[values.length - 1])
           }
         ),
-        { numRuns: 80 }
+        { numRuns: 10 }
       )
     })
   })

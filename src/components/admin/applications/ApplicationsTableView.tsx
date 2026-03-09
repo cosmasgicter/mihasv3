@@ -10,6 +10,7 @@ import { Eye, FileText, Mail, User } from 'lucide-react';
 import { EnhancedDataTable, type Column } from '@/components/admin/EnhancedDataTable';
 import { DraftBadge } from '@/components/admin/applications/DraftBadge';
 import { cn } from '@/lib/utils';
+import { formatDate } from '@/lib/dateFormat';
 import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus';
 
 interface ApplicationSummary {
@@ -52,13 +53,10 @@ export function ApplicationsTableView({
   className,
 }: ApplicationsTableViewProps) {
   // Format date helper
-  const formatDate = useCallback((dateString: string) => {
+  const formatTableDate = useCallback((dateString: string) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
+    const result = formatDate(dateString);
+    return result === 'Not available' ? '-' : result;
   }, []);
 
   // Get points color based on value
@@ -190,7 +188,7 @@ export function ApplicationsTableView({
       width: '120px',
       render: (value: string, row: ApplicationSummary) => (
         <div className="flex flex-col">
-          <span className="text-sm">{formatDate(value || row.created_at)}</span>
+          <span className="text-sm">{formatTableDate(value || row.created_at)}</span>
           {row.days_since_submission > 0 && (
             <span className="text-xs text-muted-foreground">
               {row.days_since_submission}d ago

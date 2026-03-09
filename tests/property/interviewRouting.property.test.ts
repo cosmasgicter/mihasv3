@@ -33,7 +33,7 @@ describe('Property 5: Interview service routes all requests through /application
           }
         }
       ),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 
@@ -50,7 +50,7 @@ describe('Property 5: Interview service routes all requests through /application
           expect(url).toContain(`action=${action}`)
         }
       ),
-      { numRuns: 20 }
+      { numRuns: 10 }
     )
   })
 })

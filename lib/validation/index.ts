@@ -25,6 +25,7 @@ export {
   patchRescheduleInterviewSchema,
   patchCancelInterviewSchema,
   patchSyncGradesSchema,
+  patchSaveDraftSchema,
 } from './applications';
 
 // Admin schemas

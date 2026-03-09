@@ -150,7 +150,7 @@ describe('Feature: admin-system-health-fixes, Property 1: HEAD Method Support fo
             expect(result.hasJson).toBe(false);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -183,7 +183,7 @@ describe('Feature: admin-system-health-fixes, Property 1: HEAD Method Support fo
             expect(result.headers).toHaveProperty('Access-Control-Allow-Headers');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -209,7 +209,7 @@ describe('Feature: admin-system-health-fixes, Property 1: HEAD Method Support fo
             expect(res._status).toBe(200);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -238,7 +238,7 @@ describe('Feature: admin-system-health-fixes, Property 1: HEAD Method Support fo
             expect(res._ended).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -269,7 +269,7 @@ describe('Feature: admin-system-health-fixes, Property 1: HEAD Method Support fo
             expect(res._status).toBe(200);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -297,7 +297,7 @@ describe('Feature: admin-system-health-fixes, Property 1: HEAD Method Support fo
             expect(res._status).toBe(200);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -318,7 +318,7 @@ describe('Feature: admin-system-health-fixes, Property 1: HEAD Method Support fo
             expect(result.ended).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });

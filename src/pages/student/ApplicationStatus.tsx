@@ -6,7 +6,7 @@ import type { ApplicationWithDetails } from '@/types/database'
 import { logger } from '@/utils/logger'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatTimestamp } from '@/lib/dateFormat'
 import { applicationService } from '@/services/applications'
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { DocumentButtons } from '@/components/student/DocumentButtons'
@@ -107,13 +107,8 @@ export default function ApplicationStatus() {
 
   const formatInterviewDateTime = (value?: string | null) => {
     if (!value) return 'To be confirmed'
-    const date = new Date(value)
-    if (Number.isNaN(date.getTime())) {
-      return 'To be confirmed'
-    }
-    const datePart = formatDate(date.toISOString())
-    const timePart = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    return `${datePart} at ${timePart}`
+    const result = formatTimestamp(value)
+    return result === 'Not available' ? 'To be confirmed' : result
   }
 
   const getTimeline = (): ApplicationTimeline[] => {

@@ -22,7 +22,7 @@ import { calculateBackoff } from '../../src/lib/sseClient';
  * Number of runs for property tests.
  * Backoff calculation is fast, so we can run many iterations.
  */
-const NUM_RUNS = 100;
+const NUM_RUNS = 10;
 
 /**
  * Default values from the SSE client

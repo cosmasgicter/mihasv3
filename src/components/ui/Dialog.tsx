@@ -51,7 +51,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        'fixed left-[50%] top-[50%] z-[60] grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border border-border bg-card p-4 sm:p-6 shadow-lg duration-200 sm:rounded-lg max-h-[90vh] overflow-y-auto',
+        'fixed left-[50%] top-[50%] z-[60] grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border border-border bg-card p-4 sm:p-6 shadow-lg duration-200 sm:rounded-lg max-h-[85vh] sm:max-h-[90vh] overflow-y-auto',
         'data-[state=open]:animate-in data-[state=closed]:animate-out',
         'data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95',
         dialogSizeClasses[size],

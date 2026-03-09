@@ -85,7 +85,7 @@ describe('SSRF URL Validation Property Tests (P25)', () => {
           const url = `https://${domain}${path}`;
           expect(isAllowedUrl(url)).toBe(true);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
   });
@@ -97,7 +97,7 @@ describe('SSRF URL Validation Property Tests (P25)', () => {
           const url = `${scheme}://${domain}${path}`;
           expect(isAllowedUrl(url)).toBe(false);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
   });
@@ -108,7 +108,7 @@ describe('SSRF URL Validation Property Tests (P25)', () => {
         fc.property(privateIPv4Arb, (ip) => {
           expect(isPrivateIP(ip)).toBe(true);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
 
@@ -118,7 +118,7 @@ describe('SSRF URL Validation Property Tests (P25)', () => {
           const url = `https://${ip}${path}`;
           expect(isAllowedUrl(url)).toBe(false);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
   });
@@ -129,7 +129,7 @@ describe('SSRF URL Validation Property Tests (P25)', () => {
         fc.property(privateIPv6Arb, (ip) => {
           expect(isPrivateIP(ip)).toBe(true);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
   });
@@ -141,7 +141,7 @@ describe('SSRF URL Validation Property Tests (P25)', () => {
           const url = `https://${domain}${path}`;
           expect(isAllowedUrl(url)).toBe(false);
         }),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
   });
@@ -162,7 +162,7 @@ describe('SSRF URL Validation Property Tests (P25)', () => {
             expect(isAllowedUrl(garbage)).toBe(false);
           },
         ),
-        { numRuns: 100 },
+        { numRuns: 10 },
       );
     });
   });

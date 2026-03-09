@@ -4,6 +4,7 @@ import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import type { User, UserProfile } from '@/types/auth'
 import {
   calculateCanonicalProfileCompletion,
+  getMissingProfileFields,
   getCanonicalResidenceCountry,
   getCanonicalResidenceTown,
   normalizeDateInputValue,
@@ -11,6 +12,9 @@ import {
 
 interface UserMetadata {
   full_name?: string
+  first_name?: string
+  last_name?: string
+  email?: string
   phone?: string
   residence_town?: string
   residence_country?: string
@@ -18,6 +22,7 @@ interface UserMetadata {
   city?: string
   sex?: string
   date_of_birth?: string
+  nrc_number?: string
   next_of_kin_name?: string
   next_of_kin_phone?: string
   address?: string
@@ -26,7 +31,15 @@ interface UserMetadata {
 
 // Helper function to safely get user metadata
 export const getUserMetadata = (user: User | null | undefined): UserMetadata => {
-  if (!user?.user_metadata) return {}
+  if (!user) return {}
+  
+  // Start with the user's direct email as a baseline
+  const result: UserMetadata = {}
+  if (user.email) {
+    result.email = user.email
+  }
+  
+  if (!user.user_metadata) return result
   
   try {
     const metadata = user.user_metadata as Record<string, unknown>
@@ -40,6 +53,9 @@ export const getUserMetadata = (user: User | null | undefined): UserMetadata => 
     
     return {
       full_name: (metadata.full_name as string | undefined) || (signupData.full_name as string | undefined),
+      first_name: (metadata.first_name as string | undefined) || (signupData.first_name as string | undefined),
+      last_name: (metadata.last_name as string | undefined) || (signupData.last_name as string | undefined),
+      email: (metadata.email as string | undefined) || (signupData.email as string | undefined),
       phone: (metadata.phone as string | undefined) || (signupData.phone as string | undefined),
       residence_town: (metadata.residence_town as string | undefined) || (signupData.residence_town as string | undefined),
       residence_country:
@@ -55,6 +71,7 @@ export const getUserMetadata = (user: User | null | undefined): UserMetadata => 
       city: (metadata.city as string | undefined) || (signupData.city as string | undefined),
       sex: (metadata.sex as string | undefined) || (signupData.sex as string | undefined),
       date_of_birth: (metadata.date_of_birth as string | undefined) || (signupData.date_of_birth as string | undefined),
+      nrc_number: (metadata.nrc_number as string | undefined) || (signupData.nrc_number as string | undefined),
       next_of_kin_name: (metadata.next_of_kin_name as string | undefined) || (signupData.next_of_kin_name as string | undefined),
       next_of_kin_phone: (metadata.next_of_kin_phone as string | undefined) || (signupData.next_of_kin_phone as string | undefined),
       address: (metadata.address as string | undefined) || (signupData.address as string | undefined),
@@ -80,6 +97,11 @@ export const getBestValue = (profileValue: unknown, metadataValue: unknown, fall
 // Calculate profile completion percentage
 export const calculateProfileCompletion = (profile: UserProfile | null | undefined, metadata: UserMetadata): number => {
   return calculateCanonicalProfileCompletion(profile, metadata)
+}
+
+// Get list of missing required profile fields
+export const getProfileMissingFields = (profile: UserProfile | null | undefined, metadata: UserMetadata): { key: string; label: string }[] => {
+  return getMissingProfileFields(profile, metadata)
 }
 
 type SetValueFn = (field: string, value: string) => void
@@ -132,12 +154,14 @@ export const useProfileAutoPopulation = (setValue?: SetValueFn) => {
   
   const metadata = getUserMetadata(user)
   const completionPercentage = calculateProfileCompletion(profile, metadata)
+  const missingFields = getProfileMissingFields(profile, metadata)
   
   return { 
     user, 
     profile, 
     metadata, 
     completionPercentage,
+    missingFields,
     hasAutoPopulatedData: completionPercentage > 0
   }
 }

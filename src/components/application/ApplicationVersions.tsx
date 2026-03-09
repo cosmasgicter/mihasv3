@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthContext'
 import { apiClient } from '@/services/client'
 import type { ApplicationVersion } from '@/types/application'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatTimestamp } from '@/lib/dateFormat'
 import { History, Eye, Download, Clock } from 'lucide-react'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
@@ -168,7 +168,7 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
                       <div className="flex items-center mt-2 space-x-1">
                         <Clock className="h-3 w-3 text-foreground" />
                         <span className="text-xs text-foreground">
-                          {new Date(version.created_at).toLocaleTimeString()}
+                          {formatTimestamp(version.created_at)}
                         </span>
                       </div>
                     </div>

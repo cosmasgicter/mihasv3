@@ -7,8 +7,6 @@ export { FormSelect } from './form-select'
 export type { FormSelectProps, SelectOption } from './form-select'
 export { Checkbox, CheckboxWithLabel } from './checkbox'
 export { RadioGroup, RadioGroupItem } from './radio-group'
-/** @deprecated Prefer RadioGroup primitives from '@/components/ui/radio-group'. Import directly from './Radio' if needed. */
-// export { Radio } from './Radio'  — barrel re-export removed
 export { Switch } from './switch'
 export { Label } from './label'
 
@@ -59,9 +57,6 @@ export { SkipLink } from './SkipLink'
 export { SkipLinks, MainContent, NavigationLandmark, FooterLandmark } from './SkipLinks'
 export { BottomNavigation, BottomNavigationSpacer, defaultStudentNavItems, defaultPublicNavItems } from './BottomNavigation'
 
-// Deprecated - Use Breadcrumbs from '@/components/navigation/Breadcrumbs' instead
-// Barrel re-export removed — import directly from '@/components/ui/Breadcrumbs' if needed.
-
 // Data Display Components
 export { Table } from './Table'
 export { Badge } from './badge'
@@ -102,9 +97,6 @@ export { PageHeader } from './PageHeader'
 export { PageLayout } from './PageLayout'
 export { StatusIcon } from './StatusIcon'
 
-// Deprecated - Use OfflineIndicator from '@/components/pwa/OfflineIndicator' instead
-// Barrel re-export removed — import directly from '@/components/ui/OfflineIndicator' if needed.
-
 // Accessibility Components
 export { 
   HeadingLevelProvider, 
@@ -117,5 +109,4 @@ export {
   VisuallyHidden 
 } from './HeadingHierarchy'
 
-// Deprecated select wrapper — import directly from '@/components/ui/standalone-select' if needed.
-// Barrel re-export removed.
+

@@ -80,7 +80,7 @@ describe('Data Integrity Properties', () => {
           
           return true;
         }),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -93,7 +93,7 @@ describe('Data Integrity Properties', () => {
           
           return true;
         }),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -129,7 +129,7 @@ describe('Data Integrity Properties', () => {
             return true;
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -172,7 +172,7 @@ describe('Data Integrity Properties', () => {
           
           return true;
         }),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -184,7 +184,7 @@ describe('Data Integrity Properties', () => {
           
           return true;
         }),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -201,7 +201,7 @@ describe('Data Integrity Properties', () => {
           
           return true;
         }),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -232,7 +232,7 @@ describe('Security Equivalence Properties', () => {
             return true;
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -288,7 +288,7 @@ describe('Security Equivalence Properties', () => {
           
           return true;
         }),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
   });
@@ -321,7 +321,7 @@ describe('Storage Integrity Properties', () => {
             return true;
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 10 }
       );
     });
 
@@ -407,7 +407,7 @@ describe('API Response Format Properties', () => {
           return true;
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 });

@@ -32,7 +32,7 @@ interface ReportConfig {
   format: ReportFormat
 }
 
-type ReportApplicationRow = Awaited<ReturnType<typeof applicationService.exportApplications>>['applications'][number]
+type ReportApplicationRow = NonNullable<Awaited<ReturnType<typeof applicationService.exportApplications>>>['applications'][number]
 
 type DocumentFormState = {
   studentName: string
@@ -186,7 +186,7 @@ export function ReportsGenerator() {
 
       rows.push(...batch)
 
-      if (!response.hasMore || batch.length < 500) {
+      if (!response?.hasMore || batch.length < 500) {
         break
       }
 

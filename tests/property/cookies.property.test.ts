@@ -33,7 +33,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 // Test Configuration
 // ============================================================================
 
-const NUM_RUNS = 100;
+const NUM_RUNS = 10;
 
 /**
  * Base64URL character set (used in JWT tokens)

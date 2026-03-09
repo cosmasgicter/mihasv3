@@ -33,6 +33,7 @@ import {
   getCanonicalResidenceTown,
   normalizeDateInputValue,
 } from '@/lib/profileFieldMapping'
+import { NATIONALITY_OPTIONS, DEFAULT_NATIONALITY } from '@/lib/nationalityOptions'
 
 const optionalString = () => z.string().optional().or(z.literal(''))
 
@@ -43,7 +44,7 @@ const profileSchema = z.object({
   sex: z.enum(['Male', 'Female'], { required_error: 'Please select a sex' }).optional(),
   residence_town: optionalString(),
   country: optionalString(),
-  nationality: optionalString(),
+  nationality: z.string().min(1, 'Nationality is required').default('Zambian'),
   next_of_kin_name: optionalString(),
   next_of_kin_phone: optionalString(),
 })
@@ -78,6 +79,7 @@ export default function StudentSettings() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       country: DEFAULT_RESIDENCE_COUNTRY,
+      nationality: DEFAULT_NATIONALITY,
     },
   })
 
@@ -94,7 +96,7 @@ export default function StudentSettings() {
       setValue('sex', (getBestValue(profile?.sex, metadata?.sex, '') as 'Male' | 'Female') || undefined)
       setValue('residence_town', getCanonicalResidenceTown(profile, metadata))
       setValue('country', getCanonicalResidenceCountry(profile, metadata))
-      setValue('nationality', getBestValue(profile?.nationality, metadata?.nationality, ''))
+      setValue('nationality', getBestValue(profile?.nationality, metadata?.nationality, '') || DEFAULT_NATIONALITY)
       setValue('next_of_kin_name', getBestValue(profile?.next_of_kin_name, metadata?.next_of_kin_name, ''))
       setValue('next_of_kin_phone', getBestValue(profile?.next_of_kin_phone, metadata?.next_of_kin_phone, ''))
     }
@@ -279,12 +281,12 @@ export default function StudentSettings() {
                 </datalist>
               </div>
 
-              <Input
-                {...register('nationality')}
-                type="text"
+              <FormSelect
+                name="nationality"
+                control={control}
                 label="Nationality"
-                placeholder="Zambian"
-                helperText="Citizenship stays separate from your current residence."
+                options={NATIONALITY_OPTIONS}
+                placeholder="Select nationality"
                 error={errors.nationality?.message}
               />
             </div>

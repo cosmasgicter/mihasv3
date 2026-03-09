@@ -10,7 +10,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { handleCors } from "../lib/cors";
 import { withArcjetProtection } from "../lib/arcjet";
 import { handleError, sendSuccess, sendError, HttpStatus } from "../lib/errorHandler";
-import { verifyAccessToken } from "../lib/auth/jwt";
+import { requireAuth, AuthenticationError, type AuthContext } from "../lib/auth/middleware";
 import { extractAccessTokenFromCookie, extractBearerToken } from "../lib/auth/cookies";
 import {
   getActiveSessions, 
@@ -27,22 +27,6 @@ import { validateServerEnv } from '../lib/envValidator';
 import { validateBody } from '../lib/validation/middleware';
 import { revokeSessionBodySchema, revokeAllSessionsBodySchema } from '../lib/validation/sessions';
 import { logAuditEvent } from '../lib/auditLogger';
-
-/**
- * Get user ID from request (cookie or bearer token)
- */
-async function getUserFromRequest(req: VercelRequest): Promise<{ userId: string; sessionId?: string } | null> {
-  // Try cookie first, then Bearer token
-  const token = extractAccessTokenFromCookie(req) || extractBearerToken(req);
-  if (!token) return null;
-
-  try {
-    const payload = await verifyAccessToken(token);
-    return { userId: payload.sub, sessionId: payload.sid };
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Sessions API Handler
@@ -63,10 +47,15 @@ async function handler(req: VercelRequest, res: VercelResponse) {
   const action = req.query.action as string;
 
   try {
-    // All session actions require authentication
-    const auth = await getUserFromRequest(req);
-    if (!auth) {
-      return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
+    // Require authentication for all session actions (Req 9.1)
+    let user: AuthContext;
+    try {
+      user = await requireAuth(req);
+    } catch (error) {
+      if (error instanceof AuthenticationError) {
+        return sendError(res, error.message, error.statusCode, error.code);
+      }
+      throw error;
     }
 
     const ipAddress = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.socket?.remoteAddress || null;
@@ -74,17 +63,17 @@ async function handler(req: VercelRequest, res: VercelResponse) {
 
     switch (action) {
       case 'list':
-        return await handleList(req, res, auth.userId, auth.sessionId);
+        return await handleList(req, res, user.userId, user.sessionId);
       case 'track':
-        return await handleTrack(req, res, auth.userId, ipAddress, userAgent);
+        return await handleTrack(req, res, user.userId, ipAddress, userAgent);
       case 'revoke':
-        return await handleRevoke(req, res, auth.userId, ipAddress, userAgent);
+        return await handleRevoke(req, res, user.userId, ipAddress, userAgent);
       case 'revoke-all':
-        return await handleRevokeAll(req, res, auth.userId, auth.sessionId, ipAddress, userAgent);
+        return await handleRevokeAll(req, res, user.userId, user.sessionId, ipAddress, userAgent);
       case 'connect':
-        return await handleConnect(req, res, auth.userId);
+        return await handleConnect(req, res, user.userId);
       case 'poll':
-        return await handlePoll(req, res, auth.userId);
+        return await handlePoll(req, res, user.userId);
       default:
         return sendError(res, 'Invalid action. Use: list, track, revoke, revoke-all, connect, poll', HttpStatus.BAD_REQUEST);
     }

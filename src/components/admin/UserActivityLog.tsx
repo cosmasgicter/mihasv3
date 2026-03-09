@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog'
 import { adminAuditService, type AuditLogEntry } from '@/services/admin/audit'
 import { sanitizeForLog } from '@/lib/sanitize'
+import { formatTimestamp } from '@/lib/dateFormat'
 import {
   Activity,
   Calendar,
@@ -227,7 +228,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                               Time
                             </div>
                             <p className="mt-1 text-sm font-medium text-foreground">{relativeTime}</p>
-                            <p className="text-xs text-muted-foreground">{new Date(activity.createdAt).toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">{formatTimestamp(activity.createdAt)}</p>
                           </div>
                         </div>
 

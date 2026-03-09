@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { sanitizeForLog } from '@/lib/sanitize'
+import { formatTimestamp as _fmtTimestamp } from '@/lib/dateFormat'
 import {
   adminDashboardService,
   createEmptyDashboardResponse,
@@ -52,11 +53,8 @@ const formatStatusLabel = (status: string) =>
     .join(' ')
 
 const formatTimestamp = (value: string) => {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return 'Recently updated'
-  }
-  return date.toLocaleString()
+  const result = _fmtTimestamp(value)
+  return result === 'Not available' ? 'Recently updated' : result
 }
 
 const formatCount = (value: number) => integerFormatter.format(Math.max(0, Math.round(value)))
