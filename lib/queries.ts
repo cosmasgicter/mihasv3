@@ -105,7 +105,9 @@ export interface DeviceInfo {
 export interface SessionRecord {
   id: string;
   user_id: string;
-  device_info: DeviceInfo;
+  device_id: string;
+  session_token: string;
+  device_info: string | null;
   ip_address: string | null;
   user_agent: string | null;
   is_active: boolean;
@@ -174,10 +176,11 @@ export interface AuditLogRecord {
   actor_id: string | null;
   action: AuditAction | string;
   entity_type: AuditEntityType | string;
-  entity_id: string | null;
+  entity_id: string;
   changes: Record<string, unknown> | null;
   ip_address: string | null;
   user_agent: string | null;
+  retention_category: string;
   created_at: Date;
 }
 
@@ -193,6 +196,7 @@ export interface AuditLogInput {
   changes?: Record<string, unknown>;
   ip_address?: string | null;
   user_agent?: string | null;
+  retention_category?: 'standard' | 'security';
 }
 
 const AUDIT_ENTITY_PLACEHOLDER_ID = '00000000-0000-0000-0000-000000000000';
@@ -786,9 +790,9 @@ export const AuditQueries = {
       text: `
         INSERT INTO audit_logs (
           actor_id, action, entity_type, entity_id,
-          changes, ip_address, user_agent, created_at
+          changes, ip_address, user_agent, retention_category, created_at
         )
-        VALUES ($1, $2, $3, $4::uuid, $5, $6, $7, NOW())
+        VALUES ($1, $2, $3, $4::uuid, $5, $6, $7, $8, NOW())
         RETURNING id, created_at
       `,
       values: [
@@ -799,6 +803,7 @@ export const AuditQueries = {
         mergedChanges ? JSON.stringify(mergedChanges) : null,
         input.ip_address || null,
         input.user_agent || null,
+        input.retention_category || 'standard',
       ],
     };
   },
@@ -818,9 +823,9 @@ export const AuditQueries = {
     text: `
       INSERT INTO audit_logs (
         actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
+        changes, ip_address, user_agent, retention_category, created_at
       )
-      VALUES ($1, $2, 'user', COALESCE($1, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $3, $4, $5, NOW())
+      VALUES ($1, $2, 'user', COALESCE($1, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $3, $4, $5, 'security', NOW())
       RETURNING id, created_at
     `,
     values: [
@@ -848,9 +853,9 @@ export const AuditQueries = {
     text: `
       INSERT INTO audit_logs (
         actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
+        changes, ip_address, user_agent, retention_category, created_at
       )
-      VALUES ($1, 'authorization_failure', $2, COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
+      VALUES ($1, 'authorization_failure', $2, COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, 'security', NOW())
       RETURNING id, created_at
     `,
     values: [
@@ -880,9 +885,9 @@ export const AuditQueries = {
     text: `
       INSERT INTO audit_logs (
         actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
+        changes, ip_address, user_agent, retention_category, created_at
       )
-      VALUES ($1, $2, 'session', COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
+      VALUES ($1, $2, 'session', COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, 'standard', NOW())
       RETURNING id, created_at
     `,
     values: [
@@ -1035,8 +1040,10 @@ export const AuditQueries = {
   }),
 
   /**
-   * Delete old audit logs
+   * Delete old audit logs respecting retention_category
    * Used by cleanup job to manage table size
+   * - 'standard' logs: deleted after daysOld days (default 90)
+   * - 'security' logs: retained for 365 days minimum regardless of daysOld
    * 
    * -- VENDOR: PostgreSQL specific - INTERVAL syntax
    * -- For Neon migration: INTERVAL is standard SQL, supported
@@ -1044,7 +1051,13 @@ export const AuditQueries = {
   deleteOlderThan: (daysOld: number): QueryConfig => ({
     text: `
       DELETE FROM audit_logs
-      WHERE created_at < NOW() - INTERVAL '1 day' * $1
+      WHERE (
+        (retention_category = 'standard' AND created_at < NOW() - INTERVAL '1 day' * $1)
+        OR
+        (retention_category = 'security' AND created_at < NOW() - INTERVAL '365 days')
+        OR
+        (retention_category IS NULL AND created_at < NOW() - INTERVAL '1 day' * $1)
+      )
       RETURNING id
     `,
     values: [daysOld],
@@ -1107,14 +1120,22 @@ export interface ApplicationRecord {
   phone: string;
   email: string;
   residence_town: string;
+  nationality: string | null;
+  address_line_1: string | null;
+  address_line_2: string | null;
+  postal_code: string | null;
   next_of_kin_name: string | null;
   next_of_kin_phone: string | null;
   program: string;
   intake: string;
-  institution: string;
+  institution: string | null;
   result_slip_url: string | null;
   extra_kyc_url: string | null;
-  application_fee: number;
+  additional_subjects: unknown | null;
+  eligibility_status: string | null;
+  eligibility_score: number | null;
+  eligibility_notes: string | null;
+  application_fee: number | null;
   payment_method: string | null;
   payer_name: string | null;
   payer_phone: string | null;
@@ -1122,6 +1143,7 @@ export interface ApplicationRecord {
   paid_at: string | null;
   momo_ref: string | null;
   pop_url: string | null;
+  receipt_number: string | null;
   payment_status: PaymentStatus;
   payment_verified_at: string | null;
   payment_verified_by: string | null;
@@ -1130,6 +1152,10 @@ export interface ApplicationRecord {
   public_tracking_code: string | null;
   reviewed_by: string | null;
   review_started_at: string | null;
+  admin_feedback: string | null;
+  admin_feedback_date: string | null;
+  admin_feedback_by: string | null;
+  decision_date: string | null;
   version: number;
   created_at: string;
   updated_at: string;
@@ -1656,12 +1682,12 @@ export const StatusHistoryQueries = {
   ): QueryConfig => ({
     text: `
       INSERT INTO application_status_history (
-        id, application_id, old_status, new_status, changed_by, notes, created_at
+        id, application_id, status, old_status, new_status, changed_by, notes, created_at
       )
-      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NOW())
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW())
       RETURNING *
     `,
-    values: [applicationId, oldStatus || null, status, changedBy, notes || null],
+    values: [applicationId, status, oldStatus || null, status, changedBy, notes || null],
   }),
 
   /**
@@ -1715,7 +1741,6 @@ export interface ProgramRecord {
   updated_at: string;
   // Joined fields
   institution_name?: string;
-  institution_slug?: string;
   institution_full_name?: string;
 }
 
@@ -1757,14 +1782,13 @@ export interface SubjectRecord {
 export const CatalogQueries = {
   /**
    * Get all programs
-   * Note: Programs table doesn't have institution_id - institutions are separate entities
    */
   getPrograms: (): QueryConfig => ({
     text: `
       SELECT 
         id, name, code, description, duration_months,
         application_fee, tuition_fee, requirements,
-        regulatory_body, accreditation_status, is_active,
+        regulatory_body, accreditation_status, institution_id, is_active,
         created_at, updated_at
       FROM programs
       ORDER BY created_at DESC
@@ -1780,7 +1804,7 @@ export const CatalogQueries = {
       SELECT 
         id, name, code, description, duration_months,
         application_fee, tuition_fee, requirements,
-        regulatory_body, accreditation_status, is_active,
+        regulatory_body, accreditation_status, institution_id, is_active,
         created_at, updated_at
       FROM programs
       WHERE is_active = true
@@ -1797,7 +1821,7 @@ export const CatalogQueries = {
       SELECT 
         id, name, code, description, duration_months,
         application_fee, tuition_fee, requirements,
-        regulatory_body, accreditation_status, is_active,
+        regulatory_body, accreditation_status, institution_id, is_active,
         created_at, updated_at
       FROM programs
       WHERE id = $1
@@ -1897,20 +1921,6 @@ export interface NotificationPreferencesRecord {
 }
 
 /**
- * Push subscription record
- */
-export interface PushSubscriptionRecord {
-  id: string;
-  user_id: string;
-  endpoint: string;
-  keys: {
-    p256dh: string;
-    auth: string;
-  };
-  created_at: string;
-}
-
-/**
  * Query builders for notification tables
  */
 export const NotificationQueries = {
@@ -1949,63 +1959,6 @@ export const NotificationQueries = {
       RETURNING *
     `,
     values: [userId, emailEnabled, pushEnabled, smsEnabled],
-  }),
-
-  /**
-   * Get push subscription for user
-   */
-  getPushSubscription: (userId: string): QueryConfig => ({
-    text: `
-      SELECT *
-      FROM push_subscriptions
-      WHERE user_id = $1
-      LIMIT 1
-    `,
-    values: [userId],
-  }),
-
-  /**
-   * Create push subscription
-   */
-  createPushSubscription: (
-    userId: string,
-    endpoint: string,
-    keys: { p256dh: string; auth: string }
-  ): QueryConfig => ({
-    text: `
-      INSERT INTO push_subscriptions (id, user_id, endpoint, keys, created_at)
-      VALUES (gen_random_uuid(), $1, $2, $3, NOW())
-      ON CONFLICT (user_id) DO UPDATE SET
-        endpoint = $2,
-        keys = $3
-      RETURNING *
-    `,
-    values: [userId, endpoint, JSON.stringify(keys)],
-  }),
-
-  /**
-   * Delete push subscription
-   */
-  deletePushSubscription: (userId: string): QueryConfig => ({
-    text: `
-      DELETE FROM push_subscriptions
-      WHERE user_id = $1
-      RETURNING id
-    `,
-    values: [userId],
-  }),
-
-  /**
-   * Get users with push enabled for notification
-   */
-  getUsersWithPushEnabled: (): QueryConfig => ({
-    text: `
-      SELECT ps.*, np.email_enabled
-      FROM push_subscriptions ps
-      JOIN user_notification_preferences np ON np.user_id = ps.user_id
-      WHERE np.push_enabled = true
-    `,
-    values: [],
   }),
 };
 

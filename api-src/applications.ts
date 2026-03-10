@@ -1018,8 +1018,8 @@ async function handleById(
                WHERE id = $1
                RETURNING *
              ), history_insert AS (
-               INSERT INTO application_status_history (id, application_id, old_status, new_status, changed_by, notes, created_at)
-               SELECT gen_random_uuid(), id, $8, $2, $3, $4, NOW()
+               INSERT INTO application_status_history (id, application_id, status, old_status, new_status, changed_by, notes, created_at)
+               SELECT gen_random_uuid(), id, $2, $8, $2, $3, $4, NOW()
                FROM updated_application
                RETURNING id
              ), notification_insert AS (
