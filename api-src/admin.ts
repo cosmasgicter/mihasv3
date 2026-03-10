@@ -974,17 +974,7 @@ async function handleDeactivateUser(req: VercelRequest, res: VercelResponse, aut
       [userId]
     );
 
-    try {
-      await query(
-        `UPDATE user_roles
-         SET is_active = false,
-             updated_at = NOW()
-         WHERE user_id = $1`,
-        [userId]
-      );
-    } catch {
-      // user_roles table is optional in some environments
-    }
+    // user_roles table does not exist — removed legacy backward-compat code
 
     await logAuditEvent({
       actor_id: auth.userId,
@@ -1209,17 +1199,7 @@ async function handleUpdateUser(req: VercelRequest, res: VercelResponse, auth: A
       return;
     }
 
-    try {
-      await query(
-        `INSERT INTO user_roles (user_id, role, is_active, created_at, updated_at)
-         VALUES ($1, $2, true, NOW(), NOW())
-         ON CONFLICT (user_id)
-         DO UPDATE SET role = EXCLUDED.role, is_active = true, updated_at = NOW()`,
-        [userId, role]
-      );
-    } catch {
-      // user_roles table is optional in some environments
-    }
+    // user_roles table does not exist — removed legacy backward-compat code
 
     const roleChanged = currentUser.role !== role;
     const revokedSessions = roleChanged ? await revokeUserSessions(userId) : 0;
@@ -1912,18 +1892,7 @@ async function handleUpdateRole(req: VercelRequest, res: VercelResponse, auth: A
       return;
     }
 
-    // Also update user_roles table if it exists (for backward compatibility)
-    try {
-      await query(
-        `INSERT INTO user_roles (user_id, role, is_active, created_at, updated_at)
-         VALUES ($1, $2, true, NOW(), NOW())
-         ON CONFLICT (user_id) 
-         DO UPDATE SET role = EXCLUDED.role, is_active = true, updated_at = NOW()`,
-        [userId, role]
-      );
-    } catch {
-      // user_roles table might not exist, ignore error
-    }
+    // user_roles table does not exist — removed legacy backward-compat code
 
     const revokedSessions = await revokeUserSessions(userId);
 
@@ -2126,42 +2095,18 @@ async function handleAuditLog(req: VercelRequest, res: VercelResponse): Promise<
  *
  * GET /api/admin?action=appeals
  */
-async function handleAppeals(req: VercelRequest, res: VercelResponse): Promise<void> {
-  let page = parseInt(req.query.page as string || '1', 10);
-  let pageSize = parseInt((req.query.limit as string) || (req.query.pageSize as string) || '50', 10);
-
-  if (isNaN(page) || page < 1) page = 1;
-  if (isNaN(pageSize) || pageSize < 1) pageSize = 50;
-  if (pageSize > 200) pageSize = 200;
-
-  const offset = (page - 1) * pageSize;
-
-  try {
-    const [countResult, appealsResult] = await Promise.all([
-      query<{ count: string }>('SELECT COUNT(*) as count FROM eligibility_appeals'),
-      query<Record<string, unknown>>(
-        `SELECT * FROM eligibility_appeals ORDER BY submitted_at DESC NULLS LAST, created_at DESC NULLS LAST LIMIT $1 OFFSET $2`,
-        [pageSize, offset],
-      ),
-    ]);
-
-    const totalCount = parseInt(countResult.rows[0]?.count || '0', 10);
-    sendSuccess(res, {
-      appeals: appealsResult.rows,
-      totalCount,
-      page,
-      pageSize,
-      totalPages: Math.max(1, Math.ceil(totalCount / pageSize)),
-    });
-  } catch (error) {
-    // eligibility_appeals table may not be configured yet — log and return empty gracefully.
-    logErrorAuditEvent('admin/appeals', error).catch(() => {});
-    sendSuccess(res, {
-      appeals: [],
-      totalCount: 0,
-      page,
-      pageSize,
-      totalPages: 1,
-    });
-  }
+/**
+ * Handle appeals listing
+ * GET /api/admin?action=appeals
+ * NOTE: eligibility_appeals table does not exist in DB — returns empty results gracefully
+ */
+async function handleAppeals(_req: VercelRequest, res: VercelResponse): Promise<void> {
+  // eligibility_appeals table does not exist — return empty results
+  sendSuccess(res, {
+    appeals: [],
+    totalCount: 0,
+    page: 1,
+    pageSize: 50,
+    totalPages: 1,
+  });
 }
