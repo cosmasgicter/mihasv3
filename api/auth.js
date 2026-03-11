@@ -1489,7 +1489,8 @@ __export(exports_csrf, {
   rotateToken: () => rotateToken,
   requireCsrf: () => requireCsrf,
   hashToken: () => hashToken,
-  generateToken: () => generateToken
+  generateToken: () => generateToken,
+  ensureToken: () => ensureToken
 });
 import { randomBytes, createHash as createHash2 } from "crypto";
 function hashToken(raw) {
@@ -1515,6 +1516,15 @@ async function validateToken(userId, raw) {
 }
 async function rotateToken(userId) {
   return generateToken(userId);
+}
+async function ensureToken(userId) {
+  await query("DELETE FROM csrf_tokens WHERE user_id = $1 AND expires_at <= NOW()", [userId]);
+  const raw = randomBytes(32).toString("hex");
+  const hash = hashToken(raw);
+  const expiresAt = new Date(Date.now() + TOKEN_TTL_MS).toISOString();
+  await query(`INSERT INTO csrf_tokens (user_id, token_hash, expires_at)
+     VALUES ($1, $2, $3)`, [userId, hash, expiresAt]);
+  return raw;
 }
 async function requireCsrf(req, res) {
   const method = (req.method || "").toUpperCase();
@@ -16216,7 +16226,7 @@ async function handleSession(req, res) {
     }
     const user = result.rows[0];
     const { permissions } = await getEffectivePermissionsForUser(user.id, user.role);
-    const csrfToken = await generateToken(user.id);
+    const csrfToken = await ensureToken(user.id);
     res.setHeader("X-CSRF-Token", csrfToken);
     return sendSuccess(res, {
       user: {

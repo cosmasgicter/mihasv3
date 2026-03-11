@@ -22,7 +22,7 @@ import { withArcjetProtection, arcjetProtect } from "../lib/arcjet";
 import { handleError, sendSuccess, sendError, HttpStatus, logErrorAuditEvent } from "../lib/errorHandler";
 import { createHash, randomBytes } from "crypto";
 import { logAuditEvent, logAuthEvent } from "../lib/auditLogger";
-import { generateToken as generateCsrfToken, rotateToken as rotateCsrfToken } from "../lib/csrf";
+import { generateToken as generateCsrfToken, rotateToken as rotateCsrfToken, ensureToken as ensureCsrfToken } from "../lib/csrf";
 import { validateBody, validateQuery } from "../lib/validation/middleware";
 import { loginBodySchema, registerBodySchema, passwordResetRequestBodySchema, passwordResetBodySchema, profileUpdateBodySchema, checkEmailQuerySchema } from "../lib/validation/auth";
 import { validateServerEnv } from "../lib/envValidator";
@@ -991,8 +991,9 @@ async function handleSession(req: VercelRequest, res: VercelResponse) {
     const { permissions } = await getEffectivePermissionsForUser(user.id, user.role);
 
     // Restore CSRF token on session check so page refreshes don't lose it.
-    // The frontend's authRequest captures X-CSRF-Token from response headers.
-    const csrfToken = await generateCsrfToken(user.id);
+    // Uses ensureToken (additive) instead of generateToken (destructive) so
+    // existing valid tokens from login/refresh are not invalidated.
+    const csrfToken = await ensureCsrfToken(user.id);
     res.setHeader('X-CSRF-Token', csrfToken);
 
     return sendSuccess(res, {
