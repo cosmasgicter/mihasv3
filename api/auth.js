@@ -16216,6 +16216,8 @@ async function handleSession(req, res) {
     }
     const user = result.rows[0];
     const { permissions } = await getEffectivePermissionsForUser(user.id, user.role);
+    const csrfToken = await generateToken(user.id);
+    res.setHeader("X-CSRF-Token", csrfToken);
     return sendSuccess(res, {
       user: {
         id: user.id,
