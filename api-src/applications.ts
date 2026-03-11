@@ -1003,45 +1003,17 @@ async function handleById(
 
         let updateResult;
         try {
-          const notificationTitle = 'Application approved';
-          const notificationMessage = `Your application ${app.application_number || applicationId} has been approved.`;
-          const actionUrl = `/student/application/${applicationId}`;
+          // Update status + history in a transaction (atomic, no notification coupling)
+          const updateQ = ApplicationQueries.updateStatus(applicationId, status as ApplicationStatus, userId, notes);
+          const historyQ = StatusHistoryQueries.create(applicationId, status as ApplicationStatus, userId, notes, app.status);
 
-          updateResult = await query<ApplicationRecord>(
-            `WITH updated_application AS (
-               UPDATE applications
-               SET
-                 status = $2,
-                 reviewed_by = $3,
-                 review_started_at = COALESCE(review_started_at, NOW()),
-                 updated_at = NOW()
-               WHERE id = $1
-               RETURNING *
-             ), history_insert AS (
-               INSERT INTO application_status_history (id, application_id, status, old_status, new_status, changed_by, notes, created_at)
-               SELECT gen_random_uuid(), id, $2, $8, $2, $3, $4, NOW()
-               FROM updated_application
-               RETURNING id
-             ), notification_insert AS (
-               INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at)
-               SELECT user_id, $5, $6, 'success', $7, false, NOW()
-               FROM updated_application
-               WHERE $2 = 'approved'
-               RETURNING id
-             )
-             SELECT ua.*
-             FROM updated_application ua`,
-            [applicationId, status, userId, notes || null, notificationTitle, notificationMessage, actionUrl, app.status || null]
-          );
+          const [txUpdateResult] = await transaction<ApplicationRecord>([
+            { text: updateQ.text, values: updateQ.values },
+            { text: historyQ.text, values: historyQ.values },
+          ]);
+          updateResult = txUpdateResult;
         } catch (error) {
           const message = (error as Error).message?.toLowerCase() || '';
-          if (message.includes('notifications')) {
-            return sendError(
-              res,
-              'Status update failed during notification persistence; no changes were applied.',
-              HttpStatus.CONFLICT
-            );
-          }
           if (message.includes('application_status_history') || message.includes('status_history')) {
             return sendError(
               res,
@@ -1054,6 +1026,22 @@ async function handleById(
 
         if (!updateResult || updateResult.rowCount === 0) {
           return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
+        }
+
+        // Non-blocking notification insert (decoupled from status update)
+        if (status === 'approved') {
+          try {
+            const notificationTitle = 'Application approved';
+            const notificationMessage = `Your application ${app.application_number || applicationId} has been approved.`;
+            const actionUrl = `/student/application/${applicationId}`;
+            await query(
+              `INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at)
+               VALUES ($1, $2, $3, 'success', $4, false, NOW())`,
+              [app.user_id, notificationTitle, notificationMessage, actionUrl]
+            );
+          } catch (notifError) {
+            console.error('[applications] Non-blocking notification insert failed:', notifError);
+          }
         }
 
         // Audit trail for application status change (Requirement 21.1)
@@ -1193,27 +1181,35 @@ async function handleById(
         let updateResult;
         try {
           updateResult = await query<ApplicationRecord>(
-            `WITH updated_application AS (
-               UPDATE applications
-               SET
-                 payment_status = $2,
-                 payment_verified_by = $3,
-                 payment_verified_at = CASE WHEN $2 = 'verified' THEN NOW() ELSE NULL END,
-                 updated_at = NOW()
-               WHERE id = $1
-               RETURNING *
-             ), notification_insert AS (
-               INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at)
-               SELECT user_id, $4, $5, $6, $7, false, NOW()
-               FROM updated_application
-               RETURNING id
-             )
-             SELECT ua.*
-             FROM updated_application ua`,
+            `UPDATE applications
+             SET
+               payment_status = $2,
+               payment_verified_by = $3,
+               payment_verified_at = CASE WHEN $2 = 'verified' THEN NOW() ELSE NULL END,
+               updated_at = NOW()
+             WHERE id = $1
+             RETURNING *`,
             [
               applicationId,
               paymentStatus,
               paymentStatus === 'verified' ? userId : null,
+            ]
+          );
+        } catch (error) {
+          throw error;
+        }
+
+        if (!updateResult || updateResult.rowCount === 0) {
+          return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
+        }
+
+        // Non-blocking notification insert (decoupled from payment update)
+        try {
+          await query(
+            `INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at)
+             VALUES ($1, $2, $3, $4, $5, false, NOW())`,
+            [
+              app.user_id,
               notificationTitle,
               notificationMessage,
               paymentStatus === 'verified' ? 'success' : paymentStatus === 'rejected' ? 'warning' : 'info',
@@ -1221,19 +1217,7 @@ async function handleById(
             ]
           );
         } catch (notifError) {
-          const message = (notifError as Error).message?.toLowerCase() || '';
-          if (message.includes('notifications')) {
-            return sendError(
-              res,
-              'Payment status update failed during notification persistence; no changes were applied.',
-              HttpStatus.CONFLICT
-            );
-          }
-          throw notifError;
-        }
-
-        if (!updateResult || updateResult.rowCount === 0) {
-          return sendError(res, 'Application not found', HttpStatus.NOT_FOUND);
+          console.error('[applications] Non-blocking payment notification insert failed:', notifError);
         }
 
         // Create audit log entry (Requirement 21.3 - payment verification/rejection)
