@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/Button'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader, UnifiedSpinner } from '@/components/ui/UnifiedLoader'
 import {
   Download,
   FileText,
@@ -589,7 +589,7 @@ export function ReportsGenerator() {
           <p className="text-sm text-foreground">Create automated reports for analysis and compliance</p>
         </div>
         <div className="p-6 flex justify-center">
-          <LoadingSpinner size="lg" />
+          <UnifiedLoader variant="page" />
         </div>
       </div>
     )
@@ -755,7 +755,7 @@ export function ReportsGenerator() {
           >
             {loading ? (
               <>
-                <LoadingSpinner size="sm" className="mr-2" />
+                <UnifiedSpinner size="sm" className="mr-2" />
                 Generating Report...
               </>
             ) : (
@@ -849,7 +849,7 @@ export function ReportsGenerator() {
                 </div>
                 {documentGenerating && (
                   <div className="flex items-center text-sm text-foreground">
-                    <LoadingSpinner size="sm" className="mr-2" />
+                    <UnifiedSpinner size="sm" className="mr-2" />
                     Preparing document…
                   </div>
                 )}

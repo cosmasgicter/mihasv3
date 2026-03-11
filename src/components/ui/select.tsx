@@ -30,15 +30,15 @@ const SelectTrigger = React.forwardRef<
       // Touch target compliance - 44px minimum height
       "flex min-h-[44px] w-full items-center justify-between",
       // Styling
-      "rounded-lg border bg-background px-3 py-2",
+      "rounded-md border bg-background px-3 py-2",
       // Border color - normal vs error state
       error ? "border-destructive" : "border-input",
       // Typography
       "text-base text-foreground",
       // Placeholder styling
       "data-[placeholder]:text-muted-foreground",
-      // Focus styles
-      "ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+      // Focus styles — keyboard only
+      "ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       // Error focus state
       error && "focus:ring-destructive",
       // Disabled state

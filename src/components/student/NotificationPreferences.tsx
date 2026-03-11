@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { apiClient } from '@/services/client'
 import { Button } from '@/components/ui/Button'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { Bell, Mail, MessageSquare, Check, MessageCircle, ShieldCheck } from 'lucide-react'
 
 interface NotificationPreferencesType {
@@ -98,7 +98,7 @@ export function NotificationPreferences() {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <LoadingSpinner />
+        <UnifiedLoader variant="inline" />
       </div>
     )
   }

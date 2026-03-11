@@ -5,6 +5,9 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { authRequest } from '@/services/authController'
 
+const SESSION_EXPIRY_WINDOW_MS = 15 * 60 * 1000
+const TOKEN_REFRESH_INTERVAL_MS = 10 * 60 * 1000
+
 export function useTokenRefresh() {
   const { user } = useAuth()
   const [tokenExpiry, setTokenExpiry] = useState<Date | null>(null)
@@ -12,35 +15,39 @@ export function useTokenRefresh() {
   const [refreshCount, setRefreshCount] = useState(0)
 
   useEffect(() => {
-    if (!user) return
+    if (!user) {
+      setTokenExpiry(null)
+      setLastRefresh(null)
+      setRefreshCount(0)
+      return
+    }
 
-    let mounted = true
-    let refreshInterval: NodeJS.Timeout | null = null
+    let cancelled = false
+    setTokenExpiry(new Date(Date.now() + SESSION_EXPIRY_WINDOW_MS))
 
-    async function checkAndRefreshToken() {
+    async function refreshTokenSilently() {
       const response = await authRequest('/api/auth?action=refresh', {
         method: 'POST',
       }, {
         attemptRefreshOn401: false,
       })
 
-      if (mounted && response.success) {
+      if (!cancelled && response.success) {
         setLastRefresh(new Date())
-        setTokenExpiry(new Date(Date.now() + 15 * 60 * 1000))
+        setTokenExpiry(new Date(Date.now() + SESSION_EXPIRY_WINDOW_MS))
         setRefreshCount(prev => prev + 1)
       }
     }
 
-    checkAndRefreshToken()
-    refreshInterval = setInterval(checkAndRefreshToken, 10 * 60 * 1000)
+    const refreshInterval = window.setInterval(() => {
+      void refreshTokenSilently()
+    }, TOKEN_REFRESH_INTERVAL_MS)
 
     return () => {
-      mounted = false
-      if (refreshInterval) {
-        clearInterval(refreshInterval)
-      }
+      cancelled = true
+      window.clearInterval(refreshInterval)
     }
-  }, [user])
+  }, [user?.id])
 
   return { tokenExpiry, lastRefresh, refreshCount }
 }

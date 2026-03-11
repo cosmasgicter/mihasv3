@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/Dialog'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import type { UserProfile } from '@/types/database'
 import {
   BarChart3,
@@ -283,7 +283,7 @@ export function UserPermissions({
 
           {isLoading ? (
             <div className="flex justify-center py-10">
-              <LoadingSpinner size="lg" />
+              <UnifiedLoader variant="page" />
             </div>
           ) : (
             categories.map((category) => {

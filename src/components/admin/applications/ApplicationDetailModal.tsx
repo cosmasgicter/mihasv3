@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Button'
 import { formatDate, formatTimestamp } from '@/lib/dateFormat'
 import { XCircle, User, Clock, CheckCircle, FileText, CreditCard, Mail, Phone, Calendar, MapPin, Users, GraduationCap, Building, AlertCircle, Download, Send, History, Eye, MessageSquare } from 'lucide-react'
 import { applicationService } from '@/services/applications'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader, UnifiedSpinner } from '@/components/ui/UnifiedLoader'
 import type { ApplicationInterview } from '@/types/database'
 import { calculateBestFivePoints, sanitizeGradeValue } from '@/utils/grades'
 import { SendNotificationModal } from './SendNotificationModal'
@@ -128,7 +128,7 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
  if (loading) {
  return (
  <div className="flex items-center gap-2 text-sm text-foreground">
- <LoadingSpinner size="sm" />
+ <UnifiedSpinner size="sm" />
  <span>Loading grades...</span>
  </div>
  )
@@ -201,7 +201,7 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
  if (loading) {
  return (
  <div className="flex items-center gap-2 text-sm text-foreground">
- <LoadingSpinner size="sm" />
+ <UnifiedSpinner size="sm" />
  <span>Loading history...</span>
  </div>
  )
@@ -261,7 +261,7 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
  if (loading) {
  return (
  <div className="flex items-center gap-2 text-sm text-foreground">
- <LoadingSpinner size="sm" />
+ <UnifiedSpinner size="sm" />
  <span>Loading documents...</span>
  </div>
  )
@@ -810,6 +810,7 @@ export function ApplicationDetailModal({
  size="sm"
  onClick={onClose}
  className="hover:bg-white/90"
+ aria-label="Close application details"
  >
  <XCircle className="h-5 w-5" />
  </Button>
@@ -825,13 +826,15 @@ export function ApplicationDetailModal({
  <button
  key={tab.id}
  onClick={() => setActiveTab(tab.id)}
+ aria-label={tab.label}
+ aria-selected={activeTab === tab.id}
  className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
  activeTab === tab.id
  ? 'border-primary text-primary'
  : 'border-transparent text-foreground hover:text-foreground hover:border-input'
  }`}
  >
- <Icon className="h-4 w-4 flex-shrink-0" />
+ <Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
  <span className="hidden sm:inline">{tab.label}</span>
  </button>
  )
@@ -844,8 +847,7 @@ export function ApplicationDetailModal({
  {loading ? (
  <div className="flex items-center justify-center py-12">
  <div className="text-center">
- <LoadingSpinner size="lg" className="mx-auto mb-4" />
- <p className="text-foreground">Loading application details...</p>
+ <UnifiedLoader variant="page" label="Loading application details..." />
  </div>
  </div>
  ) : (

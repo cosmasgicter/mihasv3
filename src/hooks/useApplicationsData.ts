@@ -111,3 +111,50 @@ export function useApplicationsWithCounts() {
     ...QUERY_CACHE_CONFIG.critical,
   })
 }
+
+/**
+ * Granular selector: returns only the total application count.
+ * Shares the same cache as useApplicationsWithCounts — only re-renders when count changes.
+ * Requirement 11.3: React Query granular selectors to prevent unnecessary re-renders.
+ */
+export function useApplicationCount() {
+  return useQuery({
+    queryKey: ['applications', 'list', { sortBy: 'date', sortOrder: 'desc' }],
+    queryFn: async () => {
+      const result = await applicationService.list({
+        sortBy: 'date',
+        sortOrder: 'desc',
+      })
+      return result?.applications ?? []
+    },
+    select: (data) => data.length,
+    ...QUERY_CACHE_CONFIG.critical,
+  })
+}
+
+/**
+ * Granular selector: returns only application statuses as a summary map.
+ * Shares the same cache — only re-renders when status distribution changes.
+ * Requirement 11.3: React Query granular selectors to prevent unnecessary re-renders.
+ */
+export function useApplicationStatusSummary() {
+  return useQuery({
+    queryKey: ['applications', 'list', { sortBy: 'date', sortOrder: 'desc' }],
+    queryFn: async () => {
+      const result = await applicationService.list({
+        sortBy: 'date',
+        sortOrder: 'desc',
+      })
+      return result?.applications ?? []
+    },
+    select: (data) => {
+      const summary: Record<string, number> = {}
+      for (const app of data) {
+        const status = (app as any).status ?? 'unknown'
+        summary[status] = (summary[status] ?? 0) + 1
+      }
+      return summary
+    },
+    ...QUERY_CACHE_CONFIG.critical,
+  })
+}

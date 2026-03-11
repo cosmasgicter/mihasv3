@@ -3,10 +3,11 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
 import { Button } from '@/components/ui/Button'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { Container } from '@/components/ui/Container'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
+import { PageShell } from '@/components/ui/PageShell'
 import { notificationService } from '@/services/notifications'
 import { ArrowLeft, Bell, ExternalLink, MessageCircle, MessageSquare, RefreshCw, Trash2 } from 'lucide-react'
 import PushNotificationSettings from '@/components/notifications/PushNotificationSettings'
@@ -348,7 +349,10 @@ export default function NotificationSettings() {
   }
 
   return (
-    <Container className="safe-area-bottom py-4 sm:py-6 lg:py-8">
+    <PageShell
+      title="Notification preferences and portal inbox"
+      subtitle="In-app notifications stay available inside the portal. SMS and WhatsApp delivery use the phone number stored on your profile or notification preferences."
+    >
       <div className="space-y-6 sm:space-y-8">
         <div className="mb-6 sm:mb-8">
           <Link
@@ -358,31 +362,6 @@ export default function NotificationSettings() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to profile settings
           </Link>
-
-          <PageHeader
-            variant="gradient"
-            eyebrow="Student communications"
-            icon={<Bell className="h-6 w-6" />}
-            title="Notification preferences and portal inbox"
-            description="In-app notifications stay available inside the portal. SMS and WhatsApp delivery use the phone number stored on your profile or notification preferences."
-            stats={[
-              {
-                label: 'Unread',
-                value: unreadCount,
-                icon: <Bell className="h-4 w-4" />,
-              },
-              {
-                label: 'Delivery phone',
-                value: contactPhone || 'Add phone number',
-                icon: <MessageSquare className="h-4 w-4" />,
-              },
-              {
-                label: 'Inbox refresh',
-                value: isSSEConnected ? 'Live push' : isPolling ? 'Auto-refresh' : 'Manual',
-                icon: <RefreshCw className="h-4 w-4" />,
-              },
-            ]}
-          />
         </div>
 
         {error && (
@@ -409,7 +388,7 @@ export default function NotificationSettings() {
 
         {loading ? (
           <div className="flex justify-center items-center py-10 sm:py-20">
-            <LoadingSpinner size="lg" />
+            <UnifiedLoader variant="page" />
           </div>
         ) : (
           <div className="space-y-6">
@@ -448,7 +427,7 @@ export default function NotificationSettings() {
               </div>
             </SectionCard>
 
-            <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <section className="grid grid-cols-1 gap-6 md:grid-cols-2">
               {(['sms', 'whatsapp'] as ChannelKey[]).map(channel => renderChannelCard(channel))}
             </section>
 
@@ -503,7 +482,7 @@ export default function NotificationSettings() {
 
                 {notificationsLoading ? (
                   <div className="flex justify-center py-8">
-                    <LoadingSpinner size="md" />
+                    <UnifiedLoader variant="inline" />
                   </div>
                 ) : notifications.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-border px-4 py-8 text-center">
@@ -574,6 +553,6 @@ export default function NotificationSettings() {
           </div>
         )}
       </div>
-    </Container>
+    </PageShell>
   )
 }

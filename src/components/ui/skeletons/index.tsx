@@ -433,3 +433,28 @@ export function SkeletonWrapper({
 export {
   SkeletonBase as Skeleton
 }
+
+// ─── Route-Level Skeleton Fallbacks ──────────────────────────────────
+// Thin wrappers composing base primitives into page-layout-matching skeletons.
+// Used as Suspense fallbacks for lazy-loaded routes.
+
+export { DashboardSkeleton } from './DashboardSkeleton'
+export { WizardSkeleton } from './WizardSkeleton'
+export { AdminTableSkeleton } from './AdminTableSkeleton'
+export { AuthSkeleton } from './AuthSkeleton'
+export { DetailSkeleton } from './DetailSkeleton'
+
+// Registry mapping route patterns to their skeleton fallback components
+import { DashboardSkeleton } from './DashboardSkeleton'
+import { WizardSkeleton } from './WizardSkeleton'
+import { AdminTableSkeleton } from './AdminTableSkeleton'
+import { AuthSkeleton } from './AuthSkeleton'
+import { DetailSkeleton } from './DetailSkeleton'
+
+export const skeletonRegistry: Record<string, React.ComponentType> = {
+  dashboard: DashboardSkeleton,
+  wizard: WizardSkeleton,
+  'admin-table': AdminTableSkeleton,
+  auth: AuthSkeleton,
+  detail: DetailSkeleton,
+}

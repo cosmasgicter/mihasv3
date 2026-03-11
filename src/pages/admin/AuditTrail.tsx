@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { format, formatDistanceToNow } from 'date-fns'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +45,7 @@ import {
   Shield,
   User,
 } from 'lucide-react'
+import { PageShell } from '@/components/ui/PageShell'
 
 const DEFAULT_PAGE_SIZE = 20
 
@@ -242,7 +243,7 @@ function AuditEntryCard({ entry }: { entry: AuditLogEntry }) {
 
       {expanded ? (
         <div className="border-t border-border bg-muted/15 p-5">
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             <div className="rounded-xl border border-border bg-card p-4">
               <h4 className="text-sm font-semibold text-foreground">Request context</h4>
               <dl className="mt-3 space-y-3 text-sm">
@@ -416,428 +417,413 @@ export default function AuditTrailPage() {
   }, [response?.page, response?.totalPages])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl">
-          <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 px-6 py-7 text-white">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex items-start gap-4">
-                <div className="rounded-2xl bg-white/10 p-3">
-                  <Shield className="h-7 w-7" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold sm:text-3xl">Audit Trail</h1>
-                  <p className="mt-1 max-w-2xl text-sm text-white/85 sm:text-base">
-                    Review real operational history across authentication, application management, settings, and staff actions.
-                  </p>
-                </div>
+    <PageShell
+      title="Audit Trail"
+      subtitle="Review real operational history across authentication, application management, settings, and staff actions."
+      maxWidth="7xl"
+      actions={
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/admin">
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Link>
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowFilters((current) => !current)}
+          >
+            <Filter className="h-4 w-4" />
+            {showFilters ? 'Hide filters' : 'Show filters'}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void loadAuditEntries()}
+            loading={loading}
+          >
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!response?.entries.length || Boolean(exportingFormat)}
+                loading={Boolean(exportingFormat)}
+              >
+                <Download className="h-4 w-4" />
+                {exportingFormat ? `Exporting ${exportingFormat.toUpperCase()}` : 'Export'}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => void handleExport('csv')}>
+                Export CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => void handleExport('json')}>
+                Export JSON
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => void handleExport('pdf')}>
+                Export PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-2xl border border-border bg-gradient-to-br from-muted to-muted/70 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total events</p>
+                <p className="mt-2 text-3xl font-bold text-foreground">{response?.totalCount || 0}</p>
               </div>
-
-              <div className="flex flex-wrap gap-2">
-                <Button asChild variant="outline" className="border-white/25 bg-white/10 text-white hover:bg-white/20">
-                  <Link to="/admin">
-                    <ArrowLeft className="h-4 w-4" />
-                    Back
-                  </Link>
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="border-white/25 bg-white/10 text-white hover:bg-white/20"
-                  onClick={() => setShowFilters((current) => !current)}
-                >
-                  <Filter className="h-4 w-4" />
-                  {showFilters ? 'Hide filters' : 'Show filters'}
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="border-white/25 bg-white/10 text-white hover:bg-white/20"
-                  onClick={() => void loadAuditEntries()}
-                  loading={loading}
-                >
-                  <RefreshCw className="h-4 w-4" />
-                  Refresh
-                </Button>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="border-white/25 bg-white/10 text-white hover:bg-white/20"
-                      disabled={!response?.entries.length || Boolean(exportingFormat)}
-                      loading={Boolean(exportingFormat)}
-                    >
-                      <Download className="h-4 w-4" />
-                      {exportingFormat ? `Exporting ${exportingFormat.toUpperCase()}` : 'Export'}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onSelect={() => void handleExport('csv')}>
-                      Export CSV
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => void handleExport('json')}>
-                      Export JSON
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => void handleExport('pdf')}>
-                      Export PDF
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+              <div className="rounded-xl bg-foreground p-3 text-background">
+                <Activity className="h-5 w-5" />
               </div>
             </div>
           </div>
 
-          <div className="space-y-6 p-6">
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <div className="rounded-2xl border border-border bg-gradient-to-br from-slate-50 to-slate-100 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total events</p>
-                    <p className="mt-2 text-3xl font-bold text-foreground">{response?.totalCount || 0}</p>
-                  </div>
-                  <div className="rounded-xl bg-slate-900 p-3 text-white">
-                    <Activity className="h-5 w-5" />
-                  </div>
-                </div>
+          <div className="rounded-2xl border border-border bg-gradient-to-br from-primary/5 to-primary/10 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Unique actors</p>
+                <p className="mt-2 text-3xl font-bold text-foreground">{summary?.uniqueActors || 0}</p>
               </div>
-
-              <div className="rounded-2xl border border-border bg-gradient-to-br from-blue-50 to-blue-100 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Unique actors</p>
-                    <p className="mt-2 text-3xl font-bold text-foreground">{summary?.uniqueActors || 0}</p>
-                  </div>
-                  <div className="rounded-xl bg-blue-600 p-3 text-white">
-                    <User className="h-5 w-5" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-border bg-gradient-to-br from-emerald-50 to-emerald-100 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Top category</p>
-                    <p className="mt-2 text-xl font-bold text-foreground">{topCategory?.[0] || 'None yet'}</p>
-                    <p className="text-sm text-muted-foreground">{topCategory ? `${topCategory[1]} events` : 'No activity loaded'}</p>
-                  </div>
-                  <div className="rounded-xl bg-emerald-600 p-3 text-white">
-                    <Settings className="h-5 w-5" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-border bg-gradient-to-br from-amber-50 to-amber-100 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Most active entity</p>
-                    <p className="mt-2 text-xl font-bold text-foreground">{topEntity ? formatEntityLabel(topEntity.label) : 'None yet'}</p>
-                    <p className="text-sm text-muted-foreground">{topEntity ? `${topEntity.count} events` : 'No entity activity loaded'}</p>
-                  </div>
-                  <div className="rounded-xl bg-amber-600 p-3 text-white">
-                    <Database className="h-5 w-5" />
-                  </div>
-                </div>
+              <div className="rounded-xl bg-primary p-3 text-primary-foreground">
+                <User className="h-5 w-5" />
               </div>
             </div>
+          </div>
 
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(340px,1fr)]">
-              <div className="rounded-2xl border border-border bg-card p-5">
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <div>
-                    <h2 className="text-lg font-semibold text-foreground">Category breakdown</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Current counts reflect the active filter set, not a hard-coded summary.
-                    </p>
-                  </div>
-                  <div className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
-                    {activeFilterCount} filters active
-                  </div>
-                </div>
-
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                  {CATEGORY_OPTIONS.map((category) => (
-                    <div key={category} className="rounded-xl border border-border bg-muted/20 p-4">
-                      <div className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${formatCategoryStyles(category)}`}>
-                        {category}
-                      </div>
-                      <p className="mt-3 text-2xl font-bold text-foreground">
-                        {summary?.categoryBreakdown[category] || 0}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+          <div className="rounded-2xl border border-border bg-gradient-to-br from-success/5 to-success/10 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Top category</p>
+                <p className="mt-2 text-xl font-bold text-foreground">{topCategory?.[0] || 'None yet'}</p>
+                <p className="text-sm text-muted-foreground">{topCategory ? `${topCategory[1]} events` : 'No activity loaded'}</p>
               </div>
-
-              <div className="rounded-2xl border border-border bg-card p-5">
-                <h2 className="text-lg font-semibold text-foreground">Most frequent actions</h2>
-                <p className="text-sm text-muted-foreground">
-                  The timeline below is backed by live action frequencies from the audit API.
-                </p>
-
-                <div className="mt-4 space-y-3">
-                  {(summary?.actionBreakdown || []).length > 0 ? (
-                    summary?.actionBreakdown.map((item) => (
-                      <div key={item.label} className="flex items-center justify-between rounded-xl border border-border bg-muted/20 px-4 py-3">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-foreground">{item.label}</p>
-                          <p className="text-xs text-muted-foreground">Ranked from current filter set</p>
-                        </div>
-                        <div className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
-                          {item.count}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-8 text-center">
-                      <BarChart3 className="mx-auto h-8 w-8 text-muted-foreground" />
-                      <p className="mt-3 text-sm text-muted-foreground">No action summary is available for the current view yet.</p>
-                    </div>
-                  )}
-                </div>
+              <div className="rounded-xl bg-success p-3 text-success-foreground">
+                <Settings className="h-5 w-5" />
               </div>
             </div>
+          </div>
 
-            {showFilters ? (
-              <div className="rounded-2xl border border-border bg-card p-5">
-                <div className="mb-4 flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-primary" />
-                  <h2 className="text-lg font-semibold text-foreground">Filter activity</h2>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    <Input
-                      label="Action search"
-                      value={formFilters.action}
-                      onChange={(event) => setFormFilters((current) => ({ ...current, action: event.target.value }))}
-                      placeholder="login, payment, settings, notification"
-                      icon={<Search className="h-4 w-4" />}
-                    />
-
-                    <Input
-                      label="Actor email"
-                      value={formFilters.actorEmail}
-                      onChange={(event) => setFormFilters((current) => ({ ...current, actorEmail: event.target.value }))}
-                      placeholder="staff@mihas.edu.zm"
-                      icon={<User className="h-4 w-4" />}
-                    />
-
-                    <div className="w-full">
-                      <label className="mb-1.5 block text-sm font-medium text-foreground">Entity</label>
-                      <select
-                        value={formFilters.targetTable}
-                        onChange={(event) => setFormFilters((current) => ({ ...current, targetTable: event.target.value }))}
-                        className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                      >
-                        {ENTITY_OPTIONS.map((option) => (
-                          <option key={option.value || 'all'} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="w-full">
-                      <label className="mb-1.5 block text-sm font-medium text-foreground">Category</label>
-                      <select
-                        value={formFilters.category}
-                        onChange={(event) => setFormFilters((current) => ({ ...current, category: event.target.value }))}
-                        className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                      >
-                        <option value="">All categories</option>
-                        {CATEGORY_OPTIONS.map((category) => (
-                          <option key={category} value={category}>
-                            {category}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <Input
-                      label="From"
-                      type="datetime-local"
-                      value={formFilters.from}
-                      onChange={(event) => setFormFilters((current) => ({ ...current, from: event.target.value }))}
-                    />
-
-                    <Input
-                      label="To"
-                      type="datetime-local"
-                      value={formFilters.to}
-                      onChange={(event) => setFormFilters((current) => ({ ...current, to: event.target.value }))}
-                    />
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-3">
-                    <Button type="submit">
-                      <Search className="h-4 w-4" />
-                      Apply filters
-                    </Button>
-                    <Button type="button" variant="outline" onClick={handleReset}>
-                      Reset
-                    </Button>
-                    <div className="ml-auto flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>Page size</span>
-                      <select
-                        value={pageSize}
-                        onChange={(event) => {
-                          setPageSize(Number.parseInt(event.target.value, 10) || DEFAULT_PAGE_SIZE)
-                          setPage(1)
-                        }}
-                        className="h-10 rounded-lg border border-input bg-background px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                      >
-                        {PAGE_SIZE_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </form>
+          <div className="rounded-2xl border border-border bg-gradient-to-br from-warning/5 to-warning/10 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Most active entity</p>
+                <p className="mt-2 text-xl font-bold text-foreground">{topEntity ? formatEntityLabel(topEntity.label) : 'None yet'}</p>
+                <p className="text-sm text-muted-foreground">{topEntity ? `${topEntity.count} events` : 'No entity activity loaded'}</p>
               </div>
-            ) : null}
-
-            {error ? (
-              <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex items-start gap-3">
-                    <AlertTriangle className="mt-0.5 h-5 w-5 text-destructive" />
-                    <div>
-                      <h3 className="font-semibold text-foreground">Audit activity could not be loaded</h3>
-                      <p className="mt-1 text-sm text-destructive">{error}</p>
-                    </div>
-                  </div>
-                  <Button variant="outline" onClick={() => void loadAuditEntries()}>
-                    <RefreshCw className="h-4 w-4" />
-                    Retry
-                  </Button>
-                </div>
-              </div>
-            ) : null}
-
-            {loading ? (
-              <div className="flex justify-center py-20">
-                <div className="text-center">
-                  <LoadingSpinner size="lg" />
-                  <p className="mt-4 text-sm text-muted-foreground">Loading audit activity...</p>
-                </div>
-              </div>
-            ) : response?.entries.length ? (
-              <>
-                <div className="space-y-4">
-                  {response.entries.map((entry) => (
-                    <AuditEntryCard key={entry.id} entry={entry} />
-                  ))}
-                </div>
-
-                <div className="rounded-2xl border border-border bg-card p-5">
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="text-sm text-muted-foreground">
-                      Showing page <span className="font-semibold text-foreground">{response.page}</span> of{' '}
-                      <span className="font-semibold text-foreground">{response.totalPages}</span> with{' '}
-                      <span className="font-semibold text-foreground">{response.totalCount}</span> matching events
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={!canGoBack}
-                        onClick={() => canGoBack && setPage((current) => current - 1)}
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                        Previous
-                      </Button>
-
-                      <div className="flex items-center gap-1">
-                        {visiblePages.map((pageNumber) => (
-                          <button
-                            key={pageNumber}
-                            type="button"
-                            onClick={() => setPage(pageNumber)}
-                            className={`h-10 min-w-10 rounded-lg px-3 text-sm font-semibold transition-colors ${
-                              pageNumber === response.page
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-muted text-foreground hover:bg-muted/80'
-                            }`}
-                          >
-                            {pageNumber}
-                          </button>
-                        ))}
-                      </div>
-
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={!canGoForward}
-                        onClick={() => canGoForward && setPage((current) => current + 1)}
-                      >
-                        Next
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="rounded-2xl border border-dashed border-border bg-muted/20 px-6 py-16 text-center">
-                <Shield className="mx-auto h-10 w-10 text-muted-foreground" />
-                <h3 className="mt-4 text-lg font-semibold text-foreground">No audit activity found</h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {activeFilterCount > 0
-                    ? 'No events match the current filter set. Clear or broaden the filters to see more activity.'
-                    : 'Audit records will appear here as staff and system actions are captured.'}
-                </p>
-                <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-                  {activeFilterCount > 0 ? (
-                    <Button variant="outline" onClick={handleReset}>
-                      Clear filters
-                    </Button>
-                  ) : null}
-                  <Button onClick={() => void loadAuditEntries()}>
-                    <RefreshCw className="h-4 w-4" />
-                    Refresh
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-2xl border border-border bg-card p-5">
-                <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                  <Shield className="h-4 w-4 text-primary" />
-                  Authentication coverage
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Login, logout, session, password, and registration activity now resolve into the audit category filter and summary cards.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-border bg-card p-5">
-                <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                  <BellRing className="h-4 w-4 text-primary" />
-                  Communication visibility
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Notification and email actions now surface inside the same category model used by the admin activity timeline.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-border bg-card p-5">
-                <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                  <BarChart3 className="h-4 w-4 text-primary" />
-                  Export-ready view
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Export the visible audit result set as CSV, JSON, or PDF directly from this page.
-                </p>
+              <div className="rounded-xl bg-warning p-3 text-warning-foreground">
+                <Database className="h-5 w-5" />
               </div>
             </div>
           </div>
         </div>
+
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(340px,1fr)]">
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">Category breakdown</h2>
+                <p className="text-sm text-muted-foreground">
+                  Current counts reflect the active filter set, not a hard-coded summary.
+                </p>
+              </div>
+              <div className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
+                {activeFilterCount} filters active
+              </div>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {CATEGORY_OPTIONS.map((category) => (
+                <div key={category} className="rounded-xl border border-border bg-muted/20 p-4">
+                  <div className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${formatCategoryStyles(category)}`}>
+                    {category}
+                  </div>
+                  <p className="mt-3 text-2xl font-bold text-foreground">
+                    {summary?.categoryBreakdown[category] || 0}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <h2 className="text-lg font-semibold text-foreground">Most frequent actions</h2>
+            <p className="text-sm text-muted-foreground">
+              The timeline below is backed by live action frequencies from the audit API.
+            </p>
+
+            <div className="mt-4 space-y-3">
+              {(summary?.actionBreakdown || []).length > 0 ? (
+                summary?.actionBreakdown.map((item) => (
+                  <div key={item.label} className="flex items-center justify-between rounded-xl border border-border bg-muted/20 px-4 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">{item.label}</p>
+                      <p className="text-xs text-muted-foreground">Ranked from current filter set</p>
+                    </div>
+                    <div className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+                      {item.count}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-8 text-center">
+                  <BarChart3 className="mx-auto h-8 w-8 text-muted-foreground" />
+                  <p className="mt-3 text-sm text-muted-foreground">No action summary is available for the current view yet.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {showFilters ? (
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <Filter className="h-4 w-4 text-primary" />
+              <h2 className="text-lg font-semibold text-foreground">Filter activity</h2>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <Input
+                  label="Action search"
+                  value={formFilters.action}
+                  onChange={(event) => setFormFilters((current) => ({ ...current, action: event.target.value }))}
+                  placeholder="login, payment, settings, notification"
+                  icon={<Search className="h-4 w-4" />}
+                />
+
+                <Input
+                  label="Actor email"
+                  value={formFilters.actorEmail}
+                  onChange={(event) => setFormFilters((current) => ({ ...current, actorEmail: event.target.value }))}
+                  placeholder="staff@mihas.edu.zm"
+                  icon={<User className="h-4 w-4" />}
+                />
+
+                <div className="w-full">
+                  <label className="mb-1.5 block text-sm font-medium text-foreground">Entity</label>
+                  <select
+                    value={formFilters.targetTable}
+                    onChange={(event) => setFormFilters((current) => ({ ...current, targetTable: event.target.value }))}
+                    className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    {ENTITY_OPTIONS.map((option) => (
+                      <option key={option.value || 'all'} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="w-full">
+                  <label className="mb-1.5 block text-sm font-medium text-foreground">Category</label>
+                  <select
+                    value={formFilters.category}
+                    onChange={(event) => setFormFilters((current) => ({ ...current, category: event.target.value }))}
+                    className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="">All categories</option>
+                    {CATEGORY_OPTIONS.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <Input
+                  label="From"
+                  type="datetime-local"
+                  value={formFilters.from}
+                  onChange={(event) => setFormFilters((current) => ({ ...current, from: event.target.value }))}
+                />
+
+                <Input
+                  label="To"
+                  type="datetime-local"
+                  value={formFilters.to}
+                  onChange={(event) => setFormFilters((current) => ({ ...current, to: event.target.value }))}
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <Button type="submit">
+                  <Search className="h-4 w-4" />
+                  Apply filters
+                </Button>
+                <Button type="button" variant="outline" onClick={handleReset}>
+                  Reset
+                </Button>
+                <div className="ml-auto flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>Page size</span>
+                  <select
+                    value={pageSize}
+                    onChange={(event) => {
+                      setPageSize(Number.parseInt(event.target.value, 10) || DEFAULT_PAGE_SIZE)
+                      setPage(1)
+                    }}
+                    className="h-10 rounded-lg border border-input bg-background px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    {PAGE_SIZE_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </form>
+          </div>
+        ) : null}
+
+        {error ? (
+          <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="mt-0.5 h-5 w-5 text-destructive" />
+                <div>
+                  <h3 className="font-semibold text-foreground">Audit activity could not be loaded</h3>
+                  <p className="mt-1 text-sm text-destructive">{error}</p>
+                </div>
+              </div>
+              <Button variant="outline" onClick={() => void loadAuditEntries()}>
+                <RefreshCw className="h-4 w-4" />
+                Retry
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <div className="text-center">
+              <UnifiedLoader variant="page" />
+              <p className="mt-4 text-sm text-muted-foreground">Loading audit activity...</p>
+            </div>
+          </div>
+        ) : response?.entries.length ? (
+          <>
+            <div className="space-y-4">
+              {response.entries.map((entry) => (
+                <AuditEntryCard key={entry.id} entry={entry} />
+              ))}
+            </div>
+
+            <div className="rounded-2xl border border-border bg-card p-5">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Showing page <span className="font-semibold text-foreground">{response.page}</span> of{' '}
+                  <span className="font-semibold text-foreground">{response.totalPages}</span> with{' '}
+                  <span className="font-semibold text-foreground">{response.totalCount}</span> matching events
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={!canGoBack}
+                    onClick={() => canGoBack && setPage((current) => current - 1)}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+
+                  <div className="flex items-center gap-1">
+                    {visiblePages.map((pageNumber) => (
+                      <button
+                        key={pageNumber}
+                        type="button"
+                        onClick={() => setPage(pageNumber)}
+                        className={`h-10 min-w-10 rounded-lg px-3 text-sm font-semibold transition-colors ${
+                          pageNumber === response.page
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted text-foreground hover:bg-muted/80'
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    ))}
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={!canGoForward}
+                    onClick={() => canGoForward && setPage((current) => current + 1)}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-border bg-muted/20 px-6 py-16 text-center">
+            <Shield className="mx-auto h-10 w-10 text-muted-foreground" />
+            <h3 className="mt-4 text-lg font-semibold text-foreground">No audit activity found</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {activeFilterCount > 0
+                ? 'No events match the current filter set. Clear or broaden the filters to see more activity.'
+                : 'Audit records will appear here as staff and system actions are captured.'}
+            </p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+              {activeFilterCount > 0 ? (
+                <Button variant="outline" onClick={handleReset}>
+                  Clear filters
+                </Button>
+              ) : null}
+              <Button onClick={() => void loadAuditEntries()}>
+                <RefreshCw className="h-4 w-4" />
+                Refresh
+              </Button>
+            </div>
+          </div>
+        )}
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Shield className="h-4 w-4 text-primary" />
+              Authentication coverage
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Login, logout, session, password, and registration activity now resolve into the audit category filter and summary cards.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <BellRing className="h-4 w-4 text-primary" />
+              Communication visibility
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Notification and email actions now surface inside the same category model used by the admin activity timeline.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <BarChart3 className="h-4 w-4 text-primary" />
+              Export-ready view
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Export the visible audit result set as CSV, JSON, or PDF directly from this page.
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
+    </PageShell>
   )
 }

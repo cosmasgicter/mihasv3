@@ -9,7 +9,7 @@ import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import { Badge } from '@/components/ui'
 import { Alert } from '@/components/ui/Alert'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { Mail, MessageSquare, Phone, Clock, CheckCircle, XCircle, AlertCircle, User } from 'lucide-react'
 import { apiClient } from '@/services/client'
 import { formatRelative } from '@/lib/dateFormat'
@@ -122,7 +122,7 @@ export function CommunicationHistory({ applicantId, className }: CommunicationHi
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
-            <LoadingSpinner size="md" />
+            <UnifiedLoader variant="inline" />
           </div>
         </CardContent>
       </Card>

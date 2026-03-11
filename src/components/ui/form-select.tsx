@@ -1,28 +1,18 @@
 /**
- * FormSelect Component - RHF Controller wrapper for shadcn/ui Select
- * 
- * Provides seamless React Hook Form integration with Radix-based Select.
- * Uses Controller pattern for proper form binding.
- * 
- * Requirements: 5.2, 5.6, 5.8, 10.1 - RHF Controller, touch targets, disabled/error states
+ * FormSelect Component - RHF Controller wrapper around CanonicalSelect
+ *
+ * Provides seamless React Hook Form integration with the canonical
+ * Radix-based Select. Uses Controller pattern for proper form binding.
+ *
+ * Requirements: 2.3, 5.2, 9.1 - Consolidated select, RHF Controller, touch targets
  */
 
 import * as React from 'react'
 import { Controller, Control, FieldValues, Path } from 'react-hook-form'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { cn } from '@/lib/utils'
+import { CanonicalSelect } from '@/components/ui/CanonicalSelect'
+import type { CanonicalSelectOption } from '@/components/ui/CanonicalSelect'
 
-export interface SelectOption {
-  value: string
-  label: string
-  disabled?: boolean
-}
+export type SelectOption = CanonicalSelectOption
 
 export interface FormSelectProps<T extends FieldValues> {
   /** Field name for RHF binding */
@@ -53,10 +43,10 @@ export interface FormSelectProps<T extends FieldValues> {
 
 /**
  * FormSelect - A React Hook Form compatible Select component
- * 
- * Uses RHF Controller pattern for proper form state management.
+ *
+ * Wraps CanonicalSelect with RHF Controller for proper form state management.
  * Maintains 44px minimum touch target for mobile accessibility.
- * 
+ *
  * @example
  * ```tsx
  * <FormSelect
@@ -87,85 +77,29 @@ export function FormSelect<T extends FieldValues>({
   required = false,
   onValueChange,
 }: FormSelectProps<T>) {
-  const selectId = React.useId()
-  const errorId = `${selectId}-error`
-  const helperId = `${selectId}-helper`
-
   return (
-    <div className={cn('space-y-1.5', className)}>
-      {label && (
-        <label
-          htmlFor={selectId}
-          className="block text-sm font-medium text-foreground"
-        >
-          {label}
-          {required && <span className="text-destructive ml-1">*</span>}
-        </label>
+    <Controller
+      name={name}
+      control={control}
+      render={({ field }) => (
+        <CanonicalSelect
+          value={field.value || ''}
+          onValueChange={(value) => {
+            field.onChange(value)
+            onValueChange?.(value)
+          }}
+          options={options}
+          label={label}
+          error={error}
+          placeholder={placeholder}
+          disabled={disabled}
+          helperText={helperText}
+          className={className}
+          triggerClassName={triggerClassName}
+          required={required}
+        />
       )}
-
-      <Controller
-        name={name}
-        control={control}
-        render={({ field }) => (
-          <Select
-            value={field.value || ''}
-            onValueChange={(value) => {
-              field.onChange(value)
-              onValueChange?.(value)
-            }}
-            disabled={disabled}
-          >
-            <SelectTrigger
-              id={selectId}
-              ref={field.ref}
-              error={!!error}
-              className={cn(
-                // Ensure 44px minimum touch target
-                'min-h-[44px]',
-                triggerClassName
-              )}
-              aria-invalid={!!error}
-              aria-required={required || undefined}
-              aria-describedby={
-                error ? errorId : helperText ? helperId : undefined
-              }
-            >
-              <SelectValue placeholder={placeholder} />
-            </SelectTrigger>
-            <SelectContent>
-              {options.map((option) => (
-                <SelectItem
-                  key={option.value}
-                  value={option.value}
-                  disabled={option.disabled}
-                >
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      />
-
-      {error && (
-        <p
-          id={errorId}
-          className="text-sm text-destructive"
-          role="alert"
-        >
-          {error}
-        </p>
-      )}
-
-      {helperText && !error && (
-        <p
-          id={helperId}
-          className="text-sm text-muted-foreground"
-        >
-          {helperText}
-        </p>
-      )}
-    </div>
+    />
   )
 }
 

@@ -1,48 +1,67 @@
-import { Component, ReactNode } from 'react';
-import { AlertTriangle } from 'lucide-react';
-import { Button } from './Button';
-import { hardReload } from '../../lib/hardReload';
+import { Component, type ReactNode } from 'react'
 
-interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
+import { cn } from '@/lib/utils'
+
+import { ErrorDisplay } from './ErrorDisplay'
+
+// ---------------------------------------------------------------------------
+// Canonical ErrorBoundary — design-doc interface (Requirements 2.2, 8.5)
+// ---------------------------------------------------------------------------
+
+export interface ErrorBoundaryProps {
+  children: ReactNode
+  fallback?: ReactNode
+  onReset?: () => void
+  level?: 'page' | 'section'
 }
 
-interface State {
-  hasError: boolean;
-  error?: Error;
+interface ErrorBoundaryState {
+  hasError: boolean
+  error?: Error
 }
 
-export class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false };
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props)
+    this.state = { hasError: false }
   }
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error }
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
-    console.error('ErrorBoundary caught:', error, errorInfo);
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('ErrorBoundary caught:', error, errorInfo)
+  }
+
+  private handleReset = () => {
+    this.props.onReset?.()
+    this.setState({ hasError: false, error: undefined })
   }
 
   render() {
     if (this.state.hasError) {
-      if (this.props.fallback) return this.props.fallback;
+      if (this.props.fallback) return this.props.fallback
+
+      const level = this.props.level ?? 'section'
 
       return (
-        <div className="flex flex-col items-center justify-center min-h-[400px] p-6">
-          <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-          <h2 className="text-xl font-semibold text-foreground mb-2">Something went wrong</h2>
-          <p className="text-sm text-foreground mb-6 text-center max-w-md">
-            {this.state.error?.message || 'An unexpected error occurred'}
-          </p>
-          <Button onClick={() => { void hardReload() }}>Reload Page</Button>
+        <div
+          className={cn(
+            level === 'page' && 'flex min-h-screen items-center justify-center p-6',
+            level === 'section' && 'p-4',
+          )}
+        >
+          <ErrorDisplay
+            title="Something went wrong"
+            message={this.state.error?.message || 'An unexpected error occurred'}
+            onRetry={this.handleReset}
+            variant="section"
+          />
         </div>
-      );
+      )
     }
 
-    return this.props.children;
+    return this.props.children
   }
 }

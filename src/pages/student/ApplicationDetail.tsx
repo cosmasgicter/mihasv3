@@ -24,6 +24,7 @@ import {
   XCircle,
   AlertCircle
 } from 'lucide-react'
+import { PageShell } from '@/components/ui/PageShell'
 
 type ApplicationRecord = ApplicationDetailResponse['application']
 
@@ -91,9 +92,7 @@ export default function ApplicationDetail() {
 
   if (loading) {
     return (
-      <div className="page-container bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <main className="w-full">
-          <div className="content-wrapper py-4 sm:py-8">
+      <PageShell title="Application Details" subtitle="Loading...">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-skeleton rounded w-1/3"></div>
             <div className="bg-card rounded-2xl shadow-lg p-4 sm:p-8 space-y-4">
@@ -102,28 +101,22 @@ export default function ApplicationDetail() {
               <div className="h-4 bg-skeleton rounded w-1/2"></div>
             </div>
           </div>
-          </div>
-        </main>
-      </div>
+      </PageShell>
     )
   }
 
   if (error || !application) {
     return (
-      <div className="page-container bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <main className="w-full">
-          <div className="content-wrapper py-4 sm:py-8">
+      <PageShell title="Application Not Found">
           <div className="text-center py-8 sm:py-16">
             <XCircle className="h-16 w-16 text-error mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-foreground mb-2">Application Not Found</h2>
+            <h2 className="text-xl font-bold text-foreground mb-2">Application Not Found</h2>
             <p className="text-foreground mb-6">{error || 'The application you are looking for does not exist.'}</p>
             <Link to="/student/dashboard">
               <Button>Return to Dashboard</Button>
             </Link>
           </div>
-          </div>
-        </main>
-      </div>
+      </PageShell>
     )
   }
 
@@ -139,32 +132,24 @@ export default function ApplicationDetail() {
           : 'text-muted-foreground'
 
   return (
-    <div className="page-container bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      
-      <main className="w-full">
-        <div className="content-wrapper py-4 sm:py-8">
-        {/* Header */}
-        <div
-          className={`mb-8 ${animateClasses.slideUp}`}
-        >
+    <PageShell
+      title="Application Details"
+      subtitle={`#${application.application_number}`}
+      actions={
+        <div className="flex items-center space-x-3">
+          {getStatusIcon(application.status)}
+          <span className={`px-4 py-2 rounded-full text-sm font-bold ${getStatusColor(application.status)}`}>
+            {application.status?.replace('_', ' ').toUpperCase() || 'PENDING'}
+          </span>
+        </div>
+      }
+    >
+        {/* Back link */}
+        <div className={`mb-8 ${animateClasses.slideUp}`}>
           <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-primary/80 mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Link>
-          
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-            <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground break-words">Application Details</h1>
-              <p className="text-foreground break-all">#{application.application_number}</p>
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              {getStatusIcon(application.status)}
-              <span className={`px-4 py-2 rounded-full text-sm font-bold ${getStatusColor(application.status)}`}>
-                {application.status?.replace('_', ' ').toUpperCase() || 'PENDING'}
-              </span>
-            </div>
-          </div>
         </div>
 
         {/* Interview */}
@@ -196,7 +181,7 @@ export default function ApplicationDetail() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:p-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:p-8">
           {/* Personal Information */}
           <div
             className={`bg-card rounded-2xl shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
@@ -346,8 +331,6 @@ export default function ApplicationDetail() {
             </div>
           </div>
         </div>
-        </div>
-      </main>
-    </div>
+    </PageShell>
   )
 }

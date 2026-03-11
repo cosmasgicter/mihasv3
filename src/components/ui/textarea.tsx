@@ -32,7 +32,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && (
           <label 
             htmlFor={textareaId}
-            className="block text-sm font-medium text-foreground mb-1.5"
+            className="block text-sm font-medium text-foreground mb-2"
           >
             {label}
             {props.required && <span className="text-destructive ml-1">*</span>}
@@ -42,7 +42,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           id={textareaId}
           className={cn(
             // Base styles - minimum height for touch targets
-            'flex w-full min-h-[100px] px-3 py-2 rounded-lg',
+            'flex w-full min-h-[100px] px-3 py-2 rounded-md',
             // Background and border
             'bg-background border border-input',
             // Typography - 16px to prevent iOS zoom
@@ -51,8 +51,8 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             'placeholder:text-muted-foreground',
             // Hover state
             'hover:border-primary/50 hover:bg-accent/30',
-            // Focus state with ring
-            'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0 focus:border-primary',
+            // Focus state with ring — keyboard only
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus:border-primary',
             // CSS transitions - respects prefers-reduced-motion
             'transition-colors duration-150',
             'motion-reduce:transition-none',
@@ -83,7 +83,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           <p
             id={errorId}
             className={cn(
-              'mt-1.5 text-sm text-destructive',
+              'mt-1 text-sm text-destructive',
               // CSS animation for error appearance
               'animate-in fade-in-0 slide-in-from-top-1 duration-150',
               'motion-reduce:animate-none'
@@ -96,7 +96,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         {helperText && !error && (
           <p 
             id={helperId} 
-            className="mt-1.5 text-sm text-muted-foreground"
+            className="mt-1 text-sm text-muted-foreground"
           >
             {helperText}
           </p>

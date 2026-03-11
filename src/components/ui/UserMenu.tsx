@@ -41,6 +41,9 @@ export function UserMenu() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center space-x-2 hover:bg-muted"
         data-testid="user-menu-trigger"
+        aria-label={`User menu for ${firstName}`}
+        aria-expanded={isOpen}
+        aria-haspopup="true"
       >
         {profile?.avatar_url || user?.user_metadata?.avatar_url ? (
           <img

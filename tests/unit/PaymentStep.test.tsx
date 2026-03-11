@@ -43,6 +43,6 @@ describe('PaymentStep', () => {
     const markup = renderPaymentStep('pay_later')
 
     expect(markup).toContain('Complete payment later from your dashboard')
-    expect(markup).toContain('student dashboard payment section')
+    expect(markup).toContain('dashboard payment section')
   })
 })

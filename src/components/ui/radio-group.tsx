@@ -45,32 +45,34 @@ const RadioGroupItem = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>
 >(({ className, ...props }, ref) => {
   return (
-    <RadioGroupPrimitive.Item
-      ref={ref}
-      className={cn(
-        // Touch target compliance - 44px minimum
-        'aspect-square h-5 w-5',
-        // Visual styling
-        'rounded-full border-2 border-primary',
-        // Text color for indicator
-        'text-primary',
-        // Focus styles
-        'ring-offset-background focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-        // Disabled state
-        'disabled:cursor-not-allowed disabled:opacity-50',
-        // Touch optimization
-        'touch-manipulation',
-        // Transition with reduced motion support
-        'transition-colors duration-150',
-        'motion-reduce:transition-none',
-        className
-      )}
-      {...props}
-    >
-      <RadioGroupPrimitive.Indicator className="flex items-center justify-center">
-        <Circle className="h-2.5 w-2.5 fill-current text-current" aria-hidden="true" />
-      </RadioGroupPrimitive.Indicator>
-    </RadioGroupPrimitive.Item>
+    <div className="relative inline-flex items-center justify-center min-h-[44px] min-w-[44px]">
+      <RadioGroupPrimitive.Item
+        ref={ref}
+        className={cn(
+          // Touch target compliance - 44px minimum via wrapper
+          'aspect-square h-5 w-5',
+          // Visual styling
+          'rounded-full border-2 border-primary',
+          // Text color for indicator
+          'text-primary',
+          // Focus styles
+          'ring-offset-background focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+          // Disabled state
+          'disabled:cursor-not-allowed disabled:opacity-50',
+          // Touch optimization
+          'touch-manipulation',
+          // Transition with reduced motion support
+          'transition-colors duration-150',
+          'motion-reduce:transition-none',
+          className
+        )}
+        {...props}
+      >
+        <RadioGroupPrimitive.Indicator className="flex items-center justify-center">
+          <Circle className="h-2.5 w-2.5 fill-current text-current" aria-hidden="true" />
+        </RadioGroupPrimitive.Indicator>
+      </RadioGroupPrimitive.Item>
+    </div>
   )
 })
 RadioGroupItem.displayName = RadioGroupPrimitive.Item.displayName

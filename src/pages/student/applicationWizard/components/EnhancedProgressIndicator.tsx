@@ -7,7 +7,7 @@
  */
 
 import React, { useCallback, useRef } from 'react';
-import { CheckCircle, Circle } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { staggerChild } from '@/lib/animations';
 import type { WizardStepConfig } from '../steps/config';
@@ -57,7 +57,7 @@ const StepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
       disabled={!isClickable}
       className={cn(
         'flex flex-col items-center relative flex-1 group outline-none',
-        'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg',
+        'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg',
         'min-w-0',
         isClickable ? 'cursor-pointer' : 'cursor-default',
         shouldAnimate && 'transition-transform duration-200 hover:scale-105 active:scale-95'
@@ -134,7 +134,7 @@ StepItem.displayName = 'StepItem';
 
 const MobileStepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
   step,
-  index,
+  index: _index,
   isActive,
   isCompleted,
   isCurrent,
@@ -142,7 +142,7 @@ const MobileStepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
   onClick,
   onKeyDown,
   totalSteps,
-  shouldAnimate
+  shouldAnimate: _shouldAnimate
 }, ref) => {
   const Icon = step.icon;
 
@@ -155,7 +155,7 @@ const MobileStepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
       disabled={!isClickable}
       className={cn(
         'flex items-center gap-3 w-full p-2 rounded-lg transition-colors',
-        'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+        'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         'min-h-[44px]',
         isClickable ? 'cursor-pointer hover:bg-accent/50' : 'cursor-default',
         isCurrent && 'bg-primary/5'

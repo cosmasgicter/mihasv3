@@ -1,17 +1,18 @@
 /**
  * InstallBanner Component
- * Shows a PWA install call-to-action banner.
- * - Uses the `useInstallPrompt` hook (task 20.1)
+ * Shows a PWA install call-to-action banner using the canonical Banner component.
+ * - Uses the `useInstallPrompt` hook
  * - Shown at most once per session (sessionStorage flag)
  * - Dismissal remembered for 7 days via localStorage timestamp
  * - Not shown if browser doesn't support PWA (`canInstall` is false)
  *
- * Requirement 20: Implement Reliable PWA Install Prompts
+ * Requirements: 19.4, 20.2
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { Download, X } from 'lucide-react'
+import { Download } from 'lucide-react'
 import { useInstallPrompt } from '@/hooks/useInstallPrompt'
+import { Banner } from '@/components/ui/Banner'
 
 const DISMISS_KEY = 'mihas_install_dismissed_at'
 const SESSION_KEY = 'mihas_install_shown'
@@ -58,7 +59,6 @@ function markDismissed(): void {
 export function InstallBanner() {
   const { canInstall, showPrompt, dismissPrompt } = useInstallPrompt()
   const [visible, setVisible] = useState(false)
-  const [animateIn, setAnimateIn] = useState(false)
 
   useEffect(() => {
     if (!canInstall) return
@@ -68,7 +68,6 @@ export function InstallBanner() {
     const timer = setTimeout(() => {
       markShownThisSession()
       setVisible(true)
-      requestAnimationFrame(() => setAnimateIn(true))
     }, 3000)
 
     return () => clearTimeout(timer)
@@ -79,58 +78,30 @@ export function InstallBanner() {
     if (outcome === 'accepted' || outcome === 'dismissed') {
       markDismissed()
     }
-    setAnimateIn(false)
-    setTimeout(() => setVisible(false), 200)
+    setVisible(false)
   }, [showPrompt])
 
   const handleDismiss = useCallback(() => {
     markDismissed()
     dismissPrompt()
-    setAnimateIn(false)
-    setTimeout(() => setVisible(false), 200)
+    setVisible(false)
   }, [dismissPrompt])
 
   if (!visible) return null
 
   return (
-    <div
-      role="banner"
-      aria-label="Install MIHAS application"
-      className={[
-        'fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm',
-        'transform transition-all duration-200 ease-out',
-        animateIn ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0',
-      ].join(' ')}
-    >
-      <div className="rounded-xl border border-primary/20 bg-card p-4 shadow-lg">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1">
-            <h3 className="text-sm font-semibold text-foreground">
-              Install MIHAS
-            </h3>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Add to your home screen for faster access and offline support.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleDismiss}
-            className="shrink-0 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-            aria-label="Dismiss install banner"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
+    <Banner variant="pwa" dismissible onDismiss={handleDismiss}>
+      <span className="flex items-center gap-3">
+        <span>Install MIHAS for faster access and offline support.</span>
         <button
           type="button"
           onClick={handleInstall}
-          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground transition-colors duration-fast hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
         >
-          <Download className="h-4 w-4" aria-hidden="true" />
+          <Download className="h-3.5 w-3.5" aria-hidden="true" />
           Install
         </button>
-      </div>
-    </div>
+      </span>
+    </Banner>
   )
 }

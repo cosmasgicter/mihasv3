@@ -13,8 +13,6 @@ A skill is a set of local instructions stored in a `SKILL.md` file.
 - core-web-vitals: Optimize Core Web Vitals (LCP, INP, CLS). (file: /home/lenovo/Downloads/mihasv3/.agents/skills/core-web-vitals/SKILL.md)
 - neon-postgres: Best practices for Neon Serverless Postgres. (file: /home/lenovo/Downloads/mihasv3/.agents/skills/neon-postgres/SKILL.md)
 - performance: Optimize web performance and loading speed. (file: /home/lenovo/Downloads/mihasv3/.agents/skills/performance/SKILL.md)
-- playwright: Automate a real browser via terminal workflows. (file: /home/lenovo/Downloads/mihasv3/.agents/skills/playwright/SKILL.md)
-- playwright-best-practices: Comprehensive Playwright testing guidance. (file: /home/lenovo/Downloads/mihasv3/.agents/skills/playwright-best-practices/SKILL.md)
 - security-best-practices: Security best-practice review for supported stacks. (file: /home/lenovo/Downloads/mihasv3/.agents/skills/security-best-practices/SKILL.md)
 - security-threat-model: Repo-grounded AppSec threat modeling. (file: /home/lenovo/Downloads/mihasv3/.agents/skills/security-threat-model/SKILL.md)
 - seo: Search engine optimization guidance. (file: /home/lenovo/Downloads/mihasv3/.agents/skills/seo/SKILL.md)

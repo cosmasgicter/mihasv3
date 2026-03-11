@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { animateClasses } from '@/lib/animations'
 import { useSearchParams } from 'react-router-dom'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import {
   FiltersPanel,
   ApplicationsTable,
@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { useToastStore } from '@/components/ui/Toast'
 import { applicationService } from '@/services/applications'
+import { PageShell } from '@/components/ui/PageShell'
 import { VirtualizedApplicationsGrid } from '@/components/admin/applications/VirtualizedApplicationsGrid'
 import { ApplicationCard } from '@/components/admin/applications/ApplicationCard'
 import {
@@ -481,71 +482,60 @@ export default function Applications() {
   }, [applications, pagination.totalCount])
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 ${animateClasses.fadeIn}`}>
-      
-      {/* Mobile-First Header */}
-      <div className="sticky top-0 z-40 bg-card/95 backdrop-blur-sm border-b border-border px-4 py-3 sm:px-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl">
-              <Users className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-foreground">Applications</h1>
-              <p className="text-xs text-muted-foreground">{stats.total} total applications</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            {/* View Toggle */}
-            <div className="hidden sm:flex items-center bg-muted rounded-lg p-1">
-              <button
-                onClick={() => setViewMode('cards')}
-                className={`p-1.5 rounded-md transition-colors ${
-                  viewMode === 'cards'
-                    ? 'bg-card text-primary shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-                aria-label="Card view"
-                aria-pressed={viewMode === 'cards'}
-              >
-                <LayoutGrid className="h-4 w-4" aria-hidden="true" />
-              </button>
-              <button
-                onClick={() => setViewMode('table')}
-                className={`p-1.5 rounded-md transition-colors ${
-                  viewMode === 'table'
-                    ? 'bg-card text-primary shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-                aria-label="Table view"
-                aria-pressed={viewMode === 'table'}
-              >
-                <Table className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className="sm:hidden"
-              aria-label="Toggle filters"
-              aria-expanded={showFilters}
+    <PageShell
+      title="Applications"
+      subtitle={`${stats.total} total applications`}
+      maxWidth="7xl"
+      actions={
+        <div className="flex items-center space-x-2">
+          {/* View Toggle */}
+          <div className="hidden sm:flex items-center bg-muted rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('cards')}
+              className={`p-1.5 rounded-md transition-colors ${
+                viewMode === 'cards'
+                  ? 'bg-card text-primary shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              aria-label="Card view"
+              aria-pressed={viewMode === 'cards'}
             >
-              <Filter className="h-4 w-4" aria-hidden="true" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleRefresh}
-              aria-label="Refresh applications"
+              <LayoutGrid className="h-4 w-4" aria-hidden="true" />
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`p-1.5 rounded-md transition-colors ${
+                viewMode === 'table'
+                  ? 'bg-card text-primary shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              aria-label="Table view"
+              aria-pressed={viewMode === 'table'}
             >
-              <RefreshCw className="h-4 w-4" aria-hidden="true" />
-            </Button>
+              <Table className="h-4 w-4" aria-hidden="true" />
+            </button>
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowFilters(!showFilters)}
+            className="sm:hidden"
+            aria-label="Toggle filters"
+            aria-expanded={showFilters}
+          >
+            <Filter className="h-4 w-4" aria-hidden="true" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRefresh}
+            aria-label="Refresh applications"
+          >
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+          </Button>
         </div>
-      </div>
-
-      <Container size="lg" className="py-4 sm:py-8">
+      }
+    >
       {/* Enhanced Admin Metrics */}
       <div className="px-4 py-4 sm:px-6">
         <AdminMetrics applications={applications} />
@@ -692,7 +682,7 @@ export default function Applications() {
 
         {isRefreshing && (
           <div className="flex items-center gap-2 rounded-xl bg-primary/5 px-4 py-3 text-sm text-primary mb-6">
-            <LoadingSpinner size="sm" />
+            <UnifiedLoader variant="inline" size="sm" />
             <span>Refreshing latest applications…</span>
           </div>
         )}
@@ -754,7 +744,6 @@ export default function Applications() {
           onGenerateFinanceReceipt={handleGenerateFinanceReceipt}
         />
       </div>
-      </Container>
-    </div>
+    </PageShell>
   )
 }

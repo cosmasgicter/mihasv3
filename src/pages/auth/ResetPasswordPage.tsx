@@ -284,6 +284,7 @@ export default function ResetPasswordPage() {
           error={errors.password?.message}
           helperText="At least 8 characters with a number and letter"
           disabled={loading}
+          className="min-h-[48px]"
         />
 
         <PasswordInput
@@ -293,6 +294,7 @@ export default function ResetPasswordPage() {
           autoComplete="new-password"
           error={errors.confirmPassword?.message}
           disabled={loading}
+          className="min-h-[48px]"
         />
 
         {/* Error message */}

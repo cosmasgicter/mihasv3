@@ -114,7 +114,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
                     onChange={(e) => setNewDraftName(e.target.value)}
                     placeholder="New draft name..."
                     aria-label="New draft name"
-                    className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    className="flex-1 min-h-[44px] rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                     onKeyDown={(e) => e.key === 'Enter' && handleCreateDraft()}
                   />
                   <Button
@@ -155,7 +155,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
                             type="text"
                             value={editName}
                             onChange={(e) => setEditName(e.target.value)}
-                            className="flex-1 rounded border border-input px-2 py-1 text-sm"
+                            className="flex-1 min-h-[44px] rounded-md border border-input bg-background px-2 py-1 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                             aria-label="Edit draft name"
                             autoFocus
                             onKeyDown={(e) => {

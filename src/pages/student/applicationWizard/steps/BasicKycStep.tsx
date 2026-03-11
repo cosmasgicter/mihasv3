@@ -94,8 +94,8 @@ const BasicKycStep = ({
         Your account details help us pre-fill this step. This KYC section is the admissions record we will review for your application, so confirm that your names, contact details, programme, and identity information are correct here.
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        <div className="lg:col-span-2" style={shouldAnimate ? staggerChild(0) : undefined}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="md:col-span-2" style={shouldAnimate ? staggerChild(0) : undefined}>
           <AnimatedInput
             {...register('full_name')}
             label="Full Name *"

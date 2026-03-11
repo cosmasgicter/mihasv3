@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { logger } from '@/lib/logger'
 import { useAuth } from '@/contexts/AuthContext'
 import { adminDashboardService } from '@/services/admin/dashboard'
@@ -31,6 +31,7 @@ import { RealtimeMetricsDisplay } from '@/components/admin/RealtimeMetricsDispla
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import OfflineAdminDashboard from '@/components/admin/OfflineAdminDashboard'
 import { getAdminDisplayName, shouldLoadAdminDashboard } from '@/pages/admin/lib/dashboardBootstrap'
+import { PageShell } from '@/components/ui/PageShell'
 
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 
@@ -84,14 +85,10 @@ export default function AdminDashboard() {
   const [showQuickActions, setShowQuickActions] = useState(true)
   const [networkError, setNetworkError] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const dashboardRequestIdRef = useRef(0)
 
   // Use polling hook for dashboard data updates (replaces Supabase Realtime)
-  const { 
-    stats: pollingStats, 
-    isPolling, 
-    refresh: pollingRefresh,
-    lastUpdated: pollingLastUpdated 
-  } = useAdminDashboardPolling({
+  const { isPolling } = useAdminDashboardPolling({
     enabled: !!user?.id,
     pollingInterval: 30000, // 30 seconds
     onDataChange: (newStats) => {
@@ -111,6 +108,10 @@ export default function AdminDashboard() {
 
   const loadDashboardStats = useCallback(async (options?: { refresh?: boolean }) => {
     const isRefresh = options?.refresh ?? false
+    const requestId = dashboardRequestIdRef.current + 1
+    dashboardRequestIdRef.current = requestId
+    const isLatestRequest = () => dashboardRequestIdRef.current === requestId
+
     try {
       if (isRefresh) {
         setIsRefreshing(true)
@@ -121,10 +122,16 @@ export default function AdminDashboard() {
       setNetworkError(false)
 
       const response = await adminDashboardService.getMetrics()
+      if (!isLatestRequest()) {
+        return
+      }
       setStats(response.stats)
       setRecentActivity(response.recentActivity || [])
       setLastUpdated(new Date())
     } catch (error: any) {
+      if (!isLatestRequest()) {
+        return
+      }
       console.error('Error loading dashboard stats:', error)
 
       // Check if it's a network error
@@ -135,6 +142,9 @@ export default function AdminDashboard() {
         setError(`Failed to load dashboard data: ${error.message}`)
       }
     } finally {
+      if (!isLatestRequest()) {
+        return
+      }
       if (isRefresh) {
         setIsRefreshing(false)
       } else {
@@ -148,7 +158,7 @@ export default function AdminDashboard() {
   const { forceRefresh, isRefreshing: isManualRefreshing } = useAdminDashboardRefresh({
     onSuccess: () => {
       // Also reload local dashboard data after cache invalidation
-      loadDashboardStats({ refresh: true })
+      void loadDashboardStats({ refresh: true })
     },
     onError: (err) => {
       console.error('Manual refresh failed:', err)
@@ -162,7 +172,7 @@ export default function AdminDashboard() {
   }, [forceRefresh])
 
   useEffect(() => {
-    logger.log('[Dashboard] useEffect triggered', { hasUser: !!user, hasProfile: !!profile, userId: user?.id, profileId: profile?.id })
+    logger.log('[Dashboard] useEffect triggered', { hasUser: !!user, userId: user?.id })
     
     if (!shouldLoadAdminDashboard(user)) {
       logger.log('[Dashboard] Skipping load - missing authenticated user')
@@ -190,7 +200,7 @@ export default function AdminDashboard() {
       mounted = false
       window.clearInterval(intervalId)
     }
-  }, [loadDashboardStats, profile, user])
+  }, [loadDashboardStats, user])
 
   useEffect(() => {
     if (!shouldLoadAdminDashboard(user)) return
@@ -205,7 +215,7 @@ export default function AdminDashboard() {
         window.clearTimeout(timeoutId)
       }
     }
-  }, [isPolling, loadDashboardStats, profile, user])
+  }, [isPolling, loadDashboardStats, user])
 
   if (isInitialLoading) {
     return (
@@ -216,14 +226,7 @@ export default function AdminDashboard() {
           path="/admin/dashboard"
           noindex
         />
-        <UnifiedLoader
-          variant="skeleton"
-          size="md"
-          label="Loading admin dashboard"
-          className="py-8"
-          skeletonCard
-          skeletonLines={4}
-        />
+        <UnifiedLoader variant="page" label="Loading admin dashboard" />
       </>
     )
   }
@@ -277,7 +280,7 @@ export default function AdminDashboard() {
 
   const gridClasses = isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
 
-  const enhancedMetrics: EnhancedDashboardMetrics = {
+  const enhancedMetrics: EnhancedDashboardMetrics = useMemo(() => ({
     todayApplications: stats.todayApplications,
     pendingApplications: stats.pendingApplications,
     approvalRate: stats.approvedApplications + stats.rejectedApplications > 0
@@ -285,10 +288,12 @@ export default function AdminDashboard() {
       : 0,
     avgProcessingTime: stats.avgProcessingTime,
     activeUsers: stats.activeUsers
-  }
+  }), [stats.todayApplications, stats.pendingApplications, stats.approvedApplications, stats.rejectedApplications, stats.avgProcessingTime, stats.activeUsers])
 
-  const adminDisplayName = sanitizeForDisplay(getAdminDisplayName(profile, user))
-  const adminFirstName = adminDisplayName.split(' ')[0] || 'Admin'
+  const { adminFirstName } = useMemo(() => {
+    const name = sanitizeForDisplay(getAdminDisplayName(profile, user))
+    return { adminFirstName: name.split(' ')[0] || 'Admin' }
+  }, [profile, user])
 
   return (
     <>
@@ -298,58 +303,47 @@ export default function AdminDashboard() {
         path="/admin/dashboard"
         noindex
       />
-    <div className="page-container bg-gradient-to-br from-background via-primary/5 to-secondary/5 transition-colors duration-500">
-      <main className="w-full max-w-full overflow-x-hidden">
-        <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 safe-area-bottom">
-        {/* Enhanced Welcome Section */}
-        <div 
-          className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}
+    <PageShell
+      title={`Welcome back, ${adminFirstName}`}
+      subtitle="Here's your system overview for today"
+      maxWidth="7xl"
+      actions={
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleManualRefresh}
+          disabled={isRefreshing || isManualRefreshing}
+          className="flex items-center gap-2"
         >
-          <div className="bg-gradient-vibrant rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-            <div className="absolute inset-0 bg-foreground/10"></div>
-            <div className="relative z-10">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-                <div>
-                  <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-2 break-words">
-                    Welcome back, {adminFirstName}
-                  </h1>
-                  <p className="text-sm sm:text-base md:text-lg text-white/90 mb-4 break-words">
-                    Here&apos;s your system overview for today
-                  </p>
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
-                    <div className="flex items-center space-x-2">
-                      <div className={`w-3 h-3 rounded-full ${
-                        stats.systemHealth === 'excellent' ? 'bg-success/80' :
-                        stats.systemHealth === 'good' ? 'bg-primary/80' :
-                        stats.systemHealth === 'warning' ? 'bg-warning/80' : 'bg-error/80'
-                      }`}></div>
-                      <span>System {stats.systemHealth}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Activity className="h-4 w-4" />
-                      <span>{stats.activeUsers} active users</span>
-                    </div>
-                    {/* Polling status indicator */}
-                    <div className="flex items-center space-x-2">
-                      <div className={`w-2 h-2 rounded-full ${isPolling ? 'bg-success animate-pulse' : 'bg-muted-foreground/50'}`}></div>
-                      <span className="text-xs">{isPolling ? 'Live' : 'Paused'}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right space-y-2 flex-shrink-0">
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold break-words text-white">{stats.totalApplications}</div>
-                  <div className="text-sm sm:text-base text-white/90">Total Applications</div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleManualRefresh}
-                    disabled={isRefreshing || isManualRefreshing}
-                    className="bg-card/80 border-white/30 text-foreground hover:bg-white/90 flex items-center gap-2"
-                  >
-                    <RefreshCw className={`h-4 w-4 ${(isRefreshing || isManualRefreshing) ? 'animate-spin' : ''}`} />
-                    {(isRefreshing || isManualRefreshing) ? 'Refreshing...' : 'Refresh'}
-                  </Button>
-                </div>
+          <RefreshCw className={`h-4 w-4 ${(isRefreshing || isManualRefreshing) ? 'animate-spin' : ''}`} />
+          {(isRefreshing || isManualRefreshing) ? 'Refreshing...' : 'Refresh'}
+        </Button>
+      }
+    >
+        {/* System Status Bar */}
+        <div className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}>
+          <div className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm border border-border">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
+              <div className="flex items-center space-x-2">
+                <div className={`w-3 h-3 rounded-full ${
+                  stats.systemHealth === 'excellent' ? 'bg-success/80' :
+                  stats.systemHealth === 'good' ? 'bg-primary/80' :
+                  stats.systemHealth === 'warning' ? 'bg-warning/80' : 'bg-error/80'
+                }`}></div>
+                <span className="text-foreground">System {stats.systemHealth}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Activity className="h-4 w-4 text-muted-foreground" />
+                <span className="text-foreground">{stats.activeUsers} active users</span>
+              </div>
+              {/* Polling status indicator */}
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 rounded-full ${isPolling ? 'bg-success animate-pulse' : 'bg-muted-foreground/50'}`}></div>
+                <span className="text-xs text-muted-foreground">{isPolling ? 'Live' : 'Paused'}</span>
+              </div>
+              <div className="ml-auto text-foreground">
+                <span className="text-2xl sm:text-3xl font-bold">{stats.totalApplications}</span>
+                <span className="text-sm ml-2 text-muted-foreground">Total Applications</span>
               </div>
             </div>
           </div>
@@ -451,9 +445,7 @@ export default function AdminDashboard() {
               </div>
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-success">
-                  {stats.approvedApplications + stats.rejectedApplications > 0 
-                    ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
-                    : 0}%
+                  {enhancedMetrics.approvalRate}%
                 </div>
                 <div className="text-sm font-semibold text-foreground">Success Rate</div>
                 <div className="text-xs font-medium text-primary mt-1">Stable performance</div>
@@ -463,10 +455,8 @@ export default function AdminDashboard() {
         </div>
 
         </div>
-      </main>
-      
 
-    </div>
+    </PageShell>
       </>
   );
 }

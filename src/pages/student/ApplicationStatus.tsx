@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import type { ApplicationWithDetails } from '@/types/database'
 import { logger } from '@/utils/logger'
 import { Button } from '@/components/ui/Button'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { formatDate, formatTimestamp } from '@/lib/dateFormat'
 import { applicationService } from '@/services/applications'
 import { staggerChild, animateClasses } from '@/lib/animations'
@@ -32,7 +32,8 @@ import {
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
+import { LegacyErrorDisplay } from '@/components/ui/ErrorDisplay'
+import { PageShell } from '@/components/ui/PageShell'
 
 interface ApplicationTimeline {
   status: string
@@ -157,24 +158,24 @@ export default function ApplicationStatus() {
 
   if (loading) {
     return (
-          <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <PageShell title="Application Status" subtitle="Loading...">
           <div className="flex min-h-[40vh] items-center justify-center">
-            <LoadingSpinner size="lg" />
+            <UnifiedLoader variant="page" />
           </div>
-        </div>
+      </PageShell>
     )
   }
 
   if (error || !application) {
     return (
-          <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <ErrorDisplay
+      <PageShell title="Application Status">
+          <LegacyErrorDisplay
             error={{ status: error ? 404 : 500, message: error || 'Application not found or access denied' }}
             onRetry={loadApplicationDetails}
             onAction={() => navigate('/student/dashboard')}
             className="max-w-2xl"
           />
-        </div>
+      </PageShell>
     )
   }
 
@@ -191,8 +192,17 @@ export default function ApplicationStatus() {
   const normalizedPaymentStatus = normalizePaymentStatus(application.payment_status)
 
   return (
-    
-        <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <PageShell
+      title={`Application #${application.application_number}`}
+      subtitle={`${application.program?.length > 40 ? application.program.substring(0, 40) + '...' : application.program || 'Programme pending'} • Submitted on ${formatDate(application.submitted_at)}`}
+      maxWidth="7xl"
+      actions={
+        <div className="flex items-center gap-2">
+          {getStatusIcon(application.status)}
+          <span className="text-sm font-bold">{statusLabel}</span>
+        </div>
+      }
+    >
         <div className="space-y-6 sm:space-y-8">
           <Link
             to="/student/dashboard"
@@ -201,22 +211,6 @@ export default function ApplicationStatus() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to dashboard
           </Link>
-
-          <PageHeader
-            icon={<FileText className="h-6 w-6" />}
-            title={`Application #${application.application_number}`}
-            description={`${application.program?.length > 40 ? application.program.substring(0, 40) + '...' : application.program || 'Programme pending'} • Submitted on ${formatDate(application.submitted_at)}`}
-            stats={[
-              {
-                label: 'Current status',
-                value: statusLabel,
-                accent: statusAccent(application.status),
-                icon: getStatusIcon(application.status)
-              }
-            ]}
-          >
-            <p className="text-sm text-foreground">Intake: {application.intake}</p>
-          </PageHeader>
 
           {hasActiveInterview && interview && (
             <SectionCard
@@ -300,7 +294,7 @@ export default function ApplicationStatus() {
                 description="Review the information you submitted with this application."
                 icon={<FileText className="h-5 w-5" />}
               >
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="rounded-xl border border-primary/30 bg-primary/5 px-5 py-4">
                     <h3 className="text-sm font-bold text-foreground mb-3"><User className="w-5 h-5" /> Personal information</h3>
                     <div className="space-y-2 text-sm text-foreground">
@@ -458,8 +452,8 @@ export default function ApplicationStatus() {
 
                   {!application.result_slip_url && !application.extra_kyc_url && !application.pop_url && (
                     <EmptyState
-                      icon={FileText}
-                      title="No supporting documents uploaded"
+                      icon={<FileText className="h-12 w-12" />}
+                      heading="No supporting documents uploaded"
                       description="Uploaded documents will appear here once they are available for review."
                     />
                   )}
@@ -568,7 +562,7 @@ export default function ApplicationStatus() {
             </div>
           </div>
         </div>
-      </div>
+    </PageShell>
     
   )
 }

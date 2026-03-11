@@ -68,8 +68,8 @@ export const OfflineIndicator: React.FC = () => {
   }
 
   return (
-    <div className="fixed top-16 right-4 z-40 animate-slide-up">
-      <div className="bg-background border rounded-lg shadow-lg p-3 min-w-[280px]">
+    <div className="fixed top-16 left-4 right-4 md:left-auto md:right-4 z-40 animate-slide-up">
+      <div className="bg-background border rounded-lg shadow-lg p-3 w-full md:min-w-[280px] md:w-auto">
         <div
           className="flex items-center justify-between cursor-pointer"
           onClick={() => setShowDetails(!showDetails)}

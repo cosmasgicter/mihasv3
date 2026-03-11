@@ -1,10 +1,10 @@
-import { type ChangeEvent, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { X } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
-import { StandaloneSelect } from '@/components/ui/standalone-select'
-import { AnimatedFileUpload } from '@/components/smoothui/animated-file-upload'
+import { CanonicalSelect } from '@/components/ui/CanonicalSelect'
+import { FileUpload } from '@/components/ui/FileUpload'
 import { EligibilityNotification } from '@/components/application/EligibilityNotification'
 import { animateClasses, staggerChild } from '@/lib/animations'
 
@@ -49,8 +49,8 @@ interface EducationStepProps {
   removeGrade: (index: number) => void
   updateGrade: (index: number, field: keyof SubjectGrade, value: string | number) => void
   getUsedSubjects: () => string[]
-  handleResultSlipUpload: (event: ChangeEvent<HTMLInputElement>) => void
-  handleExtraKycUpload: (event: ChangeEvent<HTMLInputElement>) => void
+  handleResultSlipUpload: (file: File | null) => void
+  handleExtraKycUpload: (file: File | null) => void
 }
 
 const EducationStep = ({
@@ -84,7 +84,7 @@ const EducationStep = ({
   const resultSlipStatus = getUploadStatus(resultSlipFile, uploadedFiles.result_slip)
   const identityStatus = getUploadStatus(extraKycFile, uploadedFiles.extra_kyc)
 
-  // Subject options for StandaloneSelect
+  // Subject options for CanonicalSelect
   const getSubjectOptions = (currentSubjectId: string) => {
     const usedSubjects = getUsedSubjects()
     return subjects.map(subject => {
@@ -97,7 +97,7 @@ const EducationStep = ({
     })
   }
 
-  // Grade options for StandaloneSelect
+  // Grade options for CanonicalSelect
   const gradeOptions = [
     { value: '1', label: '1 (A+)' },
     { value: '2', label: '2 (A)' },
@@ -184,14 +184,13 @@ const EducationStep = ({
                   <label className="block text-xs font-medium text-foreground mb-1 sm:hidden">
                     Subject
                   </label>
-                  <StandaloneSelect
+                  <CanonicalSelect
                     value={grade.subject_id}
                     onChange={(value) => updateGrade(index, 'subject_id', value)}
                     options={getSubjectOptions(grade.subject_id)}
                     disabled={subjects.length === 0}
                     placeholder={subjects.length === 0 ? 'Loading subjects...' : 'Select subject'}
                     aria-label={`Subject ${index + 1}`}
-                    data-testid={`subject-select-${index}`}
                   />
                 </div>
 
@@ -200,13 +199,12 @@ const EducationStep = ({
                   <label className="block text-xs font-medium text-foreground mb-1 sm:hidden">
                     Grade
                   </label>
-                  <StandaloneSelect
+                  <CanonicalSelect
                     value={String(grade.grade)}
                     onChange={(value) => updateGrade(index, 'grade', parseInt(value))}
                     options={gradeOptions}
                     placeholder="Select grade"
                     aria-label={`Grade for subject ${index + 1}`}
-                    data-testid={`grade-select-${index}`}
                   />
                 </div>
 
@@ -284,7 +282,7 @@ const EducationStep = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex h-full flex-col rounded-xl border border-border bg-card p-4">
             <div className="mb-3 flex items-start justify-between gap-3">
               <div>
@@ -320,15 +318,18 @@ const EducationStep = ({
                 ✨ <strong>Auto-fill enabled:</strong> Upload your result slip and grades will be automatically extracted.
               </p>
             </div>
-            <AnimatedFileUpload
+            <FileUpload
               label={EDUCATION_UPLOAD_COPY.resultSlip.label}
-              required
               accept=".pdf,.jpg,.jpeg,.png"
-              onChange={handleResultSlipUpload}
-              file={resultSlipFile}
-              uploadProgress={uploadProgress.result_slip}
-              isUploaded={uploadedFiles.result_slip}
-              helperText={EDUCATION_UPLOAD_COPY.resultSlip.helperText}
+              maxSize={10 * 1024 * 1024}
+              onChange={(files) => handleResultSlipUpload(files as File | null)}
+              value={resultSlipFile}
+              uploading={uploadProgress.result_slip !== undefined && uploadProgress.result_slip < 100}
+              progress={uploadProgress.result_slip}
+              preview={uploadedFiles.result_slip && resultSlipFile ? {
+                url: URL.createObjectURL(resultSlipFile),
+                type: resultSlipFile.type.startsWith('image/') ? 'image' : 'pdf'
+              } : undefined}
             />
           </div>
 
@@ -367,14 +368,18 @@ const EducationStep = ({
                 Your identity details are captured in the KYC step. Upload this document only when you want to support verification with a clear NRC or passport copy.
               </p>
             </div>
-            <AnimatedFileUpload
+            <FileUpload
               label={EDUCATION_UPLOAD_COPY.identityDocument.label}
               accept=".pdf,.jpg,.jpeg,.png"
-              onChange={handleExtraKycUpload}
-              file={extraKycFile}
-              uploadProgress={uploadProgress.extra_kyc}
-              isUploaded={uploadedFiles.extra_kyc}
-              helperText={EDUCATION_UPLOAD_COPY.identityDocument.helperText}
+              maxSize={10 * 1024 * 1024}
+              onChange={(files) => handleExtraKycUpload(files as File | null)}
+              value={extraKycFile}
+              uploading={uploadProgress.extra_kyc !== undefined && uploadProgress.extra_kyc < 100}
+              progress={uploadProgress.extra_kyc}
+              preview={uploadedFiles.extra_kyc && extraKycFile ? {
+                url: URL.createObjectURL(extraKycFile),
+                type: extraKycFile.type.startsWith('image/') ? 'image' : 'pdf'
+              } : undefined}
             />
           </div>
         </div>

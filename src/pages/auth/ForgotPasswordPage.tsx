@@ -12,7 +12,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AuthLayout } from '@/components/auth/AuthLayout';
-import { AnimatedInput } from '@/components/smoothui/animated-input';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
 import { animateClasses } from '@/lib/animations';
@@ -133,7 +133,7 @@ export default function ForgotPasswordPage() {
         className={`space-y-6 ${animateClasses.slideUp}`}
         onSubmit={handleSubmit(onSubmit)}
       >
-        <AnimatedInput
+        <Input
           {...register('email')}
           type="email"
           label="Email address"
@@ -141,6 +141,7 @@ export default function ForgotPasswordPage() {
           autoComplete="email"
           error={errors.email?.message}
           disabled={loading}
+          className="min-h-[48px]"
         />
 
         <Button

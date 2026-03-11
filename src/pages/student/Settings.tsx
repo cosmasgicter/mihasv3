@@ -13,6 +13,7 @@ import { ActiveSessions } from '@/components/ui/ActiveSessions'
 import { Container } from '@/components/ui/Container'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
+import { PageShell } from '@/components/ui/PageShell'
 import {
   ArrowLeft,
   Bell,
@@ -134,7 +135,18 @@ export default function StudentSettings() {
   }
 
   return (
-    <Container className="safe-area-bottom py-4 sm:py-6 lg:py-8">
+    <PageShell
+      title="Profile and security settings"
+      subtitle="Keep your account details, residence information, notification contact, and active sessions aligned before you continue with applications and payments."
+      actions={
+        <Button asChild variant="secondary">
+          <Link to="/student/notifications">
+            <Bell className="h-4 w-4" />
+            Manage notifications
+          </Link>
+        </Button>
+      }
+    >
       <div className="space-y-6 sm:space-y-8">
         <Link
           to="/student/dashboard"
@@ -143,39 +155,6 @@ export default function StudentSettings() {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to dashboard
         </Link>
-
-        <PageHeader
-          variant="gradient"
-          eyebrow="Student account"
-          icon={<User className="h-6 w-6" />}
-          title="Profile and security settings"
-          description="Keep your account details, residence information, notification contact, and active sessions aligned before you continue with applications and payments."
-          actions={
-            <Button asChild variant="secondary">
-              <Link to="/student/notifications">
-                <Bell className="h-4 w-4" />
-                Manage notifications
-              </Link>
-            </Button>
-          }
-          stats={[
-            {
-              label: 'Account email',
-              value: getDisplayValue(profile?.email || user?.email),
-              icon: <Mail className="h-4 w-4" />,
-            },
-            {
-              label: 'Contact phone',
-              value: getDisplayValue(notificationPhone, 'Add phone number'),
-              icon: <Phone className="h-4 w-4" />,
-            },
-            {
-              label: 'Residence country',
-              value: getDisplayValue(selectedCountry || profile?.country || DEFAULT_RESIDENCE_COUNTRY),
-              icon: <Globe2 className="h-4 w-4" />,
-            },
-          ]}
-        />
 
         {error && (
           <div className="rounded-2xl border border-destructive/30 bg-destructive/5 px-5 py-4 text-sm font-medium text-destructive shadow-sm">
@@ -195,7 +174,7 @@ export default function StudentSettings() {
             description="These are the core account details that appear throughout the student portal."
             icon={<User className="h-5 w-5" />}
           >
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <Input
                 {...register('full_name')}
                 type="text"
@@ -248,7 +227,7 @@ export default function StudentSettings() {
             description="These details feed the application wizard so your residence data does not drift from your student profile."
             icon={<MapPin className="h-5 w-5" />}
           >
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
               <FormSelect
                 name="country"
                 control={control}
@@ -297,7 +276,7 @@ export default function StudentSettings() {
             description="Provide a trusted contact in case the admissions team cannot reach you directly."
             icon={<Users className="h-5 w-5" />}
           >
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <Input
                 {...register('next_of_kin_name')}
                 type="text"
@@ -355,17 +334,17 @@ export default function StudentSettings() {
             <ActiveSessions />
           </SectionCard>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <Button asChild variant="outline">
+          <div className="flex flex-col gap-3 md:flex-row md:justify-end">
+            <Button asChild variant="outline" className="w-full md:w-auto">
               <Link to="/student/dashboard">Cancel</Link>
             </Button>
-            <Button type="submit" loading={loading} variant="gradient">
+            <Button type="submit" loading={loading} variant="gradient" className="w-full md:w-auto">
               <Save className="h-4 w-4" />
               {loading ? 'Saving changes...' : 'Save profile changes'}
             </Button>
           </div>
         </form>
       </div>
-    </Container>
+    </PageShell>
   )
 }

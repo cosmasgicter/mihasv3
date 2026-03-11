@@ -26,13 +26,13 @@ const DialogOverlay = React.forwardRef<
 ))
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
-// Size variants for DialogContent
+// Size variants for DialogContent — applied only at md+ breakpoint
 const dialogSizeClasses = {
-  sm: 'max-w-md',
-  md: 'max-w-lg',
-  lg: 'max-w-2xl',
-  xl: 'max-w-4xl',
-  full: 'max-w-7xl'
+  sm: 'md:max-w-md',
+  md: 'md:max-w-lg',
+  lg: 'md:max-w-2xl',
+  xl: 'md:max-w-4xl',
+  full: 'md:max-w-7xl'
 } as const
 
 export type DialogSize = keyof typeof dialogSizeClasses
@@ -51,9 +51,13 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        'fixed left-[50%] top-[50%] z-[60] grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border border-border bg-card p-4 sm:p-6 shadow-lg duration-200 sm:rounded-lg max-h-[85vh] sm:max-h-[90vh] overflow-y-auto',
+        // Mobile: full-screen dialog (inset-0, no translate, no rounded corners)
+        'fixed inset-0 z-[60] grid w-full gap-4 border-0 bg-card p-4 shadow-lg duration-200 overflow-y-auto',
+        // Desktop (md+): centered card with translate, rounded corners, max-height
+        'md:inset-auto md:left-[50%] md:top-[50%] md:translate-x-[-50%] md:translate-y-[-50%] md:border md:border-border md:rounded-lg md:p-6 md:max-h-[90vh]',
         'data-[state=open]:animate-in data-[state=closed]:animate-out',
         'data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95',
+        // Size classes only apply on desktop
         dialogSizeClasses[size],
         className
       )}
@@ -61,7 +65,7 @@ const DialogContent = React.forwardRef<
     >
       {children}
       {!hideCloseButton && (
-        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:pointer-events-none touch-target min-h-[44px] min-w-[44px] flex items-center justify-center">
+        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none touch-target min-h-[44px] min-w-[44px] flex items-center justify-center">
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>
@@ -77,7 +81,7 @@ const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
 DialogHeader.displayName = 'DialogHeader'
 
 const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn('flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2', className)} {...props} />
+  <div className={cn('flex flex-col-reverse gap-2 md:flex-row md:justify-end md:gap-0 md:space-x-2', className)} {...props} />
 )
 DialogFooter.displayName = 'DialogFooter'
 

@@ -6,7 +6,7 @@ import { EligibilityDashboard } from '@/components/application/EligibilityDashbo
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { StandaloneSelect } from '@/components/ui/standalone-select'
+import { CanonicalSelect } from '@/components/ui/CanonicalSelect'
 import { useToastStore } from '@/components/ui/Toast'
 import { Plus, Edit, Trash2, Save, X, Settings, BarChart3, Users, AlertTriangle } from 'lucide-react'
 import { RegulatoryGuidelinesTable } from '@/components/admin/RegulatoryGuidelinesTable'
@@ -14,6 +14,7 @@ import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { PageShell } from '@/components/ui/PageShell'
 
 interface Program {
   id: string
@@ -149,24 +150,20 @@ export default function EligibilityManagement() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-muted flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
+      <PageShell title="Eligibility Management" subtitle="Loading..." maxWidth="7xl">
+        <div className="flex items-center justify-center py-16">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </PageShell>
     )
   }
 
   return (
-    <div className="min-h-screen bg-muted">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Eligibility Management System
-          </h1>
-          <p className="text-foreground">
-            Manage course requirements, regulatory compliance, and eligibility assessments
-          </p>
-        </div>
-
+    <PageShell
+      title="Eligibility Management System"
+      subtitle="Manage course requirements, regulatory compliance, and eligibility assessments"
+      maxWidth="7xl"
+    >
         {/* Tab Navigation */}
         <div className="bg-card rounded-lg shadow mb-8">
           <div className="border-b border-border">
@@ -215,25 +212,25 @@ export default function EligibilityManagement() {
             </div>
 
             <div className="bg-card rounded-lg shadow overflow-hidden">
-              <table className="min-w-full divide-y divide-border">
+              <table className="min-w-full divide-y divide-border" aria-label="Eligibility rules">
                 <thead className="bg-muted">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                       Rule Name
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                       Program
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                       Weight
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -327,7 +324,7 @@ export default function EligibilityManagement() {
               </div>
 
               <div className="space-y-4">
-                <StandaloneSelect
+                <CanonicalSelect
                   value={ruleForm.program_id}
                   onChange={(value) => setRuleForm({ ...ruleForm, program_id: value })}
                   options={programs.map((program) => ({
@@ -344,7 +341,7 @@ export default function EligibilityManagement() {
                   onChange={(e) => setRuleForm({ ...ruleForm, rule_name: e.target.value })}
                 />
 
-                <StandaloneSelect
+                <CanonicalSelect
                   value={ruleForm.rule_type}
                   onChange={(value) => setRuleForm({ ...ruleForm, rule_type: value })}
                   options={[
@@ -372,15 +369,17 @@ export default function EligibilityManagement() {
                   onChange={(e) => setRuleForm({ ...ruleForm, weight: parseFloat(e.target.value) })}
                 />
 
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="is_active"
-                    checked={ruleForm.is_active}
-                    onChange={(e) => setRuleForm({ ...ruleForm, is_active: e.target.checked })}
-                    className="mr-2"
-                  />
-                  <label htmlFor="is_active" className="text-sm font-medium text-foreground">
+                <div className="flex items-center min-h-[44px]">
+                  <div className="relative inline-flex items-center justify-center min-h-[44px] min-w-[44px]">
+                    <input
+                      type="checkbox"
+                      id="is_active"
+                      checked={ruleForm.is_active}
+                      onChange={(e) => setRuleForm({ ...ruleForm, is_active: e.target.checked })}
+                      className="h-5 w-5 rounded-sm border-2 border-primary bg-background text-primary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 touch-manipulation"
+                    />
+                  </div>
+                  <label htmlFor="is_active" className="text-sm font-medium text-foreground cursor-pointer select-none">
                     Active
                   </label>
                 </div>
@@ -404,7 +403,6 @@ export default function EligibilityManagement() {
             </div>
           </div>
         )}
-      </div>
       <ConfirmAlertDialog
         isOpen={confirmDialog.isOpen}
         onClose={confirmDialog.handleCancel}
@@ -415,6 +413,6 @@ export default function EligibilityManagement() {
         cancelText={confirmDialog.options.cancelText}
         variant={confirmDialog.options.variant}
       />
-    </div>
+    </PageShell>
   )
 }

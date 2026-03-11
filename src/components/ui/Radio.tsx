@@ -33,7 +33,7 @@ export const Radio = React.forwardRef<HTMLInputElement, RadioProps>(
               // Styling
               'border-2 border-primary bg-background text-primary',
               // Focus styles
-              'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
               // Disabled state
               'disabled:opacity-50 disabled:cursor-not-allowed',
               // Touch optimization

@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader, UnifiedSpinner } from '@/components/ui/UnifiedLoader'
 import { Eye, FileText, CreditCard, Clock, CheckCircle, XCircle, AlertTriangle, User, Calendar, Phone, Mail, GraduationCap, Building, MessageSquare } from 'lucide-react'
 import { ApplicationApprovalActions } from './ApplicationApprovalActions'
 import { DraftBadge } from './DraftBadge'
@@ -72,7 +72,30 @@ export interface ApplicationCardProps {
   onSelect?: (id: string, selected: boolean) => void
 }
 
-export const ApplicationCard = React.memo<ApplicationCardProps>(({
+function areApplicationCardPropsEqual(
+  prev: ApplicationCardProps,
+  next: ApplicationCardProps
+): boolean {
+  return (
+    prev.application.id === next.application.id &&
+    prev.application.status === next.application.status &&
+    prev.application.payment_status === next.application.payment_status &&
+    prev.application.submitted_at === next.application.submitted_at &&
+    prev.application.lastUpdated === next.application.lastUpdated &&
+    prev.application.completionPercentage === next.application.completionPercentage &&
+    prev.application.points === next.application.points &&
+    prev.application.last_payment_audit_notes === next.application.last_payment_audit_notes &&
+    prev.updatingStatus === next.updatingStatus &&
+    prev.updatingPayment === next.updatingPayment &&
+    prev.isSelected === next.isSelected &&
+    prev.onStatusUpdate === next.onStatusUpdate &&
+    prev.onPaymentStatusUpdate === next.onPaymentStatusUpdate &&
+    prev.onViewDetails === next.onViewDetails &&
+    prev.onSelect === next.onSelect
+  )
+}
+
+export const ApplicationCard = React.memo<ApplicationCardProps>(function ApplicationCard({
   application: app,
   onStatusUpdate,
   onPaymentStatusUpdate,
@@ -81,7 +104,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
   updatingPayment,
   isSelected = false,
   onSelect
-}) => {
+}) {
   const [showCommunicationModal, setShowCommunicationModal] = useState(false)
   const { success: showSuccess } = useToastStore()
 
@@ -385,13 +408,13 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(({
       {(updatingStatus || updatingPayment) && (
         <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-card/80">
           <div className="flex items-center gap-2 text-sm text-foreground">
-            <LoadingSpinner size="sm" />
+            <UnifiedSpinner size="sm" />
             <span>Updating...</span>
           </div>
         </div>
       )}
     </div>
   )
-})
+}, areApplicationCardPropsEqual)
 
 ApplicationCard.displayName = 'ApplicationCard'

@@ -101,6 +101,7 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
 
   return (
     <aside
+      aria-label="Admin navigation"
       className={cn(
         'hidden md:flex flex-col fixed left-0 top-0 h-screen',
         'bg-card/95 backdrop-blur-xl border-r border-border shadow-xl z-40',

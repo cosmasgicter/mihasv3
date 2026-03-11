@@ -7,7 +7,7 @@
  * @requirements 5.1, 5.2 - Fast page loading
  */
 
-import { LoadingSpinner } from './LoadingSpinner'
+import { UnifiedSpinner } from './UnifiedLoader'
 import { cn } from '@/lib/utils'
 
 interface InlineLoaderProps {
@@ -47,9 +47,8 @@ export function InlineLoader({
       )}
     >
       {showSpinner && (
-        <LoadingSpinner 
+        <UnifiedSpinner 
           size={size === 'lg' ? 'md' : 'sm'} 
-          color="primary"
         />
       )}
       <span className="font-medium text-foreground">

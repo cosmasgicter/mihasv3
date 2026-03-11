@@ -1,14 +1,94 @@
 import React from 'react'
 import { AlertTriangle, ArrowRight, Info, RefreshCw, XCircle } from 'lucide-react'
 
-import { formatError, isRetryableError, type ErrorMessage } from '@/utils/errorMessages'
 import { cn } from '@/lib/utils'
 
-import { Alert, AlertDescription, AlertTitle } from './Alert'
 import { Button } from './Button'
+
+// ---------------------------------------------------------------------------
+// Canonical ErrorDisplay — design-doc interface (Requirements 2.2, 8.4, 8.6)
+// ---------------------------------------------------------------------------
+
+export interface ErrorDisplayProps {
+  title?: string
+  message: string
+  onRetry?: () => void
+  variant?: 'inline' | 'section'
+  className?: string
+}
+
+export function ErrorDisplay({
+  title,
+  message,
+  onRetry,
+  variant = 'section',
+  className,
+}: ErrorDisplayProps) {
+  if (variant === 'inline') {
+    return (
+      <div
+        role="alert"
+        aria-live="assertive"
+        className={cn('flex items-start gap-2 text-sm', className)}
+      >
+        <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" aria-hidden="true" />
+        <div className="flex flex-col gap-1">
+          {title && <span className="font-medium text-foreground">{title}</span>}
+          <span className="text-destructive">{message}</span>
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="mt-1 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <RefreshCw className="h-3 w-3" aria-hidden="true" />
+              Try Again
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // section variant
+  return (
+    <div
+      role="alert"
+      aria-live="assertive"
+      className={cn(
+        'flex flex-col items-center gap-4 rounded-lg border border-border bg-card p-6 text-center',
+        className,
+      )}
+    >
+      <div className="rounded-full bg-destructive/10 p-3">
+        <XCircle className="h-6 w-6 text-destructive" aria-hidden="true" />
+      </div>
+
+      <div className="space-y-1">
+        {title && <h3 className="text-lg font-semibold text-foreground">{title}</h3>}
+        <p className="text-sm text-muted-foreground">{message}</p>
+      </div>
+
+      {onRetry && (
+        <Button onClick={onRetry} variant="outline" size="sm">
+          <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
+          Try Again
+        </Button>
+      )}
+    </div>
+  )
+}
+
+
+// ---------------------------------------------------------------------------
+// Legacy exports — kept for backward compatibility until task 9.2 consolidation
+// ---------------------------------------------------------------------------
+
+import { formatError, isRetryableError, type ErrorMessage } from '@/utils/errorMessages'
+import { Alert, AlertDescription, AlertTitle } from './Alert'
 import { SectionCard } from './SectionCard'
 
-interface ErrorDisplayProps {
+interface LegacyErrorDisplayProps {
   error: any
   onRetry?: () => void
   onAction?: () => void
@@ -26,13 +106,14 @@ function getErrorIcon(error: any) {
   return <AlertTriangle className="h-10 w-10 text-warning" />
 }
 
-export function ErrorDisplay({
+/** @deprecated Use canonical ErrorDisplay instead */
+export function LegacyErrorDisplay({
   error,
   onRetry,
   onAction,
   showTechnicalDetails = false,
   className = '',
-}: ErrorDisplayProps) {
+}: LegacyErrorDisplayProps) {
   const errorMessage: ErrorMessage = formatError(error)
   const canRetry = isRetryableError(error)
 
@@ -88,6 +169,7 @@ interface InlineErrorProps {
   className?: string
 }
 
+/** @deprecated Use ErrorDisplay variant="inline" instead */
 export function InlineError({ message, className = '' }: InlineErrorProps) {
   return (
     <div className={cn('mt-1 flex items-start gap-2 text-sm text-destructive', className)} role="alert">
@@ -104,6 +186,7 @@ interface ErrorBannerProps {
   className?: string
 }
 
+/** @deprecated Use Banner variant="error" instead */
 export function ErrorBanner({
   error,
   onDismiss,
@@ -150,6 +233,7 @@ interface ErrorPageProps {
   showTechnicalDetails?: boolean
 }
 
+/** @deprecated Use ErrorDisplay variant="section" in a page wrapper instead */
 export function ErrorPage({
   error,
   onRetry,
@@ -159,7 +243,7 @@ export function ErrorPage({
   return (
     <div className="min-h-screen bg-muted/30 px-4 py-10">
       <div className="mx-auto max-w-xl">
-        <ErrorDisplay
+        <LegacyErrorDisplay
           error={error}
           onRetry={onRetry}
           onAction={onGoHome}

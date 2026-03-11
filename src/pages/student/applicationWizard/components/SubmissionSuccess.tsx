@@ -2,7 +2,7 @@ import { CheckCircle, Download, Mail, Send, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { animateClasses } from '@/lib/animations'
 
 import type { SubmittedApplicationSummary } from '../hooks/useApplicationSlip'
@@ -91,7 +91,7 @@ const SubmissionSuccess = ({
             >
               <X className="h-4 w-4 text-foreground" />
             </button>
-            <LoadingSpinner />
+            <UnifiedLoader variant="inline" />
             <p className="mt-4 text-sm font-medium text-foreground">
               {persistingSlip ? 'Generating application slip...' : 'Preparing your slip...'}
             </p>

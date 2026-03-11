@@ -12,22 +12,22 @@ export function ApplicationsTable() {
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full bg-card border border-border">
+      <table className="min-w-full bg-card border border-border" aria-label="Applications">
         <thead className="bg-muted">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">
               Application #
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">
               Student Name
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">
               Program
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">
               Status
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase">
               Actions
             </th>
           </tr>

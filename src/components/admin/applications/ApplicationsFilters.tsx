@@ -86,6 +86,7 @@ export function ApplicationsFilters({
                 size="sm"
                 onClick={onShowBulkActions}
                 className="btn-mobile"
+                aria-label="Bulk actions"
               >
                 <Settings className="h-4 w-4 sm:mr-1" />
                 <span className="hidden sm:inline">Bulk Actions</span>
@@ -101,6 +102,7 @@ export function ApplicationsFilters({
               size="sm"
               onClick={onToggleAdvancedFilters}
               className="touch-target"
+              aria-label="Toggle advanced filters"
             >
               <FilterIcon className="h-4 w-4" />
             </Button>
@@ -109,6 +111,7 @@ export function ApplicationsFilters({
               size="sm"
               onClick={onShowExport}
               className="touch-target"
+              aria-label="Export data"
             >
               <Download className="h-4 w-4" />
             </Button>
@@ -117,6 +120,7 @@ export function ApplicationsFilters({
               size="sm"
               onClick={onToggleStats}
               className="touch-target"
+              aria-label="Toggle statistics"
             >
               <TrendingUp className="h-4 w-4" />
             </Button>
@@ -125,6 +129,7 @@ export function ApplicationsFilters({
               size="sm"
               onClick={onRefresh}
               className="touch-target"
+              aria-label="Refresh data"
             >
               <RefreshCw className="h-4 w-4" />
             </Button>

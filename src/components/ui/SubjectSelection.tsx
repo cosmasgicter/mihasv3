@@ -171,7 +171,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
                 placeholder="Search subjects..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-3 py-2 border border-input rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 aria-label="Search for subjects by name or code"
               />
             </div>

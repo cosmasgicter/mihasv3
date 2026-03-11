@@ -24,6 +24,8 @@ import { Container } from '@/components/ui/Container'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, Input, Label } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
+import { PageShell } from '@/components/ui/PageShell'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { applicationService } from '@/services/applications'
 import { useAuth } from '@/contexts/AuthContext'
 import { documentService } from '@/services/documents'
@@ -340,18 +342,19 @@ export default function PaymentPage() {
   // @requirements 6.3 - Display loading spinner
   if (loading) {
     return (
-      <div className="min-h-screen bg-muted flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-          <p className="mt-4 text-muted-foreground">Loading payment information...</p>
+      <PageShell title="Application Payment" subtitle="Loading payment information...">
+        <div className="flex items-center justify-center min-h-[40vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </div>
+      </PageShell>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
-      <Container size="md">
+    <PageShell
+      title="Application Payment"
+      subtitle="Pay before submission or return here later to upload proof for any submitted application that still needs payment follow-up."
+    >
         {/* Back to Dashboard link */}
         <div className="mb-6">
           <Link 
@@ -361,15 +364,6 @@ export default function PaymentPage() {
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to Dashboard
           </Link>
-        </div>
-
-        <div className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-            Application Payment
-          </h1>
-          <p className="text-muted-foreground">
-            Pay before submission or return here later to upload proof for any submitted application that still needs payment follow-up.
-          </p>
         </div>
 
         {notice && (
@@ -595,7 +589,7 @@ export default function PaymentPage() {
                                   id={`payment-method-${app.id}`}
                                   value={form.payment_method}
                                   onChange={(event) => updatePaymentForm(app.id, { payment_method: event.target.value, error: null })}
-                                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                  className="flex min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 touch-manipulation"
                                 >
                                   <option value="MTN Money">MTN Money</option>
                                   <option value="Airtel Money">Airtel Money</option>
@@ -604,68 +598,56 @@ export default function PaymentPage() {
                                   <option value="Bank To Cell">Bank To Cell</option>
                                 </select>
                               </div>
-                              <div className="space-y-2">
-                                <Label htmlFor={`payer-name-${app.id}`}>Payer Name</Label>
-                                <Input
-                                  id={`payer-name-${app.id}`}
-                                  value={form.payer_name}
-                                  onChange={(event) => updatePaymentForm(app.id, { payer_name: event.target.value, error: null })}
-                                  placeholder="Name used for the payment"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor={`payer-phone-${app.id}`}>Payer Phone</Label>
-                                <Input
-                                  id={`payer-phone-${app.id}`}
-                                  value={form.payer_phone}
-                                  onChange={(event) => updatePaymentForm(app.id, { payer_phone: event.target.value, error: null })}
-                                  placeholder="Phone number used for payment"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor={`amount-${app.id}`}>Amount Paid</Label>
-                                <Input
-                                  id={`amount-${app.id}`}
-                                  type="number"
-                                  min={153}
-                                  value={form.amount}
-                                  onChange={(event) => updatePaymentForm(app.id, { amount: event.target.value, error: null })}
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor={`paid-at-${app.id}`}>Payment Date &amp; Time</Label>
-                                <Input
-                                  id={`paid-at-${app.id}`}
-                                  type="datetime-local"
-                                  value={form.paid_at}
-                                  onChange={(event) => updatePaymentForm(app.id, { paid_at: event.target.value, error: null })}
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor={`momo-ref-${app.id}`}>Reference Number</Label>
-                                <Input
-                                  id={`momo-ref-${app.id}`}
-                                  value={form.momo_ref}
-                                  onChange={(event) => updatePaymentForm(app.id, { momo_ref: event.target.value, error: null })}
-                                  placeholder="Transaction reference"
-                                />
-                              </div>
+                              <Input
+                                id={`payer-name-${app.id}`}
+                                label="Payer Name"
+                                value={form.payer_name}
+                                onChange={(event) => updatePaymentForm(app.id, { payer_name: event.target.value, error: null })}
+                                placeholder="Name used for the payment"
+                              />
+                              <Input
+                                id={`payer-phone-${app.id}`}
+                                label="Payer Phone"
+                                value={form.payer_phone}
+                                onChange={(event) => updatePaymentForm(app.id, { payer_phone: event.target.value, error: null })}
+                                placeholder="Phone number used for payment"
+                              />
+                              <Input
+                                id={`amount-${app.id}`}
+                                label="Amount Paid"
+                                type="number"
+                                min={153}
+                                value={form.amount}
+                                onChange={(event) => updatePaymentForm(app.id, { amount: event.target.value, error: null })}
+                              />
+                              <Input
+                                id={`paid-at-${app.id}`}
+                                label="Payment Date &amp; Time"
+                                type="datetime-local"
+                                value={form.paid_at}
+                                onChange={(event) => updatePaymentForm(app.id, { paid_at: event.target.value, error: null })}
+                              />
+                              <Input
+                                id={`momo-ref-${app.id}`}
+                                label="Reference Number"
+                                value={form.momo_ref}
+                                onChange={(event) => updatePaymentForm(app.id, { momo_ref: event.target.value, error: null })}
+                                placeholder="Transaction reference"
+                              />
                             </div>
 
-                            <div className="mt-4 space-y-2">
-                              <Label htmlFor={`proof-${app.id}`}>Proof of Payment</Label>
+                            <div className="mt-4">
                               <Input
                                 id={`proof-${app.id}`}
+                                label="Proof of Payment"
                                 type="file"
                                 accept=".pdf,.jpg,.jpeg,.png"
+                                helperText="Upload a screenshot or PDF of your payment confirmation."
                                 onChange={(event) => updatePaymentForm(app.id, {
                                   file: event.target.files?.[0] || null,
                                   error: null
                                 })}
                               />
-                              <p className="text-xs text-muted-foreground">
-                                Upload a screenshot or PDF of your payment confirmation.
-                              </p>
                             </div>
 
                             {form.error && (
@@ -822,21 +804,15 @@ export default function PaymentPage() {
 
           {/* Empty State - No applications */}
           {allApplications.length === 0 && !error && (
-            <Card className="bg-muted/30">
-              <CardContent className="pt-6">
-                <div className="text-center py-8">
-                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-foreground mb-2">No Applications Yet</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Start your application to see payment information here.
-                  </p>
-                  <Button onClick={handleContinueToWizard}>
-                    Start Application
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <EmptyState
+              icon={<FileText className="h-12 w-12" />}
+              heading="No Applications Yet"
+              description="Start your application to see payment information here."
+              action={{
+                label: 'Start Application',
+                onClick: handleContinueToWizard,
+              }}
+            />
           )}
 
           {/* Help Card */}
@@ -856,7 +832,6 @@ export default function PaymentPage() {
             </CardContent>
           </Card>
         </div>
-      </Container>
-    </div>
+    </PageShell>
   )
 }

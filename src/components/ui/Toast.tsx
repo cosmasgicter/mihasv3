@@ -191,20 +191,35 @@ export function _clearRecentToasts() {
 export function ToastContainer() {
   const { toasts, removeToast } = useToastStore();
 
-  const errorToasts = toasts.filter((t) => t.type === 'error');
-  const otherToasts = toasts.filter((t) => t.type !== 'error');
+  // Dismiss all toasts on Escape key (Req 16.4)
+  useEffect(() => {
+    if (toasts.length === 0) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        // Remove all toasts
+        toasts.forEach((t) => removeToast(t.id));
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [toasts, removeToast]);
+
+  const assertiveToasts = toasts.filter((t) => t.type === 'error' || t.type === 'warning');
+  const politeToasts = toasts.filter((t) => t.type === 'success' || t.type === 'info');
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none sm:max-w-md">
-      {/* Assertive region for error toasts (Req 28.1) */}
+    <div className="fixed top-4 left-4 right-4 md:left-auto md:right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none sm:max-w-md">
+      {/* Assertive region for error/warning toasts (Req 19.5) */}
       <div aria-live="assertive" aria-relevant="additions removals" aria-atomic="false">
-        {errorToasts.map((toast) => (
+        {assertiveToasts.map((toast) => (
           <ToastItem key={toast.id} toast={toast} onClose={() => removeToast(toast.id)} />
         ))}
       </div>
-      {/* Polite region for success/info/warning toasts (Req 28.1) */}
+      {/* Polite region for success/info toasts (Req 19.5) */}
       <div aria-live="polite" aria-relevant="additions removals" aria-atomic="false">
-        {otherToasts.map((toast) => (
+        {politeToasts.map((toast) => (
           <ToastItem key={toast.id} toast={toast} onClose={() => removeToast(toast.id)} />
         ))}
       </div>
@@ -235,25 +250,25 @@ const iconStyles = {
 
 function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
   const Icon = iconMap[toast.type];
-  const isError = toast.type === 'error';
+  const isAlertRole = toast.type === 'error' || toast.type === 'warning';
   const itemRef = useRef<HTMLDivElement>(null);
 
-  // Animate in on mount
+  // Animate in on mount (slide down from top, 200ms)
   useEffect(() => {
     const el = itemRef.current;
     if (!el) return;
     // Force reflow then remove the initial transform
     el.getBoundingClientRect();
-    el.style.transform = 'translateX(0)';
+    el.style.transform = 'translateY(0)';
     el.style.opacity = '1';
   }, []);
 
   const handleClose = () => {
     const el = itemRef.current;
     if (el) {
-      el.style.transform = 'translateX(100%)';
+      el.style.transform = 'translateY(-100%)';
       el.style.opacity = '0';
-      setTimeout(onClose, 200);
+      setTimeout(onClose, 150);
     } else {
       onClose();
     }
@@ -269,14 +284,14 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
   return (
     <div
       ref={itemRef}
-      role={isError ? 'alert' : 'status'}
+      role={isAlertRole ? 'alert' : 'status'}
       aria-atomic="true"
       className={cn(
         'pointer-events-auto rounded-lg border shadow-lg p-4 min-w-[280px]',
         'transition-all duration-200 ease-out',
         typeStyles[toast.type]
       )}
-      style={{ transform: 'translateX(100%)', opacity: '0' }}
+      style={{ transform: 'translateY(-100%)', opacity: '0' }}
     >
       <div className="flex items-start gap-3">
         <Icon className={cn('h-5 w-5 flex-shrink-0 mt-0.5', iconStyles[toast.type])} aria-hidden="true" />

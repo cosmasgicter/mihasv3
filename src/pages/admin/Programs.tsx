@@ -4,7 +4,7 @@ import { institutionService, programService } from '@/services/catalog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { StandaloneSelect } from '@/components/ui/standalone-select'
+import { CanonicalSelect } from '@/components/ui/CanonicalSelect'
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/Dialog'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { ResponsiveTable } from '@/components/ui/ResponsiveTable'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -26,6 +27,7 @@ import {
   School,
   Trash2,
 } from 'lucide-react'
+import { PageShell } from '@/components/ui/PageShell'
 
 interface Institution {
   id: string
@@ -453,115 +455,79 @@ export default function AdminPrograms() {
     }
 
     return (
-      <>
-        <div className="block space-y-4 sm:hidden">
-          {programs.map((program) => (
-            <div key={program.id} className="rounded-xl border border-border bg-muted/40 p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="space-y-2">
-                  <h3 className="text-lg font-bold text-foreground">{program.name}</h3>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="secondary">
-                      {program.institutions?.name || 'Unknown institution'}
-                    </Badge>
-                    <Badge variant="outline">
-                      {program.duration_years} year{program.duration_years !== 1 ? 's' : ''}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {program.description || 'No description provided yet.'}
-                  </p>
-                </div>
+      <ResponsiveTable<Program>
+        columns={[
+          {
+            key: 'name',
+            header: 'Program',
+            priority: 'always',
+            render: (_value, row) => (
+              <span className="font-semibold text-foreground">{row.name}</span>
+            ),
+          },
+          {
+            key: 'institution_id',
+            header: 'Institution',
+            priority: 'always',
+            render: (_value, row) => (
+              <Badge variant="secondary">
+                {row.institutions?.name || 'Unknown institution'}
+              </Badge>
+            ),
+          },
+          {
+            key: 'duration_years',
+            header: 'Duration',
+            priority: 'desktop',
+            render: (_value, row) => (
+              <span className="text-sm text-muted-foreground">
+                {row.duration_years} year{row.duration_years !== 1 ? 's' : ''}
+              </span>
+            ),
+          },
+          {
+            key: 'description',
+            header: 'Description',
+            priority: 'desktop',
+            render: (_value, row) => (
+              <div className="max-w-sm truncate text-sm text-muted-foreground">
+                {row.description || 'No description provided yet.'}
               </div>
-              <div className="mt-4 flex gap-2">
+            ),
+          },
+          {
+            key: 'id',
+            header: 'Actions',
+            priority: 'always',
+            render: (_value, row) => (
+              <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => openProgramEdit(program)}
-                  className="flex-1 text-primary"
+                  onClick={(e) => { e.stopPropagation(); openProgramEdit(row) }}
+                  aria-label={`Edit ${row.name}`}
                 >
-                  <Pencil className="h-4 w-4 mr-1" />
-                  Edit
+                  <Pencil className="h-4 w-4" aria-hidden="true" />
+                  <span className="md:hidden ml-1">Edit</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => openProgramDelete(program)}
-                  className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5"
+                  onClick={(e) => { e.stopPropagation(); openProgramDelete(row) }}
+                  className="text-destructive border-destructive/30 hover:bg-destructive/5"
+                  aria-label={`Archive ${row.name}`}
                 >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Archive
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  <span className="md:hidden ml-1">Archive</span>
                 </Button>
               </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="hidden overflow-x-auto sm:block">
-          <table className="min-w-full divide-y divide-border">
-            <thead className="bg-muted/60">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider text-foreground">
-                  Program
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider text-foreground">
-                  Institution
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider text-foreground">
-                  Duration
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider text-foreground">
-                  Description
-                </th>
-                <th className="px-6 py-4 text-right text-sm font-bold uppercase tracking-wider text-foreground">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border bg-card">
-              {programs.map((program) => (
-                <tr key={program.id} className="transition-colors hover:bg-primary/5">
-                  <td className="px-6 py-4 font-semibold text-foreground">{program.name}</td>
-                  <td className="px-6 py-4">
-                    <Badge variant="secondary">
-                      {program.institutions?.name || 'Unknown institution'}
-                    </Badge>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-muted-foreground">
-                    {program.duration_years} year{program.duration_years !== 1 ? 's' : ''}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-muted-foreground">
-                    <div className="max-w-sm truncate">
-                      {program.description || 'No description provided yet.'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openProgramEdit(program)}
-                        aria-label={`Edit ${program.name}`}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openProgramDelete(program)}
-                        className="text-destructive border-destructive/30 hover:bg-destructive/5"
-                        aria-label={`Archive ${program.name}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </>
+            ),
+          },
+        ]}
+        data={programs}
+        caption="Academic programs"
+        loading={false}
+      />
     )
   }
 
@@ -587,145 +553,100 @@ export default function AdminPrograms() {
     }
 
     return (
-      <>
-        <div className="block space-y-4 sm:hidden">
-          {institutions.map((institution) => {
-            const activeProgramCount = getInstitutionProgramCount(institution.id)
-            const archived = !isInstitutionActive(institution)
-
-            return (
-              <div key={institution.id} className="rounded-xl border border-border bg-muted/40 p-4">
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="text-lg font-bold text-foreground">{institution.name}</h3>
-                      {institution.full_name && institution.full_name !== institution.name ? (
-                        <p className="text-sm text-muted-foreground">{institution.full_name}</p>
-                      ) : null}
-                    </div>
-                    <Badge variant={archived ? 'outline' : 'success'}>
-                      {archived ? 'Archived' : 'Active'}
-                    </Badge>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {institution.code ? <Badge variant="secondary">{institution.code}</Badge> : null}
-                    <Badge variant="outline">
-                      {activeProgramCount} active program{activeProgramCount !== 1 ? 's' : ''}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {institution.description || 'No institution summary provided yet.'}
-                  </p>
-                </div>
-                <div className="mt-4 flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openInstitutionEdit(institution)}
-                    className="flex-1 text-primary"
-                  >
-                    <Pencil className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openInstitutionDelete(institution)}
-                    disabled={archived || activeProgramCount > 0}
-                    className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5"
-                  >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Archive
-                  </Button>
-                </div>
-                {activeProgramCount > 0 ? (
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    Move or archive the linked programs before archiving this institution.
-                  </p>
+      <ResponsiveTable<Institution>
+        columns={[
+          {
+            key: 'name',
+            header: 'Institution',
+            priority: 'always',
+            render: (_value, row) => (
+              <div>
+                <div className="font-semibold text-foreground">{row.name}</div>
+                {row.full_name && row.full_name !== row.name ? (
+                  <div className="text-xs text-muted-foreground">{row.full_name}</div>
                 ) : null}
               </div>
-            )
-          })}
-        </div>
-
-        <div className="hidden overflow-x-auto sm:block">
-          <table className="min-w-full divide-y divide-border">
-            <thead className="bg-muted/60">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider text-foreground">
-                  Institution
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider text-foreground">
-                  Code
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider text-foreground">
-                  Status
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider text-foreground">
-                  Active Programs
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider text-foreground">
-                  Description
-                </th>
-                <th className="px-6 py-4 text-right text-sm font-bold uppercase tracking-wider text-foreground">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border bg-card">
-              {institutions.map((institution) => {
-                const activeProgramCount = getInstitutionProgramCount(institution.id)
-                const archived = !isInstitutionActive(institution)
-
-                return (
-                  <tr key={institution.id} className="transition-colors hover:bg-primary/5">
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-foreground">{institution.name}</div>
-                      {institution.full_name && institution.full_name !== institution.name ? (
-                        <div className="text-xs text-muted-foreground">{institution.full_name}</div>
-                      ) : null}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">{institution.code || '—'}</td>
-                    <td className="px-6 py-4">
-                      <Badge variant={archived ? 'outline' : 'success'}>
-                        {archived ? 'Archived' : 'Active'}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">{activeProgramCount}</td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">
-                      <div className="max-w-sm truncate">
-                        {institution.description || 'No institution summary provided yet.'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openInstitutionEdit(institution)}
-                          aria-label={`Edit ${institution.name}`}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openInstitutionDelete(institution)}
-                          disabled={archived || activeProgramCount > 0}
-                          className="text-destructive border-destructive/30 hover:bg-destructive/5"
-                          aria-label={`Archive ${institution.name}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </>
+            ),
+          },
+          {
+            key: 'code',
+            header: 'Code',
+            priority: 'desktop',
+            render: (_value, row) => (
+              <span className="text-sm text-muted-foreground">{row.code || '—'}</span>
+            ),
+          },
+          {
+            key: 'is_active',
+            header: 'Status',
+            priority: 'always',
+            render: (_value, row) => {
+              const archived = !isInstitutionActive(row)
+              return (
+                <Badge variant={archived ? 'outline' : 'success'}>
+                  {archived ? 'Archived' : 'Active'}
+                </Badge>
+              )
+            },
+          },
+          {
+            key: 'id',
+            header: 'Active Programs',
+            priority: 'desktop',
+            render: (_value, row) => (
+              <span className="text-sm text-muted-foreground">
+                {getInstitutionProgramCount(row.id)}
+              </span>
+            ),
+          },
+          {
+            key: 'description',
+            header: 'Description',
+            priority: 'desktop',
+            render: (_value, row) => (
+              <div className="max-w-sm truncate text-sm text-muted-foreground">
+                {row.description || 'No institution summary provided yet.'}
+              </div>
+            ),
+          },
+          {
+            key: 'full_name',
+            header: 'Actions',
+            priority: 'always',
+            render: (_value, row) => {
+              const archived = !isInstitutionActive(row)
+              const activeProgramCount = getInstitutionProgramCount(row.id)
+              return (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => { e.stopPropagation(); openInstitutionEdit(row) }}
+                    aria-label={`Edit ${row.name}`}
+                  >
+                    <Pencil className="h-4 w-4" aria-hidden="true" />
+                    <span className="md:hidden ml-1">Edit</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => { e.stopPropagation(); openInstitutionDelete(row) }}
+                    disabled={archived || activeProgramCount > 0}
+                    className="text-destructive border-destructive/30 hover:bg-destructive/5"
+                    aria-label={`Archive ${row.name}`}
+                  >
+                    <Trash2 className="h-4 w-4" aria-hidden="true" />
+                    <span className="md:hidden ml-1">Archive</span>
+                  </Button>
+                </div>
+              )
+            },
+          },
+        ]}
+        data={institutions}
+        caption="Institutions"
+        loading={false}
+      />
     )
   }
 
@@ -737,44 +658,30 @@ export default function AdminPrograms() {
       : openProgramCreate
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container-mobile py-4 sm:py-6 lg:py-8 safe-area-bottom">
-        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
-          <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 p-6 text-white">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-                <Link to="/admin">
-                  <Button variant="ghost" size="sm" className="border-white text-white hover:bg-white/20">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back
-                  </Button>
-                </Link>
-                <div>
-                  <h1 className="flex items-center gap-2 text-2xl font-bold sm:text-3xl">
-                    <GraduationCap className="h-7 w-7" />
-                    Programs & Institutions
-                  </h1>
-                  <p className="text-sm text-white/90 sm:text-base">
-                    Manage the academic catalog and the institutions that own each program.
-                  </p>
-                </div>
-              </div>
-              <Button
-                onClick={primaryActionHandler}
-                className="bg-card font-semibold text-primary shadow-lg hover:bg-accent"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                {primaryActionLabel}
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-6 p-6">
+    <PageShell
+      title="Programs & Institutions"
+      subtitle="Manage the academic catalog and the institutions that own each program."
+      maxWidth="7xl"
+      actions={
+        <div className="flex items-center gap-2">
+          <Link to="/admin">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          </Link>
+          <Button onClick={primaryActionHandler}>
+            <Plus className="h-4 w-4 mr-2" />
+            {primaryActionLabel}
+          </Button>
+        </div>
+      }
+    >
+          <div className="space-y-6">
             {loading ? (
               <div className="flex justify-center py-16">
                 <div className="text-center">
-                  <LoadingSpinner size="lg" />
-                  <p className="mt-4 text-lg text-foreground">Loading catalog...</p>
+                  <UnifiedLoader variant="page" label="Loading catalog..." />
                 </div>
               </div>
             ) : (
@@ -885,8 +792,6 @@ export default function AdminPrograms() {
               </>
             )}
           </div>
-        </div>
-      </div>
 
       <Dialog open={showProgramCreate} onOpenChange={setShowProgramCreate}>
         <DialogContent size="lg">
@@ -896,7 +801,7 @@ export default function AdminPrograms() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <Input label="Program name" name="name" value={programForm.name} onChange={handleProgramFieldChange} required />
-            <StandaloneSelect
+            <CanonicalSelect
               label="Institution"
               value={programForm.institution_id}
               onChange={(value) => setProgramForm((current) => ({ ...current, institution_id: value }))}
@@ -946,7 +851,7 @@ export default function AdminPrograms() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <Input label="Program name" name="name" value={programForm.name} onChange={handleProgramFieldChange} required />
-            <StandaloneSelect
+            <CanonicalSelect
               label="Institution"
               value={programForm.institution_id}
               onChange={(value) => setProgramForm((current) => ({ ...current, institution_id: value }))}
@@ -1088,7 +993,7 @@ export default function AdminPrograms() {
               onChange={handleInstitutionFieldChange}
               helperText="Briefly describe the institution for admins managing programs and applications."
             />
-            <StandaloneSelect
+            <CanonicalSelect
               label="Status"
               value={institutionForm.status}
               onChange={(value) =>
@@ -1146,6 +1051,6 @@ export default function AdminPrograms() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageShell>
   )
 }

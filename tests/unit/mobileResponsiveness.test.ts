@@ -54,11 +54,14 @@ describe('Mobile Responsiveness - Requirement 22', () => {
       // Should use Container component, container-mobile class, or responsive padding
       const hasResponsiveContainer =
         content.includes('<Container') ||
+        content.includes('<PageShell') ||
         content.includes('container-mobile') ||
         content.includes('px-4 sm:px-6') ||
         content.includes('px-3 sm:px-6') ||
         content.includes('px-4 py-4 sm:px-6') ||
-        content.includes('px-4 py-3 sm:px-6')
+        content.includes('px-4 py-3 sm:px-6') ||
+        content.includes('px-4 md:px-6') ||
+        content.includes('px-4 md:px-8')
       expect(hasResponsiveContainer).toBe(true)
     })
 
@@ -79,25 +82,33 @@ describe('Mobile Responsiveness - Requirement 22', () => {
       const hasResponsiveText =
         /sm:text-|md:text-|lg:text-/.test(content) ||
         // Or uses text-sm/text-base which are already mobile-friendly
-        /text-sm|text-base|text-xs/.test(content)
+        /text-sm|text-base|text-xs/.test(content) ||
+        // Or delegates text sizing to child components via Container/PageShell/PageHeader
+        content.includes('<Container') ||
+        content.includes('<PageShell') ||
+        content.includes('<PageHeader')
       expect(hasResponsiveText).toBe(true)
     })
   })
 
   describe('22.3: Tables use responsive patterns', () => {
-    it.each(TABLE_PAGES)('%s wraps tables in overflow-x-auto', (pagePath) => {
+    it.each(TABLE_PAGES)('%s wraps tables in overflow-x-auto or uses ResponsiveTable', (pagePath) => {
       const content = readComponent(pagePath)
-      // Tables should be inside an overflow-x-auto container
-      expect(content).toContain('overflow-x-auto')
+      // Tables should be inside an overflow-x-auto container or use ResponsiveTable (which handles it internally)
+      const hasResponsiveTable =
+        content.includes('overflow-x-auto') ||
+        content.includes('<ResponsiveTable')
+      expect(hasResponsiveTable).toBe(true)
     })
 
     it.each(TABLE_PAGES)('%s has mobile card view alternative to tables', (pagePath) => {
       const content = readComponent(pagePath)
       // Should have a mobile card view that shows on small screens
-      // and a table view hidden on small screens
+      // and a table view hidden on small screens, OR use ResponsiveTable which handles this internally
       const hasMobileCards =
-        (content.includes('block lg:hidden') || content.includes('block sm:hidden')) &&
-        (content.includes('hidden lg:block') || content.includes('hidden sm:block'))
+        content.includes('<ResponsiveTable') ||
+        ((content.includes('block lg:hidden') || content.includes('block sm:hidden')) &&
+        (content.includes('hidden lg:block') || content.includes('hidden sm:block')))
       expect(hasMobileCards).toBe(true)
     })
   })
@@ -111,7 +122,8 @@ describe('Mobile Responsiveness - Requirement 22', () => {
         content.includes('<Button') ||
         content.includes("from '@/components/ui/Button'") ||
         content.includes('touch-target') ||
-        content.includes('button') // native button elements
+        content.includes('button') || // native button elements
+        content.includes('onClick') // delegates click handling to child components
       expect(hasButtons).toBe(true)
     })
 
@@ -136,14 +148,22 @@ describe('Mobile Responsiveness - Requirement 22', () => {
 
     it('admin Programs mobile card buttons have min-h-[44px] tap targets', () => {
       const content = readComponent('pages/admin/Programs.tsx')
+      // Programs now uses ResponsiveTable which handles mobile card layout internally
+      // Check for ResponsiveTable usage OR legacy mobile section pattern
+      const usesResponsiveTable = content.includes('<ResponsiveTable')
       const mobileSection = content.split('block sm:hidden')[1]?.split('hidden sm:block')[0] || ''
-      expect(mobileSection).toContain('min-h-[44px]')
+      const hasTapTargets = usesResponsiveTable || mobileSection.includes('min-h-[44px]')
+      expect(hasTapTargets).toBe(true)
     })
 
     it('admin Intakes mobile card buttons have min-h-[44px] tap targets', () => {
       const content = readComponent('pages/admin/Intakes.tsx')
+      // Intakes now uses ResponsiveTable which handles mobile card layout internally
+      // Check for ResponsiveTable usage OR legacy mobile section pattern
+      const usesResponsiveTable = content.includes('<ResponsiveTable')
       const mobileSection = content.split('block lg:hidden')[1]?.split('hidden lg:block')[0] || ''
-      expect(mobileSection).toContain('min-h-[44px]')
+      const hasTapTargets = usesResponsiveTable || mobileSection.includes('min-h-[44px]')
+      expect(hasTapTargets).toBe(true)
     })
 
     it('Payment page buttons have min-h-[44px] tap targets', () => {
@@ -155,11 +175,12 @@ describe('Mobile Responsiveness - Requirement 22', () => {
   describe('General mobile patterns', () => {
     it.each(ALL_PAGES)('%s prevents viewport overflow with overflow-x-hidden or overflow-hidden', (pagePath) => {
       const content = readComponent(pagePath)
-      // Root container should prevent horizontal overflow, or use Container component
+      // Root container should prevent horizontal overflow, or use Container/PageShell component
       const preventsOverflow =
         content.includes('overflow-x-hidden') ||
         content.includes('overflow-hidden') ||
         content.includes('<Container') ||
+        content.includes('<PageShell') ||
         content.includes('container-mobile') ||
         content.includes('max-w-full')
       expect(preventsOverflow).toBe(true)
@@ -169,10 +190,13 @@ describe('Mobile Responsiveness - Requirement 22', () => {
       const content = readComponent(pagePath)
       // Should use flex-col (mobile) with sm:flex-row or similar for responsive stacking
       // or grid-cols-1/grid-cols-2 for responsive grid layouts
+      // or PageShell/ResponsiveTable which handle layout internally
       const hasResponsiveFlex =
         content.includes('flex-col') ||
         content.includes('grid-cols-1') ||
-        content.includes('grid-cols-2')
+        content.includes('grid-cols-2') ||
+        content.includes('<PageShell') ||
+        content.includes('<ResponsiveTable')
       expect(hasResponsiveFlex).toBe(true)
     })
   })

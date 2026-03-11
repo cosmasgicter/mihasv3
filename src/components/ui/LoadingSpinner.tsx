@@ -46,7 +46,7 @@ export function LoadingSpinner({
       <UnifiedLoader
         variant="inline"
         size={spinnerSizeMap[size]}
-        message={message}
+        label={message}
         className={className}
       />
     )

@@ -131,6 +131,26 @@ module.exports = {
         'mobile-base': ['1rem', { lineHeight: '1.625rem' }],
         'mobile-lg': ['1.125rem', { lineHeight: '1.875rem' }],
       },
+      borderRadius: {
+        none: '0',
+        sm: '0.25rem',     // 4px
+        md: '0.375rem',    // 6px — default for inputs
+        lg: '0.5rem',      // 8px — default for cards
+        xl: '0.75rem',     // 12px
+        '2xl': '1rem',     // 16px
+        full: '9999px',
+      },
+      boxShadow: {
+        sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+        md: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+        lg: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+        xl: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
+      },
+      transitionDuration: {
+        fast: '150ms',
+        normal: '200ms',
+        slow: '300ms',
+      },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-vibrant': 'linear-gradient(135deg, #3b82f6e6 0%, #6366f1d9 100%)',
@@ -142,8 +162,12 @@ module.exports = {
         'slide-in-left': 'slideInLeft 0.3s ease-out',
         'slide-up': 'slideUp 300ms ease-out',
         'scale-in': 'scaleIn 200ms ease-out',
-        'shimmer': 'shimmer 2s infinite linear',
+        'shimmer': 'shimmer 1.5s ease-in-out infinite',
         'bounce-gentle': 'bounceGentle 2s infinite',
+        'dialog-in': 'dialogIn 200ms ease-out',
+        'backdrop-in': 'backdropIn 150ms ease-out',
+        'toast-in': 'toastIn 200ms ease-out',
+        'toast-out': 'toastOut 150ms ease-in',
       },
       keyframes: {
         fadeIn: {
@@ -163,8 +187,8 @@ module.exports = {
           '100%': { opacity: '1', transform: 'translateX(0)' },
         },
         shimmer: {
-          '0%': { backgroundPosition: '-1000px 0' },
-          '100%': { backgroundPosition: '1000px 0' },
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
         },
         bounceGentle: {
           '0%, 100%': { transform: 'translateY(0)' },
@@ -178,6 +202,22 @@ module.exports = {
           '0%': { opacity: '0', transform: 'scale(0.95)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
         },
+        dialogIn: {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        backdropIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        toastIn: {
+          '0%': { opacity: '0', transform: 'translateY(-100%)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        toastOut: {
+          '0%': { opacity: '1', transform: 'translateY(0)' },
+          '100%': { opacity: '0', transform: 'translateY(-100%)' },
+        },
       },
       transitionProperty: {
         'height': 'height',
@@ -189,5 +229,44 @@ module.exports = {
     require('@tailwindcss/forms')({
       strategy: 'class',
     }),
+    // Micro-interaction utility classes (Req 12.1–12.3, 12.6, 12.7)
+    // These are also defined in src/styles/interactive-feedback.css for
+    // compound selectors (:hover, :active) that plugin addUtilities can't express.
+    function ({ addUtilities }) {
+      addUtilities({
+        '.focus-ring': {
+          '&:focus-visible': {
+            'outline': 'none',
+            '--tw-ring-offset-shadow': 'var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color)',
+            '--tw-ring-shadow': 'var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color)',
+            'box-shadow': 'var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)',
+            '--tw-ring-color': '#2563eb',
+            '--tw-ring-offset-width': '2px',
+          },
+        },
+        '.press-scale': {
+          'transition-property': 'transform',
+          'transition-duration': '100ms',
+          '&:active': {
+            'transform': 'scale(0.98)',
+          },
+        },
+        '.btn-hover': {
+          'transition-property': 'color, background-color, border-color, text-decoration-color, fill, stroke',
+          'transition-duration': '150ms',
+        },
+        '.card-hover': {
+          'transition-property': 'box-shadow',
+          'transition-duration': '150ms',
+          '&:hover': {
+            'box-shadow': '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+          },
+        },
+        '.link-hover': {
+          'transition-property': 'color, background-color, border-color, text-decoration-color, fill, stroke',
+          'transition-duration': '100ms',
+        },
+      })
+    },
   ],
 }

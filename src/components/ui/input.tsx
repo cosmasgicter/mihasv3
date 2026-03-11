@@ -20,7 +20,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-foreground mb-1.5">
+          <label htmlFor={inputId} className="block text-sm font-medium text-foreground mb-2">
             {label}
             {props.required && <span className="text-destructive ml-1">*</span>}
           </label>
@@ -35,13 +35,13 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             type={type}
             id={inputId}
             className={cn(
-              'w-full min-h-[44px] h-11 px-3 rounded-lg touch-target',
+              'w-full min-h-[44px] h-11 px-3 rounded-md touch-target',
               'bg-background',
               'border border-input',
               'text-foreground',
               'placeholder:text-muted-foreground',
               'hover:border-primary/50 hover:bg-accent/30',
-              'focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus:border-transparent',
               'transition-all duration-200',
               'disabled:opacity-50 disabled:cursor-not-allowed',
               'disabled:hover:border-input disabled:hover:bg-background',
@@ -59,14 +59,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {error && (
           <p
             id={`${inputId}-error`}
-            className="mt-1.5 text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1 duration-150 motion-reduce:animate-none"
+            className="mt-1 text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1 duration-150 motion-reduce:animate-none"
             role="alert"
           >
             {error}
           </p>
         )}
         {helperText && !error && (
-          <p id={`${inputId}-helper`} className="mt-1.5 text-sm text-muted-foreground">
+          <p id={`${inputId}-helper`} className="mt-1 text-sm text-muted-foreground">
             {helperText}
           </p>
         )}

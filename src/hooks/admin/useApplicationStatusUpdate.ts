@@ -10,8 +10,8 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useToastStore } from '@/components/ui/Toast'
-import { useAuth } from '@/contexts/AuthContext'
 import { apiClient } from '@/services/client'
+import { invalidateAdminApplicationQueries } from './applicationQueryInvalidation'
 
 export interface StatusUpdateParams {
   /** The application ID to update */
@@ -94,7 +94,6 @@ export function useApplicationStatusUpdate(options: UseApplicationStatusUpdateOp
   const { onSuccess, onError, onConflict } = options
   const queryClient = useQueryClient()
   const toast = useToastStore()
-  const { user } = useAuth()
 
   const mutation = useMutation({
     mutationFn: async (params: StatusUpdateParams): Promise<StatusUpdateResult> => {
@@ -131,15 +130,11 @@ export function useApplicationStatusUpdate(options: UseApplicationStatusUpdateOp
       }
     },
 
-    onSuccess: (result) => {
-      // Invalidate targeted query keys for admin status change (Req 15.2)
-      // Specific application + admin lists — NOT queryClient.clear()
-      queryClient.invalidateQueries({ queryKey: ['applications', result.application.id] })
-      queryClient.invalidateQueries({ queryKey: ['admin-applications'] })
-      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-polling'] })
-      queryClient.invalidateQueries({ queryKey: ['applications'] })
-      queryClient.invalidateQueries({ queryKey: ['application-stats'] })
-      queryClient.invalidateQueries({ queryKey: ['application-history'] })
+    onSuccess: async (result) => {
+      await invalidateAdminApplicationQueries(queryClient, {
+        applicationId: result.application.id,
+        includeApplicationHistory: true,
+      })
 
       // Show success toast
       toast.success(
@@ -150,7 +145,7 @@ export function useApplicationStatusUpdate(options: UseApplicationStatusUpdateOp
       onSuccess?.(result)
     },
 
-    onError: (error: Error) => {
+    onError: async (error: Error) => {
       if (error instanceof ConcurrentModificationError) {
         // Handle concurrent modification conflict
         toast.info(
@@ -158,7 +153,7 @@ export function useApplicationStatusUpdate(options: UseApplicationStatusUpdateOp
         )
 
         // Invalidate queries to get fresh data
-        queryClient.invalidateQueries({ queryKey: ['applications'] })
+        await invalidateAdminApplicationQueries(queryClient)
 
         // Call conflict callback
         onConflict?.()

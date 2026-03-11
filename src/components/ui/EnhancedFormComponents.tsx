@@ -4,8 +4,19 @@ import { useForm, FieldError } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { cn } from '@/lib/utils'
-import { FormError, FormSuccess } from './EnhancedErrorHandling'
-import { Eye, EyeOff } from 'lucide-react'
+import { ErrorDisplay } from './ErrorDisplay'
+
+// Minimal inline success message (no canonical replacement needed)
+function FormSuccess({ message, className }: { message?: string; className?: string }) {
+  if (!message) return null
+  return (
+    <div className={cn('flex items-center space-x-2 text-sm text-success mt-1', className)}>
+      <CheckCircle className="w-4 h-4 flex-shrink-0" />
+      <span>{message}</span>
+    </div>
+  )
+}
+import { Eye, EyeOff, CheckCircle } from 'lucide-react'
 
 // Enhanced input component with mobile optimization
 interface EnhancedInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -106,7 +117,7 @@ export function EnhancedInput({
         <p className="text-xs text-foreground">{hint}</p>
       )}
       
-      <FormError message={errorMessage} />
+      {errorMessage && <ErrorDisplay message={errorMessage} variant="inline" />}
       <FormSuccess message={success} />
     </div>
   )
@@ -197,7 +208,7 @@ export function EnhancedTextarea({
         <p className="text-xs text-foreground">{hint}</p>
       )}
       
-      <FormError message={errorMessage} />
+      {errorMessage && <ErrorDisplay message={errorMessage} variant="inline" />}
       <FormSuccess message={success} />
     </div>
   )
@@ -311,7 +322,7 @@ export function EnhancedSelect({
         <p className="text-xs text-foreground">{hint}</p>
       )}
       
-      <FormError message={errorMessage} />
+      {errorMessage && <ErrorDisplay message={errorMessage} variant="inline" />}
       <FormSuccess message={success} />
     </div>
   )

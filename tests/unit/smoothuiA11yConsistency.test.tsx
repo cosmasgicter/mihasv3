@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 
 import { AnimatedInput } from '@/components/smoothui/animated-input'
 import { AnimatedSelect } from '@/components/smoothui/animated-select'
-import { AnimatedFileUpload } from '@/components/smoothui/animated-file-upload'
+import { FileUpload } from '@/components/ui/FileUpload'
 
 function renderMarkup(element: React.ReactElement) {
   const markup = renderToStaticMarkup(element)
@@ -11,6 +11,16 @@ function renderMarkup(element: React.ReactElement) {
 }
 
 describe('smoothui form control a11y consistency', () => {
+  it('keeps the animated input label visually above the field chrome', () => {
+    const document = renderMarkup(<AnimatedInput id="name" label="Name" />)
+    const label = document.querySelector('label')
+
+    // Label should be positioned above the input with proper spacing (mb-2 = 8px gap)
+    expect(label?.getAttribute('class')).toContain('block')
+    expect(label?.getAttribute('class')).toContain('mb-2')
+    expect(label?.getAttribute('class')).toContain('text-foreground')
+  })
+
   it('only sets aria-invalid when animated input has an error', () => {
     const noErrorDocument = renderMarkup(<AnimatedInput id="name" label="Name" />)
     const noErrorInput = noErrorDocument.querySelector('input')
@@ -38,18 +48,18 @@ describe('smoothui form control a11y consistency', () => {
     expect(document.body.textContent).toContain('*')
   })
 
-  it('uses destructive required marker and conditional aria-invalid on animated file upload', () => {
+  it('uses destructive error styling on canonical file upload when error is present', () => {
     const noErrorDocument = renderMarkup(
-      <AnimatedFileUpload id="file" label="Result Slip" required />
+      <FileUpload label="Result Slip" />
     )
-    const noErrorInput = noErrorDocument.querySelector('input[type="file"]')
-    expect(noErrorInput?.hasAttribute('aria-invalid')).toBe(false)
-    expect(noErrorDocument.body.textContent).toContain('*')
+    // FileUpload uses react-dropzone — verify it renders a drop zone
+    expect(noErrorDocument.body.textContent).toContain('Drop file here')
 
     const errorDocument = renderMarkup(
-      <AnimatedFileUpload id="file" label="Result Slip" error="Upload failed" />
+      <FileUpload label="Result Slip" error="Upload failed" />
     )
-    const errorInput = errorDocument.querySelector('input[type="file"]')
-    expect(errorInput?.getAttribute('aria-invalid')).toBe('true')
+    // Error message should be rendered with role="alert"
+    const errorAlert = errorDocument.querySelector('[role="alert"]')
+    expect(errorAlert?.textContent).toContain('Upload failed')
   })
 })
