@@ -87,6 +87,34 @@ export async function rotateToken(userId: string): Promise<string> {
   return generateToken(userId);
 }
 
+/**
+ * Ensure a CSRF token exists for a user, creating one if needed.
+ *
+ * Unlike generateToken(), this does NOT delete existing valid tokens.
+ * Used by the session endpoint so that:
+ *  - If the frontend still has a valid token in memory, it keeps working.
+ *  - If the frontend lost its token (page refresh), the new one is returned.
+ *
+ * Cleans up only expired tokens to prevent unbounded growth.
+ */
+export async function ensureToken(userId: string): Promise<string> {
+  // Clean up expired tokens only (not valid ones)
+  await query('DELETE FROM csrf_tokens WHERE user_id = $1 AND expires_at <= NOW()', [userId]);
+
+  // Generate a new token (additive — existing valid tokens remain)
+  const raw = randomBytes(32).toString('hex');
+  const hash = hashToken(raw);
+  const expiresAt = new Date(Date.now() + TOKEN_TTL_MS).toISOString();
+
+  await query(
+    `INSERT INTO csrf_tokens (user_id, token_hash, expires_at)
+     VALUES ($1, $2, $3)`,
+    [userId, hash, expiresAt],
+  );
+
+  return raw;
+}
+
 
 /**
  * CSRF validation middleware for state-changing requests.

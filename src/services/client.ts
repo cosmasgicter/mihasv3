@@ -563,6 +563,11 @@ class ApiClient {
             this.parseJsonSafely<TResponse>(response, service, normalizedEndpoint),
           onResponse: (response: Response, _duration: number) => {
             responseContentType = response.headers.get('content-type') ?? '';
+            // Capture CSRF token from GET responses (e.g. session check after page refresh)
+            const csrfHeader = response.headers.get('X-CSRF-Token');
+            if (csrfHeader) {
+              setCsrfToken(csrfHeader);
+            }
           },
         } as RequestInit & FetchWithCacheOptions;
 
