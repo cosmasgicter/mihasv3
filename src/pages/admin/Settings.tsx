@@ -1009,7 +1009,6 @@ export default function AdminSettings() {
               </>
             )}
           </div>
-        </div>
 
       <ConfirmAlertDialog
         isOpen={confirmDialog.isOpen}

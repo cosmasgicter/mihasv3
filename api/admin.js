@@ -151,9 +151,9 @@ var init_queries = __esm(() => {
         text: `
         INSERT INTO audit_logs (
           actor_id, action, entity_type, entity_id,
-          changes, ip_address, user_agent, created_at
+          changes, ip_address, user_agent, retention_category, created_at
         )
-        VALUES ($1, $2, $3, $4::uuid, $5, $6, $7, NOW())
+        VALUES ($1, $2, $3, $4::uuid, $5, $6, $7, $8, NOW())
         RETURNING id, created_at
       `,
         values: [
@@ -163,7 +163,8 @@ var init_queries = __esm(() => {
           safeEntityId,
           mergedChanges ? JSON.stringify(mergedChanges) : null,
           input.ip_address || null,
-          input.user_agent || null
+          input.user_agent || null,
+          input.retention_category || "standard"
         ]
       };
     },
@@ -171,9 +172,9 @@ var init_queries = __esm(() => {
       text: `
       INSERT INTO audit_logs (
         actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
+        changes, ip_address, user_agent, retention_category, created_at
       )
-      VALUES ($1, $2, 'user', COALESCE($1, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $3, $4, $5, NOW())
+      VALUES ($1, $2, 'user', COALESCE($1, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $3, $4, $5, 'security', NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -188,9 +189,9 @@ var init_queries = __esm(() => {
       text: `
       INSERT INTO audit_logs (
         actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
+        changes, ip_address, user_agent, retention_category, created_at
       )
-      VALUES ($1, 'authorization_failure', $2, COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
+      VALUES ($1, 'authorization_failure', $2, COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, 'security', NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -209,9 +210,9 @@ var init_queries = __esm(() => {
       text: `
       INSERT INTO audit_logs (
         actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
+        changes, ip_address, user_agent, retention_category, created_at
       )
-      VALUES ($1, $2, 'session', COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
+      VALUES ($1, $2, 'session', COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, 'standard', NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -313,7 +314,13 @@ var init_queries = __esm(() => {
     deleteOlderThan: (daysOld) => ({
       text: `
       DELETE FROM audit_logs
-      WHERE created_at < NOW() - INTERVAL '1 day' * $1
+      WHERE (
+        (retention_category = 'standard' AND created_at < NOW() - INTERVAL '1 day' * $1)
+        OR
+        (retention_category = 'security' AND created_at < NOW() - INTERVAL '365 days')
+        OR
+        (retention_category IS NULL AND created_at < NOW() - INTERVAL '1 day' * $1)
+      )
       RETURNING id
     `,
       values: [daysOld]
@@ -15803,12 +15810,6 @@ async function handleDeactivateUser(req, res, auth) {
     const sessionResult = await query(`UPDATE device_sessions
        SET is_active = false
        WHERE user_id = $1 AND is_active = true`, [userId]);
-    try {
-      await query(`UPDATE user_roles
-         SET is_active = false,
-             updated_at = NOW()
-         WHERE user_id = $1`, [userId]);
-    } catch {}
     await logAuditEvent({
       actor_id: auth.userId,
       action: "user_deactivated",
@@ -15971,12 +15972,6 @@ async function handleUpdateUser(req, res, auth) {
       sendError(res, "User not found", HttpStatus.NOT_FOUND);
       return;
     }
-    try {
-      await query(`INSERT INTO user_roles (user_id, role, is_active, created_at, updated_at)
-         VALUES ($1, $2, true, NOW(), NOW())
-         ON CONFLICT (user_id)
-         DO UPDATE SET role = EXCLUDED.role, is_active = true, updated_at = NOW()`, [userId, role]);
-    } catch {}
     const roleChanged = currentUser.role !== role;
     const revokedSessions = roleChanged ? await revokeUserSessions(userId) : 0;
     await logAuditEvent({
@@ -16422,12 +16417,6 @@ async function handleUpdateRole(req, res, auth) {
       sendError(res, "User not found", HttpStatus.NOT_FOUND);
       return;
     }
-    try {
-      await query(`INSERT INTO user_roles (user_id, role, is_active, created_at, updated_at)
-         VALUES ($1, $2, true, NOW(), NOW())
-         ON CONFLICT (user_id) 
-         DO UPDATE SET role = EXCLUDED.role, is_active = true, updated_at = NOW()`, [userId, role]);
-    } catch {}
     const revokedSessions = await revokeUserSessions(userId);
     await logAuditEvent({
       actor_id: auth.userId,
@@ -16591,39 +16580,14 @@ async function handleAuditLog(req, res) {
     handleError(res, error48, "admin/audit-log");
   }
 }
-async function handleAppeals(req, res) {
-  let page = parseInt(req.query.page || "1", 10);
-  let pageSize = parseInt(req.query.limit || req.query.pageSize || "50", 10);
-  if (isNaN(page) || page < 1)
-    page = 1;
-  if (isNaN(pageSize) || pageSize < 1)
-    pageSize = 50;
-  if (pageSize > 200)
-    pageSize = 200;
-  const offset = (page - 1) * pageSize;
-  try {
-    const [countResult, appealsResult] = await Promise.all([
-      query("SELECT COUNT(*) as count FROM eligibility_appeals"),
-      query(`SELECT * FROM eligibility_appeals ORDER BY submitted_at DESC NULLS LAST, created_at DESC NULLS LAST LIMIT $1 OFFSET $2`, [pageSize, offset])
-    ]);
-    const totalCount = parseInt(countResult.rows[0]?.count || "0", 10);
-    sendSuccess(res, {
-      appeals: appealsResult.rows,
-      totalCount,
-      page,
-      pageSize,
-      totalPages: Math.max(1, Math.ceil(totalCount / pageSize))
-    });
-  } catch (error48) {
-    logErrorAuditEvent("admin/appeals", error48).catch(() => {});
-    sendSuccess(res, {
-      appeals: [],
-      totalCount: 0,
-      page,
-      pageSize,
-      totalPages: 1
-    });
-  }
+async function handleAppeals(_req, res) {
+  sendSuccess(res, {
+    appeals: [],
+    totalCount: 0,
+    page: 1,
+    pageSize: 50,
+    totalPages: 1
+  });
 }
 export {
   admin_default as default

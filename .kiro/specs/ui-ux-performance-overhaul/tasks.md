@@ -22,7 +22,7 @@ Frontend-only overhaul of the MIHAS Application System. Work is organized in lay
     - Add these as Tailwind plugin utilities or document as className patterns in a shared constants file
     - _Requirements: 12.1, 12.2, 12.3, 12.6, 12.7_
 
-  - [ ]* 1.3 Write property tests for design token system
+  - [x]* 1.3 Write property tests for design token system
     - **Property 2: Animation Duration Cap** — verify all animation/transition duration tokens ≤ 300ms
     - **Property 3: Reduced Motion Compliance** — verify `prefers-reduced-motion` disables all animations
     - **Validates: Requirements 1.5, 8.2, 12.6, 12.7**
@@ -95,7 +95,7 @@ Frontend-only overhaul of the MIHAS Application System. Work is organized in lay
     - Must be first focusable element in DOM
     - _Requirements: 16.6_
 
-  - [ ]* 2.10 Write property tests for canonical UI primitives
+  - [x]* 2.10 Write property tests for canonical UI primitives
     - **Property 1: Design Token Consistency** — verify no hardcoded hex/rgb/hsl in component classNames
     - **Property 4: Interactive Element Focus Indicators** — verify `focus-visible:ring-2` on all interactive elements
     - **Property 5: Interactive Element Micro-Interactions** — verify transition + active:scale on buttons/cards
@@ -157,7 +157,7 @@ Frontend-only overhaul of the MIHAS Application System. Work is organized in lay
     - Row click handler, empty state support, loading state
     - _Requirements: 7.3, 7.5, 15.2, 17.6_
 
-  - [ ]* 4.7 Write property tests for layout and navigation
+  - [x]* 4.7 Write property tests for layout and navigation
     - **Property 9: BottomNavigation Active State** — exactly one active item, `md:hidden` present
     - **Property 10: ResponsiveHeader Title Rendering** — title rendered, back button with `aria-label` when `showBack`
     - **Property 12: PageShell Structural Invariants** — one `<h1>`, `<main>`, responsive padding, bottom padding
@@ -182,7 +182,7 @@ Frontend-only overhaul of the MIHAS Application System. Work is organized in lay
     - Integrate with router wrapper for BottomNavigation tab switches
     - _Requirements: 4.6_
 
-  - [ ]* 6.3 Write property tests for hooks
+  - [x]* 6.3 Write property tests for hooks
     - **Property 11: Scroll Position Round Trip** — store and retrieve returns original value
     - **Property 29: Debounce Prevents Rapid Firing** — N rapid events within 300ms fire handler at most once
     - **Property 30: Prefetch Triggers on Hover/Focus** — import called exactly once, not re-called if cached
@@ -226,7 +226,7 @@ Frontend-only overhaul of the MIHAS Application System. Work is organized in lay
     - Ensure consistent positioning (fixed top, z-50) and dismiss behavior
     - _Requirements: 19.4_
 
-  - [ ]* 7.7 Write property tests for page integration
+  - [x]* 7.7 Write property tests for page integration
     - **Property 21: Semantic HTML Heading Hierarchy** — one `<h1>` per page, no skipped heading levels
     - **Property 23: Skip Link Presence** — first focusable element is skip link targeting `#main-content`
     - **Validates: Requirements 16.6, 17.2**
@@ -327,7 +327,7 @@ Frontend-only overhaul of the MIHAS Application System. Work is organized in lay
     - Wire `LazyLoadErrorBoundary` to show `ErrorDisplay` with "Reload" on chunk load failure
     - _Requirements: 8.1, 8.5, 10.2, 10.3_
 
-  - [ ]* 12.4 Write property tests for state components
+  - [x]* 12.4 Write property tests for state components
     - **Property 15: EmptyState Rendering Completeness** — heading always rendered, description/action conditional
     - **Property 16: ErrorDisplay Retry Invariant** — retry button present iff onRetry provided
     - **Property 17: FileUpload State Machine Rendering** — correct UI for each upload state
@@ -347,7 +347,7 @@ Frontend-only overhaul of the MIHAS Application System. Work is organized in lay
     - Verify `aria-live` regions on toast container
     - _Requirements: 19.5_
 
-  - [ ]* 13.3 Write property tests for notifications
+  - [x]* 13.3 Write property tests for notifications
     - **Property 18: Notification Variant ARIA Roles** — correct role for each severity
     - **Property 19: Notification Variant Color Consistency** — design token colors, no hardcoded values
     - **Validates: Requirements 19.1, 19.3, 19.4, 19.5**
@@ -387,7 +387,7 @@ Frontend-only overhaul of the MIHAS Application System. Work is organized in lay
     - Add `<link rel="preload">` for critical resources (main CSS, main JS, Inter font) in `index.html`
     - Ensure non-critical JS (service worker, PWA install) is deferred
     - Ensure vendor chunks (excel, pdf, ocr, charts) are lazy-loaded only when needed
-    - _Requirements: 20.1, 20.2, 20.3, 20.4, 20.5_
+    - _Requirements: 20.1, 20.2, 20.3, 20.4, 20.5_ 
 
 - [x] 16. Apply form and accessibility improvements across all pages
   - [x] 16.1 Ensure consistent form input styling
@@ -412,7 +412,7 @@ Frontend-only overhaul of the MIHAS Application System. Work is organized in lay
     - Verify `aria-live` regions for dynamic content (toasts, auto-save, form errors)
     - _Requirements: 17.1, 17.3, 17.4, 17.5, 17.6_
 
-  - [ ]* 16.4 Write property tests for accessibility
+  - [x]* 16.4 Write property tests for accessibility
     - **Property 6: Form Field Accessibility Invariants** — label association, `aria-required`, `aria-invalid`, `aria-describedby`
     - **Property 7: Form Input Touch Target Minimum** — min 44px height for inputs, 44×44px for checkboxes/radios
     - **Property 22: Icon-Only Button Accessibility** — `aria-label` on icon-only buttons
@@ -435,7 +435,7 @@ Frontend-only overhaul of the MIHAS Application System. Work is organized in lay
     - Configure column priorities: key columns as `always`, detail columns as `desktop`
     - _Requirements: 7.3, 15.2_
 
-  - [ ]* 17.3 Write property tests for responsive design
+  - [x]* 17.3 Write property tests for responsive design
     - **Property 27: No Horizontal Overflow at Any Breakpoint** — scrollWidth ≤ viewport width at all breakpoints
     - **Property 28: Modal Responsive Sizing** — full-screen below 768px, centered card above
     - **Validates: Requirements 18.1, 18.5**
@@ -447,7 +447,6 @@ Frontend-only overhaul of the MIHAS Application System. Work is organized in lay
   - Verify design token usage (no hardcoded hex values in component files)
 
 ## Notes
-
 - Tasks marked with `*` are optional and can be skipped for faster MVP
 - Each task references specific requirements for traceability
 - Checkpoints ensure incremental validation

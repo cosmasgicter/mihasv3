@@ -126,9 +126,9 @@ var init_queries = __esm(() => {
         text: `
         INSERT INTO audit_logs (
           actor_id, action, entity_type, entity_id,
-          changes, ip_address, user_agent, created_at
+          changes, ip_address, user_agent, retention_category, created_at
         )
-        VALUES ($1, $2, $3, $4::uuid, $5, $6, $7, NOW())
+        VALUES ($1, $2, $3, $4::uuid, $5, $6, $7, $8, NOW())
         RETURNING id, created_at
       `,
         values: [
@@ -138,7 +138,8 @@ var init_queries = __esm(() => {
           safeEntityId,
           mergedChanges ? JSON.stringify(mergedChanges) : null,
           input.ip_address || null,
-          input.user_agent || null
+          input.user_agent || null,
+          input.retention_category || "standard"
         ]
       };
     },
@@ -146,9 +147,9 @@ var init_queries = __esm(() => {
       text: `
       INSERT INTO audit_logs (
         actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
+        changes, ip_address, user_agent, retention_category, created_at
       )
-      VALUES ($1, $2, 'user', COALESCE($1, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $3, $4, $5, NOW())
+      VALUES ($1, $2, 'user', COALESCE($1, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $3, $4, $5, 'security', NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -163,9 +164,9 @@ var init_queries = __esm(() => {
       text: `
       INSERT INTO audit_logs (
         actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
+        changes, ip_address, user_agent, retention_category, created_at
       )
-      VALUES ($1, 'authorization_failure', $2, COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
+      VALUES ($1, 'authorization_failure', $2, COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, 'security', NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -184,9 +185,9 @@ var init_queries = __esm(() => {
       text: `
       INSERT INTO audit_logs (
         actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
+        changes, ip_address, user_agent, retention_category, created_at
       )
-      VALUES ($1, $2, 'session', COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
+      VALUES ($1, $2, 'session', COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, 'standard', NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -288,7 +289,13 @@ var init_queries = __esm(() => {
     deleteOlderThan: (daysOld) => ({
       text: `
       DELETE FROM audit_logs
-      WHERE created_at < NOW() - INTERVAL '1 day' * $1
+      WHERE (
+        (retention_category = 'standard' AND created_at < NOW() - INTERVAL '1 day' * $1)
+        OR
+        (retention_category = 'security' AND created_at < NOW() - INTERVAL '365 days')
+        OR
+        (retention_category IS NULL AND created_at < NOW() - INTERVAL '1 day' * $1)
+      )
       RETURNING id
     `,
       values: [daysOld]

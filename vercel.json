@@ -11,10 +11,10 @@
     { "source": "/api/bootstrap", "destination": "/api/bootstrap" },
     { "source": "/api/catalog", "destination": "/api/catalog" },
     { "source": "/api/documents", "destination": "/api/documents" },
+    { "source": "/api/email", "destination": "/api/email" },
     { "source": "/api/notifications", "destination": "/api/notifications" },
     { "source": "/api/payments", "destination": "/api/payments" },
     { "source": "/api/sessions", "destination": "/api/sessions" },
-    { "source": "/api/ping", "destination": "/api/ping" },
     { "source": "/api/:path*", "destination": "/api/[...path]" },
     { "source": "/((?!assets/|images/|sw\\.js|manifest\\.json|favicon\\.ico|robots\\.txt|sitemap\\.xml|offline\\.html).*)", "destination": "/index.html" }
   ],

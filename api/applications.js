@@ -151,9 +151,9 @@ var init_queries = __esm(() => {
         text: `
         INSERT INTO audit_logs (
           actor_id, action, entity_type, entity_id,
-          changes, ip_address, user_agent, created_at
+          changes, ip_address, user_agent, retention_category, created_at
         )
-        VALUES ($1, $2, $3, $4::uuid, $5, $6, $7, NOW())
+        VALUES ($1, $2, $3, $4::uuid, $5, $6, $7, $8, NOW())
         RETURNING id, created_at
       `,
         values: [
@@ -163,7 +163,8 @@ var init_queries = __esm(() => {
           safeEntityId,
           mergedChanges ? JSON.stringify(mergedChanges) : null,
           input.ip_address || null,
-          input.user_agent || null
+          input.user_agent || null,
+          input.retention_category || "standard"
         ]
       };
     },
@@ -171,9 +172,9 @@ var init_queries = __esm(() => {
       text: `
       INSERT INTO audit_logs (
         actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
+        changes, ip_address, user_agent, retention_category, created_at
       )
-      VALUES ($1, $2, 'user', COALESCE($1, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $3, $4, $5, NOW())
+      VALUES ($1, $2, 'user', COALESCE($1, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $3, $4, $5, 'security', NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -188,9 +189,9 @@ var init_queries = __esm(() => {
       text: `
       INSERT INTO audit_logs (
         actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
+        changes, ip_address, user_agent, retention_category, created_at
       )
-      VALUES ($1, 'authorization_failure', $2, COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
+      VALUES ($1, 'authorization_failure', $2, COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, 'security', NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -209,9 +210,9 @@ var init_queries = __esm(() => {
       text: `
       INSERT INTO audit_logs (
         actor_id, action, entity_type, entity_id,
-        changes, ip_address, user_agent, created_at
+        changes, ip_address, user_agent, retention_category, created_at
       )
-      VALUES ($1, $2, 'session', COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, NOW())
+      VALUES ($1, $2, 'session', COALESCE($3, '${AUDIT_ENTITY_PLACEHOLDER_ID}')::uuid, $4, $5, $6, 'standard', NOW())
       RETURNING id, created_at
     `,
       values: [
@@ -313,7 +314,13 @@ var init_queries = __esm(() => {
     deleteOlderThan: (daysOld) => ({
       text: `
       DELETE FROM audit_logs
-      WHERE created_at < NOW() - INTERVAL '1 day' * $1
+      WHERE (
+        (retention_category = 'standard' AND created_at < NOW() - INTERVAL '1 day' * $1)
+        OR
+        (retention_category = 'security' AND created_at < NOW() - INTERVAL '365 days')
+        OR
+        (retention_category IS NULL AND created_at < NOW() - INTERVAL '1 day' * $1)
+      )
       RETURNING id
     `,
       values: [daysOld]
@@ -621,12 +628,12 @@ var init_queries = __esm(() => {
     create: (applicationId, status, changedBy, notes, oldStatus) => ({
       text: `
       INSERT INTO application_status_history (
-        id, application_id, old_status, new_status, changed_by, notes, created_at
+        id, application_id, status, old_status, new_status, changed_by, notes, created_at
       )
-      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NOW())
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW())
       RETURNING *
     `,
-      values: [applicationId, oldStatus || null, status, changedBy, notes || null]
+      values: [applicationId, status, oldStatus || null, status, changedBy, notes || null]
     }),
     findByApplicationId: (applicationId) => ({
       text: `
@@ -16116,37 +16123,15 @@ async function handleById(req, res, userId, isAdmin2, canReadAllApplications, ca
           }
           let updateResult2;
           try {
-            const notificationTitle = "Application approved";
-            const notificationMessage = `Your application ${app.application_number || applicationId} has been approved.`;
-            const actionUrl = `/student/application/${applicationId}`;
-            updateResult2 = await query(`WITH updated_application AS (
-               UPDATE applications
-               SET
-                 status = $2,
-                 reviewed_by = $3,
-                 review_started_at = COALESCE(review_started_at, NOW()),
-                 updated_at = NOW()
-               WHERE id = $1
-               RETURNING *
-             ), history_insert AS (
-               INSERT INTO application_status_history (id, application_id, old_status, new_status, changed_by, notes, created_at)
-               SELECT gen_random_uuid(), id, $8, $2, $3, $4, NOW()
-               FROM updated_application
-               RETURNING id
-             ), notification_insert AS (
-               INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at)
-               SELECT user_id, $5, $6, 'success', $7, false, NOW()
-               FROM updated_application
-               WHERE $2 = 'approved'
-               RETURNING id
-             )
-             SELECT ua.*
-             FROM updated_application ua`, [applicationId, status, userId, notes || null, notificationTitle, notificationMessage, actionUrl, app.status || null]);
+            const updateQ2 = ApplicationQueries.updateStatus(applicationId, status, userId, notes);
+            const historyQ = StatusHistoryQueries.create(applicationId, status, userId, notes, app.status);
+            const [txUpdateResult] = await transaction([
+              { text: updateQ2.text, values: updateQ2.values },
+              { text: historyQ.text, values: historyQ.values }
+            ]);
+            updateResult2 = txUpdateResult;
           } catch (error48) {
             const message = error48.message?.toLowerCase() || "";
-            if (message.includes("notifications")) {
-              return sendError(res, "Status update failed during notification persistence; no changes were applied.", HttpStatus.CONFLICT);
-            }
             if (message.includes("application_status_history") || message.includes("status_history")) {
               return sendError(res, "Status update failed during history persistence; no changes were applied.", HttpStatus.CONFLICT);
             }
@@ -16154,6 +16139,17 @@ async function handleById(req, res, userId, isAdmin2, canReadAllApplications, ca
           }
           if (!updateResult2 || updateResult2.rowCount === 0) {
             return sendError(res, "Application not found", HttpStatus.NOT_FOUND);
+          }
+          if (status === "approved") {
+            try {
+              const notificationTitle = "Application approved";
+              const notificationMessage = `Your application ${app.application_number || applicationId} has been approved.`;
+              const actionUrl = `/student/application/${applicationId}`;
+              await query(`INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at)
+               VALUES ($1, $2, $3, 'success', $4, false, NOW())`, [app.user_id, notificationTitle, notificationMessage, actionUrl]);
+            } catch (notifError) {
+              console.error("[applications] Non-blocking notification insert failed:", notifError);
+            }
           }
           try {
             await logAuditEvent({
@@ -16258,40 +16254,35 @@ async function handleById(req, res, userId, isAdmin2, canReadAllApplications, ca
           const actionUrl = `/student/application/${applicationId}`;
           let updateResult2;
           try {
-            updateResult2 = await query(`WITH updated_application AS (
-               UPDATE applications
-               SET
-                 payment_status = $2,
-                 payment_verified_by = $3,
-                 payment_verified_at = CASE WHEN $2 = 'verified' THEN NOW() ELSE NULL END,
-                 updated_at = NOW()
-               WHERE id = $1
-               RETURNING *
-             ), notification_insert AS (
-               INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at)
-               SELECT user_id, $4, $5, $6, $7, false, NOW()
-               FROM updated_application
-               RETURNING id
-             )
-             SELECT ua.*
-             FROM updated_application ua`, [
+            updateResult2 = await query(`UPDATE applications
+             SET
+               payment_status = $2,
+               payment_verified_by = $3,
+               payment_verified_at = CASE WHEN $2 = 'verified' THEN NOW() ELSE NULL END,
+               updated_at = NOW()
+             WHERE id = $1
+             RETURNING *`, [
               applicationId,
               paymentStatus,
-              paymentStatus === "verified" ? userId : null,
+              paymentStatus === "verified" ? userId : null
+            ]);
+          } catch (error48) {
+            throw error48;
+          }
+          if (!updateResult2 || updateResult2.rowCount === 0) {
+            return sendError(res, "Application not found", HttpStatus.NOT_FOUND);
+          }
+          try {
+            await query(`INSERT INTO notifications (user_id, title, message, type, action_url, is_read, created_at)
+             VALUES ($1, $2, $3, $4, $5, false, NOW())`, [
+              app.user_id,
               notificationTitle,
               notificationMessage,
               paymentStatus === "verified" ? "success" : paymentStatus === "rejected" ? "warning" : "info",
               actionUrl
             ]);
           } catch (notifError) {
-            const message = notifError.message?.toLowerCase() || "";
-            if (message.includes("notifications")) {
-              return sendError(res, "Payment status update failed during notification persistence; no changes were applied.", HttpStatus.CONFLICT);
-            }
-            throw notifError;
-          }
-          if (!updateResult2 || updateResult2.rowCount === 0) {
-            return sendError(res, "Application not found", HttpStatus.NOT_FOUND);
+            console.error("[applications] Non-blocking payment notification insert failed:", notifError);
           }
           try {
             await logAuditEvent({
