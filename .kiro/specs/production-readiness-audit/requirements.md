@@ -2,239 +2,169 @@
 
 ## Introduction
 
-This specification documents a comprehensive production readiness audit of the MIHAS Application System. The audit identifies incomplete user stories, security gaps, performance issues, and system holes that need to be addressed to ensure the platform can handle high traffic and provide a reliable experience for students and administrators.
+Comprehensive production readiness audit and remediation for the MIHAS Application System (apply.mihas.edu.zm), a live admissions portal for Mukuba Institute of Health and Allied Sciences, Zambia. This spec is informed by a complete E2E production test that verified all 27+ API endpoints, auth flows, CSRF protection, security headers, email queue, notification system, application review flow, and payment receipt endpoint. The audit addresses all remaining issues discovered during testing and ensures the system achieves best-in-class performance, reliability, and mobile UX for Zambian students on unreliable connections.
 
-**Audit Scope:**
-- Database schema and RLS policies
-- API endpoint security and error handling
-- User flow completeness (Student, Admin, Super Admin)
-- Performance and scalability
-- Offline functionality and PWA compliance
-- External integration resilience
+### Context from E2E Testing
 
-**Current State Analysis:**
-Based on the existing specs and codebase review:
-- 4 existing specs with varying completion status
-- 86 database tables with RLS policies needed
-- 47+ API endpoints in functions/ directory
-- Multiple user roles: Student, Admin, Super Admin, Admissions Officer
+**Bugs Found & Fixed:**
+- CRITICAL SECURITY: Admin users endpoint leaked password_hash, refresh_token_hash, reset_token_hash via SELECT * — fixed with explicit column list
+- BUG: Notification history returned INTERNAL_ERROR due to uuid=text type mismatch in audit_logs JOIN — fixed by removing ::text cast
+
+**Verified Working:**
+- All 27+ API endpoints tested and functional
+- Auth flow (login, logout, refresh, register, forgot-password)
+- CSRF protection enforced on all state-changing requests
+- Security headers (CSP, HSTS, X-Frame-Options, etc.)
+- Email queue processing (Resend integration)
+- Notification system (create, send, mark-read)
+- Application review flow (approve/reject) with audit trail
+- Payment receipt endpoint (correctly rejects unverified)
+
+**Known Issues Still Open:**
+- Screen auto-refreshing / jittering on the frontend
+- Skeleton loading system needs verification
+- Mobile responsiveness needs thorough audit
+- DB/backend/frontend type sync issues
+- Some documents reference old Cloudflare R2 URLs
+- 36 API errors logged in audit_logs (all from Mar 7-8)
+
+### Previous Specs Completed
+- **deep-forensic-db-audit**: Line-by-line DB schema cross-reference, migration verification, interface fidelity
+- **ui-ux-performance-overhaul**: Design tokens, UI primitive consolidation, skeleton system, mobile navigation, Core Web Vitals
+- **production-remediation**: Auth state unification, auto-save race conditions, double-submit prevention, multi-tab auth, SSE lifecycle, polling leaks, token refresh, RBAC, offline sync, service worker, error display, file upload validation
+
+This spec covers the final remediation pass: systematic verification that all prior fixes are working in production, plus the remaining open issues.
 
 ## Glossary
 
-- **RLS**: Row Level Security - Postgres feature for per-user data access control
-- **PWA**: Progressive Web App - Offline-capable web application
-- **ECZ**: Examinations Council of Zambia - Grading authority (1-9 scale)
-- **HPCZ**: Health Professions Council of Zambia - Eligibility verification
-- **GNC/NMCZ**: General Nursing Council/Nursing and Midwifery Council of Zambia
-- **Application_Wizard**: 4-step form for student applications
-- **Auto_Save**: 8-second interval draft persistence
-- **Audit_Trail**: Immutable log of all state changes
+- **Application_System**: The MIHAS admissions portal (React 18 + TypeScript + Vite + Tailwind CSS) deployed on Vercel at apply.mihas.edu.zm
+- **Auditor**: The systematic audit process that cross-references DB schemas, TypeScript interfaces, API responses, and frontend type definitions
+- **Neon_DB**: The Neon Serverless Postgres database (project: wild-bar-37055823) used for all data storage
+- **API_Layer**: Vercel serverless functions in `api-src/` using query-parameter routing with Arcjet protection
+- **API_Client**: The `ApiClient` class in `src/services/client.ts` that unwraps `{ success, data }` envelopes
+- **Auth_System**: Custom JWT authentication using jose for tokens and bcrypt for password hashing, with HTTP-only cookies
+- **React_Query**: TanStack Query used for server state management with cache invalidation and polling
+- **SSE_Client**: Server-Sent Events client in `src/lib/sseClient.ts` with reconnection and battery-friendly behavior
+- **Skeleton_Screen**: A low-fidelity placeholder UI that mirrors the layout of incoming content, shown during data loading
+- **Jitter**: Visible screen flickering or layout shifts caused by rapid re-renders, refetch intervals, or SSE reconnection loops
+- **R2_URL**: A Cloudflare R2 storage URL from the pre-migration era that may still exist in document records
+- **Touch_Target**: An interactive element sized for reliable thumb interaction on mobile devices (minimum 44×44px)
+- **CLS**: Cumulative Layout Shift, a Core Web Vital measuring visual stability during page load
+- **FCP**: First Contentful Paint, the time until the first text or image is rendered
+- **LCP**: Largest Contentful Paint, the time until the largest visible content element is rendered
+- **Bundle_Size**: The total size of JavaScript delivered to the browser, measured gzipped
+- **Production_Score**: A weighted assessment across security, performance, reliability, mobile UX, data integrity, error handling, and monitoring
 
 ## Requirements
 
-### Requirement 1: Complete Student Application Flow
+### Requirement 1: DB/Backend/Frontend Type Sync Audit
 
-**User Story:** As a student, I want to complete my entire application journey from registration to enrollment decision, so that I can successfully apply to MIHAS programs.
-
-#### Acceptance Criteria
-
-1. WHEN a student registers, THE System SHALL send email verification within 30 seconds
-2. WHEN a student completes profile setup, THE System SHALL pre-populate the Application_Wizard with profile data
-3. WHEN a student saves a draft, THE System SHALL persist all form data including grades within 8 seconds
-4. WHEN a student continues a draft, THE System SHALL restore all saved data and navigate to the last saved step
-5. WHEN a student submits an application, THE System SHALL generate a unique reference number and tracking code
-6. WHEN a student uploads documents, THE System SHALL validate file types and sizes before upload
-7. WHEN a student makes a payment, THE System SHALL update payment_status and notify admins
-8. WHEN a student schedules an interview, THE System SHALL only allow scheduling after payment verification
-9. THE Student_Dashboard SHALL display accurate completion percentage for draft applications
-10. THE Student_Dashboard SHALL show real-time status updates without manual refresh
-
-### Requirement 2: Complete Admin Application Management
-
-**User Story:** As an admin, I want to efficiently review and process applications, so that I can make timely admission decisions.
+**User Story:** As a developer, I want all TypeScript interfaces in the frontend and backend to exactly match the actual Neon Postgres column names and types, so that no runtime errors occur from type mismatches between layers.
 
 #### Acceptance Criteria
 
-1. WHEN an admin views the dashboard, THE System SHALL display accurate counts for all application statuses including drafts
-2. WHEN an admin changes application status, THE Admin_Dashboard SHALL update within 2 seconds without refresh
-3. WHEN an admin approves/rejects an application, THE System SHALL create an audit trail entry
-4. WHEN an admin verifies payment, THE System SHALL update payment_status and notify the student
-5. WHEN an admin schedules an interview, THE System SHALL send notification to the student via preferred channel
-6. THE Admin_Dashboard SHALL display applications from all statuses: draft, submitted, under_review, approved, rejected
-7. THE Admin_Dashboard SHALL provide bulk operations for status changes
-8. THE Admin_Dashboard SHALL show real-time metrics without manual refresh
-9. WHEN filtering applications, THE System SHALL support filtering by status, program, intake, and payment status
-10. THE System SHALL provide PDF export of application details and documents
+1. THE Auditor SHALL query `information_schema.columns` via Neon_DB for all 28 tables and produce a ground-truth column inventory including column_name, data_type, is_nullable, and column_default
+2. THE Auditor SHALL compare every TypeScript interface in `lib/queries.ts` against the ground-truth column inventory, reporting fields that exist in the interface but not in the database, and columns that exist in the database but not in the interface
+3. THE Auditor SHALL compare every TypeScript interface in `src/types/` that models API response data against the actual API response shapes returned by each endpoint, reporting any mismatches in field names or types
+4. THE Auditor SHALL scan all `api-src/*.ts` files for inline SQL column references (in SELECT, INSERT, UPDATE, DELETE, and JOIN statements) and verify every referenced column exists in the corresponding Neon_DB table
+5. THE Auditor SHALL verify that all frontend service functions in `src/services/` that consume API responses use field names matching the actual API response payload (after envelope unwrapping), not stale or renamed fields
+6. WHEN a type mismatch is found between any two layers (DB ↔ backend interface, backend interface ↔ API response, API response ↔ frontend type), THE Auditor SHALL report the exact file, line, field name, expected type, and actual type
+7. THE Auditor SHALL specifically verify the `audit_logs` table JOIN conditions used in `api-src/notifications.ts` and `api-src/admin.ts` to confirm the uuid=text type mismatch fix is correctly applied and no similar mismatches exist in other JOINs
+8. THE Auditor SHALL verify that the `profiles` table column list used in `api-src/admin.ts` (the users endpoint) uses an explicit column list and does not use SELECT *, confirming the security fix for password_hash/token leakage is in place
 
-### Requirement 3: Database Security and RLS Policies
+### Requirement 2: Jittering and Auto-Refresh Investigation and Fix
 
-**User Story:** As a system administrator, I want all database tables to have proper RLS policies, so that user data is protected and isolated.
+**User Story:** As a student using the application on a mobile phone, I want the screen to remain stable without flickering, jumping, or auto-refreshing, so that I can read content and interact with forms without frustration.
 
 #### Acceptance Criteria
 
-1. THE System SHALL enable RLS on all tables containing user data
-2. FOR ALL student-owned data, THE RLS policies SHALL restrict access to the owning user
-3. FOR ALL admin operations, THE RLS policies SHALL verify admin or super_admin role
-4. THE profiles table SHALL have RLS policies for user self-access and admin access
-5. THE applications table SHALL have RLS policies restricting students to their own applications
-6. THE application_documents table SHALL have RLS policies matching application ownership
-7. THE payments table SHALL have RLS policies for user and admin access
-8. THE in_app_notifications table SHALL have RLS policies for recipient-only access
-9. THE device_sessions table SHALL have RLS policies for user self-management
-10. THE audit_trail table SHALL be read-only for admins and inaccessible to students
-11. THE email_queue table SHALL only be accessible by service_role
-12. THE System SHALL NOT expose sensitive data through RLS policy gaps
+1. THE Auditor SHALL inventory all React Query `refetchInterval` configurations across the codebase (in hooks, query options, and QueryClient defaults) and report each interval value, the query key it applies to, and the component that consumes it
+2. THE Auditor SHALL inventory all SSE/polling reconnection logic in `src/lib/sseClient.ts`, `src/hooks/useStudentDashboardPolling.ts`, `src/hooks/useAdminDashboardPolling.ts`, and any `useRealtime` hooks, identifying reconnection timers, retry intervals, and visibility change handlers
+3. THE Auditor SHALL identify all Zustand store subscriptions that trigger component re-renders by scanning for `useAuthStore`, `useApplicationStore`, `useToastStore`, and other store hooks, reporting any stores where frequent updates (more than once per second) could cause visible re-renders
+4. WHEN a React Query refetch interval is set below 10 seconds on a non-critical query (anything other than auth session), THE Application_System SHALL increase the interval to at least 30 seconds or use event-driven invalidation instead
+5. WHEN the SSE_Client reconnects after a disconnect, THE Application_System SHALL use exponential backoff starting at 2 seconds with a maximum of 60 seconds, and SHALL NOT trigger a full page data refetch on each reconnection attempt
+6. THE Application_System SHALL ensure that React Query cache updates from polling or SSE do not cause layout shifts by using `keepPreviousData: true` (or `placeholderData` in v5) on all dashboard and list queries
+7. THE Application_System SHALL ensure that the auth session check (`useSessionListener`) does not trigger cascading re-renders across the component tree by using React Query's `select` option to extract only the fields each component needs
+8. WHEN the browser tab is hidden for more than 5 minutes, THE Application_System SHALL pause all polling intervals and SSE connections, resuming only when the tab becomes visible again
 
-### Requirement 4: API Endpoint Security
+### Requirement 3: Skeleton Loading System Verification
 
-**User Story:** As a developer, I want all API endpoints to be secure and properly authenticated, so that the system is protected from unauthorized access.
+**User Story:** As a student waiting for data to load, I want skeleton screens that match the layout of the real content and transition smoothly without layout shift, so that the application feels fast and professional.
 
 #### Acceptance Criteria
 
-1. THE middleware SHALL validate authentication tokens on all protected endpoints
-2. THE middleware SHALL set appropriate CORS headers for cross-origin requests
-3. THE middleware SHALL set security headers: CSP, HSTS, X-Content-Type-Options, X-Frame-Options
-4. WHEN an API call fails, THE System SHALL return consistent error responses without exposing stack traces
-5. THE System SHALL rate-limit authentication endpoints to prevent brute force attacks
-6. THE System SHALL validate all input data using Zod schemas
-7. THE System SHALL sanitize user input to prevent SQL injection and XSS
-8. THE admin endpoints SHALL verify admin role before processing requests
-9. THE System SHALL log API errors without logging PII
-10. THE System SHALL handle timeout errors gracefully with retry logic
+1. THE Auditor SHALL verify that every lazy-loaded page route in `src/routes/config.tsx` has a corresponding Suspense fallback that renders a skeleton matching the target page layout, not a generic spinner
+2. THE Auditor SHALL verify that `DashboardSkeleton` renders placeholder elements matching the actual student dashboard layout: stat cards row, applications list, and notification panel
+3. THE Auditor SHALL verify that `AdminTableSkeleton` renders placeholder elements matching the actual admin table layout: filter bar, table header, and table rows with correct column count
+4. THE Auditor SHALL verify that `WizardSkeleton` renders placeholder elements matching the actual application wizard layout: progress stepper, form fields area, and navigation buttons
+5. THE Auditor SHALL verify that `AppShellSkeleton` renders placeholder elements matching the app shell: header bar, sidebar (desktop) or bottom nav (mobile), and content area
+6. WHEN data loading completes, THE Application_System SHALL transition from skeleton to real content without visible layout shift (CLS contribution < 0.05 from skeleton-to-content transition)
+7. THE Application_System SHALL ensure skeleton animations respect `prefers-reduced-motion` by disabling shimmer effects when the user prefers reduced motion
+8. WHEN a data fetch fails after showing a skeleton, THE Application_System SHALL transition to an error state with a retry button, not remain in the skeleton state indefinitely
+9. THE Application_System SHALL ensure no nested skeletons appear (e.g., a page skeleton inside a route-level Suspense fallback inside an app-level skeleton), limiting to one visible skeleton per content area
 
-### Requirement 5: Notification System Completeness
+### Requirement 4: Mobile Responsiveness Audit
 
-**User Story:** As a user, I want to receive timely notifications through my preferred channels, so that I stay informed about my application status.
-
-#### Acceptance Criteria
-
-1. WHEN an application status changes, THE System SHALL send notification via user's preferred channel
-2. THE System SHALL support email, SMS, WhatsApp, push, and in-app notifications
-3. WHEN email sending fails, THE System SHALL queue for retry with exponential backoff
-4. WHEN SMS/WhatsApp fails, THE System SHALL fall back to email notification
-5. THE System SHALL respect user notification preferences and quiet hours
-6. THE System SHALL track notification delivery status and analytics
-7. THE in-app notifications SHALL update in real-time without page refresh
-8. THE notification badge SHALL show accurate unread count
-9. THE System SHALL support bulk notifications for admin announcements
-10. THE System SHALL maintain notification consent audit trail
-
-### Requirement 6: Payment System Integrity
-
-**User Story:** As a student, I want to make payments securely and have them verified promptly, so that I can proceed with my application.
+**User Story:** As a student on a mobile phone in Zambia (the primary access method), I want every page to be fully usable on screens as narrow as 320px with comfortable touch targets, so that I can complete my application from my phone without frustration.
 
 #### Acceptance Criteria
 
-1. THE Payment_Page SHALL display all applications with pending payments
-2. WHEN a student uploads payment proof, THE System SHALL store it securely in Supabase storage
-3. THE System SHALL generate payment receipts in PDF format
-4. WHEN payment is verified, THE System SHALL update application status and notify student
-5. THE System SHALL maintain payment audit trail with all status changes
-6. THE System SHALL prevent duplicate payment submissions
-7. THE Payment_Page SHALL show clear payment instructions and bank details
-8. THE System SHALL support multiple payment methods (bank transfer, mobile money)
-9. WHEN payment verification is rejected, THE System SHALL notify student with reason
-10. THE System SHALL calculate and display correct payment amounts per program
+1. THE Auditor SHALL test all public pages (landing page, sign-in, sign-up, forgot-password, reset-password) on viewports of 320px, 375px, and 768px, verifying no horizontal overflow, no overlapping elements, and no text truncation that hides critical information
+2. THE Auditor SHALL test all student pages (dashboard, application wizard all 4 steps, application detail, payment, interview, settings, notification settings) on viewports of 320px, 375px, and 768px with the same criteria
+3. THE Auditor SHALL test all admin pages (dashboard, applications list, application detail modal, users, settings, audit trail, monitoring, intakes, programs, batch operations) on viewports of 320px, 375px, and 768px
+4. THE Application_System SHALL ensure all interactive elements (buttons, links, form inputs, checkboxes, radio buttons, select dropdowns, file upload zones) have a minimum touch target size of 44×44 CSS pixels on mobile viewports
+5. THE Application_System SHALL ensure the application wizard step navigation is usable on 320px screens with step indicators that do not overflow or overlap
+6. THE Application_System SHALL ensure the admin sidebar collapses cleanly on mobile with a hamburger menu toggle, and the collapsed state does not leave visual artifacts or block content
+7. THE Application_System SHALL ensure all data tables on mobile either switch to a card-based layout or provide a horizontally scrollable table with a visible scroll affordance
+8. THE Application_System SHALL ensure the bottom navigation bar on mobile does not overlap with page content by adding sufficient bottom padding to the content area
+9. THE Application_System SHALL ensure all modals and dialogs are full-screen on mobile viewports (below 768px) with proper padding and a clearly visible close button
+10. THE Application_System SHALL ensure form inputs on mobile have a minimum height of 44px and adequate spacing (minimum 12px) between fields to prevent mis-taps
 
-### Requirement 7: Interview Scheduling System
+### Requirement 5: Remaining Bug Hunt and Remediation
 
-**User Story:** As a student with verified payment, I want to schedule my interview, so that I can complete my application process.
-
-#### Acceptance Criteria
-
-1. THE Interview_Page SHALL only be accessible after payment verification
-2. THE System SHALL display available interview slots based on admin configuration
-3. WHEN a student schedules an interview, THE System SHALL send confirmation notification
-4. THE System SHALL prevent double-booking of interview slots
-5. THE System SHALL send interview reminders 24 hours and 1 hour before scheduled time
-6. WHEN an interview is rescheduled, THE System SHALL update all parties and send notifications
-7. THE Admin_Dashboard SHALL display scheduled interviews with student details
-8. THE System SHALL support virtual and in-person interview types
-9. THE System SHALL track interview attendance and outcomes
-10. THE Interview_Page SHALL show interview preparation guidelines
-
-### Requirement 8: Offline Functionality and PWA
-
-**User Story:** As a student on an unreliable connection, I want the app to work offline, so that I don't lose my progress.
+**User Story:** As a developer, I want all remaining bugs from the E2E test systematically identified and fixed, so that the production system has zero known defects.
 
 #### Acceptance Criteria
 
-1. THE PWA SHALL cache critical assets for offline access
-2. WHEN offline, THE System SHALL allow viewing of cached application data
-3. WHEN offline, THE System SHALL queue form submissions for sync when online
-4. THE System SHALL display clear offline indicator when disconnected
-5. WHEN connection is restored, THE System SHALL sync queued operations automatically
-6. THE System SHALL NOT show error messages for transient connection issues under 5 seconds
-7. THE service worker SHALL update gracefully without disrupting user sessions
-8. THE System SHALL preload critical routes for faster navigation
-9. THE offline page SHALL provide useful information and retry options
-10. THE System SHALL preserve draft data in localStorage as backup
+1. THE Auditor SHALL query the `audit_logs` table for all entries with action containing 'error' or 'fail' from the Mar 7-8 timeframe (the 36 logged API errors), categorize each error by endpoint and error type, and determine which errors indicate bugs versus expected behavior (e.g., rate limiting, invalid input)
+2. THE Auditor SHALL scan all `api-src/*.ts` files for any remaining `SELECT *` queries and replace each with an explicit column list that excludes sensitive fields (password_hash, refresh_token_hash, reset_token_hash, token_hash)
+3. THE Auditor SHALL scan all document records in the `application_documents` table for `file_path` values containing old Cloudflare R2 URLs (patterns like `r2.cloudflarestorage.com`, `pub-*.r2.dev`, or any non-current storage domain) and report the count and affected application IDs
+4. THE Auditor SHALL scan all `api-src/*.ts` and `lib/*.ts` files for type cast operations (e.g., `::text`, `::uuid`, `::integer`) in SQL strings and verify each cast is correct for the actual column types in Neon_DB
+5. THE Auditor SHALL verify that all API endpoints return proper HTTP status codes: 200 for success, 400 for validation errors, 401 for unauthenticated, 403 for unauthorized/CSRF failure, 404 for not found, 409 for conflicts, 429 for rate limiting, and 500 only for unexpected server errors
+6. THE Auditor SHALL verify that all error responses use the `sendError()` envelope from `lib/errorHandler.ts` and never return bare error objects or expose stack traces
+7. WHEN a remaining SELECT * query is found, THE Application_System SHALL replace it with an explicit column list within the same remediation pass
+8. WHEN an old R2 URL is found in document records, THE Auditor SHALL report the migration path needed (whether the files were migrated to the current storage or are permanently lost)
 
-### Requirement 9: Performance and Scalability
+### Requirement 6: Performance Optimization and Bundle Analysis
 
-**User Story:** As a user, I want the application to load quickly and respond smoothly, so that I can complete my tasks efficiently.
+**User Story:** As a product owner, I want the application to achieve FCP <1.5s, LCP <2.5s, main bundle <500KB gzipped, and Lighthouse >90, so that students on slow 3G connections in Zambia have a fast, reliable experience.
 
 #### Acceptance Criteria
 
-1. THE System SHALL achieve Lighthouse mobile performance score of at least 80
-2. THE System SHALL load initial content (FCP) within 2 seconds on 3G connections
-3. THE System SHALL keep main JavaScript bundle under 300KB gzipped
-4. THE System SHALL lazy-load page components and heavy libraries
-5. THE System SHALL debounce search inputs with minimum 300ms delay
-6. THE System SHALL use React Query for server data caching and deduplication
-7. THE System SHALL eliminate duplicate API calls during page load
-8. THE System SHALL use CSS transitions instead of JavaScript animations on mobile
-9. THE System SHALL respect prefers-reduced-motion preference
-10. THE System SHALL batch DOM operations to prevent layout thrashing
+1. THE Auditor SHALL analyze the Vite build output to determine the current main bundle size (gzipped), the number and sizes of lazy-loaded chunks, and the total JavaScript delivered for the landing page and sign-in page
+2. THE Auditor SHALL identify the top 10 largest dependencies by contribution to bundle size and recommend tree-shaking or lazy-loading opportunities for any dependency contributing more than 50KB gzipped
+3. THE Application_System SHALL ensure all page-level components are lazy-loaded via `React.lazy()` with dynamic `import()`, verified by checking `src/routes/config.tsx` for any non-lazy route definitions
+4. THE Application_System SHALL ensure the main entry bundle (excluding lazy chunks) contains only: React runtime, React Router, Zustand core, React Query core, Tailwind CSS utilities, and the app shell — targeting below 200KB gzipped
+5. THE Auditor SHALL verify that Vite's code splitting configuration in `vite.config.ts` produces separate vendor chunks for large libraries (React, React DOM, React Query, Zustand, Radix UI, React Hook Form, Zod)
+6. THE Application_System SHALL ensure all images use `loading="lazy"` for below-the-fold content and explicit `width`/`height` attributes to prevent CLS
+7. THE Application_System SHALL ensure CSS is optimized: critical CSS inlined, unused Tailwind utilities purged, and no duplicate style definitions
+8. THE Auditor SHALL verify that `console.log` removal is configured in the Vite terser options for production builds, preventing console output in production
+9. THE Application_System SHALL ensure the service worker precaches the app shell, critical CSS, and the most common route chunks (landing, sign-in, student dashboard) for instant subsequent loads
+10. THE Auditor SHALL measure or estimate FCP and LCP for the landing page and sign-in page based on bundle analysis and critical rendering path, identifying any blocking resources
 
-### Requirement 10: Audit Trail and Compliance
+### Requirement 7: Production Readiness Scoring
 
-**User Story:** As a super admin, I want complete audit trails of all system actions, so that I can ensure compliance and investigate issues.
-
-#### Acceptance Criteria
-
-1. THE System SHALL log all application status changes with timestamp, user, and previous value
-2. THE System SHALL log all payment status changes with verification details
-3. THE System SHALL log all admin actions including bulk operations
-4. THE System SHALL log all authentication events (login, logout, password reset)
-5. THE Audit_Trail SHALL be immutable - no updates or deletes allowed
-6. THE Audit_Trail SHALL NOT contain PII in log messages
-7. THE System SHALL provide audit trail search and export functionality
-8. THE System SHALL retain audit logs for minimum 7 years
-9. THE System SHALL log notification consent changes with IP and user agent
-10. THE System SHALL provide compliance reports for regulatory requirements
-
-### Requirement 11: Error Handling and Recovery
-
-**User Story:** As a user, I want the system to handle errors gracefully, so that I can continue using the application even when things go wrong.
+**User Story:** As a product owner, I want a scored assessment of the system's production readiness across all critical dimensions, so that I can prioritize remaining work and have confidence in the system's quality.
 
 #### Acceptance Criteria
 
-1. WHEN a component fails to render, THE System SHALL display a fallback UI with retry option
-2. WHEN an API call fails, THE System SHALL retry with exponential backoff (max 3 attempts)
-3. WHEN external APIs (HPCZ, ECZ) fail, THE System SHALL continue with advisory-only mode
-4. THE System SHALL display user-friendly error messages without technical details
-5. THE System SHALL log errors with full context for debugging
-6. WHEN session expires, THE System SHALL redirect to login with return URL preserved
-7. THE System SHALL handle network timeouts gracefully
-8. THE System SHALL recover from React Error #130 (undefined component) without crashing
-9. THE System SHALL validate data integrity before database operations
-10. THE System SHALL provide manual retry options for failed operations
-
-### Requirement 12: Real-time Updates and Synchronization
-
-**User Story:** As a user, I want to see changes in real-time, so that I always have the current information without refreshing.
-
-#### Acceptance Criteria
-
-1. THE System SHALL establish WebSocket connection to Supabase Realtime in production
-2. WHEN database changes occur, THE System SHALL receive events within 2 seconds
-3. WHEN realtime events are received, THE System SHALL invalidate relevant React Query caches
-4. IF WebSocket connection fails, THE System SHALL fall back to polling every 30 seconds
-5. THE System SHALL display connection status indicator on dashboards
-6. WHEN connection is restored, THE System SHALL re-establish subscriptions automatically
-7. THE System SHALL debounce rapid successive events (minimum 500ms between invalidations)
-8. THE Student_Dashboard SHALL update when application status changes
-9. THE Admin_Dashboard SHALL update when new applications are submitted
-10. THE notification badge SHALL update when new notifications arrive
-
+1. THE Auditor SHALL score the system on a 0-100 scale across 7 dimensions: Security, Performance, Reliability, Mobile UX, Data Integrity, Error Handling, and Monitoring — with each dimension weighted equally
+2. THE Security score SHALL be based on: CSRF protection coverage, security header presence, Arcjet rate limiting coverage, input validation coverage (Zod schemas on all endpoints), file upload validation, password hashing strength, JWT token management, and absence of sensitive data leaks (SELECT * with password fields)
+3. THE Performance score SHALL be based on: estimated FCP, estimated LCP, main bundle size, code splitting effectiveness, lazy loading coverage, image optimization, CSS optimization, and service worker caching strategy
+4. THE Reliability score SHALL be based on: error boundary coverage, API error handling consistency, retry logic presence, graceful degradation for external APIs, auto-save reliability, offline queue functionality, and absence of unhandled promise rejections
+5. THE Mobile_UX score SHALL be based on: touch target compliance (44×44px minimum), responsive layout coverage, bottom navigation presence, form input sizing, modal responsiveness, table responsiveness, and absence of horizontal overflow on 320px viewports
+6. THE Data_Integrity score SHALL be based on: TypeScript interface fidelity to DB schema, API response shape consistency, absence of phantom columns in SQL, foreign key constraint coverage, audit trail completeness, and absence of orphaned records
+7. THE Error_Handling score SHALL be based on: error boundary coverage on all page routes, user-friendly error messages (no raw error codes), retry mechanisms on failed operations, toast notification deduplication, and graceful handling of network errors
+8. THE Monitoring score SHALL be based on: audit log coverage for state changes, error logging without PII, health check endpoint functionality, and ability to diagnose issues from logs alone
+9. THE Auditor SHALL produce a final composite Production_Score as the weighted average of all 7 dimension scores
+10. FOR EACH dimension scoring below 80, THE Auditor SHALL list the specific deficiencies and recommended remediations with priority (critical, high, medium, low)

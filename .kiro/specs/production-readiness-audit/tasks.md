@@ -42,7 +42,7 @@ This implementation plan systematically audits and fixes the MIHAS Application S
     - Verify no admin access to user sessions
     - _Requirements: 3.9_
 
-  - [ ]* 1.7 Write property test for RLS policy enforcement
+  - [x] 1.7 Write property test for RLS policy enforcement
     - **Property 6: RLS Policy Enforcement**
     - **Validates: Requirements 3.1, 3.2, 3.3, 3.5, 3.6, 3.7, 3.8, 3.9**
 
@@ -57,7 +57,7 @@ This implementation plan systematically audits and fixes the MIHAS Application S
     - Service role should INSERT only
     - _Requirements: 3.10_
 
-  - [ ]* 2.3 Write property test for audit trail immutability
+  - [x] 2.3 Write property test for audit trail immutability
     - **Property 7: Audit Trail Immutability**
     - **Validates: Requirements 10.5**
 
@@ -97,15 +97,15 @@ This implementation plan systematically audits and fixes the MIHAS Application S
     - Check no stack traces are exposed
     - _Requirements: 4.4_
 
-  - [ ]* 5.4 Write property test for security headers
+  - [x] 5.4 Write property test for security headers
     - **Property 8: API Security Headers Presence**
     - **Validates: Requirements 4.2, 4.3**
 
-  - [ ]* 5.5 Write property test for authentication enforcement
+  - [x] 5.5 Write property test for authentication enforcement
     - **Property 9: Authentication Enforcement**
     - **Validates: Requirements 4.1, 4.8**
 
-  - [ ]* 5.6 Write property test for error response consistency
+  - [x] 5.6 Write property test for error response consistency
     - **Property 10: Error Response Consistency**
     - **Validates: Requirements 4.4, 11.4**
 
@@ -161,7 +161,7 @@ This implementation plan systematically audits and fixes the MIHAS Application S
     - Check password reset events are logged
     - _Requirements: 10.4_
 
-  - [ ]* 9.5 Write property test for audit trail completeness
+  - [x] 9.5 Write property test for audit trail completeness
     - **Property 5: Audit Trail Completeness**
     - **Validates: Requirements 2.3, 10.1, 10.2, 10.3**
 
@@ -172,7 +172,7 @@ This implementation plan systematically audits and fixes the MIHAS Application S
     - Check error logs don't contain names
     - _Requirements: 4.9, 10.6_
 
-  - [ ]* 10.2 Write property test for PII exclusion
+  - [x] 10.2 Write property test for PII exclusion
     - **Property 17: PII Exclusion from Logs**
     - **Validates: Requirements 4.9, 10.6**
 
@@ -202,11 +202,11 @@ This implementation plan systematically audits and fixes the MIHAS Application S
     - _Requirements: 5.4_
     - **VERIFIED**: `notificationResilience.js` has `fallbackChannels` config with proper fallback order
 
-  - [ ]* 12.4 Write property test for notification preferences
+  - [x] 12.4 Write property test for notification preferences
     - **Property 11: Notification Preference Respect**
     - **Validates: Requirements 5.5**
 
-  - [ ]* 12.5 Write property test for retry logic
+  - [x] 12.5 Write property test for retry logic
     - **Property 12: Notification Retry Logic**
     - **Validates: Requirements 5.3, 11.2**
 
@@ -251,11 +251,11 @@ This implementation plan systematically audits and fixes the MIHAS Application S
     - _Requirements: 1.6_
     - **VERIFIED**: `useApplicationFileUploads.ts` validates `MAX_FILE_SIZE = 10MB` and `ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png']`
 
-  - [ ]* 15.4 Write property test for draft round-trip
+  - [x] 15.4 Write property test for draft round-trip
     - **Property 1: Draft Round-Trip Consistency**
     - **Validates: Requirements 1.3, 1.4**
 
-  - [ ]* 15.5 Write property test for reference uniqueness
+  - [x] 15.5 Write property test for reference uniqueness
     - **Property 2: Application Reference Uniqueness**
     - **Validates: Requirements 1.5**
 
@@ -269,7 +269,7 @@ This implementation plan systematically audits and fixes the MIHAS Application S
     - _Requirements: 1.8, 7.1_
     - **FIXED**: Added payment verification check to `functions/interview/schedule.js` - now verifies `payment_status === 'verified'` before allowing interview scheduling
 
-  - [ ]* 16.3 Write property test for payment gate
+  - [x] 16.3 Write property test for payment gate
     - **Property 3: Payment Gate Enforcement**
     - **Validates: Requirements 1.8, 7.1**
 
@@ -285,7 +285,7 @@ This implementation plan systematically audits and fixes the MIHAS Application S
     - _Requirements: 7.4_
     - **FIXED**: Added double-booking prevention to `functions/interview/schedule.js` - checks for existing active interviews before scheduling. Also added database constraint `idx_application_interviews_active_unique` to enforce at DB level.
 
-  - [ ]* 17.3 Write property test for slot uniqueness
+  - [x] 17.3 Write property test for slot uniqueness
     - **Property 13: Interview Slot Uniqueness**
     - **Validates: Requirements 7.4**
 
@@ -322,11 +322,11 @@ This implementation plan systematically audits and fixes the MIHAS Application S
     - _Requirements: 12.6_
     - **VERIFIED**: Both hooks have `reconnect()` function. Supabase client handles WebSocket reconnection internally. Exponential backoff implemented in multiple places (e.g., `useAutoSave`, `useAsyncOperation`).
 
-  - [ ]* 19.5 Write property test for realtime propagation
+  - [x] 19.5 Write property test for realtime propagation
     - **Property 15: Realtime Event Propagation**
     - **Validates: Requirements 12.2, 12.3, 12.8, 12.9**
 
-  - [ ]* 19.6 Write property test for fallback activation
+  - [x] 19.6 Write property test for fallback activation
     - **Property 16: Realtime Fallback Activation**
     - **Validates: Requirements 12.4, 12.6**
 
@@ -342,7 +342,7 @@ This implementation plan systematically audits and fixes the MIHAS Application S
     - _Requirements: 2.2, 2.8_
     - **VERIFIED**: `useAdminDashboardRealtime` hook triggers `loadDashboardStats({ refresh: true })` on any application/payment/status change. Debounce is 500ms, well under 2 second requirement.
 
-  - [ ]* 20.3 Write property test for dashboard accuracy
+  - [x] 20.3 Write property test for dashboard accuracy
     - **Property 4: Dashboard Count Accuracy**
     - **Validates: Requirements 2.1, 2.6**
 
@@ -357,7 +357,7 @@ This implementation plan systematically audits and fixes the MIHAS Application S
     - _Requirements: 12.7_
     - **VERIFIED**: `useAdminDashboardRealtime` has `debounceMs = 500` default. `shouldDebounce` function prevents updates within 500ms of each other.
 
-  - [ ]* 21.3 Write property test for debounce timing
+  - [x] 21.3 Write property test for debounce timing
     - **Property 20: Debounce Timing Compliance**
     - **Validates: Requirements 9.5, 12.7**
 
@@ -401,7 +401,7 @@ This implementation plan systematically audits and fixes the MIHAS Application S
       - `handleSubmitApplication` does NOT check eligibility - submission is never blocked by eligibility
       - UI shows "⚠ Advisory Only" when not eligible, allowing students to proceed
 
-  - [ ]* 24.2 Write property test for graceful degradation
+  - [x] 24.2 Write property test for graceful degradation
     - **Property 19: External API Graceful Degradation**
     - **Validates: Requirements 11.3**
 
@@ -417,7 +417,7 @@ This implementation plan systematically audits and fixes the MIHAS Application S
       - `useTokenRefresh` handles `TOKEN_REFRESHED` events for automatic token refresh
       - `useSessionListener` handles `SIGNED_OUT` event to clear user state
 
-  - [ ]* 25.2 Write property test for session expiry
+  - [x] 25.2 Write property test for session expiry
     - **Property 18: Session Expiry Handling**
     - **Validates: Requirements 11.6**
 
@@ -443,7 +443,7 @@ This implementation plan systematically audits and fixes the MIHAS Application S
       - Provides "Sync Now" button when back online
       - Auto-hides when online with no pending operations
 
-  - [ ]* 26.3 Write property test for offline queue sync
+  - [x] 26.3 Write property test for offline queue sync
     - **Property 14: Offline Queue Sync**
     - **Validates: Requirements 8.3, 8.5**
 

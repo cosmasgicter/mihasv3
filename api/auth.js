@@ -1647,6 +1647,14 @@ init_jwt();
 
 // lib/arcjet.ts
 import arcjet, { shield, detectBot, fixedWindow } from "@arcjet/node";
+var originalEmitWarning = process.emitWarning;
+process.emitWarning = function(warning, ...args) {
+  if (typeof warning === "string" && args[0] === "DeprecationWarning" && args[1] === "DEP0169")
+    return;
+  if (warning && typeof warning === "object" && warning.code === "DEP0169")
+    return;
+  return originalEmitWarning.call(process, warning, ...args);
+};
 var ARCJET_KEY = process.env.ARCJET_KEY;
 if (!ARCJET_KEY) {
   console.error("[ARCJET] FATAL: ARCJET_KEY environment variable not set");
@@ -1707,20 +1715,8 @@ function createProtectedArcjet(routeType) {
 function withArcjetProtection(handler, routeType = "general") {
   return async (req, res) => {
     if (req.method === "OPTIONS") {
-      const origin = req.headers.origin;
-      const allowedOrigins = [
-        "https://apply.mihas.edu.zm",
-        "https://mihas.vercel.app",
-        "http://localhost:5173",
-        "http://localhost:3000"
-      ];
-      const allowedOrigin = origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
-      res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
-      res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
-      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-      res.setHeader("Access-Control-Allow-Credentials", "true");
-      res.setHeader("Access-Control-Max-Age", "86400");
-      return res.status(204).end();
+      handleCors(req, res);
+      return;
     }
     if (!ARCJET_KEY) {
       console.warn("[ARCJET] WARNING: Running without Arcjet protection");
@@ -16048,12 +16044,15 @@ async function handleLogout(req, res) {
   clearAuthCookies(res);
   return sendSuccess(res, { message: "Logged out successfully" });
 }
+function registrationKey(ipHash) {
+  return createHash3("sha256").update("reg:" + ipHash).digest("hex");
+}
 async function checkRegistrationRateLimit(ipHash) {
   try {
     const result = await query(`SELECT COUNT(*) AS reg_count, MIN(attempted_at) AS oldest_reg
        FROM login_attempts
        WHERE email_hash = $1
-         AND attempted_at > NOW() - INTERVAL '${REGISTRATION_RATE_WINDOW_MINUTES} minutes'`, [`reg:${ipHash}`]);
+         AND attempted_at > NOW() - INTERVAL '${REGISTRATION_RATE_WINDOW_MINUTES} minutes'`, [registrationKey(ipHash)]);
     const regCount = parseInt(result.rows[0]?.reg_count || "0", 10);
     if (regCount >= REGISTRATION_RATE_LIMIT) {
       const oldestReg = new Date(result.rows[0].oldest_reg);
@@ -16071,7 +16070,7 @@ async function checkRegistrationRateLimit(ipHash) {
 async function recordRegistrationAttempt(ipHash) {
   try {
     await query(`INSERT INTO login_attempts (email_hash, ip_hash, attempted_at, success)
-       VALUES ($1, $2, NOW(), TRUE)`, [`reg:${ipHash}`, ipHash]);
+       VALUES ($1, $2, NOW(), TRUE)`, [registrationKey(ipHash), ipHash]);
   } catch (err) {
     console.error("[AUTH] Failed to record registration attempt:", err.message);
     logErrorAuditEvent("auth/record-registration-attempt", err).catch(() => {});
