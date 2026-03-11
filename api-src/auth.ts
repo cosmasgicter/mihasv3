@@ -989,6 +989,12 @@ async function handleSession(req: VercelRequest, res: VercelResponse) {
 
     const user = result.rows[0];
     const { permissions } = await getEffectivePermissionsForUser(user.id, user.role);
+
+    // Restore CSRF token on session check so page refreshes don't lose it.
+    // The frontend's authRequest captures X-CSRF-Token from response headers.
+    const csrfToken = await generateCsrfToken(user.id);
+    res.setHeader('X-CSRF-Token', csrfToken);
+
     return sendSuccess(res, {
       user: {
         id: user.id,
