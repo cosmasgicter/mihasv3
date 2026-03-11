@@ -24,6 +24,23 @@
 import arcjet, { shield, detectBot, fixedWindow } from "@arcjet/node";
 import type { ArcjetDecision } from "@arcjet/node";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { handleCors } from './cors';
+
+// ---------------------------------------------------------------------------
+// Suppress [DEP0169] url.parse() deprecation warnings from dependencies
+// (@vercel/node, @arcjet/node, or @neondatabase/serverless use url.parse()
+// internally). This file is imported by every API endpoint, so the override
+// is applied once at module load time.
+// ---------------------------------------------------------------------------
+const originalEmitWarning = process.emitWarning;
+process.emitWarning = function(warning: any, ...args: any[]) {
+  if (typeof warning === 'string'
+      && args[0] === 'DeprecationWarning'
+      && args[1] === 'DEP0169') return;
+  if (warning && typeof warning === 'object'
+      && (warning as any).code === 'DEP0169') return;
+  return originalEmitWarning.call(process, warning, ...args);
+} as typeof process.emitWarning;
 
 // Route type for rate limiting configuration
 export type RouteType = "auth" | "session" | "admin" | "notification" | "general" | "registration";
@@ -214,22 +231,8 @@ export function withArcjetProtection(
     // CRITICAL: Handle OPTIONS preflight requests BEFORE Arcjet
     // This prevents CORS preflight from being blocked as "bot"
     if (req.method === 'OPTIONS') {
-      // Set CORS headers for preflight
-      const origin = req.headers.origin as string | undefined;
-      const allowedOrigins = [
-        '***REMOVED***',
-        'https://mihas.vercel.app',
-        'http://localhost:5173',
-        'http://localhost:3000',
-      ];
-      const allowedOrigin = origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
-      
-      res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Access-Control-Max-Age', '86400');
-      return res.status(204).end();
+      handleCors(req, res);
+      return;
     }
 
     // Skip Arcjet if key not configured (development only)

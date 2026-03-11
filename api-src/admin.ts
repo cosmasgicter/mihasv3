@@ -637,7 +637,7 @@ async function handleUsers(req: VercelRequest, res: VercelResponse, auth: AuthCo
     const safeColumns = `id, email, full_name, first_name, last_name, phone, nationality, role, is_active, created_at, updated_at, avatar_url, date_of_birth, sex, address, nrc_number, residence_town, next_of_kin_name, next_of_kin_phone, email_verified, last_login_at`;
     const [dataResult, countResult] = await Promise.all([
       query<Record<string, unknown>>(
-        `SELECT ${safeColumns} FROM profiles ${whereClause} ORDER BY created_at DESC LIMIT ${paramIndex} OFFSET ${paramIndex + 1}`,
+        `SELECT ${safeColumns} FROM profiles ${whereClause} ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
         [...params, limit, offset]
       ),
       query<{ count: string }>(

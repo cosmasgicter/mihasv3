@@ -821,6 +821,14 @@ init_errorHandler();
 
 // lib/arcjet.ts
 import arcjet, { shield, detectBot, fixedWindow } from "@arcjet/node";
+var originalEmitWarning = process.emitWarning;
+process.emitWarning = function(warning, ...args) {
+  if (typeof warning === "string" && args[0] === "DeprecationWarning" && args[1] === "DEP0169")
+    return;
+  if (warning && typeof warning === "object" && warning.code === "DEP0169")
+    return;
+  return originalEmitWarning.call(process, warning, ...args);
+};
 var ARCJET_KEY = process.env.ARCJET_KEY;
 if (!ARCJET_KEY) {
   console.error("[ARCJET] FATAL: ARCJET_KEY environment variable not set");
@@ -881,20 +889,8 @@ function createProtectedArcjet(routeType) {
 function withArcjetProtection(handler, routeType = "general") {
   return async (req, res) => {
     if (req.method === "OPTIONS") {
-      const origin = req.headers.origin;
-      const allowedOrigins = [
-        "***REMOVED***",
-        "https://mihas.vercel.app",
-        "http://localhost:5173",
-        "http://localhost:3000"
-      ];
-      const allowedOrigin = origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
-      res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
-      res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
-      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-      res.setHeader("Access-Control-Allow-Credentials", "true");
-      res.setHeader("Access-Control-Max-Age", "86400");
-      return res.status(204).end();
+      handleCors(req, res);
+      return;
     }
     if (!ARCJET_KEY) {
       console.warn("[ARCJET] WARNING: Running without Arcjet protection");
@@ -15556,7 +15552,7 @@ async function handleUsers(req, res, auth) {
   try {
     const safeColumns = `id, email, full_name, first_name, last_name, phone, nationality, role, is_active, created_at, updated_at, avatar_url, date_of_birth, sex, address, nrc_number, residence_town, next_of_kin_name, next_of_kin_phone, email_verified, last_login_at`;
     const [dataResult, countResult] = await Promise.all([
-      query(`SELECT ${safeColumns} FROM profiles ${whereClause} ORDER BY created_at DESC LIMIT ${paramIndex} OFFSET ${paramIndex + 1}`, [...params, limit, offset]),
+      query(`SELECT ${safeColumns} FROM profiles ${whereClause} ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`, [...params, limit, offset]),
       query(`SELECT COUNT(*) as count FROM profiles ${whereClause}`, params)
     ]);
     const users = dataResult.rows.map((user) => ({ ...user, user_id: user.id }));

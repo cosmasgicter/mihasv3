@@ -732,6 +732,15 @@ async function handleLogout(req: VercelRequest, res: VercelResponse) {
 }
 
 /**
+ * Produce a deterministic 64-char hex key for registration rate-limit tracking.
+ * Re-hashes 'reg:' + ipHash through SHA-256 so the result fits VARCHAR(64)
+ * while remaining distinct from login email hashes.
+ */
+function registrationKey(ipHash: string): string {
+  return createHash('sha256').update('reg:' + ipHash).digest('hex');
+}
+
+/**
  * Check registration rate limit per IP address.
  * Returns { blocked: true, retryAfterSeconds } if limit exceeded.
  * Uses login_attempts table with a special email_hash prefix for registration tracking.
@@ -743,7 +752,7 @@ async function checkRegistrationRateLimit(ipHash: string): Promise<{ blocked: bo
        FROM login_attempts
        WHERE email_hash = $1
          AND attempted_at > NOW() - INTERVAL '${REGISTRATION_RATE_WINDOW_MINUTES} minutes'`,
-      [`reg:${ipHash}`]
+      [registrationKey(ipHash)]
     );
 
     const regCount = parseInt(result.rows[0]?.reg_count || '0', 10);
@@ -771,7 +780,7 @@ async function recordRegistrationAttempt(ipHash: string): Promise<void> {
     await query(
       `INSERT INTO login_attempts (email_hash, ip_hash, attempted_at, success)
        VALUES ($1, $2, NOW(), TRUE)`,
-      [`reg:${ipHash}`, ipHash]
+      [registrationKey(ipHash), ipHash]
     );
   } catch (err) {
     console.error('[AUTH] Failed to record registration attempt:', (err as Error).message);
