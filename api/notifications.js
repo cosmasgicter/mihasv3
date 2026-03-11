@@ -15179,7 +15179,7 @@ async function handleHistory(req, res, user) {
        FROM notifications n
        LEFT JOIN audit_logs al
          ON al.entity_type = 'notification'
-        AND al.entity_id = n.id::text
+        AND al.entity_id = n.id
         AND al.action IN ('admin_notification_send', 'application_notification_sent')
        LEFT JOIN profiles actor ON actor.id = al.actor_id
        WHERE n.user_id = $1
