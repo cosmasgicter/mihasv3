@@ -5,11 +5,12 @@ import { useEffect, useState } from 'react'
 import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
 import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { SimpleErrorBoundary } from '@/components/ui/SimpleErrorBoundary'
-import { SaveStatusIndicator, CompactSaveStatusIndicator } from '@/components/ui/SaveStatusIndicator'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
+import { AutoSaveIndicator } from '@/components/ui/AutoSaveIndicator'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
 import { SectionCard } from '@/components/ui/SectionCard'
+import { PageShell } from '@/components/ui/PageShell'
 
 import SubmissionSuccess from './components/SubmissionSuccess'
 import { StepChecklist } from './components/StepChecklist'
@@ -103,9 +104,38 @@ const ApplicationWizardContent = () => {
 
   // Aria-live region announcement for screen readers on step transition
   const [stepAnnouncement, setStepAnnouncement] = useState('')
+  const [stepDirection, setStepDirection] = useState<'forward' | 'backward'>('forward')
+  const [stepKey, setStepKey] = useState(currentStepIndex)
   useEffect(() => {
     setStepAnnouncement(`Step ${currentStepIndex + 1} of ${totalSteps}: ${currentStepConfig.title}`)
+    setStepKey(currentStepIndex)
   }, [currentStepIndex, totalSteps, currentStepConfig.title])
+
+  // Track step direction for transitions
+  const originalHandleNextStep = handleNextStep
+  const originalHandlePrevStep = handlePrevStep
+  const wrappedHandleNextStep = () => { setStepDirection('forward'); originalHandleNextStep() }
+  const wrappedHandlePrevStep = () => { setStepDirection('backward'); originalHandlePrevStep() }
+
+  // Scroll to first error field on validation error
+  useEffect(() => {
+    if (!error) return
+    // Small delay to let the error alert render
+    const timer = setTimeout(() => {
+      const errorField = document.querySelector('[aria-invalid="true"]') as HTMLElement
+      if (errorField) {
+        errorField.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        errorField.focus({ preventScroll: true })
+        return
+      }
+      // Fallback: scroll to the error alert itself
+      const errorAlert = document.querySelector('[role="alert"]') as HTMLElement
+      if (errorAlert) {
+        errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [error])
 
   const getChecklistItems = () => {
     // Defensive: some test setups call this component without a populated form.watch()
@@ -162,10 +192,10 @@ const ApplicationWizardContent = () => {
       if ((e.ctrlKey || e.metaKey) && !loading && !uploading) {
         if (e.key === 'ArrowRight' && !isLastStep) {
           e.preventDefault()
-          handleNextStep()
+          wrappedHandleNextStep()
         } else if (e.key === 'ArrowLeft' && currentStepIndex > 0) {
           e.preventDefault()
-          handlePrevStep()
+          wrappedHandlePrevStep()
         } else if (e.key === 's') {
           e.preventDefault()
           saveDraft()
@@ -177,13 +207,13 @@ const ApplicationWizardContent = () => {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentStepIndex, isLastStep, loading, uploading, success, handleNextStep, handlePrevStep, saveDraft, setError])
+  }, [currentStepIndex, isLastStep, loading, uploading, success, wrappedHandleNextStep, wrappedHandlePrevStep, saveDraft, setError])
 
   if (authLoading || restoringDraft) {
     return (
       <div className="min-h-screen bg-muted flex items-center justify-center p-4">
         <div className="text-center max-w-md">
-          <LoadingSpinner />
+          <UnifiedLoader variant="inline" />
           <p className="mt-4 text-foreground font-medium">
             {authLoading ? 'Loading application...' : 'Restoring your saved progress...'}
           </p>
@@ -248,9 +278,11 @@ const ApplicationWizardContent = () => {
 
 
   return (
-    <main
-      id="application-wizard-content"
-      className={`min-h-screen bg-gradient-to-br from-background via-background to-primary/5 ${shouldAnimate ? "animate-fade-in" : ""}`}
+    <PageShell
+      title="Student Application"
+      subtitle={`Complete the ${totalSteps}-step application process`}
+      maxWidth="full"
+      className={shouldAnimate ? "animate-fade-in" : ""}
     >
       {/* Visually hidden aria-live region for screen reader step announcements */}
       <div aria-live="polite" aria-atomic="true" className="sr-only">
@@ -266,10 +298,6 @@ const ApplicationWizardContent = () => {
               <ArrowLeft style={{ width: 'var(--icon-size-sm)', height: 'var(--icon-size-sm)', marginRight: '0.5rem' }} />
               Back to Dashboard
             </Link>
-            <div className={shouldAnimate ? 'animate-slide-up' : ''}>
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2">Student Application</h1>
-                <p className="text-foreground">Complete the {totalSteps}-step application process</p>
-            </div>
             
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-caption">
               <span className="break-all">Logged in as: {user.email}</span>
@@ -336,30 +364,15 @@ const ApplicationWizardContent = () => {
               </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              {/* Enhanced save status indicator */}
-              <div className="hidden sm:block">
-                <SaveStatusIndicator
-                  status={smartAutoSave.saveStatus}
-                  lastSaved={smartAutoSave.lastSaved}
-                  saveError={smartAutoSave.saveError}
-                  isOnline={smartAutoSave.isOnline}
-                  saveAttempts={smartAutoSave.saveAttempts}
-                  timeUntilNextSave={smartAutoSave.timeUntilNextSave}
-                  saveQueue={smartAutoSave.saveQueue}
-                  onForceSave={smartAutoSave.forceSave}
-                  onResolveConflict={smartAutoSave.resolveConflict}
-                />
-              </div>
-              
-              {/* Compact version for mobile */}
-              <div className="sm:hidden">
-                <CompactSaveStatusIndicator
-                  status={smartAutoSave.saveStatus}
-                  isOnline={smartAutoSave.isOnline}
-                  saveQueue={smartAutoSave.saveQueue}
-                  onForceSave={smartAutoSave.forceSave}
-                />
-              </div>
+              {/* Auto-save status indicator */}
+              <AutoSaveIndicator
+                status={
+                  smartAutoSave.saveStatus === 'offline' || smartAutoSave.saveStatus === 'conflict'
+                    ? 'error'
+                    : smartAutoSave.saveStatus as 'idle' | 'saving' | 'saved' | 'error'
+                }
+                lastSavedAt={smartAutoSave.lastSaved ? smartAutoSave.lastSaved.getTime() : null}
+              />
               
               {/* Legacy changed fields indicator */}
               {smartAutoSave.changedFields.length > 0 && smartAutoSave.saveStatus !== 'saving' && (
@@ -390,6 +403,7 @@ const ApplicationWizardContent = () => {
               currentStepIndex={currentStepIndex}
               onStepClick={(stepIndex) => {
                 // Navigate back to the clicked step
+                setStepDirection('backward');
                 const stepsToGoBack = currentStepIndex - stepIndex;
                 for (let i = 0; i < stepsToGoBack; i++) {
                   handlePrevStep();
@@ -436,6 +450,7 @@ const ApplicationWizardContent = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           <div className="lg:col-span-2">
             <form onSubmit={form.handleSubmit(handleSubmitApplication)} className="space-y-6 lg:space-y-8">
+            <div key={stepKey} className={stepDirection === 'forward' ? 'wizard-step-forward' : 'wizard-step-backward'}>
             {currentStepConfig.key === 'basicKyc' && (
               <BasicKycStep
                 form={form}
@@ -502,12 +517,14 @@ const ApplicationWizardContent = () => {
                 }
               />
             )}
+            </div>
 
-              <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-6 border-t border-border animate-fade-in">
+              <div className="sticky bottom-0 z-10 -mx-4 px-4 py-3 bg-background/95 backdrop-blur-sm border-t border-border sm:static sm:mx-0 sm:px-0 sm:py-0 sm:bg-transparent sm:backdrop-blur-none sm:border-t-0">
+              <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:pt-6 sm:border-t sm:border-border">
             <div className="order-2 sm:order-1">
               {currentStepIndex > 0 && (
                 <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
-                  <Button type="button" variant="outline" onClick={handlePrevStep} className="w-full sm:w-auto" disabled={loading || uploading} aria-label={`Go back to ${wizardSteps[currentStepIndex - 1]?.progressTitle || 'previous step'}`}>
+                  <Button type="button" variant="outline" onClick={wrappedHandlePrevStep} className="w-full sm:w-auto" disabled={loading || uploading} aria-label={`Go back to ${wizardSteps[currentStepIndex - 1]?.progressTitle || 'previous step'}`}>
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     {previousButtonLabel}
                   </Button>
@@ -518,17 +535,18 @@ const ApplicationWizardContent = () => {
             <div className="order-1 sm:order-2">
               {!isLastStep ? (
                 <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
-                  <Button type="button" variant="primary" onClick={handleNextStep} loading={loading || uploading} disabled={loading || uploading} className="w-full sm:w-auto" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
+                  <Button type="button" variant="primary" onClick={wrappedHandleNextStep} loading={loading || uploading} disabled={loading || uploading} className="w-full sm:w-auto min-h-[48px]" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
                     {loading || uploading ? 'Processing...' : (<><span>Next Step</span><ArrowRight className="h-4 w-4 ml-2" /></>)}
                   </Button>
                 </div>
               ) : (
                 <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
-                  <Button type="submit" variant="success" loading={loading} disabled={loading || !confirmSubmission} className="w-full sm:w-auto">
+                  <Button type="submit" variant="success" loading={loading} disabled={loading || !confirmSubmission} className="w-full sm:w-auto min-h-[48px]">
                     {loading ? 'Submitting...' : (<><Send className="h-4 w-4 mr-2" />Submit Application</>)}
                   </Button>
                 </div>
               )}
+              </div>
               </div>
               </div>
             </form>
@@ -626,14 +644,14 @@ const ApplicationWizardContent = () => {
           setError('')
         }}
       />
-    </main>
+    </PageShell>
   )
 }
 
 const ApplicationWizard = () => (
-  <SimpleErrorBoundary>
+  <ErrorBoundary level="section">
     <ApplicationWizardContent />
-  </SimpleErrorBoundary>
+  </ErrorBoundary>
 )
 
 export default ApplicationWizard

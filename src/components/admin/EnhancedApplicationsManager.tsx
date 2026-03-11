@@ -25,6 +25,8 @@ import {
   GraduationCap
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { formatDate } from '@/lib/dateFormat'
 
 interface Application {
@@ -321,16 +323,14 @@ export function EnhancedApplicationsManager({
       {/* Applications Display */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <UnifiedLoader variant="inline" />
         </div>
       ) : filteredApplications.length === 0 ? (
-        <div 
-          className="text-center py-12 bg-card rounded-xl shadow-lg animate-scale-in"
-        >
-          <div className="text-6xl mb-4"><FileText className="w-5 h-5" /></div>
-          <h3 className="text-xl font-bold text-foreground mb-2">No Applications Found</h3>
-          <p className="text-foreground">Try adjusting your search filters</p>
-        </div>
+        <EmptyState
+          icon={<FileText />}
+          heading="No Applications Found"
+          description="Try adjusting your search filters"
+        />
       ) : viewMode === 'cards' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredApplications.map((application, index) => (

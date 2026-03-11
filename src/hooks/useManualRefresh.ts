@@ -8,7 +8,7 @@
  * @requirements 1.5, 4.5 - Manual refresh button that forces data reload
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 
 export interface UseManualRefreshOptions {
@@ -67,44 +67,53 @@ export function useManualRefresh(options: UseManualRefreshOptions = {}): UseManu
   const queryClient = useQueryClient()
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null)
+  const inFlightRefreshRef = useRef<Promise<void> | null>(null)
 
   const forceRefresh = useCallback(async () => {
-    if (isRefreshing) return // Prevent concurrent refreshes
-
-    setIsRefreshing(true)
-
-    try {
-      // Reset all matching queries to clear stale cache
-      const resetPromises = queryKeys.map(queryKey =>
-        queryClient.resetQueries({
-          queryKey: queryKey as readonly string[],
-          exact: false
-        })
-      )
-      await Promise.all(resetPromises)
-
-      // Refetch all active queries to get fresh data
-      const refetchPromises = queryKeys.map(queryKey =>
-        queryClient.refetchQueries({
-          queryKey: queryKey as readonly string[],
-          type: 'active'
-        })
-      )
-      await Promise.all(refetchPromises)
-
-      // Update last refreshed timestamp
-      setLastRefreshed(new Date())
-
-      // Call success callback if provided
-      onSuccess?.()
-    } catch (error) {
-      console.error('Manual refresh failed:', error)
-      // Call error callback if provided
-      onError?.(error instanceof Error ? error : new Error('Refresh failed'))
-    } finally {
-      setIsRefreshing(false)
+    if (inFlightRefreshRef.current) {
+      return inFlightRefreshRef.current
     }
-  }, [queryClient, queryKeys, isRefreshing, onSuccess, onError])
+
+    const refreshPromise = (async () => {
+      setIsRefreshing(true)
+
+      try {
+        // Reset all matching queries to clear stale cache
+        const resetPromises = queryKeys.map(queryKey =>
+          queryClient.resetQueries({
+            queryKey: queryKey as readonly string[],
+            exact: false
+          })
+        )
+        await Promise.all(resetPromises)
+
+        // Refetch all active queries to get fresh data
+        const refetchPromises = queryKeys.map(queryKey =>
+          queryClient.refetchQueries({
+            queryKey: queryKey as readonly string[],
+            type: 'active'
+          })
+        )
+        await Promise.all(refetchPromises)
+
+        // Update last refreshed timestamp
+        setLastRefreshed(new Date())
+
+        // Call success callback if provided
+        onSuccess?.()
+      } catch (error) {
+        console.error('Manual refresh failed:', error)
+        // Call error callback if provided
+        onError?.(error instanceof Error ? error : new Error('Refresh failed'))
+      } finally {
+        setIsRefreshing(false)
+        inFlightRefreshRef.current = null
+      }
+    })()
+
+    inFlightRefreshRef.current = refreshPromise
+    return refreshPromise
+  }, [queryClient, queryKeys, onSuccess, onError])
 
   return {
     forceRefresh,

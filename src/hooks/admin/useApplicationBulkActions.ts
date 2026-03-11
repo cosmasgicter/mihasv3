@@ -21,8 +21,8 @@ export function useApplicationBulkActions() {
   }
 
   const selectAll = (applicationIds: string[]) => {
-    setSelectedApplications(
-      selectedApplications.length === applicationIds.length ? [] : applicationIds
+    setSelectedApplications((prevSelectedApplications) =>
+      prevSelectedApplications.length === applicationIds.length ? [] : applicationIds
     )
   }
 

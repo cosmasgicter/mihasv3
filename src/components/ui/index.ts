@@ -3,6 +3,8 @@ export { Button } from './Button'
 export { Input } from './input'
 export { Textarea } from './textarea'
 export { Select } from './select'
+export { CanonicalSelect } from './CanonicalSelect'
+export type { CanonicalSelectProps, CanonicalSelectOption } from './CanonicalSelect'
 export { FormSelect } from './form-select'
 export type { FormSelectProps, SelectOption } from './form-select'
 export { Checkbox, CheckboxWithLabel } from './checkbox'
@@ -31,6 +33,10 @@ export {
 } from './ResponsiveLayout'
 export { SafeAreaProvider, SafeAreaView, BottomNavigationWrapper, LandscapeAwareContainer, useSafeArea } from './SafeAreaProvider'
 
+// Banner (canonical)
+export { Banner } from './Banner'
+export type { BannerProps } from './Banner'
+
 // Feedback Components
 export { Alert } from './Alert'
 export { useToastStore, useToast, ToastContainer } from './Toast'
@@ -54,11 +60,12 @@ export { ConfirmDialog } from './ConfirmDialog'
 export { Tabs } from './tabs'
 export { Pagination } from './Pagination'
 export { SkipLink } from './SkipLink'
-export { SkipLinks, MainContent, NavigationLandmark, FooterLandmark } from './SkipLinks'
 export { BottomNavigation, BottomNavigationSpacer, defaultStudentNavItems, defaultPublicNavItems } from './BottomNavigation'
 
 // Data Display Components
 export { Table } from './Table'
+export { ResponsiveTable } from './ResponsiveTable'
+export type { ResponsiveTableProps } from './ResponsiveTable'
 export { Badge } from './badge'
 export { Accordion } from './accordion'
 export { Separator } from './separator'
@@ -68,33 +75,38 @@ export { Skeleton, SkeletonText, SkeletonCard, SkeletonTable, SkeletonAvatar } f
 export { SkeletonDashboard } from './skeletons'
 
 // Loading Components (canonical)
-export { 
-  UnifiedLoader,
-  UnifiedSpinner,
-  PageLoader,
-  InlineLoader,
-  SkeletonLoader as UnifiedSkeletonLoader,
-  OverlayLoader
-} from './UnifiedLoader'
+export { UnifiedLoader, UnifiedSpinner } from './UnifiedLoader'
 export type { UnifiedLoaderProps } from './UnifiedLoader'
-
-// Legacy loading components — import directly from their files if needed.
-// Barrel re-exports removed to reduce bundle surface and discourage deprecated usage.
-export { ProgressIndicator, CircularProgress, IndeterminateProgress } from './ProgressIndicator'
 
 // Form Components
 export { FileUpload } from './FileUpload'
-export { EnhancedFileUpload } from './EnhancedFileUpload'
+export type { FileUploadProps } from './FileUpload'
 export { PasswordInput } from './PasswordInput'
-export { FormError } from './FormError'
-export { FormFeedback, InlineFormFeedback, FormSubmitButton } from './FormFeedback'
+
+// Error Components (canonical)
+export { ErrorDisplay } from './ErrorDisplay'
+export type { ErrorDisplayProps } from './ErrorDisplay'
+
+// Auto-Save
+export { AutoSaveIndicator } from './AutoSaveIndicator'
+export type { AutoSaveIndicatorProps } from './AutoSaveIndicator'
+
+// Page Shell (canonical layout wrapper)
+export { PageShell } from './PageShell'
+export type { PageShellProps } from './PageShell'
+
+// Auth Layout (canonical auth page wrapper)
+export { AuthLayout } from './AuthLayout'
+
+// Mobile Page Header (canonical mobile page header)
+export { MobilePageHeader } from './MobilePageHeader'
+export type { MobilePageHeaderProps } from './MobilePageHeader'
 
 // Utility Components
 export { ErrorBoundary } from './ErrorBoundary'
 export { EmptyState } from './EmptyState'
 export { InfoCallout } from './InfoCallout'
 export { PageHeader } from './PageHeader'
-export { PageLayout } from './PageLayout'
 export { StatusIcon } from './StatusIcon'
 
 // Accessibility Components

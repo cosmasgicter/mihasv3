@@ -205,3 +205,80 @@ export function useStudentDashboardPolling(
 }
 
 export default useStudentDashboardPolling
+
+/**
+ * Granular selector: returns only the application count from student dashboard polling.
+ * Shares the same cache as useStudentDashboardPolling — only re-renders when count changes.
+ * Requirement 11.3: React Query granular selectors to prevent unnecessary re-renders.
+ */
+export function useStudentApplicationCount(options: { enabled?: boolean } = {}) {
+  const { enabled = true } = options
+  const { user } = useAuth()
+
+  return useQuery({
+    queryKey: ['student-dashboard-polling', user?.id],
+    queryFn: async (): Promise<StudentDashboardData> => {
+      if (!user?.id) return { applications: [] }
+      const result = await applicationService.list({
+        page: 0,
+        pageSize: 50,
+        sortBy: 'date',
+        sortOrder: 'desc',
+        mine: true,
+      })
+      const applications = (result?.applications || []).map((app) => ({
+        id: app.id ?? '',
+        application_number: app.application_number ?? '',
+        status: app.status ?? '',
+        program: app.program ?? '',
+        created_at: app.created_at ?? '',
+        updated_at: app.updated_at ?? '',
+        payment_status: app.payment_status ?? '',
+      }))
+      return { applications }
+    },
+    enabled: enabled && !!user?.id,
+    select: (data) => data.applications.length,
+    staleTime: POLLING_INTERVAL / 2,
+  })
+}
+
+/**
+ * Granular selector: returns whether any application has a specific status.
+ * Shares the same cache — only re-renders when the boolean result changes.
+ * Requirement 11.3: React Query granular selectors to prevent unnecessary re-renders.
+ */
+export function useHasApplicationWithStatus(
+  targetStatus: string,
+  options: { enabled?: boolean } = {}
+) {
+  const { enabled = true } = options
+  const { user } = useAuth()
+
+  return useQuery({
+    queryKey: ['student-dashboard-polling', user?.id],
+    queryFn: async (): Promise<StudentDashboardData> => {
+      if (!user?.id) return { applications: [] }
+      const result = await applicationService.list({
+        page: 0,
+        pageSize: 50,
+        sortBy: 'date',
+        sortOrder: 'desc',
+        mine: true,
+      })
+      const applications = (result?.applications || []).map((app) => ({
+        id: app.id ?? '',
+        application_number: app.application_number ?? '',
+        status: app.status ?? '',
+        program: app.program ?? '',
+        created_at: app.created_at ?? '',
+        updated_at: app.updated_at ?? '',
+        payment_status: app.payment_status ?? '',
+      }))
+      return { applications }
+    },
+    enabled: enabled && !!user?.id,
+    select: (data) => data.applications.some((app) => app.status === targetStatus),
+    staleTime: POLLING_INTERVAL / 2,
+  })
+}

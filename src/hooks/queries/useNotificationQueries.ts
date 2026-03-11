@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useCallback } from 'react'
 import { notificationService } from '@/services/notifications'
 import { CACHE_CONFIG } from './useQueryConfig'
 
@@ -10,6 +11,26 @@ export const useNotificationPreferences = (userId?: string) => {
       return result ?? null
     },
     enabled: !!userId,
+    ...CACHE_CONFIG.users
+  })
+}
+
+/**
+ * Granular selector: returns only whether email notifications are enabled.
+ * Shares the same cache as useNotificationPreferences — only re-renders when this flag changes.
+ * Requirement 11.3: React Query granular selectors to prevent unnecessary re-renders.
+ */
+export const useEmailNotificationsEnabled = (userId?: string) => {
+  return useQuery({
+    queryKey: ['notification_preferences', userId],
+    queryFn: async () => {
+      const result = await notificationService.getPreferences()
+      return result ?? null
+    },
+    enabled: !!userId,
+    select: useCallback((data: Record<string, unknown> | null) => {
+      return data?.email_enabled === true
+    }, []),
     ...CACHE_CONFIG.users
   })
 }

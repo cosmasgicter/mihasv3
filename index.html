@@ -35,10 +35,24 @@
     <!-- Supabase preconnect removed - fully migrated to Neon Postgres -->
 
     <!-- 
-      Note: Google Fonts preconnect hints removed as the app uses system fonts (Inter, system-ui).
-      If Google Fonts are added in the future, re-add these preconnect hints:
-      <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      Font strategy: Inter is used as the primary font via the system font stack.
+      No external font files are loaded — the browser uses a locally installed Inter
+      or falls back to system-ui / sans-serif. This eliminates font download latency
+      entirely and avoids FOIT/FOUT issues.
+      
+      If a hosted Inter font is added in the future, add:
+      <link rel="preload" href="/fonts/Inter.woff2" as="font" type="font/woff2" crossorigin>
+    -->
+
+    <!--
+      Asset preloading note: Vite generates hashed filenames for CSS and JS bundles
+      (e.g., assets/js/index-[hash].js). Vite's built-in modulepreload injection
+      handles preloading of the entry module and its direct imports automatically
+      in the production build output. Manual <link rel="preload"> tags are not
+      needed here since they would require hardcoded hashes that change every build.
+      
+      The Vite config has modulePreload.polyfill set to false (modern browsers only)
+      and cssCodeSplit enabled for optimal loading.
     -->
 
     <title>MIHAS Application System</title>

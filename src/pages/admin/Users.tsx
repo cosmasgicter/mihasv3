@@ -1,13 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useDebounce } from '@/hooks/useDebounce'
 import { Link } from 'react-router-dom'
 import type { UserProfile } from '@/types/database'
 import { Button } from '@/components/ui/Button'
-import { TableSkeleton, CardSkeleton } from '@/components/ui/LoadingState'
+import { SkeletonTable as TableSkeleton, SkeletonCard as CardSkeleton } from '@/components/ui/skeleton'
+import { UserMobileCard, UserTableRow } from '@/components/admin/UserRowCard'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/Dialog'
 import { Container } from '@/components/ui/Container'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
+import { PageShell } from '@/components/ui/PageShell'
 import { UserStats } from '@/components/admin/UserStats'
 import { BulkUserOperations } from '@/components/admin/BulkUserOperations'
 import { formatDate } from '@/lib/dateFormat'
@@ -139,6 +142,7 @@ export default function AdminUsers() {
   const totalCount = usersData?.totalCount ?? users.length
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
+  const debouncedSearchTerm = useDebounce(searchTerm, 300)
   const [roleFilter, setRoleFilter] = useState('')
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
@@ -181,12 +185,12 @@ export default function AdminUsers() {
   const filteredUsers = useMemo(() => {
     let filtered = users
 
-    if (searchTerm) {
-      const normalizedSearch = searchTerm.toLowerCase()
+    if (debouncedSearchTerm) {
+      const normalizedSearch = debouncedSearchTerm.toLowerCase()
       filtered = filtered.filter((user) =>
         user.full_name?.toLowerCase().includes(normalizedSearch) ||
         user.email?.toLowerCase().includes(normalizedSearch) ||
-        user.phone?.includes(searchTerm),
+        user.phone?.includes(debouncedSearchTerm),
       )
     }
 
@@ -195,7 +199,7 @@ export default function AdminUsers() {
     }
 
     return filtered
-  }, [roleFilter, searchTerm, users])
+  }, [roleFilter, debouncedSearchTerm, users])
 
   const filteredCount = filteredUsers.length
   const selectedCount = selectedUsers.length
@@ -235,7 +239,7 @@ export default function AdminUsers() {
     }
   }
 
-  const openEditDialog = (user: UserProfile) => {
+  const openEditDialog = useCallback((user: UserProfile) => {
     setSelectedUser(user)
     setEditForm({
       full_name: user.full_name || '',
@@ -244,17 +248,17 @@ export default function AdminUsers() {
       role: user.role || 'student',
     })
     setShowEditDialog(true)
-  }
+  }, [])
 
-  const openPermissionsDialog = (user: UserProfile) => {
+  const openPermissionsDialog = useCallback((user: UserProfile) => {
     setSelectedUser(user)
     setShowPermissionsDialog(true)
-  }
+  }, [])
 
-  const openDeleteDialog = (user: UserProfile) => {
+  const openDeleteDialog = useCallback((user: UserProfile) => {
     setSelectedUser(user)
     setShowDeleteDialog(true)
-  }
+  }, [])
 
   const updateUser = async () => {
     if (!selectedUserId) {
@@ -334,93 +338,76 @@ export default function AdminUsers() {
     }
   }
 
-  const handleUserSelect = (userId: string) => {
+  const handleUserSelect = useCallback((userId: string) => {
     setSelectedUsers((current) =>
       current.includes(userId)
         ? current.filter((id) => id !== userId)
         : [...current, userId],
     )
-  }
+  }, [])
 
-  const handleSelectAll = () => {
+  const handleSelectAll = useCallback(() => {
     if (selectedUsers.length === filteredUsers.length) {
       setSelectedUsers([])
       return
     }
 
     setSelectedUsers(filteredUsers.map((user) => user.user_id || user.id).filter((id): id is string => Boolean(id)))
-  }
+  }, [selectedUsers.length, filteredUsers])
 
-  const openActivityLog = (userId: string) => {
+  const openActivityLog = useCallback((userId: string) => {
     setActivityLogUserId(userId)
     setShowActivityLog(true)
-  }
+  }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <Container size="lg" className="space-y-6 py-4 sm:py-8 safe-area-bottom">
-        <PageHeader
-          eyebrow="Administration"
-          title="User management"
-          description="Create accounts, adjust operational roles, manage effective permissions, and review account activity from one aligned admin surface."
-          icon={<UsersIcon className="h-6 w-6" />}
-          variant="gradient"
-          actions={(
-            <>
-              <Link to="/admin">
-                <Button variant="ghost" size="sm" className="border-white text-white hover:bg-white/20">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
-                </Button>
-              </Link>
-              <Button
-                onClick={() => setShowStats((current) => !current)}
-                variant="ghost"
-                size="sm"
-                className="border-white text-white hover:bg-white/20"
-              >
-                <BarChart3 className="mr-2 h-4 w-4" />
-                {showStats ? 'Hide stats' : 'Show stats'}
-              </Button>
-              <Button
-                onClick={() => setShowImportDialog(true)}
-                variant="ghost"
-                size="sm"
-                className="border-white text-white hover:bg-white/20"
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                Import
-              </Button>
-              <Button
-                onClick={() => setShowExportDialog(true)}
-                variant="ghost"
-                size="sm"
-                className="border-white text-white hover:bg-white/20"
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Export
-              </Button>
-              <Button
-                onClick={() => setShowCreateDialog(true)}
-                size="sm"
-                className="bg-card font-semibold text-foreground hover:bg-white"
-              >
-                <UserPlus className="mr-2 h-4 w-4" />
-                Add user
-              </Button>
-            </>
-          )}
-          stats={[
-            { label: 'Active users', value: totalCount, icon: <UsersIcon className="h-5 w-5" />, accent: 'primary' },
-            { label: 'Staff accounts', value: staffCount, icon: <Shield className="h-5 w-5" />, accent: 'secondary' },
-            { label: 'Admin accounts', value: privilegedCount, icon: <Lock className="h-5 w-5" />, accent: 'warning' },
-            { label: 'New in 30 days', value: newThisMonthCount, icon: <Calendar className="h-5 w-5" />, accent: 'neutral' },
-          ]}
-        >
-          <p className="max-w-2xl text-sm text-white/90">
-            Role changes and custom permission overrides revoke active sessions automatically. Deactivated accounts leave the live directory but remain visible in audit history.
-          </p>
-        </PageHeader>
+    <PageShell
+      title="User Management"
+      subtitle="Create accounts, adjust operational roles, manage effective permissions, and review account activity."
+      maxWidth="7xl"
+      actions={
+        <div className="flex flex-wrap gap-2">
+          <Link to="/admin">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+          </Link>
+          <Button
+            onClick={() => setShowStats((current) => !current)}
+            variant="ghost"
+            size="sm"
+          >
+            <BarChart3 className="mr-2 h-4 w-4" />
+            {showStats ? 'Hide stats' : 'Show stats'}
+          </Button>
+          <Button
+            onClick={() => setShowImportDialog(true)}
+            variant="ghost"
+            size="sm"
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            Import
+          </Button>
+          <Button
+            onClick={() => setShowExportDialog(true)}
+            variant="ghost"
+            size="sm"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export
+          </Button>
+          <Button
+            onClick={() => setShowCreateDialog(true)}
+            size="sm"
+          >
+            <UserPlus className="mr-2 h-4 w-4" />
+            Add user
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-6">
 
         <SectionCard
           title="Filter and operate"
@@ -599,70 +586,26 @@ export default function AdminUsers() {
               <div className="block space-y-4 lg:hidden">
                 {filteredUsers.map((user) => {
                   const userId = user.user_id || user.id
-                  const isSelected = selectedUsers.includes(userId)
-
                   return (
-                    <div key={userId} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-                      <div className="flex items-start gap-3">
-                        <button
-                          onClick={() => handleUserSelect(userId)}
-                          className="mt-1 text-primary hover:text-primary"
-                          aria-label={isSelected ? 'Deselect user' : 'Select user'}
-                        >
-                          {isSelected ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
-                        </button>
-                        <div className="mt-1">{getRoleIcon(user.role)}</div>
-                        <div className="min-w-0 flex-1 space-y-2">
-                          <div className="space-y-1">
-                            <h3 className="truncate text-base font-semibold text-foreground" title={user.full_name || 'No name provided'}>
-                              {sanitizeForDisplay(user.full_name) || 'No name provided'}
-                            </h3>
-                            <p className="truncate text-sm text-foreground">{sanitizeForDisplay(user.email)}</p>
-                            <p className="truncate text-sm text-foreground">
-                              {sanitizeForDisplay(user.phone) || 'No phone on file'}
-                            </p>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium ${getRoleColor(user.role)}`}>
-                              {getRoleLabel(user.role)}
-                            </span>
-                            <span className="rounded-full border border-border bg-muted px-3 py-1 text-xs text-foreground">
-                              Joined {formatJoinDate(user.created_at)}
-                            </span>
-                          </div>
-                          <p className="text-sm text-foreground">{getRoleDescription(user.role)}</p>
-                          <p className="font-mono text-xs text-foreground/80">
-                            User ID: {userId.slice(0, 8)}...
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-4">
-                        <Button variant="outline" size="sm" onClick={() => openEditDialog(user)}>
-                          Edit
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => openPermissionsDialog(user)}>
-                          Permissions
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => openActivityLog(userId)}>
-                          Activity
-                        </Button>
-                        {user.role !== 'super_admin' && (
-                          <Button variant="outline" size="sm" className="border-destructive/30 text-destructive hover:bg-destructive/5" onClick={() => openDeleteDialog(user)}>
-                            Deactivate
-                          </Button>
-                        )}
-                      </div>
-                    </div>
+                    <UserMobileCard
+                      key={userId}
+                      user={user}
+                      isSelected={selectedUsers.includes(userId)}
+                      onSelect={handleUserSelect}
+                      onEdit={openEditDialog}
+                      onPermissions={openPermissionsDialog}
+                      onActivity={openActivityLog}
+                      onDeactivate={openDeleteDialog}
+                    />
                   )
                 })}
               </div>
 
               <div className="hidden overflow-x-auto lg:block">
-                <table className="min-w-full divide-y divide-border">
+                <table className="min-w-full divide-y divide-border" aria-label="Users">
                   <thead className="bg-muted/50">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground">
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground">
                         <div className="flex items-center gap-2">
                           <button
                             onClick={handleSelectAll}
@@ -678,89 +621,41 @@ export default function AdminUsers() {
                           <span>User</span>
                         </div>
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground">
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground">
                         <div className="flex items-center gap-2">
                           <Phone className="h-4 w-4" />
                           Contact
                         </div>
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground">
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground">
                         <div className="flex items-center gap-2">
                           <Trophy className="h-4 w-4" />
                           Role
                         </div>
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground">
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground">
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4" />
                           Joined
                         </div>
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-foreground">Actions</th>
+                      <th scope="col" className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-foreground">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border bg-card">
                     {filteredUsers.map((user) => {
                       const userId = user.user_id || user.id
-                      const isSelected = selectedUsers.includes(userId)
-
                       return (
-                        <tr key={userId} className="hover:bg-muted/30">
-                          <td className="px-4 py-4 align-top">
-                            <div className="flex items-start gap-3">
-                              <button
-                                onClick={() => handleUserSelect(userId)}
-                                className="mt-0.5 text-primary hover:text-primary"
-                                aria-label={isSelected ? 'Deselect user' : 'Select user'}
-                              >
-                                {isSelected ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
-                              </button>
-                              <div className="mt-0.5">{getRoleIcon(user.role)}</div>
-                              <div className="min-w-0 space-y-1">
-                                <p className="truncate text-sm font-semibold text-foreground" title={user.full_name || 'No name provided'}>
-                                  {sanitizeForDisplay(user.full_name) || 'No name provided'}
-                                </p>
-                                <p className="truncate text-sm text-foreground">{sanitizeForDisplay(user.email)}</p>
-                                <p className="font-mono text-xs text-foreground/80">ID: {userId.slice(0, 8)}...</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-4 align-top">
-                            <div className="max-w-xs space-y-1">
-                              <p className="truncate text-sm text-foreground">{sanitizeForDisplay(user.phone) || 'No phone on file'}</p>
-                              <p className="text-xs text-foreground">Phone is also used by downstream notifications and profile autopopulation.</p>
-                            </div>
-                          </td>
-                          <td className="px-4 py-4 align-top">
-                            <div className="space-y-2">
-                              <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium ${getRoleColor(user.role)}`}>
-                                {getRoleLabel(user.role)}
-                              </span>
-                              <p className="max-w-xs text-xs text-foreground">{getRoleDescription(user.role)}</p>
-                            </div>
-                          </td>
-                          <td className="px-4 py-4 align-top text-sm text-foreground">
-                            {formatJoinDate(user.created_at)}
-                          </td>
-                          <td className="px-4 py-4 align-top">
-                            <div className="flex justify-end gap-2">
-                              <Button variant="outline" size="sm" onClick={() => openEditDialog(user)}>
-                                Edit
-                              </Button>
-                              <Button variant="outline" size="sm" onClick={() => openPermissionsDialog(user)}>
-                                Permissions
-                              </Button>
-                              <Button variant="outline" size="sm" onClick={() => openActivityLog(userId)}>
-                                Activity
-                              </Button>
-                              {user.role !== 'super_admin' && (
-                                <Button variant="outline" size="sm" className="border-destructive/30 text-destructive hover:bg-destructive/5" onClick={() => openDeleteDialog(user)}>
-                                  Deactivate
-                                </Button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
+                        <UserTableRow
+                          key={userId}
+                          user={user}
+                          isSelected={selectedUsers.includes(userId)}
+                          onSelect={handleUserSelect}
+                          onEdit={openEditDialog}
+                          onPermissions={openPermissionsDialog}
+                          onActivity={openActivityLog}
+                          onDeactivate={openDeleteDialog}
+                        />
                       )
                     })}
                   </tbody>
@@ -992,7 +887,7 @@ export default function AdminUsers() {
             refetch()
           }}
         />
-      </Container>
-    </div>
+      </div>
+    </PageShell>
   )
 }

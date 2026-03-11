@@ -1,4 +1,3 @@
-import type { ChangeEvent } from 'react'
 import { useEffect, useState } from 'react'
 
 import { CreditCard, Radio } from 'lucide-react'
@@ -7,7 +6,7 @@ import type { UseFormReturn } from 'react-hook-form'
 import { AnimatedInput } from '@/components/smoothui/animated-input'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
 import { FormSelect } from '@/components/ui/form-select'
-import { AnimatedFileUpload } from '@/components/smoothui/animated-file-upload'
+import { FileUpload } from '@/components/ui/FileUpload'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { animateClasses, staggerChild } from '@/lib/animations'
 import { cn } from '@/lib/utils'
@@ -18,7 +17,7 @@ interface PaymentStepProps {
   title: string
   form: UseFormReturn<WizardFormData>
   getPaymentTarget: () => Promise<string>
-  handleProofOfPaymentUpload: (event: ChangeEvent<HTMLInputElement>) => void
+  handleProofOfPaymentUpload: (file: File | null) => void
   proofOfPaymentFile: File | null
   uploadProgress: Record<string, number>
   uploadedFiles: Record<string, boolean>
@@ -102,7 +101,7 @@ const PaymentStep = ({
           role="radiogroup"
           aria-labelledby="payment-option-legend"
           aria-describedby="payment-option-hint"
-          className="grid gap-3 lg:grid-cols-2"
+          className="grid gap-3 md:grid-cols-2"
         >
           {paymentChoices.map(choice => {
             const checked = paymentOption === choice.value
@@ -203,7 +202,7 @@ const PaymentStep = ({
             padding="sm"
             className="shadow-none"
           >
-            <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
               <div style={staggerChild(0)}>
                 <FormSelect
                   name="payment_method"
@@ -271,15 +270,18 @@ const PaymentStep = ({
             padding="sm"
             className="shadow-none"
           >
-            <AnimatedFileUpload
+            <FileUpload
               label="Proof of payment"
-              required
               accept=".pdf,.jpg,.jpeg,.png"
-              onChange={handleProofOfPaymentUpload}
-              file={proofOfPaymentFile}
-              uploadProgress={uploadProgress.proof_of_payment}
-              isUploaded={uploadedFiles.proof_of_payment}
-              helperText="Upload a screenshot or PDF of your payment confirmation"
+              maxSize={10 * 1024 * 1024}
+              onChange={(files) => handleProofOfPaymentUpload(files as File | null)}
+              value={proofOfPaymentFile}
+              uploading={uploadProgress.proof_of_payment !== undefined && uploadProgress.proof_of_payment < 100}
+              progress={uploadProgress.proof_of_payment}
+              preview={uploadedFiles.proof_of_payment && proofOfPaymentFile ? {
+                url: URL.createObjectURL(proofOfPaymentFile),
+                type: proofOfPaymentFile.type.startsWith('image/') ? 'image' : 'pdf'
+              } : undefined}
             />
 
             <p className="text-sm font-medium text-foreground">

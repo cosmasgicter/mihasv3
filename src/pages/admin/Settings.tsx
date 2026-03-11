@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/Button'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { StandaloneSelect } from '@/components/ui/standalone-select'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { CanonicalSelect } from '@/components/ui/CanonicalSelect'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import {
@@ -31,6 +31,7 @@ import {
   Users,
   X,
 } from 'lucide-react'
+import { PageShell } from '@/components/ui/PageShell'
 
 type SettingValueType = 'string' | 'integer' | 'decimal' | 'boolean'
 type VisibilityFilter = 'all' | 'public' | 'private'
@@ -537,55 +538,43 @@ export default function AdminSettings() {
   const privateSettingsCount = settings.filter((setting) => !setting.is_public).length
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <div className="mx-auto max-w-7xl px-4 py-4 safe-area-bottom sm:px-6 sm:py-6 lg:px-8 lg:py-8">
-        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
-          <div className="bg-gradient-to-r from-indigo-500 via-blue-600 to-purple-600 p-6 text-white">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-                <Link to="/admin">
-                  <Button variant="ghost" size="sm" className="border-white text-white hover:bg-white/20">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back
-                  </Button>
-                </Link>
-                <div>
-                  <h1 className="flex items-center gap-3 text-2xl font-bold sm:text-3xl">
-                    <Settings className="h-8 w-8" />
-                    Operational Settings
-                  </h1>
-                  <p className="text-sm text-white/90 sm:text-base">
-                    Configure the admissions portal through guided controls first, then use advanced keys only when needed.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  onClick={() => setShowAddForm((current) => !current)}
-                  className="border-white/30 bg-card/80 text-primary hover:bg-white"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  {showAddForm ? 'Hide Advanced Key' : 'New Advanced Key'}
-                </Button>
-                <Button
-                  onClick={exportSettings}
-                  variant="outline"
-                  className="border-white/30 bg-white/10 text-white hover:bg-white/20"
-                >
-                  Export
-                </Button>
-                <label className="cursor-pointer">
-                  <span className="inline-flex h-10 items-center justify-center rounded-lg border border-white/30 bg-white/10 px-4 text-sm font-semibold text-white transition-colors hover:bg-white/20">
-                    Import
-                  </span>
-                  <input type="file" accept=".json" onChange={handleImport} className="hidden" />
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-6 p-6">
+    <PageShell
+      title="Operational Settings"
+      subtitle="Configure the admissions portal through guided controls first, then use advanced keys only when needed."
+      maxWidth="7xl"
+      actions={
+        <div className="flex flex-wrap gap-2">
+          <Link to="/admin">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          </Link>
+          <Button
+            onClick={() => setShowAddForm((current) => !current)}
+            variant="outline"
+            size="sm"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            {showAddForm ? 'Hide Advanced Key' : 'New Advanced Key'}
+          </Button>
+          <Button
+            onClick={exportSettings}
+            variant="outline"
+            size="sm"
+          >
+            Export
+          </Button>
+          <label className="cursor-pointer">
+            <span className="inline-flex h-9 items-center justify-center rounded-lg border border-input bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted">
+              Import
+            </span>
+            <input type="file" accept=".json" onChange={handleImport} className="hidden" />
+          </label>
+        </div>
+      }
+    >
+        <div className="space-y-6">
             {error ? (
               <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-destructive">
                 {error}
@@ -601,8 +590,7 @@ export default function AdminSettings() {
             {loading ? (
               <div className="flex justify-center py-16">
                 <div className="text-center">
-                  <LoadingSpinner size="lg" />
-                  <p className="mt-4 text-lg text-foreground">Loading settings...</p>
+                  <UnifiedLoader variant="page" label="Loading settings..." />
                 </div>
               </div>
             ) : (
@@ -730,7 +718,7 @@ export default function AdminSettings() {
 
                                   <div className="space-y-3">
                                     {blueprint.valueType === 'boolean' ? (
-                                      <StandaloneSelect
+                                      <CanonicalSelect
                                         label="Value"
                                         value={draft.value || 'false'}
                                         onChange={(value) => handleGuidedDraftChange(blueprint.key, 'value', value)}
@@ -749,7 +737,7 @@ export default function AdminSettings() {
                                     )}
 
                                     <div className="grid gap-3 md:grid-cols-2">
-                                      <StandaloneSelect
+                                      <CanonicalSelect
                                         label="Visibility"
                                         value={draft.is_public ? 'public' : 'private'}
                                         onChange={(value) => handleGuidedDraftChange(blueprint.key, 'is_public', value === 'public')}
@@ -836,7 +824,7 @@ export default function AdminSettings() {
                               onChange={(event) => setNewSetting((current) => ({ ...current, key: event.target.value }))}
                               placeholder="e.g. sms_provider_name"
                             />
-                            <StandaloneSelect
+                            <CanonicalSelect
                               value={newSetting.valueType}
                               onChange={(value) => setNewSetting((current) => ({ ...current, valueType: value as SettingValueType }))}
                               options={[
@@ -853,7 +841,7 @@ export default function AdminSettings() {
                               onChange={(event) => setNewSetting((current) => ({ ...current, value: event.target.value }))}
                               placeholder={newSetting.valueType === 'boolean' ? 'true or false' : 'Enter value'}
                             />
-                            <StandaloneSelect
+                            <CanonicalSelect
                               value={newSetting.is_public ? 'public' : 'private'}
                               onChange={(value) => setNewSetting((current) => ({ ...current, is_public: value === 'public' }))}
                               options={[
@@ -897,15 +885,15 @@ export default function AdminSettings() {
 
                       {filteredAdvancedSettings.length > 0 ? (
                         <div className="overflow-x-auto">
-                          <table className="min-w-full divide-y divide-border">
+                          <table className="min-w-full divide-y divide-border" aria-label="Advanced settings">
                             <thead className="bg-muted/60">
                               <tr>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Key</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Value</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Type</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Visibility</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Description</th>
-                                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">Actions</th>
+                                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Key</th>
+                                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Value</th>
+                                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Type</th>
+                                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Visibility</th>
+                                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">Description</th>
+                                <th scope="col" className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">Actions</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-border bg-card">
@@ -936,7 +924,7 @@ export default function AdminSettings() {
                                   </td>
                                   <td className="px-4 py-4">
                                     {editingId === setting.id ? (
-                                      <StandaloneSelect
+                                      <CanonicalSelect
                                         value={editForm.is_public ? 'public' : 'private'}
                                         onChange={(value) => setEditForm((current) => ({ ...current, is_public: value === 'public' }))}
                                         options={[
@@ -1022,7 +1010,6 @@ export default function AdminSettings() {
             )}
           </div>
         </div>
-      </div>
 
       <ConfirmAlertDialog
         isOpen={confirmDialog.isOpen}
@@ -1034,6 +1021,6 @@ export default function AdminSettings() {
         cancelText={confirmDialog.options.cancelText}
         variant={confirmDialog.options.variant}
       />
-    </div>
+    </PageShell>
   )
 }

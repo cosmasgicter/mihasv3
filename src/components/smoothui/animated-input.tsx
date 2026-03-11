@@ -1,10 +1,13 @@
 /**
  * AnimatedInput Component - SmoothUI-style animated form inputs
  * Provides smooth focus and validation animations using CSS transitions.
+ * Labels are positioned above inputs with 8px gap per design system requirements.
  * 
  * @requirements 1.2 - CSS transitions instead of framer-motion
  * @requirements 1.5 - Preserve same visual transition behavior
  * @requirements 8.1, 8.6 - SmoothUI animations with reduced-motion support
+ * @requirements 9.3 - Labels above inputs with 8px gap
+ * @requirements 9.4 - Error messages below with 4px top margin
  */
 
 import { forwardRef, useState, useId } from 'react';
@@ -19,7 +22,6 @@ interface AnimatedInputProps extends React.InputHTMLAttributes<HTMLInputElement>
 export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
   ({ label, error, helperText, className, id, ...props }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
-    const [hasValue, setHasValue] = useState(!!props.value || !!props.defaultValue);
     const generatedId = useId();
     const inputId = id || generatedId;
 
@@ -30,28 +32,17 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
 
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
       setIsFocused(false);
-      setHasValue(!!e.target.value);
       props.onBlur?.(e);
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setHasValue(!!e.target.value);
-      props.onChange?.(e);
-    };
-
-    const isLabelActive = isFocused || hasValue;
-
     return (
-      <div className="relative">
+      <div className="w-full">
         {label && (
           <label
             htmlFor={inputId}
             className={cn(
-              'absolute left-3 top-3 origin-left pointer-events-none',
-              'text-muted-foreground transition-all duration-150 ease-out motion-reduce:transition-none',
-              isLabelActive && '-translate-y-6 scale-[0.85]',
-              isLabelActive && (error ? 'text-destructive' : 'text-primary'),
-              error && !isLabelActive && 'text-destructive'
+              'block text-sm font-medium text-foreground mb-2',
+              error && 'text-destructive'
             )}
           >
             {label}
@@ -59,31 +50,27 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
           </label>
         )}
         
-        <div
-          className={cn(
-            'relative transition-transform duration-150 ease-out motion-reduce:transition-none',
-            isFocused && 'scale-[1.01]'
-          )}
-        >
+        <div className="relative">
           <input
             ref={ref}
             id={inputId}
             className={cn(
-              'flex h-12 w-full rounded-lg border bg-background px-3 py-2',
-              'text-base ring-offset-background transition-all duration-200',
+              'flex w-full min-h-[44px] h-11 rounded-md border bg-background px-3 py-2',
+              'text-base text-foreground ring-offset-background',
+              'transition-all duration-200 motion-reduce:transition-none',
               'file:border-0 file:bg-transparent file:text-sm file:font-medium',
               'placeholder:text-muted-foreground',
+              'hover:border-primary/50 hover:bg-accent/30',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
               'disabled:cursor-not-allowed disabled:opacity-50',
+              'disabled:hover:border-input disabled:hover:bg-background',
               error 
                 ? 'border-destructive focus-visible:ring-destructive' 
                 : 'border-input',
-              label && 'pt-5',
               className
             )}
             onFocus={handleFocus}
             onBlur={handleBlur}
-            onChange={handleChange}
             aria-invalid={error ? 'true' : undefined}
             aria-required={props.required || undefined}
             aria-describedby={error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined}
@@ -104,28 +91,21 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
         </div>
 
         {/* Error message with animation */}
-        <div
-          className={cn(
-            'transition-all duration-150 ease-out overflow-hidden motion-reduce:transition-none',
-            error ? 'opacity-100 max-h-10 mt-1.5' : 'opacity-0 max-h-0'
-          )}
-        >
-          {error && (
-            <p 
-              id={`${inputId}-error`}
-              className="text-sm text-destructive"
-              role="alert"
-            >
-              {error}
-            </p>
-          )}
-        </div>
+        {error && (
+          <p 
+            id={`${inputId}-error`}
+            className="mt-1 text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1 duration-150 motion-reduce:animate-none"
+            role="alert"
+          >
+            {error}
+          </p>
+        )}
 
         {/* Helper text */}
         {helperText && !error && (
           <p 
             id={`${inputId}-helper`}
-            className="mt-1.5 text-sm text-muted-foreground"
+            className="mt-1 text-sm text-muted-foreground"
           >
             {helperText}
           </p>

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { Button } from '@/components/ui/Button'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog'
 import { adminAuditService, type AuditLogEntry } from '@/services/admin/audit'
@@ -143,7 +143,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
 
           {loading ? (
             <div className="flex justify-center py-10">
-              <LoadingSpinner size="lg" />
+              <UnifiedLoader variant="page" />
             </div>
           ) : filteredActivities.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-border bg-muted/20 px-6 py-16 text-center">

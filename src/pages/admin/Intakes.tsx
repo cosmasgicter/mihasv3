@@ -13,11 +13,13 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/Dialog'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { Pencil, Trash2, Plus, ArrowLeft, Calendar, BarChart3, Target } from 'lucide-react'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { ResponsiveTable } from '@/components/ui/ResponsiveTable'
+import { Pencil, Trash2, Plus, ArrowLeft, Calendar } from 'lucide-react'
 import { useForm, type Resolver } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { PageShell } from '@/components/ui/PageShell'
 
 interface Intake {
   id: string
@@ -218,41 +220,32 @@ export default function AdminIntakes() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container-mobile py-4 sm:py-6 lg:py-8 safe-area-bottom">
-        <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden">
-          {/* Header - Mobile First */}
-          <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 p-6 text-white">
-            <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-              <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
-                <Link to="/admin">
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 border-white">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back
-                  </Button>
-                </Link>
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold"><Calendar className="w-5 h-5" /> Intakes</h1>
-                  <p className="text-white/90 text-sm sm:text-base">Manage admission intakes</p>
-                </div>
-              </div>
-              <Button 
-                onClick={openCreate}
-                className="bg-card text-secondary hover:bg-accent font-semibold shadow-lg"
-              >
-                <Plus className="h-4 w-4 mr-2" /> Add Intake
-              </Button>
-            </div>
-          </div>
+    <PageShell
+      title="Intakes"
+      subtitle="Manage admission intakes"
+      maxWidth="7xl"
+      actions={
+        <div className="flex items-center gap-2">
+          <Link to="/admin">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          </Link>
+          <Button onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-2" /> Add Intake
+          </Button>
+        </div>
+      }
+    >
 
           {/* Content */}
-          <div className="p-6">
+          <div>
 
             {loading ? (
               <div className="flex justify-center py-8 sm:py-16">
                 <div className="text-center">
-                  <LoadingSpinner size="lg" />
-                  <p className="mt-4 text-lg text-foreground">Loading intakes...</p>
+                  <UnifiedLoader variant="page" label="Loading intakes..." />
                 </div>
               </div>
             ) : error ? (
@@ -274,167 +267,112 @@ export default function AdminIntakes() {
                 <p className="text-foreground mb-6 max-w-md mx-auto">
                   Create admission intakes to define application periods, deadlines, and capacity for student enrollment.
                 </p>
-                <Button onClick={openCreate} className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-white font-semibold">
+                <Button onClick={openCreate}>
                   <Plus className="h-5 w-5 mr-2" />
                   Create First Intake
                 </Button>
               </div>
             ) : (
-              <>
-                {/* Mobile Cards View */}
-                <div className="block lg:hidden space-y-4">
-                  {intakes.map((intake) => (
-                    <div key={intake.id} className="bg-muted rounded-xl p-4 border border-border">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h3 className="font-bold text-lg text-foreground">{intake.name}</h3>
-                          <p className="text-sm text-foreground">Year: {intake.year}</p>
-                        </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          (intake.available_spots ?? 0) > 0 ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
-                        }`}>
-                          {intake.available_spots}/{intake.total_capacity} spots
-                        </span>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
-                        <div>
-                          <span className="text-foreground">Start:</span>
-                          <div className="font-medium">{formatDate(intake.start_date)}</div>
-                        </div>
-                        <div>
-                          <span className="text-foreground">End:</span>
-                          <div className="font-medium">{formatDate(intake.end_date)}</div>
-                        </div>
-                        <div className="col-span-2">
-                          <span className="text-foreground">Application Deadline:</span>
-                          <div className="font-medium text-destructive">{formatDate(intake.application_deadline)}</div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => openEdit(intake)}
-                          className="flex-1 text-primary border-blue-300 hover:bg-primary/5 min-h-[44px]"
+              <ResponsiveTable<Intake>
+                columns={[
+                  {
+                    key: 'name',
+                    header: 'Name',
+                    priority: 'always',
+                    render: (_value, row) => (
+                      <span className="font-semibold text-foreground">{row.name}</span>
+                    ),
+                  },
+                  {
+                    key: 'year',
+                    header: 'Year',
+                    priority: 'always',
+                    render: (_value, row) => (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-secondary/10 text-secondary-foreground">
+                        {row.year}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: 'start_date',
+                    header: 'Start',
+                    priority: 'desktop',
+                    render: (_value, row) => <span>{formatDate(row.start_date)}</span>,
+                  },
+                  {
+                    key: 'end_date',
+                    header: 'End',
+                    priority: 'desktop',
+                    render: (_value, row) => <span>{formatDate(row.end_date)}</span>,
+                  },
+                  {
+                    key: 'application_deadline',
+                    header: 'Deadline',
+                    priority: 'always',
+                    render: (_value, row) => (
+                      <span className="text-sm font-medium text-destructive">
+                        {formatDate(row.application_deadline)}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: 'total_capacity',
+                    header: 'Capacity',
+                    priority: 'desktop',
+                    render: (_value, row) => (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-primary/10 text-primary">
+                        {row.total_capacity}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: 'available_spots',
+                    header: 'Available',
+                    priority: 'always',
+                    render: (_value, row) => (
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${
+                        (row.available_spots ?? 0) > 0 ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
+                      }`}>
+                        {row.available_spots}/{row.total_capacity}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: 'id',
+                    header: 'Actions',
+                    priority: 'always',
+                    render: (_value, row) => (
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => { e.stopPropagation(); openEdit(row) }}
+                          className="text-primary"
+                          aria-label={`Edit ${row.name}`}
                         >
-                          <Pencil className="h-4 w-4 mr-1" />
-                          Edit
+                          <Pencil className="h-4 w-4" aria-hidden="true" />
+                          <span className="md:hidden ml-1">Edit</span>
                         </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => openDelete(intake)}
-                          className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5 min-h-[44px]"
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => { e.stopPropagation(); openDelete(row) }}
+                          className="text-destructive border-destructive/30 hover:bg-destructive/5"
+                          aria-label={`Delete ${row.name}`}
                         >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Delete
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
+                          <span className="md:hidden ml-1">Delete</span>
                         </Button>
                       </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Desktop Table View */}
-                <div className="hidden lg:block overflow-x-auto -mx-6">
-                  <div className="inline-block min-w-full px-6">
-                  <table className="min-w-full divide-y divide-border">
-                    <thead className="bg-gradient-to-r from-muted to-purple-50">
-                      <tr>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
-                          <Calendar className="w-5 h-5" /> Name
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
-                          📆 Year
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
-                          🟢 Start
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
-                          🔴 End
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
-                          ⏰ Deadline
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
-                          <BarChart3 className="w-5 h-5" /> Capacity
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase tracking-wider">
-                          <Target className="w-5 h-5" /> Available
-                        </th>
-                        <th className="px-6 py-4 text-right text-sm font-bold text-foreground uppercase tracking-wider">
-                          ⚙️ Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-card divide-y divide-border">
-                      {intakes.map((intake) => (
-                        <tr key={intake.id} className="hover:bg-secondary/5 transition-colors">
-                          <td className="px-6 py-4">
-                            <div className="font-semibold text-foreground">{intake.name}</div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-secondary/10 text-purple-800">
-                              {intake.year}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-foreground">
-                            {formatDate(intake.start_date)}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-foreground">
-                            {formatDate(intake.end_date)}
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="text-sm font-medium text-destructive">
-                              {formatDate(intake.application_deadline)}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary-foreground">
-                              {intake.total_capacity}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                              (intake.available_spots ?? 0) > 0 ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
-                            }`}>
-                              {intake.available_spots}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end space-x-2">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => openEdit(intake)}
-                                className="text-primary border-blue-300 hover:bg-primary/5"
-                                aria-label={`Edit ${intake.name}`}
-                              >
-                                <Pencil className="h-4 w-4" aria-hidden="true" />
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => openDelete(intake)}
-                                className="text-destructive border-destructive/30 hover:bg-destructive/5"
-                                aria-label={`Delete ${intake.name}`}
-                              >
-                                <Trash2 className="h-4 w-4" aria-hidden="true" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  </div>
-                </div>
-              </>
+                    ),
+                  },
+                ]}
+                data={intakes}
+                caption="Admission intakes"
+                loading={false}
+              />
             )}
           </div>
-        </div>
-      </div>
 
       {/* Create Intake Dialog */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
@@ -511,7 +449,7 @@ export default function AdminIntakes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageShell>
   )
 }
 

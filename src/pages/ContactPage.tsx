@@ -93,13 +93,13 @@ export default function ContactPage() {
                 <CardTitle className="mb-4">Send a Message</CardTitle>
                 <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
                   <div>
-                    <label htmlFor="contact-name" className="block text-sm font-medium mb-1">
+                    <label htmlFor="contact-name" className="block text-sm font-medium text-foreground mb-2">
                       Name
                     </label>
                     <input
                       id="contact-name"
                       placeholder="Your name"
-                      className="w-full rounded-lg border border-border bg-card px-3 py-2"
+                      className="w-full min-h-[44px] rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                       aria-invalid={!!errors.name}
                       aria-describedby={errors.name ? 'contact-name-error' : undefined}
                       {...register('name')}
@@ -112,14 +112,14 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <label htmlFor="contact-email" className="block text-sm font-medium mb-1">
+                    <label htmlFor="contact-email" className="block text-sm font-medium text-foreground mb-2">
                       Email
                     </label>
                     <input
                       id="contact-email"
                       type="email"
                       placeholder="Email"
-                      className="w-full rounded-lg border border-border bg-card px-3 py-2"
+                      className="w-full min-h-[44px] rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                       aria-invalid={!!errors.email}
                       aria-describedby={errors.email ? 'contact-email-error' : undefined}
                       {...register('email')}
@@ -132,14 +132,14 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <label htmlFor="contact-message" className="block text-sm font-medium mb-1">
+                    <label htmlFor="contact-message" className="block text-sm font-medium text-foreground mb-2">
                       Message
                     </label>
                     <textarea
                       id="contact-message"
                       placeholder="How can we help?"
                       rows={5}
-                      className="w-full rounded-lg border border-border bg-card px-3 py-2"
+                      className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                       aria-invalid={!!errors.message}
                       aria-describedby={errors.message ? 'contact-message-error' : undefined}
                       {...register('message')}

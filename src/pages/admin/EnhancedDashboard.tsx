@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { useQuery } from '@tanstack/react-query'
 import { adminDashboardService } from '@/services/admin/dashboard'
 import { getAdminDisplayName, shouldLoadAdminDashboard } from '@/pages/admin/lib/dashboardBootstrap'
+import { PageShell } from '@/components/ui/PageShell'
 import { 
   BarChart3, 
   Activity, 
@@ -74,26 +75,28 @@ export default function EnhancedAdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <div
-          className={`text-center ${animateClasses.scaleIn}`}
-        >
-          <UnifiedLoader variant="inline" size="lg" label="Loading dashboard" />
-          <p className="mt-4 text-lg text-foreground font-medium">Loading dashboard...</p>
+      <PageShell title="Enhanced Admin Dashboard" subtitle="Loading..." maxWidth="7xl">
+        <div className="flex items-center justify-center py-16">
+          <div className={`text-center ${animateClasses.scaleIn}`}>
+            <UnifiedLoader variant="inline" size="lg" label="Loading dashboard" />
+            <p className="mt-4 text-lg text-foreground font-medium">Loading dashboard...</p>
+          </div>
         </div>
-      </div>
+      </PageShell>
     )
   }
 
   if (!shouldLoadAdminDashboard(user)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-foreground mb-2">Authentication Required</h2>
-          <p className="text-foreground mb-4">Please sign in to access the admin dashboard.</p>
-          <Button onClick={() => window.location.href = '/auth/signin'}>Sign In</Button>
+      <PageShell title="Enhanced Admin Dashboard" subtitle="Authentication required" maxWidth="7xl">
+        <div className="flex items-center justify-center py-16">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-foreground mb-2">Authentication Required</h2>
+            <p className="text-foreground mb-4">Please sign in to access the admin dashboard.</p>
+            <Button onClick={() => window.location.href = '/auth/signin'}>Sign In</Button>
+          </div>
         </div>
-      </div>
+      </PageShell>
     )
   }
 
@@ -104,64 +107,49 @@ export default function EnhancedAdminDashboard() {
   ]
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 ${isFullscreen ? 'p-0' : ''}`}>
-      
-      <main className={`${isFullscreen ? 'p-4' : 'container-mobile py-4 sm:py-6 lg:py-8'} safe-area-bottom`}>
-        {/* Enhanced Header */}
-        <div 
-          className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}
-        >
-          <div className="bg-gradient-to-r from-blue-600/90 via-indigo-600/85 to-blue-700/90 rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-            <div className="absolute inset-0 bg-black/10"></div>
-            <div className="relative z-10">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-                <div>
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">
-                    <Rocket className="w-5 h-5" /> Enhanced Admin Dashboard
-                  </h1>
-                  <p className="text-lg sm:text-xl text-white/90">
-                    Welcome back, {getAdminDisplayName(profile, user)}! Here's your system overview
-                  </p>
-                  <div className="flex items-center space-x-4 mt-4 text-sm">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 rounded-full bg-success/80 animate-pulse"></div>
-                      <span>System Online</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Activity className="h-4 w-4" />
-                      <span>{stats.activeUsers} active users</span>
-                    </div>
-                  </div>
+    <PageShell
+      title="Enhanced Admin Dashboard"
+      subtitle={`Welcome back, ${getAdminDisplayName(profile, user)}! Here's your system overview`}
+      maxWidth="7xl"
+      actions={
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refreshDashboard}
+            loading={isFetching}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsFullscreen(!isFullscreen)}
+          >
+            {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </Button>
+        </div>
+      }
+    >
+      <div>
+        {/* System Status */}
+        <div className={`mb-6 ${animateClasses.slideUp}`}>
+          <div className="bg-card rounded-xl p-4 shadow-sm border border-border">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4 text-sm">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-success/80 animate-pulse"></div>
+                  <span className="text-foreground">System Online</span>
                 </div>
-                
-                <div className="flex items-center space-x-4">
-                  <div className="text-right">
-                    <div className="text-3xl sm:text-4xl font-bold">{stats.totalApplications}</div>
-                    <div className="text-sm sm:text-base text-white/80">Total Applications</div>
-                  </div>
-                  
-                  <div className="flex flex-col space-y-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={refreshDashboard}
-                      loading={isFetching}
-                      className="bg-card/80 border-white/30 text-foreground hover:bg-white/90"
-                    >
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Refresh
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsFullscreen(!isFullscreen)}
-                      className="bg-card/80 border-white/30 text-foreground hover:bg-white/90"
-                    >
-                      {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-                    </Button>
-                  </div>
+                <div className="flex items-center space-x-2">
+                  <Activity className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-foreground">{stats.activeUsers} active users</span>
                 </div>
+              </div>
+              <div className="text-right">
+                <span className="text-2xl font-bold text-foreground">{stats.totalApplications}</span>
+                <span className="text-sm ml-2 text-muted-foreground">Total Applications</span>
               </div>
             </div>
           </div>
@@ -303,7 +291,7 @@ export default function EnhancedAdminDashboard() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </PageShell>
   )
 }

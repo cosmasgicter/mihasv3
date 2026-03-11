@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Upload, X, Image, FileText, Check, AlertCircle, Minimize2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { EnhancedLoadingSpinner } from './EnhancedLoadingSpinner'
+import { UnifiedSpinner } from './UnifiedLoader'
 import { ProgressIndicator } from './ProgressIndicator'
 import { compressImage, validateFile, formatFileSize } from '@/utils/file-helpers'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
@@ -190,7 +190,7 @@ export function EnhancedFileUpload({
       case 'compressing':
         return <Minimize2 className="w-4 h-4 text-primary animate-pulse" />
       default:
-        return <EnhancedLoadingSpinner size="sm" color="primary" />
+        return <UnifiedSpinner size="sm" />
     }
   }
 

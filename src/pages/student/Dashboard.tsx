@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import type { Application, Intake, ApplicationInterview } from '@/types/database'
@@ -19,7 +19,8 @@ import { catalogService } from '@/services/catalog'
 import { DashboardStatusOverview } from '@/components/student/DashboardStatusOverview'
 import { ApplicationTimeline } from '@/components/student/ApplicationTimeline'
 import { QuickActions } from '@/components/student/QuickActions'
-import { User, FileText, Clock, CheckCircle, XCircle, Plus, X, RefreshCw, Calendar } from 'lucide-react'
+import { ApplicationListItem } from '@/components/student/ApplicationListItem'
+import { User, FileText, Clock, CheckCircle, XCircle, X, RefreshCw, Calendar } from 'lucide-react'
 
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
@@ -30,6 +31,7 @@ import { Container } from '@/components/ui/Container'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { ErrorBanner } from '@/components/ui/ErrorDisplay'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { PageShell } from '@/components/ui/PageShell'
 import { useStudentDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useStudentDashboardPolling } from '@/hooks/useStudentDashboardPolling'
 import { useApplicationUpdates } from '@/hooks/useRealtime'
@@ -42,6 +44,7 @@ import { requiresStudentPaymentAction } from '@/lib/paymentStatus'
 
 export default function StudentDashboard() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const { profile } = useProfileQuery()
   const [applications, setApplications] = useState<Application[]>([])
   const [intakes, setIntakes] = useState<Intake[]>([])
@@ -53,13 +56,15 @@ export default function StudentDashboard() {
   const [scheduledInterviews, setScheduledInterviews] = useState<ApplicationInterview[]>([])
   const hasLoadedRef = useRef(false)
   const abortControllerRef = useRef<AbortController | null>(null)
+  const loadRequestIdRef = useRef(0)
+  const loadDashboardDataRef = useRef<() => Promise<void>>(async () => {})
   const confirmDialog = useConfirmDialog()
   
   // Manual refresh hook for React Query cache invalidation
   const { forceRefresh, isRefreshing: isManualRefreshing } = useStudentDashboardRefresh({
     onSuccess: () => {
       // Also reload local data after cache invalidation
-      loadDashboardData()
+      void loadDashboardDataRef.current()
     },
     onError: (error) => {
       console.error('Manual refresh failed:', sanitizeForLog(error))
@@ -72,7 +77,7 @@ export default function StudentDashboard() {
   useStudentDashboardPolling({
     onApplicationChange: () => {
       // Reload local data when application changes are detected
-      loadDashboardData()
+      void loadDashboardDataRef.current()
     },
     onDataChange: () => {},
   })
@@ -87,22 +92,23 @@ export default function StudentDashboard() {
       queryClient.invalidateQueries({ queryKey: ['student-dashboard'] })
       queryClient.invalidateQueries({ queryKey: ['student-dashboard-polling'] })
       // Also reload local state
-      loadDashboardData()
+      void loadDashboardDataRef.current()
     }, [queryClient])
   )
 
   useEffect(() => {
     if (user) {
-      loadDashboardData()
+      void loadDashboardDataRef.current()
     }
 
     // Cleanup function to abort pending requests
     return () => {
+      loadRequestIdRef.current += 1
       if (abortControllerRef.current) {
         abortControllerRef.current.abort()
       }
     }
-  }, [user, profile])
+  }, [user])
 
   // Listen for storage changes and draft cleared events to update draft status
   useEffect(() => {
@@ -124,7 +130,7 @@ export default function StudentDashboard() {
     const handleDraftCleared = async () => {
       setHasDraft(false)
       setApplications(prev => prev.filter(app => app.status !== 'draft'))
-      await loadDashboardData()
+      await loadDashboardDataRef.current()
     }
 
     const handleApplicationSubmitted = async (event: Event) => {
@@ -152,20 +158,20 @@ export default function StudentDashboard() {
         )
       }
 
-      await loadDashboardData()
+      await loadDashboardDataRef.current()
     }
 
     const handleApplicationUpdated = async () => {
-      await loadDashboardData()
+      await loadDashboardDataRef.current()
     }
 
     const handleApplicationCreated = async () => {
-      await loadDashboardData()
+      await loadDashboardDataRef.current()
     }
 
     const handleDraftSaved = async () => {
       await handleStorageChange()
-      await loadDashboardData()
+      await loadDashboardDataRef.current()
     }
 
     window.addEventListener('storage', handleStorageChange)
@@ -185,10 +191,25 @@ export default function StudentDashboard() {
       window.removeEventListener('applicationUpdated', handleApplicationUpdated)
       window.removeEventListener('applicationCreated', handleApplicationCreated)
     }
-  }, [user, profile?.user_id])
+  }, [user])
 
   const loadDashboardData = async () => {
+    const requestId = loadRequestIdRef.current + 1
+    loadRequestIdRef.current = requestId
+    const isLatestRequest = () => loadRequestIdRef.current === requestId
     const isInitialLoad = !hasLoadedRef.current
+
+    if (!user?.id) {
+      setApplications([])
+      setIntakes([])
+      setScheduledInterviews([])
+      setHasDraft(false)
+      setError('')
+      setIsInitialLoading(false)
+      setIsRefreshing(false)
+      hasLoadedRef.current = false
+      return
+    }
 
     // Cancel any pending requests
     if (abortControllerRef.current) {
@@ -205,11 +226,11 @@ export default function StudentDashboard() {
       } else {
         setIsRefreshing(true)
       }
+      setError('')
 
-      const localDraft = user
-        ? await applicationSessionManager.getLocalWizardDraft(user.id)
-        : null
+      const localDraft = await applicationSessionManager.getLocalWizardDraft(user.id)
 
+      if (!isLatestRequest() || signal.aborted) return
       if (localDraft) {
         setHasDraft(true)
       } else {
@@ -226,7 +247,7 @@ export default function StudentDashboard() {
       })
 
       // Check if request was aborted
-      if (signal.aborted) return
+      if (!isLatestRequest() || signal.aborted) return
 
       if (draftResponse?.applications && draftResponse.applications.length > 0) {
         setHasDraft(true)
@@ -241,7 +262,7 @@ export default function StudentDashboard() {
       })
 
       // Check if request was aborted
-      if (signal.aborted) return
+      if (!isLatestRequest() || signal.aborted) return
 
       const loadedApplications = (applicationsResponse?.applications || []) as Application[]
       setApplications(loadedApplications)
@@ -257,19 +278,19 @@ export default function StudentDashboard() {
       const intakesResponse = await catalogService.getIntakes() as { intakes: Intake[] }
 
       // Check if request was aborted
-      if (signal.aborted) return
+      if (!isLatestRequest() || signal.aborted) return
 
       setIntakes(intakesResponse.intakes || [])
 
       // Fetch scheduled interviews for the user's applications
       // Requirements: 2.4, 4.3 - Check for scheduled or rescheduled interviews
       // MIGRATED: Using API client instead of direct Supabase calls
-      if (user?.id) {
+      if (user.id) {
         try {
           const interviewData = await interviewsService.list()
 
           // Check if request was aborted
-          if (signal.aborted) return
+          if (!isLatestRequest() || signal.aborted) return
 
           // Filter for scheduled/rescheduled interviews
           const scheduledOnly = (interviewData?.interviews || []).filter(
@@ -287,12 +308,18 @@ export default function StudentDashboard() {
       }
     } catch (error) {
       // Ignore abort errors
+      if (!isLatestRequest()) {
+        return
+      }
       if (error instanceof Error && (error.name === 'AbortError' || error.message.includes('aborted'))) {
         return
       }
       console.error('Error loading dashboard data:', sanitizeForLog(error))
       setError(error instanceof Error ? sanitizeForLog(error.message) : 'Failed to load dashboard data')
     } finally {
+      if (!isLatestRequest() || signal.aborted) {
+        return
+      }
       hasLoadedRef.current = true
       if (isInitialLoad) {
         setIsInitialLoading(false)
@@ -301,6 +328,7 @@ export default function StudentDashboard() {
       }
     }
   }
+  loadDashboardDataRef.current = loadDashboardData
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -324,13 +352,20 @@ export default function StudentDashboard() {
   }
 
   const metadata = getUserMetadata(user)
-  const profileCompletion = calculateProfileCompletion(profile, metadata)
-  const profileMissingFields = getProfileMissingFields(profile, metadata)
-  const displayName = sanitizeForDisplay(getDisplayName(profile, {
-    ...user,
-    full_name: getBestValue(user?.full_name, metadata.full_name),
-  }))
-  const firstName = displayName?.split(' ')[0] || 'Student'
+
+  const { profileCompletion, profileMissingFields, firstName } = useMemo(() => {
+    const completion = calculateProfileCompletion(profile, metadata)
+    const missing = getProfileMissingFields(profile, metadata)
+    const name = sanitizeForDisplay(getDisplayName(profile, {
+      ...user,
+      full_name: getBestValue(user?.full_name, metadata.full_name),
+    }))
+    return {
+      profileCompletion: completion,
+      profileMissingFields: missing,
+      firstName: name?.split(' ')[0] || 'Student',
+    }
+  }, [profile, metadata, user])
 
   const {
     submittedApplications,
@@ -357,7 +392,7 @@ export default function StudentDashboard() {
   const hasScheduledInterview = scheduledInterviews.length > 0
 
   // Handler for clearing all drafts
-  const handleClearAllDrafts = async () => {
+  const handleClearAllDrafts = useCallback(async () => {
     const confirmed = await confirmDialog.confirm({
       title: 'Clear All Drafts',
       message: 'All draft applications will be permanently deleted.',
@@ -389,7 +424,7 @@ export default function StudentDashboard() {
     } finally {
       setIsClearingAllDrafts(false)
     }
-  }
+  }, [user, applications, confirmDialog])
 
   return (
     <>
@@ -399,17 +434,28 @@ export default function StudentDashboard() {
         path="/student/dashboard"
         noindex
       />
-    <div className="safe-area-bottom py-4 sm:py-6 lg:py-8 w-full max-w-full overflow-x-hidden">
-      <Container size="lg">
+    <PageShell
+      title={`Welcome back, ${firstName}`}
+      subtitle="Track your applications, manage drafts, and keep your profile information up to date."
+      maxWidth="7xl"
+      actions={
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => forceRefresh()}
+            disabled={isRefreshing || isManualRefreshing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${(isRefreshing || isManualRefreshing) ? 'animate-spin' : ''}`} />
+            {(isRefreshing || isManualRefreshing) ? 'Refreshing...' : 'Refresh'}
+          </Button>
+          <ProfileCompletionBadge completionPercentage={profileCompletion} missingFields={profileMissingFields} />
+        </div>
+      }
+    >
         {isInitialLoading ? (
-          <UnifiedLoader
-            variant="skeleton"
-            size="md"
-            label="Loading student dashboard"
-            className="py-8"
-            skeletonCard
-            skeletonLines={4}
-          />
+          <UnifiedLoader variant="page" label="Loading student dashboard" />
         ) : (
           <div className="space-y-6 sm:space-y-8">
             {isRefreshing && (
@@ -421,45 +467,10 @@ export default function StudentDashboard() {
               </div>
             )}
 
-            <PageHeader
-              variant="gradient"
-              icon={<User style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }} />}
-              title={`Welcome back, ${firstName}`}
-              description={
-                <span className="flex items-center gap-2">
-                  Track your applications, manage drafts, and keep your profile information up to date.
-                  {/* Polling status indicator */}
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="relative flex">
-                      <span className="w-2 h-2 bg-success rounded-full animate-pulse" />
-                      <span className="absolute inline-flex h-full w-full rounded-full bg-success/75 animate-ping" style={{ animationDuration: '2s' }} />
-                    </span>
-                    <span className="text-xs font-medium text-success">Live</span>
-                  </span>
-                </span>
-              }
-              actions={
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => forceRefresh()}
-                    disabled={isRefreshing || isManualRefreshing}
-                    className="flex items-center gap-2"
-                  >
-                    <RefreshCw className={`h-4 w-4 ${(isRefreshing || isManualRefreshing) ? 'animate-spin' : ''}`} />
-                    {(isRefreshing || isManualRefreshing) ? 'Refreshing...' : 'Refresh'}
-                  </Button>
-                  <ProfileCompletionBadge completionPercentage={profileCompletion} missingFields={profileMissingFields} />
-                </div>
-              }
-            />
-
             {error && (
-              <ErrorBanner
-                error={{ status: 500, message: error }}
-                className={animateClasses.slideUp}
-                onDismiss={() => setError('')}
+              <ErrorDisplay
+                title="Dashboard load failed"
+                message={error}
                 onRetry={() => loadDashboardData()}
               />
             )}
@@ -484,87 +495,33 @@ export default function StudentDashboard() {
                   totalDraftCount > 0 ? (
                     <div className="px-6 py-12">
                       <EmptyState
-                        icon={Clock}
-                        title="Your application is still in draft"
+                        icon={<Clock className="h-12 w-12" />}
+                        heading="Your application is still in draft"
                         description="Continue the saved draft above when you are ready. Submitted applications will appear here once you complete the full flow."
                       />
                     </div>
                   ) : (
                     <div className="px-6 py-12">
                       <EmptyState
-                        icon={FileText}
-                        title="No applications yet"
+                        icon={<FileText className="h-12 w-12" />}
+                        heading="No applications yet"
                         description="Start your journey by submitting your first application. We'll guide you every step of the way."
-                        action={(
-                          <Link to="/student/application-wizard">
-                            <Button variant="primary">
-                              <Plus className="mr-2 h-5 w-5" />
-                              New Application
-                            </Button>
-                          </Link>
-                        )}
+                        action={{
+                          label: 'New Application',
+                          onClick: () => navigate('/student/application-wizard'),
+                          variant: 'primary',
+                        }}
                       />
                     </div>
                   )
                 ) : (
                   <div className="divide-y divide-border">
                     {submittedApplications.map((application, index) => (
-                      <div
+                      <ApplicationListItem
                         key={application.id}
-                        className={`border-l-4 border-l-transparent px-6 py-6 transition-colors hover:border-l-primary hover:bg-muted/30 ${animateClasses.slideUp}`}
-                        style={staggerChild(index, 50)}
-                      >
-                        <div className="space-y-4">
-                          {/* Header */}
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex items-start gap-3 flex-1 min-w-0">
-                              <div className="flex-shrink-0 mt-1">{getStatusIcon(application.status)}</div>
-                              <div className="flex-1 min-w-0">
-                                <h4 className="text-lg font-bold text-foreground break-words leading-tight">
-                                  {getProgramName(application.program)}
-                                </h4>
-                                <p className="text-sm font-medium text-muted-foreground mt-1">
-                                  Application #{application.application_number}
-                                </p>
-                              </div>
-                            </div>
-                            <span className={`rounded-full px-4 py-2 text-sm font-bold whitespace-nowrap ${getStatusColor(application.status)}`}>
-                              {application.status.replace('_', ' ').toUpperCase()}
-                            </span>
-                          </div>
-
-                          {/* Details Grid */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                              <span className="font-medium text-muted-foreground">Intake:</span>
-                              <span className="text-foreground break-words">{getIntakeName(application.intake)}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                              <span className="font-medium text-muted-foreground">Submitted:</span>
-                              <span className="text-foreground">{formatDate(application.submitted_at)}</span>
-                            </div>
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex flex-col gap-3 border-t border-border pt-2 sm:flex-row">
-                            <div className="flex-1">
-                              <DocumentButtons 
-                                applicationId={application.id}
-                                applicationNumber={application.application_number}
-                                status={application.status}
-                                paymentStatus={application.payment_status}
-                              />
-                            </div>
-                            <Link to={`/student/application/${application.id}`} className="sm:w-auto">
-                              <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                                View Details
-                              </Button>
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
+                        application={application}
+                        index={index}
+                      />
                     ))}
                   </div>
                 )}
@@ -625,8 +582,8 @@ export default function StudentDashboard() {
                     ))}
                     {intakes.length === 0 && (
                       <EmptyState
-                        icon={Calendar}
-                        title="No upcoming deadlines yet"
+                        icon={<Calendar className="h-12 w-12" />}
+                        heading="No upcoming deadlines yet"
                         description="Check back soon for the next intake and application deadline."
                       />
                     )}
@@ -658,8 +615,7 @@ export default function StudentDashboard() {
         cancelText={confirmDialog.options.cancelText}
         variant={confirmDialog.options.variant}
       />
-      </Container>
-    </div>
+    </PageShell>
       </>
   );
 }

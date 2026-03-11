@@ -8,7 +8,7 @@
  */
 
 import { useState, useEffect } from 'react'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedSpinner } from '@/components/ui/UnifiedLoader'
 
 interface AuthLoadingOverlayProps {
   message?: string
@@ -39,7 +39,7 @@ export function AuthLoadingOverlay({ message = 'Signing you in...' }: AuthLoadin
           ${isVisible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'}
         `}
       >
-        <LoadingSpinner size="lg" color="primary" />
+        <UnifiedSpinner size="lg" />
 
         <h3
           className={`

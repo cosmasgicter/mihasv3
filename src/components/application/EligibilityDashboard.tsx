@@ -1,16 +1,4 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts'
 import { TrendingUp, Users, CheckCircle, Target } from 'lucide-react'
 
 import {
@@ -21,6 +9,12 @@ import { MissingRequirement } from '@/lib/eligibilityEngine'
 import { apiClient } from '@/services/client'
 import { catalogService } from '@/services/catalog'
 import type { EligibilityAssessment } from '@/types/eligibilityAssessment'
+
+// Lazy-load recharts to keep vendor-charts chunk out of the critical path (Req 20.5)
+type RechartsModule = typeof import('recharts')
+let _recharts: RechartsModule | null = null
+const loadRecharts = (): Promise<RechartsModule> =>
+  import('recharts').then(m => { _recharts = m; return m })
 
 function parseMissingRequirements(
   value: EligibilityAssessmentWithProgram['missing_requirements']
@@ -80,6 +74,14 @@ export function EligibilityDashboard() {
   const [loading, setLoading] = useState(true)
   const [selectedProgram, setSelectedProgram] = useState<string>('all')
   const [programs, setPrograms] = useState<Array<{ id: string; name: string }>>([])
+  const [recharts, setRecharts] = useState<RechartsModule | null>(_recharts)
+
+  // Load recharts dynamically on mount
+  useEffect(() => {
+    if (!recharts) {
+      loadRecharts().then(setRecharts)
+    }
+  }, [recharts])
 
   const loadPrograms = useCallback(async () => {
     try {
@@ -300,47 +302,69 @@ export function EligibilityDashboard() {
         {/* Eligibility Status Distribution */}
         <div className="bg-card rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4">Eligibility Status Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={[
-                  { name: 'Eligible', value: metrics.eligibleCount, color: '#10B981' },
-                  { name: 'Conditional', value: metrics.conditionalCount, color: '#F59E0B' },
-                  { name: 'Not Eligible', value: metrics.notEligibleCount, color: '#EF4444' }
-                ]}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {[
-                  { name: 'Eligible', value: metrics.eligibleCount, color: '#10B981' },
-                  { name: 'Conditional', value: metrics.conditionalCount, color: '#F59E0B' },
-                  { name: 'Not Eligible', value: metrics.notEligibleCount, color: '#EF4444' }
-                ].map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          {recharts ? (() => {
+            const { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } = recharts
+            return (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Eligible', value: metrics.eligibleCount, color: '#10B981' },
+                      { name: 'Conditional', value: metrics.conditionalCount, color: '#F59E0B' },
+                      { name: 'Not Eligible', value: metrics.notEligibleCount, color: '#EF4444' }
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {[
+                      { name: 'Eligible', value: metrics.eligibleCount, color: '#10B981' },
+                      { name: 'Conditional', value: metrics.conditionalCount, color: '#F59E0B' },
+                      { name: 'Not Eligible', value: metrics.notEligibleCount, color: '#EF4444' }
+                    ].map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            )
+          })() : (
+            <div className="h-[300px] flex items-center justify-center">
+              <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" role="status">
+                <span className="sr-only">Loading charts...</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Score Distribution */}
         <div className="bg-card rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4">Score Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={metrics.scoreDistribution}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="range" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="count" fill="#3B82F6" />
-            </BarChart>
-          </ResponsiveContainer>
+          {recharts ? (() => {
+            const { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } = recharts
+            return (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={metrics.scoreDistribution}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="range" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#3B82F6" />
+                </BarChart>
+              </ResponsiveContainer>
+            )
+          })() : (
+            <div className="h-[300px] flex items-center justify-center">
+              <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" role="status">
+                <span className="sr-only">Loading charts...</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -349,25 +373,25 @@ export function EligibilityDashboard() {
         <div className="bg-card rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4">Program Breakdown</h3>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-border">
+            <table className="min-w-full divide-y divide-border" aria-label="Eligibility by program">
               <thead className="bg-muted">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                     Program
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                     Total
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                     Eligible
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                     Conditional
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                     Not Eligible
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
                     Success Rate
                   </th>
                 </tr>

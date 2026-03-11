@@ -84,7 +84,7 @@ export function OptimizedImage({
         height={height}
         loading={lazy ? 'lazy' : 'eager'}
         decoding="async"
-        className={className}
+        className={`max-w-full h-auto ${className}`}
         srcSet={buildSrcSet(src)}
         onError={() => setHasError(true)}
         {...(decorative ? { role: 'presentation' } : {})}

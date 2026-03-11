@@ -19,7 +19,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-foreground mb-1.5">
+          <label htmlFor={inputId} className="block text-sm font-medium text-foreground mb-2">
             {label}
             {props.required && <span className="text-destructive ml-1">*</span>}
           </label>
@@ -31,28 +31,28 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
             id={inputId}
             type={showPassword ? 'text' : 'password'}
             className={cn(
-              'w-full min-h-[44px] h-11 px-3 pr-10 rounded-lg',
+              'w-full min-h-[44px] h-11 px-3 pr-10 rounded-md',
               'bg-background',
               'border border-input',
               'text-foreground',
               'placeholder:text-muted-foreground',
               'hover:border-primary/50 hover:bg-accent/30',
-              'focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus:border-transparent',
               'transition-all duration-200',
               'disabled:opacity-50 disabled:cursor-not-allowed',
               'disabled:hover:border-input disabled:hover:bg-background',
               error && 'border-destructive focus:ring-destructive/50 focus:border-destructive hover:border-destructive/70',
               className
             )}
-            aria-invalid={error ? 'true' : undefined}
+            aria-invalid={error ? 'true' : 'false'}
             aria-required={props.required || undefined}
             aria-describedby={error ? errorId : helperText ? helperId : undefined}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-0 top-0 min-h-[44px] h-11 w-11 flex items-center justify-center text-caption hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring rounded-r-lg touch-manipulation"
-            aria-label={showPassword ? 'Hide characters' : 'Show characters'}
+            className="absolute right-0 top-0 min-h-[44px] h-11 w-11 flex items-center justify-center text-caption hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-r-md touch-manipulation"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             {showPassword ? (
               <EyeOff className="h-5 w-5" />
@@ -64,14 +64,14 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
         {error && (
           <p
             id={errorId}
-            className="mt-1.5 text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1 duration-150 motion-reduce:animate-none"
+            className="mt-1 text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1 duration-150 motion-reduce:animate-none"
             role="alert"
           >
             {error}
           </p>
         )}
         {helperText && !error && (
-          <p id={helperId} className="mt-1.5 text-sm text-muted-foreground">
+          <p id={helperId} className="mt-1 text-sm text-muted-foreground">
             {helperText}
           </p>
         )}

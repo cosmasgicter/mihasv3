@@ -10,6 +10,7 @@ import React from 'react'
 import { CacheMonitorDashboard } from '@/components/admin/CacheMonitorDashboard'
 import { useAuth } from '@/contexts/AuthContext'
 import { Navigate } from 'react-router-dom'
+import { PageShell } from '@/components/ui/PageShell'
 
 export default function CacheMonitorPage() {
   const { user } = useAuth()
@@ -20,8 +21,12 @@ export default function CacheMonitorPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 px-4">
+    <PageShell
+      title="Cache Monitor"
+      subtitle="React Query cache performance"
+      maxWidth="7xl"
+    >
       <CacheMonitorDashboard />
-    </div>
+    </PageShell>
   )
 }

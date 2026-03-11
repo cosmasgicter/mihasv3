@@ -4,6 +4,7 @@ import { applicationService } from '@/services/applications'
 import { apiClient } from '@/services/client'
 import { ApplicationFilters, DEFAULT_APPLICATION_FILTERS } from './useApplicationFilters'
 import { calculatePointsFromSummary } from '@/utils/grades'
+import { invalidateAdminApplicationQueries } from './applicationQueryInvalidation'
 
 interface ApplicationSummary {
   id: string
@@ -124,10 +125,15 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
   const [totalCount, setTotalCount] = useState(0)
 
   const filtersRef = useRef<ApplicationFilters>(filters || DEFAULT_APPLICATION_FILTERS)
+  const applicationsRef = useRef<ApplicationSummary[]>([])
 
   useEffect(() => {
     filtersRef.current = filters || DEFAULT_APPLICATION_FILTERS
   }, [filters])
+
+  useEffect(() => {
+    applicationsRef.current = applications
+  }, [applications])
 
   const hydrateApplicationById = useCallback(async (id: string) => {
     if (!id) return null
@@ -249,7 +255,7 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
   }), [applications.length, currentPage, pageSize, totalCount])
 
   const updateStatus = useCallback(async (applicationId: string, newStatus: string, options?: { notes?: string; force?: boolean }) => {
-    const previousApplications = applications
+    const previousApplications = applicationsRef.current
     try {
       setApplications(prev => prev.map(app => 
         app.id === applicationId ? { ...app, status: newStatus } : app
@@ -262,14 +268,8 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
         setApplications(previousApplications)
         return result as any
       }
-      
-      await Promise.allSettled([
-        queryClient.invalidateQueries({ queryKey: ['applications'] }),
-        queryClient.invalidateQueries({ queryKey: ['applications', applicationId] }),
-        queryClient.invalidateQueries({ queryKey: ['application-stats'] }),
-        queryClient.invalidateQueries({ queryKey: ['admin-applications'] }),
-        queryClient.invalidateQueries({ queryKey: ['admin-dashboard-polling'] })
-      ])
+
+      await invalidateAdminApplicationQueries(queryClient, { applicationId })
       await loadPage(currentPage, 'refresh')
       return result
     } catch (error) {
@@ -277,34 +277,30 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
       setApplications(previousApplications)
       throw error
     }
-  }, [applications, currentPage, loadPage, queryClient])
+  }, [currentPage, loadPage, queryClient])
 
   const updatePaymentStatus = useCallback(async (
     applicationId: string,
     newPaymentStatus: string,
     verificationNotes?: string
   ) => {
-    const previousApplications = applications
+    const previousApplications = applicationsRef.current
     try {
       setApplications(prev => prev.map(app => 
         app.id === applicationId ? { ...app, payment_status: newPaymentStatus } : app
       ))
       await applicationService.updatePaymentStatus(applicationId, newPaymentStatus, verificationNotes)
-      await Promise.allSettled([
-        queryClient.invalidateQueries({ queryKey: ['applications'] }),
-        queryClient.invalidateQueries({ queryKey: ['applications', applicationId] }),
-        queryClient.invalidateQueries({ queryKey: ['application-stats'] }),
-        queryClient.invalidateQueries({ queryKey: ['admin-applications'] }),
-        queryClient.invalidateQueries({ queryKey: ['admin-dashboard-polling'] }),
-        queryClient.invalidateQueries({ queryKey: ['payment-status'] })
-      ])
+      await invalidateAdminApplicationQueries(queryClient, {
+        applicationId,
+        includePaymentStatus: true,
+      })
       await loadPage(currentPage, 'refresh')
     } catch (error) {
       console.error('Failed to update payment status:', error)
       setApplications(previousApplications)
       throw error
     }
-  }, [applications, currentPage, loadPage, queryClient])
+  }, [currentPage, loadPage, queryClient])
 
   return {
     applications,

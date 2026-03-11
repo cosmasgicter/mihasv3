@@ -29,6 +29,7 @@ import { Container } from '@/components/ui/Container'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
+import { PageShell } from '@/components/ui/PageShell'
 import { interviewsService } from '@/services/interviews'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -233,18 +234,19 @@ export default function InterviewPage() {
   // @requirements 6.3 - Display loading spinner
   if (state.loading) {
     return (
-      <div className="min-h-screen bg-muted flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-          <p className="mt-4 text-muted-foreground">Loading interview information...</p>
+      <PageShell title="Interview Schedule" subtitle="Loading interview information...">
+        <div className="flex items-center justify-center min-h-[40vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </div>
+      </PageShell>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
-      <Container size="md">
+    <PageShell
+      title="Interview Schedule"
+      subtitle="View your scheduled interviews and prepare for your admission process."
+    >
         {/* @requirements 3.5 - Back to Dashboard navigation link */}
         <div className="mb-6">
           <Link 
@@ -254,15 +256,6 @@ export default function InterviewPage() {
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to Dashboard
           </Link>
-        </div>
-
-        <div className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-            Interview Schedule
-          </h1>
-          <p className="text-muted-foreground">
-            View your scheduled interviews and prepare for your admission process.
-          </p>
         </div>
 
         {/* Error Display */}
@@ -365,8 +358,7 @@ export default function InterviewPage() {
             </CardContent>
           </Card>
         </div>
-      </Container>
-    </div>
+    </PageShell>
   )
 }
 

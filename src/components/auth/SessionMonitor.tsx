@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTokenRefresh } from '@/hooks/auth/useTokenRefresh'
-import { useRoleVerification } from '@/hooks/auth/useRoleVerification'
 
 export function SessionMonitor() {
   const { user } = useAuth()
-  const { tokenExpiry, lastRefresh, refreshCount } = useTokenRefresh()
-  const { roleStatus, profileRole, authRole } = useRoleVerification()
+  const { tokenExpiry } = useTokenRefresh()
   const [showWarning, setShowWarning] = useState(false)
 
   useEffect(() => {
@@ -50,8 +48,6 @@ export function SessionMonitor() {
           </div>
         </div>
       )}
-
-
     </>
   )
 }

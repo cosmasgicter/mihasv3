@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { applicationService } from '@/services/applications'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
+import { invalidateAdminApplicationQueries } from './applicationQueryInvalidation'
 
 export function useApplicationActions() {
   const [updating, setUpdating] = useState<string | null>(null)
@@ -13,15 +14,8 @@ export function useApplicationActions() {
     try {
       setUpdating(applicationId)
       await applicationService.updateStatus(applicationId, newStatus, feedback)
-      
-      // Invalidate targeted query keys for admin status change (Req 15.2)
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['applications'] }),
-        queryClient.invalidateQueries({ queryKey: ['applications', applicationId] }),
-        queryClient.invalidateQueries({ queryKey: ['application-stats'] }),
-        queryClient.invalidateQueries({ queryKey: ['admin-applications'] }),
-        queryClient.invalidateQueries({ queryKey: ['admin-dashboard-polling'] }),
-      ])
+
+      await invalidateAdminApplicationQueries(queryClient, { applicationId })
     } catch (error) {
       console.error('Error updating application status:', error)
       throw error
@@ -42,11 +36,8 @@ export function useApplicationActions() {
     try {
       setUpdating(applicationId)
       await applicationService.delete(applicationId)
-      
-      queryClient.invalidateQueries({ queryKey: ['applications'] })
-      queryClient.invalidateQueries({ queryKey: ['application-stats'] })
-      queryClient.invalidateQueries({ queryKey: ['admin-applications'] })
-      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-polling'] })
+
+      await invalidateAdminApplicationQueries(queryClient)
     } catch (error) {
       console.error('Error deleting application:', error)
       throw error
@@ -59,8 +50,7 @@ export function useApplicationActions() {
     try {
       setLoading(true)
       await applicationService.sendNotification(applicationId, notification)
-      queryClient.invalidateQueries({ queryKey: ['applications'] })
-      queryClient.invalidateQueries({ queryKey: ['admin-applications'] })
+      await invalidateAdminApplicationQueries(queryClient, { applicationId })
     } catch (error) {
       console.error('Error sending notification:', error)
       throw error
@@ -78,11 +68,8 @@ export function useApplicationActions() {
         admin_feedback_by: userId,
         updated_at: new Date().toISOString()
       })
-      
-      queryClient.invalidateQueries({ queryKey: ['applications'] })
-      queryClient.invalidateQueries({ queryKey: ['applications', applicationId] })
-      queryClient.invalidateQueries({ queryKey: ['application-stats'] })
-      queryClient.invalidateQueries({ queryKey: ['admin-applications'] })
+
+      await invalidateAdminApplicationQueries(queryClient, { applicationId })
     } catch (error) {
       console.error('Error submitting feedback:', error)
       throw error

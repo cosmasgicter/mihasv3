@@ -1,7 +1,7 @@
 import React from 'react'
 import { useEmailNotifications } from '@/hooks/useEmailNotifications'
 import { Button } from '@/components/ui/Button'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import { formatTimestamp } from '@/lib/dateFormat'
 import { Mail, CheckCircle, XCircle, Clock } from 'lucide-react'
@@ -34,7 +34,7 @@ export default function EmailNotifications() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <LoadingSpinner />
+        <UnifiedLoader variant="inline" />
       </div>
     )
   }

@@ -16,22 +16,23 @@
     @apply transform -translate-y-0.5 shadow-md;
   }
   
-  /* Link hover states */
+  /* Button hover — subtle background shift via color transition (Req 12.1) */
+  .btn-hover {
+    @apply transition-colors duration-fast;
+  }
+  
+  /* Link hover — color transition only, no underline by default (Req 12.1) */
   .link-hover {
-    @apply text-blue-600 transition-colors duration-100;
+    @apply transition-colors duration-[100ms];
   }
   
-  .link-hover:hover {
-    @apply text-blue-700 underline;
-  }
-  
-  /* Card hover states */
+  /* Card hover — shadow elevation on hover (Req 12.1) */
   .card-hover {
-    @apply transition-all duration-100 cursor-pointer;
+    @apply transition-shadow duration-fast;
   }
   
   .card-hover:hover {
-    @apply shadow-lg transform -translate-y-1;
+    @apply shadow-md;
   }
   
   /* Interactive element hover - generic */
@@ -72,9 +73,9 @@
   
   /* ===== FOCUS STATES ===== */
   
-  /* Consistent focus ring for all interactive elements */
+  /* Consistent focus ring for all interactive elements — keyboard only (Req 12.2) */
   .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2;
+    @apply focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none;
   }
   
   /* Focus ring for dark backgrounds */
@@ -97,6 +98,11 @@
   /* Button press effect */
   .active-press {
     @apply active:scale-95 transition-transform duration-100;
+  }
+  
+  /* Subtle press/active scale — tactile feedback on touch (Req 12.3) */
+  .press-scale {
+    @apply active:scale-[0.98] transition-transform duration-[100ms];
   }
   
   /* ===== LOADING STATES ===== */
@@ -222,7 +228,8 @@ select:focus-visible {
   }
   
   button:active,
-  .active-press:active {
+  .active-press:active,
+  .press-scale:active {
     @apply scale-100;
   }
   
@@ -248,4 +255,44 @@ button,
 .card-hover:not(:hover),
 .icon-hover:not(:hover) {
   will-change: auto;
+}
+
+/* ===== WIZARD STEP TRANSITIONS ===== */
+
+/* Crossfade + subtle slide for wizard step changes (≤200ms, CSS-only) */
+@keyframes wizard-step-enter-right {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes wizard-step-enter-left {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.wizard-step-forward {
+  animation: wizard-step-enter-right 200ms ease-out;
+}
+
+.wizard-step-backward {
+  animation: wizard-step-enter-left 200ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wizard-step-forward,
+  .wizard-step-backward {
+    animation: none;
+  }
 }

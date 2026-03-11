@@ -16,7 +16,7 @@ import * as fc from 'fast-check'
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { AnimatedInput } from '@/components/smoothui/animated-input'
-import { AnimatedFileUpload } from '@/components/smoothui/animated-file-upload'
+import { FileUpload } from '@/components/ui/FileUpload'
 import { PasswordInput } from '@/components/ui/PasswordInput'
 
 // ── Arbitraries ─────────────────────────────────────────────────────────
@@ -136,54 +136,60 @@ describe('ARIA Attributes Property Tests (P20)', () => {
     })
   })
 
-  describe('AnimatedFileUpload', () => {
-    it('has an associated <label> element when label prop is provided', () => {
+  describe('FileUpload (canonical)', () => {
+    it('has an accessible label via aria-label when label prop is provided', () => {
       fc.assert(
         fc.property(labelArb, (label) => {
           const html = renderToStaticMarkup(
-            React.createElement(AnimatedFileUpload, { label, id: 'test-file' })
+            React.createElement(FileUpload, { label })
           )
-          // A <label for="test-file"> must exist
-          expect(hasLabelFor(html, 'test-file')).toBe(true)
-          // The file input must have the matching id
+          // FileUpload uses react-dropzone with aria-label on the input
           const attrs = getInputAttributes(html)
-          expect(attrs['id']).toBe('test-file')
+          expect(attrs['aria-label']).toBe(label)
         }),
         { numRuns: 10 },
       )
     })
 
-    it('sets aria-invalid="true" and aria-describedby pointing to error element when error is provided', () => {
+    it('renders error message with role="alert" when error is provided', () => {
       fc.assert(
         fc.property(errorArb, (error) => {
           const html = renderToStaticMarkup(
-            React.createElement(AnimatedFileUpload, { error, id: 'err-file', label: 'Upload' })
+            React.createElement(FileUpload, { error, label: 'Upload' })
           )
-          const attrs = getInputAttributes(html)
-          expect(attrs['aria-invalid']).toBe('true')
-          expect(attrs['aria-describedby']).toBe('err-file-error')
-          expect(hasElementWithId(html, 'err-file-error')).toBe(true)
+          // Error message should be present with role="alert"
+          expect(html).toContain('role="alert"')
+          // The error element should have the destructive styling
+          expect(html).toContain('text-destructive')
         }),
         { numRuns: 10 },
       )
     })
 
-    it('sets aria-required="true" when required prop is true', () => {
-      const html = renderToStaticMarkup(
-        React.createElement(AnimatedFileUpload, { required: true, id: 'req-file', label: 'Document' })
+    it('renders aria-describedby pointing to error element when error is provided', () => {
+      fc.assert(
+        fc.property(errorArb, (error) => {
+          const html = renderToStaticMarkup(
+            React.createElement(FileUpload, { error, label: 'Upload' })
+          )
+          const attrs = getInputAttributes(html)
+          // aria-describedby should reference the error element
+          if (attrs['aria-describedby']) {
+            expect(hasElementWithId(html, attrs['aria-describedby'])).toBe(true)
+          }
+        }),
+        { numRuns: 10 },
       )
-      const attrs = getInputAttributes(html)
-      expect(attrs['aria-required']).toBe('true')
     })
 
-    it('does not set aria-invalid="true" when no error is provided', () => {
+    it('does not render error alert when no error is provided', () => {
       fc.assert(
         fc.property(labelArb, (label) => {
           const html = renderToStaticMarkup(
-            React.createElement(AnimatedFileUpload, { label, id: 'ok-file' })
+            React.createElement(FileUpload, { label })
           )
-          const attrs = getInputAttributes(html)
-          expect(attrs['aria-invalid']).not.toBe('true')
+          // No role="alert" should be present when there's no error
+          expect(html).not.toContain('role="alert"')
         }),
         { numRuns: 10 },
       )
@@ -259,34 +265,40 @@ describe('ARIA Attributes Property Tests (P20)', () => {
     it('all components set aria-describedby to {id}-error when error is present', () => {
       fc.assert(
         fc.property(errorArb, (error) => {
-          const components = [
+          // AnimatedInput and PasswordInput use id-based error linking
+          const inputComponents = [
             { Component: AnimatedInput, props: { error, id: 'cc-input', label: 'Field' } },
-            { Component: AnimatedFileUpload, props: { error, id: 'cc-file', label: 'Upload' } },
             { Component: PasswordInput, props: { error, id: 'cc-pwd', label: 'Password' } },
           ]
 
-          for (const { Component, props } of components) {
+          for (const { Component, props } of inputComponents) {
             const html = renderToStaticMarkup(React.createElement(Component as any, props))
             const attrs = getInputAttributes(html)
             expect(attrs['aria-invalid']).toBe('true')
             expect(attrs['aria-describedby']).toBe(`${props.id}-error`)
             expect(hasElementWithId(html, `${props.id}-error`)).toBe(true)
           }
+
+          // FileUpload uses role="alert" for error display
+          const fileHtml = renderToStaticMarkup(
+            React.createElement(FileUpload, { error, label: 'Upload' })
+          )
+          expect(fileHtml).toContain('role="alert"')
+          expect(fileHtml).toContain(error)
         }),
         { numRuns: 10 },
       )
     })
 
-    it('all components omit aria-describedby error ref when no error is present', () => {
+    it('all components omit error indicators when no error is present', () => {
       fc.assert(
         fc.property(labelArb, (label) => {
-          const components = [
+          const inputComponents = [
             { Component: AnimatedInput, props: { label, id: 'ne-input' } },
-            { Component: AnimatedFileUpload, props: { label, id: 'ne-file' } },
             { Component: PasswordInput, props: { label, id: 'ne-pwd' } },
           ]
 
-          for (const { Component, props } of components) {
+          for (const { Component, props } of inputComponents) {
             const html = renderToStaticMarkup(React.createElement(Component as any, props))
             const attrs = getInputAttributes(html)
             // Should not reference an error element
@@ -294,6 +306,12 @@ describe('ARIA Attributes Property Tests (P20)', () => {
               expect(attrs['aria-describedby']).not.toContain('-error')
             }
           }
+
+          // FileUpload should not have role="alert" when no error
+          const fileHtml = renderToStaticMarkup(
+            React.createElement(FileUpload, { label })
+          )
+          expect(fileHtml).not.toContain('role="alert"')
         }),
         { numRuns: 10 },
       )

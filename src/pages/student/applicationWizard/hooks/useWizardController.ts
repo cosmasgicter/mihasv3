@@ -97,9 +97,9 @@ interface UseWizardControllerResult {
   handleDownloadSlip: () => Promise<void>
   handleEmailSlip: () => Promise<void>
   dismissSlipProgress: () => void
-  handleResultSlipUpload: ReturnType<typeof useApplicationFileUploads>['handleResultSlipUpload']
-  handleExtraKycUpload: ReturnType<typeof useApplicationFileUploads>['handleExtraKycUpload']
-  handleProofOfPaymentUpload: ReturnType<typeof useApplicationFileUploads>['handleProofOfPaymentUpload']
+  handleResultSlipUpload: (file: File | null) => void
+  handleExtraKycUpload: (file: File | null) => void
+  handleProofOfPaymentUpload: (file: File | null) => void
   getPaymentTarget: () => string
   handleNextStep: () => Promise<void>
   handlePrevStep: () => void
@@ -317,8 +317,11 @@ const useWizardController = (): UseWizardControllerResult => {
     uploadProgress,
     uploadedFiles,
     handleResultSlipUpload: baseHandleResultSlipUpload,
-    handleExtraKycUpload,
-    handleProofOfPaymentUpload,
+    handleExtraKycUpload: baseHandleExtraKycUpload,
+    handleProofOfPaymentUpload: baseHandleProofOfPaymentUpload,
+    handleResultSlipFile: baseHandleResultSlipFile,
+    handleExtraKycFile,
+    handleProofOfPaymentFile: baseHandleProofOfPaymentFile,
     startUpload,
     trackUploadTask
   } = useApplicationFileUploads({
@@ -328,15 +331,20 @@ const useWizardController = (): UseWizardControllerResult => {
     onValidationClear: clearValidationError
   })
 
-  const handleResultSlipUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    baseHandleResultSlipUpload(event, async (file, url) => {
+  const handleResultSlipUpload = useCallback((file: File | null) => {
+    if (!file) {
+      baseHandleResultSlipFile(null)
+      return
+    }
+
+    baseHandleResultSlipUpload({ target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>, async (uploadedFile, url) => {
       if (!applicationId) return
       
       showInfo('Processing document...', 'Extracting grades from your result slip')
       
       try {
         const { autoFillService } = await import('@/utils/smart-features')
-        const parsed = await autoFillService.extractDataFromFile(file, 'grade12')
+        const parsed = await autoFillService.extractDataFromFile(uploadedFile, 'grade12')
         
         if (!parsed || !parsed.grades || parsed.grades.length === 0) {
           showWarning('No grades detected. Please enter them manually.')
@@ -371,16 +379,21 @@ const useWizardController = (): UseWizardControllerResult => {
         queryClient.invalidateQueries({ queryKey: ['applications'] })
       }
     })
-  }, [baseHandleResultSlipUpload, applicationId, subjects, syncGrades, updateApplication, queryClient, showSuccess, showInfo, showWarning])
+  }, [baseHandleResultSlipUpload, baseHandleResultSlipFile, applicationId, subjects, syncGrades, updateApplication, queryClient, showSuccess, showInfo, showWarning])
 
-  const handleProofOfPaymentUploadWrapped = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    handleProofOfPaymentUpload(event, async (file, url) => {
+  const handleProofOfPaymentUploadWrapped = useCallback((file: File | null) => {
+    if (!file) {
+      baseHandleProofOfPaymentFile(null)
+      return
+    }
+
+    baseHandleProofOfPaymentUpload({ target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>, async (uploadedFile, url) => {
       if (!applicationId) return
       await updateApplication.mutateAsync({ id: applicationId, data: { pop_url: url } })
       queryClient.invalidateQueries({ queryKey: ['applications'] })
       showSuccess('Payment proof uploaded successfully!')
     })
-  }, [handleProofOfPaymentUpload, applicationId, updateApplication, queryClient, showSuccess])
+  }, [baseHandleProofOfPaymentUpload, baseHandleProofOfPaymentFile, applicationId, updateApplication, queryClient, showSuccess])
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -1387,7 +1400,7 @@ const useWizardController = (): UseWizardControllerResult => {
     handleEmailSlip,
     dismissSlipProgress,
     handleResultSlipUpload,
-    handleExtraKycUpload,
+    handleExtraKycUpload: handleExtraKycFile,
     handleProofOfPaymentUpload: handleProofOfPaymentUploadWrapped,
     getPaymentTarget,
     handleNextStep,

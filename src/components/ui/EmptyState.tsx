@@ -1,40 +1,55 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
-import { LucideIcon } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 
-export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
-  icon?: LucideIcon
-  title: string
+export interface EmptyStateProps {
+  icon?: React.ReactNode
+  heading: string
+  /** @deprecated Use `heading` instead */
+  title?: string
   description?: string
-  action?: React.ReactNode
+  action?: {
+    label: string
+    onClick: () => void
+    variant?: 'primary' | 'outline'
+  }
+  className?: string
 }
 
 export function EmptyState({
   className,
-  icon: Icon,
+  icon,
+  heading,
   title,
   description,
   action,
-  ...props
 }: EmptyStateProps) {
+  const displayHeading = heading || title || ''
+
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/70 bg-card/80 px-4 py-12 text-center shadow-sm',
+        'flex flex-col items-center justify-center gap-3 py-12 text-center',
         className
       )}
-      {...props}
     >
-      {Icon && (
-        <div className="mb-4 rounded-full bg-primary/5 p-4 text-primary">
-          <Icon className="h-8 w-8" />
+      {icon && (
+        <div className="text-muted-foreground [&>svg]:h-12 [&>svg]:w-12">
+          {icon}
         </div>
       )}
-      <h3 className="text-lg font-semibold text-foreground mb-2">{title}</h3>
+      <h3 className="text-lg font-semibold">{displayHeading}</h3>
       {description && (
-        <p className="mb-4 max-w-md text-sm text-muted-foreground">{description}</p>
+        <p className="max-w-md text-sm text-muted-foreground">{description}</p>
       )}
-      {action && <div>{action}</div>}
+      {action && (
+        <Button
+          variant={action.variant === 'outline' ? 'outline' : 'primary'}
+          onClick={action.onClick}
+        >
+          {action.label}
+        </Button>
+      )}
     </div>
   )
 }

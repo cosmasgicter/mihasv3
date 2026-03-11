@@ -11,9 +11,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
-import { AnimatedInput } from '@/components/smoothui/animated-input';
+import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
-import { AuthLoadingOverlay } from '@/components/ui/AuthLoadingOverlay';
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { ErrorBanner } from '@/components/ui/ErrorDisplay';
 import { Seo } from '@/components/seo/Seo';
@@ -90,7 +90,7 @@ export default function SignInPage() {
   return (
     <>
       <Seo title={seoConfig.title} description={seoConfig.description} path={location.pathname} />
-      {isAuthenticating && <AuthLoadingOverlay message="Signing you in..." />}
+      {isAuthenticating && <UnifiedLoader variant="overlay" label="Signing you in..." />}
       <AuthLayout
         variant="signin"
         title="Sign in"
@@ -122,7 +122,7 @@ export default function SignInPage() {
           </div>
         }
       >
-        <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+        <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
           {error && (
             <ErrorBanner
               error={{ status: 401, message: error }}
@@ -130,28 +130,34 @@ export default function SignInPage() {
             />
           )}
 
-          <AnimatedInput
-            {...register('email')}
-            type="email"
-            label="Email"
-            error={errors.email?.message}
-            autoComplete="email"
-            disabled={loading}
-            required
-          />
+          <fieldset className="space-y-5 rounded-2xl border border-border/60 bg-background/80 p-4 sm:p-5">
+            <legend className="text-sm font-semibold text-foreground">Applicant sign-in details</legend>
 
-          <PasswordInput
-            {...register('password')}
-            label="Password"
-            error={errors.password?.message}
-            autoComplete="current-password"
-            disabled={loading}
-            required
-          />
+            <Input
+              {...register('email')}
+              type="email"
+              label="Account email"
+              error={errors.email?.message}
+              autoComplete="email"
+              disabled={loading}
+              required
+              className="min-h-[48px]"
+            />
+
+            <PasswordInput
+              {...register('password')}
+              label="Account password"
+              error={errors.password?.message}
+              autoComplete="current-password"
+              disabled={loading}
+              required
+              className="min-h-[48px]"
+            />
+          </fieldset>
 
           <Button
             type="submit"
-            className="w-full min-h-[44px]"
+            className="w-full min-h-[48px]"
             loading={loading}
             variant="gradient"
             size="lg"

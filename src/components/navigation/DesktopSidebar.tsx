@@ -93,6 +93,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
 
   return (
     <aside
+      aria-label="Main navigation"
       className="hidden md:flex flex-col fixed left-0 top-0 h-screen bg-gradient-to-b from-card via-card to-muted/70 backdrop-blur-xl border-r border-border/80 shadow-xl z-40 transition-all duration-300 ease-in-out"
       style={{ width: collapsed ? 'var(--sidebar-collapsed)' : 'var(--sidebar-expanded)' }}
     >

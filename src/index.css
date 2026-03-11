@@ -8,7 +8,19 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Font optimization */
+/* Font optimization: Inter with font-display: swap and system font fallback.
+ * Inter is loaded from the user's system if available; otherwise the browser
+ * immediately falls back to system-ui / sans-serif with no invisible text.
+ * Requirement 20.2: font-display: swap prevents FOIT (Flash of Invisible Text).
+ */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: local('Inter'), local('Inter-Regular'), local('InterVariable');
+}
+
 @supports (font-variation-settings: normal) {
   * {
     font-feature-settings: 'kern' 1;
@@ -17,6 +29,19 @@
 }
 
 @layer base {
+  /* Global reduced-motion override — disables ALL animations/transitions
+   * for users who prefer reduced motion (Req 12.6, 12.7).
+   * Placed in @layer base so it applies globally before component styles.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
   html {
     color-scheme: light only !important;
   }
@@ -156,11 +181,6 @@
 h1{font-size:clamp(1.5rem, 2.2vw + 1rem, 3rem)}
 h2{font-size:clamp(1.25rem, 1.8vw + 0.9rem, 2.25rem)}
 h3{font-size:clamp(1.125rem, 1.4vw + 0.8rem, 1.5rem)}
-
-/* Prefer reduced motion respects */
-@media (prefers-reduced-motion: reduce) {
-  :root { --reduced-motion: 1 }
-}
 
 /* App-level helper for safe areas and unified spacing */
 .app-safe-area {
@@ -326,14 +346,6 @@ input, textarea, select {
 
   .animate-scale-in {
     animation: scaleIn 0.2s ease-out;
-  }
-  
-  @media (prefers-reduced-motion: reduce) {
-    * {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
   }
   
   /* Mobile-friendly utilities */

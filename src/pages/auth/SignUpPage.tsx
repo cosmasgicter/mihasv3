@@ -4,17 +4,18 @@
  * @requirements 31.2, 31.4, 31.5 - Minimal layout, concise labels, touch targets
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/services/client';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
-import { AnimatedInput } from '@/components/smoothui/animated-input';
+import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
-import { AuthLoadingOverlay } from '@/components/ui/AuthLoadingOverlay';
+import { UnifiedLoader } from '@/components/ui/UnifiedLoader';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { ErrorBanner } from '@/components/ui/ErrorDisplay';
 import { NotificationService } from '@/lib/notificationService';
@@ -33,7 +34,15 @@ export const signUpSchema = z
     last_name: z.string().min(2, 'Last name is required'),
     email: z.string().email('Please enter a valid email address'),
     phone: z.string().min(10, 'Please enter a valid phone number'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
+    residence_town: z.string().trim().optional(),
+    nationality: z.string().trim().optional(),
+    next_of_kin_name: z.string().trim().optional(),
+    next_of_kin_phone: z.string().trim().optional(),
+    password: z.string()
+      .min(8, 'Password must be at least 8 characters')
+      .refine((value) => /[A-Z]/.test(value), 'Password must contain at least one uppercase letter')
+      .refine((value) => /[a-z]/.test(value), 'Password must contain at least one lowercase letter')
+      .refine((value) => /\d/.test(value), 'Password must contain at least one digit'),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -52,6 +61,8 @@ export default function SignUpPage() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [emailChecking, setEmailChecking] = useState(false);
   const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
+  const emailCheckRequestIdRef = useRef(0);
+  const redirectTimerRef = useRef<number | null>(null);
 
   const {
     register,
@@ -63,15 +74,22 @@ export default function SignUpPage() {
 
   const checkEmailAvailability = useCallback(async (email: string) => {
     if (!email || !email.includes('@')) {
+      emailCheckRequestIdRef.current += 1;
       setEmailAvailable(null);
+      setEmailChecking(false);
       return;
     }
 
+    const requestId = emailCheckRequestIdRef.current + 1;
+    emailCheckRequestIdRef.current = requestId;
     setEmailChecking(true);
     try {
       const response = await apiClient.request<EmailCheckResponse>(
         `/auth?action=check-email&email=${encodeURIComponent(email)}`,
       );
+      if (requestId !== emailCheckRequestIdRef.current) {
+        return;
+      }
       const isAvailable = (response as EmailCheckResponse)?.available ?? null;
       setEmailAvailable(isAvailable);
       if (isAvailable === false) {
@@ -80,11 +98,25 @@ export default function SignUpPage() {
         setError('');
       }
     } catch (err) {
+      if (requestId !== emailCheckRequestIdRef.current) {
+        return;
+      }
       console.warn('Email check error:', sanitizeForLog(err instanceof Error ? err.message : String(err)));
       setEmailAvailable(null);
     } finally {
-      setEmailChecking(false);
+      if (requestId === emailCheckRequestIdRef.current) {
+        setEmailChecking(false);
+      }
     }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      emailCheckRequestIdRef.current += 1;
+      if (redirectTimerRef.current !== null) {
+        window.clearTimeout(redirectTimerRef.current);
+      }
+    };
   }, []);
 
   const onSubmit = async (data: SignUpForm) => {
@@ -125,7 +157,7 @@ export default function SignUpPage() {
         });
       }
 
-      setTimeout(() => {
+      redirectTimerRef.current = window.setTimeout(() => {
         navigate('/student/dashboard');
       }, 1500);
     } catch (err: unknown) {
@@ -151,7 +183,7 @@ export default function SignUpPage() {
             </div>
             <p className="text-sm text-muted-foreground">Redirecting to your dashboard...</p>
             <Link to="/student/dashboard" className="block">
-              <Button className="w-full min-h-[44px]" variant="gradient" size="lg">
+              <Button className="w-full min-h-[48px]" variant="gradient" size="lg">
                 Go to dashboard
               </Button>
             </Link>
@@ -168,7 +200,7 @@ export default function SignUpPage() {
         description="Create your MIHAS admissions account to start your application."
         path="/auth/signup"
       />
-      {isRegistering && <AuthLoadingOverlay message="Creating your account..." />}
+      {isRegistering && <UnifiedLoader variant="overlay" label="Creating your account..." />}
       <AuthLayout
         variant="signup"
         title="Create account"
@@ -184,7 +216,7 @@ export default function SignUpPage() {
           </>
         }
       >
-        <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+        <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
           {error && (
             <ErrorBanner
               error={{ status: 400, message: error }}
@@ -192,96 +224,163 @@ export default function SignUpPage() {
             />
           )}
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <AnimatedInput
-              {...register('first_name')}
-              type="text"
-              label="First name"
-              error={errors.first_name?.message}
-              disabled={loading}
-              required
-            />
-            <AnimatedInput
-              {...register('last_name')}
-              type="text"
-              label="Last name"
-              error={errors.last_name?.message}
-              disabled={loading}
-              required
-            />
-          </div>
+          <fieldset className="space-y-4 rounded-2xl border border-border/60 bg-background/80 p-4 sm:p-5">
+            <legend className="text-base font-semibold text-foreground">Portal access</legend>
 
-          <div className="relative">
-            <AnimatedInput
-              {...register('email', {
-                onBlur: (e) => checkEmailAvailability(e.target.value),
-              })}
-              type="email"
-              label="Email"
-              error={errors.email?.message || (emailAvailable === false ? 'Already registered' : undefined)}
-              autoComplete="email"
-              disabled={loading}
-              required
-              className={
-                emailAvailable === true
-                  ? 'border-green-500 focus:ring-green-500'
-                  : emailAvailable === false
-                    ? 'border-red-500 focus:ring-red-500'
-                    : ''
-              }
-            />
-            <div className="mt-1 min-h-5" aria-live="polite">
-              {emailChecking && (
-                <span className="flex items-center gap-1.5 text-xs text-primary" role="status">
-                  <Loader2 className="h-3 w-3 animate-spin" /> Checking...
-                </span>
-              )}
-              {!emailChecking && emailAvailable === true && (
-                <span className={`flex items-center gap-1.5 text-xs text-success ${animateClasses.fadeIn}`} role="status">
-                  <CheckCircle className="h-3 w-3" /> Available
-                </span>
-              )}
-              {!emailChecking && emailAvailable === false && (
-                <span className={`flex items-center gap-1.5 text-xs text-destructive ${animateClasses.fadeIn}`} role="alert">
-                  <XCircle className="h-3 w-3" />
-                  Already registered.{' '}
-                  <Link to="/auth/signin" className="underline hover:text-destructive">Sign in</Link>
-                </span>
-              )}
+            <div className="relative">
+              <Input
+                {...register('email', {
+                  onBlur: (e) => checkEmailAvailability(e.target.value),
+                })}
+                type="email"
+                label="Account email"
+                error={errors.email?.message || (emailAvailable === false ? 'Already registered' : undefined)}
+                autoComplete="email"
+                disabled={loading}
+                required
+                className={cn(
+                  'min-h-[48px]',
+                  emailAvailable === true
+                    ? 'border-success focus:ring-success'
+                    : emailAvailable === false
+                      ? 'border-destructive focus:ring-destructive'
+                      : ''
+                )}
+              />
+              <div className="mt-1 min-h-5" aria-live="polite">
+                {emailChecking && (
+                  <span className="flex items-center gap-1.5 text-xs text-primary" role="status">
+                    <Loader2 className="h-3 w-3 animate-spin" /> Checking...
+                  </span>
+                )}
+                {!emailChecking && emailAvailable === true && (
+                  <span className={`flex items-center gap-1.5 text-xs text-success ${animateClasses.fadeIn}`} role="status">
+                    <CheckCircle className="h-3 w-3" /> Available
+                  </span>
+                )}
+                {!emailChecking && emailAvailable === false && (
+                  <span className={`flex items-center gap-1.5 text-xs text-destructive ${animateClasses.fadeIn}`} role="alert">
+                    <XCircle className="h-3 w-3" />
+                    Already registered.{' '}
+                    <Link to="/auth/signin" className="underline hover:text-destructive">Sign in</Link>
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
 
-          <AnimatedInput
-            {...register('phone')}
-            type="tel"
-            label="Phone number"
-            error={errors.phone?.message}
-            disabled={loading}
-            required
-          />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <PasswordInput
+                {...register('password')}
+                label="Create password"
+                error={errors.password?.message}
+                autoComplete="new-password"
+                disabled={loading}
+                required
+                className="min-h-[48px]"
+              />
+              <PasswordInput
+                {...register('confirmPassword')}
+                label="Confirm password"
+                error={errors.confirmPassword?.message}
+                autoComplete="new-password"
+                disabled={loading}
+                required
+                className="min-h-[48px]"
+              />
+            </div>
+          </fieldset>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <PasswordInput
-              {...register('password')}
-              label="Password"
-              error={errors.password?.message}
-              autoComplete="new-password"
+          <fieldset className="space-y-4 rounded-2xl border border-border/60 bg-background/80 p-4 sm:p-5">
+            <legend className="text-base font-semibold text-foreground">Profile basics</legend>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Input
+                {...register('first_name')}
+                type="text"
+                label="First name"
+                error={errors.first_name?.message}
+                autoComplete="given-name"
+                disabled={loading}
+                required
+                className="min-h-[48px]"
+              />
+              <Input
+                {...register('last_name')}
+                type="text"
+                label="Last name"
+                error={errors.last_name?.message}
+                autoComplete="family-name"
+                disabled={loading}
+                required
+                className="min-h-[48px]"
+              />
+            </div>
+
+            <Input
+              {...register('phone')}
+              type="tel"
+              label="Phone number"
+              error={errors.phone?.message}
+              autoComplete="tel"
               disabled={loading}
               required
+              className="min-h-[48px]"
             />
-            <PasswordInput
-              {...register('confirmPassword')}
-              label="Confirm password"
-              error={errors.confirmPassword?.message}
-              autoComplete="new-password"
-              disabled={loading}
-              required
-            />
-          </div>
+          </fieldset>
+
+          <fieldset className="space-y-4 rounded-2xl border border-border/60 bg-background/80 p-4 sm:p-5">
+            <legend className="text-base font-semibold text-foreground">Residence and identity</legend>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Input
+                {...register('residence_town')}
+                type="text"
+                label="Residence town"
+                error={errors.residence_town?.message}
+                autoComplete="address-level2"
+                disabled={loading}
+                className="min-h-[48px]"
+              />
+              <Input
+                {...register('nationality')}
+                type="text"
+                label="Nationality"
+                error={errors.nationality?.message}
+                autoComplete="country-name"
+                disabled={loading}
+                className="min-h-[48px]"
+              />
+            </div>
+          </fieldset>
+
+          <fieldset className="space-y-4 rounded-2xl border border-border/60 bg-background/80 p-4 sm:p-5">
+            <legend className="text-base font-semibold text-foreground">Emergency contact</legend>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Input
+                {...register('next_of_kin_name')}
+                type="text"
+                label="Next of kin name"
+                error={errors.next_of_kin_name?.message}
+                autoComplete="name"
+                disabled={loading}
+                className="min-h-[48px]"
+              />
+              <Input
+                {...register('next_of_kin_phone')}
+                type="tel"
+                label="Next of kin phone"
+                error={errors.next_of_kin_phone?.message}
+                autoComplete="tel"
+                disabled={loading}
+                className="min-h-[48px]"
+              />
+            </div>
+          </fieldset>
 
           <Button
             type="submit"
-            className="w-full min-h-[44px]"
+            className="w-full min-h-[48px]"
             loading={loading}
             variant="gradient"
             size="lg"

@@ -29,6 +29,10 @@ export interface UseApplicationFileUploadsResult {
   handleResultSlipUpload: (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string) => void) => void
   handleExtraKycUpload: (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string) => void) => void
   handleProofOfPaymentUpload: (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string) => void) => void
+  /** File-based handlers for canonical FileUpload component (react-dropzone) */
+  handleResultSlipFile: (file: File | null) => void
+  handleExtraKycFile: (file: File | null) => void
+  handleProofOfPaymentFile: (file: File | null) => void
   startUpload: (file: File, fileType: ApplicationFileType) => Promise<string>
   trackUploadTask: <T>(task: () => Promise<T>) => Promise<T>
 }
@@ -416,6 +420,52 @@ export function useApplicationFileUploads({
     [createFileHandler]
   )
 
+  /**
+   * File-based handler factory for canonical FileUpload (react-dropzone).
+   * Accepts a File | null directly instead of a ChangeEvent.
+   */
+  const createDirectFileHandler = useCallback(
+    (fileType: ApplicationFileType, setter: (file: File | null) => void) =>
+      async (file: File | null) => {
+        const isValid = validateFileSelection(file, fileType, null)
+        if (!isValid) {
+          setter(null)
+          return
+        }
+
+        if (file && applicationId) {
+          try {
+            await startUpload(file, fileType)
+          } catch (error) {
+            console.error('Auto-upload failed:', error)
+            onValidationError?.(error instanceof Error ? error.message : 'Upload failed')
+          }
+        }
+      },
+    [validateFileSelection, applicationId, startUpload, onValidationError]
+  )
+
+  const handleResultSlipFile = useCallback(
+    (file: File | null) => {
+      createDirectFileHandler('result_slip', setResultSlipFile)(file)
+    },
+    [createDirectFileHandler]
+  )
+
+  const handleExtraKycFile = useCallback(
+    (file: File | null) => {
+      createDirectFileHandler('extra_kyc', setExtraKycFile)(file)
+    },
+    [createDirectFileHandler]
+  )
+
+  const handleProofOfPaymentFile = useCallback(
+    (file: File | null) => {
+      createDirectFileHandler('proof_of_payment', setProofOfPaymentFile)(file)
+    },
+    [createDirectFileHandler]
+  )
+
   return {
     resultSlipFile,
     extraKycFile,
@@ -426,6 +476,9 @@ export function useApplicationFileUploads({
     handleResultSlipUpload,
     handleExtraKycUpload,
     handleProofOfPaymentUpload,
+    handleResultSlipFile,
+    handleExtraKycFile,
+    handleProofOfPaymentFile,
     startUpload,
     trackUploadTask
   }

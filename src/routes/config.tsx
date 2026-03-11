@@ -39,55 +39,60 @@ import { Navigate } from 'react-router-dom'
 
 export type RouteGuard = 'public' | 'auth' | 'student' | 'admin'
 
+/** Skeleton type used as Suspense fallback for lazy-loaded routes */
+export type SkeletonType = 'dashboard' | 'wizard' | 'admin-table' | 'auth' | 'detail' | 'none'
+
 export interface RouteConfig {
   path: string
   element: React.ComponentType | React.ReactElement
   guard: RouteGuard
   lazy?: boolean
+  /** Which layout-matched skeleton to show while the chunk loads */
+  skeletonType?: SkeletonType
 }
 
 export const routes: RouteConfig[] = [
   // Public routes - all lazy loaded for optimal bundle size
-  { path: '/', element: LandingPage, guard: 'public', lazy: true },
-  { path: '/track-application', element: PublicApplicationTracker, guard: 'public', lazy: true },
-  { path: '/contact', element: ContactPage, guard: 'public', lazy: true },
-  { path: '/auth/signin', element: SignInPage, guard: 'public', lazy: true },
-  { path: '/signin', element: SignInPage, guard: 'public', lazy: true },
-  { path: '/login', element: SignInPage, guard: 'public', lazy: true },
-  { path: '/auth/signup', element: SignUpPage, guard: 'public', lazy: true },
-  { path: '/auth/forgot-password', element: ForgotPasswordPage, guard: 'public', lazy: true },
-  { path: '/auth/reset-password', element: ResetPasswordPage, guard: 'public', lazy: true },
-  { path: '/auth/callback', element: AuthCallbackPage, guard: 'public', lazy: true },
+  { path: '/', element: LandingPage, guard: 'public', lazy: true, skeletonType: 'none' },
+  { path: '/track-application', element: PublicApplicationTracker, guard: 'public', lazy: true, skeletonType: 'detail' },
+  { path: '/contact', element: ContactPage, guard: 'public', lazy: true, skeletonType: 'none' },
+  { path: '/auth/signin', element: SignInPage, guard: 'public', lazy: true, skeletonType: 'auth' },
+  { path: '/signin', element: SignInPage, guard: 'public', lazy: true, skeletonType: 'auth' },
+  { path: '/login', element: SignInPage, guard: 'public', lazy: true, skeletonType: 'auth' },
+  { path: '/auth/signup', element: SignUpPage, guard: 'public', lazy: true, skeletonType: 'auth' },
+  { path: '/auth/forgot-password', element: ForgotPasswordPage, guard: 'public', lazy: true, skeletonType: 'auth' },
+  { path: '/auth/reset-password', element: ResetPasswordPage, guard: 'public', lazy: true, skeletonType: 'auth' },
+  { path: '/auth/callback', element: AuthCallbackPage, guard: 'public', lazy: true, skeletonType: 'auth' },
   
   // Dashboard redirect (no lazy loading needed)
   { path: '/dashboard', element: <DashboardRedirect />, guard: 'public' },
   
   // Student routes
-  { path: '/student/dashboard', element: StudentDashboard, guard: 'student', lazy: true },
-  { path: '/apply', element: ApplicationWizard, guard: 'student', lazy: true },
-  { path: '/student/application-wizard', element: ApplicationWizard, guard: 'student', lazy: true },
-  { path: '/student/status', element: ApplicationStatus, guard: 'student', lazy: true },
-  { path: '/application/:id', element: ApplicationStatus, guard: 'student', lazy: true },
-  { path: '/student/application/:id', element: ApplicationDetail, guard: 'student', lazy: true },
+  { path: '/student/dashboard', element: StudentDashboard, guard: 'student', lazy: true, skeletonType: 'dashboard' },
+  { path: '/apply', element: ApplicationWizard, guard: 'student', lazy: true, skeletonType: 'wizard' },
+  { path: '/student/application-wizard', element: ApplicationWizard, guard: 'student', lazy: true, skeletonType: 'wizard' },
+  { path: '/student/status', element: ApplicationStatus, guard: 'student', lazy: true, skeletonType: 'detail' },
+  { path: '/application/:id', element: ApplicationStatus, guard: 'student', lazy: true, skeletonType: 'detail' },
+  { path: '/student/application/:id', element: ApplicationDetail, guard: 'student', lazy: true, skeletonType: 'detail' },
   { path: '/settings', element: <Navigate to="/student/settings" replace />, guard: 'student' },
   { path: '/student/profile', element: <Navigate to="/student/settings" replace />, guard: 'student' },
-  { path: '/student/settings', element: StudentSettings, guard: 'student', lazy: true },
-  { path: '/student/notifications', element: StudentNotificationSettings, guard: 'student', lazy: true },
-  { path: '/student/payment', element: StudentPayment, guard: 'student', lazy: true },
-  { path: '/student/interview', element: StudentInterview, guard: 'student', lazy: true },
+  { path: '/student/settings', element: StudentSettings, guard: 'student', lazy: true, skeletonType: 'detail' },
+  { path: '/student/notifications', element: StudentNotificationSettings, guard: 'student', lazy: true, skeletonType: 'detail' },
+  { path: '/student/payment', element: StudentPayment, guard: 'student', lazy: true, skeletonType: 'detail' },
+  { path: '/student/interview', element: StudentInterview, guard: 'student', lazy: true, skeletonType: 'detail' },
   
   // Admin routes
-  { path: '/admin', element: AdminDashboard, guard: 'admin', lazy: true },
-  { path: '/admin/dashboard', element: AdminDashboard, guard: 'admin', lazy: true },
-  { path: '/admin/profile', element: AdminSettings, guard: 'admin', lazy: true },
-  { path: '/admin/applications', element: AdminApplications, guard: 'admin', lazy: true },
-  { path: '/admin/programs', element: AdminPrograms, guard: 'admin', lazy: true },
-  { path: '/admin/intakes', element: AdminIntakes, guard: 'admin', lazy: true },
-  { path: '/admin/users', element: AdminUsers, guard: 'admin', lazy: true },
-  { path: '/admin/audit', element: AuditTrail, guard: 'admin', lazy: true },
-  { path: '/admin/settings', element: AdminSettings, guard: 'admin', lazy: true },
+  { path: '/admin', element: AdminDashboard, guard: 'admin', lazy: true, skeletonType: 'dashboard' },
+  { path: '/admin/dashboard', element: AdminDashboard, guard: 'admin', lazy: true, skeletonType: 'dashboard' },
+  { path: '/admin/profile', element: AdminSettings, guard: 'admin', lazy: true, skeletonType: 'detail' },
+  { path: '/admin/applications', element: AdminApplications, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
+  { path: '/admin/programs', element: AdminPrograms, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
+  { path: '/admin/intakes', element: AdminIntakes, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
+  { path: '/admin/users', element: AdminUsers, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
+  { path: '/admin/audit', element: AuditTrail, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
+  { path: '/admin/settings', element: AdminSettings, guard: 'admin', lazy: true, skeletonType: 'detail' },
   
   // 404 routes
-  { path: '/404', element: NotFoundPage, guard: 'public', lazy: true },
+  { path: '/404', element: NotFoundPage, guard: 'public', lazy: true, skeletonType: 'none' },
   { path: '*', element: <Navigate to="/404" replace />, guard: 'public' },
 ]

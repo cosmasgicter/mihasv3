@@ -167,3 +167,77 @@ export function useAdminDashboardPolling(
 }
 
 export default useAdminDashboardPolling
+
+/**
+ * Granular selector: returns only the pending application count from admin dashboard polling.
+ * Shares the same cache as useAdminDashboardPolling — only re-renders when pending count changes.
+ * Requirement 11.3: React Query granular selectors to prevent unnecessary re-renders.
+ */
+export function useAdminPendingCount(options: { enabled?: boolean } = {}) {
+  const { enabled = true } = options
+
+  return useQuery({
+    queryKey: ['admin-dashboard-polling'],
+    queryFn: async (): Promise<AdminDashboardStats> => {
+      const result = await apiClient.request<{
+        totalApplications?: number
+        pendingApplications?: number
+        approvedApplications?: number
+        rejectedApplications?: number
+        todayApplications?: number
+        weekApplications?: number
+        pendingReviews?: number
+        [key: string]: unknown
+      }>('/admin?action=stats')
+
+      return {
+        totalApplications: result?.totalApplications ?? 0,
+        pendingApplications: result?.pendingApplications ?? result?.pendingReviews ?? 0,
+        approvedApplications: result?.approvedApplications ?? 0,
+        rejectedApplications: result?.rejectedApplications ?? 0,
+        todayApplications: result?.todayApplications ?? 0,
+        weekApplications: result?.weekApplications ?? 0,
+      }
+    },
+    enabled,
+    select: (data) => data.pendingApplications,
+    staleTime: POLLING_INTERVAL / 2,
+  })
+}
+
+/**
+ * Granular selector: returns only the total application count from admin dashboard polling.
+ * Shares the same cache — only re-renders when total count changes.
+ * Requirement 11.3: React Query granular selectors to prevent unnecessary re-renders.
+ */
+export function useAdminTotalApplicationCount(options: { enabled?: boolean } = {}) {
+  const { enabled = true } = options
+
+  return useQuery({
+    queryKey: ['admin-dashboard-polling'],
+    queryFn: async (): Promise<AdminDashboardStats> => {
+      const result = await apiClient.request<{
+        totalApplications?: number
+        pendingApplications?: number
+        approvedApplications?: number
+        rejectedApplications?: number
+        todayApplications?: number
+        weekApplications?: number
+        pendingReviews?: number
+        [key: string]: unknown
+      }>('/admin?action=stats')
+
+      return {
+        totalApplications: result?.totalApplications ?? 0,
+        pendingApplications: result?.pendingApplications ?? result?.pendingReviews ?? 0,
+        approvedApplications: result?.approvedApplications ?? 0,
+        rejectedApplications: result?.rejectedApplications ?? 0,
+        todayApplications: result?.todayApplications ?? 0,
+        weekApplications: result?.weekApplications ?? 0,
+      }
+    },
+    enabled,
+    select: (data) => data.totalApplications,
+    staleTime: POLLING_INTERVAL / 2,
+  })
+}

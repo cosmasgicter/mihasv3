@@ -3,7 +3,7 @@ import { maintenance, MaintenanceTask } from '@/lib/maintenance'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { UnifiedLoader, UnifiedSpinner } from '@/components/ui/UnifiedLoader'
 import { formatTimestamp } from '@/lib/dateFormat'
 import { 
   Play, 
@@ -66,7 +66,7 @@ export function MaintenancePanel() {
     switch (status) {
       case 'completed': return <CheckCircle className="h-4 w-4 text-success" />
       case 'failed': return <XCircle className="h-4 w-4 text-error" />
-      case 'running': return <LoadingSpinner className="h-4 w-4" />
+      case 'running': return <UnifiedSpinner size="sm" />
       default: return <Clock className="h-4 w-4 text-foreground" />
     }
   }
@@ -83,7 +83,7 @@ export function MaintenancePanel() {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <LoadingSpinner />
+        <UnifiedLoader variant="inline" />
       </div>
     )
   }
@@ -156,7 +156,7 @@ export function MaintenancePanel() {
                   variant="outline"
                 >
                   {runningTasks.has(task.id) ? (
-                    <LoadingSpinner className="h-4 w-4" />
+                    <UnifiedSpinner size="sm" />
                   ) : (
                     <Play className="h-4 w-4" />
                   )}
