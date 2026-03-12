@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import { CheckCircle, XCircle, RefreshCw, AlertTriangle } from 'lucide-react'
-import { sanitizeForLog } from '@/lib/sanitizer'
-import { apiClient } from '@/services/client'
 
 interface AuthStatusCheckerProps {
   onStatusChange?: (isAuthenticated: boolean) => void
 }
 
 export function AuthStatusChecker({ onStatusChange }: AuthStatusCheckerProps) {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
+  const queryClient = useQueryClient()
   const [authStatus, setAuthStatus] = useState<{
     isAuthenticated: boolean
     hasValidSession: boolean
@@ -24,46 +24,29 @@ export function AuthStatusChecker({ onStatusChange }: AuthStatusCheckerProps) {
 
   useEffect(() => {
     checkAuthenticationStatus()
-  }, [user])
+  }, [user, loading])
 
-  const checkAuthenticationStatus = async () => {
-    setIsChecking(true)
-    
-    try {
-      // Check if user exists
-      const hasUser = !!user?.id
-      
-      // Check session validity via API
-      const sessionResult = await apiClient.request<{ user?: unknown; error?: string }>('/auth?action=session')
-      const hasValidSession = !!sessionResult?.user
-      
-      // Check if user can actually make authenticated requests
-      // If we have a valid session from the API, we can submit applications
-      const canSubmitApplication = hasUser && hasValidSession
-      
-      const newStatus = {
-        isAuthenticated: hasUser,
-        hasValidSession,
-        canSubmitApplication,
-        error: sessionResult?.error
-      }
-      
-      setAuthStatus(newStatus)
-      onStatusChange?.(canSubmitApplication)
-      
-    } catch (error) {
-      const sanitizedError = sanitizeForLog(error instanceof Error ? error.message : 'Unknown error')
-      console.error('Error checking auth status:', { error: sanitizedError })
-      setAuthStatus({
-        isAuthenticated: false,
-        hasValidSession: false,
-        canSubmitApplication: false,
-        error: 'Failed to verify authentication'
-      })
-      onStatusChange?.(false)
-    } finally {
-      setIsChecking(false)
+  const checkAuthenticationStatus = () => {
+    if (loading) {
+      setIsChecking(true)
+      return
     }
+
+    // useAuth() is backed by React Query's ['auth', 'session'] — the single source of truth.
+    // If user is present, the session is valid (ApiClient handles 401 refresh transparently).
+    const hasUser = !!user?.id
+    const hasValidSession = hasUser
+    const canSubmitApplication = hasUser && hasValidSession
+
+    const newStatus = {
+      isAuthenticated: hasUser,
+      hasValidSession,
+      canSubmitApplication,
+    }
+
+    setAuthStatus(newStatus)
+    onStatusChange?.(canSubmitApplication)
+    setIsChecking(false)
   }
 
   const getStatusIcon = () => {
@@ -117,7 +100,7 @@ export function AuthStatusChecker({ onStatusChange }: AuthStatusCheckerProps) {
       
       {!authStatus.canSubmitApplication && (
         <button
-          onClick={checkAuthenticationStatus}
+          onClick={() => queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })}
           className="ml-auto px-3 py-1 text-xs bg-primary text-white rounded hover:bg-primary transition-colors"
         >
           Refresh

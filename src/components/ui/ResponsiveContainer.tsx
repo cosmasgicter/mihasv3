@@ -1,6 +1,25 @@
-import React, { ReactNode } from 'react'
+import React, { ReactNode, useMemo } from 'react'
 import { cn } from '@/lib/utils'
-import { useEnhancedResponsive, useDeviceOptimizations } from '@/hooks/useEnhancedResponsive'
+import { useResponsive } from '@/hooks/useResponsive'
+
+/** Detect touch capability */
+function getIsTouch() {
+  return typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0)
+}
+
+/** Derive device optimizations from responsive state */
+function getDeviceOptimizations(isMobile: boolean, isTouch: boolean) {
+  return {
+    minTouchTarget: isTouch ? 44 : 32,
+    spacing: {
+      xs: isMobile ? 8 : 12,
+      sm: isMobile ? 12 : 16,
+      md: isMobile ? 16 : 24,
+      lg: isMobile ? 24 : 32,
+      xl: isMobile ? 32 : 48,
+    },
+  }
+}
 
 interface ResponsiveContainerProps {
   children: ReactNode
@@ -22,8 +41,9 @@ export function ResponsiveContainer({
   safeArea = true,
   touchOptimized = true
 }: ResponsiveContainerProps) {
-  const responsive = useEnhancedResponsive()
-  const optimizations = useDeviceOptimizations()
+  const responsive = useResponsive()
+  const isTouch = useMemo(() => getIsTouch(), [])
+  const optimizations = useMemo(() => getDeviceOptimizations(responsive.isMobile, isTouch), [responsive.isMobile, isTouch])
 
   const maxWidthClasses = {
     sm: 'max-w-sm',
@@ -55,7 +75,7 @@ export function ResponsiveContainer({
         'w-full mx-auto',
         maxWidthClasses[maxWidth],
         paddingClasses[padding],
-        touchOptimized && responsive.isTouch && 'touch-manipulation',
+        touchOptimized && isTouch && 'touch-manipulation',
         className
       )}
       style={safeAreaStyles}
@@ -88,8 +108,9 @@ export function ResponsiveGrid({
   gap = 'md',
   touchOptimized = true
 }: ResponsiveGridProps) {
-  const responsive = useEnhancedResponsive()
-  const optimizations = useDeviceOptimizations()
+  const responsive = useResponsive()
+  const isTouch = useMemo(() => getIsTouch(), [])
+  const optimizations = useMemo(() => getDeviceOptimizations(responsive.isMobile, isTouch), [responsive.isMobile, isTouch])
 
   const getGridColumns = () => {
     if (responsive.isLarge && columns.large) return columns.large
@@ -108,7 +129,7 @@ export function ResponsiveGrid({
   const gridStyle = {
     display: 'grid',
     gridTemplateColumns: `repeat(${getGridColumns()}, 1fr)`,
-    gap: touchOptimized && responsive.isTouch 
+    gap: touchOptimized && isTouch 
       ? `${optimizations.spacing.md}px` 
       : undefined
   }
@@ -118,7 +139,7 @@ export function ResponsiveGrid({
       className={cn(
         'grid',
         !touchOptimized && gapClasses[gap],
-        touchOptimized && responsive.isTouch && 'touch-manipulation',
+        touchOptimized && isTouch && 'touch-manipulation',
         className
       )}
       style={touchOptimized ? gridStyle : undefined}
@@ -150,8 +171,8 @@ export function ResponsiveStack({
   justify = 'start',
   wrap = false
 }: ResponsiveStackProps) {
-  const responsive = useEnhancedResponsive()
-  const optimizations = useDeviceOptimizations()
+  const responsive = useResponsive()
+  const isTouch = useMemo(() => getIsTouch(), [])
 
   const isHorizontal = direction === 'horizontal' || 
     (direction === 'responsive' && !responsive.isMobile)
@@ -188,7 +209,7 @@ export function ResponsiveStack({
         alignClasses[align],
         justifyClasses[justify],
         wrap && 'flex-wrap',
-        responsive.isTouch && 'touch-manipulation',
+        isTouch && 'touch-manipulation',
         className
       )}
     >

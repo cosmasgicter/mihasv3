@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { format, formatDistanceToNow } from 'date-fns'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
@@ -10,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useToastStore } from '@/components/ui/Toast'
+import { useToastStore } from '@/hooks/useToast'
 import {
   adminAuditService,
   type AuditCategory,
@@ -293,44 +294,28 @@ export default function AuditTrailPage() {
   const [appliedFilters, setAppliedFilters] = useState<AuditLogFilters>({})
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
-  const [response, setResponse] = useState<AuditLogResponse | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(true)
   const [exportingFormat, setExportingFormat] = useState<AuditExportFormat | null>(null)
   const { error: showError, success: showSuccess, info: showInfo } = useToastStore()
 
-  const loadAuditEntries = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-
-    try {
+  const { data: response = null, isLoading: loading, error: queryError, refetch: loadAuditEntries } = useQuery({
+    queryKey: ['admin', 'audit', appliedFilters, page, pageSize],
+    queryFn: async () => {
       const payload = await adminAuditService.list({
         ...appliedFilters,
         page,
         pageSize,
       })
 
-      setResponse(payload)
-
       if (payload.entries.length === 0 && Object.keys(appliedFilters).length > 0) {
         showInfo('No results', 'No audit records match the current filter set.')
       }
-    } catch (requestError) {
-      const message =
-        requestError instanceof Error ? requestError.message : 'Failed to load audit activity'
 
-      setError(message)
-      setResponse(null)
-      showError('Audit load failed', message)
-    } finally {
-      setLoading(false)
-    }
-  }, [appliedFilters, page, pageSize, showError, showInfo])
+      return payload
+    },
+  })
 
-  useEffect(() => {
-    void loadAuditEntries()
-  }, [loadAuditEntries])
+  const error = queryError?.message || null
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()

@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { connectionManager } from '@/lib/connectionFix'
 
-import { useToastStore } from '@/components/ui/Toast'
+import { useToastStore } from '@/hooks/useToast'
 import { useAuth } from '@/contexts/AuthContext'
 import { applicationsData } from '@/data/applications'
 import { catalogData } from '@/data/catalog'
@@ -1244,19 +1244,9 @@ const useWizardController = (): UseWizardControllerResult => {
       setError('')
       
       logger.info('[handleSubmitApplication] Verifying authentication...')
-      // Verify authentication via API (cookie-based auth)
-      const sessionResponse = await fetch('/api/auth?action=session', {
-        method: 'GET',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-      })
-      
-      if (!sessionResponse.ok) {
-        throw new Error('Please sign in again to submit your application')
-      }
-      
-      const sessionData = await sessionResponse.json()
-      if (!sessionData.success || !sessionData.data?.user) {
+      // Verify authentication via useAuth() — the single source of truth.
+      // ApiClient handles 401 refresh transparently on subsequent requests.
+      if (!user?.id) {
         throw new Error('Please sign in again to submit your application')
       }
 

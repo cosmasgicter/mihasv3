@@ -1,7 +1,8 @@
 import { offlineStorage } from '@/lib/offlineStorage'
-import { setCsrfToken, getCsrfToken } from '@/lib/csrfToken'
+import { getCsrfToken } from '@/lib/csrfToken'
 import { sanitizeForLog } from '@/lib/security'
 import { apiClient } from '@/services/client'
+import type { QueryClient } from '@tanstack/react-query'
 import {
   OfflineApplicationDraftData,
   OfflineDataPayloadMap,
@@ -20,46 +21,19 @@ export interface OfflineSyncStatus {
 }
 
 /**
- * Get current user from cookie-based session
+ * Read current user from the React Query cache (single source of truth).
+ * Requires setQueryClient() to have been called during app init.
  */
-async function getCurrentUser(): Promise<{ id: string } | null> {
-  try {
-    const data = await apiClient.request<{ user?: { id: string } }>('/auth?action=session')
-    return data?.user || null
-  } catch {
-    return null
-  }
+let _queryClient: QueryClient | null = null
+
+export function setQueryClient(qc: QueryClient): void {
+  _queryClient = qc
 }
 
-/**
- * Fetch a fresh CSRF token from the server session endpoint.
- * Updates the in-memory CSRF store and returns the new token.
- */
-async function refreshCsrfToken(): Promise<string | null> {
-  try {
-    const response = await fetch('/api/auth?action=session', {
-      method: 'GET',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' }
-    })
-    const csrfHeader = response.headers.get('X-CSRF-Token')
-    if (csrfHeader) {
-      setCsrfToken(csrfHeader)
-      return csrfHeader
-    }
-    // Try to extract from response body as fallback
-    if (response.ok) {
-      const data = await response.json()
-      const token = data?.data?.csrfToken || data?.csrfToken
-      if (token) {
-        setCsrfToken(token)
-        return token
-      }
-    }
-    return null
-  } catch {
-    return null
-  }
+function getCurrentUser(): { id: string } | null {
+  if (!_queryClient) return null
+  const session = _queryClient.getQueryData<{ user?: { id: string } }>(['auth', 'session'])
+  return session?.user ?? null
 }
 
 /**
@@ -161,7 +135,7 @@ class OfflineSyncService {
     this.isProcessing = true
 
     try {
-      const user = await getCurrentUser()
+      const user = getCurrentUser()
       if (!user) return
 
       const offlineData = await offlineStorage.getAll(user.id)
@@ -188,10 +162,11 @@ class OfflineSyncService {
         } catch (error) {
           const status = getErrorStatus(error)
 
-          // Handle CSRF 403: fetch fresh token and retry once
+          // Handle CSRF 403: ApiClient handles CSRF token refresh internally,
+          // so just retry the request if we have a token available
           if (status === 403) {
-            const freshToken = await refreshCsrfToken()
-            if (freshToken) {
+            const existingToken = getCsrfToken()
+            if (existingToken) {
               try {
                 await this.syncToServer(item)
                 await offlineStorage.remove(item.id)
@@ -360,7 +335,7 @@ class OfflineSyncService {
   }
 
   async getSyncStatus(): Promise<OfflineSyncStatus> {
-    const user = await getCurrentUser()
+    const user = getCurrentUser()
     if (!user) {
       return {
         isPending: this.isProcessing,
@@ -403,7 +378,7 @@ class OfflineSyncService {
   }
 
   async clearFailedRequests(): Promise<void> {
-    const user = await getCurrentUser()
+    const user = getCurrentUser()
     if (!user) {
       return
     }
@@ -430,7 +405,7 @@ class OfflineSyncService {
       throw new Error('Only POST /applications requests are supported by the offline sync pipeline.')
     }
 
-    const user = await getCurrentUser()
+    const user = getCurrentUser()
     if (!user) {
       throw new Error('Cannot queue offline request without an authenticated user.')
     }

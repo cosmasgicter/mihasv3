@@ -44,7 +44,7 @@ export interface RoleEnforcementResult {
  * Types of role checks that can be detected.
  */
 export type RoleCheckType =
-  | 'useRoleQuery'
+  | 'useAuth'
   | 'isAdmin'
   | 'hasAdminRole'
   | 'isAdminRole'
@@ -140,13 +140,13 @@ export const ROUTE_PROTECTED_ADMIN_PAGES = new Set([
  * Patterns for detecting role check mechanisms.
  */
 const ROLE_CHECK_PATTERNS: Record<RoleCheckType, RegExp> = {
-  /** useRoleQuery hook usage */
-  useRoleQuery: /useRoleQuery\s*\(/,
+  /** useAuth hook usage */
+  useAuth: /useAuth\s*\(/,
   
   /** isAdmin property from hooks/context */
   isAdmin: /\bisAdmin\b(?!\s*[=:])/,
   
-  /** hasAdminRole from useRoleQuery */
+  /** hasAdminRole from useAuth */
   hasAdminRole: /\bhasAdminRole\b/,
   
   /** isAdminRole() function call */
@@ -925,7 +925,7 @@ export function generateRoleEnforcementReport(summary: RoleEnforcementSummary): 
   
   if (summary.pagesMissingRoleChecks > 0) {
     lines.push('\n  1. CRITICAL: Add role checks to all admin pages');
-    lines.push('     - Use useRoleQuery() or useOptimizedAuthState() hooks');
+    lines.push('     - Use useAuth() hook for isAdmin check');
     lines.push('     - Add early return or redirect for non-admin users');
     lines.push('     - Consider wrapping with AdminRoute component');
   }

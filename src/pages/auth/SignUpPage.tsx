@@ -9,6 +9,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/services/client';
 import { cn } from '@/lib/utils';
@@ -17,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader';
 import { AuthLayout } from '@/components/auth/AuthLayout';
-import { ErrorBanner } from '@/components/ui/ErrorDisplay';
+import { Banner } from '@/components/ui/Banner';
 import { NotificationService } from '@/lib/notificationService';
 import { Seo } from '@/components/seo/Seo';
 import { sanitizeForLog } from '@/lib/security';
@@ -55,8 +56,6 @@ type SignUpForm = z.infer<typeof signUpSchema>;
 export default function SignUpPage() {
   const navigate = useNavigate();
   const { signUp } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [emailChecking, setEmailChecking] = useState(false);
@@ -92,11 +91,6 @@ export default function SignUpPage() {
       }
       const isAvailable = (response as EmailCheckResponse)?.available ?? null;
       setEmailAvailable(isAvailable);
-      if (isAvailable === false) {
-        setError('This email is already registered. Please sign in instead.');
-      } else {
-        setError('');
-      }
     } catch (err) {
       if (requestId !== emailCheckRequestIdRef.current) {
         return;
@@ -119,18 +113,12 @@ export default function SignUpPage() {
     };
   }, []);
 
-  const onSubmit = async (data: SignUpForm) => {
-    if (emailAvailable === false) {
-      setError('This email is already registered. Please sign in instead.');
-      return;
-    }
+  const signUpMutation = useMutation({
+    mutationFn: async (data: SignUpForm) => {
+      if (emailAvailable === false) {
+        throw new Error('This email is already registered. Please sign in instead.');
+      }
 
-    setLoading(true);
-    setError('');
-    setSuccess('');
-    setIsRegistering(true);
-
-    try {
       const { confirmPassword: _confirmPassword, first_name, last_name, ...rest } = data;
       const full_name = `${first_name} ${last_name}`;
       const result = await signUp(data.email, data.password, {
@@ -144,8 +132,10 @@ export default function SignUpPage() {
         throw new Error(result.error);
       }
 
+      return { result, full_name };
+    },
+    onSuccess: ({ result, full_name }) => {
       setSuccess('Account created! Redirecting...');
-      setLoading(false);
       setIsRegistering(false);
 
       if (result.user?.id) {
@@ -160,12 +150,19 @@ export default function SignUpPage() {
       redirectTimerRef.current = window.setTimeout(() => {
         navigate('/student/dashboard');
       }, 1500);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to create account. Please try again.';
-      setError(message.includes('already registered') ? 'This email is already registered. Please sign in instead.' : message);
-      setLoading(false);
+    },
+    onMutate: () => {
+      setIsRegistering(true);
+    },
+    onError: () => {
       setIsRegistering(false);
-    }
+    },
+  });
+
+  const getErrorMessage = (error: Error | null) => {
+    if (!error) return '';
+    const message = error.message || 'Failed to create account. Please try again.';
+    return message.includes('already registered') ? 'This email is already registered. Please sign in instead.' : message;
   };
 
   if (success) {
@@ -216,12 +213,16 @@ export default function SignUpPage() {
           </>
         }
       >
-        <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
-          {error && (
-            <ErrorBanner
-              error={{ status: 400, message: error }}
-              onDismiss={() => setError('')}
-            />
+        <form className="space-y-6" onSubmit={handleSubmit((data) => signUpMutation.mutate(data))} noValidate>
+          {signUpMutation.error && (
+            <Banner variant="error" dismissible onDismiss={() => signUpMutation.reset()}>
+              {getErrorMessage(signUpMutation.error as Error)}
+            </Banner>
+          )}
+          {emailAvailable === false && !signUpMutation.error && (
+            <Banner variant="error" dismissible onDismiss={() => setEmailAvailable(null)}>
+              This email is already registered. Please sign in instead.
+            </Banner>
           )}
 
           <fieldset className="space-y-4 rounded-2xl border border-border/60 bg-background/80 p-4 sm:p-5">
@@ -236,7 +237,7 @@ export default function SignUpPage() {
                 label="Account email"
                 error={errors.email?.message || (emailAvailable === false ? 'Already registered' : undefined)}
                 autoComplete="email"
-                disabled={loading}
+                disabled={signUpMutation.isPending}
                 required
                 className={cn(
                   'min-h-[48px]',
@@ -274,7 +275,7 @@ export default function SignUpPage() {
                 label="Create password"
                 error={errors.password?.message}
                 autoComplete="new-password"
-                disabled={loading}
+                disabled={signUpMutation.isPending}
                 required
                 className="min-h-[48px]"
               />
@@ -283,7 +284,7 @@ export default function SignUpPage() {
                 label="Confirm password"
                 error={errors.confirmPassword?.message}
                 autoComplete="new-password"
-                disabled={loading}
+                disabled={signUpMutation.isPending}
                 required
                 className="min-h-[48px]"
               />
@@ -300,7 +301,7 @@ export default function SignUpPage() {
                 label="First name"
                 error={errors.first_name?.message}
                 autoComplete="given-name"
-                disabled={loading}
+                disabled={signUpMutation.isPending}
                 required
                 className="min-h-[48px]"
               />
@@ -310,7 +311,7 @@ export default function SignUpPage() {
                 label="Last name"
                 error={errors.last_name?.message}
                 autoComplete="family-name"
-                disabled={loading}
+                disabled={signUpMutation.isPending}
                 required
                 className="min-h-[48px]"
               />
@@ -322,7 +323,7 @@ export default function SignUpPage() {
               label="Phone number"
               error={errors.phone?.message}
               autoComplete="tel"
-              disabled={loading}
+              disabled={signUpMutation.isPending}
               required
               className="min-h-[48px]"
             />
@@ -338,7 +339,7 @@ export default function SignUpPage() {
                 label="Residence town"
                 error={errors.residence_town?.message}
                 autoComplete="address-level2"
-                disabled={loading}
+                disabled={signUpMutation.isPending}
                 className="min-h-[48px]"
               />
               <Input
@@ -347,7 +348,7 @@ export default function SignUpPage() {
                 label="Nationality"
                 error={errors.nationality?.message}
                 autoComplete="country-name"
-                disabled={loading}
+                disabled={signUpMutation.isPending}
                 className="min-h-[48px]"
               />
             </div>
@@ -363,7 +364,7 @@ export default function SignUpPage() {
                 label="Next of kin name"
                 error={errors.next_of_kin_name?.message}
                 autoComplete="name"
-                disabled={loading}
+                disabled={signUpMutation.isPending}
                 className="min-h-[48px]"
               />
               <Input
@@ -372,7 +373,7 @@ export default function SignUpPage() {
                 label="Next of kin phone"
                 error={errors.next_of_kin_phone?.message}
                 autoComplete="tel"
-                disabled={loading}
+                disabled={signUpMutation.isPending}
                 className="min-h-[48px]"
               />
             </div>
@@ -381,11 +382,11 @@ export default function SignUpPage() {
           <Button
             type="submit"
             className="w-full min-h-[48px]"
-            loading={loading}
+            loading={signUpMutation.isPending}
             variant="gradient"
             size="lg"
           >
-            {loading ? 'Creating account...' : 'Create account'}
+            {signUpMutation.isPending ? 'Creating account...' : 'Create account'}
           </Button>
 
           <p className="text-center text-xs text-muted-foreground">

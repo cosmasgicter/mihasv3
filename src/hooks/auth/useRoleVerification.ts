@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from './useProfileQuery'
-import { useRoleQuery } from './useRoleQuery'
 
 export function useRoleVerification() {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const { profile } = useProfileQuery()
-  const { userRole, isAdmin } = useRoleQuery()
   const [roleStatus, setRoleStatus] = useState<'checking' | 'verified' | 'mismatch'>('checking')
 
   useEffect(() => {
@@ -16,26 +14,20 @@ export function useRoleVerification() {
     }
 
     const profileRole = profile.role
-    const authRole = userRole?.role
-
-    // Super admin override - no mismatch for cosmas@beanola.com
-    if (user.email === 'cosmas@beanola.com') {
-      setRoleStatus('verified')
-      return
-    }
+    const authRole = user?.role as string | undefined
 
     if (authRole && profileRole && authRole !== profileRole) {
       setRoleStatus('mismatch')
     } else {
       setRoleStatus('verified')
     }
-  }, [user, profile, userRole])
+  }, [user, profile])
 
   return {
     roleStatus,
     profileRole: profile?.role,
-    authRole: userRole?.role,
+    authRole: user?.role as string | undefined,
     isAdmin,
-    hasRoleData: !!(profile?.role || userRole?.role)
+    hasRoleData: !!(profile?.role || user?.role)
   }
 }

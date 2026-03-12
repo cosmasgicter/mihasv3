@@ -95,9 +95,6 @@ export type { AutoSaveIndicatorProps } from './AutoSaveIndicator'
 export { PageShell } from './PageShell'
 export type { PageShellProps } from './PageShell'
 
-// Auth Layout (canonical auth page wrapper)
-export { AuthLayout } from './AuthLayout'
-
 // Mobile Page Header (canonical mobile page header)
 export { MobilePageHeader } from './MobilePageHeader'
 export type { MobilePageHeaderProps } from './MobilePageHeader'

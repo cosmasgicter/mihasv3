@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Mail, RefreshCw, Download } from 'lucide-react'
-import { useToastStore } from '@/components/ui/Toast'
+import { useToastStore } from '@/hooks/useToast'
 import { apiClient } from '@/services/client'
 
 export function BulkOperationsPanel() {

@@ -9,13 +9,14 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader';
 import { AuthLayout } from '@/components/auth/AuthLayout';
-import { ErrorBanner } from '@/components/ui/ErrorDisplay';
+import { Banner } from '@/components/ui/Banner';
 import { Seo } from '@/components/seo/Seo';
 import { isAdminRole } from '@/lib/auth/roles';
 
@@ -30,8 +31,6 @@ export default function SignInPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { signIn } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   const seoByPath = {
@@ -58,18 +57,17 @@ export default function SignInPage() {
     resolver: zodResolver(signInSchema),
   });
 
-  const onSubmit = async (data: SignInForm) => {
-    setLoading(true);
-    setError('');
-    setIsAuthenticating(false);
-
-    try {
+  const signInMutation = useMutation({
+    mutationFn: async (data: SignInForm) => {
       const result = await signIn(data.email, data.password);
 
       if (result?.error) {
         throw new Error(result.error);
       }
 
+      return result;
+    },
+    onSuccess: (result) => {
       setIsAuthenticating(true);
 
       const locationState = location.state as { from?: { pathname?: string } } | null;
@@ -79,12 +77,16 @@ export default function SignInPage() {
       const redirectTo = from && from !== '/auth/signin' ? from : defaultRedirect;
 
       navigate(redirectTo, { replace: true });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to sign in. Please try again.';
-      setError(message.includes('Invalid') ? 'Invalid email or password.' : message);
-      setLoading(false);
+    },
+    onError: () => {
       setIsAuthenticating(false);
-    }
+    },
+  });
+
+  const getErrorMessage = (error: Error | null) => {
+    if (!error) return '';
+    const message = error.message || 'Failed to sign in. Please try again.';
+    return message.includes('Invalid') ? 'Invalid email or password.' : message;
   };
 
   return (
@@ -122,12 +124,11 @@ export default function SignInPage() {
           </div>
         }
       >
-        <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
-          {error && (
-            <ErrorBanner
-              error={{ status: 401, message: error }}
-              onDismiss={() => setError('')}
-            />
+        <form className="space-y-6" onSubmit={handleSubmit((data) => signInMutation.mutate(data))} noValidate>
+          {signInMutation.error && (
+            <Banner variant="error" dismissible onDismiss={() => signInMutation.reset()}>
+              {getErrorMessage(signInMutation.error as Error)}
+            </Banner>
           )}
 
           <fieldset className="space-y-5 rounded-2xl border border-border/60 bg-background/80 p-4 sm:p-5">
@@ -139,7 +140,7 @@ export default function SignInPage() {
               label="Account email"
               error={errors.email?.message}
               autoComplete="email"
-              disabled={loading}
+              disabled={signInMutation.isPending}
               required
               className="min-h-[48px]"
             />
@@ -149,7 +150,7 @@ export default function SignInPage() {
               label="Account password"
               error={errors.password?.message}
               autoComplete="current-password"
-              disabled={loading}
+              disabled={signInMutation.isPending}
               required
               className="min-h-[48px]"
             />
@@ -158,11 +159,11 @@ export default function SignInPage() {
           <Button
             type="submit"
             className="w-full min-h-[48px]"
-            loading={loading}
+            loading={signInMutation.isPending}
             variant="gradient"
             size="lg"
           >
-            {loading ? 'Signing in...' : 'Sign in'}
+            {signInMutation.isPending ? 'Signing in...' : 'Sign in'}
           </Button>
         </form>
       </AuthLayout>

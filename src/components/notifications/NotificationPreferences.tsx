@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui'
 import { AlertCircle, Bell, Clock, Download, History, Mail, MessageSquare, Smartphone, Volume2 } from 'lucide-react'
 import { notificationService } from '@/services/notifications'
 import { useAuth } from '@/contexts/AuthContext'
-import { useToastStore } from '@/components/ui/Toast'
+import { useToastStore } from '@/hooks/useToast'
 import { formatDate, formatTimestamp } from '@/lib/dateFormat'
 import type { NotificationPreferences, PreferenceAuditEntry } from '@/types/notifications'
 

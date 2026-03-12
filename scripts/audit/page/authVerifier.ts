@@ -25,8 +25,8 @@ const AUTH_PATTERNS = {
   /** useAuthCheck() hook - lightweight auth check */
   useAuthCheck: /(?:const|let)\s*\{[^}]*\}\s*=\s*useAuthCheck\s*\(\s*\)/,
   
-  /** useRoleQuery() hook - role-based access control */
-  useRoleQuery: /(?:const|let)\s*\{[^}]*\}\s*=\s*useRoleQuery\s*\(\s*\)/,
+  /** useAuth() hook - role-based access control via AuthContext */
+  useAuthContext: /(?:const|let)\s*\{[^}]*\}\s*=\s*useAuth\s*\(\s*\)/,
   
   /** requireAuth wrapper/HOC pattern */
   requireAuth: /requireAuth\s*\(|withAuth\s*\(/,
@@ -56,7 +56,7 @@ const ROLE_CHECK_PATTERNS = {
   /** isAdmin check from useAuth or useOptimizedAuthState */
   isAdminCheck: /\bisAdmin\b/,
   
-  /** hasAdminRole check from useRoleQuery */
+  /** hasAdminRole check from useAuth */
   hasAdminRoleCheck: /\bhasAdminRole\b/,
   
   /** isAdminRole() function call */
@@ -167,7 +167,7 @@ function detectAuthMechanism(content: string): PageAuthMechanism {
   if (AUTH_PATTERNS.useAuth.test(content) ||
       AUTH_PATTERNS.useOptimizedAuthState.test(content) ||
       AUTH_PATTERNS.useAuthCheck.test(content) ||
-      AUTH_PATTERNS.useRoleQuery.test(content)) {
+      AUTH_PATTERNS.useAuthContext.test(content)) {
     return 'useAuth';
   }
   

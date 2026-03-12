@@ -4,7 +4,7 @@ import * as NavigationMenu from '@radix-ui/react-navigation-menu'
 import { Button } from './Button'
 import { BaseNavigation, NavigationItem } from '@/components/navigation/BaseNavigation'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
-import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
+import { useAuth } from '@/contexts/AuthContext'
 import { useSignOutAction } from '@/hooks/useSignOutAction'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { 
@@ -27,7 +27,7 @@ interface AdminNavigationProps {
 export function AdminNavigation({ className }: AdminNavigationProps) {
   const { signOut, isSigningOut } = useSignOutAction()
   const { profile } = useProfileQuery()
-  const { userRole } = useRoleQuery()
+  const { user } = useAuth()
   const isMobile = useIsMobile()
   const navigate = useNavigate()
   const location = useLocation()
@@ -110,7 +110,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
         
         <NavigationMenu.Item>
           <div className="hidden xl:flex items-center text-xs text-foreground px-3 py-2 bg-muted rounded-lg ml-2">
-            <span className="font-medium truncate max-w-[100px]">{userRole?.role?.replace('_', ' ').toUpperCase() || 'ADMIN'}</span>
+            <span className="font-medium truncate max-w-[100px]">{(user?.role as string)?.replace('_', ' ').toUpperCase() || 'ADMIN'}</span>
           </div>
         </NavigationMenu.Item>
         
@@ -151,7 +151,7 @@ export function AdminNavigation({ className }: AdminNavigationProps) {
         <div className="text-center">
           <div className="text-sm font-medium text-foreground mb-1">Current Role</div>
           <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-primary to-primary/80 text-primary-foreground truncate max-w-[150px]">
-            {userRole?.role?.replace('_', ' ').toUpperCase() || 'ADMIN'}
+            {(user?.role as string)?.replace('_', ' ').toUpperCase() || 'ADMIN'}
           </div>
         </div>
       </div>

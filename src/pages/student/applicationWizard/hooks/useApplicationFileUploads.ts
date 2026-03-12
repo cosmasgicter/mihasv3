@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 
 import { sanitizeForLog } from '@/lib/security'
+import { apiClient } from '@/services/client'
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024
 export const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'] as const
@@ -287,14 +288,9 @@ export function useApplicationFileUploads({
           throw new Error('User or application ID not available')
         }
 
-        // Verify session via API (cookie-based auth)
-        const sessionResponse = await fetch('/api/auth?action=session', {
-          method: 'GET',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-        })
-        
-        if (!sessionResponse.ok) {
+        // Verify session via apiClient (handles CSRF, 401 retry, endpoint normalization)
+        const sessionResult = await apiClient.request<{ user?: unknown }>('/api/auth?action=session')
+        if (!sessionResult?.user) {
           throw new Error('Session expired. Please refresh the page.')
         }
 

@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Button } from '@/components/ui/Button';
@@ -46,8 +47,7 @@ type ResetState = 'verifying' | 'ready' | 'success' | 'error';
 
 export default function ResetPasswordPage() {
   const [status, setStatus] = useState<ResetState>('verifying');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [verifyError, setVerifyError] = useState('');
   const [resetToken, setResetToken] = useState<string | null>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -66,7 +66,7 @@ export default function ResetPasswordPage() {
     const token = searchParams.get('token') || (typeof window !== 'undefined' ? window.location.hash.replace('#', '') : '');
 
     if (!token) {
-      setError('This password reset link is invalid or has expired.');
+      setVerifyError('This password reset link is invalid or has expired.');
       setStatus('error');
       return;
     }
@@ -92,7 +92,7 @@ export default function ResetPasswordPage() {
         setStatus('ready');
       } catch (error) {
         if (!isMounted) return;
-        setError(error instanceof Error ? error.message : 'Unable to verify reset link. Please try again.');
+        setVerifyError(error instanceof Error ? error.message : 'Unable to verify reset link. Please try again.');
         setStatus('error');
       }
     };
@@ -104,12 +104,8 @@ export default function ResetPasswordPage() {
     };
   }, [searchParams]);
 
-  const onSubmit = async (values: ResetPasswordForm) => {
-    setError('');
-    setLoading(true);
-
-    try {
-      // Use the custom API to reset password with the token
+  const resetPasswordMutation = useMutation({
+    mutationFn: async (values: ResetPasswordForm) => {
       await apiClient.request('/auth?action=reset-password', {
         method: 'POST',
         body: JSON.stringify({ 
@@ -117,15 +113,12 @@ export default function ResetPasswordPage() {
           password: values.password 
         })
       })
-
+    },
+    onSuccess: () => {
       reset({ password: '', confirmPassword: '' });
       setStatus('success');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update password. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
 
   // Verifying state
   if (status === 'verifying') {
@@ -221,7 +214,7 @@ export default function ResetPasswordPage() {
           {/* Error message */}
           <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-center">
             <h3 className="text-base font-semibold text-red-700">Reset link invalid</h3>
-            <p className="mt-1 text-sm text-red-600">{error}</p>
+            <p className="mt-1 text-sm text-red-600">{verifyError}</p>
           </div>
 
           {/* Actions */}
@@ -267,7 +260,7 @@ export default function ResetPasswordPage() {
     >
       <form
         className={`space-y-6 ${animateClasses.slideUp}`}
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit((values) => resetPasswordMutation.mutate(values))}
       >
         {/* Password icon */}
         <div className="flex justify-center mb-2">
@@ -283,7 +276,7 @@ export default function ResetPasswordPage() {
           autoComplete="new-password"
           error={errors.password?.message}
           helperText="At least 8 characters with a number and letter"
-          disabled={loading}
+          disabled={resetPasswordMutation.isPending}
           className="min-h-[48px]"
         />
 
@@ -293,16 +286,18 @@ export default function ResetPasswordPage() {
           required
           autoComplete="new-password"
           error={errors.confirmPassword?.message}
-          disabled={loading}
+          disabled={resetPasswordMutation.isPending}
           className="min-h-[48px]"
         />
 
         {/* Error message */}
-        {error && (
+        {resetPasswordMutation.error && (
           <div className={`overflow-hidden ${animateClasses.fadeIn}`}>
             <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
               <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-              <div className="text-sm font-medium text-destructive">{error}</div>
+              <div className="text-sm font-medium text-destructive">
+                {(resetPasswordMutation.error as Error).message || 'Failed to update password. Please try again.'}
+              </div>
             </div>
           </div>
         )}
@@ -312,9 +307,9 @@ export default function ResetPasswordPage() {
           className="w-full"
           variant="gradient"
           size="lg"
-          loading={loading}
+          loading={resetPasswordMutation.isPending}
         >
-          {loading ? (
+          {resetPasswordMutation.isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Updating password...

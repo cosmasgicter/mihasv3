@@ -8,7 +8,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useToastStore } from '@/components/ui/Toast';
+import { useToastStore } from '@/hooks/useToast';
 import { formatError, isRetryableError, getRetryDelay } from '@/utils/errorMessages';
 
 interface UseErrorHandlerOptions {

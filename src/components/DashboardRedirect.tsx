@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
 import { Loader2 } from 'lucide-react'
 
 export function DashboardRedirect() {
-  const { user, loading } = useAuth()
-  const { isAdmin: hasAdminRole } = useRoleQuery()
+  const { user, loading, isAdmin } = useAuth()
   const [redirectPath, setRedirectPath] = useState<string | null>(null)
 
   // Determine redirect path only once when conditions are met
@@ -18,21 +16,15 @@ export function DashboardRedirect() {
       return
     }
 
-    // Super admin override
-    if (user?.email === 'cosmas@beanola.com') {
-      setRedirectPath('/admin')
-      return
-    }
-
     // Strict admin check - only redirect to admin if explicitly admin
-    if (hasAdminRole) {
+    if (isAdmin) {
       setRedirectPath('/admin')
       return
     }
 
     // Default to student dashboard for all other users
     setRedirectPath('/student/dashboard')
-  }, [loading, user, hasAdminRole, redirectPath])
+  }, [loading, user, isAdmin, redirectPath])
 
   if (loading || !redirectPath) {
     return (

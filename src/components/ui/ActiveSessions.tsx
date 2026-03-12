@@ -13,7 +13,7 @@ import {
   terminateAllOtherSessions,
   terminateSessionById,
 } from '@/services/sessionService'
-import { useToastStore } from '@/components/ui/Toast'
+import { useToastStore } from '@/hooks/useToast'
 
 const isDeviceSession = (value: unknown): value is DeviceSession => {
   if (!value || typeof value !== 'object') return false

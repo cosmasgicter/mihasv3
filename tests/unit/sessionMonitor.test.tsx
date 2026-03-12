@@ -19,14 +19,6 @@ vi.mock('@/contexts/AuthContext', () => ({
   }),
 }))
 
-vi.mock('@/hooks/auth/useTokenRefresh', () => ({
-  useTokenRefresh: () => ({
-    tokenExpiry: null,
-    lastRefresh: null,
-    refreshCount: 0,
-  }),
-}))
-
 vi.mock('@/hooks/auth/useRoleVerification', () => ({
   useRoleVerification: () => mockUseRoleVerification(),
 }))

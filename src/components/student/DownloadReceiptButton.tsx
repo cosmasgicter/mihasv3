@@ -1,7 +1,7 @@
 import { Download } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { usePaymentReceipt } from '@/hooks/usePaymentReceipt'
-import { useToastStore } from '@/components/ui/Toast'
+import { useToastStore } from '@/hooks/useToast'
 
 interface DownloadReceiptButtonProps {
   applicationId: string

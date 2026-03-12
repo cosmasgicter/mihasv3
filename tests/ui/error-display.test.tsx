@@ -1,7 +1,7 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 
-import { ErrorDisplay, ErrorBanner, LegacyErrorDisplay } from '@/components/ui/ErrorDisplay'
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 
 function renderMarkup(element: React.ReactElement) {
   const markup = renderToStaticMarkup(element)
@@ -39,7 +39,7 @@ describe('ErrorDisplay (canonical)', () => {
     expect(withRetry.body.textContent).toContain('Try Again')
   })
 
-  it('renders inline variant compactly', () => {
+  it('renders inline variant compactly with role="alert"', () => {
     const doc = renderMarkup(
       <ErrorDisplay variant="inline" message="Field error" />
     )
@@ -49,43 +49,20 @@ describe('ErrorDisplay (canonical)', () => {
     expect(alert?.textContent).toContain('Field error')
   })
 
-  it('uses text-destructive for error icon', () => {
+  it('uses text-destructive for error icon in section variant', () => {
     const doc = renderMarkup(
       <ErrorDisplay variant="section" message="Error" />
     )
     const icon = doc.querySelector('.text-destructive')
     expect(icon).not.toBeNull()
   })
-})
 
-describe('LegacyErrorDisplay', () => {
-  it('renders a descriptive alert surface with retry action', () => {
+  it('renders inline variant with title and retry', () => {
     const doc = renderMarkup(
-      <LegacyErrorDisplay
-        error={{ status: 500, message: 'server failure' }}
-        onRetry={() => undefined}
-      />
+      <ErrorDisplay variant="inline" title="Validation" message="Invalid input" onRetry={() => undefined} />
     )
-    const alert = doc.querySelector('[role="alert"]')
-    expect(alert).not.toBeNull()
-    expect(alert?.textContent).toContain('Server Error')
+    expect(doc.body.textContent).toContain('Validation')
+    expect(doc.body.textContent).toContain('Invalid input')
     expect(doc.body.textContent).toContain('Try Again')
-  })
-})
-
-describe('ErrorBanner', () => {
-  it('renders an alert banner with dismiss and retry affordances', () => {
-    const doc = renderMarkup(
-      <ErrorBanner
-        error={{ message: 'network failed' }}
-        onDismiss={() => undefined}
-        onRetry={() => undefined}
-      />
-    )
-    const alert = doc.querySelector('[role="alert"]')
-    expect(alert).not.toBeNull()
-    expect(alert?.textContent).toContain('Connection Problem')
-    expect(doc.body.textContent).toContain('Try Again')
-    expect(doc.querySelector('button[aria-label="Dismiss error"]')).not.toBeNull()
   })
 })

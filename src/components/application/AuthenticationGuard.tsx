@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { AlertCircle, RefreshCw } from 'lucide-react'
-import { apiClient } from '@/services/client'
+import { useQueryClient } from '@tanstack/react-query'
 
 interface AuthenticationGuardProps {
   children: React.ReactNode
@@ -10,51 +10,32 @@ interface AuthenticationGuardProps {
 
 export function AuthenticationGuard({ children, onAuthenticationRequired }: AuthenticationGuardProps) {
   const { user, loading } = useAuth()
-  const [isVerifying, setIsVerifying] = useState(false)
+  const queryClient = useQueryClient()
   const [authError, setAuthError] = useState<string | null>(null)
   const [sessionValid, setSessionValid] = useState(false)
 
   useEffect(() => {
-    verifyAuthentication()
-  }, [user])
-
-  const verifyAuthentication = async () => {
     if (loading) return
 
-    setIsVerifying(true)
-    setAuthError(null)
-
-    try {
-      // Check if user exists in context
-      if (!user) {
-        setAuthError('Please sign in to continue')
-        onAuthenticationRequired?.()
-        return
-      }
-
-      // Verify session is still valid via API
-      const result = await apiClient.request<{ user?: unknown }>('/auth?action=session')
-      if (!result?.user) {
-        setAuthError('Your session has expired. Please sign in again.')
-        onAuthenticationRequired?.()
-        return
-      }
-
-      setSessionValid(true)
-      setAuthError(null)
-    } catch (error) {
-      console.error('Authentication verification error:', error)
-      setAuthError('Unable to verify authentication. Please try again.')
-    } finally {
-      setIsVerifying(false)
+    // useAuth() is the single source of truth for auth state.
+    // If user is present, the session is valid (ApiClient handles 401 refresh transparently).
+    if (!user) {
+      setAuthError('Please sign in to continue')
+      setSessionValid(false)
+      onAuthenticationRequired?.()
+      return
     }
-  }
+
+    setSessionValid(true)
+    setAuthError(null)
+  }, [user, loading])
 
   const handleRetry = () => {
-    verifyAuthentication()
+    setAuthError(null)
+    queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
   }
 
-  if (loading || isVerifying) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="flex items-center space-x-2">

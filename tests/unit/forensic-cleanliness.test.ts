@@ -10,7 +10,6 @@ describe('forensic cleanup hardening', () => {
   it('runtime files do not hardcode a Cloudflare account hostname', () => {
     const files = [
       'src/utils/api-cache.ts',
-      'src/lib/sessionUtils.ts',
       'src/lib/securityEnhancements.ts',
       'lib/storage.ts'
     ];

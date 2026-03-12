@@ -1,10 +1,7 @@
 /**
- * Query cache configuration and auth query hooks.
- *
- * All queries go through the canonical ApiClient from services/client.ts.
+ * Query cache configuration and optimistic mutation helpers.
  */
-import { useQuery, useMutation, useQueryClient, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query'
-import { apiClient } from '@/services/client'
+import { useMutation, useQueryClient, UseMutationOptions } from '@tanstack/react-query'
 
 import { QUERY_CACHE_CONFIG } from '@/lib/queryCacheConfig'
 
@@ -39,36 +36,7 @@ export const CACHE_CONFIG = {
 } as const
 
 
-export const useAuthSession = (options?: Partial<UseQueryOptions>) => {
-  return useQuery({
-    queryKey: ['auth', 'session'],
-    queryFn: async () => {
-      try {
-        return await apiClient.request('/api/auth?action=session')
-      } catch {
-        return null
-      }
-    },
-    ...CACHE_CONFIG.auth,
-    ...options
-  })
-}
 
-export const useAuthUser = (options?: Partial<UseQueryOptions>) => {
-  return useQuery({
-    queryKey: ['auth', 'user'],
-    queryFn: async () => {
-      try {
-        const data = await apiClient.request<{ user?: any }>('/api/auth?action=session')
-        return (data as any)?.user ?? null
-      } catch {
-        return null
-      }
-    },
-    ...CACHE_CONFIG.auth,
-    ...options
-  })
-}
 
 /**
  * Helper to create optimistic mutations with type safety

@@ -75,7 +75,7 @@ const authHookPatternArb = fc.constantFrom(
   'useAuth',
   'useOptimizedAuthState',
   'useAuthCheck',
-  'useRoleQuery'
+  'useAuth'
 );
 
 /**

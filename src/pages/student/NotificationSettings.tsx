@@ -1,7 +1,8 @@
 // @ts-nocheck
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { Container } from '@/components/ui/Container'
@@ -15,6 +16,7 @@ import { staggerChild, animateClasses } from '@/lib/animations'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useStudentNotifications } from '@/hooks/useStudentNotifications'
 import { isSafeNavigationUrl } from '@/lib/urlSafety'
+import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
 
 type ChannelKey = 'sms' | 'whatsapp'
 
@@ -94,6 +96,7 @@ function isChannelOptedIn(preferences: NotificationPreferencesResponse | null, c
 
 export default function NotificationSettings() {
   const { profile } = useProfileQuery()
+  const queryClient = useQueryClient()
   const {
     notifications,
     unreadCount,
@@ -107,42 +110,30 @@ export default function NotificationSettings() {
     connectionError,
     lastLoadedAt,
   } = useStudentNotifications()
-  const [loading, setLoading] = useState(true)
-  const [preferences, setPreferences] = useState<NotificationPreferencesResponse | null>(null)
   const [savingChannel, setSavingChannel] = useState<ChannelKey | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-
-  const fetchPreferences = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError(null)
-
+  const {
+    data: preferences = null,
+    isLoading: loading,
+    error: preferencesError,
+  } = useQuery<NotificationPreferencesResponse | null>({
+    queryKey: ['notification-preferences'],
+    queryFn: async () => {
       const response = await notificationService.getPreferences() as
         | { preferences?: NotificationPreferencesResponse }
         | NotificationPreferencesResponse
         | null
 
-      const nextPreferences =
-        response && 'preferences' in response
-          ? response.preferences ?? null
-          : response
+      return response && 'preferences' in response
+        ? response.preferences ?? null
+        : response
+    },
+    ...CACHE_CONFIG.realtime,
+  })
 
-      setPreferences(nextPreferences)
-    } catch (requestError) {
-      const message = requestError instanceof Error ? requestError.message : 'Failed to load notification preferences'
-      setError(message)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-
-
-  useEffect(() => {
-    void fetchPreferences()
-  }, [fetchPreferences])
+  const preferencesErrorMessage = preferencesError instanceof Error ? preferencesError.message : preferencesError ? 'Failed to load notification preferences' : null
 
 
 
@@ -210,7 +201,7 @@ export default function NotificationSettings() {
           ? response.preferences ?? null
           : response
 
-      setPreferences(prev => ({
+      queryClient.setQueryData<NotificationPreferencesResponse | null>(['notification-preferences'], (prev) => ({
         ...(prev ?? {}),
         ...(updatedPreferences ?? {}),
         phone: updatedPreferences?.phone ?? prev?.phone ?? profile?.phone ?? null
@@ -364,13 +355,13 @@ export default function NotificationSettings() {
           </Link>
         </div>
 
-        {error && (
+        {(error || preferencesErrorMessage) && (
           <div
             className={`rounded-xl bg-destructive/5 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg ${animateClasses.slideUp}`}
           >
             <div className="flex items-center space-x-3">
               <div className="text-3xl">⚠️</div>
-              <div className="text-error font-medium">{error}</div>
+              <div className="text-error font-medium">{error || preferencesErrorMessage}</div>
             </div>
           </div>
         )}

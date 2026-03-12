@@ -1,33 +1,15 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { useTokenRefresh } from '@/hooks/auth/useTokenRefresh'
 
+/**
+ * SessionMonitor - Minimal session status component.
+ * Token refresh is now handled by ApiClient's 401-triggered refresh with deduplication.
+ * The interval-based token expiry tracking has been removed.
+ */
 export function SessionMonitor() {
   const { user } = useAuth()
-  const { tokenExpiry } = useTokenRefresh()
-  const [showWarning, setShowWarning] = useState(false)
-
-  useEffect(() => {
-    if (!tokenExpiry) return
-
-    const checkExpiry = () => {
-      const now = new Date()
-      const timeUntilExpiry = tokenExpiry.getTime() - now.getTime()
-      const minutesUntilExpiry = timeUntilExpiry / (1000 * 60)
-
-      // Only show if expires in less than 5 minutes and more than 0
-      if (minutesUntilExpiry < 5 && minutesUntilExpiry > 0) {
-        setShowWarning(true)
-      } else {
-        setShowWarning(false)
-      }
-    }
-
-    checkExpiry()
-    const interval = setInterval(checkExpiry, 60000)
-
-    return () => clearInterval(interval)
-  }, [tokenExpiry])
+  // Session expiry warning removed — ApiClient handles token refresh transparently
+  const showWarning = false
 
   if (!user) return null
 

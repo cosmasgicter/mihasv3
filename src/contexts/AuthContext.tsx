@@ -2,7 +2,9 @@ import React, { createContext, useContext, useMemo, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth'
 import { useSessionListener } from '@/hooks/auth/useSessionListener'
-import { configureAuthController } from '@/services/authController'
+import { configureApiClientAuthFailure } from '@/services/client'
+import { clearCsrfToken } from '@/lib/csrfToken'
+import { secureStorage } from '@/lib/secureStorage'
 
 interface AuthContextType {
   user: User | null
@@ -23,14 +25,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const auth = useSessionListener()
 
   useEffect(() => {
-    configureAuthController({
-      clearAuthState: () => {
-        queryClient.setQueryData(['auth', 'session'], null)
-      },
-      clearCaches: () => queryClient.clear(),
-      redirectToSignIn: (path) => {
-        window.location.assign(path)
-      },
+    configureApiClientAuthFailure(() => {
+      // Clear auth state in React Query cache
+      queryClient.setQueryData(['auth', 'session'], null)
+      // Clear all caches
+      queryClient.clear()
+      // Clear CSRF token
+      clearCsrfToken()
+      // Clear secure storage (best-effort, fire-and-forget)
+      secureStorage.clearSession().catch(() => {})
+      // Redirect to sign-in
+      const from = typeof window !== 'undefined'
+        ? `${window.location.pathname}${window.location.search}`
+        : ''
+      const signInPath = from && from !== '/'
+        ? `/auth/signin?redirect=${encodeURIComponent(from)}`
+        : '/auth/signin'
+      window.location.assign(signInPath)
     })
   }, [queryClient])
 

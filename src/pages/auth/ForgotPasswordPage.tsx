@@ -11,6 +11,7 @@ import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/Button';
@@ -31,7 +32,6 @@ type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
   const { requestPasswordReset } = useAuth();
-  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
 
   const {
@@ -42,23 +42,22 @@ export default function ForgotPasswordPage() {
     resolver: zodResolver(forgotPasswordSchema),
   });
 
-  const onSubmit = async (data: ForgotPasswordForm) => {
-    setSuccess('');
-    setLoading(true);
-
-    try {
+  const resetRequestMutation = useMutation({
+    mutationFn: async (data: ForgotPasswordForm) => {
       // Fire the request but always show the same confirmation message
       // regardless of whether the email exists — prevents email enumeration
-      await requestPasswordReset(data.email);
-    } catch {
-      // Swallow errors silently — we never reveal whether the email exists
-    } finally {
-      setLoading(false);
+      try {
+        await requestPasswordReset(data.email);
+      } catch {
+        // Swallow errors silently — we never reveal whether the email exists
+      }
+    },
+    onSettled: () => {
       setSuccess(
         'If an account with that email exists, we\'ve sent password reset instructions. Please check your inbox and spam folder.',
       );
-    }
-  };
+    },
+  });
 
   // Success state
   if (success) {
@@ -131,7 +130,7 @@ export default function ForgotPasswordPage() {
     >
       <form
         className={`space-y-6 ${animateClasses.slideUp}`}
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit((data) => resetRequestMutation.mutate(data))}
       >
         <Input
           {...register('email')}
@@ -140,18 +139,18 @@ export default function ForgotPasswordPage() {
           required
           autoComplete="email"
           error={errors.email?.message}
-          disabled={loading}
+          disabled={resetRequestMutation.isPending}
           className="min-h-[48px]"
         />
 
         <Button
           type="submit"
           className="w-full"
-          loading={loading}
+          loading={resetRequestMutation.isPending}
           variant="gradient"
           size="lg"
         >
-          {loading ? (
+          {resetRequestMutation.isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Sending...

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import { fetchEligibilityRules, createEligibilityRule, updateEligibilityRule, deleteEligibilityRule, type EligibilityRule } from '@/lib/api/adminApi'
 import { programService } from '@/services/catalog'
@@ -7,7 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { CanonicalSelect } from '@/components/ui/CanonicalSelect'
-import { useToastStore } from '@/components/ui/Toast'
+import { useToastStore } from '@/hooks/useToast'
 import { Plus, Edit, Trash2, Save, X, Settings, BarChart3, Users, AlertTriangle } from 'lucide-react'
 import { RegulatoryGuidelinesTable } from '@/components/admin/RegulatoryGuidelinesTable'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
@@ -25,10 +26,8 @@ interface Program {
 
 export default function EligibilityManagement() {
   const { user } = useAuth()
+  const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState<'dashboard' | 'rules' | 'guidelines'>('dashboard')
-  const [programs, setPrograms] = useState<Program[]>([])
-  const [rules, setRules] = useState<EligibilityRule[]>([])
-  const [loading, setLoading] = useState(true)
   const [showRuleForm, setShowRuleForm] = useState(false)
   const [editingRule, setEditingRule] = useState<EligibilityRule | null>(null)
   const confirmDialog = useConfirmDialog()
@@ -48,33 +47,22 @@ export default function EligibilityManagement() {
     is_active: true
   })
 
-  useEffect(() => {
-    loadData()
-  }, [])
+  const { data: programs = [], isLoading: programsLoading } = useQuery({
+    queryKey: ['admin', 'eligibility', 'programs'],
+    queryFn: async () => {
+      const response = await programService.list()
+      return response?.programs || []
+    },
+  })
 
-  const loadData = async () => {
-    setLoading(true)
-    try {
-      await Promise.all([
-        loadPrograms(),
-        loadRules()
-      ])
-    } catch (error) {
-      console.error('Error loading data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { data: rules = [], isLoading: rulesLoading } = useQuery({
+    queryKey: ['admin', 'eligibility', 'rules'],
+    queryFn: async () => {
+      return await fetchEligibilityRules()
+    },
+  })
 
-  const loadPrograms = async () => {
-    const response = await programService.list()
-    setPrograms(response?.programs || [])
-  }
-
-  const loadRules = async () => {
-    const data = await fetchEligibilityRules()
-    setRules(data)
-  }
+  const loading = programsLoading || rulesLoading
 
   const handleSaveRule = async () => {
     try {
@@ -95,7 +83,7 @@ export default function EligibilityManagement() {
         if (!success) throw new Error('Failed to create rule')
       }
 
-      await loadRules()
+      queryClient.invalidateQueries({ queryKey: ['admin', 'eligibility', 'rules'] })
       setShowRuleForm(false)
       setEditingRule(null)
       resetRuleForm()
@@ -117,7 +105,7 @@ export default function EligibilityManagement() {
     try {
       const success = await deleteEligibilityRule(id)
       if (!success) throw new Error('Failed to delete rule')
-      await loadRules()
+      queryClient.invalidateQueries({ queryKey: ['admin', 'eligibility', 'rules'] })
     } catch (error) {
       console.error('Error deleting rule:', error)
       showError('Failed to delete rule')

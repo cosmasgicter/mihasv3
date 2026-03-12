@@ -3,12 +3,6 @@
  * Re-exports all admin-related components
  */
 
-// Layout components
-export { AdminLayout } from './AdminLayout';
-export { AdminSidebar } from './AdminSidebar';
-export { AdminHeader } from './AdminHeader';
-export { AdminMobileNav } from './AdminMobileNav';
-
 // Dashboard components
 export { DashboardSkeleton } from './DashboardSkeleton';
 export { EnhancedDashboard } from './EnhancedDashboard';

@@ -47,7 +47,7 @@ import {
   UserX,
   Users as UsersIcon,
 } from 'lucide-react'
-import { useToastStore } from '@/components/ui/Toast'
+import { useToastStore } from '@/hooks/useToast'
 import { sanitizeForLog } from '@/lib/security'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import type { AdminUserMutationResult } from '@/services/admin/users'

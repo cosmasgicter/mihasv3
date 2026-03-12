@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react'
 import { Home, FileText, Bell, LayoutDashboard, Users, ChevronLeft, ChevronRight, ChevronDown, GraduationCap, Calendar, Settings, FileSearch, CreditCard } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { Tooltip } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
@@ -68,7 +67,6 @@ const isRouteActive = (currentPath: string, itemPath: string) => {
 export const DesktopSidebar = React.memo(function DesktopSidebar() {
   const location = useLocation()
   const { user, isAdmin } = useAuth()
-  useRoleQuery({ user, enabled: Boolean(user) })
   const { collapsed, setCollapsed } = useSidebar()
   const visibleAdminSections = adminSections
   
