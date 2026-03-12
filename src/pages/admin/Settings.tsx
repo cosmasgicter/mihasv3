@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/Button'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
@@ -225,9 +226,8 @@ function buildGuidedDraft(blueprint: SettingBlueprint, setting?: SystemSetting):
 }
 
 export default function AdminSettings() {
-  const [settings, setSettings] = useState<SystemSetting[]>([])
+  const queryClient = useQueryClient()
   const [guidedDrafts, setGuidedDrafts] = useState<Record<string, GuidedSettingDraft>>({})
-  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [activeMutationKey, setActiveMutationKey] = useState<string | null>(null)
   const [error, setError] = useState('')
@@ -246,22 +246,17 @@ export default function AdminSettings() {
     []
   )
 
-  const loadSettings = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError('')
+  const { data: settings = [], isLoading: loading } = useQuery({
+    queryKey: ['admin', 'settings'],
+    queryFn: async () => {
       const data = await fetchSettings()
-      setSettings(data)
-    } catch (requestError: any) {
-      setError(requestError.message || 'Failed to load settings')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+      return data
+    },
+  })
 
-  useEffect(() => {
-    void loadSettings()
-  }, [loadSettings])
+  const invalidateSettings = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['admin', 'settings'] })
+  }, [queryClient])
 
   useEffect(() => {
     const nextDrafts: Record<string, GuidedSettingDraft> = {}
@@ -296,7 +291,7 @@ export default function AdminSettings() {
         throw new Error('Operation failed')
       }
       setSuccess(successMessage)
-      await loadSettings()
+      invalidateSettings()
     } catch (requestError: any) {
       setError(requestError.message || 'Unable to save settings')
     } finally {
@@ -348,7 +343,7 @@ export default function AdminSettings() {
       }
 
       setSuccess(`${blueprint.label} updated successfully`)
-      await loadSettings()
+      invalidateSettings()
     } catch (requestError: any) {
       setError(requestError.message || `Failed to update ${blueprint.label}`)
     } finally {
@@ -457,7 +452,7 @@ export default function AdminSettings() {
       }
 
       setSuccess(result.message || `Successfully imported ${data.settings.length} settings`)
-      await loadSettings()
+      invalidateSettings()
     } catch (requestError: any) {
       setError(`Import failed: ${requestError.message}`)
     } finally {
@@ -483,7 +478,7 @@ export default function AdminSettings() {
         throw new Error(result.message || 'Reset failed')
       }
       setSuccess(result.message || 'Settings reset to defaults successfully')
-      await loadSettings()
+      invalidateSettings()
     } catch (requestError: any) {
       setError(requestError.message || 'Reset failed')
     } finally {

@@ -1,6 +1,7 @@
 // @ts-nocheck
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { DocumentButtons } from '@/components/student/DocumentButtons'
 import { InterviewDetails } from '@/components/student/InterviewDetails'
@@ -25,30 +26,21 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { PageShell } from '@/components/ui/PageShell'
+import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
 
 type ApplicationRecord = ApplicationDetailResponse['application']
 
 export default function ApplicationDetail() {
   const { id } = useParams<{ id: string }>()
-  const [application, setApplication] = useState<ApplicationRecord | null>(null)
-  const [interview, setInterview] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
 
-  useEffect(() => {
-    if (id) {
-      loadApplication()
-    }
-  }, [id])
-
-  const loadApplication = async () => {
-    if (!id) return
-    try {
-      setLoading(true)
-      setError('')
-
+  const {
+    data,
+    isLoading: loading,
+    error: queryError,
+  } = useQuery({
+    queryKey: ['application-detail', id],
+    queryFn: async () => {
       const response = await applicationService.getById(id!)
-      console.log('[ApplicationDetail] Raw response:', response)
       const normalizedResponse = response as ApplicationDetailResponse & {
         data?: ApplicationRecord | null
       }
@@ -56,26 +48,18 @@ export default function ApplicationDetail() {
       const applicationRecord =
         normalizedResponse?.application ?? normalizedResponse?.data ?? null
 
-      console.log('[ApplicationDetail] Normalized application:', applicationRecord)
-      
-      if (!applicationRecord) {
-        console.error('[ApplicationDetail] No application found in response')
-        setApplication(null)
-        setError('Application not found')
-        return
+      return {
+        application: applicationRecord,
+        interview: normalizedResponse?.interview ?? null,
       }
+    },
+    enabled: !!id,
+    ...CACHE_CONFIG.applications,
+  })
 
-      setApplication(applicationRecord)
-      
-      // Interview data is included in application response
-      setInterview(normalizedResponse?.interview ?? null)
-    } catch (error) {
-      console.error('Error loading application:', error)
-      setError('Failed to load application details')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const application = data?.application ?? null
+  const interview = data?.interview ?? null
+  const error = queryError ? (queryError instanceof Error ? queryError.message : 'Failed to load application details') : (!loading && !application ? 'Application not found' : '')
 
   const getStatusIcon = (status: string) => {
     switch (status) {

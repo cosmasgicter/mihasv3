@@ -68,7 +68,7 @@ const adminRoleArb = fc.constantFrom(...ADMIN_ROLES);
  * Role check type arbitrary
  */
 const roleCheckTypeArb: fc.Arbitrary<RoleCheckType> = fc.constantFrom(
-  'useRoleQuery',
+  'useAuth',
   'isAdmin',
   'hasAdminRole',
   'isAdminRole',
@@ -120,8 +120,8 @@ function generateRoleCheckCode(config: RoleCheckConfig): string {
   const { type, roles } = config;
   
   switch (type) {
-    case 'useRoleQuery':
-      return `const { hasAdminRole, isAdmin } = useRoleQuery();`;
+    case 'useAuth':
+      return `const { hasAdminRole, isAdmin } = useAuth();`;
     case 'isAdmin':
       return `if (isAdmin) { /* admin content */ }`;
     case 'hasAdminRole':
@@ -179,8 +179,8 @@ function generateAdminPageComponent(config: AdminPageConfig): string {
   if (config.hasRoleCheck && config.roleCheckConfig) {
     const { type } = config.roleCheckConfig;
     
-    if (type === 'useRoleQuery') {
-      imports.push(`import { useRoleQuery } from '@/hooks/useRoleQuery';`);
+    if (type === 'useAuth') {
+      imports.push(`import { useAuth } from '@/contexts/AuthContext';`);
       hookCalls.push(generateRoleCheckCode(config.roleCheckConfig));
     } else if (type === 'useOptimizedAuthState') {
       imports.push(`import { useOptimizedAuthState } from '@/hooks/useOptimizedAuthState';`);
@@ -371,14 +371,14 @@ describe('Property 13: Role and Permission Enforcement', () => {
 
     it('PROPERTY: Multiple role check types can be detected in same content', () => {
       const content = `
-        const { isAdmin, hasAdminRole } = useRoleQuery();
+        const { isAdmin, hasAdminRole } = useAuth();
         if (isAdmin) { /* admin */ }
         if (user.role === 'admin') { /* direct check */ }
       `;
       
       const types = detectRoleCheckTypes(content);
       
-      expect(types).toContain('useRoleQuery');
+      expect(types).toContain('useAuth');
       expect(types).toContain('isAdmin');
       expect(types).toContain('hasAdminRole');
       expect(types).toContain('directRoleComparison');
@@ -940,7 +940,7 @@ export default AdminWidget;
             // All role check types should be valid
             for (const type of result.roleCheckTypes) {
               expect([
-                'useRoleQuery',
+                'useAuth',
                 'isAdmin',
                 'hasAdminRole',
                 'isAdminRole',
@@ -1017,12 +1017,10 @@ export default AdminWidget;
       
       const content = `
 import React from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { useRoleQuery } from '@/hooks/useRoleQuery';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function MultiCheckPage() {
   const { user, isAdmin } = useAuth();
-  const { hasAdminRole } = useRoleQuery();
   
   if (!isAdmin) return null;
   
@@ -1041,8 +1039,7 @@ export default MultiCheckPage;
       
       expect(result.hasRoleCheck).toBe(true);
       expect(result.roleCheckTypes).toContain('isAdmin');
-      expect(result.roleCheckTypes).toContain('useRoleQuery');
-      expect(result.roleCheckTypes).toContain('hasAdminRole');
+      expect(result.roleCheckTypes).toContain('useAuth');
       expect(result.roleCheckTypes).toContain('directRoleComparison');
       expect(result.rolesChecked).toContain('super_admin');
     });

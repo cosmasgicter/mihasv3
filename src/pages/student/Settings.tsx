@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useMutation } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { Button } from '@/components/ui/Button'
@@ -65,9 +66,31 @@ export default function StudentSettings() {
   const { user } = useAuth()
   const { profile, updateProfile } = useProfileQuery()
   const { metadata } = useProfileAutoPopulation()
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+
+  const profileMutation = useMutation({
+    mutationFn: async (data: ProfileForm) => {
+      if (!user?.id) {
+        throw new Error('You must be signed in to update your profile')
+      }
+
+      const cleanData = Object.entries(data).reduce((acc, [key, value]) => {
+        acc[key] = value === '' ? null : value
+        return acc
+      }, {} as Record<string, string | null>)
+
+      await updateProfile(cleanData)
+    },
+    onSuccess: () => {
+      setError('')
+      setSuccess('Your profile details were saved successfully.')
+    },
+    onError: (requestError: Error) => {
+      setSuccess('')
+      setError(`Failed to update profile: ${requestError.message}`)
+    },
+  })
 
   const {
     register,
@@ -110,28 +133,9 @@ export default function StudentSettings() {
     ''
 
   const onSubmit = async (data: ProfileForm) => {
-    try {
-      setLoading(true)
-      setError('')
-      setSuccess('')
-
-      if (!user?.id) {
-        throw new Error('You must be signed in to update your profile')
-      }
-
-      const cleanData = Object.entries(data).reduce((acc, [key, value]) => {
-        acc[key] = value === '' ? null : value
-        return acc
-      }, {} as Record<string, string | null>)
-
-      await updateProfile(cleanData)
-      setSuccess('Your profile details were saved successfully.')
-    } catch (requestError) {
-      const errorMessage = requestError instanceof Error ? requestError.message : 'Failed to update profile'
-      setError(`Failed to update profile: ${errorMessage}`)
-    } finally {
-      setLoading(false)
-    }
+    setError('')
+    setSuccess('')
+    profileMutation.mutate(data)
   }
 
   return (
@@ -338,9 +342,9 @@ export default function StudentSettings() {
             <Button asChild variant="outline" className="w-full md:w-auto">
               <Link to="/student/dashboard">Cancel</Link>
             </Button>
-            <Button type="submit" loading={loading} variant="gradient" className="w-full md:w-auto">
+            <Button type="submit" loading={profileMutation.isPending} variant="gradient" className="w-full md:w-auto">
               <Save className="h-4 w-4" />
-              {loading ? 'Saving changes...' : 'Save profile changes'}
+              {profileMutation.isPending ? 'Saving changes...' : 'Save profile changes'}
             </Button>
           </div>
         </form>

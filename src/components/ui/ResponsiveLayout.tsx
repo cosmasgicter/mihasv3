@@ -9,7 +9,7 @@
 
 import React, { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
-import { useEnhancedResponsive } from '@/hooks/useEnhancedResponsive'
+import { useResponsive } from '@/hooks/useResponsive'
 
 /**
  * Responsive Container
@@ -227,15 +227,16 @@ export function HideOnLandscape({
   className,
   smallOnly = true,
 }: HideOnLandscapeProps) {
-  const responsive = useEnhancedResponsive()
+  const { width, height } = useResponsive()
+  const isLandscape = width > height
   
   // Hide in landscape on small screens (height < 500px)
-  if (smallOnly && responsive.isLandscape && responsive.viewportHeight < 500) {
+  if (smallOnly && isLandscape && height < 500) {
     return null
   }
   
   // Hide in all landscape orientations
-  if (!smallOnly && responsive.isLandscape) {
+  if (!smallOnly && isLandscape) {
     return null
   }
 
@@ -253,9 +254,9 @@ interface ShowOnLandscapeProps {
 }
 
 export function ShowOnLandscape({ children, className }: ShowOnLandscapeProps) {
-  const responsive = useEnhancedResponsive()
+  const { width, height } = useResponsive()
   
-  if (!responsive.isLandscape) {
+  if (width <= height) {
     return null
   }
 

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { TrendingUp, Users, CheckCircle, Target } from 'lucide-react'
+import { CHART_COLORS } from '@/lib/chartColors'
 
 import {
   DashboardEligibilityAssessment,
@@ -309,22 +310,22 @@ export function EligibilityDashboard() {
                 <PieChart>
                   <Pie
                     data={[
-                      { name: 'Eligible', value: metrics.eligibleCount, color: '#10B981' },
-                      { name: 'Conditional', value: metrics.conditionalCount, color: '#F59E0B' },
-                      { name: 'Not Eligible', value: metrics.notEligibleCount, color: '#EF4444' }
+                      { name: 'Eligible', value: metrics.eligibleCount, color: CHART_COLORS.success },
+                      { name: 'Conditional', value: metrics.conditionalCount, color: CHART_COLORS.warning },
+                      { name: 'Not Eligible', value: metrics.notEligibleCount, color: CHART_COLORS.destructive }
                     ]}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
                     label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
                     outerRadius={80}
-                    fill="#8884d8"
+                    fill={CHART_COLORS.purple}
                     dataKey="value"
                   >
                     {[
-                      { name: 'Eligible', value: metrics.eligibleCount, color: '#10B981' },
-                      { name: 'Conditional', value: metrics.conditionalCount, color: '#F59E0B' },
-                      { name: 'Not Eligible', value: metrics.notEligibleCount, color: '#EF4444' }
+                      { name: 'Eligible', value: metrics.eligibleCount, color: CHART_COLORS.success },
+                      { name: 'Conditional', value: metrics.conditionalCount, color: CHART_COLORS.warning },
+                      { name: 'Not Eligible', value: metrics.notEligibleCount, color: CHART_COLORS.destructive }
                     ].map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
@@ -354,7 +355,7 @@ export function EligibilityDashboard() {
                   <XAxis dataKey="range" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="count" fill="#3B82F6" />
+                  <Bar dataKey="count" fill={CHART_COLORS.primary} />
                 </BarChart>
               </ResponsiveContainer>
             )

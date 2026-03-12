@@ -6,7 +6,7 @@ import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { Button } from '@/components/ui/Button'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useAdminDashboardRefresh } from '@/hooks/useManualRefresh'
-import { useToastStore } from '@/components/ui/Toast'
+import { useToastStore } from '@/hooks/useToast'
 import { 
   Users, 
   FileText, 

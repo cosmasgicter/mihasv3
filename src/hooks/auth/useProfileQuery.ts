@@ -4,12 +4,35 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import type { UserProfile } from '@/types/auth'
 import { sanitizeForDisplay } from '@/lib/sanitize'
-import { authRequest } from '@/services/authController'
+import { apiClient } from '@/services/client'
 
 interface User {
   id: string
   email?: string
   user_metadata?: Record<string, any>
+}
+
+/**
+ * Password update mutation — relocated from useAuthMutations.ts
+ * Uses the reset-password endpoint for password changes.
+ */
+export const useUpdateUser = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (updates: { email?: string; password?: string; full_name?: string }) => {
+      if (updates.password) {
+        return await apiClient.request('/api/auth?action=reset-password', {
+          method: 'POST',
+          body: JSON.stringify({ newPassword: updates.password }),
+        })
+      }
+      throw new Error('Only password updates are currently supported')
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth', 'user'] })
+    }
+  })
 }
 
 export interface UseProfileQueryOptions {
@@ -58,12 +81,12 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
         return null
       }
 
-      const result = await authRequest<UserProfile | { user?: UserProfile }>('/api/auth?action=profile')
-      if (!result.success) {
+      const result = await apiClient.request<UserProfile | { user?: UserProfile }>('/api/auth?action=profile')
+      if (!result) {
         return null
       }
 
-      const payload = (result?.data as { user?: UserProfile })?.user ?? result.data
+      const payload = (result as { user?: UserProfile })?.user ?? result
       return sanitizeProfile(payload ?? null)
     }
   })
@@ -118,16 +141,12 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
       logger.log('Attempting to update profile for user:', user.id)
       logger.log('Sanitized updates:', sanitizedUpdates)
 
-      const result = await authRequest<UserProfile>('/api/auth?action=profile', {
+      const result = await apiClient.request<UserProfile>('/api/auth?action=profile', {
         method: 'PATCH',
         body: JSON.stringify(sanitizedUpdates),
       })
 
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to update profile')
-      }
-
-      const data = sanitizeProfile(result?.data ?? null)
+      const data = sanitizeProfile(result as Record<string, unknown> | null)
 
       if (!data) {
         throw new Error('Profile update returned no data. The profile may not exist.')

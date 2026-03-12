@@ -6,18 +6,16 @@ import { GraduationCap, LayoutDashboard, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSignOutAction } from '@/hooks/useSignOutAction'
-import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
 
 interface MobileNavigationProps {
   className?: string
 }
 
 export function MobileNavigation({ className }: MobileNavigationProps) {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const { signOut, isSigningOut } = useSignOutAction()
   const navigate = useNavigate()
   const location = useLocation()
-  const { isAdmin } = useRoleQuery({ user })
 
   // Requirements: 13.1, 13.2, 13.3, 13.4 - Improve Logout Performance
   const handleSignOut = async () => {

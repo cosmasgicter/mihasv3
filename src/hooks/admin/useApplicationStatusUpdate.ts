@@ -9,7 +9,7 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useToastStore } from '@/components/ui/Toast'
+import { useToastStore } from '@/hooks/useToast'
 import { apiClient } from '@/services/client'
 import { invalidateAdminApplicationQueries } from './applicationQueryInvalidation'
 

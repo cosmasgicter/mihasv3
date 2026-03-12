@@ -1,6 +1,7 @@
 // @ts-nocheck
-import React, { useState, useEffect, useCallback } from 'react'
+import React from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import type { ApplicationWithDetails } from '@/types/database'
 import { logger } from '@/utils/logger'
@@ -32,8 +33,9 @@ import {
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { LegacyErrorDisplay } from '@/components/ui/ErrorDisplay'
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { PageShell } from '@/components/ui/PageShell'
+import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
 
 interface ApplicationTimeline {
   status: string
@@ -59,35 +61,28 @@ export default function ApplicationStatus() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
-  const [application, setApplication] = useState<ApplicationWithDetails | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
 
-  const loadApplicationDetails = useCallback(async () => {
-    if (!id || !user) return
-    
-    try {
-      setLoading(true)
-      setError('')
-
-      const response = await applicationService.getById(id)
+  const {
+    data: application = null,
+    isLoading: loading,
+    error: queryError,
+    refetch: loadApplicationDetails,
+  } = useQuery<ApplicationWithDetails | null>({
+    queryKey: ['application-status', id],
+    queryFn: async () => {
+      const response = await applicationService.getById(id!)
 
       if (!response.application) {
         throw new Error('Application not found or access denied')
       }
 
-      setApplication(response.application as ApplicationWithDetails)
-    } catch (error: any) {
-      logger.error('Failed to load application details')
-      setError(error.message || 'Failed to load application')
-    } finally {
-      setLoading(false)
-    }
-  }, [id, user])
+      return response.application as ApplicationWithDetails
+    },
+    enabled: !!id && !!user,
+    ...CACHE_CONFIG.applications,
+  })
 
-  useEffect(() => {
-    loadApplicationDetails()
-  }, [loadApplicationDetails])
+  const error = queryError ? (queryError instanceof Error ? queryError.message : 'Failed to load application') : ''
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -169,10 +164,11 @@ export default function ApplicationStatus() {
   if (error || !application) {
     return (
       <PageShell title="Application Status">
-          <LegacyErrorDisplay
-            error={{ status: error ? 404 : 500, message: error || 'Application not found or access denied' }}
-            onRetry={loadApplicationDetails}
-            onAction={() => navigate('/student/dashboard')}
+          <ErrorDisplay
+            variant="section"
+            title="Application Not Found"
+            message={error || 'Application not found or access denied'}
+            onRetry={() => loadApplicationDetails()}
             className="max-w-2xl"
           />
       </PageShell>

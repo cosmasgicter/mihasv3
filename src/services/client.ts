@@ -16,6 +16,19 @@ import { TIMEOUT_ERROR_MESSAGE } from '@/lib/errorMessages';
 
 import type { FetchWithCacheOptions } from '@/utils/api-cache';
 
+/**
+ * Error thrown when the ApiClient encounters an unrecoverable 401
+ * (token refresh failed or second 401 after retry).
+ * Callers can catch this to handle UI cleanup if needed.
+ */
+export class AuthenticationError extends Error {
+  public readonly status = 401;
+  constructor(message: string = 'Authentication required. Please sign in again.') {
+    super(message);
+    this.name = 'AuthenticationError';
+  }
+}
+
 const API_BASE = getApiBaseUrl();
 
 /** Default request timeout in milliseconds (30s) */
@@ -116,6 +129,118 @@ function createTimeoutController(
 }
 
 class ApiClient {
+  /**
+   * Promise-lock for token refresh deduplication.
+   * When the first 401 triggers a refresh, subsequent 401s await the same promise
+   * instead of initiating parallel refresh requests.
+   */
+  private refreshPromise: Promise<boolean> | null = null;
+
+  /**
+   * Perform the actual token refresh call to the server.
+   * Sends a POST to /api/auth?action=refresh with credentials and CSRF token.
+   * Captures the rotated CSRF token from the response header.
+   */
+  private async performRefresh(): Promise<boolean> {
+    const csrfToken = getCsrfToken();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/api/auth?action=refresh`, {
+        method: 'POST',
+        credentials: 'include',
+        headers,
+      });
+
+      // Capture rotated CSRF token from refresh response
+      const newCsrfToken = response.headers.get('X-CSRF-Token');
+      if (newCsrfToken) {
+        setCsrfToken(newCsrfToken);
+      }
+
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Deduplicated token refresh. If a refresh is already in-flight, returns the
+   * existing promise. Otherwise starts a new refresh and clears the lock on
+   * completion (success or failure).
+   *
+   * This is the same promise-lock pattern from authController.ts deduplicatedRefresh,
+   * ported into ApiClient as the single refresh mechanism.
+   */
+  private async attemptRefresh(): Promise<boolean> {
+    if (this.refreshPromise) return this.refreshPromise;
+    this.refreshPromise = this.performRefresh();
+    try {
+      return await this.refreshPromise;
+    } finally {
+      this.refreshPromise = null;
+    }
+  }
+
+  /**
+   * Check if an endpoint should be excluded from 401 intercept-refresh-retry.
+   * Auth endpoints like refresh, login, and register are excluded to prevent
+   * infinite loops (e.g., a failed refresh triggering another refresh).
+   */
+  private isAuthExcludedEndpoint(endpoint: string): boolean {
+    const excludedPatterns = [
+      '/api/auth?action=refresh',
+      '/api/auth?action=login',
+      '/api/auth?action=register',
+    ];
+    return excludedPatterns.some(pattern => endpoint.includes(pattern));
+  }
+
+  /**
+   * Handle a 403 response with a CSRF-related error code.
+   * Re-fetches the CSRF token from the session endpoint, updates the
+   * CSRF Token Store, and retries the original request once with the
+   * fresh token.
+   */
+  private async handleCsrf403(
+    endpoint: string,
+    method: string,
+    restOptions: Record<string, unknown>,
+    requestHeaders: Record<string, string>,
+    signal: AbortSignal,
+  ): Promise<Response> {
+    // Re-fetch CSRF token from session endpoint
+    const sessionResponse = await fetch(`${API_BASE}/api/auth?action=session`, {
+      method: 'GET',
+      credentials: 'include',
+      signal,
+    });
+
+    const freshCsrf = sessionResponse.headers.get('X-CSRF-Token');
+    if (freshCsrf) {
+      setCsrfToken(freshCsrf);
+    }
+
+    // Retry the original request with the fresh CSRF token
+    const csrfToken = getCsrfToken();
+    if (csrfToken) {
+      requestHeaders['X-CSRF-Token'] = csrfToken;
+    }
+
+    return fetch(`${API_BASE}${endpoint}`, {
+      ...restOptions,
+      method,
+      headers: requestHeaders,
+      credentials: 'include',
+      signal,
+    });
+  }
+
   private normalizeEndpoint(endpoint: string, method: string): string {
     if (!endpoint || endpoint.startsWith('/api/') || endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
       return endpoint;
@@ -130,7 +255,7 @@ class ApiClient {
     }
 
     const [resource, ...rest] = segments;
-    const supportedResources = new Set(['admin', 'applications', 'auth', 'catalog', 'documents', 'notifications']);
+    const supportedResources = new Set(['admin', 'applications', 'auth', 'bootstrap', 'catalog', 'documents', 'email', 'health', 'notifications', 'payments', 'sessions']);
 
     if (!supportedResources.has(resource)) {
       return endpoint;
@@ -591,20 +716,131 @@ class ApiClient {
 
       if (!response.ok) {
         let errorMessage = `API Error: ${response.statusText}`;
+        let errorCode: string | undefined;
         try {
           const errorData = await response.text();
           if (errorData) {
             const parsed = JSON.parse(errorData);
             errorMessage = parsed.error || parsed.message || errorMessage;
+            errorCode = parsed.code;
           }
         } catch {
           // Use default error message
         }
 
-        // Handle 401 Unauthorized specifically
+        // 401 intercept-refresh-retry: attempt a single token refresh and retry
+        // Exclude auth endpoints that would cause infinite loops
+        if (response.status === 401 && !this.isAuthExcludedEndpoint(normalizedEndpoint)) {
+          logger.warn('[API Client] 401 Unauthorized - attempting token refresh');
+          const refreshed = await this.attemptRefresh();
+
+          if (refreshed) {
+            // Refresh succeeded — retry the original request once
+            // Re-attach the (possibly rotated) CSRF token
+            if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+              const freshCsrf = getCsrfToken();
+              if (freshCsrf) {
+                requestHeaders['X-CSRF-Token'] = freshCsrf;
+              }
+            }
+
+            const retryResponse = await fetch(`${API_BASE}${normalizedEndpoint}`, {
+              ...restOptions,
+              method,
+              headers: requestHeaders,
+              credentials: 'include',
+              signal: timeoutController.signal,
+            });
+
+            // Capture CSRF token from retry response
+            const retryCsrf = retryResponse.headers.get('X-CSRF-Token');
+            if (retryCsrf) {
+              setCsrfToken(retryCsrf);
+            }
+
+            if (retryResponse.ok) {
+              const retryContentType = retryResponse.headers.get('content-type') ?? '';
+              if (retryContentType && !retryContentType.includes('application/json')) {
+                const rawBody = await retryResponse.text();
+                this.invalidateRelatedCaches(normalizedEndpoint, invalidateTargets);
+                return (rawBody || null) as TResponse | null;
+              }
+              const retryPayload = await this.parseJsonSafely<TResponse>(retryResponse, service, normalizedEndpoint);
+              this.invalidateRelatedCaches(normalizedEndpoint, invalidateTargets);
+              return this.unwrapApiResponse<TResponse>(retryPayload, retryContentType);
+            }
+
+            // Second 401 after retry — same as refresh failure
+            const authFailure = getOnAuthFailure();
+            if (authFailure) authFailure();
+            throw new AuthenticationError();
+          }
+
+          // Refresh failed — invoke onAuthFailure and throw
+          const authFailure = getOnAuthFailure();
+          if (authFailure) authFailure();
+          throw new AuthenticationError();
+        }
+
+        // Handle 401 on excluded auth endpoints (no refresh attempt)
         if (response.status === 401) {
-          errorMessage = 'Authentication required. Please sign in again.';
-          logger.warn('[API Client] 401 Unauthorized - session may have expired');
+          logger.warn('[API Client] 401 on auth endpoint - no refresh attempt');
+        }
+
+        // 403 CSRF intercept-retry: re-fetch CSRF token and retry once
+        // Only for state-changing methods with CSRF-related error codes
+        if (
+          response.status === 403 &&
+          ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) &&
+          (errorCode === 'CSRF_INVALID' || errorCode === 'CSRF_MISSING')
+        ) {
+          logger.warn('[API Client] 403 CSRF error - re-fetching CSRF token');
+          const csrfRetryResponse = await this.handleCsrf403(
+            normalizedEndpoint,
+            method,
+            restOptions,
+            requestHeaders,
+            timeoutController.signal,
+          );
+
+          if (csrfRetryResponse.ok) {
+            // Capture CSRF token from retry response
+            const retryCsrf = csrfRetryResponse.headers.get('X-CSRF-Token');
+            if (retryCsrf) {
+              setCsrfToken(retryCsrf);
+            }
+
+            const retryContentType = csrfRetryResponse.headers.get('content-type') ?? '';
+            if (retryContentType && !retryContentType.includes('application/json')) {
+              const rawBody = await csrfRetryResponse.text();
+              this.invalidateRelatedCaches(normalizedEndpoint, invalidateTargets);
+              return (rawBody || null) as TResponse | null;
+            }
+            const retryPayload = await this.parseJsonSafely<TResponse>(csrfRetryResponse, service, normalizedEndpoint);
+            this.invalidateRelatedCaches(normalizedEndpoint, invalidateTargets);
+            return this.unwrapApiResponse<TResponse>(retryPayload, retryContentType);
+          }
+
+          // Second failure — fall through to normal error handling
+          let csrfRetryErrorMessage = errorMessage;
+          try {
+            const retryErrorData = await csrfRetryResponse.text();
+            if (retryErrorData) {
+              const parsed = JSON.parse(retryErrorData);
+              csrfRetryErrorMessage = parsed.error || parsed.message || csrfRetryErrorMessage;
+            }
+          } catch {
+            // Use original error message
+          }
+          const csrfStatusError = new Error(csrfRetryErrorMessage) as Error & { status: number };
+          csrfStatusError.status = csrfRetryResponse.status;
+          const csrfEnhancedError = ApiErrorHandler.enhanceError({
+            endpoint: normalizedEndpoint,
+            method,
+            statusCode: csrfRetryResponse.status,
+            originalError: csrfStatusError,
+          });
+          throw csrfEnhancedError;
         }
 
         // Create error with status for retry logic
@@ -674,10 +910,9 @@ class ApiClient {
         throw error;
       }
 
-      // Handle authentication errors specifically
-      if (error instanceof Error && error.message.includes('401')) {
-        logger.warn('[API Client] 401 error in catch block');
-        throw new Error('Authentication required. Please sign in again.');
+      // Re-throw AuthenticationError as-is (already handled by 401 intercept logic)
+      if (error instanceof AuthenticationError) {
+        throw error;
       }
 
       // Enhance error if not already enhanced
@@ -702,6 +937,35 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient();
+
+/**
+ * Callback invoked when the ApiClient encounters an unrecoverable 401
+ * (token refresh failed). Configured by AuthProvider on mount to clear
+ * auth state, caches, and redirect to sign-in.
+ *
+ * Replaces `configureAuthController` from the old authController.ts.
+ */
+let onAuthFailure: (() => void) | null = null;
+
+/**
+ * Configure the auth failure callback for the ApiClient.
+ * Called once from AuthProvider on mount. When the ApiClient detects
+ * an unrecoverable 401 (refresh failed), it invokes this callback
+ * to clear auth state and redirect.
+ *
+ * Replaces `configureAuthController` from authController.ts.
+ */
+export function configureApiClientAuthFailure(callback: () => void): void {
+  onAuthFailure = callback;
+}
+
+/**
+ * Get the current auth failure callback (used internally by ApiClient).
+ * @internal
+ */
+export function getOnAuthFailure(): (() => void) | null {
+  return onAuthFailure;
+}
 
 export type QueryParamValue = string | number | boolean;
 

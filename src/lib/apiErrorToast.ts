@@ -11,7 +11,7 @@
  * Requirements: 16.1, 16.2, 16.3
  */
 
-import { useToastStore } from '@/components/ui/Toast';
+import { useToastStore } from '@/hooks/useToast';
 import { ApiErrorHandler } from '@/lib/apiErrorHandler';
 import {
   getErrorMessageForCode,

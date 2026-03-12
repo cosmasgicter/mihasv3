@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { institutionService, programService } from '@/services/catalog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
@@ -81,10 +82,8 @@ function getInstitutionOptionLabel(institution: Institution) {
 }
 
 export default function AdminPrograms() {
+  const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState<CatalogTab>('programs')
-  const [programs, setPrograms] = useState<Program[]>([])
-  const [institutions, setInstitutions] = useState<Institution[]>([])
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -101,16 +100,9 @@ export default function AdminPrograms() {
   const [institutionForm, setInstitutionForm] = useState(initialInstitutionForm)
   const [institutionCreateReturnTarget, setInstitutionCreateReturnTarget] = useState<ProgramDialogTarget>(null)
 
-  const activeInstitutions = institutions.filter(isInstitutionActive)
-
-  const loadCatalog = useCallback(async (showLoadingState = false) => {
-    try {
-      if (showLoadingState) {
-        setLoading(true)
-      }
-
-      setError('')
-
+  const { data: catalogData, isLoading: loading } = useQuery({
+    queryKey: ['admin', 'catalog'],
+    queryFn: async () => {
       const [programResponse, institutionResponse] = await Promise.all([
         programService.list(),
         institutionService.list(),
@@ -123,20 +115,17 @@ export default function AdminPrograms() {
         (a: Institution, b: Institution) => getInstitutionDisplayName(a).localeCompare(getInstitutionDisplayName(b))
       )
 
-      setPrograms(sortedPrograms)
-      setInstitutions(sortedInstitutions)
-    } catch (err: any) {
-      setError(err.message || 'Failed to load catalog')
-    } finally {
-      if (showLoadingState) {
-        setLoading(false)
-      }
-    }
-  }, [])
+      return { programs: sortedPrograms, institutions: sortedInstitutions }
+    },
+  })
 
-  useEffect(() => {
-    void loadCatalog(true)
-  }, [loadCatalog])
+  const programs = catalogData?.programs || []
+  const institutions = catalogData?.institutions || []
+  const activeInstitutions = institutions.filter(isInstitutionActive)
+
+  const invalidateCatalog = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['admin', 'catalog'] })
+  }, [queryClient])
 
   const getInstitutionProgramCount = useCallback(
     (institutionId: string) =>
@@ -254,7 +243,7 @@ export default function AdminPrograms() {
       setError('')
       await operation()
       onSuccess()
-      await loadCatalog(false)
+      invalidateCatalog()
     } catch (err: any) {
       setError(err.message || 'Unable to save changes')
     } finally {
@@ -695,7 +684,7 @@ export default function AdminPrograms() {
                       </div>
                       <Button
                         variant="outline"
-                        onClick={() => void loadCatalog(false)}
+                        onClick={() => invalidateCatalog()}
                         className="border-destructive/30 text-destructive hover:bg-destructive/5"
                       >
                         Reload Catalog

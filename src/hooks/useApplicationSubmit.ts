@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { useAuth } from '@/contexts/AuthContext'
 import { applicationService } from '@/services/applications'
 import { notificationService } from '@/services/notifications'
 import { apiClient } from '@/services/client'
@@ -139,6 +140,7 @@ function generateIdempotencyKey(): string {
  */
 export function useApplicationSubmit() {
   const queryClient = useQueryClient()
+  const { user: authUser } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
@@ -167,13 +169,13 @@ export function useApplicationSubmit() {
       setLoading(true)
       setError('')
 
-      // Verify user authentication via cookie-based session
-      const sessionData = await apiClient.request<{ user?: { id: string; role?: string } }>('/api/auth?action=session')
-      const user = sessionData?.user
-
-      if (!user) {
+      // Verify user authentication via useAuth() — the single source of truth.
+      // ApiClient handles 401 refresh transparently on subsequent requests.
+      if (!authUser?.id) {
         throw new Error('Authentication session expired. Please sign in again.')
       }
+
+      const user = authUser
 
       // Prepare update data
       const updateData = {

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
-import { useToastStore } from '@/components/ui/Toast'
+import { useToastStore } from '@/hooks/useToast'
 import { Calendar, MapPin, Video } from 'lucide-react'
 import { apiClient } from '@/services/client'
 

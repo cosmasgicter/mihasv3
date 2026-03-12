@@ -1,0 +1,166 @@
+/**
+ * Unit tests for signOut cleanup in useSessionListener
+ *
+ * Verifies that signOut:
+ * 1. Calls clearCsrfToken()
+ * 2. Calls queryClient.clear()
+ * 3. POSTs to /api/auth?action=logout via apiClient
+ * 4. Calls secureStorage.clearSession()
+ *
+ * _Requirements: 4.2, 5.5, 10.3_
+ */
+// @vitest-environment node
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+// ── Track mock calls ────────────────────────────────────────────────────
+
+const clearCsrfTokenSpy = vi.fn();
+const clearSessionSpy = vi.fn().mockResolvedValue(undefined);
+const apiRequestSpy = vi.fn().mockResolvedValue(undefined);
+
+// ── Mocks ───────────────────────────────────────────────────────────────
+
+vi.mock('@/lib/csrfToken', () => ({
+  clearCsrfToken: (...args: any[]) => clearCsrfTokenSpy(...args),
+  getCsrfToken: vi.fn(() => 'mock-csrf'),
+  setCsrfToken: vi.fn(),
+}));
+
+vi.mock('@/lib/secureStorage', () => ({
+  secureStorage: {
+    clearSession: (...args: any[]) => clearSessionSpy(...args),
+  },
+}));
+
+vi.mock('@/services/client', () => ({
+  apiClient: {
+    request: (...args: any[]) => apiRequestSpy(...args),
+  },
+}));
+
+vi.mock('@/lib/auth/roles', () => ({
+  isAdminRole: vi.fn((role?: string) =>
+    ['admin', 'super_admin', 'admissions_officer', 'registrar', 'finance_officer', 'academic_head'].includes(role ?? ''),
+  ),
+}));
+
+vi.mock('@/utils/userDisplayName', () => ({
+  getDisplayName: vi.fn(() => 'Test User'),
+}));
+
+vi.mock('@/hooks/queries/useQueryConfig', () => ({
+  CACHE_CONFIG: {
+    auth: { staleTime: 600000, gcTime: 1800000 },
+  },
+}));
+
+// Mock React Query
+const clearSpy = vi.fn();
+const setQueryDataSpy = vi.fn();
+const removeQueriesSpy = vi.fn();
+const mockQueryClient = {
+  clear: clearSpy,
+  setQueryData: setQueryDataSpy,
+  removeQueries: removeQueriesSpy,
+};
+
+vi.mock('@tanstack/react-query', () => ({
+  useQuery: vi.fn(() => ({
+    data: { user: { id: '1', role: 'student' } },
+    isLoading: false,
+  })),
+  useQueryClient: vi.fn(() => mockQueryClient),
+}));
+
+// Mock React
+vi.mock('react', async () => {
+  const actual = await vi.importActual<typeof import('react')>('react');
+  return {
+    ...actual,
+    // useCallback just returns the function directly in test context
+    useCallback: (fn: any, _deps: any[]) => fn,
+  };
+});
+
+// ── Tests ───────────────────────────────────────────────────────────────
+
+describe('signOut cleanup', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Stub window.dispatchEvent for the authSignedOut event
+    if (typeof globalThis.window === 'undefined') {
+      (globalThis as any).window = { dispatchEvent: vi.fn() };
+    } else {
+      vi.spyOn(window, 'dispatchEvent').mockImplementation(() => true);
+    }
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('signOut calls clearCsrfToken', async () => {
+    const { useSessionListener } = await import('@/hooks/auth/useSessionListener');
+    const { signOut } = useSessionListener();
+
+    await signOut();
+
+    expect(clearCsrfTokenSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('signOut calls queryClient.clear()', async () => {
+    const { useSessionListener } = await import('@/hooks/auth/useSessionListener');
+    const { signOut } = useSessionListener();
+
+    await signOut();
+
+    expect(clearSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('signOut POSTs to /api/auth?action=logout via apiClient', async () => {
+    const { useSessionListener } = await import('@/hooks/auth/useSessionListener');
+    const { signOut } = useSessionListener();
+
+    await signOut();
+
+    expect(apiRequestSpy).toHaveBeenCalledWith(
+      '/api/auth?action=logout',
+      { method: 'POST' },
+    );
+  });
+
+  it('signOut calls secureStorage.clearSession()', async () => {
+    const { useSessionListener } = await import('@/hooks/auth/useSessionListener');
+    const { signOut } = useSessionListener();
+
+    await signOut();
+
+    expect(clearSessionSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('signOut completes even if logout POST fails', async () => {
+    apiRequestSpy.mockRejectedValueOnce(new Error('Network error'));
+
+    const { useSessionListener } = await import('@/hooks/auth/useSessionListener');
+    const { signOut } = useSessionListener();
+
+    // Should not throw
+    await expect(signOut()).resolves.toBeUndefined();
+
+    // clearSession should still be called after failed POST
+    expect(clearSessionSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('signOut completes even if secureStorage.clearSession fails', async () => {
+    clearSessionSpy.mockRejectedValueOnce(new Error('Storage error'));
+
+    const { useSessionListener } = await import('@/hooks/auth/useSessionListener');
+    const { signOut } = useSessionListener();
+
+    // Should not throw
+    await expect(signOut()).resolves.toBeUndefined();
+
+    // CSRF should have been cleared before the storage error
+    expect(clearCsrfTokenSpy).toHaveBeenCalledTimes(1);
+  });
+});

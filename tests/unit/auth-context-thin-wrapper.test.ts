@@ -45,10 +45,10 @@ describe('Auth hook consolidation - task 2.2 verification', () => {
     expect(content).toContain('auth.updatePassword')
   })
 
-  it('AuthContext configures authController with redirectToSignIn', () => {
+  it('AuthContext configures ApiClient auth failure callback', () => {
     const content = fs.readFileSync(path.join(srcRoot, 'contexts/AuthContext.tsx'), 'utf-8')
-    expect(content).toContain('configureAuthController')
-    expect(content).toContain('redirectToSignIn')
+    expect(content).toContain('configureApiClientAuthFailure')
+    expect(content).not.toContain('configureAuthController')
   })
 
   it('AdminRoute imports from AuthContext (useAuth)', () => {
@@ -77,7 +77,7 @@ describe('Auth hook consolidation - task 2.2 verification', () => {
     expect(content).toContain('export function useAuthCheck()')
     expect(content).toContain('export function useInvalidateAuthCache()')
     expect(content).toContain('export function checkIsAdmin(')
-    expect(content).toContain('export function normalizeSessionResult(')
+    expect(content).toContain('export function normalizeSessionResult')
   })
 
   it('no source files import from useOptimizedAuthState', () => {
@@ -99,3 +99,72 @@ describe('Auth hook consolidation - task 2.2 verification', () => {
     checkDir(srcRoot)
   })
 })
+
+describe('Deleted module verification (consolidation)', () => {
+  it('authController.ts has been deleted (task 6.1)', () => {
+    const filePath = path.join(srcRoot, 'services/authController.ts')
+    expect(fs.existsSync(filePath)).toBe(false)
+  })
+
+  it('authApi.ts has been deleted (task 8.1)', () => {
+    const filePath = path.join(srcRoot, 'lib/api/authApi.ts')
+    expect(fs.existsSync(filePath)).toBe(false)
+  })
+
+  it('session.ts has been deleted (task 8.1)', () => {
+    const filePath = path.join(srcRoot, 'lib/session.ts')
+    expect(fs.existsSync(filePath)).toBe(false)
+  })
+
+  it('authRefresh.ts has been deleted (task 8.1)', () => {
+    const filePath = path.join(srcRoot, 'lib/authRefresh.ts')
+    expect(fs.existsSync(filePath)).toBe(false)
+  })
+
+  it('authPersistence.ts has been deleted (task 8.1)', () => {
+    const filePath = path.join(srcRoot, 'lib/authPersistence.ts')
+    expect(fs.existsSync(filePath)).toBe(false)
+  })
+
+  it('sessionUtils.ts has been deleted (task 8.1)', () => {
+    const filePath = path.join(srcRoot, 'lib/sessionUtils.ts')
+    expect(fs.existsSync(filePath)).toBe(false)
+  })
+
+  it('useTokenRefresh.ts has been deleted (task 7.1)', () => {
+    const filePath = path.join(srcRoot, 'hooks/auth/useTokenRefresh.ts')
+    expect(fs.existsSync(filePath)).toBe(false)
+  })
+
+  it('useRoleQuery.ts has been deleted (task 7.3)', () => {
+    const filePath = path.join(srcRoot, 'hooks/auth/useRoleQuery.ts')
+    expect(fs.existsSync(filePath)).toBe(false)
+  })
+
+  it('useAuthMutations.ts has been deleted (task 8.2)', () => {
+    const filePath = path.join(srcRoot, 'hooks/queries/useAuthMutations.ts')
+    expect(fs.existsSync(filePath)).toBe(false)
+  })
+
+  it('no source files import from authController', () => {
+    const checkDir = (dir: string) => {
+      const entries = fs.readdirSync(dir, { withFileTypes: true })
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name)
+        if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
+          checkDir(fullPath)
+        } else if (entry.isFile() && /\.(ts|tsx)$/.test(entry.name)) {
+          const content = fs.readFileSync(fullPath, 'utf-8')
+          if (content.includes("from '@/services/authController'") ||
+              content.includes('from "@/services/authController"') ||
+              content.includes("from '../services/authController'") ||
+              content.includes("from './authController'")) {
+            throw new Error(`${fullPath} still imports from authController`)
+          }
+        }
+      }
+    }
+    checkDir(srcRoot)
+  })
+})
+

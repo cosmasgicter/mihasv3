@@ -1,7 +1,7 @@
 import { Download, Award } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useDocumentGeneration } from '@/hooks/useDocumentGeneration'
-import { useToastStore } from '@/components/ui/Toast'
+import { useToastStore } from '@/hooks/useToast'
 import { logger } from '@/lib/logger'
 import { ApplicationSlipActions } from '@/components/student/ApplicationSlipActions'
 

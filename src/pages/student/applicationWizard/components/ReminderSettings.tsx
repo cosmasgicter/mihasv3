@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Bell, Check } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { useToastStore } from '@/components/ui/Toast'
+import { useToastStore } from '@/hooks/useToast'
 import { animateClasses } from '@/lib/animations'
 
 interface ReminderSettingsProps {

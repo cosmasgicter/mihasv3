@@ -14,8 +14,10 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth'
 import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
 import { getDisplayName } from '@/utils/userDisplayName'
-import { authRequest, logoutWithTwoPhaseClear } from '@/services/authController'
+import { apiClient } from '@/services/client'
 import { isAdminRole } from '@/lib/auth/roles'
+import { clearCsrfToken } from '@/lib/csrfToken'
+import { secureStorage } from '@/lib/secureStorage'
 
 export type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth'
 export type AuthUser = User
@@ -25,7 +27,6 @@ export type AuthUser = User
  */
 export function checkIsAdmin(user: User | null): boolean {
   if (!user) return false
-  if (user.email === 'cosmas@beanola.com') return true
   const role = (user.role || user.user_metadata?.role || user.app_metadata?.role) as string | undefined
   return isAdminRole(role)
 }
@@ -62,8 +63,8 @@ export function useSessionListener() {
   const { data: sessionData, isLoading: sessionLoading } = useQuery({
     queryKey: ['auth', 'session'],
     queryFn: async () => {
-      const result = await authRequest<{ user?: User }>('/api/auth?action=session')
-      return result.success && result.data?.user ? result.data : null
+      const result = await apiClient.request<{ user?: User }>('/api/auth?action=session')
+      return result?.user ? result : null
     },
     staleTime: CACHE_CONFIG.auth.staleTime,   // 10 minutes
     gcTime: CACHE_CONFIG.auth.gcTime,          // 30 minutes
@@ -79,9 +80,9 @@ export function useSessionListener() {
     queryKey: ['user-profile', user?.id],
     enabled: Boolean(user?.id),
     queryFn: async () => {
-      const result = await authRequest<UserProfile | { user?: UserProfile }>('/api/auth?action=profile')
-      if (!result.success) return null
-      return (result?.data as { user?: UserProfile })?.user ?? (result.data as UserProfile) ?? null
+      const result = await apiClient.request<UserProfile | { user?: UserProfile }>('/api/auth?action=profile')
+      if (!result) return null
+      return (result as { user?: UserProfile })?.user ?? (result as UserProfile) ?? null
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -104,43 +105,47 @@ export function useSessionListener() {
   // where isLoading stays true with no pending query to resolve it, hanging the skeleton screen.
   // Instead, seed the auth cache atomically after login succeeds, then clear stale non-auth data.
   const signIn = useCallback(async (email: string, password: string): Promise<SignInResult> => {
-    const result = await authRequest<{ user?: User; profile?: UserProfile }>(
-      '/api/auth?action=login',
-      { method: 'POST', body: JSON.stringify({ email, password }) },
-      { attemptRefreshOn401: false, redirectOnUnauthorized: false },
-    )
+    try {
+      const result = await apiClient.request<{ user?: User; profile?: UserProfile }>(
+        '/api/auth?action=login',
+        { method: 'POST', body: JSON.stringify({ email, password }) },
+      )
 
-    if (!result.success || !result.data?.user) {
-      return { error: result.error || 'Login failed' }
+      if (!result?.user) {
+        return { error: 'Login failed' }
+      }
+
+      const authUser = result.user
+
+      // Seed auth session cache FIRST — this makes isAuthenticated=true immediately
+      // and resolveAuthLoadingState returns false (no loading) since user data exists.
+      queryClient.setQueryData(['auth', 'session'], { user: authUser })
+
+      if (result.profile) {
+        queryClient.setQueryData(['user-profile', authUser.id], result.profile)
+      }
+
+      // Clear stale non-auth queries (e.g., previous user's data) WITHOUT touching auth cache.
+      // This replaces the old queryClient.clear() that caused the skeleton hang.
+      queryClient.removeQueries({
+        predicate: (query) => {
+          const key = query.queryKey
+          // Keep auth session and user-profile caches we just seeded
+          if (key[0] === 'auth') return false
+          if (key[0] === 'user-profile') return false
+          return true
+        },
+      })
+
+      window.dispatchEvent(new CustomEvent('userLoggedIn', {
+        detail: { userId: authUser.id },
+      }))
+
+      return { user: authUser, profile: result.profile }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Login failed'
+      return { error: message }
     }
-
-    const authUser = result.data.user
-
-    // Seed auth session cache FIRST — this makes isAuthenticated=true immediately
-    // and resolveAuthLoadingState returns false (no loading) since user data exists.
-    queryClient.setQueryData(['auth', 'session'], { user: authUser })
-
-    if (result.data.profile) {
-      queryClient.setQueryData(['user-profile', authUser.id], result.data.profile)
-    }
-
-    // Clear stale non-auth queries (e.g., previous user's data) WITHOUT touching auth cache.
-    // This replaces the old queryClient.clear() that caused the skeleton hang.
-    queryClient.removeQueries({
-      predicate: (query) => {
-        const key = query.queryKey
-        // Keep auth session and user-profile caches we just seeded
-        if (key[0] === 'auth') return false
-        if (key[0] === 'user-profile') return false
-        return true
-      },
-    })
-
-    window.dispatchEvent(new CustomEvent('userLoggedIn', {
-      detail: { userId: authUser.id },
-    }))
-
-    return { user: authUser, profile: result.data.profile }
   }, [queryClient])
 
   // signUp — register, then atomically set cache
@@ -155,84 +160,105 @@ export function useSessionListener() {
       return { error: 'Please provide your full name (first and last name).' }
     }
 
-    const result = await authRequest<{ user?: User; profile?: UserProfile }>(
-      '/api/auth?action=register',
-      {
-        method: 'POST',
-        body: JSON.stringify({ email, password, firstName, lastName, ...cleanUserData }),
-      },
-      { attemptRefreshOn401: false, redirectOnUnauthorized: false },
-    )
+    try {
+      const result = await apiClient.request<{ user?: User; profile?: UserProfile }>(
+        '/api/auth?action=register',
+        {
+          method: 'POST',
+          body: JSON.stringify({ email, password, firstName, lastName, ...cleanUserData }),
+        },
+      )
 
-    if (!result.success) {
-      return { error: result.error || 'Unable to create account' }
-    }
+      const userPayload = result?.user
+      if (userPayload) {
+        // Seed auth cache FIRST, then clear stale data (same pattern as signIn)
+        queryClient.setQueryData(['auth', 'session'], { user: userPayload })
+        if (result?.profile) {
+          queryClient.setQueryData(['user-profile', userPayload.id], result.profile)
+        }
 
-    const userPayload = result.data?.user
-    if (userPayload) {
-      // Seed auth cache FIRST, then clear stale data (same pattern as signIn)
-      queryClient.setQueryData(['auth', 'session'], { user: userPayload })
-      if (result.data?.profile) {
-        queryClient.setQueryData(['user-profile', userPayload.id], result.data.profile)
+        // Clear stale non-auth queries without touching the caches we just seeded
+        queryClient.removeQueries({
+          predicate: (query) => {
+            const key = query.queryKey
+            if (key[0] === 'auth') return false
+            if (key[0] === 'user-profile') return false
+            return true
+          },
+        })
+
+        window.dispatchEvent(new CustomEvent('userLoggedIn', { detail: { userId: userPayload.id } }))
+        return { user: userPayload, profile: result?.profile ?? null }
       }
 
-      // Clear stale non-auth queries without touching the caches we just seeded
-      queryClient.removeQueries({
-        predicate: (query) => {
-          const key = query.queryKey
-          if (key[0] === 'auth') return false
-          if (key[0] === 'user-profile') return false
-          return true
-        },
-      })
-
-      window.dispatchEvent(new CustomEvent('userLoggedIn', { detail: { userId: userPayload.id } }))
-      return { user: userPayload, profile: result.data?.profile ?? null }
+      return { user: null }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to create account'
+      return { error: message }
     }
-
-    return { user: null }
   }, [queryClient])
 
-  // signOut — two-phase clear, then reset query data
+  // signOut — inline cleanup: clear CSRF → clear caches → POST logout → clear secure storage
   const signOut = useCallback(async () => {
-    await logoutWithTwoPhaseClear()
+    // 1. Clear CSRF token
+    clearCsrfToken()
+
+    // 2. Clear React Query cache
+    queryClient.clear()
+
+    // 3. POST logout (best-effort — don't let network errors prevent local cleanup)
+    try {
+      await apiClient.request('/api/auth?action=logout', { method: 'POST' })
+    } catch {
+      // Ignore — server logout is best-effort
+    }
+
+    // 4. Clear secure storage
+    try {
+      await secureStorage.clearSession()
+    } catch {
+      // Ignore — secure storage clear is best-effort
+    }
+
+    // 5. Dispatch auth signed out event
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('authSignedOut'))
     }
+
+    // 6. Set auth session to null
     queryClient.setQueryData(['auth', 'session'], null)
     queryClient.removeQueries({ queryKey: ['user-profile'] })
   }, [queryClient])
 
   const requestPasswordReset = useCallback(async (email: string): Promise<PasswordResetResult> => {
-    const result = await authRequest('/api/auth?action=forgot-password', {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-    }, {
-      attemptRefreshOn401: false,
-      redirectOnUnauthorized: false,
-    })
-
-    return result.success ? {} : { error: result.error || 'Unable to send reset instructions' }
+    try {
+      await apiClient.request('/api/auth?action=forgot-password', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      })
+      return {}
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to send reset instructions'
+      return { error: message }
+    }
   }, [])
 
   const updatePassword = useCallback(async (password: string, token?: string): Promise<PasswordResetResult> => {
-    const result = await authRequest<{ user?: User }>('/api/auth?action=reset-password', {
-      method: 'POST',
-      body: JSON.stringify({ password, token }),
-    }, {
-      attemptRefreshOn401: false,
-      redirectOnUnauthorized: false,
-    })
+    try {
+      const result = await apiClient.request<{ user?: User }>('/api/auth?action=reset-password', {
+        method: 'POST',
+        body: JSON.stringify({ password, token }),
+      })
 
-    if (!result.success) {
-      return { error: result.error || 'Unable to reset password' }
+      if (result?.user) {
+        queryClient.setQueryData(['auth', 'session'], { user: result.user })
+      }
+
+      return {}
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to reset password'
+      return { error: message }
     }
-
-    if (result.data?.user) {
-      queryClient.setQueryData(['auth', 'session'], { user: result.data.user })
-    }
-
-    return {}
   }, [queryClient])
 
   return {
@@ -262,8 +288,8 @@ export function useAuthCheck(): {
   const { data: sessionData, isLoading } = useQuery({
     queryKey: ['auth', 'session'],
     queryFn: async () => {
-      const result = await authRequest<{ user?: User }>('/api/auth?action=session')
-      return result.success && result.data?.user ? result.data : null
+      const result = await apiClient.request<{ user?: User }>('/api/auth?action=session')
+      return result?.user ? result : null
     },
     staleTime: CACHE_CONFIG.auth.staleTime,
     gcTime: CACHE_CONFIG.auth.gcTime,

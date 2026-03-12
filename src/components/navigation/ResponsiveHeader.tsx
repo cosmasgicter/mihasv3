@@ -14,7 +14,6 @@ import {
   LogOut,
 } from '@/components/icons'
 import { useAuth } from '@/contexts/AuthContext'
-import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
 import { useSignOutAction } from '@/hooks/useSignOutAction'
 import { SkipLink } from '@/components/ui/SkipLink'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
@@ -31,8 +30,7 @@ interface ResponsiveHeaderProps {
 }
 
 export function ResponsiveHeader({ className }: ResponsiveHeaderProps) {
-  const { user } = useAuth()
-  const { isAdmin } = useRoleQuery({ user })
+  const { user, isAdmin } = useAuth()
   const { signOut, isSigningOut } = useSignOutAction()
   const location = useLocation()
   const [open, setOpen] = useState(false)

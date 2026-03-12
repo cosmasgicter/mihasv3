@@ -17,7 +17,7 @@ import {
   DocumentTemplateId,
   renderTemplateById
 } from '@/lib/documentTemplates'
-import { useRoleQuery } from '@/hooks/auth/useRoleQuery'
+import { useAuth } from '@/contexts/AuthContext'
 import { isReportManagerRole } from '@/lib/auth/roles'
 import { applicationService } from '@/services/applications'
 import { toast } from '@/hooks/useToast'
@@ -136,17 +136,15 @@ const parseBreakdownInput = (value: string) =>
 export function ReportsGenerator() {
   const [loading, setLoading] = useState(false)
   const {
-    userRole,
+    user,
     isAdmin,
-    isLoading: roleLoading,
-    isFetching: roleFetching,
-    error: roleError
-  } = useRoleQuery()
+    loading: roleStatusLoading,
+  } = useAuth()
+  const roleError = null
   const canManageReports = useMemo(
-    () => isReportManagerRole(userRole?.role),
-    [userRole?.role]
+    () => isReportManagerRole(user?.role as string | undefined),
+    [user?.role]
   )
-  const roleStatusLoading = roleLoading || roleFetching
   const [config, setConfig] = useState<ReportConfig>({
     type: 'monthly',
     startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Mail } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { useToastStore } from '@/components/ui/Toast'
+import { useToastStore } from '@/hooks/useToast'
 import { getApiBaseUrl } from '@/lib/apiConfig'
 
 export function TestEmailButton() {

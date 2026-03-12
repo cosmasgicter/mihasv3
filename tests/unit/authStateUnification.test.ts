@@ -76,3 +76,48 @@ describe('Route guards derive auth from AuthContext (Req 1.4, 1.5)', () => {
     });
   }
 });
+
+// ── 3. Consolidated architecture verification ───────────────────────────────
+
+describe('Consolidated architecture verification (Req 10.6)', () => {
+  describe('useSessionListener is the sole auth state provider', () => {
+    it('src/hooks/auth/useSessionListener.ts exists', () => {
+      const filePath = path.resolve(process.cwd(), 'src/hooks/auth/useSessionListener.ts');
+      expect(fs.existsSync(filePath)).toBe(true);
+    });
+
+    it('useSessionListener exports useSessionListener, useAuthCheck, checkIsAdmin', () => {
+      const content = fs.readFileSync(
+        path.resolve(process.cwd(), 'src/hooks/auth/useSessionListener.ts'),
+        'utf-8'
+      );
+      expect(content).toContain('export function useSessionListener()');
+      expect(content).toContain('export function useAuthCheck()');
+      expect(content).toContain('export function checkIsAdmin(');
+    });
+  });
+
+  describe('ApiClient is the sole HTTP client', () => {
+    it('src/services/client.ts exists', () => {
+      const filePath = path.resolve(process.cwd(), 'src/services/client.ts');
+      expect(fs.existsSync(filePath)).toBe(true);
+    });
+
+    it('client.ts exports apiClient and configureApiClientAuthFailure', () => {
+      const content = fs.readFileSync(
+        path.resolve(process.cwd(), 'src/services/client.ts'),
+        'utf-8'
+      );
+      expect(content).toContain('export const apiClient');
+      expect(content).toContain('export function configureApiClientAuthFailure');
+    });
+  });
+
+  describe('CSRF token store is centralized', () => {
+    it('src/lib/csrfToken.ts exists', () => {
+      const filePath = path.resolve(process.cwd(), 'src/lib/csrfToken.ts');
+      expect(fs.existsSync(filePath)).toBe(true);
+    });
+  });
+});
+

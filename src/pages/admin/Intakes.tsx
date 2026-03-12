@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { intakeService } from '@/services/catalog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
@@ -83,14 +84,11 @@ const IntakeFormFields = ({ register, errors }: { register: any; errors: any }) 
 )
 
 export default function AdminIntakes() {
-  const [intakes, setIntakes] = useState<Intake[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const queryClient = useQueryClient()
   const [showCreate, setShowCreate] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [currentIntake, setCurrentIntake] = useState<Intake | null>(null)
-  const [saving, setSaving] = useState(false)
 
   const {
     register,
@@ -110,24 +108,16 @@ export default function AdminIntakes() {
     },
   })
 
-  useEffect(() => {
-    loadIntakes()
-  }, [])
-
-  const loadIntakes = async () => {
-    try {
-      setLoading(true)
-      setError('')
+  const { data: intakes = [], isLoading: loading, error: queryError, refetch } = useQuery({
+    queryKey: ['admin', 'intakes'],
+    queryFn: async () => {
       const response = await intakeService.list()
       // After unwrap, response is { intakes: Intake[] } directly
-      const sortedIntakes = (response?.intakes || []).sort((a: Intake, b: Intake) => b.year - a.year)
-      setIntakes(sortedIntakes)
-    } catch (err: any) {
-      setError(err.message || 'Failed to load intakes')
-    } finally {
-      setLoading(false)
-    }
-  }
+      return (response?.intakes || []).sort((a: Intake, b: Intake) => b.year - a.year)
+    },
+  })
+
+  const error = queryError?.message || ''
 
   const openCreate = () => {
     reset({
@@ -161,37 +151,35 @@ export default function AdminIntakes() {
     setShowDelete(true)
   }
 
-  const handleOperation = async (operation: () => any, onSuccess: () => void) => {
-    try {
-      setSaving(true)
-      setError('')
-      await operation()
-      onSuccess()
-      await loadIntakes()
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setSaving(false)
-    }
+  const mutationOptions = {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'intakes'] })
+    },
   }
 
-  const createIntake = (data: IntakeForm) => handleOperation(
-    () => intakeService.create({
-      name: data.name,
-      year: data.year,
-      start_date: data.start_date,
-      end_date: data.end_date,
-      application_deadline: data.application_deadline,
-      total_capacity: data.total_capacity,
-      available_spots: data.available_spots
-    }),
-    () => setShowCreate(false)
-  )
+  const createMutation = useMutation({
+    mutationFn: async (data: IntakeForm) => {
+      await intakeService.create({
+        name: data.name,
+        year: data.year,
+        start_date: data.start_date,
+        end_date: data.end_date,
+        application_deadline: data.application_deadline,
+        total_capacity: data.total_capacity,
+        available_spots: data.available_spots,
+      })
+    },
+    ...mutationOptions,
+    onSuccess: () => {
+      mutationOptions.onSuccess()
+      setShowCreate(false)
+    },
+  })
 
-  const updateIntake = (data: IntakeForm) => {
-    if (!currentIntake) return
-    handleOperation(
-      () => intakeService.update({
+  const updateMutation = useMutation({
+    mutationFn: async (data: IntakeForm) => {
+      if (!currentIntake) return
+      await intakeService.update({
         id: currentIntake.id,
         name: data.name,
         year: data.year,
@@ -199,24 +187,42 @@ export default function AdminIntakes() {
         end_date: data.end_date,
         application_deadline: data.application_deadline,
         total_capacity: data.total_capacity,
-        available_spots: data.available_spots
-      }),
-      () => {
-        setShowEdit(false)
-        setCurrentIntake(null)
-      }
-    )
+        available_spots: data.available_spots,
+      })
+    },
+    ...mutationOptions,
+    onSuccess: () => {
+      mutationOptions.onSuccess()
+      setShowEdit(false)
+      setCurrentIntake(null)
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentIntake) return
+      await intakeService.delete(currentIntake.id)
+    },
+    ...mutationOptions,
+    onSuccess: () => {
+      mutationOptions.onSuccess()
+      setShowDelete(false)
+      setCurrentIntake(null)
+    },
+  })
+
+  const saving = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending
+
+  const createIntake = (data: IntakeForm) => createMutation.mutate(data)
+
+  const updateIntake = (data: IntakeForm) => {
+    if (!currentIntake) return
+    updateMutation.mutate(data)
   }
 
   const deleteIntake = () => {
     if (!currentIntake) return
-    handleOperation(
-      () => intakeService.delete(currentIntake.id),
-      () => {
-        setShowDelete(false)
-        setCurrentIntake(null)
-      }
-    )
+    deleteMutation.mutate()
   }
 
   return (
@@ -253,7 +259,7 @@ export default function AdminIntakes() {
                 <div className="text-6xl mb-4">😱</div>
                 <p className="text-destructive font-medium text-lg">{error}</p>
                 <Button 
-                  onClick={loadIntakes} 
+                  onClick={() => refetch()} 
                   variant="outline" 
                   className="mt-4 text-destructive border-destructive/30 hover:bg-destructive/5"
                 >

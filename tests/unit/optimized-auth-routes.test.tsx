@@ -27,12 +27,6 @@ vi.mock('@/hooks/queries/useQueryConfig', () => ({
   },
 }))
 
-vi.mock('@/services/authController', () => ({
-  authRequest: vi.fn(),
-  configureAuthController: vi.fn(),
-  logoutWithTwoPhaseClear: vi.fn(),
-}))
-
 vi.mock('@/utils/userDisplayName', () => ({
   getDisplayName: vi.fn((profile: any) => profile?.full_name || ''),
 }))

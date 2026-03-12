@@ -9,6 +9,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { 
   CreditCard, 
   ArrowRight, 
@@ -35,6 +36,7 @@ import {
   normalizePaymentStatus,
   requiresStudentPaymentAction,
 } from '@/lib/paymentStatus'
+import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
 
 interface ApplicationWithPayment {
   id: string
@@ -139,13 +141,56 @@ function getPaymentStatusDisplay(paymentStatus: string | null): {
 export default function PaymentPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
   const [error, setError] = useState<string | null>(null)
-  const [allApplications, setAllApplications] = useState<ApplicationWithPayment[]>([])
   const [notice, setNotice] = useState<string | null>(null)
   const [expandedApplicationId, setExpandedApplicationId] = useState<string | null>(null)
   const [submittingApplicationId, setSubmittingApplicationId] = useState<string | null>(null)
   const [paymentForms, setPaymentForms] = useState<Record<string, PaymentCompletionForm>>({})
+
+  const {
+    data: allApplications = [],
+    isLoading: loading,
+    error: fetchError,
+    refetch: refetchApplications,
+  } = useQuery<ApplicationWithPayment[]>({
+    queryKey: ['payment-applications', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return []
+
+      const response = await applicationService.list({ mine: true })
+
+      type ListPayload = ApplicationsListPayload | ApplicationWithPayment[] | null | undefined
+      const payload = response as ListPayload
+      const listData = payload && !Array.isArray(payload) && Array.isArray(payload.applications)
+        ? payload.applications
+        : (Array.isArray(payload) ? payload : [])
+
+      return listData.map((app) => ({
+        id: app.id,
+        status: app.status,
+        payment_status: app.payment_status,
+        payment_method: app.payment_method,
+        payer_name: (app as any).payer_name ?? null,
+        payer_phone: (app as any).payer_phone ?? null,
+        amount: app.amount,
+        paid_at: (app as any).paid_at ?? null,
+        momo_ref: app.momo_ref,
+        last_payment_audit_notes: (app as any).last_payment_audit_notes ?? null,
+        created_at: app.created_at,
+        program: app.program
+      }))
+    },
+    enabled: !!user?.id,
+    ...CACHE_CONFIG.applications,
+  })
+
+  // Sync fetch error to local error state for unified display
+  useEffect(() => {
+    if (fetchError) {
+      setError('Failed to load payment information. Please try again.')
+    }
+  }, [fetchError])
 
   const paymentActionRequiredApplications = useMemo(
     () => allApplications.filter(app => requiresStudentPaymentAction(app.payment_status)),
@@ -174,58 +219,6 @@ export default function PaymentPage() {
       }
     }))
   }
-
-  async function fetchApplications() {
-    if (!user?.id) {
-      setLoading(false)
-      return
-    }
-
-    try {
-      setLoading(true)
-      setError(null)
-      
-      // Fetch all applications for the user to show payment status
-      // @requirements 2.1, 2.2 - Query and display applications with payment status
-      // Uses new API client which auto-unwraps the { success, data } envelope
-      const response = await applicationService.list({ mine: true })
-
-      // The new client returns the unwrapped payload directly (PaginatedApplicationsResponse)
-      // Defensive check: handle paginated object, plain array, or null/undefined
-      type ListPayload = ApplicationsListPayload | ApplicationWithPayment[] | null | undefined
-      const payload = response as ListPayload
-      const listData = payload && !Array.isArray(payload) && Array.isArray(payload.applications)
-        ? payload.applications
-        : (Array.isArray(payload) ? payload : [])
-
-      const applications = listData.map((app) => ({
-        id: app.id,
-        status: app.status,
-        payment_status: app.payment_status,
-        payment_method: app.payment_method,
-        payer_name: (app as any).payer_name ?? null,
-        payer_phone: (app as any).payer_phone ?? null,
-        amount: app.amount,
-        paid_at: (app as any).paid_at ?? null,
-        momo_ref: app.momo_ref,
-        last_payment_audit_notes: (app as any).last_payment_audit_notes ?? null,
-        created_at: app.created_at,
-        program: app.program
-      }))
-
-      setAllApplications(applications)
-    } catch (err) {
-      console.error('Error fetching applications:', err)
-      // @requirements 6.1 - Display error message on failure
-      setError('Failed to load payment information. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchApplications()
-  }, [user?.id])
 
   const handleContinueToWizard = () => {
     navigate('/student/application-wizard')
@@ -326,7 +319,7 @@ export default function PaymentPage() {
         delete next[applicationId]
         return next
       })
-      await fetchApplications()
+      await refetchApplications()
     } catch (submitError) {
       const message = submitError instanceof Error ? submitError.message : 'Failed to submit payment'
       setFormError(message)
@@ -395,7 +388,7 @@ export default function PaymentPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={fetchApplications}
+                  onClick={() => refetchApplications()}
                   className="flex-shrink-0"
                 >
                   Retry

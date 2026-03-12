@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react'
 import { UnifiedLoader, UnifiedSpinner } from '@/components/ui/UnifiedLoader'
 import { FileText, CheckCircle } from 'lucide-react'
-import { useToastStore } from '@/components/ui/Toast'
+import { useToastStore } from '@/hooks/useToast'
 import { ApplicationCard, ApplicationSummary } from './ApplicationCard'
 import { getPaymentStatusLabel } from '@/lib/paymentStatus'
 
