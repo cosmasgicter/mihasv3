@@ -28,6 +28,8 @@ import {
 import { calculatePointsFromSummary } from '@/utils/grades'
 import { buildApplicationsOverview } from '@/pages/admin/lib/applicationsOverview'
 import { getPaymentStatusLabel } from '@/lib/paymentStatus'
+import { formatApplicationStatus, type ApplicationStatus } from '@/types/applicationStatus'
+import { BULK_ACTION_STATUS_MAP, type BulkApplicationAction } from '@/lib/applicationStatusUi'
 import { 
   FileDown, 
   FileSpreadsheet, 
@@ -57,9 +59,6 @@ const sanitizeSearchTerm = (value: string) => {
     .replace(/[%_]/g, match => `\\${match}`)
     .replace(/,/g, '\\,')
 }
-
-const formatStatusLabel = (value: string) =>
-  value.replace(/_/g, ' ').replace(/\b\w/g, letter => letter.toUpperCase())
 
 const mapRecordToApplication = (record: any): ApplicationData => {
   const points = record.points && Number(record.points) > 0 
@@ -408,7 +407,7 @@ export default function Applications() {
   }, [refreshCurrentPage, showInfo])
 
   // Wrapper for updateStatus with error handling and toast notifications
-  const handleStatusUpdate = useCallback(async (applicationId: string, newStatus: string, options?: { notes?: string; force?: boolean }) => {
+  const handleStatusUpdate = useCallback(async (applicationId: string, newStatus: ApplicationStatus, options?: { notes?: string; force?: boolean }) => {
     try {
       setUpdatingStatusId(applicationId)
       const result = await updateStatus(applicationId, newStatus, options)
@@ -418,7 +417,7 @@ export default function Applications() {
         return result
       }
       
-      showSuccess('Status updated', `Application status changed to ${formatStatusLabel(newStatus)}.`)
+      showSuccess('Status updated', `Application status changed to ${formatApplicationStatus(newStatus)}.`)
       return result
     } catch (error) {
       console.error('Failed to update application status:', error)
@@ -448,7 +447,7 @@ export default function Applications() {
     }
   }, [updatePaymentStatus, showSuccess, showError])
 
-  const handleBulkAction = useCallback(async (action: string, ids: string[]) => {
+  const handleBulkAction = useCallback(async (action: BulkApplicationAction, ids: string[]) => {
     if (ids.length === 0) {
       showError('No selection', 'Please select applications to perform bulk action.')
       return
@@ -456,17 +455,9 @@ export default function Applications() {
     
     setBulkActionLoading(true)
     try {
-      const promises = ids.map(id => {
-        if (action === 'approve') {
-          return updateStatus(id, 'approved')
-        } else if (action === 'reject') {
-          return updateStatus(id, 'rejected')
-        } else if (action === 'review') {
-          return updateStatus(id, 'under_review')
-        }
-        return Promise.resolve()
-      })
-      
+      const targetStatus = BULK_ACTION_STATUS_MAP[action]
+      const promises = ids.map(id => updateStatus(id, targetStatus))
+
       await Promise.all(promises)
       showSuccess('Bulk action completed', `${ids.length} applications updated successfully.`)
       setSelectedIds([])

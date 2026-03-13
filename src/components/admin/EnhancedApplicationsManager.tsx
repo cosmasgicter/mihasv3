@@ -28,6 +28,8 @@ import { Button } from '@/components/ui/Button'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { formatDate } from '@/lib/dateFormat'
+import { formatApplicationStatus, type ApplicationStatus } from '@/types/applicationStatus'
+import { getApplicationStatusBadgeClass, STATUS_FILTER_OPTIONS } from '@/lib/applicationStatusUi'
 
 interface Application {
   id: string
@@ -35,7 +37,7 @@ interface Application {
   full_name: string
   email: string
   program: string
-  status: string
+  status: ApplicationStatus
   created_at: string
   submitted_at?: string
 }
@@ -43,8 +45,8 @@ interface Application {
 interface EnhancedApplicationsManagerProps {
   applications: Application[]
   loading: boolean
-  onStatusUpdate: (id: string, status: string) => void
-  onBulkAction: (action: string, ids: string[]) => void
+  onStatusUpdate: (id: string, status: ApplicationStatus) => void
+  onBulkAction: (action: 'under_review' | 'approved' | 'rejected', ids: string[]) => void
 }
 
 export function EnhancedApplicationsManager({ 
@@ -54,7 +56,7 @@ export function EnhancedApplicationsManager({
   onBulkAction 
 }: EnhancedApplicationsManagerProps) {
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | ApplicationStatus>('all')
   const [selectedApplications, setSelectedApplications] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards')
   const [showBulkActions, setShowBulkActions] = useState(false)
@@ -108,22 +110,9 @@ export function EnhancedApplicationsManager({
     }
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return 'bg-accent/10 text-accent-foreground'
-      case 'rejected':
-        return 'bg-destructive/10 text-destructive-foreground'
-      case 'under_review':
-        return 'bg-primary/10 text-primary-foreground'
-      case 'submitted':
-        return 'bg-accent/10 text-accent-foreground'
-      default:
-        return 'bg-accent text-foreground'
-    }
-  }
+  const getStatusColor = (status: ApplicationStatus) => getApplicationStatusBadgeClass(status)
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: ApplicationStatus) => {
     switch (status) {
       case 'approved':
         return <CheckCircle className="h-4 w-4 text-success" />
@@ -227,14 +216,13 @@ export function EnhancedApplicationsManager({
             
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
               className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary"
             >
               <option value="all">All Status</option>
-              <option value="submitted"><FileText className="w-5 h-5" /> Submitted</option>
-              <option value="under_review"><Search className="w-5 h-5" /> Under Review</option>
-              <option value="approved">✅ Approved</option>
-              <option value="rejected">❌ Rejected</option>
+              {STATUS_FILTER_OPTIONS.map(({ value, label }) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
             </select>
             
             <select
@@ -359,7 +347,7 @@ export function EnhancedApplicationsManager({
                   <div className="flex items-center space-x-2">
                     {getStatusIcon(application.status)}
                     <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(application.status)}`}>
-                      {application.status.replace('_', ' ').toUpperCase()}
+                      {formatApplicationStatus(application.status)}
                     </span>
                   </div>
                 </div>
@@ -485,7 +473,7 @@ export function EnhancedApplicationsManager({
                       <div className="flex items-center space-x-2">
                         {getStatusIcon(application.status)}
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(application.status)}`}>
-                          {application.status.replace('_', ' ').toUpperCase()}
+                          {formatApplicationStatus(application.status)}
                         </span>
                       </div>
                     </td>
