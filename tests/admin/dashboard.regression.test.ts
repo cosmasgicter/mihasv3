@@ -33,18 +33,23 @@ describe('admin dashboard data mapping', () => {
         approved: '4',
         pending: '3',
         rejected: '1',
-        submitted: '2'
+        submitted: '2',
+        under_review: '5'
       }
     })
 
     const response = await adminDashboardService.getOverview()
 
-    expect(ADMIN_DASHBOARD_STATUS_KEYS).toEqual(
-      expect.arrayContaining(['approved', 'pending', 'rejected'])
-    )
+    expect(ADMIN_DASHBOARD_STATUS_KEYS).toEqual([
+      'approved',
+      'pending',
+      'rejected',
+      'submitted',
+      'under_review'
+    ])
 
     const mapped = response.statusBreakdown
-    for (const key of ['approved', 'pending', 'rejected'] as const) {
+    for (const key of ADMIN_DASHBOARD_STATUS_KEYS) {
       expect(mapped).toHaveProperty(key)
       expect(typeof mapped[key]).toBe('number')
     }

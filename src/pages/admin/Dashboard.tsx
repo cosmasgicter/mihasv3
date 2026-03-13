@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { logger } from '@/lib/logger'
 import { useAuth } from '@/contexts/AuthContext'
 import { adminDashboardService } from '@/services/admin/dashboard'
+import type { AdminDashboardActivity, AdminDashboardStats } from '@/services/admin/dashboard'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { Button } from '@/components/ui/Button'
 import { useAdminDashboardRefresh } from '@/hooks/useManualRefresh'
@@ -21,34 +22,10 @@ import { DashboardQuickActions } from '@/components/admin/dashboard/DashboardQui
 
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 
-interface DashboardStats {
-  totalApplications: number
-  pendingApplications: number
-  approvedApplications: number
-  rejectedApplications: number
-  totalPrograms: number
-  activeIntakes: number
-  totalStudents: number
-  todayApplications: number
-  weekApplications: number
-  monthApplications: number
-  avgProcessingTime: number
-  systemHealth: 'excellent' | 'good' | 'warning' | 'critical'
-  activeUsers: number
-}
-
-interface RecentActivity {
-  id: string
-  type: 'application' | 'approval' | 'rejection' | 'system' | 'review'
-  message: string
-  timestamp: string
-  user?: string
-}
-
 export default function AdminDashboard() {
   const { user } = useAuth()
   const { profile } = useProfileQuery()
-  const [stats, setStats] = useState<DashboardStats>({
+  const [stats, setStats] = useState<AdminDashboardStats>({
     totalApplications: 0,
     pendingApplications: 0,
     approvedApplications: 0,
@@ -60,12 +37,17 @@ export default function AdminDashboard() {
     weekApplications: 0,
     monthApplications: 0,
     avgProcessingTime: 0,
-    systemHealth: 'good',
-    activeUsers: 0
+    avgProcessingTimeHours: 0,
+    medianProcessingTimeHours: 0,
+    p95ProcessingTimeHours: 0,
+    decisionVelocity24h: 0,
+    activeUsers: 0,
+    activeUsersLast7d: 0,
+    systemHealth: 'good'
   })
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [error, setError] = useState('')
-  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
+  const [recentActivity, setRecentActivity] = useState<AdminDashboardActivity[]>([])
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [networkError, setNetworkError] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
