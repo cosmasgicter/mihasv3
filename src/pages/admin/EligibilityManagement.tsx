@@ -1,3 +1,8 @@
+/**
+ * @deprecated Staged admin module (not route-reachable).
+ * Ownership: Admissions Rules team.
+ * Activation gate: Add explicit route + feature approval after eligibility policy rollout.
+ */
 import React, { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
