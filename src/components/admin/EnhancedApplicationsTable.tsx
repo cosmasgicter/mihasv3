@@ -8,6 +8,8 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { BulkOperations } from './BulkOperations'
 import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus'
 import { formatDate } from '@/lib/dateFormat'
+import { formatApplicationStatus, type ApplicationStatus } from '@/types/applicationStatus'
+import { getApplicationStatusBadgeClass, STATUS_FILTER_OPTIONS } from '@/lib/applicationStatusUi'
 
 // Institution code to name mapping
 const INSTITUTION_NAMES: Record<string, string> = {
@@ -28,7 +30,7 @@ export interface Application {
   email: string
   phone: string
   program: string
-  status: 'draft' | 'submitted' | 'under-review' | 'approved' | 'rejected'
+  status: ApplicationStatus
   paymentStatus: 'not_paid' | 'pending_review' | 'verified' | 'rejected'
   submittedAt: string
   institution: 'MIHAS' | 'KATC'
@@ -51,7 +53,7 @@ type SortDirection = 'asc' | 'desc'
 
 interface FilterState {
   search: string
-  status: string
+  status: '' | ApplicationStatus
   paymentStatus: string
   program: string
   institution: string
@@ -159,7 +161,7 @@ export function EnhancedApplicationsTable({
   const stats = useMemo(() => {
     const total = filteredAndSortedApplications.length
     const submitted = filteredAndSortedApplications.filter(app => app.status === 'submitted').length
-    const underReview = filteredAndSortedApplications.filter(app => app.status === 'under-review').length
+    const underReview = filteredAndSortedApplications.filter(app => app.status === 'under_review').length
     const approved = filteredAndSortedApplications.filter(app => app.status === 'approved').length
     const pendingPayment = filteredAndSortedApplications.filter(app => normalizePaymentStatus(app.paymentStatus) === 'not_paid').length
 
@@ -203,21 +205,13 @@ export function EnhancedApplicationsTable({
     })
   }
 
-  const getStatusBadge = (status: string) => {
-    const styles = {
-      'draft': 'bg-accent text-foreground',
-      'submitted': 'bg-primary/10 text-primary-foreground',
-      'under-review': 'bg-accent/10 text-accent-foreground',
-      'approved': 'bg-accent/10 text-accent-foreground',
-      'rejected': 'bg-destructive/10 text-destructive-foreground'
-    }[status] || 'bg-accent text-foreground'
-
+  const getStatusBadge = (status: ApplicationStatus) => {
     return (
       <span className={cn(
         'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-        styles
+        getApplicationStatusBadgeClass(status)
       )}>
-        {status.replace('-', ' ').toUpperCase()}
+        {formatApplicationStatus(status)}
       </span>
     )
   }
@@ -350,15 +344,13 @@ export function EnhancedApplicationsTable({
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-4 border-t border-border">
             <select
               value={filters.status}
-              onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+              onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value as FilterState['status'] }))}
               className="flex min-h-[44px] w-full items-center rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             >
               <option value="">All Statuses</option>
-              <option value="draft">Draft</option>
-              <option value="submitted">Submitted</option>
-              <option value="under-review">Under Review</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
+              {STATUS_FILTER_OPTIONS.map(({ value, label }) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
             </select>
             
             <select

@@ -4,10 +4,12 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { STATUS_FILTER_OPTIONS } from '@/lib/applicationStatusUi'
+import { type ApplicationStatus } from '@/types/applicationStatus'
 
 interface BulkOperationsProps {
   selectedCount: number
-  onStatusUpdate?: (status: string) => Promise<void>
+  onStatusUpdate?: (status: ApplicationStatus) => Promise<void>
   onPaymentUpdate?: (status: string) => Promise<void>
   onSendEmail?: () => Promise<void>
   onClearSelection: () => void
@@ -21,7 +23,7 @@ export function BulkOperations({
   onClearSelection
 }: BulkOperationsProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedStatus, setSelectedStatus] = useState('')
+  const [selectedStatus, setSelectedStatus] = useState<ApplicationStatus | ''>('')
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState('')
   const [showConfirmation, setShowConfirmation] = useState<{
     type: 'status' | 'payment' | 'email'
@@ -79,10 +81,7 @@ export function BulkOperations({
 
   const statusOptions = [
     { value: '', label: 'Select Status' },
-    { value: 'submitted', label: 'Submitted' },
-    { value: 'under-review', label: 'Under Review' },
-    { value: 'approved', label: 'Approved' },
-    { value: 'rejected', label: 'Rejected' }
+    ...STATUS_FILTER_OPTIONS
   ]
 
   const paymentStatusOptions = [
@@ -147,7 +146,7 @@ export function BulkOperations({
                     <div className="flex-1">
                       <select
                         value={selectedStatus}
-                        onChange={(e) => setSelectedStatus(e.target.value)}
+                        onChange={(e) => setSelectedStatus(e.target.value as ApplicationStatus | '')}
                         className="flex min-h-[44px] w-full items-center rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                       >
                         {statusOptions.map(opt => (
