@@ -1,4 +1,9 @@
 /**
+ * @deprecated Staged admin module (not route-reachable).
+ * Ownership: Platform Performance team.
+ * Activation gate: Add explicit route + navigation entry after cache-monitor UX review.
+ */
+/**
  * Cache Monitor Page
  * 
  * Admin page for monitoring React Query cache performance
