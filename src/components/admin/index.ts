@@ -5,7 +5,9 @@
 
 // Dashboard components
 export { DashboardSkeleton } from './DashboardSkeleton';
-export { EnhancedDashboard } from './EnhancedDashboard';
+export { DashboardMetricsCards } from './dashboard/DashboardMetricsCards';
+export { DashboardActivityFeed } from './dashboard/DashboardActivityFeed';
+export { DashboardQuickActions } from './dashboard/DashboardQuickActions';
 export { QuickActionsPanel } from './QuickActionsPanel';
 export { RealtimeMetricsDisplay } from './RealtimeMetricsDisplay';
 
