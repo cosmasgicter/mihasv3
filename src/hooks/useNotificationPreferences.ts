@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { notificationService } from '@/services/notifications'
-import { useAuth } from './useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 import { toast } from './useToast'
 import type { NotificationPreferences, PreferenceAuditEntry, ConsentStatus } from '@/types/notifications'
 

@@ -20,27 +20,17 @@ export function useIsMobile(breakpoint: number = DEFAULT_MOBILE_BREAKPOINT): boo
   })
 
   useEffect(() => {
-    // Use matchMedia for better performance
     const mql = window.matchMedia(`(max-width: ${breakpoint - 1}px)`)
-    
+
     const onChange = () => {
       setIsMobile(window.innerWidth < breakpoint)
     }
-    
+
     // Set initial value
     onChange()
-    
-    // Modern browsers
-    if (mql.addEventListener) {
-      mql.addEventListener('change', onChange)
-      return () => mql.removeEventListener('change', onChange)
-    } else {
-      // Fallback for older browsers
-      // @ts-ignore - deprecated but needed for compatibility
-      mql.addListener(onChange)
-      // @ts-ignore
-      return () => mql.removeListener(onChange)
-    }
+
+    mql.addEventListener('change', onChange)
+    return () => mql.removeEventListener('change', onChange)
   }, [breakpoint])
 
   return isMobile
