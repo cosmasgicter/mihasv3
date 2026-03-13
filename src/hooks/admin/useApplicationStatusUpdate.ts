@@ -1,27 +1,26 @@
 /**
  * useApplicationStatusUpdate Hook
  * 
- * Provides optimistic locking for application status updates to handle
- * concurrent modifications when multiple admins work simultaneously.
- * Uses `updated_at` timestamp comparison to detect conflicts.
+ * Provides a canonical status update mutation for admin workflows.
  * 
  * @requirements 2.3 - Multi-Admin Consistency
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useToastStore } from '@/hooks/useToast'
-import { apiClient } from '@/services/client'
+import { applicationService } from '@/services/applications'
+import type { Application } from '@/types/database'
 import { invalidateAdminApplicationQueries } from './applicationQueryInvalidation'
 
 export interface StatusUpdateParams {
   /** The application ID to update */
   applicationId: string
   /** The new status to set */
-  newStatus: string
-  /** The current updated_at timestamp for optimistic locking */
-  currentUpdatedAt: string
+  status: Application['status']
   /** Optional admin feedback/notes */
-  adminFeedback?: string
+  notes?: string
+  /** Optional override for guarded transitions */
+  force?: boolean
 }
 
 export interface StatusUpdateResult {
@@ -58,13 +57,7 @@ export class ConcurrentModificationError extends Error {
 }
 
 /**
- * Hook for updating application status with optimistic locking
- * 
- * Implements:
- * - Optimistic locking using `updated_at` timestamp
- * - Concurrent modification conflict detection
- * - Warning toast and auto-refresh on conflict
- * - Status change recording in `application_status_history`
+ * Hook for updating application status through the canonical service path.
  * 
  * @example
  * ```tsx
@@ -76,9 +69,8 @@ export class ConcurrentModificationError extends Error {
  *   const handleApprove = () => {
  *     updateStatus({
  *       applicationId: application.id,
- *       newStatus: 'approved',
- *       currentUpdatedAt: application.updated_at,
- *       adminFeedback: 'Application meets all requirements'
+ *       status: 'approved',
+ *       notes: 'Application meets all requirements'
  *     })
  *   }
  *   
@@ -97,28 +89,25 @@ export function useApplicationStatusUpdate(options: UseApplicationStatusUpdateOp
 
   const mutation = useMutation({
     mutationFn: async (params: StatusUpdateParams): Promise<StatusUpdateResult> => {
-      const { applicationId, newStatus, currentUpdatedAt, adminFeedback } = params
+      const { applicationId, status, notes, force } = params
 
       try {
-        const result = await apiClient.request<{
+        const result = await applicationService.updateStatus(
+          applicationId,
+          status,
+          notes,
+          force
+        ) as {
           id: string
           application_number: string
           status: string
           admin_feedback?: string
           decision_date?: string
           updated_at: string
-        }>(`/api/applications?id=${applicationId}`, {
-          method: 'POST',
-          body: JSON.stringify({
-            action: 'update_status',
-            status: newStatus,
-            notes: adminFeedback,
-            expected_updated_at: currentUpdatedAt
-          })
-        })
+        }
 
         return {
-          application: result!,
+          application: result,
           conflictDetected: false
         }
       } catch (error) {
