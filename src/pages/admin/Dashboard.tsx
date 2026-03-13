@@ -4,34 +4,20 @@ import { useAuth } from '@/contexts/AuthContext'
 import { adminDashboardService } from '@/services/admin/dashboard'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { Button } from '@/components/ui/Button'
-import { useIsMobile } from '@/hooks/use-mobile'
 import { useAdminDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useToastStore } from '@/hooks/useToast'
-import { 
-  Users, 
-  FileText, 
-  CheckCircle, 
-  XCircle, 
-  Clock,
-  GraduationCap,
-  Calendar,
-  Settings,
-  AlertTriangle,
-  BarChart3,
-  Activity,
-  RefreshCw
-} from 'lucide-react'
+import { AlertTriangle, BarChart3, Activity, RefreshCw } from 'lucide-react'
 import { animateClasses } from '@/lib/animations'
-import { Link } from 'react-router-dom'
 import { Seo } from '@/components/seo/Seo'
 import { useAdminDashboardPolling } from '@/hooks/useAdminDashboardPolling'
-import { EnhancedDashboard, type EnhancedDashboardMetrics } from '@/components/admin/EnhancedDashboard'
-import { QuickActionsPanel } from '@/components/admin/QuickActionsPanel'
 import { RealtimeMetricsDisplay } from '@/components/admin/RealtimeMetricsDisplay'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import OfflineAdminDashboard from '@/components/admin/OfflineAdminDashboard'
 import { getAdminDisplayName, shouldLoadAdminDashboard } from '@/pages/admin/lib/dashboardBootstrap'
 import { PageShell } from '@/components/ui/PageShell'
+import { DashboardMetricsCards, type DashboardMetricsSummary } from '@/components/admin/dashboard/DashboardMetricsCards'
+import { DashboardActivityFeed } from '@/components/admin/dashboard/DashboardActivityFeed'
+import { DashboardQuickActions } from '@/components/admin/dashboard/DashboardQuickActions'
 
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 
@@ -60,7 +46,6 @@ interface RecentActivity {
 }
 
 export default function AdminDashboard() {
-  const isMobile = useIsMobile()
   const { user } = useAuth()
   const { profile } = useProfileQuery()
   const [stats, setStats] = useState<DashboardStats>({
@@ -82,7 +67,6 @@ export default function AdminDashboard() {
   const [error, setError] = useState('')
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [showQuickActions, setShowQuickActions] = useState(true)
   const [networkError, setNetworkError] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const dashboardRequestIdRef = useRef(0)
@@ -121,7 +105,7 @@ export default function AdminDashboard() {
       setError('')
       setNetworkError(false)
 
-      const response = await adminDashboardService.getMetrics()
+      const response = await adminDashboardService.getOverview()
       if (!isLatestRequest()) {
         return
       }
@@ -267,28 +251,14 @@ export default function AdminDashboard() {
     )
   }
 
-  const COLOR_CLASSES = {
-    blue: 'bg-primary text-white',
-    yellow: 'bg-warning text-white',
-    green: 'bg-success text-white',
-    red: 'bg-error text-white',
-    purple: 'bg-secondary text-white',
-    indigo: 'bg-secondary text-white'
-  } as const
-
-
-
-  const gridClasses = isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
-
-  const enhancedMetrics: EnhancedDashboardMetrics = useMemo(() => ({
+  const dashboardMetrics: DashboardMetricsSummary = useMemo(() => ({
     todayApplications: stats.todayApplications,
     pendingApplications: stats.pendingApplications,
     approvalRate: stats.approvedApplications + stats.rejectedApplications > 0
       ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
       : 0,
-    avgProcessingTime: stats.avgProcessingTime,
-    activeUsers: stats.activeUsers
-  }), [stats.todayApplications, stats.pendingApplications, stats.approvedApplications, stats.rejectedApplications, stats.avgProcessingTime, stats.activeUsers])
+    avgProcessingTime: stats.avgProcessingTime
+  }), [stats.todayApplications, stats.pendingApplications, stats.approvedApplications, stats.rejectedApplications, stats.avgProcessingTime])
 
   const { adminFirstName } = useMemo(() => {
     const name = sanitizeForDisplay(getAdminDisplayName(profile, user))
@@ -401,24 +371,21 @@ export default function AdminDashboard() {
           />
         </div>
 
-        {/* Enhanced Dashboard Content */}
+        <div className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}>
+          <DashboardMetricsCards metrics={dashboardMetrics} />
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           <div className="lg:col-span-2">
-            <EnhancedDashboard
-              metrics={enhancedMetrics}
-              recentActivity={recentActivity}
-              onRefresh={handleManualRefresh}
-              isRefreshing={isRefreshing || isManualRefreshing}
-            />
+            <DashboardActivityFeed items={recentActivity} />
           </div>
 
-          {/* Enhanced Sidebar */}
           <div>
-            <QuickActionsPanel stats={{
-              pendingApplications: stats.pendingApplications,
-              totalPrograms: stats.totalPrograms,
-              totalStudents: stats.totalStudents
-            }} />
+            <DashboardQuickActions
+              pendingApplications={stats.pendingApplications}
+              totalPrograms={stats.totalPrograms}
+              totalStudents={stats.totalStudents}
+            />
           </div>
         </div>
         {/* Weekly Overview */}
@@ -445,7 +412,7 @@ export default function AdminDashboard() {
               </div>
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-success">
-                  {enhancedMetrics.approvalRate}%
+                  {dashboardMetrics.approvalRate}%
                 </div>
                 <div className="text-sm font-semibold text-foreground">Success Rate</div>
                 <div className="text-xs font-medium text-primary mt-1">Stable performance</div>
