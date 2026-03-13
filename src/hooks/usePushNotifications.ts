@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { pushNotificationManager } from '@/services/pushNotificationManager'
-import { useAuth } from './useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 
 export interface UsePushNotificationsReturn {
   isSupported: boolean
