@@ -2,6 +2,8 @@ import { apiClient } from '../client'
 
 export type AdminDashboardStatusBreakdown = Record<string, number>
 
+export const ADMIN_DASHBOARD_STATUS_KEYS = ['approved', 'pending', 'rejected', 'submitted', 'under_review'] as const
+
 export type AdminDashboardPeriodTotals = Record<string, number>
 
 export interface AdminDashboardProcessingMetrics {
@@ -308,10 +310,6 @@ export const createEmptyDashboardResponse = (): AdminDashboardResponse => ({
 })
 
 export const adminDashboardService = {
-  async getMetrics(): Promise<AdminDashboardResponse> {
-    return this.getOverview()
-  },
-  
   async getOverview(): Promise<AdminDashboardResponse> {
     try {
       const response = await apiClient.request('/admin?action=dashboard')
