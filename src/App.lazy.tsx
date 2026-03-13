@@ -9,7 +9,3 @@ export const AdminUsers = lazy(() => import('@/pages/admin/Users'))
 export const StudentDashboard = lazy(() => import('@/pages/student/Dashboard'))
 export const ApplicationWizard = lazy(() => import('@/pages/student/ApplicationWizard'))
 
-// Heavy Components - use named export
-export const EnhancedDashboard = lazy(() => 
-  import('@/components/admin/EnhancedDashboard').then(m => ({ default: m.EnhancedDashboard }))
-)
