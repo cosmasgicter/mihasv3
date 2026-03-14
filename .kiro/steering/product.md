@@ -140,3 +140,7 @@ When modifying code, verify:
 - [ ] File uploads validated with magic byte verification (`lib/fileValidator.ts`)
 - [ ] CSRF tokens on state-changing requests
 - [ ] URL inputs validated against open redirects
+- [ ] New utilities go in `src/lib/` (canonical) — never `src/utils/`
+- [ ] Sanitization uses `src/lib/sanitize/` — never create new sanitizer files
+- [ ] Import from canonical paths only (see structure.md Canonical Import Paths table)
+- [ ] Async effects have proper cleanup (AbortController, clearInterval, removeEventListener)

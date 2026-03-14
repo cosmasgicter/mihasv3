@@ -1,7 +1,7 @@
 // @ts-nocheck
 // Smart features for auto-filling forms and processing documents
 
-import { compressImage } from './file-helpers'
+import { compressImage } from '@/lib/utils'
 import { sanitizeForLog } from '../lib/security'
 
 // OCR Service for extracting text from documents

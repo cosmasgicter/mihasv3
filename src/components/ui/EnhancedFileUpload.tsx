@@ -4,7 +4,7 @@ import { Upload, X, Image, FileText, Check, AlertCircle, Minimize2 } from 'lucid
 import { cn } from '@/lib/utils'
 import { UnifiedSpinner } from './UnifiedLoader'
 import { ProgressIndicator } from './ProgressIndicator'
-import { compressImage, validateFile, formatFileSize } from '@/utils/file-helpers'
+import { compressImage, validateFile, formatFileSize } from '@/lib/utils'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 
 interface EnhancedFileUploadProps {

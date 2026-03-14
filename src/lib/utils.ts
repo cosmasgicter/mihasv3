@@ -265,54 +265,6 @@ export function isTouchDevice(): boolean {
   return 'ontouchstart' in window || navigator.maxTouchPoints > 0
 }
 
-// Accessibility utilities
-export function announceToScreenReader(message: string): void {
-  const announcement = document.createElement('div')
-  announcement.setAttribute('aria-live', 'polite')
-  announcement.setAttribute('aria-atomic', 'true')
-  announcement.className = 'sr-only'
-  announcement.textContent = sanitizeHtml(message)
-  
-  document.body.appendChild(announcement)
-  
-  setTimeout(() => {
-    document.body.removeChild(announcement)
-  }, 1000)
-}
-
-// Focus management
-export function trapFocus(element: HTMLElement): () => void {
-  const focusableElements = element.querySelectorAll(
-    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-  ) as NodeListOf<HTMLElement>
-  
-  const firstElement = focusableElements[0]
-  const lastElement = focusableElements[focusableElements.length - 1]
-  
-  const handleTabKey = (e: KeyboardEvent) => {
-    if (e.key !== 'Tab') return
-    
-    if (e.shiftKey) {
-      if (document.activeElement === firstElement) {
-        lastElement.focus()
-        e.preventDefault()
-      }
-    } else {
-      if (document.activeElement === lastElement) {
-        firstElement.focus()
-        e.preventDefault()
-      }
-    }
-  }
-  
-  element.addEventListener('keydown', handleTabKey)
-  firstElement?.focus()
-  
-  return () => {
-    element.removeEventListener('keydown', handleTabKey)
-  }
-}
-
 // URL utilities
 export function isValidUrl(string: string): boolean {
   try {
@@ -325,25 +277,6 @@ export function isValidUrl(string: string): boolean {
 
 export function getBaseUrl(): string {
   return `${window.location.protocol}//${window.location.host}`
-}
-
-// Animation utilities
-export function prefersReducedMotion(): boolean {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-}
-
-// Color utilities
-export function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : null
-}
-
-export function rgbToHex(r: number, g: number, b: number): string {
-  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
 }
 
 // Validation utilities
@@ -379,4 +312,169 @@ export async function copyToClipboard(text: string): Promise<boolean> {
   } catch (error) {
     return false
   }
+}
+
+
+// ── File helper utilities (merged from src/utils/file-helpers.ts) ──
+
+export interface FileValidationResult {
+  isValid: boolean
+  error?: string
+}
+
+// File validation
+export function validateFile(
+  file: File,
+  allowedTypes: string[],
+  maxSize: number
+): FileValidationResult {
+  if (file.size > maxSize) {
+    return {
+      isValid: false,
+      error: `File size (${formatFileSize(file.size)}) exceeds maximum allowed size (${formatFileSize(maxSize)})`
+    }
+  }
+
+  const isValidType = allowedTypes.some(type => {
+    if (type.startsWith('.')) {
+      return file.name.toLowerCase().endsWith(type.toLowerCase())
+    } else if (type.includes('*')) {
+      const baseType = type.split('/')[0]
+      return file.type.startsWith(baseType)
+    } else {
+      return file.type === type
+    }
+  })
+
+  if (!isValidType) {
+    return {
+      isValid: false,
+      error: `File type "${file.type}" is not allowed. Supported types: ${allowedTypes.join(', ')}`
+    }
+  }
+
+  return { isValid: true }
+}
+
+// Generate unique filename to prevent conflicts
+export function generateUniqueFilename(originalName: string): string {
+  const timestamp = Date.now()
+  const random = Math.random().toString(36).substring(2, 8)
+  const extension = originalName.substring(originalName.lastIndexOf('.'))
+  const nameWithoutExtension = originalName.substring(0, originalName.lastIndexOf('.'))
+  return `${nameWithoutExtension}_${timestamp}_${random}${extension}`
+}
+
+// Create thumbnail/preview for images
+export function createImagePreview(file: File, maxSize: number = 200): Promise<string> {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) {
+      reject(new Error('File is not an image'))
+      return
+    }
+
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    const img = new Image()
+
+    img.onload = () => {
+      let { width, height } = img
+      if (width > height) {
+        if (width > maxSize) {
+          height = (height * maxSize) / width
+          width = maxSize
+        }
+      } else {
+        if (height > maxSize) {
+          width = (width * maxSize) / height
+          height = maxSize
+        }
+      }
+      canvas.width = width
+      canvas.height = height
+      ctx?.drawImage(img, 0, 0, width, height)
+      resolve(canvas.toDataURL('image/jpeg', 0.8))
+    }
+
+    img.onerror = () => reject(new Error('Failed to create preview'))
+    img.src = URL.createObjectURL(file)
+  })
+}
+
+// Extract text from images using OCR (basic implementation)
+export async function extractTextFromImage(file: File): Promise<string> {
+  try {
+    return Promise.resolve('OCR extraction would be implemented here')
+  } catch (error) {
+    throw new Error('Failed to extract text from image')
+  }
+}
+
+// File type detection utilities
+export function getFileCategory(file: File): 'image' | 'document' | 'video' | 'audio' | 'other' {
+  if (file.type.startsWith('image/')) return 'image'
+  if (file.type.startsWith('video/')) return 'video'
+  if (file.type.startsWith('audio/')) return 'audio'
+  if (
+    file.type.includes('pdf') ||
+    file.type.includes('doc') ||
+    file.type.includes('text') ||
+    file.type.includes('spreadsheet')
+  ) {
+    return 'document'
+  }
+  return 'other'
+}
+
+// Security: Scan file for potential issues
+export function validateFileForSecurity(file: File): FileValidationResult {
+  const dangerousExtensions = [
+    '.exe', '.bat', '.cmd', '.com', '.scr', '.vbs', '.js', '.jar',
+    '.app', '.deb', '.dmg', '.pkg', '.rpm'
+  ]
+
+  const fileName = file.name.toLowerCase()
+  const isDangerous = dangerousExtensions.some(ext => fileName.endsWith(ext))
+
+  if (isDangerous) {
+    return { isValid: false, error: 'File type not allowed for security reasons' }
+  }
+
+  if (fileName.includes('..') || fileName.includes('/') || fileName.includes('\\')) {
+    return { isValid: false, error: 'Invalid file name' }
+  }
+
+  return { isValid: true }
+}
+
+// Utility to convert File to base64 for API uploads
+export function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        const base64 = reader.result.split(',')[1]
+        resolve(base64)
+      } else {
+        reject(new Error('Failed to convert file to base64'))
+      }
+    }
+    reader.onerror = () => reject(new Error('Failed to read file'))
+  })
+}
+
+// Batch file operations
+export async function processFilesInBatch<T>(
+  files: File[],
+  processor: (file: File) => Promise<T>,
+  concurrency: number = 3
+): Promise<T[]> {
+  const results: T[] = []
+  for (let i = 0; i < files.length; i += concurrency) {
+    const batch = files.slice(i, i + concurrency)
+    const batchResults = await Promise.all(batch.map(processor))
+    results.push(...batchResults)
+  }
+  return results
 }
