@@ -38,6 +38,11 @@ inclusion: always
 - Co-locate component, test, and styles in same directory
 - Use named exports (not default) for better refactoring
 - Memoize expensive computations with `useMemo`/`useCallback`
+- All `useEffect` hooks with async operations must include cleanup:
+  - Fetch calls → `AbortController` with `controller.abort()` in cleanup
+  - Timers → `clearInterval`/`clearTimeout` in cleanup
+  - Event listeners → `removeEventListener` in cleanup
+  - Never use deprecated `MediaQueryList.addListener`/`removeListener`
 
 ### Styling
 - Tailwind utility classes preferred over custom CSS
@@ -193,6 +198,8 @@ The older `src/lib/apiClient.ts` module has been removed. All frontend code now 
 - File uploads validated with magic byte verification (`lib/fileValidator.ts`)
 - URL inputs validated against open redirect attacks (`lib/urlValidator.ts`)
 - All user inputs sanitized via `lib/validation/sanitize.ts`
+- Frontend sanitization uses `src/lib/sanitize/` (unified module) — never create new sanitizer files
+- CSP generation consolidated in `src/lib/securityConfig.ts` — single source for all security config
 
 ### Input Validation (CRITICAL)
 All API endpoints must validate inputs using Zod schemas from `lib/validation/`:

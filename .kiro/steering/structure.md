@@ -33,30 +33,30 @@ inclusion: always
 
 ```
 components/
-├── ui/            → Primitives (Button, Input, Card, Modal, Toast, ConfirmDialog, PasswordInput, InfoCallout, ErrorDisplay, SaveStatusIndicator)
+├── ui/            → Primitives (Button, Input, Card, Modal, Toast, ConfirmDialog, PasswordInput, InfoCallout, ErrorDisplay, SaveStatusIndicator, ErrorBoundary, ResponsiveLayout, skeletons/)
 ├── admin/         → Admin dashboard components
 ├── student/       → Student-facing components
 ├── application/   → Application flow components (ContinueApplication, etc.)
-├── auth/          → Authentication flows
+├── auth/          → Authentication flows (AuthLayout lives here)
 ├── forms/         → Form components, wizards
 ├── layout/        → Layout wrappers
 ├── navigation/    → Nav components
-├── notifications/ → Notification UI
+├── notifications/ → Notification UI (NotificationPreferences lives here)
 ├── pwa/           → PWA install prompts
 ├── seo/           → SEO meta components
 ├── icons/         → Icon components
-├── eligibility/   → Eligibility check UI
 ├── dev/           → Developer/debug components
 ├── examples/      → Example/demo components
 └── smoothui/      → Smooth UI animation components
 
 pages/         → Route-level components (register in routes/)
 hooks/         → Custom hooks (useXxx.ts) — 50+ hooks (3 subdirs: admin/, auth/, queries/)
-services/      → API clients, external integrations
+services/      → API clients, external integrations (notifications.ts is canonical)
 stores/        → Zustand stores (xxxStore.ts)
-lib/           → Frontend utilities, configs, security
+lib/           → Frontend utilities, configs, security (CANONICAL for all utilities)
+lib/sanitize/  → Unified sanitization API
 types/         → TypeScript definitions
-contexts/      → React context providers
+contexts/      → React context providers (AuthContext is canonical for auth)
 routes/        → Route config and guards
 ```
 
@@ -68,10 +68,14 @@ routes/        → Route config and guards
 | `urlSafety.ts` | Frontend URL validation and open redirect prevention |
 | `localStorageCache.ts` | TTL-based localStorage caching |
 | `apiErrorToast.ts` | Standardized API error toast notifications |
-| `securityUtils.ts` | Frontend security utilities |
-| `accessibility-utils.ts` | Accessibility helper functions |
+| `securityConfig.ts` | CSP generation, security headers, rate limiting, session security |
+| `accessibility-utils.ts` | All accessibility helpers (focus trap, screen reader, contrast) |
 | `touch-target-utils.ts` | Touch target size utilities for mobile |
 | `performance-utils.ts` | Performance monitoring utilities |
+| `sanitize/index.ts` | Unified sanitization API (HTML, log, text, file path, email, PII) |
+| `logger.ts` | Structured logger with timestamps (single canonical logger) |
+| `errorMessages.ts` | Error codes, categories, retry logic, domain-specific messages |
+| `draftManager.ts` | Draft management with race-condition protection and cleanup |
 
 ## Naming Conventions
 
@@ -90,7 +94,7 @@ routes/        → Route config and guards
 ```typescript
 // ✅ ALWAYS use @/ alias for cross-directory imports
 import { Button } from '@/components/ui/Button'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 
 // ✅ Use ./ for same-directory imports only
 import { helper } from './utils'
@@ -99,12 +103,39 @@ import { helper } from './utils'
 import { Button } from '../../../components/ui/Button'
 ```
 
+### Canonical Import Paths (Post-Consolidation)
+
+These are the single source of truth for each domain. Do NOT import from deprecated paths.
+
+| Domain | Canonical Import | Deprecated (DO NOT USE) |
+|--------|-----------------|------------------------|
+| Utilities | `@/lib/utils` | `@/utils/file-helpers` |
+| Accessibility | `@/lib/accessibility-utils` | `@/utils/keyboardNavigation`, `@/utils/contrastChecker` |
+| Sanitization | `@/lib/sanitize` | `@/lib/sanitizer`, `@/lib/securityEnhancements` |
+| Logger | `@/lib/logger` | `@/utils/logger` |
+| Error messages | `@/lib/errorMessages` | `@/utils/errorMessages` |
+| Draft management | `@/lib/draftManager` | `@/lib/draftCleanup` |
+| Security config | `@/lib/securityConfig` | `@/lib/securityPatches`, `@/lib/securityHeaders`, `@/lib/securityUtils` |
+| Network status | `@/hooks/useNetworkStatus` | `@/lib/networkChecker`, `@/lib/networkDiagnostics` |
+| Error handling | `@/hooks/useErrorHandler` | `@/hooks/useErrorHandling` |
+| Toast | `@/hooks/useToast` | `@/stores/toastStore` |
+| Notifications | `@/services/notifications` | `@/lib/notificationService`, `@/lib/adminNotifications` |
+| Notification prefs | `@/hooks/queries/useNotificationQueries` | `@/hooks/useNotificationPreferences` |
+| Application queries | `@/hooks/queries/useApplicationDataQueries` | `@/hooks/useApiServices` (application hooks) |
+| Auth context | `@/contexts/AuthContext` | `@/hooks/useAuth` (deprecated shim) |
+| ErrorBoundary | `@/components/ui/ErrorBoundary` | `@/components/ErrorBoundary` |
+| DashboardSkeleton | `@/components/ui/skeletons/DashboardSkeleton` | `@/components/student/DashboardSkeleton`, `@/components/admin/DashboardSkeleton` |
+
+ESLint `no-restricted-imports` rules enforce these canonical paths at error level.
+
 ## File Placement
 
 | Adding | Location | Notes |
 |--------|----------|-------|
 | Component | `src/components/{domain}/` | domain: admin, student, application, auth, forms, ui, etc. |
 | Hook | `src/hooks/useXxx.ts` | Must prefix with `use` |
+| Frontend utility | `src/lib/` | Canonical directory — NOT `src/utils/` |
+| Sanitization function | `src/lib/sanitize/` | Unified sanitization module |
 | API endpoint | `api-src/{feature}.ts` | Add action to existing consolidated endpoint |
 | Page | `src/pages/` | Must register route in `src/routes/` |
 | Type | `src/types/` or co-locate | Co-locate component-specific types |
@@ -116,10 +147,12 @@ import { Button } from '../../../components/ui/Button'
 ## State Management
 
 Choose based on data type:
-1. **Server data** → React Query (`services/`)
+1. **Server data** → React Query (`services/` and `hooks/queries/`)
 2. **Global app state** → Zustand (`stores/`)
-3. **Form state** → React Hook Form + Zod (component-level)
-4. **UI-only state** → `useState` (component-level)
+3. **Global loading state** → Zustand (`stores/loadingStore.ts`)
+4. **Component loading state** → `hooks/useLoadingState.ts` (with min-duration)
+5. **Form state** → React Hook Form + Zod (component-level)
+6. **UI-only state** → `useState` (component-level)
 
 ## Code Principles
 
@@ -128,6 +161,10 @@ Choose based on data type:
 - One main export per file
 - Extract to hooks/utilities when component exceeds 200 lines
 - Organize by feature domain, not technical layer
+- `src/lib/` is the canonical directory for all frontend utilities — never add new utilities to `src/utils/`
+- All sanitization goes through `src/lib/sanitize/` — never create new sanitizer files
+- All async effects must have proper cleanup (AbortController for fetch, clearInterval/clearTimeout for timers, removeEventListener for listeners)
+- Never use deprecated `MediaQueryList.addListener`/`removeListener` — use `addEventListener('change', ...)`
 
 ## API Functions (`api-src/` → `api/`)
 

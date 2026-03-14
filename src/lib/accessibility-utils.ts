@@ -11,6 +11,7 @@
  * Requirements: 10.2, 10.3, 10.4, 10.7
  */
 
+import React from 'react'
 import { cn } from '@/lib/utils'
 
 /**
@@ -229,50 +230,15 @@ export function trapFocus(container: Element, event: KeyboardEvent): void {
 }
 
 /**
- * Color contrast ratio calculation (WCAG 2.1)
- * Returns the contrast ratio between two colors
- */
-export function getContrastRatio(color1: string, color2: string): number {
-  const lum1 = getRelativeLuminance(color1)
-  const lum2 = getRelativeLuminance(color2)
-  
-  const lighter = Math.max(lum1, lum2)
-  const darker = Math.min(lum1, lum2)
-  
-  return (lighter + 0.05) / (darker + 0.05)
-}
-
-/**
- * Calculate relative luminance of a color
- */
-export function getRelativeLuminance(color: string): number {
-  const rgb = hexToRgb(color)
-  if (!rgb) return 0
-  
-  const [r, g, b] = [rgb.r, rgb.g, rgb.b].map(c => {
-    const sRGB = c / 255
-    return sRGB <= 0.03928
-      ? sRGB / 12.92
-      : Math.pow((sRGB + 0.055) / 1.055, 2.4)
-  })
-  
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b
-}
-
-/**
  * Convert hex color to RGB
  */
 export function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-  // Remove # if present
   const cleanHex = hex.replace('#', '')
-  
-  // Handle shorthand hex (e.g., #fff)
   const fullHex = cleanHex.length === 3
     ? cleanHex.split('').map(c => c + c).join('')
     : cleanHex
-  
+
   const result = /^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(fullHex)
-  
   return result
     ? {
         r: parseInt(result[1], 16),
@@ -280,6 +246,72 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } | nul
         b: parseInt(result[3], 16),
       }
     : null
+}
+
+/**
+ * Convert RGB string to RGB values
+ */
+export function rgbStringToRgb(rgb: string): { r: number; g: number; b: number } | null {
+  const match = rgb.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
+  if (match) {
+    return {
+      r: parseInt(match[1], 10),
+      g: parseInt(match[2], 10),
+      b: parseInt(match[3], 10)
+    }
+  }
+  return null
+}
+
+const NAMED_COLORS: Record<string, string> = {
+  'white': '#ffffff', 'black': '#000000', 'red': '#ff0000',
+  'green': '#008000', 'blue': '#0000ff', 'yellow': '#ffff00',
+  'cyan': '#00ffff', 'magenta': '#ff00ff', 'gray': '#808080', 'grey': '#808080'
+}
+
+/**
+ * Parse color string (hex, rgb(), or named) to RGB values
+ */
+export function parseColor(color: string): { r: number; g: number; b: number } | null {
+  if (color.startsWith('#')) return hexToRgb(color)
+  if (color.startsWith('rgb(')) return rgbStringToRgb(color)
+  if (NAMED_COLORS[color.toLowerCase()]) return hexToRgb(NAMED_COLORS[color.toLowerCase()])
+  return null
+}
+
+/**
+ * Calculate relative luminance of a color (WCAG 2.1)
+ */
+export function getRelativeLuminance(color: string): number {
+  const rgb = parseColor(color)
+  if (!rgb) return 0
+
+  const [r, g, b] = [rgb.r, rgb.g, rgb.b].map(c => {
+    const sRGB = c / 255
+    return sRGB <= 0.03928
+      ? sRGB / 12.92
+      : Math.pow((sRGB + 0.055) / 1.055, 2.4)
+  })
+
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
+/**
+ * Color contrast ratio calculation (WCAG 2.1)
+ * Accepts hex, rgb(), or named colors
+ */
+export function getContrastRatio(color1: string, color2: string): number {
+  const c1 = parseColor(color1)
+  const c2 = parseColor(color2)
+  if (!c1 || !c2) return 1
+
+  const lum1 = getRelativeLuminance(color1)
+  const lum2 = getRelativeLuminance(color2)
+
+  const lighter = Math.max(lum1, lum2)
+  const darker = Math.min(lum1, lum2)
+
+  return (lighter + 0.05) / (darker + 0.05)
 }
 
 /**
@@ -348,4 +380,207 @@ export const srOnlyStyles = {
   clip: 'rect(0, 0, 0, 0)',
   whiteSpace: 'nowrap' as const,
   border: '0',
+}
+
+// ─── Contrast Checker Utilities (merged from src/utils/contrastChecker.ts) ───
+
+/**
+ * Get accessibility level for color combination
+ */
+export function getAccessibilityLevel(
+  foreground: string,
+  background: string,
+  isLargeText: boolean = false
+): 'AAA' | 'AA' | 'FAIL' {
+  if (meetsWcagAAA(getContrastRatio(foreground, background), isLargeText)) return 'AAA'
+  if (meetsWcagAA(getContrastRatio(foreground, background), isLargeText)) return 'AA'
+  return 'FAIL'
+}
+
+/**
+ * Suggest an accessible color based on a base color and background
+ */
+export function suggestAccessibleColor(
+  baseColor: string,
+  background: string,
+  targetRatio: number = 4.5
+): string {
+  const bgColor = parseColor(background)
+  if (!bgColor) return baseColor
+
+  const bgLuminance = getRelativeLuminance(background)
+  const needsLighter = bgLuminance < 0.5
+
+  const baseRgb = parseColor(baseColor)
+  if (!baseRgb) return baseColor
+
+  let { r, g, b } = baseRgb
+  let attempts = 0
+
+  while (attempts < 50) {
+    const currentRatio = getContrastRatio(`rgb(${r}, ${g}, ${b})`, background)
+    if (currentRatio >= targetRatio) return `rgb(${r}, ${g}, ${b})`
+
+    if (needsLighter) {
+      r = Math.min(255, r + 5)
+      g = Math.min(255, g + 5)
+      b = Math.min(255, b + 5)
+    } else {
+      r = Math.max(0, r - 5)
+      g = Math.max(0, g - 5)
+      b = Math.max(0, b - 5)
+    }
+    attempts++
+  }
+
+  return needsLighter ? '#ffffff' : '#000000'
+}
+
+/**
+ * Validate a color palette against WCAG AA standards
+ */
+export function validateColorPalette(palette: {
+  [key: string]: { color: string; background: string; isLargeText?: boolean }
+}): {
+  [key: string]: { ratio: number; level: 'AAA' | 'AA' | 'FAIL'; passes: boolean }
+} {
+  const results: Record<string, { ratio: number; level: 'AAA' | 'AA' | 'FAIL'; passes: boolean }> = {}
+  for (const [key, config] of Object.entries(palette)) {
+    const ratio = getContrastRatio(config.color, config.background)
+    const level = getAccessibilityLevel(config.color, config.background, config.isLargeText)
+    results[key] = { ratio: Math.round(ratio * 100) / 100, level, passes: level !== 'FAIL' }
+  }
+  return results
+}
+
+/**
+ * Development helper: Log contrast validation results
+ */
+export function logContrastValidation(
+  name: string,
+  foreground: string,
+  background: string,
+  isLargeText: boolean = false
+): void {
+  if (process.env.NODE_ENV !== 'development') return
+  const ratio = getContrastRatio(foreground, background)
+  const level = getAccessibilityLevel(foreground, background, isLargeText)
+  const status = level !== 'FAIL' ? '✅' : '❌'
+  const textSize = isLargeText ? 'Large' : 'Normal'
+  console.log(`${status} ${name} (${textSize}): ${ratio.toFixed(2)}:1 (${level})`)
+  if (level === 'FAIL') {
+    console.log(`   💡 Suggested: ${suggestAccessibleColor(foreground, background)}`)
+  }
+}
+
+// ─── Keyboard Navigation Utilities (merged from src/utils/keyboardNavigation.ts) ───
+
+/**
+ * Standard keyboard key constants
+ */
+export const KEYS = {
+  ENTER: 'Enter',
+  SPACE: ' ',
+  ESCAPE: 'Escape',
+  TAB: 'Tab',
+  ARROW_UP: 'ArrowUp',
+  ARROW_DOWN: 'ArrowDown',
+  ARROW_LEFT: 'ArrowLeft',
+  ARROW_RIGHT: 'ArrowRight',
+  HOME: 'Home',
+  END: 'End',
+  PAGE_UP: 'PageUp',
+  PAGE_DOWN: 'PageDown',
+} as const
+
+/** Handle Enter key press for button-like elements */
+export function handleEnterKey(event: React.KeyboardEvent, callback: () => void): void {
+  if (event.key === KEYS.ENTER) { event.preventDefault(); callback() }
+}
+
+/** Handle Space key press for button-like elements */
+export function handleSpaceKey(event: React.KeyboardEvent, callback: () => void): void {
+  if (event.key === KEYS.SPACE) { event.preventDefault(); callback() }
+}
+
+/** Handle Enter or Space key press for button-like elements */
+export function handleActivationKeys(event: React.KeyboardEvent, callback: () => void): void {
+  if (event.key === KEYS.ENTER || event.key === KEYS.SPACE) { event.preventDefault(); callback() }
+}
+
+/** Handle Escape key press for closing modals/dialogs */
+export function handleEscapeKey(event: React.KeyboardEvent, callback: () => void): void {
+  if (event.key === KEYS.ESCAPE) { event.preventDefault(); callback() }
+}
+
+/** Handle arrow key navigation in lists */
+export function handleArrowNavigation(
+  event: React.KeyboardEvent,
+  currentIndex: number,
+  itemCount: number,
+  onNavigate: (newIndex: number) => void
+): void {
+  let newIndex = currentIndex
+  switch (event.key) {
+    case KEYS.ARROW_UP: event.preventDefault(); newIndex = currentIndex > 0 ? currentIndex - 1 : itemCount - 1; break
+    case KEYS.ARROW_DOWN: event.preventDefault(); newIndex = currentIndex < itemCount - 1 ? currentIndex + 1 : 0; break
+    case KEYS.HOME: event.preventDefault(); newIndex = 0; break
+    case KEYS.END: event.preventDefault(); newIndex = itemCount - 1; break
+    default: return
+  }
+  onNavigate(newIndex)
+}
+
+/** Handle horizontal arrow key navigation (e.g., tabs) */
+export function handleHorizontalArrowNavigation(
+  event: React.KeyboardEvent,
+  currentIndex: number,
+  itemCount: number,
+  onNavigate: (newIndex: number) => void
+): void {
+  let newIndex = currentIndex
+  switch (event.key) {
+    case KEYS.ARROW_LEFT: event.preventDefault(); newIndex = currentIndex > 0 ? currentIndex - 1 : itemCount - 1; break
+    case KEYS.ARROW_RIGHT: event.preventDefault(); newIndex = currentIndex < itemCount - 1 ? currentIndex + 1 : 0; break
+    case KEYS.HOME: event.preventDefault(); newIndex = 0; break
+    case KEYS.END: event.preventDefault(); newIndex = itemCount - 1; break
+    default: return
+  }
+  onNavigate(newIndex)
+}
+
+/** Focus the first focusable element in a container */
+export function focusFirstElement(container: HTMLElement): void {
+  const elements = getFocusableElements(container)
+  elements[0]?.focus()
+}
+
+/** Focus the last focusable element in a container */
+export function focusLastElement(container: HTMLElement): void {
+  const elements = getFocusableElements(container)
+  elements[elements.length - 1]?.focus()
+}
+
+/** Check if an element is focusable */
+export function isFocusable(element: HTMLElement): boolean {
+  return element.matches(focusTrapSelectors)
+}
+
+/** Create keyboard event handler for search inputs */
+export function createSearchKeyHandler(onSearch: () => void): (event: React.KeyboardEvent) => void {
+  return (event) => { if (event.key === KEYS.ENTER) { event.preventDefault(); onSearch() } }
+}
+
+/** Create keyboard event handler for form submission (Ctrl/Cmd+Enter) */
+export function createFormSubmitKeyHandler(onSubmit: () => void): (event: React.KeyboardEvent) => void {
+  return (event) => { if (event.key === KEYS.ENTER && (event.ctrlKey || event.metaKey)) { event.preventDefault(); onSubmit() } }
+}
+
+/** Skip to main content (for keyboard navigation) */
+export function skipToMainContent(): void {
+  const mainContent = document.querySelector('main') || document.querySelector('[role="main"]')
+  if (mainContent instanceof HTMLElement) {
+    mainContent.focus()
+    mainContent.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 }

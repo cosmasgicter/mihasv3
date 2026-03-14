@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import { fileToBase64 } from '@/utils/file-helpers'
+import { fileToBase64 } from '@/lib/utils'
 
 export const documentService = {
   /** Upload a document. Maps to POST /api/documents?action=upload */

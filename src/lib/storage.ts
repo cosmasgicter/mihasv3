@@ -6,7 +6,7 @@
  */
 
 import { sanitizeForLog } from './security'
-import { fileToBase64 } from '@/utils/file-helpers'
+import { fileToBase64 } from '@/lib/utils'
 
 export interface UploadResult {
   success: boolean
