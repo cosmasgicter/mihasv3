@@ -21,7 +21,7 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
       case 'processing':
         return <RefreshCw className="h-5 w-5 text-primary animate-spin" />
       case 'retry':
-        return <RefreshCw className="h-5 w-5 text-orange-500 animate-spin" />
+        return <RefreshCw className="h-5 w-5 text-warning animate-spin" />
       case 'completed':
         return <CheckCircle className="h-5 w-5 text-success" />
       case 'failed':
@@ -34,15 +34,15 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
   const getStatusColor = () => {
     switch (status.status) {
       case 'pending':
-        return 'border-yellow-200 bg-yellow-50'
+        return 'border-warning/30 bg-warning/5'
       case 'processing':
-        return 'border-blue-200 bg-blue-50'
+        return 'border-info/30 bg-info/5'
       case 'retry':
-        return 'border-orange-200 bg-orange-50'
+        return 'border-warning/30 bg-warning/5'
       case 'completed':
-        return 'border-green-200 bg-green-50'
+        return 'border-success/30 bg-success/5'
       case 'failed':
-        return 'border-red-200 bg-red-50'
+        return 'border-destructive/30 bg-destructive/5'
       default:
         return 'border-border bg-muted'
     }

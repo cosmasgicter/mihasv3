@@ -132,3 +132,69 @@ export class DraftManager {
 }
 
 export const draftManager = DraftManager.getInstance()
+
+
+// ─── Standalone Draft Cleanup Functions (merged from src/lib/draftCleanup.ts) ───
+
+const DRAFT_KEYS = [
+  'applicationDraft',
+  'applicationWizardDraft',
+  'applicationDraftOffline',
+  'draftFormData',
+  'wizardFormData',
+  'applicationFormData',
+  'wizardState',
+  'applicationState',
+] as const;
+
+/**
+ * Clear all draft data from localStorage and sessionStorage.
+ * Sets a 'draftDeleted' flag in sessionStorage and dispatches a 'draftCleared' event.
+ */
+export const clearAllDraftData = (): boolean => {
+  try {
+    DRAFT_KEYS.forEach(key => {
+      try { localStorage.removeItem(key); } catch {}
+      try { sessionStorage.removeItem(key); } catch {}
+    });
+
+    // Clear any other keys that might contain draft data
+    [localStorage, sessionStorage].forEach(storage => {
+      try {
+        Object.keys(storage)
+          .filter(key => key.includes('draft') || key.includes('wizard') || key.includes('application') || key.includes('form') || key.includes('step'))
+          .forEach(key => { try { storage.removeItem(key); } catch {} });
+      } catch {}
+    });
+
+    try { sessionStorage.setItem('draftDeleted', 'true'); } catch {}
+    try { window.dispatchEvent(new CustomEvent('draftCleared')); } catch {}
+
+    return true;
+  } catch (error) {
+    console.error('Error clearing draft data:', error);
+    return false;
+  }
+};
+
+export const isDraftDeleted = (): boolean => {
+  try { return sessionStorage.getItem('draftDeleted') === 'true'; } catch { return false; }
+};
+
+export const clearDraftDeletedFlag = (): void => {
+  try { sessionStorage.removeItem('draftDeleted'); } catch {}
+};
+
+export const hasDraftData = (): boolean => {
+  try {
+    for (const key of DRAFT_KEYS) {
+      if (localStorage.getItem(key) || sessionStorage.getItem(key)) return true;
+    }
+    for (const storage of [localStorage, sessionStorage]) {
+      for (const key of Object.keys(storage)) {
+        if (key.includes('draft') || key.includes('wizard') || key.includes('application')) return true;
+      }
+    }
+    return false;
+  } catch { return false; }
+};

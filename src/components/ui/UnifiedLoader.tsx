@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import type { HTMLAttributes } from 'react'
 import { cn } from '@/lib/utils'
 
@@ -6,6 +7,8 @@ export interface UnifiedLoaderProps extends HTMLAttributes<HTMLElement> {
   size?: 'sm' | 'md' | 'lg'
   label?: string
   message?: string
+  timeoutMs?: number
+  onTimeout?: () => void
 }
 
 const spinnerSize = {
@@ -68,9 +71,20 @@ export function UnifiedLoader({
   size = 'md',
   label,
   message,
+  timeoutMs,
+  onTimeout,
   className,
   ...props
 }: UnifiedLoaderProps) {
+  const [isTimedOut, setIsTimedOut] = useState(false)
+
+  useEffect(() => {
+    if (timeoutMs == null) return
+    setIsTimedOut(false)
+    const timer = setTimeout(() => setIsTimedOut(true), timeoutMs)
+    return () => clearTimeout(timer)
+  }, [timeoutMs])
+
   const accessibleLabel = message ?? label ?? 'Loading'
   const spinner = (
     <>
@@ -78,6 +92,23 @@ export function UnifiedLoader({
       <StaticIcon size={size} />
     </>
   )
+
+  const timeoutContent = isTimedOut ? (
+    <div className="flex flex-col items-center gap-2">
+      <p className="text-muted-foreground text-sm" role="alert">
+        This is taking longer than expected
+      </p>
+      {onTimeout && (
+        <button
+          type="button"
+          onClick={onTimeout}
+          className="min-h-[44px] rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          Retry
+        </button>
+      )}
+    </div>
+  ) : null
 
   if (variant === 'page') {
     return (
@@ -89,6 +120,7 @@ export function UnifiedLoader({
       >
         {spinner}
         <span className={cn('text-muted-foreground', labelSize[size])}>{accessibleLabel}</span>
+        {timeoutContent}
         <span className="sr-only" aria-live="polite">{accessibleLabel}</span>
       </div>
     )
@@ -103,6 +135,7 @@ export function UnifiedLoader({
         className={cn('inline-flex items-center gap-2', className)}
       >
         {spinner}
+        {timeoutContent}
         <span className="sr-only" aria-live="polite">{accessibleLabel}</span>
       </span>
     )
@@ -121,6 +154,7 @@ export function UnifiedLoader({
     >
       {spinner}
       <span className={cn('text-muted-foreground', labelSize[size])}>{accessibleLabel}</span>
+      {timeoutContent}
       <span className="sr-only" aria-live="polite">{accessibleLabel}</span>
     </div>
   )

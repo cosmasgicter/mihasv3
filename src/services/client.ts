@@ -10,7 +10,7 @@
 import { getApiBaseUrl } from '@/lib/apiConfig';
 import { fetchWithCache, invalidateCache } from '@/utils/api-cache';
 import { ApiErrorHandler } from '@/lib/apiErrorHandler';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { getCsrfToken, setCsrfToken } from '@/lib/csrfToken';
 import { TIMEOUT_ERROR_MESSAGE } from '@/lib/errorMessages';
 

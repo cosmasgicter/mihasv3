@@ -34,7 +34,7 @@ export function DraftWarningBanner({
 
   return (
     <div className={cn(
-      'bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6',
+      'bg-warning/5 border border-warning/30 rounded-lg p-4 mb-6',
       'flex items-start space-x-3',
       className
     )}>
@@ -44,7 +44,7 @@ export function DraftWarningBanner({
         <h3 className="text-sm font-medium text-accent-foreground">
           Draft Found
         </h3>
-        <p className="text-sm text-yellow-700 mt-1">
+        <p className="text-sm text-warning-foreground mt-1">
           We found an unsaved draft from {formatTimestamp(draftTimestamp)}. 
           Would you like to restore it or start fresh?
         </p>
@@ -152,7 +152,7 @@ export function SessionTimeoutWarning({
   return (
     <div className={cn(
       'fixed top-4 left-1/2 transform -translate-x-1/2 z-50',
-      'bg-red-50 border border-red-200 rounded-lg p-4 shadow-lg',
+      'bg-destructive/5 border border-destructive/30 rounded-lg p-4 shadow-lg',
       'max-w-sm w-full mx-4',
       className
     )}>
@@ -199,7 +199,7 @@ export function FormRecoveryBanner({
 }: FormRecoveryBannerProps) {
   return (
     <div className={cn(
-      'bg-red-50 border border-red-200 rounded-lg p-4 mb-6',
+      'bg-destructive/5 border border-destructive/30 rounded-lg p-4 mb-6',
       'flex items-start space-x-3',
       className
     )}>

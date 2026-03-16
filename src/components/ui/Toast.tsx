@@ -235,17 +235,17 @@ const iconMap = {
 };
 
 const typeStyles = {
-  success: 'border-green-300 bg-green-50 text-green-900',
-  error: 'border-red-300 bg-red-50 text-red-900',
-  info: 'border-blue-300 bg-blue-50 text-blue-900',
-  warning: 'border-yellow-300 bg-yellow-50 text-yellow-900',
+  success: 'border-success/30 bg-success/5 text-foreground',
+  error: 'border-destructive/30 bg-destructive/5 text-foreground',
+  info: 'border-info/30 bg-info/5 text-foreground',
+  warning: 'border-warning/30 bg-warning/5 text-foreground',
 };
 
 const iconStyles = {
-  success: 'text-green-600',
-  error: 'text-red-600',
-  info: 'text-blue-600',
-  warning: 'text-yellow-600',
+  success: 'text-success',
+  error: 'text-destructive',
+  info: 'text-info',
+  warning: 'text-warning',
 };
 
 function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
@@ -308,8 +308,8 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
               className={cn(
                 'mt-2 inline-flex items-center gap-1.5 text-sm font-medium',
                 'rounded-md px-3 py-1.5 transition-colors',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500',
-                'bg-red-100 hover:bg-red-200 text-red-800'
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring',
+                'bg-destructive/10 hover:bg-destructive/20 text-destructive min-h-[44px] min-w-[44px]'
               )}
             >
               <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />

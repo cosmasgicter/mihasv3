@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { logger } from '@/utils/logger'
+import { logger } from '@/lib/logger'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { apiClient } from '@/services/client'
 

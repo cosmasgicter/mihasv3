@@ -230,9 +230,9 @@ export function ActiveSessions() {
       </div>
 
       {currentSession && (
-        <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50/70 px-4 py-3">
+        <div className="mb-4 rounded-xl border border-success/30 bg-success/5 px-4 py-3">
           <div className="flex items-start gap-3">
-            <ShieldCheck className="mt-0.5 h-5 w-5 text-emerald-600" />
+            <ShieldCheck className="mt-0.5 h-5 w-5 text-success" />
             <div>
               <p className="text-sm font-semibold text-foreground">Current device protected</p>
               <p className="text-sm text-muted-foreground">
@@ -248,7 +248,7 @@ export function ActiveSessions() {
       )}
 
       {hasSessionAccessIssue && (
-        <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+        <div className="mb-4 rounded-md border border-warning/30 bg-warning/5 px-3 py-2 text-sm text-warning-foreground">
           Session details are temporarily unavailable. Your current session remains active.
         </div>
       )}
@@ -269,7 +269,7 @@ export function ActiveSessions() {
               <div
                 key={session.id}
                 className={`flex items-center justify-between p-3 rounded-lg border ${
-                  session.is_current ? 'bg-green-50 border-green-200' : 'bg-muted border-border'
+                  session.is_current ? 'bg-success/5 border-success/30' : 'bg-muted border-border'
                 }`}
               >
                 <div className="flex items-center space-x-3">

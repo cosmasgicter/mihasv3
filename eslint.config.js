@@ -71,6 +71,55 @@ export default [
               ],
               message: 'Deprecated UI module import blocked. Use canonical primitives from @/components/ui (Button, UnifiedLoader, CanonicalSelect, radio-group).',
             },
+            // Consolidation: deprecated utility paths
+            {
+              group: ['@/utils/logger'],
+              message: 'Use @/lib/logger instead.',
+            },
+            {
+              group: ['@/utils/errorMessages'],
+              message: 'Use @/lib/errorMessages instead.',
+            },
+            {
+              group: ['@/lib/sanitizer', '@/lib/securityEnhancements'],
+              message: 'Use @/lib/sanitize instead.',
+            },
+            {
+              group: ['@/utils/keyboardNavigation', '@/utils/contrastChecker'],
+              message: 'Use @/lib/accessibility-utils instead.',
+            },
+            {
+              group: ['@/lib/draftCleanup'],
+              message: 'Use @/lib/draftManager instead.',
+            },
+            {
+              group: ['@/lib/networkChecker', '@/lib/networkDiagnostics'],
+              message: 'Use @/hooks/useNetworkStatus instead.',
+            },
+            {
+              group: ['@/stores/toastStore'],
+              message: 'Use @/hooks/useToast instead.',
+            },
+            {
+              group: ['@/lib/notificationService', '@/lib/adminNotifications'],
+              message: 'Use @/services/notifications instead.',
+            },
+            {
+              group: ['@/lib/securityPatches', '@/lib/securityHeaders', '@/lib/securityUtils'],
+              message: 'Use @/lib/securityConfig or @/lib/sanitize instead.',
+            },
+            {
+              group: ['@/hooks/useErrorHandling'],
+              message: 'Use @/hooks/useErrorHandler or @/hooks/useAsyncOperation instead.',
+            },
+            {
+              group: ['@/hooks/useNotificationPreferences'],
+              message: 'Use @/hooks/queries/useNotificationQueries instead.',
+            },
+            {
+              group: ['@/components/ErrorBoundary'],
+              message: 'Use @/components/ui/ErrorBoundary instead.',
+            },
           ],
         },
       ],

@@ -218,7 +218,7 @@ function ConfirmAlertDialog({
             {showCancel && (
               <AlertDialogCancel asChild>
                 <button
-                  className="text-foreground hover:text-muted-foreground transition-colors p-1 rounded-md hover:bg-gray-100"
+                  className="text-foreground hover:text-muted-foreground transition-colors p-1 rounded-md hover:bg-muted"
                   aria-label="Close"
                 >
                   <X className="h-5 w-5" />

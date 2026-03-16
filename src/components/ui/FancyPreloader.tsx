@@ -4,7 +4,7 @@ import { GraduationCap } from 'lucide-react'
 export function FancyPreloader() {
   return (
     <div
-      className="fixed inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 flex items-center justify-center z-50 animate-fade-in"
+      className="fixed inset-0 bg-gradient-vibrant flex items-center justify-center z-50 animate-fade-in"
     >
       <div className="text-center relative">
         {/* Animated background glow */}

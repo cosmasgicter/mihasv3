@@ -47,17 +47,17 @@ export function safeJsonParse<T>(value: string | null | undefined, fallback: T):
 // Consistent status badge styling helper
 const STATUS_COLOR_MAP: Record<string, string> = {
   draft: 'bg-muted text-foreground border border-border',
-  pending: 'bg-yellow-200 text-yellow-900 border border-yellow-300',
-  pending_review: 'bg-yellow-200 text-yellow-900 border border-yellow-300',
-  under_review: 'bg-blue-200 text-blue-900 border border-blue-300',
-  in_progress: 'bg-blue-200 text-blue-900 border border-blue-300',
-  approved: 'bg-green-200 text-green-900 border border-green-300',
-  verified: 'bg-green-200 text-green-900 border border-green-300',
-  completed: 'bg-green-200 text-green-900 border border-green-300',
-  rejected: 'bg-red-200 text-red-900 border border-red-300',
-  declined: 'bg-red-200 text-red-900 border border-red-300',
-  cancelled: 'bg-red-200 text-red-900 border border-red-300',
-  expired: 'bg-slate-300 text-slate-900 border border-slate-400'
+  pending: 'bg-warning/20 text-foreground border border-warning/30',
+  pending_review: 'bg-warning/20 text-foreground border border-warning/30',
+  under_review: 'bg-info/20 text-foreground border border-info/30',
+  in_progress: 'bg-info/20 text-foreground border border-info/30',
+  approved: 'bg-success/20 text-foreground border border-success/30',
+  verified: 'bg-success/20 text-foreground border border-success/30',
+  completed: 'bg-success/20 text-foreground border border-success/30',
+  rejected: 'bg-destructive/20 text-foreground border border-destructive/30',
+  declined: 'bg-destructive/20 text-foreground border border-destructive/30',
+  cancelled: 'bg-destructive/20 text-foreground border border-destructive/30',
+  expired: 'bg-muted text-foreground border border-border'
 }
 
 export function getStatusColor(status?: string | null): string {

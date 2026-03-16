@@ -77,7 +77,7 @@ export function EnhancedInput({
             'text-sm text-foreground placeholder-muted-foreground',
             'transition-colors duration-200',
             // Focus states
-            'focus:border-primary focus:ring-2 focus:ring-blue-500/20',
+            'focus:border-primary focus:ring-2 focus:ring-ring/20',
             'focus:outline-none',
             // Mobile optimizations
             'min-h-[44px] px-3 py-2.5', // Ensure 44px touch target
@@ -86,9 +86,9 @@ export function EnhancedInput({
             leftIcon && 'pl-10',
             rightIcon && 'pr-10',
             // Error state
-            errorMessage && 'border-destructive/30 focus:border-error focus:ring-red-500/20',
+            errorMessage && 'border-destructive/30 focus:border-error focus:ring-destructive/20',
             // Success state
-            success && 'border-green-300 focus:border-success focus:ring-green-500/20',
+            success && 'border-success/30 focus:border-success focus:ring-success/20',
             // Disabled state
             'disabled:bg-muted disabled:text-foreground disabled:cursor-not-allowed',
             className
@@ -103,7 +103,7 @@ export function EnhancedInput({
               'absolute right-3 top-1/2 transform -translate-y-1/2',
               'text-foreground hover:text-foreground',
               'min-w-[24px] min-h-[24px] flex items-center justify-center',
-              'focus:outline-none focus:ring-2 focus:ring-blue-500 rounded',
+              'focus:outline-none focus:ring-2 focus:ring-ring rounded',
               onRightIconClick ? 'cursor-pointer' : 'cursor-default'
             )}
             disabled={!onRightIconClick}
@@ -188,16 +188,16 @@ export function EnhancedTextarea({
           'text-sm text-foreground placeholder-muted-foreground',
           'transition-colors duration-200',
           // Focus states
-          'focus:border-primary focus:ring-2 focus:ring-blue-500/20',
+          'focus:border-primary focus:ring-2 focus:ring-ring/20',
           'focus:outline-none',
           // Mobile optimizations
           'min-h-[88px] px-3 py-2.5', // Double height for textarea
           'text-base sm:text-sm', // Prevent zoom on iOS
           'resize-y', // Allow vertical resize only
           // Error state
-          errorMessage && 'border-destructive/30 focus:border-error focus:ring-red-500/20',
+          errorMessage && 'border-destructive/30 focus:border-error focus:ring-destructive/20',
           // Success state
-          success && 'border-green-300 focus:border-success focus:ring-green-500/20',
+          success && 'border-success/30 focus:border-success focus:ring-success/20',
           // Disabled state
           'disabled:bg-muted disabled:text-foreground disabled:cursor-not-allowed',
           className
@@ -282,7 +282,7 @@ export function EnhancedSelect({
           'text-sm text-foreground',
           'transition-colors duration-200',
           // Focus states
-          'focus:border-primary focus:ring-2 focus:ring-blue-500/20',
+          'focus:border-primary focus:ring-2 focus:ring-ring/20',
           'focus:outline-none',
           // Mobile optimizations
           'min-h-[44px] px-3 py-2.5', // Ensure 44px touch target
@@ -292,9 +292,9 @@ export function EnhancedSelect({
           'bg-no-repeat bg-right bg-[length:16px_16px]',
           'pr-10', // Space for arrow
           // Error state
-          errorMessage && 'border-destructive/30 focus:border-error focus:ring-red-500/20',
+          errorMessage && 'border-destructive/30 focus:border-error focus:ring-destructive/20',
           // Success state
-          success && 'border-green-300 focus:border-success focus:ring-green-500/20',
+          success && 'border-success/30 focus:border-success focus:ring-success/20',
           // Disabled state
           'disabled:bg-muted disabled:text-foreground disabled:cursor-not-allowed',
           className

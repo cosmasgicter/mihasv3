@@ -24,14 +24,14 @@ export interface PageHeaderProps {
 }
 
 const variantStyles: Record<NonNullable<PageHeaderProps['variant']>, string> = {
- gradient: 'bg-gradient-to-r from-blue-600/90 to-indigo-600/85 text-white border-card/20 shadow-2xl',
+ gradient: 'bg-gradient-vibrant text-primary-foreground border-card/20 shadow-2xl',
  surface: 'bg-card text-foreground border border-border shadow-xl',
  subtle: 'bg-card/90 text-foreground border border-card/60 shadow-lg backdrop-blur-sm'
 }
 
 const statAccentStyles: Record<StatAccent, string> = {
  primary: 'bg-primary/5 border-primary/30 text-primary',
- secondary: 'bg-secondary/5 border-input/30 text-purple-700',
+ secondary: 'bg-secondary/5 border-input/30 text-secondary-foreground',
  success: 'bg-success/10 border-success/30 text-success',
  warning: 'bg-warning/10 border-warning/30 text-accent',
  neutral: 'bg-muted border-border text-foreground'
@@ -60,7 +60,7 @@ export function PageHeader({
  const { label, value, icon: statIcon, accent = 'neutral' } = stat
 
  const baseClasses = isGradient
- ? 'bg-white/95 border-white/40 text-slate-900 backdrop-blur-md'
+ ? 'bg-white/95 border-white/40 text-foreground backdrop-blur-md'
  : statAccentStyles[accent]
 
  return (
@@ -73,10 +73,10 @@ export function PageHeader({
  >
  {statIcon && <span className="shrink-0 text-lg">{statIcon}</span>}
  <div className="space-y-1">
- <p className={cn('text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-slate-600' : 'text-foreground')}>
+ <p className={cn('text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-muted-foreground' : 'text-foreground')}>
  {label}
  </p>
- <p className={cn('text-lg sm:text-xl md:text-2xl font-bold break-words', isGradient ? 'text-slate-900' : '')}>{value}</p>
+ <p className={cn('text-lg sm:text-xl md:text-2xl font-bold break-words', isGradient ? 'text-foreground' : '')}>{value}</p>
  </div>
  </div>
  )
@@ -109,7 +109,7 @@ export function PageHeader({
 								 <div
 									 className={cn(
 										 'flex items-center justify-center rounded-2xl border shadow-inner',
-										 isGradient ? 'border-white/40 bg-white/95 text-slate-900 backdrop-blur-md' : 'border-primary/10 bg-primary/5 text-primary'
+										 isGradient ? 'border-white/40 bg-white/95 text-foreground backdrop-blur-md' : 'border-primary/10 bg-primary/5 text-primary'
 									 )}
 									 style={{ width: '3.5rem', height: '3.5rem', fontSize: 'var(--type-2xl)' }}
 								 >

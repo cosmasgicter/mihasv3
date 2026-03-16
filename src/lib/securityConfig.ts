@@ -75,95 +75,78 @@ export function disableDangerousFunctions(): void {
 }
 
 /**
- * Input sanitization utilities
+ * Input sanitization utilities — import from @/lib/sanitize for the canonical SecuritySanitizer.
+ * This re-export is kept for backward compatibility within securityConfig consumers.
  */
-export class SecuritySanitizer {
-  /**
-   * Sanitize HTML content to prevent XSS
-   */
-  static sanitizeHTML(html: string): string {
-    const div = document.createElement('div')
-    div.textContent = html
-    return div.innerHTML
+export { SecuritySanitizer } from '@/lib/sanitize';
+
+/**
+ * Secure math expression parser (merged from securityPatches.ts).
+ * Replaces eval()/Function() with a safe recursive descent parser.
+ */
+export class SecureCodeExecution {
+  static evaluateMathExpression(expression: string): number {
+    const sanitized = expression.replace(/[^0-9+\-*/.() ]/g, '');
+    if (!sanitized || !/^[0-9+\-*/.() ]+$/.test(sanitized)) return 0;
+    try { return this.parseMathExpression(sanitized); } catch { return 0; }
   }
-  
-  /**
-   * Sanitize user input for safe display
-   */
-  static sanitizeInput(input: string): string {
-    return input
-      .replace(/[<>\"'&]/g, (match) => {
-        const entities: Record<string, string> = {
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#x27;',
-          '&': '&amp;'
-        }
-        return entities[match] || match
-      })
-      .trim()
-      .substring(0, 1000) // Limit length
-  }
-  
-  /**
-   * Sanitize URL to prevent javascript: and data: schemes
-   */
-  static sanitizeURL(url: string): string {
-    try {
-      const urlObj = new URL(url)
-      const allowedProtocols = ['http:', 'https:', 'mailto:']
-      
-      if (!allowedProtocols.includes(urlObj.protocol)) {
-        throw new Error('Protocol not allowed')
+
+  private static parseMathExpression(expr: string): number {
+    let pos = 0;
+    const clean = expr.replace(/\s/g, '');
+    const parseNumber = (): number => {
+      let num = '';
+      while (pos < clean.length && /[0-9.]/.test(clean[pos])) num += clean[pos++];
+      return parseFloat(num) || 0;
+    };
+    const parseFactor = (): number => {
+      if (clean[pos] === '(') { pos++; const r = parseExpression(); pos++; return r; }
+      return parseNumber();
+    };
+    const parseTerm = (): number => {
+      let r = parseFactor();
+      while (pos < clean.length && (clean[pos] === '*' || clean[pos] === '/')) {
+        const op = clean[pos++]; const right = parseFactor();
+        r = op === '*' ? r * right : r / right;
       }
-      
-      return urlObj.toString()
-    } catch {
-      return '#'
-    }
-  }
-  
-  /**
-   * Validate and sanitize JSON input
-   */
-  static sanitizeJSON(jsonString: string): any {
-    try {
-      // Remove potentially dangerous patterns
-      const cleaned = jsonString
-        .replace(/__proto__/g, '')
-        .replace(/constructor/g, '')
-        .replace(/prototype/g, '')
-      
-      const parsed = JSON.parse(cleaned)
-      
-      // Remove dangerous properties from parsed object
-      if (parsed && typeof parsed === 'object') {
-        this.removeDangerousProperties(parsed)
+      return r;
+    };
+    const parseExpression = (): number => {
+      let r = parseTerm();
+      while (pos < clean.length && (clean[pos] === '+' || clean[pos] === '-')) {
+        const op = clean[pos++]; const right = parseTerm();
+        r = op === '+' ? r + right : r - right;
       }
-      
-      return parsed
-    } catch (error) {
-      throw new Error('Invalid JSON input')
-    }
+      return r;
+    };
+    return parseExpression();
   }
-  
-  /**
-   * Recursively remove dangerous properties from objects
-   */
-  private static removeDangerousProperties(obj: any): void {
-    if (!obj || typeof obj !== 'object') return
-    
-    const dangerousProps = ['__proto__', 'constructor', 'prototype']
-    
-    for (const prop of dangerousProps) {
-      delete obj[prop]
-    }
-    
-    for (const value of Object.values(obj)) {
-      if (value && typeof value === 'object') {
-        this.removeDangerousProperties(value)
-      }
+}
+
+/**
+ * Client-side rate limiter (consolidated from securityPatches.ts and securityEnhancements.ts).
+ */
+export class RateLimiter {
+  private static requests = new Map<string, number[]>();
+
+  static checkLimit(identifier: string, maxRequests: number = 10, windowMs: number = 60000): boolean {
+    const now = Date.now();
+    const windowStart = now - windowMs;
+    if (!this.requests.has(identifier)) this.requests.set(identifier, []);
+    const userRequests = this.requests.get(identifier)!;
+    const valid = userRequests.filter(t => t > windowStart);
+    if (valid.length >= maxRequests) return false;
+    valid.push(now);
+    this.requests.set(identifier, valid);
+    return true;
+  }
+
+  static cleanup(): void {
+    const cutoff = Date.now() - 60 * 60 * 1000;
+    for (const [key, timestamps] of this.requests.entries()) {
+      const valid = timestamps.filter(t => t > cutoff);
+      if (valid.length === 0) this.requests.delete(key);
+      else this.requests.set(key, valid);
     }
   }
 }

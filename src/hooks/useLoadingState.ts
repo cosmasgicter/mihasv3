@@ -1,7 +1,15 @@
 /**
- * Loading State Hook
- * Provides consistent loading state management for async operations
- * Ensures loading indicators appear within 100ms
+ * Loading State Hook — Component-Level Loading
+ * 
+ * Use this hook for component-scoped loading states with min-duration support.
+ * 
+ * Loading state strategy:
+ * - Global loading state → `src/stores/loadingStore.ts` (Zustand)
+ * - Component-level loading → this hook (`useLoadingState`)
+ * - Server data loading → React Query (automatic via `useQuery`)
+ * 
+ * Provides consistent loading state management for async operations.
+ * Ensures loading indicators appear within 100ms.
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react'
