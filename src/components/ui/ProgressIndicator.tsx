@@ -42,14 +42,14 @@ export function ProgressIndicator({
   return (
     <div className={cn('w-full space-y-2', className)}>
       {/* Progress bar */}
-      <div className={cn('w-full bg-slate-200 rounded-full overflow-hidden', sizeClasses[size])}>
+      <div className={cn('w-full bg-muted rounded-full overflow-hidden', sizeClasses[size])}>
         <div
           className={cn(
             'h-full rounded-full transition-all duration-300 ease-out',
-            status === 'success' && 'bg-green-600',
-            status === 'error' && 'bg-red-600',
-            status === 'loading' && 'bg-blue-600',
-            status === 'idle' && 'bg-slate-400'
+            status === 'success' && 'bg-success',
+            status === 'error' && 'bg-destructive',
+            status === 'loading' && 'bg-primary',
+            status === 'idle' && 'bg-muted-foreground'
           )}
           style={{ width: `${clampedProgress}%` }}
         />
@@ -59,20 +59,20 @@ export function ProgressIndicator({
       <div className="flex items-center justify-between text-sm">
         <div className="flex items-center space-x-2">
           {status === 'loading' && (
-            <Loader2 className={cn('animate-spin text-blue-600', iconSizes[size])} />
+            <Loader2 className={cn('animate-spin text-primary', iconSizes[size])} />
           )}
           {status === 'success' && (
-            <CheckCircle className={cn('text-green-600', iconSizes[size])} />
+            <CheckCircle className={cn('text-success', iconSizes[size])} />
           )}
           {status === 'error' && (
-            <XCircle className={cn('text-red-600', iconSizes[size])} />
+            <XCircle className={cn('text-destructive', iconSizes[size])} />
           )}
           {message && (
-            <span className="text-slate-700 font-medium">{message}</span>
+            <span className="text-foreground font-medium">{message}</span>
           )}
         </div>
         {showPercentage && (
-          <span className="text-slate-600 font-semibold">
+          <span className="text-muted-foreground font-semibold">
             {Math.round(clampedProgress)}%
           </span>
         )}
@@ -115,7 +115,7 @@ export function CircularProgress({
           stroke="currentColor"
           strokeWidth={strokeWidth}
           fill="none"
-          className="text-slate-200"
+          className="text-muted"
         />
         {/* Progress circle */}
         <circle
@@ -128,12 +128,12 @@ export function CircularProgress({
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          className="text-blue-600 transition-all duration-500 ease-out"
+          className="text-primary transition-all duration-500 ease-out"
         />
       </svg>
       {showPercentage && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-sm font-semibold text-slate-700">
+          <span className="text-sm font-semibold text-foreground">
             {Math.round(clampedProgress)}%
           </span>
         </div>
@@ -164,13 +164,13 @@ export function IndeterminateProgress({
 
   return (
     <div className={cn('w-full space-y-2', className)}>
-      <div className={cn('w-full bg-slate-200 rounded-full overflow-hidden', sizeClasses[size])}>
+      <div className={cn('w-full bg-muted rounded-full overflow-hidden', sizeClasses[size])}>
         <div
-          className="h-full w-1/3 bg-blue-600 rounded-full animate-[indeterminate_1.5s_ease-in-out_infinite]"
+          className="h-full w-1/3 bg-primary rounded-full animate-[indeterminate_1.5s_ease-in-out_infinite]"
         />
       </div>
       {message && (
-        <p className="text-sm text-slate-700 font-medium">{message}</p>
+        <p className="text-sm text-foreground font-medium">{message}</p>
       )}
     </div>
   )

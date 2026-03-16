@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { sanitizeHtml } from '@/lib/sanitizer'
+import { sanitizeHtml } from '@/lib/sanitize'
 
 describe('sanitizeHtml', () => {
   it('strips dangerous tags like script', () => {

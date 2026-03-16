@@ -40,9 +40,9 @@ export function RealtimeStatusIndicator({
   }
 
   const getStatusColor = () => {
-    if (isReconnecting) return 'bg-yellow-400'
-    if (isConnected) return 'bg-green-500'
-    return 'bg-gray-400'
+    if (isReconnecting) return 'bg-warning'
+    if (isConnected) return 'bg-success'
+    return 'bg-muted-foreground'
   }
 
   const getStatusLabel = () => {
@@ -94,7 +94,7 @@ export function RealtimeStatusIndicator({
           <span 
             className={`
               absolute inline-flex h-full w-full rounded-full 
-              bg-green-400 opacity-75 animate-ping
+              bg-success opacity-75 animate-ping
             `}
             style={{ animationDuration: '2s' }}
           />
@@ -104,9 +104,9 @@ export function RealtimeStatusIndicator({
       {showLabel && (
         <span className={`
           text-xs font-medium
-          ${isConnected ? 'text-green-600 dark:text-green-400' : ''}
-          ${isReconnecting ? 'text-yellow-600 dark:text-yellow-400' : ''}
-          ${!isConnected && !isReconnecting ? 'text-muted-foreground dark:text-gray-400' : ''}
+          ${isConnected ? 'text-success dark:text-success' : ''}
+          ${isReconnecting ? 'text-warning dark:text-warning' : ''}
+          ${!isConnected && !isReconnecting ? 'text-muted-foreground dark:text-muted-foreground' : ''}
         `}>
           {getStatusLabel()}
         </span>

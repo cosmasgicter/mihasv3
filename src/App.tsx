@@ -25,7 +25,7 @@ import {
   DetailSkeleton,
 } from '@/components/ui/skeletons'
 
-import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { InstallBanner } from '@/components/ui/InstallBanner'
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'
 import { OfflineBanner } from '@/components/ui/OfflineBanner'

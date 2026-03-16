@@ -6,7 +6,7 @@ type PaddingScale = 'sm' | 'md' | 'lg'
 
 const headerVariantStyles: Record<HeaderVariant, string> = {
   default: 'bg-card',
-  tinted: 'bg-gradient-to-r from-muted to-blue-50',
+  tinted: 'bg-gradient-to-r from-muted to-muted/50',
   plain: 'bg-transparent'
 }
 

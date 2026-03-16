@@ -70,3 +70,89 @@ export function isNetworkError(error: unknown): boolean {
   }
   return false
 }
+
+
+// ─── Rich Error Message System (merged from src/utils/errorMessages.ts) ───
+
+export interface ErrorMessage {
+  title: string;
+  description: string;
+  action?: string;
+  actionLabel?: string;
+  technicalDetails?: string;
+}
+
+export enum ErrorCategory {
+  NETWORK = 'network',
+  AUTHENTICATION = 'authentication',
+  AUTHORIZATION = 'authorization',
+  VALIDATION = 'validation',
+  NOT_FOUND = 'not_found',
+  SERVER = 'server',
+  CLIENT = 'client',
+  TIMEOUT = 'timeout',
+  RATE_LIMIT = 'rate_limit',
+  FILE_UPLOAD = 'file_upload',
+  PAYMENT = 'payment',
+  DATABASE = 'database',
+  UNKNOWN = 'unknown',
+}
+
+export function getErrorMessage(error: any): ErrorMessage {
+  if (error.message?.includes('fetch') || error.message?.includes('network')) {
+    return { title: 'Connection Problem', description: 'We couldn\'t connect to the server.', action: 'retry', actionLabel: 'Try Again', technicalDetails: error.message };
+  }
+  if (error.status === 401 || error.message?.includes('unauthorized')) {
+    return { title: 'Session Expired', description: 'Your session has expired. Please sign in again.', action: '/auth/signin', actionLabel: 'Sign In', technicalDetails: error.message };
+  }
+  if (error.status === 403 || error.message?.includes('forbidden')) {
+    return { title: 'Access Denied', description: 'You don\'t have permission to access this resource.', action: '/contact', actionLabel: 'Contact Support', technicalDetails: error.message };
+  }
+  if (error.status === 400 || error.message?.includes('validation')) {
+    return { title: 'Invalid Information', description: error.details || 'Some information is invalid. Please check and try again.', action: 'review', actionLabel: 'Review Form', technicalDetails: error.message };
+  }
+  if (error.status === 404) {
+    return { title: 'Not Found', description: 'The resource you\'re looking for doesn\'t exist.', action: '/', actionLabel: 'Go Home', technicalDetails: error.message };
+  }
+  if (error.status >= 500) {
+    return { title: 'Server Error', description: 'Something went wrong on our end.', action: 'retry', actionLabel: 'Try Again', technicalDetails: error.message };
+  }
+  if (error.message?.includes('timeout')) {
+    return { title: 'Request Timeout', description: 'The request took too long.', action: 'retry', actionLabel: 'Try Again', technicalDetails: error.message };
+  }
+  if (error.status === 429) {
+    return { title: 'Too Many Requests', description: 'Please wait a moment and try again.', action: 'wait', actionLabel: 'Wait and Retry', technicalDetails: error.message };
+  }
+  return { title: 'Something Went Wrong', description: 'An unexpected error occurred.', action: 'retry', actionLabel: 'Try Again', technicalDetails: error.message || JSON.stringify(error) };
+}
+
+export function getErrorCategory(error: any): ErrorCategory {
+  if (error.message?.includes('fetch') || error.message?.includes('network')) return ErrorCategory.NETWORK;
+  if (error.status === 401) return ErrorCategory.AUTHENTICATION;
+  if (error.status === 403) return ErrorCategory.AUTHORIZATION;
+  if (error.status === 400) return ErrorCategory.VALIDATION;
+  if (error.status === 404) return ErrorCategory.NOT_FOUND;
+  if (error.status === 429) return ErrorCategory.RATE_LIMIT;
+  if (error.status >= 500) return ErrorCategory.SERVER;
+  if (error.message?.includes('timeout')) return ErrorCategory.TIMEOUT;
+  return ErrorCategory.UNKNOWN;
+}
+
+export function formatError(error: any): ErrorMessage {
+  return getErrorMessage(error);
+}
+
+export function isRetryableError(error: any): boolean {
+  const category = getErrorCategory(error);
+  return [ErrorCategory.NETWORK, ErrorCategory.TIMEOUT, ErrorCategory.SERVER, ErrorCategory.RATE_LIMIT].includes(category);
+}
+
+export function getRetryDelay(error: any, attempt: number): number {
+  const category = getErrorCategory(error);
+  const baseDelay = 1000;
+  const maxDelay = 30000;
+  let delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000;
+  delay = Math.min(delay, maxDelay);
+  if (category === ErrorCategory.RATE_LIMIT) delay = Math.max(delay, 60000);
+  return delay;
+}

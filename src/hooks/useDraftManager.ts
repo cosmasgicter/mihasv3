@@ -4,7 +4,7 @@ import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { applicationSessionManager } from '@/lib/applicationSession'
 import { draftManager } from '@/lib/draftManager'
 import { useToastStore } from '@/hooks/useToast'
-import { clearAllDraftData } from '@/lib/draftCleanup'
+import { clearAllDraftData } from '@/lib/draftManager'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 
 export const useDraftManager = () => {

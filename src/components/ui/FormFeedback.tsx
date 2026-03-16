@@ -46,27 +46,27 @@ export function FormFeedback({
   const statusConfig = {
     loading: {
       icon: Loader2,
-      iconClass: 'text-blue-600 animate-spin',
-      bgClass: 'bg-blue-50 border-blue-200',
-      textClass: 'text-blue-800',
+      iconClass: 'text-primary animate-spin',
+      bgClass: 'bg-info/5 border-info/30',
+      textClass: 'text-foreground',
     },
     success: {
       icon: CheckCircle,
-      iconClass: 'text-green-600',
-      bgClass: 'bg-green-50 border-green-200',
-      textClass: 'text-green-800',
+      iconClass: 'text-success',
+      bgClass: 'bg-success/5 border-success/30',
+      textClass: 'text-foreground',
     },
     error: {
       icon: XCircle,
-      iconClass: 'text-red-600',
-      bgClass: 'bg-red-50 border-red-200',
-      textClass: 'text-red-800',
+      iconClass: 'text-destructive',
+      bgClass: 'bg-destructive/5 border-destructive/30',
+      textClass: 'text-foreground',
     },
     warning: {
       icon: AlertCircle,
-      iconClass: 'text-yellow-600',
-      bgClass: 'bg-yellow-50 border-yellow-200',
-      textClass: 'text-yellow-800',
+      iconClass: 'text-warning',
+      bgClass: 'bg-warning/5 border-warning/30',
+      textClass: 'text-foreground',
     },
   }
 
@@ -136,19 +136,19 @@ export function InlineFormFeedback({ type, message, className }: InlineFormFeedb
   const typeConfig = {
     error: {
       icon: XCircle,
-      textClass: 'text-red-600',
+      textClass: 'text-destructive',
     },
     success: {
       icon: CheckCircle,
-      textClass: 'text-green-600',
+      textClass: 'text-success',
     },
     warning: {
       icon: AlertCircle,
-      textClass: 'text-yellow-600',
+      textClass: 'text-warning',
     },
     info: {
       icon: AlertCircle,
-      textClass: 'text-blue-600',
+      textClass: 'text-info',
     },
   }
 
@@ -186,8 +186,8 @@ export function FormSubmitButton({
       disabled={disabled || isLoading}
       className={cn(
         'inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold',
-        'bg-blue-600 text-white hover:bg-blue-700',
-        'focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2',
+        'bg-primary text-primary-foreground hover:bg-primary/90',
+        'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         'transition-all duration-100',
         'active:scale-95',

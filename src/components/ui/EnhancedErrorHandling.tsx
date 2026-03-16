@@ -27,25 +27,25 @@ const toastIcons = {
 
 const toastStyles = {
   success: {
-    container: 'bg-green-50 border-green-200',
+    container: 'bg-success/5 border-success/30',
     icon: 'text-success',
     title: 'text-accent-foreground',
     message: 'text-accent'
   },
   error: {
-    container: 'bg-red-50 border-red-200',
+    container: 'bg-destructive/5 border-destructive/30',
     icon: 'text-error',
     title: 'text-destructive-foreground',
     message: 'text-error'
   },
   warning: {
-    container: 'bg-yellow-50 border-yellow-200',
+    container: 'bg-warning/5 border-warning/30',
     icon: 'text-warning',
     title: 'text-accent-foreground',
-    message: 'text-yellow-700'
+    message: 'text-warning-foreground'
   },
   info: {
-    container: 'bg-blue-50 border-blue-200',
+    container: 'bg-info/5 border-info/30',
     icon: 'text-primary',
     title: 'text-primary-foreground',
     message: 'text-primary'

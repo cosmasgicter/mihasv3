@@ -1,4 +1,5 @@
 import React from 'react'
+import { AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -59,9 +60,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {error && (
           <p
             id={`${inputId}-error`}
-            className="mt-1 text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1 duration-150 motion-reduce:animate-none"
+            className="mt-1 flex items-center gap-1.5 text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1 duration-150 motion-reduce:animate-none"
             role="alert"
           >
+            <AlertCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
             {error}
           </p>
         )}

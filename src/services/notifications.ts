@@ -86,3 +86,79 @@ export const notificationService = {
       body: JSON.stringify({ notificationId })
     }),
 }
+
+
+// ─── Template-Based Notification Service (merged from src/lib/notificationService.ts) ───
+
+import type { NotificationData } from '@/types/notifications'
+
+const NOTIFICATION_TEMPLATES = {
+  submitted: {
+    title: '✅ Application Submitted Successfully',
+    content: (applicationNumber: string, program: string) =>
+      `Your application #${applicationNumber} for ${program} has been submitted and is under review.`,
+    type: 'success' as const,
+  },
+  approved: {
+    title: '🎉 Application Approved!',
+    content: (applicationNumber: string, program: string) =>
+      `Congratulations! Your application #${applicationNumber} for ${program} has been approved.`,
+    type: 'success' as const,
+  },
+  rejected: {
+    title: '❌ Application Status Update',
+    content: (applicationNumber: string, program: string) =>
+      `Your application #${applicationNumber} for ${program} has been reviewed. Please check your email for feedback.`,
+    type: 'error' as const,
+  },
+  pending_documents: {
+    title: '📄 Documents Required',
+    content: (applicationNumber: string, program: string) =>
+      `Your application #${applicationNumber} requires additional documents.`,
+    type: 'warning' as const,
+  },
+} as const;
+
+export class NotificationService {
+  static async sendNotification(data: NotificationData): Promise<boolean> {
+    if (!data.userId || !data.title || !data.content) return false;
+    try {
+      await apiClient.request('/notifications?action=send', {
+        method: 'POST',
+        body: JSON.stringify({
+          user_id: data.userId,
+          title: data.title,
+          message: data.content,
+          type: data.type || 'info',
+        }),
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  static async sendWelcomeNotification(userId: string, userName: string): Promise<boolean> {
+    if (!userId || !userName) return false;
+    return this.sendNotification({
+      userId,
+      title: '🎓 Welcome to MIHAS-KATC!',
+      content: `Welcome ${userName}! Your account has been created successfully.`,
+      type: 'success',
+    });
+  }
+
+  static async sendApplicationStatusNotification(
+    userId: string, applicationId: string, status: string,
+    applicationNumber: string, program: string
+  ): Promise<boolean> {
+    const template = NOTIFICATION_TEMPLATES[status as keyof typeof NOTIFICATION_TEMPLATES];
+    if (!template) return false;
+    return this.sendNotification({
+      userId,
+      title: template.title,
+      content: template.content(applicationNumber, program),
+      type: template.type,
+    });
+  }
+}

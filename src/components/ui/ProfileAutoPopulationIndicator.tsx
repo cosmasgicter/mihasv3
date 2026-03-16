@@ -11,7 +11,7 @@ export function ProfileAutoPopulationIndicator({ isPopulated, fieldName }: Profi
 
   return (
     <div
-      className="inline-flex items-center space-x-1 text-xs text-green-800 bg-green-100 px-2 py-1 rounded-full border border-green-300 animate-scale-in"
+      className="inline-flex items-center space-x-1 text-xs text-success-foreground bg-success/10 px-2 py-1 rounded-full border border-success/30 animate-scale-in"
     >
       <CheckCircle className="h-3 w-3" />
       <span>Auto-filled from profile</span>
@@ -28,10 +28,10 @@ export function ProfileCompletionBadge({ completionPercentage, missingFields = [
   const [expanded, setExpanded] = useState(false)
 
   const getColor = () => {
-    if (completionPercentage >= 100) return 'bg-green-100 text-green-800 border-green-300'
-    if (completionPercentage >= 80) return 'bg-green-100 text-green-800 border-green-300'
-    if (completionPercentage >= 60) return 'bg-yellow-100 text-yellow-800 border-yellow-300'
-    return 'bg-red-100 text-red-800 border-red-300'
+    if (completionPercentage >= 100) return 'bg-success/10 text-success-foreground border-success/30'
+    if (completionPercentage >= 80) return 'bg-success/10 text-success-foreground border-success/30'
+    if (completionPercentage >= 60) return 'bg-warning/10 text-warning-foreground border-warning/30'
+    return 'bg-destructive/10 text-destructive-foreground border-destructive/30'
   }
 
   const hasMissing = completionPercentage < 100 && missingFields.length > 0
@@ -65,7 +65,7 @@ export function ProfileCompletionBadge({ completionPercentage, missingFields = [
           <ul className="space-y-1">
             {missingFields.map(({ key, label }) => (
               <li key={key} className="flex items-center gap-2 text-sm text-foreground">
-                <span className="h-1.5 w-1.5 rounded-full bg-red-400 flex-shrink-0" />
+                <span className="h-1.5 w-1.5 rounded-full bg-destructive flex-shrink-0" />
                 {label}
               </li>
             ))}

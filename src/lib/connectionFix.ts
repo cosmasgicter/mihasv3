@@ -4,7 +4,17 @@
  */
 
 import { apiClient } from '@/services/client'
-import { networkDiagnostics } from './networkDiagnostics'
+
+/** Simple connectivity check — replaces networkDiagnostics dependency */
+async function testConnection(): Promise<{ status: 'online' | 'offline' }> {
+  if (!navigator.onLine) return { status: 'offline' };
+  try {
+    await fetch('/api/health?action=ping', { method: 'HEAD', cache: 'no-store' });
+    return { status: 'online' };
+  } catch {
+    return { status: 'offline' };
+  }
+}
 
 export class ConnectionManager {
   private static instance: ConnectionManager
@@ -67,7 +77,7 @@ export class ConnectionManager {
     try {
       // Test connection first if this is a retry
       if (attemptCount > 0) {
-        const connectionTest = await networkDiagnostics.testConnection()
+        const connectionTest = await testConnection()
         if (connectionTest.status === 'offline') {
           throw new Error('Network connection unavailable')
         }

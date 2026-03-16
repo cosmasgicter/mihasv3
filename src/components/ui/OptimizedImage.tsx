@@ -54,7 +54,7 @@ export function OptimizedImage({
   if (hasError) {
     return (
       <div
-        className={`flex items-center justify-center bg-gray-100 text-gray-400 ${className}`}
+        className={`flex items-center justify-center bg-muted text-muted-foreground ${className}`}
         style={{ width, height }}
         role={decorative ? 'presentation' : 'img'}
         aria-label={decorative ? undefined : alt}

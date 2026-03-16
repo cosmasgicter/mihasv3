@@ -9,7 +9,7 @@
 
 import { useState, useCallback } from 'react';
 import { useToastStore } from '@/hooks/useToast';
-import { formatError, isRetryableError, getRetryDelay } from '@/utils/errorMessages';
+import { formatError, isRetryableError, getRetryDelay } from '@/lib/errorMessages';
 
 interface UseErrorHandlerOptions {
   showToast?: boolean;

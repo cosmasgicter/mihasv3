@@ -19,7 +19,7 @@ import { PasswordInput } from '@/components/ui/PasswordInput';
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { Banner } from '@/components/ui/Banner';
-import { NotificationService } from '@/lib/notificationService';
+import { NotificationService } from '@/services/notifications';
 import { Seo } from '@/components/seo/Seo';
 import { sanitizeForLog } from '@/lib/security';
 import { CheckCircle, Loader2, XCircle } from 'lucide-react';

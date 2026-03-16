@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { apiClient } from '@/services/client'
-import { logger } from '@/utils/logger'
+import { logger } from '@/lib/logger'
 import { normalizeSearchTerm, validateSearchTerm } from '../utils/trackerUtils'
 
 export interface PublicApplicationStatus {

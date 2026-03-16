@@ -201,12 +201,12 @@ export function EnhancedFileUpload({
         {...getRootProps()}
         className={cn(
           'relative border-2 border-dashed rounded-lg p-6 transition-all duration-200',
-          'cursor-pointer hover:bg-muted focus:outline-none focus:ring-2 focus:ring-blue-500',
+          'cursor-pointer hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring',
           // Touch-optimized minimum height
           'min-h-[120px] flex flex-col items-center justify-center',
           // State-based styling
           isDragActive || dzIsDragActive
-            ? 'border-primary bg-blue-50'
+            ? 'border-primary bg-primary/5'
             : 'border-input',
           disabled || !isOnline
             ? 'opacity-50 cursor-not-allowed bg-muted'

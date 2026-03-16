@@ -1,15 +1,22 @@
 import { useEffect, useState } from 'react'
+import { RefreshCw } from 'lucide-react'
 
 interface AutoSaveIndicatorProps {
   status: 'idle' | 'saving' | 'saved' | 'error'
   lastSavedAt?: number | null
+  onRetry?: () => void
   className?: string
 }
 
-function AutoSaveIndicator({ status, lastSavedAt, className = '' }: AutoSaveIndicatorProps) {
+function AutoSaveIndicator({ status, lastSavedAt, onRetry, className = '' }: AutoSaveIndicatorProps) {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
+    if (status === 'error') {
+      // Keep persistently visible during error state — don't auto-hide
+      setVisible(true)
+      return
+    }
     if (status === 'saved') {
       setVisible(true)
       const timer = setTimeout(() => setVisible(false), 3000)
@@ -79,6 +86,17 @@ function AutoSaveIndicator({ status, lastSavedAt, className = '' }: AutoSaveIndi
             />
           </svg>
           Save failed
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="ml-1 inline-flex items-center gap-1 min-h-[44px] min-w-[44px] justify-center rounded-md bg-destructive/10 px-2 text-sm font-medium text-destructive hover:bg-destructive/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors duration-fast"
+              aria-label="Retry save"
+            >
+              <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+              Retry
+            </button>
+          )}
         </span>
       )}
 

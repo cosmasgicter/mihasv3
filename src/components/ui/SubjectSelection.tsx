@@ -195,7 +195,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
                 key={subject.id}
                 type="button"
                 onClick={() => addSubject(subject)}
-                className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-card hover:border-blue-300 transition-colors text-left"
+                className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-card hover:border-primary/30 transition-colors text-left"
                 aria-label={`Add ${subject.name} (${subject.code}) - ${subject.category} subject`}
               >
                 <div>
@@ -323,9 +323,9 @@ function AddSubjectButton({ onClick, isOpen, disabled, variant = 'secondary' }: 
         disabled 
           ? 'border-border text-foreground cursor-not-allowed'
           : isPrimary
-          ? 'border-blue-300 text-primary hover:border-blue-400 hover:bg-blue-50'
+          ? 'border-primary/30 text-primary hover:border-primary/50 hover:bg-primary/5'
           : 'border-input text-foreground hover:border-input hover:bg-muted'
-      } ${isOpen ? 'bg-blue-50 border-blue-400' : ''}`}
+      } ${isOpen ? 'bg-primary/5 border-primary/50' : ''}`}
     >
       <div className="flex items-center justify-center space-x-2">
         <Plus className={`h-5 w-5 ${isOpen ? 'rotate-45' : ''} transition-transform duration-200`} />
@@ -392,7 +392,7 @@ function SubjectCard({
                 id={gradeId}
                 value={subject.grade || ''}
                 onChange={(e) => onUpdate(subject.id, 'grade', e.target.value)}
-                className="w-full px-2 py-1 text-sm border border-input rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full px-2 py-1 text-sm border border-input rounded focus:outline-none focus:ring-1 focus:ring-ring"
                 aria-label={`Grade for ${subject.name}`}
               >
                 <option value="">Select grade</option>
@@ -419,7 +419,7 @@ function SubjectCard({
                 max="100"
                 value={subject.score || ''}
                 onChange={(e) => onUpdate(subject.id, 'score', parseInt(e.target.value) || 0)}
-                className="w-full px-2 py-1 text-sm border border-input rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full px-2 py-1 text-sm border border-input rounded focus:outline-none focus:ring-1 focus:ring-ring"
                 placeholder="0-100"
                 aria-label={`Score percentage for ${subject.name}`}
               />
