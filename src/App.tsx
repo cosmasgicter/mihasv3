@@ -1,8 +1,6 @@
-import React, { Suspense, useEffect, useState } from 'react'
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
+import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { BrowserRouter as Router, Routes, Route, useLocation, matchPath } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Analytics } from '@vercel/analytics/react'
-import { SpeedInsights } from '@vercel/speed-insights/react'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { SkeletonProvider } from '@/contexts/SkeletonContext'
 import { RealtimeStatusProvider } from '@/contexts/RealtimeStatusContext'
@@ -11,7 +9,6 @@ import { StudentRoute } from '@/components/StudentRoute'
 import { AdminRoute } from '@/components/AdminRoute'
 import { ToastContainer } from '@/components/ui/Toast'
 import { AppLayout } from '@/components/navigation/AppLayout'
-import { SessionMonitor } from '@/components/auth/SessionMonitor'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { ErrorBoundary as RouteErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { SafeAreaProvider } from '@/components/ui/SafeAreaProvider'
@@ -26,12 +23,18 @@ import {
 } from '@/components/ui/skeletons'
 
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
-import { InstallBanner } from '@/components/ui/InstallBanner'
-import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'
 import { OfflineBanner } from '@/components/ui/OfflineBanner'
-import { ServiceWorkerUpdatePrompt } from '@/components/ServiceWorkerUpdatePrompt'
 import { cacheMonitor } from '@/services/cacheMonitor'
 import { isLightweightPublicRoute } from '@/lib/routeRuntime'
+import { useAuth } from '@/contexts/AuthContext'
+
+const Analytics = lazy(() => import('@vercel/analytics/react').then((mod) => ({ default: mod.Analytics })))
+const SpeedInsights = lazy(() => import('@vercel/speed-insights/react').then((mod) => ({ default: mod.SpeedInsights })))
+
+const InstallBanner = lazy(() => import('@/components/ui/InstallBanner').then((mod) => ({ default: mod.InstallBanner })))
+const OfflineIndicator = lazy(() => import('@/components/pwa/OfflineIndicator').then((mod) => ({ default: mod.OfflineIndicator })))
+const ServiceWorkerUpdatePrompt = lazy(() => import('@/components/ServiceWorkerUpdatePrompt').then((mod) => ({ default: mod.ServiceWorkerUpdatePrompt })))
+const SessionMonitor = lazy(() => import('@/components/auth/SessionMonitor').then((mod) => ({ default: mod.SessionMonitor })))
 
 // Optimized query client for better performance
 const queryClient = new QueryClient({
@@ -170,15 +173,83 @@ function App() {
           </AuthProvider>
         </SkeletonProvider>
       </QueryClientProvider>
+      <DeferredTelemetry />
+    </ErrorBoundary>
+  )
+}
+
+function useDeferredHydration(enabled: boolean, delayMs: number) {
+  const [hydrated, setHydrated] = useState(false)
+
+  useEffect(() => {
+    if (!enabled) {
+      setHydrated(false)
+      return
+    }
+
+    let timeoutId: number | null = null
+    let idleId: number | null = null
+
+    const mountDeferred = () => {
+      timeoutId = window.setTimeout(() => setHydrated(true), delayMs)
+    }
+
+    const afterFirstPaint = () => {
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          if ('requestIdleCallback' in window) {
+            idleId = window.requestIdleCallback(mountDeferred, { timeout: 2000 })
+            return
+          }
+          mountDeferred()
+        })
+      })
+    }
+
+    afterFirstPaint()
+
+    return () => {
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId)
+      }
+      if (idleId !== null && 'cancelIdleCallback' in window) {
+        window.cancelIdleCallback(idleId)
+      }
+    }
+  }, [delayMs, enabled])
+
+  return hydrated
+}
+
+function DeferredTelemetry() {
+  const hydrated = useDeferredHydration(true, 1200)
+
+  if (!hydrated) {
+    return null
+  }
+
+  return (
+    <Suspense fallback={null}>
       <Analytics />
       <SpeedInsights />
-    </ErrorBoundary>
+    </Suspense>
   )
 }
 
 function RoutedAppChrome() {
   const location = useLocation()
+  const { user, isAdmin } = useAuth()
   const isLightweightRoute = isLightweightPublicRoute(location.pathname)
+  const matchedRoute = useMemo(() => (
+    routes.find((route) => Boolean(matchPath({ path: route.path, end: route.path !== '*' }, location.pathname)))
+  ), [location.pathname])
+  const isPublicRoute = (matchedRoute?.guard ?? 'public') === 'public'
+  const canLoadHeavyGlobalUi = !isLightweightRoute && (!isPublicRoute || Boolean(user))
+  const canLoadSessionMonitor = canLoadHeavyGlobalUi && (Boolean(user) || isAdmin)
+  const canLoadSwAndInstallEffects = canLoadHeavyGlobalUi && !isPublicRoute
+  const deferredGlobalUiHydrated = useDeferredHydration(canLoadHeavyGlobalUi, 1500)
+  const deferredSessionHydrated = useDeferredHydration(canLoadSessionMonitor, 1800)
+  const deferredAppEffectsHydrated = useDeferredHydration(canLoadSwAndInstallEffects, 2200)
   const routesMarkup = (
     <Routes>
       {routes.map((route) => (
@@ -193,10 +264,22 @@ function RoutedAppChrome() {
 
   return (
     <>
-      {!isLightweightRoute && <InstallBanner />}
-      {!isLightweightRoute && <OfflineIndicator />}
-      {!isLightweightRoute && <ServiceWorkerUpdatePrompt />}
-      {!isLightweightRoute && <SessionMonitor />}
+      {deferredAppEffectsHydrated && (
+        <Suspense fallback={null}>
+          <InstallBanner />
+          <ServiceWorkerUpdatePrompt />
+        </Suspense>
+      )}
+      {deferredGlobalUiHydrated && (
+        <Suspense fallback={null}>
+          <OfflineIndicator />
+        </Suspense>
+      )}
+      {deferredSessionHydrated && (
+        <Suspense fallback={null}>
+          <SessionMonitor />
+        </Suspense>
+      )}
       <RouteErrorBoundary level="page">
         <div className="min-h-screen bg-background safe-area-all">
           {isLightweightRoute ? routesMarkup : <AppLayout>{routesMarkup}</AppLayout>}
