@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Analytics } from '@vercel/analytics/react'
@@ -57,7 +57,30 @@ if (import.meta.env.PROD) {
 }
 
 /** Returns the layout-matched skeleton fallback for a given skeleton type */
-function getSkeletonFallback(skeletonType?: SkeletonType): React.ReactNode {
+function DelayedPageLoader({ delayMs = 400 }: { delayMs?: number }) {
+  const [showLoader, setShowLoader] = useState(false)
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShowLoader(true), delayMs)
+    return () => window.clearTimeout(timer)
+  }, [delayMs])
+
+  if (!showLoader) {
+    return null
+  }
+
+  return <UnifiedLoader variant="page" size="lg" label="Loading page" />
+}
+
+function getSkeletonFallback(route: RouteConfig): React.ReactNode {
+  const { skeletonType, guard } = route
+
+  // Public routes should prefer route-level content shells or no-op fallback
+  // over a blocking full-page loader, especially for first unauthenticated hits.
+  if (guard === 'public' && skeletonType === 'none') {
+    return null
+  }
+
   switch (skeletonType) {
     case 'dashboard':
       return <DashboardSkeleton />
@@ -71,7 +94,7 @@ function getSkeletonFallback(skeletonType?: SkeletonType): React.ReactNode {
       return <DetailSkeleton />
     case 'none':
     default:
-      return <UnifiedLoader variant="page" size="lg" label="Loading page" />
+      return <DelayedPageLoader delayMs={400} />
   }
 }
 
@@ -102,7 +125,7 @@ const renderRoute = (route: RouteConfig) => {
   if (route.lazy) {
     routeElement = (
       <LazyLoadErrorBoundary>
-        <Suspense fallback={getSkeletonFallback(route.skeletonType)}>
+        <Suspense fallback={getSkeletonFallback(route)}>
           {routeElement}
         </Suspense>
       </LazyLoadErrorBoundary>
