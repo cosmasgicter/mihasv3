@@ -45,7 +45,7 @@ export function MobilePageHeader({
       </h2>
 
       {/* Right: actions slot or spacer */}
-      <div className="flex-shrink-0 w-14 flex items-center justify-center">
+      <div className="flex-shrink-0 min-w-[44px] pr-2 flex items-center justify-end">
         {actions}
       </div>
     </header>
