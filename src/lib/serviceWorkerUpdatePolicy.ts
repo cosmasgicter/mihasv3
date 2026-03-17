@@ -1,12 +1,8 @@
 const AUTO_RELOAD_SAFE_PATTERNS = [
-  /^\/$/,
   /^\/auth\//,
   /^\/signin$/,
   /^\/login$/,
-  /^\/dashboard$/,
-  /^\/student\/dashboard$/,
   /^\/admin$/,
-  /^\/admin\/dashboard$/,
   /^\/track-application$/,
   /^\/contact$/,
   /^\/404$/,

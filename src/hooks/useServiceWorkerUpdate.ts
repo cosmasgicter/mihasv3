@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react'
-import { consumeAutoReloadGuard, logReloadEvent, performReload, resolveBuildKey } from '@/lib/reloadControl'
-import {
-  resolveServiceWorkerUpdateTrigger,
-  shouldAutoReloadForServiceWorkerUpdate,
-} from '@/lib/serviceWorkerUpdatePolicy'
+import { logReloadEvent, performReload, resolveBuildKey } from '@/lib/reloadControl'
+import { resolveServiceWorkerUpdateTrigger } from '@/lib/serviceWorkerUpdatePolicy'
 
 interface ServiceWorkerUpdateState {
   updateAvailable: boolean
@@ -156,38 +153,6 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
       if (event.data.type === 'cache-updated') {
         console.log('[SW Update] Cache updated to version:', event.data.version)
         setNewVersion(event.data.appVersion)
-
-        const pathname = window.location.pathname
-        const fingerprint =
-          (typeof event.data.appVersion === 'string' && event.data.appVersion) ||
-          (typeof event.data.version === 'string' && event.data.version) ||
-          'cache-updated'
-
-        if (shouldAutoReloadForServiceWorkerUpdate(pathname)) {
-          const details = {
-            source: 'cache-updated',
-            pathname,
-            appVersion: event.data.appVersion,
-          }
-
-          if (!consumeAutoReloadGuard({
-            reason: 'sw_controller_change',
-            buildKey,
-            details,
-            fingerprint,
-          })) {
-            return
-          }
-
-          performReload({
-            reason: 'sw_controller_change',
-            mode: 'auto',
-            buildKey,
-            details,
-          })
-          return
-        }
-
         setUpdateAvailable(true)
       }
     }

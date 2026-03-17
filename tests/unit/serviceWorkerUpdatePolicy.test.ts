@@ -6,11 +6,19 @@ import {
 } from '@/lib/serviceWorkerUpdatePolicy'
 
 describe('serviceWorkerUpdatePolicy', () => {
-  it('auto reloads for low-risk auth and dashboard routes', () => {
+  it('auto reloads only for low-risk non-home, non-dashboard routes', () => {
     expect(shouldAutoReloadForServiceWorkerUpdate('/auth/signin')).toBe(true)
     expect(shouldAutoReloadForServiceWorkerUpdate('/login')).toBe(true)
-    expect(shouldAutoReloadForServiceWorkerUpdate('/student/dashboard')).toBe(true)
-    expect(shouldAutoReloadForServiceWorkerUpdate('/admin/dashboard')).toBe(true)
+    expect(shouldAutoReloadForServiceWorkerUpdate('/track-application')).toBe(true)
+    expect(shouldAutoReloadForServiceWorkerUpdate('/contact')).toBe(true)
+  })
+
+
+  it('does not auto reload on home or dashboard routes', () => {
+    expect(shouldAutoReloadForServiceWorkerUpdate('/')).toBe(false)
+    expect(shouldAutoReloadForServiceWorkerUpdate('/dashboard')).toBe(false)
+    expect(shouldAutoReloadForServiceWorkerUpdate('/student/dashboard')).toBe(false)
+    expect(shouldAutoReloadForServiceWorkerUpdate('/admin/dashboard')).toBe(false)
   })
 
   it('does not auto reload while the user is likely editing a form', () => {
