@@ -9,6 +9,8 @@ import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext'
 import { useResponsive } from '@/hooks/useResponsive'
 import { useScrollRestoration } from '@/hooks/useScrollRestoration'
 import { SkipLink } from '@/components/ui/SkipLink'
+import { NotificationBell } from '@/components/student/NotificationBell'
+import { UserMenu } from '@/components/ui/UserMenu'
 import { RouteTransition } from '@/components/smoothui/page-transition'
 import { designTokens } from '@/design-system/tokens'
 import { APP_MAIN_CONTENT_ID } from '@/lib/accessibility-utils'
@@ -95,6 +97,14 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
   const pageTitle = pageTitles[location.pathname] || 'MIHAS'
   const showBack = backRoutes.has(location.pathname) || location.pathname.includes('/application/')
   const handleBack = () => navigate(-1)
+  const isStudentRoute = location.pathname.startsWith('/student')
+
+  const mobileActions = !isAdmin && isStudentRoute ? (
+    <div className="flex items-center justify-end gap-1 pr-1">
+      <NotificationBell />
+      <UserMenu />
+    </div>
+  ) : undefined
 
   // Pick nav items based on role
   const navItems = isAdmin ? adminNavItems : studentNavItems
@@ -113,6 +123,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
           title={pageTitle}
           showBack={showBack}
           onBack={handleBack}
+          actions={mobileActions}
         />
 
         <main
