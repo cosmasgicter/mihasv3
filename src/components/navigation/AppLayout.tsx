@@ -23,6 +23,8 @@ import {
   Users,
   CreditCard,
   Calendar,
+  GraduationCap,
+  FileSearch,
 } from 'lucide-react'
 
 interface AppLayoutProps {
@@ -66,7 +68,10 @@ const backRoutes = new Set([
 const adminNavItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/applications', label: 'Apps', icon: FileText },
+  { href: '/admin/programs', label: 'Programs', icon: GraduationCap },
+  { href: '/admin/intakes', label: 'Intakes', icon: Calendar },
   { href: '/admin/users', label: 'Users', icon: Users },
+  { href: '/admin/audit', label: 'Audit', icon: FileSearch },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 
