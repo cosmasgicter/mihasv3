@@ -78,24 +78,28 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
     return result
   }
 
+  const triggerBlobDownload = (blob: Blob) => {
+    const resolvedApplicationNumber = applicationNumber || applicationId
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `application-slip-${resolvedApplicationNumber}.pdf`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  }
+
   const handleDownload = async () => {
     setIsDownloading(true)
     try {
       const result = await prepareSlip(false)
-      const resolvedApplicationNumber = applicationNumber || applicationId
 
       if (!result.blob) {
         throw new Error('The slip could not be generated for download')
       }
 
-      const url = window.URL.createObjectURL(result.blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `application-slip-${resolvedApplicationNumber}.pdf`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
+      triggerBlobDownload(result.blob)
     } catch (error) {
       console.error('Download failed:', error)
       toast.error('Download Failed', error instanceof Error ? error.message : 'Unable to download the slip')
@@ -110,6 +114,10 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
       const result = await prepareSlip(true)
 
       if (result.emailError) {
+        if (result.blob) {
+          triggerBlobDownload(result.blob)
+          toast.info('Download started', 'Email delivery failed, so your slip is downloading for manual sharing.')
+        }
         throw new Error(result.emailError)
       }
 
@@ -123,12 +131,15 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
     }
   }
 
+  const emailDisabled = isEmailing || emailSent
+
   return (
     <div className="flex flex-col sm:flex-row gap-3">
       <Button
         onClick={handleDownload}
         disabled={isDownloading}
-        className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-200"
+        variant="secondary"
+        className="flex items-center justify-center space-x-2 border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400 disabled:bg-slate-100 disabled:border-slate-200 disabled:text-slate-400 disabled:shadow-none"
       >
         {isDownloading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -140,9 +151,9 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
 
       <Button
         onClick={handleEmailRequest}
-        disabled={isEmailing || emailSent}
-        variant="outline"
-        className="flex items-center justify-center space-x-2 border-green-300 text-accent hover:bg-accent/10 hover:border-green-400 transition-all duration-200"
+        disabled={emailDisabled}
+        variant="primary"
+        className="flex items-center justify-center space-x-2 bg-blue-700 text-white hover:bg-blue-800 focus-visible:ring-blue-500 disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:cursor-not-allowed"
       >
         {isEmailing ? (
           <Loader2 className="h-4 w-4 animate-spin" />
