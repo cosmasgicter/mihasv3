@@ -38,10 +38,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const from = typeof window !== 'undefined'
         ? `${window.location.pathname}${window.location.search}`
         : ''
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem('mihas:post-auth-redirect', from || '/')
+          window.dispatchEvent(new CustomEvent('mihas:before-auth-redirect', {
+            detail: { from },
+          }))
+        } catch {
+          // best-effort state preservation
+        }
+      }
       const signInPath = from && from !== '/'
         ? `/auth/signin?redirect=${encodeURIComponent(from)}`
         : '/auth/signin'
-      window.location.assign(signInPath)
+      window.setTimeout(() => {
+        window.location.assign(signInPath)
+      }, 200)
     })
   }, [queryClient])
 
