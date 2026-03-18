@@ -76,10 +76,13 @@ export const routes: RouteConfig[] = [
   { path: '/student/application/:id', element: ApplicationDetail, guard: 'student', lazy: true, skeletonType: 'detail' },
   { path: '/settings', element: <Navigate to="/student/settings" replace />, guard: 'student' },
   { path: '/student/profile', element: <Navigate to="/student/settings" replace />, guard: 'student' },
+  { path: '/student/profile/edit', element: <Navigate to="/student/settings" replace />, guard: 'student' },
   { path: '/student/settings', element: StudentSettings, guard: 'student', lazy: true, skeletonType: 'detail' },
   { path: '/student/notifications', element: StudentNotificationSettings, guard: 'student', lazy: true, skeletonType: 'detail' },
   { path: '/student/payment', element: StudentPayment, guard: 'student', lazy: true, skeletonType: 'detail' },
+  { path: '/student/payments', element: <Navigate to="/student/payment" replace />, guard: 'student' },
   { path: '/student/interview', element: StudentInterview, guard: 'student', lazy: true, skeletonType: 'detail' },
+  { path: '/student/interviews', element: <Navigate to="/student/interview" replace />, guard: 'student' },
   
   // Admin routes
   { path: '/admin', element: AdminDashboard, guard: 'admin', lazy: true, skeletonType: 'dashboard' },

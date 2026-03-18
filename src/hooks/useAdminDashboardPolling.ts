@@ -94,6 +94,14 @@ export function useAdminDashboardPolling(
   const fetchStats = useCallback(async (): Promise<AdminDashboardStats> => {
     try {
       const result = await apiClient.request<{
+        stats?: {
+          totalApplications?: number
+          pendingApplications?: number
+          approvedApplications?: number
+          rejectedApplications?: number
+          todayApplications?: number
+          weekApplications?: number
+        }
         totalApplications?: number
         pendingApplications?: number
         approvedApplications?: number
@@ -102,15 +110,15 @@ export function useAdminDashboardPolling(
         weekApplications?: number
         pendingReviews?: number
         [key: string]: unknown
-      }>('/admin?action=stats')
+      }>('/api/admin?action=dashboard')
 
       return {
-        totalApplications: result?.totalApplications ?? 0,
-        pendingApplications: result?.pendingApplications ?? result?.pendingReviews ?? 0,
-        approvedApplications: result?.approvedApplications ?? 0,
-        rejectedApplications: result?.rejectedApplications ?? 0,
-        todayApplications: result?.todayApplications ?? 0,
-        weekApplications: result?.weekApplications ?? 0,
+        totalApplications: result?.stats?.totalApplications ?? result?.totalApplications ?? 0,
+        pendingApplications: result?.stats?.pendingApplications ?? result?.pendingApplications ?? result?.pendingReviews ?? 0,
+        approvedApplications: result?.stats?.approvedApplications ?? result?.approvedApplications ?? 0,
+        rejectedApplications: result?.stats?.rejectedApplications ?? result?.rejectedApplications ?? 0,
+        todayApplications: result?.stats?.todayApplications ?? result?.todayApplications ?? 0,
+        weekApplications: result?.stats?.weekApplications ?? result?.weekApplications ?? 0,
       }
     } catch (error) {
       console.error('[useAdminDashboardPolling] Error:', error instanceof Error ? error.message : error)
@@ -180,6 +188,14 @@ export function useAdminPendingCount(options: { enabled?: boolean } = {}) {
     queryKey: ['admin-dashboard-polling'],
     queryFn: async (): Promise<AdminDashboardStats> => {
       const result = await apiClient.request<{
+        stats?: {
+          totalApplications?: number
+          pendingApplications?: number
+          approvedApplications?: number
+          rejectedApplications?: number
+          todayApplications?: number
+          weekApplications?: number
+        }
         totalApplications?: number
         pendingApplications?: number
         approvedApplications?: number
@@ -188,15 +204,15 @@ export function useAdminPendingCount(options: { enabled?: boolean } = {}) {
         weekApplications?: number
         pendingReviews?: number
         [key: string]: unknown
-      }>('/admin?action=stats')
+      }>('/api/admin?action=dashboard')
 
       return {
-        totalApplications: result?.totalApplications ?? 0,
-        pendingApplications: result?.pendingApplications ?? result?.pendingReviews ?? 0,
-        approvedApplications: result?.approvedApplications ?? 0,
-        rejectedApplications: result?.rejectedApplications ?? 0,
-        todayApplications: result?.todayApplications ?? 0,
-        weekApplications: result?.weekApplications ?? 0,
+        totalApplications: result?.stats?.totalApplications ?? result?.totalApplications ?? 0,
+        pendingApplications: result?.stats?.pendingApplications ?? result?.pendingApplications ?? result?.pendingReviews ?? 0,
+        approvedApplications: result?.stats?.approvedApplications ?? result?.approvedApplications ?? 0,
+        rejectedApplications: result?.stats?.rejectedApplications ?? result?.rejectedApplications ?? 0,
+        todayApplications: result?.stats?.todayApplications ?? result?.todayApplications ?? 0,
+        weekApplications: result?.stats?.weekApplications ?? result?.weekApplications ?? 0,
       }
     },
     enabled,
@@ -217,6 +233,14 @@ export function useAdminTotalApplicationCount(options: { enabled?: boolean } = {
     queryKey: ['admin-dashboard-polling'],
     queryFn: async (): Promise<AdminDashboardStats> => {
       const result = await apiClient.request<{
+        stats?: {
+          totalApplications?: number
+          pendingApplications?: number
+          approvedApplications?: number
+          rejectedApplications?: number
+          todayApplications?: number
+          weekApplications?: number
+        }
         totalApplications?: number
         pendingApplications?: number
         approvedApplications?: number
@@ -225,15 +249,15 @@ export function useAdminTotalApplicationCount(options: { enabled?: boolean } = {
         weekApplications?: number
         pendingReviews?: number
         [key: string]: unknown
-      }>('/admin?action=stats')
+      }>('/api/admin?action=dashboard')
 
       return {
-        totalApplications: result?.totalApplications ?? 0,
-        pendingApplications: result?.pendingApplications ?? result?.pendingReviews ?? 0,
-        approvedApplications: result?.approvedApplications ?? 0,
-        rejectedApplications: result?.rejectedApplications ?? 0,
-        todayApplications: result?.todayApplications ?? 0,
-        weekApplications: result?.weekApplications ?? 0,
+        totalApplications: result?.stats?.totalApplications ?? result?.totalApplications ?? 0,
+        pendingApplications: result?.stats?.pendingApplications ?? result?.pendingApplications ?? result?.pendingReviews ?? 0,
+        approvedApplications: result?.stats?.approvedApplications ?? result?.approvedApplications ?? 0,
+        rejectedApplications: result?.stats?.rejectedApplications ?? result?.rejectedApplications ?? 0,
+        todayApplications: result?.stats?.todayApplications ?? result?.todayApplications ?? 0,
+        weekApplications: result?.stats?.weekApplications ?? result?.weekApplications ?? 0,
       }
     },
     enabled,
