@@ -396,11 +396,54 @@ const useWizardController = (): UseWizardControllerResult => {
     })
   }, [baseHandleProofOfPaymentUpload, baseHandleProofOfPaymentFile, applicationId, updateApplication, queryClient, showSuccess])
 
+  const preserveDraftBeforeAuthRedirect = useCallback(() => {
+    const now = new Date().toISOString()
+    const draftSnapshot = {
+      formData: getValues(),
+      selectedGrades,
+      currentStep: currentStepConfig.id,
+      currentStepKey: currentStepConfig.key,
+      applicationId,
+      savedAt: now,
+      userId: user?.id,
+      version: 2,
+    }
+
+    try {
+      localStorage.setItem('applicationWizardDraft', JSON.stringify(draftSnapshot))
+      sessionStorage.setItem('mihas:post-auth-redirect', `${location.pathname}${location.search}${location.hash}`)
+      window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: draftSnapshot }))
+    } catch {
+      // best effort local persistence before auth redirect
+    }
+  }, [
+    applicationId,
+    currentStepConfig.id,
+    currentStepConfig.key,
+    getValues,
+    location.hash,
+    location.pathname,
+    location.search,
+    selectedGrades,
+    user?.id,
+  ])
+
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/auth/signin?redirect=/student/application-wizard')
+      preserveDraftBeforeAuthRedirect()
+      const redirectTarget = `/student/application-wizard?step=${encodeURIComponent(currentStepConfig.key)}`
+      navigate(`/auth/signin?redirect=${encodeURIComponent(redirectTarget)}`, {
+        replace: true,
+        state: {
+          from: {
+            pathname: '/student/application-wizard',
+            search: `?step=${encodeURIComponent(currentStepConfig.key)}`,
+            hash: '',
+          },
+        },
+      })
     }
-  }, [user, authLoading, navigate])
+  }, [authLoading, currentStepConfig.key, navigate, preserveDraftBeforeAuthRedirect, user])
 
   const slipPayload: ApplicationSlipData | null = useMemo(() => {
     if (!submittedApplication || !submittedApplication.trackingCode || !submittedApplication.applicationNumber) return null
@@ -446,6 +489,15 @@ const useWizardController = (): UseWizardControllerResult => {
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [currentStepIndex, success])
+
+  useEffect(() => {
+    const handleAuthRedirect = () => {
+      preserveDraftBeforeAuthRedirect()
+    }
+
+    window.addEventListener('mihas:before-auth-redirect', handleAuthRedirect)
+    return () => window.removeEventListener('mihas:before-auth-redirect', handleAuthRedirect)
+  }, [preserveDraftBeforeAuthRedirect])
 
   const { completionPercentage, missingFields, hasAutoPopulatedData } = useProfileAutoPopulation(setValue)
 
@@ -694,6 +746,16 @@ const useWizardController = (): UseWizardControllerResult => {
           // 3.4: Show restoration confirmation for database draft
           showSuccess('Draft restored successfully')
         }
+
+        if (!draftRestored) {
+          const stepFromQuery = new URLSearchParams(location.search).get('step')
+          if (stepFromQuery) {
+            const stepIndexFromQuery = wizardSteps.findIndex(step => step.key === stepFromQuery)
+            if (stepIndexFromQuery >= 0) {
+              setCurrentStepIndex(stepIndexFromQuery)
+            }
+          }
+        }
       } catch (error) {
         console.error('Error loading draft application:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
       } finally {
@@ -712,6 +774,7 @@ const useWizardController = (): UseWizardControllerResult => {
     draftLoaded,
     setValue,
     draftApplications,
+    location.search,
     location.state,
     totalSteps,
     findProgramId,

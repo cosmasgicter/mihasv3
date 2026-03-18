@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthCheck } from '@/hooks/auth/useSessionListener'
@@ -9,6 +9,8 @@ interface ProtectedRouteProps {
 }
 
 const LOADING_TIMEOUT_MS = 5000
+const AUTH_RECOVERY_TIMEOUT_MS = 1200
+const SIGNIN_REDIRECT_KEY = 'mihas:post-auth-redirect'
 
 /**
  * Protected route guard using optimized auth state checks.
@@ -23,11 +25,39 @@ const LOADING_TIMEOUT_MS = 5000
  * Requirements: 4.5, 11.5, 14.7, 34.3
  */
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuthCheck()
+  const { isAuthenticated, isLoading, retrySessionCheck } = useAuthCheck()
   const location = useLocation()
   const queryClient = useQueryClient()
   const [showTimeoutMessage, setShowTimeoutMessage] = useState(false)
+  const [isRecoveringSession, setIsRecoveringSession] = useState(false)
+  const [recoveryAttempted, setRecoveryAttempted] = useState(false)
+  const [allowSigninRedirect, setAllowSigninRedirect] = useState(false)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const fullPath = `${location.pathname}${location.search}${location.hash}`
+
+  const persistReturnPath = useCallback(() => {
+    try {
+      sessionStorage.setItem(SIGNIN_REDIRECT_KEY, fullPath)
+      window.dispatchEvent(new CustomEvent('mihas:before-auth-redirect', {
+        detail: { from: fullPath },
+      }))
+    } catch {
+      // best effort only
+    }
+  }, [fullPath])
+
+  const runSessionRecovery = useCallback(async () => {
+    if (isRecoveringSession) return
+    setIsRecoveringSession(true)
+    try {
+      await retrySessionCheck()
+    } finally {
+      setRecoveryAttempted(true)
+      setIsRecoveringSession(false)
+    }
+  }, [isRecoveringSession, retrySessionCheck])
 
   useEffect(() => {
     if (isLoading) {
@@ -43,6 +73,10 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
         clearTimeout(timeoutRef.current)
         timeoutRef.current = null
       }
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current)
+        redirectTimeoutRef.current = null
+      }
     }
   }, [isLoading, queryClient])
 
@@ -53,6 +87,33 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
   }, [isLoading])
 
+  useEffect(() => {
+    if (isLoading || isAuthenticated || allowSigninRedirect) return
+    if (!recoveryAttempted) {
+      void runSessionRecovery()
+      return
+    }
+
+    redirectTimeoutRef.current = setTimeout(() => {
+      persistReturnPath()
+      setAllowSigninRedirect(true)
+    }, AUTH_RECOVERY_TIMEOUT_MS)
+
+    return () => {
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current)
+        redirectTimeoutRef.current = null
+      }
+    }
+  }, [
+    allowSigninRedirect,
+    isAuthenticated,
+    isLoading,
+    persistReturnPath,
+    recoveryAttempted,
+    runSessionRecovery,
+  ])
+
   if (isLoading) {
     if (showTimeoutMessage) {
       return (
@@ -61,10 +122,11 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
             <p className="text-gray-600">Taking longer than expected...</p>
             <button
               type="button"
-              onClick={() => window.location.reload()}
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              onClick={() => void runSessionRecovery()}
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-70"
+              disabled={isRecoveringSession}
             >
-              Reload page
+              {isRecoveringSession ? 'Retrying session…' : 'Retry session'}
             </button>
           </div>
         </div>
@@ -74,6 +136,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!isAuthenticated) {
+    if (!allowSigninRedirect || isRecoveringSession) {
+      return <AppShellSkeleton />
+    }
     return <Navigate to="/auth/signin" state={{ from: location }} replace />
   }
 
