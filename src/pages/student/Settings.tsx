@@ -98,9 +98,11 @@ export default function StudentSettings() {
     register,
     handleSubmit,
     setValue,
+    reset,
     watch,
+    getValues,
     control,
-    formState: { errors },
+    formState: { errors, isDirty, dirtyFields },
   } = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -115,22 +117,46 @@ export default function StudentSettings() {
   const currentPhone = watch('phone')
   const { countryOptions, cityOptions, loadingCountries, loadingCities } = useResidenceLocationOptions(selectedCountry)
   const residenceTownDatalistId = 'settings-residence-town-options'
+  const hasHydratedInitialValues = React.useRef(false)
 
   React.useEffect(() => {
-    if (profile || metadata) {
-      setValue('full_name', getBestValue(profile?.full_name, metadata?.full_name, user?.email?.split('@')[0] || ''))
-      setValue('phone', getBestValue(profile?.phone, metadata?.phone, ''))
-      setValue('date_of_birth', normalizeDateInputValue(getBestValue(profile?.date_of_birth, metadata?.date_of_birth, '')))
-      setValue('sex', (getBestValue(profile?.sex, metadata?.sex, '') as 'Male' | 'Female') || undefined)
-      setValue('residence_town', getCanonicalResidenceTown(profile, metadata))
-      setValue('country', getCanonicalResidenceCountry(profile, metadata))
-      setValue('nrc_number', getBestValue(profile?.nrc_number, metadata?.nrc_number, ''))
-      setValue('address', getBestValue(profile?.address, metadata?.address, ''))
-      setValue('nationality', getBestValue(profile?.nationality, metadata?.nationality, '') || DEFAULT_NATIONALITY)
-      setValue('next_of_kin_name', getBestValue(profile?.next_of_kin_name, metadata?.next_of_kin_name, ''))
-      setValue('next_of_kin_phone', getBestValue(profile?.next_of_kin_phone, metadata?.next_of_kin_phone, ''))
+    if (!profile && !metadata) {
+      return
     }
-  }, [profile, metadata, user?.email, setValue])
+
+    const hydratedValues: ProfileForm = {
+      ...getValues(),
+      full_name: getBestValue(profile?.full_name, metadata?.full_name, user?.email?.split('@')[0] || ''),
+      phone: getBestValue(profile?.phone, metadata?.phone, ''),
+      date_of_birth: normalizeDateInputValue(getBestValue(profile?.date_of_birth, metadata?.date_of_birth, '')),
+      sex: (getBestValue(profile?.sex, metadata?.sex, '') as 'Male' | 'Female') || undefined,
+      residence_town: getCanonicalResidenceTown(profile, metadata),
+      country: getCanonicalResidenceCountry(profile, metadata),
+      nrc_number: getBestValue(profile?.nrc_number, metadata?.nrc_number, ''),
+      address: getBestValue(profile?.address, metadata?.address, ''),
+      nationality: getBestValue(profile?.nationality, metadata?.nationality, '') || DEFAULT_NATIONALITY,
+      next_of_kin_name: getBestValue(profile?.next_of_kin_name, metadata?.next_of_kin_name, ''),
+      next_of_kin_phone: getBestValue(profile?.next_of_kin_phone, metadata?.next_of_kin_phone, ''),
+    }
+
+    if (!hasHydratedInitialValues.current) {
+      reset(hydratedValues)
+      hasHydratedInitialValues.current = true
+      return
+    }
+
+    const fieldEntries = Object.entries(hydratedValues) as [keyof ProfileForm, ProfileForm[keyof ProfileForm]][]
+    fieldEntries.forEach(([fieldName, nextValue]) => {
+      const canAutopopulateField = !isDirty || !dirtyFields[fieldName]
+      if (canAutopopulateField) {
+        setValue(fieldName, nextValue, {
+          shouldDirty: false,
+          shouldTouch: false,
+          shouldValidate: false,
+        })
+      }
+    })
+  }, [profile, metadata, user?.email, getValues, reset, setValue, isDirty, dirtyFields])
 
   const notificationPhone =
     currentPhone?.trim() ||
