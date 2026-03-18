@@ -717,15 +717,32 @@ class ApiClient {
       if (!response.ok) {
         let errorMessage = `API Error: ${response.statusText}`;
         let errorCode: string | undefined;
+        let fieldErrors: Record<string, string> | undefined;
         try {
           const errorData = await response.text();
           if (errorData) {
             const parsed = JSON.parse(errorData);
             errorMessage = parsed.error || parsed.message || errorMessage;
             errorCode = parsed.code;
+            if (parsed.fieldErrors && typeof parsed.fieldErrors === 'object') {
+              fieldErrors = parsed.fieldErrors as Record<string, string>;
+            }
           }
         } catch {
           // Use default error message
+        }
+
+        if (fieldErrors && Object.keys(fieldErrors).length > 0) {
+          const formattedFieldErrors = Object.entries(fieldErrors)
+            .map(([field, message]) => {
+              const fieldLabel = field === '_root'
+                ? 'General'
+                : field.replace(/\./g, ' ').replace(/_/g, ' ').trim();
+              return `${fieldLabel}: ${message}`;
+            })
+            .join('; ');
+
+          errorMessage = formattedFieldErrors || errorMessage;
         }
 
         // 401 intercept-refresh-retry: attempt a single token refresh and retry
@@ -846,6 +863,9 @@ class ApiClient {
         // Create error with status for retry logic
         const statusError = new Error(errorMessage) as Error & { status: number };
         statusError.status = response.status;
+        if (fieldErrors && Object.keys(fieldErrors).length > 0) {
+          ;(statusError as Error & { fieldErrors?: Record<string, string> }).fieldErrors = fieldErrors
+        }
 
         // For 5xx errors, throw the raw status error so retry logic can inspect it
         if (response.status >= 500) {
