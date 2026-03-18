@@ -104,6 +104,8 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
         'sex',
         'residence_town',
         'country',
+        'nrc_number',
+        'address',
         'nationality',
         'next_of_kin_name',
         'next_of_kin_phone'
@@ -156,7 +158,10 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
       return data as UserProfile
     },
     onSuccess: async (data) => {
-      queryClient.setQueryData(PROFILE_QUERY_KEY(user?.id), data)
+      queryClient.setQueryData(PROFILE_QUERY_KEY(user?.id), (current: UserProfile | null | undefined) => ({
+        ...(current ?? {}),
+        ...data,
+      }))
       await queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY(user?.id) })
     }
   })
