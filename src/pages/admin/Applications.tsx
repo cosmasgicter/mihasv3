@@ -731,6 +731,7 @@ export default function Applications() {
           onViewDocuments={handleViewDocuments}
           onViewHistory={handleViewHistory}
           onUpdateStatus={handleStatusUpdate}
+          onPaymentStatusUpdate={handlePaymentStatusUpdate}
           onGenerateAcceptanceLetter={handleGenerateAcceptanceLetter}
           onGenerateFinanceReceipt={handleGenerateFinanceReceipt}
         />
