@@ -46,6 +46,8 @@ const profileSchema = z.object({
   sex: z.enum(['Male', 'Female'], { required_error: 'Please select a sex' }).optional(),
   residence_town: optionalString(),
   country: optionalString(),
+  nrc_number: optionalString(),
+  address: optionalString(),
   nationality: z.string().min(1, 'Nationality is required').default('Zambian'),
   next_of_kin_name: optionalString(),
   next_of_kin_phone: optionalString(),
@@ -103,6 +105,8 @@ export default function StudentSettings() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       country: DEFAULT_RESIDENCE_COUNTRY,
+      nrc_number: '',
+      address: '',
       nationality: DEFAULT_NATIONALITY,
     },
   })
@@ -120,6 +124,8 @@ export default function StudentSettings() {
       setValue('sex', (getBestValue(profile?.sex, metadata?.sex, '') as 'Male' | 'Female') || undefined)
       setValue('residence_town', getCanonicalResidenceTown(profile, metadata))
       setValue('country', getCanonicalResidenceCountry(profile, metadata))
+      setValue('nrc_number', getBestValue(profile?.nrc_number, metadata?.nrc_number, ''))
+      setValue('address', getBestValue(profile?.address, metadata?.address, ''))
       setValue('nationality', getBestValue(profile?.nationality, metadata?.nationality, '') || DEFAULT_NATIONALITY)
       setValue('next_of_kin_name', getBestValue(profile?.next_of_kin_name, metadata?.next_of_kin_name, ''))
       setValue('next_of_kin_phone', getBestValue(profile?.next_of_kin_phone, metadata?.next_of_kin_phone, ''))
@@ -271,6 +277,26 @@ export default function StudentSettings() {
                 options={NATIONALITY_OPTIONS}
                 placeholder="Select nationality"
                 error={errors.nationality?.message}
+              />
+            </div>
+
+            <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
+              <Input
+                {...register('nrc_number')}
+                type="text"
+                label="NRC number"
+                placeholder="123456/78/1"
+                helperText="Use your national registration card number as it appears on official records."
+                error={errors.nrc_number?.message}
+              />
+
+              <Input
+                {...register('address')}
+                type="text"
+                label="Residential address"
+                placeholder="Plot, street, area"
+                helperText="This is used for identity and residence verification during application review."
+                error={errors.address?.message}
               />
             </div>
           </SectionCard>
