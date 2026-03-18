@@ -13,11 +13,21 @@ export interface ApiErrorContext {
 export class ApiErrorHandler {
   static enhanceError(context: ApiErrorContext): Error {
     const { endpoint, method, statusCode, originalError } = context
+    const originalMessage = originalError instanceof Error ? originalError.message?.trim() : ''
+    const hasActionableValidationMessage = Boolean(
+      originalMessage &&
+      !/^api error:/i.test(originalMessage) &&
+      !/^bad request$/i.test(originalMessage) &&
+      !/^invalid request/i.test(originalMessage)
+    )
     
     // Handle specific HTTP status codes
     if (statusCode) {
       switch (statusCode) {
         case 400:
+          if (hasActionableValidationMessage) {
+            return new Error(originalMessage)
+          }
           return new Error('Invalid request. Please check your input and try again.')
         case 401:
           return new Error('Authentication required. Please sign in again.')
@@ -28,6 +38,9 @@ export class ApiErrorHandler {
         case 409:
           return new Error('Conflict detected. The resource may have been modified by another user.')
         case 422:
+          if (hasActionableValidationMessage) {
+            return new Error(originalMessage)
+          }
           return new Error('Validation failed. Please check your input data.')
         case 429:
           return new Error('Too many requests. Please wait a moment and try again.')
