@@ -32,6 +32,8 @@ export default function SignInPage() {
   const location = useLocation();
   const { signIn } = useAuth();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const searchParams = new URLSearchParams(location.search);
+  const redirectFromQuery = searchParams.get('redirect');
 
   const seoByPath = {
     '/auth/signin': {
@@ -70,11 +72,24 @@ export default function SignInPage() {
     onSuccess: (result) => {
       setIsAuthenticating(true);
 
-      const locationState = location.state as { from?: { pathname?: string } } | null;
-      const from = locationState?.from?.pathname;
+      const locationState = location.state as { from?: { pathname?: string; search?: string; hash?: string } } | null;
+      const fromPath = locationState?.from?.pathname;
+      const fromSearch = locationState?.from?.search || '';
+      const fromHash = locationState?.from?.hash || '';
+      const fromState = fromPath ? `${fromPath}${fromSearch}${fromHash}` : null;
+      const storedRedirect = typeof window !== 'undefined'
+        ? sessionStorage.getItem('mihas:post-auth-redirect')
+        : null;
       const role = result?.user?.role;
       const defaultRedirect = isAdminRole(role) ? '/admin/dashboard' : '/student/dashboard';
-      const redirectTo = from && from !== '/auth/signin' ? from : defaultRedirect;
+      const requestedRedirect = fromState || redirectFromQuery || storedRedirect;
+      const redirectTo = requestedRedirect && requestedRedirect !== '/auth/signin'
+        ? requestedRedirect
+        : defaultRedirect;
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('mihas:post-auth-redirect');
+      }
 
       navigate(redirectTo, { replace: true });
     },
