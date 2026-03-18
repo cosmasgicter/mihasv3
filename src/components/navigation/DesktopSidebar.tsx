@@ -49,11 +49,11 @@ const adminSections: NavSection[] = [
 
 const studentLinks: NavItem[] = [
   { to: '/student/dashboard', icon: Home, label: 'Dashboard' },
-  { to: '/student/application-wizard', icon: FileText, label: 'Application' },
+  { to: '/student/application-wizard', icon: FileText, label: 'Applications' },
   { to: '/student/payment', icon: CreditCard, label: 'Payment' },
   { to: '/student/interview', icon: Calendar, label: 'Interview' },
   { to: '/student/notifications', icon: Bell, label: 'Notifications' },
-  { to: '/student/settings', icon: Settings, label: 'Settings' },
+  { to: '/student/settings', icon: Settings, label: 'Profile & Settings' },
 ]
 
 const isRouteActive = (currentPath: string, itemPath: string) => {
