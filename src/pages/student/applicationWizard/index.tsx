@@ -222,22 +222,6 @@ const ApplicationWizardContent = () => {
               We found a saved draft of your application
             </p>
           )}
-          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <p className="text-sm text-foreground dark:text-gray-200 mb-3">
-              Taking longer than expected?
-            </p>
-            <Button
-              onClick={() => window.location.assign(window.location.pathname)}
-              variant="outline"
-              size="sm"
-              className="w-full"
-            >
-              Refresh Page
-            </Button>
-            <p className="text-xs text-caption mt-2">
-              Please check your internet connection
-            </p>
-          </div>
         </div>
       </div>
     )

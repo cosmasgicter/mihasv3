@@ -47,6 +47,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
   const [isDownloading, setIsDownloading] = useState(false)
   const [isEmailing, setIsEmailing] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
+  const [emailStatusMessage, setEmailStatusMessage] = useState<string | null>(null)
 
   const prepareSlip = async (sendEmail: boolean) => {
     const response = await applicationService.getById(applicationId)
@@ -109,23 +110,32 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
   }
 
   const handleEmailRequest = async () => {
+    if (isEmailing) return
+
     setIsEmailing(true)
+    setEmailStatusMessage(null)
     try {
       const result = await prepareSlip(true)
 
       if (result.emailError) {
         if (result.blob) {
           triggerBlobDownload(result.blob)
-          toast.info('Download started', 'Email delivery failed, so your slip is downloading for manual sharing.')
+          setEmailStatusMessage('Email could not be sent. Your slip is downloading now so you can share it manually.')
+          toast.warning('Email unavailable', 'We could not send email right now. Your slip is downloading instead.')
+          return
         }
-        throw new Error(result.emailError)
+        setEmailStatusMessage(result.emailError)
+        return
       }
 
       setEmailSent(true)
+      setEmailStatusMessage('Application slip emailed successfully.')
       window.setTimeout(() => setEmailSent(false), 5000)
     } catch (error) {
       console.error('Email failed:', error)
-      toast.error('Email Failed', error instanceof Error ? error.message : 'Unable to email the slip')
+      const message = error instanceof Error ? error.message : 'Unable to email the slip'
+      setEmailStatusMessage(message)
+      toast.error('Email Failed', message)
     } finally {
       setIsEmailing(false)
     }
@@ -153,7 +163,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
         onClick={handleEmailRequest}
         disabled={emailDisabled}
         variant="primary"
-        className="flex items-center justify-center space-x-2 bg-blue-700 text-white hover:bg-blue-800 focus-visible:ring-blue-500 disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:cursor-not-allowed"
+        className="flex items-center justify-center space-x-2 bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-primary disabled:bg-primary/50 disabled:text-primary-foreground disabled:opacity-100 disabled:cursor-not-allowed"
       >
         {isEmailing ? (
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -165,9 +175,15 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
         </span>
       </Button>
 
-      {emailSent && (
-        <div className="text-sm text-accent font-medium animate-fade-in">
-          ✓ Application slip will be sent to your email shortly
+      {(emailSent || emailStatusMessage) && (
+        <div
+          className={`text-sm font-medium animate-fade-in ${
+            emailSent ? 'text-success' : 'text-warning'
+          }`}
+          role="status"
+          aria-live="polite"
+        >
+          {emailStatusMessage ?? '✓ Application slip will be sent to your email shortly'}
         </div>
       )}
     </div>
