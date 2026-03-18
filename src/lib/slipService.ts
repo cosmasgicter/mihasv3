@@ -24,6 +24,55 @@ export interface SlipServiceResult {
   error?: string
 }
 
+function extractErrorMessage(error: unknown, fallback: string): string {
+  if (!error) return fallback
+
+  if (typeof error === 'string') {
+    return error.trim() || fallback
+  }
+
+  if (error instanceof Error) {
+    return error.message?.trim() || fallback
+  }
+
+  if (typeof error === 'object') {
+    const unknownError = error as Record<string, unknown>
+    for (const key of ['reason', 'error', 'message', 'detail']) {
+      const value = unknownError[key]
+      if (typeof value === 'string' && value.trim()) {
+        return value.trim()
+      }
+    }
+  }
+
+  return fallback
+}
+
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+
+    reader.onloadend = () => {
+      const result = reader.result
+      if (typeof result !== 'string') {
+        reject(new Error('Failed to serialize slip for email attachment'))
+        return
+      }
+
+      const base64 = result.split(',')[1]
+      if (!base64) {
+        reject(new Error('Email attachment payload is empty'))
+        return
+      }
+
+      resolve(base64)
+    }
+
+    reader.onerror = () => reject(new Error('Failed to read slip for email attachment'))
+    reader.readAsDataURL(blob)
+  })
+}
+
 export async function createApplicationSlip(
   data: ApplicationSlipData,
   options: SlipServiceOptions = {}
@@ -69,34 +118,55 @@ export async function createApplicationSlip(
       if (!data.email) {
         emailError = 'Missing applicant email address'
         toast?.showError?.('Email not sent', 'No email address was available to send the application slip.')
-      } else if (!publicUrl) {
-        emailError = 'No public URL available for slip'
-        toast?.showWarning?.('Email not sent', 'We could not send the slip because the download link was unavailable.')
       } else {
         try {
+          const hasPublicUrl = Boolean(publicUrl)
+          const attachmentBase64 = hasPublicUrl ? undefined : await blobToBase64(blob)
+
           await apiClient.request('/api/email?action=send', {
             method: 'POST',
             body: JSON.stringify({
               recipient_email: data.email,
               recipient_name: data.full_name || data.email,
               subject: options.subject || 'Your MIHAS application slip',
-              body: `Your MIHAS application slip for ${data.application_number} is ready. Use the secure link in this email to download it.`,
+              body: hasPublicUrl
+                ? `Your MIHAS application slip for ${data.application_number} is ready. Use the secure link in this email to download it.`
+                : `Your MIHAS application slip for ${data.application_number} is attached to this email as a PDF.`,
               template_name: 'generic',
               template_data: {
                 recipientName: data.full_name || data.email,
-                message: `Your application slip for ${data.application_number} is ready. You can download it securely using the button below.`,
-                actionUrl: publicUrl
+                message: hasPublicUrl
+                  ? `Your application slip for ${data.application_number} is ready. You can download it securely using the button below.`
+                  : `Your application slip for ${data.application_number} is attached as a PDF because a download link is currently unavailable.`,
+                ...(hasPublicUrl && publicUrl ? { actionUrl: publicUrl } : {}),
               },
-              priority: 3
+              ...(attachmentBase64
+                ? {
+                    attachments: [
+                      {
+                        filename: `application-slip-${data.application_number}.pdf`,
+                        content: attachmentBase64,
+                        contentType: 'application/pdf',
+                        encoding: 'base64',
+                      },
+                    ],
+                  }
+                : {}),
+              priority: 3,
             }),
-            invalidateCache: false
+            invalidateCache: false,
           })
 
-          toast?.showSuccess?.('Email sent', 'We emailed a copy of your application slip.')
+          toast?.showSuccess?.(
+            'Email sent',
+            hasPublicUrl
+              ? 'We emailed a copy of your application slip.'
+              : 'We emailed your application slip as an attachment.'
+          )
         } catch (invokeError) {
-          emailError = invokeError instanceof Error ? invokeError.message : 'Failed to trigger slip email'
+          emailError = extractErrorMessage(invokeError, 'Failed to trigger slip email')
           console.error('Application slip email trigger error:', sanitizeForLog(emailError))
-          toast?.showError?.('Email not sent', 'We could not email your slip. Please download it manually.')
+          toast?.showError?.('Email not sent', emailError)
         }
       }
     }
