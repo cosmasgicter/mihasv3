@@ -218,6 +218,39 @@ const useWizardController = (): UseWizardControllerResult => {
     return institution.full_name?.trim() || institution.name?.trim() || ''
   }, [])
 
+  const resolveProgramIdentity = useCallback(
+    (value?: string | null, institutionHint?: string | null) => {
+      const programId = findProgramId(value, institutionHint)
+      if (!programId) return null
+
+      const program = programs.find(item => item.id === programId)
+      if (!program?.name?.trim()) return null
+
+      return {
+        id: programId,
+        label: program.name.trim(),
+        institutionLabel: deriveInstitutionLabel(program.institutions)
+      }
+    },
+    [deriveInstitutionLabel, findProgramId, programs]
+  )
+
+  const resolveIntakeLabel = useCallback((value?: string | null) => {
+    const trimmed = value?.trim() || ''
+    if (!trimmed) return ''
+
+    const byDisplayName = intakes.find(intake => intake.displayName?.trim() === trimmed)
+    if (byDisplayName) return byDisplayName.displayName.trim()
+
+    const byName = intakes.find(intake => intake.name?.trim() === trimmed)
+    if (byName) return byName.displayName?.trim() || byName.name?.trim() || ''
+
+    const byId = intakes.find(intake => intake.id === trimmed)
+    if (byId) return byId.displayName?.trim() || byId.name?.trim() || ''
+
+    return ''
+  }, [intakes])
+
   const resolveInstitutionCode = useCallback((institutionLabel: string) => {
     const normalized = institutionLabel.trim().toLowerCase()
     if (normalized.includes('kalulushi') || normalized.includes('katc')) {
@@ -818,8 +851,16 @@ const useWizardController = (): UseWizardControllerResult => {
         try {
           const metadata = getUserMetadata(user)
           const nationality = getBestValue(profile?.nationality, metadata.nationality, 'Zambian')
+          const resolvedProgram = resolveProgramIdentity(formData.program)
+          if (!resolvedProgram) {
+            throw new Error('Please select a valid program before saving your draft online.')
+          }
+          const resolvedIntake = resolveIntakeLabel(formData.intake)
+          if (!resolvedIntake) {
+            throw new Error('Please select a valid intake before saving your draft online.')
+          }
           const institutionLabel =
-            deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'MIHAS'
+            resolvedProgram.institutionLabel || deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'MIHAS'
           const normalizedInstitution = resolveInstitutionCode(institutionLabel)
           const { generateApplicationNumber } = await import('@/lib/applicationNumberGenerator')
 
@@ -827,7 +868,11 @@ const useWizardController = (): UseWizardControllerResult => {
           const trackingCode = `TRK${Math.random().toString(36).substring(2, 8).toUpperCase()}`
           const app = await createApplication.mutateAsync(
             buildServerDraftPayload({
-              formData,
+              formData: {
+                ...formData,
+                program: resolvedProgram.label,
+                intake: resolvedIntake
+              },
               selectedProgramDetails,
               institutionCode: normalizedInstitution,
               nationality,
@@ -853,9 +898,9 @@ const useWizardController = (): UseWizardControllerResult => {
             setSubmittedApplication(prev => ({
               applicationNumber: app.application_number || applicationNumber,
               trackingCode: app.public_tracking_code || trackingCode,
-              program: selectedProgramDetails?.name || formData.program,
+              program: resolvedProgram.label,
               institution: institutionLabel,
-              intake: formData.intake,
+              intake: resolvedIntake,
               fullName: formData.full_name,
               email: formData.email,
               phone: formData.phone,
@@ -928,6 +973,8 @@ const useWizardController = (): UseWizardControllerResult => {
     deriveInstitutionLabel,
     selectedProgramDetails,
     resolveInstitutionCode,
+    resolveIntakeLabel,
+    resolveProgramIdentity,
     createApplication,
     queryClient,
   ])
@@ -1035,9 +1082,24 @@ const useWizardController = (): UseWizardControllerResult => {
       try {
         setLoading(true)
         setError('')
-        const programName = selectedProgramDetails?.name || ''
+        const resolvedProgram = resolveProgramIdentity(formData.program)
+        if (!resolvedProgram) {
+          const errorMessage = 'Please select a valid program from the list provided'
+          setError('')
+          showError(errorMessage)
+          return
+        }
+        const resolvedIntake = resolveIntakeLabel(formData.intake)
+        if (!resolvedIntake) {
+          const errorMessage = 'Please select a valid intake from the list provided'
+          setError('')
+          showError(errorMessage)
+          return
+        }
+
+        const programName = resolvedProgram.label
         const institutionLabel =
-          deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'MIHAS'
+          resolvedProgram.institutionLabel || deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'MIHAS'
         const normalizedInstitution = resolveInstitutionCode(institutionLabel)
         
         // Check for duplicate applications (only for new applications)
@@ -1045,8 +1107,8 @@ const useWizardController = (): UseWizardControllerResult => {
           const { checkDuplicateApplication } = await import('@/lib/duplicateApplicationCheck')
           const duplicateCheck = await checkDuplicateApplication(
             user.id,
-            formData.program,
-            formData.intake
+            programName,
+            resolvedIntake
           )
           
           if (duplicateCheck.hasDuplicate) {
@@ -1077,8 +1139,8 @@ const useWizardController = (): UseWizardControllerResult => {
               country: formData.country || country,
               next_of_kin_name: formData.next_of_kin_name || null,
               next_of_kin_phone: formData.next_of_kin_phone || null,
-              program: programName || formData.program,
-              intake: formData.intake,
+              program: programName,
+              intake: resolvedIntake,
               institution: normalizedInstitution,
               nationality: nationality
             }
@@ -1087,9 +1149,9 @@ const useWizardController = (): UseWizardControllerResult => {
           setSubmittedApplication(prev => ({
             applicationNumber: updatedApp.application_number,
             trackingCode: updatedApp.public_tracking_code,
-            program: programName || updatedApp.program,
+            program: programName,
             institution: institutionLabel,
-            intake: formData.intake,
+            intake: resolvedIntake,
             fullName: formData.full_name,
             email: formData.email,
             phone: formData.phone,
@@ -1124,8 +1186,8 @@ const useWizardController = (): UseWizardControllerResult => {
             country: sanitizeInput(formData.country) || country,
             next_of_kin_name: sanitizeInput(formData.next_of_kin_name) || null,
             next_of_kin_phone: sanitizeInput(formData.next_of_kin_phone) || null,
-            program: programName || formData.program,
-            intake: formData.intake,
+            program: programName,
+            intake: resolvedIntake,
             institution: normalizedInstitution,
             nationality: nationality,
             status: 'draft'
@@ -1139,9 +1201,9 @@ const useWizardController = (): UseWizardControllerResult => {
           setSubmittedApplication({
             applicationNumber,
             trackingCode,
-            program: programName || formData.program,
+            program: programName,
             institution: institutionLabel,
-            intake: formData.intake,
+            intake: resolvedIntake,
             fullName: formData.full_name,
             email: formData.email,
             phone: formData.phone,
@@ -1277,6 +1339,8 @@ const useWizardController = (): UseWizardControllerResult => {
     programIds,
     intakeOptions,
     popFile,
+    resolveIntakeLabel,
+    resolveProgramIdentity,
     showError
   ])
 
