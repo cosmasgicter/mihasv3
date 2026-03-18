@@ -259,6 +259,7 @@ const BasicKycStep = ({
             error={errors.program?.message}
             disabled={programs.length === 0}
             helperText={programs.length === 0 ? 'No programmes available for the current intake' : undefined}
+            triggerClassName="[&>span]:line-clamp-2 [&>span]:whitespace-normal"
             required
           />
         </div>
@@ -278,6 +279,7 @@ const BasicKycStep = ({
             disabled={intakes.length === 0}
             error={errors.intake?.message}
             helperText={intakes.length === 0 ? 'Intakes will appear here once enrollment periods are announced.' : undefined}
+            triggerClassName="[&>span]:line-clamp-2 [&>span]:whitespace-normal"
             required
           />
         </div>
