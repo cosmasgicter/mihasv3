@@ -12,6 +12,7 @@ import { FieldHelp } from '../components/FieldHelp'
 import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
 import { useResidenceLocationOptions } from '@/hooks/useResidenceLocationOptions'
 import { DEFAULT_RESIDENCE_COUNTRY } from '@/lib/locationOptions'
+import { getResidenceTownHelperText, normalizeResidenceTown, RESIDENCE_TOWN_LABEL } from '@/lib/residenceTown'
 
 import { NATIONALITY_OPTIONS } from '@/lib/nationalityOptions'
 
@@ -195,12 +196,16 @@ const BasicKycStep = ({
 
         <div style={shouldAnimate ? staggerChild(8) : undefined}>
           <AnimatedInput
-            {...register('residence_town')}
+            {...register('residence_town', { setValueAs: normalizeResidenceTown })}
             list={residenceTownDatalistId}
-            label="Residence Town *"
+            label={`${RESIDENCE_TOWN_LABEL} *`}
             error={errors.residence_town?.message}
             placeholder={selectedCountry === DEFAULT_RESIDENCE_COUNTRY ? 'Kitwe' : 'Start typing your city or town'}
-            helperText={loadingCities ? 'Loading city and town options...' : `Suggestions are filtered for ${selectedCountry || DEFAULT_RESIDENCE_COUNTRY}. You can still type your town manually.`}
+            helperText={getResidenceTownHelperText({
+              loadingCities,
+              selectedCountry,
+              defaultCountry: DEFAULT_RESIDENCE_COUNTRY,
+            })}
           />
           <datalist id={residenceTownDatalistId}>
             {cityOptions.map(option => (

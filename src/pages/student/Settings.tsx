@@ -35,6 +35,12 @@ import {
   getCanonicalResidenceTown,
   normalizeDateInputValue,
 } from '@/lib/profileFieldMapping'
+import {
+  getResidenceTownHelperText,
+  normalizeResidenceTown,
+  RESIDENCE_TOWN_LABEL,
+  RESIDENCE_TOWN_MIN_LENGTH_MESSAGE,
+} from '@/lib/residenceTown'
 import { NATIONALITY_OPTIONS, DEFAULT_NATIONALITY } from '@/lib/nationalityOptions'
 
 const optionalString = () => z.string().optional().or(z.literal(''))
@@ -44,7 +50,11 @@ const profileSchema = z.object({
   phone: z.string().min(10, 'Please enter a valid phone number').or(z.literal('')).optional(),
   date_of_birth: optionalString(),
   sex: z.enum(['Male', 'Female'], { required_error: 'Please select a sex' }).optional(),
-  residence_town: optionalString(),
+  residence_town: z
+    .string()
+    .transform(normalizeResidenceTown)
+    .refine(value => value.length === 0 || value.length >= 2, RESIDENCE_TOWN_MIN_LENGTH_MESSAGE)
+    .optional(),
   country: optionalString(),
   nrc_number: optionalString(),
   address: optionalString(),
@@ -78,7 +88,11 @@ export default function StudentSettings() {
       }
 
       const cleanData = Object.entries(data).reduce((acc, [key, value]) => {
-        acc[key] = value === '' ? null : value
+        const normalizedValue =
+          key === 'residence_town' && typeof value === 'string'
+            ? normalizeResidenceTown(value)
+            : value
+        acc[key] = normalizedValue === '' ? null : normalizedValue
         return acc
       }, {} as Record<string, string | null>)
 
@@ -277,16 +291,16 @@ export default function StudentSettings() {
 
               <div>
                 <Input
-                  {...register('residence_town')}
+                  {...register('residence_town', { setValueAs: normalizeResidenceTown })}
                   list={residenceTownDatalistId}
                   type="text"
-                  label="City or town"
+                  label={RESIDENCE_TOWN_LABEL}
                   placeholder={selectedCountry === DEFAULT_RESIDENCE_COUNTRY ? 'Kitwe' : 'Start typing your city or town'}
-                  helperText={
-                    loadingCities
-                      ? 'Loading city and town options...'
-                      : `Suggestions are filtered for ${selectedCountry || DEFAULT_RESIDENCE_COUNTRY}. You can still type your town manually.`
-                  }
+                  helperText={getResidenceTownHelperText({
+                    loadingCities,
+                    selectedCountry,
+                    defaultCountry: DEFAULT_RESIDENCE_COUNTRY,
+                  })}
                   error={errors.residence_town?.message}
                 />
                 <datalist id={residenceTownDatalistId}>

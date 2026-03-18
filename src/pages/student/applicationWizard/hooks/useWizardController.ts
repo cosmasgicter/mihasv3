@@ -27,6 +27,7 @@ import { safeJsonParse } from '@/lib/utils'
 import { clearAllDraftData, isDraftDeleted, clearDraftDeletedFlag } from '@/lib/draftManager'
 import { applicationSessionManager } from '@/lib/applicationSession'
 import { DEFAULT_RESIDENCE_COUNTRY } from '@/lib/locationOptions'
+import { normalizeResidenceTown } from '@/lib/residenceTown'
 import {
   getCanonicalResidenceCountry,
   getCanonicalResidenceTown,
@@ -482,7 +483,7 @@ const useWizardController = (): UseWizardControllerResult => {
       if (phone) setValue('phone', phone)
       if (dateOfBirth) setValue('date_of_birth', dateOfBirth)
       if (sex) setValue('sex', sex as 'Male' | 'Female')
-      if (residenceTown) setValue('residence_town', residenceTown)
+      if (residenceTown) setValue('residence_town', normalizeResidenceTown(residenceTown))
       if (residenceCountry) setValue('country', residenceCountry)
       if (nationality) setValue('nationality', nationality)
       if (nextOfKinName) setValue('next_of_kin_name', nextOfKinName)
@@ -632,7 +633,7 @@ const useWizardController = (): UseWizardControllerResult => {
           setValue('sex', app.sex || '', { shouldValidate: false })
           setValue('phone', app.phone || '', { shouldValidate: false })
           setValue('email', app.email || '', { shouldValidate: false })
-          setValue('residence_town', app.residence_town || '', { shouldValidate: false })
+          setValue('residence_town', normalizeResidenceTown(app.residence_town || ''), { shouldValidate: false })
           setValue('country', (app as any).country || DEFAULT_RESIDENCE_COUNTRY, { shouldValidate: false })
           setValue('nationality', (app as any).nationality || 'Zambian', { shouldValidate: false })
           setValue('next_of_kin_name', app.next_of_kin_name || '', { shouldValidate: false })
@@ -823,7 +824,7 @@ const useWizardController = (): UseWizardControllerResult => {
             sex: formData.sex || undefined,
             phone: formData.phone || undefined,
             email: formData.email || undefined,
-            residence_town: formData.residence_town || undefined,
+            residence_town: normalizeResidenceTown(formData.residence_town) || undefined,
             country: formData.country || DEFAULT_RESIDENCE_COUNTRY,
             nationality: formData.nationality || undefined,
             next_of_kin_name: formData.next_of_kin_name || undefined,
@@ -937,7 +938,12 @@ const useWizardController = (): UseWizardControllerResult => {
     if (currentStepConfig.key === 'basicKyc') {
       const formData = watch()
       const requiredFields = ['full_name', 'date_of_birth', 'sex', 'phone', 'email', 'residence_town', 'program', 'intake']
-      const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData])
+      const missingFields = requiredFields.filter(field => {
+        if (field === 'residence_town') {
+          return !normalizeResidenceTown(formData.residence_town)
+        }
+        return !formData[field as keyof typeof formData]
+      })
       if (missingFields.length > 0) {
         const errorMessage = `Please fill in all required fields: ${missingFields.join(', ')}`
         setError('')
@@ -1004,7 +1010,7 @@ const useWizardController = (): UseWizardControllerResult => {
               sex: formData.sex,
               phone: formData.phone,
               email: formData.email,
-              residence_town: formData.residence_town,
+              residence_town: normalizeResidenceTown(formData.residence_town),
               country: formData.country || country,
               next_of_kin_name: formData.next_of_kin_name || null,
               next_of_kin_phone: formData.next_of_kin_phone || null,
@@ -1051,7 +1057,7 @@ const useWizardController = (): UseWizardControllerResult => {
             sex: formData.sex,
             phone: sanitizeInput(formData.phone),
             email: sanitizeInput(formData.email),
-            residence_town: sanitizeInput(formData.residence_town),
+            residence_town: normalizeResidenceTown(formData.residence_town),
             country: sanitizeInput(formData.country) || country,
             next_of_kin_name: sanitizeInput(formData.next_of_kin_name) || null,
             next_of_kin_phone: sanitizeInput(formData.next_of_kin_phone) || null,

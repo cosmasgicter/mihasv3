@@ -2,6 +2,11 @@
 import { z } from 'zod'
 
 import type { Institution, Program, Intake } from '@/types/database'
+import {
+  normalizeResidenceTown,
+  RESIDENCE_TOWN_MIN_LENGTH_MESSAGE,
+  RESIDENCE_TOWN_REQUIRED_MESSAGE,
+} from '@/lib/residenceTown'
 
 type InstitutionSummary = Pick<Institution, 'id' | 'name' | 'full_name'>
 
@@ -56,7 +61,11 @@ const createSchema = (validProgramIds: string[], validIntakeOptions: string[]) =
       sex: z.enum(['Male', 'Female'], { required_error: 'Please select sex' }),
       phone: z.string().min(10, 'Valid phone number is required'),
       email: z.string().email('Valid email is required'),
-      residence_town: z.string().min(2, 'Residence town is required'),
+      residence_town: z
+        .string()
+        .transform(normalizeResidenceTown)
+        .refine(value => value.length > 0, RESIDENCE_TOWN_REQUIRED_MESSAGE)
+        .refine(value => value.length >= 2, RESIDENCE_TOWN_MIN_LENGTH_MESSAGE),
       country: z.string().optional(),
       nationality: z.string().optional(),
       next_of_kin_name: z.string().optional(),
