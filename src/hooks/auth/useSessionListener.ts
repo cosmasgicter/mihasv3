@@ -284,8 +284,10 @@ export function useAuthCheck(): {
   isAuthenticated: boolean
   isLoading: boolean
   user: User | null
+  retrySessionCheck: () => Promise<unknown>
 } {
-  const { data: sessionData, isLoading } = useQuery({
+  const queryClient = useQueryClient()
+  const { data: sessionData, isLoading, refetch } = useQuery({
     queryKey: ['auth', 'session'],
     queryFn: async () => {
       const result = await apiClient.request<{ user?: User }>('/api/auth?action=session')
@@ -302,6 +304,10 @@ export function useAuthCheck(): {
     isAuthenticated: Boolean(sessionData?.user),
     isLoading,
     user: sessionData?.user || null,
+    retrySessionCheck: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
+      return refetch()
+    },
   }
 }
 
