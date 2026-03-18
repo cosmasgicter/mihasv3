@@ -69,6 +69,20 @@ export interface AdminDashboardResponse {
   generatedAt: string | null
 }
 
+export interface AdminDashboardDiagnostics {
+  endpoint: '/admin?action=dashboard'
+  ok: boolean
+  status: number | null
+  errorMessage: string | null
+  responseShape: 'valid' | 'empty' | 'invalid'
+  requestedAt: string
+}
+
+export interface AdminDashboardOverviewResult {
+  data: AdminDashboardResponse
+  diagnostics: AdminDashboardDiagnostics
+}
+
 const DEFAULT_STATS: AdminDashboardStats = {
   totalApplications: 0,
   pendingApplications: 0,
@@ -310,12 +324,23 @@ export const createEmptyDashboardResponse = (): AdminDashboardResponse => ({
 })
 
 export const adminDashboardService = {
-  async getOverview(): Promise<AdminDashboardResponse> {
+  async getOverviewWithDiagnostics(): Promise<AdminDashboardOverviewResult> {
+    const requestedAt = new Date().toISOString()
     try {
       const response = await apiClient.request('/admin?action=dashboard')
 
       if (!response || typeof response !== 'object') {
-        return createEmptyDashboardResponse()
+        return {
+          data: createEmptyDashboardResponse(),
+          diagnostics: {
+            endpoint: '/admin?action=dashboard',
+            ok: false,
+            status: null,
+            errorMessage: 'Dashboard API returned a non-object payload.',
+            responseShape: 'invalid',
+            requestedAt
+          }
+        }
       }
 
       const raw = response as RawDashboardResponse
@@ -338,20 +363,53 @@ export const adminDashboardService = {
         toIsoString((raw.stats as Record<string, unknown> | undefined)?.generatedAt) ??
         toIsoString((raw.stats as Record<string, unknown> | undefined)?.generated_at)
 
+      const isEmptyPayload =
+        Object.keys(statusBreakdown).length === 0 &&
+        Object.keys(periodTotals).length === 0 &&
+        Object.keys(totalsSnapshot).length === 0 &&
+        recentActivity.length === 0 &&
+        rawStats.totalApplications === 0
+
       return {
-        ...createEmptyDashboardResponse(),
-        stats: rawStats,
-        statusBreakdown,
-        periodTotals,
-        totalsSnapshot,
-        processingMetrics,
-        recentActivity,
-        generatedAt
+        data: {
+          ...createEmptyDashboardResponse(),
+          stats: rawStats,
+          statusBreakdown,
+          periodTotals,
+          totalsSnapshot,
+          processingMetrics,
+          recentActivity,
+          generatedAt
+        },
+        diagnostics: {
+          endpoint: '/admin?action=dashboard',
+          ok: true,
+          status: null,
+          errorMessage: null,
+          responseShape: isEmptyPayload ? 'empty' : 'valid',
+          requestedAt
+        }
       }
     } catch (error) {
+      const errorWithStatus = error as Error & { status?: number }
       console.error('Dashboard service error:', error)
-      return createEmptyDashboardResponse()
+
+      return {
+        data: createEmptyDashboardResponse(),
+        diagnostics: {
+          endpoint: '/admin?action=dashboard',
+          ok: false,
+          status: typeof errorWithStatus.status === 'number' ? errorWithStatus.status : null,
+          errorMessage: errorWithStatus.message || 'Unknown dashboard API failure',
+          responseShape: 'invalid',
+          requestedAt
+        }
+      }
     }
+  },
+
+  async getOverview(): Promise<AdminDashboardResponse> {
+    const result = await this.getOverviewWithDiagnostics()
+    return result.data
   }
 }
-

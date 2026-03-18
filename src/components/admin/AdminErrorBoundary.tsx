@@ -7,15 +7,29 @@ interface AdminErrorBoundaryState {
   hasError: boolean
   error: Error | null
   errorInfo: React.ErrorInfo | null
+  lastCapturedAt: string | null
 }
 
 interface AdminErrorBoundaryProps {
   children: React.ReactNode
 }
 
+const ADMIN_ERROR_CONTEXT_KEY = 'mihas:admin-error-context'
+
+const isExtensionConflict = (message: string): boolean => (
+  message.includes('Could not establish connection') ||
+  message.includes('Receiving end does not exist') ||
+  message.includes('Extension context invalidated') ||
+  message.includes('chrome-extension://') ||
+  message.includes('Private Access Token challenge') ||
+  message.includes('cdn-cgi/challenge-platform') ||
+  message.includes('Failed to load resource') ||
+  message.includes('Registration failed')
+)
+
 /**
- * Error boundary specifically for admin pages
- * Provides a user-friendly fallback UI and error reporting
+ * Error boundary specifically for admin pages.
+ * Keeps runtime context visible to admins and avoids reload loops.
  */
 export class AdminErrorBoundary extends React.Component<
   AdminErrorBoundaryProps,
@@ -23,51 +37,52 @@ export class AdminErrorBoundary extends React.Component<
 > {
   constructor(props: AdminErrorBoundaryProps) {
     super(props)
+
+    let persistedError: Pick<AdminErrorBoundaryState, 'error' | 'lastCapturedAt'> = {
+      error: null,
+      lastCapturedAt: null,
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = sessionStorage.getItem(ADMIN_ERROR_CONTEXT_KEY)
+        if (raw) {
+          const parsed = JSON.parse(raw) as { message?: string; capturedAt?: string }
+          if (parsed.message) {
+            persistedError = {
+              error: new Error(parsed.message),
+              lastCapturedAt: parsed.capturedAt ?? null,
+            }
+          }
+        }
+      } catch {
+        // best effort restore
+      }
+    }
+
     this.state = {
       hasError: false,
-      error: null,
+      error: persistedError.error,
       errorInfo: null,
+      lastCapturedAt: persistedError.lastCapturedAt,
     }
   }
 
   static getDerivedStateFromError(error: Error): Partial<AdminErrorBoundaryState> {
-    // Check if this is an extension-related error that should be ignored
-    const message = error.message || ''
-    if (
-      message.includes('Could not establish connection') ||
-      message.includes('Receiving end does not exist') ||
-      message.includes('Extension context invalidated') ||
-      message.includes('chrome-extension://') ||
-      message.includes('Private Access Token challenge') ||
-      message.includes('cdn-cgi/challenge-platform') ||
-      message.includes('Failed to load resource') ||
-      message.includes('Registration failed')
-    ) {
-      // Don't show error boundary for extension conflicts
-      return { hasError: false, error: null, errorInfo: null }
+    if (isExtensionConflict(error.message || '')) {
+      return { hasError: false }
     }
 
-    return { hasError: true, error }
+    return { hasError: true, error, lastCapturedAt: new Date().toISOString() }
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Check if this is an extension-related error that should be ignored
-    const message = error.message || ''
-    if (
-      message.includes('Could not establish connection') ||
-      message.includes('Receiving end does not exist') ||
-      message.includes('Extension context invalidated') ||
-      message.includes('chrome-extension://') ||
-      message.includes('Private Access Token challenge') ||
-      message.includes('cdn-cgi/challenge-platform') ||
-      message.includes('Failed to load resource') ||
-      message.includes('Registration failed')
-    ) {
-      // Silently ignore extension errors
+    if (isExtensionConflict(error.message || '')) {
       return
     }
 
-    // Log error for monitoring
+    const capturedAt = new Date().toISOString()
+
     console.error('Admin page error:', {
       error: {
         name: error.name,
@@ -75,37 +90,56 @@ export class AdminErrorBoundary extends React.Component<
         stack: error.stack,
       },
       errorInfo,
-      timestamp: new Date().toISOString(),
+      timestamp: capturedAt,
       url: window.location.href,
       userAgent: navigator.userAgent,
     })
 
-    // Update state with error info
     this.setState({
       error,
       errorInfo,
+      lastCapturedAt: capturedAt,
     })
 
-    // In production, errors are logged to console only (no external monitoring service configured)
-    if (!import.meta.env.DEV) {
-      // Error already logged above
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem(ADMIN_ERROR_CONTEXT_KEY, JSON.stringify({
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+          componentStack: errorInfo.componentStack,
+          capturedAt,
+        }))
+      } catch {
+        // best effort persistence
+      }
     }
   }
 
   handleReset = () => {
     this.setState({
       hasError: false,
-      error: null,
-      errorInfo: null,
+      error: this.state.error,
+      errorInfo: this.state.errorInfo,
+      lastCapturedAt: this.state.lastCapturedAt,
     })
-  }
-
-  handleReload = () => {
-    window.location.reload()
   }
 
   handleGoHome = () => {
     window.location.href = '/admin/dashboard'
+  }
+
+  clearPersistedContext = () => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem(ADMIN_ERROR_CONTEXT_KEY)
+    }
+
+    this.setState({
+      hasError: false,
+      error: null,
+      errorInfo: null,
+      lastCapturedAt: null,
+    })
   }
 
   render() {
@@ -121,24 +155,28 @@ export class AdminErrorBoundary extends React.Component<
               </div>
               <div className="flex-1">
                 <h1 className="text-2xl font-bold text-foreground mb-2">
-                  Something went wrong
+                  Admin page crashed
                 </h1>
                 <p className="text-muted-foreground mb-4">
-                  We encountered an error while loading this admin page. This has been
-                  logged and our team will investigate.
+                  This runtime error was captured. Automatic reload has been disabled to avoid loops.
                 </p>
 
-                {isDevelopment && this.state.error && (
+                {(this.state.error || this.state.lastCapturedAt) && (
                   <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
                     <h3 className="text-sm font-semibold text-red-800 mb-2">
-                      Error Details (Development Only)
+                      Diagnostic context
                     </h3>
-                    <p className="text-sm text-red-700 font-mono mb-2">
-                      {this.state.error.message}
-                    </p>
-                    {this.state.error.stack && (
+                    {this.state.lastCapturedAt && (
+                      <p className="text-xs text-red-700 mb-2">Captured at: {this.state.lastCapturedAt}</p>
+                    )}
+                    {this.state.error?.message && (
+                      <p className="text-sm text-red-700 font-mono mb-2 break-all">
+                        {this.state.error.message}
+                      </p>
+                    )}
+                    {(isDevelopment || this.state.errorInfo?.componentStack) && (
                       <pre className="text-xs text-red-600 overflow-auto max-h-48">
-                        {this.state.error.stack}
+                        {this.state.errorInfo?.componentStack || this.state.error?.stack}
                       </pre>
                     )}
                   </div>
@@ -151,15 +189,7 @@ export class AdminErrorBoundary extends React.Component<
                     className="flex items-center gap-2"
                   >
                     <RefreshCw className="h-4 w-4" />
-                    Try Again
-                  </Button>
-                  <Button
-                    onClick={this.handleReload}
-                    variant="outline"
-                    className="flex items-center gap-2"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    Reload Page
+                    Retry render
                   </Button>
                   <Button
                     onClick={this.handleGoHome}
@@ -169,18 +199,23 @@ export class AdminErrorBoundary extends React.Component<
                     <Home className="h-4 w-4" />
                     Go to Dashboard
                   </Button>
+                  <Button
+                    onClick={this.clearPersistedContext}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    Clear error context
+                  </Button>
                 </div>
 
                 <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
                   <h3 className="text-sm font-semibold text-blue-800 mb-2">
-                    What you can do:
+                    Next steps:
                   </h3>
                   <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
-                    <li>Try refreshing the page</li>
-                    <li>Clear your browser cache and cookies</li>
-                    <li>Check your internet connection</li>
-                    <li>Try accessing the page from a different browser</li>
-                    <li>Contact support if the problem persists</li>
+                    <li>Use "Retry render" after confirming the underlying issue is resolved</li>
+                    <li>Check the error context above before clearing it</li>
+                    <li>Contact support with the captured timestamp if this persists</li>
                   </ul>
                 </div>
               </div>
