@@ -28,13 +28,13 @@ const SelectTrigger = React.forwardRef<
     aria-invalid={error ? "true" : "false"}
     className={cn(
       // Touch target compliance - 44px minimum height
-      "flex min-h-[44px] w-full items-center justify-between",
+      "flex min-h-[44px] w-full items-start justify-between sm:items-center",
       // Styling
       "rounded-md border bg-background px-3 py-2",
       // Border color - normal vs error state
       error ? "border-destructive" : "border-input",
       // Typography
-      "text-base text-foreground",
+      "text-sm text-foreground sm:text-base",
       // Placeholder styling
       "data-[placeholder]:text-muted-foreground",
       // Focus styles — keyboard only
@@ -45,8 +45,10 @@ const SelectTrigger = React.forwardRef<
       "disabled:cursor-not-allowed disabled:opacity-50",
       // Touch optimization
       "touch-manipulation",
-      // Truncate long text
-      "[&>span]:line-clamp-1",
+      // Mobile-friendly overflow handling for long labels
+      "[&>span]:block [&>span]:min-w-0 [&>span]:flex-1 [&>span]:text-left",
+      "[&>span]:break-words [&>span]:whitespace-normal [&>span]:leading-tight",
+      "[&>span]:line-clamp-2 sm:[&>span]:line-clamp-1",
       // Transition with reduced motion support
       "transition-colors duration-150",
       "motion-reduce:transition-none",
@@ -56,7 +58,7 @@ const SelectTrigger = React.forwardRef<
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-5 w-5 opacity-50 shrink-0 ml-2" aria-hidden="true" />
+      <ChevronDown className="ml-2 h-5 w-5 shrink-0 opacity-50" aria-hidden="true" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ))
@@ -109,7 +111,7 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "relative z-50 max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover text-popover-foreground shadow-md",
+        "relative z-50 max-h-[--radix-select-content-available-height] w-[var(--radix-select-trigger-width)] min-w-[min(18rem,calc(100vw-1rem))] max-w-[calc(100vw-1rem)] overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md",
         // Animation classes with reduced motion support
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
@@ -129,9 +131,9 @@ const SelectContent = React.forwardRef<
       <SelectScrollUpButton />
       <SelectPrimitive.Viewport
         className={cn(
-          "p-1",
+          "p-2",
           position === "popper" &&
-            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
+            "w-full min-w-[var(--radix-select-trigger-width)]"
         )}
       >
         {children}
@@ -169,11 +171,15 @@ const SelectItem = React.forwardRef<
     ref={ref}
     className={cn(
       // Touch target compliance - 44px minimum height
-      "relative flex w-full min-h-[44px] cursor-default select-none items-center",
+      "relative flex w-full min-h-[44px] cursor-default select-none items-start sm:items-center",
       // Padding and spacing
       "rounded-md py-2 pl-10 pr-3",
       // Typography
-      "text-base",
+      "text-sm sm:text-base",
+      // Long-label handling on mobile
+      "[&_[data-slot='select-item-text']]:block [&_[data-slot='select-item-text']]:min-w-0",
+      "[&_[data-slot='select-item-text']]:break-words [&_[data-slot='select-item-text']]:whitespace-normal",
+      "[&_[data-slot='select-item-text']]:leading-tight [&_[data-slot='select-item-text']]:line-clamp-2 sm:[&_[data-slot='select-item-text']]:line-clamp-1",
       // Focus and hover states
       "outline-none focus:bg-accent focus:text-accent-foreground",
       // Disabled state
@@ -193,7 +199,9 @@ const SelectItem = React.forwardRef<
       </SelectPrimitive.ItemIndicator>
     </span>
 
-    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+    <SelectPrimitive.ItemText data-slot="select-item-text">
+      {children}
+    </SelectPrimitive.ItemText>
   </SelectPrimitive.Item>
 ))
 SelectItem.displayName = SelectPrimitive.Item.displayName
