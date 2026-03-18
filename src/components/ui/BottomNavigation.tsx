@@ -48,7 +48,10 @@ const routeImports: Record<string, () => Promise<unknown>> = {
   '/student/settings': () => import('@/pages/student/Settings'),
   '/admin/dashboard': () => import('@/pages/admin/Dashboard'),
   '/admin/applications': () => import('@/pages/admin/Applications'),
+  '/admin/programs': () => import('@/pages/admin/Programs'),
+  '/admin/intakes': () => import('@/pages/admin/Intakes'),
   '/admin/users': () => import('@/pages/admin/Users'),
+  '/admin/audit': () => import('@/pages/admin/AuditTrail'),
   '/admin/settings': () => import('@/pages/admin/Settings'),
 }
 

@@ -11,6 +11,7 @@ import { CommunicationHistory } from '@/components/admin/CommunicationHistory'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus'
+import { ApplicationApprovalActions } from './ApplicationApprovalActions'
 
 // Institution code to name mapping
 const INSTITUTION_NAMES: Record<string, string> = {
@@ -120,6 +121,7 @@ interface ApplicationDetailModalProps {
  onViewDocuments: () => void
  onViewHistory: () => void
  onUpdateStatus: (id: string, status: string, options?: { notes?: string; force?: boolean }) => Promise<any>
+ onPaymentStatusUpdate: (id: string, status: string, verificationNotes?: string) => Promise<void>
  onGenerateAcceptanceLetter: () => Promise<void>
  onGenerateFinanceReceipt: () => Promise<void>
 }
@@ -379,6 +381,7 @@ export function ApplicationDetailModal({
  onViewDocuments,
  onViewHistory,
  onUpdateStatus,
+ onPaymentStatusUpdate,
  onGenerateAcceptanceLetter,
  onGenerateFinanceReceipt
 }: ApplicationDetailModalProps) {
@@ -1331,47 +1334,20 @@ export function ApplicationDetailModal({
  )}
  </div>
  
- <div className="flex gap-2">
- {application.status === 'submitted' && (
- <Button
- loading={updating === application.id}
- onClick={async () => {
- await handleStatusWithWarning(application.id, 'under_review')
- }}
- variant="primary"
- >
- Start Review
- </Button>
- )}
- 
- {application.status === 'under_review' && (
- <>
- <Button
- loading={updating === application.id}
- onClick={async () => {
- await handleStatusWithWarning(application.id, 'approved')
- }}
- variant="success"
- >
- <CheckCircle className="h-4 w-4 mr-2" />
- Approve
- </Button>
- <Button
- loading={updating === application.id}
- onClick={async () => {
- await handleStatusWithWarning(application.id, 'rejected')
- }}
- variant="destructive"
- >
- <XCircle className="h-4 w-4 mr-2" />
- Reject
- </Button>
- </>
- )}
- 
+ <div className="sm:min-w-[320px]">
+ <ApplicationApprovalActions
+ applicationId={application.id}
+ currentStatus={application.status}
+ currentPaymentStatus={application.payment_status || 'not_paid'}
+ onStatusUpdate={handleStatusWithWarning}
+ onPaymentStatusUpdate={onPaymentStatusUpdate}
+ disabled={updating === application.id}
+ />
+ <div className="mt-3 flex justify-end">
  <Button variant="outline" onClick={onClose}>
  Close
  </Button>
+ </div>
  </div>
  </div>
  </div>
