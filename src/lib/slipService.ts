@@ -48,36 +48,12 @@ function extractErrorMessage(error: unknown, fallback: string): string {
   return fallback
 }
 
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-
-    reader.onloadend = () => {
-      const result = reader.result
-      if (typeof result !== 'string') {
-        reject(new Error('Failed to serialize slip for email attachment'))
-        return
-      }
-
-      const base64 = result.split(',')[1]
-      if (!base64) {
-        reject(new Error('Email attachment payload is empty'))
-        return
-      }
-
-      resolve(base64)
-    }
-
-    reader.onerror = () => reject(new Error('Failed to read slip for email attachment'))
-    reader.readAsDataURL(blob)
-  })
-}
-
 export async function createApplicationSlip(
   data: ApplicationSlipData,
   options: SlipServiceOptions = {}
 ): Promise<SlipServiceResult> {
   const toast = options.toast
+  const appOrigin = typeof window !== 'undefined' ? window.location.origin : ''
 
   try {
     // Always generate locally with jsPDF
@@ -121,7 +97,6 @@ export async function createApplicationSlip(
       } else {
         try {
           const hasPublicUrl = Boolean(publicUrl)
-          const attachmentBase64 = hasPublicUrl ? undefined : await blobToBase64(blob)
 
           await apiClient.request('/api/email?action=send', {
             method: 'POST',
@@ -137,21 +112,11 @@ export async function createApplicationSlip(
                 recipientName: data.full_name || data.email,
                 message: hasPublicUrl
                   ? `Your application slip for ${data.application_number} is ready. You can download it securely using the button below.`
-                  : `Your application slip for ${data.application_number} is attached as a PDF because a download link is currently unavailable.`,
-                ...(hasPublicUrl && publicUrl ? { actionUrl: publicUrl } : {}),
+                  : `Your application slip for ${data.application_number} is ready to download from your dashboard. If the link is unavailable, use the Download Slip button.`,
+                ...(hasPublicUrl && publicUrl
+                  ? { actionUrl: publicUrl }
+                  : { actionUrl: appOrigin ? `${appOrigin}/student/status` : '/student/status' }),
               },
-              ...(attachmentBase64
-                ? {
-                    attachments: [
-                      {
-                        filename: `application-slip-${data.application_number}.pdf`,
-                        content: attachmentBase64,
-                        contentType: 'application/pdf',
-                        encoding: 'base64',
-                      },
-                    ],
-                  }
-                : {}),
               priority: 3,
             }),
             invalidateCache: false,

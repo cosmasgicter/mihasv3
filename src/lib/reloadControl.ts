@@ -12,6 +12,8 @@ interface ReloadLogContext {
   details?: Record<string, unknown>
 }
 
+const AUTO_RELOAD_ENABLED = import.meta.env.VITE_ENABLE_AUTO_RELOAD === 'true'
+
 interface AutoReloadOptions {
   reason: ReloadReason
   buildKey: string
@@ -77,6 +79,20 @@ export const performReload = ({
   buildKey,
   details
 }: ReloadLogContext) => {
+  if (mode === 'auto' && !AUTO_RELOAD_ENABLED) {
+    logReloadEvent({
+      reason,
+      mode,
+      buildKey,
+      details: {
+        ...details,
+        ignored: true,
+        cause: 'auto-reload-disabled'
+      }
+    })
+    return
+  }
+
   logReloadEvent({ reason, mode, buildKey, details })
   window.location.reload()
 }
