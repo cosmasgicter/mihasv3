@@ -22,8 +22,25 @@ import { DashboardQuickActions } from '@/components/admin/dashboard/DashboardQui
 
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 
+type DashboardFetchMode = 'initial' | 'manual' | 'background'
+
+type DashboardApiStatus = {
+  endpoint: '/admin?action=dashboard'
+  phase: 'idle' | 'loading' | 'success' | 'error'
+  responseShape: 'unknown' | 'valid' | 'empty' | 'invalid'
+  authState: 'authenticated-admin' | 'authenticated-non-admin' | 'unauthenticated'
+  isAdmin: boolean
+  userId: string | null
+  hasProfile: boolean
+  lastAttemptAt: string | null
+  lastSuccessAt: string | null
+  lastErrorAt: string | null
+  lastErrorMessage: string | null
+  lastErrorStatus: number | null
+}
+
 export default function AdminDashboard() {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const { profile } = useProfileQuery()
   const [stats, setStats] = useState<AdminDashboardStats>({
     totalApplications: 0,
@@ -51,14 +68,39 @@ export default function AdminDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [networkError, setNetworkError] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [initialLoadFailed, setInitialLoadFailed] = useState(false)
+  const [hasLoadedSuccessfully, setHasLoadedSuccessfully] = useState(false)
+  const [apiStatus, setApiStatus] = useState<DashboardApiStatus>({
+    endpoint: '/admin?action=dashboard',
+    phase: 'idle',
+    responseShape: 'unknown',
+    authState: user ? (isAdmin ? 'authenticated-admin' : 'authenticated-non-admin') : 'unauthenticated',
+    isAdmin,
+    userId: user?.id ?? null,
+    hasProfile: Boolean(profile),
+    lastAttemptAt: null,
+    lastSuccessAt: null,
+    lastErrorAt: null,
+    lastErrorMessage: null,
+    lastErrorStatus: null
+  })
   const dashboardRequestIdRef = useRef(0)
+
+  useEffect(() => {
+    setApiStatus(prev => ({
+      ...prev,
+      authState: user ? (isAdmin ? 'authenticated-admin' : 'authenticated-non-admin') : 'unauthenticated',
+      isAdmin,
+      userId: user?.id ?? null,
+      hasProfile: Boolean(profile)
+    }))
+  }, [isAdmin, profile, user])
 
   // Use polling hook for dashboard data updates (replaces Supabase Realtime)
   const { isPolling } = useAdminDashboardPolling({
-    enabled: !!user?.id,
+    enabled: Boolean(user?.id) && hasLoadedSuccessfully && !initialLoadFailed,
     pollingInterval: 30000, // 30 seconds
     onDataChange: (newStats) => {
-      // Update local stats when polling returns new data
       setStats(prev => ({
         ...prev,
         totalApplications: newStats.totalApplications,
@@ -72,59 +114,82 @@ export default function AdminDashboard() {
     }
   })
 
-  const loadDashboardStats = useCallback(async (options?: { refresh?: boolean }) => {
-    const isRefresh = options?.refresh ?? false
+  const loadDashboardStats = useCallback(async (mode: DashboardFetchMode = 'initial') => {
+    const isRefresh = mode !== 'initial'
     const requestId = dashboardRequestIdRef.current + 1
     dashboardRequestIdRef.current = requestId
     const isLatestRequest = () => dashboardRequestIdRef.current === requestId
 
-    try {
-      if (isRefresh) {
-        setIsRefreshing(true)
-      } else {
-        setIsInitialLoading(true)
-      }
+    if (isRefresh) {
+      setIsRefreshing(true)
+    } else {
+      setIsInitialLoading(true)
+    }
+
+    const attemptAt = new Date().toISOString()
+    setApiStatus(prev => ({
+      ...prev,
+      phase: 'loading',
+      lastAttemptAt: attemptAt,
+      lastErrorMessage: null,
+      lastErrorStatus: null,
+      responseShape: prev.responseShape === 'unknown' ? 'unknown' : prev.responseShape
+    }))
+
+    const result = await adminDashboardService.getOverviewWithDiagnostics()
+
+    if (!isLatestRequest()) {
+      return
+    }
+
+    const isNetworkFailure =
+      (result.diagnostics.errorMessage || '').includes('Network') ||
+      (result.diagnostics.errorMessage || '').includes('fetch') ||
+      result.diagnostics.status === 503
+
+    if (!result.diagnostics.ok) {
+      const errorMessage = `Failed to load dashboard data: ${result.diagnostics.errorMessage ?? 'Unknown dashboard API error'}`
+      setError(errorMessage)
+      setNetworkError(isNetworkFailure)
+      setInitialLoadFailed(!hasLoadedSuccessfully)
+      setApiStatus(prev => ({
+        ...prev,
+        phase: 'error',
+        responseShape: result.diagnostics.responseShape,
+        lastErrorAt: result.diagnostics.requestedAt,
+        lastErrorMessage: result.diagnostics.errorMessage,
+        lastErrorStatus: result.diagnostics.status
+      }))
+    } else {
+      setStats(result.data.stats)
+      setRecentActivity(result.data.recentActivity || [])
+      setLastUpdated(new Date())
       setError('')
       setNetworkError(false)
+      setInitialLoadFailed(false)
+      setHasLoadedSuccessfully(true)
+      setApiStatus(prev => ({
+        ...prev,
+        phase: 'success',
+        responseShape: result.diagnostics.responseShape,
+        lastSuccessAt: result.diagnostics.requestedAt
+      }))
 
-      const response = await adminDashboardService.getOverview()
-      if (!isLatestRequest()) {
-        return
-      }
-      setStats(response.stats)
-      setRecentActivity(response.recentActivity || [])
-      setLastUpdated(new Date())
-    } catch (error: any) {
-      if (!isLatestRequest()) {
-        return
-      }
-      console.error('Error loading dashboard stats:', error)
-
-      // Check if it's a network error
-      if (error.message.includes('fetch failed') || error.message.includes('Network Error') || error.message.includes('Failed to fetch')) {
-        setNetworkError(true)
-        setError('Network connectivity issues detected. Showing offline mode.')
-      } else {
-        setError(`Failed to load dashboard data: ${error.message}`)
-      }
-    } finally {
-      if (!isLatestRequest()) {
-        return
-      }
-      if (isRefresh) {
-        setIsRefreshing(false)
-      } else {
-        setIsInitialLoading(false)
+      if (result.diagnostics.responseShape === 'empty') {
+        setError('Dashboard API returned an empty payload. Data is available but currently empty, not crashed.')
       }
     }
-  }, [])
 
-  // Manual refresh hook for React Query cache invalidation
-  // Requirements: 1.5 - Manual refresh button that forces data reload
+    if (isRefresh) {
+      setIsRefreshing(false)
+    } else {
+      setIsInitialLoading(false)
+    }
+  }, [hasLoadedSuccessfully])
+
   const { forceRefresh, isRefreshing: isManualRefreshing } = useAdminDashboardRefresh({
     onSuccess: () => {
-      // Also reload local dashboard data after cache invalidation
-      void loadDashboardStats({ refresh: true })
+      void loadDashboardStats('manual')
     },
     onError: (err) => {
       console.error('Manual refresh failed:', err)
@@ -132,56 +197,62 @@ export default function AdminDashboard() {
     }
   })
 
-  // Handler for manual refresh button - invalidates React Query cache and reloads data
   const handleManualRefresh = useCallback(async () => {
     await forceRefresh()
   }, [forceRefresh])
 
   useEffect(() => {
-    logger.log('[Dashboard] useEffect triggered', { hasUser: !!user, userId: user?.id })
-    
+    logger.debug('[Dashboard] useEffect triggered', { hasUser: !!user, userId: user?.id })
+
     if (!shouldLoadAdminDashboard(user)) {
-      logger.log('[Dashboard] Skipping load - missing authenticated user')
+      logger.debug('[Dashboard] Skipping load - missing authenticated user')
       return
     }
 
-    let mounted = true
-
-    const load = async () => {
-      if (mounted) {
-        logger.log('[Dashboard] Loading dashboard stats...')
-        await loadDashboardStats()
-      }
-    }
-
-    void load()
-
-    const intervalId = window.setInterval(() => {
-      if (mounted) {
-        void loadDashboardStats({ refresh: true })
-      }
-    }, 300000)
-
-    return () => {
-      mounted = false
-      window.clearInterval(intervalId)
-    }
+    void loadDashboardStats('initial')
   }, [loadDashboardStats, user])
 
   useEffect(() => {
-    if (!shouldLoadAdminDashboard(user)) return
+    if (!shouldLoadAdminDashboard(user) || !hasLoadedSuccessfully || initialLoadFailed) {
+      return
+    }
 
-    // Fallback refresh if polling is not active
+    const intervalId = window.setInterval(() => {
+      void loadDashboardStats('background')
+    }, 300000)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [hasLoadedSuccessfully, initialLoadFailed, loadDashboardStats, user])
+
+  useEffect(() => {
+    if (!shouldLoadAdminDashboard(user) || !hasLoadedSuccessfully || initialLoadFailed) return
+
     if (!isPolling) {
       const timeoutId = window.setTimeout(() => {
-        void loadDashboardStats({ refresh: true })
+        void loadDashboardStats('background')
       }, 60000)
 
       return () => {
         window.clearTimeout(timeoutId)
       }
     }
-  }, [isPolling, loadDashboardStats, user])
+  }, [hasLoadedSuccessfully, initialLoadFailed, isPolling, loadDashboardStats, user])
+
+  const dashboardMetrics: DashboardMetricsSummary = useMemo(() => ({
+    todayApplications: stats.todayApplications,
+    pendingApplications: stats.pendingApplications,
+    approvalRate: stats.approvedApplications + stats.rejectedApplications > 0
+      ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
+      : 0,
+    avgProcessingTime: stats.avgProcessingTime
+  }), [stats.todayApplications, stats.pendingApplications, stats.approvedApplications, stats.rejectedApplications, stats.avgProcessingTime])
+
+  const { adminFirstName } = useMemo(() => {
+    const name = sanitizeForDisplay(getAdminDisplayName(profile, user))
+    return { adminFirstName: name.split(' ')[0] || 'Admin' }
+  }, [profile, user])
 
   if (isInitialLoading) {
     return (
@@ -197,8 +268,7 @@ export default function AdminDashboard() {
     )
   }
 
-  // Show offline dashboard if network error
-  if (networkError) {
+  if (networkError && !hasLoadedSuccessfully) {
     return (
       <>
         <Seo
@@ -212,7 +282,6 @@ export default function AdminDashboard() {
     )
   }
 
-  // Fallback if user or profile is missing
   if (!user) {
     return (
       <>
@@ -232,20 +301,6 @@ export default function AdminDashboard() {
       </>
     )
   }
-
-  const dashboardMetrics: DashboardMetricsSummary = useMemo(() => ({
-    todayApplications: stats.todayApplications,
-    pendingApplications: stats.pendingApplications,
-    approvalRate: stats.approvedApplications + stats.rejectedApplications > 0
-      ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
-      : 0,
-    avgProcessingTime: stats.avgProcessingTime
-  }), [stats.todayApplications, stats.pendingApplications, stats.approvedApplications, stats.rejectedApplications, stats.avgProcessingTime])
-
-  const { adminFirstName } = useMemo(() => {
-    const name = sanitizeForDisplay(getAdminDisplayName(profile, user))
-    return { adminFirstName: name.split(' ')[0] || 'Admin' }
-  }, [profile, user])
 
   return (
     <>
@@ -272,6 +327,27 @@ export default function AdminDashboard() {
         </Button>
       }
     >
+        <div className="mb-6 rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <h2 className="text-sm font-semibold text-foreground">Admin Diagnostics</h2>
+          <div className="mt-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2 lg:grid-cols-4">
+            <div><strong className="text-foreground">Auth:</strong> {apiStatus.authState}</div>
+            <div><strong className="text-foreground">User ID:</strong> {apiStatus.userId ?? 'none'}</div>
+            <div><strong className="text-foreground">Profile loaded:</strong> {apiStatus.hasProfile ? 'yes' : 'no'}</div>
+            <div><strong className="text-foreground">Admin role:</strong> {apiStatus.isAdmin ? 'yes' : 'no'}</div>
+            <div><strong className="text-foreground">Endpoint:</strong> {apiStatus.endpoint}</div>
+            <div><strong className="text-foreground">API phase:</strong> {apiStatus.phase}</div>
+            <div><strong className="text-foreground">Response shape:</strong> {apiStatus.responseShape}</div>
+            <div><strong className="text-foreground">Last status:</strong> {apiStatus.lastErrorStatus ?? 'n/a'}</div>
+            <div className="sm:col-span-2"><strong className="text-foreground">Last attempt:</strong> {apiStatus.lastAttemptAt ?? 'n/a'}</div>
+            <div className="sm:col-span-2"><strong className="text-foreground">Last success:</strong> {apiStatus.lastSuccessAt ?? 'n/a'}</div>
+          </div>
+          {apiStatus.lastErrorMessage && (
+            <p className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 p-2 text-xs text-error">
+              Last API error: {apiStatus.lastErrorMessage}
+            </p>
+          )}
+        </div>
+
         {/* System Status Bar */}
         <div className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}>
           <div className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm border border-border">
@@ -306,12 +382,24 @@ export default function AdminDashboard() {
             <div 
               className={`rounded-xl bg-destructive/5 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg ${animateClasses.fadeIn}`}
             >
-              <div className="flex items-center space-x-3">
-                <AlertTriangle className="h-6 w-6 text-error flex-shrink-0" />
-                <div className="text-sm sm:text-base text-error font-medium">
-                  <strong>Error:</strong> {error}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center space-x-3">
+                  <AlertTriangle className="h-6 w-6 text-error flex-shrink-0" />
+                  <div className="text-sm sm:text-base text-error font-medium">
+                    <strong>Error:</strong> {error}
+                  </div>
                 </div>
+                {initialLoadFailed && (
+                  <Button variant="outline" size="sm" onClick={() => void loadDashboardStats('manual')}>
+                    Retry initial load
+                  </Button>
+                )}
               </div>
+              {initialLoadFailed && (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Automatic retries are paused until you trigger a manual retry.
+                </p>
+              )}
             </div>
           )}
 
