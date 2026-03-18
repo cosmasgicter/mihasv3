@@ -21,6 +21,8 @@ import {
   Settings,
   LayoutDashboard,
   Users,
+  CreditCard,
+  Calendar,
 } from 'lucide-react'
 
 interface AppLayoutProps {
@@ -68,12 +70,14 @@ const adminNavItems = [
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 
-/** Student bottom nav items matching the design spec (Dashboard, Applications, Notifications, Settings) */
+/** Student bottom nav items kept in parity with desktop student navigation */
 const studentNavItems = [
   { href: '/student/dashboard', label: 'Dashboard', icon: Home },
   { href: '/student/application-wizard', label: 'Applications', icon: FileText },
+  { href: '/student/payment', label: 'Payment', icon: CreditCard },
+  { href: '/student/interview', label: 'Interview', icon: Calendar },
   { href: '/student/notifications', label: 'Notifications', icon: Bell },
-  { href: '/student/settings', label: 'Settings', icon: Settings },
+  { href: '/student/settings', label: 'Profile & Settings', icon: Settings },
 ]
 
 const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppLayoutProps) {
