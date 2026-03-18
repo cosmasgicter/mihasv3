@@ -10,7 +10,7 @@ import { useResponsive } from '@/hooks/useResponsive'
 import { useScrollRestoration } from '@/hooks/useScrollRestoration'
 import { SkipLink } from '@/components/ui/SkipLink'
 import { NotificationBell } from '@/components/student/NotificationBell'
-import { UserMenu } from '@/components/ui/UserMenu'
+import { useSignOutAction } from '@/hooks/useSignOutAction'
 import { RouteTransition } from '@/components/smoothui/page-transition'
 import { designTokens } from '@/design-system/tokens'
 import { APP_MAIN_CONTENT_ID } from '@/lib/accessibility-utils'
@@ -25,6 +25,8 @@ import {
   Calendar,
   GraduationCap,
   FileSearch,
+  LogOut,
+  UserCircle2,
 } from 'lucide-react'
 
 interface AppLayoutProps {
@@ -87,6 +89,7 @@ const studentNavItems = [
 
 const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppLayoutProps) {
   const { user, isAdmin } = useAuth()
+  const { signOut, isSigningOut } = useSignOutAction()
   const { collapsed } = useSidebar()
   const { isMobile } = useResponsive()
   const location = useLocation()
@@ -110,8 +113,24 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
 
   const mobileActions = !isAdmin && isStudentRoute ? (
     <div className="flex items-center justify-end gap-1 pr-1">
+      <button
+        type="button"
+        onClick={() => navigate('/student/settings')}
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-accent"
+        aria-label="Open profile settings"
+      >
+        <UserCircle2 className="h-5 w-5" />
+      </button>
       <NotificationBell />
-      <UserMenu />
+      <button
+        type="button"
+        onClick={() => { void signOut() }}
+        disabled={isSigningOut}
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-accent disabled:opacity-60"
+        aria-label="Log out"
+      >
+        <LogOut className="h-5 w-5" />
+      </button>
     </div>
   ) : undefined
 

@@ -51,9 +51,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const signInPath = from && from !== '/'
         ? `/auth/signin?redirect=${encodeURIComponent(from)}`
         : '/auth/signin'
-      window.setTimeout(() => {
-        window.location.assign(signInPath)
-      }, 200)
+      // Do not force a hard redirect here. Route guards and explicit user actions
+      // should drive navigation so unsaved form state can be preserved.
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('mihas:auth-expired', {
+          detail: { from, signInPath },
+        }))
+      }
     })
   }, [queryClient])
 
