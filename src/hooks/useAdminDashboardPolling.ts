@@ -19,6 +19,9 @@ import { apiClient } from '@/services/client'
 
 /** Threshold in ms after which polling stops entirely when tab is hidden */
 const HIDDEN_PAUSE_THRESHOLD = 300000 // 5 minutes
+const MAX_RETRY_ATTEMPTS = 2
+const RETRY_BASE_DELAY_MS = 1000
+const RETRY_MAX_DELAY_MS = 10000
 
 export interface AdminDashboardStats {
   totalApplications: number
@@ -45,6 +48,20 @@ export interface UseAdminDashboardPollingReturn {
 }
 
 const POLLING_INTERVAL = 30000
+
+export function getDashboardRetryDelay(attemptIndex: number): number {
+  const exponent = Math.max(0, attemptIndex)
+  return Math.min(RETRY_MAX_DELAY_MS, RETRY_BASE_DELAY_MS * 2 ** exponent)
+}
+
+export function estimateMaxDashboardRequestsOverWindow(windowMs: number, pollingIntervalMs: number): number {
+  if (windowMs <= 0 || pollingIntervalMs <= 0) {
+    return 0
+  }
+
+  const pollCyclesInWindow = Math.floor(windowMs / pollingIntervalMs) + 1
+  return pollCyclesInWindow * (1 + MAX_RETRY_ATTEMPTS)
+}
 
 /**
  * Compute a fingerprint of admin stats for deduplication.
@@ -144,6 +161,8 @@ export function useAdminDashboardPolling(
         }
       : false,
     staleTime: pollingInterval / 2,
+    retry: (failureCount) => failureCount <= MAX_RETRY_ATTEMPTS,
+    retryDelay: (attemptIndex) => getDashboardRetryDelay(attemptIndex),
   })
 
   useEffect(() => {
