@@ -278,7 +278,7 @@ const BasicKycStep = ({
               const label = intake.displayName
               const deadline = formatDeadline(intake.application_deadline)
               const optionLabel = deadline ? `${label} — Apply by ${deadline}` : label
-              return { value: label, label: optionLabel }
+              return { value: intake.id, label: optionLabel }
             })}
             placeholder="Select intake"
             disabled={intakes.length === 0}

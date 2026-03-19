@@ -340,25 +340,86 @@ async function handleCreate(
 
   const body = parsed;
 
-  // Validate institution-program mapping
-  const INSTITUTION_PROGRAMS: Record<string, string[]> = {
-    'MIHAS': ['Diploma in Registered Nursing', 'Certificate In Psychosocial Counselling'],
-    'KATC': ['Diploma in Clinical Medicine', 'Diploma in Environmental Health'],
-  };
-
-  const allowedPrograms = INSTITUTION_PROGRAMS[body.institution];
-  if (!allowedPrograms) {
-    return sendError(res, `Invalid institution: ${body.institution}. Must be MIHAS or KATC`, HttpStatus.BAD_REQUEST);
-  }
-  if (!allowedPrograms.includes(body.program)) {
-    return sendError(
-      res,
-      `Program "${body.program}" is not offered at ${body.institution}. Valid programs: ${allowedPrograms.join(', ')}`,
-      HttpStatus.BAD_REQUEST
-    );
-  }
-
   try {
+    type CatalogValidationRow = {
+      program_id: string;
+      program_name: string;
+      program_institution_id: string | null;
+      institution_id: string | null;
+      institution_name: string | null;
+      institution_full_name: string | null;
+      institution_code: string | null;
+      intake_exists: boolean;
+      intake_program_exists: boolean;
+    };
+
+    const catalogValidationResult = await query<CatalogValidationRow>(
+      `SELECT
+        p.id AS program_id,
+        p.name AS program_name,
+        p.institution_id AS program_institution_id,
+        i.id AS institution_id,
+        i.name AS institution_name,
+        i.full_name AS institution_full_name,
+        i.code AS institution_code,
+        EXISTS (
+          SELECT 1
+          FROM intakes active_intake
+          WHERE active_intake.id = $2
+            AND active_intake.is_active = true
+        ) AS intake_exists,
+        EXISTS (
+          SELECT 1
+          FROM program_intakes pi
+          WHERE pi.program_id = p.id
+            AND pi.intake_id = $2
+        ) AS intake_program_exists
+      FROM programs p
+      LEFT JOIN institutions i ON i.id = p.institution_id
+      WHERE p.id = $1
+        AND p.is_active = true`,
+      [body.program, body.intake]
+    );
+
+    if (catalogValidationResult.rowCount === 0) {
+      return sendValidationError(res, {
+        program: 'Please select a valid program from the current catalog.',
+      });
+    }
+
+    const catalog = catalogValidationResult.rows[0];
+    const submittedInstitution = String(body.institution || '').trim();
+    const normalizedSubmittedInstitution = submittedInstitution.toLowerCase();
+    const institutionCandidates = [
+      catalog.institution_id,
+      catalog.institution_name,
+      catalog.institution_full_name,
+      catalog.institution_code,
+    ]
+      .map(value => value?.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (
+      !normalizedSubmittedInstitution
+      || !institutionCandidates.includes(normalizedSubmittedInstitution)
+    ) {
+      return sendValidationError(res, {
+        institution: 'Please select a valid institution for the selected program.',
+      });
+    }
+
+    if (!catalog.intake_exists) {
+      return sendValidationError(res, {
+        program: 'Please select a valid intake from the current catalog.',
+      });
+    }
+
+    if (!catalog.intake_program_exists) {
+      return sendValidationError(res, {
+        program: 'Selected program is not available for the chosen intake.',
+      });
+    }
+
     // Build insert query
     const fields = [
       'user_id', 'application_number', 'public_tracking_code', 'full_name',
@@ -382,9 +443,9 @@ async function handleCreate(
       body.nationality || 'Zambian',
       body.next_of_kin_name || null,
       body.next_of_kin_phone || null,
-      body.program,
+      catalog.program_id,
       body.intake,
-      body.institution,
+      catalog.institution_id || body.institution,
       body.status || 'draft'
     ];
 

@@ -261,20 +261,35 @@ const useWizardController = (): UseWizardControllerResult => {
     [deriveInstitutionLabel, findProgramId, programs]
   )
 
-  const resolveIntakeLabel = useCallback((value?: string | null) => {
+  const resolveIntakeIdentity = useCallback((value?: string | null) => {
     const trimmed = value?.trim() || ''
-    if (!trimmed) return ''
-
-    const byDisplayName = intakes.find(intake => intake.displayName?.trim() === trimmed)
-    if (byDisplayName) return byDisplayName.displayName.trim()
-
-    const byName = intakes.find(intake => intake.name?.trim() === trimmed)
-    if (byName) return byName.displayName?.trim() || byName.name?.trim() || ''
+    if (!trimmed) return null
 
     const byId = intakes.find(intake => intake.id === trimmed)
-    if (byId) return byId.displayName?.trim() || byId.name?.trim() || ''
+    if (byId) {
+      return {
+        id: byId.id,
+        label: byId.displayName?.trim() || byId.name?.trim() || '',
+      }
+    }
 
-    return ''
+    const byDisplayName = intakes.find(intake => intake.displayName?.trim() === trimmed)
+    if (byDisplayName) {
+      return {
+        id: byDisplayName.id,
+        label: byDisplayName.displayName.trim(),
+      }
+    }
+
+    const byName = intakes.find(intake => intake.name?.trim() === trimmed)
+    if (byName) {
+      return {
+        id: byName.id,
+        label: byName.displayName?.trim() || byName.name?.trim() || '',
+      }
+    }
+
+    return null
   }, [intakes])
 
   const resolveInstitutionCode = useCallback((institutionLabel: string) => {
@@ -324,11 +339,11 @@ const useWizardController = (): UseWizardControllerResult => {
   }, [intakesData])
 
   const programIds = useMemo(() => programs.map(program => program.id).filter(Boolean), [programs])
-  const intakeOptions = useMemo(
-    () => intakes.map(intake => intake.displayName).filter(Boolean),
+  const intakeIds = useMemo(
+    () => intakes.map(intake => intake.id).filter(Boolean),
     [intakes]
   )
-  const schema = useMemo(() => createWizardSchema(programIds, intakeOptions), [programIds, intakeOptions])
+  const schema = useMemo(() => createWizardSchema(programIds, intakeIds), [programIds, intakeIds])
   const resolver = useMemo(() => zodResolver(schema), [schema])
 
   const form = useForm<WizardFormData>({
@@ -672,13 +687,15 @@ const useWizardController = (): UseWizardControllerResult => {
     const currentIntake = watch('intake')
     if (!currentIntake) return
 
-    if (intakeOptions.length > 0 && !intakeOptions.includes(currentIntake)) {
-      const fallbackIntake = intakes.find(intake => intake.name === currentIntake)
+    if (intakeIds.length > 0 && !intakeIds.includes(currentIntake)) {
+      const fallbackIntake = intakes.find(intake =>
+        intake.displayName === currentIntake || intake.name === currentIntake
+      )
       if (fallbackIntake) {
-        setValue('intake', fallbackIntake.displayName)
+        setValue('intake', fallbackIntake.id)
       }
     }
-  }, [intakes, intakeOptions, setValue, watch])
+  }, [intakes, intakeIds, setValue, watch])
 
   useEffect(() => {
     if (user && !authLoading && !restoringDraft && !draftLoaded) {
@@ -989,13 +1006,15 @@ const useWizardController = (): UseWizardControllerResult => {
           if (!resolvedProgram) {
             throw new Error('Please select a valid program before saving your draft online.')
           }
-          const resolvedIntake = resolveIntakeLabel(formData.intake)
+          const resolvedIntake = resolveIntakeIdentity(formData.intake)
           if (!resolvedIntake) {
             throw new Error('Please select a valid intake before saving your draft online.')
           }
           const institutionLabel =
             resolvedProgram.institutionLabel || deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'MIHAS'
           const normalizedInstitution = resolveInstitutionCode(institutionLabel)
+          const institutionId =
+            selectedProgramDetails?.institutions?.id || normalizedInstitution
           const { generateApplicationNumber } = await import('@/lib/applicationNumberGenerator')
 
           const applicationNumber = generateApplicationNumber({ institution: normalizedInstitution })
@@ -1004,11 +1023,11 @@ const useWizardController = (): UseWizardControllerResult => {
             buildServerDraftPayload({
               formData: {
                 ...formData,
-                program: resolvedProgram.label,
-                intake: resolvedIntake
+                program: resolvedProgram.id,
+                intake: resolvedIntake.id
               },
               selectedProgramDetails,
-              institutionCode: normalizedInstitution,
+              institutionCode: institutionId,
               nationality,
               applicationNumber,
               trackingCode,
@@ -1034,7 +1053,7 @@ const useWizardController = (): UseWizardControllerResult => {
               trackingCode: app.public_tracking_code || trackingCode,
               program: resolvedProgram.label,
               institution: institutionLabel,
-              intake: resolvedIntake,
+              intake: resolvedIntake.label,
               fullName: formData.full_name,
               email: formData.email,
               phone: formData.phone,
@@ -1107,7 +1126,7 @@ const useWizardController = (): UseWizardControllerResult => {
     deriveInstitutionLabel,
     selectedProgramDetails,
     resolveInstitutionCode,
-    resolveIntakeLabel,
+    resolveIntakeIdentity,
     resolveProgramIdentity,
     createApplication,
     queryClient,
@@ -1206,7 +1225,7 @@ const useWizardController = (): UseWizardControllerResult => {
         showError(errorMessage)
         return
       }
-      if (formData.intake && !intakeOptions.includes(formData.intake)) {
+      if (formData.intake && !intakeIds.includes(formData.intake)) {
         const errorMessage = 'Please select a valid intake from the list provided'
         setError('')
         showError(errorMessage)
@@ -1223,7 +1242,7 @@ const useWizardController = (): UseWizardControllerResult => {
           showError(errorMessage)
           return
         }
-        const resolvedIntake = resolveIntakeLabel(formData.intake)
+        const resolvedIntake = resolveIntakeIdentity(formData.intake)
         if (!resolvedIntake) {
           const errorMessage = 'Please select a valid intake from the list provided'
           setError('')
@@ -1235,14 +1254,15 @@ const useWizardController = (): UseWizardControllerResult => {
         const institutionLabel =
           resolvedProgram.institutionLabel || deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'MIHAS'
         const normalizedInstitution = resolveInstitutionCode(institutionLabel)
+        const institutionId = selectedProgramDetails?.institutions?.id || normalizedInstitution
         
         // Check for duplicate applications (only for new applications)
         if (!applicationId) {
           const { checkDuplicateApplication } = await import('@/lib/duplicateApplicationCheck')
           const duplicateCheck = await checkDuplicateApplication(
             user.id,
-            programName,
-            resolvedIntake
+            resolvedProgram.id,
+            resolvedIntake.id
           )
           
           if (duplicateCheck.hasDuplicate) {
@@ -1273,9 +1293,9 @@ const useWizardController = (): UseWizardControllerResult => {
               country: formData.country || country,
               next_of_kin_name: formData.next_of_kin_name || null,
               next_of_kin_phone: formData.next_of_kin_phone || null,
-              program: programName,
-              intake: resolvedIntake,
-              institution: normalizedInstitution,
+              program: resolvedProgram.id,
+              intake: resolvedIntake.id,
+              institution: institutionId,
               nationality: nationality
             }
           })
@@ -1285,7 +1305,7 @@ const useWizardController = (): UseWizardControllerResult => {
             trackingCode: updatedApp.public_tracking_code,
             program: programName,
             institution: institutionLabel,
-            intake: resolvedIntake,
+            intake: resolvedIntake.label,
             fullName: formData.full_name,
             email: formData.email,
             phone: formData.phone,
@@ -1320,9 +1340,9 @@ const useWizardController = (): UseWizardControllerResult => {
             country: sanitizeInput(formData.country) || country,
             next_of_kin_name: sanitizeInput(formData.next_of_kin_name) || null,
             next_of_kin_phone: sanitizeInput(formData.next_of_kin_phone) || null,
-            program: programName,
-            intake: resolvedIntake,
-            institution: normalizedInstitution,
+            program: resolvedProgram.id,
+            intake: resolvedIntake.id,
+            institution: institutionId,
             nationality: nationality,
             status: 'draft'
           })
@@ -1337,7 +1357,7 @@ const useWizardController = (): UseWizardControllerResult => {
             trackingCode,
             program: programName,
             institution: institutionLabel,
-            intake: resolvedIntake,
+            intake: resolvedIntake.label,
             fullName: formData.full_name,
             email: formData.email,
             phone: formData.phone,
@@ -1471,9 +1491,9 @@ const useWizardController = (): UseWizardControllerResult => {
     applicationId,
     updateApplication,
     programIds,
-    intakeOptions,
+    intakeIds,
     popFile,
-    resolveIntakeLabel,
+    resolveIntakeIdentity,
     resolveProgramIdentity,
     showError
   ])
@@ -1548,7 +1568,10 @@ const useWizardController = (): UseWizardControllerResult => {
         )
         const institutions = result?.institutions ?? []
         const match = institutions.find(
-          (inst: any) => inst.slug === updatedApp.institution || inst.name === updatedApp.institution
+          (inst: any) =>
+            inst.id === updatedApp.institution
+            || inst.slug === updatedApp.institution
+            || inst.name === updatedApp.institution
         )
         if (match?.name) {
           institutionName = match.name
