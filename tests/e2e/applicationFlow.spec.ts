@@ -294,6 +294,26 @@ test.describe('Registration form validation', () => {
   });
 });
 
+test.describe('Logout flow', () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test('student can log out from mobile dashboard header and protected routes are blocked', async ({ page }) => {
+    await completeRegistration(page);
+    await waitForUrl(page, /\/student\/dashboard/, 15_000);
+
+    const mobileHeaderLogout = page.getByRole('button', { name: /log out/i }).first();
+    await expect(mobileHeaderLogout).toBeVisible();
+    await mobileHeaderLogout.click();
+
+    await waitForUrl(page, /\/auth\/signin/, 15_000);
+    await expect(page).toHaveURL(/\/auth\/signin/);
+
+    await page.goto('/student/dashboard');
+    await waitForUrl(page, /\/auth\/signin/, 15_000);
+    await expect(page).toHaveURL(/\/auth\/signin/);
+  });
+});
+
 test.describe('Login form validation', () => {
   test('shows error for wrong credentials', async ({ page }) => {
     await page.goto('/login');

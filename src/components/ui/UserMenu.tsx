@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useSignOutAction } from '@/hooks/useSignOutAction'
+import { useToastStore } from '@/hooks/useToast'
 import { cn } from '@/lib/utils'
 
 export function UserMenu() {
@@ -12,6 +13,7 @@ export function UserMenu() {
   const { user } = useAuth()
   const { profile } = useProfileQuery()
   const { signOut, isSigningOut } = useSignOutAction()
+  const toast = useToastStore()
   const menuRef = useRef<HTMLDivElement>(null)
   
   const fullName = profile?.full_name || (user?.user_metadata?.full_name as string) || 'User'
@@ -31,7 +33,13 @@ export function UserMenu() {
   // Requirements: 13.1, 13.2, 13.3, 13.4 - Improve Logout Performance
   const handleSignOut = async () => {
     setIsOpen(false)
-    await signOut()
+    try {
+      await signOut()
+      toast.success('Signed out', 'You have been signed out successfully.')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Please try again.'
+      toast.error('Sign out failed', message)
+    }
   }
 
   return (
