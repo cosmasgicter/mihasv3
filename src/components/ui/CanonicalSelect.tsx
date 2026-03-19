@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils'
 export interface CanonicalSelectOption {
   value: string
   label: string
+  description?: string
   disabled?: boolean
 }
 
@@ -36,7 +37,7 @@ export interface CanonicalSelectProps {
   /** Alias for onValueChange (StandaloneSelect compat) */
   onChange?: (value: string) => void
   placeholder?: string
-  options: Array<{ value: string; label: string; disabled?: boolean }>
+  options: Array<{ value: string; label: string; description?: string; disabled?: boolean }>
   disabled?: boolean
   /** Boolean error flag (raw mode) or string error message (field-wrapped mode) */
   error?: boolean | string
@@ -95,7 +96,7 @@ export function CanonicalSelect({
         id={label ? selectId : undefined}
         error={hasError}
         className={cn(
-          'min-h-[44px] rounded-md border-input',
+          'min-h-[52px] rounded-md border-input',
           'focus:ring-ring',
           'transition-colors duration-fast',
           'motion-reduce:transition-none',
@@ -116,9 +117,18 @@ export function CanonicalSelect({
             key={option.value}
             value={option.value}
             disabled={option.disabled}
-            className="py-3 px-4"
+            className="px-4"
           >
-            {option.label}
+            <span className="flex min-w-0 max-w-full flex-col">
+              <span className="line-clamp-2 break-words text-sm leading-tight sm:line-clamp-1 sm:text-base">
+                {option.label}
+              </span>
+              {option.description ? (
+                <span className="mt-0.5 line-clamp-1 text-xs text-muted-foreground sm:text-sm">
+                  {option.description}
+                </span>
+              ) : null}
+            </span>
           </SelectItem>
         ))}
       </SelectContent>
@@ -132,7 +142,7 @@ export function CanonicalSelect({
 
   // Field-wrapped mode — label + error + helper
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn('space-y-2.5', className)}>
       {label && (
         <label
           htmlFor={selectId}
