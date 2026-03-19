@@ -67,7 +67,7 @@ const BasicKycStep = ({
   return (
     <div
       key="step1"
-      className={`bg-card rounded-lg shadow-lg p-4 sm:p-6 border border-border ${shouldAnimate ? animateClasses.fadeIn : ''}`}
+      className={`overflow-visible bg-card rounded-lg shadow-lg p-4 sm:p-6 border border-border ${shouldAnimate ? animateClasses.fadeIn : ''}`}
       data-testid="basic-kyc-step"
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
@@ -95,7 +95,7 @@ const BasicKycStep = ({
         Your account details help us pre-fill this step. This KYC section is the admissions record we will review for your application, so confirm that your names, contact details, programme, and identity information are correct here.
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-visible sm:gap-6">
         <div className="md:col-span-2" style={shouldAnimate ? staggerChild(0) : undefined}>
           <AnimatedInput
             {...register('full_name')}
@@ -241,7 +241,7 @@ const BasicKycStep = ({
           />
         </div>
 
-        <div style={shouldAnimate ? staggerChild(12) : undefined}>
+        <div className="md:col-span-2" style={shouldAnimate ? staggerChild(12) : undefined}>
           <FormSelect
             name="program"
             control={control}
@@ -256,35 +256,40 @@ const BasicKycStep = ({
                 })
                 .map(program => {
                   const institutionName = program.institutions?.full_name || program.institutions?.name
-                  const label = institutionName ? `${program.name} — ${institutionName}` : program.name
-                  return { value: program.id, label }
+                  return {
+                    value: program.id,
+                    label: program.name,
+                    description: institutionName,
+                  }
                 })
             }
             placeholder="Select programme"
             error={errors.program?.message}
             disabled={programs.length === 0}
             helperText={programs.length === 0 ? 'No programmes available for the current intake' : undefined}
-            triggerClassName="[&>span]:line-clamp-2 [&>span]:whitespace-normal"
+            triggerClassName="min-h-[56px] py-3 [&>span]:max-w-[calc(100%-1.75rem)] [&>span]:line-clamp-2 [&>span]:whitespace-normal [&>span]:leading-snug"
             required
           />
         </div>
 
-        <div style={shouldAnimate ? staggerChild(13) : undefined}>
+        <div className="md:col-span-2" style={shouldAnimate ? staggerChild(13) : undefined}>
           <FormSelect
             name="intake"
             control={control}
             label="Intake"
             options={intakes.map(intake => {
-              const label = intake.displayName
               const deadline = formatDeadline(intake.application_deadline)
-              const optionLabel = deadline ? `${label} — Apply by ${deadline}` : label
-              return { value: intake.id, label: optionLabel }
+              return {
+                value: intake.id,
+                label: intake.displayName,
+                description: deadline ? `Apply by ${deadline}` : undefined,
+              }
             })}
             placeholder="Select intake"
             disabled={intakes.length === 0}
             error={errors.intake?.message}
             helperText={intakes.length === 0 ? 'Intakes will appear here once enrollment periods are announced.' : undefined}
-            triggerClassName="[&>span]:line-clamp-2 [&>span]:whitespace-normal"
+            triggerClassName="min-h-[56px] py-3 [&>span]:max-w-[calc(100%-1.75rem)] [&>span]:line-clamp-2 [&>span]:whitespace-normal [&>span]:leading-snug"
             required
           />
         </div>
