@@ -482,6 +482,7 @@ const useWizardController = (): UseWizardControllerResult => {
     if (!submittedApplication || !submittedApplication.trackingCode || !submittedApplication.applicationNumber) return null
     const now = new Date().toISOString()
     return {
+      application_id: applicationId || undefined,
       public_tracking_code: submittedApplication.trackingCode,
       application_number: submittedApplication.applicationNumber,
       status: submittedApplication.status || 'submitted',
@@ -500,7 +501,7 @@ const useWizardController = (): UseWizardControllerResult => {
       admin_feedback_date: null,
       userId: user?.id
     }
-  }, [submittedApplication, user?.email, user?.id])
+  }, [applicationId, submittedApplication, user?.email, user?.id])
 
   const { persistingSlip, slipLoading, emailLoading, handleDownloadSlip, handleEmailSlip, dismissSlipProgress } = useApplicationSlip({
     submittedApplication,
