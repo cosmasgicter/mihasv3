@@ -27,6 +27,7 @@ import {
   FileSearch,
   LogOut,
   UserCircle2,
+  BriefcaseBusiness,
 } from 'lucide-react'
 
 interface AppLayoutProps {
@@ -77,15 +78,18 @@ const adminNavItems = [
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 
-/** Student bottom nav items kept in parity with desktop student navigation */
+/** Student mobile navigation (4 primary + overflow in More menu) */
 const studentNavItems = [
   { href: '/student/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/student/application-wizard', label: 'Applications', icon: FileText },
+  { href: '/student/application-wizard', label: 'Apply', icon: FileText, activeMatchPaths: ['/student/application-wizard', '/apply'] },
   { href: '/student/payment', label: 'Payment', icon: CreditCard },
   { href: '/student/interview', label: 'Interview', icon: Calendar },
-  { href: '/student/notifications', label: 'Notifications', icon: Bell },
-  { href: '/student/settings', label: 'Profile & Settings', icon: Settings },
+  { href: '/student/notifications', label: 'Notifications', icon: Bell, activeMatchPaths: ['/student/notifications'] },
+  { href: '/student/settings', label: 'Profile & Settings', icon: Settings, activeMatchPaths: ['/student/settings', '/student/profile'] },
+  { href: '/student/status', label: 'Application Status', icon: BriefcaseBusiness, activeMatchPaths: ['/student/status'] },
 ]
+
+const studentLogoutNavItem = { href: '/auth/signin', label: 'Logout', icon: LogOut }
 
 const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppLayoutProps) {
   const { user, isAdmin } = useAuth()
@@ -105,8 +109,17 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
   const collapsedWidth = designTokens.layout.sidebarCollapsed
   const expandedWidth = designTokens.layout.sidebarExpanded
 
+  const resolvePageTitle = (pathname: string): string => {
+    const exactMatch = pageTitles[pathname]
+    if (exactMatch) return exactMatch
+    const nestedMatch = Object.entries(pageTitles).find(([path]) =>
+      pathname.startsWith(`${path}/`)
+    )?.[1]
+    return nestedMatch || 'MIHAS'
+  }
+
   // Determine mobile header props from current route
-  const pageTitle = pageTitles[location.pathname] || 'MIHAS'
+  const pageTitle = resolvePageTitle(location.pathname)
   const showBack = backRoutes.has(location.pathname) || location.pathname.includes('/application/')
   const handleBack = () => navigate(-1)
   const isStudentRoute = location.pathname.startsWith('/student')
@@ -135,7 +148,23 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
   ) : undefined
 
   // Pick nav items based on role
-  const navItems = isAdmin ? adminNavItems : studentNavItems
+  const navItems = isAdmin
+    ? [
+      ...adminNavItems,
+      {
+        ...studentLogoutNavItem,
+        onClick: () => { void signOut() },
+        activeMatchPaths: [],
+      },
+    ]
+    : [
+      ...studentNavItems,
+      {
+        ...studentLogoutNavItem,
+        onClick: () => { void signOut() },
+        activeMatchPaths: [],
+      },
+    ]
 
   return (
     <div className="flex min-h-screen w-full overflow-x-hidden">
@@ -173,6 +202,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
       <BottomNavigation
         items={navItems}
         isAuthenticated
+        overflowMode
       />
     </div>
   )
