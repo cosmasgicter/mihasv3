@@ -1164,6 +1164,7 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
         date_of_birth: string | null;
         sex: string | null;
         residence_town: string | null;
+        country: string | null;
         nationality: string | null;
         nrc_number: string | null;
         address: string | null;
@@ -1171,7 +1172,7 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
         next_of_kin_name: string | null;
         next_of_kin_phone: string | null;
       }>(
-        `SELECT id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone
+        `SELECT id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, country, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone
          FROM profiles WHERE id = $1 LIMIT 1`,
         [payload.sub]
       );
@@ -1200,6 +1201,7 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
       'date_of_birth',
       'sex',
       'residence_town',
+      'country',
       'nationality',
       'nrc_number',
       'address',
@@ -1249,6 +1251,7 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
       date_of_birth: string | null;
       sex: string | null;
       residence_town: string | null;
+      country: string | null;
       nationality: string | null;
       nrc_number: string | null;
       address: string | null;
@@ -1259,7 +1262,7 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
       `UPDATE profiles
        SET ${setClauses.join(', ')}, updated_at = NOW()
        WHERE id = $${providedFields.length + 1}
-       RETURNING id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone`,
+       RETURNING id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, country, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone`,
       values
     );
 
