@@ -29,8 +29,6 @@ export function useSignOutAction() {
       notifySignOutListeners()
       try {
         await signOut()
-      } catch (error) {
-        console.error('Sign out failed:', error)
       } finally {
         activeSignOutPromise = null
         notifySignOutListeners()
