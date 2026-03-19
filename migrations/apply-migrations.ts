@@ -14,6 +14,23 @@ import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 
 const MIGRATIONS_DIR = './migrations';
+const REQUIRED_MIGRATIONS = [
+  '001_extensions.sql',
+  '002_core_schema.sql',
+  '003_supporting_tables.sql',
+  '004_functions.sql',
+  '005_triggers.sql',
+  '006_data_migration.sql',
+  '007_password_reset_tokens.sql',
+  '008_notification_delivery.sql',
+  '009_document_migration_log.sql',
+  '010_user_permission_overrides.sql',
+  '011_payment_review_indexes.sql',
+  'add_csrf_tokens_table.sql',
+  'add_audit_retention_category.sql',
+  'add_password_reset_tokens_table.sql',
+  'add_login_attempts_table.sql',
+] as const;
 
 interface MigrationFile {
   name: string;
@@ -43,6 +60,20 @@ async function getMigrationFiles(): Promise<MigrationFile[]> {
     .sort((a, b) => a.order - b.order);
 
   return files;
+}
+
+function assertMigrationChainComplete(files: MigrationFile[]): void {
+  const localSet = new Set(files.map(file => file.name));
+  const missing = REQUIRED_MIGRATIONS.filter(name => !localSet.has(name));
+
+  if (missing.length === 0) {
+    return;
+  }
+
+  console.error('❌ Migration chain is incomplete. Missing local files:');
+  missing.forEach(name => console.error(`   - ${name}`));
+  console.error('\nRestore missing files before applying migrations to avoid schema drift.');
+  process.exit(2);
 }
 
 /**
@@ -162,6 +193,9 @@ function splitSqlStatements(sql: string): string[] {
 }
 
 async function main() {
+  const migrations = await getMigrationFiles();
+  assertMigrationChainComplete(migrations);
+
   const connectionString = process.env.DATABASE_URL;
   
   if (!connectionString) {
@@ -188,8 +222,6 @@ async function main() {
   await ensureMigrationHistory(sql);
   const appliedMigrations = await getAppliedMigrations(sql);
   
-  // Get migration files
-  const migrations = await getMigrationFiles();
   console.log(`\n📋 Found ${migrations.length} migration files:`);
   migrations.forEach(m => console.log(`   - ${m.name}`));
   
