@@ -5,12 +5,21 @@ import './index.css'
 import {
   consumeAutoReloadGuard,
   performReload,
-  resolveBuildKey
+  resolveBuildKey,
+  logReloadEvent,
+  incrementReloadReasonCounter,
 } from '@/lib/reloadControl'
 import { registerSW } from 'virtual:pwa-register'
+import { evaluateChunkAutoReloadPolicy } from '@/lib/chunkAutoReloadPolicy'
 
 // Initialize connection manager to suppress extension errors
 import { connectionManager } from '@/lib/connectionFix'
+
+const CHUNK_RELOAD_LAST_TS_KEY = 'mihas_chunk_reload_ts_v2'
+const CHUNK_RELOAD_COUNT_KEY = 'mihas_chunk_reload_count_v2'
+const CHUNK_RELOAD_ROUTE_KEY = 'mihas_chunk_reload_route_v2'
+const CHUNK_RELOAD_MAX_PER_SESSION = 1
+const CHUNK_RELOAD_COOLDOWN_MS = 120_000
 
 // Handle stale chunk errors after deployment (must run before app mounts)
 // When a new build deploys, old hashed chunks no longer exist on the CDN.
@@ -18,21 +27,79 @@ import { connectionManager } from '@/lib/connectionFix'
 // MIME type errors (HTML served instead of JS) or fetch failures.
 if (typeof window !== 'undefined') {
   const buildKey = resolveBuildKey()
+  let lastActivityAt = Date.now()
+
+  const markActivity = () => {
+    lastActivityAt = Date.now()
+  }
+
+  ;['pointerdown', 'keydown', 'touchstart', 'focus'].forEach((eventName) => {
+    window.addEventListener(eventName, markActivity, true)
+  })
+
+  const canAttemptChunkAutoReload = (reason: 'chunk_preload_error' | 'chunk_import_error' | 'chunk_mime_error') => {
+    const now = Date.now()
+    const currentRoute = window.location.pathname
+    const reloadCount = Number.parseInt(sessionStorage.getItem(CHUNK_RELOAD_COUNT_KEY) ?? '0', 10) || 0
+    const lastTs = Number.parseInt(sessionStorage.getItem(CHUNK_RELOAD_LAST_TS_KEY) ?? '0', 10) || 0
+    const lastRoute = sessionStorage.getItem(CHUNK_RELOAD_ROUTE_KEY) ?? null
+
+    const decision = evaluateChunkAutoReloadPolicy({
+      now,
+      lastReloadAt: lastTs,
+      reloadCount,
+      maxPerSession: CHUNK_RELOAD_MAX_PER_SESSION,
+      cooldownMs: CHUNK_RELOAD_COOLDOWN_MS,
+      route: currentRoute,
+      lastActivityAt,
+    })
+
+    if (decision.allow) {
+      return true
+    }
+
+    incrementReloadReasonCounter(reason, 'blocked')
+    logReloadEvent({
+      reason,
+      mode: 'auto',
+      buildKey,
+      details: {
+        ignored: true,
+        cause: `chunk-${decision.cause}`,
+        currentRoute,
+        lastRoute,
+        ...(decision.context ?? {}),
+      },
+    })
+
+    return false
+  }
 
   const doAutoReload = (reason: 'chunk_preload_error' | 'chunk_import_error' | 'chunk_mime_error', details: Record<string, unknown>) => {
     const fingerprint = typeof details.message === 'string' && details.message
       ? details.message.slice(0, 200)
       : 'unknown'
 
+    if (!canAttemptChunkAutoReload(reason)) {
+      return
+    }
+
     if (!consumeAutoReloadGuard({ reason, buildKey, details, fingerprint })) {
       return
     }
+
+    sessionStorage.setItem(CHUNK_RELOAD_LAST_TS_KEY, String(Date.now()))
+    sessionStorage.setItem(CHUNK_RELOAD_ROUTE_KEY, window.location.pathname)
+    sessionStorage.setItem(CHUNK_RELOAD_COUNT_KEY, String((Number.parseInt(sessionStorage.getItem(CHUNK_RELOAD_COUNT_KEY) ?? '0', 10) || 0) + 1))
 
     performReload({
       reason,
       mode: 'auto',
       buildKey,
-      details
+      details: {
+        ...details,
+        route: window.location.pathname,
+      },
     })
   }
 

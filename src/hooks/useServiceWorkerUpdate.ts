@@ -22,35 +22,39 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null)
   const SW_RELOAD_PENDING_KEY = 'mihas_sw_reload_pending'
   const SW_RELOAD_HANDLED_KEY = 'mihas_sw_reload_handled'
+  const SW_RELOAD_REQUESTED_AT_KEY = 'mihas_sw_reload_requested_at'
+  const SW_RELOAD_REQUEST_TOKEN_KEY = 'mihas_sw_reload_request_token'
+  const SW_RELOAD_REQUEST_TTL_MS = 30_000
   const buildKey = resolveBuildKey()
+
+  const clearReloadIntent = () => {
+    sessionStorage.removeItem(SW_RELOAD_PENDING_KEY)
+    sessionStorage.removeItem(SW_RELOAD_REQUESTED_AT_KEY)
+    sessionStorage.removeItem(SW_RELOAD_REQUEST_TOKEN_KEY)
+  }
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) {
       return
     }
 
-    // Get current version from active service worker
     const getCurrentVersion = async () => {
       const registration = await navigator.serviceWorker.getRegistration()
       if (registration?.active) {
         const messageChannel = new MessageChannel()
-        
+
         messageChannel.port1.onmessage = (event) => {
           if (event.data.appVersion) {
             setCurrentVersion(event.data.appVersion)
           }
         }
-        
-        registration.active.postMessage(
-          { type: 'GET_VERSION' },
-          [messageChannel.port2]
-        )
+
+        registration.active.postMessage({ type: 'GET_VERSION' }, [messageChannel.port2])
       }
     }
 
     getCurrentVersion()
 
-    // Listen for service worker updates
     let registration: ServiceWorkerRegistration | null = null
     let trackedInstallingWorker: ServiceWorker | null = null
     let updateInterval: ReturnType<typeof setInterval> | null = null
@@ -59,19 +63,16 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
     let lastUpdateCheckAt = 0
     let lastUpdateFoundAt = 0
 
-
     const handleInstallingStateChange = () => {
       if (!trackedInstallingWorker) {
         return
       }
 
       if (trackedInstallingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-        // New service worker is installed and waiting
         console.log('[SW Update] New service worker available')
         setWaitingWorker(trackedInstallingWorker)
         setUpdateAvailable(true)
 
-        // Try to get new version
         const messageChannel = new MessageChannel()
         messageChannel.port1.onmessage = (event) => {
           if (event.data.appVersion) {
@@ -79,10 +80,7 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
           }
         }
 
-        trackedInstallingWorker.postMessage(
-          { type: 'GET_VERSION' },
-          [messageChannel.port2]
-        )
+        trackedInstallingWorker.postMessage({ type: 'GET_VERSION' }, [messageChannel.port2])
       }
     }
 
@@ -97,7 +95,7 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
           reason: 'sw_controller_change',
           mode: 'auto',
           buildKey,
-          details: { ignored: true, cause: 'updatefound-debounced' }
+          details: { ignored: true, cause: 'updatefound-debounced' },
         })
         return
       }
@@ -108,7 +106,6 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
       }
 
       trackedInstallingWorker = registration.installing
-
       if (!trackedInstallingWorker) {
         return
       }
@@ -116,16 +113,39 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
       trackedInstallingWorker.addEventListener('statechange', handleInstallingStateChange)
     }
 
+    const hasFreshUserIntent = () => {
+      const requestedAt = Number.parseInt(sessionStorage.getItem(SW_RELOAD_REQUESTED_AT_KEY) ?? '0', 10) || 0
+      const requestToken = sessionStorage.getItem(SW_RELOAD_REQUEST_TOKEN_KEY)
+      const isFresh = Boolean(requestToken) && Date.now() - requestedAt <= SW_RELOAD_REQUEST_TTL_MS
+
+      return { isFresh, requestedAt }
+    }
+
     const handleControllerChange = () => {
-      // Avoid unexpected reloads when SW controller is first attached on mobile.
-      // Only reload when an update was explicitly triggered by the user.
       if (sessionStorage.getItem(SW_RELOAD_PENDING_KEY) !== '1') {
         logReloadEvent({
           reason: 'sw_controller_change',
           mode: 'auto',
           buildKey,
-          details: { ignored: true, cause: 'pending-flag-missing' }
+          details: { ignored: true, cause: 'pending-flag-missing' },
         })
+        return
+      }
+
+      const intent = hasFreshUserIntent()
+      if (!intent.isFresh) {
+        logReloadEvent({
+          reason: 'sw_controller_change',
+          mode: 'auto',
+          buildKey,
+          details: {
+            ignored: true,
+            cause: 'missing-or-stale-user-intent',
+            requestedAt: intent.requestedAt,
+            ttlMs: SW_RELOAD_REQUEST_TTL_MS,
+          },
+        })
+        clearReloadIntent()
         return
       }
 
@@ -134,18 +154,18 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
           reason: 'sw_controller_change',
           mode: 'auto',
           buildKey,
-          details: { ignored: true, cause: 'already-handled' }
+          details: { ignored: true, cause: 'already-handled' },
         })
         return
       }
 
       sessionStorage.setItem(SW_RELOAD_HANDLED_KEY, '1')
-      sessionStorage.removeItem(SW_RELOAD_PENDING_KEY)
+      clearReloadIntent()
       performReload({
         reason: 'sw_controller_change',
         mode: 'user',
         buildKey,
-        details: { source: 'controllerchange' }
+        details: { source: 'controllerchange', explicitUserAction: true },
       })
     }
 
@@ -164,17 +184,14 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
       }
       registration = reg
 
-      // Check if there's already a waiting worker
       if (registration.waiting) {
         console.log('[SW Update] Service worker already waiting')
         setWaitingWorker(registration.waiting)
         setUpdateAvailable(true)
       }
 
-      // Listen for new updates
       registration.addEventListener('updatefound', handleUpdateFound)
 
-      // Check for updates periodically (every 60 seconds)
       updateInterval = setInterval(() => {
         if (!registration) {
           return
@@ -196,10 +213,7 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
       console.error('[SW Update] Failed to initialize service worker registration:', error)
     })
 
-    // Listen for controller change (new SW activated)
     navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange)
-
-    // Listen for messages from service worker
     navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage)
 
     return () => {
@@ -241,7 +255,7 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
           reason: 'sw_controller_change',
           mode: 'user',
           buildKey,
-          details: { source: 'cache-updated-message' }
+          details: { source: 'cache-updated-message', explicitUserAction: true },
         })
         return
       }
@@ -254,14 +268,33 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
 
       sessionStorage.setItem(SW_RELOAD_PENDING_KEY, '1')
       sessionStorage.removeItem(SW_RELOAD_HANDLED_KEY)
+      sessionStorage.setItem(SW_RELOAD_REQUESTED_AT_KEY, String(Date.now()))
+      sessionStorage.setItem(SW_RELOAD_REQUEST_TOKEN_KEY, `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`)
 
-      // Tell the waiting service worker to skip waiting
       waitingWorker.postMessage({ type: 'SKIP_WAITING' })
 
-      // Normally controllerchange triggers reload; keep a fallback for browsers
-      // that occasionally miss the event during SW activation.
       window.setTimeout(() => {
         if (sessionStorage.getItem(SW_RELOAD_PENDING_KEY) !== '1') {
+          return
+        }
+
+        const requestedAt = Number.parseInt(sessionStorage.getItem(SW_RELOAD_REQUESTED_AT_KEY) ?? '0', 10) || 0
+        const token = sessionStorage.getItem(SW_RELOAD_REQUEST_TOKEN_KEY)
+        const staleIntent = !token || Date.now() - requestedAt > SW_RELOAD_REQUEST_TTL_MS
+
+        if (staleIntent) {
+          logReloadEvent({
+            reason: 'sw_controller_change',
+            mode: 'auto',
+            buildKey,
+            details: {
+              ignored: true,
+              cause: 'fallback-stale-user-intent',
+              requestedAt,
+              ttlMs: SW_RELOAD_REQUEST_TTL_MS,
+            },
+          })
+          clearReloadIntent()
           return
         }
 
@@ -270,28 +303,26 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
         }
 
         sessionStorage.setItem(SW_RELOAD_HANDLED_KEY, '1')
-        sessionStorage.removeItem(SW_RELOAD_PENDING_KEY)
+        clearReloadIntent()
         performReload({
           reason: 'sw_controller_change',
           mode: 'user',
           buildKey,
-          details: { source: 'skip-waiting-timeout-fallback' }
+          details: { source: 'skip-waiting-timeout-fallback', explicitUserAction: true },
         })
       }, 8000)
-      
-      // The controllerchange event should trigger a reload immediately.
+
       console.log('[SW Update] Activating new service worker...')
     } catch (error) {
       console.error('[SW Update] Failed to update service worker:', error)
-      sessionStorage.removeItem(SW_RELOAD_PENDING_KEY)
+      clearReloadIntent()
       setIsUpdating(false)
-      
-      // Fallback: keep prompt visible; avoid hard reload loops
+
       logReloadEvent({
         reason: 'sw_controller_change',
         mode: 'user',
         buildKey,
-        details: { updateFailed: true }
+        details: { updateFailed: true },
       })
     }
   }
@@ -307,6 +338,6 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
     newVersion,
     isUpdating,
     updateServiceWorker,
-    dismissUpdate
+    dismissUpdate,
   }
 }
