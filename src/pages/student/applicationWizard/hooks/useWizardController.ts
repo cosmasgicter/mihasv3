@@ -120,6 +120,31 @@ export interface PaymentValidationContext {
   showError: (title: string, message?: string) => void
 }
 
+const WIZARD_AUTH_REDIRECT_GUARD_KEY = 'mihas:wizard-auth-redirect-guard'
+const WIZARD_SESSION_GRACE_MS = 1500
+const SESSION_EXPIRED_BANNER = 'Session expired, please sign in to continue'
+
+type SessionCacheShape = { user?: { id?: string } | null } | null | undefined
+
+export const getCachedAuthUser = (sessionCache: SessionCacheShape) => sessionCache?.user ?? null
+
+export const shouldRedirectToSignIn = ({
+  sessionRecheckFailed,
+  tokenRefreshFailed,
+  cachedUser,
+}: {
+  sessionRecheckFailed: boolean
+  tokenRefreshFailed: boolean
+  cachedUser: { id?: string } | null
+}) => sessionRecheckFailed && tokenRefreshFailed && !cachedUser
+
+export const hasRecentWizardRedirectGuard = (rawGuardValue: string | null, now: number): boolean => {
+  if (!rawGuardValue) return false
+  const guard = safeJsonParse<{ createdAt?: number } | null>(rawGuardValue, null)
+  if (!guard?.createdAt || typeof guard.createdAt !== 'number') return false
+  return now - guard.createdAt < 15_000
+}
+
 function sanitizeInput(value: any): any {
   if (typeof value === 'string') {
     return value.trim().replace(/<script[^>]*>.*?<\/script>/gi, '').replace(/<[^>]+>/g, '')
@@ -154,6 +179,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const [programs, setPrograms] = useState<WizardProgram[]>([])
   const [intakes, setIntakes] = useState<WizardIntake[]>([])
   const isSavingRef = useRef(false)
+  const authRecoveryInFlightRef = useRef(false)
 
   const findProgramId = useCallback(
     (
@@ -462,8 +488,105 @@ const useWizardController = (): UseWizardControllerResult => {
   ])
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (authLoading) return
+
+    if (user) {
+      authRecoveryInFlightRef.current = false
+      setError(current => (current === SESSION_EXPIRED_BANNER ? '' : current))
+      try {
+        sessionStorage.removeItem(WIZARD_AUTH_REDIRECT_GUARD_KEY)
+      } catch {
+        // best effort guard cleanup
+      }
+      return
+    }
+
+    if (authRecoveryInFlightRef.current) return
+    authRecoveryInFlightRef.current = true
+
+    let cancelled = false
+    let graceTimer: ReturnType<typeof setTimeout> | null = null
+
+    const recoverSessionThenMaybeRedirect = async () => {
+      setError(current => current || SESSION_EXPIRED_BANNER)
+      await new Promise<void>(resolve => {
+        graceTimer = setTimeout(resolve, WIZARD_SESSION_GRACE_MS)
+      })
+
+      if (cancelled) return
+
+      const readCachedUser = () =>
+        getCachedAuthUser(queryClient.getQueryData<{ user?: { id?: string } }>(['auth', 'session']))
+
+      const cachedBeforeChecks = readCachedUser()
+      if (cachedBeforeChecks) {
+        setError(current => (current === SESSION_EXPIRED_BANNER ? '' : current))
+        authRecoveryInFlightRef.current = false
+        return
+      }
+
+      let sessionRecheckFailed = true
+      try {
+        const sessionResult = await apiClient.request<{ user?: { id?: string } }>('/api/auth?action=session')
+        const sessionUser = sessionResult?.user ?? null
+        if (sessionUser) {
+          queryClient.setQueryData(['auth', 'session'], { user: sessionUser })
+          sessionRecheckFailed = false
+        }
+      } catch {
+        sessionRecheckFailed = true
+      }
+
+      if (cancelled) return
+
+      let tokenRefreshFailed = true
+      if (sessionRecheckFailed) {
+        try {
+          await apiClient.request('/api/auth?action=refresh', { method: 'POST' })
+          const refreshedSession = await apiClient.request<{ user?: { id?: string } }>('/api/auth?action=session')
+          const refreshedUser = refreshedSession?.user ?? null
+          if (refreshedUser) {
+            queryClient.setQueryData(['auth', 'session'], { user: refreshedUser })
+            tokenRefreshFailed = false
+            sessionRecheckFailed = false
+          }
+        } catch {
+          tokenRefreshFailed = true
+        }
+      }
+
+      const cachedAfterChecks = readCachedUser()
+      const shouldRedirect = shouldRedirectToSignIn({
+        sessionRecheckFailed,
+        tokenRefreshFailed,
+        cachedUser: cachedAfterChecks,
+      })
+
+      if (cancelled || !shouldRedirect) {
+        setError(current => (current === SESSION_EXPIRED_BANNER ? '' : current))
+        authRecoveryInFlightRef.current = false
+        return
+      }
+
+      const now = Date.now()
+      let rawGuard: string | null = null
+      try {
+        rawGuard = sessionStorage.getItem(WIZARD_AUTH_REDIRECT_GUARD_KEY)
+      } catch {
+        rawGuard = null
+      }
+      if (hasRecentWizardRedirectGuard(rawGuard, now)) {
+        setError(SESSION_EXPIRED_BANNER)
+        authRecoveryInFlightRef.current = false
+        return
+      }
+
       preserveDraftBeforeAuthRedirect()
+      try {
+        sessionStorage.setItem(WIZARD_AUTH_REDIRECT_GUARD_KEY, JSON.stringify({ createdAt: now }))
+      } catch {
+        // best effort loop guard
+      }
       const redirectTarget = `/student/application-wizard?step=${encodeURIComponent(currentStepConfig.key)}`
       navigate(`/auth/signin?redirect=${encodeURIComponent(redirectTarget)}`, {
         replace: true,
@@ -476,7 +599,17 @@ const useWizardController = (): UseWizardControllerResult => {
         },
       })
     }
-  }, [authLoading, currentStepConfig.key, navigate, preserveDraftBeforeAuthRedirect, user])
+
+    recoverSessionThenMaybeRedirect().finally(() => {
+      if (!cancelled) authRecoveryInFlightRef.current = false
+    })
+
+    return () => {
+      cancelled = true
+      authRecoveryInFlightRef.current = false
+      if (graceTimer) clearTimeout(graceTimer)
+    }
+  }, [authLoading, currentStepConfig.key, navigate, preserveDraftBeforeAuthRedirect, queryClient, user])
 
   const slipPayload: ApplicationSlipData | null = useMemo(() => {
     if (!submittedApplication || !submittedApplication.trackingCode || !submittedApplication.applicationNumber) return null
