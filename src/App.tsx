@@ -27,6 +27,7 @@ import { OfflineBanner } from '@/components/ui/OfflineBanner'
 import { cacheMonitor } from '@/services/cacheMonitor'
 import { isLightweightPublicRoute } from '@/lib/routeRuntime'
 import { useAuth } from '@/contexts/AuthContext'
+import { startLoaderTelemetry } from '@/lib/loaderTelemetry'
 
 const Analytics = lazy(() => import('@vercel/analytics/react').then((mod) => ({ default: mod.Analytics })))
 const SpeedInsights = lazy(() => import('@vercel/speed-insights/react').then((mod) => ({ default: mod.SpeedInsights })))
@@ -60,7 +61,7 @@ if (import.meta.env.PROD) {
 }
 
 /** Returns the layout-matched skeleton fallback for a given skeleton type */
-function DelayedPageLoader({ delayMs = 400 }: { delayMs?: number }) {
+function DelayedPageLoader({ delayMs = 400, label = 'Loading page', variant = 'page' }: { delayMs?: number; label?: string; variant?: 'page' | 'inline' }) {
   const [showLoader, setShowLoader] = useState(false)
 
   useEffect(() => {
@@ -72,16 +73,24 @@ function DelayedPageLoader({ delayMs = 400 }: { delayMs?: number }) {
     return null
   }
 
-  return <UnifiedLoader variant="page" size="lg" label="Loading page" />
+  if (variant === 'inline') {
+    return (
+      <div className="mx-auto w-full max-w-3xl px-4 py-8">
+        <UnifiedLoader variant="inline" size="sm" message={label} />
+      </div>
+    )
+  }
+
+  return <UnifiedLoader variant="page" size="lg" label={label} />
 }
 
 function getSkeletonFallback(route: RouteConfig): React.ReactNode {
   const { skeletonType, guard } = route
 
-  // Public routes should prefer route-level content shells or no-op fallback
-  // over a blocking full-page loader, especially for first unauthenticated hits.
-  if (guard === 'public' && skeletonType === 'none') {
-    return null
+  // Public routes should remain non-blocking by default.
+  // Only show a lightweight inline loader after a short delay when chunks are slow.
+  if (guard === 'public') {
+    return <DelayedPageLoader delayMs={650} label="Loading public page" variant="inline" />
   }
 
   switch (skeletonType) {
@@ -251,6 +260,11 @@ function RoutedAppChrome() {
   const deferredGlobalUiHydrated = useDeferredHydration(canLoadHeavyGlobalUi, 1500)
   const deferredSessionHydrated = useDeferredHydration(canLoadSessionMonitor, 1800)
   const deferredAppEffectsHydrated = useDeferredHydration(canLoadSwAndInstallEffects, 2200)
+
+  useEffect(() => {
+    const telemetry = startLoaderTelemetry(`route-render:${location.pathname}`)
+    return () => telemetry.end({ route: location.pathname })
+  }, [location.pathname])
 
   useEffect(() => {
     const handleAuthRedirect = (event: Event) => {
