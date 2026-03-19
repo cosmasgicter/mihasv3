@@ -30,19 +30,19 @@ const createProgramValidator = (validProgramIds: string[]) =>
       }
     )
 
-const createIntakeValidator = (validIntakeOptions: string[]) =>
+const createIntakeValidator = (validIntakeIds: string[]) =>
   z
     .string({ required_error: 'Please select an intake' })
     .min(1, 'Please select an intake')
     .refine(
       value =>
-        value.trim().length > 0 && (validIntakeOptions.length === 0 || validIntakeOptions.includes(value)),
+        value.trim().length > 0 && (validIntakeIds.length === 0 || validIntakeIds.includes(value)),
       {
         message: 'Please select a valid intake',
       }
     )
 
-const createSchema = (validProgramIds: string[], validIntakeOptions: string[]) =>
+const createSchema = (validProgramIds: string[], validIntakeIds: string[]) =>
   z
     .object({
       full_name: z.string().min(2, 'Full name is required'),
@@ -71,7 +71,7 @@ const createSchema = (validProgramIds: string[], validIntakeOptions: string[]) =
       next_of_kin_name: z.string().optional(),
       next_of_kin_phone: z.string().optional(),
       program: createProgramValidator(validProgramIds),
-      intake: createIntakeValidator(validIntakeOptions),
+      intake: createIntakeValidator(validIntakeIds),
       payment_option: z
         .enum(['pay_now', 'pay_later'])
         .default('pay_now'),
