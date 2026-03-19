@@ -10,7 +10,16 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
-import { Home, Search, FileText, User, Settings, CreditCard, Calendar } from 'lucide-react'
+import {
+  Home,
+  Search,
+  FileText,
+  User,
+  Settings,
+  CreditCard,
+  Calendar,
+  MoreHorizontal,
+} from 'lucide-react'
 import { useSafeArea } from './SafeAreaProvider'
 import { usePrefetch } from '@/hooks/usePrefetch'
 
@@ -25,6 +34,10 @@ export interface BottomNavItem {
   requiresAuth?: boolean
   /** Badge count (optional) */
   badge?: number
+  /** Optional click handler for non-route actions */
+  onClick?: () => void
+  /** Optional paths that should count as active (nested route support) */
+  activeMatchPaths?: string[]
 }
 
 interface BottomNavigationProps {
@@ -36,6 +49,10 @@ interface BottomNavigationProps {
   isAuthenticated?: boolean
   /** Custom active route checker */
   isActiveRoute?: (href: string) => boolean
+  /** Enable overflow mode with max 4 visible tabs and a More menu */
+  overflowMode?: boolean
+  /** Max number of primary items visible when overflow mode is active */
+  maxPrimaryItems?: number
 }
 
 /** Route-to-import map for prefetching route chunks on hover/focus */
@@ -72,28 +89,78 @@ export const defaultPublicNavItems: BottomNavItem[] = [
 ]
 
 /** Individual bottom nav link with prefetch support */
-function BottomNavLink({ item, isActive }: { item: BottomNavItem; isActive: boolean }) {
+function BottomNavLink({
+  item,
+  isActive,
+  iconOnly = false,
+  onNavigate,
+}: {
+  item: BottomNavItem
+  isActive: boolean
+  iconOnly?: boolean
+  onNavigate?: () => void
+}) {
   const Icon = item.icon
   const hasImport = item.href in routeImports
   const prefetch = usePrefetch(routeImports[item.href] ?? noopImport)
   const prefetchProps = hasImport ? prefetch : {}
+  const baseClassName = cn(
+    'flex flex-col items-center justify-center',
+    'min-h-[48px] min-w-[48px] px-3 py-1.5',
+    'rounded-lg',
+    'transition-colors duration-200',
+    'touch-manipulation select-none',
+    '[-webkit-tap-highlight-color:transparent]',
+    isActive
+      ? 'text-primary bg-primary/10'
+      : 'text-muted-foreground hover:text-foreground hover:bg-accent/50',
+    'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+  )
+
+  if (item.onClick) {
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          item.onClick?.()
+          onNavigate?.()
+        }}
+        className={baseClassName}
+        aria-current={isActive ? 'page' : undefined}
+      >
+        <div className="relative">
+          <Icon className={cn('h-5 w-5', isActive ? 'text-primary' : 'text-muted-foreground')} />
+          {item.badge !== undefined && item.badge > 0 && (
+            <span
+              className={cn(
+                'absolute -top-1 -right-1',
+                'min-w-[16px] h-4 px-1',
+                'flex items-center justify-center',
+                'text-[10px] font-bold',
+                'bg-destructive text-destructive-foreground',
+                'rounded-full'
+              )}
+              aria-label={`${item.badge} notifications`}
+            >
+              {item.badge > 99 ? '99+' : item.badge}
+            </span>
+          )}
+        </div>
+        {!iconOnly && (
+          <span className={cn('text-[10px] font-medium mt-0.5', isActive ? 'text-primary' : 'text-muted-foreground')}>
+            {item.label}
+          </span>
+        )}
+      </button>
+    )
+  }
 
   return (
     <Link
       to={item.href}
-      className={cn(
-        'flex flex-col items-center justify-center',
-        'min-h-[44px] min-w-[44px] px-3 py-1',
-        'rounded-lg',
-        'transition-colors duration-200',
-        'touch-manipulation select-none',
-        '[-webkit-tap-highlight-color:transparent]',
-        isActive
-          ? 'text-primary bg-primary/10'
-          : 'text-muted-foreground hover:text-foreground hover:bg-accent/50',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
-      )}
+      className={baseClassName}
       aria-current={isActive ? 'page' : undefined}
+      onClick={onNavigate}
       {...prefetchProps}
     >
       <div className="relative">
@@ -114,9 +181,11 @@ function BottomNavLink({ item, isActive }: { item: BottomNavItem; isActive: bool
           </span>
         )}
       </div>
-      <span className={cn('text-[10px] font-medium mt-0.5', isActive ? 'text-primary' : 'text-muted-foreground')}>
-        {item.label}
-      </span>
+      {!iconOnly && (
+        <span className={cn('text-[10px] font-medium mt-0.5', isActive ? 'text-primary' : 'text-muted-foreground')}>
+          {item.label}
+        </span>
+      )}
     </Link>
   )
 }
@@ -127,17 +196,40 @@ export function BottomNavigation({
   className,
   isAuthenticated = false,
   isActiveRoute: customIsActiveRoute,
+  overflowMode = false,
+  maxPrimaryItems = 4,
 }: BottomNavigationProps) {
   const location = useLocation()
   const { insets } = useSafeArea()
+  const [isMoreOpen, setIsMoreOpen] = React.useState(false)
+  const [viewportWidth, setViewportWidth] = React.useState(() => window.innerWidth)
 
   const navItems = items || (isAuthenticated ? defaultStudentNavItems : defaultPublicNavItems)
   const visibleItems = navItems.filter(item => !item.requiresAuth || isAuthenticated)
+  const isNarrowViewport = viewportWidth < 360
 
   const isActiveRoute = customIsActiveRoute || ((href: string) => {
     if (href === '/') return location.pathname === '/'
     return location.pathname.startsWith(href)
   })
+
+  React.useEffect(() => {
+    const onResize = () => setViewportWidth(window.innerWidth)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  React.useEffect(() => {
+    setIsMoreOpen(false)
+  }, [location.pathname])
+
+  const isItemActive = (item: BottomNavItem) =>
+    item.activeMatchPaths?.some(path => isActiveRoute(path)) ?? isActiveRoute(item.href)
+
+  const shouldOverflow = overflowMode && visibleItems.length > maxPrimaryItems
+  const primaryItems = shouldOverflow ? visibleItems.slice(0, maxPrimaryItems) : visibleItems
+  const overflowItems = shouldOverflow ? visibleItems.slice(maxPrimaryItems) : []
+  const isMoreActive = overflowItems.some(isItemActive)
 
   return (
     <nav
@@ -152,10 +244,57 @@ export function BottomNavigation({
       role="navigation"
       aria-label="Bottom navigation"
     >
+      {isMoreOpen && shouldOverflow && (
+        <div
+          id="bottom-navigation-overflow"
+          className="absolute bottom-full left-0 right-0 border-t border-border bg-background/95 px-3 pb-2 pt-3 shadow-lg backdrop-blur-sm"
+          role="menu"
+          aria-label="More navigation items"
+        >
+          <div className="mx-auto mb-2 h-1 w-12 rounded-full bg-muted" aria-hidden="true" />
+          <div className="grid grid-cols-2 gap-2">
+            {overflowItems.map((item) => (
+              <BottomNavLink
+                key={item.href}
+                item={item}
+                isActive={isItemActive(item)}
+                iconOnly={false}
+                onNavigate={() => setIsMoreOpen(false)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-around px-2 pt-2">
-        {visibleItems.map((item) => (
-          <BottomNavLink key={item.href} item={item} isActive={isActiveRoute(item.href)} />
+        {primaryItems.map((item) => (
+          <BottomNavLink key={item.href} item={item} isActive={isItemActive(item)} iconOnly={isNarrowViewport} />
         ))}
+        {shouldOverflow && (
+          <button
+            type="button"
+            onClick={() => setIsMoreOpen((prev) => !prev)}
+            className={cn(
+              'flex flex-col items-center justify-center rounded-lg',
+              'min-h-[48px] min-w-[48px] px-3 py-1.5',
+              'touch-manipulation select-none [-webkit-tap-highlight-color:transparent]',
+              'transition-colors duration-200',
+              isMoreActive || isMoreOpen
+                ? 'text-primary bg-primary/10'
+                : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+            )}
+            aria-expanded={isMoreOpen}
+            aria-controls="bottom-navigation-overflow"
+            aria-label="More navigation items"
+          >
+            <MoreHorizontal className={cn('h-5 w-5', isMoreActive || isMoreOpen ? 'text-primary' : 'text-muted-foreground')} />
+            {!isNarrowViewport && (
+              <span className={cn('text-[10px] font-medium mt-0.5', isMoreActive || isMoreOpen ? 'text-primary' : 'text-muted-foreground')}>
+                More
+              </span>
+            )}
+          </button>
+        )}
       </div>
     </nav>
   )
