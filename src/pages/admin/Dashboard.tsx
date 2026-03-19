@@ -22,7 +22,7 @@ import { DashboardQuickActions } from '@/components/admin/dashboard/DashboardQui
 
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 
-type DashboardFetchMode = 'initial' | 'manual' | 'background'
+type DashboardFetchMode = 'initial' | 'manual'
 
 type DashboardApiStatus = {
   endpoint: '/admin?action=dashboard'
@@ -85,6 +85,7 @@ export default function AdminDashboard() {
     lastErrorStatus: null
   })
   const dashboardRequestIdRef = useRef(0)
+  const initialLoadUserIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     setApiStatus(prev => ({
@@ -97,7 +98,7 @@ export default function AdminDashboard() {
   }, [isAdmin, profile, user])
 
   // Use polling hook for dashboard data updates (replaces Supabase Realtime)
-  const { isPolling } = useAdminDashboardPolling({
+  const { isPolling, error: pollingError, refresh: refreshPolling } = useAdminDashboardPolling({
     enabled: Boolean(user?.id) && hasLoadedSuccessfully && !initialLoadFailed,
     pollingInterval: 30000, // 30 seconds
     onDataChange: (newStats) => {
@@ -206,39 +207,22 @@ export default function AdminDashboard() {
 
     if (!shouldLoadAdminDashboard(user)) {
       logger.debug('[Dashboard] Skipping load - missing authenticated user')
+      initialLoadUserIdRef.current = null
       return
     }
 
+    const currentUserId = user?.id ?? null
+    if (!currentUserId) {
+      return
+    }
+
+    if (initialLoadUserIdRef.current === currentUserId) {
+      return
+    }
+
+    initialLoadUserIdRef.current = currentUserId
     void loadDashboardStats('initial')
   }, [loadDashboardStats, user])
-
-  useEffect(() => {
-    if (!shouldLoadAdminDashboard(user) || !hasLoadedSuccessfully || initialLoadFailed) {
-      return
-    }
-
-    const intervalId = window.setInterval(() => {
-      void loadDashboardStats('background')
-    }, 300000)
-
-    return () => {
-      window.clearInterval(intervalId)
-    }
-  }, [hasLoadedSuccessfully, initialLoadFailed, loadDashboardStats, user])
-
-  useEffect(() => {
-    if (!shouldLoadAdminDashboard(user) || !hasLoadedSuccessfully || initialLoadFailed) return
-
-    if (!isPolling) {
-      const timeoutId = window.setTimeout(() => {
-        void loadDashboardStats('background')
-      }, 60000)
-
-      return () => {
-        window.clearTimeout(timeoutId)
-      }
-    }
-  }, [hasLoadedSuccessfully, initialLoadFailed, isPolling, loadDashboardStats, user])
 
   const dashboardMetrics: DashboardMetricsSummary = useMemo(() => ({
     todayApplications: stats.todayApplications,
@@ -346,6 +330,11 @@ export default function AdminDashboard() {
               Last API error: {apiStatus.lastErrorMessage}
             </p>
           )}
+          {pollingError && (
+            <p className="mt-2 rounded-lg border border-warning/40 bg-warning/10 p-2 text-xs text-warning-strong">
+              Polling retry status: {pollingError.message}
+            </p>
+          )}
         </div>
 
         {/* System Status Bar */}
@@ -389,17 +378,24 @@ export default function AdminDashboard() {
                     <strong>Error:</strong> {error}
                   </div>
                 </div>
-                {initialLoadFailed && (
-                  <Button variant="outline" size="sm" onClick={() => void loadDashboardStats('manual')}>
-                    Retry initial load
-                  </Button>
-                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (hasLoadedSuccessfully) {
+                      refreshPolling()
+                      return
+                    }
+                    void loadDashboardStats('manual')
+                  }}
+                  disabled={isRefreshing || isManualRefreshing}
+                >
+                  Retry now
+                </Button>
               </div>
-              {initialLoadFailed && (
-                <p className="mt-3 text-xs text-muted-foreground">
-                  Automatic retries are paused until you trigger a manual retry.
-                </p>
-              )}
+              <p className="mt-3 text-xs text-muted-foreground">
+                Last error detail: {apiStatus.lastErrorMessage ?? pollingError?.message ?? 'No additional details available.'}
+              </p>
             </div>
           )}
 
