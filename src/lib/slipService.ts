@@ -19,6 +19,9 @@ export interface SlipServiceResult {
   publicUrl?: string
   path?: string
   documentId?: string
+  emailed?: boolean
+  queuedId?: string
+  fallbackDownloadUrl?: string
   uploadError?: string
   emailError?: string
   error?: string
@@ -90,48 +93,42 @@ export async function createApplicationSlip(
     }
 
     let emailError: string | undefined
+    let emailed = false
+    let queuedId: string | undefined
+    let fallbackDownloadUrl: string | undefined
     if (options.sendEmail) {
       if (!data.email) {
         emailError = 'Missing applicant email address'
         toast?.showError?.('Email not sent', 'No email address was available to send the application slip.')
       } else {
         try {
-          const hasPublicUrl = Boolean(publicUrl)
+          const applicationId = data.application_id?.trim()
+          if (!applicationId) {
+            throw new Error('Missing application ID required for slip email delivery')
+          }
 
-          await apiClient.request('/api/email?action=send', {
+          const emailResponse = await apiClient.request<{
+            emailed?: boolean
+            queuedId?: string
+            fallbackDownloadUrl?: string
+          }>('/api/applications?action=email-slip', {
             method: 'POST',
             body: JSON.stringify({
-              recipient_email: data.email,
-              recipient_name: data.full_name || data.email,
-              subject: options.subject || 'Your MIHAS application slip',
-              body: hasPublicUrl
-                ? `Your MIHAS application slip for ${data.application_number} is ready. Use the secure link in this email to download it.`
-                : `Your MIHAS application slip for ${data.application_number} is attached to this email as a PDF.`,
-              template_name: 'generic',
-              template_data: {
-                recipientName: data.full_name || data.email,
-                message: hasPublicUrl
-                  ? `Your application slip for ${data.application_number} is ready. You can download it securely using the button below.`
-                  : `Your application slip for ${data.application_number} is ready to download from your dashboard. If the link is unavailable, use the Download Slip button.`,
-                ...(hasPublicUrl && publicUrl
-                  ? { actionUrl: publicUrl }
-                  : { actionUrl: appOrigin ? `${appOrigin}/student/status` : '/student/status' }),
-              },
-              priority: 3,
+              applicationId,
+              recipientEmail: data.email,
+              ...(publicUrl ? { slipUrl: publicUrl } : {}),
+              ...(documentId ? { slipDocumentReference: documentId } : {}),
             }),
             invalidateCache: false,
           })
 
-          toast?.showSuccess?.(
-            'Email sent',
-            hasPublicUrl
-              ? 'We emailed a copy of your application slip.'
-              : 'We emailed your application slip as an attachment.'
-          )
+          emailed = emailResponse?.emailed === true
+          queuedId = emailResponse?.queuedId
+          fallbackDownloadUrl = emailResponse?.fallbackDownloadUrl || publicUrl || (appOrigin ? `${appOrigin}/student/status` : '/student/status')
         } catch (invokeError) {
           emailError = extractErrorMessage(invokeError, 'Failed to trigger slip email')
+          fallbackDownloadUrl = publicUrl || (appOrigin ? `${appOrigin}/student/status` : '/student/status')
           console.error('Application slip email trigger error:', sanitizeForLog(emailError))
-          toast?.showError?.('Email not sent', emailError)
         }
       }
     }
@@ -141,6 +138,9 @@ export async function createApplicationSlip(
       publicUrl,
       path,
       documentId,
+      emailed,
+      queuedId,
+      fallbackDownloadUrl,
       uploadError,
       emailError
     }
