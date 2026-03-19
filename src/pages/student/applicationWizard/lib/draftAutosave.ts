@@ -17,7 +17,7 @@ type DraftApplicationPayload = {
   next_of_kin_phone: string | null
   program: string
   intake: string
-  institution: 'MIHAS' | 'KATC'
+  institution: string
   nationality: string
   status: 'draft'
 }
@@ -47,7 +47,7 @@ export function buildServerDraftPayload({
 }: {
   formData: WizardFormData
   selectedProgramDetails?: WizardProgram
-  institutionCode: 'MIHAS' | 'KATC'
+  institutionCode: string
   nationality: string
   applicationNumber: string
   trackingCode: string
@@ -66,8 +66,8 @@ export function buildServerDraftPayload({
     country: formData.country?.trim() || 'Zambia',
     next_of_kin_name: formData.next_of_kin_name?.trim() || null,
     next_of_kin_phone: formData.next_of_kin_phone?.trim() || null,
-    program: selectedProgramDetails?.name || formData.program,
-    intake: formData.intake.trim(),
+    program: selectedProgramDetails?.id || formData.program,
+    intake: formData.intake,
     institution: institutionCode,
     nationality: nationality.trim() || 'Zambian',
     status: 'draft',

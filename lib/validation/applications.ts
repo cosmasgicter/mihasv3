@@ -11,7 +11,7 @@ const applicationStatusSchema = z.enum([
 const paymentStatusSchema = z.enum(['pending_review', 'verified', 'rejected']);
 const interviewModeSchema = z.enum(['in-person', 'in_person', 'virtual', 'phone']);
 
-const institutionSchema = z.enum(['MIHAS', 'KATC']);
+const institutionSchema = nonEmptySanitizedString;
 
 /** POST — create application */
 export const createApplicationBodySchema = z.object({
