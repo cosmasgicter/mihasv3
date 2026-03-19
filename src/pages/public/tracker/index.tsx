@@ -92,7 +92,8 @@ export default function PublicApplicationTracker() {
   const buildSlipPayload = useCallback((email: string, userId?: string) => {
     if (!application) return null
     return {
-      public_tracking_code: application.application_number || '',
+      application_id: application.id || undefined,
+      public_tracking_code: application.public_tracking_code || application.application_number || '',
       application_number: application.application_number || '',
       status: application.status,
       payment_status: application.payment_status,

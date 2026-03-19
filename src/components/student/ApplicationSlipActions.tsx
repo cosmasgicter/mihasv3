@@ -13,7 +13,12 @@ interface ApplicationSlipActionsProps {
   applicationNumber?: string
 }
 
-function buildSlipPayload(application: Record<string, any>, fallbackEmail?: string, userId?: string): ApplicationSlipData | null {
+function buildSlipPayload(
+  application: Record<string, any>,
+  fallbackEmail?: string,
+  userId?: string,
+  applicationId?: string
+): ApplicationSlipData | null {
   const email = application.email || fallbackEmail
   const trackingCode = application.public_tracking_code
 
@@ -22,6 +27,7 @@ function buildSlipPayload(application: Record<string, any>, fallbackEmail?: stri
   }
 
   return {
+    application_id: applicationId || application.id || undefined,
     public_tracking_code: trackingCode,
     application_number: application.application_number,
     status: application.status || 'submitted',
@@ -57,7 +63,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
       throw new Error('Application details are unavailable')
     }
 
-    const slipPayload = buildSlipPayload(application as Record<string, any>, user?.email, user?.id)
+    const slipPayload = buildSlipPayload(application as Record<string, any>, user?.email, user?.id, applicationId)
     if (!slipPayload) {
       throw new Error('Missing application details required for the slip')
     }

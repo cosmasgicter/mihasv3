@@ -221,10 +221,6 @@ export function useApplicationSlip({
         throw new Error(result.error)
       }
 
-      if (result.emailError) {
-        throw new Error(result.emailError)
-      }
-
       if (result.publicUrl || result.documentId || result.path) {
         setSlipCache(prev => ({
           objectUrl: prev?.objectUrl,
@@ -234,11 +230,21 @@ export function useApplicationSlip({
         }))
       }
 
-      toast.showSuccess?.('Email sent', `Application slip has been sent to ${submittedApplication.email}`)
+      if (result.emailed) {
+        toast.showSuccess?.('Email queued', `Application slip will be sent to ${submittedApplication.email}`)
+        return
+      }
+
+      const fallbackMessage = result.fallbackDownloadUrl
+        ? 'Email delivery is unavailable right now. Please use Download Slip to continue.'
+        : 'Email delivery is unavailable right now. Please download your slip instead.'
+      const failureReason = result.emailError || 'We could not queue your application slip email.'
+
+      toast.showWarning?.('Email failed', `${failureReason} ${fallbackMessage}`.trim())
     } catch (error) {
       console.error('Slip email failed:', error)
       const message = error instanceof Error ? error.message : 'Unable to email slip'
-      toast.showError?.('Email failed', message)
+      toast.showWarning?.('Email failed', `${message}. Please use Download Slip to continue.`)
     } finally {
       setEmailLoading(false)
     }
