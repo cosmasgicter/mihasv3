@@ -15462,13 +15462,32 @@ function validateServerEnv() {
 }
 
 // api-src/applications.ts
-async function checkIdempotencyKey(key, endpoint) {
+var IDEMPOTENCY_KEY_MAX_LENGTH = 128;
+var IDEMPOTENCY_KEY_PATTERN = /^[a-zA-Z0-9:_-]+$/;
+function normalizeIdempotencyKey(rawHeader) {
+  if (!rawHeader)
+    return "";
+  const value = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
+  const normalized = value.trim();
+  if (!normalized)
+    return "";
+  if (normalized.length > IDEMPOTENCY_KEY_MAX_LENGTH)
+    return "";
+  if (!IDEMPOTENCY_KEY_PATTERN.test(normalized))
+    return "";
+  return normalized;
+}
+function scopeIdempotencyKey(userId, endpoint, key) {
+  return `${userId}:${endpoint}:${key}`;
+}
+async function checkIdempotencyKey(userId, key, endpoint) {
   if (!key)
     return null;
+  const scopedKey = scopeIdempotencyKey(userId, endpoint, key);
   try {
     const result = await query(`SELECT response_json FROM idempotency_keys
        WHERE key = $1 AND endpoint = $2
-       AND created_at > NOW() - INTERVAL '24 hours'`, [key, endpoint]);
+       AND created_at > NOW() - INTERVAL '24 hours'`, [scopedKey, endpoint]);
     if (result.rowCount > 0) {
       return result.rows[0].response_json;
     }
@@ -15478,13 +15497,14 @@ async function checkIdempotencyKey(key, endpoint) {
     return null;
   }
 }
-async function storeIdempotencyKey(key, endpoint, responseData) {
+async function storeIdempotencyKey(userId, key, endpoint, responseData) {
   if (!key)
     return;
+  const scopedKey = scopeIdempotencyKey(userId, endpoint, key);
   try {
     await query(`INSERT INTO idempotency_keys (key, endpoint, response_json, created_at)
        VALUES ($1, $2, $3, NOW())
-       ON CONFLICT (key) DO UPDATE SET response_json = $3, created_at = NOW()`, [key, endpoint, JSON.stringify(responseData)]);
+       ON CONFLICT (key) DO UPDATE SET response_json = $3, created_at = NOW()`, [scopedKey, endpoint, JSON.stringify(responseData)]);
     query(`DELETE FROM idempotency_keys WHERE created_at < NOW() - INTERVAL '24 hours'`).catch((err) => console.error("[idempotency] Cleanup error:", err));
   } catch (err) {
     console.error("[idempotency] Error storing key:", err);
@@ -16692,10 +16712,10 @@ async function handleById(req, res, userId, isAdmin2, canReadAllApplications, ca
           return sendSuccess(res, { synced: true });
         }
       }
-      const idempotencyKey = req.headers["x-idempotency-key"] || "";
+      const idempotencyKey = normalizeIdempotencyKey(req.headers["x-idempotency-key"]);
       const isSubmission = body.status === "submitted";
       if (isSubmission && idempotencyKey) {
-        const cachedResponse = await checkIdempotencyKey(idempotencyKey, `applications/${applicationId}/submit`);
+        const cachedResponse = await checkIdempotencyKey(userId, idempotencyKey, `applications/${applicationId}/submit`);
         if (cachedResponse) {
           return sendSuccess(res, cachedResponse);
         }
@@ -16707,7 +16727,7 @@ async function handleById(req, res, userId, isAdmin2, canReadAllApplications, ca
       }
       const responseData = updateResult.rows[0];
       if (isSubmission && idempotencyKey) {
-        await storeIdempotencyKey(idempotencyKey, `applications/${applicationId}/submit`, responseData);
+        await storeIdempotencyKey(userId, idempotencyKey, `applications/${applicationId}/submit`, responseData);
       }
       return sendSuccess(res, responseData);
     }
