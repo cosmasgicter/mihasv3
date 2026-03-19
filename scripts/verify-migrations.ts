@@ -14,6 +14,23 @@ import { neon, type NeonQueryFunction } from '@neondatabase/serverless';
 import { readdirSync } from 'fs';
 
 const MIGRATIONS_DIR = './migrations';
+const REQUIRED_MIGRATIONS = [
+  '001_extensions.sql',
+  '002_core_schema.sql',
+  '003_supporting_tables.sql',
+  '004_functions.sql',
+  '005_triggers.sql',
+  '006_data_migration.sql',
+  '007_password_reset_tokens.sql',
+  '008_notification_delivery.sql',
+  '009_document_migration_log.sql',
+  '010_user_permission_overrides.sql',
+  '011_payment_review_indexes.sql',
+  'add_csrf_tokens_table.sql',
+  'add_audit_retention_category.sql',
+  'add_password_reset_tokens_table.sql',
+  'add_login_attempts_table.sql',
+] as const;
 
 // Use the concrete return type from neon() to avoid generic type mismatch
 type SqlClient = NeonQueryFunction<false, false>;
@@ -23,6 +40,7 @@ interface MigrationState {
   localMigrations: string[];
   pendingMigrations: string[];
   schemaVersion: string | null;
+  missingLocalMigrations: string[];
 }
 
 /**
@@ -36,6 +54,11 @@ function getLocalMigrations(): string[] {
       const bNum = parseInt(b.match(/^(\d+)_/)?.[1] ?? '999', 10);
       return aNum - bNum;
     });
+}
+
+function getMissingLocalMigrations(localMigrations: string[]): string[] {
+  const localSet = new Set(localMigrations);
+  return REQUIRED_MIGRATIONS.filter(name => !localSet.has(name));
 }
 
 /**
@@ -65,10 +88,19 @@ async function getAppliedFromHistory(sql: SqlClient): Promise<string[]> {
  * Discover the current migration state by comparing Neon vs local files
  */
 async function discoverMigrationState(): Promise<MigrationState> {
+  // 1. List local migration files first so drift can be detected without DB access
+  const localMigrations = getLocalMigrations();
+  const missingLocalMigrations = getMissingLocalMigrations(localMigrations);
+
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
-    console.error('❌ DATABASE_URL environment variable is not set');
-    process.exit(1);
+    return {
+      appliedMigrations: [],
+      localMigrations,
+      pendingMigrations: [],
+      schemaVersion: null,
+      missingLocalMigrations,
+    };
   }
 
   const sql = neon(connectionString);
@@ -80,9 +112,6 @@ async function discoverMigrationState(): Promise<MigrationState> {
     console.error('❌ Failed to connect to Neon:', (error as Error).message);
     process.exit(1);
   }
-
-  // 1. List local migration files
-  const localMigrations = getLocalMigrations();
 
   // 2. Check if migration_history table exists
   let appliedMigrations: string[] = [];
@@ -101,7 +130,13 @@ async function discoverMigrationState(): Promise<MigrationState> {
   const appliedSet = new Set(appliedMigrations);
   const pendingMigrations = localMigrations.filter(m => !appliedSet.has(m));
 
-  return { appliedMigrations, localMigrations, pendingMigrations, schemaVersion };
+  return {
+    appliedMigrations,
+    localMigrations,
+    pendingMigrations,
+    schemaVersion,
+    missingLocalMigrations,
+  };
 }
 
 /**
@@ -132,6 +167,13 @@ function printMigrationState(state: MigrationState): void {
     state.pendingMigrations.forEach(m => console.log(`   - ${m}`));
   }
 
+  console.log(`\n🧩 Missing local migration files (${state.missingLocalMigrations.length}):`);
+  if (state.missingLocalMigrations.length === 0) {
+    console.log('   (none)');
+  } else {
+    state.missingLocalMigrations.forEach(m => console.log(`   - ${m}`));
+  }
+
   if (state.schemaVersion) {
     console.log(`\n📌 Current schema version: ${state.schemaVersion}`);
   } else {
@@ -139,7 +181,10 @@ function printMigrationState(state: MigrationState): void {
   }
 
   console.log('\n' + '━'.repeat(50));
-  if (state.pendingMigrations.length > 0) {
+  if (state.missingLocalMigrations.length > 0) {
+    console.log(`❌ Local migration chain is incomplete (${state.missingLocalMigrations.length} missing)`);
+    process.exitCode = 2;
+  } else if (state.pendingMigrations.length > 0) {
     console.log(`⚠️  ${state.pendingMigrations.length} migration(s) need to be applied`);
   } else {
     console.log('✅ Database is up to date');
