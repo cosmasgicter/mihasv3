@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   calculateCanonicalProfileCompletion,
   getMissingProfileFields,
+  getCanonicalResidenceCountry,
   getCanonicalResidenceTown,
   normalizeDateInputValue,
   REQUIRED_PROFILE_FIELDS,
@@ -36,6 +37,20 @@ describe('profile field mapping utilities', () => {
         { residence_town: 'Lusaka', city: 'Kabwe', address: 'Plot 11' },
       ),
     ).toBe('Ndola')
+  })
+
+
+  it('prefers canonical country key for residence country resolution', () => {
+    expect(
+      getCanonicalResidenceCountry(
+        { country: 'Zimbabwe' },
+        { country: 'Zambia' },
+      ),
+    ).toBe('Zimbabwe')
+  })
+
+  it('defaults residence country when canonical country key is missing', () => {
+    expect(getCanonicalResidenceCountry({}, {})).toBe('Zambia')
   })
 })
 
@@ -97,6 +112,42 @@ describe('profile completion calculation (9 required fields)', () => {
     )
     // address resolved from residence_town
     expect(completion).toBe(100)
+  })
+
+
+  it('uses next_of_kin_name as the canonical completeness key for next of kin', () => {
+    const withName = calculateCanonicalProfileCompletion(
+      {
+        first_name: 'Jane',
+        last_name: 'Doe',
+        email: 'jane@example.com',
+        phone: '+260971234567',
+        date_of_birth: '1998-01-01',
+        sex: 'Female',
+        nrc_number: '123456/78/9',
+        address: 'Plot 10, Lusaka',
+        next_of_kin_name: 'John Doe',
+      },
+      {},
+    )
+
+    const withPhoneOnly = calculateCanonicalProfileCompletion(
+      {
+        first_name: 'Jane',
+        last_name: 'Doe',
+        email: 'jane@example.com',
+        phone: '+260971234567',
+        date_of_birth: '1998-01-01',
+        sex: 'Female',
+        nrc_number: '123456/78/9',
+        address: 'Plot 10, Lusaka',
+        next_of_kin_phone: '+260971111111',
+      },
+      {},
+    )
+
+    expect(withName).toBe(100)
+    expect(withPhoneOnly).toBe(89)
   })
 
   it('reflects partial completion when some fields are missing', () => {

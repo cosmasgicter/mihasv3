@@ -9,21 +9,93 @@
       "description": "User profiles - central user table",
       "row_count": 21,
       "columns": [
-        {"name": "id", "type": "uuid", "nullable": false, "default": "gen_random_uuid()"},
-        {"name": "email", "type": "varchar(255)", "nullable": false},
-        {"name": "role", "type": "varchar(50)", "nullable": true, "default": "'student'"},
-        {"name": "first_name", "type": "varchar(255)", "nullable": true},
-        {"name": "last_name", "type": "varchar(255)", "nullable": true},
-        {"name": "phone", "type": "varchar(20)", "nullable": true},
-        {"name": "is_active", "type": "boolean", "nullable": true, "default": "true"},
-        {"name": "password_hash", "type": "text", "nullable": true},
-        {"name": "refresh_token_hash", "type": "text", "nullable": true},
-        {"name": "failed_login_attempts", "type": "integer", "nullable": true, "default": "0"},
-        {"name": "locked_until", "type": "timestamptz", "nullable": true},
-        {"name": "password_changed_at", "type": "timestamptz", "nullable": true},
-        {"name": "email_verified", "type": "boolean", "nullable": true, "default": "false"},
-        {"name": "created_at", "type": "timestamptz", "nullable": true, "default": "now()"},
-        {"name": "updated_at", "type": "timestamptz", "nullable": true, "default": "now()"}
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "email",
+          "type": "varchar(255)",
+          "nullable": false
+        },
+        {
+          "name": "role",
+          "type": "varchar(50)",
+          "nullable": true,
+          "default": "'student'"
+        },
+        {
+          "name": "first_name",
+          "type": "varchar(255)",
+          "nullable": true
+        },
+        {
+          "name": "last_name",
+          "type": "varchar(255)",
+          "nullable": true
+        },
+        {
+          "name": "phone",
+          "type": "varchar(20)",
+          "nullable": true
+        },
+        {
+          "name": "country",
+          "type": "varchar(100)",
+          "nullable": true
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": true,
+          "default": "true"
+        },
+        {
+          "name": "password_hash",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "refresh_token_hash",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "failed_login_attempts",
+          "type": "integer",
+          "nullable": true,
+          "default": "0"
+        },
+        {
+          "name": "locked_until",
+          "type": "timestamptz",
+          "nullable": true
+        },
+        {
+          "name": "password_changed_at",
+          "type": "timestamptz",
+          "nullable": true
+        },
+        {
+          "name": "email_verified",
+          "type": "boolean",
+          "nullable": true,
+          "default": "false"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "now()"
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "now()"
+        }
       ]
     },
     {
@@ -32,28 +104,123 @@
       "description": "Student applications - main business entity",
       "row_count": 28,
       "columns": [
-        {"name": "id", "type": "uuid", "nullable": false, "default": "gen_random_uuid()"},
-        {"name": "application_number", "type": "varchar(20)", "nullable": false},
-        {"name": "user_id", "type": "uuid", "nullable": false, "references": "profiles(id)"},
-        {"name": "full_name", "type": "varchar(255)", "nullable": false},
-        {"name": "nrc_number", "type": "varchar(20)", "nullable": true},
-        {"name": "passport_number", "type": "varchar(50)", "nullable": true},
-        {"name": "date_of_birth", "type": "date", "nullable": false},
-        {"name": "sex", "type": "varchar(10)", "nullable": false},
-        {"name": "phone", "type": "varchar(20)", "nullable": false},
-        {"name": "email", "type": "varchar(255)", "nullable": false},
-        {"name": "residence_town", "type": "varchar(100)", "nullable": false},
-        {"name": "nationality", "type": "varchar(100)", "nullable": true},
-        {"name": "program", "type": "varchar(50)", "nullable": false},
-        {"name": "intake", "type": "varchar(50)", "nullable": false},
-        {"name": "institution", "type": "varchar(50)", "nullable": false},
-        {"name": "status", "type": "varchar(20)", "nullable": false, "default": "'draft'"},
-        {"name": "payment_status", "type": "varchar(20)", "nullable": true, "default": "'pending_review'"},
-        {"name": "eligibility_status", "type": "varchar(20)", "nullable": true, "default": "'pending'"},
-        {"name": "public_tracking_code", "type": "varchar(20)", "nullable": true},
-        {"name": "submitted_at", "type": "timestamptz", "nullable": true},
-        {"name": "created_at", "type": "timestamptz", "nullable": true, "default": "now()"},
-        {"name": "updated_at", "type": "timestamptz", "nullable": true, "default": "now()"}
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "application_number",
+          "type": "varchar(20)",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "references": "profiles(id)"
+        },
+        {
+          "name": "full_name",
+          "type": "varchar(255)",
+          "nullable": false
+        },
+        {
+          "name": "nrc_number",
+          "type": "varchar(20)",
+          "nullable": true
+        },
+        {
+          "name": "passport_number",
+          "type": "varchar(50)",
+          "nullable": true
+        },
+        {
+          "name": "date_of_birth",
+          "type": "date",
+          "nullable": false
+        },
+        {
+          "name": "sex",
+          "type": "varchar(10)",
+          "nullable": false
+        },
+        {
+          "name": "phone",
+          "type": "varchar(20)",
+          "nullable": false
+        },
+        {
+          "name": "email",
+          "type": "varchar(255)",
+          "nullable": false
+        },
+        {
+          "name": "residence_town",
+          "type": "varchar(100)",
+          "nullable": false
+        },
+        {
+          "name": "nationality",
+          "type": "varchar(100)",
+          "nullable": true
+        },
+        {
+          "name": "program",
+          "type": "varchar(50)",
+          "nullable": false
+        },
+        {
+          "name": "intake",
+          "type": "varchar(50)",
+          "nullable": false
+        },
+        {
+          "name": "institution",
+          "type": "varchar(50)",
+          "nullable": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(20)",
+          "nullable": false,
+          "default": "'draft'"
+        },
+        {
+          "name": "payment_status",
+          "type": "varchar(20)",
+          "nullable": true,
+          "default": "'pending_review'"
+        },
+        {
+          "name": "eligibility_status",
+          "type": "varchar(20)",
+          "nullable": true,
+          "default": "'pending'"
+        },
+        {
+          "name": "public_tracking_code",
+          "type": "varchar(20)",
+          "nullable": true
+        },
+        {
+          "name": "submitted_at",
+          "type": "timestamptz",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "now()"
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "now()"
+        }
       ]
     },
     {
@@ -62,18 +229,72 @@
       "description": "Documents uploaded for applications",
       "row_count": 11,
       "columns": [
-        {"name": "id", "type": "uuid", "nullable": false, "default": "gen_random_uuid()"},
-        {"name": "application_id", "type": "uuid", "nullable": false, "references": "applications(id)"},
-        {"name": "document_type", "type": "varchar(100)", "nullable": false},
-        {"name": "document_name", "type": "varchar(255)", "nullable": false},
-        {"name": "file_url", "type": "text", "nullable": true},
-        {"name": "file_size", "type": "integer", "nullable": true},
-        {"name": "mime_type", "type": "varchar(100)", "nullable": true},
-        {"name": "verification_status", "type": "varchar(50)", "nullable": true, "default": "'pending'"},
-        {"name": "verified_by", "type": "uuid", "nullable": true, "references": "profiles(id)"},
-        {"name": "verified_at", "type": "timestamptz", "nullable": true},
-        {"name": "created_at", "type": "timestamptz", "nullable": true, "default": "now()"},
-        {"name": "updated_at", "type": "timestamptz", "nullable": true, "default": "now()"}
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "application_id",
+          "type": "uuid",
+          "nullable": false,
+          "references": "applications(id)"
+        },
+        {
+          "name": "document_type",
+          "type": "varchar(100)",
+          "nullable": false
+        },
+        {
+          "name": "document_name",
+          "type": "varchar(255)",
+          "nullable": false
+        },
+        {
+          "name": "file_url",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "file_size",
+          "type": "integer",
+          "nullable": true
+        },
+        {
+          "name": "mime_type",
+          "type": "varchar(100)",
+          "nullable": true
+        },
+        {
+          "name": "verification_status",
+          "type": "varchar(50)",
+          "nullable": true,
+          "default": "'pending'"
+        },
+        {
+          "name": "verified_by",
+          "type": "uuid",
+          "nullable": true,
+          "references": "profiles(id)"
+        },
+        {
+          "name": "verified_at",
+          "type": "timestamptz",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "now()"
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "now()"
+        }
       ]
     },
     {
@@ -82,11 +303,35 @@
       "description": "Academic grades for applications",
       "row_count": 136,
       "columns": [
-        {"name": "id", "type": "uuid", "nullable": false, "default": "gen_random_uuid()"},
-        {"name": "application_id", "type": "uuid", "nullable": false, "references": "applications(id)"},
-        {"name": "subject_id", "type": "uuid", "nullable": false, "references": "subjects(id)"},
-        {"name": "grade", "type": "integer", "nullable": false},
-        {"name": "created_at", "type": "timestamptz", "nullable": true, "default": "now()"}
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "application_id",
+          "type": "uuid",
+          "nullable": false,
+          "references": "applications(id)"
+        },
+        {
+          "name": "subject_id",
+          "type": "uuid",
+          "nullable": false,
+          "references": "subjects(id)"
+        },
+        {
+          "name": "grade",
+          "type": "integer",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "now()"
+        }
       ]
     },
     {
@@ -95,18 +340,73 @@
       "description": "User device sessions for auth",
       "row_count": 587,
       "columns": [
-        {"name": "id", "type": "uuid", "nullable": false, "default": "gen_random_uuid()"},
-        {"name": "user_id", "type": "uuid", "nullable": false, "references": "profiles(id)"},
-        {"name": "device_id", "type": "text", "nullable": false},
-        {"name": "device_info", "type": "text", "nullable": true},
-        {"name": "session_token", "type": "text", "nullable": false},
-        {"name": "ip_address", "type": "varchar(45)", "nullable": true},
-        {"name": "user_agent", "type": "text", "nullable": true},
-        {"name": "last_activity", "type": "timestamptz", "nullable": true, "default": "now()"},
-        {"name": "is_active", "type": "boolean", "nullable": true, "default": "true"},
-        {"name": "expires_at", "type": "timestamptz", "nullable": true, "default": "now() + interval '30 days'"},
-        {"name": "created_at", "type": "timestamptz", "nullable": true, "default": "now()"},
-        {"name": "updated_at", "type": "timestamptz", "nullable": true, "default": "now()"}
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "references": "profiles(id)"
+        },
+        {
+          "name": "device_id",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "device_info",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "session_token",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "ip_address",
+          "type": "varchar(45)",
+          "nullable": true
+        },
+        {
+          "name": "user_agent",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "last_activity",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "now()"
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": true,
+          "default": "true"
+        },
+        {
+          "name": "expires_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "now() + interval '30 days'"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "now()"
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "now()"
+        }
       ]
     },
     {
@@ -115,15 +415,54 @@
       "description": "Audit trail for all changes",
       "row_count": 657,
       "columns": [
-        {"name": "id", "type": "uuid", "nullable": false, "default": "gen_random_uuid()"},
-        {"name": "actor_id", "type": "uuid", "nullable": true, "references": "profiles(id)"},
-        {"name": "action", "type": "varchar(50)", "nullable": false},
-        {"name": "entity_type", "type": "varchar(50)", "nullable": false},
-        {"name": "entity_id", "type": "uuid", "nullable": false},
-        {"name": "changes", "type": "jsonb", "nullable": true},
-        {"name": "ip_address", "type": "inet", "nullable": true},
-        {"name": "user_agent", "type": "text", "nullable": true},
-        {"name": "created_at", "type": "timestamptz", "nullable": true, "default": "now()"}
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "actor_id",
+          "type": "uuid",
+          "nullable": true,
+          "references": "profiles(id)"
+        },
+        {
+          "name": "action",
+          "type": "varchar(50)",
+          "nullable": false
+        },
+        {
+          "name": "entity_type",
+          "type": "varchar(50)",
+          "nullable": false
+        },
+        {
+          "name": "entity_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "changes",
+          "type": "jsonb",
+          "nullable": true
+        },
+        {
+          "name": "ip_address",
+          "type": "inet",
+          "nullable": true
+        },
+        {
+          "name": "user_agent",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "now()"
+        }
       ]
     },
     {
@@ -131,15 +470,56 @@
       "priority": 7,
       "description": "Academic programs offered",
       "columns": [
-        {"name": "id", "type": "uuid", "nullable": false, "default": "gen_random_uuid()"},
-        {"name": "name", "type": "varchar(255)", "nullable": false},
-        {"name": "code", "type": "varchar(50)", "nullable": false},
-        {"name": "description", "type": "text", "nullable": true},
-        {"name": "duration_months", "type": "integer", "nullable": true},
-        {"name": "application_fee", "type": "numeric(10,2)", "nullable": true, "default": "153.00"},
-        {"name": "is_active", "type": "boolean", "nullable": true, "default": "true"},
-        {"name": "created_at", "type": "timestamptz", "nullable": true, "default": "now()"},
-        {"name": "updated_at", "type": "timestamptz", "nullable": true, "default": "now()"}
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "name",
+          "type": "varchar(255)",
+          "nullable": false
+        },
+        {
+          "name": "code",
+          "type": "varchar(50)",
+          "nullable": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": true
+        },
+        {
+          "name": "duration_months",
+          "type": "integer",
+          "nullable": true
+        },
+        {
+          "name": "application_fee",
+          "type": "numeric(10,2)",
+          "nullable": true,
+          "default": "153.00"
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": true,
+          "default": "true"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "now()"
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "now()"
+        }
       ]
     },
     {
@@ -147,14 +527,50 @@
       "priority": 8,
       "description": "Admission intakes/periods",
       "columns": [
-        {"name": "id", "type": "uuid", "nullable": false, "default": "gen_random_uuid()"},
-        {"name": "name", "type": "varchar(255)", "nullable": false},
-        {"name": "start_date", "type": "date", "nullable": true},
-        {"name": "end_date", "type": "date", "nullable": true},
-        {"name": "application_deadline", "type": "date", "nullable": true},
-        {"name": "is_active", "type": "boolean", "nullable": true, "default": "true"},
-        {"name": "created_at", "type": "timestamptz", "nullable": true, "default": "now()"},
-        {"name": "updated_at", "type": "timestamptz", "nullable": true, "default": "now()"}
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "name",
+          "type": "varchar(255)",
+          "nullable": false
+        },
+        {
+          "name": "start_date",
+          "type": "date",
+          "nullable": true
+        },
+        {
+          "name": "end_date",
+          "type": "date",
+          "nullable": true
+        },
+        {
+          "name": "application_deadline",
+          "type": "date",
+          "nullable": true
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": true,
+          "default": "true"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "now()"
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "now()"
+        }
       ]
     },
     {
@@ -162,12 +578,39 @@
       "priority": 9,
       "description": "Academic subjects for grade entry",
       "columns": [
-        {"name": "id", "type": "uuid", "nullable": false, "default": "gen_random_uuid()"},
-        {"name": "name", "type": "varchar(255)", "nullable": false},
-        {"name": "code", "type": "varchar(50)", "nullable": true},
-        {"name": "category", "type": "varchar(100)", "nullable": true},
-        {"name": "is_active", "type": "boolean", "nullable": true, "default": "true"},
-        {"name": "created_at", "type": "timestamptz", "nullable": true, "default": "now()"}
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "name",
+          "type": "varchar(255)",
+          "nullable": false
+        },
+        {
+          "name": "code",
+          "type": "varchar(50)",
+          "nullable": true
+        },
+        {
+          "name": "category",
+          "type": "varchar(100)",
+          "nullable": true
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": true,
+          "default": "true"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "now()"
+        }
       ]
     },
     {
@@ -175,14 +618,50 @@
       "priority": 10,
       "description": "User notifications",
       "columns": [
-        {"name": "id", "type": "uuid", "nullable": false, "default": "gen_random_uuid()"},
-        {"name": "user_id", "type": "uuid", "nullable": false, "references": "profiles(id)"},
-        {"name": "title", "type": "varchar(255)", "nullable": false},
-        {"name": "message", "type": "text", "nullable": false},
-        {"name": "type", "type": "varchar(50)", "nullable": true},
-        {"name": "is_read", "type": "boolean", "nullable": true, "default": "false"},
-        {"name": "read_at", "type": "timestamptz", "nullable": true},
-        {"name": "created_at", "type": "timestamptz", "nullable": true, "default": "now()"}
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "references": "profiles(id)"
+        },
+        {
+          "name": "title",
+          "type": "varchar(255)",
+          "nullable": false
+        },
+        {
+          "name": "message",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "type",
+          "type": "varchar(50)",
+          "nullable": true
+        },
+        {
+          "name": "is_read",
+          "type": "boolean",
+          "nullable": true,
+          "default": "false"
+        },
+        {
+          "name": "read_at",
+          "type": "timestamptz",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "now()"
+        }
       ]
     }
   ]
