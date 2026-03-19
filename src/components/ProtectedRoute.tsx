@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthCheck } from '@/hooks/auth/useSessionListener'
-import { AppShellSkeleton } from '@/components/ui/AppShellSkeleton'
+import { GuardInlineSkeleton } from '@/components/ui/GuardInlineSkeleton'
+import { startLoaderTelemetry } from '@/lib/loaderTelemetry'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -34,6 +35,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const [allowSigninRedirect, setAllowSigninRedirect] = useState(false)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const loaderTelemetryRef = useRef<ReturnType<typeof startLoaderTelemetry> | null>(null)
 
   const fullPath = `${location.pathname}${location.search}${location.hash}`
 
@@ -88,6 +90,18 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }, [isLoading])
 
   useEffect(() => {
+    if (isLoading && !loaderTelemetryRef.current) {
+      loaderTelemetryRef.current = startLoaderTelemetry('protected-route-auth-bootstrap')
+      return
+    }
+
+    if (!isLoading && loaderTelemetryRef.current) {
+      loaderTelemetryRef.current.end({ authenticated: isAuthenticated, route: location.pathname })
+      loaderTelemetryRef.current = null
+    }
+  }, [isAuthenticated, isLoading, location.pathname])
+
+  useEffect(() => {
     if (isLoading || isAuthenticated || allowSigninRedirect) return
     if (!recoveryAttempted) {
       void runSessionRecovery()
@@ -132,12 +146,12 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
         </div>
       )
     }
-    return <AppShellSkeleton />
+    return <GuardInlineSkeleton label="Verifying account access" />
   }
 
   if (!isAuthenticated) {
     if (!allowSigninRedirect || isRecoveringSession) {
-      return <AppShellSkeleton />
+      return <GuardInlineSkeleton label="Verifying account access" />
     }
     return <Navigate to="/auth/signin" state={{ from: location }} replace />
   }
