@@ -11,6 +11,7 @@ import { useScrollRestoration } from '@/hooks/useScrollRestoration'
 import { SkipLink } from '@/components/ui/SkipLink'
 import { NotificationBell } from '@/components/student/NotificationBell'
 import { useSignOutAction } from '@/hooks/useSignOutAction'
+import { useToastStore } from '@/hooks/useToast'
 import { RouteTransition } from '@/components/smoothui/page-transition'
 import { designTokens } from '@/design-system/tokens'
 import { APP_MAIN_CONTENT_ID } from '@/lib/accessibility-utils'
@@ -28,6 +29,7 @@ import {
   LogOut,
   UserCircle2,
   BriefcaseBusiness,
+  Loader2,
 } from 'lucide-react'
 
 interface AppLayoutProps {
@@ -94,6 +96,7 @@ const studentLogoutNavItem = { href: '/auth/signin', label: 'Logout', icon: LogO
 const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppLayoutProps) {
   const { user, isAdmin } = useAuth()
   const { signOut, isSigningOut } = useSignOutAction()
+  const toast = useToastStore()
   const { collapsed } = useSidebar()
   const { isMobile } = useResponsive()
   const location = useLocation()
@@ -123,6 +126,15 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
   const showBack = backRoutes.has(location.pathname) || location.pathname.includes('/application/')
   const handleBack = () => navigate(-1)
   const isStudentRoute = location.pathname.startsWith('/student')
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+      toast.success('Signed out', 'You have been signed out successfully.')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Please try again.'
+      toast.error('Sign out failed', message)
+    }
+  }
 
   const mobileActions = !isAdmin && isStudentRoute ? (
     <div className="flex items-center justify-end gap-1 pr-1">
@@ -137,12 +149,13 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
       <NotificationBell />
       <button
         type="button"
-        onClick={() => { void signOut() }}
+        onClick={() => { void handleSignOut() }}
         disabled={isSigningOut}
         className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-accent disabled:opacity-60"
         aria-label="Log out"
+        aria-busy={isSigningOut}
       >
-        <LogOut className="h-5 w-5" />
+        {isSigningOut ? <Loader2 className="h-5 w-5 animate-spin" /> : <LogOut className="h-5 w-5" />}
       </button>
     </div>
   ) : undefined
@@ -153,7 +166,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
       ...adminNavItems,
       {
         ...studentLogoutNavItem,
-        onClick: () => { void signOut() },
+        onClick: () => { void handleSignOut() },
         activeMatchPaths: [],
       },
     ]
@@ -161,7 +174,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
       ...studentNavItems,
       {
         ...studentLogoutNavItem,
-        onClick: () => { void signOut() },
+        onClick: () => { void handleSignOut() },
         activeMatchPaths: [],
       },
     ]

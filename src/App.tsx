@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react'
-import { BrowserRouter as Router, Routes, Route, useLocation, matchPath } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useLocation, matchPath, useNavigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { SkeletonProvider } from '@/contexts/SkeletonContext'
@@ -238,6 +238,7 @@ function DeferredTelemetry() {
 
 function RoutedAppChrome() {
   const location = useLocation()
+  const navigate = useNavigate()
   const { user, isAdmin } = useAuth()
   const isLightweightRoute = isLightweightPublicRoute(location.pathname)
   const matchedRoute = useMemo(() => (
@@ -250,6 +251,18 @@ function RoutedAppChrome() {
   const deferredGlobalUiHydrated = useDeferredHydration(canLoadHeavyGlobalUi, 1500)
   const deferredSessionHydrated = useDeferredHydration(canLoadSessionMonitor, 1800)
   const deferredAppEffectsHydrated = useDeferredHydration(canLoadSwAndInstallEffects, 2200)
+
+  useEffect(() => {
+    const handleAuthRedirect = (event: Event) => {
+      const customEvent = event as CustomEvent<{ to?: string; replace?: boolean }>
+      const destination = customEvent.detail?.to || '/auth/signin'
+      navigate(destination, { replace: customEvent.detail?.replace ?? true })
+    }
+
+    window.addEventListener('mihas:auth-redirect', handleAuthRedirect)
+    return () => window.removeEventListener('mihas:auth-redirect', handleAuthRedirect)
+  }, [navigate])
+
   const routesMarkup = (
     <Routes>
       {routes.map((route) => (

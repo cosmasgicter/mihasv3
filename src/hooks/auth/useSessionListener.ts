@@ -203,8 +203,16 @@ export function useSessionListener() {
     // 1. Clear CSRF token
     clearCsrfToken()
 
-    // 2. Clear React Query cache
-    queryClient.clear()
+    // 2. Invalidate auth caches before navigation to prevent stale protected views
+    queryClient.setQueryData(['auth', 'session'], null)
+    queryClient.removeQueries({ queryKey: ['user-profile'] })
+    queryClient.removeQueries({
+      predicate: (query) => query.queryKey[0] !== 'auth',
+    })
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['auth'] }),
+      queryClient.invalidateQueries({ queryKey: ['user-profile'] }),
+    ])
 
     // 3. POST logout (best-effort — don't let network errors prevent local cleanup)
     try {
@@ -225,9 +233,12 @@ export function useSessionListener() {
       window.dispatchEvent(new CustomEvent('authSignedOut'))
     }
 
-    // 6. Set auth session to null
-    queryClient.setQueryData(['auth', 'session'], null)
-    queryClient.removeQueries({ queryKey: ['user-profile'] })
+    // 6. Navigate to sign-in route using router-safe event dispatch
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('mihas:auth-redirect', {
+        detail: { to: '/auth/signin', replace: true },
+      }))
+    }
   }, [queryClient])
 
   const requestPasswordReset = useCallback(async (email: string): Promise<PasswordResetResult> => {

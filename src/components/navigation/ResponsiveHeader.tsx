@@ -15,6 +15,7 @@ import {
 } from '@/components/icons'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSignOutAction } from '@/hooks/useSignOutAction'
+import { useToastStore } from '@/hooks/useToast'
 import { SkipLink } from '@/components/ui/SkipLink'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { cn } from '@/lib/utils'
@@ -32,6 +33,7 @@ interface ResponsiveHeaderProps {
 export function ResponsiveHeader({ className }: ResponsiveHeaderProps) {
   const { user, isAdmin } = useAuth()
   const { signOut, isSigningOut } = useSignOutAction()
+  const toast = useToastStore()
   const location = useLocation()
   const [open, setOpen] = useState(false)
   const menuToggleRef = useRef<HTMLButtonElement>(null)
@@ -72,7 +74,13 @@ export function ResponsiveHeader({ className }: ResponsiveHeaderProps) {
 
   const handleSignOut = async () => {
     closeMenu()
-    await signOut()
+    try {
+      await signOut()
+      toast.success('Signed out', 'You have been signed out successfully.')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Please try again.'
+      toast.error('Sign out failed', message)
+    }
   }
 
   return (
