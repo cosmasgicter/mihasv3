@@ -1962,9 +1962,32 @@ async function handleEmailSlip(
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const { applicationId, email } = req.body || {};
-  if (!applicationId || !email) {
-    return sendError(res, 'Missing required fields: applicationId, email', HttpStatus.BAD_REQUEST);
+  const {
+    applicationId: rawApplicationId,
+    application_id: legacyApplicationId,
+    recipientEmail,
+    email: legacyEmail,
+    slipUrl,
+    slip_url: legacySlipUrl,
+    slipDocumentReference,
+    slip_document_reference: legacySlipDocumentReference,
+  } = req.body || {};
+
+  const applicationId = String(rawApplicationId || legacyApplicationId || '').trim();
+  const recipientEmailRaw = String(recipientEmail || legacyEmail || '').trim();
+  const normalizedRecipientEmail = recipientEmailRaw.toLowerCase();
+  const resolvedSlipUrl = typeof (slipUrl || legacySlipUrl) === 'string' ? String(slipUrl || legacySlipUrl).trim() : null;
+  const resolvedSlipDocumentReference = typeof (slipDocumentReference || legacySlipDocumentReference) === 'string'
+    ? String(slipDocumentReference || legacySlipDocumentReference).trim()
+    : null;
+
+  if (!applicationId || !recipientEmailRaw) {
+    return sendError(res, 'Missing required fields: applicationId, recipientEmail', HttpStatus.BAD_REQUEST);
+  }
+
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailPattern.test(recipientEmailRaw)) {
+    return sendError(res, 'Invalid recipient email address', HttpStatus.BAD_REQUEST);
   }
 
   // Fetch application
@@ -1983,14 +2006,33 @@ async function handleEmailSlip(
   }
 
   try {
-    const htmlBody = renderEmailTemplate('application-submitted', {
-      recipientName: app.full_name || undefined,
-      applicationNumber: app.application_number || undefined,
-      programName: (app as unknown as Record<string, unknown>).program as string || undefined,
-      actionUrl: `***REMOVED***/student/application/${applicationId}`,
-    });
+    if (!isAdmin) {
+      const profileResult = await query<{ email: string | null }>(
+        `SELECT email FROM profiles WHERE id = $1 LIMIT 1`,
+        [userId]
+      );
+      const accountEmail = profileResult.rows[0]?.email?.trim().toLowerCase() || null;
+      const applicationEmail = app.email?.trim().toLowerCase() || null;
+      const allowedRecipientEmails = new Set([accountEmail, applicationEmail].filter(Boolean));
 
-    await query(
+      if (!allowedRecipientEmails.has(normalizedRecipientEmail)) {
+        return sendError(res, 'Recipient email must match your account email', HttpStatus.FORBIDDEN);
+      }
+    }
+
+    const fallbackDownloadUrl = resolvedSlipUrl
+      || `***REMOVED***/student/application/${applicationId}`;
+    const templateData = {
+      recipientName: app.full_name || null,
+      applicationNumber: app.application_number || null,
+      programName: (app as unknown as Record<string, unknown>).program || null,
+      actionUrl: fallbackDownloadUrl,
+      slipDocumentReference: resolvedSlipDocumentReference || null,
+    };
+    const subject = `Application Slip - ${app.application_number || applicationId}`;
+    const body = `Your application slip for ${app.application_number || applicationId} is ready.`;
+
+    const queueResult = await query<{ id: string }>(
       `INSERT INTO email_queue (
          recipient_email,
          recipient_name,
@@ -2002,18 +2044,14 @@ async function handleEmailSlip(
          status,
          priority
        )
-       VALUES ($1, $2, $3, $4, $5, 'application-submitted', $6, 'pending', 5)`,
+       VALUES ($1, $2, $3, $4, NULL, 'application-slip', $5, 'pending', 5)
+       RETURNING id`,
       [
-        email,
+        recipientEmailRaw,
         app.full_name || null,
-        `Application Slip - ${app.application_number || applicationId}`,
-        `Your application slip for ${app.application_number || applicationId}`,
-        htmlBody,
-        JSON.stringify({
-          recipientName: app.full_name || null,
-          applicationNumber: app.application_number || null,
-          programName: (app as unknown as Record<string, unknown>).program || null,
-        }),
+        subject,
+        body,
+        JSON.stringify(templateData),
       ]
     );
 
@@ -2023,11 +2061,18 @@ async function handleEmailSlip(
         action: 'application_slip_emailed',
         entity_type: 'application',
         entity_id: applicationId,
-        changes: { recipient: email.substring(0, 3) + '***' },
+        changes: {
+          recipient: recipientEmailRaw.substring(0, 3) + '***',
+          queuedId: queueResult.rows[0]?.id || null,
+        },
       });
     } catch { /* non-blocking */ }
 
-    return sendSuccess(res, { emailed: true });
+    return sendSuccess(res, {
+      emailed: true,
+      queuedId: queueResult.rows[0]?.id || null,
+      fallbackDownloadUrl,
+    });
   } catch (error) {
     return handleError(res, error, 'applications/email-slip');
   }

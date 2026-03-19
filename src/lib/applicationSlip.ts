@@ -25,7 +25,13 @@ export interface PublicApplicationStatus {
   admin_feedback_date?: string | null;
 }
 
-export type ApplicationSlipData = PublicApplicationStatus & { email: string; userId?: string };
+export type ApplicationSlipData = PublicApplicationStatus & {
+  email: string;
+  userId?: string;
+  application_id?: string;
+  slip_url?: string;
+  slip_document_reference?: string;
+};
 
 export interface PersistSlipResult {
   success: boolean;
