@@ -1,4 +1,4 @@
-import { logReloadEvent, resolveBuildKey } from '@/lib/reloadControl'
+import { emitReloadTelemetry, logReloadEvent, resolveBuildKey } from '@/lib/reloadControl'
 
 export async function hardReload(): Promise<void> {
   const buildKey = resolveBuildKey()
@@ -18,7 +18,6 @@ export async function hardReload(): Promise<void> {
     }
   } catch (e) {
     // ignore
-    // eslint-disable-next-line no-console
     console.warn('hardReload: failed to unregister service workers', e);
   }
 
@@ -30,7 +29,6 @@ export async function hardReload(): Promise<void> {
     }
   } catch (e) {
     // ignore
-    // eslint-disable-next-line no-console
     console.warn('hardReload: failed to clear caches', e);
   }
 
@@ -45,6 +43,12 @@ export async function hardReload(): Promise<void> {
       details: { stage: 'replace', href: url.toString() }
     })
     // Use replace to avoid polluting session history
+    emitReloadTelemetry({
+      reason: 'manual_hard_reload',
+      mode: 'user',
+      buildKey,
+      details: { stage: 'replace', href: url.toString() }
+    })
     window.location.replace(url.toString());
   } catch (e) {
     logReloadEvent({
@@ -54,6 +58,12 @@ export async function hardReload(): Promise<void> {
       details: { stage: 'fallback-reload', error: String(e) }
     })
     // fallback to simple reload
+    emitReloadTelemetry({
+      reason: 'manual_hard_reload',
+      mode: 'user',
+      buildKey,
+      details: { stage: 'fallback-reload', error: String(e) }
+    })
     window.location.reload();
   }
 }
