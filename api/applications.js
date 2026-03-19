@@ -1,16 +1,27 @@
 import { createRequire } from "node:module";
+var __create = Object.create;
+var __getProtoOf = Object.getPrototypeOf;
 var __defProp = Object.defineProperty;
-var __returnValue = (v) => v;
-function __exportSetter(name, newValue) {
-  this[name] = __returnValue.bind(null, newValue);
-}
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __toESM = (mod, isNodeMode, target) => {
+  target = mod != null ? __create(__getProtoOf(mod)) : {};
+  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
+  for (let key of __getOwnPropNames(mod))
+    if (!__hasOwnProp.call(to, key))
+      __defProp(to, key, {
+        get: () => mod[key],
+        enumerable: true
+      });
+  return to;
+};
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: __exportSetter.bind(all, name)
+      set: (newValue) => all[name] = () => newValue
     });
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
@@ -15319,7 +15330,7 @@ var applicationStatusSchema = exports_external.enum([
 ]);
 var paymentStatusSchema = exports_external.enum(["pending_review", "verified", "rejected"]);
 var interviewModeSchema = exports_external.enum(["in-person", "in_person", "virtual", "phone"]);
-var institutionSchema = exports_external.enum(["MIHAS", "KATC"]);
+var institutionSchema = nonEmptySanitizedString;
 var createApplicationBodySchema = exports_external.object({
   application_number: nonEmptySanitizedString,
   public_tracking_code: optionalSanitizedString,
@@ -15650,18 +15661,60 @@ async function handleCreate(req, res, userId) {
   if (!parsed)
     return;
   const body = parsed;
-  const INSTITUTION_PROGRAMS = {
-    MIHAS: ["Diploma in Registered Nursing", "Certificate In Psychosocial Counselling"],
-    KATC: ["Diploma in Clinical Medicine", "Diploma in Environmental Health"]
-  };
-  const allowedPrograms = INSTITUTION_PROGRAMS[body.institution];
-  if (!allowedPrograms) {
-    return sendError(res, `Invalid institution: ${body.institution}. Must be MIHAS or KATC`, HttpStatus.BAD_REQUEST);
-  }
-  if (!allowedPrograms.includes(body.program)) {
-    return sendError(res, `Program "${body.program}" is not offered at ${body.institution}. Valid programs: ${allowedPrograms.join(", ")}`, HttpStatus.BAD_REQUEST);
-  }
   try {
+    const catalogValidationResult = await query(`SELECT
+        p.id AS program_id,
+        p.name AS program_name,
+        p.institution_id AS program_institution_id,
+        i.id AS institution_id,
+        i.name AS institution_name,
+        i.full_name AS institution_full_name,
+        i.code AS institution_code,
+        EXISTS (
+          SELECT 1
+          FROM intakes active_intake
+          WHERE active_intake.id = $2
+            AND active_intake.is_active = true
+        ) AS intake_exists,
+        EXISTS (
+          SELECT 1
+          FROM program_intakes pi
+          WHERE pi.program_id = p.id
+            AND pi.intake_id = $2
+        ) AS intake_program_exists
+      FROM programs p
+      LEFT JOIN institutions i ON i.id = p.institution_id
+      WHERE p.id = $1
+        AND p.is_active = true`, [body.program, body.intake]);
+    if (catalogValidationResult.rowCount === 0) {
+      return sendValidationError(res, {
+        program: "Please select a valid program from the current catalog."
+      });
+    }
+    const catalog = catalogValidationResult.rows[0];
+    const submittedInstitution = String(body.institution || "").trim();
+    const normalizedSubmittedInstitution = submittedInstitution.toLowerCase();
+    const institutionCandidates = [
+      catalog.institution_id,
+      catalog.institution_name,
+      catalog.institution_full_name,
+      catalog.institution_code
+    ].map((value) => value?.trim().toLowerCase()).filter(Boolean);
+    if (!normalizedSubmittedInstitution || !institutionCandidates.includes(normalizedSubmittedInstitution)) {
+      return sendValidationError(res, {
+        institution: "Please select a valid institution for the selected program."
+      });
+    }
+    if (!catalog.intake_exists) {
+      return sendValidationError(res, {
+        program: "Please select a valid intake from the current catalog."
+      });
+    }
+    if (!catalog.intake_program_exists) {
+      return sendValidationError(res, {
+        program: "Selected program is not available for the chosen intake."
+      });
+    }
     const fields = [
       "user_id",
       "application_number",
@@ -15697,9 +15750,9 @@ async function handleCreate(req, res, userId) {
       body.nationality || "Zambian",
       body.next_of_kin_name || null,
       body.next_of_kin_phone || null,
-      body.program,
+      catalog.program_id,
       body.intake,
-      body.institution,
+      catalog.institution_id || body.institution,
       body.status || "draft"
     ];
     const placeholders = values.map((_, i) => `$${i + 1}`).join(", ");
@@ -16855,9 +16908,27 @@ async function handleEmailSlip(req, res, userId, isAdmin2) {
   if (req.method !== "POST") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
   }
-  const { applicationId, email: email3 } = req.body || {};
-  if (!applicationId || !email3) {
-    return sendError(res, "Missing required fields: applicationId, email", HttpStatus.BAD_REQUEST);
+  const {
+    applicationId: rawApplicationId,
+    application_id: legacyApplicationId,
+    recipientEmail,
+    email: legacyEmail,
+    slipUrl,
+    slip_url: legacySlipUrl,
+    slipDocumentReference,
+    slip_document_reference: legacySlipDocumentReference
+  } = req.body || {};
+  const applicationId = String(rawApplicationId || legacyApplicationId || "").trim();
+  const recipientEmailRaw = String(recipientEmail || legacyEmail || "").trim();
+  const normalizedRecipientEmail = recipientEmailRaw.toLowerCase();
+  const resolvedSlipUrl = typeof (slipUrl || legacySlipUrl) === "string" ? String(slipUrl || legacySlipUrl).trim() : null;
+  const resolvedSlipDocumentReference = typeof (slipDocumentReference || legacySlipDocumentReference) === "string" ? String(slipDocumentReference || legacySlipDocumentReference).trim() : null;
+  if (!applicationId || !recipientEmailRaw) {
+    return sendError(res, "Missing required fields: applicationId, recipientEmail", HttpStatus.BAD_REQUEST);
+  }
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailPattern.test(recipientEmailRaw)) {
+    return sendError(res, "Invalid recipient email address", HttpStatus.BAD_REQUEST);
   }
   const appQ = ApplicationQueries.findById(applicationId);
   const appResult = await query(appQ.text, appQ.values);
@@ -16869,13 +16940,26 @@ async function handleEmailSlip(req, res, userId, isAdmin2) {
     return sendError(res, "Access denied", HttpStatus.FORBIDDEN);
   }
   try {
-    const htmlBody = renderEmailTemplate("application-submitted", {
-      recipientName: app.full_name || undefined,
-      applicationNumber: app.application_number || undefined,
-      programName: app.program || undefined,
-      actionUrl: `https://apply.mihas.edu.zm/student/application/${applicationId}`
-    });
-    await query(`INSERT INTO email_queue (
+    if (!isAdmin2) {
+      const profileResult = await query(`SELECT email FROM profiles WHERE id = $1 LIMIT 1`, [userId]);
+      const accountEmail = profileResult.rows[0]?.email?.trim().toLowerCase() || null;
+      const applicationEmail = app.email?.trim().toLowerCase() || null;
+      const allowedRecipientEmails = new Set([accountEmail, applicationEmail].filter(Boolean));
+      if (!allowedRecipientEmails.has(normalizedRecipientEmail)) {
+        return sendError(res, "Recipient email must match your account email", HttpStatus.FORBIDDEN);
+      }
+    }
+    const fallbackDownloadUrl = resolvedSlipUrl || `https://apply.mihas.edu.zm/student/application/${applicationId}`;
+    const templateData = {
+      recipientName: app.full_name || null,
+      applicationNumber: app.application_number || null,
+      programName: app.program || null,
+      actionUrl: fallbackDownloadUrl,
+      slipDocumentReference: resolvedSlipDocumentReference || null
+    };
+    const subject = `Application Slip - ${app.application_number || applicationId}`;
+    const body = `Your application slip for ${app.application_number || applicationId} is ready.`;
+    const queueResult = await query(`INSERT INTO email_queue (
          recipient_email,
          recipient_name,
          subject,
@@ -16886,17 +16970,13 @@ async function handleEmailSlip(req, res, userId, isAdmin2) {
          status,
          priority
        )
-       VALUES ($1, $2, $3, $4, $5, 'application-submitted', $6, 'pending', 5)`, [
-      email3,
+       VALUES ($1, $2, $3, $4, NULL, 'application-slip', $5, 'pending', 5)
+       RETURNING id`, [
+      recipientEmailRaw,
       app.full_name || null,
-      `Application Slip - ${app.application_number || applicationId}`,
-      `Your application slip for ${app.application_number || applicationId}`,
-      htmlBody,
-      JSON.stringify({
-        recipientName: app.full_name || null,
-        applicationNumber: app.application_number || null,
-        programName: app.program || null
-      })
+      subject,
+      body,
+      JSON.stringify(templateData)
     ]);
     try {
       await logAuditEvent({
@@ -16904,10 +16984,17 @@ async function handleEmailSlip(req, res, userId, isAdmin2) {
         action: "application_slip_emailed",
         entity_type: "application",
         entity_id: applicationId,
-        changes: { recipient: email3.substring(0, 3) + "***" }
+        changes: {
+          recipient: recipientEmailRaw.substring(0, 3) + "***",
+          queuedId: queueResult.rows[0]?.id || null
+        }
       });
     } catch {}
-    return sendSuccess(res, { emailed: true });
+    return sendSuccess(res, {
+      emailed: true,
+      queuedId: queueResult.rows[0]?.id || null,
+      fallbackDownloadUrl
+    });
   } catch (error48) {
     return handleError(res, error48, "applications/email-slip");
   }
