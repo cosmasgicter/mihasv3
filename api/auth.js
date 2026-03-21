@@ -1137,7 +1137,8 @@ function sanitizeError(message) {
   sanitized = sanitized.replace(/(?:\/(?:home|var|usr|etc|tmp|app|opt|srv)[^\s"']*|[A-Z]:\\[^\s"']*)/gi, "[PATH]");
   sanitized = sanitized.replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, "[IP]");
   sanitized = sanitized.replace(/:\d{4,5}(?=\s|$|\/)/g, ":[PORT]");
-  sanitized = sanitized.replace(/\+?\d{1,4}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}/g, "[PHONE]");
+  sanitized = sanitized.replace(/(?<!\d)(?:\+260|0)\d{9}(?!\d)/g, "[PHONE]");
+  sanitized = sanitized.replace(/(?<!\d)\+?\d{1,3}[-.\s]?\(?\d{1,3}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}(?!\d)/g, "[PHONE]");
   sanitized = sanitized.replace(/(?:user|profile|account)\s+['"]?[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?['"]?/gi, "[USER]");
   return sanitized;
 }
@@ -1155,6 +1156,8 @@ async function logErrorAuditEvent(context, error) {
     const { logAuditEvent: logAuditEvent2 } = await Promise.resolve().then(() => (init_auditLogger(), exports_auditLogger));
     const errorCode = error instanceof AuthError ? error.code : "INTERNAL_ERROR";
     const errorType = error instanceof AuthError ? "auth_error" : error instanceof Error ? error.constructor.name : "unknown";
+    const message = error instanceof Error ? error.message : String(error);
+    const sanitizedMessage = sanitizeError(message);
     const input = {
       actor_id: null,
       action: "api_error",
@@ -1164,6 +1167,7 @@ async function logErrorAuditEvent(context, error) {
         endpoint: context,
         error_code: errorCode,
         error_type: errorType,
+        error_message: sanitizedMessage,
         timestamp: new Date().toISOString()
       }
     };
