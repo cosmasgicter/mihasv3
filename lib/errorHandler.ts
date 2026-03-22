@@ -380,7 +380,9 @@ export function sanitizeError(message: string): string {
   
   // Remove potential phone numbers (various formats) - AFTER IP addresses
   // Zambian format: +260 XXX XXXXXX
-  sanitized = sanitized.replace(/\+?\d{1,4}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}/g, '[PHONE]');
+  // Use word boundaries and stricter length to avoid matching ISO timestamps
+  sanitized = sanitized.replace(/(?<!\d)(?:\+260|0)\d{9}(?!\d)/g, '[PHONE]');
+  sanitized = sanitized.replace(/(?<!\d)\+?\d{1,3}[-.\s]?\(?\d{1,3}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}(?!\d)/g, '[PHONE]');
   
   // Remove potential names in common error patterns
   sanitized = sanitized.replace(/(?:user|profile|account)\s+['"]?[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?['"]?/gi, '[USER]');
@@ -435,6 +437,9 @@ export async function logErrorAuditEvent(context: string, error: unknown): Promi
         ? error.constructor.name
         : 'unknown';
 
+    const message = error instanceof Error ? error.message : String(error);
+    const sanitizedMessage = sanitizeError(message);
+
     const input: AuditLogInput = {
       actor_id: null,
       action: 'api_error',
@@ -444,6 +449,7 @@ export async function logErrorAuditEvent(context: string, error: unknown): Promi
         endpoint: context,
         error_code: errorCode,
         error_type: errorType,
+        error_message: sanitizedMessage,
         timestamp: new Date().toISOString(),
       },
     };
