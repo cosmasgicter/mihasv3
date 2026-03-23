@@ -16344,8 +16344,8 @@ async function handleMigrate(req, res) {
       if (errMessage.includes("already exists")) {
         try {
           const historyTableResult = await query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'migration_history' AND column_name = 'name'`);
-          const colName = historyTableResult.rowCount > 0 ? "name" : "migration_name";
-          await query(`INSERT INTO migration_history (${colName}) VALUES ($1) ON CONFLICT (${colName}) DO NOTHING`, [m.id]);
+          const colNameInCatch = historyTableResult.rowCount > 0 ? "name" : "migration_name";
+          await query(`INSERT INTO migration_history (${colNameInCatch}) VALUES ($1) ON CONFLICT (${colNameInCatch}) DO NOTHING`, [m.id]);
         } catch {}
         continue;
       }
@@ -16353,6 +16353,22 @@ async function handleMigrate(req, res) {
     }
   }
   sendSuccess(res, { migrations, errors: errors3.length > 0 ? errors3 : undefined });
+}
+async function handleGetSchema(req, res) {
+  const table = req.query.table;
+  if (!table)
+    return sendError(res, "Table name required", 400);
+  try {
+    const result = await query(`
+      SELECT column_name, data_type, is_nullable
+      FROM information_schema.columns
+      WHERE table_name = $1
+      ORDER BY ordinal_position
+    `, [table]);
+    sendSuccess(res, { table, columns: result.rows });
+  } catch (error48) {
+    handleError(res, error48, "admin/schema");
+  }
 }
 async function handleImportSettings(req, res, auth) {
   const parsed = validateBody(importSettingsBodySchema, req, res);
@@ -16683,22 +16699,6 @@ async function handleAppeals(_req, res) {
     pageSize: 50,
     totalPages: 1
   });
-}
-async function handleGetSchema(req, res) {
-  const table = req.query.table;
-  if (!table)
-    return sendError(res, "Table name required", 400);
-  try {
-    const result = await query(`
-      SELECT column_name, data_type, is_nullable
-      FROM information_schema.columns
-      WHERE table_name = $1
-      ORDER BY ordinal_position
-    `, [table]);
-    sendSuccess(res, { table, columns: result.rows });
-  } catch (error48) {
-    handleError(res, error48, "admin/schema");
-  }
 }
 export {
   admin_default as default
