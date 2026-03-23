@@ -16369,6 +16369,100 @@ async function handleGetSchema(req, res) {
   } catch (error48) {
     handleError(res, error48, "admin/schema");
   }
+    `CREATE TABLE IF NOT EXISTS migration_history (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT UNIQUE NOT NULL, executed_at TIMESTAMPTZ DEFAULT NOW())`,
+    `INSERT INTO migration_history (name) VALUES ('V2_INIT_FIXED_FINAL') ON CONFLICT DO NOTHING`,
+    `CREATE TABLE IF NOT EXISTS csrf_tokens (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID NOT NULL REFERENCES profiles(id), token_hash VARCHAR(64) NOT NULL, expires_at TIMESTAMPTZ NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id))`,
+    `CREATE TABLE IF NOT EXISTS password_reset_tokens (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID NOT NULL REFERENCES profiles(id), token_hash VARCHAR(64) NOT NULL, expires_at TIMESTAMPTZ NOT NULL, used_at TIMESTAMPTZ, created_at TIMESTAMPTZ DEFAULT NOW())`,
+    `CREATE TABLE IF NOT EXISTS login_attempts (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), email_hash VARCHAR(64) NOT NULL, ip_hash VARCHAR(64) NOT NULL, attempted_at TIMESTAMPTZ DEFAULT NOW(), success BOOLEAN NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS user_notification_preferences (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID UNIQUE NOT NULL REFERENCES profiles(id), email_enabled BOOLEAN DEFAULT TRUE, push_enabled BOOLEAN DEFAULT TRUE, sms_enabled BOOLEAN DEFAULT TRUE, application_updates BOOLEAN DEFAULT TRUE, payment_reminders BOOLEAN DEFAULT TRUE, interview_reminders BOOLEAN DEFAULT TRUE, marketing_emails BOOLEAN DEFAULT FALSE, quiet_hours_start TIME, quiet_hours_end TIME, timezone VARCHAR(50) DEFAULT 'Africa/Lusaka', created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW())`,
+    `CREATE TABLE IF NOT EXISTS subjects (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name VARCHAR(255) UNIQUE NOT NULL, code VARCHAR(50), category VARCHAR(100), is_core BOOLEAN DEFAULT FALSE, is_active BOOLEAN DEFAULT TRUE, created_at TIMESTAMPTZ DEFAULT NOW())`,
+    `CREATE TABLE IF NOT EXISTS idempotency_keys (key TEXT PRIMARY KEY, endpoint TEXT NOT NULL, response_json JSONB NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW())`,
+    `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS password_hash TEXT`,
+    `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS refresh_token_hash TEXT`,
+    `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'student'`,
+    `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS full_name TEXT`,
+    `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone TEXT`,
+    `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS country TEXT`,
+    `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS date_of_birth DATE`,
+    `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS sex TEXT`,
+    `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS residence_town TEXT`,
+    `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS nationality TEXT`,
+    `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS nrc_number TEXT`,
+    `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS address TEXT`,
+    `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT`,
+    `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS next_of_kin_name TEXT`,
+    `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS next_of_kin_phone TEXT`,
+    `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE`,
+    `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0`,
+    `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ`,
+    `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMPTZ`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS nrc_number VARCHAR(20)`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS passport_number VARCHAR(50)`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS nationality VARCHAR(100)`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS address_line_1 TEXT`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS address_line_2 TEXT`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS postal_code VARCHAR(20)`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS next_of_kin_name VARCHAR(255)`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS next_of_kin_phone VARCHAR(20)`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS result_slip_url TEXT`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS extra_kyc_url TEXT`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS application_fee NUMERIC(10,2) DEFAULT 153.00`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS payment_status VARCHAR(20) DEFAULT 'pending_review'`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS payment_verified_at TIMESTAMPTZ`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS payment_verified_by UUID REFERENCES profiles(id)`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS reviewed_by UUID REFERENCES profiles(id)`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS review_started_at TIMESTAMPTZ`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS admin_feedback TEXT`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS admin_feedback_date TIMESTAMPTZ`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS admin_feedback_by UUID REFERENCES profiles(id)`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS decision_date TIMESTAMPTZ`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS version INTEGER DEFAULT 1`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS amount NUMERIC(10,2)`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS payment_method TEXT`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS payer_name TEXT`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS payer_phone TEXT`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS momo_ref TEXT`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS pop_url TEXT`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS receipt_number TEXT`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS public_tracking_code VARCHAR(20)`,
+    `ALTER TABLE applications ADD COLUMN IF NOT EXISTS submitted_at TIMESTAMPTZ`,
+    `ALTER TABLE notifications ADD COLUMN IF NOT EXISTS action_url TEXT`,
+    `ALTER TABLE notifications ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW()`,
+    `ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS retention_category TEXT DEFAULT 'standard'`,
+    `ALTER TABLE application_interviews ADD COLUMN IF NOT EXISTS created_by UUID`,
+    `ALTER TABLE application_interviews ADD COLUMN IF NOT EXISTS updated_by UUID`,
+    `CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email)`,
+    `CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role)`,
+    `CREATE INDEX IF NOT EXISTS idx_applications_user_id ON applications(user_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at)`
+  ];
+  const migrations = [];
+  const errors3 = [];
+  for (const q of migrationQueries) {
+    try {
+      const name = q.substring(0, 100).replace(/\s+/g, " ").trim();
+      if (name.includes("CREATE TABLE IF NOT EXISTS migration_history")) {
+        await query(q);
+        continue;
+      }
+      const check2 = await query("SELECT 1 FROM migration_history WHERE name = $1", [name]);
+      if (check2.rowCount > 0)
+        continue;
+      await query(q);
+      await query("INSERT INTO migration_history (name) VALUES ($1)", [name]);
+      migrations.push(name);
+    } catch (e) {
+      const errMessage = e instanceof Error ? e.message : String(e);
+      if (errMessage.includes("already exists")) {
+        const name = q.substring(0, 100).replace(/\s+/g, " ").trim();
+        await query("INSERT INTO migration_history (name) VALUES ($1) ON CONFLICT (name) DO NOTHING", [name]);
+        continue;
+      }
+      errors3.push(`${q.substring(0, 50)}: ${errMessage}`);
+    }
+  }
+  sendSuccess(res, { migrations, errors: errors3.length > 0 ? errors3 : undefined });
 }
 async function handleImportSettings(req, res, auth) {
   const parsed = validateBody(importSettingsBodySchema, req, res);
@@ -16699,6 +16793,22 @@ async function handleAppeals(_req, res) {
     pageSize: 50,
     totalPages: 1
   });
+}
+async function handleGetSchema(req, res) {
+  const table = req.query.table;
+  if (!table)
+    return sendError(res, "Table name required", 400);
+  try {
+    const result = await query(`
+      SELECT column_name, data_type, is_nullable
+      FROM information_schema.columns
+      WHERE table_name = $1
+      ORDER BY ordinal_position
+    `, [table]);
+    sendSuccess(res, { table, columns: result.rows });
+  } catch (error48) {
+    handleError(res, error48, "admin/schema");
+  }
 }
 export {
   admin_default as default

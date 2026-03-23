@@ -1602,6 +1602,16 @@ async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<v
     return;
   }
 
+async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<void> {
+  const MIGRATE_SECRET = process.env.MIGRATE_SECRET;
+  const { secret } = req.body || {};
+
+  // Allow migration if secret matches OR if user is super_admin (already verified by requireRole)
+  if (MIGRATE_SECRET && secret !== MIGRATE_SECRET) {
+    sendError(res, 'Invalid migration secret', HttpStatus.UNAUTHORIZED);
+    return;
+  }
+
   const migrationQueries = [
     // 1. Core History Table
     { id: 'V2_001_MIGRATION_HISTORY', sql: `CREATE TABLE IF NOT EXISTS migration_history (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT UNIQUE NOT NULL, executed_at TIMESTAMPTZ DEFAULT NOW())` },
@@ -1692,47 +1702,20 @@ async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<v
       // Special check for migration_history table creation
       if (m.id === 'V2_001_MIGRATION_HISTORY') {
         await query(m.sql);
-        // Ensure column 'name' exists if it was created with 'migration_name'
-        try {
-          await query(`ALTER TABLE migration_history RENAME COLUMN migration_name TO name`);
-        } catch { /* ignore if already named 'name' or doesn't exist yet */ }
-        try {
-          await query(`ALTER TABLE migration_history RENAME COLUMN applied_at TO executed_at`);
-        } catch { /* ignore */ }
         continue;
       }
 
-      // Handle both schema versions of migration_history dynamically
-      let colName = 'name';
-      try {
-        const historyCols = await query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'migration_history' AND column_name = 'name'`);
-        if (historyCols.rowCount === 0) {
-          colName = 'migration_name';
-        }
-      } catch {
-        colName = 'migration_name';
-      }
-
-      const check = await query(`SELECT 1 FROM migration_history WHERE ${colName} = $1`, [m.id]);
+      const check = await query('SELECT 1 FROM migration_history WHERE name = $1', [m.id]);
       if (check.rowCount > 0) continue;
 
       await query(m.sql);
-
-      // Record in history
-      try {
-        await query(`INSERT INTO migration_history (${colName}) VALUES ($1) ON CONFLICT (${colName}) DO NOTHING`, [m.id]);
-      } catch { /* ignore if history insert fails */ }
-
+      await query('INSERT INTO migration_history (name) VALUES ($1)', [m.id]);
       migrations.push(m.id);
     } catch (e) {
       const errMessage = e instanceof Error ? e.message : String(e);
       // If column/table already exists, we can consider it "migrated"
       if (errMessage.includes('already exists')) {
-        try {
-          const historyTableResult = await query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'migration_history' AND column_name = 'name'`);
-          const colNameInCatch = historyTableResult.rowCount > 0 ? 'name' : 'migration_name';
-          await query(`INSERT INTO migration_history (${colNameInCatch}) VALUES ($1) ON CONFLICT (${colNameInCatch}) DO NOTHING`, [m.id]);
-        } catch { /* ignore */ }
+        await query('INSERT INTO migration_history (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [m.id]);
         continue;
       }
       errors.push(`${m.id}: ${errMessage}`);
@@ -1742,15 +1725,20 @@ async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<v
   sendSuccess(res, { migrations, errors: errors.length > 0 ? errors : undefined });
 }
 
-async function handleAppeals(_req: VercelRequest, res: VercelResponse): Promise<void> {
-  // eligibility_appeals table does not exist — return empty results
-  sendSuccess(res, {
-    appeals: [],
-    totalCount: 0,
-    page: 1,
-    pageSize: 50,
-    totalPages: 1,
-  });
+async function handleGetSchema(req: VercelRequest, res: VercelResponse): Promise<void> {
+  const table = req.query.table as string;
+  if (!table) return sendError(res, 'Table name required', 400);
+  try {
+    const result = await query(`
+      SELECT column_name, data_type, is_nullable
+      FROM information_schema.columns
+      WHERE table_name = $1
+      ORDER BY ordinal_position
+    `, [table]);
+    sendSuccess(res, { table, columns: result.rows });
+  } catch (error) {
+    handleError(res, error, 'admin/schema');
+  }
 }
 
 async function handleGetSchema(req: VercelRequest, res: VercelResponse): Promise<void> {
@@ -2233,4 +2221,20 @@ async function handleAppeals(_req: VercelRequest, res: VercelResponse): Promise<
     pageSize: 50,
     totalPages: 1,
   });
+}
+
+async function handleGetSchema(req: VercelRequest, res: VercelResponse): Promise<void> {
+  const table = req.query.table as string;
+  if (!table) return sendError(res, 'Table name required', 400);
+  try {
+    const result = await query(`
+      SELECT column_name, data_type, is_nullable
+      FROM information_schema.columns
+      WHERE table_name = $1
+      ORDER BY ordinal_position
+    `, [table]);
+    sendSuccess(res, { table, columns: result.rows });
+  } catch (error) {
+    handleError(res, error, 'admin/schema');
+  }
 }
