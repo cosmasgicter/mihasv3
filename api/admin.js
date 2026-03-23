@@ -16241,6 +16241,134 @@ async function handleMigrate(req, res) {
     return;
   }
   const migrationQueries = [
+    { id: "V2_001_MIGRATION_HISTORY", sql: `CREATE TABLE IF NOT EXISTS migration_history (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT UNIQUE NOT NULL, executed_at TIMESTAMPTZ DEFAULT NOW())` },
+    { id: "V2_002_CSRF_TOKENS", sql: `CREATE TABLE IF NOT EXISTS csrf_tokens (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID NOT NULL REFERENCES profiles(id), token_hash VARCHAR(64) NOT NULL, expires_at TIMESTAMPTZ NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id))` },
+    { id: "V2_003_PWD_RESET_TOKENS", sql: `CREATE TABLE IF NOT EXISTS password_reset_tokens (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID NOT NULL REFERENCES profiles(id), token_hash VARCHAR(64) NOT NULL, expires_at TIMESTAMPTZ NOT NULL, used_at TIMESTAMPTZ, created_at TIMESTAMPTZ DEFAULT NOW())` },
+    { id: "V2_004_LOGIN_ATTEMPTS", sql: `CREATE TABLE IF NOT EXISTS login_attempts (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), email_hash VARCHAR(64) NOT NULL, ip_hash VARCHAR(64) NOT NULL, attempted_at TIMESTAMPTZ DEFAULT NOW(), success BOOLEAN NOT NULL)` },
+    { id: "V2_005_NOTIF_PREFS", sql: `CREATE TABLE IF NOT EXISTS user_notification_preferences (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID UNIQUE NOT NULL REFERENCES profiles(id), email_enabled BOOLEAN DEFAULT TRUE, push_enabled BOOLEAN DEFAULT TRUE, sms_enabled BOOLEAN DEFAULT TRUE, application_updates BOOLEAN DEFAULT TRUE, payment_reminders BOOLEAN DEFAULT TRUE, interview_reminders BOOLEAN DEFAULT TRUE, marketing_emails BOOLEAN DEFAULT FALSE, quiet_hours_start TIME, quiet_hours_end TIME, timezone VARCHAR(50) DEFAULT 'Africa/Lusaka', created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW())` },
+    { id: "V2_006_SUBJECTS", sql: `CREATE TABLE IF NOT EXISTS subjects (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name VARCHAR(255) UNIQUE NOT NULL, code VARCHAR(50), category VARCHAR(100), is_core BOOLEAN DEFAULT FALSE, is_active BOOLEAN DEFAULT TRUE, created_at TIMESTAMPTZ DEFAULT NOW())` },
+    { id: "V2_007_IDEMPOTENCY", sql: `CREATE TABLE IF NOT EXISTS idempotency_keys (key TEXT PRIMARY KEY, endpoint TEXT NOT NULL, response_json JSONB NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW())` },
+    { id: "V2_008_PROF_PWD_HASH", sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS password_hash TEXT` },
+    { id: "V2_009_PROF_REFRESH", sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS refresh_token_hash TEXT` },
+    { id: "V2_010_PROF_ROLE", sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'student'` },
+    { id: "V2_011_PROF_FULL_NAME", sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS full_name TEXT` },
+    { id: "V2_012_PROF_PHONE", sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone TEXT` },
+    { id: "V2_013_PROF_COUNTRY", sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS country TEXT` },
+    { id: "V2_014_PROF_DOB", sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS date_of_birth DATE` },
+    { id: "V2_015_PROF_SEX", sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS sex TEXT` },
+    { id: "V2_016_PROF_TOWN", sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS residence_town TEXT` },
+    { id: "V2_017_PROF_NAT", sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS nationality TEXT` },
+    { id: "V2_018_PROF_NRC", sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS nrc_number TEXT` },
+    { id: "V2_019_PROF_ADDR", sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS address TEXT` },
+    { id: "V2_020_PROF_AVATAR", sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT` },
+    { id: "V2_021_PROF_NOK_NAME", sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS next_of_kin_name TEXT` },
+    { id: "V2_022_PROF_NOK_PHONE", sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS next_of_kin_phone TEXT` },
+    { id: "V2_023_PROF_VERIFIED", sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE` },
+    { id: "V2_024_PROF_FAILED_ATT", sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0` },
+    { id: "V2_025_PROF_LOCKED", sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ` },
+    { id: "V2_026_PROF_PWD_CHG", sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMPTZ` },
+    { id: "V2_027_APP_NRC", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS nrc_number VARCHAR(20)` },
+    { id: "V2_028_APP_PASSPORT", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS passport_number VARCHAR(50)` },
+    { id: "V2_029_APP_NAT", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS nationality VARCHAR(100)` },
+    { id: "V2_030_APP_ADDR1", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS address_line_1 TEXT` },
+    { id: "V2_031_APP_ADDR2", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS address_line_2 TEXT` },
+    { id: "V2_032_APP_POSTAL", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS postal_code VARCHAR(20)` },
+    { id: "V2_033_APP_NOK_NAME", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS next_of_kin_name VARCHAR(255)` },
+    { id: "V2_034_APP_NOK_PHONE", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS next_of_kin_phone VARCHAR(20)` },
+    { id: "V2_035_APP_RESULT_URL", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS result_slip_url TEXT` },
+    { id: "V2_036_APP_KYC_URL", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS extra_kyc_url TEXT` },
+    { id: "V2_037_APP_FEE", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS application_fee NUMERIC(10,2) DEFAULT 153.00` },
+    { id: "V2_038_APP_PAY_STAT", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS payment_status VARCHAR(20) DEFAULT 'pending_review'` },
+    { id: "V2_039_APP_PAY_VER_AT", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS payment_verified_at TIMESTAMPTZ` },
+    { id: "V2_040_APP_PAY_VER_BY", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS payment_verified_by UUID REFERENCES profiles(id)` },
+    { id: "V2_041_APP_REV_BY", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS reviewed_by UUID REFERENCES profiles(id)` },
+    { id: "V2_042_APP_REV_START", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS review_started_at TIMESTAMPTZ` },
+    { id: "V2_043_APP_FEEDBACK", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS admin_feedback TEXT` },
+    { id: "V2_044_APP_FEEDBACK_DT", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS admin_feedback_date TIMESTAMPTZ` },
+    { id: "V2_045_APP_FEEDBACK_BY", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS admin_feedback_by UUID REFERENCES profiles(id)` },
+    { id: "V2_046_APP_DECISION_DT", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS decision_date TIMESTAMPTZ` },
+    { id: "V2_047_APP_VERSION", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS version INTEGER DEFAULT 1` },
+    { id: "V2_048_APP_AMOUNT", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS amount NUMERIC(10,2)` },
+    { id: "V2_049_APP_PAY_METHOD", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS payment_method TEXT` },
+    { id: "V2_050_APP_PAYER_NAME", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS payer_name TEXT` },
+    { id: "V2_051_APP_PAYER_PHONE", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS payer_phone TEXT` },
+    { id: "V2_052_APP_PAID_AT", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ` },
+    { id: "V2_053_APP_MOMO_REF", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS momo_ref TEXT` },
+    { id: "V2_054_APP_POP_URL", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS pop_url TEXT` },
+    { id: "V2_055_APP_RECEIPT", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS receipt_number TEXT` },
+    { id: "V2_056_APP_TRACK_CODE", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS public_tracking_code VARCHAR(20)` },
+    { id: "V2_057_APP_SUB_AT", sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS submitted_at TIMESTAMPTZ` },
+    { id: "V2_058_NOTIF_ACTION_URL", sql: `ALTER TABLE notifications ADD COLUMN IF NOT EXISTS action_url TEXT` },
+    { id: "V2_059_NOTIF_UP_AT", sql: `ALTER TABLE notifications ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW()` },
+    { id: "V2_060_AUDIT_RET_CAT", sql: `ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS retention_category TEXT DEFAULT 'standard'` },
+    { id: "V2_061_INTV_BY_CREATED", sql: `ALTER TABLE application_interviews ADD COLUMN IF NOT EXISTS created_by UUID` },
+    { id: "V2_062_INTV_BY_UPDATED", sql: `ALTER TABLE application_interviews ADD COLUMN IF NOT EXISTS updated_by UUID` },
+    { id: "V2_063_IDX_PROF_EMAIL", sql: `CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email)` },
+    { id: "V2_064_IDX_PROF_ROLE", sql: `CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role)` },
+    { id: "V2_065_IDX_APP_USER", sql: `CREATE INDEX IF NOT EXISTS idx_applications_user_id ON applications(user_id)` },
+    { id: "V2_066_IDX_AUDIT_CR_AT", sql: `CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at)` }
+  ];
+  const migrations = [];
+  const errors3 = [];
+  for (const m of migrationQueries) {
+    try {
+      if (m.id === "V2_001_MIGRATION_HISTORY") {
+        await query(m.sql);
+        try {
+          await query(`ALTER TABLE migration_history RENAME COLUMN migration_name TO name`);
+        } catch {}
+        try {
+          await query(`ALTER TABLE migration_history RENAME COLUMN applied_at TO executed_at`);
+        } catch {}
+        continue;
+      }
+      let colName = "name";
+      try {
+        const historyCols = await query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'migration_history' AND column_name = 'name'`);
+        if (historyCols.rowCount === 0) {
+          colName = "migration_name";
+        }
+      } catch {
+        colName = "migration_name";
+      }
+      const check2 = await query(`SELECT 1 FROM migration_history WHERE ${colName} = $1`, [m.id]);
+      if (check2.rowCount > 0)
+        continue;
+      await query(m.sql);
+      try {
+        await query(`INSERT INTO migration_history (${colName}) VALUES ($1) ON CONFLICT (${colName}) DO NOTHING`, [m.id]);
+      } catch {}
+      migrations.push(m.id);
+    } catch (e) {
+      const errMessage = e instanceof Error ? e.message : String(e);
+      if (errMessage.includes("already exists")) {
+        try {
+          const historyTableResult = await query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'migration_history' AND column_name = 'name'`);
+          const colNameInCatch = historyTableResult.rowCount > 0 ? "name" : "migration_name";
+          await query(`INSERT INTO migration_history (${colNameInCatch}) VALUES ($1) ON CONFLICT (${colNameInCatch}) DO NOTHING`, [m.id]);
+        } catch {}
+        continue;
+      }
+      errors3.push(`${m.id}: ${errMessage}`);
+    }
+  }
+  sendSuccess(res, { migrations, errors: errors3.length > 0 ? errors3 : undefined });
+}
+async function handleGetSchema(req, res) {
+  const table = req.query.table;
+  if (!table)
+    return sendError(res, "Table name required", 400);
+  try {
+    const result = await query(`
+      SELECT column_name, data_type, is_nullable
+      FROM information_schema.columns
+      WHERE table_name = $1
+      ORDER BY ordinal_position
+    `, [table]);
+    sendSuccess(res, { table, columns: result.rows });
+  } catch (error48) {
+    handleError(res, error48, "admin/schema");
+  }
     `CREATE TABLE IF NOT EXISTS migration_history (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT UNIQUE NOT NULL, executed_at TIMESTAMPTZ DEFAULT NOW())`,
     `INSERT INTO migration_history (name) VALUES ('V2_INIT_FIXED_FINAL') ON CONFLICT DO NOTHING`,
     `CREATE TABLE IF NOT EXISTS csrf_tokens (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID NOT NULL REFERENCES profiles(id), token_hash VARCHAR(64) NOT NULL, expires_at TIMESTAMPTZ NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id))`,
