@@ -1741,6 +1741,22 @@ async function handleGetSchema(req: VercelRequest, res: VercelResponse): Promise
   }
 }
 
+async function handleGetSchema(req: VercelRequest, res: VercelResponse): Promise<void> {
+  const table = req.query.table as string;
+  if (!table) return sendError(res, 'Table name required', 400);
+  try {
+    const result = await query(`
+      SELECT column_name, data_type, is_nullable
+      FROM information_schema.columns
+      WHERE table_name = $1
+      ORDER BY ordinal_position
+    `, [table]);
+    sendSuccess(res, { table, columns: result.rows });
+  } catch (error) {
+    handleError(res, error, 'admin/schema');
+  }
+}
+
 
 /**
  * Import settings from JSON
