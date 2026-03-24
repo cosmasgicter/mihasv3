@@ -34,7 +34,7 @@ const EXTERNALS = [
   'bcryptjs',               // Password hashing (pure JS)
   'web-push',               // Push notifications
   'resend',                 // Email service
-  'pdf-lib',                // PDF generation dependency resolved by Vercel install
+  'pdf-lib', 'zod',                // PDF generation dependency resolved by Vercel install
 ];
 
 console.log('═══════════════════════════════════════════════════════════');

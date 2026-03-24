@@ -99,7 +99,7 @@ export function useDocumentGeneration() {
     setError(null);
 
     try {
-      logger.log('[useDocumentGeneration] Starting generation for type:', type);
+      logger.info('[useDocumentGeneration] Starting generation for type:', type);
 
       // Fetch application data using cookie auth
       const endpoint = `${getApiBaseUrl()}/api/applications?id=${applicationId}`;
@@ -120,14 +120,14 @@ export function useDocumentGeneration() {
 
       const envelope = await response.json();
       const application = extractApplicationFromEnvelope(envelope, endpoint);
-      logger.log('[useDocumentGeneration] Application data:', application);
+      logger.info('[useDocumentGeneration] Application data:', application);
 
       let pdfBlob: Blob;
       let filename: string;
 
       switch (type) {
         case 'slip':
-          logger.log('[useDocumentGeneration] Generating slip PDF...');
+          logger.info('[useDocumentGeneration] Generating slip PDF...');
           pdfBlob = await generateApplicationSlip({
             public_tracking_code: application.public_tracking_code ?? '',
             application_number: application.application_number ?? '',
@@ -142,7 +142,7 @@ export function useDocumentGeneration() {
             email: application.email ?? '',
             phone: application.phone ?? null,
           });
-          logger.log('[useDocumentGeneration] Slip PDF generated successfully');
+          logger.info('[useDocumentGeneration] Slip PDF generated successfully');
           filename = `application_slip_${application.application_number}.pdf`;
           break;
 
