@@ -774,6 +774,9 @@ async function handler(req, res) {
     if (action === "env") {
       return handleEnvCheck(res);
     }
+    if (action === "errors") {
+      return handleErrorsCheck(res);
+    }
     const envResult = validateServerEnv();
     if (!envResult.valid) {
       const details = envResult.errors.map((e) => e.message).join("; ");
@@ -815,18 +818,32 @@ async function handleDatabaseHealth(res) {
         error: error instanceof Error ? error.message : "Unknown error"
       };
     }
-    try {
-      const tableStart = Date.now();
-      await sql`SELECT COUNT(*) FROM profiles LIMIT 1`;
-      checks.profiles_table = {
-        status: "ok",
-        latency: Date.now() - tableStart
-      };
-    } catch (error) {
-      checks.profiles_table = {
-        status: "error",
-        error: error instanceof Error ? error.message : "Unknown error"
-      };
+    const tables = ["profiles", "device_sessions", "audit_logs", "settings", "applications", "migration_history"];
+    for (const table of tables) {
+      try {
+        const tableStart = Date.now();
+        const result = await sql.query(`SELECT COUNT(*) as count FROM ${table} LIMIT 1`);
+        let columns = undefined;
+        if (table === "profiles") {
+          const colResult = await sql.query(`
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name = 'profiles'
+          `);
+          columns = colResult.map((r) => r.column_name);
+        }
+        checks[`table_${table}`] = {
+          status: "ok",
+          count: result[0]?.count,
+          latency: Date.now() - tableStart,
+          columns
+        };
+      } catch (error) {
+        checks[`table_${table}`] = {
+          status: "error",
+          error: error instanceof Error ? error.message : "Unknown error"
+        };
+      }
     }
     const totalLatency = Date.now() - startTime;
     const allOk = Object.values(checks).every((c) => c.status === "ok");
@@ -875,6 +892,27 @@ function handleEnvCheck(res) {
     envStatus,
     timestamp: new Date().toISOString()
   });
+}
+async function handleErrorsCheck(res) {
+  try {
+    const { neon } = await import("@neondatabase/serverless");
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+      sendError(res, "DATABASE_URL not configured", HttpStatus.SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE");
+      return;
+    }
+    const sql = neon(connectionString);
+    const logs = await sql`
+      SELECT action, changes, created_at
+      FROM audit_logs
+      WHERE action = 'api_error'
+      ORDER BY created_at DESC
+      LIMIT 10
+    `;
+    sendSuccess(res, { logs });
+  } catch (error) {
+    sendError(res, "Failed to fetch errors: " + (error instanceof Error ? error.message : String(error)), HttpStatus.INTERNAL_SERVER_ERROR);
+  }
 }
 export {
   handler as default

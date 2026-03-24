@@ -252,7 +252,7 @@ async function ensureTrackedSession(
  * Record a login attempt (success or failure) in the login_attempts table.
  * Never throws — failures are logged but do not block the login flow.
  */
-async function recordLoginAttempt(emailHash: string, ipHash: string, success: boolean): Promise<void> {
+async function recordLoginAttempt(emailHash: string, ipHash: string, success: boolean): Promise<VercelResponse | void> {
   try {
     await query(
       `INSERT INTO login_attempts (email_hash, ip_hash, attempted_at, success)
@@ -346,7 +346,7 @@ async function checkAccountLockout(emailHash: string): Promise<{ locked: boolean
  * Send account lockout notification email via Resend.
  * Non-blocking — failures are logged but never thrown.
  */
-async function sendLockoutNotificationEmail(email: string, fullName: string): Promise<void> {
+async function sendLockoutNotificationEmail(email: string, fullName: string): Promise<VercelResponse | void> {
   if (!process.env.RESEND_API_KEY) {
     console.warn('[AUTH] RESEND_API_KEY not configured, cannot send lockout notification');
     return;
@@ -775,7 +775,7 @@ async function checkRegistrationRateLimit(ipHash: string): Promise<{ blocked: bo
 /**
  * Record a registration attempt for IP-based rate limiting.
  */
-async function recordRegistrationAttempt(ipHash: string): Promise<void> {
+async function recordRegistrationAttempt(ipHash: string): Promise<VercelResponse | void> {
   try {
     await query(
       `INSERT INTO login_attempts (email_hash, ip_hash, attempted_at, success)
