@@ -92,7 +92,7 @@ async function checkIdempotencyKey(userId: string, key: string, endpoint: string
  * Store an idempotency key with its response for future deduplication.
  * Also cleans up expired keys older than 24 hours.
  */
-async function storeIdempotencyKey(userId: string, key: string, endpoint: string, responseData: unknown): Promise<void> {
+async function storeIdempotencyKey(userId: string, key: string, endpoint: string, responseData: unknown): Promise<VercelResponse | void> {
   if (!key) return;
   const scopedKey = scopeIdempotencyKey(userId, endpoint, key);
   try {
