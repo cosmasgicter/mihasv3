@@ -140,8 +140,8 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
         throw new Error('No valid fields to update')
       }
 
-      logger.log('Attempting to update profile for user:', user.id)
-      logger.log('Sanitized updates:', sanitizedUpdates)
+      logger.info('Attempting to update profile for user:', user.id)
+      logger.info('Sanitized updates:', sanitizedUpdates)
 
       const result = await apiClient.request<UserProfile>('/api/auth?action=profile', {
         method: 'PATCH',
@@ -154,7 +154,7 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
         throw new Error('Profile update returned no data. The profile may not exist.')
       }
 
-      logger.log('Profile updated successfully:', data)
+      logger.info('Profile updated successfully:', data)
       return data as UserProfile
     },
     onSuccess: async (data) => {

@@ -102,7 +102,7 @@ function samePermissions(left: string[], right: string[]): boolean {
 /**
  * Main handler - wrapped with Arcjet protection
  */
-async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   if (handleCors(req, res)) return;
 
   // Validate required environment variables (Req 25.3)
@@ -125,6 +125,16 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   const action = req.query.action as string || 'dashboard';
 
   try {
+    // Special case for migration: allow if secret matches even if DB is broken
+    if (action === 'migrate') {
+      const MIGRATE_SECRET = process.env.MIGRATE_SECRET;
+      const { secret } = req.body || {};
+      if (MIGRATE_SECRET && secret === MIGRATE_SECRET) {
+        await handleMigrate(req, res);
+        return;
+      }
+    }
+
     // Require admin or super_admin role for all actions
     // Requirement: 8.6 - Require admin role for all actions
     const auth = await requireRole(req, ['admin', 'super_admin']);
@@ -306,7 +316,7 @@ export default withArcjetProtection(handler, 'admin');
 /**
  * Handle settings CRUD operations
  */
-async function handleSettings(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+async function handleSettings(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<VercelResponse | void> {
   const method = req.method;
 
   switch (method) {
@@ -332,7 +342,7 @@ async function handleSettings(req: VercelRequest, res: VercelResponse, auth: Aut
  * GET - List all system settings
  * MIGRATED: Using direct SQL instead of legacy admin SDK
  */
-async function handleGetSettings(res: VercelResponse): Promise<void> {
+async function handleGetSettings(res: VercelResponse): Promise<VercelResponse | void> {
   try {
     const result = await query<SystemSetting>(
       'SELECT * FROM settings ORDER BY key ASC'
@@ -347,7 +357,7 @@ async function handleGetSettings(res: VercelResponse): Promise<void> {
  * POST - Create a new system setting
  * MIGRATED: Using direct SQL instead of legacy admin SDK
  */
-async function handleCreateSetting(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+async function handleCreateSetting(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<VercelResponse | void> {
   const parsed = validateBody(createSettingBodySchema, req, res);
   if (!parsed) return;
 
@@ -388,7 +398,7 @@ async function handleCreateSetting(req: VercelRequest, res: VercelResponse, auth
  * PUT - Update an existing system setting
  * MIGRATED: Using direct SQL instead of legacy admin SDK
  */
-async function handleUpdateSetting(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+async function handleUpdateSetting(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<VercelResponse | void> {
   const body = req.body as Partial<SystemSetting> & { id?: string };
 
   if (!body.id && !body.key) {
@@ -453,7 +463,7 @@ async function handleUpdateSetting(req: VercelRequest, res: VercelResponse, auth
  * DELETE - Delete a system setting
  * MIGRATED: Using direct SQL instead of legacy admin SDK
  */
-async function handleDeleteSetting(req: VercelRequest, res: VercelResponse): Promise<void> {
+async function handleDeleteSetting(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   const body = req.body as { id?: string; key?: string };
   const queryId = req.query.id as string;
   const queryKey = req.query.key as string;
@@ -489,7 +499,7 @@ async function handleDeleteSetting(req: VercelRequest, res: VercelResponse): Pro
  * Dashboard stats handler
  * MIGRATED: Using direct SQL instead of legacy admin SDK
  */
-async function handleDashboard(res: VercelResponse): Promise<void> {
+async function handleDashboard(res: VercelResponse): Promise<VercelResponse | void> {
   try {
     const now = new Date();
     const today = now.toISOString().split('T')[0];
@@ -590,7 +600,7 @@ async function handleDashboard(res: VercelResponse): Promise<void> {
  *   - role (filter by role)
  *   - search (filter by name or email, case-insensitive)
  */
-async function handleUsers(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+async function handleUsers(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<VercelResponse | void> {
   if (req.method === 'PUT' || req.method === 'POST') {
     await handleUpdateUser(req, res, auth);
     return;
@@ -671,7 +681,7 @@ async function handleUsers(req: VercelRequest, res: VercelResponse, auth: AuthCo
   }
 }
 
-async function handleBulkEmail(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+async function handleBulkEmail(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<VercelResponse | void> {
   const parsed = validateBody(bulkEmailBodySchema, req, res);
   if (!parsed) return;
 
@@ -766,7 +776,7 @@ async function handleBulkEmail(req: VercelRequest, res: VercelResponse, auth: Au
   }
 }
 
-async function handleBulkStatus(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+async function handleBulkStatus(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<VercelResponse | void> {
   const parsed = validateBody(bulkStatusBodySchema, req, res);
   if (!parsed) return;
 
@@ -849,7 +859,7 @@ async function handleBulkStatus(req: VercelRequest, res: VercelResponse, auth: A
   sendSuccess(res, { success, failed, errors });
 }
 
-async function handleExportUsers(res: VercelResponse, auth: AuthContext): Promise<void> {
+async function handleExportUsers(res: VercelResponse, auth: AuthContext): Promise<VercelResponse | void> {
   try {
     const result = await query<{
       id: string;
@@ -901,7 +911,7 @@ async function handleExportUsers(res: VercelResponse, auth: AuthContext): Promis
   }
 }
 
-async function handleDeactivateUser(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+async function handleDeactivateUser(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<VercelResponse | void> {
   const userId = (req.query.userId as string | undefined)?.trim();
 
   if (!userId) {
@@ -1010,7 +1020,7 @@ async function handleDeactivateUser(req: VercelRequest, res: VercelResponse, aut
   }
 }
 
-async function handleUserPermissions(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+async function handleUserPermissions(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<VercelResponse | void> {
   if (req.method === 'PUT') {
     const parsed = validateBody(userPermissionsBodySchema, req, res);
     if (!parsed || !Array.isArray(parsed.permissions)) {
@@ -1141,7 +1151,7 @@ async function handleUserPermissions(req: VercelRequest, res: VercelResponse, au
   }
 }
 
-async function handleUpdateUser(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+async function handleUpdateUser(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<VercelResponse | void> {
   const parsed = validateBody(updateUserBodySchema, req, res);
   if (!parsed) return;
 
@@ -1245,7 +1255,7 @@ async function handleUpdateUser(req: VercelRequest, res: VercelResponse, auth: A
  * MIGRATED: Using direct SQL instead of legacy admin SDK
  * Requirement: 8.6 - Admin can register new users
  */
-async function handleRegisterUser(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+async function handleRegisterUser(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<VercelResponse | void> {
   const parsed = validateBody(adminRegisterBodySchema, req, res);
   if (!parsed) return;
 
@@ -1339,7 +1349,7 @@ async function handleRegisterUser(req: VercelRequest, res: VercelResponse, auth:
  * 
  * GET /api/admin?action=stats
  */
-async function handleDashboardStats(res: VercelResponse): Promise<void> {
+async function handleDashboardStats(res: VercelResponse): Promise<VercelResponse | void> {
   try {
     const now = new Date();
     const todayStart = new Date(now);
@@ -1440,7 +1450,7 @@ async function handleDashboardStats(res: VercelResponse): Promise<void> {
  * 
  * GET /api/admin?action=errors
  */
-async function handleErrorStatistics(res: VercelResponse): Promise<void> {
+async function handleErrorStatistics(res: VercelResponse): Promise<VercelResponse | void> {
   try {
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -1513,7 +1523,7 @@ async function handleErrorStatistics(res: VercelResponse): Promise<void> {
  * 
  * Requirement: Only super_admin can set passwords for other users
  */
-async function handleSetPassword(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+async function handleSetPassword(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<VercelResponse | void> {
   // Only super_admin can set passwords for other users
   if (auth.role !== 'super_admin') {
     sendError(res, 'Only super_admin can set passwords for other users', HttpStatus.FORBIDDEN);
@@ -1592,17 +1602,7 @@ async function handleSetPassword(req: VercelRequest, res: VercelResponse, auth: 
  * 
  * Note: Requires MIGRATE_SECRET env var OR super_admin role
  */
-async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<void> {
-  const MIGRATE_SECRET = process.env.MIGRATE_SECRET;
-  const { secret } = req.body || {};
-
-  // Allow migration if secret matches OR if user is super_admin (already verified by requireRole)
-  if (MIGRATE_SECRET && secret !== MIGRATE_SECRET) {
-    sendError(res, 'Invalid migration secret', HttpStatus.UNAUTHORIZED);
-    return;
-  }
-
-async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<void> {
+async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   const MIGRATE_SECRET = process.env.MIGRATE_SECRET;
   const { secret } = req.body || {};
 
@@ -1630,6 +1630,8 @@ async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<v
     { id: 'V2_008_PROF_PWD_HASH', sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS password_hash TEXT` },
     { id: 'V2_009_PROF_REFRESH', sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS refresh_token_hash TEXT` },
     { id: 'V2_010_PROF_ROLE', sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'student'` },
+    { id: 'V2_010b_PROF_FNAME', sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS first_name TEXT` },
+    { id: 'V2_010c_PROF_LNAME', sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS last_name TEXT` },
     { id: 'V2_011_PROF_FULL_NAME', sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS full_name TEXT` },
     { id: 'V2_012_PROF_PHONE', sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone TEXT` },
     { id: 'V2_013_PROF_COUNTRY', sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS country TEXT` },
@@ -1646,9 +1648,18 @@ async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<v
     { id: 'V2_024_PROF_FAILED_ATT', sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0` },
     { id: 'V2_025_PROF_LOCKED', sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ` },
     { id: 'V2_026_PROF_PWD_CHG', sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMPTZ` },
+    { id: 'V2_026b_PROF_LAST_LOGIN', sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ` },
+    { id: 'V2_026c_PROF_CREATED', sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW()` },
+    { id: 'V2_026d_PROF_UPDATED', sql: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW()` },
 
     // 5. Applications Hardening
     { id: 'V2_027_APP_NRC', sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS nrc_number VARCHAR(20)` },
+    { id: 'V2_027b_APP_DOB', sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS date_of_birth DATE` },
+    { id: 'V2_027c_APP_SEX', sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS sex VARCHAR(20)` },
+    { id: 'V2_027d_APP_PHONE', sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS phone VARCHAR(20)` },
+    { id: 'V2_027e_APP_EMAIL', sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS email VARCHAR(255)` },
+    { id: 'V2_027f_APP_TOWN', sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS residence_town TEXT` },
+    { id: 'V2_027g_APP_FNAME', sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS full_name TEXT` },
     { id: 'V2_028_APP_PASSPORT', sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS passport_number VARCHAR(50)` },
     { id: 'V2_029_APP_NAT', sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS nationality VARCHAR(100)` },
     { id: 'V2_030_APP_ADDR1', sql: `ALTER TABLE applications ADD COLUMN IF NOT EXISTS address_line_1 TEXT` },
@@ -1725,38 +1736,6 @@ async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<v
   sendSuccess(res, { migrations, errors: errors.length > 0 ? errors : undefined });
 }
 
-async function handleGetSchema(req: VercelRequest, res: VercelResponse): Promise<void> {
-  const table = req.query.table as string;
-  if (!table) return sendError(res, 'Table name required', 400);
-  try {
-    const result = await query(`
-      SELECT column_name, data_type, is_nullable
-      FROM information_schema.columns
-      WHERE table_name = $1
-      ORDER BY ordinal_position
-    `, [table]);
-    sendSuccess(res, { table, columns: result.rows });
-  } catch (error) {
-    handleError(res, error, 'admin/schema');
-  }
-}
-
-async function handleGetSchema(req: VercelRequest, res: VercelResponse): Promise<void> {
-  const table = req.query.table as string;
-  if (!table) return sendError(res, 'Table name required', 400);
-  try {
-    const result = await query(`
-      SELECT column_name, data_type, is_nullable
-      FROM information_schema.columns
-      WHERE table_name = $1
-      ORDER BY ordinal_position
-    `, [table]);
-    sendSuccess(res, { table, columns: result.rows });
-  } catch (error) {
-    handleError(res, error, 'admin/schema');
-  }
-}
-
 
 /**
  * Import settings from JSON
@@ -1767,7 +1746,7 @@ async function handleGetSchema(req: VercelRequest, res: VercelResponse): Promise
  * 
  * Upserts settings by setting_key (creates or updates)
  */
-async function handleImportSettings(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+async function handleImportSettings(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<VercelResponse | void> {
   const parsed = validateBody(importSettingsBodySchema, req, res);
   if (!parsed) return;
 
@@ -1846,7 +1825,7 @@ async function handleImportSettings(req: VercelRequest, res: VercelResponse, aut
  * 
  * Deletes all existing settings and inserts default values
  */
-async function handleResetSettings(res: VercelResponse, auth: AuthContext): Promise<void> {
+async function handleResetSettings(res: VercelResponse, auth: AuthContext): Promise<VercelResponse | void> {
   try {
     // Default settings to insert after clearing
     const defaultSettings = [
@@ -1961,7 +1940,7 @@ interface EligibilityRule {
  * Handle eligibility rules CRUD operations
  * NOTE: eligibility_rules table does not exist in DB â€” returns graceful responses
  */
-async function handleEligibilityRules(req: VercelRequest, res: VercelResponse, _auth: AuthContext): Promise<void> {
+async function handleEligibilityRules(req: VercelRequest, res: VercelResponse, _auth: AuthContext): Promise<VercelResponse | void> {
   if (req.method === 'GET') {
     sendSuccess(res, { rules: [], message: 'Eligibility rules feature not yet configured' });
     return;
@@ -1974,7 +1953,7 @@ async function handleEligibilityRules(req: VercelRequest, res: VercelResponse, _
  * 
  * Only super_admin can change roles to admin/super_admin
  */
-async function handleUpdateRole(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<void> {
+async function handleUpdateRole(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<VercelResponse | void> {
   const parsed = validateBody(updateRoleBodySchema, req, res);
   if (!parsed) return;
 
@@ -2032,7 +2011,7 @@ async function handleUpdateRole(req: VercelRequest, res: VercelResponse, auth: A
  * Query params:
  *   - program_id: Filter by program (optional)
  */
-async function handleEligibilityAssessments(req: VercelRequest, res: VercelResponse): Promise<void> {
+async function handleEligibilityAssessments(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   // eligibility_assessments table does not exist â€” return empty array gracefully
   res.setHeader('Cache-Control', 'public, max-age=60');
   sendSuccess(res, { assessments: [], message: 'Eligibility assessments feature not yet configured' });
@@ -2043,7 +2022,7 @@ async function handleEligibilityAssessments(req: VercelRequest, res: VercelRespo
  *
  * GET /api/admin?action=audit-log
  */
-async function handleAuditLog(req: VercelRequest, res: VercelResponse): Promise<void> {
+async function handleAuditLog(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   let page = parseInt(req.query.page as string || '1', 10);
   let pageSize = parseInt(req.query.pageSize as string || '50', 10);
 
@@ -2212,7 +2191,7 @@ async function handleAuditLog(req: VercelRequest, res: VercelResponse): Promise<
  * GET /api/admin?action=appeals
  * NOTE: eligibility_appeals table does not exist in DB — returns empty results gracefully
  */
-async function handleAppeals(_req: VercelRequest, res: VercelResponse): Promise<void> {
+async function handleAppeals(_req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   // eligibility_appeals table does not exist — return empty results
   sendSuccess(res, {
     appeals: [],
@@ -2223,7 +2202,7 @@ async function handleAppeals(_req: VercelRequest, res: VercelResponse): Promise<
   });
 }
 
-async function handleGetSchema(req: VercelRequest, res: VercelResponse): Promise<void> {
+async function handleGetSchema(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   const table = req.query.table as string;
   if (!table) return sendError(res, 'Table name required', 400);
   try {

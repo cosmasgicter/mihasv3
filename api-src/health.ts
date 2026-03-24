@@ -46,6 +46,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       return handleEnvCheck(res);
     }
 
+    // Diagnostic check for errors
+    if (action === 'errors') {
+      return handleErrorsCheck(res);
+    }
+
     // Validate required environment variables for actions that need them (Req 25.3)
     const envResult = validateServerEnv();
     if (!envResult.valid) {
@@ -101,19 +106,36 @@ async function handleDatabaseHealth(res: VercelResponse): Promise<void> {
       };
     }
 
-    // Check 2: Table existence (profiles table)
-    try {
-      const tableStart = Date.now();
-      await sql`SELECT COUNT(*) FROM profiles LIMIT 1`;
-      checks.profiles_table = {
-        status: 'ok',
-        latency: Date.now() - tableStart,
-      };
-    } catch (error) {
-      checks.profiles_table = {
-        status: 'error',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
+    // Check 2: Table existence (required tables)
+    const tables = ['profiles', 'device_sessions', 'audit_logs', 'settings', 'applications', 'migration_history'];
+    for (const table of tables) {
+      try {
+        const tableStart = Date.now();
+        const result = await sql.query(`SELECT COUNT(*) as count FROM ${table} LIMIT 1`);
+
+        // If it's the profiles table, also check for key columns
+        let columns = undefined;
+        if (table === 'profiles') {
+          const colResult = await sql.query(`
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name = 'profiles'
+          `);
+          columns = colResult.map(r => r.column_name);
+        }
+
+        checks[`table_${table}`] = {
+          status: 'ok',
+          count: result[0]?.count,
+          latency: Date.now() - tableStart,
+          columns
+        };
+      } catch (error) {
+        checks[`table_${table}`] = {
+          status: 'error',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        };
+      }
     }
 
     const totalLatency = Date.now() - startTime;
@@ -174,4 +196,29 @@ function handleEnvCheck(res: VercelResponse): void {
     envStatus,
     timestamp: new Date().toISOString(),
   });
+}
+
+/**
+ * Diagnostic check to see recent errors from audit logs
+ */
+async function handleErrorsCheck(res: VercelResponse): Promise<void> {
+  try {
+    const { neon } = await import('@neondatabase/serverless');
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+      sendError(res, 'DATABASE_URL not configured', HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
+      return;
+    }
+    const sql = neon(connectionString);
+    const logs = await sql`
+      SELECT action, changes, created_at
+      FROM audit_logs
+      WHERE action = 'api_error'
+      ORDER BY created_at DESC
+      LIMIT 10
+    `;
+    sendSuccess(res, { logs });
+  } catch (error) {
+    sendError(res, 'Failed to fetch errors: ' + (error instanceof Error ? error.message : String(error)), HttpStatus.INTERNAL_SERVER_ERROR);
+  }
 }
