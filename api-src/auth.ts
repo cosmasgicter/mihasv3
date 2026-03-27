@@ -19,6 +19,7 @@ import {
 } from "../lib/auth/jwt";
 import { setAuthCookies, clearAuthCookies, extractAccessTokenFromCookie, extractRefreshTokenFromCookie, extractBearerToken } from "../lib/auth/cookies";
 import { withArcjetProtection, arcjetProtect } from "../lib/arcjet";
+import { setSecurityHeaders } from "../lib/securityHeaders";
 import { handleError, sendSuccess, sendError, HttpStatus, logErrorAuditEvent } from "../lib/errorHandler";
 import { createHash, randomBytes } from "crypto";
 import { logAuditEvent, logAuthEvent } from "../lib/auditLogger";
@@ -67,6 +68,9 @@ function deriveFullName(params: {
 async function handler(req: VercelRequest, res: VercelResponse) {
   // Handle CORS
   if (handleCors(req, res)) return;
+
+  // Security headers (Req 8.1, 8.2, 8.3, 8.4)
+  setSecurityHeaders(res);
 
   // Validate required environment variables (Req 25.3)
   const envResult = validateServerEnv();

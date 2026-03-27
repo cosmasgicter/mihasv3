@@ -4,7 +4,8 @@
  * POST /api/bootstrap
  * 
  * One-time endpoint to set passwords for legacy Supabase Auth users.
- * This endpoint is NOT protected by Arcjet to allow initial setup.
+ * Protected by Arcjet (admin rate limit) and security headers.
+ * No CSRF required — uses secret-based authentication.
  * 
  * SECURITY: Requires BOOTSTRAP_SECRET or JWT_SECRET to authenticate.
  * Should be disabled after migration is complete.
@@ -12,17 +13,29 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { handleCors } from "../lib/cors";
+import { setSecurityHeaders } from "../lib/securityHeaders";
+import { withArcjetProtection } from "../lib/arcjet";
 import { query } from "../lib/db";
 import { hashPassword } from "../lib/auth/password";
 import { handleError, sendSuccess, sendError, HttpStatus } from "../lib/errorHandler";
 import { validateServerEnv } from "../lib/envValidator";
 
 /**
- * Bootstrap Handler - NOT protected by Arcjet
+ * Bootstrap Handler - Protected by Arcjet (admin rate limit)
+ * Middleware order: CORS → Security Headers → Arcjet → Method Guard → Secret Auth → Business Logic
+ * No CSRF required — uses secret-based authentication
  */
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   // Handle CORS
   if (handleCors(req, res)) return;
+
+  // Security headers (Req 8.1, 8.2, 8.3, 8.4)
+  setSecurityHeaders(res);
+
+  // POST-only method guard (Req 11.4)
+  if (req.method !== 'POST') {
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
 
   // Validate required environment variables (Req 25.3)
   const envResult = validateServerEnv();
@@ -30,10 +43,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     const details = envResult.errors.map((e) => e.message).join('; ');
     sendError(res, `Server misconfiguration: ${details}`, HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
     return;
-  }
-
-  if (req.method !== 'POST') {
-    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
   try {
@@ -100,3 +109,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     return handleError(res, error);
   }
 }
+
+// Wrap with Arcjet protection using admin rate limit profile (Req 3.3, 11.2)
+export default withArcjetProtection(handler, 'admin');

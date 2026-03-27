@@ -1,27 +1,16 @@
 import { createRequire } from "node:module";
-var __create = Object.create;
-var __getProtoOf = Object.getPrototypeOf;
 var __defProp = Object.defineProperty;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __toESM = (mod, isNodeMode, target) => {
-  target = mod != null ? __create(__getProtoOf(mod)) : {};
-  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
-  for (let key of __getOwnPropNames(mod))
-    if (!__hasOwnProp.call(to, key))
-      __defProp(to, key, {
-        get: () => mod[key],
-        enumerable: true
-      });
-  return to;
-};
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: (newValue) => all[name] = () => newValue
+      set: __exportSetter.bind(all, name)
     });
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
@@ -1752,6 +1741,14 @@ async function requireCsrf(req, res) {
   return false;
 }
 
+// lib/securityHeaders.ts
+function setSecurityHeaders(res, options) {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Cache-Control", options?.cacheControl ?? "no-store");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+}
+
 // lib/validation/middleware.ts
 init_errorHandler();
 function formatZodErrors(error) {
@@ -1899,6 +1896,14 @@ var patchSaveDraftSchema = z3.object({
   data: z3.record(z3.string(), z3.unknown())
 });
 
+// lib/validation/common.ts
+import { z as z4 } from "zod";
+var uuidParamSchema = z4.string().uuid("Must be a valid UUID");
+var paginationQuerySchema = z4.object({
+  page: z4.coerce.number().int().positive("Page must be a positive integer").default(1),
+  pageSize: z4.coerce.number().int().positive("Page size must be a positive integer").max(100, "Page size must not exceed 100").default(20)
+});
+
 // lib/envValidator.ts
 var MIN_JWT_SECRET_LENGTH = 32;
 var VALID_DB_PREFIXES = ["postgres://", "postgresql://"];
@@ -1938,7 +1943,8 @@ function validateServerEnv() {
   return { valid: errors.length === 0, errors };
 }
 
-// api-src/applications.ts
+// lib/idempotency.ts
+init_db();
 var IDEMPOTENCY_KEY_MAX_LENGTH = 128;
 var IDEMPOTENCY_KEY_PATTERN = /^[a-zA-Z0-9:_-]+$/;
 function normalizeIdempotencyKey(rawHeader) {
@@ -1987,9 +1993,26 @@ async function storeIdempotencyKey(userId, key, endpoint, responseData) {
     console.error("[idempotency] Error storing key:", err);
   }
 }
+
+// api-src/applications.ts
+var VALID_ACTIONS = [
+  "details",
+  "documents",
+  "grades",
+  "summary",
+  "review",
+  "interviews",
+  "schedule-interview",
+  "stats",
+  "export",
+  "email-slip",
+  "versions",
+  "track"
+];
 async function handler(req, res) {
   if (handleCors(req, res))
     return;
+  setSecurityHeaders(res);
   const envResult = validateServerEnv();
   if (!envResult.valid) {
     const details = envResult.errors.map((e) => e.message).join("; ");
@@ -2001,6 +2024,16 @@ async function handler(req, res) {
   }
   if (req.method === "GET" && action === "track") {
     return await handlePublicTracking(req, res);
+  }
+  const id = req.query.id;
+  if (action && !id && !VALID_ACTIONS.includes(action)) {
+    return sendError(res, `Invalid action '${action}'. Valid actions: ${VALID_ACTIONS.join(", ")}`, HttpStatus.BAD_REQUEST);
+  }
+  if (id) {
+    const uuidResult = uuidParamSchema.safeParse(id);
+    if (!uuidResult.success) {
+      return sendError(res, "Invalid id parameter: must be a valid UUID", HttpStatus.BAD_REQUEST);
+    }
   }
   if (await requireCsrf(req, res))
     return;
@@ -2019,7 +2052,6 @@ async function handler(req, res) {
   const canReviewApplications = user.permissions.includes("applications:review");
   const canVerifyPayments = user.permissions.includes("payments:verify");
   const isReviewerOnly = user.role === "reviewer";
-  const id = req.query.id;
   try {
     if (action === "details")
       return await handleDetails(req, res, user.userId, canReadAllApplications);
@@ -2270,9 +2302,12 @@ async function handleDetails(req, res, userId, canReadAllApplications) {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
   }
   try {
-    const rawPage = parseInt(req.query.page || "1", 10);
-    const page = Math.max(rawPage, 1);
-    const pageSize = Math.max(parseInt(req.query.pageSize || "50", 10), 1);
+    const paginationResult = paginationQuerySchema.safeParse({
+      page: req.query.page,
+      pageSize: req.query.pageSize
+    });
+    const page = paginationResult.success ? paginationResult.data.page : 1;
+    const pageSize = paginationResult.success ? paginationResult.data.pageSize : 50;
     const status = req.query.status;
     const search = req.query.search;
     const payment = req.query.payment;
@@ -2401,10 +2436,11 @@ async function handleScheduleInterview(req, res, userId, isAdmin2) {
   if (!isAdmin2) {
     return sendError(res, "Forbidden: admin access required", HttpStatus.FORBIDDEN);
   }
-  const { applicationId, scheduled_at, mode, location, notes } = req.body || {};
-  if (!applicationId || !scheduled_at || !mode || !location) {
-    return sendError(res, "Missing required fields: applicationId, scheduled_at, mode, location", HttpStatus.BAD_REQUEST);
-  }
+  const parsed = validateBody(scheduleInterviewBodySchema, req, res);
+  if (!parsed)
+    return;
+  const { application_id: applicationId, interview_date: scheduled_at, interview_time, location, notes } = parsed;
+  const mode = req.body?.mode || "in_person";
   const normalizedMode = mode === "in-person" ? "in_person" : mode;
   if (!["in_person", "virtual", "phone"].includes(normalizedMode)) {
     return sendError(res, "Invalid mode. Use: in-person, in_person, virtual, or phone", HttpStatus.BAD_REQUEST);

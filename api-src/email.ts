@@ -11,6 +11,11 @@ import { validateBody } from '../lib/validation/middleware';
 import { sendEmailBodySchema } from '../lib/validation/email';
 import { logAuditEvent } from '../lib/auditLogger';
 import { validateServerEnv } from '../lib/envValidator';
+import { setSecurityHeaders } from '../lib/securityHeaders';
+import { normalizeIdempotencyKey, checkIdempotencyKey, storeIdempotencyKey } from '../lib/idempotency';
+
+/** Valid actions for the email endpoint (Req 7.1, 7.2) */
+const VALID_ACTIONS = ['send', 'process-queue', 'retry-failed', 'queue-status'] as const;
 
 /**
  * Consolidated Email API
@@ -25,11 +30,25 @@ import { validateServerEnv } from '../lib/envValidator';
 async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   if (handleCors(req, res)) return;
 
+  // Security headers on all responses (Req 8.1, 8.2, 8.3, 8.4)
+  setSecurityHeaders(res);
+
+  // Top-level method guard: only GET and POST allowed (Req 6.2)
+  if (!['GET', 'POST'].includes(req.method || '')) {
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
   // Validate required environment variables (Req 25.3)
   const envResult = validateServerEnv();
   if (!envResult.valid) {
     const details = envResult.errors.map((e) => e.message).join('; ');
     return sendError(res, `Server misconfiguration: ${details}`, HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
+  }
+
+  // Action allowlist validation (Req 7.1, 7.2)
+  const action = req.query.action as string;
+  if (!VALID_ACTIONS.includes(action as typeof VALID_ACTIONS[number])) {
+    return sendError(res, `Invalid action. Valid actions: ${VALID_ACTIONS.join(', ')}`, HttpStatus.BAD_REQUEST);
   }
 
   // CSRF validation for state-changing requests
@@ -46,8 +65,6 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
     throw error;
   }
 
-  const action = req.query.action as string;
-
   try {
     switch (action) {
       case 'send':
@@ -59,7 +76,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
       case 'queue-status':
         return await handleQueueStatus(req, res, user);
       default:
-        return sendError(res, 'Invalid action', HttpStatus.BAD_REQUEST);
+        return sendError(res, `Invalid action. Valid actions: ${VALID_ACTIONS.join(', ')}`, HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     if (error instanceof AuthorizationError) {
@@ -89,6 +106,15 @@ async function handleSend(req: VercelRequest, res: VercelResponse, user: AuthCon
   if (!parsed) return;
 
   const { recipient_email, recipient_name, subject, body, template_name, template_data, priority } = parsed;
+
+  // Idempotency support on send action (Req 10.7)
+  const idempotencyKey = normalizeIdempotencyKey(req.headers['idempotency-key']);
+  if (idempotencyKey) {
+    const cachedResponse = await checkIdempotencyKey(user.userId, idempotencyKey, 'email/send');
+    if (cachedResponse) {
+      return sendSuccess(res, cachedResponse);
+    }
+  }
 
   try {
     // Render HTML from template if template_name is provided
@@ -126,7 +152,14 @@ async function handleSend(req: VercelRequest, res: VercelResponse, user: AuthCon
       });
     } catch { /* non-blocking */ }
 
-    return sendSuccess(res, { queued: true, id: result.rows[0]?.id });
+    const responseData = { queued: true, id: result.rows[0]?.id };
+
+    // Store idempotency key for successful send (Req 10.7)
+    if (idempotencyKey) {
+      await storeIdempotencyKey(user.userId, idempotencyKey, 'email/send', responseData);
+    }
+
+    return sendSuccess(res, responseData);
   } catch (error) {
     return handleError(res, error, 'email/send');
   }

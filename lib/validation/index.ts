@@ -2,6 +2,12 @@
  * Validation module — re-exports all Zod schemas and middleware.
  */
 
+// Common reusable schemas
+export { uuidParamSchema, paginationQuerySchema } from './common';
+
+// Bootstrap schemas
+export { bootstrapBodySchema } from './bootstrap';
+
 // Sanitization primitives
 export { sanitizedString, optionalSanitizedString, nonEmptySanitizedString } from './sanitize';
 
@@ -35,6 +41,7 @@ export {
   updateRoleBodySchema,
   createSettingBodySchema,
   updateSettingBodySchema,
+  deleteSettingQuerySchema,
   importSettingsBodySchema,
   migrateBodySchema,
   bulkEmailBodySchema,
@@ -42,7 +49,7 @@ export {
 } from './admin';
 
 // Document schemas
-export { uploadDocumentBodySchema, extractDocumentBodySchema, deleteDocumentBodySchema, signedUrlBodySchema, registerSlipBodySchema, resolveReferenceBodySchema } from './documents';
+export { uploadDocumentBodySchema, extractDocumentBodySchema, deleteDocumentBodySchema, signedUrlBodySchema, registerSlipBodySchema, resolveReferenceBodySchema, documentPathSchema } from './documents';
 
 // Payment schemas
 export { receiptQuerySchema } from './payments';
@@ -63,7 +70,7 @@ export {
 export { revokeSessionBodySchema, revokeAllSessionsBodySchema, pollQuerySchema } from './sessions';
 
 // Notification schemas
-export { markReadBodySchema, deleteNotificationBodySchema, checkDuplicateBodySchema, createNotificationBodySchema, sendNotificationBodySchema, updatePreferencesBodySchema } from './notifications';
+export { markReadBodySchema, deleteNotificationBodySchema, checkDuplicateBodySchema, createNotificationBodySchema, sendNotificationBodySchema, updatePreferencesBodySchema, preferencesBodySchema } from './notifications';
 
 // Email schemas
 export { sendEmailBodySchema } from './email';

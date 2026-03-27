@@ -72,6 +72,15 @@ export const updateSettingBodySchema = z.object({
   is_public: z.boolean().optional(),
 });
 
+/** DELETE — delete setting by key or id */
+export const deleteSettingQuerySchema = z.object({
+  key: nonEmptySanitizedString.optional(),
+  id: z.string().uuid('Must be a valid UUID').optional(),
+}).refine(
+  (data) => data.key !== undefined || data.id !== undefined,
+  { message: 'Either key or id must be provided' }
+);
+
 /** POST — import settings */
 export const importSettingsBodySchema = z.object({
   settings: z.array(z.object({

@@ -16,9 +16,12 @@ export const deleteNotificationBodySchema = z.object({
 
 /** POST — check duplicate */
 export const checkDuplicateBodySchema = z.object({
-  type: nonEmptySanitizedString,
-  userId: nonEmptySanitizedString,
-  entityId: optionalSanitizedString,
+  user_id: optionalSanitizedString,
+  title: nonEmptySanitizedString,
+  message: nonEmptySanitizedString,
+  type: optionalSanitizedString,
+  entity_type: optionalSanitizedString,
+  entity_id: optionalSanitizedString,
 });
 
 /** POST — create notification */
@@ -51,3 +54,14 @@ export const updatePreferencesBodySchema = z.object({
   sms_notifications: z.boolean().optional(),
   notification_types: z.record(z.string(), z.boolean()).optional(),
 }).partial();
+
+/** POST — preferences (hardened) */
+export const preferencesBodySchema = z.object({
+  sms_enabled: z.boolean().optional(),
+  application_updates: z.boolean().optional(),
+  payment_reminders: z.boolean().optional(),
+  interview_reminders: z.boolean().optional(),
+  marketing_emails: z.boolean().optional(),
+  quiet_hours_start: optionalSanitizedString,
+  quiet_hours_end: optionalSanitizedString,
+});

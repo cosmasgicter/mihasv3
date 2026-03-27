@@ -10,6 +10,7 @@ interface AuthContextType {
   user: User | null
   profile: UserProfile | null
   loading: boolean
+  profileLoading: boolean
   isAdmin: boolean
   signIn: (email: string, password: string) => Promise<SignInResult>
   signUp: (email: string, password: string, userData: any) => Promise<SignUpResult>
@@ -65,6 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user: auth.user,
     profile: auth.profile,
     loading: auth.loading,
+    profileLoading: auth.profileLoading,
     isAdmin: auth.isAdmin,
     signIn: auth.signIn,
     signUp: auth.signUp,

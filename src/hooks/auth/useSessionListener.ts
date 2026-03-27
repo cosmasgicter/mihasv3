@@ -198,42 +198,33 @@ export function useSessionListener() {
     }
   }, [queryClient])
 
-  // signOut — inline cleanup: clear CSRF → clear caches → POST logout → clear secure storage
+  // signOut — clear CSRF → POST logout → clear ALL caches → clear storage → dispatch events
   const signOut = useCallback(async () => {
-    // 1. Clear CSRF token
+    // 1. Clear CSRF token (local-only, safe to do first)
     clearCsrfToken()
 
-    // 2. Invalidate auth caches before navigation to prevent stale protected views
-    queryClient.setQueryData(['auth', 'session'], null)
-    queryClient.removeQueries({ queryKey: ['user-profile'] })
-    queryClient.removeQueries({
-      predicate: (query) => query.queryKey[0] !== 'auth',
-    })
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['auth'] }),
-      queryClient.invalidateQueries({ queryKey: ['user-profile'] }),
-    ])
-
-    // 3. POST logout (best-effort — don't let network errors prevent local cleanup)
+    // 2. POST logout while cookies are still valid, then wipe all cached queries
     try {
       await apiClient.request('/api/auth?action=logout', { method: 'POST' })
     } catch {
       // Ignore — server logout is best-effort
+    } finally {
+      queryClient.clear()
     }
 
-    // 4. Clear secure storage
+    // 3. Clear secure storage
     try {
       await secureStorage.clearSession()
     } catch {
       // Ignore — secure storage clear is best-effort
     }
 
-    // 5. Dispatch auth signed out event
+    // 4. Dispatch auth signed out event
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('authSignedOut'))
     }
 
-    // 6. Navigate to sign-in route using router-safe event dispatch
+    // 5. Navigate to sign-in route using router-safe event dispatch
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('mihas:auth-redirect', {
         detail: { to: '/auth/signin', replace: true },
@@ -276,6 +267,7 @@ export function useSessionListener() {
     user,
     profile,
     loading,
+    profileLoading,
     isAdmin,
     signIn,
     signUp,

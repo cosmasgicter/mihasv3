@@ -1,27 +1,16 @@
 import { createRequire } from "node:module";
-var __create = Object.create;
-var __getProtoOf = Object.getPrototypeOf;
 var __defProp = Object.defineProperty;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __toESM = (mod, isNodeMode, target) => {
-  target = mod != null ? __create(__getProtoOf(mod)) : {};
-  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
-  for (let key of __getOwnPropNames(mod))
-    if (!__hasOwnProp.call(to, key))
-      __defProp(to, key, {
-        get: () => mod[key],
-        enumerable: true
-      });
-  return to;
-};
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: (newValue) => all[name] = () => newValue
+      set: __exportSetter.bind(all, name)
     });
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
@@ -748,19 +737,166 @@ function validateServerEnv() {
   return { valid: errors.length === 0, errors };
 }
 
-// api-src/health.ts
-async function handler(req, res) {
-  res.setHeader("Content-Type", "application/json");
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+// lib/cors.ts
+var ALLOWED_ORIGINS = [
+  "https://apply.mihas.edu.zm",
+  "https://mihas.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000"
+];
+function getCorsHeaders(origin) {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-CSRF-Token",
+    "Access-Control-Expose-Headers": "X-CSRF-Token",
+    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Max-Age": "86400"
+  };
+}
+function handleCors(req, res) {
+  const origin = req.headers.origin;
+  const headers = getCorsHeaders(origin);
+  Object.entries(headers).forEach(([key, value]) => {
+    res.setHeader(key, value);
+  });
   if (req.method === "OPTIONS") {
-    return res.status(204).end();
+    res.status(204).end();
+    return true;
   }
+  return false;
+}
+
+// lib/securityHeaders.ts
+function setSecurityHeaders(res, options) {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Cache-Control", options?.cacheControl ?? "no-store");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+}
+
+// lib/arcjet.ts
+import arcjet, { shield, detectBot, fixedWindow } from "@arcjet/node";
+var originalEmitWarning = process.emitWarning;
+process.emitWarning = function(warning, ...args) {
+  if (typeof warning === "string" && args[0] === "DeprecationWarning" && args[1] === "DEP0169")
+    return;
+  if (warning && typeof warning === "object" && warning.code === "DEP0169")
+    return;
+  return originalEmitWarning.call(process, warning, ...args);
+};
+var ARCJET_KEY = process.env.ARCJET_KEY;
+if (!ARCJET_KEY) {
+  console.error("[ARCJET] FATAL: ARCJET_KEY environment variable not set");
+  console.error("[ARCJET] Security layer DISABLED - set ARCJET_KEY immediately");
+}
+var rateLimitConfigs = {
+  auth: { window: "5m", max: 60 },
+  session: { window: "10m", max: 30 },
+  admin: { window: "10m", max: 60 },
+  notification: { window: "10m", max: 50 },
+  general: { window: "10m", max: 100 },
+  registration: { window: "10m", max: 3 }
+};
+function getBlockReasonType(decision) {
+  if (decision.reason.isRateLimit()) {
+    return "RATE_LIMIT";
+  }
+  if (decision.reason.isBot()) {
+    return "BOT_DETECTED";
+  }
+  if (decision.reason.isShield()) {
+    return "SHIELD_BLOCK";
+  }
+  return "POLICY_VIOLATION";
+}
+function handleArcjetDecision(decision, res) {
+  if (decision.isDenied()) {
+    const reasonType = getBlockReasonType(decision);
+    console.log("[ARCJET] BLOCKED: reason=" + reasonType + ", id=" + decision.id);
+    res.status(403).json({
+      success: false,
+      error: "Request blocked by security policy",
+      code: "SECURITY_VIOLATION"
+    });
+    return true;
+  }
+  return false;
+}
+function createProtectedArcjet(routeType) {
+  const config = rateLimitConfigs[routeType];
+  return arcjet({
+    key: ARCJET_KEY,
+    characteristics: ["ip.src"],
+    rules: [
+      shield({ mode: "LIVE" }),
+      detectBot({
+        mode: "LIVE",
+        allow: ["CATEGORY:SEARCH_ENGINE"]
+      }),
+      fixedWindow({
+        mode: "LIVE",
+        window: config.window,
+        max: config.max
+      })
+    ]
+  });
+}
+function withArcjetProtection(handler, routeType = "general") {
+  return async (req, res) => {
+    if (req.method === "OPTIONS") {
+      handleCors(req, res);
+      return;
+    }
+    if (!ARCJET_KEY) {
+      console.warn("[ARCJET] WARNING: Running without Arcjet protection");
+      return handler(req, res);
+    }
+    try {
+      const protectedAj = createProtectedArcjet(routeType);
+      const decision = await protectedAj.protect(req);
+      if (handleArcjetDecision(decision, res)) {
+        return;
+      }
+      return handler(req, res);
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      console.error("[ARCJET] Service error: " + errorMsg);
+      res.status(503).json({
+        success: false,
+        error: "Security service unavailable",
+        code: "SECURITY_SERVICE_ERROR"
+      });
+    }
+  };
+}
+var aj = ARCJET_KEY ? arcjet({
+  key: ARCJET_KEY,
+  characteristics: ["ip.src"],
+  rules: [
+    shield({ mode: "LIVE" }),
+    detectBot({
+      mode: "LIVE",
+      allow: ["CATEGORY:SEARCH_ENGINE"]
+    })
+  ]
+}) : null;
+
+// api-src/health.ts
+var VALID_ACTIONS = ["ping", "db", "env", "errors"];
+async function handler(req, res) {
+  if (handleCors(req, res))
+    return;
+  setSecurityHeaders(res);
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   if (req.method !== "GET") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
   }
   const action = req.query.action;
+  if (action && !VALID_ACTIONS.includes(action)) {
+    return sendError(res, "Invalid action. Valid actions: ping, db, env, errors", HttpStatus.BAD_REQUEST);
+  }
   try {
     if (action === "ping") {
       return sendSuccess(res, {
@@ -801,8 +937,7 @@ async function handleDatabaseHealth(res) {
     const { neon } = await import("@neondatabase/serverless");
     const connectionString = process.env.DATABASE_URL;
     if (!connectionString) {
-      sendError(res, "DATABASE_URL not configured", HttpStatus.SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE");
-      return;
+      return sendError(res, "DATABASE_URL not configured", HttpStatus.SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE");
     }
     const sql = neon(connectionString);
     try {
@@ -850,9 +985,9 @@ async function handleDatabaseHealth(res) {
     const hasErrors = Object.values(checks).some((c) => c.status === "error");
     const overallStatus = hasErrors ? "unhealthy" : allOk ? "healthy" : "degraded";
     if (hasErrors) {
-      sendError(res, `Database health: ${overallStatus}`, HttpStatus.SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE");
+      return sendError(res, `Database health: ${overallStatus}`, HttpStatus.SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE");
     } else {
-      sendSuccess(res, {
+      return sendSuccess(res, {
         status: overallStatus,
         databaseType: "neon",
         checks,
@@ -862,7 +997,7 @@ async function handleDatabaseHealth(res) {
     }
   } catch (error) {
     logErrorAuditEvent("health/db", error).catch(() => {});
-    sendError(res, "Database health check failed", HttpStatus.SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE");
+    return sendError(res, "Database health check failed", HttpStatus.SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE");
   }
 }
 function handleEnvCheck(res) {
@@ -898,8 +1033,7 @@ async function handleErrorsCheck(res) {
     const { neon } = await import("@neondatabase/serverless");
     const connectionString = process.env.DATABASE_URL;
     if (!connectionString) {
-      sendError(res, "DATABASE_URL not configured", HttpStatus.SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE");
-      return;
+      return sendError(res, "DATABASE_URL not configured", HttpStatus.SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE");
     }
     const sql = neon(connectionString);
     const logs = await sql`
@@ -909,11 +1043,12 @@ async function handleErrorsCheck(res) {
       ORDER BY created_at DESC
       LIMIT 10
     `;
-    sendSuccess(res, { logs });
+    return sendSuccess(res, { logs });
   } catch (error) {
-    sendError(res, "Failed to fetch errors: " + (error instanceof Error ? error.message : String(error)), HttpStatus.INTERNAL_SERVER_ERROR);
+    return sendError(res, "Failed to fetch error logs", HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR");
   }
 }
+var health_default = withArcjetProtection(handler, "general");
 export {
-  handler as default
+  health_default as default
 };

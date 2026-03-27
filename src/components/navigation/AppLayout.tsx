@@ -158,6 +158,19 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
         {isSigningOut ? <Loader2 className="h-5 w-5 animate-spin" /> : <LogOut className="h-5 w-5" />}
       </button>
     </div>
+  ) : isAdmin ? (
+    <div className="flex items-center justify-end gap-1 pr-1">
+      <button
+        type="button"
+        onClick={() => { void handleSignOut() }}
+        disabled={isSigningOut}
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-accent disabled:opacity-60"
+        aria-label="Sign out"
+        aria-busy={isSigningOut}
+      >
+        {isSigningOut ? <Loader2 className="h-5 w-5 animate-spin" /> : <LogOut className="h-5 w-5" />}
+      </button>
+    </div>
   ) : undefined
 
   // Pick nav items based on role
