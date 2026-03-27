@@ -2061,7 +2061,7 @@ async function deleteProgram(req, res, actorId) {
 }
 async function listInstitutions(res, includeInactive, shouldCache) {
   try {
-    const result = await query(`SELECT id, name, full_name, code, description, is_active, created_at, updated_at
+    const result = await query(`SELECT id, name, full_name, code, is_active, created_at, updated_at
        FROM institutions
        WHERE ($1::boolean = true OR is_active = true)
        ORDER BY full_name ASC, name ASC`, [includeInactive]);
@@ -2082,9 +2082,9 @@ async function createInstitution(req, res, actorId) {
   const code = parsed.code || null;
   const description = parsed.description ?? "";
   try {
-    const result = await query(`INSERT INTO institutions (name, full_name, code, description, is_active, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, true, NOW(), NOW())
-       RETURNING id, name, full_name, code, description, is_active, created_at, updated_at`, [name, fullName, code, description || null]);
+    const result = await query(`INSERT INTO institutions (name, full_name, code, is_active, created_at, updated_at)
+       VALUES ($1, $2, $3, true, NOW(), NOW())
+       RETURNING id, name, full_name, code, is_active, created_at, updated_at`, [name, fullName, code]);
     await logCatalogAuditEvent({
       req,
       actorId,
@@ -2113,11 +2113,10 @@ async function updateInstitution(req, res, actorId) {
        SET name = $2,
            full_name = $3,
            code = $4,
-           description = $5,
-           is_active = COALESCE($6, is_active),
+           is_active = COALESCE($5, is_active),
            updated_at = NOW()
        WHERE id = $1
-       RETURNING id, name, full_name, code, description, is_active, created_at, updated_at`, [id, name, fullName, code, description || null, isActive ?? null]);
+       RETURNING id, name, full_name, code, is_active, created_at, updated_at`, [id, name, fullName, code, isActive ?? null]);
     if (result.rowCount === 0) {
       return sendError(res, "Institution not found", HttpStatus.NOT_FOUND);
     }
