@@ -282,14 +282,23 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
   const updatePaymentStatus = useCallback(async (
     applicationId: string,
     newPaymentStatus: string,
-    verificationNotes?: string
+    verificationNotes?: string,
+    force?: boolean
   ) => {
     const previousApplications = applicationsRef.current
     try {
       setApplications(prev => prev.map(app => 
         app.id === applicationId ? { ...app, payment_status: newPaymentStatus } : app
       ))
-      await applicationService.updatePaymentStatus(applicationId, newPaymentStatus, verificationNotes)
+      const result = await applicationService.updatePaymentStatus(applicationId, newPaymentStatus, verificationNotes, force)
+
+      // Check for advisory payment proof warning (same pattern as update_status)
+      if (result && typeof result === 'object' && 'warning' in result && (result as any).warning === true) {
+        // Revert optimistic update — this was just a warning, not a real update
+        setApplications(previousApplications)
+        return result as any
+      }
+
       await invalidateAdminApplicationQueries(queryClient, {
         applicationId,
         includePaymentStatus: true,

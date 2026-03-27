@@ -2828,8 +2828,13 @@ async function handleById(req, res, userId, isAdmin2, canReadAllApplications, ca
           if (paymentStatus === "rejected" && !normalizedVerificationNotes) {
             return sendError(res, "Rejection notes are required when rejecting a payment.", HttpStatus.BAD_REQUEST);
           }
-          if ((paymentStatus === "verified" || paymentStatus === "rejected") && !app.pop_url) {
-            return sendError(res, "Payment proof is required before a payment can be reviewed.", HttpStatus.CONFLICT);
+          if ((paymentStatus === "verified" || paymentStatus === "rejected") && !app.pop_url && !payload.force) {
+            return sendSuccess(res, {
+              warning: true,
+              message: "No payment proof has been uploaded for this application. You can still proceed by confirming the override.",
+              application_id: applicationId,
+              requested_payment_status: paymentStatus
+            });
           }
           const notificationTitle = paymentStatus === "verified" ? "Payment Verified" : paymentStatus === "rejected" ? "Payment Rejected" : app.payment_status === "rejected" ? "Payment Resubmission Reopened" : "Payment Under Review";
           const notificationMessage = paymentStatus === "verified" ? `Your payment for application ${app.application_number || applicationId} has been verified.` : paymentStatus === "rejected" ? `Your payment for application ${app.application_number || applicationId} was rejected. Please resubmit your payment proof.` : app.payment_status === "rejected" ? `Your payment for application ${app.application_number || applicationId} is back under review.` : `Your payment for application ${app.application_number || applicationId} is currently under review.`;
