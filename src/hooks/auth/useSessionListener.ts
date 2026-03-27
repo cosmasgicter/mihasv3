@@ -127,15 +127,20 @@ export function useSessionListener() {
 
       // Clear stale non-auth queries (e.g., previous user's data) WITHOUT touching auth cache.
       // This replaces the old queryClient.clear() that caused the skeleton hang.
+      // IMPORTANT: Also invalidate all remaining queries to force refetch with new user context.
+      // This fixes the role-switch bug where student dashboard data persists after admin login.
       queryClient.removeQueries({
         predicate: (query) => {
           const key = query.queryKey
           // Keep auth session and user-profile caches we just seeded
           if (key[0] === 'auth') return false
-          if (key[0] === 'user-profile') return false
+          if (key[0] === 'user-profile' && key[1] === authUser.id) return false
           return true
         },
       })
+
+      // Force invalidation of any remaining cached queries so they refetch with new auth
+      queryClient.invalidateQueries()
 
       window.dispatchEvent(new CustomEvent('userLoggedIn', {
         detail: { userId: authUser.id },
@@ -182,10 +187,11 @@ export function useSessionListener() {
           predicate: (query) => {
             const key = query.queryKey
             if (key[0] === 'auth') return false
-            if (key[0] === 'user-profile') return false
+            if (key[0] === 'user-profile' && key[1] === userPayload.id) return false
             return true
           },
         })
+        queryClient.invalidateQueries()
 
         window.dispatchEvent(new CustomEvent('userLoggedIn', { detail: { userId: userPayload.id } }))
         return { user: userPayload, profile: result?.profile ?? null }

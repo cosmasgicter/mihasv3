@@ -2841,17 +2841,19 @@ async function handleById(req, res, userId, isAdmin2, canReadAllApplications, ca
           const actionUrl = `/student/application/${applicationId}`;
           let updateResult2;
           try {
+            const isVerified = paymentStatus === "verified";
             updateResult2 = await query(`UPDATE applications
              SET
                payment_status = $2,
                payment_verified_by = $3,
-               payment_verified_at = CASE WHEN $2 = 'verified' THEN NOW() ELSE NULL END,
+               payment_verified_at = $4,
                updated_at = NOW()
              WHERE id = $1
              RETURNING *`, [
               applicationId,
               paymentStatus,
-              paymentStatus === "verified" ? userId : null
+              isVerified ? userId : null,
+              isVerified ? new Date().toISOString() : null
             ]);
           } catch (error) {
             throw error;
