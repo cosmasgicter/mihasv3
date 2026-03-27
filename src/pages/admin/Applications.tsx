@@ -432,11 +432,24 @@ export default function Applications() {
   const handlePaymentStatusUpdate = useCallback(async (
     applicationId: string,
     newPaymentStatus: string,
-    verificationNotes?: string
+    verificationNotes?: string,
+    force?: boolean
   ) => {
     try {
       setUpdatingPaymentId(applicationId)
-      await updatePaymentStatus(applicationId, newPaymentStatus, verificationNotes)
+      const result = await updatePaymentStatus(applicationId, newPaymentStatus, verificationNotes, force)
+
+      // Handle advisory warning (no payment proof uploaded)
+      if (result && typeof result === 'object' && 'warning' in result && (result as any).warning === true) {
+        const confirmed = window.confirm((result as any).message + '\n\nClick OK to proceed anyway.')
+        if (confirmed) {
+          // Retry with force flag
+          await updatePaymentStatus(applicationId, newPaymentStatus, verificationNotes, true)
+          showSuccess('Payment status updated', `Payment status changed to ${getPaymentStatusLabel(newPaymentStatus)}.`)
+        }
+        return
+      }
+
       showSuccess('Payment status updated', `Payment status changed to ${getPaymentStatusLabel(newPaymentStatus)}.`)
     } catch (error) {
       console.error('Failed to update payment status:', error)
