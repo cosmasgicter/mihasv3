@@ -29,7 +29,7 @@ function sanitizeQueryForLogging(query) {
 }
 function extractCommand(query) {
   const trimmed = query.trim().toUpperCase();
-  const commands = ["SELECT", "INSERT", "UPDATE", "DELETE", "BEGIN", "COMMIT", "ROLLBACK", "CREATE", "ALTER", "DROP"];
+  const commands = ["SELECT", "INSERT", "UPDATE", "DELETE", "CREATE", "ALTER", "DROP"];
   for (const cmd of commands) {
     if (trimmed.startsWith(cmd)) {
       return cmd;
@@ -37,15 +37,18 @@ function extractCommand(query) {
   }
   return "UNKNOWN";
 }
+function getNeonInstance() {
+  if (!cachedSql) {
+    const { url } = getDatabaseConfig();
+    const { neon } = __require("@neondatabase/serverless");
+    cachedSql = neon(url);
+  }
+  return cachedSql;
+}
 async function executeNeonQuery(queryText, params) {
   const command = extractCommand(queryText);
   try {
-    const { neon } = await import("@neondatabase/serverless");
-    const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) {
-      throw new DatabaseError("DATABASE_URL not configured for Neon", DatabaseErrorCode.CONFIG_ERROR);
-    }
-    const sql = neon(connectionString);
+    const sql = getNeonInstance();
     let rows;
     if (params && params.length > 0) {
       rows = await sql.query(queryText, params);
@@ -78,7 +81,7 @@ async function query(queryText, params) {
   getDatabaseConfig();
   return executeNeonQuery(queryText, params);
 }
-var DatabaseErrorCode, DatabaseError;
+var DatabaseErrorCode, DatabaseError, cachedSql = null;
 var init_db = __esm(() => {
   DatabaseErrorCode = {
     CONNECTION_ERROR: "CONNECTION_ERROR",
@@ -1035,7 +1038,8 @@ var rateLimitConfigs = {
   admin: { window: "10m", max: 60 },
   notification: { window: "10m", max: 50 },
   general: { window: "10m", max: 100 },
-  registration: { window: "10m", max: 3 }
+  registration: { window: "10m", max: 3 },
+  documents: { window: "10m", max: 20 }
 };
 function getBlockReasonType(decision) {
   if (decision.reason.isRateLimit()) {
@@ -1088,6 +1092,16 @@ function withArcjetProtection(handler, routeType = "general") {
       return;
     }
     if (!ARCJET_KEY) {
+      const isProduction = false;
+      if (isProduction) {
+        console.error("[ARCJET] FATAL: ARCJET_KEY not set in production — rejecting request");
+        res.status(503).json({
+          success: false,
+          error: "Security service unavailable",
+          code: "SECURITY_SERVICE_ERROR"
+        });
+        return;
+      }
       console.warn("[ARCJET] WARNING: Running without Arcjet protection");
       return handler(req, res);
     }
@@ -2122,7 +2136,7 @@ async function handleExtract(req, res, authUserId, userRole) {
   console.log("[documents/extract] PDF processed, pages:", metadata.pageCount);
   return sendSuccess(res, result);
 }
-var documents_default = withArcjetProtection(handler, "general");
+var documents_default = withArcjetProtection(handler, "documents");
 export {
   documents_default as default
 };

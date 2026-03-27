@@ -4,6 +4,7 @@ import { validateServerEnv } from '../lib/envValidator';
 import { handleCors } from '../lib/cors';
 import { setSecurityHeaders } from '../lib/securityHeaders';
 import { withArcjetProtection } from '../lib/arcjet';
+import { requireRole, AuthenticationError, AuthorizationError } from '../lib/auth/middleware';
 
 /**
  * Valid actions for the health endpoint.
@@ -43,12 +44,28 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   }
 
   try {
-    // Ping action (minimal response for uptime checks)
+    // Ping action (minimal response for uptime checks) — public
     if (action === 'ping') {
       return sendSuccess(res, {
         message: 'pong',
         timestamp: new Date().toISOString(),
       });
+    }
+
+    // Protected diagnostic actions require admin/super_admin auth (Req 4.1, 4.2, 4.3)
+    const protectedActions = ['db', 'env', 'errors'];
+    if (action && protectedActions.includes(action)) {
+      try {
+        await requireRole(req, ['admin', 'super_admin']);
+      } catch (error) {
+        if (error instanceof AuthenticationError) {
+          return sendError(res, error.message, error.statusCode, error.code);
+        }
+        if (error instanceof AuthorizationError) {
+          return sendError(res, error.message, error.statusCode, error.code);
+        }
+        return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED, 'AUTHENTICATION_REQUIRED');
+      }
     }
 
     // Database health check

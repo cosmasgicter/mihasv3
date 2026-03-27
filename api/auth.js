@@ -20,11 +20,9 @@ var __require = /* @__PURE__ */ createRequire(import.meta.url);
 var exports_db = {};
 __export(exports_db, {
   verifyDatabaseSchema: () => verifyDatabaseSchema,
-  userQueries: () => userQueries,
   transaction: () => transaction,
-  sessionQueries: () => sessionQueries,
   query: () => query,
-  auditQueries: () => auditQueries,
+  _resetNeonCache: () => _resetNeonCache,
   DatabaseErrorCode: () => DatabaseErrorCode,
   DatabaseError: () => DatabaseError
 });
@@ -40,7 +38,7 @@ function sanitizeQueryForLogging(query) {
 }
 function extractCommand(query) {
   const trimmed = query.trim().toUpperCase();
-  const commands = ["SELECT", "INSERT", "UPDATE", "DELETE", "BEGIN", "COMMIT", "ROLLBACK", "CREATE", "ALTER", "DROP"];
+  const commands = ["SELECT", "INSERT", "UPDATE", "DELETE", "CREATE", "ALTER", "DROP"];
   for (const cmd of commands) {
     if (trimmed.startsWith(cmd)) {
       return cmd;
@@ -48,15 +46,21 @@ function extractCommand(query) {
   }
   return "UNKNOWN";
 }
+function getNeonInstance() {
+  if (!cachedSql) {
+    const { url } = getDatabaseConfig();
+    const { neon } = __require("@neondatabase/serverless");
+    cachedSql = neon(url);
+  }
+  return cachedSql;
+}
+function _resetNeonCache() {
+  cachedSql = null;
+}
 async function executeNeonQuery(queryText, params) {
   const command = extractCommand(queryText);
   try {
-    const { neon } = await import("@neondatabase/serverless");
-    const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) {
-      throw new DatabaseError("DATABASE_URL not configured for Neon", DatabaseErrorCode.CONFIG_ERROR);
-    }
-    const sql = neon(connectionString);
+    const sql = getNeonInstance();
     let rows;
     if (params && params.length > 0) {
       rows = await sql.query(queryText, params);
@@ -93,21 +97,23 @@ async function transaction(operations) {
   if (operations.length === 0) {
     return [];
   }
-  const results = [];
   try {
-    await query("BEGIN");
-    for (const op of operations) {
-      const result = await query(op.text, op.values);
-      results.push(result);
-    }
-    await query("COMMIT");
+    const sql = getNeonInstance();
+    const results = [];
+    await sql.transaction((tx) => operations.map((op) => {
+      const promise = op.values && op.values.length > 0 ? tx.query(op.text, op.values) : tx.query(op.text);
+      promise.then((rows) => {
+        const resultRows = Array.isArray(rows) ? rows : [];
+        results.push({
+          rows: resultRows,
+          rowCount: resultRows.length,
+          command: extractCommand(op.text)
+        });
+      });
+      return promise;
+    }));
     return results;
   } catch (error) {
-    try {
-      await query("ROLLBACK");
-    } catch (rollbackError) {
-      console.error("[DB] Rollback failed:", rollbackError.message);
-    }
     if (error instanceof DatabaseError) {
       throw new DatabaseError(`Transaction failed: ${error.message}`, DatabaseErrorCode.TRANSACTION_ERROR, { query: error.query, originalError: error });
     }
@@ -166,7 +172,7 @@ async function verifyDatabaseSchema() {
   }
   return { ok, errors, warnings };
 }
-var DatabaseErrorCode, DatabaseError, REQUIRED_TABLES, REQUIRED_PROFILE_COLUMNS, userQueries, sessionQueries, auditQueries;
+var DatabaseErrorCode, DatabaseError, cachedSql = null, REQUIRED_TABLES, REQUIRED_PROFILE_COLUMNS;
 var init_db = __esm(() => {
   DatabaseErrorCode = {
     CONNECTION_ERROR: "CONNECTION_ERROR",
@@ -202,112 +208,6 @@ var init_db = __esm(() => {
     "password_hash",
     "refresh_token_hash"
   ];
-  userQueries = {
-    findByEmail: (email) => ({
-      text: `SELECT id, email, password_hash, refresh_token_hash, role, first_name, last_name, 
-                  is_active, failed_login_attempts, locked_until, created_at, updated_at 
-           FROM profiles 
-           WHERE email = $1 
-           LIMIT 1`,
-      values: [email]
-    }),
-    findById: (id) => ({
-      text: `SELECT id, email, role, first_name, last_name, is_active, created_at, updated_at 
-           FROM profiles 
-           WHERE id = $1 
-           LIMIT 1`,
-      values: [id]
-    }),
-    create: (id, email, passwordHash, role, firstName, lastName) => ({
-      text: `INSERT INTO profiles (id, email, password_hash, role, first_name, last_name, is_active, created_at, updated_at)
-           VALUES ($1, $2, $3, $4, $5, $6, true, NOW(), NOW())
-           RETURNING id, email, role, is_active`,
-      values: [id, email, passwordHash, role, firstName, lastName]
-    }),
-    updatePassword: (id, passwordHash) => ({
-      text: `UPDATE profiles 
-           SET password_hash = $2, password_changed_at = NOW(), updated_at = NOW() 
-           WHERE id = $1`,
-      values: [id, passwordHash]
-    }),
-    updateRefreshToken: (id, tokenHash) => ({
-      text: `UPDATE profiles 
-           SET refresh_token_hash = $2, updated_at = NOW() 
-           WHERE id = $1`,
-      values: [id, tokenHash]
-    }),
-    findByRefreshToken: (tokenHash) => ({
-      text: `SELECT id, email, role, is_active 
-           FROM profiles 
-           WHERE refresh_token_hash = $1 AND is_active = true
-           LIMIT 1`,
-      values: [tokenHash]
-    }),
-    incrementFailedAttempts: (id) => ({
-      text: `UPDATE profiles 
-           SET failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1, updated_at = NOW() 
-           WHERE id = $1`,
-      values: [id]
-    }),
-    resetFailedAttempts: (id) => ({
-      text: `UPDATE profiles 
-           SET failed_login_attempts = 0, locked_until = NULL, updated_at = NOW() 
-           WHERE id = $1`,
-      values: [id]
-    }),
-    lockAccount: (id, lockUntil) => ({
-      text: `UPDATE profiles 
-           SET locked_until = $2, updated_at = NOW() 
-           WHERE id = $1`,
-      values: [id, lockUntil]
-    })
-  };
-  sessionQueries = {
-    create: (id, userId, deviceInfo, ipAddress, userAgent) => ({
-      text: `INSERT INTO device_sessions (id, user_id, device_info, ip_address, user_agent, is_active, last_activity, created_at, expires_at)
-           VALUES ($1, $2, $3, $4, $5, true, NOW(), NOW(), NOW() + INTERVAL '30 days')
-           RETURNING id, user_id, is_active, created_at`,
-      values: [id, userId, deviceInfo, ipAddress, userAgent || ""]
-    }),
-    updateActivity: (id) => ({
-      text: `UPDATE device_sessions 
-           SET last_activity = NOW() 
-           WHERE id = $1 AND is_active = true`,
-      values: [id]
-    }),
-    deactivate: (id) => ({
-      text: `UPDATE device_sessions 
-           SET is_active = false 
-           WHERE id = $1`,
-      values: [id]
-    }),
-    deactivateAllForUser: (userId) => ({
-      text: `UPDATE device_sessions 
-           SET is_active = false 
-           WHERE user_id = $1`,
-      values: [userId]
-    }),
-    getActiveForUser: (userId) => ({
-      text: `SELECT id, device_info, ip_address, user_agent, last_activity, created_at 
-           FROM device_sessions 
-           WHERE user_id = $1 AND is_active = true 
-           ORDER BY last_activity DESC`,
-      values: [userId]
-    }),
-    deactivateExpired: () => ({
-      text: `UPDATE device_sessions 
-           SET is_active = false 
-           WHERE is_active = true AND last_activity < NOW() - INTERVAL '30 days'`,
-      values: []
-    })
-  };
-  auditQueries = {
-    log: (actorId, action, entityType, entityId, changes, ipAddress, userAgent) => ({
-      text: `INSERT INTO audit_logs (actor_id, action, entity_type, entity_id, changes, ip_address, user_agent, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
-      values: [actorId, action, entityType, entityId, JSON.stringify(changes), ipAddress, userAgent]
-    })
-  };
 });
 
 // lib/auth/jwt.ts
@@ -1680,7 +1580,8 @@ var rateLimitConfigs = {
   admin: { window: "10m", max: 60 },
   notification: { window: "10m", max: 50 },
   general: { window: "10m", max: 100 },
-  registration: { window: "10m", max: 3 }
+  registration: { window: "10m", max: 3 },
+  documents: { window: "10m", max: 20 }
 };
 function getBlockReasonType(decision) {
   if (decision.reason.isRateLimit()) {
@@ -1733,6 +1634,16 @@ function withArcjetProtection(handler, routeType = "general") {
       return;
     }
     if (!ARCJET_KEY) {
+      const isProduction2 = false;
+      if (isProduction2) {
+        console.error("[ARCJET] FATAL: ARCJET_KEY not set in production — rejecting request");
+        res.status(503).json({
+          success: false,
+          error: "Security service unavailable",
+          code: "SECURITY_SERVICE_ERROR"
+        });
+        return;
+      }
       console.warn("[ARCJET] WARNING: Running without Arcjet protection");
       return handler(req, res);
     }
@@ -2281,7 +2192,7 @@ async function checkLoginCooldown(emailHash) {
        FROM login_attempts
        WHERE email_hash = $1
          AND success = FALSE
-         AND attempted_at > NOW() - INTERVAL '${LOGIN_COOLDOWN_MINUTES} minutes'`, [emailHash]);
+         AND attempted_at > NOW() - INTERVAL '1 minute' * $2`, [emailHash, LOGIN_COOLDOWN_MINUTES]);
     const failCount = parseInt(result.rows[0]?.fail_count || "0", 10);
     if (failCount >= LOGIN_COOLDOWN_THRESHOLD) {
       const oldestFailure = new Date(result.rows[0].oldest_failure);
@@ -2547,7 +2458,7 @@ async function checkRegistrationRateLimit(ipHash) {
     const result = await query(`SELECT COUNT(*) AS reg_count, MIN(attempted_at) AS oldest_reg
        FROM login_attempts
        WHERE email_hash = $1
-         AND attempted_at > NOW() - INTERVAL '${REGISTRATION_RATE_WINDOW_MINUTES} minutes'`, [registrationKey(ipHash)]);
+         AND attempted_at > NOW() - INTERVAL '1 minute' * $2`, [registrationKey(ipHash), REGISTRATION_RATE_WINDOW_MINUTES]);
     const regCount = parseInt(result.rows[0]?.reg_count || "0", 10);
     if (regCount >= REGISTRATION_RATE_LIMIT) {
       const oldestReg = new Date(result.rows[0].oldest_reg);

@@ -132,7 +132,8 @@ var rateLimitConfigs = {
   admin: { window: "10m", max: 60 },
   notification: { window: "10m", max: 50 },
   general: { window: "10m", max: 100 },
-  registration: { window: "10m", max: 3 }
+  registration: { window: "10m", max: 3 },
+  documents: { window: "10m", max: 20 }
 };
 function getBlockReasonType(decision) {
   if (decision.reason.isRateLimit()) {
@@ -185,6 +186,16 @@ function withArcjetProtection(handler, routeType = "general") {
       return;
     }
     if (!ARCJET_KEY) {
+      const isProduction = false;
+      if (isProduction) {
+        console.error("[ARCJET] FATAL: ARCJET_KEY not set in production — rejecting request");
+        res.status(503).json({
+          success: false,
+          error: "Security service unavailable",
+          code: "SECURITY_SERVICE_ERROR"
+        });
+        return;
+      }
       console.warn("[ARCJET] WARNING: Running without Arcjet protection");
       return handler(req, res);
     }

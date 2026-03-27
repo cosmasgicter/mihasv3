@@ -196,7 +196,6 @@ Systematically harden all 11 API endpoints + catch-all route by enforcing consis
     - **Property 22: Blocked request logs contain no PII** — generate random log messages with PII, verify sanitized output contains no emails, tokens, IPs, or phone numbers
     - **Validates: Requirements 12.4**
     - Test file: `tests/property/api-hardening/log-sanitization.property.test.ts`
-
 - [ ] 10. Bundle and final checkpoint
   - [x] 10.1 Run `bun run scripts/bundle-api.mjs` to bundle all modified `api-src/` files to `api/`
     - Verify bundle completes without errors

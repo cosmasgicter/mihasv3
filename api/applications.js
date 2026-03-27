@@ -29,7 +29,7 @@ function sanitizeQueryForLogging(query) {
 }
 function extractCommand(query) {
   const trimmed = query.trim().toUpperCase();
-  const commands = ["SELECT", "INSERT", "UPDATE", "DELETE", "BEGIN", "COMMIT", "ROLLBACK", "CREATE", "ALTER", "DROP"];
+  const commands = ["SELECT", "INSERT", "UPDATE", "DELETE", "CREATE", "ALTER", "DROP"];
   for (const cmd of commands) {
     if (trimmed.startsWith(cmd)) {
       return cmd;
@@ -37,15 +37,18 @@ function extractCommand(query) {
   }
   return "UNKNOWN";
 }
+function getNeonInstance() {
+  if (!cachedSql) {
+    const { url } = getDatabaseConfig();
+    const { neon } = __require("@neondatabase/serverless");
+    cachedSql = neon(url);
+  }
+  return cachedSql;
+}
 async function executeNeonQuery(queryText, params) {
   const command = extractCommand(queryText);
   try {
-    const { neon } = await import("@neondatabase/serverless");
-    const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) {
-      throw new DatabaseError("DATABASE_URL not configured for Neon", DatabaseErrorCode.CONFIG_ERROR);
-    }
-    const sql = neon(connectionString);
+    const sql = getNeonInstance();
     let rows;
     if (params && params.length > 0) {
       rows = await sql.query(queryText, params);
@@ -82,28 +85,30 @@ async function transaction(operations) {
   if (operations.length === 0) {
     return [];
   }
-  const results = [];
   try {
-    await query("BEGIN");
-    for (const op of operations) {
-      const result = await query(op.text, op.values);
-      results.push(result);
-    }
-    await query("COMMIT");
+    const sql = getNeonInstance();
+    const results = [];
+    await sql.transaction((tx) => operations.map((op) => {
+      const promise = op.values && op.values.length > 0 ? tx.query(op.text, op.values) : tx.query(op.text);
+      promise.then((rows) => {
+        const resultRows = Array.isArray(rows) ? rows : [];
+        results.push({
+          rows: resultRows,
+          rowCount: resultRows.length,
+          command: extractCommand(op.text)
+        });
+      });
+      return promise;
+    }));
     return results;
   } catch (error) {
-    try {
-      await query("ROLLBACK");
-    } catch (rollbackError) {
-      console.error("[DB] Rollback failed:", rollbackError.message);
-    }
     if (error instanceof DatabaseError) {
       throw new DatabaseError(`Transaction failed: ${error.message}`, DatabaseErrorCode.TRANSACTION_ERROR, { query: error.query, originalError: error });
     }
     throw new DatabaseError(`Transaction failed: ${error.message}`, DatabaseErrorCode.TRANSACTION_ERROR, { originalError: error });
   }
 }
-var DatabaseErrorCode, DatabaseError;
+var DatabaseErrorCode, DatabaseError, cachedSql = null;
 var init_db = __esm(() => {
   DatabaseErrorCode = {
     CONNECTION_ERROR: "CONNECTION_ERROR",
@@ -1413,7 +1418,8 @@ var rateLimitConfigs = {
   admin: { window: "10m", max: 60 },
   notification: { window: "10m", max: 50 },
   general: { window: "10m", max: 100 },
-  registration: { window: "10m", max: 3 }
+  registration: { window: "10m", max: 3 },
+  documents: { window: "10m", max: 20 }
 };
 function getBlockReasonType(decision) {
   if (decision.reason.isRateLimit()) {
@@ -1466,6 +1472,16 @@ function withArcjetProtection(handler, routeType = "general") {
       return;
     }
     if (!ARCJET_KEY) {
+      const isProduction = false;
+      if (isProduction) {
+        console.error("[ARCJET] FATAL: ARCJET_KEY not set in production — rejecting request");
+        res.status(503).json({
+          success: false,
+          error: "Security service unavailable",
+          code: "SECURITY_SERVICE_ERROR"
+        });
+        return;
+      }
       console.warn("[ARCJET] WARNING: Running without Arcjet protection");
       return handler(req, res);
     }

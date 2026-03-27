@@ -280,8 +280,8 @@ async function checkLoginCooldown(emailHash: string): Promise<{ blocked: boolean
        FROM login_attempts
        WHERE email_hash = $1
          AND success = FALSE
-         AND attempted_at > NOW() - INTERVAL '${LOGIN_COOLDOWN_MINUTES} minutes'`,
-      [emailHash]
+         AND attempted_at > NOW() - INTERVAL '1 minute' * $2`,
+      [emailHash, LOGIN_COOLDOWN_MINUTES]
     );
 
     const failCount = parseInt(result.rows[0]?.fail_count || '0', 10);
@@ -755,8 +755,8 @@ async function checkRegistrationRateLimit(ipHash: string): Promise<{ blocked: bo
       `SELECT COUNT(*) AS reg_count, MIN(attempted_at) AS oldest_reg
        FROM login_attempts
        WHERE email_hash = $1
-         AND attempted_at > NOW() - INTERVAL '${REGISTRATION_RATE_WINDOW_MINUTES} minutes'`,
-      [registrationKey(ipHash)]
+         AND attempted_at > NOW() - INTERVAL '1 minute' * $2`,
+      [registrationKey(ipHash), REGISTRATION_RATE_WINDOW_MINUTES]
     );
 
     const regCount = parseInt(result.rows[0]?.reg_count || '0', 10);
