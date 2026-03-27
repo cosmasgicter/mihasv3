@@ -1,27 +1,16 @@
 import { createRequire } from "node:module";
-var __create = Object.create;
-var __getProtoOf = Object.getPrototypeOf;
 var __defProp = Object.defineProperty;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __toESM = (mod, isNodeMode, target) => {
-  target = mod != null ? __create(__getProtoOf(mod)) : {};
-  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
-  for (let key of __getOwnPropNames(mod))
-    if (!__hasOwnProp.call(to, key))
-      __defProp(to, key, {
-        get: () => mod[key],
-        enumerable: true
-      });
-  return to;
-};
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: (newValue) => all[name] = () => newValue
+      set: __exportSetter.bind(all, name)
     });
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
@@ -1235,6 +1224,14 @@ async function requireCsrf(req, res) {
   return false;
 }
 
+// lib/securityHeaders.ts
+function setSecurityHeaders(res, options) {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Cache-Control", options?.cacheControl ?? "no-store");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+}
+
 // lib/validation/middleware.ts
 init_errorHandler();
 function formatZodErrors(error) {
@@ -1406,6 +1403,10 @@ var updateSettingBodySchema = z3.object({
   category: optionalSanitizedString,
   is_public: z3.boolean().optional()
 });
+var deleteSettingQuerySchema = z3.object({
+  key: nonEmptySanitizedString.optional(),
+  id: z3.string().uuid("Must be a valid UUID").optional()
+}).refine((data) => data.key !== undefined || data.id !== undefined, { message: "Either key or id must be provided" });
 var importSettingsBodySchema = z3.object({
   settings: z3.array(z3.object({
     key: nonEmptySanitizedString,
@@ -1434,6 +1435,14 @@ var bulkEmailBodySchema = z3.object({
 var bulkStatusBodySchema = z3.object({
   status: applicationStatusSchema,
   applicationIds: z3.array(nonEmptySanitizedString).min(1).max(500)
+});
+
+// lib/validation/common.ts
+import { z as z4 } from "zod";
+var uuidParamSchema = z4.string().uuid("Must be a valid UUID");
+var paginationQuerySchema = z4.object({
+  page: z4.coerce.number().int().positive("Page must be a positive integer").default(1),
+  pageSize: z4.coerce.number().int().positive("Page size must be a positive integer").max(100, "Page size must not exceed 100").default(20)
 });
 
 // lib/auth/permissions.ts
@@ -1612,6 +1621,28 @@ async function getEffectivePermissionsForUser(userId, role) {
 }
 
 // api-src/admin.ts
+var VALID_ACTIONS = [
+  "dashboard",
+  "users",
+  "user-permissions",
+  "settings",
+  "register",
+  "stats",
+  "errors",
+  "bulk-email",
+  "bulk-status",
+  "export-users",
+  "migrate",
+  "set-password",
+  "import-settings",
+  "reset-settings",
+  "eligibility-rules",
+  "update-role",
+  "eligibility-assessments",
+  "audit-log",
+  "appeals",
+  "schema"
+];
 function splitFullName(fullName) {
   const normalized = fullName.trim().replace(/\s+/g, " ");
   const [firstName, ...rest] = normalized.split(" ");
@@ -1639,6 +1670,7 @@ function samePermissions(left, right) {
 async function handler(req, res) {
   if (handleCors(req, res))
     return;
+  setSecurityHeaders(res);
   const envResult = validateServerEnv();
   if (!envResult.valid) {
     const details = envResult.errors.map((e) => e.message).join("; ");
@@ -1652,6 +1684,10 @@ async function handler(req, res) {
   if (await requireCsrf(req, res))
     return;
   const action = req.query.action || "dashboard";
+  if (!VALID_ACTIONS.includes(action)) {
+    sendError(res, `Invalid action '${action}'. Valid actions: ${VALID_ACTIONS.join(", ")}`, HttpStatus.BAD_REQUEST);
+    return;
+  }
   try {
     if (action === "migrate") {
       const MIGRATE_SECRET = process.env.MIGRATE_SECRET;
@@ -1792,7 +1828,7 @@ async function handler(req, res) {
         await handleGetSchema(req, res);
         return;
       default:
-        sendError(res, "Invalid action. Valid actions: dashboard, users, user-permissions, settings, register, migrate, stats, errors, bulk-email, bulk-status, export-users, set-password, import-settings, reset-settings, eligibility-rules, eligibility-assessments, audit-log, appeals, schema", HttpStatus.BAD_REQUEST);
+        sendError(res, `Invalid action '${action}'.`, HttpStatus.BAD_REQUEST);
         return;
     }
   } catch (error) {
@@ -1867,7 +1903,10 @@ async function handleCreateSetting(req, res, auth) {
   }
 }
 async function handleUpdateSetting(req, res, auth) {
-  const body = req.body;
+  const parsed = validateBody(updateSettingBodySchema, req, res);
+  if (!parsed)
+    return;
+  const body = parsed;
   if (!body.id && !body.key) {
     sendError(res, "Either id or key is required to update a setting", HttpStatus.BAD_REQUEST);
     return;
@@ -1915,23 +1954,30 @@ async function handleUpdateSetting(req, res, auth) {
   }
 }
 async function handleDeleteSetting(req, res) {
-  const body = req.body;
-  const queryId = req.query.id;
-  const queryKey = req.query.key;
-  const id = body.id || queryId;
-  const settingKey = body.key || queryKey;
-  if (!id && !settingKey) {
-    sendError(res, "Either id or key is required to delete a setting", HttpStatus.BAD_REQUEST);
+  const merged = {
+    ...req.body || {},
+    id: req.body?.id || req.query.id,
+    key: req.body?.key || req.query.key
+  };
+  const result = deleteSettingQuerySchema.safeParse(merged);
+  if (!result.success) {
+    const fieldErrors = {};
+    for (const issue of result.error.issues) {
+      const path = issue.path.join(".") || "_root";
+      fieldErrors[path] = issue.message;
+    }
+    sendError(res, result.error.issues[0]?.message || "Either key or id must be provided", HttpStatus.BAD_REQUEST);
     return;
   }
+  const { id, key: settingKey } = result.data;
   try {
-    let result;
+    let result2;
     if (id) {
-      result = await query("DELETE FROM settings WHERE id = $1", [id]);
+      result2 = await query("DELETE FROM settings WHERE id = $1", [id]);
     } else {
-      result = await query("DELETE FROM settings WHERE key = $1", [settingKey]);
+      result2 = await query("DELETE FROM settings WHERE key = $1", [settingKey]);
     }
-    if (result.rowCount === 0) {
+    if (result2.rowCount === 0) {
       sendError(res, "Setting not found", HttpStatus.NOT_FOUND);
       return;
     }
@@ -2264,6 +2310,11 @@ async function handleDeactivateUser(req, res, auth) {
   const userId = req.query.userId?.trim();
   if (!userId) {
     sendError(res, "userId is required", HttpStatus.BAD_REQUEST);
+    return;
+  }
+  const uuidResult = uuidParamSchema.safeParse(userId);
+  if (!uuidResult.success) {
+    sendError(res, "userId must be a valid UUID", HttpStatus.BAD_REQUEST);
     return;
   }
   if (userId === auth.userId) {
@@ -2722,7 +2773,7 @@ async function handleMigrate(req, res) {
     return;
   }
   const migrationQueries = [
-    { id: "V2_001_MIGRATION_HISTORY", sql: `CREATE TABLE IF NOT EXISTS migration_history (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT UNIQUE NOT NULL, executed_at TIMESTAMPTZ DEFAULT NOW())` },
+    { id: "V2_001_MIGRATION_HISTORY", sql: `CREATE TABLE IF NOT EXISTS migration_history (id SERIAL PRIMARY KEY, migration_name TEXT UNIQUE NOT NULL, applied_at TIMESTAMPTZ DEFAULT NOW())` },
     { id: "V2_002_CSRF_TOKENS", sql: `CREATE TABLE IF NOT EXISTS csrf_tokens (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID NOT NULL REFERENCES profiles(id), token_hash VARCHAR(64) NOT NULL, expires_at TIMESTAMPTZ NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id))` },
     { id: "V2_003_PWD_RESET_TOKENS", sql: `CREATE TABLE IF NOT EXISTS password_reset_tokens (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID NOT NULL REFERENCES profiles(id), token_hash VARCHAR(64) NOT NULL, expires_at TIMESTAMPTZ NOT NULL, used_at TIMESTAMPTZ, created_at TIMESTAMPTZ DEFAULT NOW())` },
     { id: "V2_004_LOGIN_ATTEMPTS", sql: `CREATE TABLE IF NOT EXISTS login_attempts (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), email_hash VARCHAR(64) NOT NULL, ip_hash VARCHAR(64) NOT NULL, attempted_at TIMESTAMPTZ DEFAULT NOW(), success BOOLEAN NOT NULL)` },
@@ -2808,16 +2859,16 @@ async function handleMigrate(req, res) {
         await query(m.sql);
         continue;
       }
-      const check = await query("SELECT 1 FROM migration_history WHERE name = $1", [m.id]);
+      const check = await query("SELECT 1 FROM migration_history WHERE migration_name = $1", [m.id]);
       if (check.rowCount > 0)
         continue;
       await query(m.sql);
-      await query("INSERT INTO migration_history (name) VALUES ($1)", [m.id]);
+      await query("INSERT INTO migration_history (migration_name) VALUES ($1)", [m.id]);
       migrations.push(m.id);
     } catch (e) {
       const errMessage = e instanceof Error ? e.message : String(e);
       if (errMessage.includes("already exists")) {
-        await query("INSERT INTO migration_history (name) VALUES ($1) ON CONFLICT (name) DO NOTHING", [m.id]);
+        await query("INSERT INTO migration_history (migration_name) VALUES ($1) ON CONFLICT (migration_name) DO NOTHING", [m.id]);
         continue;
       }
       errors.push(`${m.id}: ${errMessage}`);

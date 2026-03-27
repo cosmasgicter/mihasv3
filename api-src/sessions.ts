@@ -8,6 +8,7 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { handleCors } from "../lib/cors";
+import { setSecurityHeaders } from "../lib/securityHeaders";
 import { withArcjetProtection } from "../lib/arcjet";
 import { handleError, sendSuccess, sendError, HttpStatus } from "../lib/errorHandler";
 import { requireAuth, AuthenticationError, type AuthContext } from "../lib/auth/middleware";
@@ -28,11 +29,17 @@ import { validateBody } from '../lib/validation/middleware';
 import { revokeSessionBodySchema, revokeAllSessionsBodySchema } from '../lib/validation/sessions';
 import { logAuditEvent } from '../lib/auditLogger';
 
+// Valid actions for this endpoint (Req 7.1, 7.2)
+const VALID_ACTIONS = ['list', 'track', 'revoke', 'revoke-all', 'connect', 'poll'] as const;
+
 /**
  * Sessions API Handler
  */
 async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return;
+
+  // Security headers (Req 8.1, 8.2, 8.3, 8.4)
+  setSecurityHeaders(res);
 
   // Validate required environment variables (Req 25.3)
   const envResult = validateServerEnv();
@@ -45,6 +52,11 @@ async function handler(req: VercelRequest, res: VercelResponse) {
   if (await requireCsrf(req, res)) return;
 
   const action = req.query.action as string;
+
+  // Action allowlist validation (Req 7.1, 7.2)
+  if (!action || !VALID_ACTIONS.includes(action as typeof VALID_ACTIONS[number])) {
+    return sendError(res, `Invalid action: "${action || ''}". Valid actions: ${VALID_ACTIONS.join(', ')}`, HttpStatus.BAD_REQUEST);
+  }
 
   try {
     // Require authentication for all session actions (Req 9.1)
@@ -74,8 +86,6 @@ async function handler(req: VercelRequest, res: VercelResponse) {
         return await handleConnect(req, res, user.userId);
       case 'poll':
         return await handlePoll(req, res, user.userId);
-      default:
-        return sendError(res, 'Invalid action. Use: list, track, revoke, revoke-all, connect, poll', HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     return handleError(res, error, 'sessions');

@@ -9,7 +9,8 @@ import { MANDATORY_EMAIL_TYPES, isMandatoryEmailType, getEmailMapping } from '..
 import { renderEmailTemplate } from '../lib/emailTemplates';
 import { requireCsrf } from '../lib/csrf';
 import { validateBody } from '../lib/validation/middleware';
-import { markReadBodySchema, deleteNotificationBodySchema, createNotificationBodySchema, sendNotificationBodySchema } from '../lib/validation/notifications';
+import { markReadBodySchema, deleteNotificationBodySchema, createNotificationBodySchema, sendNotificationBodySchema, checkDuplicateBodySchema, preferencesBodySchema } from '../lib/validation/notifications';
+import { setSecurityHeaders } from '../lib/securityHeaders';
 import { logAuditEvent } from '../lib/auditLogger';
 import { validateServerEnv } from '../lib/envValidator';
 import { isSafeActionUrl } from '../src/lib/urlSafety';
@@ -35,6 +36,24 @@ export function generateIdempotencyKey(
 }
 
 /**
+ * Allowlist of valid notification actions derived from the handler dispatch.
+ * Requirement 1.4, 7.1, 7.2: Validate action query parameter against explicit allowlist.
+ */
+const VALID_ACTIONS = [
+  'preferences',
+  'history',
+  'list',
+  'mark-read',
+  'mark-all-read',
+  'delete',
+  'check-duplicate',
+  'create',
+  'send',
+  'push-subscribe',
+  'push-send',
+] as const;
+
+/**
  * Consolidated Notifications API
  * 
  * MIGRATED: Uses custom auth middleware and database abstraction
@@ -49,6 +68,9 @@ export function generateIdempotencyKey(
  */
 async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   if (handleCors(req, res)) return;
+
+  // Security headers (Req 8.1, 8.2, 8.3, 8.4)
+  setSecurityHeaders(res);
 
   // Validate required environment variables (Req 25.3)
   const envResult = validateServerEnv();
@@ -77,6 +99,15 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
   }
 
   const action = req.query.action as string || 'preferences';
+
+  // Action allowlist validation (Req 1.4, 7.1, 7.2)
+  if (!VALID_ACTIONS.includes(action as typeof VALID_ACTIONS[number])) {
+    return sendError(
+      res,
+      `Invalid action '${action}'. Valid actions: ${VALID_ACTIONS.join(', ')}`,
+      HttpStatus.BAD_REQUEST,
+    );
+  }
 
   try {
     if (action === 'preferences') {
@@ -112,7 +143,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
     if (action === 'push-send') {
       return await handlePushSend(req, res, user);
     }
-    return sendError(res, 'Invalid action', HttpStatus.BAD_REQUEST);
+    // All valid actions handled above; allowlist validation prevents reaching here
   } catch (error) {
     if (error instanceof AuthorizationError) {
       return sendError(res, error.message, error.statusCode, error.code);
@@ -131,7 +162,10 @@ async function handlePreferences(req: VercelRequest, res: VercelResponse, user: 
     }
 
     if (req.method === 'POST') {
-      const { sms_enabled, application_updates, payment_reminders, interview_reminders, marketing_emails, quiet_hours_start, quiet_hours_end } = req.body;
+      const parsed = validateBody(preferencesBodySchema, req, res);
+      if (!parsed) return;
+
+      const { sms_enabled, application_updates, payment_reminders, interview_reminders, marketing_emails, quiet_hours_start, quiet_hours_end } = parsed;
 
       const upsertQ = {
         text: `
@@ -472,12 +506,11 @@ async function handleCheckDuplicate(req: VercelRequest, res: VercelResponse, use
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const { user_id, title, message, type, entity_type, entity_id } = req.body || {};
-  const targetUserId = user_id || user.userId;
+  const parsed = validateBody(checkDuplicateBodySchema, req, res);
+  if (!parsed) return;
 
-  if (!targetUserId || !title || !message) {
-    return sendError(res, 'user_id, title, and message are required', HttpStatus.BAD_REQUEST);
-  }
+  const { user_id, title, message, type, entity_type, entity_id } = parsed;
+  const targetUserId = user_id || user.userId;
 
   const isAdmin = [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMISSIONS_OFFICER].includes(user.role);
   if (targetUserId !== user.userId && !isAdmin) {

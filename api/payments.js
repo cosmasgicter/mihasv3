@@ -1,27 +1,16 @@
 import { createRequire } from "node:module";
-var __create = Object.create;
-var __getProtoOf = Object.getPrototypeOf;
 var __defProp = Object.defineProperty;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __toESM = (mod, isNodeMode, target) => {
-  target = mod != null ? __create(__getProtoOf(mod)) : {};
-  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
-  for (let key of __getOwnPropNames(mod))
-    if (!__hasOwnProp.call(to, key))
-      __defProp(to, key, {
-        get: () => mod[key],
-        enumerable: true
-      });
-  return to;
-};
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: (newValue) => all[name] = () => newValue
+      set: __exportSetter.bind(all, name)
     });
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
@@ -805,8 +794,17 @@ function handleCors(req, res) {
   return false;
 }
 
-// api-src/payments.ts
+// lib/securityHeaders.ts
+function setSecurityHeaders(res, options) {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Cache-Control", options?.cacheControl ?? "no-store");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+}
+
+// lib/csrf.ts
 init_db();
+import { randomBytes, createHash } from "crypto";
 
 // lib/auth/jwt.ts
 import { SignJWT, jwtVerify } from "jose";
@@ -959,6 +957,24 @@ function extractToken(req) {
   }
   return null;
 }
+async function getAuthUser(req) {
+  const token = extractToken(req);
+  if (!token) {
+    return null;
+  }
+  try {
+    const payload = await verifyAccessToken(token);
+    const sessionValid = await validateTrackedSession(payload);
+    if (!sessionValid) {
+      return null;
+    }
+    return mapPayloadToAuthContext(payload);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.log("[AUTH] Token verification failed:", errorMessage);
+    return null;
+  }
+}
 async function requireAuth(req) {
   const token = extractToken(req);
   if (!token) {
@@ -1006,6 +1022,46 @@ async function validateTrackedSession(payload) {
     return false;
   }
 }
+
+// lib/csrf.ts
+init_errorHandler();
+var TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
+function hashToken(raw) {
+  return createHash("sha256").update(raw).digest("hex");
+}
+async function validateToken(userId, raw) {
+  if (!raw || !userId)
+    return false;
+  const hash = hashToken(raw);
+  const result = await query(`SELECT id FROM csrf_tokens
+     WHERE user_id = $1 AND token_hash = $2 AND expires_at > NOW()
+     LIMIT 1`, [userId, hash]);
+  return result.rows.length > 0;
+}
+async function requireCsrf(req, res) {
+  const method = (req.method || "").toUpperCase();
+  if (!["POST", "PATCH", "PUT", "DELETE"].includes(method)) {
+    return false;
+  }
+  const user = await getAuthUser(req);
+  if (!user) {
+    return false;
+  }
+  const token = req.headers["x-csrf-token"];
+  if (!token) {
+    sendError(res, "CSRF token required", 403, "CSRF_VALIDATION_FAILED");
+    return true;
+  }
+  const valid = await validateToken(user.userId, token);
+  if (!valid) {
+    sendError(res, "Invalid CSRF token", 403, "CSRF_VALIDATION_FAILED");
+    return true;
+  }
+  return false;
+}
+
+// api-src/payments.ts
+init_db();
 
 // lib/auth/ownership.ts
 init_db();
@@ -1202,8 +1258,13 @@ function validateServerEnv() {
 }
 
 // api-src/payments.ts
+var VALID_ACTIONS = ["receipt"];
 async function handler(req, res) {
   if (handleCors(req, res))
+    return;
+  setSecurityHeaders(res);
+  const csrfBlocked = await requireCsrf(req, res);
+  if (csrfBlocked)
     return;
   const envResult = validateServerEnv();
   if (!envResult.valid) {
@@ -1216,6 +1277,10 @@ async function handler(req, res) {
   if (req.method !== "GET") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
   }
+  const action = req.query.action || "receipt";
+  if (!VALID_ACTIONS.includes(action)) {
+    return sendError(res, `Invalid action: "${action}". Valid actions: ${VALID_ACTIONS.join(", ")}`, HttpStatus.BAD_REQUEST);
+  }
   let user;
   try {
     user = await requireAuth(req);
@@ -1226,7 +1291,6 @@ async function handler(req, res) {
     throw error;
   }
   const isAdmin2 = isAdmin(user.role);
-  const action = req.query.action || "receipt";
   try {
     if (action === "receipt") {
       return await handleReceipt(req, res, user.userId, isAdmin2);

@@ -1,6 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sendSuccess, sendError, HttpStatus, logErrorAuditEvent } from '../lib/errorHandler';
 import { validateServerEnv } from '../lib/envValidator';
+import { handleCors } from '../lib/cors';
+import { setSecurityHeaders } from '../lib/securityHeaders';
+import { withArcjetProtection } from '../lib/arcjet';
+
+/**
+ * Valid actions for the health endpoint.
+ * Used for allowlist validation (Req 7.1, 7.2).
+ */
+const VALID_ACTIONS = ['ping', 'db', 'env', 'errors'] as const;
 
 /**
  * Health Check API - Simplified version with inline db code
@@ -9,23 +18,29 @@ import { validateServerEnv } from '../lib/envValidator';
  * GET /api/health?action=ping - Minimal ping/pong response
  * GET /api/health?action=db - Check database connectivity
  * GET /api/health?action=env - Check environment variables
+ * GET /api/health?action=errors - Check recent errors from audit logs
  */
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
-  // Set headers directly
-  res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Access-Control-Allow-Origin', '*');
+async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+  // CORS handling
+  if (handleCors(req, res)) return;
+
+  // Security headers (Req 8.1, 8.2, 8.3, 8.4, 8.7)
+  setSecurityHeaders(res);
+
+  // Narrow CORS methods to GET, OPTIONS only (Req 8.5)
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end();
-  }
-
+  // Method guard — health endpoint only serves GET
   if (req.method !== 'GET') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
   }
 
-  const action = req.query.action as string;
+  const action = req.query.action as string | undefined;
+
+  // Action allowlist validation (Req 7.1, 7.2)
+  if (action && !VALID_ACTIONS.includes(action as typeof VALID_ACTIONS[number])) {
+    return sendError(res, 'Invalid action. Valid actions: ping, db, env, errors', HttpStatus.BAD_REQUEST);
+  }
 
   try {
     // Ping action (minimal response for uptime checks)
@@ -58,7 +73,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       return sendError(res, `Server misconfiguration: ${details}`, HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
     }
 
-    // Basic health check
+    // Basic health check (default — no action)
     return sendSuccess(res, {
       status: 'ok',
       timestamp: new Date().toISOString(),
@@ -72,12 +87,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   }
 }
 
+
 /**
  * Check database health and connectivity
  */
 async function handleDatabaseHealth(res: VercelResponse): Promise<void> {
   const startTime = Date.now();
-  const checks: Record<string, { status: string; latency?: number; error?: string }> = {};
+  const checks: Record<string, any> = {};
 
   try {
     // Dynamic import for Neon serverless driver
@@ -85,8 +101,7 @@ async function handleDatabaseHealth(res: VercelResponse): Promise<void> {
     const connectionString = process.env.DATABASE_URL;
     
     if (!connectionString) {
-      sendError(res, 'DATABASE_URL not configured', HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
-      return;
+      return sendError(res, 'DATABASE_URL not configured', HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
     }
 
     const sql = neon(connectionString);
@@ -145,9 +160,9 @@ async function handleDatabaseHealth(res: VercelResponse): Promise<void> {
     const overallStatus = hasErrors ? 'unhealthy' : allOk ? 'healthy' : 'degraded';
 
     if (hasErrors) {
-      sendError(res, `Database health: ${overallStatus}`, HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
+      return sendError(res, `Database health: ${overallStatus}`, HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
     } else {
-      sendSuccess(res, {
+      return sendSuccess(res, {
         status: overallStatus,
         databaseType: 'neon',
         checks,
@@ -157,7 +172,7 @@ async function handleDatabaseHealth(res: VercelResponse): Promise<void> {
     }
   } catch (error) {
     logErrorAuditEvent('health/db', error).catch(() => {});
-    sendError(res, 'Database health check failed', HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
+    return sendError(res, 'Database health check failed', HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
   }
 }
 
@@ -206,8 +221,7 @@ async function handleErrorsCheck(res: VercelResponse): Promise<void> {
     const { neon } = await import('@neondatabase/serverless');
     const connectionString = process.env.DATABASE_URL;
     if (!connectionString) {
-      sendError(res, 'DATABASE_URL not configured', HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
-      return;
+      return sendError(res, 'DATABASE_URL not configured', HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
     }
     const sql = neon(connectionString);
     const logs = await sql`
@@ -217,8 +231,11 @@ async function handleErrorsCheck(res: VercelResponse): Promise<void> {
       ORDER BY created_at DESC
       LIMIT 10
     `;
-    sendSuccess(res, { logs });
+    return sendSuccess(res, { logs });
   } catch (error) {
-    sendError(res, 'Failed to fetch errors: ' + (error instanceof Error ? error.message : String(error)), HttpStatus.INTERNAL_SERVER_ERROR);
+    return sendError(res, 'Failed to fetch error logs', HttpStatus.INTERNAL_SERVER_ERROR, 'INTERNAL_ERROR');
   }
 }
+
+// Export with Arcjet protection (Req 3.2)
+export default withArcjetProtection(handler, 'general');

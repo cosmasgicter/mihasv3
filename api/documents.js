@@ -1,27 +1,16 @@
 import { createRequire } from "node:module";
-var __create = Object.create;
-var __getProtoOf = Object.getPrototypeOf;
 var __defProp = Object.defineProperty;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __toESM = (mod, isNodeMode, target) => {
-  target = mod != null ? __create(__getProtoOf(mod)) : {};
-  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
-  for (let key of __getOwnPropNames(mod))
-    if (!__hasOwnProp.call(to, key))
-      __defProp(to, key, {
-        get: () => mod[key],
-        enumerable: true
-      });
-  return to;
-};
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: (newValue) => all[name] = () => newValue
+      set: __exportSetter.bind(all, name)
     });
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
@@ -1554,13 +1543,23 @@ var signedUrlBodySchema = z2.object({
   documentId: nonEmptySanitizedString
 });
 var registerSlipBodySchema = z2.object({
-  applicationId: nonEmptySanitizedString,
-  fileData: z2.string().min(1, "File data is required"),
-  fileName: optionalSanitizedString
+  applicationNumber: nonEmptySanitizedString,
+  path: nonEmptySanitizedString,
+  publicUrl: optionalSanitizedString,
+  documentName: optionalSanitizedString
 });
 var resolveReferenceBodySchema = z2.object({
   reference: nonEmptySanitizedString
 });
+var documentPathSchema = z2.string().trim().refine((s) => !s.includes("../") && !s.includes("..\\") && !s.includes("%00") && !s.includes("\x00"), "Path contains disallowed traversal or null byte patterns");
+
+// lib/securityHeaders.ts
+function setSecurityHeaders(res, options) {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Cache-Control", options?.cacheControl ?? "no-store");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+}
 
 // api-src/documents.ts
 init_auditLogger();
@@ -1693,9 +1692,15 @@ var MAX_FILE_SIZE = 10 * 1024 * 1024;
 var MAX_EXTRACT_RESPONSE_SIZE = 20 * 1024 * 1024;
 var FETCH_TIMEOUT_MS = 1e4;
 var ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
+var VALID_ACTIONS = ["upload", "extract", "download", "delete", "signed-url", "register-slip", "resolve-reference"];
 async function handler(req, res) {
   if (handleCors(req, res))
     return;
+  setSecurityHeaders(res);
+  const action = req.query.action || "upload";
+  if (!VALID_ACTIONS.includes(action)) {
+    return sendError(res, `Invalid action. Valid actions: ${VALID_ACTIONS.join(", ")}`, HttpStatus.BAD_REQUEST);
+  }
   const envResult = validateServerEnv();
   if (!envResult.valid) {
     const details = envResult.errors.map((e) => e.message).join("; ");
@@ -1716,7 +1721,6 @@ async function handler(req, res) {
     throw error;
   }
   const isReviewerOnly = user.role === "reviewer";
-  const action = req.query.action || "upload";
   try {
     switch (action) {
       case "upload":
@@ -1767,7 +1771,7 @@ async function handler(req, res) {
         }
         return await handleResolveReference(req, res, user.userId, user.role);
       default:
-        return sendError(res, "Invalid action. Valid: upload, extract, download, delete, signed-url, register-slip, resolve-reference", HttpStatus.BAD_REQUEST);
+        return sendError(res, `Invalid action. Valid actions: ${VALID_ACTIONS.join(", ")}`, HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     return handleError(res, error, "documents");
@@ -1791,10 +1795,10 @@ function normalizeLegacySupabasePath(reference) {
   }
 }
 async function handleRegisterSlip(req, res, authUserId, userRole) {
-  const { applicationNumber, path, publicUrl, documentName } = req.body || {};
-  if (!applicationNumber || !path) {
-    return sendError(res, "applicationNumber and path are required", HttpStatus.BAD_REQUEST);
-  }
+  const parsed = validateBody(registerSlipBodySchema, req, res);
+  if (!parsed)
+    return;
+  const { applicationNumber, path, publicUrl, documentName } = parsed;
   const applicationResult = await query(`SELECT id, user_id FROM applications WHERE application_number = $1 LIMIT 1`, [applicationNumber]);
   const application = applicationResult.rows[0];
   if (!application) {
@@ -1922,6 +1926,10 @@ async function handleDownload(req, res, authUserId, userRole) {
   if (!path) {
     return sendError(res, "Path is required", HttpStatus.BAD_REQUEST);
   }
+  const pathResult = documentPathSchema.safeParse(path);
+  if (!pathResult.success) {
+    return sendError(res, "Invalid document path", HttpStatus.BAD_REQUEST);
+  }
   if (applicationId) {
     const canAccess = await checkDocumentUploadAccess(authUserId, applicationId, userRole);
     if (!canAccess) {
@@ -1948,6 +1956,10 @@ async function handleDelete(req, res, authUserId, userRole) {
   const applicationId = req.query.applicationId || req.body?.applicationId;
   if (!path) {
     return sendError(res, "Path is required", HttpStatus.BAD_REQUEST);
+  }
+  const pathResult = documentPathSchema.safeParse(path);
+  if (!pathResult.success) {
+    return sendError(res, "Invalid document path", HttpStatus.BAD_REQUEST);
   }
   if (!isAdmin(userRole)) {
     if (!path.startsWith(authUserId)) {
@@ -1987,6 +1999,10 @@ async function handleSignedUrl(req, res, authUserId, userRole) {
   const expiresIn = parseInt(req.query.expiresIn || req.body?.expiresIn || "3600", 10);
   if (!path) {
     return sendError(res, "Path is required", HttpStatus.BAD_REQUEST);
+  }
+  const pathResult = documentPathSchema.safeParse(path);
+  if (!pathResult.success) {
+    return sendError(res, "Invalid document path", HttpStatus.BAD_REQUEST);
   }
   if (applicationId) {
     const canAccess = await checkDocumentUploadAccess(authUserId, applicationId, userRole);

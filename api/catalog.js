@@ -1,27 +1,16 @@
 import { createRequire } from "node:module";
-var __create = Object.create;
-var __getProtoOf = Object.getPrototypeOf;
 var __defProp = Object.defineProperty;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __toESM = (mod, isNodeMode, target) => {
-  target = mod != null ? __create(__getProtoOf(mod)) : {};
-  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
-  for (let key of __getOwnPropNames(mod))
-    if (!__hasOwnProp.call(to, key))
-      __defProp(to, key, {
-        get: () => mod[key],
-        enumerable: true
-      });
-  return to;
-};
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: (newValue) => all[name] = () => newValue
+      set: __exportSetter.bind(all, name)
     });
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
@@ -889,6 +878,14 @@ function handleCors(req, res) {
   return false;
 }
 
+// lib/securityHeaders.ts
+function setSecurityHeaders(res, options) {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Cache-Control", options?.cacheControl ?? "no-store");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+}
+
 // api-src/catalog.ts
 init_db();
 init_queries();
@@ -1299,34 +1296,48 @@ function validateServerEnv() {
   return { valid: errors.length === 0, errors };
 }
 
-// lib/validation/sanitize.ts
+// lib/validation/common.ts
 import { z } from "zod";
-var sanitizedString = z.string().transform((s) => s.trim()).pipe(z.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed"));
-var optionalSanitizedString = z.string().transform((s) => s.trim()).pipe(z.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed")).optional();
-var nonEmptySanitizedString = z.string().transform((s) => s.trim()).pipe(z.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed").refine((s) => s.length > 0, "Must not be empty"));
-// lib/validation/zambian.ts
+var uuidParamSchema = z.string().uuid("Must be a valid UUID");
+var paginationQuerySchema = z.object({
+  page: z.coerce.number().int().positive("Page must be a positive integer").default(1),
+  pageSize: z.coerce.number().int().positive("Page size must be a positive integer").max(100, "Page size must not exceed 100").default(20)
+});
+// lib/validation/bootstrap.ts
 import { z as z2 } from "zod";
-var nrcSchema = z2.string().transform((s) => s.trim()).pipe(z2.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed").refine((s) => /^\d{6}\/\d{2}\/\d$/.test(s), "Invalid NRC format. Expected: 123456/78/9"));
-var zambianPhoneSchema = z2.string().transform((s) => s.trim()).pipe(z2.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed").refine((s) => /^\+260\d{9}$/.test(s), "Must be +260 followed by 9 digits"));
-var eczGradeSchema = z2.number().int("Grade must be a whole number").min(1, "Grade minimum is 1").max(9, "Grade maximum is 9");
-var optionalNrcSchema = z2.union([
-  z2.literal(""),
+var bootstrapBodySchema = z2.object({
+  email: z2.string().trim().email("Invalid email"),
+  password: z2.string().trim().min(1, "Password is required"),
+  secret: z2.string().trim().optional()
+});
+// lib/validation/sanitize.ts
+import { z as z3 } from "zod";
+var sanitizedString = z3.string().transform((s) => s.trim()).pipe(z3.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed"));
+var optionalSanitizedString = z3.string().transform((s) => s.trim()).pipe(z3.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed")).optional();
+var nonEmptySanitizedString = z3.string().transform((s) => s.trim()).pipe(z3.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed").refine((s) => s.length > 0, "Must not be empty"));
+// lib/validation/zambian.ts
+import { z as z4 } from "zod";
+var nrcSchema = z4.string().transform((s) => s.trim()).pipe(z4.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed").refine((s) => /^\d{6}\/\d{2}\/\d$/.test(s), "Invalid NRC format. Expected: 123456/78/9"));
+var zambianPhoneSchema = z4.string().transform((s) => s.trim()).pipe(z4.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed").refine((s) => /^\+260\d{9}$/.test(s), "Must be +260 followed by 9 digits"));
+var eczGradeSchema = z4.number().int("Grade must be a whole number").min(1, "Grade minimum is 1").max(9, "Grade maximum is 9");
+var optionalNrcSchema = z4.union([
+  z4.literal(""),
   nrcSchema
 ]).optional();
-var optionalZambianPhoneSchema = z2.union([
-  z2.literal(""),
+var optionalZambianPhoneSchema = z4.union([
+  z4.literal(""),
   zambianPhoneSchema
 ]).optional();
 var optionalEczGradeSchema = eczGradeSchema.optional();
 // lib/validation/auth.ts
-import { z as z3 } from "zod";
-var emailSchema = z3.string().transform((s) => s.trim()).pipe(z3.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed").refine((s) => z3.string().email().safeParse(s).success, "Invalid email format"));
-var passwordSchema = z3.string().min(8, "Password must be at least 8 characters").refine((s) => /[A-Z]/.test(s), "Password must contain at least one uppercase letter").refine((s) => /[a-z]/.test(s), "Password must contain at least one lowercase letter").refine((s) => /\d/.test(s), "Password must contain at least one digit");
-var loginBodySchema = z3.object({
+import { z as z5 } from "zod";
+var emailSchema = z5.string().transform((s) => s.trim()).pipe(z5.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed").refine((s) => z5.string().email().safeParse(s).success, "Invalid email format"));
+var passwordSchema = z5.string().min(8, "Password must be at least 8 characters").refine((s) => /[A-Z]/.test(s), "Password must contain at least one uppercase letter").refine((s) => /[a-z]/.test(s), "Password must contain at least one lowercase letter").refine((s) => /\d/.test(s), "Password must contain at least one digit");
+var loginBodySchema = z5.object({
   email: emailSchema,
-  password: z3.string().min(1, "Password is required")
+  password: z5.string().min(1, "Password is required")
 });
-var registerBodySchema = z3.object({
+var registerBodySchema = z5.object({
   email: emailSchema,
   password: passwordSchema,
   firstName: nonEmptySanitizedString,
@@ -1340,14 +1351,14 @@ var registerBodySchema = z3.object({
   next_of_kin_name: optionalSanitizedString,
   next_of_kin_phone: optionalSanitizedString
 });
-var passwordResetRequestBodySchema = z3.object({
+var passwordResetRequestBodySchema = z5.object({
   email: emailSchema
 });
-var passwordResetBodySchema = z3.object({
-  token: z3.string().min(1, "Token is required"),
+var passwordResetBodySchema = z5.object({
+  token: z5.string().min(1, "Token is required"),
   newPassword: passwordSchema
 });
-var profileUpdateBodySchema = z3.object({
+var profileUpdateBodySchema = z5.object({
   full_name: optionalSanitizedString,
   first_name: optionalSanitizedString,
   last_name: optionalSanitizedString,
@@ -1363,13 +1374,13 @@ var profileUpdateBodySchema = z3.object({
   next_of_kin_name: optionalSanitizedString,
   next_of_kin_phone: optionalSanitizedString
 }).partial();
-var checkEmailQuerySchema = z3.object({
-  action: z3.literal("check-email"),
+var checkEmailQuerySchema = z5.object({
+  action: z5.literal("check-email"),
   email: emailSchema
 });
 // lib/validation/applications.ts
-import { z as z4 } from "zod";
-var applicationStatusSchema = z4.enum([
+import { z as z6 } from "zod";
+var applicationStatusSchema = z6.enum([
   "draft",
   "submitted",
   "under_review",
@@ -1377,10 +1388,10 @@ var applicationStatusSchema = z4.enum([
   "rejected",
   "pending_documents"
 ]);
-var paymentStatusSchema = z4.enum(["pending_review", "verified", "rejected"]);
-var interviewModeSchema = z4.enum(["in-person", "in_person", "virtual", "phone"]);
+var paymentStatusSchema = z6.enum(["pending_review", "verified", "rejected"]);
+var interviewModeSchema = z6.enum(["in-person", "in_person", "virtual", "phone"]);
 var institutionSchema = nonEmptySanitizedString;
-var createApplicationBodySchema = z4.object({
+var createApplicationBodySchema = z6.object({
   application_number: nonEmptySanitizedString,
   public_tracking_code: optionalSanitizedString,
   full_name: nonEmptySanitizedString,
@@ -1389,7 +1400,7 @@ var createApplicationBodySchema = z4.object({
   date_of_birth: nonEmptySanitizedString,
   sex: nonEmptySanitizedString,
   phone: nonEmptySanitizedString,
-  email: z4.string().email("Invalid email"),
+  email: z6.string().email("Invalid email"),
   residence_town: nonEmptySanitizedString,
   country: optionalSanitizedString,
   nationality: optionalSanitizedString,
@@ -1400,15 +1411,15 @@ var createApplicationBodySchema = z4.object({
   institution: institutionSchema,
   status: applicationStatusSchema.optional()
 });
-var reviewApplicationBodySchema = z4.object({
+var reviewApplicationBodySchema = z6.object({
   application_id: nonEmptySanitizedString,
   status: applicationStatusSchema,
   notes: optionalSanitizedString
 });
-var updateApplicationBodySchema = z4.object({
+var updateApplicationBodySchema = z6.object({
   full_name: optionalSanitizedString,
   phone: optionalSanitizedString,
-  email: z4.string().email().optional(),
+  email: z6.string().email().optional(),
   residence_town: optionalSanitizedString,
   country: optionalSanitizedString,
   nationality: optionalSanitizedString,
@@ -1417,62 +1428,62 @@ var updateApplicationBodySchema = z4.object({
   next_of_kin_name: optionalSanitizedString,
   next_of_kin_phone: optionalSanitizedString,
   status: applicationStatusSchema.optional(),
-  grades: z4.array(z4.object({
-    subject_id: z4.string(),
+  grades: z6.array(z6.object({
+    subject_id: z6.string(),
     grade: eczGradeSchema
   })).optional()
 }).partial();
-var trackApplicationQuerySchema = z4.object({
-  action: z4.literal("track"),
+var trackApplicationQuerySchema = z6.object({
+  action: z6.literal("track"),
   code: sanitizedString
 });
-var scheduleInterviewBodySchema = z4.object({
+var scheduleInterviewBodySchema = z6.object({
   application_id: nonEmptySanitizedString,
   interview_date: nonEmptySanitizedString,
   interview_time: optionalSanitizedString,
   location: optionalSanitizedString,
   notes: optionalSanitizedString
 });
-var patchUpdateStatusSchema = z4.object({
+var patchUpdateStatusSchema = z6.object({
   status: applicationStatusSchema,
   notes: optionalSanitizedString
 });
-var patchUpdatePaymentStatusSchema = z4.object({
+var patchUpdatePaymentStatusSchema = z6.object({
   paymentStatus: paymentStatusSchema,
   verificationNotes: optionalSanitizedString
 });
-var patchSendNotificationSchema = z4.object({
+var patchSendNotificationSchema = z6.object({
   title: nonEmptySanitizedString,
   message: nonEmptySanitizedString
 });
-var patchScheduleInterviewSchema = z4.object({
+var patchScheduleInterviewSchema = z6.object({
   scheduledAt: nonEmptySanitizedString,
   mode: interviewModeSchema,
   location: nonEmptySanitizedString,
   notes: optionalSanitizedString
 });
-var patchRescheduleInterviewSchema = z4.object({
+var patchRescheduleInterviewSchema = z6.object({
   scheduledAt: nonEmptySanitizedString,
   mode: interviewModeSchema.optional(),
   location: optionalSanitizedString,
   notes: optionalSanitizedString
 });
-var patchCancelInterviewSchema = z4.object({
+var patchCancelInterviewSchema = z6.object({
   notes: optionalSanitizedString
 });
-var patchSyncGradesSchema = z4.object({
-  grades: z4.array(z4.object({
+var patchSyncGradesSchema = z6.object({
+  grades: z6.array(z6.object({
     subject_id: nonEmptySanitizedString,
     grade: eczGradeSchema
   }))
 });
-var patchSaveDraftSchema = z4.object({
-  version: z4.number().int().positive("Version must be a positive integer"),
-  data: z4.record(z4.string(), z4.unknown())
+var patchSaveDraftSchema = z6.object({
+  version: z6.number().int().positive("Version must be a positive integer"),
+  data: z6.record(z6.string(), z6.unknown())
 });
 // lib/validation/admin.ts
-import { z as z5 } from "zod";
-var roleSchema = z5.enum([
+import { z as z7 } from "zod";
+var roleSchema = z7.enum([
   "student",
   "reviewer",
   "admissions_officer",
@@ -1482,7 +1493,7 @@ var roleSchema = z5.enum([
   "admin",
   "super_admin"
 ]);
-var adminRegisterBodySchema = z5.object({
+var adminRegisterBodySchema = z7.object({
   email: emailSchema,
   password: passwordSchema,
   firstName: nonEmptySanitizedString,
@@ -1490,53 +1501,57 @@ var adminRegisterBodySchema = z5.object({
   phone: optionalSanitizedString,
   role: roleSchema.optional()
 });
-var adminSetPasswordBodySchema = z5.object({
+var adminSetPasswordBodySchema = z7.object({
   email: emailSchema,
-  password: z5.string().min(8, "Password must be at least 8 characters")
+  password: z7.string().min(8, "Password must be at least 8 characters")
 });
-var updateRoleBodySchema = z5.object({
+var updateRoleBodySchema = z7.object({
   userId: nonEmptySanitizedString,
   role: roleSchema
 });
-var updateUserBodySchema = z5.object({
+var updateUserBodySchema = z7.object({
   userId: nonEmptySanitizedString,
   email: emailSchema,
   full_name: nonEmptySanitizedString,
   phone: optionalSanitizedString,
   role: roleSchema
 });
-var userPermissionsBodySchema = z5.object({
+var userPermissionsBodySchema = z7.object({
   userId: nonEmptySanitizedString,
-  permissions: z5.array(sanitizedString).optional()
+  permissions: z7.array(sanitizedString).optional()
 });
-var createSettingBodySchema = z5.object({
+var createSettingBodySchema = z7.object({
   key: nonEmptySanitizedString,
-  value: z5.unknown().refine((v) => v !== undefined && v !== null, "Value is required"),
+  value: z7.unknown().refine((v) => v !== undefined && v !== null, "Value is required"),
   description: optionalSanitizedString,
   category: optionalSanitizedString,
-  is_public: z5.boolean().optional()
+  is_public: z7.boolean().optional()
 });
-var updateSettingBodySchema = z5.object({
+var updateSettingBodySchema = z7.object({
   id: nonEmptySanitizedString.optional(),
   key: optionalSanitizedString,
-  value: z5.unknown().optional(),
+  value: z7.unknown().optional(),
   description: optionalSanitizedString,
   category: optionalSanitizedString,
-  is_public: z5.boolean().optional()
+  is_public: z7.boolean().optional()
 });
-var importSettingsBodySchema = z5.object({
-  settings: z5.array(z5.object({
+var deleteSettingQuerySchema = z7.object({
+  key: nonEmptySanitizedString.optional(),
+  id: z7.string().uuid("Must be a valid UUID").optional()
+}).refine((data) => data.key !== undefined || data.id !== undefined, { message: "Either key or id must be provided" });
+var importSettingsBodySchema = z7.object({
+  settings: z7.array(z7.object({
     key: nonEmptySanitizedString,
-    value: z5.unknown(),
+    value: z7.unknown(),
     description: optionalSanitizedString,
     category: optionalSanitizedString,
-    is_public: z5.boolean().optional()
+    is_public: z7.boolean().optional()
   }))
 });
-var migrateBodySchema = z5.object({
+var migrateBodySchema = z7.object({
   secret: optionalSanitizedString
 });
-var applicationStatusSchema2 = z5.enum([
+var applicationStatusSchema2 = z7.enum([
   "draft",
   "submitted",
   "under_review",
@@ -1544,19 +1559,19 @@ var applicationStatusSchema2 = z5.enum([
   "rejected",
   "pending_documents"
 ]);
-var bulkEmailBodySchema = z5.object({
-  subject: z5.string().max(200).transform((s) => s.trim()).pipe(z5.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed").refine((s) => s.length > 0, "Must not be empty")),
-  message: z5.string().max(5000).transform((s) => s.trim()).pipe(z5.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed").refine((s) => s.length > 0, "Must not be empty")),
-  userIds: z5.array(nonEmptySanitizedString).min(1).max(500)
+var bulkEmailBodySchema = z7.object({
+  subject: z7.string().max(200).transform((s) => s.trim()).pipe(z7.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed").refine((s) => s.length > 0, "Must not be empty")),
+  message: z7.string().max(5000).transform((s) => s.trim()).pipe(z7.string().refine((s) => !s.includes("\x00"), "Null bytes not allowed").refine((s) => s.length > 0, "Must not be empty")),
+  userIds: z7.array(nonEmptySanitizedString).min(1).max(500)
 });
-var bulkStatusBodySchema = z5.object({
+var bulkStatusBodySchema = z7.object({
   status: applicationStatusSchema2,
-  applicationIds: z5.array(nonEmptySanitizedString).min(1).max(500)
+  applicationIds: z7.array(nonEmptySanitizedString).min(1).max(500)
 });
 // lib/validation/documents.ts
-import { z as z6 } from "zod";
-var uploadDocumentBodySchema = z6.object({
-  file: z6.string().min(1, "File data is required"),
+import { z as z8 } from "zod";
+var uploadDocumentBodySchema = z8.object({
+  file: z8.string().min(1, "File data is required"),
   fileName: nonEmptySanitizedString,
   fileType: optionalSanitizedString,
   contentType: optionalSanitizedString,
@@ -1565,44 +1580,46 @@ var uploadDocumentBodySchema = z6.object({
   applicationNumber: optionalSanitizedString,
   documentType: optionalSanitizedString
 });
-var extractDocumentBodySchema = z6.object({
-  documentUrl: z6.string().url("Invalid document URL"),
+var extractDocumentBodySchema = z8.object({
+  documentUrl: z8.string().url("Invalid document URL"),
   documentType: optionalSanitizedString,
   applicationId: optionalSanitizedString
 });
-var deleteDocumentBodySchema = z6.object({
+var deleteDocumentBodySchema = z8.object({
   documentId: nonEmptySanitizedString
 });
-var signedUrlBodySchema = z6.object({
+var signedUrlBodySchema = z8.object({
   documentId: nonEmptySanitizedString
 });
-var registerSlipBodySchema = z6.object({
-  applicationId: nonEmptySanitizedString,
-  fileData: z6.string().min(1, "File data is required"),
-  fileName: optionalSanitizedString
+var registerSlipBodySchema = z8.object({
+  applicationNumber: nonEmptySanitizedString,
+  path: nonEmptySanitizedString,
+  publicUrl: optionalSanitizedString,
+  documentName: optionalSanitizedString
 });
-var resolveReferenceBodySchema = z6.object({
+var resolveReferenceBodySchema = z8.object({
   reference: nonEmptySanitizedString
 });
+var documentPathSchema = z8.string().trim().refine((s) => !s.includes("../") && !s.includes("..\\") && !s.includes("%00") && !s.includes("\x00"), "Path contains disallowed traversal or null byte patterns");
 // lib/validation/payments.ts
-import { z as z7 } from "zod";
-var receiptQuerySchema = z7.object({
-  action: z7.literal("receipt"),
+import { z as z9 } from "zod";
+var receiptQuerySchema = z9.object({
+  action: z9.literal("receipt"),
   applicationId: nonEmptySanitizedString
 });
 // lib/validation/catalog.ts
-import { z as z8 } from "zod";
-var numericStringOrNumber = z8.union([z8.string(), z8.number()]);
+import { z as z10 } from "zod";
+var numericStringOrNumber = z10.union([z10.string(), z10.number()]);
 var optionalNumber = numericStringOrNumber.transform((value) => Number(value)).refine((value) => Number.isFinite(value), "Must be a valid number").optional();
-var optionalNullableNumber = z8.union([numericStringOrNumber, z8.null()]).transform((value) => value === null ? null : Number(value)).refine((value) => value === null || Number.isFinite(value), "Must be a valid number").optional();
-var booleanLike = z8.union([z8.boolean(), z8.literal("true"), z8.literal("false")]).transform((value) => value === true || value === "true");
-var catalogTypeQuerySchema = z8.object({
-  type: z8.enum(["programs", "intakes", "subjects", "institutions"]).optional().default("programs")
+var optionalNullableNumber = z10.union([numericStringOrNumber, z10.null()]).transform((value) => value === null ? null : Number(value)).refine((value) => value === null || Number.isFinite(value), "Must be a valid number").optional();
+var booleanLike = z10.union([z10.boolean(), z10.literal("true"), z10.literal("false")]).transform((value) => value === true || value === "true");
+var catalogTypeQuerySchema = z10.object({
+  type: z10.enum(["programs", "intakes", "subjects", "institutions"]).optional().default("programs")
 });
-var deleteCatalogEntityQuerySchema = z8.object({
+var deleteCatalogEntityQuerySchema = z10.object({
   id: nonEmptySanitizedString
 });
-var createProgramBodySchema = z8.object({
+var createProgramBodySchema = z10.object({
   name: nonEmptySanitizedString,
   code: optionalSanitizedString,
   description: optionalSanitizedString,
@@ -1616,7 +1633,7 @@ var createProgramBodySchema = z8.object({
   const durationMonths = value.duration_months ?? (value.duration_years ? value.duration_years * 12 : undefined);
   if (!durationMonths || durationMonths < 1 || durationMonths > 120) {
     ctx.addIssue({
-      code: z8.ZodIssueCode.custom,
+      code: z10.ZodIssueCode.custom,
       message: "duration_months must be between 1 and 120",
       path: ["duration_months"]
     });
@@ -1626,7 +1643,7 @@ var updateProgramBodySchema = createProgramBodySchema.extend({
   id: nonEmptySanitizedString,
   is_active: booleanLike.optional()
 });
-var createInstitutionBodySchema = z8.object({
+var createInstitutionBodySchema = z10.object({
   name: nonEmptySanitizedString,
   full_name: optionalSanitizedString,
   fullName: optionalSanitizedString,
@@ -1637,7 +1654,7 @@ var updateInstitutionBodySchema = createInstitutionBodySchema.extend({
   id: nonEmptySanitizedString,
   is_active: booleanLike.optional()
 });
-var createIntakeBodySchema = z8.object({
+var createIntakeBodySchema = z10.object({
   name: nonEmptySanitizedString,
   year: numericStringOrNumber.transform((value) => Number(value)),
   semester: optionalSanitizedString.nullable().optional(),
@@ -1649,7 +1666,7 @@ var createIntakeBodySchema = z8.object({
 }).superRefine((value, ctx) => {
   if (!Number.isFinite(value.year) || value.year < 2000) {
     ctx.addIssue({
-      code: z8.ZodIssueCode.custom,
+      code: z10.ZodIssueCode.custom,
       message: "Valid year is required",
       path: ["year"]
     });
@@ -1657,7 +1674,7 @@ var createIntakeBodySchema = z8.object({
   const maxCapacity = value.max_capacity ?? value.total_capacity;
   if (!maxCapacity || maxCapacity < 1) {
     ctx.addIssue({
-      code: z8.ZodIssueCode.custom,
+      code: z10.ZodIssueCode.custom,
       message: "max_capacity must be at least 1",
       path: ["max_capacity"]
     });
@@ -1669,31 +1686,34 @@ var updateIntakeBodySchema = createIntakeBodySchema.extend({
   is_active: booleanLike.optional()
 });
 // lib/validation/sessions.ts
-import { z as z9 } from "zod";
-var revokeSessionBodySchema = z9.object({
+import { z as z11 } from "zod";
+var revokeSessionBodySchema = z11.object({
   sessionId: nonEmptySanitizedString
 });
-var revokeAllSessionsBodySchema = z9.object({
-  keepCurrent: z9.boolean().optional()
+var revokeAllSessionsBodySchema = z11.object({
+  keepCurrent: z11.boolean().optional()
 });
-var pollQuerySchema = z9.object({
-  action: z9.literal("poll"),
-  lastEventId: z9.string().optional()
+var pollQuerySchema = z11.object({
+  action: z11.literal("poll"),
+  lastEventId: z11.string().optional()
 });
 // lib/validation/notifications.ts
-import { z as z10 } from "zod";
-var markReadBodySchema = z10.object({
+import { z as z12 } from "zod";
+var markReadBodySchema = z12.object({
   notificationId: nonEmptySanitizedString
 });
-var deleteNotificationBodySchema = z10.object({
+var deleteNotificationBodySchema = z12.object({
   notificationId: nonEmptySanitizedString
 });
-var checkDuplicateBodySchema = z10.object({
-  type: nonEmptySanitizedString,
-  userId: nonEmptySanitizedString,
-  entityId: optionalSanitizedString
+var checkDuplicateBodySchema = z12.object({
+  user_id: optionalSanitizedString,
+  title: nonEmptySanitizedString,
+  message: nonEmptySanitizedString,
+  type: optionalSanitizedString,
+  entity_type: optionalSanitizedString,
+  entity_id: optionalSanitizedString
 });
-var createNotificationBodySchema = z10.object({
+var createNotificationBodySchema = z12.object({
   user_id: optionalSanitizedString,
   type: optionalSanitizedString,
   title: nonEmptySanitizedString,
@@ -1701,9 +1721,9 @@ var createNotificationBodySchema = z10.object({
   action_url: optionalSanitizedString,
   entity_type: optionalSanitizedString,
   entity_id: optionalSanitizedString,
-  priority: z10.enum(["low", "normal", "high", "urgent"]).optional()
+  priority: z12.enum(["low", "normal", "high", "urgent"]).optional()
 });
-var sendNotificationBodySchema = z10.object({
+var sendNotificationBodySchema = z12.object({
   user_id: nonEmptySanitizedString,
   type: optionalSanitizedString,
   title: nonEmptySanitizedString,
@@ -1712,22 +1732,31 @@ var sendNotificationBodySchema = z10.object({
   entity_type: optionalSanitizedString,
   entity_id: optionalSanitizedString
 });
-var updatePreferencesBodySchema = z10.object({
-  email_notifications: z10.boolean().optional(),
-  push_notifications: z10.boolean().optional(),
-  sms_notifications: z10.boolean().optional(),
-  notification_types: z10.record(z10.string(), z10.boolean()).optional()
+var updatePreferencesBodySchema = z12.object({
+  email_notifications: z12.boolean().optional(),
+  push_notifications: z12.boolean().optional(),
+  sms_notifications: z12.boolean().optional(),
+  notification_types: z12.record(z12.string(), z12.boolean()).optional()
 }).partial();
+var preferencesBodySchema = z12.object({
+  sms_enabled: z12.boolean().optional(),
+  application_updates: z12.boolean().optional(),
+  payment_reminders: z12.boolean().optional(),
+  interview_reminders: z12.boolean().optional(),
+  marketing_emails: z12.boolean().optional(),
+  quiet_hours_start: optionalSanitizedString,
+  quiet_hours_end: optionalSanitizedString
+});
 // lib/validation/email.ts
-import { z as z11 } from "zod";
-var sendEmailBodySchema = z11.object({
-  recipient_email: z11.string().email("Invalid recipient email"),
+import { z as z13 } from "zod";
+var sendEmailBodySchema = z13.object({
+  recipient_email: z13.string().email("Invalid recipient email"),
   recipient_name: optionalSanitizedString,
   subject: nonEmptySanitizedString,
   body: nonEmptySanitizedString,
   template_name: optionalSanitizedString,
-  template_data: z11.record(z11.string(), z11.unknown()).optional(),
-  priority: z11.number().int().min(1).max(10).optional()
+  template_data: z13.record(z13.string(), z13.unknown()).optional(),
+  priority: z13.number().int().min(1).max(10).optional()
 });
 // lib/validation/middleware.ts
 init_errorHandler();
@@ -2250,13 +2279,14 @@ async function deleteIntake(req, res, actorId) {
 async function handler(req, res) {
   if (handleCors(req, res))
     return;
+  setSecurityHeaders(res);
+  if (!["GET", "POST", "PUT", "DELETE"].includes(req.method || "")) {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
   const envResult = validateServerEnv();
   if (!envResult.valid) {
     const details = envResult.errors.map((e) => e.message).join("; ");
     return sendError(res, `Server misconfiguration: ${details}`, HttpStatus.SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE");
-  }
-  if (req.method === "HEAD") {
-    return res.status(200).end();
   }
   const parsedQuery = validateQuery(catalogTypeQuerySchema, req, res);
   if (!parsedQuery)
@@ -2266,6 +2296,7 @@ async function handler(req, res) {
     const authUser = await getAuthUser(req);
     const isAdmin = isAdminRole(authUser?.role);
     if (req.method === "GET") {
+      res.setHeader("Cache-Control", "public, max-age=300");
       if (type === "programs") {
         return await listPrograms(res, isAdmin, !authUser);
       }
@@ -2275,18 +2306,12 @@ async function handler(req, res) {
       if (type === "subjects") {
         const q = CatalogQueries.getSubjects();
         const result = await query(q.text, q.values);
-        if (!authUser) {
-          res.setHeader("Cache-Control", "public, max-age=300");
-        }
         return sendSuccess(res, { subjects: result.rows });
       }
       if (type === "institutions") {
         return await listInstitutions(res, isAdmin, !authUser);
       }
       return sendError(res, "Invalid type. Use: programs, intakes, subjects, or institutions", HttpStatus.BAD_REQUEST);
-    }
-    if (!["POST", "PUT", "DELETE"].includes(req.method || "")) {
-      return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
     }
     if (await requireCsrf(req, res))
       return;

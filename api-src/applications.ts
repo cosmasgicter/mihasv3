@@ -22,9 +22,11 @@ import { publishRealtimeEvent } from '../lib/realtimeBroker';
 import { logAuditEvent } from '../lib/auditLogger';
 import { renderEmailTemplate } from '../lib/emailTemplates';
 import { requireCsrf } from '../lib/csrf';
+import { setSecurityHeaders } from '../lib/securityHeaders';
 import { validateBody } from '../lib/validation/middleware';
 import {
   createApplicationBodySchema,
+  scheduleInterviewBodySchema,
   patchCancelInterviewSchema,
   patchRescheduleInterviewSchema,
   patchScheduleInterviewSchema,
@@ -35,81 +37,29 @@ import {
   patchSaveDraftSchema,
   reviewApplicationBodySchema,
 } from '../lib/validation/applications';
+import { uuidParamSchema, paginationQuerySchema } from '../lib/validation/common';
 import { validateServerEnv } from '../lib/envValidator';
+import { normalizeIdempotencyKey, checkIdempotencyKey, storeIdempotencyKey } from '../lib/idempotency';
 import { z } from 'zod';
 
-// --- Idempotency key helpers (Req 3.3) ---
-
-interface IdempotencyRecord {
-  key: string;
-  endpoint: string;
-  response_json: unknown;
-  created_at: string;
-}
-
-const IDEMPOTENCY_KEY_MAX_LENGTH = 128;
-const IDEMPOTENCY_KEY_PATTERN = /^[a-zA-Z0-9:_-]+$/;
-
-function normalizeIdempotencyKey(rawHeader: string | string[] | undefined): string {
-  if (!rawHeader) return '';
-  const value = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
-  const normalized = value.trim();
-  if (!normalized) return '';
-  if (normalized.length > IDEMPOTENCY_KEY_MAX_LENGTH) return '';
-  if (!IDEMPOTENCY_KEY_PATTERN.test(normalized)) return '';
-  return normalized;
-}
-
-function scopeIdempotencyKey(userId: string, endpoint: string, key: string): string {
-  return `${userId}:${endpoint}:${key}`;
-}
-
 /**
- * Check if an idempotency key already exists and is not expired (24h window).
- * Returns the cached response if found, null otherwise.
+ * Allowlist of valid application actions derived from the handler dispatch logic.
+ * Requirement 1.4, 7.1, 7.2: Validate action query parameter against explicit allowlist.
  */
-async function checkIdempotencyKey(userId: string, key: string, endpoint: string): Promise<unknown | null> {
-  if (!key) return null;
-  const scopedKey = scopeIdempotencyKey(userId, endpoint, key);
-  try {
-    const result = await query<IdempotencyRecord>(
-      `SELECT response_json FROM idempotency_keys
-       WHERE key = $1 AND endpoint = $2
-       AND created_at > NOW() - INTERVAL '24 hours'`,
-      [scopedKey, endpoint]
-    );
-    if (result.rowCount > 0) {
-      return result.rows[0].response_json;
-    }
-    return null;
-  } catch (err) {
-    console.error('[idempotency] Error checking key:', err);
-    return null;
-  }
-}
-
-/**
- * Store an idempotency key with its response for future deduplication.
- * Also cleans up expired keys older than 24 hours.
- */
-async function storeIdempotencyKey(userId: string, key: string, endpoint: string, responseData: unknown): Promise<VercelResponse | void> {
-  if (!key) return;
-  const scopedKey = scopeIdempotencyKey(userId, endpoint, key);
-  try {
-    await query(
-      `INSERT INTO idempotency_keys (key, endpoint, response_json, created_at)
-       VALUES ($1, $2, $3, NOW())
-       ON CONFLICT (key) DO UPDATE SET response_json = $3, created_at = NOW()`,
-      [scopedKey, endpoint, JSON.stringify(responseData)]
-    );
-    // Periodic cleanup: delete expired keys (non-blocking, best-effort)
-    query(
-      `DELETE FROM idempotency_keys WHERE created_at < NOW() - INTERVAL '24 hours'`
-    ).catch((err) => console.error('[idempotency] Cleanup error:', err));
-  } catch (err) {
-    console.error('[idempotency] Error storing key:', err);
-  }
-}
+const VALID_ACTIONS = [
+  'details',
+  'documents',
+  'grades',
+  'summary',
+  'review',
+  'interviews',
+  'schedule-interview',
+  'stats',
+  'export',
+  'email-slip',
+  'versions',
+  'track',
+] as const;
 
 /**
  * Consolidated Applications API
@@ -132,6 +82,9 @@ async function storeIdempotencyKey(userId: string, key: string, endpoint: string
 async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   if (handleCors(req, res)) return;
 
+  // Security headers (Req 8.1, 8.2, 8.3, 8.4)
+  setSecurityHeaders(res);
+
   // Validate required environment variables (Req 25.3)
   const envResult = validateServerEnv();
   if (!envResult.valid) {
@@ -149,6 +102,25 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
   // Dedicated unauthenticated tracking route
   if (req.method === 'GET' && action === 'track') {
     return await handlePublicTracking(req, res);
+  }
+
+  // Action allowlist validation (Req 1.4, 7.1, 7.2)
+  // Only validate when an action is provided and no id param (id-based routes skip action dispatch)
+  const id = req.query.id as string;
+  if (action && !id && !VALID_ACTIONS.includes(action as typeof VALID_ACTIONS[number])) {
+    return sendError(
+      res,
+      `Invalid action '${action}'. Valid actions: ${VALID_ACTIONS.join(', ')}`,
+      HttpStatus.BAD_REQUEST,
+    );
+  }
+
+  // Validate id query parameter as UUID format (Req 7.3)
+  if (id) {
+    const uuidResult = uuidParamSchema.safeParse(id);
+    if (!uuidResult.success) {
+      return sendError(res, 'Invalid id parameter: must be a valid UUID', HttpStatus.BAD_REQUEST);
+    }
   }
 
   // CSRF validation for state-changing requests
@@ -174,8 +146,6 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
   const canVerifyPayments = user.permissions.includes('payments:verify');
   // Reviewers are read-only — block write operations (Req 9.4)
   const isReviewerOnly = user.role === 'reviewer';
-
-  const id = req.query.id as string;
 
   try {
     // Handle specific actions
@@ -499,11 +469,13 @@ async function handleDetails(
   }
 
   try {
-    // Parse pagination and filter params from query string
-    // Frontend sends 1-based pages; convert to 0-based for OFFSET calculation
-    const rawPage = parseInt(req.query.page as string || '1', 10);
-    const page = Math.max(rawPage, 1);
-    const pageSize = Math.max(parseInt(req.query.pageSize as string || '50', 10), 1);
+    // Validate pagination parameters (Req 7.4)
+    const paginationResult = paginationQuerySchema.safeParse({
+      page: req.query.page,
+      pageSize: req.query.pageSize,
+    });
+    const page = paginationResult.success ? paginationResult.data.page : 1;
+    const pageSize = paginationResult.success ? paginationResult.data.pageSize : 50;
     const status = req.query.status as string | undefined;
     const search = req.query.search as string | undefined;
     const payment = req.query.payment as string | undefined;
@@ -677,7 +649,7 @@ async function handleInterviews(
 /**
  * Handle interview scheduling action
  * POST /api/applications?action=schedule-interview
- * Body: { applicationId, scheduled_at, mode, location, notes }
+ * Body: { application_id, interview_date, interview_time, location, notes }
  */
 async function handleScheduleInterview(
   req: VercelRequest,
@@ -693,12 +665,13 @@ async function handleScheduleInterview(
     return sendError(res, 'Forbidden: admin access required', HttpStatus.FORBIDDEN);
   }
 
-  const { applicationId, scheduled_at, mode, location, notes } = req.body || {};
+  // Validate body with Zod schema (Req 1.5)
+  const parsed = validateBody(scheduleInterviewBodySchema, req, res);
+  if (!parsed) return;
 
-  if (!applicationId || !scheduled_at || !mode || !location) {
-    return sendError(res, 'Missing required fields: applicationId, scheduled_at, mode, location', HttpStatus.BAD_REQUEST);
-  }
+  const { application_id: applicationId, interview_date: scheduled_at, interview_time, location, notes } = parsed;
 
+  const mode = (req.body?.mode as string) || 'in_person';
   const normalizedMode = mode === 'in-person' ? 'in_person' : mode;
   if (!['in_person', 'virtual', 'phone'].includes(normalizedMode)) {
     return sendError(res, 'Invalid mode. Use: in-person, in_person, virtual, or phone', HttpStatus.BAD_REQUEST);

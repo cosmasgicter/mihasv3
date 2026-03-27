@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleCors } from '../lib/cors';
+import { setSecurityHeaders } from '../lib/securityHeaders';
 import { query } from '../lib/db';
 import { CatalogQueries, SubjectRecord } from '../lib/queries';
 import { withArcjetProtection } from '../lib/arcjet';
@@ -681,15 +682,20 @@ async function deleteIntake(req: VercelRequest, res: VercelResponse, actorId: st
 async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return;
 
+  // Security headers (Req 8.1, 8.2, 8.3, 8.4) — applied immediately after CORS
+  // Default to no-store; GET requests override with cacheable headers below
+  setSecurityHeaders(res);
+
+  // Top-level method guard: reject methods other than GET, POST, PUT, DELETE (Req 6.4)
+  if (!['GET', 'POST', 'PUT', 'DELETE'].includes(req.method || '')) {
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
   // Validate required environment variables (Req 25.3)
   const envResult = validateServerEnv();
   if (!envResult.valid) {
     const details = envResult.errors.map((e) => e.message).join('; ');
     return sendError(res, `Server misconfiguration: ${details}`, HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE');
-  }
-
-  if (req.method === 'HEAD') {
-    return res.status(200).end();
   }
 
   const parsedQuery = validateQuery(catalogTypeQuerySchema, req, res);
@@ -701,6 +707,9 @@ async function handler(req: VercelRequest, res: VercelResponse) {
     const isAdmin = isAdminRole(authUser?.role);
 
     if (req.method === 'GET') {
+      // Public GET data: override default no-store with cacheable headers (Req 8.6)
+      res.setHeader('Cache-Control', 'public, max-age=300');
+
       if (type === 'programs') {
         return await listPrograms(res, isAdmin, !authUser);
       }
@@ -713,10 +722,6 @@ async function handler(req: VercelRequest, res: VercelResponse) {
         const q = CatalogQueries.getSubjects();
         const result = await query<SubjectRecord>(q.text, q.values);
 
-        if (!authUser) {
-          res.setHeader('Cache-Control', 'public, max-age=300');
-        }
-
         return sendSuccess(res, { subjects: result.rows });
       }
 
@@ -724,12 +729,11 @@ async function handler(req: VercelRequest, res: VercelResponse) {
         return await listInstitutions(res, isAdmin, !authUser);
       }
 
+      // Explicit default for unrecognized type (Req 7.7)
       return sendError(res, 'Invalid type. Use: programs, intakes, subjects, or institutions', HttpStatus.BAD_REQUEST);
     }
 
-    if (!['POST', 'PUT', 'DELETE'].includes(req.method || '')) {
-      return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
-    }
+    // Non-GET requests (POST/PUT/DELETE) are admin operations — headers already set above
 
     if (await requireCsrf(req, res)) return;
 

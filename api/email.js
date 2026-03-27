@@ -1,27 +1,16 @@
 import { createRequire } from "node:module";
-var __create = Object.create;
-var __getProtoOf = Object.getPrototypeOf;
 var __defProp = Object.defineProperty;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __toESM = (mod, isNodeMode, target) => {
-  target = mod != null ? __create(__getProtoOf(mod)) : {};
-  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
-  for (let key of __getOwnPropNames(mod))
-    if (!__hasOwnProp.call(to, key))
-      __defProp(to, key, {
-        get: () => mod[key],
-        enumerable: true
-      });
-  return to;
-};
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: (newValue) => all[name] = () => newValue
+      set: __exportSetter.bind(all, name)
     });
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
@@ -1430,14 +1419,82 @@ function validateServerEnv() {
   return { valid: errors.length === 0, errors };
 }
 
+// lib/securityHeaders.ts
+function setSecurityHeaders(res, options) {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Cache-Control", options?.cacheControl ?? "no-store");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+}
+
+// lib/idempotency.ts
+init_db();
+var IDEMPOTENCY_KEY_MAX_LENGTH = 128;
+var IDEMPOTENCY_KEY_PATTERN = /^[a-zA-Z0-9:_-]+$/;
+function normalizeIdempotencyKey(rawHeader) {
+  if (!rawHeader)
+    return "";
+  const value = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
+  const normalized = value.trim();
+  if (!normalized)
+    return "";
+  if (normalized.length > IDEMPOTENCY_KEY_MAX_LENGTH)
+    return "";
+  if (!IDEMPOTENCY_KEY_PATTERN.test(normalized))
+    return "";
+  return normalized;
+}
+function scopeIdempotencyKey(userId, endpoint, key) {
+  return `${userId}:${endpoint}:${key}`;
+}
+async function checkIdempotencyKey(userId, key, endpoint) {
+  if (!key)
+    return null;
+  const scopedKey = scopeIdempotencyKey(userId, endpoint, key);
+  try {
+    const result = await query(`SELECT response_json FROM idempotency_keys
+       WHERE key = $1 AND endpoint = $2
+       AND created_at > NOW() - INTERVAL '24 hours'`, [scopedKey, endpoint]);
+    if (result.rowCount > 0) {
+      return result.rows[0].response_json;
+    }
+    return null;
+  } catch (err) {
+    console.error("[idempotency] Error checking key:", err);
+    return null;
+  }
+}
+async function storeIdempotencyKey(userId, key, endpoint, responseData) {
+  if (!key)
+    return;
+  const scopedKey = scopeIdempotencyKey(userId, endpoint, key);
+  try {
+    await query(`INSERT INTO idempotency_keys (key, endpoint, response_json, created_at)
+       VALUES ($1, $2, $3, NOW())
+       ON CONFLICT (key) DO UPDATE SET response_json = $3, created_at = NOW()`, [scopedKey, endpoint, JSON.stringify(responseData)]);
+    query(`DELETE FROM idempotency_keys WHERE created_at < NOW() - INTERVAL '24 hours'`).catch((err) => console.error("[idempotency] Cleanup error:", err));
+  } catch (err) {
+    console.error("[idempotency] Error storing key:", err);
+  }
+}
+
 // api-src/email.ts
+var VALID_ACTIONS = ["send", "process-queue", "retry-failed", "queue-status"];
 async function handler(req, res) {
   if (handleCors(req, res))
     return;
+  setSecurityHeaders(res);
+  if (!["GET", "POST"].includes(req.method || "")) {
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
   const envResult = validateServerEnv();
   if (!envResult.valid) {
     const details = envResult.errors.map((e) => e.message).join("; ");
     return sendError(res, `Server misconfiguration: ${details}`, HttpStatus.SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE");
+  }
+  const action = req.query.action;
+  if (!VALID_ACTIONS.includes(action)) {
+    return sendError(res, `Invalid action. Valid actions: ${VALID_ACTIONS.join(", ")}`, HttpStatus.BAD_REQUEST);
   }
   if (await requireCsrf(req, res))
     return;
@@ -1450,7 +1507,6 @@ async function handler(req, res) {
     }
     throw error;
   }
-  const action = req.query.action;
   try {
     switch (action) {
       case "send":
@@ -1462,7 +1518,7 @@ async function handler(req, res) {
       case "queue-status":
         return await handleQueueStatus(req, res, user);
       default:
-        return sendError(res, "Invalid action", HttpStatus.BAD_REQUEST);
+        return sendError(res, `Invalid action. Valid actions: ${VALID_ACTIONS.join(", ")}`, HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     if (error instanceof AuthorizationError) {
@@ -1483,6 +1539,13 @@ async function handleSend(req, res, user) {
   if (!parsed)
     return;
   const { recipient_email, recipient_name, subject, body, template_name, template_data, priority } = parsed;
+  const idempotencyKey = normalizeIdempotencyKey(req.headers["idempotency-key"]);
+  if (idempotencyKey) {
+    const cachedResponse = await checkIdempotencyKey(user.userId, idempotencyKey, "email/send");
+    if (cachedResponse) {
+      return sendSuccess(res, cachedResponse);
+    }
+  }
   try {
     let htmlBody = null;
     if (template_name) {
@@ -1510,7 +1573,11 @@ async function handleSend(req, res, user) {
         changes: { template: template_name || "custom", priority: priority ?? 5 }
       });
     } catch {}
-    return sendSuccess(res, { queued: true, id: result.rows[0]?.id });
+    const responseData = { queued: true, id: result.rows[0]?.id };
+    if (idempotencyKey) {
+      await storeIdempotencyKey(user.userId, idempotencyKey, "email/send", responseData);
+    }
+    return sendSuccess(res, responseData);
   } catch (error) {
     return handleError(res, error, "email/send");
   }

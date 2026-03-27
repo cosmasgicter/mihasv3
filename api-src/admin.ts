@@ -27,6 +27,7 @@ import { requireRole, AuthenticationError, AuthorizationError, type AuthContext 
 import { hashPassword } from '../lib/auth/password';
 import { logAuditEvent } from '../lib/auditLogger';
 import { requireCsrf } from '../lib/csrf';
+import { setSecurityHeaders } from '../lib/securityHeaders';
 import { validateBody } from '../lib/validation/middleware';
 import { validateServerEnv } from '../lib/envValidator';
 import {
@@ -38,14 +39,44 @@ import {
   updateUserBodySchema,
   userPermissionsBodySchema,
   createSettingBodySchema,
+  updateSettingBodySchema,
+  deleteSettingQuerySchema,
   importSettingsBodySchema
 } from '../lib/validation/admin';
+import { uuidParamSchema } from '../lib/validation/common';
 import { getPermissionsForRole } from '../lib/auth/permissions';
 import {
   getEffectivePermissionsForUser,
   isPermissionOverrideTableMissing,
   validatePermissionList,
 } from '../lib/auth/userPermissionOverrides';
+
+/**
+ * Allowlist of valid admin actions derived from the switch statement in handler().
+ * Requirement 1.4, 7.1, 7.2: Validate action query parameter against explicit allowlist.
+ */
+const VALID_ACTIONS = [
+  'dashboard',
+  'users',
+  'user-permissions',
+  'settings',
+  'register',
+  'stats',
+  'errors',
+  'bulk-email',
+  'bulk-status',
+  'export-users',
+  'migrate',
+  'set-password',
+  'import-settings',
+  'reset-settings',
+  'eligibility-rules',
+  'update-role',
+  'eligibility-assessments',
+  'audit-log',
+  'appeals',
+  'schema',
+] as const;
 
 /**
  * System setting interface matching database schema
@@ -105,6 +136,9 @@ function samePermissions(left: string[], right: string[]): boolean {
 async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   if (handleCors(req, res)) return;
 
+  // Security headers (Req 8.1, 8.2, 8.3, 8.4)
+  setSecurityHeaders(res);
+
   // Validate required environment variables (Req 25.3)
   const envResult = validateServerEnv();
   if (!envResult.valid) {
@@ -123,6 +157,16 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
   if (await requireCsrf(req, res)) return;
 
   const action = req.query.action as string || 'dashboard';
+
+  // Action allowlist validation (Req 1.4, 7.1, 7.2)
+  if (!VALID_ACTIONS.includes(action as typeof VALID_ACTIONS[number])) {
+    sendError(
+      res,
+      `Invalid action '${action}'. Valid actions: ${VALID_ACTIONS.join(', ')}`,
+      HttpStatus.BAD_REQUEST,
+    );
+    return;
+  }
 
   try {
     // Special case for migration: allow if secret matches even if DB is broken
@@ -290,7 +334,8 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
         return;
 
       default:
-        sendError(res, 'Invalid action. Valid actions: dashboard, users, user-permissions, settings, register, migrate, stats, errors, bulk-email, bulk-status, export-users, set-password, import-settings, reset-settings, eligibility-rules, eligibility-assessments, audit-log, appeals, schema', HttpStatus.BAD_REQUEST);
+        // This should never be reached due to allowlist validation above
+        sendError(res, `Invalid action '${action}'.`, HttpStatus.BAD_REQUEST);
         return;
     }
   } catch (error) {
@@ -399,7 +444,10 @@ async function handleCreateSetting(req: VercelRequest, res: VercelResponse, auth
  * MIGRATED: Using direct SQL instead of legacy admin SDK
  */
 async function handleUpdateSetting(req: VercelRequest, res: VercelResponse, auth: AuthContext): Promise<VercelResponse | void> {
-  const body = req.body as Partial<SystemSetting> & { id?: string };
+  const parsed = validateBody(updateSettingBodySchema, req, res);
+  if (!parsed) return;
+
+  const body = parsed;
 
   if (!body.id && !body.key) {
     sendError(res, 'Either id or key is required to update a setting', HttpStatus.BAD_REQUEST);
@@ -464,17 +512,24 @@ async function handleUpdateSetting(req: VercelRequest, res: VercelResponse, auth
  * MIGRATED: Using direct SQL instead of legacy admin SDK
  */
 async function handleDeleteSetting(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
-  const body = req.body as { id?: string; key?: string };
-  const queryId = req.query.id as string;
-  const queryKey = req.query.key as string;
-
-  const id = body.id || queryId;
-  const settingKey = body.key || queryKey;
-
-  if (!id && !settingKey) {
-    sendError(res, 'Either id or key is required to delete a setting', HttpStatus.BAD_REQUEST);
+  // Merge body and query params for validation (DELETE can use either)
+  const merged = {
+    ...(req.body || {}),
+    id: (req.body as Record<string, unknown>)?.id || req.query.id,
+    key: (req.body as Record<string, unknown>)?.key || req.query.key,
+  };
+  const result = deleteSettingQuerySchema.safeParse(merged);
+  if (!result.success) {
+    const fieldErrors: Record<string, string> = {};
+    for (const issue of result.error.issues) {
+      const path = issue.path.join('.') || '_root';
+      fieldErrors[path] = issue.message;
+    }
+    sendError(res, result.error.issues[0]?.message || 'Either key or id must be provided', HttpStatus.BAD_REQUEST);
     return;
   }
+
+  const { id, key: settingKey } = result.data;
 
   try {
     let result;
@@ -916,6 +971,13 @@ async function handleDeactivateUser(req: VercelRequest, res: VercelResponse, aut
 
   if (!userId) {
     sendError(res, 'userId is required', HttpStatus.BAD_REQUEST);
+    return;
+  }
+
+  // Validate userId as UUID format (Req 7.5)
+  const uuidResult = uuidParamSchema.safeParse(userId);
+  if (!uuidResult.success) {
+    sendError(res, 'userId must be a valid UUID', HttpStatus.BAD_REQUEST);
     return;
   }
 
@@ -1614,7 +1676,7 @@ async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<V
 
   const migrationQueries = [
     // 1. Core History Table
-    { id: 'V2_001_MIGRATION_HISTORY', sql: `CREATE TABLE IF NOT EXISTS migration_history (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT UNIQUE NOT NULL, executed_at TIMESTAMPTZ DEFAULT NOW())` },
+    { id: 'V2_001_MIGRATION_HISTORY', sql: `CREATE TABLE IF NOT EXISTS migration_history (id SERIAL PRIMARY KEY, migration_name TEXT UNIQUE NOT NULL, applied_at TIMESTAMPTZ DEFAULT NOW())` },
 
     // 2. Auth Related Tables
     { id: 'V2_002_CSRF_TOKENS', sql: `CREATE TABLE IF NOT EXISTS csrf_tokens (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID NOT NULL REFERENCES profiles(id), token_hash VARCHAR(64) NOT NULL, expires_at TIMESTAMPTZ NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id))` },
@@ -1716,17 +1778,17 @@ async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<V
         continue;
       }
 
-      const check = await query('SELECT 1 FROM migration_history WHERE name = $1', [m.id]);
+      const check = await query('SELECT 1 FROM migration_history WHERE migration_name = $1', [m.id]);
       if (check.rowCount > 0) continue;
 
       await query(m.sql);
-      await query('INSERT INTO migration_history (name) VALUES ($1)', [m.id]);
+      await query('INSERT INTO migration_history (migration_name) VALUES ($1)', [m.id]);
       migrations.push(m.id);
     } catch (e) {
       const errMessage = e instanceof Error ? e.message : String(e);
       // If column/table already exists, we can consider it "migrated"
       if (errMessage.includes('already exists')) {
-        await query('INSERT INTO migration_history (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [m.id]);
+        await query('INSERT INTO migration_history (migration_name) VALUES ($1) ON CONFLICT (migration_name) DO NOTHING', [m.id]);
         continue;
       }
       errors.push(`${m.id}: ${errMessage}`);

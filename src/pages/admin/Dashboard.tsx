@@ -40,7 +40,7 @@ type DashboardApiStatus = {
 }
 
 export default function AdminDashboard() {
-  const { user, isAdmin } = useAuth()
+  const { user, isAdmin, profileLoading } = useAuth()
   const { profile } = useProfileQuery()
   const [stats, setStats] = useState<AdminDashboardStats>({
     totalApplications: 0,
@@ -316,7 +316,7 @@ export default function AdminDashboard() {
           <div className="mt-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2 lg:grid-cols-4">
             <div><strong className="text-foreground">Auth:</strong> {apiStatus.authState}</div>
             <div><strong className="text-foreground">User ID:</strong> {apiStatus.userId ?? 'none'}</div>
-            <div><strong className="text-foreground">Profile loaded:</strong> {apiStatus.hasProfile ? 'yes' : 'no'}</div>
+            <div><strong className="text-foreground">Profile loaded:</strong> {apiStatus.hasProfile ? 'yes' : profileLoading ? 'loading...' : 'no'}</div>
             <div><strong className="text-foreground">Admin role:</strong> {apiStatus.isAdmin ? 'yes' : 'no'}</div>
             <div><strong className="text-foreground">Endpoint:</strong> {apiStatus.endpoint}</div>
             <div><strong className="text-foreground">API phase:</strong> {apiStatus.phase}</div>

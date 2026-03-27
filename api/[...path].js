@@ -103,18 +103,130 @@ function handleCors(req, res) {
   return false;
 }
 
+// lib/securityHeaders.ts
+function setSecurityHeaders(res, options) {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Cache-Control", options?.cacheControl ?? "no-store");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+}
+
+// lib/arcjet.ts
+import arcjet, { shield, detectBot, fixedWindow } from "@arcjet/node";
+var originalEmitWarning = process.emitWarning;
+process.emitWarning = function(warning, ...args) {
+  if (typeof warning === "string" && args[0] === "DeprecationWarning" && args[1] === "DEP0169")
+    return;
+  if (warning && typeof warning === "object" && warning.code === "DEP0169")
+    return;
+  return originalEmitWarning.call(process, warning, ...args);
+};
+var ARCJET_KEY = process.env.ARCJET_KEY;
+if (!ARCJET_KEY) {
+  console.error("[ARCJET] FATAL: ARCJET_KEY environment variable not set");
+  console.error("[ARCJET] Security layer DISABLED - set ARCJET_KEY immediately");
+}
+var rateLimitConfigs = {
+  auth: { window: "5m", max: 60 },
+  session: { window: "10m", max: 30 },
+  admin: { window: "10m", max: 60 },
+  notification: { window: "10m", max: 50 },
+  general: { window: "10m", max: 100 },
+  registration: { window: "10m", max: 3 }
+};
+function getBlockReasonType(decision) {
+  if (decision.reason.isRateLimit()) {
+    return "RATE_LIMIT";
+  }
+  if (decision.reason.isBot()) {
+    return "BOT_DETECTED";
+  }
+  if (decision.reason.isShield()) {
+    return "SHIELD_BLOCK";
+  }
+  return "POLICY_VIOLATION";
+}
+function handleArcjetDecision(decision, res) {
+  if (decision.isDenied()) {
+    const reasonType = getBlockReasonType(decision);
+    console.log("[ARCJET] BLOCKED: reason=" + reasonType + ", id=" + decision.id);
+    res.status(403).json({
+      success: false,
+      error: "Request blocked by security policy",
+      code: "SECURITY_VIOLATION"
+    });
+    return true;
+  }
+  return false;
+}
+function createProtectedArcjet(routeType) {
+  const config = rateLimitConfigs[routeType];
+  return arcjet({
+    key: ARCJET_KEY,
+    characteristics: ["ip.src"],
+    rules: [
+      shield({ mode: "LIVE" }),
+      detectBot({
+        mode: "LIVE",
+        allow: ["CATEGORY:SEARCH_ENGINE"]
+      }),
+      fixedWindow({
+        mode: "LIVE",
+        window: config.window,
+        max: config.max
+      })
+    ]
+  });
+}
+function withArcjetProtection(handler, routeType = "general") {
+  return async (req, res) => {
+    if (req.method === "OPTIONS") {
+      handleCors(req, res);
+      return;
+    }
+    if (!ARCJET_KEY) {
+      console.warn("[ARCJET] WARNING: Running without Arcjet protection");
+      return handler(req, res);
+    }
+    try {
+      const protectedAj = createProtectedArcjet(routeType);
+      const decision = await protectedAj.protect(req);
+      if (handleArcjetDecision(decision, res)) {
+        return;
+      }
+      return handler(req, res);
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      console.error("[ARCJET] Service error: " + errorMsg);
+      res.status(503).json({
+        success: false,
+        error: "Security service unavailable",
+        code: "SECURITY_SERVICE_ERROR"
+      });
+    }
+  };
+}
+var aj = ARCJET_KEY ? arcjet({
+  key: ARCJET_KEY,
+  characteristics: ["ip.src"],
+  rules: [
+    shield({ mode: "LIVE" }),
+    detectBot({
+      mode: "LIVE",
+      allow: ["CATEGORY:SEARCH_ENGINE"]
+    })
+  ]
+}) : null;
+
 // api-src/[...path].ts
 init_errorHandler();
 async function handler(req, res) {
   if (handleCors(req, res))
     return;
-  const requestedPath = req.url || "unknown";
-  console.warn(`[api/404] Route not found: ${requestedPath}`);
-  if (requestedPath.includes("/api/admin-settings") || requestedPath.startsWith("/admin-settings")) {
-    return sendError(res, "The /api/admin-settings endpoint has been consolidated. Please use /api/admin?action=settings instead.", HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
-  }
-  return sendError(res, "API endpoint not found", HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+  setSecurityHeaders(res);
+  sendError(res, "Not found", HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
 }
+var __path__default = withArcjetProtection(handler, "general");
 export {
-  handler as default
+  __path__default as default
 };

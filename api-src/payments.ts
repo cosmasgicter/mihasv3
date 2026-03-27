@@ -1,5 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleCors } from '../lib/cors';
+import { setSecurityHeaders } from '../lib/securityHeaders';
+import { requireCsrf } from '../lib/csrf';
 import { query } from '../lib/db';
 import { requireAuth, AuthenticationError, type AuthContext } from '../lib/auth/middleware';
 import { isAdmin as isAdminRole } from '../lib/auth/ownership';
@@ -19,8 +21,18 @@ import { validateServerEnv } from '../lib/envValidator';
  * 
  * GET /api/payments?action=receipt&applicationId=xxx - Generate receipt
  */
+// Valid actions for this endpoint
+const VALID_ACTIONS = ['receipt'] as const;
+
 async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return;
+
+  // Security headers (Req 8.1, 8.2, 8.3, 8.4)
+  setSecurityHeaders(res);
+
+  // CSRF enforcement for state-changing requests (Req 2.1)
+  const csrfBlocked = await requireCsrf(req, res);
+  if (csrfBlocked) return;
 
   // Validate required environment variables (Req 25.3)
   const envResult = validateServerEnv();
@@ -34,8 +46,15 @@ async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
 
+  // Method guard: GET only (Req 6.5)
   if (req.method !== 'GET') {
     return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
+  // Action allowlist validation (Req 7.1, 7.2)
+  const action = req.query.action as string || 'receipt';
+  if (!VALID_ACTIONS.includes(action as typeof VALID_ACTIONS[number])) {
+    return sendError(res, `Invalid action: "${action}". Valid actions: ${VALID_ACTIONS.join(', ')}`, HttpStatus.BAD_REQUEST);
   }
 
   // Require authentication (Req 9.1)
@@ -50,12 +69,12 @@ async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const isAdmin = isAdminRole(user.role);
-  const action = req.query.action as string || 'receipt';
 
   try {
     if (action === 'receipt') {
       return await handleReceipt(req, res, user.userId, isAdmin);
     }
+    // Unreachable due to allowlist validation above, but kept for safety
     return sendError(res, 'Invalid action', HttpStatus.BAD_REQUEST);
   } catch (error) {
     return handleError(res, error, 'payments');

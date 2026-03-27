@@ -8,7 +8,8 @@ import { checkDocumentUploadAccess, isAdmin } from '../lib/auth/ownership';
 import { getR2Storage, isR2Available } from '../lib/storage';
 import { requireCsrf } from '../lib/csrf';
 import { validateBody } from '../lib/validation/middleware';
-import { uploadDocumentBodySchema, extractDocumentBodySchema, deleteDocumentBodySchema, resolveReferenceBodySchema, registerSlipBodySchema } from '../lib/validation/documents';
+import { uploadDocumentBodySchema, extractDocumentBodySchema, deleteDocumentBodySchema, resolveReferenceBodySchema, registerSlipBodySchema, documentPathSchema } from '../lib/validation/documents';
+import { setSecurityHeaders } from '../lib/securityHeaders';
 import { logAuditEvent } from '../lib/auditLogger';
 import { validateServerEnv } from '../lib/envValidator';
 import { isAllowedUrl, isPrivateIP } from '../lib/urlValidator';
@@ -18,6 +19,9 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_EXTRACT_RESPONSE_SIZE = 20 * 1024 * 1024; // 20MB
 const FETCH_TIMEOUT_MS = 10_000; // 10 seconds
 const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+
+/** Valid actions for the documents endpoint (Req 7.1, 7.2) */
+const VALID_ACTIONS = ['upload', 'extract', 'download', 'delete', 'signed-url', 'register-slip', 'resolve-reference'] as const;
 
 /**
  * Consolidated Documents API
@@ -33,6 +37,15 @@ const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'
  */
 async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   if (handleCors(req, res)) return;
+
+  // Security headers on all responses (Req 8.1, 8.2, 8.3, 8.4)
+  setSecurityHeaders(res);
+
+  // Action allowlist validation (Req 7.1, 7.2)
+  const action = (req.query.action as string) || 'upload';
+  if (!VALID_ACTIONS.includes(action as typeof VALID_ACTIONS[number])) {
+    return sendError(res, `Invalid action. Valid actions: ${VALID_ACTIONS.join(', ')}`, HttpStatus.BAD_REQUEST);
+  }
 
   // Validate required environment variables (Req 25.3)
   const envResult = validateServerEnv();
@@ -62,8 +75,6 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
 
   // Reviewers are read-only — block write operations (Req 9.4)
   const isReviewerOnly = user.role === 'reviewer';
-
-  const action = req.query.action as string || 'upload';
 
   try {
     switch (action) {
@@ -122,7 +133,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
         return await handleResolveReference(req, res, user.userId, user.role);
 
       default:
-        return sendError(res, 'Invalid action. Valid: upload, extract, download, delete, signed-url, register-slip, resolve-reference', HttpStatus.BAD_REQUEST);
+        return sendError(res, `Invalid action. Valid actions: ${VALID_ACTIONS.join(', ')}`, HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     return handleError(res, error, 'documents');
@@ -148,11 +159,10 @@ function normalizeLegacySupabasePath(reference: string): string | null {
 }
 
 async function handleRegisterSlip(req: VercelRequest, res: VercelResponse, authUserId: string, userRole: string) {
-  const { applicationNumber, path, publicUrl, documentName } = req.body || {};
+  const parsed = validateBody(registerSlipBodySchema, req, res);
+  if (!parsed) return;
 
-  if (!applicationNumber || !path) {
-    return sendError(res, 'applicationNumber and path are required', HttpStatus.BAD_REQUEST);
-  }
+  const { applicationNumber, path, publicUrl, documentName } = parsed;
 
   const applicationResult = await query<{ id: string; user_id: string }>(
     `SELECT id, user_id FROM applications WHERE application_number = $1 LIMIT 1`,
@@ -337,6 +347,12 @@ async function handleDownload(req: VercelRequest, res: VercelResponse, authUserI
     return sendError(res, 'Path is required', HttpStatus.BAD_REQUEST);
   }
 
+  // Path traversal validation (Req 7.6)
+  const pathResult = documentPathSchema.safeParse(path);
+  if (!pathResult.success) {
+    return sendError(res, 'Invalid document path', HttpStatus.BAD_REQUEST);
+  }
+
   // Ownership check if applicationId provided
   if (applicationId) {
     const canAccess = await checkDocumentUploadAccess(authUserId, applicationId, userRole);
@@ -374,6 +390,12 @@ async function handleDelete(req: VercelRequest, res: VercelResponse, authUserId:
 
   if (!path) {
     return sendError(res, 'Path is required', HttpStatus.BAD_REQUEST);
+  }
+
+  // Path traversal validation (Req 7.6)
+  const pathResult = documentPathSchema.safeParse(path);
+  if (!pathResult.success) {
+    return sendError(res, 'Invalid document path', HttpStatus.BAD_REQUEST);
   }
 
   // Only admins can delete documents
@@ -431,6 +453,12 @@ async function handleSignedUrl(req: VercelRequest, res: VercelResponse, authUser
 
   if (!path) {
     return sendError(res, 'Path is required', HttpStatus.BAD_REQUEST);
+  }
+
+  // Path traversal validation (Req 7.6)
+  const pathResult = documentPathSchema.safeParse(path);
+  if (!pathResult.success) {
+    return sendError(res, 'Invalid document path', HttpStatus.BAD_REQUEST);
   }
 
   // Ownership check if applicationId provided

@@ -1,27 +1,16 @@
 import { createRequire } from "node:module";
-var __create = Object.create;
-var __getProtoOf = Object.getPrototypeOf;
 var __defProp = Object.defineProperty;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __toESM = (mod, isNodeMode, target) => {
-  target = mod != null ? __create(__getProtoOf(mod)) : {};
-  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
-  for (let key of __getOwnPropNames(mod))
-    if (!__hasOwnProp.call(to, key))
-      __defProp(to, key, {
-        get: () => mod[key],
-        enumerable: true
-      });
-  return to;
-};
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: (newValue) => all[name] = () => newValue
+      set: __exportSetter.bind(all, name)
     });
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
@@ -928,6 +917,14 @@ function handleCors(req, res) {
   return false;
 }
 
+// lib/securityHeaders.ts
+function setSecurityHeaders(res, options) {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Cache-Control", options?.cacheControl ?? "no-store");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+}
+
 // lib/arcjet.ts
 import arcjet, { shield, detectBot, fixedWindow } from "@arcjet/node";
 var originalEmitWarning = process.emitWarning;
@@ -1501,9 +1498,11 @@ var pollQuerySchema = z2.object({
 
 // api-src/sessions.ts
 init_auditLogger();
+var VALID_ACTIONS = ["list", "track", "revoke", "revoke-all", "connect", "poll"];
 async function handler(req, res) {
   if (handleCors(req, res))
     return;
+  setSecurityHeaders(res);
   const envResult = validateServerEnv();
   if (!envResult.valid) {
     const details = envResult.errors.map((e) => e.message).join("; ");
@@ -1512,6 +1511,9 @@ async function handler(req, res) {
   if (await requireCsrf(req, res))
     return;
   const action = req.query.action;
+  if (!action || !VALID_ACTIONS.includes(action)) {
+    return sendError(res, `Invalid action: "${action || ""}". Valid actions: ${VALID_ACTIONS.join(", ")}`, HttpStatus.BAD_REQUEST);
+  }
   try {
     let user;
     try {
@@ -1537,8 +1539,6 @@ async function handler(req, res) {
         return await handleConnect(req, res, user.userId);
       case "poll":
         return await handlePoll(req, res, user.userId);
-      default:
-        return sendError(res, "Invalid action. Use: list, track, revoke, revoke-all, connect, poll", HttpStatus.BAD_REQUEST);
     }
   } catch (error) {
     return handleError(res, error, "sessions");

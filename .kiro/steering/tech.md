@@ -334,26 +334,27 @@ EMAIL_FROM=noreply@mihas.edu.zm
 - Connection string format: `DATABASE_URL=postgres://...@...neon.tech/...`
 - Neon project ID: `wild-bar-37055823` (mihasApplication)
 
-### Database Schema (28 Tables — Verified 2026-03-09)
+### Database Schema (26 Tables — Verified 2026-03-27)
 
 | Table | Purpose | Key Columns |
 |-------|---------|-------------|
 | `profiles` | User accounts | id, email, first_name, last_name, phone, nationality, role |
-| `applications` | Student applications | id, user_id, program_id, intake_id, status, version |
-| `application_documents` | Uploaded documents per application | id, application_id, document_type, file_path, verdict |
+| `applications` | Student applications | id, user_id, program, intake, status, version |
+| `application_documents` | Uploaded documents per application | id, application_id, document_type, file_url, verification_status |
 | `application_grades` | ECZ grade 12 results | id, application_id, subject_id, grade (1-9) |
 | `application_interviews` | Interview scheduling | id, application_id, scheduled_at, status |
 | `application_status_history` | Status change audit trail | id, application_id, old_status, new_status, changed_by |
 | `application_drafts` | Client-side auto-save drafts | id, application_id, draft_data (jsonb) |
 | `programs` | Academic programs | id, name, code, institution_id, requirements (jsonb) |
 | `intakes` | Enrollment periods | id, name, year, application_deadline, max_capacity |
-| `program_intakes` | Program-intake mapping | id, program_id, intake_id, spots_available |
-| `course_requirements` | Program prerequisites | id, program_id, subject_id, min_grade |
+| `program_intakes` | Program-intake mapping | id, program_id, intake_id, max_capacity, current_enrollment |
+| `course_requirements` | Program prerequisites | id, program_id, subject_id, minimum_grade |
 | `subjects` | ECZ grade 12 subjects | id, name, code, category, is_core |
 | `institutions` | Educational institutions | id, name, code, full_name, type, accreditation_status |
 | `payments` | Payment records | id, application_id, user_id, amount, currency, status |
-| `documents` | Legacy document table (unused) | id, application_id, document_type — 0 rows |
-| `notifications` | User notifications | id, user_id, title, message, type, read |
+| `documents` | Legacy document table (DROPPED) | Removed — superseded by application_documents |
+| `document_migration_log` | Migration tracking (DROPPED) | Removed — migration complete |
+| `notifications` | User notifications | id, user_id, title, message, type, is_read, idempotency_key |
 | `user_notification_preferences` | Notification settings | id, user_id, email_enabled, push_enabled, quiet_hours |
 | `email_queue` | Email send queue with retry | id, recipient_email, subject, body, status, retry_count |
 | `device_sessions` | Active device sessions | id, user_id, device_info, ip_hash, last_active |
@@ -364,8 +365,7 @@ EMAIL_FROM=noreply@mihas.edu.zm
 | `idempotency_keys` | Request deduplication | key (PK), endpoint, response_json, created_at |
 | `settings` | System configuration | id, key, value, updated_at |
 | `user_permission_overrides` | Per-user permission overrides | id, user_id, permissions (jsonb) |
-| `document_migration_log` | Migration tracking utility | id, migrated_at |
-| `migration_history` | Schema migration history | id, name, applied_at |
+| `migration_history` | Schema migration history | id, migration_name, applied_at |
 
 ### Database Operations
 ```typescript

@@ -35,12 +35,23 @@ export const signedUrlBodySchema = z.object({
 
 /** POST — register slip */
 export const registerSlipBodySchema = z.object({
-  applicationId: nonEmptySanitizedString,
-  fileData: z.string().min(1, 'File data is required'),
-  fileName: optionalSanitizedString,
+  applicationNumber: nonEmptySanitizedString,
+  path: nonEmptySanitizedString,
+  publicUrl: optionalSanitizedString,
+  documentName: optionalSanitizedString,
 });
 
 /** POST — resolve reference */
 export const resolveReferenceBodySchema = z.object({
   reference: nonEmptySanitizedString,
 });
+
+/** Validates a file path string, rejecting path traversal patterns */
+export const documentPathSchema = z.string().trim().refine(
+  (s) =>
+    !s.includes('../') &&
+    !s.includes('..\\') &&
+    !s.includes('%00') &&
+    !s.includes('\0'),
+  'Path contains disallowed traversal or null byte patterns'
+);

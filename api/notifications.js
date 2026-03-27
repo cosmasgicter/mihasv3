@@ -1,27 +1,16 @@
 import { createRequire } from "node:module";
-var __create = Object.create;
-var __getProtoOf = Object.getPrototypeOf;
 var __defProp = Object.defineProperty;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __toESM = (mod, isNodeMode, target) => {
-  target = mod != null ? __create(__getProtoOf(mod)) : {};
-  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
-  for (let key of __getOwnPropNames(mod))
-    if (!__hasOwnProp.call(to, key))
-      __defProp(to, key, {
-        get: () => mod[key],
-        enumerable: true
-      });
-  return to;
-};
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: (newValue) => all[name] = () => newValue
+      set: __exportSetter.bind(all, name)
     });
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
@@ -1407,9 +1396,12 @@ var deleteNotificationBodySchema = z2.object({
   notificationId: nonEmptySanitizedString
 });
 var checkDuplicateBodySchema = z2.object({
-  type: nonEmptySanitizedString,
-  userId: nonEmptySanitizedString,
-  entityId: optionalSanitizedString
+  user_id: optionalSanitizedString,
+  title: nonEmptySanitizedString,
+  message: nonEmptySanitizedString,
+  type: optionalSanitizedString,
+  entity_type: optionalSanitizedString,
+  entity_id: optionalSanitizedString
 });
 var createNotificationBodySchema = z2.object({
   user_id: optionalSanitizedString,
@@ -1436,6 +1428,23 @@ var updatePreferencesBodySchema = z2.object({
   sms_notifications: z2.boolean().optional(),
   notification_types: z2.record(z2.string(), z2.boolean()).optional()
 }).partial();
+var preferencesBodySchema = z2.object({
+  sms_enabled: z2.boolean().optional(),
+  application_updates: z2.boolean().optional(),
+  payment_reminders: z2.boolean().optional(),
+  interview_reminders: z2.boolean().optional(),
+  marketing_emails: z2.boolean().optional(),
+  quiet_hours_start: optionalSanitizedString,
+  quiet_hours_end: optionalSanitizedString
+});
+
+// lib/securityHeaders.ts
+function setSecurityHeaders(res, options) {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Cache-Control", options?.cacheControl ?? "no-store");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+}
 
 // api-src/notifications.ts
 init_auditLogger();
@@ -1503,9 +1512,23 @@ function isSafeActionUrl(url) {
 function generateIdempotencyKey(userId, type, entityType, entityId) {
   return `${userId}:${type}:${entityType}:${entityId}`;
 }
+var VALID_ACTIONS = [
+  "preferences",
+  "history",
+  "list",
+  "mark-read",
+  "mark-all-read",
+  "delete",
+  "check-duplicate",
+  "create",
+  "send",
+  "push-subscribe",
+  "push-send"
+];
 async function handler(req, res) {
   if (handleCors(req, res))
     return;
+  setSecurityHeaders(res);
   const envResult = validateServerEnv();
   if (!envResult.valid) {
     const details = envResult.errors.map((e) => e.message).join("; ");
@@ -1526,6 +1549,9 @@ async function handler(req, res) {
     throw error;
   }
   const action = req.query.action || "preferences";
+  if (!VALID_ACTIONS.includes(action)) {
+    return sendError(res, `Invalid action '${action}'. Valid actions: ${VALID_ACTIONS.join(", ")}`, HttpStatus.BAD_REQUEST);
+  }
   try {
     if (action === "preferences") {
       return await handlePreferences(req, res, user);
@@ -1560,7 +1586,6 @@ async function handler(req, res) {
     if (action === "push-send") {
       return await handlePushSend(req, res, user);
     }
-    return sendError(res, "Invalid action", HttpStatus.BAD_REQUEST);
   } catch (error) {
     if (error instanceof AuthorizationError) {
       return sendError(res, error.message, error.statusCode, error.code);
@@ -1575,7 +1600,10 @@ async function handlePreferences(req, res, user) {
       return sendSuccess(res, { preferences });
     }
     if (req.method === "POST") {
-      const { sms_enabled, application_updates, payment_reminders, interview_reminders, marketing_emails, quiet_hours_start, quiet_hours_end } = req.body;
+      const parsed = validateBody(preferencesBodySchema, req, res);
+      if (!parsed)
+        return;
+      const { sms_enabled, application_updates, payment_reminders, interview_reminders, marketing_emails, quiet_hours_start, quiet_hours_end } = parsed;
       const upsertQ = {
         text: `
           INSERT INTO user_notification_preferences (
@@ -1793,11 +1821,11 @@ async function handleCheckDuplicate(req, res, user) {
   if (req.method !== "POST") {
     return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
   }
-  const { user_id, title, message, type, entity_type, entity_id } = req.body || {};
+  const parsed = validateBody(checkDuplicateBodySchema, req, res);
+  if (!parsed)
+    return;
+  const { user_id, title, message, type, entity_type, entity_id } = parsed;
   const targetUserId = user_id || user.userId;
-  if (!targetUserId || !title || !message) {
-    return sendError(res, "user_id, title, and message are required", HttpStatus.BAD_REQUEST);
-  }
   const isAdmin = [USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMISSIONS_OFFICER].includes(user.role);
   if (targetUserId !== user.userId && !isAdmin) {
     return sendError(res, "Insufficient permissions", HttpStatus.FORBIDDEN, "INSUFFICIENT_PERMISSIONS");
