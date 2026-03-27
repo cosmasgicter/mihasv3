@@ -620,5 +620,5 @@ async function handleExtract(req: VercelRequest, res: VercelResponse, authUserId
   return sendSuccess(res, result);
 }
 
-// Export with Arcjet protection
-export default withArcjetProtection(handler, 'general');
+// Export with Arcjet protection — dedicated documents rate limit (Req 12.2)
+export default withArcjetProtection(handler, 'documents');

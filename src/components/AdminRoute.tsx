@@ -83,12 +83,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
     return <Navigate to="/auth/signin" state={{ from: location }} replace />
   }
 
-  // Super admin override
-  if (user.email === 'cosmas@beanola.com') {
-    return <AdminErrorBoundary>{children}</AdminErrorBoundary>
-  }
-
-  // Check admin role
+  // Check admin role — access determined exclusively by RBAC isAdmin flag
   if (!isAdmin) {
     return <Navigate to="/student/dashboard" replace />
   }

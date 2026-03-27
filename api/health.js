@@ -29,7 +29,7 @@ function sanitizeQueryForLogging(query) {
 }
 function extractCommand(query) {
   const trimmed = query.trim().toUpperCase();
-  const commands = ["SELECT", "INSERT", "UPDATE", "DELETE", "BEGIN", "COMMIT", "ROLLBACK", "CREATE", "ALTER", "DROP"];
+  const commands = ["SELECT", "INSERT", "UPDATE", "DELETE", "CREATE", "ALTER", "DROP"];
   for (const cmd of commands) {
     if (trimmed.startsWith(cmd)) {
       return cmd;
@@ -37,15 +37,18 @@ function extractCommand(query) {
   }
   return "UNKNOWN";
 }
+function getNeonInstance() {
+  if (!cachedSql) {
+    const { url } = getDatabaseConfig();
+    const { neon } = __require("@neondatabase/serverless");
+    cachedSql = neon(url);
+  }
+  return cachedSql;
+}
 async function executeNeonQuery(queryText, params) {
   const command = extractCommand(queryText);
   try {
-    const { neon } = await import("@neondatabase/serverless");
-    const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) {
-      throw new DatabaseError("DATABASE_URL not configured for Neon", DatabaseErrorCode.CONFIG_ERROR);
-    }
-    const sql = neon(connectionString);
+    const sql = getNeonInstance();
     let rows;
     if (params && params.length > 0) {
       rows = await sql.query(queryText, params);
@@ -78,7 +81,7 @@ async function query(queryText, params) {
   getDatabaseConfig();
   return executeNeonQuery(queryText, params);
 }
-var DatabaseErrorCode, DatabaseError;
+var DatabaseErrorCode, DatabaseError, cachedSql = null;
 var init_db = __esm(() => {
   DatabaseErrorCode = {
     CONNECTION_ERROR: "CONNECTION_ERROR",
@@ -797,7 +800,8 @@ var rateLimitConfigs = {
   admin: { window: "10m", max: 60 },
   notification: { window: "10m", max: 50 },
   general: { window: "10m", max: 100 },
-  registration: { window: "10m", max: 3 }
+  registration: { window: "10m", max: 3 },
+  documents: { window: "10m", max: 20 }
 };
 function getBlockReasonType(decision) {
   if (decision.reason.isRateLimit()) {
@@ -850,6 +854,16 @@ function withArcjetProtection(handler, routeType = "general") {
       return;
     }
     if (!ARCJET_KEY) {
+      const isProduction = false;
+      if (isProduction) {
+        console.error("[ARCJET] FATAL: ARCJET_KEY not set in production — rejecting request");
+        res.status(503).json({
+          success: false,
+          error: "Security service unavailable",
+          code: "SECURITY_SERVICE_ERROR"
+        });
+        return;
+      }
       console.warn("[ARCJET] WARNING: Running without Arcjet protection");
       return handler(req, res);
     }
@@ -883,6 +897,224 @@ var aj = ARCJET_KEY ? arcjet({
   ]
 }) : null;
 
+// lib/auth/jwt.ts
+import { SignJWT, jwtVerify } from "jose";
+var TOKEN_ISSUER = "mihas-auth";
+var TOKEN_AUDIENCE = "mihas-app";
+var ALGORITHM = "HS256";
+function getAccessTokenSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET environment variable is not configured");
+  }
+  return new TextEncoder().encode(secret);
+}
+async function verifyAccessToken(token) {
+  if (!token || token.trim().length === 0) {
+    throw new Error("Token is required for verification");
+  }
+  try {
+    const secret = getAccessTokenSecret();
+    const { payload } = await jwtVerify(token, secret, {
+      issuer: TOKEN_ISSUER,
+      audience: TOKEN_AUDIENCE,
+      algorithms: [ALGORITHM]
+    });
+    if (payload.type !== "access") {
+      throw new Error("Invalid token type: expected access token");
+    }
+    if (!payload.sub) {
+      throw new Error("Token missing required subject claim");
+    }
+    if (!payload.email || typeof payload.email !== "string") {
+      throw new Error("Token missing required email claim");
+    }
+    if (!payload.role || typeof payload.role !== "string") {
+      throw new Error("Token missing required role claim");
+    }
+    const accessPayload = {
+      sub: payload.sub,
+      email: payload.email,
+      role: payload.role,
+      permissions: Array.isArray(payload.permissions) ? payload.permissions : [],
+      sid: typeof payload.sid === "string" ? payload.sid : undefined,
+      type: "access",
+      iat: payload.iat,
+      exp: payload.exp,
+      iss: payload.iss,
+      aud: typeof payload.aud === "string" ? payload.aud : payload.aud?.[0]
+    };
+    return accessPayload;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    if (errorMessage.includes("expired")) {
+      throw new Error("Access token has expired");
+    }
+    if (errorMessage.includes("signature")) {
+      throw new Error("Invalid token signature");
+    }
+    if (errorMessage.includes("issuer")) {
+      throw new Error("Invalid token issuer");
+    }
+    if (errorMessage.includes("audience")) {
+      throw new Error("Invalid token audience");
+    }
+    if (errorMessage.includes("token type")) {
+      throw new Error(errorMessage);
+    }
+    if (errorMessage.includes("missing required")) {
+      throw new Error(errorMessage);
+    }
+    throw new Error("Access token verification failed");
+  }
+}
+
+// lib/auth/cookies.ts
+var ACCESS_TOKEN_COOKIE = "access_token";
+function parseCookies(req) {
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader) {
+    return {};
+  }
+  const cookies = {};
+  const pairs = cookieHeader.split(";");
+  for (const pair of pairs) {
+    const equalsIndex = pair.indexOf("=");
+    if (equalsIndex > 0) {
+      const name = pair.substring(0, equalsIndex).trim();
+      const value = pair.substring(equalsIndex + 1);
+      cookies[name] = value;
+    }
+  }
+  return cookies;
+}
+function extractBearerToken(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return null;
+  }
+  const bearerPrefix = "Bearer ";
+  if (!authHeader.startsWith(bearerPrefix)) {
+    return null;
+  }
+  const token = authHeader.substring(bearerPrefix.length).trim();
+  if (token.length === 0) {
+    return null;
+  }
+  return token;
+}
+function extractAccessTokenFromCookie(req) {
+  const cookies = parseCookies(req);
+  const token = cookies[ACCESS_TOKEN_COOKIE];
+  if (!token || token.length === 0) {
+    return null;
+  }
+  return token;
+}
+
+// lib/sessions.ts
+init_db();
+init_queries();
+async function isSessionActive(userId, sessionId) {
+  const result = await query(`SELECT id
+     FROM device_sessions
+     WHERE id = $1
+       AND user_id = $2
+       AND is_active = true
+       AND expires_at > NOW()
+     LIMIT 1`, [sessionId, userId]);
+  return result.rowCount > 0;
+}
+
+// lib/auth/middleware.ts
+class AuthenticationError extends Error {
+  statusCode;
+  code;
+  constructor(message, code = "AUTHENTICATION_REQUIRED", statusCode = 401) {
+    super(message);
+    this.name = "AuthenticationError";
+    this.code = code;
+    this.statusCode = statusCode;
+  }
+}
+
+class AuthorizationError extends Error {
+  statusCode;
+  code;
+  constructor(message, code = "INSUFFICIENT_PERMISSIONS", statusCode = 403) {
+    super(message);
+    this.name = "AuthorizationError";
+    this.code = code;
+    this.statusCode = statusCode;
+  }
+}
+function extractToken(req) {
+  const cookieToken = extractAccessTokenFromCookie(req);
+  if (cookieToken) {
+    return cookieToken;
+  }
+  const bearerToken = extractBearerToken(req);
+  if (bearerToken) {
+    return bearerToken;
+  }
+  return null;
+}
+async function requireAuth(req) {
+  const token = extractToken(req);
+  if (!token) {
+    throw new AuthenticationError("Authentication required", "AUTHENTICATION_REQUIRED", 401);
+  }
+  try {
+    const payload = await verifyAccessToken(token);
+    const sessionValid = await validateTrackedSession(payload);
+    if (!sessionValid) {
+      throw new AuthenticationError("Session has expired or was revoked", "SESSION_REVOKED", 401);
+    }
+    return mapPayloadToAuthContext(payload);
+  } catch (error) {
+    if (error instanceof AuthenticationError) {
+      throw error;
+    }
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.log("[AUTH] Token verification failed:", errorMessage);
+    if (errorMessage.includes("expired")) {
+      throw new AuthenticationError("Access token has expired", "TOKEN_EXPIRED", 401);
+    }
+    if (errorMessage.includes("signature")) {
+      throw new AuthenticationError("Invalid token", "INVALID_TOKEN", 401);
+    }
+    throw new AuthenticationError("Authentication failed", "AUTHENTICATION_FAILED", 401);
+  }
+}
+async function requireRole(req, roles) {
+  const user = await requireAuth(req);
+  if (!roles.includes(user.role)) {
+    console.log("[AUTH] Authorization failed: user role", user.role, "not in required roles", roles.join(", "));
+    throw new AuthorizationError("Insufficient permissions", "INSUFFICIENT_PERMISSIONS", 403);
+  }
+  return user;
+}
+function mapPayloadToAuthContext(payload) {
+  return {
+    userId: payload.sub,
+    email: payload.email,
+    role: payload.role,
+    permissions: payload.permissions || [],
+    sessionId: payload.sid
+  };
+}
+async function validateTrackedSession(payload) {
+  if (!payload.sid) {
+    return true;
+  }
+  try {
+    return await isSessionActive(payload.sub, payload.sid);
+  } catch (error) {
+    console.log("[AUTH] Session validation failed:", error instanceof Error ? error.message : "Unknown error");
+    return false;
+  }
+}
+
 // api-src/health.ts
 var VALID_ACTIONS = ["ping", "db", "env", "errors"];
 async function handler(req, res) {
@@ -903,6 +1135,20 @@ async function handler(req, res) {
         message: "pong",
         timestamp: new Date().toISOString()
       });
+    }
+    const protectedActions = ["db", "env", "errors"];
+    if (action && protectedActions.includes(action)) {
+      try {
+        await requireRole(req, ["admin", "super_admin"]);
+      } catch (error) {
+        if (error instanceof AuthenticationError) {
+          return sendError(res, error.message, error.statusCode, error.code);
+        }
+        if (error instanceof AuthorizationError) {
+          return sendError(res, error.message, error.statusCode, error.code);
+        }
+        return sendError(res, "Authentication required", HttpStatus.UNAUTHORIZED, "AUTHENTICATION_REQUIRED");
+      }
     }
     if (action === "db") {
       return handleDatabaseHealth(res);

@@ -7,7 +7,8 @@
  * - Plain SQL only (no ORM magic)
  * - Parameterized queries for SQL injection prevention
  * - Neon serverless driver (@neondatabase/serverless)
- * - Explicit transaction boundaries (BEGIN, COMMIT, ROLLBACK)
+ * - Atomic transactions via Neon transaction() callback API
+ * - Module-level cached Neon connection instance
  * - Typed DatabaseError with code and query context
  * - Schema verification on startup
  * 
@@ -121,7 +122,7 @@ function sanitizeQueryForLogging(query: string): string {
  */
 function extractCommand(query: string): string {
   const trimmed = query.trim().toUpperCase();
-  const commands = ['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'BEGIN', 'COMMIT', 'ROLLBACK', 'CREATE', 'ALTER', 'DROP'];
+  const commands = ['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'CREATE', 'ALTER', 'DROP'];
   for (const cmd of commands) {
     if (trimmed.startsWith(cmd)) {
       return cmd;
@@ -130,58 +131,50 @@ function extractCommand(query: string): string {
   return 'UNKNOWN';
 }
 
-/**
- * Convert positional parameters ($1, $2) to values for Supabase REST
- */
-function interpolateParams(query: string, params?: unknown[]): string {
-  if (!params || params.length === 0) {
-    return query;
-  }
-
-  let result = query;
-  params.forEach((param, index) => {
-    const placeholder = `$${index + 1}`;
-    let value: string;
-
-    if (param === null || param === undefined) {
-      value = 'NULL';
-    } else if (typeof param === 'string') {
-      // Escape single quotes for SQL
-      value = `'${param.replace(/'/g, "''")}'`;
-    } else if (typeof param === 'boolean') {
-      value = param ? 'TRUE' : 'FALSE';
-    } else if (typeof param === 'number') {
-      value = String(param);
-    } else if (param instanceof Date) {
-      value = `'${param.toISOString()}'`;
-    } else if (typeof param === 'object') {
-      // JSON objects
-      value = `'${JSON.stringify(param).replace(/'/g, "''")}'`;
-    } else {
-      value = `'${String(param).replace(/'/g, "''")}'`;
-    }
-
-    result = result.replace(placeholder, value);
-  });
-
-  return result;
-}
-
 // ============================================================================
-// Neon Serverless Driver
+// Neon Serverless Driver — Module-Level Cached Instance (R9)
 // ============================================================================
 
-// Type for the Neon query function with query method
+// Type for the Neon query function with query and transaction methods
 type NeonSqlFunction = {
   (strings: TemplateStringsArray, ...params: unknown[]): Promise<Record<string, unknown>[]>;
   query: (queryText: string, params?: unknown[]) => Promise<Record<string, unknown>[]>;
+  transaction: (
+    queriesOrFn: Record<string, unknown>[][] | ((txn: NeonSqlFunction) => Record<string, unknown>[][]),
+    options?: Record<string, unknown>
+  ) => Promise<Record<string, unknown>[][]>;
 };
+
+/** Module-level cached Neon connection instance */
+let cachedSql: NeonSqlFunction | null = null;
+
+/**
+ * Get or create the cached Neon connection instance.
+ * Eliminates per-query connection string parsing overhead.
+ */
+function getNeonInstance(): NeonSqlFunction {
+  if (!cachedSql) {
+    const { url } = getDatabaseConfig();
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { neon } = require('@neondatabase/serverless');
+    cachedSql = neon(url) as NeonSqlFunction;
+  }
+  return cachedSql;
+}
+
+/** Exported for testing — resets the cached instance */
+export function _resetNeonCache(): void {
+  cachedSql = null;
+}
+
+// ============================================================================
+// Query Execution
+// ============================================================================
 
 /**
  * Execute query via Neon serverless driver
  * 
- * Uses the sql.query() method for parameterized queries with $1, $2 placeholders
- * or tagged template literals for simple queries
+ * Uses the cached sql.query() method for parameterized queries with $1, $2 placeholders
  */
 async function executeNeonQuery<T>(
   queryText: string,
@@ -190,25 +183,12 @@ async function executeNeonQuery<T>(
   const command = extractCommand(queryText);
 
   try {
-    // Dynamic import for Neon serverless driver
-    const { neon } = await import('@neondatabase/serverless');
-    const connectionString = process.env.DATABASE_URL;
-    
-    if (!connectionString) {
-      throw new DatabaseError(
-        'DATABASE_URL not configured for Neon',
-        DatabaseErrorCode.CONFIG_ERROR
-      );
-    }
-
-    const sql = neon(connectionString) as NeonSqlFunction;
+    const sql = getNeonInstance();
     let rows: Record<string, unknown>[];
 
     if (params && params.length > 0) {
-      // Use sql.query() for parameterized queries with $1, $2 placeholders
       rows = await sql.query(queryText, params);
     } else {
-      // For queries without parameters, also use sql.query()
       rows = await sql.query(queryText);
     }
 
@@ -288,12 +268,15 @@ export async function query<T = Record<string, unknown>>(
 }
 
 // ============================================================================
-// Transaction Support
+// Transaction Support — Neon transaction() callback API (R1)
 // ============================================================================
 
 /**
- * Execute multiple queries within a transaction
- * All operations succeed or all are rolled back
+ * Execute multiple queries within an atomic transaction.
+ * 
+ * Uses Neon's `sql.transaction()` callback API which guarantees all statements
+ * run on a single HTTP connection. Automatically commits on success and rolls
+ * back on thrown errors.
  * 
  * @param operations - Array of query configurations to execute
  * @returns Array of results for each operation
@@ -311,31 +294,33 @@ export async function transaction<T = Record<string, unknown>>(
     return [];
   }
 
-  const results: QueryResult<T>[] = [];
-
   try {
-    // Begin transaction
-    await query('BEGIN');
+    const sql = getNeonInstance();
+    const results: QueryResult<T>[] = [];
 
-    // Execute each operation
-    for (const op of operations) {
-      const result = await query<T>(op.text, op.values);
-      results.push(result);
-    }
+    // Use Neon's transaction() callback API — single connection, auto commit/rollback
+    await sql.transaction((tx: NeonSqlFunction) =>
+      operations.map((op) => {
+        const promise = op.values && op.values.length > 0
+          ? tx.query(op.text, op.values)
+          : tx.query(op.text);
 
-    // Commit transaction
-    await query('COMMIT');
+        // Capture results as they resolve
+        promise.then((rows: Record<string, unknown>[]) => {
+          const resultRows = Array.isArray(rows) ? rows : [];
+          results.push({
+            rows: resultRows as T[],
+            rowCount: resultRows.length,
+            command: extractCommand(op.text),
+          });
+        });
+
+        return promise as unknown as Record<string, unknown>[];
+      })
+    );
 
     return results;
   } catch (error) {
-    // Rollback on any error
-    try {
-      await query('ROLLBACK');
-    } catch (rollbackError) {
-      // Log rollback failure but throw original error
-      console.error('[DB] Rollback failed:', (rollbackError as Error).message);
-    }
-
     if (error instanceof DatabaseError) {
       throw new DatabaseError(
         `Transaction failed: ${error.message}`,
@@ -456,213 +441,3 @@ export async function verifyDatabaseSchema(): Promise<{
 
   return { ok, errors, warnings };
 }
-
-// ============================================================================
-// Query Builders
-// Type-safe query construction for common operations
-// ============================================================================
-
-/**
- * User table queries
- * Plain SQL, no ORM magic
- */
-export const userQueries = {
-  /**
-   * Find user by email
-   */
-  findByEmail: (email: string): QueryConfig => ({
-    text: `SELECT id, email, password_hash, refresh_token_hash, role, first_name, last_name, 
-                  is_active, failed_login_attempts, locked_until, created_at, updated_at 
-           FROM profiles 
-           WHERE email = $1 
-           LIMIT 1`,
-    values: [email],
-  }),
-
-  /**
-   * Find user by ID
-   */
-  findById: (id: string): QueryConfig => ({
-    text: `SELECT id, email, role, first_name, last_name, is_active, created_at, updated_at 
-           FROM profiles 
-           WHERE id = $1 
-           LIMIT 1`,
-    values: [id],
-  }),
-
-  /**
-   * Create new user
-   */
-  create: (
-    id: string,
-    email: string,
-    passwordHash: string,
-    role: string,
-    firstName: string,
-    lastName: string
-  ): QueryConfig => ({
-    text: `INSERT INTO profiles (id, email, password_hash, role, first_name, last_name, is_active, created_at, updated_at)
-           VALUES ($1, $2, $3, $4, $5, $6, true, NOW(), NOW())
-           RETURNING id, email, role, is_active`,
-    values: [id, email, passwordHash, role, firstName, lastName],
-  }),
-
-  /**
-   * Update user's password
-   */
-  updatePassword: (id: string, passwordHash: string): QueryConfig => ({
-    text: `UPDATE profiles 
-           SET password_hash = $2, password_changed_at = NOW(), updated_at = NOW() 
-           WHERE id = $1`,
-    values: [id, passwordHash],
-  }),
-
-  /**
-   * Update user's refresh token hash
-   */
-  updateRefreshToken: (id: string, tokenHash: string | null): QueryConfig => ({
-    text: `UPDATE profiles 
-           SET refresh_token_hash = $2, updated_at = NOW() 
-           WHERE id = $1`,
-    values: [id, tokenHash],
-  }),
-
-  /**
-   * Find user by refresh token hash
-   */
-  findByRefreshToken: (tokenHash: string): QueryConfig => ({
-    text: `SELECT id, email, role, is_active 
-           FROM profiles 
-           WHERE refresh_token_hash = $1 AND is_active = true
-           LIMIT 1`,
-    values: [tokenHash],
-  }),
-
-  /**
-   * Increment failed login attempts
-   */
-  incrementFailedAttempts: (id: string): QueryConfig => ({
-    text: `UPDATE profiles 
-           SET failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1, updated_at = NOW() 
-           WHERE id = $1`,
-    values: [id],
-  }),
-
-  /**
-   * Reset failed login attempts
-   */
-  resetFailedAttempts: (id: string): QueryConfig => ({
-    text: `UPDATE profiles 
-           SET failed_login_attempts = 0, locked_until = NULL, updated_at = NOW() 
-           WHERE id = $1`,
-    values: [id],
-  }),
-
-  /**
-   * Lock user account
-   */
-  lockAccount: (id: string, lockUntil: Date): QueryConfig => ({
-    text: `UPDATE profiles 
-           SET locked_until = $2, updated_at = NOW() 
-           WHERE id = $1`,
-    values: [id, lockUntil],
-  }),
-};
-
-/**
- * Session table queries
- * For device session tracking
- */
-export const sessionQueries = {
-  /**
-   * Create session record
-   */
-  create: (
-    id: string,
-    userId: string,
-    deviceInfo: string,
-    ipAddress: string,
-    userAgent?: string
-  ): QueryConfig => ({
-    text: `INSERT INTO device_sessions (id, user_id, device_info, ip_address, user_agent, is_active, last_activity, created_at, expires_at)
-           VALUES ($1, $2, $3, $4, $5, true, NOW(), NOW(), NOW() + INTERVAL '30 days')
-           RETURNING id, user_id, is_active, created_at`,
-    values: [id, userId, deviceInfo, ipAddress, userAgent || ''],
-  }),
-
-  /**
-   * Update session activity
-   */
-  updateActivity: (id: string): QueryConfig => ({
-    text: `UPDATE device_sessions 
-           SET last_activity = NOW() 
-           WHERE id = $1 AND is_active = true`,
-    values: [id],
-  }),
-
-  /**
-   * Deactivate session
-   */
-  deactivate: (id: string): QueryConfig => ({
-    text: `UPDATE device_sessions 
-           SET is_active = false 
-           WHERE id = $1`,
-    values: [id],
-  }),
-
-  /**
-   * Deactivate all user sessions
-   */
-  deactivateAllForUser: (userId: string): QueryConfig => ({
-    text: `UPDATE device_sessions 
-           SET is_active = false 
-           WHERE user_id = $1`,
-    values: [userId],
-  }),
-
-  /**
-   * Get active sessions for user
-   */
-  getActiveForUser: (userId: string): QueryConfig => ({
-    text: `SELECT id, device_info, ip_address, user_agent, last_activity, created_at 
-           FROM device_sessions 
-           WHERE user_id = $1 AND is_active = true 
-           ORDER BY last_activity DESC`,
-    values: [userId],
-  }),
-
-  /**
-   * Deactivate expired sessions (30 days inactive)
-   */
-  deactivateExpired: (): QueryConfig => ({
-    text: `UPDATE device_sessions 
-           SET is_active = false 
-           WHERE is_active = true AND last_activity < NOW() - INTERVAL '30 days'`,
-    values: [],
-  }),
-};
-
-/**
- * Audit log queries
- * For security event logging (no PII)
- */
-export const auditQueries = {
-  /**
-   * Log an audit event
-   */
-  log: (
-    actorId: string | null,
-    action: string,
-    entityType: string,
-    entityId: string | null,
-    changes: Record<string, unknown>,
-    ipAddress: string | null,
-    userAgent: string | null
-  ): QueryConfig => ({
-    text: `INSERT INTO audit_logs (actor_id, action, entity_type, entity_id, changes, ip_address, user_agent, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
-    values: [actorId, action, entityType, entityId, JSON.stringify(changes), ipAddress, userAgent],
-  }),
-};
-
-

@@ -43,7 +43,7 @@ process.emitWarning = function(warning: any, ...args: any[]) {
 } as typeof process.emitWarning;
 
 // Route type for rate limiting configuration
-export type RouteType = "auth" | "session" | "admin" | "notification" | "general" | "registration";
+export type RouteType = "auth" | "session" | "admin" | "notification" | "general" | "registration" | "documents";
 
 // Protected handler type - allows returning VercelResponse or void
 export type ProtectedHandler = (req: VercelRequest, res: VercelResponse) => Promise<VercelResponse | void>;
@@ -110,6 +110,13 @@ export const rateLimitConfigs = {
    * Requirement 7.5: registration rate limiting via Arcjet
    */
   registration: { window: "10m", max: 3 },
+
+  /**
+   * Documents: Stricter limits for file upload abuse prevention
+   * - 20 requests per 10 minutes per IP
+   * Requirement 12.1: dedicated documents rate limit
+   */
+  documents: { window: "10m", max: 20 },
 } as const;
 
 
@@ -235,8 +242,20 @@ export function withArcjetProtection(
       return;
     }
 
-    // Skip Arcjet if key not configured (development only)
+    // Skip Arcjet if key not configured
     if (!ARCJET_KEY) {
+      // Req 5.1: Fail-closed in production — reject all requests
+      const isProduction = process.env.NODE_ENV === 'production';
+      if (isProduction) {
+        console.error("[ARCJET] FATAL: ARCJET_KEY not set in production — rejecting request");
+        res.status(503).json({
+          success: false,
+          error: "Security service unavailable",
+          code: "SECURITY_SERVICE_ERROR",
+        });
+        return;
+      }
+      // Req 5.2: Fail-open in development — log warning, pass through
       console.warn("[ARCJET] WARNING: Running without Arcjet protection");
       return handler(req, res);
     }

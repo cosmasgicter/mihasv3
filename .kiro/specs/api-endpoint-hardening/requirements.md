@@ -2,8 +2,7 @@
 
 ## Introduction
 
-Comprehensive API endpoint hardening for the MIHAS admissions portal (https://apply.mihas.edu.zm). This feature systematically addresses security gaps across all 11 API endpoints in `api-src/`, ensuring consistent input validation, CSRF protection, rate limiting, error handling, auth enforcement, method validation, query parameter sanitization, security headers, session validation, and idempotency support. The portal serves real students and administrators in Zambia and must meet production-grade security standards.
-
+Comprehensive API endpoint hardening for the MIHAS admissions portal (https://apply.mihas.edu.zm). This feature systematically addresses security gaps across all 11 API endpoints in `api-src/`, ensuring consistent input validation, CSRF protection, rate limiting, error handling, auth enforcement, method validation, query parameter sanitization, security headers, session validation, and idempotency support. The portal serves real students and administrators in Zambia and must meet production-grade security standards.                           
 ## Glossary
 
 - **Endpoint**: A Vercel serverless function in `api-src/` that handles HTTP requests via query parameter routing (`?action=xxx`)
