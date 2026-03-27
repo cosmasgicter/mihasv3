@@ -27,7 +27,7 @@ interface InstitutionRecord {
   name: string;
   full_name?: string;
   code?: string;
-  description?: string;
+  description?: string | null;
   is_active: boolean;
   created_at?: string;
   updated_at?: string;
@@ -407,7 +407,7 @@ async function deleteProgram(req: VercelRequest, res: VercelResponse, actorId: s
 async function listInstitutions(res: VercelResponse, includeInactive: boolean, shouldCache: boolean) {
   try {
     const result = await query<InstitutionRecord>(
-      `SELECT id, name, full_name, code, description, is_active, created_at, updated_at
+      `SELECT id, name, full_name, code, is_active, created_at, updated_at
        FROM institutions
        WHERE ($1::boolean = true OR is_active = true)
        ORDER BY full_name ASC, name ASC`,
@@ -435,10 +435,10 @@ async function createInstitution(req: VercelRequest, res: VercelResponse, actorI
 
   try {
     const result = await query<InstitutionRecord>(
-      `INSERT INTO institutions (name, full_name, code, description, is_active, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, true, NOW(), NOW())
-       RETURNING id, name, full_name, code, description, is_active, created_at, updated_at`,
-      [name, fullName, code, description || null]
+      `INSERT INTO institutions (name, full_name, code, is_active, created_at, updated_at)
+       VALUES ($1, $2, $3, true, NOW(), NOW())
+       RETURNING id, name, full_name, code, is_active, created_at, updated_at`,
+      [name, fullName, code]
     );
 
     await logCatalogAuditEvent({
@@ -473,12 +473,11 @@ async function updateInstitution(req: VercelRequest, res: VercelResponse, actorI
        SET name = $2,
            full_name = $3,
            code = $4,
-           description = $5,
-           is_active = COALESCE($6, is_active),
+           is_active = COALESCE($5, is_active),
            updated_at = NOW()
        WHERE id = $1
-       RETURNING id, name, full_name, code, description, is_active, created_at, updated_at`,
-      [id, name, fullName, code, description || null, isActive ?? null]
+       RETURNING id, name, full_name, code, is_active, created_at, updated_at`,
+      [id, name, fullName, code, isActive ?? null]
     );
 
     if (result.rowCount === 0) {
