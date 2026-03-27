@@ -1238,19 +1238,23 @@ async function handleById(
 
         let updateResult;
         try {
+          // Compute verified_at and verified_by in JS to avoid Neon driver
+          // type inference issues with CASE WHEN $2 = 'verified' (parameter reuse)
+          const isVerified = paymentStatus === 'verified';
           updateResult = await query<ApplicationRecord>(
             `UPDATE applications
              SET
                payment_status = $2,
                payment_verified_by = $3,
-               payment_verified_at = CASE WHEN $2 = 'verified' THEN NOW() ELSE NULL END,
+               payment_verified_at = $4,
                updated_at = NOW()
              WHERE id = $1
              RETURNING *`,
             [
               applicationId,
               paymentStatus,
-              paymentStatus === 'verified' ? userId : null,
+              isVerified ? userId : null,
+              isVerified ? new Date().toISOString() : null,
             ]
           );
         } catch (error) {
