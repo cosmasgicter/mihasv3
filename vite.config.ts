@@ -79,9 +79,8 @@ export default defineConfig(({ mode, command }) => {
         injectRegister: false,
         injectManifest: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
-          // Allow caching the largest current app chunk (~8.2MB) so production
-          // builds don't fail when generating the service-worker precache.
-          maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+          // Reduced from 10MB to 3MB after bundle splitting (R15/P-1)
+          maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         },
       })
     ],

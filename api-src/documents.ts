@@ -223,10 +223,10 @@ async function handleRegisterSlip(req: VercelRequest, res: VercelResponse, authU
 }
 
 async function handleResolveReference(req: VercelRequest, res: VercelResponse, authUserId: string, userRole: string) {
-  const { reference, applicationId } = req.body || {};
-  if (!reference || typeof reference !== 'string') {
-    return sendError(res, 'reference is required', HttpStatus.BAD_REQUEST);
-  }
+  const parsed = validateBody(resolveReferenceBodySchema, req, res);
+  if (!parsed) return;
+
+  const { reference, applicationId } = parsed;
 
   if (applicationId) {
     const canAccess = await checkDocumentUploadAccess(authUserId, applicationId, userRole);

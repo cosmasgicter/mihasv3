@@ -2029,6 +2029,11 @@ async function handler(req, res) {
   if (handleCors(req, res))
     return;
   setSecurityHeaders(res);
+  const ALLOWED_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"];
+  if (!ALLOWED_METHODS.includes(req.method || "")) {
+    res.setHeader("Allow", ALLOWED_METHODS.join(", "));
+    return sendError(res, "Method not allowed", HttpStatus.METHOD_NOT_ALLOWED);
+  }
   const envResult = validateServerEnv();
   if (!envResult.valid) {
     const details = envResult.errors.map((e) => e.message).join("; ");
@@ -3093,28 +3098,16 @@ async function handleById(req, res, userId, isAdmin2, canReadAllApplications, ca
             return sendError(res, "No active interview found to reschedule", HttpStatus.NOT_FOUND);
           }
           const interviewId = existingInterview.rows[0].id;
-          const setClauses = [`scheduled_at = $1`, `status = 'rescheduled'`, `updated_at = NOW()`];
-          const updateValues = [scheduledAt];
-          let pIdx = 2;
-          if (reschedMode) {
-            const normalizedMode = reschedMode === "in-person" ? "in_person" : reschedMode;
-            setClauses.push(`mode = $${pIdx}`);
-            updateValues.push(normalizedMode);
-            pIdx++;
-          }
-          if (reschedLocation) {
-            setClauses.push(`location = $${pIdx}`);
-            updateValues.push(reschedLocation);
-            pIdx++;
-          }
-          if (reschedNotes !== undefined) {
-            setClauses.push(`notes = $${pIdx}`);
-            updateValues.push(reschedNotes || null);
-            pIdx++;
-          }
-          updateValues.push(interviewId);
-          const reschedResult = await query(`UPDATE application_interviews SET ${setClauses.join(", ")} WHERE id = $${pIdx}
-           RETURNING id, application_id, scheduled_at, mode, location, notes, status`, updateValues);
+          const normalizedMode = reschedMode ? reschedMode === "in-person" ? "in_person" : reschedMode : null;
+          const reschedResult = await query(`UPDATE application_interviews SET
+             scheduled_at = $1,
+             status = 'rescheduled',
+             mode = COALESCE($2, mode),
+             location = COALESCE($3, location),
+             notes = COALESCE($4, notes),
+             updated_at = NOW()
+           WHERE id = $5
+           RETURNING id, application_id, scheduled_at, mode, location, notes, status`, [scheduledAt, normalizedMode, reschedLocation || null, reschedNotes ?? null, interviewId]);
           try {
             await logAuditEvent({
               actor_id: userId,

@@ -113,53 +113,53 @@ Remediate all 26 findings from the MIHAS Full-Stack Audit Report across three sp
 
 ### Sprint 2 — High (Validation, Performance, Hardening)
 
-- [ ] 7. Add Zod validation for document reference resolution
-  - [ ] 7.1 Add resolveReferenceSchema to lib/validation/documents.ts
+- [x] 7. Add Zod validation for document reference resolution
+  - [x] 7.1 Add resolveReferenceSchema to lib/validation/documents.ts
     - Define schema: `reference` (required string, min 1), `applicationId` (optional UUID)
     - Export from `lib/validation/index.ts`
     - _Requirements: 7.1_
 
-  - [ ] 7.2 Apply validation in handleResolveReference in api-src/documents.ts
+  - [x] 7.2 Apply validation in handleResolveReference in api-src/documents.ts
     - Call `validateBody(resolveReferenceSchema, req, res)` before processing
     - Return 400 with field-level Zod errors on validation failure
     - Run `bun run scripts/bundle-api.mjs`
     - _Requirements: 7.2, 7.3_
 
-  - [ ] 7.3 Write property test for document reference validation (Property 5)
+  - [x] 7.3 Write property test for document reference validation (Property 5)
     - In `tests/property/audit-remediation-validation.test.ts`
     - **Property 5: Document reference validation rejects invalid input**
     - Generate random invalid bodies (missing reference, non-string, bad UUID)
     - **Validates: Requirements 7.2, 7.3**
 
-- [ ] 8. HTTP method enforcement and action validation on applications handler
-  - [ ] 8.1 Add top-level HTTP method allowlist in api-src/applications.ts
+- [x] 8. HTTP method enforcement and action validation on applications handler
+  - [x] 8.1 Add top-level HTTP method allowlist in api-src/applications.ts
     - Add `ALLOWED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD']` check at handler entry
     - Return 405 with `Allow` header for disallowed methods
     - _Requirements: 8.1, 8.2_
 
-  - [ ] 8.2 Fix action validation timing — remove !id condition
+  - [x] 8.2 Fix action validation timing — remove !id condition
     - Change `if (action && !id && !VALID_ACTIONS.includes(action))` to `if (action && !VALID_ACTIONS.includes(action))`
     - Invalid actions now rejected regardless of `id` presence
     - _Requirements: 11.1, 11.2_
 
-  - [ ] 8.3 Bundle API after applications.ts changes
+  - [x] 8.3 Bundle API after applications.ts changes
     - Run `bun run scripts/bundle-api.mjs`
     - _Requirements: 8.1, 8.2, 11.1, 11.2_
 
-  - [ ] 8.4 Write property test for method rejection (Property 6)
+  - [x] 8.4 Write property test for method rejection (Property 6)
     - In `tests/property/audit-remediation-validation.test.ts`
     - **Property 6: Applications handler rejects disallowed HTTP methods**
     - Generate random HTTP method strings, verify 405 for non-allowlisted
     - **Validates: Requirements 8.1, 8.2**
 
-  - [ ] 8.5 Write property test for action validation independence (Property 7)
+  - [x] 8.5 Write property test for action validation independence (Property 7)
     - In `tests/property/audit-remediation-validation.test.ts`
     - **Property 7: Action validation is independent of id parameter presence**
     - Generate random id/action combinations with invalid actions
     - **Validates: Requirements 11.1, 11.2**
 
-- [ ] 9. Database indexes migration
-  - [ ] 9.1 Create migrations/add_audit_remediation_indexes.sql
+- [x] 9. Database indexes migration
+  - [x] 9.1 Create migrations/add_audit_remediation_indexes.sql
     - Add 6 indexes using `CREATE INDEX IF NOT EXISTS`:
       - `idx_login_attempts_email_hash_attempted_at` on `login_attempts(email_hash, attempted_at)`
       - `idx_csrf_tokens_user_id_expires_at` on `csrf_tokens(user_id, expires_at)`
@@ -169,56 +169,56 @@ Remediate all 26 findings from the MIHAS Full-Stack Audit Report across three sp
       - `idx_application_documents_app_id_doc_type` on `application_documents(application_id, document_type)`
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7_
 
-  - [ ] 9.2 Write unit test verifying migration file contains all indexes
+  - [x] 9.2 Write unit test verifying migration file contains all indexes
     - In `tests/unit/audit-remediation-code-structure.test.ts`, read migration file and verify all 6 `CREATE INDEX IF NOT EXISTS` statements present
     - _Requirements: 10.7_
 
-- [ ] 10. SQL column allowlist in admin handler
-  - [ ] 10.1 Formalize column allowlist constant in api-src/admin.ts
+- [x] 10. SQL column allowlist in admin handler
+  - [x] 10.1 Formalize column allowlist constant in api-src/admin.ts
     - Define `ALLOWED_USER_COLUMNS` as a `const` array
     - Validate any dynamic column references against the allowlist
     - Return 400 for unknown column names
     - _Requirements: 13.1, 13.2, 13.3_
 
-  - [ ] 10.2 Write property test for column allowlist (Property 8)
+  - [x] 10.2 Write property test for column allowlist (Property 8)
     - In `tests/property/audit-remediation-validation.test.ts`
     - **Property 8: Column allowlist rejects unknown columns in admin handler**
     - Generate random column name strings, verify rejection of non-allowlisted
     - **Validates: Requirements 13.1, 13.2**
 
-- [ ] 11. Fixed SQL SET clauses with COALESCE
-  - [ ] 11.1 Replace dynamic SET construction in handleProfile (api-src/auth.ts)
+- [x] 11. Fixed SQL SET clauses with COALESCE
+  - [x] 11.1 Replace dynamic SET construction in handleProfile (api-src/auth.ts)
     - Use fixed `UPDATE profiles SET full_name = COALESCE($1, full_name), ...` query
     - Pass `null` for fields not in request body
     - Eliminate `join(', ')` dynamic SET construction
     - _Requirements: 14.1, 14.3_
 
-  - [ ] 11.2 Replace dynamic SET construction in interview reschedule (api-src/applications.ts)
+  - [x] 11.2 Replace dynamic SET construction in interview reschedule (api-src/applications.ts)
     - Use fixed COALESCE query for interview rescheduling
     - Eliminate `join(', ')` dynamic SET construction
     - _Requirements: 14.2, 14.3_
 
-  - [ ] 11.3 Bundle API after auth.ts and applications.ts changes
+  - [x] 11.3 Bundle API after auth.ts and applications.ts changes
     - Run `bun run scripts/bundle-api.mjs`
     - _Requirements: 14.1, 14.2, 14.3_
 
-  - [ ] 11.4 Write property test for COALESCE field preservation (Property 9)
+  - [x] 11.4 Write property test for COALESCE field preservation (Property 9)
     - In `tests/property/audit-remediation-transactions.test.ts`
     - **Property 9: Fixed COALESCE queries preserve unmodified fields**
     - Generate random subsets of profile fields, verify omitted fields unchanged
     - **Validates: Requirements 14.1, 14.2**
 
-- [ ] 12. Split large bundle chunk and reduce service worker cache limit
-  - [ ] 12.1 Verify tesseract.js is in separate vendor-ocr chunk in vite.config.ts
+- [-] 12. Split large bundle chunk and reduce service worker cache limit
+  - [x] 12.1 Verify tesseract.js is in separate vendor-ocr chunk in vite.config.ts
     - Confirm `manualChunks` already isolates tesseract.js
     - Add further lazy-loading splits if any chunk exceeds 2MB
     - _Requirements: 15.1, 15.2_
 
-  - [ ] 12.2 Reduce service worker precache limit in vite.config.ts
+  - [x] 12.2 Reduce service worker precache limit in vite.config.ts
     - Change `maximumFileSizeToCacheInBytes` from 10MB to 3MB in VitePWA config
     - _Requirements: 15.3_
 
-  - [ ] 12.3 Write unit test verifying cache limit and chunk config
+  - [x] 12.3 Write unit test verifying cache limit and chunk config
     - In `tests/unit/audit-remediation-config.test.ts`, verify `maximumFileSizeToCacheInBytes` ≤ 3MB
     - Verify terser config includes `drop_console: true`
     - _Requirements: 15.3, 22.1_

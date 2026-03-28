@@ -1659,6 +1659,30 @@ var VALID_ACTIONS = [
   "appeals",
   "schema"
 ];
+var SAFE_USER_COLUMNS = [
+  "id",
+  "email",
+  "full_name",
+  "first_name",
+  "last_name",
+  "phone",
+  "nationality",
+  "role",
+  "is_active",
+  "created_at",
+  "updated_at",
+  "avatar_url",
+  "date_of_birth",
+  "sex",
+  "address",
+  "nrc_number",
+  "residence_town",
+  "next_of_kin_name",
+  "next_of_kin_phone",
+  "email_verified",
+  "last_login_at"
+];
+var SAFE_USER_COLUMNS_SQL = SAFE_USER_COLUMNS.join(", ");
 function splitFullName(fullName) {
   const normalized = fullName.trim().replace(/\s+/g, " ");
   const [firstName, ...rest] = normalized.split(" ");
@@ -2115,9 +2139,8 @@ async function handleUsers(req, res, auth) {
   }
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   try {
-    const safeColumns = `id, email, full_name, first_name, last_name, phone, nationality, role, is_active, created_at, updated_at, avatar_url, date_of_birth, sex, address, nrc_number, residence_town, next_of_kin_name, next_of_kin_phone, email_verified, last_login_at`;
     const [dataResult, countResult] = await Promise.all([
-      query(`SELECT ${safeColumns} FROM profiles ${whereClause} ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`, [...params, limit, offset]),
+      query(`SELECT ${SAFE_USER_COLUMNS_SQL} FROM profiles ${whereClause} ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`, [...params, limit, offset]),
       query(`SELECT COUNT(*) as count FROM profiles ${whereClause}`, params)
     ]);
     const users = dataResult.rows.map((user) => ({ ...user, user_id: user.id }));
