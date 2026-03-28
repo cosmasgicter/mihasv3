@@ -104,10 +104,10 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
     return await handlePublicTracking(req, res);
   }
 
-  // Action allowlist validation (Req 1.4, 7.1, 7.2)
-  // Only validate when an action is provided and no id param (id-based routes skip action dispatch)
+  // Action allowlist validation (Req 1.4, 7.1, 7.2, 11.1, 11.2)
+  // Always validate action regardless of id presence
   const id = req.query.id as string;
-  if (action && !id && !VALID_ACTIONS.includes(action as typeof VALID_ACTIONS[number])) {
+  if (action && !VALID_ACTIONS.includes(action as typeof VALID_ACTIONS[number])) {
     return sendError(
       res,
       `Invalid action '${action}'. Valid actions: ${VALID_ACTIONS.join(', ')}`,
