@@ -250,6 +250,19 @@ function RoutedAppChrome() {
   const navigate = useNavigate()
   const { user, isAdmin } = useAuth()
   const isLightweightRoute = isLightweightPublicRoute(location.pathname)
+  const prevPathRef = React.useRef(location.pathname)
+
+  // Focus management on route transitions (R25/AC-2)
+  useEffect(() => {
+    if (prevPathRef.current !== location.pathname) {
+      prevPathRef.current = location.pathname
+      // Move focus to main content after route change for screen readers
+      const mainContent = document.getElementById('main-content') || document.querySelector('main') || document.querySelector('h1')
+      if (mainContent && mainContent instanceof HTMLElement) {
+        mainContent.focus({ preventScroll: false })
+      }
+    }
+  }, [location.pathname])
   const matchedRoute = useMemo(() => (
     routes.find((route) => Boolean(matchPath({ path: route.path, end: route.path !== '*' }, location.pathname)))
   ), [location.pathname])

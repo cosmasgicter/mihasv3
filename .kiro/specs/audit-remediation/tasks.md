@@ -258,34 +258,34 @@ Remediate all 26 findings from the MIHAS Full-Stack Audit Report across three sp
     - In `tests/unit/audit-remediation-config.test.ts`, verify CSP includes `font-src 'self'` and `X-Permitted-Cross-Domain-Policies` header exists
     - _Requirements: 19.1, 19.2_
 
-- [ ] 16. Fix N+1 query in health check database diagnostic
-  - [ ] 16.1 Replace per-table COUNT(*) loop with single query in api-src/health.ts
+- [-] 16. Fix N+1 query in health check database diagnostic
+  - [x] 16.1 Replace per-table COUNT(*) loop with single query in api-src/health.ts
     - Use `pg_stat_user_tables` or `information_schema` for approximate row counts in one query
     - Return equivalent information (table names + approximate counts)
     - Run `bun run scripts/bundle-api.mjs`
     - _Requirements: 20.1, 20.2_
 
-  - [ ] 16.2 Write property test for single-query health check (Property 13)
+  - [x] 16.2 Write property test for single-query health check (Property 13)
     - In `tests/property/audit-remediation-security.test.ts`
     - **Property 13: Health endpoint database check returns equivalent information in a single query**
     - Verify at most one database query is issued for any set of tables
     - **Validates: Requirements 20.1, 20.2**
 
 - [ ] 17. Secure migrate action with audit logging
-  - [ ] 17.1 Add audit logging to handleMigrate in api-src/admin.ts
+  - [x] 17.1 Add audit logging to handleMigrate in api-src/admin.ts
     - Log migration attempt to audit trail regardless of auth method (JWT or MIGRATE_SECRET)
     - Include IP address and authentication method in audit entry
     - Run `bun run scripts/bundle-api.mjs`
     - _Requirements: 21.1, 21.2_
 
-  - [ ] 17.2 Write property test for migration audit logging (Property 12)
+  - [x] 17.2 Write property test for migration audit logging (Property 12)
     - In `tests/property/audit-remediation-security.test.ts`
     - **Property 12: Migration action always produces an audit log entry**
     - Generate random migration requests with JWT/secret auth
     - **Validates: Requirements 21.1, 21.2**
 
 - [ ] 18. Verify console.log stripping in production build
-  - [ ] 18.1 Audit terser config in vite.config.ts
+  - [x] 18.1 Audit terser config in vite.config.ts
     - Verify `pure_funcs: ['console.log', 'console.info', 'console.debug']` and `drop_console: true` are present
     - Verify files listed in R22 (`usePWA.ts`, `useServiceWorkerUpdate.ts`, `useRealtime.ts`, `useErrorHandler.ts`, `cacheMonitor.ts`, `pushNotificationManager.ts`) use `console.log` that will be stripped
     - _Requirements: 22.1, 22.2_
@@ -301,45 +301,45 @@ Remediate all 26 findings from the MIHAS Full-Stack Audit Report across three sp
     - _Requirements: 23.1_
 
 - [ ] 20. ARIA live regions for form validation errors
-  - [ ] 20.1 Add aria-live regions to application wizard steps
+  - [x] 20.1 Add aria-live regions to application wizard steps
     - Add `aria-live="polite"` container for validation error announcements in each wizard step component
     - Add `aria-describedby` linking inputs to their error messages
     - Target: `src/components/forms/` wizard step components
     - _Requirements: 24.1, 24.2_
 
-  - [ ] 20.2 Add aria-live regions to auth forms (login/register)
+  - [x] 20.2 Add aria-live regions to auth forms (login/register)
     - Add `aria-live="polite"` container for validation errors in login and register forms
     - Add `aria-describedby` linking inputs to their error messages
     - Target: `src/components/auth/` login and register components
     - _Requirements: 24.1, 24.2_
 
-  - [ ] 20.3 Write property test for ARIA live regions (Property 10)
+  - [x] 20.3 Write property test for ARIA live regions (Property 10)
     - In `tests/property/audit-remediation-ui.test.ts`
     - **Property 10: ARIA live regions announce form validation errors**
     - Generate random validation error states, verify aria-live and aria-describedby presence
     - **Validates: Requirements 24.1, 24.2**
 
 - [ ] 21. Focus management on route transitions
-  - [ ] 21.1 Add useEffect for focus management in router layout
+  - [x] 21.1 Add useEffect for focus management in router layout
     - In `src/routes/` layout component, add a `useEffect` that moves focus to main content heading after route changes
     - Use `document.getElementById('main-content')` or similar focus target
     - Ensure it does not interfere with browser back/forward navigation
     - _Requirements: 25.1, 25.2_
 
-  - [ ] 21.2 Write property test for focus management (Property 11)
+  - [x] 21.2 Write property test for focus management (Property 11)
     - In `tests/property/audit-remediation-ui.test.ts`
     - **Property 11: Focus moves to main content after route transitions**
     - Generate random route paths, verify focus target after transition
     - **Validates: Requirement 25.1**
 
 - [ ] 22. Fix health.ts TypeScript errors
-  - [ ] 22.1 Fix return type annotations in api-src/health.ts
+  - [x] 22.1 Fix return type annotations in api-src/health.ts
     - Change return types from `VercelResponse` to `void` where appropriate
     - Fix Neon driver typing to use tagged template literals instead of `.query()` method
     - Run `bun run scripts/bundle-api.mjs`
     - _Requirements: 26.1, 26.2, 26.3_
 
-  - [ ] 22.2 Write unit test verifying zero TypeScript errors in health.ts
+  - [x] 22.2 Write unit test verifying zero TypeScript errors in health.ts
     - In `tests/unit/audit-remediation-code-structure.test.ts`, verify `api-src/health.ts` compiles without diagnostic errors
     - _Requirements: 26.1_
 

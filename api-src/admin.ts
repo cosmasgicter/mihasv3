@@ -1680,12 +1680,36 @@ async function handleSetPassword(req: VercelRequest, res: VercelResponse, auth: 
 async function handleMigrate(req: VercelRequest, res: VercelResponse): Promise<VercelResponse | void> {
   const MIGRATE_SECRET = process.env.MIGRATE_SECRET;
   const { secret } = req.body || {};
+  const ipAddress = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || null;
 
   // Allow migration if secret matches OR if user is super_admin (already verified by requireRole)
   if (MIGRATE_SECRET && secret !== MIGRATE_SECRET) {
+    // Audit failed migration attempt (R21)
+    try {
+      await logAuditEvent({
+        actor_id: null,
+        action: 'migration_attempt_failed',
+        entity_type: 'system',
+        entity_id: null,
+        changes: { auth_method: 'secret', reason: 'invalid_secret' },
+        ip_address: ipAddress,
+      });
+    } catch { /* non-blocking */ }
     sendError(res, 'Invalid migration secret', HttpStatus.UNAUTHORIZED);
     return;
   }
+
+  // Audit successful migration start (R21)
+  try {
+    await logAuditEvent({
+      actor_id: null,
+      action: 'migration_started',
+      entity_type: 'system',
+      entity_id: null,
+      changes: { auth_method: secret ? 'secret' : 'jwt' },
+      ip_address: ipAddress,
+    });
+  } catch { /* non-blocking */ }
 
   const migrationQueries = [
     // 1. Core History Table
