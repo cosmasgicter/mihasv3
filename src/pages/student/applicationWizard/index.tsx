@@ -283,7 +283,7 @@ const ApplicationWizardContent = () => {
               Back to Dashboard
             </Link>
             
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-caption">
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-foreground/80">
               <span className="break-all">Logged in as: {user.email}</span>
               <span className="hidden sm:inline text-xs bg-primary/10 text-primary px-2 py-1 rounded">
                 {WIZARD_COPY.keyboardNavigationTip}
@@ -298,7 +298,7 @@ const ApplicationWizardContent = () => {
               <h2 className="text-base sm:text-lg font-semibold text-foreground">
                 {currentStepConfig.title}
               </h2>
-              <p className="text-sm text-caption mt-1">
+              <p className="text-sm text-foreground/80 mt-1">
                 {currentStepConfig.description}
               </p>
               <div className="mt-2 space-y-2">
@@ -317,10 +317,10 @@ const ApplicationWizardContent = () => {
                     />
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-xs font-medium text-caption whitespace-nowrap">
+                    <span className="text-xs font-semibold text-foreground whitespace-nowrap">
                       {progressPercent}%
                     </span>
-                    <span className="text-xs text-caption whitespace-nowrap hidden sm:block">
+                    <span className="text-xs text-foreground/70 whitespace-nowrap hidden sm:block">
                       {formattedTime}
                     </span>
                   </div>
@@ -333,13 +333,13 @@ const ApplicationWizardContent = () => {
                       <div className="h-3.5 w-3.5 rounded-full border-2 border-muted-foreground" />
                     )}
                     <span className={`font-medium ${
-                      stepValidation.isValid ? 'text-success' : 'text-muted-foreground'
+                      stepValidation.isValid ? 'text-success' : 'text-foreground/80'
                     }`}>
                       {stepValidation.completedFields}/{stepValidation.totalFields} fields completed
                     </span>
                   </div>
                   {!stepValidation.isValid && stepValidation.missingFields.length > 0 && (
-                    <span className="text-caption">
+                    <span className="text-foreground/75">
                       {WIZARD_COPY.missingFieldsPrefix} {stepValidation.missingFields.slice(0, 2).join(', ')}
                       {stepValidation.missingFields.length > 2 && ` +${stepValidation.missingFields.length - 2} more`}
                     </span>

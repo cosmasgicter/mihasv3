@@ -55,7 +55,7 @@ export function DashboardMetricsCards({ metrics }: DashboardMetricsCardsProps) {
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-foreground">{item.value}</div>
-                <div className="text-xs text-muted-foreground">{item.subtitle}</div>
+                <div className="text-xs text-foreground/75">{item.subtitle}</div>
               </div>
             </div>
             <div className="text-sm font-medium text-foreground">{item.title}</div>
