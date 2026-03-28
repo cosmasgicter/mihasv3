@@ -67,6 +67,7 @@ import { normalizeSessionResult, useAuthCheck } from '@/hooks/auth/useSessionLis
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { StudentRoute } from '@/components/StudentRoute'
 import { AdminRoute } from '@/components/AdminRoute'
+import { getRoleSafeRedirectPath } from '@/pages/auth/SignInPage'
 
 describe('useAuthCheck session normalization', () => {
   beforeEach(() => {
@@ -214,5 +215,39 @@ describe('route guards with normalized session-backed auth state', () => {
     const isNavigate = element.type === 'mock-navigate' || (typeof element.type === 'function' && (element.type as any).name === 'Navigate')
     expect(isNavigate).toBe(true)
     expect(element.props.to).toBe('/auth/signin')
+  })
+})
+
+describe('role-safe post-login redirect sanitization', () => {
+  it('uses admin default when stale student redirect exists after student logout then admin login', () => {
+    const redirectTo = getRoleSafeRedirectPath({
+      requestedRedirect: '/student/application-wizard?step=documents',
+      role: 'admin',
+    })
+
+    expect(redirectTo).toBe('/admin/dashboard')
+  })
+
+  it('uses student default when stale admin redirect exists after admin logout then student login', () => {
+    const redirectTo = getRoleSafeRedirectPath({
+      requestedRedirect: '/admin/users',
+      role: 'student',
+    })
+
+    expect(redirectTo).toBe('/student/dashboard')
+  })
+
+  it('accepts same-role redirect targets and preserves query/hash', () => {
+    const adminRedirect = getRoleSafeRedirectPath({
+      requestedRedirect: '/admin/applications?page=2#pending',
+      role: 'admin',
+    })
+    const studentRedirect = getRoleSafeRedirectPath({
+      requestedRedirect: '/student/application/abc-123?tab=files#upload',
+      role: 'student',
+    })
+
+    expect(adminRedirect).toBe('/admin/applications?page=2#pending')
+    expect(studentRedirect).toBe('/student/application/abc-123?tab=files#upload')
   })
 })

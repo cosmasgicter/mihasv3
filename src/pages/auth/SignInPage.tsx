@@ -21,6 +21,55 @@ import { FormErrorAnnouncer } from '@/components/ui/FormErrorAnnouncer';
 import { Seo } from '@/components/seo/Seo';
 import { isAdminRole } from '@/lib/auth/roles';
 
+const ADMIN_REDIRECT_ALLOWLIST = [
+  '/admin/dashboard',
+  '/admin/applications',
+  '/admin/programs',
+  '/admin/intakes',
+  '/admin/users',
+  '/admin/audit',
+  '/admin/settings',
+] as const;
+
+const STUDENT_REDIRECT_ALLOWLIST = [
+  '/student/dashboard',
+  '/student/application-wizard',
+  '/student/application',
+  '/student/status',
+  '/student/payment',
+  '/student/interview',
+  '/student/settings',
+  '/student/notifications',
+] as const;
+
+function matchesAllowlistPath(pathname: string, allowlist: readonly string[]): boolean {
+  return allowlist.some((allowedPath) => pathname === allowedPath || pathname.startsWith(`${allowedPath}/`));
+}
+
+export function getRoleSafeRedirectPath({
+  requestedRedirect,
+  role,
+}: {
+  requestedRedirect: string | null | undefined
+  role: string | null | undefined
+}): string {
+  const admin = isAdminRole(role)
+  const defaultRedirect = admin ? '/admin/dashboard' : '/student/dashboard'
+
+  if (!requestedRedirect || requestedRedirect === '/auth/signin') {
+    return defaultRedirect
+  }
+
+  try {
+    const parsed = new URL(requestedRedirect, 'http://localhost')
+    const normalizedPath = `${parsed.pathname}${parsed.search}${parsed.hash}`
+    const allowlist = admin ? ADMIN_REDIRECT_ALLOWLIST : STUDENT_REDIRECT_ALLOWLIST
+    return matchesAllowlistPath(parsed.pathname, allowlist) ? normalizedPath : defaultRedirect
+  } catch {
+    return defaultRedirect
+  }
+}
+
 const signInSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
@@ -82,11 +131,8 @@ export default function SignInPage() {
         ? sessionStorage.getItem('mihas:post-auth-redirect')
         : null;
       const role = result?.user?.role;
-      const defaultRedirect = isAdminRole(role) ? '/admin/dashboard' : '/student/dashboard';
       const requestedRedirect = fromState || redirectFromQuery || storedRedirect;
-      const redirectTo = requestedRedirect && requestedRedirect !== '/auth/signin'
-        ? requestedRedirect
-        : defaultRedirect;
+      const redirectTo = getRoleSafeRedirectPath({ requestedRedirect, role });
 
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('mihas:post-auth-redirect');
@@ -96,6 +142,9 @@ export default function SignInPage() {
     },
     onError: () => {
       setIsAuthenticating(false);
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('mihas:post-auth-redirect');
+      }
     },
   });
 
