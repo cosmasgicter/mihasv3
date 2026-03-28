@@ -85,6 +85,13 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelR
   // Security headers (Req 8.1, 8.2, 8.3, 8.4)
   setSecurityHeaders(res);
 
+  // Top-level HTTP method enforcement (Req 8.1)
+  const ALLOWED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'];
+  if (!ALLOWED_METHODS.includes(req.method || '')) {
+    res.setHeader('Allow', ALLOWED_METHODS.join(', '));
+    return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
   // Validate required environment variables (Req 25.3)
   const envResult = validateServerEnv();
   if (!envResult.valid) {
@@ -1517,27 +1524,22 @@ async function handleById(
           return sendError(res, 'No active interview found to reschedule', HttpStatus.NOT_FOUND);
         }
         const interviewId = existingInterview.rows[0].id;
-        const setClauses: string[] = [`scheduled_at = $1`, `status = 'rescheduled'`, `updated_at = NOW()`];
-        const updateValues: (string | null)[] = [scheduledAt];
-        let pIdx = 2;
-        if (reschedMode) {
-          const normalizedMode = reschedMode === 'in-person' ? 'in_person' : reschedMode;
-          setClauses.push(`mode = $${pIdx}`); updateValues.push(normalizedMode); pIdx++;
-        }
-        if (reschedLocation) {
-          setClauses.push(`location = $${pIdx}`); updateValues.push(reschedLocation); pIdx++;
-        }
-        if (reschedNotes !== undefined) {
-          setClauses.push(`notes = $${pIdx}`); updateValues.push(reschedNotes || null); pIdx++;
-        }
-        updateValues.push(interviewId);
+        // Fixed COALESCE query — no dynamic SET clause construction (R14/S-3)
+        const normalizedMode = reschedMode ? (reschedMode === 'in-person' ? 'in_person' : reschedMode) : null;
         const reschedResult = await query<{
           id: string; application_id: string; scheduled_at: string; mode: string;
           location: string; notes: string | null; status: string;
         }>(
-          `UPDATE application_interviews SET ${setClauses.join(', ')} WHERE id = $${pIdx}
+          `UPDATE application_interviews SET
+             scheduled_at = $1,
+             status = 'rescheduled',
+             mode = COALESCE($2, mode),
+             location = COALESCE($3, location),
+             notes = COALESCE($4, notes),
+             updated_at = NOW()
+           WHERE id = $5
            RETURNING id, application_id, scheduled_at, mode, location, notes, status`,
-          updateValues
+          [scheduledAt, normalizedMode, reschedLocation || null, reschedNotes ?? null, interviewId]
         );
         // Audit trail
         try {

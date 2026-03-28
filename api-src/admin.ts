@@ -79,6 +79,19 @@ const VALID_ACTIONS = [
 ] as const;
 
 /**
+ * Allowlist of safe profile columns for user queries (R13/S-2).
+ * Only these columns may appear in SELECT statements for user data.
+ */
+const SAFE_USER_COLUMNS = [
+  'id', 'email', 'full_name', 'first_name', 'last_name', 'phone', 'nationality',
+  'role', 'is_active', 'created_at', 'updated_at', 'avatar_url', 'date_of_birth',
+  'sex', 'address', 'nrc_number', 'residence_town', 'next_of_kin_name',
+  'next_of_kin_phone', 'email_verified', 'last_login_at',
+] as const;
+
+const SAFE_USER_COLUMNS_SQL = SAFE_USER_COLUMNS.join(', ');
+
+/**
  * System setting interface matching database schema
  */
 interface SystemSetting {
@@ -707,10 +720,10 @@ async function handleUsers(req: VercelRequest, res: VercelResponse, auth: AuthCo
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
   try {
-    const safeColumns = `id, email, full_name, first_name, last_name, phone, nationality, role, is_active, created_at, updated_at, avatar_url, date_of_birth, sex, address, nrc_number, residence_town, next_of_kin_name, next_of_kin_phone, email_verified, last_login_at`;
+    // Using module-level SAFE_USER_COLUMNS_SQL constant (R13/S-2)
     const [dataResult, countResult] = await Promise.all([
       query<Record<string, unknown>>(
-        `SELECT ${safeColumns} FROM profiles ${whereClause} ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+        `SELECT ${SAFE_USER_COLUMNS_SQL} FROM profiles ${whereClause} ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
         [...params, limit, offset]
       ),
       query<{ count: string }>(

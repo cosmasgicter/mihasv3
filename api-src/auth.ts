@@ -1236,14 +1236,7 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
       return sendError(res, 'No valid fields to update', HttpStatus.BAD_REQUEST);
     }
 
-    const values: unknown[] = [];
-    const setClauses = providedFields.map((field, index) => {
-      values.push((updates as Record<string, unknown>)[field] ?? null);
-      return `${field} = $${index + 1}`;
-    });
-
-    values.push(payload.sub);
-
+    // Fixed COALESCE query — no dynamic SET clause construction (R14/S-3)
     const result = await query<{
       id: string;
       full_name: string | null;
@@ -1263,11 +1256,41 @@ async function handleProfile(req: VercelRequest, res: VercelResponse) {
       next_of_kin_name: string | null;
       next_of_kin_phone: string | null;
     }>(
-      `UPDATE profiles
-       SET ${setClauses.join(', ')}, updated_at = NOW()
-       WHERE id = $${providedFields.length + 1}
+      `UPDATE profiles SET
+         full_name = COALESCE($1, full_name),
+         first_name = COALESCE($2, first_name),
+         last_name = COALESCE($3, last_name),
+         phone = COALESCE($4, phone),
+         date_of_birth = COALESCE($5, date_of_birth),
+         sex = COALESCE($6, sex),
+         residence_town = COALESCE($7, residence_town),
+         country = COALESCE($8, country),
+         nationality = COALESCE($9, nationality),
+         nrc_number = COALESCE($10, nrc_number),
+         address = COALESCE($11, address),
+         avatar_url = COALESCE($12, avatar_url),
+         next_of_kin_name = COALESCE($13, next_of_kin_name),
+         next_of_kin_phone = COALESCE($14, next_of_kin_phone),
+         updated_at = NOW()
+       WHERE id = $15
        RETURNING id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, country, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone`,
-      values
+      [
+        (updates as any).full_name ?? null,
+        (updates as any).first_name ?? null,
+        (updates as any).last_name ?? null,
+        (updates as any).phone ?? null,
+        (updates as any).date_of_birth ?? null,
+        (updates as any).sex ?? null,
+        (updates as any).residence_town ?? null,
+        (updates as any).country ?? null,
+        (updates as any).nationality ?? null,
+        (updates as any).nrc_number ?? null,
+        (updates as any).address ?? null,
+        (updates as any).avatar_url ?? null,
+        (updates as any).next_of_kin_name ?? null,
+        (updates as any).next_of_kin_phone ?? null,
+        payload.sub,
+      ]
     );
 
     if (result.rows.length === 0) {

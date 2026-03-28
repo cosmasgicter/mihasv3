@@ -2766,16 +2766,40 @@ async function handleProfile(req, res) {
     if (providedFields.length === 0) {
       return sendError(res, "No valid fields to update", HttpStatus.BAD_REQUEST);
     }
-    const values = [];
-    const setClauses = providedFields.map((field, index) => {
-      values.push(updates[field] ?? null);
-      return `${field} = $${index + 1}`;
-    });
-    values.push(payload.sub);
-    const result = await query(`UPDATE profiles
-       SET ${setClauses.join(", ")}, updated_at = NOW()
-       WHERE id = $${providedFields.length + 1}
-       RETURNING id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, country, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone`, values);
+    const result = await query(`UPDATE profiles SET
+         full_name = COALESCE($1, full_name),
+         first_name = COALESCE($2, first_name),
+         last_name = COALESCE($3, last_name),
+         phone = COALESCE($4, phone),
+         date_of_birth = COALESCE($5, date_of_birth),
+         sex = COALESCE($6, sex),
+         residence_town = COALESCE($7, residence_town),
+         country = COALESCE($8, country),
+         nationality = COALESCE($9, nationality),
+         nrc_number = COALESCE($10, nrc_number),
+         address = COALESCE($11, address),
+         avatar_url = COALESCE($12, avatar_url),
+         next_of_kin_name = COALESCE($13, next_of_kin_name),
+         next_of_kin_phone = COALESCE($14, next_of_kin_phone),
+         updated_at = NOW()
+       WHERE id = $15
+       RETURNING id, full_name, first_name, last_name, email, phone, role, date_of_birth, sex, residence_town, country, nationality, nrc_number, address, avatar_url, next_of_kin_name, next_of_kin_phone`, [
+      updates.full_name ?? null,
+      updates.first_name ?? null,
+      updates.last_name ?? null,
+      updates.phone ?? null,
+      updates.date_of_birth ?? null,
+      updates.sex ?? null,
+      updates.residence_town ?? null,
+      updates.country ?? null,
+      updates.nationality ?? null,
+      updates.nrc_number ?? null,
+      updates.address ?? null,
+      updates.avatar_url ?? null,
+      updates.next_of_kin_name ?? null,
+      updates.next_of_kin_phone ?? null,
+      payload.sub
+    ]);
     if (result.rows.length === 0) {
       return sendError(res, "Profile not found", HttpStatus.NOT_FOUND);
     }
