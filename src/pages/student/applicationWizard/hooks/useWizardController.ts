@@ -1023,8 +1023,8 @@ const useWizardController = (): UseWizardControllerResult => {
             buildServerDraftPayload({
               formData: {
                 ...formData,
-                program: resolvedProgram.label,
-                intake: resolvedIntake.label
+                program: resolvedProgram.id,
+                intake: resolvedIntake.id
               },
               selectedProgramDetails,
               institutionCode: institutionId,
@@ -1293,8 +1293,8 @@ const useWizardController = (): UseWizardControllerResult => {
               country: formData.country || country,
               next_of_kin_name: formData.next_of_kin_name || null,
               next_of_kin_phone: formData.next_of_kin_phone || null,
-              program: resolvedProgram.label,
-              intake: resolvedIntake.label,
+              program: resolvedProgram.id,
+              intake: resolvedIntake.id,
               institution: institutionId,
               nationality: nationality
             }
@@ -1340,8 +1340,8 @@ const useWizardController = (): UseWizardControllerResult => {
             country: sanitizeInput(formData.country) || country,
             next_of_kin_name: sanitizeInput(formData.next_of_kin_name) || null,
             next_of_kin_phone: sanitizeInput(formData.next_of_kin_phone) || null,
-            program: resolvedProgram.label,
-            intake: resolvedIntake.label,
+            program: resolvedProgram.id,
+            intake: resolvedIntake.id,
             institution: institutionId,
             nationality: nationality,
             status: 'draft'
