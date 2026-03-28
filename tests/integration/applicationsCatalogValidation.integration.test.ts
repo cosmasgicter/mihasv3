@@ -142,6 +142,9 @@ describe('Integration: applications create catalog validation', () => {
     expect(res._json.success).toBe(true)
     expect(mockQuery).toHaveBeenCalledTimes(2)
 
+    const catalogValidationParams = mockQuery.mock.calls[0]?.[1] as unknown[]
+    expect(catalogValidationParams).toEqual(['program-uuid-nursing', 'intake-uuid-july-2026'])
+
     const insertParams = mockQuery.mock.calls[1]?.[1] as unknown[]
     expect(insertParams).toContain('program-uuid-nursing')
     expect(insertParams).toContain('intake-uuid-july-2026')
