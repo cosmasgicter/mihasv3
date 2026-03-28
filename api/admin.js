@@ -2807,10 +2807,31 @@ async function handleSetPassword(req, res, auth) {
 async function handleMigrate(req, res) {
   const MIGRATE_SECRET = process.env.MIGRATE_SECRET;
   const { secret } = req.body || {};
+  const ipAddress = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || null;
   if (MIGRATE_SECRET && secret !== MIGRATE_SECRET) {
+    try {
+      await logAuditEvent({
+        actor_id: null,
+        action: "migration_attempt_failed",
+        entity_type: "system",
+        entity_id: null,
+        changes: { auth_method: "secret", reason: "invalid_secret" },
+        ip_address: ipAddress
+      });
+    } catch {}
     sendError(res, "Invalid migration secret", HttpStatus.UNAUTHORIZED);
     return;
   }
+  try {
+    await logAuditEvent({
+      actor_id: null,
+      action: "migration_started",
+      entity_type: "system",
+      entity_id: null,
+      changes: { auth_method: secret ? "secret" : "jwt" },
+      ip_address: ipAddress
+    });
+  } catch {}
   const migrationQueries = [
     { id: "V2_001_MIGRATION_HISTORY", sql: `CREATE TABLE IF NOT EXISTS migration_history (id SERIAL PRIMARY KEY, migration_name TEXT UNIQUE NOT NULL, applied_at TIMESTAMPTZ DEFAULT NOW())` },
     { id: "V2_002_CSRF_TOKENS", sql: `CREATE TABLE IF NOT EXISTS csrf_tokens (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID NOT NULL REFERENCES profiles(id), token_hash VARCHAR(64) NOT NULL, expires_at TIMESTAMPTZ NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id))` },

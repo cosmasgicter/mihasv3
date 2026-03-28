@@ -17,6 +17,7 @@ import { PasswordInput } from '@/components/ui/PasswordInput';
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { Banner } from '@/components/ui/Banner';
+import { FormErrorAnnouncer } from '@/components/ui/FormErrorAnnouncer';
 import { Seo } from '@/components/seo/Seo';
 import { isAdminRole } from '@/lib/auth/roles';
 
@@ -140,6 +141,7 @@ export default function SignInPage() {
         }
       >
         <form className="space-y-6" onSubmit={handleSubmit((data) => signInMutation.mutate(data))} noValidate>
+          <FormErrorAnnouncer errors={errors} fieldLabels={{ email: 'Email', password: 'Password' }} />
           {signInMutation.error && (
             <Banner variant="error" dismissible onDismiss={() => signInMutation.reset()}>
               {getErrorMessage(signInMutation.error as Error)}

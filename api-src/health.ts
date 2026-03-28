@@ -138,31 +138,36 @@ async function handleDatabaseHealth(res: VercelResponse): Promise<void> {
       };
     }
 
-    // Check 2: Table existence (required tables)
-    const tables = ['profiles', 'device_sessions', 'audit_logs', 'settings', 'applications', 'migration_history'];
-    for (const table of tables) {
-      try {
-        const tableStart = Date.now();
-        const result = await sql.query(`SELECT COUNT(*) as count FROM ${table} LIMIT 1`);
+    // Check 2: Table existence and approximate row counts (single query, R20/D-4)
+    const requiredTables = ['profiles', 'device_sessions', 'audit_logs', 'settings', 'applications', 'migration_history'];
+    try {
+      const tableStart = Date.now();
+      const tableResults = await sql.query(`
+        SELECT
+          t.table_name,
+          COALESCE(s.n_live_tup, 0) AS approximate_count
+        FROM information_schema.tables t
+        LEFT JOIN pg_stat_user_tables s ON s.relname = t.table_name
+        WHERE t.table_schema = 'public'
+          AND t.table_name = ANY($1)
+        ORDER BY t.table_name
+      `, [requiredTables]);
 
-        // If it's the profiles table, also check for key columns
-        let columns = undefined;
-        if (table === 'profiles') {
-          const colResult = await sql.query(`
-            SELECT column_name
-            FROM information_schema.columns
-            WHERE table_name = 'profiles'
-          `);
-          columns = colResult.map(r => r.column_name);
+      const foundTables = new Set(tableResults.map((r: any) => r.table_name));
+      for (const table of requiredTables) {
+        if (foundTables.has(table)) {
+          const row = tableResults.find((r: any) => r.table_name === table);
+          checks[`table_${table}`] = {
+            status: 'ok',
+            count: row?.approximate_count ?? 0,
+            latency: Date.now() - tableStart,
+          };
+        } else {
+          checks[`table_${table}`] = { status: 'error', error: 'Table not found' };
         }
-
-        checks[`table_${table}`] = {
-          status: 'ok',
-          count: result[0]?.count,
-          latency: Date.now() - tableStart,
-          columns
-        };
-      } catch (error) {
+      }
+    } catch (error) {
+      for (const table of requiredTables) {
         checks[`table_${table}`] = {
           status: 'error',
           error: error instanceof Error ? error.message : 'Unknown error',
