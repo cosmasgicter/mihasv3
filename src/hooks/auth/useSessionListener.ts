@@ -225,6 +225,12 @@ export function useSessionListener() {
       // Ignore — secure storage clear is best-effort
     }
 
+    // 3b. Clear redirect/session intent keys to avoid cross-role stale redirects
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('mihas:post-auth-redirect')
+      sessionStorage.removeItem('mihas:wizard-auth-redirect-guard')
+    }
+
     // 4. Dispatch auth signed out event
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('authSignedOut'))
