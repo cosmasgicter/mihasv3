@@ -38,7 +38,7 @@ export function DashboardQuickActions({
                 <Icon className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium text-foreground">{action.label}</span>
               </div>
-              <span className="text-xs text-muted-foreground">{action.description}</span>
+              <span className="text-xs text-foreground/75">{action.description}</span>
             </Link>
           )
         })}

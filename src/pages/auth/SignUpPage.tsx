@@ -178,7 +178,7 @@ export default function SignUpPage() {
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
               <CheckCircle className="h-8 w-8" />
             </div>
-            <p className="text-sm text-muted-foreground">Redirecting to your dashboard...</p>
+            <p className="text-sm text-foreground/80">Redirecting to your dashboard...</p>
             <Link to="/student/dashboard" className="block">
               <Button className="w-full min-h-[48px]" variant="gradient" size="lg">
                 Go to dashboard
@@ -389,7 +389,7 @@ export default function SignUpPage() {
             {signUpMutation.isPending ? 'Creating account...' : 'Create account'}
           </Button>
 
-          <p className="text-center text-xs text-muted-foreground">
+          <p className="text-center text-xs text-foreground/75">
             By creating an account, you agree to our{' '}
             <Link to="/terms" className="text-primary hover:underline">Terms</Link>{' '}
             and{' '}
