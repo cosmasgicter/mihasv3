@@ -63,7 +63,7 @@ function ActionCard({
     warning: 'text-warning bg-warning/10',
     success: 'text-success bg-success/10',
     danger: 'text-destructive bg-destructive/10',
-    neutral: 'text-muted-foreground bg-muted',
+    neutral: 'text-foreground/80 bg-muted',
   };
 
   const content = (
@@ -87,7 +87,7 @@ function ActionCard({
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-medium text-foreground text-sm">{title}</p>
-        <p className="text-xs text-muted-foreground truncate">{description}</p>
+        <p className="text-xs text-foreground/75 truncate">{description}</p>
       </div>
     </div>
   );
@@ -134,7 +134,7 @@ export function QuickActions({
           <Plus className="h-4 w-4 text-primary" />
           Quick Actions
         </CardTitle>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-foreground/80">
           Access common tasks quickly
         </p>
       </CardHeader>

@@ -86,7 +86,7 @@ export default function ForgotPasswordPage() {
           </div>
 
           {/* Instructions */}
-          <div className="space-y-3 text-center text-sm text-muted-foreground">
+          <div className="space-y-3 text-center text-sm text-foreground/80">
             <p>Didn't receive the email? Check your spam folder or try again.</p>
           </div>
 
@@ -161,7 +161,7 @@ export default function ForgotPasswordPage() {
         </Button>
 
         {/* Help text */}
-        <p className="text-center text-xs text-muted-foreground">
+        <p className="text-center text-xs text-foreground/75">
           Remember your password?{' '}
           <Link to="/auth/signin" className="text-primary hover:underline">
             Sign in instead

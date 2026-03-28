@@ -137,7 +137,7 @@ export default function ResetPasswordPage() {
       >
         <div className={`flex flex-col items-center justify-center py-8 space-y-4 ${animateClasses.fadeIn}`}>
           <Loader2 className="h-12 w-12 text-primary animate-spin" />
-          <p className="text-sm text-muted-foreground">Verifying your password reset link...</p>
+          <p className="text-sm text-foreground/80">Verifying your password reset link...</p>
         </div>
       </AuthLayout>
       </>
@@ -322,7 +322,7 @@ export default function ResetPasswordPage() {
         {/* Password requirements */}
         <div className="rounded-lg bg-muted/50 p-3">
           <p className="text-xs font-medium text-muted-foreground mb-2">Password requirements:</p>
-          <ul className="text-xs text-muted-foreground space-y-1">
+          <ul className="text-xs text-foreground/75 space-y-1">
             <li className="flex items-center gap-2">
               <span className="h-1 w-1 rounded-full bg-muted-foreground" />
               At least 8 characters long
