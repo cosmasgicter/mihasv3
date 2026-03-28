@@ -98,14 +98,14 @@ function MetricCard({
     )}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+          <p className="text-xs font-semibold uppercase tracking-wide text-foreground/70 mb-1">
             {title}
           </p>
           <p className="text-2xl font-bold text-foreground">
             {value}
           </p>
           {description && (
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-foreground/75 mt-1">
               {description}
             </p>
           )}
