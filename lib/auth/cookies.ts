@@ -84,7 +84,7 @@ function buildCookieString(
  * Sets both access token and refresh token cookies with:
  * - HttpOnly: Prevents JavaScript access (XSS protection)
  * - Secure: Requires HTTPS in production
- * - SameSite=Strict: Prevents CSRF attacks
+ * - SameSite=Lax: Prevents CSRF while allowing top-level navigations
  * 
  * Access token cookie:
  * - Max-Age: 900 seconds (15 minutes)
