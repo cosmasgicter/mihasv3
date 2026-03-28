@@ -415,10 +415,11 @@ Rate limited: 3 requests per email per 15 minutes
 ### Arcjet Rate Limits
 | Route | Limit | Window |
 |-------|-------|--------|
-| /api/auth/* | 5 requests | 5 minutes |
+| /api/auth/* | 60 requests | 5 minutes |
 | /api/sessions/* | 30 requests | 10 minutes |
-| /api/admin/* | 20 requests | 10 minutes |
+| /api/admin/* | 60 requests | 10 minutes |
 | /api/notifications/* | 50 requests | 10 minutes |
+| /api/documents/* | 20 requests | 10 minutes |
 
 ### Login Attempt Protection
 | Threshold | Action |

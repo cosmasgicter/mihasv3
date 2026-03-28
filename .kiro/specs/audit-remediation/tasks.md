@@ -232,29 +232,29 @@ Remediate all 26 findings from the MIHAS Full-Stack Audit Report across three sp
 
 ### Sprint 3 — Medium (Documentation, Accessibility, Polish)
 
-- [ ] 14. Rate limit documentation and CSRF risk acceptance
-  - [ ] 14.1 Update .kiro/steering/tech.md Arcjet Rate Limits table
+- [x] 14. Rate limit documentation and CSRF risk acceptance
+  - [x] 14.1 Update .kiro/steering/tech.md Arcjet Rate Limits table
     - Change auth rate limit to `60 requests / 5 minutes`
     - Change admin rate limit to `60 requests / 10 minutes`
     - Match actual values in `lib/arcjet.ts`
     - _Requirements: 16.1, 16.2_
 
-  - [ ] 14.2 Add CSRF risk acceptance comment for refresh endpoint in api-src/auth.ts
+  - [x] 14.2 Add CSRF risk acceptance comment for refresh endpoint in api-src/auth.ts
     - Add inline comment at the `refresh` action documenting: refresh uses HTTP-only cookies with SameSite=Lax, CSRF-forced rotation is low-risk since attacker cannot read new tokens
     - Run `bun run scripts/bundle-api.mjs`
     - _Requirements: 17.1_
 
-- [ ] 15. Cookie documentation and security header fixes
-  - [ ] 15.1 Fix SameSite JSDoc in lib/auth/cookies.ts
+- [x] 15. Cookie documentation and security header fixes
+  - [x] 15.1 Fix SameSite JSDoc in lib/auth/cookies.ts
     - Change `setAuthCookies` JSDoc from "SameSite=Strict" to "SameSite=Lax" (line ~97)
     - _Requirements: 18.1_
 
-  - [ ] 15.2 Add font-src and cross-domain header to vercel.json
+  - [x] 15.2 Add font-src and cross-domain header to vercel.json
     - Add `font-src 'self'` to the CSP header value
     - Add `{ "key": "X-Permitted-Cross-Domain-Policies", "value": "none" }` to security headers
     - _Requirements: 19.1, 19.2_
 
-  - [ ] 15.3 Write unit test verifying vercel.json security headers
+  - [x] 15.3 Write unit test verifying vercel.json security headers
     - In `tests/unit/audit-remediation-config.test.ts`, verify CSP includes `font-src 'self'` and `X-Permitted-Cross-Domain-Policies` header exists
     - _Requirements: 19.1, 19.2_
 
@@ -290,13 +290,13 @@ Remediate all 26 findings from the MIHAS Full-Stack Audit Report across three sp
     - Verify files listed in R22 (`usePWA.ts`, `useServiceWorkerUpdate.ts`, `useRealtime.ts`, `useErrorHandler.ts`, `cacheMonitor.ts`, `pushNotificationManager.ts`) use `console.log` that will be stripped
     - _Requirements: 22.1, 22.2_
 
-- [ ] 19. Fix AuthContext useMemo dependencies
-  - [ ] 19.1 Destructure individual values in src/contexts/AuthContext.tsx
+- [x] 19. Fix AuthContext useMemo dependencies
+  - [x] 19.1 Destructure individual values in src/contexts/AuthContext.tsx
     - Destructure `user`, `profile`, `loading`, `profileLoading`, `isAdmin`, `signIn`, `signUp`, `signOut`, `requestPasswordReset`, `updatePassword` from `auth`
     - List each as explicit `useMemo` dependency instead of `[auth]`
     - _Requirements: 23.1_
 
-  - [ ] 19.2 Write unit test verifying useMemo dependencies are individual values
+  - [x] 19.2 Write unit test verifying useMemo dependencies are individual values
     - In `tests/unit/audit-remediation-code-structure.test.ts`, verify `AuthContext.tsx` useMemo deps are not `[auth]`
     - _Requirements: 23.1_
 
