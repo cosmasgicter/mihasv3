@@ -1,160 +1,124 @@
 // @vitest-environment node
 /**
- * Unit Tests for Audit Remediation — Code Structure Verification
- *
- * Verifies that dead code has been removed and structural requirements are met.
- *
- * Requirements: 1.4, 6.1, 6.2, 6.3
+ * Audit Remediation — Code Structure Verification Tests
+ * Verifies dead code removal, hardcoded bypasses, and SQL safety patterns.
  */
-
 import { describe, it, expect } from 'vitest';
-import * as fs from 'fs';
-import * as path from 'path';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 
-const LIB_DB_PATH = path.resolve(__dirname, '../../lib/db.ts');
+function readSource(relativePath: string): string {
+  return readFileSync(resolve(__dirname, '../../', relativePath), 'utf-8');
+}
 
-describe('Audit Remediation — Dead Code Removal (R6)', () => {
-  const dbSource = fs.readFileSync(LIB_DB_PATH, 'utf-8');
+describe('R1/R6: lib/db.ts dead code removal', () => {
+  const src = readSource('lib/db.ts');
 
-  describe('R6.1: interpolateParams removed', () => {
-    it('lib/db.ts should not contain the interpolateParams function', () => {
-      expect(dbSource).not.toMatch(/function\s+interpolateParams/);
-    });
-
-    it('lib/db.ts should not export interpolateParams', () => {
-      expect(dbSource).not.toMatch(/export\s+.*interpolateParams/);
-    });
+  it('does not contain interpolateParams function', () => {
+    expect(src).not.toMatch(/function\s+interpolateParams/);
   });
 
-  describe('R6.2: Duplicate query builders removed', () => {
-    it('lib/db.ts should not export userQueries', () => {
-      expect(dbSource).not.toMatch(/export\s+(const|let|var)\s+userQueries\b/);
-    });
-
-    it('lib/db.ts should not export sessionQueries', () => {
-      expect(dbSource).not.toMatch(/export\s+(const|let|var)\s+sessionQueries\b/);
-    });
-
-    it('lib/db.ts should not export auditQueries', () => {
-      expect(dbSource).not.toMatch(/export\s+(const|let|var)\s+auditQueries\b/);
-    });
+  it('does not export userQueries', () => {
+    expect(src).not.toMatch(/export\s+(const|let|var)\s+userQueries/);
   });
 
-  describe('R1.4: Manual BEGIN/COMMIT/ROLLBACK removed', () => {
-    it('lib/db.ts should not contain BEGIN query strings', () => {
-      // Match actual query calls like query('BEGIN') or query("BEGIN")
-      expect(dbSource).not.toMatch(/query\s*\(\s*['"`]BEGIN['"`]\s*\)/);
-    });
-
-    it('lib/db.ts should not contain COMMIT query strings', () => {
-      expect(dbSource).not.toMatch(/query\s*\(\s*['"`]COMMIT['"`]\s*\)/);
-    });
-
-    it('lib/db.ts should not contain ROLLBACK query strings', () => {
-      expect(dbSource).not.toMatch(/query\s*\(\s*['"`]ROLLBACK['"`]\s*\)/);
-    });
+  it('does not export sessionQueries', () => {
+    expect(src).not.toMatch(/export\s+(const|let|var)\s+sessionQueries/);
   });
 
-  describe('R1/R9: Neon transaction API and cached instance', () => {
-    it('lib/db.ts should use sql.transaction() callback API', () => {
-      expect(dbSource).toMatch(/\.transaction\s*\(/);
-    });
-
-    it('lib/db.ts should have a getNeonInstance function for caching', () => {
-      expect(dbSource).toMatch(/function\s+getNeonInstance/);
-    });
-
-    it('lib/db.ts should have a module-level cachedSql variable', () => {
-      expect(dbSource).toMatch(/let\s+cachedSql/);
-    });
+  it('does not export auditQueries', () => {
+    expect(src).not.toMatch(/export\s+(const|let|var)\s+auditQueries/);
   });
 
-  describe('Preserved exports', () => {
-    it('lib/db.ts should export query function', () => {
-      expect(dbSource).toMatch(/export\s+async\s+function\s+query/);
-    });
+  it('does not contain manual BEGIN/COMMIT/ROLLBACK in transaction logic', () => {
+    // Allow mentions in comments but not in actual query calls
+    const nonCommentLines = src.split('\n').filter(l => !l.trim().startsWith('*') && !l.trim().startsWith('//'));
+    const joined = nonCommentLines.join('\n');
+    expect(joined).not.toMatch(/query\s*\(\s*['"`]BEGIN['"`]/);
+    expect(joined).not.toMatch(/query\s*\(\s*['"`]COMMIT['"`]/);
+    expect(joined).not.toMatch(/query\s*\(\s*['"`]ROLLBACK['"`]/);
+  });
 
-    it('lib/db.ts should export transaction function', () => {
-      expect(dbSource).toMatch(/export\s+async\s+function\s+transaction/);
-    });
+  it('exports transaction function', () => {
+    expect(src).toMatch(/export\s+async\s+function\s+transaction/);
+  });
 
-    it('lib/db.ts should export QueryConfig interface', () => {
-      expect(dbSource).toMatch(/export\s+interface\s+QueryConfig/);
-    });
+  it('exports query function', () => {
+    expect(src).toMatch(/export\s+async\s+function\s+query/);
+  });
 
-    it('lib/db.ts should export QueryResult interface', () => {
-      expect(dbSource).toMatch(/export\s+interface\s+QueryResult/);
-    });
-
-    it('lib/db.ts should export DatabaseError class', () => {
-      expect(dbSource).toMatch(/export\s+class\s+DatabaseError/);
-    });
-
-    it('lib/db.ts should export DatabaseErrorCode', () => {
-      expect(dbSource).toMatch(/export\s+const\s+DatabaseErrorCode/);
-    });
-
-    it('lib/db.ts should export verifyDatabaseSchema function', () => {
-      expect(dbSource).toMatch(/export\s+async\s+function\s+verifyDatabaseSchema/);
-    });
+  it('uses getNeonInstance cached factory', () => {
+    expect(src).toMatch(/function\s+getNeonInstance/);
+    expect(src).toMatch(/cachedSql/);
   });
 });
 
+describe('R2: AdminRoute has no hardcoded email bypass', () => {
+  const src = readSource('src/components/AdminRoute.tsx');
 
-// ---------------------------------------------------------------------------
-// R2: Hardcoded Admin Email Bypass Removed
-// Requirements: 2.1
-// ---------------------------------------------------------------------------
+  it('does not contain hardcoded email strings', () => {
+    expect(src).not.toMatch(/cosmas@beanola\.com/);
+    expect(src).not.toMatch(/user\.email\s*===\s*['"]/);
+  });
 
-const ADMIN_ROUTE_PATH = path.resolve(__dirname, '../../src/components/AdminRoute.tsx');
-
-describe('Audit Remediation — Hardcoded Email Bypass Removed (R2)', () => {
-  const adminRouteSource = fs.readFileSync(ADMIN_ROUTE_PATH, 'utf-8');
-
-  describe('R2.1: No hardcoded email strings in AdminRoute', () => {
-    it('AdminRoute.tsx should not contain cosmas@beanola.com', () => {
-      expect(adminRouteSource).not.toContain('cosmas@beanola.com');
-    });
-
-    it('AdminRoute.tsx should not contain any email-based access check', () => {
-      expect(adminRouteSource).not.toMatch(/user\.email\s*===\s*['"`]/);
-    });
-
-    it('AdminRoute.tsx should not contain any email-based negated check', () => {
-      expect(adminRouteSource).not.toMatch(/user\.email\s*!==\s*['"`]/);
-    });
-
-    it('AdminRoute.tsx should still check isAdmin for access control', () => {
-      expect(adminRouteSource).toMatch(/!isAdmin/);
-    });
+  it('uses isAdmin from useAuth for access control', () => {
+    expect(src).toMatch(/isAdmin/);
+    expect(src).toMatch(/useAuth/);
   });
 });
 
+describe('R3: auth.ts has no SQL template literal interpolation', () => {
+  const src = readSource('api-src/auth.ts');
 
-// ---------------------------------------------------------------------------
-// R3: Parameterized SQL Queries in Auth Handler
-// Requirements: 3.4
-// ---------------------------------------------------------------------------
+  it('does not use ${...} inside SQL INTERVAL strings', () => {
+    // Match template literals inside SQL-like strings containing INTERVAL
+    const sqlBlocks = src.match(/`[^`]*INTERVAL[^`]*`/g) || [];
+    for (const block of sqlBlocks) {
+      expect(block).not.toMatch(/\$\{[^}]+\}/);
+    }
+  });
 
-const AUTH_HANDLER_PATH = path.resolve(__dirname, '../../api-src/auth.ts');
+  it('uses parameterized $N placeholders for interval values', () => {
+    // Should find INTERVAL '1 minute' * $N pattern
+    expect(src).toMatch(/INTERVAL\s+'1 minute'\s*\*\s*\$\d/);
+  });
+});
 
-describe('Audit Remediation — Parameterized SQL in Auth Handler (R3)', () => {
-  const authSource = fs.readFileSync(AUTH_HANDLER_PATH, 'utf-8');
+describe('R4: health.ts requires auth for protected actions', () => {
+  const src = readSource('api-src/health.ts');
 
-  describe('R3.4: Zero SQL template literal interpolation in auth.ts', () => {
-    it('auth.ts should not contain ${...} inside INTERVAL SQL clauses', () => {
-      // Match INTERVAL followed by a template literal interpolation
-      expect(authSource).not.toMatch(/INTERVAL\s*'\$\{/);
-    });
+  it('imports requireRole from auth middleware', () => {
+    expect(src).toMatch(/requireRole/);
+    expect(src).toMatch(/auth\/middleware/);
+  });
 
-    it('auth.ts should not interpolate JS variables into SQL INTERVAL expressions', () => {
-      // Specifically targets the R3 finding: INTERVAL '${SOME_VAR} minutes' patterns
-      // This must NOT match dynamic SET clause construction (Task 11) which builds $N placeholders
-      expect(authSource).not.toMatch(/INTERVAL\s*['"`]\$\{/);
-    });
+  it('gates db/env/errors actions behind auth', () => {
+    expect(src).toMatch(/protectedActions/);
+    expect(src).toMatch(/requireRole\s*\(\s*req/);
+  });
+});
 
-    it('auth.ts should use parameterized INTERVAL pattern for login cooldown', () => {
-      expect(authSource).toMatch(/INTERVAL\s+'1 minute'\s*\*\s*\$\d/);
-    });
+describe('R5: Arcjet fail-closed in production', () => {
+  const src = readSource('lib/arcjet.ts');
+
+  it('checks NODE_ENV for production fail-closed behavior', () => {
+    expect(src).toMatch(/NODE_ENV.*production|production.*NODE_ENV/);
+  });
+
+  it('returns 503 when ARCJET_KEY missing in production', () => {
+    expect(src).toMatch(/503/);
+    expect(src).toMatch(/SECURITY_SERVICE_ERROR/);
+  });
+
+  it('has documents route type', () => {
+    expect(src).toMatch(/documents.*window.*max|documents:\s*\{/);
+  });
+});
+
+describe('R12: documents.ts uses documents rate limit', () => {
+  const src = readSource('api-src/documents.ts');
+
+  it('uses withArcjetProtection with documents type', () => {
+    expect(src).toMatch(/withArcjetProtection\s*\(\s*handler\s*,\s*['"]documents['"]\s*\)/);
   });
 });

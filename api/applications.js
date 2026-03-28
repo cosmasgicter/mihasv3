@@ -2042,7 +2042,7 @@ async function handler(req, res) {
     return await handlePublicTracking(req, res);
   }
   const id = req.query.id;
-  if (action && !id && !VALID_ACTIONS.includes(action)) {
+  if (action && !VALID_ACTIONS.includes(action)) {
     return sendError(res, `Invalid action '${action}'. Valid actions: ${VALID_ACTIONS.join(", ")}`, HttpStatus.BAD_REQUEST);
   }
   if (id) {
