@@ -230,7 +230,6 @@ class AdminAuditService {
     const pageSize = filters.pageSize || 50
 
     const params: Record<string, string> = {
-      action: 'audit-log',
       page: String(page),
       pageSize: String(pageSize),
     }
@@ -245,7 +244,7 @@ class AdminAuditService {
 
     try {
       const result = await apiClient.request<BackendAuditResponse>(
-        `/admin${buildQueryString(params)}`
+        `/admin/audit-logs/${buildQueryString(params)}`
       )
 
       if (!result) {

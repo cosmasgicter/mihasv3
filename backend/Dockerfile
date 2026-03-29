@@ -39,8 +39,9 @@ RUN SECRET_KEY=build-placeholder \
     S3_SECRET_KEY=placeholder \
     python manage.py collectstatic --noinput
 
-# Expose configurable port (default 8000)
-ENV PORT=8000
-EXPOSE ${PORT}
+# Expose the application port expected by Koyeb and local container runs.
+ENV PORT=8000 \
+    WEB_CONCURRENCY=1
+EXPOSE 8000
 
-CMD uvicorn config.asgi:application --host 0.0.0.0 --port ${PORT} --workers 3
+CMD ["sh", "-c", "uvicorn config.asgi:application --host 0.0.0.0 --port ${PORT:-8000} --workers ${WEB_CONCURRENCY:-1}"]

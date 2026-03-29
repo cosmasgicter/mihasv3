@@ -1,4 +1,4 @@
-import { apiClient } from '../client'
+import { apiClient, buildQueryString } from '../client'
 
 const splitFullName = (fullName: string): { firstName: string; lastName: string } => {
   const normalized = fullName.trim().replace(/\s+/g, ' ')
@@ -36,14 +36,22 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
 }
 
 export const userService = {
-  list: async () => {
+  /** List users with pagination. Maps to GET /admin/users/ */
+  list: async (filters?: { page?: number; pageSize?: number; search?: string; role?: string }) => {
+    const params: Record<string, string> = {}
+    if (filters?.page) params.page = String(filters.page)
+    if (filters?.pageSize) params.pageSize = String(filters.pageSize)
+    if (filters?.search) params.search = filters.search
+    if (filters?.role) params.role = filters.role
+
+    const qs = buildQueryString(params)
     const response = await apiClient.request<{
       results?: Array<Record<string, any>>
       totalCount?: number
       page?: number
       pageSize?: number
       totalPages?: number
-    }>('/admin?action=users')
+    }>(`/admin/users/${qs}`)
 
     const users = (response?.results || []).map((user) => ({
       ...user,
@@ -60,10 +68,16 @@ export const userService = {
       totalPages: response?.totalPages,
     }
   },
-  getById: (_id: string) => Promise.reject(new Error('User detail endpoint is not supported by /api/admin yet')),
-  getRole: (_id: string) => Promise.reject(new Error('User role endpoint is not supported by /api/admin yet')),
-  getPermissions: async (id: string) => {
-    const user = await apiClient.request<Record<string, any>>(`/admin/users/${encodeURIComponent(id)}`, {
+
+  /** Get a single user by ID. Maps to GET /admin/users/{id}/ */
+  getById: (id: string) =>
+    apiClient.request<Record<string, any>>(`/admin/users/${encodeURIComponent(id)}/`, {
+      method: 'GET',
+    }),
+
+  /** Get user permissions (derived from role). Maps to GET /admin/users/{id}/ */
+  getPermissions: async (id: string): Promise<AdminUserPermissionsResult> => {
+    const user = await apiClient.request<Record<string, any>>(`/admin/users/${encodeURIComponent(id)}/`, {
       method: 'GET',
     })
     const role = typeof user?.role === 'string' ? user.role : 'student'
@@ -75,8 +89,32 @@ export const userService = {
       source: 'derived-from-role',
     }
   },
+
+  /** Update user permissions (role-based). Maps to PUT /admin/users/{id}/ */
+  updatePermissions: async (id: string, permissions: string[]): Promise<AdminUserPermissionsResult> => {
+    // Permissions are role-based in the Django backend; find the matching role
+    const matchingRole = Object.entries(ROLE_PERMISSIONS).find(
+      ([, perms]) => JSON.stringify(perms.sort()) === JSON.stringify([...permissions].sort())
+    )
+    const role = matchingRole?.[0] ?? 'student'
+
+    await apiClient.request<AdminUserMutationResult>(`/admin/users/${encodeURIComponent(id)}/`, {
+      method: 'PUT',
+      body: JSON.stringify({ role }),
+    })
+
+    return {
+      userId: id,
+      role,
+      permissions: ROLE_PERMISSIONS[role] ?? [],
+      defaultPermissions: ROLE_PERMISSIONS[role] ?? [],
+      source: 'derived-from-role',
+    }
+  },
+
+  /** Create a new user. Maps to POST /admin/users/ */
   create: (data: { email: string; password: string; full_name: string; phone?: string; role: string }) =>
-    apiClient.request<AdminUserMutationResult>('/admin?action=register', {
+    apiClient.request<AdminUserMutationResult>('/admin/users/', {
       method: 'POST',
       body: JSON.stringify({
         email: data.email,
@@ -84,22 +122,30 @@ export const userService = {
         phone: data.phone,
         ...splitFullName(data.full_name),
         role: data.role,
-      })
+      }),
     }),
+
+  /** Update a user. Maps to PUT /admin/users/{id}/ */
   update: (id: string, data: { full_name: string; email: string; phone?: string; role: string }) =>
-    apiClient.request<AdminUserMutationResult>(`/admin/users/${encodeURIComponent(id)}`, {
-      method: 'PATCH',
+    apiClient.request<AdminUserMutationResult>(`/admin/users/${encodeURIComponent(id)}/`, {
+      method: 'PUT',
       body: JSON.stringify({
         ...splitFullName(data.full_name),
+        email: data.email,
+        phone: data.phone,
         role: data.role,
-      })
+      }),
     }),
-  updatePermissions: async (_id: string, _permissions: string[]) => {
-    throw new Error('Fine-grained permission overrides are not implemented in the Django backend yet')
-  },
+
+  /** Remove (delete) a user. Maps to DELETE /admin/users/{id}/ */
   remove: (id: string) =>
-    apiClient.request<AdminUserMutationResult>(`/admin/users/${encodeURIComponent(id)}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ is_active: false }),
+    apiClient.request<AdminUserMutationResult>(`/admin/users/${encodeURIComponent(id)}/`, {
+      method: 'DELETE',
+    }),
+
+  /** Export users as CSV. Maps to GET /admin/users/export/ */
+  export: () =>
+    apiClient.request('/admin/users/export/', {
+      method: 'GET',
     }),
 }

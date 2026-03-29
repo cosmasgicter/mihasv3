@@ -72,7 +72,7 @@ Migrate the MIHAS admissions React frontend from legacy Vercel Functions API con
   - Verify `normalizeEndpoint` and `supportedResources` are fully removed from `client.ts`
   - Verify all `client.ts` paths reference `/api/v1/` Django REST routes
 
-- [ ] 3. Service Layer Migration
+- [x] 3. Service Layer Migration
   - [x] 3.1 Migrate `src/services/auth.ts` to Django REST paths
     - Replace all query-parameter auth paths with Django REST paths per the design path mapping table
     - `register` → POST `/auth/register/`, `login` → POST `/auth/login/`, `logout` → POST `/auth/logout/`, `session` → GET `/auth/session/`, `refresh` → POST `/auth/refresh/`, `passwordReset` → POST `/auth/password-reset/`, `passwordResetConfirm` → POST `/auth/password-reset/confirm/`
@@ -115,24 +115,24 @@ Migrate the MIHAS admissions React frontend from legacy Vercel Functions API con
     - Remove legacy `/api/sessions?action=list`, `?action=revoke`, `?action=revoke-all` paths
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
 
-  - [-] 3.7 Migrate `src/services/interviews.ts`
+  - [x] 3.7 Migrate `src/services/interviews.ts`
     - `schedule` → POST `/applications/{id}/interviews/`, `list` → GET `/applications/{id}/interviews/`
     - Remove legacy `?action=schedule-interview`, `?action=interviews` paths
     - _Requirements: 3.12, 3.13, 3.14_
 
-  - [~] 3.8 Migrate admin services: `src/services/admin/dashboard.ts`, `admin/users.ts`, `admin/audit.ts`
+  - [x] 3.8 Migrate admin services: `src/services/admin/dashboard.ts`, `admin/users.ts`, `admin/audit.ts`
     - Dashboard: `getOverview` → GET `/admin/dashboard/`
     - Users: `list` → GET `/admin/users/`, `create` → POST `/admin/users/`, `update` → PUT `/admin/users/{id}/`, `remove` → DELETE `/admin/users/{id}/`, `getPermissions` / `updatePermissions` → GET/PUT `/admin/users/{id}/`, `export` → GET `/admin/users/export/`
     - Audit: `list` → GET `/admin/audit-logs/` with query params
     - Remove legacy `?action=dashboard`, `?action=users`, `?action=audit-log`, `?action=update-role` patterns
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.8_
 
-  - [~] 3.9 Migrate `src/services/offlineSync.ts` and `src/services/pushNotificationManager.ts`
+  - [x] 3.9 Migrate `src/services/offlineSync.ts` and `src/services/pushNotificationManager.ts`
     - offlineSync: draft sync → POST `/applications/draft/`, form submission → POST `/applications/`, server version fetch → GET `/applications/{id}/`
     - pushNotificationManager: push subscribe → POST `/notifications/push-subscribe/`
     - _Requirements: 3.4, 3.18_
 
-  - [~]* 3.10 Write property tests for service layer (Properties 8–10)
+  - [x]* 3.10 Write property tests for service layer (Properties 8–10)
     - **Property 8: REST URL construction with UUID path segments** — generate random UUIDs and sub-resource names, assert URL matches `/{resource}/{uuid}/{sub-resource}/` with trailing slash and no query params
     - **Validates: Requirements 3.2, 3.3, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12, 3.13, 3.14, 5.2, 7.3, 7.4, 8.2**
     - **Property 9: Pagination response field mapping** — generate random arrays + pagination metadata, assert `results` mapped to domain field with length preserved
@@ -141,7 +141,7 @@ Migrate the MIHAS admissions React frontend from legacy Vercel Functions API con
     - **Validates: Requirement 3.1**
     - Test file: `tests/property/services.property.test.ts`
 
-- [ ] 4. Checkpoint — Service layer complete
+- [-] 4. Checkpoint — Service layer complete
   - Ensure all tests pass, ask the user if questions arise.
   - Verify all 15 service files use only Django REST paths (no `?action=` patterns remain)
 

@@ -1,3 +1,5 @@
+import { apiClient } from '@/services/client'
+
 /**
  * Push Notification Manager
  * Handles push notifications for mobile devices with scheduling and delivery tracking
@@ -508,15 +510,17 @@ class PushNotificationManager {
    */
   private async sendSubscriptionToServer(subscription: PushSubscription): Promise<void> {
     try {
-      localStorage.setItem('push_subscription', JSON.stringify({
-        subscription: subscription.toJSON(),
-        userAgent: navigator.userAgent,
-        platform: this.getPlatform(),
-        savedAt: new Date().toISOString(),
-      }))
-      console.log('Push subscription stored locally; backend sync is not implemented yet')
+      await apiClient.request('/notifications/push-subscribe/', {
+        method: 'POST',
+        body: JSON.stringify({
+          subscription: subscription.toJSON(),
+          userAgent: navigator.userAgent,
+          platform: this.getPlatform(),
+        })
+      })
     } catch (error) {
       console.error('Failed to send subscription to server:', error)
+      // Store locally as fallback for retry
       localStorage.setItem('push_subscription', JSON.stringify(subscription.toJSON()))
     }
   }
