@@ -6,7 +6,7 @@
  */
 
 import { sanitizeForLog } from './security'
-import { fileToBase64 } from '@/lib/utils'
+import { apiClient } from '@/services/client'
 
 export interface UploadResult {
   success: boolean
@@ -62,6 +62,57 @@ export const STORAGE_CONFIGS = {
   }
 } as const
 
+type UploadedDocument = {
+  id: string
+  document_name?: string
+  file_url?: string
+  document_type?: string
+}
+
+async function uploadDocument(
+  file: File,
+  applicationId: string,
+  documentType: string
+): Promise<UploadResult> {
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('application_id', applicationId)
+    formData.append('document_type', documentType)
+
+    const uploaded = await apiClient.request<UploadedDocument>('/documents?action=upload', {
+      method: 'POST',
+      body: formData
+    })
+
+    if (!uploaded?.id || !uploaded.file_url) {
+      return {
+        success: false,
+        error: 'Upload completed without a stored document URL',
+      }
+    }
+
+    return {
+      success: true,
+      path: uploaded.id,
+      url: uploaded.file_url,
+    }
+  } catch (error) {
+    console.error('Upload error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
+    const message = error instanceof Error ? error.message : 'Upload failed'
+    const lowerMessage = message.toLowerCase()
+    return {
+      success: false,
+      error: message,
+      retryable:
+        lowerMessage.includes('network') ||
+        lowerMessage.includes('timeout') ||
+        lowerMessage.includes('failed to fetch') ||
+        lowerMessage.includes('load failed'),
+    }
+  }
+}
+
 /**
  * Upload application file via API
  */
@@ -71,6 +122,7 @@ export async function uploadApplicationFile(
   applicationId: string,
   fileType: string
 ): Promise<UploadResult> {
+  void userId
   try {
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
@@ -91,44 +143,7 @@ export async function uploadApplicationFile(
       }
     }
 
-    const fileData = await fileToBase64(file)
-
-    const response = await fetch('/api/documents?action=upload', {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        file: fileData,
-        fileName: file.name,
-        contentType: file.type,
-        applicationId,
-        userId,
-        documentType: fileType
-      })
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      const statusCode = response.status
-      const retryable = [408, 425, 429, 502, 503, 504].includes(statusCode)
-      return {
-        success: false,
-        error: errorData.error || `Upload failed: ${response.status}`,
-        retryable,
-        statusCode,
-      }
-    }
-
-    const data = await response.json()
-    const payload = data?.data ?? data
-    
-    return {
-      success: true,
-      path: payload.path,
-      url: payload.url
-    }
+    return uploadDocument(file, applicationId, fileType)
   } catch (error) {
     console.error('Upload error:', error)
     const message = error instanceof Error ? error.message : 'Upload failed'
@@ -195,6 +210,7 @@ export async function uploadFile(
   path?: string,
   userId?: string
 ): Promise<UploadResult> {
+  void userId
   try {
     // Validate file
     const validation = validateFile(file, config)
@@ -205,38 +221,10 @@ export async function uploadFile(
       }
     }
 
-    const fileData = await fileToBase64(file)
-
-    const response = await fetch('/api/documents?action=upload', {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        file: fileData,
-        fileName: file.name,
-        contentType: file.type,
-        documentType: path || 'document'
-      })
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      console.error('Storage upload error:', { error: sanitizeForLog(errorData.error || 'Upload failed') })
-      return {
-        success: false,
-        error: errorData.error || 'Upload failed'
-      }
-    }
-
-    const data = await response.json()
-    const payload = data?.data ?? data
-    
     return {
-      success: true,
-      path: payload.path,
-      url: payload.url
+      success: false,
+      error: 'Generic storage upload is not supported by the Django backend without an application ID',
+      retryable: false,
     }
   } catch (error) {
     console.error('Upload error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
@@ -251,22 +239,13 @@ export async function uploadFile(
  * Delete file via API
  */
 export async function deleteFile(bucket: string, path: string): Promise<{ success: boolean; error?: string }> {
+  void bucket
+  void path
   try {
-    const response = await fetch(`/api/documents?action=delete&path=${encodeURIComponent(path)}`, {
-      method: 'DELETE',
-      credentials: 'include'
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      console.error('Storage delete error:', { error: sanitizeForLog(errorData.error || 'Delete failed') })
-      return {
-        success: false,
-        error: errorData.error || 'Delete failed'
-      }
+    return {
+      success: false,
+      error: 'Document deletion is not implemented in the Django backend yet',
     }
-
-    return { success: true }
   } catch (error) {
     console.error('Delete error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
     return {
@@ -280,23 +259,15 @@ export async function deleteFile(bucket: string, path: string): Promise<{ succes
  * Get signed URL for file via API
  */
 export async function getFileUrl(bucket: string, path: string): Promise<{ success: boolean; url?: string; error?: string }> {
+  void bucket
   try {
-    const response = await fetch(`/api/documents?action=url&path=${encodeURIComponent(path)}`, {
-      credentials: 'include'
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      return {
-        success: false,
-        error: errorData.error || 'Failed to get URL'
-      }
+    if (/^https?:\/\//.test(path)) {
+      return { success: true, url: path }
     }
 
-    const data = await response.json()
     return {
-      success: true,
-      url: data.url
+      success: false,
+      error: 'Signed document URLs are not implemented in the Django backend yet',
     }
   } catch (error) {
     console.error('Get URL error:', error)
@@ -311,11 +282,16 @@ export async function getFileUrl(bucket: string, path: string): Promise<{ succes
  * Download file via API
  */
 export async function downloadFile(bucket: string, path: string): Promise<{ success: boolean; data?: Blob; error?: string }> {
+  void bucket
   try {
-    const response = await fetch(`/api/documents?action=download&path=${encodeURIComponent(path)}`, {
-      credentials: 'include'
-    })
+    if (!/^https?:\/\//.test(path)) {
+      return {
+        success: false,
+        error: 'Document download requires a direct file URL from the backend',
+      }
+    }
 
+    const response = await fetch(path)
     if (!response.ok) {
       return {
         success: false,
@@ -323,10 +299,9 @@ export async function downloadFile(bucket: string, path: string): Promise<{ succ
       }
     }
 
-    const blob = await response.blob()
     return {
       success: true,
-      data: blob
+      data: await response.blob()
     }
   } catch (error) {
     console.error('Download error:', error)
@@ -341,26 +316,12 @@ export async function downloadFile(bucket: string, path: string): Promise<{ succ
  * List files via API
  */
 export async function listFiles(bucket: string, folder?: string): Promise<{ success: boolean; files?: any[]; error?: string }> {
+  void bucket
+  void folder
   try {
-    const params = new URLSearchParams({ action: 'list' })
-    if (folder) params.append('folder', folder)
-    
-    const response = await fetch(`/api/documents?${params}`, {
-      credentials: 'include'
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      return {
-        success: false,
-        error: errorData.error || 'List failed'
-      }
-    }
-
-    const data = await response.json()
     return {
-      success: true,
-      files: data.files || []
+      success: false,
+      error: 'Document listing is not implemented in the Django backend yet',
     }
   } catch (error) {
     console.error('List error:', error)
@@ -376,6 +337,7 @@ export async function listFiles(bucket: string, folder?: string): Promise<{ succ
  */
 export async function ensureBucketExists(bucketName: string): Promise<{ success: boolean; error?: string }> {
   // R2 bucket is pre-configured, no need to create
+  void bucketName
   return { success: true }
 }
 
@@ -383,23 +345,12 @@ export async function ensureBucketExists(bucketName: string): Promise<{ success:
  * Get file info via API
  */
 export async function getFileInfo(bucket: string, path: string): Promise<{ success: boolean; info?: any; error?: string }> {
+  void bucket
+  void path
   try {
-    const response = await fetch(`/api/documents?action=info&path=${encodeURIComponent(path)}`, {
-      credentials: 'include'
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      return {
-        success: false,
-        error: errorData.error || 'Failed to get file info'
-      }
-    }
-
-    const data = await response.json()
     return {
-      success: true,
-      info: data.info
+      success: false,
+      error: 'Document metadata lookup is not implemented in the Django backend yet',
     }
   } catch (error) {
     console.error('File info error:', error)

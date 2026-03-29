@@ -10,6 +10,8 @@ import { generateApplicationSlip } from '@/lib/applicationSlip';
 import { generateAcceptanceLetter } from '@/lib/acceptanceLetterGenerator';
 import { generatePaymentReceipt } from '@/lib/receiptGenerator';
 
+const getByIdMock = vi.fn();
+
 vi.mock('@/lib/applicationSlip', () => ({
   generateApplicationSlip: vi.fn(async () => new Blob(['slip'])),
 }));
@@ -20,6 +22,13 @@ vi.mock('@/lib/acceptanceLetterGenerator', () => ({
 
 vi.mock('@/lib/receiptGenerator', () => ({
   generatePaymentReceipt: vi.fn(async () => new Blob(['receipt'])),
+  generateReceiptNumber: vi.fn(() => 'RCT-001'),
+}));
+
+vi.mock('@/services/applications', () => ({
+  applicationService: {
+    getById: (...args: unknown[]) => getByIdMock(...args),
+  },
 }));
 
 type HookApi = ReturnType<typeof useDocumentGeneration>;
@@ -72,19 +81,22 @@ async function setupHook() {
 }
 
 describe('useDocumentGeneration payload handling', () => {
-  const fetchMock = vi.fn();
+  let anchorClickSpy: ReturnType<typeof vi.spyOn> | null = null;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.stubGlobal('fetch', fetchMock);
+    getByIdMock.mockReset();
     vi.stubGlobal('URL', {
       createObjectURL: vi.fn(() => 'blob:mock-url'),
       revokeObjectURL: vi.fn(),
     });
+    anchorClickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    anchorClickSpy?.mockRestore();
+    anchorClickSpy = null;
   });
 
   it('extracts application from nested envelope format', () => {
@@ -127,10 +139,7 @@ describe('useDocumentGeneration payload handling', () => {
   });
 
   it('validates and generates slip using nested application envelope', async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ success: true, data: { application: baseApplication } }),
-    });
+    getByIdMock.mockResolvedValueOnce({ application: baseApplication });
 
     const { getApi, cleanup } = await setupHook();
 
@@ -150,10 +159,7 @@ describe('useDocumentGeneration payload handling', () => {
   });
 
   it('validates and generates acceptance letter using legacy payload envelope', async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ application: baseApplication }),
-    });
+    getByIdMock.mockResolvedValueOnce({ application: baseApplication });
 
     const { getApi, cleanup } = await setupHook();
 
@@ -172,16 +178,13 @@ describe('useDocumentGeneration payload handling', () => {
     await cleanup();
   });
 
-  it('validates and generates receipt path payload before receipt fetch', async () => {
-    fetchMock
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ success: true, data: { application: baseApplication } }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ data: { receiptNumber: 'RCT-001' } }),
-      });
+  it('validates and generates receipt data from the application payload', async () => {
+    getByIdMock.mockResolvedValueOnce({
+      application: {
+        ...baseApplication,
+        receipt_number: 'RCT-001',
+      },
+    });
 
     const { getApi, cleanup } = await setupHook();
 
@@ -190,17 +193,10 @@ describe('useDocumentGeneration payload handling', () => {
       expect(ok).toBe(true);
     });
 
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      1,
-      expect.stringContaining('/api/applications?id=3'),
-      expect.any(Object)
+    expect(getByIdMock).toHaveBeenCalledWith('3');
+    expect(generatePaymentReceipt).toHaveBeenCalledWith(
+      expect.objectContaining({ receiptNumber: 'RCT-001' })
     );
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
-      expect.stringContaining('/api/payments?action=receipt&applicationId=3'),
-      expect.any(Object)
-    );
-    expect(generatePaymentReceipt).toHaveBeenCalledWith({ receiptNumber: 'RCT-001' });
 
     await cleanup();
   });

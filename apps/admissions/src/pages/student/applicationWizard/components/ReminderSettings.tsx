@@ -25,28 +25,19 @@ export const ReminderSettings = ({ email, fullName, draftName }: ReminderSetting
 
     setSending(true)
     try {
-      const response = await fetch('/applications/reminders/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          fullName,
-          draftName,
-          lastUpdated: new Date().toISOString()
-        })
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || 'Failed to send reminder')
-      }
+      localStorage.setItem('mihas:application-reminder-request', JSON.stringify({
+        email,
+        fullName,
+        draftName,
+        lastUpdated: new Date().toISOString()
+      }))
 
       setSent(true)
-      showSuccess('Reminder email sent!')
+      showSuccess('Reminder request saved locally. Automatic email reminders are not available yet.')
       setTimeout(() => setSent(false), 3000)
     } catch (error) {
-      console.error('Reminder send error:', error)
-      showError(error instanceof Error ? error.message : 'Failed to send reminder')
+      console.error('Reminder save error:', error)
+      showError(error instanceof Error ? error.message : 'Failed to save reminder request')
     } finally {
       setSending(false)
     }
@@ -61,7 +52,7 @@ export const ReminderSettings = ({ email, fullName, draftName }: ReminderSetting
         Email Reminders
       </h3>
       <p className="text-xs text-caption mb-3">
-        Get reminded to complete your application
+        Automatic reminder emails are still being migrated. You can save a reminder request on this device for now.
       </p>
       <Button
         type="button"
@@ -74,16 +65,15 @@ export const ReminderSettings = ({ email, fullName, draftName }: ReminderSetting
         {sent ? (
           <>
             <Check className="h-4 w-4 mr-2" />
-            Reminder Sent
+            Saved Locally
           </>
         ) : (
           <>
             <Bell className="h-4 w-4 mr-2" />
-            {sending ? 'Sending...' : 'Send Reminder'}
+            {sending ? 'Saving...' : 'Save Reminder'}
           </>
         )}
       </Button>
     </div>
   )
 }
-

@@ -11,7 +11,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiClient } from '@/services/client';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
@@ -19,15 +18,9 @@ import { PasswordInput } from '@/components/ui/PasswordInput';
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { Banner } from '@/components/ui/Banner';
-import { NotificationService } from '@/services/notifications';
 import { Seo } from '@/components/seo/Seo';
-import { sanitizeForLog } from '@/lib/security';
 import { CheckCircle, Loader2, XCircle } from 'lucide-react';
 import { animateClasses } from '@/lib/animations';
-
-interface EmailCheckResponse {
-  available: boolean;
-}
 
 export const signUpSchema = z
   .object({
@@ -72,36 +65,9 @@ export default function SignUpPage() {
   });
 
   const checkEmailAvailability = useCallback(async (email: string) => {
-    if (!email || !email.includes('@')) {
-      emailCheckRequestIdRef.current += 1;
-      setEmailAvailable(null);
-      setEmailChecking(false);
-      return;
-    }
-
-    const requestId = emailCheckRequestIdRef.current + 1;
-    emailCheckRequestIdRef.current = requestId;
-    setEmailChecking(true);
-    try {
-      const response = await apiClient.request<EmailCheckResponse>(
-        `/auth?action=check-email&email=${encodeURIComponent(email)}`,
-      );
-      if (requestId !== emailCheckRequestIdRef.current) {
-        return;
-      }
-      const isAvailable = (response as EmailCheckResponse)?.available ?? null;
-      setEmailAvailable(isAvailable);
-    } catch (err) {
-      if (requestId !== emailCheckRequestIdRef.current) {
-        return;
-      }
-      console.warn('Email check error:', sanitizeForLog(err instanceof Error ? err.message : String(err)));
-      setEmailAvailable(null);
-    } finally {
-      if (requestId === emailCheckRequestIdRef.current) {
-        setEmailChecking(false);
-      }
-    }
+    emailCheckRequestIdRef.current += 1;
+    setEmailChecking(false);
+    setEmailAvailable(email && email.includes('@') ? null : null);
   }, []);
 
   useEffect(() => {
@@ -132,20 +98,11 @@ export default function SignUpPage() {
         throw new Error(result.error);
       }
 
-      return { result, full_name };
+      return result;
     },
-    onSuccess: ({ result, full_name }) => {
+    onSuccess: () => {
       setSuccess('Account created! Redirecting...');
       setIsRegistering(false);
-
-      if (result.user?.id) {
-        NotificationService.sendWelcomeNotification(result.user.id, full_name).catch((notificationError) => {
-          console.error(
-            'Welcome notification error:',
-            sanitizeForLog(notificationError instanceof Error ? notificationError.message : String(notificationError)),
-          );
-        });
-      }
 
       redirectTimerRef.current = window.setTimeout(() => {
         navigate('/student/dashboard');
@@ -162,7 +119,14 @@ export default function SignUpPage() {
   const getErrorMessage = (error: Error | null) => {
     if (!error) return '';
     const message = error.message || 'Failed to create account. Please try again.';
-    return message.includes('already registered') ? 'This email is already registered. Please sign in instead.' : message;
+    if (
+      message.includes('already registered') ||
+      message.includes('already exists') ||
+      message.includes('sign you in after registration')
+    ) {
+      return 'This email may already be registered. Please sign in instead.'
+    }
+    return message
   };
 
   if (success) {
@@ -264,6 +228,11 @@ export default function SignUpPage() {
                     <XCircle className="h-3 w-3" />
                     Already registered.{' '}
                     <Link to="/auth/signin" className="underline hover:text-destructive">Sign in</Link>
+                  </span>
+                )}
+                {!emailChecking && emailAvailable === null && (
+                  <span className="text-xs text-foreground/70">
+                    Duplicate email checks are completed when your account is created.
                   </span>
                 )}
               </div>

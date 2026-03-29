@@ -4,7 +4,7 @@
  * Verifies that signOut:
  * 1. Calls clearCsrfToken()
  * 2. Calls queryClient.clear()
- * 3. POSTs to /api/auth?action=logout via apiClient
+ * 3. POSTs to /auth?action=logout via apiClient
  * 4. Calls secureStorage.clearSession()
  *
  * _Requirements: 4.2, 5.5, 10.3_
@@ -93,6 +93,23 @@ describe('signOut cleanup', () => {
     } else {
       vi.spyOn(window, 'dispatchEvent').mockImplementation(() => true);
     }
+    (globalThis as any).sessionStorage = {
+      removeItem: vi.fn(),
+      setItem: vi.fn(),
+      getItem: vi.fn(),
+      clear: vi.fn(),
+      key: vi.fn(),
+      length: 0,
+    };
+    (globalThis as any).CustomEvent = class CustomEvent {
+      type: string;
+      detail: unknown;
+
+      constructor(type: string, init?: { detail?: unknown }) {
+        this.type = type;
+        this.detail = init?.detail;
+      }
+    };
   });
 
   afterEach(() => {
@@ -117,14 +134,14 @@ describe('signOut cleanup', () => {
     expect(clearSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('signOut POSTs to /api/auth?action=logout via apiClient', async () => {
+  it('signOut POSTs to /auth?action=logout via apiClient', async () => {
     const { useSessionListener } = await import('@/hooks/auth/useSessionListener');
     const { signOut } = useSessionListener();
 
     await signOut();
 
     expect(apiRequestSpy).toHaveBeenCalledWith(
-      '/api/auth?action=logout',
+      '/auth?action=logout',
       { method: 'POST' },
     );
   });

@@ -15,7 +15,7 @@
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { apiClient } from '@/services/client'
+import { adminDashboardService } from '@/services/admin/dashboard'
 
 /** Threshold in ms after which polling stops entirely when tab is hidden */
 const HIDDEN_PAUSE_THRESHOLD = 300000 // 5 minutes
@@ -71,6 +71,20 @@ function statsFingerprint(stats: AdminDashboardStats): string {
   return `${stats.totalApplications}:${stats.pendingApplications}:${stats.approvedApplications}:${stats.rejectedApplications}:${stats.todayApplications}:${stats.weekApplications}`
 }
 
+async function fetchDashboardStats(): Promise<AdminDashboardStats> {
+  const overview = await adminDashboardService.getOverview()
+  const stats = overview.stats
+
+  return {
+    totalApplications: stats.totalApplications ?? 0,
+    pendingApplications: stats.pendingApplications ?? 0,
+    approvedApplications: stats.approvedApplications ?? 0,
+    rejectedApplications: stats.rejectedApplications ?? 0,
+    todayApplications: stats.todayApplications ?? 0,
+    weekApplications: stats.weekApplications ?? 0,
+  }
+}
+
 export function useAdminDashboardPolling(
   options: UseAdminDashboardPollingOptions = {}
 ): UseAdminDashboardPollingReturn {
@@ -110,33 +124,7 @@ export function useAdminDashboardPolling(
 
   const fetchStats = useCallback(async (): Promise<AdminDashboardStats> => {
     try {
-      const result = await apiClient.request<{
-        stats?: {
-          totalApplications?: number
-          pendingApplications?: number
-          approvedApplications?: number
-          rejectedApplications?: number
-          todayApplications?: number
-          weekApplications?: number
-        }
-        totalApplications?: number
-        pendingApplications?: number
-        approvedApplications?: number
-        rejectedApplications?: number
-        todayApplications?: number
-        weekApplications?: number
-        pendingReviews?: number
-        [key: string]: unknown
-      }>('/api/admin?action=dashboard')
-
-      return {
-        totalApplications: result?.stats?.totalApplications ?? result?.totalApplications ?? 0,
-        pendingApplications: result?.stats?.pendingApplications ?? result?.pendingApplications ?? result?.pendingReviews ?? 0,
-        approvedApplications: result?.stats?.approvedApplications ?? result?.approvedApplications ?? 0,
-        rejectedApplications: result?.stats?.rejectedApplications ?? result?.rejectedApplications ?? 0,
-        todayApplications: result?.stats?.todayApplications ?? result?.todayApplications ?? 0,
-        weekApplications: result?.stats?.weekApplications ?? result?.weekApplications ?? 0,
-      }
+      return await fetchDashboardStats()
     } catch (error) {
       console.error('[useAdminDashboardPolling] Error:', error instanceof Error ? error.message : error)
       throw error
@@ -205,35 +193,7 @@ export function useAdminPendingCount(options: { enabled?: boolean } = {}) {
 
   return useQuery({
     queryKey: ['admin-dashboard-polling'],
-    queryFn: async (): Promise<AdminDashboardStats> => {
-      const result = await apiClient.request<{
-        stats?: {
-          totalApplications?: number
-          pendingApplications?: number
-          approvedApplications?: number
-          rejectedApplications?: number
-          todayApplications?: number
-          weekApplications?: number
-        }
-        totalApplications?: number
-        pendingApplications?: number
-        approvedApplications?: number
-        rejectedApplications?: number
-        todayApplications?: number
-        weekApplications?: number
-        pendingReviews?: number
-        [key: string]: unknown
-      }>('/api/admin?action=dashboard')
-
-      return {
-        totalApplications: result?.stats?.totalApplications ?? result?.totalApplications ?? 0,
-        pendingApplications: result?.stats?.pendingApplications ?? result?.pendingApplications ?? result?.pendingReviews ?? 0,
-        approvedApplications: result?.stats?.approvedApplications ?? result?.approvedApplications ?? 0,
-        rejectedApplications: result?.stats?.rejectedApplications ?? result?.rejectedApplications ?? 0,
-        todayApplications: result?.stats?.todayApplications ?? result?.todayApplications ?? 0,
-        weekApplications: result?.stats?.weekApplications ?? result?.weekApplications ?? 0,
-      }
-    },
+    queryFn: fetchDashboardStats,
     enabled,
     select: (data) => data.pendingApplications,
     staleTime: POLLING_INTERVAL / 2,
@@ -250,35 +210,7 @@ export function useAdminTotalApplicationCount(options: { enabled?: boolean } = {
 
   return useQuery({
     queryKey: ['admin-dashboard-polling'],
-    queryFn: async (): Promise<AdminDashboardStats> => {
-      const result = await apiClient.request<{
-        stats?: {
-          totalApplications?: number
-          pendingApplications?: number
-          approvedApplications?: number
-          rejectedApplications?: number
-          todayApplications?: number
-          weekApplications?: number
-        }
-        totalApplications?: number
-        pendingApplications?: number
-        approvedApplications?: number
-        rejectedApplications?: number
-        todayApplications?: number
-        weekApplications?: number
-        pendingReviews?: number
-        [key: string]: unknown
-      }>('/api/admin?action=dashboard')
-
-      return {
-        totalApplications: result?.stats?.totalApplications ?? result?.totalApplications ?? 0,
-        pendingApplications: result?.stats?.pendingApplications ?? result?.pendingApplications ?? result?.pendingReviews ?? 0,
-        approvedApplications: result?.stats?.approvedApplications ?? result?.approvedApplications ?? 0,
-        rejectedApplications: result?.stats?.rejectedApplications ?? result?.rejectedApplications ?? 0,
-        todayApplications: result?.stats?.todayApplications ?? result?.todayApplications ?? 0,
-        weekApplications: result?.stats?.weekApplications ?? result?.weekApplications ?? 0,
-      }
-    },
+    queryFn: fetchDashboardStats,
     enabled,
     select: (data) => data.totalApplications,
     staleTime: POLLING_INTERVAL / 2,

@@ -1,6 +1,11 @@
 /**
  * Session Service
  * Manages user sessions using custom JWT auth with HTTP-only cookies
+ *
+ * Django REST paths (no /api/v1/ prefix — apiClient prepends it):
+ *   GET  /sessions/            → list active sessions
+ *   POST /sessions/{id}/revoke/  → revoke a specific session
+ *   POST /sessions/revoke-all/   → revoke all other sessions
  */
 import { apiClient } from '@/services/client'
 
@@ -41,7 +46,7 @@ export interface TerminateSessionResult {
 
 export async function listActiveSessions(): Promise<ListSessionsResult> {
   try {
-    const result = await apiClient.request<DeviceSession[] | { sessions?: DeviceSession[]; count?: number }>('/sessions', {
+    const result = await apiClient.request<DeviceSession[] | { sessions?: DeviceSession[]; count?: number }>('/sessions/', {
       method: 'GET',
       useCache: false,
     })
@@ -92,7 +97,7 @@ export async function listActiveSessions(): Promise<ListSessionsResult> {
 
 export async function terminateSessionById(sessionId: string): Promise<TerminateSessionResult> {
   try {
-    const result = await apiClient.request<{ message?: string }>(`/sessions?action=revoke&sessionId=${encodeURIComponent(sessionId)}`, {
+    const result = await apiClient.request<{ message?: string }>(`/sessions/${encodeURIComponent(sessionId)}/revoke/`, {
       method: 'POST',
     })
 
@@ -111,19 +116,19 @@ export async function terminateSessionById(sessionId: string): Promise<Terminate
 /**
  * Terminates all other sessions except the current one.
  * Uses the sessions API endpoint with revoke-all action.
- * 
+ *
  * @returns Promise with success status and count of terminated sessions
  */
 export async function terminateAllOtherSessions(): Promise<TerminateSessionsResult> {
   try {
-    const result = await apiClient.request<{ message?: string }>('/sessions?action=revoke-all', {
+    const result = await apiClient.request<{ message?: string }>('/sessions/revoke-all/', {
       method: 'POST',
     })
 
     const terminatedCount = typeof result?.message === 'string'
       ? Number(result.message.match(/\d+/)?.[0] ?? 0)
       : 0
-    
+
     return {
       success: true,
       terminatedCount,
@@ -137,7 +142,7 @@ export async function terminateAllOtherSessions(): Promise<TerminateSessionsResu
         error: 'No active session found'
       }
     }
-    
+
     return {
       success: false,
       terminatedCount: 0,

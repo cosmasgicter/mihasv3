@@ -76,6 +76,7 @@ function getOrCreateSalt(): Uint8Array {
 /** Derive an AES-GCM CryptoKey from a session token via PBKDF2 */
 async function deriveKey(sessionToken: string, salt: Uint8Array): Promise<CryptoKey> {
   const encoder = new TextEncoder()
+  const normalizedSalt = new Uint8Array(salt)
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
     encoder.encode(sessionToken),
@@ -87,7 +88,9 @@ async function deriveKey(sessionToken: string, salt: Uint8Array): Promise<Crypto
   return crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt: salt.buffer as ArrayBuffer,
+      // Normalize to a fresh typed array so WebCrypto receives a compatible
+      // BufferSource across browser and Node/Vitest environments.
+      salt: normalizedSalt,
       iterations: PBKDF2_ITERATIONS,
       hash: 'SHA-256',
     },

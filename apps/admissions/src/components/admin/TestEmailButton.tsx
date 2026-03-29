@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Mail } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useToastStore } from '@/hooks/useToast'
-import { getApiBaseUrl } from '@/lib/apiConfig'
+import { apiClient } from '@/services/client'
 
 export function TestEmailButton() {
   const [loading, setLoading] = useState(false)
@@ -17,20 +17,16 @@ export function TestEmailButton() {
 
     setLoading(true)
     try {
-      const response = await fetch(`${getApiBaseUrl()}/test-email`, {
+      await apiClient.request('/email/send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to: email })
+        body: JSON.stringify({
+          recipient_email: email,
+          subject: 'MIHAS test email',
+          body: 'This is a test email from the MIHAS admin console.',
+        })
       })
-
-      const data = await response.json()
-
-      if (data.success) {
-        addToast('success', `Test email sent to ${email}`)
-        setEmail('')
-      } else {
-        addToast('error', data.error || 'Failed to send test email')
-      }
+      addToast('success', `Test email sent to ${email}`)
+      setEmail('')
     } catch (error) {
       addToast('error', 'Failed to send test email')
     } finally {

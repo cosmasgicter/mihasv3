@@ -9,7 +9,7 @@ Migrate the MIHAS admissions portal backend from Vercel Serverless Functions to 
 - [x] 1. Django project scaffold and configuration
   - [x] 1.1 Create Django project structure with `config/` and `apps/` layout
     - Create `django_api/` root with `manage.py`, `pyproject.toml`, `requirements.txt`
-    - Create `config/` package with `__init__.py`, `urls.py`, `wsgi.py`, `asgi.py`, `celery.py`
+    - Create `config/` package with `__init__.py`, `urls.py`, `asgi.py`, `celery.py`
     - Create `config/settings/` with `__init__.py`, `base.py`, `dev.py`, `staging.py`, `prod.py`
     - Create empty app packages: `accounts`, `applications`, `documents`, `catalog`, `common`
     - _Requirements: 1.1, 1.2_
@@ -39,7 +39,7 @@ Migrate the MIHAS admissions portal backend from Vercel Serverless Functions to 
     - _Requirements: 1.5, 1.6, 1.7_
 
   - [x] 1.6 Create `Dockerfile` and `docker-compose.yml`
-    - Dockerfile: Python 3.12, gunicorn bound to `0.0.0.0:$PORT`, Tesseract OCR installed
+    - Dockerfile: Python 3.12, uvicorn bound to `0.0.0.0:$PORT`, Tesseract OCR installed
     - docker-compose: Django web + Redis + Celery worker services
     - _Requirements: 1.4, 15.1_
 
@@ -496,8 +496,8 @@ Migrate the MIHAS admissions portal backend from Vercel Serverless Functions to 
     - **Validates: Requirements 13.4**
 
 - [x] 25. Deployment configuration
-  - [x] 25.1 Configure gunicorn with production settings
-    - `--graceful-timeout 30` for in-flight request completion during deployments
+  - [x] 25.1 Configure uvicorn deployment with production settings
+    - Allow in-flight request completion during deployments
     - Worker count and connection limits per worker
     - Separate Celery worker start command (`celery -A config worker`)
     - _Requirements: 15.1, 20.5_
@@ -513,7 +513,7 @@ Migrate the MIHAS admissions portal backend from Vercel Serverless Functions to 
     - _Requirements: 21.4_
 
 - [x] 26. Final checkpoint — Full integration verification
-  - Ensure all tests pass (unit, property, contract), all endpoints respond correctly, middleware chain complete, Celery tasks process, Docker image builds, gunicorn starts. Ask the user if questions arise.
+  - Ensure all tests pass (unit, property, contract), all endpoints respond correctly, middleware chain complete, Celery tasks process, Docker image builds, uvicorn starts. Ask the user if questions arise.
 
 ## Notes
 

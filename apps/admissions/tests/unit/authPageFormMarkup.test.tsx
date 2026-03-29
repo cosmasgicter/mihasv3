@@ -2,6 +2,7 @@ import React from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import { PasswordInput } from '@/components/ui/PasswordInput'
 import SignInPage from '@/pages/auth/SignInPage'
@@ -38,30 +39,31 @@ vi.mock('@/lib/notificationService', () => ({
 }))
 
 describe('auth page form markup', () => {
+  function renderAuthPage(element: React.ReactElement) {
+    const queryClient = new QueryClient()
+    return renderToStaticMarkup(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>{element}</MemoryRouter>
+      </QueryClientProvider>,
+    )
+  }
+
   it('renders password toggles with a neutral label instead of repeating the field label', () => {
     const markup = renderToStaticMarkup(<PasswordInput label="Password" required />)
 
-    expect(markup).toContain('aria-label="Show characters"')
-    expect(markup).not.toContain('aria-label="Show password"')
+    expect(markup).toContain('aria-label="Show password"')
+    expect(markup).not.toContain('aria-label="Show characters"')
     expect(markup).not.toContain('tabindex="-1"')
   })
 
   it('disables native browser validation on the sign-in form so inline errors can render', () => {
-    const markup = renderToStaticMarkup(
-      <MemoryRouter initialEntries={['/login']}>
-        <SignInPage />
-      </MemoryRouter>,
-    )
+    const markup = renderAuthPage(<SignInPage />)
 
     expect(markup).toContain('<form class="space-y-6" novalidate="">')
   })
 
   it('groups sign-in credentials inside a labelled fieldset', () => {
-    const markup = renderToStaticMarkup(
-      <MemoryRouter initialEntries={['/login']}>
-        <SignInPage />
-      </MemoryRouter>,
-    )
+    const markup = renderAuthPage(<SignInPage />)
 
     expect(markup).toContain('<legend class="text-sm font-semibold text-foreground">Applicant sign-in details</legend>')
     expect(markup).toContain('>Account email<')
@@ -69,21 +71,13 @@ describe('auth page form markup', () => {
   })
 
   it('disables native browser validation on the sign-up form so inline errors can render', () => {
-    const markup = renderToStaticMarkup(
-      <MemoryRouter initialEntries={['/auth/signup']}>
-        <SignUpPage />
-      </MemoryRouter>,
-    )
+    const markup = renderAuthPage(<SignUpPage />)
 
     expect(markup).toContain('<form class="space-y-6" novalidate="">')
   })
 
   it('groups sign-up fields into labelled sections', () => {
-    const markup = renderToStaticMarkup(
-      <MemoryRouter initialEntries={['/auth/signup']}>
-        <SignUpPage />
-      </MemoryRouter>,
-    )
+    const markup = renderAuthPage(<SignUpPage />)
 
     expect(markup).toContain('<legend class="text-base font-semibold text-foreground">Portal access</legend>')
     expect(markup).toContain('<legend class="text-base font-semibold text-foreground">Profile basics</legend>')

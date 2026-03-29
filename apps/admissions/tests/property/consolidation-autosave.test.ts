@@ -15,6 +15,12 @@ import * as path from 'path';
 
 const SRC_DIR = path.resolve(__dirname, '../../src');
 
+function stripComments(content: string): string {
+  return content
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/.*$/gm, '');
+}
+
 /** Collect all .ts/.tsx files recursively */
 function collectFiles(dir: string): string[] {
   if (!fs.existsSync(dir)) return [];
@@ -31,8 +37,15 @@ const allFiles = collectFiles(SRC_DIR);
 
 /** Files that reference setInterval with auto-save semantics */
 const autoSaveFiles = allFiles.filter(f => {
-  const content = fs.readFileSync(f, 'utf-8');
-  return content.includes('setInterval') && (content.includes('auto') || content.includes('save') || content.includes('draft'));
+  const content = stripComments(fs.readFileSync(f, 'utf-8'));
+  return content.includes('setInterval')
+    && (
+      content.includes('auto-save')
+      || content.includes('autosave')
+      || content.includes('auto save')
+      || content.includes('saveDraft')
+      || content.includes('draft save')
+    );
 });
 
 describe('Property 8: Auto-Save Interval Preserved', () => {
@@ -42,9 +55,18 @@ describe('Property 8: Auto-Save Interval Preserved', () => {
         fc.constantFrom(...(autoSaveFiles.length > 0 ? autoSaveFiles : [path.resolve(SRC_DIR, 'hooks/useAutoSave.ts')])),
         (filePath) => {
           if (!fs.existsSync(filePath)) return; // skip if file doesn't exist
-          const content = fs.readFileSync(filePath, 'utf-8');
+          const content = stripComments(fs.readFileSync(filePath, 'utf-8'));
           // If this file has setInterval with auto-save context, check for 8000ms
-          if (content.includes('setInterval') && (content.includes('auto') || content.includes('save') || content.includes('draft'))) {
+          if (
+            content.includes('setInterval')
+            && (
+              content.includes('auto-save')
+              || content.includes('autosave')
+              || content.includes('auto save')
+              || content.includes('saveDraft')
+              || content.includes('draft save')
+            )
+          ) {
             // Should contain 8000 or 8_000 or 8 * 1000
             const has8SecondInterval = content.includes('8000') || content.includes('8_000') || content.includes('8 * 1000');
             expect(

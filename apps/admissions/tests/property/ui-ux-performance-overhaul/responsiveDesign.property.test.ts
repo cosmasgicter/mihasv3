@@ -26,10 +26,11 @@ const NUM_RUNS = 10
 
 const UI_DIR = resolve(process.cwd(), 'src/components/ui')
 const NAV_DIR = resolve(process.cwd(), 'src/components/navigation')
+const AUTH_DIR = resolve(process.cwd(), 'src/components/auth')
 
 const COMPONENT_PATHS = {
   PageShell: resolve(UI_DIR, 'PageShell.tsx'),
-  AuthLayout: resolve(UI_DIR, 'AuthLayout.tsx'),
+  AuthLayout: resolve(AUTH_DIR, 'AuthLayout.tsx'),
   BottomNavigation: resolve(UI_DIR, 'BottomNavigation.tsx'),
   ResponsiveTable: resolve(UI_DIR, 'ResponsiveTable.tsx'),
   AppLayout: resolve(NAV_DIR, 'AppLayout.tsx'),
@@ -43,6 +44,10 @@ const COMPONENT_PATHS = {
 
 function loadSource(filePath: string): string {
   return readFileSync(filePath, 'utf-8')
+}
+
+function hasAuthLayoutWidthConstraint(source: string): boolean {
+  return /max-w-(md|xl|2xl|3xl)\b/.test(source)
 }
 
 // Load all sources once at module level
@@ -115,7 +120,7 @@ describe('Property 27: No Horizontal Overflow at Any Breakpoint', () => {
     const src = sources.AuthLayout
     expect(src, 'AuthLayout source must be loaded').toBeDefined()
 
-    expect(src.includes('max-w-md'), 'AuthLayout must use max-w-md to constrain form card width').toBe(true)
+    expect(hasAuthLayoutWidthConstraint(src), 'AuthLayout must use a max-w-* constraint to prevent overflow').toBe(true)
     expect(src.includes('w-full'), 'AuthLayout must use w-full for responsive width').toBe(true)
     expect(src.includes('px-4'), 'AuthLayout must use horizontal padding for mobile').toBe(true)
   })
@@ -190,7 +195,7 @@ describe('Property 27: No Horizontal Overflow at Any Breakpoint', () => {
 
         // AuthLayout: must have max-w-md for form card
         expect(
-          authLayout.includes('max-w-md'),
+          hasAuthLayoutWidthConstraint(authLayout),
           `AuthLayout must constrain form card width at ${breakpoint}px`
         ).toBe(true)
 

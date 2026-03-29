@@ -1,7 +1,6 @@
 import { generateApplicationSlip, persistSlip, type ApplicationSlipData } from './applicationSlip'
 import { logger } from '@/lib/logger'
 import { sanitizeForLog } from './security'
-import { apiClient } from '@/services/client'
 
 export interface SlipServiceOptions {
   sendEmail?: boolean
@@ -27,30 +26,6 @@ export interface SlipServiceResult {
   error?: string
 }
 
-function extractErrorMessage(error: unknown, fallback: string): string {
-  if (!error) return fallback
-
-  if (typeof error === 'string') {
-    return error.trim() || fallback
-  }
-
-  if (error instanceof Error) {
-    return error.message?.trim() || fallback
-  }
-
-  if (typeof error === 'object') {
-    const unknownError = error as Record<string, unknown>
-    for (const key of ['reason', 'error', 'message', 'detail']) {
-      const value = unknownError[key]
-      if (typeof value === 'string' && value.trim()) {
-        return value.trim()
-      }
-    }
-  }
-
-  return fallback
-}
-
 export async function createApplicationSlip(
   data: ApplicationSlipData,
   options: SlipServiceOptions = {}
@@ -72,7 +47,7 @@ export async function createApplicationSlip(
 
     try {
       logger.info('[slipService] Attempting to persist slip for:', data.application_number)
-      const uploadResult = await persistSlip(data.application_number, blob, data.userId)
+      const uploadResult = await persistSlip(data.application_number, blob, data.userId, data.application_id)
       logger.info('[slipService] Persist result:', uploadResult)
       if (!uploadResult.success) {
         uploadError = uploadResult.error || 'Unable to store application slip'
@@ -97,39 +72,12 @@ export async function createApplicationSlip(
     let queuedId: string | undefined
     let fallbackDownloadUrl: string | undefined
     if (options.sendEmail) {
+      fallbackDownloadUrl = publicUrl || (appOrigin ? `${appOrigin}/student/status` : '/student/status')
       if (!data.email) {
         emailError = 'Missing applicant email address'
         toast?.showError?.('Email not sent', 'No email address was available to send the application slip.')
       } else {
-        try {
-          const applicationId = data.application_id?.trim()
-          if (!applicationId) {
-            throw new Error('Missing application ID required for slip email delivery')
-          }
-
-          const emailResponse = await apiClient.request<{
-            emailed?: boolean
-            queuedId?: string
-            fallbackDownloadUrl?: string
-          }>('/api/applications?action=email-slip', {
-            method: 'POST',
-            body: JSON.stringify({
-              applicationId,
-              recipientEmail: data.email,
-              ...(publicUrl ? { slipUrl: publicUrl } : {}),
-              ...(documentId ? { slipDocumentReference: documentId } : {}),
-            }),
-            invalidateCache: false,
-          })
-
-          emailed = emailResponse?.emailed === true
-          queuedId = emailResponse?.queuedId
-          fallbackDownloadUrl = emailResponse?.fallbackDownloadUrl || publicUrl || (appOrigin ? `${appOrigin}/student/status` : '/student/status')
-        } catch (invokeError) {
-          emailError = extractErrorMessage(invokeError, 'Failed to trigger slip email')
-          fallbackDownloadUrl = publicUrl || (appOrigin ? `${appOrigin}/student/status` : '/student/status')
-          console.error('Application slip email trigger error:', sanitizeForLog(emailError))
-        }
+        emailError = 'Application slip email delivery is not implemented in the Django backend yet'
       }
     }
 

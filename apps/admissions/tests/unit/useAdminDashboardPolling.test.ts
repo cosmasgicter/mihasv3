@@ -26,8 +26,8 @@ describe('useAdminDashboardPolling', () => {
       expect(hookContent).not.toContain('supabase');
       expect(hookContent).not.toContain('@supabase');
     });
-    it('uses services/client', () => {
-      expect(hookContent).toContain("from '@/services/client'");
+    it('uses admin dashboard service', () => {
+      expect(hookContent).toContain("from '@/services/admin/dashboard'");
     });
     it('has backward-compatible options', () => {
       expect(hookContent).toContain('enabled?');

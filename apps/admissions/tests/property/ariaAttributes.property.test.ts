@@ -33,6 +33,18 @@ const errorArb = fc.string({ minLength: 1, maxLength: 100 })
 
 /** Parse static HTML to check for attributes on input elements */
 function getInputAttributes(html: string): Record<string, string> {
+  if (typeof DOMParser !== 'undefined') {
+    const document = new DOMParser().parseFromString(html, 'text/html')
+    const input = document.querySelector('input')
+    if (input) {
+      const attrs: Record<string, string> = {}
+      for (const attr of input.attributes) {
+        attrs[attr.name] = attr.value
+      }
+      return attrs
+    }
+  }
+
   const attrs: Record<string, string> = {}
   // Match the <input .../> tag
   const inputMatch = html.match(/<input\s[^>]*>/i)
@@ -284,7 +296,8 @@ describe('ARIA Attributes Property Tests (P20)', () => {
             React.createElement(FileUpload, { error, label: 'Upload' })
           )
           expect(fileHtml).toContain('role="alert"')
-          expect(fileHtml).toContain(error)
+          const fileDocument = new DOMParser().parseFromString(fileHtml, 'text/html')
+          expect(fileDocument.body.textContent).toContain(error)
         }),
         { numRuns: 10 },
       )

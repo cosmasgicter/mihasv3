@@ -121,6 +121,8 @@ describe('Property 1: Single Canonical Source', () => {
           const relativePath = path.relative(SRC_DIR, otherFile);
           // Skip index files that re-export
           if (relativePath.endsWith('index.ts') || relativePath.endsWith('index.tsx')) continue;
+          // React component names in TSX files are allowed to overlap with utility/class names.
+          if (otherFile.endsWith('.tsx') && /^[A-Z]/.test(symbol)) continue;
           
           const content = fs.readFileSync(otherFile, 'utf-8');
           // Only flag if the file has a standalone export definition (not a re-export from canonical)

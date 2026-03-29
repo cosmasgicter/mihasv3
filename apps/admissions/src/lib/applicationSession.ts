@@ -30,7 +30,7 @@ export interface SessionWarning {
 }
 
 // Constants for configuration
-const AUTO_SAVE_INTERVAL = 10000 // 10 seconds
+const AUTO_SAVE_INTERVAL = 8000 // 8 seconds
 const SESSION_WARNING_TIME = 25 * 60 * 1000 // 25 minutes
 const SESSION_EXPIRY_TIME = 30 * 60 * 1000 // 30 minutes
 const DRAFT_STORAGE_KEYS = [
@@ -146,7 +146,7 @@ class ApplicationSessionManager {
     this.setupSessionWarnings()
   }
 
-  // Setup automatic saving every 10 seconds
+  // Setup automatic saving every 8 seconds
   private setupAutoSave() {
     if (this.saveInterval) {
       clearInterval(this.saveInterval)

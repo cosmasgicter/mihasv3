@@ -211,15 +211,18 @@ describe('Feature: supabase-auth-removal, Property Tests', () => {
     
     it('PROPERTY: Auth hooks should use credentials: include for cookie-based auth', () => {
       const sessionListenerPath = path.join(process.cwd(), 'src/hooks/auth/useSessionListener.ts');
+      const apiClientPath = path.join(process.cwd(), 'src/services/client.ts');
       
-      if (!fs.existsSync(sessionListenerPath)) {
+      if (!fs.existsSync(sessionListenerPath) || !fs.existsSync(apiClientPath)) {
         return;
       }
       
       const content = readFileContent(sessionListenerPath);
+      const apiClientContent = readFileContent(apiClientPath);
       
-      // Should have credentials: 'include' for fetch calls
-      expect(content).toContain("credentials: 'include'");
+      // Cookie credentials are centralized in ApiClient, while auth hooks delegate to it.
+      expect(content).toContain('apiClient.request');
+      expect(apiClientContent).toContain("credentials: 'include'");
       
       // Should NOT store tokens in localStorage
       expect(content).not.toMatch(/localStorage\.setItem\s*\(\s*['"][^'"]*token/i);

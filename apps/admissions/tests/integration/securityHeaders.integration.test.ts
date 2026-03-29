@@ -2,8 +2,8 @@
  * Integration Tests: Security Headers
  * Feature: website-quality-remediation
  *
- * Verifies that vercel.json includes all required security headers
- * on the global route and that HSTS applies to all routes (not just API).
+ * Verifies that vercel.json includes the current monorepo security headers
+ * on the global route and cache headers for static assets.
  *
  * **Validates: Requirement 5**
  */
@@ -73,11 +73,12 @@ describe('Feature: website-quality-remediation, Security Headers (Req 5)', () =>
       expect(csp.value).toContain("frame-ancestors 'none'");
     });
 
-    it('should allow connect-src to self and Neon', () => {
+    it('should allow connect-src to the Django API and Neon', () => {
       const csp = globalHeaders.headers.find(
         (h) => h.key === 'Content-Security-Policy'
       )!;
-      expect(csp.value).toContain("connect-src 'self' https://*.neon.tech");
+      expect(csp.value).toContain("connect-src 'self' ***REMOVED***");
+      expect(csp.value).toContain('https://*.neon.tech');
     });
   });
 
@@ -139,23 +140,24 @@ describe('Feature: website-quality-remediation, Security Headers (Req 5)', () =>
     });
   });
 
-  describe('API route headers remain intact', () => {
-    it('should still have an /api/(.*) header block', () => {
-      const apiHeaders = vercelConfig.headers.find(
-        (h) => h.source === '/api/(.*)'
+  describe('Static asset cache headers remain intact', () => {
+    it('should have an /assets/(.*) header block', () => {
+      const assetHeaders = vercelConfig.headers.find(
+        (h) => h.source === '/assets/(.*)'
       );
-      expect(apiHeaders).toBeDefined();
+      expect(assetHeaders).toBeDefined();
     });
 
-    it('should have X-Content-Type-Options on API routes', () => {
-      const apiHeaders = vercelConfig.headers.find(
-        (h) => h.source === '/api/(.*)'
+    it('should cache static assets aggressively', () => {
+      const assetHeaders = vercelConfig.headers.find(
+        (h) => h.source === '/assets/(.*)'
       )!;
-      const xcto = apiHeaders.headers.find(
-        (h) => h.key === 'X-Content-Type-Options'
+      const cacheControl = assetHeaders.headers.find(
+        (h) => h.key === 'Cache-Control'
       );
-      expect(xcto).toBeDefined();
-      expect(xcto!.value).toBe('nosniff');
+      expect(cacheControl).toBeDefined();
+      expect(cacheControl!.value).toContain('immutable');
+      expect(cacheControl!.value).toContain('max-age=31536000');
     });
   });
 });

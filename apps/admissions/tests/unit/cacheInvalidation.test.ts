@@ -6,7 +6,7 @@
  * React Query keys for each endpoint+method combination, and that
  * queryClient.clear() is only used on login/logout paths.
  *
- * Requirements: 15.1, 15.2, 15.3, 15.4, 15.5
+ * Requirements: 1.10, 1.11
  */
 import { describe, it, expect } from 'vitest'
 import { apiClient } from '@/services/client'
@@ -16,9 +16,9 @@ const getPatterns = (endpoint: string, method: string) =>
   (apiClient as any).getQueryInvalidationPatterns(endpoint, method)
 
 describe('getQueryInvalidationPatterns', () => {
-  describe('Req 15.1 — Application submit invalidates student dashboard + applications', () => {
-    it('PUT /api/applications?id=xxx invalidates student-dashboard-polling and applications', () => {
-      const keys = getPatterns('/api/applications?id=abc-123', 'PUT')
+  describe('Application mutations invalidate student dashboard + applications', () => {
+    it('PUT /api/v1/applications/abc-123/ invalidates student-dashboard-polling, applications, and specific app', () => {
+      const keys = getPatterns('/api/v1/applications/abc-123/', 'PUT')
       const flat = keys.map((k: string[]) => k.join('/'))
       expect(flat).toContain('applications')
       expect(flat).toContain('student-dashboard-polling')
@@ -26,86 +26,82 @@ describe('getQueryInvalidationPatterns', () => {
       expect(flat).toContain('applications/abc-123')
     })
 
-    it('POST /api/applications invalidates student-dashboard-polling and applications', () => {
-      const keys = getPatterns('/api/applications', 'POST')
+    it('POST /api/v1/applications/ invalidates student-dashboard-polling and applications', () => {
+      const keys = getPatterns('/api/v1/applications/', 'POST')
       const flat = keys.map((k: string[]) => k.join('/'))
       expect(flat).toContain('applications')
       expect(flat).toContain('student-dashboard-polling')
     })
-  })
 
-  describe('Req 15.2 — Admin status change invalidates specific app + admin lists', () => {
-    it('POST /api/admin?action=update-status&id=app-1 invalidates admin-applications and specific app', () => {
-      const keys = getPatterns('/api/admin?action=update-status&id=app-1', 'POST')
+    it('PATCH /api/v1/applications/app-1/review/ invalidates applications and specific app', () => {
+      const keys = getPatterns('/api/v1/applications/app-1/review/', 'PATCH')
       const flat = keys.map((k: string[]) => k.join('/'))
-      expect(flat).toContain('admin-applications')
-      expect(flat).toContain('admin-dashboard-polling')
-      expect(flat).toContain('applications/app-1')
       expect(flat).toContain('applications')
+      expect(flat).toContain('student-dashboard-polling')
       expect(flat).toContain('application-stats')
-      expect(flat).toContain('application-history')
+      expect(flat).toContain('applications/app-1')
     })
+  })
 
-    it('POST /api/admin?action=review invalidates applications list', () => {
-      const keys = getPatterns('/api/admin?action=review', 'POST')
-      const flat = keys.map((k: string[]) => k.join('/'))
-      expect(flat).toContain('admin-applications')
-      expect(flat).toContain('applications')
-    })
-
-    it('generic admin POST invalidates admin-applications but not general applications', () => {
-      const keys = getPatterns('/api/admin?action=settings', 'POST')
+  describe('Admin mutations invalidate admin lists', () => {
+    it('POST /api/v1/admin/users/ invalidates admin-applications and admin-dashboard-polling', () => {
+      const keys = getPatterns('/api/v1/admin/users/', 'POST')
       const flat = keys.map((k: string[]) => k.join('/'))
       expect(flat).toContain('admin-applications')
       expect(flat).toContain('admin-dashboard-polling')
-      expect(flat).not.toContain('applications')
+      expect(flat).toContain('application-stats')
+    })
+
+    it('PUT /api/v1/admin/settings/123/ invalidates admin caches', () => {
+      const keys = getPatterns('/api/v1/admin/settings/123/', 'PUT')
+      const flat = keys.map((k: string[]) => k.join('/'))
+      expect(flat).toContain('admin-applications')
+      expect(flat).toContain('admin-dashboard-polling')
     })
   })
 
-  describe('Req 15.4 — queryClient.clear() only on login/logout', () => {
-    it('login returns empty patterns (handled by queryClient.clear in auth flow)', () => {
-      expect(getPatterns('/api/auth?action=login', 'POST')).toEqual([])
+  describe('Auth endpoints return empty patterns (login/logout handled by queryClient.clear)', () => {
+    it('POST /api/v1/auth/login/ returns empty patterns', () => {
+      expect(getPatterns('/api/v1/auth/login/', 'POST')).toEqual([])
     })
 
-    it('logout returns empty patterns (handled by queryClient.clear in auth flow)', () => {
-      expect(getPatterns('/api/auth?action=logout', 'POST')).toEqual([])
+    it('POST /api/v1/auth/logout/ returns empty patterns', () => {
+      expect(getPatterns('/api/v1/auth/logout/', 'POST')).toEqual([])
     })
 
-    it('register returns empty patterns (handled by auth flow)', () => {
-      expect(getPatterns('/api/auth?action=register', 'POST')).toEqual([])
+    it('POST /api/v1/auth/register/ returns empty patterns', () => {
+      expect(getPatterns('/api/v1/auth/register/', 'POST')).toEqual([])
     })
-  })
 
-  describe('Req 15.5 — Token refresh does NOT invalidate data caches', () => {
-    it('refresh returns empty patterns', () => {
-      expect(getPatterns('/api/auth?action=refresh', 'POST')).toEqual([])
+    it('POST /api/v1/auth/refresh/ returns empty patterns (never invalidate data caches)', () => {
+      expect(getPatterns('/api/v1/auth/refresh/', 'POST')).toEqual([])
     })
   })
 
   describe('Other mutation patterns', () => {
-    it('document upload invalidates applications and documents', () => {
-      const keys = getPatterns('/api/documents?action=upload', 'POST')
+    it('POST /api/v1/documents/upload/ invalidates applications and documents', () => {
+      const keys = getPatterns('/api/v1/documents/upload/', 'POST')
       const flat = keys.map((k: string[]) => k.join('/'))
       expect(flat).toContain('applications')
       expect(flat).toContain('documents')
     })
 
-    it('payment mutation invalidates applications and payment-status', () => {
-      const keys = getPatterns('/api/payments?action=receipt', 'POST')
+    it('POST /api/v1/payments/123/verify/ invalidates applications and payment-status', () => {
+      const keys = getPatterns('/api/v1/payments/123/verify/', 'POST')
       const flat = keys.map((k: string[]) => k.join('/'))
       expect(flat).toContain('applications')
       expect(flat).toContain('payment-status')
     })
 
-    it('notification mutation invalidates notification_preferences', () => {
-      const keys = getPatterns('/api/notifications?action=send', 'POST')
+    it('PUT /api/v1/notifications/preferences/ invalidates notification_preferences', () => {
+      const keys = getPatterns('/api/v1/notifications/preferences/', 'PUT')
       const flat = keys.map((k: string[]) => k.join('/'))
       expect(flat).toContain('notification_preferences')
     })
 
-    it('GET requests return empty patterns (reads don\'t invalidate)', () => {
-      expect(getPatterns('/api/applications', 'GET')).toEqual([])
-      expect(getPatterns('/api/admin?action=stats', 'GET')).toEqual([])
+    it('GET requests return empty patterns (reads do not invalidate)', () => {
+      expect(getPatterns('/api/v1/applications/', 'GET')).toEqual([])
+      expect(getPatterns('/api/v1/admin/dashboard/', 'GET')).toEqual([])
     })
   })
 })

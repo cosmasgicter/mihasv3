@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { documentService } from '@/services/documents'
-import { apiClient } from '@/services/client'
+import { deleteFile, downloadFile, listFiles } from '@/lib/storage'
 import { CACHE_CONFIG } from './useQueryConfig'
 
 export const useStorageUpload = (bucket: string) => {
@@ -25,8 +25,11 @@ export const useStorageDownload = (bucket: string, path: string, enabled = true)
   return useQuery({
     queryKey: ['storage', bucket, path],
     queryFn: async () => {
-      const result = await apiClient.request<Blob>(`/documents?action=download&bucket=${encodeURIComponent(bucket)}&path=${encodeURIComponent(path)}`)
-      return result
+      const result = await downloadFile(bucket, path)
+      if (!result.success || !result.data) {
+        throw new Error(result.error || 'Download failed')
+      }
+      return result.data
     },
     enabled,
     ...CACHE_CONFIG.static
@@ -37,10 +40,8 @@ export const useStorageList = (bucket: string, path?: string) => {
   return useQuery({
     queryKey: ['storage', bucket, 'list', path],
     queryFn: async () => {
-      const params = new URLSearchParams({ action: 'list', bucket })
-      if (path) params.set('path', path)
-      const result = await apiClient.request<unknown[]>(`/documents?${params.toString()}`)
-      return result ?? []
+      const result = await listFiles(bucket, path)
+      return result.files ?? []
     },
     ...CACHE_CONFIG.static
   })
@@ -51,11 +52,7 @@ export const useStorageDelete = (bucket: string) => {
   
   return useMutation({
     mutationFn: async (paths: string[]) => {
-      const result = await apiClient.request('/documents?action=delete', {
-        method: 'POST',
-        body: JSON.stringify({ bucket, paths })
-      })
-      return result
+      return Promise.all(paths.map((path) => deleteFile(bucket, path)))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['storage', bucket] })

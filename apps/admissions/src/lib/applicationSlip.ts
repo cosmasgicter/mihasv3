@@ -227,55 +227,28 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
   }
 }
 
-async function uploadSlipViaDocumentsApi(applicationNumber: string, blob: Blob, userId?: string) {
+type UploadedSlipDocument = {
+  id: string;
+  file_url?: string;
+  document_name?: string;
+};
+
+type ApplicationDocumentReference = {
+  id?: string;
+  file_url?: string;
+  document_name?: string;
+};
+
+async function uploadSlipViaDocumentsApi(applicationId: string, applicationNumber: string, blob: Blob) {
   const fileName = `application-slip-${applicationNumber}.pdf`;
-  const base64 = await blobToBase64(blob);
+  const formData = new FormData();
+  formData.append('file', blob, fileName);
+  formData.append('application_id', applicationId);
+  formData.append('document_type', 'application_slip');
 
-  return apiClient.request<{ path: string; url: string }>('/documents?action=upload', {
+  return apiClient.request<UploadedSlipDocument>('/documents?action=upload', {
     method: 'POST',
-    body: JSON.stringify({
-      file: base64,
-      fileName,
-      contentType: 'application/pdf',
-      documentType: 'application_slip',
-      applicationNumber,
-      userId,
-    }),
-  });
-}
-
-async function registerSlipMetadata(applicationNumber: string, path: string, publicUrl?: string) {
-  return apiClient.request<{ documentId: string; publicUrl: string; path: string }>('/documents?action=register-slip', {
-    method: 'POST',
-    body: JSON.stringify({
-      applicationNumber,
-      path,
-      publicUrl,
-      documentName: `Application Slip - ${applicationNumber}.pdf`,
-    }),
-  });
-}
-
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const result = reader.result;
-      if (typeof result !== 'string') {
-        reject(new Error('Failed to serialize file for upload'));
-        return;
-      }
-
-      const base64 = result.split(',')[1];
-      if (!base64) {
-        reject(new Error('Invalid file payload'));
-        return;
-      }
-
-      resolve(base64);
-    };
-    reader.onerror = () => reject(new Error('Failed to read blob data'));
-    reader.readAsDataURL(blob);
+    body: formData,
   });
 }
 
@@ -284,15 +257,28 @@ export async function repairLegacyDocumentReference(reference: string, applicati
     return {};
   }
 
+  if (/^https?:\/\//.test(reference)) {
+    return { publicUrl: reference, path: reference };
+  }
+
+  if (!applicationId) {
+    return {};
+  }
+
   try {
-    const resolved = await apiClient.request<{ publicUrl: string; path: string }>('/documents?action=resolve-reference', {
-      method: 'POST',
-      body: JSON.stringify({ reference, applicationId }),
-    });
+    const documents = await apiClient.request<ApplicationDocumentReference[]>(
+      `/applications/${encodeURIComponent(applicationId)}/documents`
+    );
+    const normalizedReference = reference.trim();
+    const resolved = documents?.find((document) =>
+      document?.id === normalizedReference ||
+      document?.document_name === normalizedReference ||
+      document?.file_url === normalizedReference
+    );
 
     return {
-      publicUrl: resolved?.publicUrl,
-      path: resolved?.path,
+      publicUrl: resolved?.file_url,
+      path: resolved?.id || resolved?.document_name,
     };
   } catch (error) {
     console.error('Failed to resolve legacy document reference:', sanitizeForLog(error instanceof Error ? error.message : String(error)));
@@ -300,26 +286,37 @@ export async function repairLegacyDocumentReference(reference: string, applicati
   }
 }
 
-export async function persistSlip(applicationNumber: string, blob: Blob, userId?: string): Promise<PersistSlipResult> {
+export async function persistSlip(
+  applicationNumber: string,
+  blob: Blob,
+  userId?: string,
+  applicationId?: string
+): Promise<PersistSlipResult> {
   const trimmedNumber = (applicationNumber || '').trim();
+  void userId;
   if (!trimmedNumber) {
     return { success: false, error: 'Application number is required to persist slip' };
   }
 
-  try {
-    const uploadResult = await uploadSlipViaDocumentsApi(trimmedNumber, blob, userId);
+  if (!applicationId?.trim()) {
+    return {
+      success: false,
+      error: 'Automatic slip storage requires a saved application record',
+    };
+  }
 
-    if (!uploadResult?.path) {
+  try {
+    const uploadResult = await uploadSlipViaDocumentsApi(applicationId, trimmedNumber, blob);
+
+    if (!uploadResult?.id || !uploadResult.file_url) {
       return { success: false, error: 'Failed to upload application slip' };
     }
 
-    const metadataResult = await registerSlipMetadata(trimmedNumber, uploadResult.path, uploadResult.url);
-
     return {
       success: true,
-      path: metadataResult?.path || uploadResult.path,
-      publicUrl: metadataResult?.publicUrl || uploadResult.url,
-      documentId: metadataResult?.documentId,
+      path: uploadResult.id,
+      publicUrl: uploadResult.file_url,
+      documentId: uploadResult.id,
     };
   } catch (error) {
     console.error('Persist error:', sanitizeForLog(error instanceof Error ? error.message : String(error)));

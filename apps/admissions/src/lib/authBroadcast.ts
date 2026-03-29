@@ -12,7 +12,7 @@
 import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { setCsrfToken } from '@/lib/csrfToken'
+import { syncApiClientCsrfToken } from '@/services/client'
 import { useAuthStore } from '@/stores/authStore'
 
 // ── Types ───────────────────────────────────────────────────────────────────
@@ -176,7 +176,7 @@ export function useAuthBroadcast(): void {
         case 'csrf-update':
           // Req 4.4: Update the in-memory CSRF token from the broadcasting tab
           if (message.csrfToken) {
-            setCsrfToken(message.csrfToken)
+            syncApiClientCsrfToken(message.csrfToken)
           }
           break
       }

@@ -49,7 +49,8 @@ vi.mock('@/lib/apiErrorHandler', () => ({
 // ── Helpers ─────────────────────────────────────────────────────────────
 
 const BASE = 'http://localhost:3000';
-const SESSION_URL = `${BASE}/api/auth?action=session`;
+const APPLICATIONS_URL = `${BASE}/api/v1/applications/`;
+const SESSION_URL = `${BASE}/api/v1/auth/session/`;
 
 function makeJsonResponse(status: number, body: any, csrfToken?: string): Response {
   const headers = new Headers({ 'content-type': 'application/json' });
@@ -122,9 +123,9 @@ describe('ApiClient CSRF 403 Retry Unit Tests', () => {
     const urls = mockFetch.mock.calls.map((c: any[]) =>
       typeof c[0] === 'string' ? c[0] : ''
     );
-    expect(urls[0]).toContain('/api/applications');
+    expect(urls[0]).toBe(APPLICATIONS_URL);
     expect(urls[1]).toBe(SESSION_URL);
-    expect(urls[2]).toContain('/api/applications');
+    expect(urls[2]).toBe(APPLICATIONS_URL);
 
     // Verify the retry request includes the fresh CSRF token
     const retryInit = mockFetch.mock.calls[2][1] as RequestInit;

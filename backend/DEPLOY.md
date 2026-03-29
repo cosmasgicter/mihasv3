@@ -6,9 +6,9 @@
 
 ## Services on Koyeb
 
-### 1. Web Service (Django + gunicorn)
-- **Docker image**: Build from `django_api/Dockerfile`
-- **Start command**: `gunicorn config.wsgi:application --config gunicorn.conf.py`
+### 1. Web Service (Django + Uvicorn ASGI)
+- **Docker image**: Build from `backend/Dockerfile`
+- **Start command**: `uvicorn config.asgi:application --host 0.0.0.0 --port 8000 --workers 3`
 - **Port**: 8000
 - **Health check**: `/health/live/` (liveness), `/health/ready/` (readiness)
 - **Custom domain**: `api.mihas.edu.zm` with managed TLS
@@ -22,7 +22,7 @@
 
 ## Environment Variables (set in Koyeb dashboard)
 
-Copy from `django_api/.env.production`:
+Use the production values for the `backend/` service configuration:
 
 | Variable | Value |
 |----------|-------|

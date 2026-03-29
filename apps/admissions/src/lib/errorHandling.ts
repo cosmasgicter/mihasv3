@@ -1,6 +1,4 @@
 // Comprehensive Error Handling and Recovery System
-import { apiClient } from '@/services/client'
-
 export interface DatabaseError {
   code: string
   message: string
@@ -13,19 +11,15 @@ export interface DatabaseError {
 export class ErrorLogger {
   static async logError(error: DatabaseError): Promise<void> {
     try {
-      // Error logging to DB is non-critical — fire-and-forget via API
-      await apiClient.request('/admin?action=errors', {
-        method: 'POST',
-        body: JSON.stringify({
-          error_code: error.code,
-          error_message: error.message,
-          error_details: error.details,
-          user_id: error.userId,
-          operation: error.operation
-        })
+      console.error('Database error:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        userId: error.userId,
+        operation: error.operation,
+        timestamp: error.timestamp,
       })
     } catch (e) {
-      // Fallback to console — never block on error logging failure
       console.error('Error logging failed:', e)
     }
   }

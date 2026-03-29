@@ -26,7 +26,7 @@ graph TB
     end
 
     subgraph "Koyeb"
-        API["Django 5 + DRF<br/>gunicorn<br/>api.mihas.edu.zm"]
+        API["Django 5 + DRF<br/>uvicorn ASGI<br/>api.mihas.edu.zm"]
         CW["Celery Worker<br/>same Docker image"]
     end
 
@@ -95,7 +95,6 @@ django_api/
 ├── config/                     # Project configuration
 │   ├── __init__.py
 │   ├── asgi.py
-│   ├── wsgi.py
 │   ├── urls.py                 # Root URL configuration
 │   ├── celery.py               # Celery app configuration
 │   └── settings/

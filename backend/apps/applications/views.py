@@ -226,7 +226,10 @@ class ApplicationReviewView(APIView):
         force = serializer.validated_data.get("force", False)
         if new_status == "approved" and not force:
             from apps.documents.models import Payment
-            has_verified = Payment.objects.filter(application_id=application_id, status="verified").exists()
+            has_verified = (
+                app.payment_status == "verified"
+                or Payment.objects.filter(application_id=application_id, status="verified").exists()
+            )
             if not has_verified:
                 return Response({"success": False, "error": "Application has unverified payment. Use force=true to override.", "code": "PAYMENT_UNVERIFIED"}, status=status.HTTP_400_BAD_REQUEST)
         old_status = app.status

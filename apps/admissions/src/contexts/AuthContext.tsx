@@ -62,16 +62,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
   }, [queryClient])
 
-  // Destructure individual values for effective useMemo (R23/F-3)
-  const {
-    user, profile, loading, profileLoading, isAdmin,
-    signIn, signUp, signOut, requestPasswordReset, updatePassword,
-  } = auth
-
   const value = useMemo(() => ({
-    user, profile, loading, profileLoading, isAdmin,
-    signIn, signUp, signOut, requestPasswordReset, updatePassword,
-  }), [user, profile, loading, profileLoading, isAdmin, signIn, signUp, signOut, requestPasswordReset, updatePassword])
+    user: auth.user,
+    profile: auth.profile,
+    loading: auth.loading,
+    profileLoading: auth.profileLoading,
+    isAdmin: auth.isAdmin,
+    signIn: auth.signIn,
+    signUp: auth.signUp,
+    signOut: auth.signOut,
+    requestPasswordReset: auth.requestPasswordReset,
+    updatePassword: auth.updatePassword,
+  }), [
+    auth.user,
+    auth.profile,
+    auth.loading,
+    auth.profileLoading,
+    auth.isAdmin,
+    auth.signIn,
+    auth.signUp,
+    auth.signOut,
+    auth.requestPasswordReset,
+    auth.updatePassword,
+  ])
 
   return (
     <AuthContext.Provider value={value}>

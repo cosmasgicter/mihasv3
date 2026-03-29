@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/services/client'
 import { applicationService } from '@/services/applications'
+import { adminDashboardService } from '@/services/admin/dashboard'
 import { sanitizeForLog, sanitizeFilePath } from '@/lib/security'
 
 // Types
@@ -136,22 +137,18 @@ export const applicationsData = {
       queryKey: QUERY_KEYS.applicationStats,
       queryFn: async () => {
         try {
-          const stats = await apiClient.request<{
-            totalApplications?: number
-            todayApplications?: number
-            pendingReviews?: number
-            approvalRate?: number
-            avgProcessingTime?: number
-            systemHealth?: string
-            activeUsers?: number
-            [key: string]: unknown
-          }>('/admin?action=stats')
+          const overview = await adminDashboardService.getOverview()
+          const stats = overview.stats
+          const totalReviewed = (stats.approvedApplications ?? 0) + (stats.rejectedApplications ?? 0)
+          const approvalRate = totalReviewed > 0
+            ? Number((((stats.approvedApplications ?? 0) / totalReviewed) * 100).toFixed(1))
+            : 0
 
           return {
             totalApplications: stats?.totalApplications ?? 0,
             todayApplications: stats?.todayApplications ?? 0,
-            pendingReviews: stats?.pendingReviews ?? 0,
-            approvalRate: stats?.approvalRate ?? 0,
+            pendingReviews: stats?.pendingApplications ?? 0,
+            approvalRate,
             avgProcessingTime: stats?.avgProcessingTime ?? 0,
             systemHealth: stats?.systemHealth ?? 'good',
             activeUsers: stats?.activeUsers ?? 0

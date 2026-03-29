@@ -18,6 +18,7 @@ from apps.common.validators import validate_nrc, validate_zambian_phone
 class ApplicationSerializer(serializers.ModelSerializer):
     """Full application serializer with all fields."""
 
+    user_id = serializers.UUIDField(read_only=True)
     tracking_code = serializers.CharField(source="public_tracking_code", read_only=True)
     payment_reference = serializers.CharField(source="momo_ref", read_only=True)
     last_payment_reference = serializers.CharField(source="momo_ref", read_only=True)
@@ -153,6 +154,11 @@ class ApplicationListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list views."""
 
     tracking_code = serializers.CharField(source="public_tracking_code", read_only=True)
+    payment_reference = serializers.CharField(source="momo_ref", read_only=True)
+    last_payment_reference = serializers.CharField(source="momo_ref", read_only=True)
+    payment_verified_by_name = serializers.SerializerMethodField()
+    payment_verified_by_email = serializers.SerializerMethodField()
+    last_payment_audit_notes = serializers.CharField(source="admin_feedback", read_only=True)
 
     class Meta:
         model = Application
@@ -161,10 +167,29 @@ class ApplicationListSerializer(serializers.ModelSerializer):
             "full_name", "email", "phone", "program", "intake", "institution",
             "status", "payment_status", "payment_method", "payer_name",
             "payer_phone", "amount", "paid_at", "momo_ref", "pop_url",
-            "payment_verified_at", "submitted_at", "admin_feedback",
+            "payment_verified_at", "payment_reference", "last_payment_reference",
+            "payment_verified_by_name", "payment_verified_by_email",
+            "submitted_at", "admin_feedback", "last_payment_audit_notes",
             "review_started_at", "decision_date", "application_fee",
             "created_at", "updated_at",
         ]
+
+    def get_payment_verified_by_name(self, obj):
+        verifier = getattr(obj, "payment_verified_by", None)
+        if verifier is None:
+            return None
+
+        full_name = " ".join(
+            part for part in [getattr(verifier, "first_name", ""), getattr(verifier, "last_name", "")]
+            if part
+        ).strip()
+        return full_name or None
+
+    def get_payment_verified_by_email(self, obj):
+        verifier = getattr(obj, "payment_verified_by", None)
+        if verifier is None:
+            return None
+        return getattr(verifier, "email", None)
 
 
 class ApplicationTrackingSerializer(serializers.ModelSerializer):
@@ -180,6 +205,9 @@ class ApplicationTrackingSerializer(serializers.ModelSerializer):
 
 class ApplicationDraftSerializer(serializers.ModelSerializer):
     """Draft auto-save serializer."""
+
+    application_id = serializers.UUIDField(read_only=True, allow_null=True)
+    user_id = serializers.UUIDField(read_only=True)
 
     class Meta:
         model = ApplicationDraft
@@ -206,6 +234,8 @@ class ApplicationGradeSerializer(serializers.Serializer):
 
 class ApplicationInterviewSerializer(serializers.ModelSerializer):
     """Interview scheduling serializer."""
+
+    application_id = serializers.UUIDField()
 
     class Meta:
         model = ApplicationInterview

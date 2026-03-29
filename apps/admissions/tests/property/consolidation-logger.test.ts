@@ -58,9 +58,9 @@ describe('Property 14: Logger Produces Structured Entries with Timestamps', () =
     expect(mod.logger).toBeTruthy();
   });
 
-  it('error method always logs regardless of environment', () => {
-    fc.assert(
-      fc.property(messageArb, dataArb, async (message, data) => {
+  it('error method always logs regardless of environment', async () => {
+    await fc.assert(
+      fc.asyncProperty(messageArb, dataArb, async (message, data) => {
         const mod = await import('@/lib/logger');
         mod.logger.error(message, data);
         // Error should always be logged

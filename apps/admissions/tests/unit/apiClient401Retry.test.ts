@@ -51,7 +51,8 @@ vi.mock('@/lib/apiErrorHandler', () => ({
 // ── Helpers ─────────────────────────────────────────────────────────────
 
 const BASE = 'http://localhost:3000';
-const REFRESH_URL = `${BASE}/api/auth?action=refresh`;
+const APPLICATIONS_URL = `${BASE}/api/v1/applications/`;
+const REFRESH_URL = `${BASE}/api/v1/auth/refresh/`;
 
 function makeJsonResponse(status: number, body: any, csrfToken?: string): Response {
   const headers = new Headers({ 'content-type': 'application/json' });
@@ -116,9 +117,9 @@ describe('ApiClient 401 Retry Unit Tests', () => {
     const urls = mockFetch.mock.calls.map((c: any[]) =>
       typeof c[0] === 'string' ? c[0] : ''
     );
-    expect(urls[0]).toContain('/api/applications');
+    expect(urls[0]).toBe(APPLICATIONS_URL);
     expect(urls[1]).toBe(REFRESH_URL);
-    expect(urls[2]).toContain('/api/applications');
+    expect(urls[2]).toBe(APPLICATIONS_URL);
   });
 
   // _Requirements: 1.3_
@@ -196,7 +197,7 @@ describe('ApiClient 401 Retry Unit Tests', () => {
     const urls = mockFetch.mock.calls.map((c: any[]) =>
       typeof c[0] === 'string' ? c[0] : ''
     );
-    // No call to the refresh endpoint beyond the original request
+    // No additional refresh call beyond the original request
     expect(urls.filter((u: string) => u === REFRESH_URL)).toHaveLength(1);
   });
 

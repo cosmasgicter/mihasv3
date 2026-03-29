@@ -20,8 +20,9 @@ describe('admin user service', () => {
 
     await userService.remove('user-123')
 
-    expect(requestMock).toHaveBeenCalledWith('/api/admin?action=users&userId=user-123', {
-      method: 'DELETE',
+    expect(requestMock).toHaveBeenCalledWith('/admin/users/user-123', {
+      method: 'PATCH',
+      body: JSON.stringify({ is_active: false }),
     })
   })
 })

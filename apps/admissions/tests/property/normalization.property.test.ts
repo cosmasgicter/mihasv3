@@ -13,6 +13,9 @@ import * as fc from 'fast-check';
 // --- Pure normalization functions extracted from migration logic ---
 
 const VALID_STATUSES = ['draft', 'submitted', 'under_review', 'approved', 'rejected', 'waitlisted'] as const;
+const MIN_TEST_TIMESTAMP = new Date('2020-01-01').getTime();
+const MAX_TEST_TIMESTAMP = new Date('2030-01-01').getTime();
+const timestampArbitrary = fc.integer({ min: MIN_TEST_TIMESTAMP, max: MAX_TEST_TIMESTAMP });
 
 function normalizePhone(phone: string | null): string | null {
   if (!phone) return phone;
@@ -126,9 +129,11 @@ describe('Property 15: Database normalization post-conditions', () => {
   it('normalizeTimestamps: updatedAt >= createdAt always', () => {
     fc.assert(
       fc.property(
-        fc.option(fc.date({ min: new Date('2020-01-01'), max: new Date('2030-01-01') }), { nil: null }),
-        fc.option(fc.date({ min: new Date('2020-01-01'), max: new Date('2030-01-01') }), { nil: null }),
-        (createdAt, updatedAt) => {
+        fc.option(timestampArbitrary, { nil: null }),
+        fc.option(timestampArbitrary, { nil: null }),
+        (createdAtTs, updatedAtTs) => {
+          const createdAt = createdAtTs === null ? null : new Date(createdAtTs);
+          const updatedAt = updatedAtTs === null ? null : new Date(updatedAtTs);
           const result = normalizeTimestamps(createdAt, updatedAt);
           expect(result.updatedAt.getTime()).toBeGreaterThanOrEqual(result.createdAt.getTime());
         },
@@ -140,9 +145,11 @@ describe('Property 15: Database normalization post-conditions', () => {
   it('swapDatesIfNeeded: startDate <= endDate always', () => {
     fc.assert(
       fc.property(
-        fc.date({ min: new Date('2020-01-01'), max: new Date('2030-01-01') }),
-        fc.date({ min: new Date('2020-01-01'), max: new Date('2030-01-01') }),
-        (a, b) => {
+        timestampArbitrary,
+        timestampArbitrary,
+        (aTs, bTs) => {
+          const a = new Date(aTs);
+          const b = new Date(bTs);
           const result = swapDatesIfNeeded(a, b);
           expect(result.startDate.getTime()).toBeLessThanOrEqual(result.endDate.getTime());
         },
@@ -205,9 +212,11 @@ describe('Property 16: Normalization migration idempotency', () => {
   it('normalizeTimestamps is idempotent', () => {
     fc.assert(
       fc.property(
-        fc.option(fc.date({ min: new Date('2020-01-01'), max: new Date('2030-01-01') }), { nil: null }),
-        fc.option(fc.date({ min: new Date('2020-01-01'), max: new Date('2030-01-01') }), { nil: null }),
-        (createdAt, updatedAt) => {
+        fc.option(timestampArbitrary, { nil: null }),
+        fc.option(timestampArbitrary, { nil: null }),
+        (createdAtTs, updatedAtTs) => {
+          const createdAt = createdAtTs === null ? null : new Date(createdAtTs);
+          const updatedAt = updatedAtTs === null ? null : new Date(updatedAtTs);
           const once = normalizeTimestamps(createdAt, updatedAt);
           const twice = normalizeTimestamps(once.createdAt, once.updatedAt);
           expect(twice.createdAt.getTime()).toBe(once.createdAt.getTime());
@@ -221,9 +230,11 @@ describe('Property 16: Normalization migration idempotency', () => {
   it('swapDatesIfNeeded is idempotent', () => {
     fc.assert(
       fc.property(
-        fc.date({ min: new Date('2020-01-01'), max: new Date('2030-01-01') }),
-        fc.date({ min: new Date('2020-01-01'), max: new Date('2030-01-01') }),
-        (a, b) => {
+        timestampArbitrary,
+        timestampArbitrary,
+        (aTs, bTs) => {
+          const a = new Date(aTs);
+          const b = new Date(bTs);
           const once = swapDatesIfNeeded(a, b);
           const twice = swapDatesIfNeeded(once.startDate, once.endDate);
           expect(twice.startDate.getTime()).toBe(once.startDate.getTime());

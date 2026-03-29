@@ -3,7 +3,6 @@
  * Handles push notifications for mobile devices with scheduling and delivery tracking
  * Requirements: 9.4 - Enable push notifications, add scheduling and delivery tracking, implement preferences
  */
-import { apiClient } from '@/services/client'
 
 export interface PushNotificationAction {
   action: string
@@ -509,19 +508,15 @@ class PushNotificationManager {
    */
   private async sendSubscriptionToServer(subscription: PushSubscription): Promise<void> {
     try {
-      await apiClient.request('/notifications?action=push-subscribe', {
-        method: 'POST',
-        body: JSON.stringify({
-          subscription: subscription.toJSON(),
-          userAgent: navigator.userAgent,
-          platform: this.getPlatform()
-        })
-      })
-      
-      console.log('Push subscription saved to server')
+      localStorage.setItem('push_subscription', JSON.stringify({
+        subscription: subscription.toJSON(),
+        userAgent: navigator.userAgent,
+        platform: this.getPlatform(),
+        savedAt: new Date().toISOString(),
+      }))
+      console.log('Push subscription stored locally; backend sync is not implemented yet')
     } catch (error) {
       console.error('Failed to send subscription to server:', error)
-      // Store locally as fallback
       localStorage.setItem('push_subscription', JSON.stringify(subscription.toJSON()))
     }
   }

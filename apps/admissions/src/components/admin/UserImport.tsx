@@ -28,7 +28,30 @@ interface UserData {
 }
 
 const REQUIRED_FIELDS = ['full_name', 'email', 'role']
-const VALID_ROLES = ['student', 'reviewer', 'admissions_officer', 'registrar', 'finance_officer', 'academic_head', 'admin', 'super_admin']
+const VALID_ROLES = ['student', 'reviewer', 'admin', 'super_admin']
+
+function splitFullName(fullName: string): { first_name: string; last_name: string } {
+  const normalized = fullName.trim().replace(/\s+/g, ' ')
+  if (!normalized) {
+    return { first_name: '', last_name: '' }
+  }
+
+  const [first_name, ...rest] = normalized.split(' ')
+  return {
+    first_name,
+    last_name: rest.join(' ') || first_name,
+  }
+}
+
+async function checkUserExists(email: string): Promise<boolean> {
+  const result = await apiClient.request<{
+    results?: Array<{ email?: string }>
+  }>(`/admin?action=users&search=${encodeURIComponent(email)}&include_inactive=true`)
+
+  return Boolean(
+    result?.results?.some((user) => user.email?.toLowerCase() === email.toLowerCase())
+  )
+}
 
 export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProps) {
   const [file, setFile] = useState<File | null>(null)
@@ -180,9 +203,8 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
           }
 
           try {
-            // Check for existing user via new API client
-            const checkData = await apiClient.request<{ available: boolean }>(`/auth?action=check-email&email=${encodeURIComponent(userData.email)}`)
-            if (checkData && !checkData.available) {
+            const userExists = await checkUserExists(userData.email)
+            if (userExists) {
               result.duplicates++
               result.failed++
               result.errors.push({ 
@@ -195,18 +217,18 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
 
             // Create user via admin register endpoint
             const password = userData.password || `temp${Math.random().toString(36).slice(-8)}`
-            const createResult = await apiClient.request<{ user?: unknown; message?: string }>('/admin?action=register', {
+            const createResult = await apiClient.request<{ id?: string; message?: string }>('/admin?action=register', {
               method: 'POST',
               body: JSON.stringify({
                 email: userData.email,
                 password: password,
-                full_name: userData.full_name,
+                ...splitFullName(userData.full_name),
                 phone: userData.phone,
                 role: userData.role
               })
             })
 
-            if (!createResult?.user) {
+            if (!createResult?.id) {
               throw new Error(createResult?.message || 'Failed to create user')
             }
 

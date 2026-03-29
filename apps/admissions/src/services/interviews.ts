@@ -1,4 +1,5 @@
-import { apiClient, buildQueryString } from './client'
+import { applicationService } from './applications'
+import { apiClient } from './client'
 
 export type InterviewMode = 'in_person' | 'virtual' | 'phone'
 export type InterviewStatus = 'scheduled' | 'completed' | 'cancelled' | 'rescheduled'
@@ -34,15 +35,17 @@ export interface ListInterviewsResponse {
 }
 
 export const interviewsService = {
-  schedule: (data: ScheduleInterviewData) => {
+  schedule: async (data: ScheduleInterviewData) => {
     const applicationId = data.applicationId ?? data.application_id
+    if (!applicationId) {
+      throw new Error('Application ID is required to schedule an interview')
+    }
 
-    return apiClient.request<ScheduleInterviewResponse>(
-      '/applications?action=schedule-interview',
+    const interview = await apiClient.request<Interview>(
+      `/applications/${encodeURIComponent(applicationId)}/interviews`,
       {
         method: 'POST',
         body: JSON.stringify({
-          applicationId,
           scheduled_at: data.scheduled_at,
           mode: data.mode,
           location: data.location,
@@ -50,13 +53,48 @@ export const interviewsService = {
         })
       }
     )
+
+    if (!interview) {
+      throw new Error('Interview scheduling did not return interview data')
+    }
+
+    return { interview }
   },
 
-  list: (applicationId?: string) =>
-    apiClient.request<ListInterviewsResponse>(
-      `/applications${buildQueryString({
-        action: 'interviews',
-        ...(applicationId ? { applicationId } : {})
-      })}`
+  list: async (applicationId?: string): Promise<ListInterviewsResponse> => {
+    if (applicationId) {
+      const interviews = await apiClient.request<Interview[]>(
+        `/applications/${encodeURIComponent(applicationId)}/interviews`
+      )
+      return { interviews: interviews ?? [] }
+    }
+
+    const applications = await applicationService.list({
+      mine: true,
+      pageSize: 100,
+      sortBy: 'date',
+      sortOrder: 'desc',
+    })
+
+    const interviewsByApplication = await Promise.all(
+      (applications.applications ?? []).map(async (application) => {
+        const interviews = await apiClient
+          .request<Interview[]>(`/applications/${encodeURIComponent(application.id)}/interviews`)
+          .catch(() => [])
+
+        return (interviews ?? []).map((interview) => ({
+          ...interview,
+          application_id: interview.application_id || application.id,
+          program: interview.program ?? application.program,
+          application_number: interview.application_number ?? application.application_number,
+        }))
+      })
     )
+
+    return {
+      interviews: interviewsByApplication
+        .flat()
+        .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())
+    }
+  }
 }

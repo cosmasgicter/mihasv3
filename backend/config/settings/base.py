@@ -91,7 +91,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "config.wsgi.application"
+ASGI_APPLICATION = "config.asgi.application"
 
 # ---------------------------------------------------------------------------
 # Database — Neon Postgres with connection pooling
@@ -100,8 +100,8 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Connection pooling strategy:
 #   - Use Neon's built-in pooler endpoint (append ?pgbouncer=true or use the
 #     pooled connection string from the Neon dashboard) in DATABASE_URL.
-#   - CONN_MAX_AGE=600 reuses connections within each gunicorn worker for up
-#     to 10 minutes, reducing connection churn against the Neon pooler.
+#   - CONN_MAX_AGE=600 reuses connections within each Uvicorn worker process
+#     for up to 10 minutes, reducing connection churn against the Neon pooler.
 #   - conn_health_checks=True validates connections before use (avoids stale
 #     connections after Neon cold starts or pooler restarts).
 #   - For Celery workers, set a separate DATABASE_URL with lower pool limits
@@ -135,6 +135,21 @@ if CELERY_BROKER_URL.startswith("rediss://"):
     import ssl
     CELERY_BROKER_USE_SSL = {"ssl_cert_reqs": ssl.CERT_REQUIRED}
     CELERY_REDIS_BACKEND_USE_SSL = {"ssl_cert_reqs": ssl.CERT_REQUIRED}
+
+# Shared cache backend for rate limiting and other cross-process state.
+# Django-ratelimit rejects in-process and file-backed caches, so keep the cache
+# contract Redis-based across environments. Local dev can satisfy this via the
+# compose Redis service or an externally provided REDIS_URL.
+REDIS_CACHE_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/1")
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": REDIS_CACHE_URL,
+    }
+}
+# django-ratelimit only whitelists django-redis's backend string, but Django's
+# built-in Redis cache is sufficient for the shared atomic operations we use.
+SILENCED_SYSTEM_CHECKS = ["django_ratelimit.W001"]
 
 # ---------------------------------------------------------------------------
 # JWT — SimpleJWT with shared signing key for dual-run compatibility
@@ -200,8 +215,8 @@ AWS_DEFAULT_ACL = None
 # Static files — WhiteNoise (serves admin panel + API docs in production)
 # ---------------------------------------------------------------------------
 # WhiteNoise is configured as middleware (position 3 in MIDDLEWARE) and
-# serves compressed, cache-busted static files directly from gunicorn
-# without needing nginx or a CDN for admin/docs assets.
+# serves compressed, cache-busted static files directly from the ASGI app
+# server without needing nginx or a CDN for admin/docs assets.
 # Requirement: 21.4
 
 STATIC_URL = "/static/"

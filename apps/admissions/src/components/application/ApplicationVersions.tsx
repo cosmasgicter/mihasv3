@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
-import { useAuth } from '@/contexts/AuthContext'
-import { apiClient } from '@/services/client'
 import type { ApplicationVersion } from '@/types/application'
 import { formatDate, formatTimestamp } from '@/lib/dateFormat'
 import { History, Eye, Download, Clock } from 'lucide-react'
@@ -15,8 +13,66 @@ interface ApplicationVersionsProps {
   onRestoreVersion?: (versionData: unknown) => void
 }
 
+const VERSION_STORAGE_PREFIX = 'mihas:application-versions:'
+const MAX_STORED_VERSIONS = 20
+
+function getVersionStorageKey(applicationId: string): string {
+  return `${VERSION_STORAGE_PREFIX}${applicationId}`
+}
+
+function readStoredVersions(applicationId: string): ApplicationVersion[] {
+  if (typeof window === 'undefined') {
+    return []
+  }
+
+  try {
+    const raw = window.localStorage.getItem(getVersionStorageKey(applicationId))
+    if (!raw) {
+      return []
+    }
+
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
+  } catch (error) {
+    console.error('Failed to read stored application versions:', error)
+    return []
+  }
+}
+
+function writeStoredVersions(applicationId: string, versions: ApplicationVersion[]): void {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  window.localStorage.setItem(
+    getVersionStorageKey(applicationId),
+    JSON.stringify(versions.slice(0, MAX_STORED_VERSIONS))
+  )
+}
+
+function createStoredVersion(
+  applicationId: string,
+  formData: unknown,
+  changeSummary?: string
+): ApplicationVersion {
+  const existingVersions = readStoredVersions(applicationId)
+  const nextVersionNumber = existingVersions.length > 0
+    ? Math.max(...existingVersions.map((version) => version.version_number)) + 1
+    : 1
+
+  const version: ApplicationVersion = {
+    id: `local-version-${Date.now()}`,
+    version_number: nextVersionNumber,
+    form_data: formData,
+    change_summary: changeSummary ?? null,
+    created_at: new Date().toISOString(),
+  }
+
+  writeStoredVersions(applicationId, [version, ...existingVersions])
+  return version
+}
+
 export function ApplicationVersions({ applicationId, onRestoreVersion }: ApplicationVersionsProps) {
-  const { user } = useAuth()
   const [versions, setVersions] = useState<ApplicationVersion[]>([])
   const [loading, setLoading] = useState(false)
   const [showVersions, setShowVersions] = useState(false)
@@ -31,14 +87,13 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
   }, [showVersions, applicationId])
 
   const loadVersions = async () => {
-    if (!applicationId || !user) return
+    if (!applicationId) return
 
     try {
       setLoading(true)
-      const data = await apiClient.request<{ versions: ApplicationVersion[] }>(`/applications?action=versions&application_id=${applicationId}`)
-      if (data?.versions) {
-        setVersions(data.versions)
-      }
+      const storedVersions = readStoredVersions(applicationId)
+      setVersions(storedVersions)
+      setSelectedVersion((current) => current ?? storedVersions[0] ?? null)
     } catch (error) {
       console.error('Error loading versions:', error)
     } finally {
@@ -47,17 +102,11 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
   }
 
   const createVersion = async (formData: unknown, changeSummary?: string) => {
-    if (!applicationId || !user) return
+    if (!applicationId) return
 
     try {
-      const result = await apiClient.request<{ version: ApplicationVersion }>('/applications?action=versions', {
-        method: 'POST',
-        body: JSON.stringify({ application_id: applicationId, form_data: formData, change_summary: changeSummary })
-      })
-      if (result) {
-        // Reload versions
-        await loadVersions()
-      }
+      createStoredVersion(applicationId, formData, changeSummary)
+      await loadVersions()
     } catch (error) {
       console.error('Error creating version:', error)
     }
@@ -279,19 +328,11 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
 
 // Hook for version management
 export function useApplicationVersions(applicationId?: string) {
-  const { user } = useAuth()
-
   const createVersion = async (formData: unknown, changeSummary?: string) => {
-    if (!applicationId || !user) return
+    if (!applicationId) return
 
     try {
-      const result = await apiClient.request<{ version: ApplicationVersion }>('/applications?action=versions', {
-        method: 'POST',
-        body: JSON.stringify({ application_id: applicationId, form_data: formData, change_summary: changeSummary })
-      })
-      if (!result) {
-        throw new Error('Failed to create version')
-      }
+      createStoredVersion(applicationId, formData, changeSummary)
       return { success: true }
     } catch (error) {
       console.error('Error creating version:', error)
