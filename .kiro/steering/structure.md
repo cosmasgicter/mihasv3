@@ -9,18 +9,34 @@ inclusion: always
 | Directory | Purpose | AI Action |
 |-----------|---------|-----------|
 | `src/` | React frontend | Primary modification target |
-| `api-src/` | API source TypeScript files | Edit these, then run bundle script |
-| `api/` | Bundled JS files for Vercel | DO NOT EDIT - auto-generated |
-| `lib/` | Shared backend utilities | Used by API endpoints |
-| `lib/validation/` | Zod input validation schemas | One file per API domain |
-| `tests/` | Test files | Match test type to subdirectory |
+| `django_api/` | Django backend (Python) | New backend — primary development target |
+| `django_api/apps/` | Django apps (accounts, applications, documents, catalog, common) | Feature code |
+| `django_api/config/` | Django project config + settings | Configuration |
+| `api-src/` | Legacy API source TypeScript files | **BEING REPLACED** — edit only for legacy fixes |
+| `api/` | Bundled JS files for Vercel | DO NOT EDIT - auto-generated, **BEING REPLACED** |
+| `lib/` | Shared backend utilities (legacy) | **BEING REPLACED** by Django apps |
+| `lib/validation/` | Zod input validation schemas (legacy) | **BEING REPLACED** by DRF serializers |
+| `tests/` | Frontend + legacy test files | Match test type to subdirectory |
 | `tests/ui/` | UI component tests | Rendering, accessibility, interaction patterns |
-| `migrations/` | DB migrations | Append-only, never modify existing |
+| `tests/property/` | Frontend property tests (fast-check) | Legacy property tests |
+| `django_api/tests/` | Django backend tests | pytest + hypothesis |
+| `django_api/tests/property/` | Django property tests (hypothesis) | PBT for backend |
+| `django_api/tests/contract/` | Contract parity tests | Vercel vs Django response comparison |
+| `migrations/` | DB migrations (legacy SQL) | Append-only, never modify existing |
 | `public/` | Static assets, PWA | Rarely modify |
 | `scripts/` | Build/deploy utilities | Reference only, do not modify |
 | `docs/` | Documentation | **Do not modify unless explicitly asked** |
 
 ## API Development Workflow
+
+### Django Backend (New — Primary)
+
+1. Edit Python source files in `django_api/apps/`
+2. Run `pytest` to verify tests pass
+3. Build Docker image: `docker build -t mihas-api .`
+4. Deploy to Koyeb
+
+### Legacy Vercel Backend (Being Decommissioned)
 
 1. Edit TypeScript source files in `api-src/`
 2. Run `bun run scripts/bundle-api.mjs` to bundle
@@ -320,6 +336,8 @@ All migrations use `IF NOT EXISTS` for idempotent re-runs. Never modify existing
 
 ## Testing
 
+### Frontend Tests (Vitest/fast-check)
+
 | Type | Directory | Framework | Count |
 |------|-----------|-----------|-------|
 | Unit tests | `tests/unit/` | Vitest | 60+ test files |
@@ -329,8 +347,19 @@ All migrations use `IF NOT EXISTS` for idempotent re-runs. Never modify existing
 | E2E flows | `tests/e2e/` | Playwright | 2 spec files |
 | Auth tests | `tests/auth/` | Vitest | 1 test file |
 
+### Django Backend Tests (pytest/hypothesis)
+
+| Type | Directory | Framework |
+|------|-----------|-----------|
+| Unit tests | `django_api/tests/unit/` | pytest + pytest-django |
+| Property tests | `django_api/tests/property/` | hypothesis |
+| Contract tests | `django_api/tests/contract/` | pytest (Vercel vs Django parity) |
+
 ### Test Conventions
-- Use `// @vitest-environment node` directive for tests using Node.js fs/path modules
-- Property tests use `numRuns: 10` for fast CI execution
-- UI tests in `tests/ui/` cover component rendering, accessibility, and interaction patterns
-- Test files co-located with source when component-specific, otherwise in `tests/`
+- Frontend: Use `// @vitest-environment node` directive for tests using Node.js fs/path modules
+- Frontend: Property tests use `numRuns: 10` for fast CI execution
+- Frontend: UI tests in `tests/ui/` cover component rendering, accessibility, and interaction patterns
+- Django: Property tests use `@settings(max_examples=100)` for hypothesis
+- Django: Use `factory_boy` for model factories
+- Django: Contract tests compare Vercel vs Django responses for parity verification
+- Django: Tag property tests with `# Feature: python-backend-migration, Property {N}: {title}`

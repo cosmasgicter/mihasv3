@@ -88,24 +88,43 @@ The admin interface has been simplified:
 |-------|---------------|
 | Transport | HSTS (1-year), TLS-only |
 | Headers | CSP, X-Frame-Options DENY, nosniff, Permissions-Policy |
-| Auth | JWT in HTTP-only cookies, refresh token rotation |
+| Auth | JWT in HTTP-only cookies, refresh token rotation, shared signing key during dual-run |
+| Auth cookies | `Domain=.mihas.edu.zm`, `SameSite=Lax`, `Secure`, `HttpOnly` (subdomain strategy) |
 | CSRF | SHA-256 hashed tokens in `csrf_tokens` table |
-| Rate limiting | Arcjet perimeter + per-email login attempt tracking |
-| Input validation | Zod schemas on all API endpoints |
+| Rate limiting | django-ratelimit (replacing Arcjet) + per-email login attempt tracking |
+| Input validation | DRF serializers (replacing Zod schemas) on all API endpoints |
 | File uploads | Magic byte verification + MIME type validation |
 | URL handling | Open redirect prevention on all URL inputs |
 | Audit | Retention categories: standard (90d) / security (365d) |
 | PII | Never logged; email/IP stored as SHA-256 hashes only |
+| Connection pooling | Neon built-in pooler, separate limits for web + Celery worker |
 
 ## External Integrations
 
+### Active
+
 | Service | Failure Handling |
 |---------|------------------|
-| Neon Postgres | Critical—no fallback |
-| Vercel (hosting, serverless) | Infrastructure layer |
-| Arcjet (security) | Fail secure—block on unavailable |
-| Resend (email) | Queue with retry |
+| Neon Postgres | Critical—no fallback (shared by Vercel + Django during dual-run) |
+| Vercel (frontend hosting) | Infrastructure layer |
+| Koyeb (Django API hosting) | Container platform — web + worker services |
+| Redis (Celery broker) | Critical for async tasks — Celery reconnects automatically |
+| Cloudflare R2 (file storage) | S3-compatible, signed URLs for document access |
+| Resend (email) | Queue with retry via Celery (3 retries, exponential backoff) |
 | HPCZ/GNC/NMCZ/ECZ (eligibility) | Advisory only, never blocking |
+
+### Migration State
+
+| Component | Current | Target | Status |
+|-----------|---------|--------|--------|
+| API backend | Vercel Functions | Django on Koyeb | **IN PROGRESS** |
+| API URL | apply.mihas.edu.zm/api/ | api.mihas.edu.zm/api/v1/ | **PLANNED** |
+| Auth | jose (Node.js) | SimpleJWT (Python) | **PLANNED** — shared JWT key during dual-run |
+| Rate limiting | Arcjet | django-ratelimit | **PLANNED** |
+| OCR | tesseract.js (client) | pytesseract (server/Celery) | **PLANNED** |
+| Validation | Zod schemas | DRF serializers | **PLANNED** |
+| Email delivery | In-process (Vercel) | Celery async (Koyeb) | **PLANNED** |
+| File storage | R2 (direct) | django-storages + R2 | **PLANNED** |
 
 ## Removed Integrations (Migration Cleanup)
 
@@ -129,18 +148,30 @@ When modifying code, verify:
 - [ ] Graceful degradation for external API calls
 - [ ] Accessibility (screen reader support, focus traps, escape key handling)
 - [ ] Audit trails for state changes (no PII in logs, use retention categories)
-- [ ] Using Bun commands (not npm)
-- [ ] API endpoints in `api-src/` directory (source), bundled to `api/` (never edit `api/` directly)
-- [ ] SSE/polling for real-time data (not Supabase Realtime)
-- [ ] Arcjet protection on sensitive routes
 - [ ] HTTP-only cookies for auth tokens (not localStorage)
 - [ ] Deterministic RBAC from JWT (no DB lookup for permissions)
-- [ ] API responses use `sendSuccess()` envelope — `ApiClient` (`src/services/client.ts`) unwraps automatically
-- [ ] All API inputs validated with Zod schemas from `lib/validation/`
-- [ ] File uploads validated with magic byte verification (`lib/fileValidator.ts`)
 - [ ] CSRF tokens on state-changing requests
 - [ ] URL inputs validated against open redirects
+- [ ] Async effects have proper cleanup (AbortController, clearInterval, removeEventListener)
+
+### Frontend-specific
+- [ ] Using Bun commands (not npm)
+- [ ] API responses use `sendSuccess()` envelope — `ApiClient` (`src/services/client.ts`) unwraps automatically
 - [ ] New utilities go in `src/lib/` (canonical) — never `src/utils/`
 - [ ] Sanitization uses `src/lib/sanitize/` — never create new sanitizer files
 - [ ] Import from canonical paths only (see structure.md Canonical Import Paths table)
-- [ ] Async effects have proper cleanup (AbortController, clearInterval, removeEventListener)
+- [ ] `NEXT_PUBLIC_API_BASE_URL` env var controls which backend the frontend talks to
+
+### Django backend-specific
+- [ ] All models use `managed = False` during dual-run (shared Neon schema)
+- [ ] All responses use envelope format: `{ "success": true, "data": ... }` / `{ "success": false, "error": "...", "code": "..." }`
+- [ ] All endpoints prefixed with `/api/v1/`
+- [ ] DRF serializers validate all inputs (equivalent to Zod schemas)
+- [ ] File uploads validated with magic byte verification
+- [ ] Rate limits match existing Arcjet configuration per scope
+- [ ] Celery tasks for emails, OCR, bulk notifications (not in-process)
+- [ ] Connection pooling via Neon pooler endpoint
+- [ ] Shared `JWT_SIGNING_KEY` with Vercel backend during dual-run
+- [ ] Auth cookies use `Domain=.mihas.edu.zm` for subdomain sharing
+- [ ] Property tests tagged with `# Feature: python-backend-migration, Property {N}`
+- [ ] Contract tests verify parity with Vercel backend responses

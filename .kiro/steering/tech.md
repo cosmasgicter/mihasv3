@@ -6,24 +6,53 @@ inclusion: always
 
 ## Stack Overview
 
+### Frontend (Vercel — unchanged)
+
 | Layer | Technology | Notes |
 |-------|------------|-------|
-| Runtime | Bun | All dev and prod commands use Bun |
+| Runtime | Bun | All frontend dev and build commands use Bun |
 | UI Framework | React 18 + TypeScript | Functional components only |
 | Build Tool | Vite + Bun | Use `bunx --bun vite` for builds |
-| Hosting | Vercel Free Plan | Static + Serverless Functions |
+| Hosting | Vercel Free Plan | Static SPA hosting |
 | Production URL | ***REMOVED*** | Live admissions portal |
 | Styling | Tailwind CSS | Custom design tokens in `tailwind.config.js` |
 | Components | Radix UI | Accessible primitives—prefer over custom implementations |
 | Forms | React Hook Form + Zod | All forms must have Zod schemas |
 | State | Zustand (client), React Query (server) | No Redux, SSE/polling for real-time |
 | Routing | React Router v6 | Lazy-load all page components |
-| Backend | Vercel Functions + Neon Postgres | Custom Bun-native auth, Neon serverless Postgres |
-| Security | Arcjet + CSRF + CSP | Shield rules, bot detection, rate limiting, CSRF tokens, security headers |
-| Auth | Custom JWT (jose) | HTTP-only cookies, bcrypt passwords |
-| Email | Resend | Queue with retry on failure |
-| OCR | tesseract.js | Only AI feature retained |
-| Validation | Zod | Server-side input validation for all API endpoints |
+| Validation | Zod | Client-side form validation |
+
+### Backend (Koyeb — Django migration in progress)
+
+| Layer | Technology | Notes |
+|-------|------------|-------|
+| Framework | Django 5 + Django REST Framework | Python backend replacing Vercel Functions |
+| Runtime | Python 3.12 + gunicorn | Container-based on Koyeb |
+| API URL | ***REMOVED*** | Subdomain of production domain |
+| Database | Neon Postgres (shared) | Same 26-table schema, `managed = False` during dual-run |
+| Connection pooling | Neon built-in pooler | Separate pooled strings for web + worker |
+| Auth | SimpleJWT (custom) | HS256, shared `JWT_SIGNING_KEY` with Vercel backend during dual-run |
+| Security | django-ratelimit + custom middleware | Replaces Arcjet; same per-scope rate limits |
+| CSRF | Custom SHA-256 token validation | X-CSRF-Token header, same as current system |
+| Email | Resend (via Celery) | Async delivery with retry, `RESEND_API_KEY` |
+| OCR | pytesseract (Celery task) | Server-side, replaces client-side tesseract.js |
+| Background tasks | Celery + Redis | Emails, OCR, bulk notifications, long-running ops |
+| File storage | django-storages + S3/R2 | Cloudflare R2, signed URLs (15-min expiry) |
+| Static files | WhiteNoise | Admin panel, API docs |
+| API docs | drf-spectacular | OpenAPI 3.0, Swagger UI + ReDoc |
+| Validation | DRF serializers | Equivalent to current Zod schemas |
+| Property testing | hypothesis (Python) | Equivalent to fast-check |
+| Deployment | Docker + gunicorn on Koyeb | Web service + Celery worker (same image) |
+
+### Legacy Backend (Vercel Functions — being decommissioned)
+
+| Layer | Technology | Notes |
+|-------|------------|-------|
+| Backend | Vercel Functions + Neon Postgres | **BEING REPLACED** by Django on Koyeb |
+| Security | Arcjet + CSRF + CSP | **BEING REPLACED** by django-ratelimit + middleware |
+| Auth | Custom JWT (jose) | **SHARED JWT_SIGNING_KEY** with Django during dual-run |
+| OCR | tesseract.js | **BEING REPLACED** by pytesseract |
+| Validation | Zod | **BEING REPLACED** by DRF serializers |
 
 ## Code Conventions
 
@@ -217,7 +246,7 @@ const { email, password } = validated.data;
 
 ## Build & Deployment
 
-### Commands (All Bun)
+### Frontend Commands (All Bun)
 | Command | Purpose |
 |---------|---------|
 | `bun install` | Install dependencies (generates bun.lockb) |
@@ -226,22 +255,67 @@ const { email, password } = validated.data;
 | `bun run preview` | Preview production build |
 | `bun run test` | Run Vitest tests |
 | `bun run lint` | ESLint check |
-| `bun run scripts/bundle-api.mjs` | Bundle api-src/ → api/ |
+| `bun run scripts/bundle-api.mjs` | Bundle api-src/ → api/ (legacy) |
+
+### Django Backend Commands (Python)
+| Command | Purpose |
+|---------|---------|
+| `pip install -r requirements.txt` | Install Python dependencies |
+| `python manage.py runserver` | Local dev server (port 8000) |
+| `python manage.py test` | Run Django tests |
+| `pytest` | Run pytest test suite |
+| `pytest tests/property/` | Run property-based tests (hypothesis) |
+| `celery -A config worker` | Start Celery worker |
+| `docker build -t mihas-api .` | Build Docker image |
+| `docker-compose up` | Local dev: Django + Redis + Celery |
 
 ### Environment Variables
-Required in Vercel dashboard and `.env`:
+
+#### Frontend (Vercel)
 ```
-# Database (Neon Postgres - REQUIRED)
+# API Base URL (switches between Vercel backend and Django API)
+NEXT_PUBLIC_API_BASE_URL=***REMOVED***/api/v1
+```
+
+#### Django Backend (Koyeb)
+```
+# Django
+DJANGO_SETTINGS_MODULE=config.settings.prod
+SECRET_KEY=[django-secret-key]
+ALLOWED_HOSTS=api.mihas.edu.zm
+DEBUG=false
+
+# Database (Neon Postgres - REQUIRED, use pooled connection string)
 DATABASE_URL=postgres://[user]:[pass]@[host]/[db]?sslmode=require
 
-# Custom Auth (REQUIRED)
+# Redis (REQUIRED for Celery)
+REDIS_URL=redis://[host]:6379/0
+CELERY_BROKER_URL=redis://[host]:6379/0
+
+# Auth (REQUIRED — shared with Vercel backend during dual-run)
+JWT_SIGNING_KEY=[shared-jwt-signing-key]
+
+# CORS (REQUIRED)
+CORS_ALLOWED_ORIGINS=***REMOVED***
+CSRF_TRUSTED_ORIGINS=***REMOVED***
+
+# Email (REQUIRED)
+RESEND_API_KEY=[resend-key]
+EMAIL_FROM=noreply@mihas.edu.zm
+
+# Storage (REQUIRED — S3/R2)
+S3_ENDPOINT_URL=[r2-endpoint]
+S3_BUCKET=[bucket-name]
+S3_ACCESS_KEY=[access-key]
+S3_SECRET_KEY=[secret-key]
+```
+
+#### Legacy Vercel Backend (being decommissioned)
+```
+DATABASE_URL=postgres://[user]:[pass]@[host]/[db]?sslmode=require
 JWT_SECRET=[32+ char secret for access tokens]
 JWT_REFRESH_SECRET=[32+ char secret for refresh tokens]
-
-# Security (REQUIRED)
 ARCJET_KEY=[arcjet-api-key]
-
-# Email
 RESEND_API_KEY=[resend-key]
 EMAIL_FROM=noreply@mihas.edu.zm
 ```
@@ -283,20 +357,39 @@ EMAIL_FROM=noreply@mihas.edu.zm
 
 ## Key Libraries
 
+### Frontend (TypeScript/Bun)
+
 | Use Case | Library | Notes |
 |----------|---------|-------|
-| JWT tokens | jose | Bun-native, HS256 signing |
-| Password hashing | bcrypt | 12 rounds minimum |
-| Security perimeter | @arcjet/node | Shield, bot detection, rate limiting |
-| Database (Neon) | @neondatabase/serverless | Neon serverless Postgres |
-| Input validation | zod | Server-side schema validation for all endpoints |
+| JWT tokens | jose | Bun-native, HS256 signing (legacy backend) |
+| Password hashing | bcrypt | 12 rounds minimum (legacy backend) |
+| Security perimeter | @arcjet/node | Shield, bot detection, rate limiting (legacy backend) |
+| Database (Neon) | @neondatabase/serverless | Neon serverless Postgres (legacy backend) |
+| Input validation | zod | Client-side form validation + legacy server-side |
 | PDF generation | jspdf, pdf-lib | Server-side preferred |
 | Excel export | xlsx, exceljs | Use exceljs for styling |
 | File uploads | react-dropzone | With magic byte validation |
 | Charts | recharts | Lazy-load chart components |
-| OCR | tesseract.js | Web worker for performance—ONLY AI feature |
-| Real-time | SSE + polling | Bun-native, replaces Supabase Realtime |
+| Real-time | SSE + polling | Frontend SSE client |
 | Property testing | fast-check | Property-based tests in tests/property/ |
+
+### Backend (Python/Django — new)
+
+| Use Case | Library | Notes |
+|----------|---------|-------|
+| Web framework | Django 5 + DRF | REST API with ViewSets |
+| JWT tokens | djangorestframework-simplejwt | HS256, custom claims for RBAC |
+| Password hashing | bcrypt (via Django) | 12 rounds, compatible with existing hashes |
+| Rate limiting | django-ratelimit | Per-scope limits matching Arcjet config |
+| Database | dj-database-url + psycopg2 | Neon Postgres with connection pooling |
+| Background tasks | celery + redis | Emails, OCR, bulk ops |
+| File storage | django-storages + boto3 | S3/R2 compatible |
+| Static files | whitenoise | Compressed static serving |
+| API docs | drf-spectacular | OpenAPI 3.0 schema generation |
+| OCR | pytesseract | Server-side text extraction |
+| Email | resend (Python SDK) | Async via Celery |
+| Property testing | hypothesis | Python PBT library |
+| Test framework | pytest + pytest-django | With factory_boy for fixtures |
 
 ## Configuration Files
 
@@ -439,6 +532,52 @@ All responses include:
 
 ## Production API Endpoints
 
+### Django API (New — api.mihas.edu.zm)
+
+Base URL: `***REMOVED***/api/v1`
+
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/health/live/` | GET | None | Liveness check (no DB) |
+| `/health/ready/` | GET | None | Readiness check (DB + Redis) |
+| `/auth/login/` | POST | None | User login |
+| `/auth/logout/` | POST | Auth | User logout |
+| `/auth/refresh/` | POST | Cookie | Token refresh + rotation |
+| `/auth/register/` | POST | None | User registration |
+| `/auth/session/` | GET | Auth | Get current session |
+| `/auth/password-reset/` | POST | None | Request password reset |
+| `/auth/password-reset/confirm/` | POST | None | Confirm password reset |
+| `/applications/` | GET/POST | Auth | List/create applications |
+| `/applications/{id}/` | GET/PATCH | Auth | Get/update application |
+| `/applications/{id}/details/` | GET | Auth | Application details |
+| `/applications/{id}/documents/` | GET | Auth | Application documents |
+| `/applications/{id}/grades/` | GET/POST | Auth | Application grades |
+| `/applications/{id}/summary/` | GET | Auth | Application summary |
+| `/applications/{id}/review/` | POST | Admin | Review application |
+| `/applications/export/` | GET | Admin | Export applications |
+| `/applications/track/` | GET | None | Public tracking |
+| `/catalog/programs/` | GET/POST | None/Admin | Programs |
+| `/catalog/intakes/` | GET/POST | None/Admin | Intakes |
+| `/catalog/subjects/` | GET | None | Subjects |
+| `/documents/upload/` | POST | Auth | Document upload |
+| `/documents/{id}/extract/` | POST | Auth | OCR extraction |
+| `/payments/{id}/receipt/` | GET | Auth | Payment receipt |
+| `/payments/{id}/verify/` | POST | Admin | Verify payment |
+| `/admin/dashboard/` | GET | Admin | Dashboard stats |
+| `/admin/users/` | GET/POST | Admin | User management |
+| `/admin/settings/` | GET/POST | Admin | System settings |
+| `/sessions/` | GET | Auth | List sessions |
+| `/sessions/{id}/revoke/` | POST | Auth | Revoke session |
+| `/sessions/revoke-all/` | POST | Auth | Revoke all sessions |
+| `/notifications/preferences/` | GET/PUT | Auth | Notification prefs |
+| `/notifications/` | POST | Admin | Send notification |
+| `/email/send/` | POST | Admin | Send email |
+| `/events/stream/` | GET | Auth | SSE real-time events |
+| `/docs/` | GET | None | Swagger UI |
+| `/redoc/` | GET | None | ReDoc |
+
+### Legacy Vercel Backend (being decommissioned)
+
 Base URL: `***REMOVED***`
 
 | Endpoint | Method | Description |
@@ -446,7 +585,6 @@ Base URL: `***REMOVED***`
 | `/api/health` | GET | System health check |
 | `/api/health?action=ping` | GET | Simple ping/pong |
 | `/api/health?action=db` | GET | Database connectivity check |
-| `/api/health?action=env` | GET | Environment variables status |
 | `/api/catalog?type=programs` | GET | List available programs |
 | `/api/catalog?type=intakes` | GET | List available intakes |
 | `/api/catalog?type=subjects` | GET | List grade 12 subjects |

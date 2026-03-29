@@ -104,7 +104,7 @@ Migrate the MIHAS admissions portal backend from Vercel Serverless Functions (No
 
 1. THE Django_API SHALL accept document uploads with magic byte verification and MIME type validation before storing files in S3-compatible storage
 2. WHEN a document is uploaded, THE Django_API SHALL create a record in `application_documents` with document_type, file_key, and verification_status
-3. THE Django_API SHALL support OCR text extraction from uploaded documents using a background task
+3. THE Django_API SHALL support OCR text extraction from uploaded documents using `pytesseract` (Python Tesseract wrapper) as a Celery background task, replacing the current client-side `tesseract.js` implementation
 4. THE Django_API SHALL implement payment receipt generation and payment status verification endpoints
 5. WHEN an admin verifies or rejects a payment, THE Django_API SHALL record the action in the audit log with the verifier identity and notes
 
@@ -129,9 +129,10 @@ Migrate the MIHAS admissions portal backend from Vercel Serverless Functions (No
 
 1. THE Django_API SHALL store notifications in the `notifications` table with idempotency keys to prevent duplicate delivery
 2. THE Django_API SHALL support user notification preference management (email_enabled, push_enabled, quiet_hours)
-3. WHEN an email needs to be sent, THE Celery_Worker SHALL enqueue the email in the `email_queue` table with retry logic and process it asynchronously
+3. WHEN an email needs to be sent, THE Celery_Worker SHALL enqueue the email in the `email_queue` table with retry logic and send it asynchronously via the Resend API using the `RESEND_API_KEY` environment variable
 4. IF an email delivery fails, THEN THE Celery_Worker SHALL retry with exponential backoff up to 3 attempts before marking the email as failed
 5. THE Django_API SHALL enforce notification rate limiting per the existing notification policy
+6. THE Django_API SHALL configure `RESEND_API_KEY` and `EMAIL_FROM` (default: `noreply@mihas.edu.zm`) as required environment variables for email delivery
 
 ### Requirement 9: Session and Real-Time Event Management
 
@@ -245,3 +246,50 @@ Migrate the MIHAS admissions portal backend from Vercel Serverless Functions (No
 2. THE Django_API SHALL never include PII (email addresses, phone numbers, names) in audit log entries; identifiers SHALL be stored as SHA-256 hashes where needed
 3. THE Django_API SHALL assign retention categories to audit entries: standard (90 days) for routine operations and security (365 days) for authentication and authorization events
 4. THE Django_API SHALL support idempotent request processing using the `idempotency_keys` table to prevent duplicate side effects from retried requests
+
+### Requirement 18: Cross-Origin Auth Strategy and Subdomain Routing
+
+**User Story:** As a frontend developer, I want a clear cross-origin authentication strategy between the Vercel frontend and Koyeb API, so that cookies and CSRF tokens work reliably across all browsers.
+
+#### Acceptance Criteria
+
+1. THE Django_API SHALL be served from a subdomain of the production domain (e.g., `api.mihas.edu.zm`) to enable first-party cookie sharing with the frontend at `apply.mihas.edu.zm`
+2. THE Auth_System SHALL set auth cookies with `Domain=.mihas.edu.zm`, `SameSite=Lax`, `Secure=true`, and `HttpOnly=true` to ensure first-party cookie behavior across the subdomain
+3. IF subdomain routing is not feasible, THEN THE Auth_System SHALL switch to `Authorization: Bearer` header transport and the Frontend_App SHALL store tokens in memory (not localStorage) with silent refresh via hidden iframe or background fetch
+4. DURING Dual_Run_Mode, THE Auth_System SHALL use a shared `JWT_SIGNING_KEY` between Vercel_Backend and Django_API so that tokens issued by either backend are valid on both
+5. THE Django_API SHALL set `Access-Control-Max-Age: 86400` on CORS preflight responses to minimize redundant OPTIONS requests
+
+### Requirement 19: API Contract Testing and Parity Verification
+
+**User Story:** As a developer, I want automated contract tests that verify the Django API produces identical responses to the Vercel backend, so that migration parity is provable.
+
+#### Acceptance Criteria
+
+1. THE Migration_Toolkit SHALL include a contract test suite that records request/response pairs from the Vercel_Backend for all critical endpoints (auth, applications, catalog, documents, payments, admin, notifications, sessions)
+2. THE contract test suite SHALL replay recorded requests against the Django_API and compare response status codes, envelope structure, field names, and data types
+3. THE contract test suite SHALL tolerate expected differences (timestamps, request IDs, token values) while flagging unexpected field additions, removals, or type changes
+4. THE contract test suite SHALL run as a CI step before any deployment to Koyeb_Service
+5. THE Migration_Toolkit SHALL define migration success criteria: Django_API p95 latency within 20% of Vercel_Backend p95, error rate below 1%, and all contract tests passing for a 48-hour soak period
+
+### Requirement 20: Database Connection Pooling and Resource Management
+
+**User Story:** As a DevOps engineer, I want database connections properly pooled and managed, so that the Django API and Celery workers do not exhaust Neon connection limits.
+
+#### Acceptance Criteria
+
+1. THE Django_API SHALL connect to Neon_Database through Neon's built-in connection pooler endpoint using the pooled connection string
+2. THE Django_API SHALL configure `CONN_MAX_AGE` to reuse database connections within gunicorn workers and set a maximum connection count per worker process
+3. THE Celery_Worker SHALL use a separate pooled connection string with lower connection limits than the web service
+4. THE Django_API SHALL monitor active database connections and log warnings when connection usage exceeds 80% of the configured limit
+5. THE Django_API SHALL configure gunicorn with `--graceful-timeout 30` to allow in-flight requests to complete during deployments
+
+### Requirement 21: Static File and Media Storage
+
+**User Story:** As a student, I want my uploaded documents served reliably through the Django API, so that admins can review my application materials.
+
+#### Acceptance Criteria
+
+1. THE Django_API SHALL use `django-storages` with an S3-compatible backend (Cloudflare R2 or AWS S3) for all media file storage
+2. THE Django_API SHALL generate time-limited signed URLs (15-minute expiry) for document downloads instead of serving files directly
+3. THE Django_API SHALL configure `S3_ENDPOINT_URL`, `S3_BUCKET`, `S3_ACCESS_KEY`, and `S3_SECRET_KEY` as required environment variables for media storage
+4. THE Django_API SHALL serve its own static files (admin panel, API docs) via WhiteNoise middleware in production
