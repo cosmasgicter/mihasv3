@@ -1,6 +1,13 @@
 # SMS legacy system (separate PHP project)
 sms/
 
+# Python cache/test artifacts
+**/__pycache__/
+*.pyc
+*.pyo
+**/.hypothesis/
+**/.pytest_cache/
+
 # Dependencies - MUST be excluded (WSL symlink issues)
 node_modules/
 node_modules
