@@ -6,6 +6,15 @@ from pathlib import Path
 
 import dj_database_url
 
+
+def split_csv_env(name: str, default: str = "") -> list[str]:
+    """Read a comma-separated env var into a trimmed list."""
+    return [
+        value.strip()
+        for value in os.environ.get(name, default).split(",")
+        if value.strip()
+    ]
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -165,14 +174,11 @@ SIMPLE_JWT = {
 }
 
 # ---------------------------------------------------------------------------
-# CORS — allowed origins from env var (comma-separated)
+# CORS — allowed origins and regexes from env vars (comma-separated)
 # ---------------------------------------------------------------------------
 
-CORS_ALLOWED_ORIGINS = [
-    origin.strip()
-    for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
-    if origin.strip()
-]
+CORS_ALLOWED_ORIGINS = split_csv_env("CORS_ALLOWED_ORIGINS")
+CORS_ALLOWED_ORIGIN_REGEXES = split_csv_env("CORS_ALLOWED_ORIGIN_REGEXES")
 CORS_ALLOW_CREDENTIALS = True
 CORS_EXPOSE_HEADERS = ["X-CSRF-Token", "X-Request-ID"]
 CORS_PREFLIGHT_MAX_AGE = 86400

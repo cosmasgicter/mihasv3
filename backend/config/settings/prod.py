@@ -29,11 +29,16 @@ AUTH_COOKIE_SECURE = True
 AUTH_COOKIE_HTTPONLY = True
 
 # CORS — production frontend only
-CORS_ALLOWED_ORIGINS = [
-    origin.strip()
-    for origin in os.environ.get(  # noqa: F405
-        "CORS_ALLOWED_ORIGINS", "https://apply.mihas.edu.zm"
-    ).split(",")
-    if origin.strip()
-]
+CORS_ALLOWED_ORIGINS = split_csv_env(  # noqa: F405
+    "CORS_ALLOWED_ORIGINS",
+    "https://apply.mihas.edu.zm",
+)
+CORS_ALLOWED_ORIGIN_REGEXES = split_csv_env(  # noqa: F405
+    "CORS_ALLOWED_ORIGIN_REGEXES",
+    (
+        r"^https://([A-Za-z0-9-]+\.)*beanola\.com$,"
+        r"^https://([A-Za-z0-9-]+\.)*mihas\.edu\.zm$,"
+        r"^https://([A-Za-z0-9-]+\.)*katc\.edu\.zm$"
+    ),
+)
 CORS_ALLOW_ALL_ORIGINS = False

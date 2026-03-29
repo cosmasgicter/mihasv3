@@ -51,8 +51,9 @@ Set these in both Koyeb services unless noted otherwise. The same list is captur
 | `REDIS_URL` | yes | `rediss://...` for Upstash or hosted Redis |
 | `CELERY_BROKER_URL` | recommended | Usually same value as `REDIS_URL` |
 | `JWT_SIGNING_KEY` | yes | Separate long random signing key |
-| `ALLOWED_HOSTS` | yes | `api.mihas.edu.zm` |
+| `ALLOWED_HOSTS` | yes | `.beanola.com,.mihas.edu.zm,.katc.edu.zm` |
 | `CORS_ALLOWED_ORIGINS` | yes | `https://apply.mihas.edu.zm` |
+| `CORS_ALLOWED_ORIGIN_REGEXES` | recommended | `^https://([A-Za-z0-9-]+\.)*beanola\.com$,^https://([A-Za-z0-9-]+\.)*mihas\.edu\.zm$,^https://([A-Za-z0-9-]+\.)*katc\.edu\.zm$` |
 | `RESEND_API_KEY` | yes | Resend production API key |
 | `EMAIL_FROM` | recommended | `admissions@mihas.edu.zm` |
 | `S3_ENDPOINT_URL` | yes | Cloudflare R2 S3 endpoint |
