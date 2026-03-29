@@ -1,4 +1,0 @@
-# file: /home/cosmas/Downloads/mihasv3/django_api/apps/common/middleware.py
-# hypothesis_version: 6.151.10
-
-[200, 300, 403, 429, 3600, '(\\d+)([smh])', ',', '.', '/', '/api/v1/admin/', '/api/v1/auth/', '/api/v1/documents/', '/api/v1/sessions/', '20/10m', '30/10m', '50/10m', '60/10m', '60/5m', 'DELETE', 'DENY', 'HTTP_USER_AGENT', 'HTTP_X_CSRF_TOKEN', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REQUEST_ID', 'PATCH', 'POST', 'PUT', 'Permissions-Policy', 'RATE_LIMITED', 'REMOTE_ADDR', 'Rate limit exceeded', 'Referrer-Policy', 'Retry-After', 'X-Frame-Options', 'X-Request-ID', 'code', 'error', 'h', 'ip', 'is_authenticated', 'm', 'nosniff', 'pk', 's', 'security', 'standard', 'success', 'unknown', 'user', 'v1']
