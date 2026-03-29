@@ -134,7 +134,7 @@
         "https://mcp.neon.tech/sse"
       ],
       "env": {},
-      "disabled": false,
+      "disabled": true,
       "autoApprove": [
         "list_projects",
         "list_branches",
