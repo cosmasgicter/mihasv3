@@ -123,12 +123,18 @@ DATABASES = {
 # Celery — Redis broker and result backend
 # ---------------------------------------------------------------------------
 
-CELERY_BROKER_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", os.environ.get("REDIS_URL", "redis://localhost:6379/0"))
 CELERY_RESULT_BACKEND = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 CELERY_TASK_SERIALIZER = "json"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
+
+# Enable TLS for rediss:// connections (Upstash, Redis Cloud, etc.)
+if CELERY_BROKER_URL.startswith("rediss://"):
+    import ssl
+    CELERY_BROKER_USE_SSL = {"ssl_cert_reqs": ssl.CERT_REQUIRED}
+    CELERY_REDIS_BACKEND_USE_SSL = {"ssl_cert_reqs": ssl.CERT_REQUIRED}
 
 # ---------------------------------------------------------------------------
 # JWT — SimpleJWT with shared signing key for dual-run compatibility

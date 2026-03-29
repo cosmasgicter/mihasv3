@@ -1,35 +1,19 @@
 # MIHAS Django API — Docker Compose
-# Local dev uses real Neon DB + R2 storage, local Redis only
+# Uses real Neon DB, Upstash Redis, R2 storage from .env
 
 services:
   web:
     build: .
     ports:
       - "8000:8000"
-    depends_on:
-      - redis
     env_file:
       - .env
-    environment:
-      - DJANGO_SETTINGS_MODULE=config.settings.dev
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/0
     command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --graceful-timeout 30 --workers 3 --reload
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
 
   celery:
     build: .
     command: celery -A config worker -l info
     depends_on:
-      - redis
       - web
     env_file:
       - .env
-    environment:
-      - DJANGO_SETTINGS_MODULE=config.settings.dev
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/0

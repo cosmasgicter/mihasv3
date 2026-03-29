@@ -31,7 +31,7 @@ Copy from `django_api/.env.production`:
 | `DEBUG` | `false` |
 | `ALLOWED_HOSTS` | `api.mihas.edu.zm` |
 | `DATABASE_URL` | (Neon pooled connection string) |
-| `REDIS_URL` | (your managed Redis URL) |
+| `REDIS_URL` | `rediss://default:AYrR...@supreme-elf-35537.upstash.io:6379` |
 | `CELERY_BROKER_URL` | (same as REDIS_URL) |
 | `JWT_SIGNING_KEY` | (from .env.production) |
 | `CORS_ALLOWED_ORIGINS` | `***REMOVED***` |
@@ -49,9 +49,7 @@ Add a CNAME record for `api.mihas.edu.zm` pointing to your Koyeb service domain.
 
 ## Redis
 
-You need a managed Redis instance. Options:
-- **Upstash** (free tier, serverless Redis) — recommended for Koyeb
-- **Redis Cloud** (free 30MB tier)
-- **Koyeb managed Redis** (if available)
-
-Set `REDIS_URL` and `CELERY_BROKER_URL` to the Redis connection string.
+Using **Upstash** serverless Redis (TLS):
+- Host: `supreme-elf-35537.upstash.io:6379`
+- Protocol: `rediss://` (TLS-encrypted)
+- Connection string already set in `REDIS_URL` and `CELERY_BROKER_URL`
