@@ -80,34 +80,34 @@ Migrate the MIHAS admissions portal backend from Vercel Serverless Functions to 
     - **Property 36: Schema compatibility — managed=False and column mapping**
     - **Validates: Requirements 13.1, 13.2**
 
-- [ ] 4. Test infrastructure and factories
-  - [-] 4.1 Set up pytest, hypothesis, factory_boy, and test directory structure
+- [x] 4. Test infrastructure and factories
+  - [x] 4.1 Set up pytest, hypothesis, factory_boy, and test directory structure
     - Create `django_api/tests/conftest.py` with shared fixtures
     - Create `django_api/tests/factories.py` with `factory_boy` factories for all 26 models
     - Create `django_api/tests/unit/`, `django_api/tests/property/`, `django_api/tests/contract/` directories
     - Configure hypothesis with `@settings(max_examples=100)`
     - _Requirements: 19.1_
 
-- [ ] 5. Checkpoint — Verify models and test infrastructure
+- [x] 5. Checkpoint — Verify models and test infrastructure
   - Ensure all 26 models load without errors, factories generate valid instances, pytest discovers tests. Ask the user if questions arise.
 
-- [ ] 6. Common utilities — response envelope, pagination, exceptions, validators
-  - [~] 6.1 Implement `EnvelopeRenderer` in `apps/common/renderers.py`
+- [x] 6. Common utilities — response envelope, pagination, exceptions, validators
+  - [x] 6.1 Implement `EnvelopeRenderer` in `apps/common/renderers.py`
     - Wrap success responses in `{ "success": true, "data": <payload> }`
     - Wrap error responses in `{ "success": false, "error": "<message>", "code": "<error_code>" }`
     - _Requirements: 10.3, 10.4_
 
-  - [~] 6.2 Implement `envelope_exception_handler` in `apps/common/exceptions.py`
+  - [x] 6.2 Implement `envelope_exception_handler` in `apps/common/exceptions.py`
     - Map DRF exceptions to envelope error format with error codes
     - Include `request_id` in all error responses
     - Map: ValidationError→400, AuthenticationFailed→401, PermissionDenied→403, NotFound→404, Throttled→429
     - _Requirements: 10.4_
 
-  - [~] 6.3 Implement `StandardPagination` in `apps/common/pagination.py`
+  - [x] 6.3 Implement `StandardPagination` in `apps/common/pagination.py`
     - Include `page`, `pageSize`, `totalCount` fields in paginated responses
     - _Requirements: 10.5_
 
-  - [~] 6.4 Implement Zambian validators in `apps/common/validators.py`
+  - [x] 6.4 Implement Zambian validators in `apps/common/validators.py`
     - `validate_zambian_phone`: +260 followed by 9 digits
     - `validate_nrc`: 123456/78/9 format
     - `validate_ecz_grade`: integers 1-9
@@ -115,70 +115,70 @@ Migrate the MIHAS admissions portal backend from Vercel Serverless Functions to 
     - `normalize_nationality`: default to "Zambian"
     - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5_
 
-  - [~]* 6.5 Write property tests for response envelope and pagination
+  - [x]* 6.5 Write property tests for response envelope and pagination
     - **Property 19: Response envelope format**
     - **Validates: Requirements 10.3, 10.4, 10.6**
     - **Property 21: Pagination metadata**
     - **Validates: Requirements 10.5**
 
-  - [~]* 6.6 Write property test for Zambian data format validation
+  - [x]* 6.6 Write property test for Zambian data format validation
     - **Property 26: Zambian data format validation**
     - **Validates: Requirements 16.1, 16.2, 16.3, 16.5**
 
-  - [~] 6.7 Implement S3/R2 storage backend in `apps/common/storage.py`
+  - [x] 6.7 Implement S3/R2 storage backend in `apps/common/storage.py`
     - Signed URL generation with 15-minute expiry
     - _Requirements: 21.1, 21.2, 21.3_
 
-  - [~]* 6.8 Write property test for signed URL expiry
+  - [x]* 6.8 Write property test for signed URL expiry
     - **Property 39: Signed URL expiry**
     - **Validates: Requirements 21.2**
 
-- [ ] 7. Middleware chain implementation
-  - [~] 7.1 Implement `SecurityHeadersMiddleware` in `apps/common/middleware.py`
+- [x] 7. Middleware chain implementation
+  - [x] 7.1 Implement `SecurityHeadersMiddleware` in `apps/common/middleware.py`
     - Set HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy on all responses
     - _Requirements: 11.2_
 
-  - [~] 7.2 Implement `RequestIDMiddleware` in `apps/common/middleware.py`
+  - [x] 7.2 Implement `RequestIDMiddleware` in `apps/common/middleware.py`
     - Generate/propagate X-Request-ID header on all requests and responses
     - _Requirements: 10.6_
 
-  - [~] 7.3 Implement `RateLimitMiddleware` in `apps/common/middleware.py`
+  - [x] 7.3 Implement `RateLimitMiddleware` in `apps/common/middleware.py`
     - Per-scope rate limits: auth 60/5min, admin 60/10min, documents 20/10min, sessions 30/10min, notifications 50/10min
     - Return HTTP 429 with `Retry-After` header when exceeded
     - _Requirements: 11.3, 11.4_
 
-  - [~] 7.4 Implement `CSRFEnforcementMiddleware` in `apps/common/middleware.py`
+  - [x] 7.4 Implement `CSRFEnforcementMiddleware` in `apps/common/middleware.py`
     - Validate X-CSRF-Token header via SHA-256 hash comparison for POST/PUT/PATCH/DELETE
     - Exempt login, register, and password reset endpoints
     - _Requirements: 2.6_
 
-  - [~] 7.5 Implement `AuditMiddleware` in `apps/common/middleware.py`
+  - [x] 7.5 Implement `AuditMiddleware` in `apps/common/middleware.py`
     - Log all state-changing operations to `audit_logs` table
     - Hash IP and user-agent with SHA-256, never store PII
     - Assign retention categories: security (auth/authz events) or standard (routine)
     - _Requirements: 17.1, 17.2, 17.3_
 
-  - [~] 7.6 Configure middleware ordering in `base.py` settings
+  - [x] 7.6 Configure middleware ordering in `base.py` settings
     - Order: SecurityHeaders → SecurityMiddleware → WhiteNoise → CORS → RequestID → RateLimit → Common → JWTAuth → CSRF → Audit
     - _Requirements: 11.2_
 
-  - [~]* 7.7 Write property tests for security headers and rate limiting
+  - [x]* 7.7 Write property tests for security headers and rate limiting
     - **Property 22: Security headers on all responses**
     - **Validates: Requirements 11.2, 18.5**
     - **Property 23: Rate limiting per scope with Retry-After**
     - **Validates: Requirements 11.3, 11.4**
 
-  - [~]* 7.8 Write property tests for CSRF enforcement and audit logging
+  - [x]* 7.8 Write property tests for CSRF enforcement and audit logging
     - **Property 7: CSRF enforcement on state-changing endpoints**
     - **Validates: Requirements 2.6**
     - **Property 30: Audit logging — all state-changing operations, no PII**
     - **Validates: Requirements 17.1, 17.2, 17.3**
 
-  - [~]* 7.9 Write property test for CORS origin enforcement
+  - [x]* 7.9 Write property test for CORS origin enforcement
     - **Property 24: CORS origin enforcement**
     - **Validates: Requirements 11.1**
 
-- [ ] 8. Checkpoint — Verify middleware chain
+- [x] 8. Checkpoint — Verify middleware chain
   - Ensure all middleware fires in correct order, security headers present, rate limiting works, CSRF validated, audit entries created. Ask the user if questions arise.
 
 - [ ] 9. Authentication system

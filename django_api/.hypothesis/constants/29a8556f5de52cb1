@@ -1,0 +1,4 @@
+# file: /home/cosmas/Downloads/mihasv3/django_api/apps/common/storage.py
+# hypothesis_version: 6.151.10
+
+['Bucket', 'Key', 'get_object', 'media', 's3', 's3v4']
