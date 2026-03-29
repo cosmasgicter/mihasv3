@@ -154,19 +154,24 @@ async function adminFetch<T>(
       return { ok: false };
     }
 
-    const result = await parseJsonResponse<{ data?: T }>(response);
-    return { ok: true, data: result.data };
+    const result = await parseJsonResponse<{ data?: T } | T>(response);
+    const payload =
+      result && typeof result === 'object' && 'data' in result
+        ? result.data
+        : result;
+
+    return { ok: true, data: payload as T };
   } catch {
     return { ok: false };
   }
 }
 
 export async function fetchSettings(): Promise<SystemSetting[]> {
-  const result = await adminFetch<{ settings?: BackendSystemSetting[] }>(
-    `${getApiBaseUrl()}/api/admin?action=settings`
+  const result = await adminFetch<{ results?: BackendSystemSetting[] }>(
+    `${getApiBaseUrl()}/api/v1/admin/settings/`
   );
 
-  return result.data?.settings?.map(mapBackendSetting) || [];
+  return result.data?.results?.map(mapBackendSetting) || [];
 }
 
 export async function createSetting(
@@ -174,7 +179,7 @@ export async function createSetting(
 ): Promise<boolean> {
   const payload = toSystemSettingPayload(setting);
   const result = await adminFetch(
-    `${getApiBaseUrl()}/api/admin?action=settings`,
+    `${getApiBaseUrl()}/api/v1/admin/settings/`,
     {
       method: 'POST',
       body: JSON.stringify({
@@ -195,12 +200,10 @@ export async function updateSetting(
 ): Promise<boolean> {
   const payload = toSystemSettingPayload(updates);
   const result = await adminFetch(
-    `${getApiBaseUrl()}/api/admin?action=settings`,
+    `${getApiBaseUrl()}/api/v1/admin/settings/${id}/`,
     {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify({
-        id,
-        key: payload.key,
         value: payload.value,
         description: payload.description,
         category: payload.category,
@@ -213,7 +216,7 @@ export async function updateSetting(
 
 export async function deleteSetting(id: string, key?: string): Promise<boolean> {
   const result = await adminFetch(
-    `${getApiBaseUrl()}/api/admin?action=settings`,
+    `${getApiBaseUrl()}/api/v1/admin/settings/${id}/`,
     {
       method: 'DELETE',
       body: JSON.stringify({ id, key }),
@@ -225,95 +228,30 @@ export async function deleteSetting(id: string, key?: string): Promise<boolean> 
 export async function importSettings(
   settings: Array<SystemSettingPayload | LegacySystemSettingPayload>
 ): Promise<{ success: boolean; imported?: string[]; errors?: string[]; message?: string }> {
-  try {
-    const response = await fetch(
-      `${getApiBaseUrl()}/api/admin?action=import-settings`,
-      {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ settings: settings.map(toSystemSettingPayload) }),
-      }
-    );
-
-    if (!response.ok) {
-      return { success: false, message: 'Import failed' };
-    }
-
-    const result = await parseJsonResponse<{ data?: { imported?: string[]; errors?: string[]; message?: string } }>(response);
-    return {
-      success: true,
-      imported: result.data?.imported,
-      errors: result.data?.errors,
-      message: result.data?.message,
-    };
-  } catch {
-    return { success: false, message: 'Import failed' };
-  }
+  void settings;
+  return { success: false, message: 'Bulk settings import is not implemented in the Django backend yet' };
 }
 
 export async function resetSettings(): Promise<{ success: boolean; message?: string }> {
-  try {
-    const response = await fetch(
-      `${getApiBaseUrl()}/api/admin?action=reset-settings`,
-      {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
-
-    if (!response.ok) {
-      return { success: false, message: 'Reset failed' };
-    }
-
-    const result = await parseJsonResponse<{ data?: { message?: string } }>(response);
-    return {
-      success: true,
-      message: result.data?.message,
-    };
-  } catch {
-    return { success: false, message: 'Reset failed' };
-  }
+  return { success: false, message: 'Settings reset is not implemented in the Django backend yet' };
 }
 
 export async function fetchNotifications(): Promise<StudentNotification[]> {
-  const result = await adminFetch<StudentNotification[]>(
-    `${getApiBaseUrl()}/api/notifications?action=list`
-  );
-  return result.data || [];
+  return [];
 }
 
 export async function markNotificationRead(notificationId: string): Promise<boolean> {
-  const result = await adminFetch(
-    `${getApiBaseUrl()}/api/notifications?action=mark-read`,
-    {
-      method: 'PUT',
-      body: JSON.stringify({ notificationId }),
-    }
-  );
-  return result.ok;
+  void notificationId;
+  return false;
 }
 
 export async function markAllNotificationsRead(): Promise<boolean> {
-  const result = await adminFetch(
-    `${getApiBaseUrl()}/api/notifications?action=mark-all-read`,
-    {
-      method: 'PUT',
-    }
-  );
-  return result.ok;
+  return false;
 }
 
 export async function deleteNotification(notificationId: string): Promise<boolean> {
-  const result = await adminFetch(
-    `${getApiBaseUrl()}/api/notifications?action=delete`,
-    {
-      method: 'DELETE',
-      body: JSON.stringify({ notificationId }),
-    }
-  );
-  return result.ok;
+  void notificationId;
+  return false;
 }
 
 
@@ -331,48 +269,28 @@ export interface EligibilityRule {
 }
 
 export async function fetchEligibilityRules(): Promise<EligibilityRule[]> {
-  const result = await adminFetch<{ rules: EligibilityRule[] }>(
-    `${getApiBaseUrl()}/api/admin?action=eligibility-rules`
-  );
-  return result.data?.rules || [];
+  return [];
 }
 
 export async function createEligibilityRule(
   rule: Omit<EligibilityRule, 'id' | 'created_at' | 'updated_at' | 'programs'>
 ): Promise<boolean> {
-  const result = await adminFetch(
-    `${getApiBaseUrl()}/api/admin?action=eligibility-rules`,
-    {
-      method: 'POST',
-      body: JSON.stringify(rule),
-    }
-  );
-  return result.ok;
+  void rule;
+  return false;
 }
 
 export async function updateEligibilityRule(
   id: string,
   updates: Partial<Omit<EligibilityRule, 'id' | 'created_at' | 'updated_at' | 'programs'>>
 ): Promise<boolean> {
-  const result = await adminFetch(
-    `${getApiBaseUrl()}/api/admin?action=eligibility-rules`,
-    {
-      method: 'PUT',
-      body: JSON.stringify({ id, ...updates }),
-    }
-  );
-  return result.ok;
+  void id;
+  void updates;
+  return false;
 }
 
 export async function deleteEligibilityRule(id: string): Promise<boolean> {
-  const result = await adminFetch(
-    `${getApiBaseUrl()}/api/admin?action=eligibility-rules`,
-    {
-      method: 'DELETE',
-      body: JSON.stringify({ id }),
-    }
-  );
-  return result.ok;
+  void id;
+  return false;
 }
 
 
@@ -386,18 +304,18 @@ export interface UserWithRole {
 }
 
 export async function fetchUsersWithRoles(): Promise<UserWithRole[]> {
-  const result = await adminFetch<{ users?: UserWithRole[]; totalCount?: number }>(
-    `${getApiBaseUrl()}/api/admin?action=users&limit=100`
+  const result = await adminFetch<{ results?: UserWithRole[]; totalCount?: number }>(
+    `${getApiBaseUrl()}/api/v1/admin/users/?pageSize=100`
   );
-  return result.data?.users || [];
+  return result.data?.results || [];
 }
 
 export async function updateUserRole(userId: string, role: string): Promise<boolean> {
   const result = await adminFetch(
-    `${getApiBaseUrl()}/api/admin?action=update-role`,
+    `${getApiBaseUrl()}/api/v1/admin/users/${userId}/`,
     {
-      method: 'PUT',
-      body: JSON.stringify({ userId, role }),
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
     }
   );
   return result.ok;

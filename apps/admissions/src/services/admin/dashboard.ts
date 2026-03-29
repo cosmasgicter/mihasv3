@@ -145,7 +145,10 @@ type RawDashboardResponse = {
   applicationTrends?: Record<string, unknown>
   totalsSnapshot?: Record<string, unknown>
   processingMetrics?: RawProcessingMetrics
+  applications?: Record<string, unknown>
+  users?: Record<string, unknown>
   recentActivity?: unknown
+  recent_activity?: unknown
   generatedAt?: unknown
   generated_at?: unknown
 }
@@ -264,13 +267,21 @@ const normalizeRecentActivity = (items: unknown): AdminDashboardActivity[] => {
       }
 
       const id = 'id' in item && item.id !== undefined && item.id !== null ? String(item.id) : ''
-      const message = 'message' in item && typeof item.message === 'string' ? item.message : ''
+      const action = 'action' in item && typeof item.action === 'string' ? item.action : ''
+      const entityType = 'entity_type' in item && typeof item.entity_type === 'string' ? item.entity_type : ''
+      const message = 'message' in item && typeof item.message === 'string'
+        ? item.message
+        : action
+          ? `${action.replace(/_/g, ' ')}${entityType ? ` ${entityType}` : ''}`
+          : ''
       const timestamp = 'timestamp' in item && typeof item.timestamp === 'string'
         ? item.timestamp
         : 'updatedAt' in item && typeof item.updatedAt === 'string'
           ? item.updatedAt
           : 'createdAt' in item && typeof item.createdAt === 'string'
             ? item.createdAt
+            : 'created_at' in item && typeof item.created_at === 'string'
+              ? item.created_at
             : ''
 
       if (!id || !message || !timestamp) {
@@ -344,19 +355,45 @@ export const adminDashboardService = {
       }
 
       const raw = response as RawDashboardResponse
+      const applications = raw.applications as Record<string, unknown> | undefined
+      const applicationStatusBreakdown = applications?.by_status as Record<string, unknown> | undefined
+      const users = raw.users as Record<string, unknown> | undefined
 
-      const rawStats = normalizeStats(raw.stats)
+      const rawStats = normalizeStats({
+        ...(raw.stats ?? {}),
+        total_applications: applications?.total,
+        pending_applications: applicationStatusBreakdown?.pending ?? applicationStatusBreakdown?.draft,
+        approved_applications: applicationStatusBreakdown?.approved,
+        rejected_applications: applicationStatusBreakdown?.rejected,
+        today_applications: applications?.today,
+        week_applications: applications?.this_week,
+        month_applications: applications?.this_month,
+        total_students: users?.total,
+        active_users: users?.active,
+      })
       const statusBreakdown = normalizeNumberRecord(
-        raw.statusBreakdown ?? (raw.stats?.statusBreakdown as Record<string, unknown> | undefined)
+        raw.statusBreakdown ??
+          applicationStatusBreakdown ??
+          (raw.stats?.statusBreakdown as Record<string, unknown> | undefined)
       )
       const periodTotals = normalizeNumberRecord(
-        raw.periodTotals ?? raw.applicationTrends ?? (raw.stats?.applicationTrends as Record<string, unknown> | undefined)
+        raw.periodTotals ??
+          raw.applicationTrends ??
+          (applications
+            ? {
+                today: applications.today,
+                this_week: applications.this_week,
+                this_month: applications.this_month,
+                total: applications.total,
+              }
+            : undefined) ??
+          (raw.stats?.applicationTrends as Record<string, unknown> | undefined)
       )
       const totalsSnapshot = normalizeNumberRecord(
         raw.totalsSnapshot ?? (raw.stats?.totalsSnapshot as Record<string, unknown> | undefined)
       )
       const processingMetrics = normalizeProcessingMetrics(raw.processingMetrics, rawStats)
-      const recentActivity = normalizeRecentActivity(raw.recentActivity)
+      const recentActivity = normalizeRecentActivity(raw.recentActivity ?? raw.recent_activity)
       const generatedAt =
         toIsoString(raw.generatedAt) ??
         toIsoString(raw.generated_at) ??

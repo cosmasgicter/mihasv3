@@ -9,6 +9,7 @@ import logging
 import uuid
 
 from django.conf import settings
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -100,9 +101,13 @@ class DocumentUploadView(APIView):
         doc = ApplicationDocument.objects.create(
             application_id=application_id,
             document_type=document_type,
-            file_key=file_key,
+            document_name=file_obj.name,
             file_url=file_url,
+            file_size=getattr(file_obj, "size", None),
+            mime_type=declared_mime or None,
             verification_status="pending",
+            system_generated=False,
+            uploaded_at=timezone.now(),
         )
 
         return Response(

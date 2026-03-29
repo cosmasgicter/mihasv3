@@ -33,12 +33,8 @@
   },
   "include": [
     "src/**/*",
-    "api",
-    "netlify",
     "tests",
     "vite.config.ts",
-    "vite.config.local.ts",
-    "vite.config.production.ts",
     "tailwind.config.js",
     "vite.config.*.ts"
   ],

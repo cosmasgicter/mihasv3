@@ -1,6 +1,7 @@
 import type { Application, ApplicationInterview } from '@/types/database'
 
 import { apiClient, buildQueryString, QueryParams } from './client'
+import { notificationService } from './notifications'
 
 export interface PaginatedApplicationsResponse {
   applications: Application[]
@@ -43,158 +44,272 @@ type CancelInterviewPayload = {
   notes?: string
 }
 
+type BackendPaginatedApplications =
+  | {
+      applications?: Application[]
+      results?: Application[]
+      totalCount?: number
+      count?: number
+      page?: number
+      pageSize?: number
+      limit?: number
+      stats?: Record<string, unknown>
+      next?: string | null
+    }
+  | Application[]
+  | null
+  | undefined
+
+type ApplicationSummaryResponse = {
+  application?: Application
+  documents_count?: number
+  grades_count?: number
+  status_history?: unknown[]
+}
+
+function isApplicationRecord(value: unknown): value is Application {
+  return Boolean(value && typeof value === 'object' && 'id' in (value as Record<string, unknown>))
+}
+
+function normalizeApplicationRecord(value: unknown): Application | null {
+  if (isApplicationRecord(value)) {
+    return value
+  }
+
+  if (value && typeof value === 'object' && 'application' in (value as Record<string, unknown>)) {
+    const application = (value as { application?: unknown }).application
+    return isApplicationRecord(application) ? application : null
+  }
+
+  return null
+}
+
+function normalizePaginatedApplications(response: BackendPaginatedApplications): PaginatedApplicationsResponse {
+  if (Array.isArray(response)) {
+    return {
+      applications: response,
+      totalCount: response.length,
+      page: 1,
+      pageSize: response.length,
+    }
+  }
+
+  const applications = response?.applications ?? response?.results ?? []
+  const totalCount = response?.totalCount ?? response?.count ?? applications.length
+  const page = response?.page ?? 1
+  const pageSize = response?.pageSize ?? response?.limit ?? applications.length
+
+  return {
+    applications,
+    totalCount,
+    page,
+    pageSize,
+    ...(response?.stats ? { stats: response.stats } : {}),
+  }
+}
+
+async function getApplicationById(id: string): Promise<Application | null> {
+  const response = await apiClient.request<unknown>(`/applications?id=${encodeURIComponent(id)}`)
+  return normalizeApplicationRecord(response)
+}
+
+async function loadApplicationDetails(
+  id: string,
+  options?: ApplicationIncludeOptions,
+): Promise<ApplicationDetailResponse> {
+  const application = await getApplicationById(id)
+
+  if (!application) {
+    throw new Error('Application not found or access denied')
+  }
+
+  const include = new Set(options?.include ?? [])
+  const shouldLoadDocuments = include.has('documents')
+  const shouldLoadGrades = include.has('grades')
+  const shouldLoadStatusHistory = include.has('statusHistory')
+
+  const [documents, grades, summary, interviews] = await Promise.all([
+    shouldLoadDocuments
+      ? apiClient.request<unknown[]>(`/applications/${encodeURIComponent(id)}/documents`)
+      : Promise.resolve(null),
+    shouldLoadGrades
+      ? apiClient.request<unknown[]>(`/applications/${encodeURIComponent(id)}/grades`)
+      : Promise.resolve(null),
+    shouldLoadStatusHistory
+      ? apiClient.request<ApplicationSummaryResponse>(`/applications/${encodeURIComponent(id)}/summary`)
+      : Promise.resolve(null),
+    apiClient.request<ApplicationInterview[]>(`/applications/${encodeURIComponent(id)}/interviews`).catch(() => null),
+  ])
+
+  const latestInterview = Array.isArray(interviews) && interviews.length > 0 ? interviews[0] : null
+  const mergedApplication = summary?.application
+    ? { ...application, ...summary.application, interview: latestInterview }
+    : { ...application, interview: latestInterview }
+
+  return {
+    application: mergedApplication,
+    ...(Array.isArray(documents) ? { documents } : {}),
+    ...(Array.isArray(grades) ? { grades } : {}),
+    ...(Array.isArray(summary?.status_history) ? { statusHistory: summary.status_history } : {}),
+    interview: latestInterview,
+  }
+}
+
 export const applicationService = {
-  list: (params?: QueryParams) =>
-    apiClient.request<PaginatedApplicationsResponse>(
+  list: async (params?: QueryParams) => {
+    const response = await apiClient.request<BackendPaginatedApplications>(
       `/applications${buildQueryString(params ?? {})}`
-    ),
-
-  // Alias for backward compatibility
-  getAll: (params?: QueryParams) =>
-    apiClient.request<PaginatedApplicationsResponse>(
-      `/applications${buildQueryString(params ?? {})}`
-    ),
-
-  getById: (id: string, options?: ApplicationIncludeOptions) => {
-    const includeQuery = buildQueryString({ include: options?.include ?? [] })
-    const separator = includeQuery ? '&' : ''
-    return apiClient.request<ApplicationDetailResponse>(
-      `/applications?id=${encodeURIComponent(id)}${separator}${includeQuery.replace('?', '')}`
     )
+    return normalizePaginatedApplications(response)
   },
 
-  create: (data: ApplicationPayload) =>
-    apiClient.request<Application>('/applications', {
+  getAll: async (params?: QueryParams) => {
+    const response = await apiClient.request<BackendPaginatedApplications>(
+      `/applications${buildQueryString(params ?? {})}`
+    )
+    return normalizePaginatedApplications(response)
+  },
+
+  getById: (id: string, options?: ApplicationIncludeOptions) =>
+    loadApplicationDetails(id, options),
+
+  create: async (data: ApplicationPayload) => {
+    const response = await apiClient.request<unknown>('/applications', {
       method: 'POST',
       body: JSON.stringify(data)
-    }),
+    })
+
+    return normalizeApplicationRecord(response)
+  },
 
   update: async (id: string, data: ApplicationPayload) => {
     const cleanId = id.replace(/^applications-/, '')
-    return apiClient.request<Application>(`/applications?id=${cleanId}`, {
-      method: 'PUT',
+    const response = await apiClient.request<unknown>(`/applications?id=${encodeURIComponent(cleanId)}`, {
+      method: 'PATCH',
       body: JSON.stringify(data)
     })
+
+    return normalizeApplicationRecord(response)
   },
 
   delete: async (id: string) => {
-    await apiClient.request<void>(`/applications?id=${id}`, {
+    await apiClient.request<void>(`/applications?id=${encodeURIComponent(id)}`, {
       method: 'DELETE'
     })
     return { success: true }
   },
 
-  updateStatus: (id: string, status: Application['status'], notes?: string, force?: boolean) =>
-    apiClient.request<Application>(`/applications?id=${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ action: 'update_status', status, notes, ...(force ? { force: true } : {}) }),
+  updateStatus: async (id: string, status: Application['status'], notes?: string, force?: boolean) => {
+    await apiClient.request(`/applications?action=review&id=${encodeURIComponent(id)}`, {
+      method: 'POST',
+      body: JSON.stringify({ new_status: status, notes, ...(force ? { force: true } : {}) }),
       invalidateCache: [`/applications?id=${id}`, '/applications']
-    }),
+    })
 
-  updatePaymentStatus: (
+    return getApplicationById(id)
+  },
+
+  updatePaymentStatus: async (
     id: string,
     paymentStatus: Application['payment_status'],
     verificationNotes?: string,
-    force?: boolean
+    _force?: boolean
   ) =>
-    apiClient.request<Application>(`/applications?id=${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({
-        action: 'update_payment_status',
-        paymentStatus,
-        verificationNotes: verificationNotes || undefined,
-        force: force || undefined
-      }),
-      invalidateCache: [`/applications?id=${id}`, '/applications']
+    applicationService.update(id, {
+      payment_status: paymentStatus,
+      payment_verified_at: new Date().toISOString(),
+      ...(verificationNotes ? { admin_feedback: verificationNotes, admin_feedback_date: new Date().toISOString() } : {}),
     }),
 
-  verifyDocument: (
-    id: string,
-    payload: { documentId?: string; documentType?: string; status: string; notes?: string }
-  ) =>
-    apiClient.request<Application>(`/applications?id=${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ action: 'verify_document', ...payload })
-    }),
+  verifyDocument: async (
+    _id: string,
+    _payload: { documentId?: string; documentType?: string; status: string; notes?: string }
+  ) => {
+    throw new Error('Document verification is not implemented in the Django backend yet')
+  },
 
   syncGrades: async (id: string, grades: Array<{ subject_id: string; grade: number }>) => {
     const { syncGradesWithRecovery } = await import('@/lib/connectionFix')
     return syncGradesWithRecovery(id, grades)
   },
 
-  sendNotification: (id: string, notification: { title: string; message: string }) =>
-    apiClient.request<Application>(`/applications?id=${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ action: 'send_notification', ...notification })
-    }),
+  sendNotification: async (id: string, notification: { title: string; message: string }) => {
+    const application = await getApplicationById(id)
+    if (!application?.user_id) {
+      throw new Error('Application recipient could not be resolved')
+    }
 
-  generateAcceptanceLetter: (id: string) =>
-    apiClient.request<Application>(`/applications?id=${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ action: 'generate_acceptance_letter' })
-    }),
+    const sent = await notificationService.send({
+      to: application.user_id,
+      subject: notification.title,
+      message: notification.message,
+    })
 
-  generateFinanceReceipt: (id: string) =>
-    apiClient.request<Application>(`/applications?id=${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ action: 'generate_finance_receipt' })
-    }),
+    if (!sent) {
+      throw new Error('Notification delivery request was rejected by the backend')
+    }
+
+    return { success: true }
+  },
+
+  generateAcceptanceLetter: async (_id: string) => {
+    throw new Error('Acceptance-letter generation is not implemented in the Django backend yet')
+  },
+
+  generateFinanceReceipt: async (_id: string) => {
+    throw new Error('Finance receipt generation is not implemented in the Django backend yet')
+  },
 
   scheduleInterview: async (id: string, payload: ScheduleInterviewPayload) => {
-    const response = await apiClient.request<{ interview: ApplicationInterview }>(
-      `/applications?id=${id}`,
+    const response = await apiClient.request<ApplicationInterview>(
+      `/applications/${encodeURIComponent(id)}/interviews`,
       {
-        method: 'PATCH',
+        method: 'POST',
         body: JSON.stringify({
-          action: 'schedule_interview',
-          scheduledAt: payload.scheduledAt,
+          scheduled_at: payload.scheduledAt,
           mode: payload.mode,
           location: payload.location,
-          notes: payload.notes
+          notes: payload.notes,
         })
       }
     )
 
-    return response?.interview ?? null
+    return response ?? null
   },
 
   rescheduleInterview: async (id: string, payload: RescheduleInterviewPayload) => {
-    const response = await apiClient.request<{ interview: ApplicationInterview }>(
-      `/applications?id=${id}`,
+    const response = await apiClient.request<ApplicationInterview>(
+      `/applications/${encodeURIComponent(id)}/interviews`,
       {
         method: 'PATCH',
         body: JSON.stringify({
-          action: 'reschedule_interview',
-          scheduledAt: payload.scheduledAt,
+          scheduled_at: payload.scheduledAt,
           mode: payload.mode,
           location: payload.location,
-          notes: payload.notes
+          notes: payload.notes,
+          status: 'rescheduled',
         })
       }
     )
 
-    return response?.interview ?? null
+    return response ?? null
   },
 
   cancelInterview: async (id: string, payload: CancelInterviewPayload = {}) => {
-    const response = await apiClient.request<{ interview: ApplicationInterview }>(
-      `/applications?id=${id}`,
+    const response = await apiClient.request<ApplicationInterview>(
+      `/applications/${encodeURIComponent(id)}/interviews`,
       {
         method: 'PATCH',
         body: JSON.stringify({
-          action: 'cancel_interview',
-          notes: payload.notes
+          status: 'cancelled',
+          notes: payload.notes,
         })
       }
     )
 
-    return response?.interview ?? null
+    return response ?? null
   },
 
-  /**
-   * Export applications for CSV/Excel/PDF export (admin only)
-   * Returns paginated applications with all details
-   */
   exportApplications: async (params: {
     page?: number;
     limit?: number;
@@ -204,48 +319,21 @@ export const applicationService = {
     program?: string;
     institution?: string;
   } = {}) => {
-    const queryParams = new URLSearchParams();
-    queryParams.set('action', 'export');
-    if (params.page !== undefined) queryParams.set('page', String(params.page));
-    if (params.limit !== undefined) queryParams.set('limit', String(params.limit));
-    if (params.search) queryParams.set('search', params.search);
-    if (params.status) queryParams.set('status', params.status);
-    if (params.payment) queryParams.set('payment', params.payment);
-    if (params.program) queryParams.set('program', params.program);
-    if (params.institution) queryParams.set('institution', params.institution);
+    const response = await applicationService.list({
+      page: params.page ?? 1,
+      pageSize: params.limit ?? 100,
+      search: params.search,
+      status: params.status,
+      payment: params.payment,
+      program: params.program,
+      institution: params.institution,
+    })
 
-    return apiClient.request<{
-      applications: Array<{
-        application_number: string;
-        full_name: string;
-        email: string;
-        phone: string;
-        program: string;
-        intake: string;
-        institution: string;
-        status: string;
-        payment_status: string | null;
-        application_fee: number;
-        paid_amount: number;
-        submitted_at: string;
-        created_at: string;
-        grades_summary: string;
-        total_subjects: number;
-        points: number;
-        age: number;
-        days_since_submission: number;
-        payment_verified_at: string | null;
-        payment_verified_by_name: string | null;
-        payment_verified_by_email: string | null;
-        last_payment_audit_at: string | null;
-        last_payment_audit_by_name: string | null;
-        last_payment_audit_by_email: string | null;
-        last_payment_audit_notes: string | null;
-        last_payment_reference: string | null;
-      }>;
-      page: number;
-      limit: number;
-      hasMore: boolean;
-    }>(`/applications?${queryParams.toString()}`);
+    return {
+      applications: response.applications,
+      page: response.page,
+      limit: response.pageSize,
+      hasMore: response.page * response.pageSize < response.totalCount,
+    }
   }
 }

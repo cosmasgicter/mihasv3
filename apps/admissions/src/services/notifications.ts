@@ -53,38 +53,34 @@ export const notificationService = {
       method: 'GET'
     }),
 
-  /** Update notification preferences. Maps to POST /api/notifications?action=preferences */
+  /** Update notification preferences. Django currently supports email/push + quiet hours only. */
   updatePreferences: (payload: UpdatePreferencesPayload) =>
     apiClient.request('/notifications?action=preferences', {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    }),
-
-  /** List notifications. Maps to GET /api/notifications?action=list */
-  list: () =>
-    apiClient.request('/notifications?action=list', {
-      method: 'GET'
-    }),
-
-  /** Mark a notification as read. Maps to PUT /api/notifications?action=mark-read */
-  markRead: (notificationId: string) =>
-    apiClient.request('/notifications?action=mark-read', {
       method: 'PUT',
-      body: JSON.stringify({ notificationId })
+      body: JSON.stringify({
+        email_enabled: payload.marketing_emails ?? payload.application_updates ?? true,
+        push_enabled: payload.whatsapp_enabled ?? payload.sms_enabled ?? false,
+        quiet_hours:
+          payload.quiet_hours_start || payload.quiet_hours_end
+            ? {
+                start: payload.quiet_hours_start ?? null,
+                end: payload.quiet_hours_end ?? null,
+              }
+            : {},
+      })
     }),
 
-  /** Mark all notifications as read. Maps to PUT /api/notifications?action=mark-all-read */
-  markAllRead: () =>
-    apiClient.request('/notifications?action=mark-all-read', {
-      method: 'PUT'
-    }),
+  /** Notification inbox APIs are not available on the Django backend yet. */
+  list: async () => [],
 
-  /** Delete a notification. Maps to DELETE /api/notifications?action=delete */
-  delete: (notificationId: string) =>
-    apiClient.request('/notifications?action=delete', {
-      method: 'DELETE',
-      body: JSON.stringify({ notificationId })
-    }),
+  /** Notification inbox APIs are not available on the Django backend yet. */
+  markRead: async (_notificationId: string) => false,
+
+  /** Notification inbox APIs are not available on the Django backend yet. */
+  markAllRead: async () => false,
+
+  /** Notification inbox APIs are not available on the Django backend yet. */
+  delete: async (_notificationId: string) => false,
 }
 
 

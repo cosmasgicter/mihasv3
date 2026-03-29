@@ -20,7 +20,7 @@ export interface PublicApplicationStatus {
 }
 
 interface TrackApplicationResponse {
-  application: {
+  application?: {
     application_number: string
     status: string
     payment_status?: string | null
@@ -32,6 +32,10 @@ interface TrackApplicationResponse {
     updated_at: string | null
     feedback_summary: string | null
   }
+  status?: string
+  program?: string | null
+  intake?: string | null
+  created_at?: string | null
 }
 
 export const useApplicationTracker = () => {
@@ -62,7 +66,7 @@ export const useApplicationTracker = () => {
 
       const result = await apiClient.request<TrackApplicationResponse>(`/applications?action=track&code=${encodeURIComponent(normalizedTerm)}`)
 
-      const data = result?.application ?? null
+      const data = result?.application ?? result ?? null
 
       if (!data) {
         setError('Application not found. Please check your application number or tracking code.')
@@ -75,10 +79,10 @@ export const useApplicationTracker = () => {
         status: data.status,
         payment_status: data.payment_status ?? null,
         feedback_summary: data.feedback_summary ?? null,
-        submitted_at: data.submitted_at ?? null,
+        submitted_at: data.submitted_at ?? data.created_at ?? null,
         updated_at: data.updated_at ?? null,
-        program_name: data.program_name ?? null,
-        intake_name: data.intake_name ?? null,
+        program_name: data.program_name ?? data.program ?? null,
+        intake_name: data.intake_name ?? data.intake ?? null,
         institution: data.institution ?? null,
         email: data.email ?? null,
         admin_feedback: data.feedback_summary ?? null,

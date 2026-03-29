@@ -71,37 +71,13 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    let isMounted = true;
+    setResetToken(token);
 
-    const verifyResetToken = async () => {
-      try {
-        await apiClient.request('/auth?action=verify-reset-token', {
-          method: 'POST',
-          body: JSON.stringify({ token })
-        })
+    if (typeof window !== 'undefined') {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
 
-        if (!isMounted) return;
-
-        // Store the token for use when submitting the new password
-        setResetToken(token);
-
-        if (typeof window !== 'undefined') {
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-
-        setStatus('ready');
-      } catch (error) {
-        if (!isMounted) return;
-        setVerifyError(error instanceof Error ? error.message : 'Unable to verify reset link. Please try again.');
-        setStatus('error');
-      }
-    };
-
-    verifyResetToken();
-
-    return () => {
-      isMounted = false;
-    };
+    setStatus('ready');
   }, [searchParams]);
 
   const resetPasswordMutation = useMutation({
@@ -110,7 +86,7 @@ export default function ResetPasswordPage() {
         method: 'POST',
         body: JSON.stringify({ 
           token: resetToken,
-          password: values.password 
+          new_password: values.password 
         })
       })
     },

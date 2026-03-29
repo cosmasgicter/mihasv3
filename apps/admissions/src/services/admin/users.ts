@@ -28,17 +28,24 @@ export interface AdminUserPermissionsResult {
   revokedSessions?: number
 }
 
+const ROLE_PERMISSIONS: Record<string, string[]> = {
+  super_admin: ['users:read', 'users:write', 'applications:read', 'applications:write', 'settings:write', 'audit:read'],
+  admin: ['users:read', 'applications:read', 'applications:write', 'settings:read', 'audit:read'],
+  reviewer: ['applications:read'],
+  student: [],
+}
+
 export const userService = {
   list: async () => {
     const response = await apiClient.request<{
-      users?: Array<Record<string, any>>
+      results?: Array<Record<string, any>>
       totalCount?: number
       page?: number
       pageSize?: number
       totalPages?: number
-    }>('/api/admin?action=users')
+    }>('/admin?action=users')
 
-    const users = (response?.users || []).map((user) => ({
+    const users = (response?.results || []).map((user) => ({
       ...user,
       full_name:
         user.full_name ||
@@ -56,10 +63,20 @@ export const userService = {
   getById: (_id: string) => Promise.reject(new Error('User detail endpoint is not supported by /api/admin yet')),
   getRole: (_id: string) => Promise.reject(new Error('User role endpoint is not supported by /api/admin yet')),
   getPermissions: async (id: string) => {
-    return apiClient.request<AdminUserPermissionsResult>(`/api/admin?action=user-permissions&userId=${encodeURIComponent(id)}`)
+    const user = await apiClient.request<Record<string, any>>(`/admin/users/${encodeURIComponent(id)}`, {
+      method: 'GET',
+    })
+    const role = typeof user?.role === 'string' ? user.role : 'student'
+    return {
+      userId: id,
+      role,
+      permissions: ROLE_PERMISSIONS[role] ?? [],
+      defaultPermissions: ROLE_PERMISSIONS[role] ?? [],
+      source: 'derived-from-role',
+    }
   },
   create: (data: { email: string; password: string; full_name: string; phone?: string; role: string }) =>
-    apiClient.request<AdminUserMutationResult>('/api/admin?action=register', {
+    apiClient.request<AdminUserMutationResult>('/admin?action=register', {
       method: 'POST',
       body: JSON.stringify({
         email: data.email,
@@ -70,26 +87,19 @@ export const userService = {
       })
     }),
   update: (id: string, data: { full_name: string; email: string; phone?: string; role: string }) =>
-    apiClient.request<AdminUserMutationResult>('/api/admin?action=users', {
-      method: 'PUT',
+    apiClient.request<AdminUserMutationResult>(`/admin/users/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
       body: JSON.stringify({
-        userId: id,
-        full_name: data.full_name,
-        email: data.email,
-        phone: data.phone,
+        ...splitFullName(data.full_name),
         role: data.role,
       })
     }),
-  updatePermissions: (id: string, permissions: string[]) =>
-    apiClient.request<AdminUserPermissionsResult>('/api/admin?action=user-permissions', {
-      method: 'PUT',
-      body: JSON.stringify({
-        userId: id,
-        permissions,
-      })
-    }),
+  updatePermissions: async (_id: string, _permissions: string[]) => {
+    throw new Error('Fine-grained permission overrides are not implemented in the Django backend yet')
+  },
   remove: (id: string) =>
-    apiClient.request<AdminUserMutationResult>(`/api/admin?action=users&userId=${encodeURIComponent(id)}`, {
-      method: 'DELETE',
+    apiClient.request<AdminUserMutationResult>(`/admin/users/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ is_active: false }),
     }),
 }

@@ -18,19 +18,59 @@ from apps.common.validators import validate_nrc, validate_zambian_phone
 class ApplicationSerializer(serializers.ModelSerializer):
     """Full application serializer with all fields."""
 
+    tracking_code = serializers.CharField(source="public_tracking_code", read_only=True)
+    payment_reference = serializers.CharField(source="momo_ref", read_only=True)
+    last_payment_reference = serializers.CharField(source="momo_ref", read_only=True)
+    payment_verified_by_name = serializers.SerializerMethodField()
+    payment_verified_by_email = serializers.SerializerMethodField()
+    last_payment_audit_notes = serializers.CharField(source="admin_feedback", read_only=True)
+
     class Meta:
         model = Application
         fields = [
             "id", "user_id", "application_number", "public_tracking_code",
+            "tracking_code",
             "full_name", "nrc_number", "passport_number", "date_of_birth",
             "sex", "phone", "email", "residence_town", "nationality",
+            "country", "address_line_1", "address_line_2", "postal_code",
+            "next_of_kin_name", "next_of_kin_phone",
             "program", "intake", "institution", "status", "version",
+            "result_slip_url", "extra_kyc_url", "application_fee",
+            "payment_method", "payer_name", "payer_phone", "amount",
+            "paid_at", "momo_ref", "pop_url", "receipt_number",
+            "payment_status", "payment_verified_at", "payment_verified_by",
+            "payment_reference", "last_payment_reference",
+            "payment_verified_by_name", "payment_verified_by_email",
+            "eligibility_status", "eligibility_score", "eligibility_notes",
+            "admin_feedback", "admin_feedback_date", "admin_feedback_by",
+            "review_started_at", "decision_date", "reviewed_by",
+            "additional_subjects", "submitted_at",
+            "last_payment_audit_notes",
             "created_at", "updated_at",
         ]
         read_only_fields = [
-            "id", "application_number", "public_tracking_code",
-            "status", "version", "created_at", "updated_at",
+            "id", "application_number", "public_tracking_code", "tracking_code",
+            "payment_reference", "last_payment_reference",
+            "payment_verified_by_name", "payment_verified_by_email",
+            "version", "created_at", "updated_at",
         ]
+
+    def get_payment_verified_by_name(self, obj):
+        verifier = getattr(obj, "payment_verified_by", None)
+        if verifier is None:
+            return None
+
+        full_name = " ".join(
+            part for part in [getattr(verifier, "first_name", ""), getattr(verifier, "last_name", "")]
+            if part
+        ).strip()
+        return full_name or None
+
+    def get_payment_verified_by_email(self, obj):
+        verifier = getattr(obj, "payment_verified_by", None)
+        if verifier is None:
+            return None
+        return getattr(verifier, "email", None)
 
     def validate_phone(self, value):
         if value:
@@ -112,11 +152,18 @@ class ApplicationCreateSerializer(serializers.Serializer):
 class ApplicationListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list views."""
 
+    tracking_code = serializers.CharField(source="public_tracking_code", read_only=True)
+
     class Meta:
         model = Application
         fields = [
-            "id", "application_number", "full_name", "program",
-            "intake", "institution", "status", "created_at",
+            "id", "application_number", "public_tracking_code", "tracking_code",
+            "full_name", "email", "phone", "program", "intake", "institution",
+            "status", "payment_status", "payment_method", "payer_name",
+            "payer_phone", "amount", "paid_at", "momo_ref", "pop_url",
+            "payment_verified_at", "submitted_at", "admin_feedback",
+            "review_started_at", "decision_date", "application_fee",
+            "created_at", "updated_at",
         ]
 
 
@@ -126,7 +173,8 @@ class ApplicationTrackingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Application
         fields = [
-            "status", "program", "intake", "created_at",
+            "application_number", "public_tracking_code", "status",
+            "payment_status", "program", "intake", "created_at", "submitted_at",
         ]
 
 
@@ -135,7 +183,11 @@ class ApplicationDraftSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ApplicationDraft
-        fields = ["id", "application_id", "user_id", "draft_data", "created_at", "updated_at"]
+        fields = [
+            "id", "application_id", "user_id", "draft_data", "draft_name",
+            "step_completed", "is_active", "last_accessed_at",
+            "created_at", "updated_at",
+        ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
 
@@ -157,7 +209,11 @@ class ApplicationInterviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ApplicationInterview
-        fields = ["id", "application_id", "scheduled_at", "status", "notes", "created_at", "updated_at"]
+        fields = [
+            "id", "application_id", "scheduled_at", "mode", "location",
+            "status", "notes", "created_by", "updated_by",
+            "created_at", "updated_at",
+        ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
 
