@@ -104,15 +104,15 @@ This plan implements the monorepo restructure in strict priority order: P0 produ
   - Verify no legacy Node.js files remain at workspace root
   - Verify no stale documentation files remain
 
-- [ ] 7. Restructure repository into monorepo layout
-  - [ ] 7.1 Move Django backend to `backend/`
+- [x] 7. Restructure repository into monorepo layout
+  - [x] 7.1 Move Django backend to `backend/`
     - Move `django_api/` → `backend/`
     - Move `migrations/` (legacy SQL files) → `backend/migrations/`
     - Verify `backend/Dockerfile`, `backend/manage.py`, `backend/requirements.txt` exist
     - Backend remains independently deployable to Koyeb
     - _Requirements: 5.1, 5.9, 5.11_
 
-  - [ ] 7.2 Move admissions frontend to `apps/admissions/`
+  - [x] 7.2 Move admissions frontend to `apps/admissions/`
     - Move `src/` → `apps/admissions/src/`
     - Move `public/` → `apps/admissions/public/`
     - Move `index.html` → `apps/admissions/index.html`
@@ -122,7 +122,7 @@ This plan implements the monorepo restructure in strict priority order: P0 produ
     - Update `apps/admissions/vite.config.ts` paths for new directory structure
     - _Requirements: 5.2, 5.8_
 
-  - [ ] 7.3 Create placeholder app directories
+  - [x] 7.3 Create placeholder app directories
     - Create `apps/website/package.json` and `apps/website/README.md` (future MIHAS main website)
     - Create `apps/student-portal/package.json` and `apps/student-portal/README.md` (future student management system)
     - Create `shared/package.json` (shared types, utilities, design tokens)
@@ -180,13 +180,13 @@ This plan implements the monorepo restructure in strict priority order: P0 produ
     - Add `test`, `test:unit`, `test:property`, and `test:e2e` scripts to `apps/admissions/package.json`
     - _Requirements: 9.2, 9.3, 9.4, 9.5_
 
-- [ ] 11. Set up root monorepo tooling
-  - [ ] 11.1 Create root `package.json` with workspace configuration
+- [x] 11. Set up root monorepo tooling
+  - [x] 11.1 Create root `package.json` with workspace configuration
     - Set `"workspaces": ["apps/*", "shared"]` for bun workspace support
     - Add workspace scripts: `dev:admissions`, `build:admissions`, `test:admissions`, `lint:admissions` delegating to `apps/admissions/`
     - _Requirements: 8.1, 8.2_
 
-  - [ ] 11.2 Update root `.gitignore` and create root `README.md`
+  - [x] 11.2 Update root `.gitignore` and create root `README.md`
     - Update `.gitignore` for monorepo structure (node_modules in all app dirs, Python artifacts in backend/, etc.)
     - Create root `README.md` describing monorepo layout, listing all projects, and documenting setup/dev/deploy for each
     - _Requirements: 8.3, 8.4_
