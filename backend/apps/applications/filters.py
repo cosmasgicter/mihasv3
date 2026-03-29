@@ -14,6 +14,8 @@ class ApplicationFilter(django_filters.FilterSet):
     """Filter applications by status, payment_status, program, institution, search."""
 
     status = django_filters.CharFilter(field_name="status", lookup_expr="iexact")
+    payment = django_filters.CharFilter(field_name="payment_status", lookup_expr="iexact")
+    payment_status = django_filters.CharFilter(field_name="payment_status", lookup_expr="iexact")
     program = django_filters.CharFilter(field_name="program", lookup_expr="icontains")
     institution = django_filters.CharFilter(field_name="institution", lookup_expr="icontains")
     search = django_filters.CharFilter(method="filter_search")
@@ -21,7 +23,7 @@ class ApplicationFilter(django_filters.FilterSet):
 
     class Meta:
         model = Application
-        fields = ["status", "program", "institution"]
+        fields = ["status", "payment", "payment_status", "program", "institution"]
 
     def filter_search(self, queryset, name, value):
         """Search by full_name or email (case-insensitive)."""

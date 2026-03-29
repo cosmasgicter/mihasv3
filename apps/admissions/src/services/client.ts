@@ -30,6 +30,7 @@ export class AuthenticationError extends Error {
 }
 
 const API_BASE = getApiBaseUrl();
+const API_V1_PREFIX = '/api/v1';
 
 /** Default request timeout in milliseconds (30s) */
 const DEFAULT_TIMEOUT = 30_000;
@@ -41,7 +42,7 @@ const MAX_RETRIES = 2;
 const RETRY_DELAYS = [1_000, 3_000];
 
 /** Endpoints that use the shorter timeout */
-const SHORT_TIMEOUT_PATTERNS = ['/api/health', '/api/auth?action=session'];
+const SHORT_TIMEOUT_PATTERNS = ['/health/', '/api/v1/auth/session/'];
 
 /**
  * Determine the appropriate timeout for a given endpoint.
@@ -128,6 +129,24 @@ function createTimeoutController(
   return { controller, clear };
 }
 
+function appendQuery(path: string, params: URLSearchParams): string {
+  const queryString = params.toString();
+  return queryString ? `${path}?${queryString}` : path;
+}
+
+function toApiV1Path(path: string): string {
+  const trimmedPath = path.replace(/^\/+/, '');
+  return `${API_V1_PREFIX}/${trimmedPath}`.replace(/\/{2,}/g, '/');
+}
+
+function getResourceSegments(endpoint: string): string[] {
+  const sanitized = endpoint
+    .replace(/^\/api\/v1\//, '/')
+    .replace(/^\/api\//, '/');
+
+  return sanitized.split('/').filter(Boolean);
+}
+
 class ApiClient {
   /**
    * Promise-lock for token refresh deduplication.
@@ -151,7 +170,8 @@ class ApiClient {
     }
 
     try {
-      const response = await fetch(`${API_BASE}/api/auth?action=refresh`, {
+      const refreshEndpoint = this.normalizeEndpoint('/auth?action=refresh', 'POST');
+      const response = await fetch(`${API_BASE}${refreshEndpoint}`, {
         method: 'POST',
         credentials: 'include',
         headers,
@@ -194,9 +214,9 @@ class ApiClient {
    */
   private isAuthExcludedEndpoint(endpoint: string): boolean {
     const excludedPatterns = [
-      '/api/auth?action=refresh',
-      '/api/auth?action=login',
-      '/api/auth?action=register',
+      '/api/v1/auth/refresh/',
+      '/api/v1/auth/login/',
+      '/api/v1/auth/register/',
     ];
     return excludedPatterns.some(pattern => endpoint.includes(pattern));
   }
@@ -215,7 +235,8 @@ class ApiClient {
     signal: AbortSignal,
   ): Promise<Response> {
     // Re-fetch CSRF token from session endpoint
-    const sessionResponse = await fetch(`${API_BASE}/api/auth?action=session`, {
+    const sessionEndpoint = this.normalizeEndpoint('/auth?action=session', 'GET');
+    const sessionResponse = await fetch(`${API_BASE}${sessionEndpoint}`, {
       method: 'GET',
       credentials: 'include',
       signal,
@@ -242,78 +263,227 @@ class ApiClient {
   }
 
   private normalizeEndpoint(endpoint: string, method: string): string {
-    if (!endpoint || endpoint.startsWith('/api/') || endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+    if (!endpoint || endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+      return endpoint;
+    }
+
+    if (endpoint.startsWith('/api/v1/') || endpoint.startsWith('/health/')) {
       return endpoint;
     }
 
     const [rawPath, rawQuery = ''] = endpoint.split('?');
     const path = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
-    const segments = path.split('/').filter(Boolean);
+    const segments = getResourceSegments(path);
 
     if (segments.length === 0) {
       return endpoint;
     }
 
     const [resource, ...rest] = segments;
-    const supportedResources = new Set(['admin', 'applications', 'auth', 'bootstrap', 'catalog', 'documents', 'email', 'health', 'notifications', 'payments', 'sessions']);
-
-    if (!supportedResources.has(resource)) {
-      return endpoint;
-    }
-
     const params = new URLSearchParams(rawQuery);
-    const canonicalPath = `/api/${resource}`;
+    const action = params.get('action') ?? '';
+    const applicationId = params.get('id') ?? params.get('applicationId') ?? params.get('application_id');
+    const sessionId = params.get('sessionId') ?? params.get('id');
+    const documentId = params.get('documentId') ?? params.get('id');
+    const paymentId = params.get('paymentId') ?? params.get('id');
+    const adminEntityId = params.get('id') ?? params.get('userId');
 
-    if (resource === 'catalog' && rest.length > 0 && !params.has('type')) {
-      params.set('type', rest[0]);
-    }
-
-    if (resource === 'auth' && rest.length > 0 && !params.has('action')) {
-      params.set('action', rest.join('-'));
-    }
-
-    if (resource === 'documents' && rest.length > 0 && !params.has('action')) {
-      params.set('action', rest.join('-'));
-    }
-
-    if (resource === 'notifications' && rest.length > 0 && !params.has('action')) {
-      params.set('action', rest.join('-'));
-    }
-
-    if (resource === 'applications') {
-      if (rest.length > 0) {
-        if (rest[0] === 'bulk' && !params.has('action')) {
-          params.set('action', 'bulk');
-        } else if (!params.has('id')) {
-          params.set('id', rest[0]);
+    switch (resource) {
+      case 'auth': {
+        const authAction = action || rest.join('-');
+        params.delete('action');
+        switch (authAction) {
+          case 'login':
+          case 'logout':
+          case 'refresh':
+          case 'register':
+          case 'session':
+            return appendQuery(toApiV1Path(`auth/${authAction}/`), params);
+          case 'forgot-password':
+          case 'password-reset':
+            return appendQuery(toApiV1Path('auth/password-reset/'), params);
+          case 'reset-password':
+            return appendQuery(toApiV1Path('auth/password-reset/confirm/'), params);
+          default:
+            return appendQuery(toApiV1Path(`auth/${authAction}/`), params);
         }
       }
-
-      if (rest.length > 1 && !params.has('action')) {
-        params.set('action', rest.slice(1).join('-'));
+      case 'sessions': {
+        const sessionAction = action || rest.join('-') || 'list';
+        params.delete('action');
+        if (sessionAction === 'revoke-all') {
+          return appendQuery(toApiV1Path('sessions/revoke-all/'), params);
+        }
+        if (sessionAction === 'revoke' && sessionId) {
+          params.delete('sessionId');
+          params.delete('id');
+          return appendQuery(toApiV1Path(`sessions/${sessionId}/revoke/`), params);
+        }
+        return appendQuery(toApiV1Path('sessions/'), params);
       }
-    }
+      case 'admin': {
+        if (rest[0] === 'users') {
+          return rest[1]
+            ? appendQuery(toApiV1Path(`admin/users/${rest[1]}/`), params)
+            : appendQuery(toApiV1Path('admin/users/'), params);
+        }
 
-    if (resource === 'admin' && rest.length > 0) {
-      if (rest[0] === 'users') {
-        if (!params.has('action')) {
-          if (rest[2] === 'role' && (method === 'PUT' || method === 'POST')) {
-            params.set('action', 'update-role');
-          } else {
-            params.set('action', 'users');
+        if (rest[0] === 'settings') {
+          return rest[1]
+            ? appendQuery(toApiV1Path(`admin/settings/${rest[1]}/`), params)
+            : appendQuery(toApiV1Path('admin/settings/'), params);
+        }
+
+        const adminAction = action || rest.join('-');
+        params.delete('action');
+        switch (adminAction) {
+          case 'dashboard':
+            return appendQuery(toApiV1Path('admin/dashboard/'), params);
+          case 'users':
+          case 'register':
+            if (adminEntityId && ['GET', 'PATCH', 'PUT', 'DELETE'].includes(method)) {
+              params.delete('id');
+              params.delete('userId');
+              return appendQuery(toApiV1Path(`admin/users/${adminEntityId}/`), params);
+            }
+            return appendQuery(toApiV1Path('admin/users/'), params);
+          case 'settings':
+            if (adminEntityId && ['GET', 'PATCH', 'PUT', 'DELETE'].includes(method)) {
+              params.delete('id');
+              params.delete('userId');
+              return appendQuery(toApiV1Path(`admin/settings/${adminEntityId}/`), params);
+            }
+            return appendQuery(toApiV1Path('admin/settings/'), params);
+          case 'audit-logs':
+            return appendQuery(toApiV1Path('admin/audit-logs/'), params);
+          default:
+            return appendQuery(toApiV1Path(`admin/${adminAction}/`), params);
+        }
+      }
+      case 'applications': {
+        const collectionActions = new Set(['track', 'draft', 'export', 'bulk-status']);
+        const directApplicationId =
+          rest[0] && !collectionActions.has(rest[0]) ? rest[0] : null;
+        const directNestedAction = directApplicationId ? rest[1] ?? '' : '';
+
+        if (directApplicationId) {
+          switch (directNestedAction) {
+            case 'documents':
+            case 'grades':
+            case 'summary':
+            case 'review':
+            case 'interviews':
+              return appendQuery(
+                toApiV1Path(`applications/${directApplicationId}/${directNestedAction}/`),
+                params,
+              );
+            default:
+              return appendQuery(toApiV1Path(`applications/${directApplicationId}/`), params);
           }
         }
 
-        if (rest[1] && !params.has('id')) {
-          params.set('id', rest[1]);
+        const applicationAction = action || rest.join('-') || '';
+        params.delete('action');
+        switch (applicationAction) {
+          case 'track':
+            return appendQuery(toApiV1Path('applications/track/'), params);
+          case 'draft':
+            return appendQuery(toApiV1Path('applications/draft/'), params);
+          case 'export':
+            return appendQuery(toApiV1Path('applications/export/'), params);
+          case 'bulk':
+          case 'bulk-status':
+            return appendQuery(toApiV1Path('applications/bulk-status/'), params);
+          case 'details':
+            if (applicationId) {
+              params.delete('id');
+              params.delete('applicationId');
+              params.delete('application_id');
+              return appendQuery(toApiV1Path(`applications/${applicationId}/`), params);
+            }
+            break;
+          case 'summary':
+          case 'review':
+          case 'documents':
+          case 'grades':
+          case 'interviews':
+            if (applicationId) {
+              params.delete('id');
+              params.delete('applicationId');
+              params.delete('application_id');
+              return appendQuery(toApiV1Path(`applications/${applicationId}/${applicationAction}/`), params);
+            }
+            break;
+          case 'schedule-interview':
+            if (applicationId) {
+              params.delete('id');
+              params.delete('applicationId');
+              params.delete('application_id');
+              return appendQuery(toApiV1Path(`applications/${applicationId}/interviews/`), params);
+            }
+            break;
+          default:
+            break;
         }
-      } else if (!params.has('action')) {
-        params.set('action', rest.join('-'));
-      }
-    }
 
-    const queryString = params.toString();
-    return queryString ? `${canonicalPath}?${queryString}` : canonicalPath;
+        if (applicationId && ['GET', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+          params.delete('id');
+          params.delete('applicationId');
+          params.delete('application_id');
+          return appendQuery(toApiV1Path(`applications/${applicationId}/`), params);
+        }
+
+        return appendQuery(toApiV1Path('applications/'), params);
+      }
+      case 'notifications': {
+        const notificationAction = action || rest.join('-');
+        params.delete('action');
+        if (notificationAction === 'preferences') {
+          return appendQuery(toApiV1Path('notifications/preferences/'), params);
+        }
+        return appendQuery(toApiV1Path('notifications/'), params);
+      }
+      case 'documents': {
+        const documentAction = action || rest.join('-');
+        params.delete('action');
+        if (documentAction === 'upload') {
+          return appendQuery(toApiV1Path('documents/upload/'), params);
+        }
+        if (documentAction === 'extract' && documentId) {
+          params.delete('documentId');
+          params.delete('id');
+          return appendQuery(toApiV1Path(`documents/${documentId}/extract/`), params);
+        }
+        return appendQuery(toApiV1Path('documents/'), params);
+      }
+      case 'payments': {
+        const paymentAction = action || rest.join('-');
+        params.delete('action');
+        if (paymentId && paymentAction === 'receipt') {
+          params.delete('paymentId');
+          params.delete('id');
+          return appendQuery(toApiV1Path(`payments/${paymentId}/receipt/`), params);
+        }
+        if (paymentId && paymentAction === 'verify') {
+          params.delete('paymentId');
+          params.delete('id');
+          return appendQuery(toApiV1Path(`payments/${paymentId}/verify/`), params);
+        }
+        return appendQuery(toApiV1Path('payments/'), params);
+      }
+      case 'catalog': {
+        const type = params.get('type') ?? rest[0];
+        params.delete('type');
+        return type
+          ? appendQuery(toApiV1Path(`catalog/${type}/`), params)
+          : appendQuery(toApiV1Path('catalog/'), params);
+      }
+      case 'health': {
+        return action === 'ready' ? '/health/ready/' : '/health/live/';
+      }
+      default:
+        return endpoint;
+    }
   }
 
   private async parseJsonSafely<TResponse>(
@@ -440,7 +610,11 @@ class ApiClient {
     if (normalizedEndpoint) {
       const segments = normalizedEndpoint.split('/').filter(Boolean);
       if (segments.length > 0) {
-        const startIndex = segments[0] === 'api' ? 2 : 1;
+        const startIndex = segments[0] === 'api' && segments[1] === 'v1'
+          ? 3
+          : segments[0] === 'api'
+            ? 2
+            : 1;
         for (let i = startIndex; i <= segments.length; i++) {
           const pattern = `/${segments.slice(0, i).join('/')}`;
           if (pattern.length > 1) {
@@ -487,7 +661,8 @@ class ApiClient {
   ): string[][] {
     const upper = method.toUpperCase();
     const url = new URL(endpoint, 'http://localhost');
-    const pathname = url.pathname.replace(/^\/api\//, '');
+    const normalizedPathname = url.pathname.replace(/^\/api(?:\/v1)?\//, '');
+    const pathname = normalizedPathname.split('/').filter(Boolean)[0] ?? '';
     const action = url.searchParams.get('action') ?? '';
     const id = url.searchParams.get('id') ?? '';
 
@@ -567,7 +742,7 @@ class ApiClient {
     const start = Date.now();
     const method = (options.method ?? 'GET').toString().toUpperCase();
     const normalizedEndpoint = this.normalizeEndpoint(endpoint, method);
-    const service = normalizedEndpoint.split('/')[2] || 'unknown';
+    const service = getResourceSegments(normalizedEndpoint)[0] || 'unknown';
 
     const timeoutMs = options.timeout ?? getTimeoutForEndpoint(normalizedEndpoint);
     const maxRetries = options.retries ?? MAX_RETRIES;

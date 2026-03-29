@@ -22,10 +22,7 @@ export const useUpdateUser = () => {
   return useMutation({
     mutationFn: async (updates: { email?: string; password?: string; full_name?: string }) => {
       if (updates.password) {
-        return await apiClient.request('/api/auth?action=reset-password', {
-          method: 'POST',
-          body: JSON.stringify({ newPassword: updates.password }),
-        })
+        throw new Error('Authenticated password changes are not implemented in the Django backend yet')
       }
       throw new Error('Only password updates are currently supported')
     },
@@ -80,14 +77,13 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
       if (!user?.id) {
         return null
       }
-
-      const result = await apiClient.request<UserProfile | { user?: UserProfile }>('/api/auth?action=profile')
-      if (!result) {
-        return null
-      }
-
-      const payload = (result as { user?: UserProfile })?.user ?? result
-      return sanitizeProfile(payload ?? null)
+      return sanitizeProfile({
+        id: user.id,
+        user_id: user.id,
+        email: user.email,
+        role: user.role || 'student',
+        full_name: user.full_name,
+      })
     }
   })
 
@@ -142,20 +138,7 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
 
       logger.info('Attempting to update profile for user:', user.id)
       logger.info('Sanitized updates:', sanitizedUpdates)
-
-      const result = await apiClient.request<UserProfile>('/api/auth?action=profile', {
-        method: 'PATCH',
-        body: JSON.stringify(sanitizedUpdates),
-      })
-
-      const data = sanitizeProfile(result as Record<string, unknown> | null)
-
-      if (!data) {
-        throw new Error('Profile update returned no data. The profile may not exist.')
-      }
-
-      logger.info('Profile updated successfully:', data)
-      return data as UserProfile
+      throw new Error('Profile updates are not implemented in the Django backend yet')
     },
     onSuccess: async (data) => {
       queryClient.setQueryData(PROFILE_QUERY_KEY(user?.id), (current: UserProfile | null | undefined) => ({

@@ -19,8 +19,8 @@ export const authService = {
       body: JSON.stringify({
         email: data.email,
         password: data.password,
-        firstName: firstName || '',
-        lastName: lastNameParts.join(' ') || '',
+        first_name: firstName || '',
+        last_name: lastNameParts.join(' ') || '',
       })
     })
   },

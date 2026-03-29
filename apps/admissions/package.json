@@ -8,7 +8,7 @@
     "dev": "bunx --bun vite",
     "dev:network": "bunx --bun vite --host 0.0.0.0",
     "dev:prod": "bun run build && bunx --bun vite preview",
-    "dev:api": "bun run local-server.js",
+    "dev:api": "cd ../../backend && python3 manage.py runserver 0.0.0.0:3001",
     "dev:full": "bunx concurrently \"bun run dev:api\" \"bun run dev\"",
     "build": "bun run type-check && bunx --bun vite build",
     "build:prod": "bun run build",

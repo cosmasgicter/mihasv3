@@ -38,6 +38,54 @@ export function normalizeSessionResult<T>(result: { success: boolean; data: T } 
   return result?.success ? result.data : null
 }
 
+function normalizeAuthUser(
+  payload: (Partial<User> & { first_name?: string; last_name?: string }) | null | undefined
+): User | null {
+  if (!payload?.id || !payload.email) {
+    return null
+  }
+
+  const firstName = typeof payload.first_name === 'string' ? payload.first_name.trim() : ''
+  const lastName = typeof payload.last_name === 'string' ? payload.last_name.trim() : ''
+  const fullName = typeof payload.full_name === 'string' && payload.full_name.trim()
+    ? payload.full_name.trim()
+    : [firstName, lastName].filter(Boolean).join(' ').trim()
+
+  return {
+    ...payload,
+    id: String(payload.id),
+    email: payload.email,
+    role: payload.role || 'student',
+    full_name: fullName || undefined,
+  }
+}
+
+function extractAuthUser(result: User | { user?: User } | null | undefined): User | null {
+  if (!result) {
+    return null
+  }
+
+  if (typeof result === 'object' && 'user' in result) {
+    return normalizeAuthUser(result.user)
+  }
+
+  return normalizeAuthUser(result)
+}
+
+function buildProfileFromUser(user: User | null): UserProfile | null {
+  if (!user) {
+    return null
+  }
+
+  return {
+    id: user.id,
+    user_id: user.id,
+    email: user.email,
+    role: user.role,
+    full_name: user.full_name,
+  }
+}
+
 export function resolveAuthLoadingState({
   sessionLoading,
   user,
@@ -63,8 +111,9 @@ export function useSessionListener() {
   const { data: sessionData, isLoading: sessionLoading } = useQuery({
     queryKey: ['auth', 'session'],
     queryFn: async () => {
-      const result = await apiClient.request<{ user?: User }>('/api/auth?action=session')
-      return result?.user ? result : null
+      const result = await apiClient.request<User | { user?: User }>('/auth?action=session')
+      const normalizedUser = extractAuthUser(result)
+      return normalizedUser ? { user: normalizedUser } : null
     },
     staleTime: CACHE_CONFIG.auth.staleTime,   // 10 minutes
     gcTime: CACHE_CONFIG.auth.gcTime,          // 30 minutes
@@ -80,9 +129,7 @@ export function useSessionListener() {
     queryKey: ['user-profile', user?.id],
     enabled: Boolean(user?.id),
     queryFn: async () => {
-      const result = await apiClient.request<UserProfile | { user?: UserProfile }>('/api/auth?action=profile')
-      if (!result) return null
-      return (result as { user?: UserProfile })?.user ?? (result as UserProfile) ?? null
+      return buildProfileFromUser(user)
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -107,23 +154,22 @@ export function useSessionListener() {
   const signIn = useCallback(async (email: string, password: string): Promise<SignInResult> => {
     try {
       const result = await apiClient.request<{ user?: User; profile?: UserProfile }>(
-        '/api/auth?action=login',
+        '/auth?action=login',
         { method: 'POST', body: JSON.stringify({ email, password }) },
       )
 
-      if (!result?.user) {
+      const authUser = extractAuthUser(result)
+
+      if (!authUser) {
         return { error: 'Login failed' }
       }
-
-      const authUser = result.user
 
       // Seed auth session cache FIRST — this makes isAuthenticated=true immediately
       // and resolveAuthLoadingState returns false (no loading) since user data exists.
       queryClient.setQueryData(['auth', 'session'], { user: authUser })
 
-      if (result.profile) {
-        queryClient.setQueryData(['user-profile', authUser.id], result.profile)
-      }
+      const normalizedProfile = buildProfileFromUser(authUser)
+      queryClient.setQueryData(['user-profile', authUser.id], normalizedProfile)
 
       // Clear stale non-auth queries (e.g., previous user's data) WITHOUT touching auth cache.
       // This replaces the old queryClient.clear() that caused the skeleton hang.
@@ -146,7 +192,7 @@ export function useSessionListener() {
         detail: { userId: authUser.id },
       }))
 
-      return { user: authUser, profile: result.profile }
+      return { user: authUser, profile: normalizedProfile }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Login failed'
       return { error: message }
@@ -166,21 +212,25 @@ export function useSessionListener() {
     }
 
     try {
-      const result = await apiClient.request<{ user?: User; profile?: UserProfile }>(
-        '/api/auth?action=register',
+      const registerResult = await apiClient.request<{ user?: User; profile?: UserProfile }>(
+        '/auth?action=register',
         {
           method: 'POST',
-          body: JSON.stringify({ email, password, firstName, lastName, ...cleanUserData }),
+          body: JSON.stringify({ email, password, first_name: firstName, last_name: lastName, ...cleanUserData }),
         },
       )
 
-      const userPayload = result?.user
+      const loginResult = await apiClient.request<{ user?: User; profile?: UserProfile }>(
+        '/auth?action=login',
+        { method: 'POST', body: JSON.stringify({ email, password }) },
+      )
+
+      const userPayload = extractAuthUser(loginResult) ?? extractAuthUser(registerResult)
       if (userPayload) {
         // Seed auth cache FIRST, then clear stale data (same pattern as signIn)
         queryClient.setQueryData(['auth', 'session'], { user: userPayload })
-        if (result?.profile) {
-          queryClient.setQueryData(['user-profile', userPayload.id], result.profile)
-        }
+        const normalizedProfile = buildProfileFromUser(userPayload)
+        queryClient.setQueryData(['user-profile', userPayload.id], normalizedProfile)
 
         // Clear stale non-auth queries without touching the caches we just seeded
         queryClient.removeQueries({
@@ -194,7 +244,7 @@ export function useSessionListener() {
         queryClient.invalidateQueries()
 
         window.dispatchEvent(new CustomEvent('userLoggedIn', { detail: { userId: userPayload.id } }))
-        return { user: userPayload, profile: result?.profile ?? null }
+        return { user: userPayload, profile: normalizedProfile }
       }
 
       return { user: null }
@@ -211,7 +261,7 @@ export function useSessionListener() {
 
     // 2. POST logout while cookies are still valid, then wipe all cached queries
     try {
-      await apiClient.request('/api/auth?action=logout', { method: 'POST' })
+      await apiClient.request('/auth?action=logout', { method: 'POST' })
     } catch {
       // Ignore — server logout is best-effort
     } finally {
@@ -246,7 +296,7 @@ export function useSessionListener() {
 
   const requestPasswordReset = useCallback(async (email: string): Promise<PasswordResetResult> => {
     try {
-      await apiClient.request('/api/auth?action=forgot-password', {
+      await apiClient.request('/auth?action=forgot-password', {
         method: 'POST',
         body: JSON.stringify({ email }),
       })
@@ -258,15 +308,15 @@ export function useSessionListener() {
   }, [])
 
   const updatePassword = useCallback(async (password: string, token?: string): Promise<PasswordResetResult> => {
-    try {
-      const result = await apiClient.request<{ user?: User }>('/api/auth?action=reset-password', {
-        method: 'POST',
-        body: JSON.stringify({ password, token }),
-      })
+    if (!token) {
+      return { error: 'Password reset token missing' }
+    }
 
-      if (result?.user) {
-        queryClient.setQueryData(['auth', 'session'], { user: result.user })
-      }
+    try {
+      await apiClient.request('/auth?action=reset-password', {
+        method: 'POST',
+        body: JSON.stringify({ token, new_password: password }),
+      })
 
       return {}
     } catch (error) {
@@ -305,8 +355,9 @@ export function useAuthCheck(): {
   const { data: sessionData, isLoading, refetch } = useQuery({
     queryKey: ['auth', 'session'],
     queryFn: async () => {
-      const result = await apiClient.request<{ user?: User }>('/api/auth?action=session')
-      return result?.user ? result : null
+      const result = await apiClient.request<User | { user?: User }>('/auth?action=session')
+      const normalizedUser = extractAuthUser(result)
+      return normalizedUser ? { user: normalizedUser } : null
     },
     staleTime: CACHE_CONFIG.auth.staleTime,
     gcTime: CACHE_CONFIG.auth.gcTime,

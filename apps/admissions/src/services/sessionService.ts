@@ -41,16 +41,31 @@ export interface TerminateSessionResult {
 
 export async function listActiveSessions(): Promise<ListSessionsResult> {
   try {
-    const result = await apiClient.request<{ sessions?: DeviceSession[]; count?: number }>('/api/sessions?action=list', {
+    const result = await apiClient.request<DeviceSession[] | { sessions?: DeviceSession[]; count?: number }>('/sessions', {
       method: 'GET',
       useCache: false,
     })
 
+    const sessions = (Array.isArray(result)
+      ? result
+      : Array.isArray(result?.sessions)
+        ? result.sessions
+        : []
+    ).map((session) => ({
+      ...session,
+      last_activity:
+        session.last_activity ||
+        (session as DeviceSession & { last_active?: string }).last_active ||
+        session.created_at,
+    }))
+
     return {
       success: true,
-      sessions: Array.isArray(result?.sessions) ? result.sessions : [],
-      count: typeof result?.count === 'number' ? result.count : Array.isArray(result?.sessions) ? result.sessions.length : 0,
-      accessIssue: !Array.isArray(result?.sessions),
+      sessions,
+      count: typeof result === 'object' && result !== null && !Array.isArray(result) && typeof result.count === 'number'
+        ? result.count
+        : sessions.length,
+      accessIssue: false,
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
@@ -77,13 +92,12 @@ export async function listActiveSessions(): Promise<ListSessionsResult> {
 
 export async function terminateSessionById(sessionId: string): Promise<TerminateSessionResult> {
   try {
-    const result = await apiClient.request<{ revoked?: boolean }>('/api/sessions?action=revoke', {
+    const result = await apiClient.request<{ message?: string }>(`/sessions?action=revoke&sessionId=${encodeURIComponent(sessionId)}`, {
       method: 'POST',
-      body: JSON.stringify({ sessionId }),
     })
 
     return {
-      success: result?.revoked !== false,
+      success: Boolean(result?.message || result === null),
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
@@ -102,19 +116,20 @@ export async function terminateSessionById(sessionId: string): Promise<Terminate
  */
 export async function terminateAllOtherSessions(): Promise<TerminateSessionsResult> {
   try {
-    const result = await apiClient.request<{ count?: number; revoked?: boolean }>('/api/sessions?action=revoke-all', {
+    const result = await apiClient.request<{ message?: string }>('/sessions?action=revoke-all', {
       method: 'POST',
-      body: JSON.stringify({ keepCurrent: true }),
     })
+
+    const terminatedCount = typeof result?.message === 'string'
+      ? Number(result.message.match(/\d+/)?.[0] ?? 0)
+      : 0
     
     return {
-      success: result?.revoked !== false,
-      terminatedCount: result?.count ?? 0,
+      success: true,
+      terminatedCount,
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
-    console.error('Failed to terminate sessions:', error)
-    
     if (errorMessage.includes('401') || errorMessage.includes('Authentication required')) {
       return {
         success: false,

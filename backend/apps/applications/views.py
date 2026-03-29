@@ -99,6 +99,13 @@ class ApplicationDetailView(APIView):
         serializer.save()
         return Response(serializer.data)
 
+    def delete(self, request, application_id):
+        app = self._get_application(request, application_id)
+        if app is None:
+            return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+        app.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     def _get_application(self, request, application_id):
         try:
             app = Application.objects.get(id=application_id)
@@ -120,7 +127,23 @@ class ApplicationDocumentsView(APIView):
         if not IsOwnerOrAdmin().has_object_permission(request, self, app):
             return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
         docs = ApplicationDocument.objects.filter(application_id=application_id)
-        data = [{"id": str(d.id), "document_type": d.document_type, "file_url": d.file_url, "verification_status": d.verification_status, "created_at": d.created_at.isoformat() if d.created_at else None} for d in docs]
+        data = [
+            {
+                "id": str(d.id),
+                "application_id": str(d.application_id),
+                "document_type": d.document_type,
+                "document_name": d.document_name,
+                "file_url": d.file_url,
+                "file_size": d.file_size,
+                "mime_type": d.mime_type,
+                "verification_status": d.verification_status,
+                "verification_notes": d.verification_notes,
+                "uploaded_at": d.uploaded_at.isoformat() if d.uploaded_at else None,
+                "created_at": d.created_at.isoformat() if d.created_at else None,
+                "updated_at": d.updated_at.isoformat() if d.updated_at else None,
+            }
+            for d in docs
+        ]
         return Response(data)
 
 
@@ -145,11 +168,30 @@ class ApplicationGradesView(APIView):
             return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
         if not IsOwnerOrAdmin().has_object_permission(request, self, app):
             return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
+        batch = request.data.get("grades") if isinstance(request.data, dict) else None
+        if isinstance(batch, list):
+            created = []
+            for item in batch:
+                serializer = ApplicationGradeSerializer(data=item)
+                if not serializer.is_valid():
+                    return Response({"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                grade, _created = ApplicationGrade.objects.update_or_create(
+                    application_id=application_id,
+                    subject_id=serializer.validated_data["subject_id"],
+                    defaults={"grade": serializer.validated_data["grade"]},
+                )
+                created.append({"id": str(grade.id), "subject_id": str(grade.subject_id), "grade": grade.grade})
+            return Response({"grades": created}, status=status.HTTP_200_OK)
+
         serializer = ApplicationGradeSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        grade = ApplicationGrade.objects.create(application_id=application_id, subject_id=serializer.validated_data["subject_id"], grade=serializer.validated_data["grade"])
-        return Response({"id": str(grade.id), "subject_id": str(grade.subject_id), "grade": grade.grade}, status=status.HTTP_201_CREATED)
+        grade, created = ApplicationGrade.objects.update_or_create(
+            application_id=application_id,
+            subject_id=serializer.validated_data["subject_id"],
+            defaults={"grade": serializer.validated_data["grade"]},
+        )
+        return Response({"id": str(grade.id), "subject_id": str(grade.subject_id), "grade": grade.grade}, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
 class ApplicationSummaryView(APIView):
@@ -189,7 +231,25 @@ class ApplicationReviewView(APIView):
                 return Response({"success": False, "error": "Application has unverified payment. Use force=true to override.", "code": "PAYMENT_UNVERIFIED"}, status=status.HTTP_400_BAD_REQUEST)
         old_status = app.status
         app.status = new_status
-        app.save(update_fields=["status", "updated_at"])
+        if not app.review_started_at:
+            app.review_started_at = timezone.now()
+        app.reviewed_by_id = str(request.user.id)
+        if notes:
+            app.admin_feedback = notes
+            app.admin_feedback_date = timezone.now()
+            app.admin_feedback_by_id = str(request.user.id)
+        if new_status in ("approved", "rejected"):
+            app.decision_date = timezone.now()
+        app.save(update_fields=[
+            "status",
+            "review_started_at",
+            "reviewed_by",
+            "admin_feedback",
+            "admin_feedback_date",
+            "admin_feedback_by",
+            "decision_date",
+            "updated_at",
+        ])
         ApplicationStatusHistory.objects.create(application=app, old_status=old_status, new_status=new_status, changed_by_id=str(request.user.id), notes=notes)
         return Response({"message": f"Status updated from {old_status} to {new_status}", "application_id": str(app.id), "old_status": old_status, "new_status": new_status})
 
@@ -241,7 +301,25 @@ class ApplicationBulkStatusView(APIView):
         for app in applications:
             old_status = app.status
             app.status = new_status
-            app.save(update_fields=["status", "updated_at"])
+            if not app.review_started_at:
+                app.review_started_at = timezone.now()
+            app.reviewed_by_id = str(request.user.id)
+            if notes:
+                app.admin_feedback = notes
+                app.admin_feedback_date = timezone.now()
+                app.admin_feedback_by_id = str(request.user.id)
+            if new_status in ("approved", "rejected"):
+                app.decision_date = timezone.now()
+            app.save(update_fields=[
+                "status",
+                "review_started_at",
+                "reviewed_by",
+                "admin_feedback",
+                "admin_feedback_date",
+                "admin_feedback_by",
+                "decision_date",
+                "updated_at",
+            ])
             ApplicationStatusHistory.objects.create(application=app, old_status=old_status, new_status=new_status, changed_by_id=str(request.user.id), notes=notes)
             updated += 1
         return Response({"message": f"{updated} application(s) updated", "updated": updated})
@@ -267,13 +345,24 @@ class ApplicationDraftView(APIView):
 
 
 class ApplicationInterviewView(APIView):
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, application_id):
+        try:
+            application = Application.objects.get(id=application_id)
+        except Application.DoesNotExist:
+            return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        if not IsOwnerOrAdmin().has_object_permission(request, self, application):
+            return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
+
         interviews = ApplicationInterview.objects.filter(application_id=application_id).order_by("-scheduled_at")
         return Response(ApplicationInterviewSerializer(interviews, many=True).data)
 
     def post(self, request, application_id):
+        if not IsAdmin().has_permission(request, self):
+            return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
+
         try:
             Application.objects.get(id=application_id)
         except Application.DoesNotExist:
@@ -283,5 +372,34 @@ class ApplicationInterviewView(APIView):
         serializer = ApplicationInterviewSerializer(data=data)
         if not serializer.is_valid():
             return Response({"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        interview = ApplicationInterview.objects.create(application_id=application_id, scheduled_at=serializer.validated_data["scheduled_at"], status=serializer.validated_data.get("status", "scheduled"), notes=serializer.validated_data.get("notes", ""))
+        interview = ApplicationInterview.objects.create(
+            application_id=application_id,
+            scheduled_at=serializer.validated_data["scheduled_at"],
+            mode=serializer.validated_data.get("mode", "in_person"),
+            location=serializer.validated_data.get("location", ""),
+            status=serializer.validated_data.get("status", "scheduled"),
+            notes=serializer.validated_data.get("notes", ""),
+            created_by_id=str(request.user.id),
+            updated_by_id=str(request.user.id),
+        )
         return Response(ApplicationInterviewSerializer(interview).data, status=status.HTTP_201_CREATED)
+
+    def patch(self, request, application_id):
+        if not IsAdmin().has_permission(request, self):
+            return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
+
+        interview = (
+            ApplicationInterview.objects.filter(application_id=application_id)
+            .order_by("-scheduled_at", "-created_at")
+            .first()
+        )
+
+        if interview is None:
+            return Response({"success": False, "error": "Interview not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ApplicationInterviewSerializer(interview, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response({"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save(updated_by_id=str(request.user.id))
+        return Response(serializer.data)
