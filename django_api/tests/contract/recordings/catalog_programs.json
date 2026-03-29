@@ -1,0 +1,18 @@
+{
+  "name": "catalog_programs",
+  "description": "List programs via GET /api/catalog?type=programs (Vercel) → GET /api/v1/catalog/programs/ (Django)",
+  "request": {
+    "method": "GET",
+    "path": "/api/catalog?type=programs",
+    "django_path": "/api/v1/catalog/programs/",
+    "headers": {},
+    "body": null
+  },
+  "expected_response": {
+    "status_code": 200,
+    "envelope_keys": ["success", "data"],
+    "data_keys": ["results"],
+    "tolerations": ["timestamps", "request_ids"],
+    "item_keys": ["id", "name", "code", "institution", "duration_years", "application_fee", "is_active"]
+  }
+}

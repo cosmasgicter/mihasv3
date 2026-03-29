@@ -1,0 +1,23 @@
+{
+  "name": "auth_login",
+  "description": "User login via POST /api/auth?action=login (Vercel) → POST /api/v1/auth/login/ (Django)",
+  "request": {
+    "method": "POST",
+    "path": "/api/auth?action=login",
+    "django_path": "/api/v1/auth/login/",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "email": "test@example.com",
+      "password": "test123"
+    }
+  },
+  "expected_response": {
+    "status_code": 200,
+    "envelope_keys": ["success", "data"],
+    "data_keys": ["user", "csrf_token"],
+    "tolerations": ["timestamps", "token_values", "request_ids"],
+    "cookies": ["access_token", "refresh_token"]
+  }
+}

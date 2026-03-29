@@ -43,4 +43,4 @@ RUN SECRET_KEY=build-placeholder \
 ENV PORT=8000
 EXPOSE ${PORT}
 
-CMD gunicorn config.wsgi:application --bind 0.0.0.0:${PORT} --graceful-timeout 30 --workers 3
+CMD gunicorn config.wsgi:application --config gunicorn.conf.py

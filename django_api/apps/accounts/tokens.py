@@ -1,0 +1,198 @@
+"""JWT token generation and verification utilities.
+
+Implements task 9.2.
+Requirements: 2.1, 2.3, 18.4
+"""
+
+import logging
+import uuid
+from datetime import datetime, timedelta, timezone
+from threading import Lock
+
+import jwt
+from django.conf import settings
+
+logger = logging.getLogger(__name__)
+
+# In-memory blacklist for rotated refresh tokens (jti values).
+# In production, this should be backed by Redis or a DB table.
+_blacklisted_jtis: set[str] = set()
+_blacklist_lock = Lock()
+
+
+def _get_signing_key() -> str:
+    return settings.SIMPLE_JWT.get("SIGNING_KEY", "")
+
+
+def _get_algorithm() -> str:
+    return settings.SIMPLE_JWT.get("ALGORITHM", "HS256")
+
+
+def generate_access_token(user) -> str:
+    """Generate a 15-minute access token with user claims.
+
+    Payload includes: user_id, email, role, permissions, token_type, exp, iat, jti.
+    """
+    now = datetime.now(timezone.utc)
+    lifetime = settings.SIMPLE_JWT.get("ACCESS_TOKEN_LIFETIME", timedelta(minutes=15))
+
+    # Build permissions list from role
+    permissions = _get_permissions_for_role(getattr(user, "role", "student"))
+
+    payload = {
+        "token_type": "access",
+        "user_id": str(user.id) if hasattr(user, "id") else str(user.pk),
+        "email": getattr(user, "email", ""),
+        "role": getattr(user, "role", "student"),
+        "first_name": getattr(user, "first_name", ""),
+        "last_name": getattr(user, "last_name", ""),
+        "permissions": permissions,
+        "iat": now,
+        "exp": now + lifetime,
+        "jti": str(uuid.uuid4()),
+    }
+
+    return jwt.encode(payload, _get_signing_key(), algorithm=_get_algorithm())
+
+
+def generate_refresh_token(user) -> str:
+    """Generate a 7-day refresh token with jti for blacklisting.
+
+    Payload includes: user_id, token_type, exp, iat, jti.
+    """
+    now = datetime.now(timezone.utc)
+    lifetime = settings.SIMPLE_JWT.get("REFRESH_TOKEN_LIFETIME", timedelta(days=7))
+
+    payload = {
+        "token_type": "refresh",
+        "user_id": str(user.id) if hasattr(user, "id") else str(user.pk),
+        "iat": now,
+        "exp": now + lifetime,
+        "jti": str(uuid.uuid4()),
+    }
+
+    return jwt.encode(payload, _get_signing_key(), algorithm=_get_algorithm())
+
+
+def verify_token(token: str, token_type: str = "access") -> dict:
+    """Decode and validate a JWT token.
+
+    Args:
+        token: The JWT string.
+        token_type: Expected token_type claim ('access' or 'refresh').
+
+    Returns:
+        The decoded payload dict.
+
+    Raises:
+        jwt.ExpiredSignatureError: If the token has expired.
+        jwt.InvalidTokenError: If the token is invalid.
+        ValueError: If the token_type doesn't match or jti is blacklisted.
+    """
+    payload = jwt.decode(
+        token,
+        _get_signing_key(),
+        algorithms=[_get_algorithm()],
+    )
+
+    if payload.get("token_type") != token_type:
+        raise ValueError(f"Expected token_type '{token_type}', got '{payload.get('token_type')}'")
+
+    # Check blacklist for refresh tokens
+    if token_type == "refresh":
+        jti = payload.get("jti", "")
+        with _blacklist_lock:
+            if jti in _blacklisted_jtis:
+                raise ValueError("Token has been revoked")
+
+    return payload
+
+
+def rotate_tokens(refresh_token: str, user=None) -> tuple[str, str]:
+    """Verify the refresh token, blacklist it, and generate a new pair.
+
+    Args:
+        refresh_token: The current refresh token string.
+        user: Optional user object. If not provided, a minimal user is built from payload.
+
+    Returns:
+        Tuple of (new_access_token, new_refresh_token).
+
+    Raises:
+        jwt.ExpiredSignatureError: If the refresh token has expired.
+        jwt.InvalidTokenError: If the refresh token is invalid.
+        ValueError: If the token is already blacklisted or wrong type.
+    """
+    payload = verify_token(refresh_token, token_type="refresh")
+
+    # Blacklist the old refresh token's jti
+    old_jti = payload.get("jti", "")
+    with _blacklist_lock:
+        _blacklisted_jtis.add(old_jti)
+
+    # Build a minimal user-like object from the payload if not provided
+    if user is None:
+        user = _UserFromPayload(payload)
+
+    new_access = generate_access_token(user)
+    new_refresh = generate_refresh_token(user)
+
+    return new_access, new_refresh
+
+
+def blacklist_jti(jti: str) -> None:
+    """Manually blacklist a refresh token's jti (e.g., on logout or session revoke)."""
+    with _blacklist_lock:
+        _blacklisted_jtis.add(jti)
+
+
+def is_jti_blacklisted(jti: str) -> bool:
+    """Check if a jti is blacklisted."""
+    with _blacklist_lock:
+        return jti in _blacklisted_jtis
+
+
+def _get_permissions_for_role(role: str) -> list[str]:
+    """Return deterministic permissions list for a given role. No DB lookup."""
+    role_permissions = {
+        "super_admin": [
+            "users:read", "users:write",
+            "applications:read", "applications:write", "applications:review",
+            "programs:read", "programs:write",
+            "payments:read", "payments:write", "payments:verify",
+            "documents:read", "documents:write", "documents:verify",
+            "analytics:read",
+            "settings:read", "settings:write",
+            "audit:read",
+        ],
+        "admin": [
+            "users:read",
+            "applications:read", "applications:write", "applications:review",
+            "programs:read",
+            "payments:read", "payments:verify",
+            "documents:read", "documents:verify",
+            "analytics:read",
+        ],
+        "reviewer": [
+            "applications:read", "applications:review",
+            "documents:read",
+        ],
+        "student": [
+            "applications:read", "applications:write",
+            "documents:read", "documents:write",
+            "payments:read",
+        ],
+    }
+    return role_permissions.get(role, role_permissions["student"])
+
+
+class _UserFromPayload:
+    """Minimal user-like object built from a JWT payload for token rotation."""
+
+    def __init__(self, payload: dict):
+        self.id = payload.get("user_id")
+        self.pk = self.id
+        self.email = payload.get("email", "")
+        self.role = payload.get("role", "student")
+        self.first_name = payload.get("first_name", "")
+        self.last_name = payload.get("last_name", "")
