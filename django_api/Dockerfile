@@ -43,4 +43,4 @@ RUN SECRET_KEY=build-placeholder \
 ENV PORT=8000
 EXPOSE ${PORT}
 
-CMD gunicorn config.wsgi:application --config gunicorn.conf.py
+CMD uvicorn config.asgi:application --host 0.0.0.0 --port ${PORT} --workers 3

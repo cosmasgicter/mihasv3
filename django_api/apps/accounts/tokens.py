@@ -7,17 +7,30 @@ Requirements: 2.1, 2.3, 18.4
 import logging
 import uuid
 from datetime import datetime, timedelta, timezone
-from threading import Lock
 
 import jwt
+import redis
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-# In-memory blacklist for rotated refresh tokens (jti values).
-# In production, this should be backed by Redis or a DB table.
-_blacklisted_jtis: set[str] = set()
-_blacklist_lock = Lock()
+# Redis-backed JTI blacklist (replaces in-memory set).
+# Uses the same Upstash Redis instance as Celery broker.
+_redis_client = None
+JTI_PREFIX = "jti:"
+
+
+def _get_redis() -> redis.Redis:
+    """Lazy-init Redis client from CELERY_BROKER_URL."""
+    global _redis_client
+    if _redis_client is None:
+        _redis_client = redis.from_url(
+            settings.CELERY_BROKER_URL,
+            decode_responses=True,
+            socket_connect_timeout=5,
+            socket_timeout=5,
+        )
+    return _redis_client
 
 
 def _get_signing_key() -> str:
@@ -101,9 +114,8 @@ def verify_token(token: str, token_type: str = "access") -> dict:
     # Check blacklist for refresh tokens
     if token_type == "refresh":
         jti = payload.get("jti", "")
-        with _blacklist_lock:
-            if jti in _blacklisted_jtis:
-                raise ValueError("Token has been revoked")
+        if is_jti_blacklisted(jti):
+            raise ValueError("Token has been revoked")
 
     return payload
 
@@ -127,8 +139,7 @@ def rotate_tokens(refresh_token: str, user=None) -> tuple[str, str]:
 
     # Blacklist the old refresh token's jti
     old_jti = payload.get("jti", "")
-    with _blacklist_lock:
-        _blacklisted_jtis.add(old_jti)
+    blacklist_jti(old_jti)
 
     # Build a minimal user-like object from the payload if not provided
     if user is None:
@@ -140,16 +151,21 @@ def rotate_tokens(refresh_token: str, user=None) -> tuple[str, str]:
     return new_access, new_refresh
 
 
-def blacklist_jti(jti: str) -> None:
-    """Manually blacklist a refresh token's jti (e.g., on logout or session revoke)."""
-    with _blacklist_lock:
-        _blacklisted_jtis.add(jti)
+def blacklist_jti(jti: str, ttl_seconds: int = 604800) -> None:
+    """Store jti in Redis with TTL. Fail-open on write errors."""
+    try:
+        _get_redis().setex(f"{JTI_PREFIX}{jti}", ttl_seconds, "1")
+    except redis.RedisError:
+        logger.error("Redis write failed for JTI blacklist", exc_info=True)
 
 
 def is_jti_blacklisted(jti: str) -> bool:
-    """Check if a jti is blacklisted."""
-    with _blacklist_lock:
-        return jti in _blacklisted_jtis
+    """Check Redis for jti. Fail-closed on read errors."""
+    try:
+        return _get_redis().exists(f"{JTI_PREFIX}{jti}") > 0
+    except redis.RedisError:
+        logger.error("Redis read failed for JTI blacklist", exc_info=True)
+        return True  # Fail-closed: treat as blacklisted
 
 
 def _get_permissions_for_role(role: str) -> list[str]:

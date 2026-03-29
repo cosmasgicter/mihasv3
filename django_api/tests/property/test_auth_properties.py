@@ -40,14 +40,17 @@ from apps.accounts.services import (  # noqa: E402
     hash_password,
     verify_password,
 )
+import fakeredis  # noqa: E402
+
 from apps.accounts.tokens import (  # noqa: E402
-    _blacklist_lock,
-    _blacklisted_jtis,
     generate_access_token,
     generate_refresh_token,
     rotate_tokens,
     verify_token,
 )
+
+# Shared fakeredis instance for test isolation
+_fake_redis = fakeredis.FakeRedis(decode_responses=True)
 
 # bcrypt is intentionally slow (12 rounds) — disable hypothesis deadline
 _bcrypt_settings = settings(max_examples=100, deadline=None)
@@ -145,15 +148,18 @@ class TestJWTTokenLifecycleRotation(SimpleTestCase):
     """
 
     def setUp(self):
-        with _blacklist_lock:
-            _blacklisted_jtis.clear()
+        _fake_redis.flushall()
+        self._redis_patcher = patch("apps.accounts.tokens._get_redis", return_value=_fake_redis)
+        self._redis_patcher.start()
+
+    def tearDown(self):
+        self._redis_patcher.stop()
 
     @given(role=_roles)
     @_default_settings
     def test_rotation_produces_valid_new_tokens(self, role):
         """rotate_tokens returns a new access + refresh token pair."""
-        with _blacklist_lock:
-            _blacklisted_jtis.clear()
+        _fake_redis.flushall()
 
         user = _make_mock_user(role=role)
         refresh = generate_refresh_token(user)
@@ -171,8 +177,7 @@ class TestJWTTokenLifecycleRotation(SimpleTestCase):
     @_default_settings
     def test_rotation_blacklists_old_refresh_token(self, role):
         """After rotation, the original refresh token must be rejected."""
-        with _blacklist_lock:
-            _blacklisted_jtis.clear()
+        _fake_redis.flushall()
 
         user = _make_mock_user(role=role)
         old_refresh = generate_refresh_token(user)
@@ -185,8 +190,7 @@ class TestJWTTokenLifecycleRotation(SimpleTestCase):
     @_default_settings
     def test_double_rotation_rejects_first_token(self, role):
         """Using the same refresh token twice should fail on the second attempt."""
-        with _blacklist_lock:
-            _blacklisted_jtis.clear()
+        _fake_redis.flushall()
 
         user = _make_mock_user(role=role)
         refresh = generate_refresh_token(user)
@@ -657,8 +661,6 @@ class TestSharedJWTSigningKey(SimpleTestCase):
     def test_token_generated_externally_verifiable_by_django(self, role):
         """A JWT generated with raw PyJWT using the same key should be
         verifiable by Django's verify_token (cross-backend compatibility)."""
-        with _blacklist_lock:
-            _blacklisted_jtis.clear()
 
         signing_key = django_settings.SIMPLE_JWT["SIGNING_KEY"]
         algorithm = django_settings.SIMPLE_JWT["ALGORITHM"]

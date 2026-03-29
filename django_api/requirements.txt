@@ -21,7 +21,7 @@ drf-spectacular>=0.27,<1.0
 
 # Static files & server
 whitenoise>=6.6,<7.0
-gunicorn>=22.0,<23.0
+uvicorn[standard]>=0.29,<1.0
 
 # Security
 bcrypt>=4.1,<5.0
@@ -40,3 +40,4 @@ pytest>=8.0,<9.0
 pytest-django>=4.8,<5.0
 factory-boy>=3.3,<4.0
 freezegun>=1.4,<2.0
+fakeredis>=2.21,<3.0
