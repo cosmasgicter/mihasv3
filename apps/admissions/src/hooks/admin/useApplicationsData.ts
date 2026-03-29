@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { applicationService } from '@/services/applications'
-import { apiClient } from '@/services/client'
 import { ApplicationFilters, DEFAULT_APPLICATION_FILTERS } from './useApplicationFilters'
 import { calculatePointsFromSummary } from '@/utils/grades'
 import { invalidateAdminApplicationQueries } from './applicationQueryInvalidation'

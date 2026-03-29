@@ -20,8 +20,8 @@ export function useApplicationDocuments() {
   const fetchDocuments = async (applicationId: string) => {
     try {
       setLoading(true)
-      const response = await applicationService.getById(applicationId, { include: ['documents'] }) as any
-      setDocuments(response?.documents || [])
+      const response = await applicationService.getDocuments(applicationId) as DocumentInfo[] | undefined
+      setDocuments(response || [])
     } catch (error) {
       console.error('Error fetching documents:', error)
       setDocuments([])

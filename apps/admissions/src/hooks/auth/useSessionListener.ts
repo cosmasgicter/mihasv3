@@ -14,7 +14,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth'
 import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
 import { getDisplayName } from '@/utils/userDisplayName'
-import { apiClient } from '@/services/client'
+import { authService } from '@/services/auth'
 import { isAdminRole } from '@/lib/auth/roles'
 import { clearCsrfToken } from '@/lib/csrfToken'
 import { secureStorage } from '@/lib/secureStorage'
@@ -111,7 +111,7 @@ export function useSessionListener() {
   const { data: sessionData, isLoading: sessionLoading } = useQuery({
     queryKey: ['auth', 'session'],
     queryFn: async () => {
-      const result = await apiClient.request<User | { user?: User }>('/auth?action=session')
+      const result = await authService.session() as User | { user?: User } | null
       const normalizedUser = extractAuthUser(result)
       return normalizedUser ? { user: normalizedUser } : null
     },
@@ -153,10 +153,7 @@ export function useSessionListener() {
   // Instead, seed the auth cache atomically after login succeeds, then clear stale non-auth data.
   const signIn = useCallback(async (email: string, password: string): Promise<SignInResult> => {
     try {
-      const result = await apiClient.request<{ user?: User; profile?: UserProfile }>(
-        '/auth?action=login',
-        { method: 'POST', body: JSON.stringify({ email, password }) },
-      )
+      const result = await authService.login({ email, password }) as { user?: User; profile?: UserProfile } | null
 
       const authUser = extractAuthUser(result)
 
@@ -212,20 +209,15 @@ export function useSessionListener() {
     }
 
     try {
-      const registerResult = await apiClient.request<{ user?: User; profile?: UserProfile }>(
-        '/auth?action=register',
-        {
-          method: 'POST',
-          body: JSON.stringify({ email, password, first_name: firstName, last_name: lastName, ...cleanUserData }),
-        },
-      )
+      const registerResult = await authService.register({
+        email,
+        password,
+        fullName: normalizedFullName,
+      }) as { user?: User; profile?: UserProfile } | null
 
       let loginResult: { user?: User; profile?: UserProfile } | null = null
       try {
-        loginResult = await apiClient.request<{ user?: User; profile?: UserProfile }>(
-          '/auth?action=login',
-          { method: 'POST', body: JSON.stringify({ email, password }) },
-        )
+        loginResult = await authService.login({ email, password }) as { user?: User; profile?: UserProfile } | null
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unable to sign in after account creation'
         if (/invalid credentials|unauthorized/i.test(message)) {
@@ -272,7 +264,7 @@ export function useSessionListener() {
 
     // 2. POST logout while cookies are still valid, then wipe all cached queries
     try {
-      await apiClient.request('/auth?action=logout', { method: 'POST' })
+      await authService.logout()
     } catch {
       // Ignore — server logout is best-effort
     } finally {
@@ -307,10 +299,7 @@ export function useSessionListener() {
 
   const requestPasswordReset = useCallback(async (email: string): Promise<PasswordResetResult> => {
     try {
-      await apiClient.request('/auth?action=forgot-password', {
-        method: 'POST',
-        body: JSON.stringify({ email }),
-      })
+      await authService.passwordReset({ email })
       return {}
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to send reset instructions'
@@ -324,10 +313,7 @@ export function useSessionListener() {
     }
 
     try {
-      await apiClient.request('/auth?action=reset-password', {
-        method: 'POST',
-        body: JSON.stringify({ token, new_password: password }),
-      })
+      await authService.passwordResetConfirm({ token, newPassword: password })
 
       return {}
     } catch (error) {
@@ -366,7 +352,7 @@ export function useAuthCheck(): {
   const { data: sessionData, isLoading, refetch } = useQuery({
     queryKey: ['auth', 'session'],
     queryFn: async () => {
-      const result = await apiClient.request<User | { user?: User }>('/auth?action=session')
+      const result = await authService.session() as User | { user?: User } | null
       const normalizedUser = extractAuthUser(result)
       return normalizedUser ? { user: normalizedUser } : null
     },

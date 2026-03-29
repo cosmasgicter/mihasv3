@@ -141,41 +141,41 @@ Migrate the MIHAS admissions React frontend from legacy Vercel Functions API con
     - **Validates: Requirement 3.1**
     - Test file: `tests/property/services.property.test.ts`
 
-- [-] 4. Checkpoint — Service layer complete
+- [x] 4. Checkpoint — Service layer complete
   - Ensure all tests pass, ask the user if questions arise.
   - Verify all 15 service files use only Django REST paths (no `?action=` patterns remain)
 
 - [ ] 5. Hook Layer Migration
-  - [~] 5.1 Update auth hooks in `src/hooks/auth/`
+  - [x] 5.1 Update auth hooks in `src/hooks/auth/`
     - Update `useSessionListener`, `useProfileQuery`, `useRoleVerification` to use migrated auth service methods
     - Ensure session validation calls `/api/v1/auth/session/` via the auth service
     - _Requirements: 9.1_
 
-  - [~] 5.2 Update query hooks in `src/hooks/queries/`
+  - [x] 5.2 Update query hooks in `src/hooks/queries/`
     - Update `useApplicationDataQueries`, `useApplicationQueries`, `useNotificationQueries`, `useStorageQueries` to use migrated service methods
     - _Requirements: 9.2_
 
-  - [~] 5.3 Update admin hooks in `src/hooks/admin/`
+  - [x] 5.3 Update admin hooks in `src/hooks/admin/`
     - Update `useApplicationActions`, `useApplicationBulkActions`, `useApplicationDocuments`, `useApplicationFilters`, `useApplicationsData`, `useApplicationStatusHistory`, `useApplicationStatusUpdate` to use migrated admin and application service methods
     - _Requirements: 9.3_
 
-  - [~] 5.4 Update polling and dashboard hooks
+  - [x] 5.4 Update polling and dashboard hooks
     - Update `useAdminDashboardPolling` to poll `/api/v1/admin/dashboard/` via the admin dashboard service
     - Update `useStudentDashboardPolling` to use migrated application service methods
     - _Requirements: 9.4, 9.5_
 
-  - [~] 5.5 Update user management and notification hooks
+  - [x] 5.5 Update user management and notification hooks
     - Update `useUserManagement` to use migrated admin user service methods
     - Update `useSignOutAction` to call the migrated auth logout method
     - Update `useEmailNotifications` and `usePushNotifications` to use migrated notification service methods
     - _Requirements: 9.6, 9.7, 9.8, 9.9_
 
-  - [~] 5.6 Update React Query cache keys in `applicationQueryInvalidation.ts`
+  - [x] 5.6 Update React Query cache keys in `applicationQueryInvalidation.ts`
     - Verify cache key arrays align with Django REST path patterns
     - Update any keys that reference legacy query-parameter patterns
     - _Requirements: 9.10_
 
-  - [~] 5.7 Replace any raw `fetch()` calls in hooks with migrated service methods
+  - [-] 5.7 Replace any raw `fetch()` calls in hooks with migrated service methods
     - Scan all hooks for raw `fetch('/api/...')` calls and replace with corresponding service method or `apiClient.request()`
     - _Requirements: 9.11_
 
