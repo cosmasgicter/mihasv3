@@ -1,13 +1,15 @@
-"""Server-Sent Events (SSE) view with keepalive and polling fallback.
+"""Server-Sent Events (SSE) view with async keepalive and polling fallback.
 
 Implements task 20.2.
-Requirements: 9.4
+Requirements: 2.2, 2.3, 2.4, 2.6, 2.7, 2.8, 9.4
 """
 
+import asyncio
 import json
 import logging
 import time
 
+from asgiref.sync import sync_to_async
 from django.http import StreamingHttpResponse
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -18,6 +20,7 @@ from apps.common.models import Notification
 logger = logging.getLogger(__name__)
 
 KEEPALIVE_INTERVAL = 8  # seconds
+MAX_DURATION = 30  # seconds
 
 
 def _sse_event(data, event=None, event_id=None):
@@ -32,56 +35,63 @@ def _sse_event(data, event=None, event_id=None):
     return "\n".join(lines) + "\n"
 
 
-def _event_stream(user_id):
-    """Generator that yields SSE events for a user.
+@sync_to_async
+def _fetch_notifications(user_id, last_seen_id):
+    """Wrap ORM query in sync_to_async for use in async generator."""
+    qs = Notification.objects.filter(user_id=user_id, is_read=False).order_by("created_at")
+    if last_seen_id:
+        qs = qs.filter(created_at__gt=last_seen_id)
+    return list(qs[:10])
+
+
+async def _async_event_stream(user_id):
+    """Async generator that yields SSE events for a user.
 
     Sends unread notifications as events, then keepalive pings every 8s.
     Runs for up to 30 seconds before closing (client reconnects).
     """
-    start = time.time()
-    max_duration = 30  # seconds — keep connections short for serverless compat
+    start = time.monotonic()
     last_seen_id = None
 
-    while time.time() - start < max_duration:
+    while time.monotonic() - start < MAX_DURATION:
         # Check for new unread notifications
-        qs = Notification.objects.filter(user_id=user_id, is_read=False).order_by("created_at")
-        if last_seen_id:
-            qs = qs.filter(created_at__gt=last_seen_id)
-
-        notifications = list(qs[:10])
-        for notif in notifications:
-            yield _sse_event(
-                {
-                    "id": str(notif.id),
-                    "title": notif.title,
-                    "message": notif.message,
-                    "type": notif.type,
-                    "created_at": notif.created_at.isoformat() if notif.created_at else None,
-                },
-                event="notification",
-                event_id=str(notif.id),
-            )
-            last_seen_id = notif.created_at
+        try:
+            notifications = await _fetch_notifications(user_id, last_seen_id)
+            for notif in notifications:
+                yield _sse_event(
+                    {
+                        "id": str(notif.id),
+                        "title": notif.title,
+                        "message": notif.message,
+                        "type": notif.type,
+                        "created_at": notif.created_at.isoformat() if notif.created_at else None,
+                    },
+                    event="notification",
+                    event_id=str(notif.id),
+                )
+                last_seen_id = notif.created_at
+        except Exception:
+            logger.error("DB query failed in SSE stream", exc_info=True)
 
         # Keepalive ping
         yield _sse_event({"type": "keepalive"}, event="ping")
-        time.sleep(KEEPALIVE_INTERVAL)
+        await asyncio.sleep(KEEPALIVE_INTERVAL)
 
 
 class SSEStreamView(APIView):
     """GET /api/v1/events/stream/
 
-    Server-Sent Events with 8-second keepalive. Auth required.
-    Uses Django StreamingHttpResponse.
+    Async Server-Sent Events with 8-second keepalive. Auth required.
+    Uses Django StreamingHttpResponse with an async generator.
     """
 
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    async def get(self, request):
         user_id = request.user.pk
 
         response = StreamingHttpResponse(
-            _event_stream(user_id),
+            _async_event_stream(user_id),
             content_type="text/event-stream",
         )
         response["Cache-Control"] = "no-cache"

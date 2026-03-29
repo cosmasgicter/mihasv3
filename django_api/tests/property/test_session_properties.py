@@ -19,15 +19,18 @@ from django.test import SimpleTestCase  # noqa: E402
 from hypothesis import given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 
+import fakeredis  # noqa: E402
+
 from apps.accounts.tokens import (  # noqa: E402
-    _blacklist_lock,
-    _blacklisted_jtis,
     blacklist_jti,
     generate_access_token,
     generate_refresh_token,
     is_jti_blacklisted,
     verify_token,
 )
+
+# Shared fakeredis instance for test isolation
+_fake_redis = fakeredis.FakeRedis(decode_responses=True)
 
 _default_settings = settings(max_examples=100, deadline=None)
 _roles = st.sampled_from(["student", "admin", "reviewer", "super_admin"])
@@ -60,15 +63,18 @@ class TestSessionRevocationInvalidatesRefreshToken(SimpleTestCase):
     """
 
     def setUp(self):
-        with _blacklist_lock:
-            _blacklisted_jtis.clear()
+        _fake_redis.flushall()
+        self._redis_patcher = patch("apps.accounts.tokens._get_redis", return_value=_fake_redis)
+        self._redis_patcher.start()
+
+    def tearDown(self):
+        self._redis_patcher.stop()
 
     @given(role=_roles)
     @_default_settings
     def test_blacklisting_jti_prevents_token_verification(self, role):
         """After blacklisting a refresh token's jti, verify_token must raise."""
-        with _blacklist_lock:
-            _blacklisted_jtis.clear()
+        _fake_redis.flushall()
 
         user = _make_mock_user(role=role)
         refresh = generate_refresh_token(user)
@@ -88,8 +94,7 @@ class TestSessionRevocationInvalidatesRefreshToken(SimpleTestCase):
     @_default_settings
     def test_blacklisted_jti_is_reported_as_blacklisted(self, role):
         """is_jti_blacklisted returns True after blacklisting."""
-        with _blacklist_lock:
-            _blacklisted_jtis.clear()
+        _fake_redis.flushall()
 
         user = _make_mock_user(role=role)
         refresh = generate_refresh_token(user)
@@ -104,8 +109,7 @@ class TestSessionRevocationInvalidatesRefreshToken(SimpleTestCase):
     @_default_settings
     def test_revoking_one_session_does_not_affect_other_tokens(self, role):
         """Blacklisting one jti should not affect a different refresh token."""
-        with _blacklist_lock:
-            _blacklisted_jtis.clear()
+        _fake_redis.flushall()
 
         user = _make_mock_user(role=role)
         refresh1 = generate_refresh_token(user)
@@ -126,8 +130,7 @@ class TestSessionRevocationInvalidatesRefreshToken(SimpleTestCase):
     @_default_settings
     def test_session_revoke_view_deactivates_session_and_blacklists(self, role):
         """SessionRevokeView should deactivate the session record."""
-        with _blacklist_lock:
-            _blacklisted_jtis.clear()
+        _fake_redis.flushall()
 
         from apps.accounts.session_views import SessionRevokeView
 
