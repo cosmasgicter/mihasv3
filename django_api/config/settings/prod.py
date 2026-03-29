@@ -1,4 +1,8 @@
-"""Production settings — full security, SSL redirect enabled."""
+"""Production settings — full security, SSL redirect enabled.
+
+Domain: api.mihas.edu.zm (Koyeb)
+Frontend: apply.mihas.edu.zm (Vercel)
+"""
 
 from .base import *  # noqa: F401,F403
 
@@ -6,7 +10,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.environ.get("ALLOWED_HOSTS", "").split(",")  # noqa: F405
+    for host in os.environ.get("ALLOWED_HOSTS", "api.mihas.edu.zm").split(",")  # noqa: F405
     if host.strip()
 ]
 
@@ -17,3 +21,19 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Auth cookie domain — shared across apply.mihas.edu.zm and api.mihas.edu.zm
+AUTH_COOKIE_DOMAIN = ".mihas.edu.zm"
+AUTH_COOKIE_SAMESITE = "Lax"
+AUTH_COOKIE_SECURE = True
+AUTH_COOKIE_HTTPONLY = True
+
+# CORS — production frontend only
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get(  # noqa: F405
+        "CORS_ALLOWED_ORIGINS", "***REMOVED***"
+    ).split(",")
+    if origin.strip()
+]
+CORS_ALLOW_ALL_ORIGINS = False
