@@ -1,0 +1,21 @@
+{
+  "name": "applications_list",
+  "description": "List applications via GET /api/applications (Vercel) → GET /api/v1/applications/ (Django)",
+  "request": {
+    "method": "GET",
+    "path": "/api/applications",
+    "django_path": "/api/v1/applications/",
+    "headers": {
+      "Authorization": "Bearer <access_token>"
+    },
+    "body": null,
+    "auth_required": true
+  },
+  "expected_response": {
+    "status_code": 200,
+    "envelope_keys": ["success", "data"],
+    "data_keys": ["results", "count", "page", "page_size"],
+    "tolerations": ["timestamps", "request_ids", "token_values"],
+    "item_keys": ["id", "application_number", "full_name", "status", "program", "intake", "institution", "created_at"]
+  }
+}

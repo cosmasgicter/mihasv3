@@ -1,0 +1,17 @@
+{
+  "name": "health_ping",
+  "description": "Health ping via GET /api/health?action=ping (Vercel) → GET /health/live/ (Django)",
+  "request": {
+    "method": "GET",
+    "path": "/api/health?action=ping",
+    "django_path": "/health/live/",
+    "headers": {},
+    "body": null
+  },
+  "expected_response": {
+    "status_code": 200,
+    "envelope_keys": ["success", "data"],
+    "data_keys": ["status"],
+    "tolerations": ["timestamps", "request_ids"]
+  }
+}

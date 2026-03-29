@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "drf_spectacular",
     "django_ratelimit",
+    "django_filters",
     "storages",
     # Project apps
     "apps.accounts",
@@ -62,6 +63,10 @@ MIDDLEWARE = [
     "apps.common.middleware.CSRFEnforcementMiddleware",
     # 10. Audit logging for state-changing operations
     "apps.common.middleware.AuditMiddleware",
+    # 11. Read-only mode (disabled by default — activates via READ_ONLY_MODE env var)
+    "apps.common.readonly.ReadOnlyMiddleware",
+    # 12. Idempotent request processing (Idempotency-Key header)
+    "apps.common.idempotency.IdempotencyMiddleware",
     # Django defaults needed for admin
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -91,6 +96,19 @@ WSGI_APPLICATION = "config.wsgi.application"
 # ---------------------------------------------------------------------------
 # Database — Neon Postgres with connection pooling
 # ---------------------------------------------------------------------------
+#
+# Connection pooling strategy:
+#   - Use Neon's built-in pooler endpoint (append ?pgbouncer=true or use the
+#     pooled connection string from the Neon dashboard) in DATABASE_URL.
+#   - CONN_MAX_AGE=600 reuses connections within each gunicorn worker for up
+#     to 10 minutes, reducing connection churn against the Neon pooler.
+#   - conn_health_checks=True validates connections before use (avoids stale
+#     connections after Neon cold starts or pooler restarts).
+#   - For Celery workers, set a separate DATABASE_URL with lower pool limits
+#     (e.g. ?pool_size=2) to avoid exhausting Neon connection slots.
+#   - Monitor active connections; log warnings at 80% utilization.
+#
+# Requirements: 20.1, 20.2, 20.3, 20.4
 
 DATABASES = {
     "default": dj_database_url.config(
@@ -173,8 +191,12 @@ AWS_S3_SIGNATURE_VERSION = "s3v4"
 AWS_DEFAULT_ACL = None
 
 # ---------------------------------------------------------------------------
-# Static files — WhiteNoise
+# Static files — WhiteNoise (serves admin panel + API docs in production)
 # ---------------------------------------------------------------------------
+# WhiteNoise is configured as middleware (position 3 in MIDDLEWARE) and
+# serves compressed, cache-busted static files directly from gunicorn
+# without needing nginx or a CDN for admin/docs assets.
+# Requirement: 21.4
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
