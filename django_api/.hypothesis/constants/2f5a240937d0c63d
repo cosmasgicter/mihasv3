@@ -1,0 +1,4 @@
+# file: /home/cosmas/Downloads/mihasv3/django_api/config/__init__.py
+# hypothesis_version: 6.151.10
+
+['celery_app']

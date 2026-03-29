@@ -1,0 +1,4 @@
+# file: /home/cosmas/Downloads/mihasv3/django_api/config/celery.py
+# hypothesis_version: 6.151.10
+
+['CELERY', 'config.settings.dev', 'django.conf:settings', 'mihas']
