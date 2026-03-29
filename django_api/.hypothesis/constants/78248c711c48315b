@@ -1,0 +1,4 @@
+# file: /home/cosmas/Downloads/mihasv3/django_api/apps/common/validators.py
+# hypothesis_version: 6.151.10
+
+['Zambian', '^\\+260\\d{9}$', '^\\d{6}/\\d{2}/\\d$']
