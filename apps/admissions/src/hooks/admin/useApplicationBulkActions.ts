@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { useBulkOperations } from '@/hooks/useBulkOperations'
+import { useQueryClient } from '@tanstack/react-query'
+import { applicationService } from '@/services/applications'
 import { exportToCSV, exportToExcel } from '@/lib/exportUtils'
+import { invalidateAdminApplicationQueries } from './applicationQueryInvalidation'
 
 interface ApplicationSummary {
   id: string
@@ -10,7 +12,7 @@ interface ApplicationSummary {
 export function useApplicationBulkActions() {
   const [selectedApplications, setSelectedApplications] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
-  const { bulkUpdateStatus, bulkUpdatePaymentStatus } = useBulkOperations()
+  const queryClient = useQueryClient()
 
   const toggleSelection = (id: string) => {
     setSelectedApplications(prev => 
@@ -33,7 +35,11 @@ export function useApplicationBulkActions() {
     
     try {
       setLoading(true)
-      await bulkUpdateStatus(selectedApplications, status)
+      await applicationService.bulkStatus({
+        applicationIds: selectedApplications,
+        status,
+      })
+      await invalidateAdminApplicationQueries(queryClient)
       clearSelection()
     } catch (error) {
       console.error('Bulk status update failed:', error)
@@ -48,7 +54,11 @@ export function useApplicationBulkActions() {
     
     try {
       setLoading(true)
-      await bulkUpdatePaymentStatus(selectedApplications, paymentStatus)
+      await applicationService.bulkStatus({
+        applicationIds: selectedApplications,
+        status: paymentStatus,
+      })
+      await invalidateAdminApplicationQueries(queryClient, { includePaymentStatus: true })
       clearSelection()
     } catch (error) {
       console.error('Bulk payment update failed:', error)

@@ -1,17 +1,15 @@
 /**
  * useStudentDashboardPolling Hook
- * 
+ *
  * Provides polling-based data fetching for student dashboard.
- * Uses React Query polling (30-second intervals) against the API.
- * 
+ * Polls GET /api/v1/applications/ via the application service at 30-second intervals.
+ *
  * SSE/Polling Hybrid Strategy:
- * - Primary transport: React Query polling (reliable on Vercel with 10s function timeout)
- * - SSE infrastructure exists (lib/realtime.ts, src/lib/sseClient.ts) for future use
+ * - Primary transport: React Query polling against Django REST API
+ * - SSE infrastructure exists (lib/sseClient.ts) for future real-time upgrades
  * - Polling doubles interval when page is hidden (battery-friendly)
  * - Fingerprint-based deduplication prevents onDataChange firing on identical data
  * - onApplicationChange only fires when a specific application's status changes
- * 
- * MIGRATED: Replaced Supabase direct calls with API client.
  */
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'

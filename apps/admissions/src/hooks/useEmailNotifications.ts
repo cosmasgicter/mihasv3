@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { notificationService } from '@/services/notifications'
 
 interface EmailNotification {
   id: string
@@ -15,29 +16,31 @@ export function useEmailNotifications() {
   const [notifications, setNotifications] = useState<EmailNotification[]>([])
   const [loading, setLoading] = useState(false)
 
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     try {
       setLoading(true)
-      setNotifications([])
+      const result = await notificationService.list()
+      const items = Array.isArray(result) ? result : (result as any)?.results ?? []
+      setNotifications(items as EmailNotification[])
     } catch {
       setNotifications([])
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const markAsSent = async (notificationId: string) => {
+  const markAsSent = useCallback(async (notificationId: string) => {
     try {
-      void notificationId
+      await notificationService.markRead(notificationId)
       await loadNotifications()
     } catch {
       await loadNotifications()
     }
-  }
+  }, [loadNotifications])
 
   useEffect(() => {
     loadNotifications()
-  }, [])
+  }, [loadNotifications])
 
   return {
     notifications,

@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import type { UserProfile } from '@/types/auth'
 import { sanitizeForDisplay } from '@/lib/sanitize'
-import { apiClient } from '@/services/client'
 
 interface User {
   id: string

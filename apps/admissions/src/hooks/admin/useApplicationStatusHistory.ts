@@ -16,8 +16,8 @@ export function useApplicationStatusHistory() {
   const fetchStatusHistory = async (applicationId: string) => {
     try {
       setLoading(true)
-      const response = await applicationService.getById(applicationId, { include: ['statusHistory'] }) as any
-      const history: StatusHistory[] = response?.statusHistory || []
+      const response = await applicationService.getSummary(applicationId) as any
+      const history: StatusHistory[] = response?.status_history || []
       setStatusHistory(history.sort((a: StatusHistory, b: StatusHistory) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()))
     } catch (error) {
       console.error('Error fetching status history:', error)

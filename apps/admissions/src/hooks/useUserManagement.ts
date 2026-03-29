@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import type { UserProfile } from '@/types/database'
-import { apiClient } from '@/services/client'
 import { UserStatsSummary } from '@/types/users'
+import { userService } from '@/services/admin/users'
 import { usersData } from '@/data/users'
 import { sanitizeForLog } from '@/lib/sanitize'
 
@@ -146,20 +146,16 @@ export function useUserManagement() {
 
   const getUserStats = useCallback(async (): Promise<UserStatsSummary | null> => {
     try {
-      const result = await apiClient.request<{
-        users?: Array<{ role: string }>
-        data?: Array<{ role: string }>
-        [key: string]: unknown
-      }>('/admin?action=users')
+      const result = await userService.list()
 
-      const roleData = (result?.users ?? result?.data ?? []) as Array<Pick<UserProfile, 'role'>>
+      const roleData = (result?.users ?? []) as Array<Pick<UserProfile, 'role'>>
       const stats = roleData.reduce<Record<string, number>>((acc, user) => {
         acc[user.role] = (acc[user.role] || 0) + 1
         return acc
       }, {})
 
       return {
-        total: roleData.length,
+        total: result?.totalCount ?? roleData.length,
         byRole: stats
       }
     } catch (err: unknown) {
@@ -171,18 +167,13 @@ export function useUserManagement() {
 
   const searchUsers = useCallback(async (query: string, role?: string) => {
     try {
-      const params: Record<string, string> = { action: 'users' }
-      if (role) params.role = role
-      if (query) params.search = query
+      const filters: { search?: string; role?: string } = {}
+      if (query) filters.search = query
+      if (role) filters.role = role
 
-      const queryString = new URLSearchParams(params).toString()
-      const result = await apiClient.request<{
-        users?: UserProfile[]
-        data?: UserProfile[]
-        [key: string]: unknown
-      }>(`/admin?${queryString}`)
+      const result = await userService.list(filters)
 
-      return result?.users ?? result?.data ?? []
+      return result?.users ?? []
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to search users'
       console.error('Failed to search users:', sanitizeForLog(errorMessage))
