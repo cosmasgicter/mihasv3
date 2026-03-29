@@ -24,18 +24,28 @@ export const documentExtractionService = {
   /**
    * Extract text content from a PDF document
    * 
-   * @param documentUrl - URL of the PDF document to extract
-   * @param applicationId - Optional application ID to store results
+   * @param documentUrlOrId - Uploaded document ID, or a legacy document URL
+   * @param applicationId - Optional legacy application ID used to resolve references
    * @returns Extraction result with text, metadata, or error
    */
   extractPDFContent: async (
-    documentUrl: string,
+    documentUrlOrId: string,
     applicationId?: string
   ): Promise<PDFExtractionResult> => {
     try {
-      const result = await apiClient.request<PDFExtractionResult>('/documents?action=extract', {
+      void applicationId
+      const candidate = documentUrlOrId.trim()
+      const documentId = /^[0-9a-fA-F-]{36}$/.test(candidate) ? candidate : null
+
+      if (!documentId) {
+        return {
+          success: false,
+          error: 'Document extraction requires an uploaded document ID on the Django backend'
+        }
+      }
+
+      const result = await apiClient.request<PDFExtractionResult>(`/documents/${encodeURIComponent(documentId)}/extract/`, {
         method: 'POST',
-        body: JSON.stringify({ documentUrl, applicationId }),
         skipCache: true
       })
 

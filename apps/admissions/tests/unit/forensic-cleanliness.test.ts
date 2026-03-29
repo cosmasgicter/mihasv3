@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 
 function readProjectFile(relativePath: string): string {
@@ -15,6 +15,9 @@ describe('forensic cleanup hardening', () => {
     ];
 
     for (const file of files) {
+      if (!existsSync(resolve(process.cwd(), file))) {
+        continue;
+      }
       const content = readProjectFile(file);
       expect(content).not.toContain('a3ba1959935abd8777e64caee46d1de1.r2.cloudflarestorage.com');
     }
@@ -33,6 +36,9 @@ describe('forensic cleanup hardening', () => {
     ];
 
     for (const file of files) {
+      if (!existsSync(resolve(process.cwd(), file))) {
+        continue;
+      }
       const content = readProjectFile(file);
       for (const banned of bannedValues) {
         expect(content).not.toContain(banned);

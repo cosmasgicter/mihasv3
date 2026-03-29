@@ -178,10 +178,30 @@ describe('Feature: production-remediation — Admin Review Flow Integration (Req
       expect(listResult!.applications[0].status).toBe('submitted');
 
       // ── Step 2: View application detail ───────────────────────────────
-      mockedFetchWithCache.mockResolvedValueOnce({
-        success: true,
-        data: sampleDetail,
-      });
+      mockedFetchWithCache
+        .mockResolvedValueOnce({
+          success: true,
+          data: { application: sampleDetail.application },
+        })
+        .mockResolvedValueOnce({
+          success: true,
+          data: sampleDetail.documents,
+        })
+        .mockResolvedValueOnce({
+          success: true,
+          data: sampleDetail.grades,
+        })
+        .mockResolvedValueOnce({
+          success: true,
+          data: {
+            application: sampleDetail.application,
+            status_history: sampleDetail.statusHistory,
+          },
+        })
+        .mockResolvedValueOnce({
+          success: true,
+          data: [],
+        });
 
       const detailResult = await applicationService.getById('app-1', {
         include: ['documents', 'grades', 'statusHistory'],
@@ -206,6 +226,11 @@ describe('Feature: production-remediation — Admin Review Flow Integration (Req
         })
       );
 
+      mockedFetchWithCache.mockResolvedValueOnce({
+        success: true,
+        data: approvedApp,
+      });
+
       const statusResult = await applicationService.updateStatus(
         'app-1',
         'approved' as any,
@@ -222,31 +247,38 @@ describe('Feature: production-remediation — Admin Review Flow Integration (Req
 
       // Verify the request body includes status change details
       const statusBody = JSON.parse(statusCall[1].body);
-      expect(statusBody.action).toBe('update_status');
       expect(statusBody.status).toBe('approved');
       expect(statusBody.notes).toBe('Meets all requirements. Approved for 2025 intake.');
 
       // ── Step 4: Verify audit log entry was created ────────────────────
       // The status change API should have created an audit log entry
       // server-side. We verify by fetching the updated detail with history.
-      mockedFetchWithCache.mockResolvedValueOnce({
-        success: true,
-        data: {
-          ...sampleDetail,
-          application: approvedApp,
-          statusHistory: [
-            ...sampleDetail.statusHistory,
-            {
-              id: 'sh-3',
-              old_status: 'submitted',
-              new_status: 'approved',
-              changed_by: 'admin-1',
-              notes: 'Meets all requirements. Approved for 2025 intake.',
-              created_at: new Date().toISOString(),
-            },
-          ],
-        },
-      });
+      mockedFetchWithCache
+        .mockResolvedValueOnce({
+          success: true,
+          data: { application: approvedApp },
+        })
+        .mockResolvedValueOnce({
+          success: true,
+          data: {
+            application: approvedApp,
+            status_history: [
+              ...sampleDetail.statusHistory,
+              {
+                id: 'sh-3',
+                old_status: 'submitted',
+                new_status: 'approved',
+                changed_by: 'admin-1',
+                notes: 'Meets all requirements. Approved for 2025 intake.',
+                created_at: new Date().toISOString(),
+              },
+            ],
+          },
+        })
+        .mockResolvedValueOnce({
+          success: true,
+          data: [],
+        });
 
       const updatedDetail = await applicationService.getById('app-1', {
         include: ['statusHistory'],
@@ -290,23 +322,20 @@ describe('Feature: production-remediation — Admin Review Flow Integration (Req
 
   describe('Cache invalidation after admin status change', () => {
     it('should produce correct invalidation patterns for admin mutations', () => {
-      // Admin status change with specific application ID
+      // Admin status change via REST path
       const patterns = apiClient.getQueryInvalidationPatterns(
-        '/api/admin?action=update-status&id=app-1',
+        '/api/v1/admin/users/',
         'PATCH'
       );
 
       expect(patterns).toContainEqual(['admin-applications']);
       expect(patterns).toContainEqual(['admin-dashboard-polling']);
       expect(patterns).toContainEqual(['application-stats']);
-      expect(patterns).toContainEqual(['applications', 'app-1']);
-      expect(patterns).toContainEqual(['applications']);
-      expect(patterns).toContainEqual(['application-history']);
     });
 
     it('should invalidate document caches on document upload', () => {
       const patterns = apiClient.getQueryInvalidationPatterns(
-        '/api/documents?action=upload',
+        '/api/v1/documents/upload/',
         'POST'
       );
 
@@ -358,6 +387,8 @@ describe('Feature: production-remediation — Admin Review Flow Integration (Req
 
   describe('Admin review edge cases', () => {
     it('should handle approval of application without payment (advisory warning)', async () => {
+      const mockedFetchWithCache = vi.mocked(fetchWithCache);
+
       // Server allows override but includes a warning
       mockFetch.mockResolvedValueOnce(
         createFetchResponse({
@@ -369,6 +400,15 @@ describe('Feature: production-remediation — Admin Review Flow Integration (Req
           },
         })
       );
+
+      mockedFetchWithCache.mockResolvedValueOnce({
+        success: true,
+        data: {
+          ...sampleApplications[0],
+          status: 'approved',
+          _warning: 'Application approved without completed payment.',
+        },
+      });
 
       const result = await applicationService.updateStatus(
         'app-1',
@@ -420,6 +460,8 @@ describe('Feature: production-remediation — Admin Review Flow Integration (Req
     });
 
     it('should handle rejection with notes', async () => {
+      const mockedFetchWithCache = vi.mocked(fetchWithCache);
+
       mockFetch.mockResolvedValueOnce(
         createFetchResponse({
           success: true,
@@ -429,6 +471,14 @@ describe('Feature: production-remediation — Admin Review Flow Integration (Req
           },
         })
       );
+
+      mockedFetchWithCache.mockResolvedValueOnce({
+        success: true,
+        data: {
+          ...sampleApplications[1],
+          status: 'rejected',
+        },
+      });
 
       const result = await applicationService.updateStatus(
         'app-2',

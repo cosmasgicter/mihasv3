@@ -2,47 +2,30 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { logger } from '@/lib/logger'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
-import { apiClient } from '@/services/client'
 
 export default function AuthCallbackPage() {
   const navigate = useNavigate()
   const [error, setError] = useState('')
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout
+    let timeoutId: number | undefined
 
     const handleAuthCallback = async () => {
-      try {
-        // Get the hash fragment or query params from the URL
-        const hashFragment = window.location.hash
-        const searchParams = new URLSearchParams(window.location.search)
-        const token = searchParams.get('token') || hashFragment.replace('#', '')
+      const hashFragment = window.location.hash
+      const searchParams = new URLSearchParams(window.location.search)
+      const token = searchParams.get('token') || searchParams.get('access_token') || searchParams.get('code') || hashFragment.replace('#', '')
+      const errorMessage = token
+        ? 'External authentication callbacks are not configured in the Django backend.'
+        : 'No session found'
 
-        if (token && token.length > 0) {
-          // Exchange the auth code for a session via our custom API
-          await apiClient.request('/auth?action=callback', {
-            method: 'POST',
-            body: JSON.stringify({ token })
-          })
+      logger.warn('Auth callback route is unavailable in the Django backend', {
+        hasToken: Boolean(token),
+      })
 
-          // Successfully signed in, redirect to dashboard
-          navigate('/dashboard')
-          return
-        }
-
-        // If we get here, something went wrong
-        setError('No session found')
-        timeoutId = setTimeout(() => {
-          navigate('/auth/signin?error=No session found')
-        }, 3000)
-      } catch (error: unknown) {
-        logger.error('Auth callback error:', error)
-        const errorMessage = error instanceof Error ? error.message : 'Authentication failed'
-        setError(errorMessage)
-        timeoutId = setTimeout(() => {
-          navigate('/auth/signin?error=' + encodeURIComponent(errorMessage))
-        }, 3000)
-      }
+      setError(errorMessage)
+      timeoutId = window.setTimeout(() => {
+        navigate('/auth/signin?error=' + encodeURIComponent(errorMessage))
+      }, 3000)
     }
 
     handleAuthCallback()

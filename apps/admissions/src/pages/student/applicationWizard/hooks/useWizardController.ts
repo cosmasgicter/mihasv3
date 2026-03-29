@@ -1563,10 +1563,10 @@ const useWizardController = (): UseWizardControllerResult => {
       // Fetch institution name
       let institutionName = updatedApp.institution
       try {
-        const result = await apiClient.request<{ institutions?: Array<{ name: string }> }>(
+        const result = await apiClient.request<{ institutions?: Array<{ id: string; slug?: string; name: string }> } | Array<{ id: string; slug?: string; name: string }>>(
           `/catalog?type=institutions`
         )
-        const institutions = result?.institutions ?? []
+        const institutions = Array.isArray(result) ? result : result?.institutions ?? []
         const match = institutions.find(
           (inst: any) =>
             inst.id === updatedApp.institution

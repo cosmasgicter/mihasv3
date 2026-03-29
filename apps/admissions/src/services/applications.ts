@@ -84,6 +84,10 @@ function normalizeApplicationRecord(value: unknown): Application | null {
   return null
 }
 
+/**
+ * Map Django pagination response `{results}` → `{applications}`.
+ * Handles both Django `results` field and legacy `applications` field.
+ */
 function normalizePaginatedApplications(response: BackendPaginatedApplications): PaginatedApplicationsResponse {
   if (Array.isArray(response)) {
     return {
@@ -94,7 +98,7 @@ function normalizePaginatedApplications(response: BackendPaginatedApplications):
     }
   }
 
-  const applications = response?.applications ?? response?.results ?? []
+  const applications = response?.results ?? response?.applications ?? []
   const totalCount = response?.totalCount ?? response?.count ?? applications.length
   const page = response?.page ?? 1
   const pageSize = response?.pageSize ?? response?.limit ?? applications.length
@@ -109,7 +113,7 @@ function normalizePaginatedApplications(response: BackendPaginatedApplications):
 }
 
 async function getApplicationById(id: string): Promise<Application | null> {
-  const response = await apiClient.request<unknown>(`/applications?id=${encodeURIComponent(id)}`)
+  const response = await apiClient.request<unknown>(`/applications/${encodeURIComponent(id)}/`)
   return normalizeApplicationRecord(response)
 }
 
@@ -117,29 +121,33 @@ async function loadApplicationDetails(
   id: string,
   options?: ApplicationIncludeOptions,
 ): Promise<ApplicationDetailResponse> {
-  const application = await getApplicationById(id)
+  const encodedId = encodeURIComponent(id)
 
-  if (!application) {
-    throw new Error('Application not found or access denied')
-  }
-
+  // If no specific includes requested, use the details endpoint for a single round-trip
   const include = new Set(options?.include ?? [])
   const shouldLoadDocuments = include.has('documents')
   const shouldLoadGrades = include.has('grades')
   const shouldLoadStatusHistory = include.has('statusHistory')
 
-  const [documents, grades, summary, interviews] = await Promise.all([
+  const [detailsResponse, documents, grades, summary, interviews] = await Promise.all([
+    apiClient.request<unknown>(`/applications/${encodedId}/details/`),
     shouldLoadDocuments
-      ? apiClient.request<unknown[]>(`/applications/${encodeURIComponent(id)}/documents`)
+      ? apiClient.request<unknown[]>(`/applications/${encodedId}/documents/`)
       : Promise.resolve(null),
     shouldLoadGrades
-      ? apiClient.request<unknown[]>(`/applications/${encodeURIComponent(id)}/grades`)
+      ? apiClient.request<unknown[]>(`/applications/${encodedId}/grades/`)
       : Promise.resolve(null),
     shouldLoadStatusHistory
-      ? apiClient.request<ApplicationSummaryResponse>(`/applications/${encodeURIComponent(id)}/summary`)
+      ? apiClient.request<ApplicationSummaryResponse>(`/applications/${encodedId}/summary/`)
       : Promise.resolve(null),
-    apiClient.request<ApplicationInterview[]>(`/applications/${encodeURIComponent(id)}/interviews`).catch(() => null),
+    apiClient.request<ApplicationInterview[]>(`/applications/${encodedId}/interviews/`).catch(() => null),
   ])
+
+  const application = normalizeApplicationRecord(detailsResponse)
+
+  if (!application) {
+    throw new Error('Application not found or access denied')
+  }
 
   const latestInterview = Array.isArray(interviews) && interviews.length > 0 ? interviews[0] : null
   const mergedApplication = summary?.application
@@ -156,25 +164,29 @@ async function loadApplicationDetails(
 }
 
 export const applicationService = {
+  /** GET /applications/ with query params for pagination/filtering */
   list: async (params?: QueryParams) => {
     const response = await apiClient.request<BackendPaginatedApplications>(
-      `/applications${buildQueryString(params ?? {})}`
+      `/applications/${buildQueryString(params ?? {})}`
     )
     return normalizePaginatedApplications(response)
   },
 
+  /** GET /applications/ — alias for list */
   getAll: async (params?: QueryParams) => {
     const response = await apiClient.request<BackendPaginatedApplications>(
-      `/applications${buildQueryString(params ?? {})}`
+      `/applications/${buildQueryString(params ?? {})}`
     )
     return normalizePaginatedApplications(response)
   },
 
+  /** GET /applications/{id}/details/ with optional sub-resource loading */
   getById: (id: string, options?: ApplicationIncludeOptions) =>
     loadApplicationDetails(id, options),
 
+  /** POST /applications/ */
   create: async (data: ApplicationPayload) => {
-    const response = await apiClient.request<unknown>('/applications', {
+    const response = await apiClient.request<unknown>('/applications/', {
       method: 'POST',
       body: JSON.stringify(data)
     })
@@ -182,44 +194,55 @@ export const applicationService = {
     return normalizeApplicationRecord(response)
   },
 
+  /** PUT /applications/{id}/ */
   update: async (id: string, data: ApplicationPayload) => {
     const cleanId = id.replace(/^applications-/, '')
-    const response = await apiClient.request<unknown>(`/applications?id=${encodeURIComponent(cleanId)}`, {
-      method: 'PATCH',
+    const response = await apiClient.request<unknown>(`/applications/${encodeURIComponent(cleanId)}/`, {
+      method: 'PUT',
       body: JSON.stringify(data)
     })
 
     return normalizeApplicationRecord(response)
   },
 
+  /** DELETE /applications/{id}/ */
   delete: async (id: string) => {
-    await apiClient.request<void>(`/applications?id=${encodeURIComponent(id)}`, {
+    await apiClient.request<void>(`/applications/${encodeURIComponent(id)}/`, {
       method: 'DELETE'
     })
     return { success: true }
   },
 
+  /** PATCH /applications/{id}/review/ — update application status */
   updateStatus: async (id: string, status: Application['status'], notes?: string, force?: boolean) => {
-    await apiClient.request(`/applications?action=review&id=${encodeURIComponent(id)}`, {
-      method: 'POST',
-      body: JSON.stringify({ new_status: status, notes, ...(force ? { force: true } : {}) }),
-      invalidateCache: [`/applications?id=${id}`, '/applications']
+    const encodedId = encodeURIComponent(id)
+    await apiClient.request(`/applications/${encodedId}/review/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status, notes, ...(force ? { force: true } : {}) }),
     })
 
     return getApplicationById(id)
   },
 
+  /** PATCH /applications/{id}/review/ — update payment status */
   updatePaymentStatus: async (
     id: string,
     paymentStatus: Application['payment_status'],
     verificationNotes?: string,
-    _force?: boolean
-  ) =>
-    applicationService.update(id, {
-      payment_status: paymentStatus,
-      payment_verified_at: new Date().toISOString(),
-      ...(verificationNotes ? { admin_feedback: verificationNotes, admin_feedback_date: new Date().toISOString() } : {}),
-    }),
+    force?: boolean
+  ) => {
+    const encodedId = encodeURIComponent(id)
+    await apiClient.request(`/applications/${encodedId}/review/`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        paymentStatus,
+        verificationNotes,
+        ...(force ? { force: true } : {}),
+      }),
+    })
+
+    return getApplicationById(id)
+  },
 
   verifyDocument: async (
     _id: string,
@@ -260,9 +283,10 @@ export const applicationService = {
     throw new Error('Finance receipt generation is not implemented in the Django backend yet')
   },
 
+  /** POST /applications/{id}/interviews/ — schedule interview */
   scheduleInterview: async (id: string, payload: ScheduleInterviewPayload) => {
     const response = await apiClient.request<ApplicationInterview>(
-      `/applications/${encodeURIComponent(id)}/interviews`,
+      `/applications/${encodeURIComponent(id)}/interviews/`,
       {
         method: 'POST',
         body: JSON.stringify({
@@ -277,17 +301,17 @@ export const applicationService = {
     return response ?? null
   },
 
+  /** PUT /applications/{id}/interviews/ — reschedule interview */
   rescheduleInterview: async (id: string, payload: RescheduleInterviewPayload) => {
     const response = await apiClient.request<ApplicationInterview>(
-      `/applications/${encodeURIComponent(id)}/interviews`,
+      `/applications/${encodeURIComponent(id)}/interviews/`,
       {
-        method: 'PATCH',
+        method: 'PUT',
         body: JSON.stringify({
           scheduled_at: payload.scheduledAt,
           mode: payload.mode,
           location: payload.location,
           notes: payload.notes,
-          status: 'rescheduled',
         })
       }
     )
@@ -295,13 +319,13 @@ export const applicationService = {
     return response ?? null
   },
 
+  /** DELETE /applications/{id}/interviews/ — cancel interview */
   cancelInterview: async (id: string, payload: CancelInterviewPayload = {}) => {
     const response = await apiClient.request<ApplicationInterview>(
-      `/applications/${encodeURIComponent(id)}/interviews`,
+      `/applications/${encodeURIComponent(id)}/interviews/`,
       {
-        method: 'PATCH',
+        method: 'DELETE',
         body: JSON.stringify({
-          status: 'cancelled',
           notes: payload.notes,
         })
       }
@@ -310,6 +334,7 @@ export const applicationService = {
     return response ?? null
   },
 
+  /** GET /applications/export/ — admin CSV/Excel export */
   exportApplications: async (params: {
     page?: number;
     limit?: number;
@@ -319,21 +344,65 @@ export const applicationService = {
     program?: string;
     institution?: string;
   } = {}) => {
-    const response = await applicationService.list({
-      page: params.page ?? 1,
-      pageSize: params.limit ?? 100,
+    const queryParams: QueryParams = {
+      page: params.page !== undefined ? params.page + 1 : undefined,
+      pageSize: params.limit,
       search: params.search,
       status: params.status,
       payment: params.payment,
       program: params.program,
       institution: params.institution,
-    })
+    }
+    const response = await apiClient.request<BackendPaginatedApplications>(
+      `/applications/export/${buildQueryString(queryParams)}`
+    )
+    const normalized = normalizePaginatedApplications(response)
 
     return {
-      applications: response.applications,
-      page: response.page,
-      limit: response.pageSize,
-      hasMore: response.page * response.pageSize < response.totalCount,
+      applications: normalized.applications,
+      page: normalized.page,
+      limit: normalized.pageSize,
+      hasMore: normalized.page * normalized.pageSize < normalized.totalCount,
     }
-  }
+  },
+
+  /** GET /applications/track/ — public application tracking */
+  track: async (params: { applicationNumber?: string; trackingCode?: string }) => {
+    const queryParams: QueryParams = {
+      applicationNumber: params.applicationNumber,
+      trackingCode: params.trackingCode,
+    }
+    return apiClient.request<unknown>(`/applications/track/${buildQueryString(queryParams)}`)
+  },
+
+  /** POST /applications/bulk-status/ — admin bulk status updates */
+  bulkStatus: async (data: { applicationIds: string[]; status: string; notes?: string }) => {
+    return apiClient.request<unknown>('/applications/bulk-status/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+
+  /** POST /applications/draft/ — auto-save draft persistence */
+  saveDraft: async (data: ApplicationPayload) => {
+    return apiClient.request<unknown>('/applications/draft/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+
+  /** GET /applications/{id}/documents/ */
+  getDocuments: async (id: string) => {
+    return apiClient.request<unknown[]>(`/applications/${encodeURIComponent(id)}/documents/`)
+  },
+
+  /** GET /applications/{id}/grades/ */
+  getGrades: async (id: string) => {
+    return apiClient.request<unknown[]>(`/applications/${encodeURIComponent(id)}/grades/`)
+  },
+
+  /** GET /applications/{id}/summary/ */
+  getSummary: async (id: string) => {
+    return apiClient.request<ApplicationSummaryResponse>(`/applications/${encodeURIComponent(id)}/summary/`)
+  },
 }

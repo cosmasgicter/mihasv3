@@ -45,7 +45,7 @@ When API logic runs as Vercel Functions, endpoint and function expansion can run
 - Create Django project (`config/`) and core apps (`accounts`, `applications`, `documents`, `catalog`, `common`).
 - Add DRF, SimpleJWT, CORS headers, health endpoint, and environment-based settings split (`base/dev/staging/prod`).
 - Configure Postgres connection, migrations, and local bootstrap scripts.
-- Add Docker + entrypoint + gunicorn baseline.
+- Add Docker + entrypoint + Uvicorn ASGI baseline.
 
 ### Phase 2: Auth/session model parity
 - Implement user model/role model that matches existing permission semantics.
@@ -87,9 +87,9 @@ For each endpoint:
 
 ### Runtime packaging
 - Use a **Dockerfile** to build the Django service image.
-- Run web server via **gunicorn** (`gunicorn config.wsgi:application --bind 0.0.0.0:$PORT`).
+- Run web server via **uvicorn** (`uvicorn config.asgi:application --host 0.0.0.0 --port $PORT`).
 - Optional Procfile-style process definitions for clarity in docs:
-  - `web`: gunicorn server
+  - `web`: uvicorn ASGI server
   - `worker`: celery worker
 - Expose health endpoints:
   - Liveness: `/health/live`
@@ -112,7 +112,7 @@ Define per environment:
 - `SENTRY_DSN` (optional)
 
 ### Service topology on Koyeb
-- **Web service:** Django + gunicorn (serves REST API).
+- **Web service:** Django + uvicorn (serves REST API).
 - **Worker service:** Celery worker (same image, different start command).
 - Optionally add **beat** scheduler service if cron-like jobs are needed.
 

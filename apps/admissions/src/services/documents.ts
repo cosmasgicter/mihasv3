@@ -1,34 +1,38 @@
 import { apiClient } from './client'
-import { fileToBase64 } from '@/lib/utils'
 
 export const documentService = {
-  /** Upload a document. Maps to POST /api/documents?action=upload */
+  /** Upload a document via Django multipart endpoint. */
   upload: async (data: { file: File; fileType: string; applicationId: string; userId?: string }) => {
-    const file = await fileToBase64(data.file)
+    void data.userId
+    const formData = new FormData()
+    formData.append('file', data.file)
+    formData.append('application_id', data.applicationId)
+    formData.append('document_type', data.fileType)
 
-    return apiClient.request('/documents?action=upload', {
+    return apiClient.request('/documents/upload/', {
       method: 'POST',
-      body: JSON.stringify({
-        file,
-        fileName: data.file.name,
-        contentType: data.file.type,
-        applicationId: data.applicationId,
-        userId: data.userId,
-        documentType: data.fileType,
-      })
+      body: formData
     })
   },
 
-  /** Extract text from a document. Maps to POST /api/documents?action=extract */
-  extract: (data: { documentUrl: string; applicationId?: string }) =>
-    apiClient.request('/documents?action=extract', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }),
+  /** Extract text from an uploaded document via Celery. */
+  extract: async (data: { documentId?: string; documentUrl?: string; applicationId?: string }) => {
+    void data.documentUrl
+    void data.applicationId
 
-  /** Get a signed download URL. Maps to GET /api/documents?action=signed-url&key=... */
-  getSignedUrl: (key: string) =>
-    apiClient.request(`/documents?action=signed-url&key=${encodeURIComponent(key)}`, {
+    if (!data.documentId) {
+      throw new Error('Document extraction requires an uploaded document ID')
+    }
+
+    return apiClient.request(`/documents/${encodeURIComponent(data.documentId)}/extract/`, {
+      method: 'POST'
+    })
+  },
+
+  /** Get a signed download URL for a document. */
+  getSignedUrl: async (documentId: string) => {
+    return apiClient.request<{ url: string }>(`/documents/${encodeURIComponent(documentId)}/signed-url/`, {
       method: 'GET'
-    }),
+    })
+  },
 }

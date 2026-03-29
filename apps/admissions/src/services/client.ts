@@ -42,7 +42,7 @@ const MAX_RETRIES = 2;
 const RETRY_DELAYS = [1_000, 3_000];
 
 /** Endpoints that use the shorter timeout */
-const SHORT_TIMEOUT_PATTERNS = ['/health/', '/api/v1/auth/session/'];
+const SHORT_TIMEOUT_PATTERNS = ['/api/v1/health/', '/api/v1/auth/session/'];
 
 /**
  * Determine the appropriate timeout for a given endpoint.
@@ -129,22 +129,48 @@ function createTimeoutController(
   return { controller, clear };
 }
 
-function appendQuery(path: string, params: URLSearchParams): string {
-  const queryString = params.toString();
-  return queryString ? `${path}?${queryString}` : path;
-}
+/**
+ * Normalize an endpoint path to include the `/api/v1` prefix.
+ * - Absolute URLs (http:// or https://) pass through unchanged.
+ * - Paths already starting with `/api/v1/` are returned as-is (idempotent).
+ * - All other paths get `/api/v1` prepended.
+ * - Consecutive slashes are deduplicated.
+ */
+export function toApiV1Path(path: string): string {
+  // Absolute URLs pass through unchanged
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
 
-function toApiV1Path(path: string): string {
+  // Already prefixed — return as-is (idempotent)
+  if (path.startsWith('/api/v1/') || path.startsWith('/api/v1?')) {
+    return path.replace(/\/{2,}/g, '/');
+  }
+
   const trimmedPath = path.replace(/^\/+/, '');
   return `${API_V1_PREFIX}/${trimmedPath}`.replace(/\/{2,}/g, '/');
 }
 
-function getResourceSegments(endpoint: string): string[] {
-  const sanitized = endpoint
-    .replace(/^\/api\/v1\//, '/')
-    .replace(/^\/api\//, '/');
+/**
+ * Extract the primary resource name from a normalized `/api/v1/...` endpoint.
+ * Used for logging/metrics only.
+ */
+function getServiceName(endpoint: string): string {
+  const stripped = endpoint.replace(/^\/api\/v1\//, '').replace(/^\//, '');
+  return stripped.split('/')[0] || 'unknown';
+}
 
-  return sanitized.split('/').filter(Boolean);
+function getResourceSegments(path: string): string[] {
+  return path
+    .replace(/^\/api(?:\/v1)?\/?/, '/')
+    .replace(/^\/+|\/+$/g, '')
+    .split('/')
+    .filter(Boolean);
+}
+
+function appendQuery(path: string, params: URLSearchParams): string {
+  const query = params.toString();
+  return query ? `${path}?${query}` : path;
 }
 
 class ApiClient {
@@ -157,7 +183,7 @@ class ApiClient {
 
   /**
    * Perform the actual token refresh call to the server.
-   * Sends a POST to /api/auth?action=refresh with credentials and CSRF token.
+   * Sends a POST to /api/v1/auth/refresh/ with credentials and CSRF token.
    * Captures the rotated CSRF token from the response header.
    */
   private async performRefresh(): Promise<boolean> {
@@ -170,7 +196,7 @@ class ApiClient {
     }
 
     try {
-      const refreshEndpoint = this.normalizeEndpoint('/auth?action=refresh', 'POST');
+      const refreshEndpoint = toApiV1Path('/auth/refresh/');
       const response = await fetch(`${API_BASE}${refreshEndpoint}`, {
         method: 'POST',
         credentials: 'include',
@@ -235,7 +261,7 @@ class ApiClient {
     signal: AbortSignal,
   ): Promise<Response> {
     // Re-fetch CSRF token from session endpoint
-    const sessionEndpoint = this.normalizeEndpoint('/auth?action=session', 'GET');
+    const sessionEndpoint = toApiV1Path('/auth/session/');
     const sessionResponse = await fetch(`${API_BASE}${sessionEndpoint}`, {
       method: 'GET',
       credentials: 'include',
@@ -338,6 +364,7 @@ class ApiClient {
         params.delete('action');
         switch (adminAction) {
           case 'dashboard':
+          case 'stats':
             return appendQuery(toApiV1Path('admin/dashboard/'), params);
           case 'users':
           case 'register':
@@ -361,7 +388,7 @@ class ApiClient {
         }
       }
       case 'applications': {
-        const collectionActions = new Set(['track', 'draft', 'export', 'bulk-status']);
+        const collectionActions = new Set(['track', 'draft', 'export', 'bulk-status', 'stats', 'versions']);
         const directApplicationId =
           rest[0] && !collectionActions.has(rest[0]) ? rest[0] : null;
         const directNestedAction = directApplicationId ? rest[1] ?? '' : '';
@@ -473,10 +500,18 @@ class ApiClient {
       }
       case 'catalog': {
         const type = params.get('type') ?? rest[0];
+        const catalogEntityId = params.get('id') ?? rest[1];
         params.delete('type');
-        return type
-          ? appendQuery(toApiV1Path(`catalog/${type}/`), params)
-          : appendQuery(toApiV1Path('catalog/'), params);
+        if (catalogEntityId) {
+          params.delete('id');
+        }
+        if (!type) {
+          return appendQuery(toApiV1Path('catalog/'), params);
+        }
+        if (catalogEntityId && ['GET', 'PATCH', 'PUT', 'DELETE'].includes(method)) {
+          return appendQuery(toApiV1Path(`catalog/${type}/${catalogEntityId}/`), params);
+        }
+        return appendQuery(toApiV1Path(`catalog/${type}/`), params);
       }
       case 'health': {
         return action === 'ready' ? '/health/ready/' : '/health/live/';
@@ -485,6 +520,7 @@ class ApiClient {
         return endpoint;
     }
   }
+
 
   private async parseJsonSafely<TResponse>(
     response: Response,
@@ -559,7 +595,7 @@ class ApiClient {
 
   /**
    * Unwrap the { success, data } envelope returned by API endpoints.
-   * All Vercel API endpoints return { success: true, data: T } via sendSuccess().
+   * All API endpoints return { success: true, data: T } via the response envelope.
    * This method extracts the inner `data` so callers get the payload directly.
    * 
    * Non-JSON responses (file downloads, CSV exports, SSE streams) are returned
@@ -649,11 +685,11 @@ class ApiClient {
    * - Login/logout → queryClient.clear() (handled separately in auth flow)
    * - Token refresh → does NOT invalidate data caches
    *
-   * @param endpoint  The API endpoint path (e.g. '/api/applications?id=xxx')
+   * @param endpoint  The API endpoint path (e.g. '/api/v1/applications/123/review/')
    * @param method    The HTTP method (e.g. 'POST', 'PUT')
    * @returns Array of React Query key arrays to invalidate
    *
-   * Requirements: 15.1, 15.2, 15.3, 15.4, 15.5
+   * Requirements: 1.10, 1.11
    */
   getQueryInvalidationPatterns(
     endpoint: string,
@@ -661,23 +697,26 @@ class ApiClient {
   ): string[][] {
     const upper = method.toUpperCase();
     const url = new URL(endpoint, 'http://localhost');
-    const normalizedPathname = url.pathname.replace(/^\/api(?:\/v1)?\//, '');
-    const pathname = normalizedPathname.split('/').filter(Boolean)[0] ?? '';
-    const action = url.searchParams.get('action') ?? '';
-    const id = url.searchParams.get('id') ?? '';
 
-    // Token refresh — never invalidate data caches (Req 15.5)
-    if (pathname === 'auth' && action === 'refresh') {
-      return [];
-    }
+    // Parse REST-style path segments: strip /api/v1/ prefix, split by /
+    // e.g. /api/v1/applications/123/review/ -> ['applications', '123', 'review']
+    const segments = url.pathname
+      .replace(/^\/api(?:\/v1)?\//, '')
+      .split('/')
+      .filter(Boolean);
 
-    // Login/logout — handled by queryClient.clear() in auth flow (Req 15.4)
-    if (pathname === 'auth' && (action === 'login' || action === 'logout' || action === 'register')) {
+    const resource = segments[0] ?? '';
+    const id = segments[1] ?? '';
+
+    // Auth endpoints (login/logout/register/refresh) -> no cache invalidation
+    // Login/logout handled by queryClient.clear() in auth flow
+    // Token refresh must never invalidate data caches
+    if (resource === 'auth') {
       return [];
     }
 
     // Application mutations (student-side)
-    if (pathname === 'applications' && ['POST', 'PUT', 'PATCH'].includes(upper)) {
+    if (resource === 'applications' && ['POST', 'PUT', 'PATCH'].includes(upper)) {
       const keys: string[][] = [
         ['applications'],
         ['student-dashboard-polling'],
@@ -690,43 +729,33 @@ class ApiClient {
     }
 
     // Admin actions
-    if (pathname === 'admin' && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(upper)) {
+    if (resource === 'admin' && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(upper)) {
       const keys: string[][] = [
         ['admin-applications'],
         ['admin-dashboard-polling'],
         ['application-stats'],
       ];
-      // If the admin action targets a specific application, also invalidate it
-      if (id) {
-        keys.push(['applications', id]);
-      }
-      // Status changes also affect the general applications list
-      if (action === 'update-status' || action === 'review') {
-        keys.push(['applications']);
-        keys.push(['application-history']);
-      }
       return keys;
     }
 
-    // Document uploads
-    if (pathname === 'documents' && ['POST', 'PUT'].includes(upper)) {
+    // Document mutations
+    if (resource === 'documents' && ['POST', 'PUT'].includes(upper)) {
       return [['applications'], ['documents']];
     }
 
     // Payment mutations
-    if (pathname === 'payments' && ['POST', 'PUT'].includes(upper)) {
+    if (resource === 'payments' && ['POST', 'PUT'].includes(upper)) {
       return [['applications'], ['payment-status']];
     }
 
     // Notification mutations
-    if (pathname === 'notifications' && ['POST', 'PUT'].includes(upper)) {
+    if (resource === 'notifications' && ['POST', 'PUT'].includes(upper)) {
       return [['notification_preferences']];
     }
 
     // Default: no automatic React Query invalidation
     return [];
   }
-
   private invalidateRelatedCaches(
     endpoint: string,
     customTargets?: string | string[] | false
@@ -742,9 +771,10 @@ class ApiClient {
     const start = Date.now();
     const method = (options.method ?? 'GET').toString().toUpperCase();
     const normalizedEndpoint = this.normalizeEndpoint(endpoint, method);
-    const service = getResourceSegments(normalizedEndpoint)[0] || 'unknown';
+    const apiEndpoint = toApiV1Path(normalizedEndpoint);
+    const service = getServiceName(apiEndpoint);
 
-    const timeoutMs = options.timeout ?? getTimeoutForEndpoint(normalizedEndpoint);
+    const timeoutMs = options.timeout ?? getTimeoutForEndpoint(apiEndpoint);
     const maxRetries = options.retries ?? MAX_RETRIES;
 
     // Outer retry loop for network/5xx errors
@@ -758,7 +788,7 @@ class ApiClient {
 
       try {
         const result = await this.executeRequest<TResponse>(
-          normalizedEndpoint,
+          apiEndpoint,
           method,
           service,
           start,
@@ -1160,6 +1190,15 @@ export function configureApiClientAuthFailure(callback: () => void): void {
  */
 export function getOnAuthFailure(): (() => void) | null {
   return onAuthFailure;
+}
+
+/**
+ * Sync the in-memory CSRF token from external auth events such as multi-tab
+ * broadcasts. Keeping the write inside ApiClient preserves the single writer
+ * invariant for the token store.
+ */
+export function syncApiClientCsrfToken(token: string | null): void {
+  setCsrfToken(token);
 }
 
 export type QueryParamValue = string | number | boolean;

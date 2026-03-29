@@ -220,10 +220,21 @@ export function useSessionListener() {
         },
       )
 
-      const loginResult = await apiClient.request<{ user?: User; profile?: UserProfile }>(
-        '/auth?action=login',
-        { method: 'POST', body: JSON.stringify({ email, password }) },
-      )
+      let loginResult: { user?: User; profile?: UserProfile } | null = null
+      try {
+        loginResult = await apiClient.request<{ user?: User; profile?: UserProfile }>(
+          '/auth?action=login',
+          { method: 'POST', body: JSON.stringify({ email, password }) },
+        )
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unable to sign in after account creation'
+        if (/invalid credentials|unauthorized/i.test(message)) {
+          return {
+            error: 'We could not sign you in after registration. If this email is already registered, please sign in instead.',
+          }
+        }
+        return { error: message }
+      }
 
       const userPayload = extractAuthUser(loginResult) ?? extractAuthUser(registerResult)
       if (userPayload) {

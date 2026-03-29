@@ -54,7 +54,7 @@ const concurrentCountArb = fc.integer({ min: 2, max: 20 });
 // ── Helpers ─────────────────────────────────────────────────────────────
 
 const BASE = 'http://localhost:3000';
-const REFRESH_URL = `${BASE}/api/auth?action=refresh`;
+const REFRESH_URL = `${BASE}/api/v1/auth/refresh/`;
 
 function makeJsonResponse(status: number, body: any, csrfToken?: string): Response {
   const headers = new Headers({ 'content-type': 'application/json' });
@@ -71,7 +71,7 @@ function makeJsonResponse(status: number, body: any, csrfToken?: string): Respon
 /**
  * Build a fetch mock that:
  * 1. Returns 401 for the first N calls to non-refresh endpoints (original requests)
- * 2. Returns 200 for the refresh call (POST /api/auth?action=refresh)
+ * 2. Returns 200 for the refresh call (POST /api/v1/auth/refresh/)
  * 3. Returns 200 for subsequent retry calls
  *
  * Tracks how many times the refresh endpoint was called.
@@ -141,7 +141,7 @@ describe('ApiClient Refresh Deduplication Property Tests', () => {
           // Fire N concurrent POST requests that will all get 401
           // Use unique endpoints so they don't interfere with each other
           const promises = Array.from({ length: n }, (_, i) =>
-            apiClient.request(`/api/health?action=ping&req=${i}`, {
+            apiClient.request(`/api/applications?req=${i}`, {
               method: 'POST',
               retries: 0, // Disable outer retry loop to isolate 401 handling
             })

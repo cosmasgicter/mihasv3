@@ -105,7 +105,7 @@ export const UserMobileCard = React.memo<UserRowProps>(function UserMobileCard({
       <div className="flex items-start gap-3">
         <button
           onClick={() => onSelect(userId)}
-          className="mt-1 text-primary hover:text-primary"
+          className="mt-1 min-h-[44px] min-w-[44px] text-primary hover:text-primary"
           aria-label={isSelected ? 'Deselect user' : 'Select user'}
         >
           {isSelected ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
@@ -137,17 +137,17 @@ export const UserMobileCard = React.memo<UserRowProps>(function UserMobileCard({
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-4">
-        <Button variant="outline" size="sm" onClick={() => onEdit(user)}>
+        <Button variant="outline" size="sm" className="min-h-[44px]" onClick={() => onEdit(user)}>
           Edit
         </Button>
-        <Button variant="outline" size="sm" onClick={() => onPermissions(user)}>
+        <Button variant="outline" size="sm" className="min-h-[44px]" onClick={() => onPermissions(user)}>
           Permissions
         </Button>
-        <Button variant="outline" size="sm" onClick={() => onActivity(userId)}>
+        <Button variant="outline" size="sm" className="min-h-[44px]" onClick={() => onActivity(userId)}>
           Activity
         </Button>
         {user.role !== 'super_admin' && (
-          <Button variant="outline" size="sm" className="border-destructive/30 text-destructive hover:bg-destructive/5" onClick={() => onDeactivate(user)}>
+          <Button variant="outline" size="sm" className="min-h-[44px] border-destructive/30 text-destructive hover:bg-destructive/5" onClick={() => onDeactivate(user)}>
             Deactivate
           </Button>
         )}
@@ -174,7 +174,7 @@ export const UserTableRow = React.memo<UserRowProps>(function UserTableRow({
         <div className="flex items-start gap-3">
           <button
             onClick={() => onSelect(userId)}
-            className="mt-0.5 text-primary hover:text-primary"
+            className="mt-0.5 min-h-[44px] min-w-[44px] text-primary hover:text-primary"
             aria-label={isSelected ? 'Deselect user' : 'Select user'}
           >
             {isSelected ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}

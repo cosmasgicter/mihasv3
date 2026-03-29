@@ -4,12 +4,13 @@
  */
 
 import { apiClient } from '@/services/client'
+import { getApiBaseUrl } from '@/lib/apiConfig'
 
 /** Simple connectivity check — replaces networkDiagnostics dependency */
 async function testConnection(): Promise<{ status: 'online' | 'offline' }> {
   if (!navigator.onLine) return { status: 'offline' };
   try {
-    await fetch('/api/health?action=ping', { method: 'HEAD', cache: 'no-store' });
+    await fetch(`${getApiBaseUrl()}/health/live/`, { method: 'HEAD', cache: 'no-store' });
     return { status: 'online' };
   } catch {
     return { status: 'offline' };
@@ -182,9 +183,9 @@ export async function syncGradesWithRecovery(
 ): Promise<any> {
   const connectionManager = ConnectionManager.getInstance()
   
-  return connectionManager.makeRequest(`/applications/${applicationId}`, {
-    method: 'PATCH',
-    body: JSON.stringify({ action: 'sync_grades', grades }),
+  return connectionManager.makeRequest(`/applications/${applicationId}/grades`, {
+    method: 'POST',
+    body: JSON.stringify({ grades }),
     retryKey: `sync_grades_${applicationId}`
   })
 }

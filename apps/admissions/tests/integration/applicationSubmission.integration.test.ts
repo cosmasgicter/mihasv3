@@ -278,9 +278,9 @@ describe('Feature: production-remediation — Application Submission Flow Integr
 
   describe('Cache invalidation after submission', () => {
     it('should produce correct invalidation patterns for application mutations', () => {
-      // Application submit (student-side)
+      // Application submit (student-side) via REST path
       const submitPatterns = apiClient.getQueryInvalidationPatterns(
-        '/api/applications?id=app-1',
+        '/api/v1/applications/app-1/',
         'PUT'
       );
 
@@ -292,7 +292,7 @@ describe('Feature: production-remediation — Application Submission Flow Integr
 
     it('should NOT invalidate data caches on token refresh', () => {
       const refreshPatterns = apiClient.getQueryInvalidationPatterns(
-        '/api/auth?action=refresh',
+        '/api/v1/auth/refresh/',
         'POST'
       );
 
@@ -301,11 +301,11 @@ describe('Feature: production-remediation — Application Submission Flow Integr
 
     it('should NOT invalidate on login/logout (handled by queryClient.clear)', () => {
       const loginPatterns = apiClient.getQueryInvalidationPatterns(
-        '/api/auth?action=login',
+        '/api/v1/auth/login/',
         'POST'
       );
       const logoutPatterns = apiClient.getQueryInvalidationPatterns(
-        '/api/auth?action=logout',
+        '/api/v1/auth/logout/',
         'POST'
       );
 
@@ -315,15 +315,7 @@ describe('Feature: production-remediation — Application Submission Flow Integr
   });
 
   describe('Submission notification triggering', () => {
-    it('should trigger notifications after successful submission', async () => {
-      // Mock the notification service calls
-      mockFetch.mockResolvedValueOnce(
-        createFetchResponse({ success: true, data: { notification: { id: 'n-1' } } })
-      );
-      mockFetch.mockResolvedValueOnce(
-        createFetchResponse({ success: true, data: { id: 'email-1' } })
-      );
-
+    it('returns a non-blocking no-op result while submission notifications are still being migrated', async () => {
       const result = await triggerSubmissionNotifications({
         applicationId: 'app-uuid-1',
         userId: 'user-1',
@@ -333,15 +325,12 @@ describe('Feature: production-remediation — Application Submission Flow Integr
         program: 'Nursing',
       });
 
-      // Notifications should succeed (or at least not throw)
-      expect(result.success).toBe(true);
+      expect(result.success).toBe(false);
+      expect(result.errors).toEqual([]);
+      expect(mockFetch).not.toHaveBeenCalled();
     });
 
-    it('should handle notification failures gracefully without failing submission', async () => {
-      // Both notification calls fail
-      mockFetch.mockRejectedValueOnce(new Error('Notification service down'));
-      mockFetch.mockRejectedValueOnce(new Error('Email service down'));
-
+    it('does not surface backend errors because self-service submission no longer calls admin-only endpoints', async () => {
       const result = await triggerSubmissionNotifications({
         applicationId: 'app-uuid-1',
         userId: 'user-1',
@@ -351,8 +340,8 @@ describe('Feature: production-remediation — Application Submission Flow Integr
         program: 'Nursing',
       });
 
-      // Should not throw — notifications are non-blocking
-      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.errors).toEqual([]);
+      expect(mockFetch).not.toHaveBeenCalled();
     });
   });
 

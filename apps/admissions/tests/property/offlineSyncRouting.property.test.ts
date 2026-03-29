@@ -37,16 +37,18 @@ function buildSyncRoute(
   switch (itemType) {
     case 'application_draft':
       return {
-        endpoint: '/applications',
+        endpoint: '/applications?action=draft',
         method: 'POST',
         body: {
-          action: 'save_draft',
           user_id: userId,
-          form_data: data.form_data ?? {},
-          uploaded_files: data.uploaded_files ?? [],
-          current_step: data.current_step ?? 0,
-          is_offline_sync: true,
-          updated_at: new Date().toISOString(),
+          draft_data: {
+            ...(data.form_data as Record<string, unknown> | undefined ?? {}),
+            uploaded_files: data.uploaded_files ?? [],
+            current_step: data.current_step ?? 0,
+            version: data.version ?? 1,
+            is_offline_sync: true,
+            updated_at: new Date().toISOString(),
+          },
         },
       }
     case 'form_submission':
@@ -119,7 +121,11 @@ describe('Feature: supabase-remnant-purge, Property 2: Offline sync routes throu
           expect(route.method).toBe('POST')
 
           // Body must include offline sync marker
-          expect(route.body.is_offline_sync).toBe(true)
+          if (itemType === 'application_draft') {
+            expect((route.body.draft_data as Record<string, unknown>)?.is_offline_sync).toBe(true)
+          } else {
+            expect(route.body.is_offline_sync).toBe(true)
+          }
 
           // Body must include user_id
           expect(route.body.user_id).toBe(userId)
@@ -129,7 +135,7 @@ describe('Feature: supabase-remnant-purge, Property 2: Offline sync routes throu
     )
   })
 
-  it('application_draft sync routes to /applications with save_draft action', () => {
+  it('application_draft sync routes to the draft endpoint with nested draft_data payload', () => {
     fc.assert(
       fc.property(applicationDraftDataArb, userIdArb, (draftData, userId) => {
         const route = buildSyncRoute(
@@ -140,13 +146,17 @@ describe('Feature: supabase-remnant-purge, Property 2: Offline sync routes throu
         )
 
         expect(route).not.toBeNull()
-        expect(route!.endpoint).toBe('/applications')
+        expect(route!.endpoint).toBe('/applications?action=draft')
         expect(route!.method).toBe('POST')
-        expect(route!.body.action).toBe('save_draft')
         expect(route!.body.user_id).toBe(userId)
-        expect(route!.body.is_offline_sync).toBe(true)
-        expect(route!.body.form_data).toEqual(draftData.form_data)
-        expect(route!.body.current_step).toBe(draftData.current_step)
+        expect(route!.body.draft_data).toEqual({
+          ...draftData.form_data,
+          uploaded_files: draftData.uploaded_files,
+          current_step: draftData.current_step,
+          version: draftData.version,
+          is_offline_sync: true,
+          updated_at: expect.any(String),
+        })
       }),
       { numRuns: 10 },
     )

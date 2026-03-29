@@ -38,7 +38,7 @@ This plan implements the monorepo restructure in strict priority order: P0 produ
     - File: `django_api/tests/unit/test_jti_blacklist.py`
     - _Requirements: 1.4, 1.5_
 
-- [x] 2. P0: Migrate SSE to async views and switch from gunicorn to uvicorn
+- [x] 2. P0: Migrate SSE to async views and switch from the legacy WSGI deployment to uvicorn
   - [x] 2.1 Convert `SSEStreamView` and `_event_stream` to async in `django_api/apps/common/sse.py`
     - Convert `_event_stream()` to `async def _async_event_stream()` using `asyncio.sleep` instead of `time.sleep`
     - Wrap ORM notification query in `sync_to_async` (new `_fetch_notifications()` helper)
@@ -48,10 +48,10 @@ This plan implements the monorepo restructure in strict priority order: P0 produ
     - Maintain 8-second keepalive interval and 30-second max duration
     - _Requirements: 2.2, 2.3, 2.4, 2.6, 2.7, 2.8_
 
-  - [x] 2.2 Switch from gunicorn to uvicorn in Dockerfile and dependencies
-    - Update `django_api/Dockerfile` CMD from `gunicorn config.wsgi:application --config gunicorn.conf.py` to `uvicorn config.asgi:application --host 0.0.0.0 --port $PORT --workers 3`
+  - [x] 2.2 Switch from the legacy WSGI deployment to uvicorn in Dockerfile and dependencies
+    - Update `django_api/Dockerfile` CMD to `uvicorn config.asgi:application --host 0.0.0.0 --port $PORT --workers 3`
     - Add `uvicorn[standard]` to `django_api/requirements.txt`
-    - Delete `django_api/gunicorn.conf.py`
+    - Delete the legacy WSGI-only process manager config
     - Verify `django_api/config/asgi.py` exists and serves as the ASGI entry point
     - _Requirements: 2.1, 2.5, 2.9_
 
@@ -82,7 +82,7 @@ This plan implements the monorepo restructure in strict priority order: P0 produ
   - Ensure all tests pass, ask the user if questions arise.
   - Verify Redis JTI blacklist works with `fakeredis` in tests
   - Verify async SSE stream yields events correctly
-  - Verify Dockerfile CMD uses uvicorn, gunicorn.conf.py is deleted, uvicorn[standard] is in requirements.txt
+  - Verify Dockerfile CMD uses uvicorn, legacy WSGI-only process config is deleted, uvicorn[standard] is in requirements.txt
 
 - [x] 4. Delete legacy Node.js backend artifacts
   - Delete `api-src/` directory entirely
@@ -216,7 +216,7 @@ This plan implements the monorepo restructure in strict priority order: P0 produ
 - [x] 13. Final checkpoint — All tasks complete
   - Ensure all tests pass, ask the user if questions arise.
   - Verify monorepo directory structure matches target state
-  - Verify backend deploys independently (Dockerfile uses uvicorn, no gunicorn.conf.py)
+  - Verify backend deploys independently (Dockerfile uses uvicorn, no legacy WSGI-only process config)
   - Verify frontend builds from `apps/admissions/` with `bun run build`
   - Verify all frontend tests pass from `apps/admissions/` with `bun run test`
 

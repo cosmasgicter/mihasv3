@@ -14,7 +14,7 @@ describe('PasswordInput UI/a11y consistency', () => {
       <PasswordInput id="password" label="Password" />
     )
     const noErrorInput = noErrorDocument.querySelector('input')
-    expect(noErrorInput?.hasAttribute('aria-invalid')).toBe(false)
+    expect(noErrorInput?.getAttribute('aria-invalid')).toBe('false')
 
     const errorDocument = renderMarkup(
       <PasswordInput id="password" label="Password" error="Password is required" />

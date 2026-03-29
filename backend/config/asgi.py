@@ -1,4 +1,4 @@
-"""ASGI config for MIHAS Django API."""
+"""Primary ASGI entrypoint for the MIHAS Django API."""
 import os
 
 from django.core.asgi import get_asgi_application

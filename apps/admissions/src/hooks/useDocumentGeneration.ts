@@ -10,14 +10,23 @@ import { useState } from 'react';
 import { logger } from '@/lib/logger';
 import { generateApplicationSlip } from '@/lib/applicationSlip';
 import { generateAcceptanceLetter } from '@/lib/acceptanceLetterGenerator';
-import { generatePaymentReceipt } from '@/lib/receiptGenerator';
-import { getApiBaseUrl } from '@/lib/apiConfig';
+import { generatePaymentReceipt, generateReceiptNumber } from '@/lib/receiptGenerator';
+import { applicationService } from '@/services/applications';
 
 type ApplicationPayload = {
+  id?: string;
   application_number?: string;
   public_tracking_code?: string;
   status?: string;
   payment_status?: string;
+  payment_method?: string | null;
+  payment_verified_at?: string | null;
+  payment_verified_by_name?: string | null;
+  receipt_number?: string | null;
+  application_fee?: number | string | null;
+  amount?: number | string | null;
+  momo_ref?: string | null;
+  paid_at?: string | null;
   submitted_at?: string;
   updated_at?: string;
   program?: string;
@@ -58,11 +67,16 @@ export const extractApplicationFromEnvelope = (
   endpoint: string
 ): ApplicationPayload => {
   const parsedEnvelope = envelope as
+    | ApplicationPayload
     | { data?: { application?: ApplicationPayload }; application?: ApplicationPayload }
     | null
     | undefined;
   const application =
-    parsedEnvelope?.data?.application ?? parsedEnvelope?.application ?? null;
+    parsedEnvelope?.data?.application ??
+    parsedEnvelope?.application ??
+    (parsedEnvelope && typeof parsedEnvelope === 'object' && 'application_number' in parsedEnvelope
+      ? parsedEnvelope
+      : null);
 
   if (!application || typeof application !== 'object') {
     console.error('[useDocumentGeneration] Malformed payload: missing application object', {
@@ -87,6 +101,33 @@ export const extractApplicationFromEnvelope = (
   return application;
 };
 
+function normalizeAmount(value: number | string | null | undefined): number {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+}
+
+function buildReceiptData(application: ApplicationPayload) {
+  return {
+    receiptNumber: application.receipt_number || generateReceiptNumber(),
+    applicationNumber: application.application_number || 'Unknown',
+    studentName: application.full_name || 'Applicant',
+    email: application.email || 'Not provided',
+    phone: application.phone || 'Not provided',
+    program: application.program || 'Not specified',
+    institution: application.institution || 'MIHAS',
+    amount: normalizeAmount(application.amount ?? application.application_fee),
+    paymentMethod: application.payment_method || 'Mobile Money',
+    paymentReference: application.momo_ref || undefined,
+    paymentDate: application.paid_at || application.payment_verified_at || new Date().toISOString(),
+    verifiedDate: application.payment_verified_at || new Date().toISOString(),
+    verifiedBy: application.payment_verified_by_name || 'Admissions Office',
+  };
+}
+
 export function useDocumentGeneration() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,24 +142,9 @@ export function useDocumentGeneration() {
     try {
       logger.info('[useDocumentGeneration] Starting generation for type:', type);
 
-      // Fetch application data using cookie auth
-      const endpoint = `${getApiBaseUrl()}/api/applications?id=${applicationId}`;
-      const response = await fetch(endpoint, {
-        method: 'GET',
-        credentials: 'include', // CRITICAL: Send HTTP-only cookies
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Please sign in to generate documents');
-        }
-        throw new Error('Failed to fetch application data');
-      }
-
-      const envelope = await response.json();
+      const detail = await applicationService.getById(applicationId)
+      const envelope = detail?.application ?? null;
+      const endpoint = `/applications?id=${applicationId}`;
       const application = extractApplicationFromEnvelope(envelope, endpoint);
       logger.info('[useDocumentGeneration] Application data:', application);
 
@@ -165,26 +191,8 @@ export function useDocumentGeneration() {
           if (application.payment_status !== 'verified') {
             throw new Error('Payment must be verified to generate receipt');
           }
-
-          // Fetch receipt data using cookie auth
-          const receiptResponse = await fetch(
-            `${getApiBaseUrl()}/api/payments?action=receipt&applicationId=${applicationId}`,
-            {
-              method: 'GET',
-              credentials: 'include', // CRITICAL: Send HTTP-only cookies
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            }
-          );
-
-          if (!receiptResponse.ok) {
-            throw new Error('Failed to fetch receipt data');
-          }
-
-          const { data: receiptData } = await receiptResponse.json();
-          pdfBlob = await generatePaymentReceipt(receiptData);
-          filename = `receipt_${receiptData.receiptNumber}.pdf`;
+          pdfBlob = await generatePaymentReceipt(buildReceiptData(application));
+          filename = `receipt_${application.receipt_number || application.application_number || applicationId}.pdf`;
           break;
 
         default:

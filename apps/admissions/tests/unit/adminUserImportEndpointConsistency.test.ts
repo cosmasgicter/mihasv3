@@ -7,7 +7,7 @@ const source = fs.readFileSync(FILE_PATH, 'utf-8')
 
 describe('UserImport endpoint consistency', () => {
   it('uses canonical admin register action via apiClient', () => {
-    expect(source).toContain("apiClient.request<{ user?: unknown; message?: string }>('/admin?action=register'")
+    expect(source).toContain("apiClient.request<{ id?: string; message?: string }>('/admin?action=register'")
     expect(source).not.toContain("fetch('/api/admin?action=create-user'")
   })
 })

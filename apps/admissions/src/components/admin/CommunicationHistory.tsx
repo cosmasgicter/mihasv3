@@ -11,7 +11,6 @@ import { Badge } from '@/components/ui'
 import { Alert } from '@/components/ui/Alert'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { Mail, MessageSquare, Phone, Clock, CheckCircle, XCircle, AlertCircle, User } from 'lucide-react'
-import { apiClient } from '@/services/client'
 import { formatRelative } from '@/lib/dateFormat'
 
 interface CommunicationHistoryType {
@@ -49,16 +48,12 @@ export function CommunicationHistory({ applicantId, className }: CommunicationHi
     setError(null)
 
     try {
-      const response = await apiClient.request<{
-        communications?: CommunicationHistoryType[]
-        lastContactedAt?: string | null
-      }>(`/notifications?action=history&applicationId=${encodeURIComponent(applicantId)}`)
-
-      setHistory(response?.communications || [])
-      setLastContacted(response?.lastContactedAt || null)
-    } catch (err) {
-      console.error('Error loading communication history:', err)
-      setError('Failed to load communication history')
+      void applicantId
+      setHistory([])
+      setLastContacted(null)
+    } catch {
+      setHistory([])
+      setLastContacted(null)
     } finally {
       setLoading(false)
     }
@@ -168,7 +163,7 @@ export function CommunicationHistory({ applicantId, className }: CommunicationHi
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <div className="ml-2">
-              No communications have been sent to this applicant yet.
+              Communication history is not available on the Django backend yet.
             </div>
           </Alert>
         ) : (

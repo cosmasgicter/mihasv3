@@ -4,7 +4,7 @@
  *
  * Verifies that when isLoading persists beyond 5 seconds after login,
  * the component forces invalidateQueries(['auth', 'session']) and
- * shows a "Taking longer than expected..." message with a reload button.
+ * shows a "Taking longer than expected..." message with a retry button.
  *
  * Requirements: 34.3, 14.7
  */
@@ -39,6 +39,16 @@ vi.mock('react-router-dom', () => ({
 }))
 
 import { ProtectedRoute } from '@/components/ProtectedRoute'
+
+function makeAuthCheckState(overrides: Record<string, unknown> = {}) {
+  return {
+    isAuthenticated: false,
+    isLoading: false,
+    user: null,
+    retrySessionCheck: vi.fn().mockResolvedValue(undefined),
+    ...overrides,
+  }
+}
 
 // Helper to render into a container and return cleanup + container
 function renderInto(element: React.ReactElement) {
@@ -79,11 +89,7 @@ describe('ProtectedRoute loading timeout safety net', () => {
   })
 
   it('does not show timeout message before 5 seconds', () => {
-    mockUseAuthCheck.mockReturnValue({
-      isAuthenticated: false,
-      isLoading: true,
-      user: null,
-    })
+    mockUseAuthCheck.mockReturnValue(makeAuthCheckState({ isLoading: true }))
 
     const { container, unmount } = renderInto(
       <ProtectedRoute>
@@ -102,11 +108,7 @@ describe('ProtectedRoute loading timeout safety net', () => {
   })
 
   it('triggers invalidateQueries after 5 seconds of persistent loading', () => {
-    mockUseAuthCheck.mockReturnValue({
-      isAuthenticated: false,
-      isLoading: true,
-      user: null,
-    })
+    mockUseAuthCheck.mockReturnValue(makeAuthCheckState({ isLoading: true }))
 
     const { unmount } = renderInto(
       <ProtectedRoute>
@@ -126,11 +128,7 @@ describe('ProtectedRoute loading timeout safety net', () => {
   })
 
   it('shows "Taking longer than expected..." message after timeout', () => {
-    mockUseAuthCheck.mockReturnValue({
-      isAuthenticated: false,
-      isLoading: true,
-      user: null,
-    })
+    mockUseAuthCheck.mockReturnValue(makeAuthCheckState({ isLoading: true }))
 
     const { container, unmount } = renderInto(
       <ProtectedRoute>
@@ -148,11 +146,7 @@ describe('ProtectedRoute loading timeout safety net', () => {
   })
 
   it('renders a reload button after timeout', () => {
-    mockUseAuthCheck.mockReturnValue({
-      isAuthenticated: false,
-      isLoading: true,
-      user: null,
-    })
+    mockUseAuthCheck.mockReturnValue(makeAuthCheckState({ isLoading: true }))
 
     const { container, unmount } = renderInto(
       <ProtectedRoute>
@@ -166,17 +160,13 @@ describe('ProtectedRoute loading timeout safety net', () => {
 
     const button = container.querySelector('button')
     expect(button).not.toBeNull()
-    expect(button?.textContent).toContain('Reload page')
+    expect(button?.textContent).toContain('Retry session')
 
     unmount()
   })
 
   it('clears timeout on unmount (no memory leak)', () => {
-    mockUseAuthCheck.mockReturnValue({
-      isAuthenticated: false,
-      isLoading: true,
-      user: null,
-    })
+    mockUseAuthCheck.mockReturnValue(makeAuthCheckState({ isLoading: true }))
 
     const { unmount } = renderInto(
       <ProtectedRoute>
@@ -196,11 +186,7 @@ describe('ProtectedRoute loading timeout safety net', () => {
   })
 
   it('clears timeout message when loading resolves', () => {
-    mockUseAuthCheck.mockReturnValue({
-      isAuthenticated: false,
-      isLoading: true,
-      user: null,
-    })
+    mockUseAuthCheck.mockReturnValue(makeAuthCheckState({ isLoading: true }))
 
     const { container, rerender, unmount } = renderInto(
       <ProtectedRoute>
@@ -216,11 +202,13 @@ describe('ProtectedRoute loading timeout safety net', () => {
     expect(container.textContent).toContain('Taking longer than expected')
 
     // Now loading resolves — user is authenticated
-    mockUseAuthCheck.mockReturnValue({
-      isAuthenticated: true,
-      isLoading: false,
-      user: { id: 'user-1', email: 'test@example.com' },
-    })
+    mockUseAuthCheck.mockReturnValue(
+      makeAuthCheckState({
+        isAuthenticated: true,
+        isLoading: false,
+        user: { id: 'user-1', email: 'test@example.com' },
+      })
+    )
 
     rerender(
       <ProtectedRoute>
@@ -236,11 +224,13 @@ describe('ProtectedRoute loading timeout safety net', () => {
   })
 
   it('renders children when authenticated and not loading', () => {
-    mockUseAuthCheck.mockReturnValue({
-      isAuthenticated: true,
-      isLoading: false,
-      user: { id: 'user-1', email: 'test@example.com' },
-    })
+    mockUseAuthCheck.mockReturnValue(
+      makeAuthCheckState({
+        isAuthenticated: true,
+        isLoading: false,
+        user: { id: 'user-1', email: 'test@example.com' },
+      })
+    )
 
     const { container, unmount } = renderInto(
       <ProtectedRoute>
@@ -254,18 +244,35 @@ describe('ProtectedRoute loading timeout safety net', () => {
     unmount()
   })
 
-  it('redirects to signin when not authenticated and not loading', () => {
-    mockUseAuthCheck.mockReturnValue({
-      isAuthenticated: false,
-      isLoading: false,
-      user: null,
-    })
+  it('redirects to signin after session recovery window when not authenticated and not loading', async () => {
+    const retrySessionCheck = vi.fn().mockResolvedValue(undefined)
+    mockUseAuthCheck.mockReturnValue(
+      makeAuthCheckState({
+        retrySessionCheck,
+      })
+    )
 
     const { container, unmount } = renderInto(
       <ProtectedRoute>
         <div>Dashboard</div>
       </ProtectedRoute>
     )
+
+    expect(container.querySelector('mock-navigate')).toBeNull()
+    expect(retrySessionCheck).toHaveBeenCalledTimes(1)
+
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    act(() => {
+      vi.advanceTimersByTime(1199)
+    })
+    expect(container.querySelector('mock-navigate')).toBeNull()
+
+    act(() => {
+      vi.advanceTimersByTime(1)
+    })
 
     const navigate = container.querySelector('mock-navigate')
     expect(navigate).not.toBeNull()

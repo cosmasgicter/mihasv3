@@ -32,6 +32,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { dispatchSSEStatus, triggerSSEReconnect, SSE_RECONNECT_EVENT } from '@/contexts/RealtimeStatusContext'
 import { createSSEClient, type SSEClient } from '@/lib/sseClient'
+import { getApiBaseUrl } from '@/lib/apiConfig'
 import { useRealtimeStore, type RealtimeEventEnvelope } from '@/stores/realtimeStore'
 
 /**
@@ -124,12 +125,12 @@ const DEFAULT_OPTIONS: Required<UseRealtimeOptions> = {
 /**
  * SSE endpoint for realtime connections
  */
-const SSE_ENDPOINT = '/api/sessions?action=connect'
+const SSE_ENDPOINT = `${getApiBaseUrl()}/api/v1/events/stream/`
 
 /**
  * Polling endpoint for fallback
  */
-const POLLING_ENDPOINT = '/api/sessions?action=poll'
+const POLLING_ENDPOINT = `${getApiBaseUrl()}/api/v1/events/poll/`
 
 /**
  * useRealtime Hook
@@ -232,11 +233,12 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
       if (document.visibilityState === 'hidden') return
       
       try {
-        const url = lastEventIdRef.current
-          ? `${POLLING_ENDPOINT}&lastEventId=${lastEventIdRef.current}`
-          : POLLING_ENDPOINT
+        const url = new URL(POLLING_ENDPOINT)
+        if (lastEventIdRef.current) {
+          url.searchParams.set('lastEventId', lastEventIdRef.current)
+        }
         
-        const response = await fetch(url, {
+        const response = await fetch(url.toString(), {
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
         })
@@ -247,9 +249,15 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
         
         const data = await response.json()
         
-        if (data.success && data.data?.events) {
-          const hasEvents = data.data.events.length > 0
-          data.data.events.forEach((event: SSEEvent) => {
+        const events = Array.isArray(data?.data?.events)
+          ? data.data.events
+          : Array.isArray(data?.data)
+            ? data.data
+            : []
+
+        if (data.success && Array.isArray(events)) {
+          const hasEvents = events.length > 0
+          events.forEach((event: SSEEvent) => {
             dispatchEvent(event)
           })
           progressiveIntervalRef.current = hasEvents

@@ -33,6 +33,7 @@ inclusion: always
 |-------|------------|-------|
 | Framework | Django 5 + Django REST Framework | Active server implementation |
 | Runtime | Python 3.12+ | Repo config targets Python 3.12+ |
+| App server | Uvicorn (ASGI) | Deployed backend entrypoint is `config.asgi:application` |
 | Data | Neon Postgres | Existing production schema, `managed = False` models |
 | Async | Celery + Redis | For background work and retries |
 | Storage | Cloudflare R2 via `django-storages` | Signed URL workflow |
@@ -66,6 +67,7 @@ inclusion: always
 |---------|---------|
 | `cd backend && python3 -m pytest` | Run backend tests |
 | `cd backend && python3 manage.py runserver` | Local Django dev server |
+| `cd backend && python3 -m uvicorn config.asgi:application --reload` | Local ASGI runtime parity check |
 | `cd backend && python3 scripts/verify_migration.py` | Migration verification helper |
 
 ## API Contract Reality

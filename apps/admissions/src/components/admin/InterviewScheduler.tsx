@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { useToastStore } from '@/hooks/useToast'
 import { Calendar, MapPin, Video } from 'lucide-react'
-import { apiClient } from '@/services/client'
+import { applicationService } from '@/services/applications'
 
 interface InterviewSchedulerProps {
   applicationId: string
@@ -14,7 +14,7 @@ export function InterviewScheduler({ applicationId, onSuccess, onCancel }: Inter
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     scheduled_at: '',
-    mode: 'in-person',
+    mode: 'in_person',
     location: '',
     notes: ''
   })
@@ -25,9 +25,11 @@ export function InterviewScheduler({ applicationId, onSuccess, onCancel }: Inter
     setLoading(true)
 
     try {
-      await apiClient.request('/applications?action=schedule-interview', {
-        method: 'POST',
-        body: JSON.stringify({ applicationId, ...formData })
+      await applicationService.scheduleInterview(applicationId, {
+        scheduledAt: new Date(formData.scheduled_at).toISOString(),
+        mode: formData.mode as 'in_person' | 'virtual' | 'phone',
+        location: formData.location,
+        notes: formData.notes || undefined,
       })
 
       addToast('success', 'Interview scheduled successfully')
@@ -62,7 +64,7 @@ export function InterviewScheduler({ applicationId, onSuccess, onCancel }: Inter
           onChange={(e) => setFormData({ ...formData, mode: e.target.value })}
           className="w-full px-3 py-2 border rounded-lg"
         >
-          <option value="in-person">In-Person</option>
+          <option value="in_person">In-Person</option>
           <option value="virtual">Virtual</option>
           <option value="phone">Phone</option>
         </select>

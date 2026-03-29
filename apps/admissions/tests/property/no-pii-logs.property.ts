@@ -51,6 +51,14 @@ const zambianPhoneArbitrary = fc.tuple(
 ).map(([prefix, number]) => `${prefix}${number}`);
 
 const uuidArbitrary = fc.uuid();
+const safeLogContentArbitrary = fc
+  .array(
+    fc.constantFrom(
+      ...'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ .,!?_:;()/[]'.split('')
+    ),
+    { minLength: 1, maxLength: 100 }
+  )
+  .map((chars) => chars.join(''));
 
 describe('Feature: bun-vercel-migration, Property 7: No PII in Logs', () => {
   
@@ -150,11 +158,9 @@ describe('Feature: bun-vercel-migration, Property 7: No PII in Logs', () => {
   it('should preserve non-PII content in messages', () => {
     fc.assert(
       fc.property(
-        fc.string({ minLength: 1, maxLength: 100 }).filter(s => 
-          !s.includes('@') && 
-          !/\d{9,}/.test(s) && 
-          !/[0-9a-f]{8}-[0-9a-f]{4}/.test(s.toLowerCase())
-        ),
+        // Use a constrained alphabet so the generator cannot synthesize
+        // phone-like, UUID-like, or token-like substrings by accident.
+        safeLogContentArbitrary,
         (message) => {
           const sanitized = sanitizeErrorMessage(message);
           // Non-PII content should be preserved

@@ -46,11 +46,11 @@ async function fetchServerVersion(userId: string): Promise<{
 } | null> {
   try {
     const data = await apiClient.request<{
-      form_data?: Record<string, unknown>
-      version?: number
-    }>(`/applications?action=details&user_id=${encodeURIComponent(userId)}`)
-    if (data && typeof data.version === 'number') {
-      return { form_data: data.form_data || {}, version: data.version }
+      draft_data?: Record<string, unknown>
+      updated_at?: string
+    }>(`/applications?action=draft&user_id=${encodeURIComponent(userId)}`)
+    if (data) {
+      return { form_data: data.draft_data || {}, version: 1 }
     }
     return null
   } catch {
@@ -233,17 +233,18 @@ class OfflineSyncService {
     switch (item.type) {
       case 'application_draft': {
         const draftData = item.data as OfflineApplicationDraftData
-        await apiClient.request('/applications', {
+        await apiClient.request('/applications?action=draft', {
           method: 'POST',
           body: JSON.stringify({
-            action: 'save_draft',
             user_id: item.userId,
-            form_data: draftData.form_data,
-            uploaded_files: draftData.uploaded_files,
-            current_step: draftData.current_step,
-            version: draftData.version,
-            is_offline_sync: true,
-            updated_at: new Date().toISOString()
+            draft_data: {
+              ...draftData.form_data,
+              uploaded_files: draftData.uploaded_files,
+              current_step: draftData.current_step,
+              version: draftData.version,
+              is_offline_sync: true,
+              updated_at: new Date().toISOString()
+            }
           })
         })
         break

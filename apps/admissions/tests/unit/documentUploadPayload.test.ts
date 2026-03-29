@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const requestMock = vi.fn()
-const fetchMock = vi.fn()
 
 vi.mock('@/services/client', () => ({
   apiClient: {
@@ -12,20 +11,12 @@ vi.mock('@/services/client', () => ({
 describe('document upload payloads', () => {
   beforeEach(() => {
     requestMock.mockReset()
-    fetchMock.mockReset()
-    vi.stubGlobal('fetch', fetchMock)
   })
 
-  it('uploads application files as JSON with base64 content', async () => {
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        success: true,
-        data: {
-          path: 'user-1/app-1/result_slip/test.pdf',
-          url: 'https://example.com/test.pdf',
-        },
-      }),
+  it('uploads application files through the Django multipart document endpoint', async () => {
+    requestMock.mockResolvedValue({
+      id: 'doc-1',
+      file_url: 'https://example.com/test.pdf',
     })
 
     const { uploadApplicationFile } = await import('@/lib/storage')
@@ -34,25 +25,21 @@ describe('document upload payloads', () => {
     const result = await uploadApplicationFile(file, 'user-1', 'app-1', 'result_slip')
 
     expect(result.success).toBe(true)
-    expect(fetchMock).toHaveBeenCalledTimes(1)
-    expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/documents?action=upload')
+    expect(requestMock).toHaveBeenCalledTimes(1)
+    expect(requestMock.mock.calls[0]?.[0]).toBe('/documents?action=upload')
 
-    const requestInit = fetchMock.mock.calls[0]?.[1] as RequestInit
+    const requestInit = requestMock.mock.calls[0]?.[1] as { method: string; body: FormData }
     expect(requestInit.method).toBe('POST')
-    expect(requestInit.credentials).toBe('include')
-    expect(requestInit.headers).toMatchObject({ 'Content-Type': 'application/json' })
+    expect(requestInit.body).toBeInstanceOf(FormData)
 
-    const body = JSON.parse(String(requestInit.body))
-    expect(body.applicationId).toBe('app-1')
-    expect(body.documentType).toBe('result_slip')
-    expect(body.fileName).toBe('result-slip.pdf')
-    expect(body.contentType).toBe('application/pdf')
-    expect(typeof body.file).toBe('string')
-    expect(body.file.length).toBeGreaterThan(0)
+    const body = requestInit.body
+    expect(body.get('application_id')).toBe('app-1')
+    expect(body.get('document_type')).toBe('result_slip')
+    expect(body.get('file')).toBe(file)
   })
 
-  it('sends documentService uploads through the same JSON contract', async () => {
-    requestMock.mockResolvedValue({ path: 'p', url: 'u' })
+  it('sends documentService uploads through the same multipart contract', async () => {
+    requestMock.mockResolvedValue({ id: 'doc-2', file_url: 'u' })
 
     const { documentService } = await import('@/services/documents')
     const file = new File(['another file'], 'passport.png', { type: 'image/png' })
@@ -65,17 +52,13 @@ describe('document upload payloads', () => {
     })
 
     expect(requestMock).toHaveBeenCalledTimes(1)
-    expect(requestMock.mock.calls[0]?.[0]).toBe('/documents?action=upload')
+    expect(requestMock.mock.calls[0]?.[0]).toBe('/documents/upload/')
 
-    const options = requestMock.mock.calls[0]?.[1] as { method: string; body: string }
+    const options = requestMock.mock.calls[0]?.[1] as { method: string; body: FormData }
     expect(options.method).toBe('POST')
-
-    const body = JSON.parse(options.body)
-    expect(body.applicationId).toBe('app-2')
-    expect(body.documentType).toBe('passport')
-    expect(body.userId).toBe('user-2')
-    expect(body.fileName).toBe('passport.png')
-    expect(body.contentType).toBe('image/png')
-    expect(typeof body.file).toBe('string')
+    expect(options.body).toBeInstanceOf(FormData)
+    expect(options.body.get('application_id')).toBe('app-2')
+    expect(options.body.get('document_type')).toBe('passport')
+    expect(options.body.get('file')).toBe(file)
   })
 })

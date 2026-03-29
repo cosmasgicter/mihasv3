@@ -56,9 +56,9 @@ describe('Property 16: DraftManager Deduplicates Concurrent Calls', () => {
     vi.clearAllMocks();
   });
 
-  it('concurrent clearAllDrafts calls return the same promise', () => {
-    fc.assert(
-      fc.property(concurrentCallCountArb, userIdArb, async (n, userId) => {
+  it('concurrent clearAllDrafts calls return the same promise', async () => {
+    await fc.assert(
+      fc.asyncProperty(concurrentCallCountArb, userIdArb, async (n, userId) => {
         // Dynamic import to get fresh module state
         const { DraftManager } = await import('@/lib/draftManager');
         const manager = new (DraftManager as any)();

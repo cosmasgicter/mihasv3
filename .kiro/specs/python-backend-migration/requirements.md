@@ -9,7 +9,7 @@ Migrate the MIHAS admissions portal backend from Vercel Serverless Functions (No
 - **MIHAS_Portal**: The MIHAS admissions web application comprising a React frontend and a backend API
 - **Vercel_Backend**: The current backend implemented as Vercel Serverless Functions with query-parameter routing in `api-src/`
 - **Django_API**: The target Django 5 + Django REST Framework backend to be deployed on Koyeb
-- **Koyeb_Service**: The container hosting platform running the Django_API via Docker + gunicorn
+- **Koyeb_Service**: The container hosting platform running the Django_API via Docker + uvicorn
 - **Neon_Database**: The managed Neon Postgres database (26 tables) shared by both backends during migration
 - **Frontend_App**: The React 18 + TypeScript SPA hosted on Vercel, consuming the backend API
 - **Auth_System**: The JWT-based authentication system using access tokens (15 min) and refresh tokens (7 days) with HTTP-only cookies
@@ -30,7 +30,7 @@ Migrate the MIHAS admissions portal backend from Vercel Serverless Functions (No
 1. THE Django_API SHALL organize code into Django apps: `accounts`, `applications`, `documents`, `catalog`, and `common`
 2. THE Django_API SHALL use environment-based settings split into `base.py`, `dev.py`, `staging.py`, and `prod.py` controlled by the `DJANGO_SETTINGS_MODULE` environment variable
 3. THE Django_API SHALL connect to Neon_Database using the `DATABASE_URL` environment variable with SSL required
-4. THE Django_API SHALL include a Dockerfile that builds the service image and runs gunicorn bound to `0.0.0.0:$PORT`
+4. THE Django_API SHALL include a Dockerfile that builds the service image and runs uvicorn bound to `0.0.0.0:$PORT`
 5. THE Django_API SHALL expose a liveness endpoint at `/health/live` that returns HTTP 200 without database access
 6. WHEN the `/health/ready` endpoint is requested, THE Django_API SHALL verify connectivity to Neon_Database and Redis before returning HTTP 200
 7. IF Neon_Database or Redis is unreachable during a readiness check, THEN THE Django_API SHALL return HTTP 503 with a descriptive error body
@@ -216,7 +216,7 @@ Migrate the MIHAS admissions portal backend from Vercel Serverless Functions (No
 
 #### Acceptance Criteria
 
-1. THE Koyeb_Service SHALL run the Django_API web service with gunicorn and the Celery_Worker as separate services from the same Docker image
+1. THE Koyeb_Service SHALL run the Django_API web service with uvicorn and the Celery_Worker as separate services from the same Docker image
 2. THE Koyeb_Service SHALL attach a custom domain with managed TLS certificates
 3. THE Koyeb_Service SHALL start with 1 replica and define autoscaling thresholds based on CPU and memory utilization
 4. THE Django_API SHALL expose metrics for API latency (p50/p95/p99), error rate (4xx/5xx split), auth failure count, Celery queue depth, and task failure rate
@@ -278,10 +278,10 @@ Migrate the MIHAS admissions portal backend from Vercel Serverless Functions (No
 #### Acceptance Criteria
 
 1. THE Django_API SHALL connect to Neon_Database through Neon's built-in connection pooler endpoint using the pooled connection string
-2. THE Django_API SHALL configure `CONN_MAX_AGE` to reuse database connections within gunicorn workers and set a maximum connection count per worker process
+2. THE Django_API SHALL configure `CONN_MAX_AGE` to reuse database connections within uvicorn worker processes and set a maximum connection count per worker process
 3. THE Celery_Worker SHALL use a separate pooled connection string with lower connection limits than the web service
 4. THE Django_API SHALL monitor active database connections and log warnings when connection usage exceeds 80% of the configured limit
-5. THE Django_API SHALL configure gunicorn with `--graceful-timeout 30` to allow in-flight requests to complete during deployments
+5. THE Django_API SHALL configure the ASGI process manager to allow in-flight requests to complete during deployments
 
 ### Requirement 21: Static File and Media Storage
 

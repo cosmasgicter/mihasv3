@@ -14,6 +14,7 @@ os.environ["TESTING"] = "1"
 
 import uuid  # noqa: E402
 from datetime import date  # noqa: E402
+from decimal import Decimal  # noqa: E402
 from unittest.mock import MagicMock, patch  # noqa: E402
 
 import django  # noqa: E402
@@ -82,10 +83,41 @@ def _make_mock_application(user_id=None, status_val="draft", **overrides):
     app.email = "test@example.com"
     app.residence_town = "Lusaka"
     app.nationality = "Zambian"
+    app.country = None
+    app.address_line_1 = None
+    app.address_line_2 = None
+    app.postal_code = None
+    app.next_of_kin_name = None
+    app.next_of_kin_phone = None
     app.program = overrides.get("program", "Nursing")
     app.intake = overrides.get("intake", "January 2025")
     app.institution = overrides.get("institution", "MIHAS Main Campus")
+    app.result_slip_url = None
+    app.extra_kyc_url = None
+    app.application_fee = Decimal("153.00")
+    app.payment_method = None
+    app.payer_name = None
+    app.payer_phone = None
+    app.amount = None
+    app.paid_at = None
+    app.momo_ref = None
+    app.pop_url = None
+    app.receipt_number = None
+    app.payment_status = None
+    app.payment_verified_at = None
+    app.payment_verified_by = None
     app.status = status_val
+    app.eligibility_status = None
+    app.eligibility_score = None
+    app.eligibility_notes = None
+    app.admin_feedback = None
+    app.admin_feedback_date = None
+    app.admin_feedback_by = None
+    app.review_started_at = None
+    app.decision_date = None
+    app.reviewed_by = None
+    app.additional_subjects = None
+    app.submitted_at = None
     app.version = 1
     app.created_at = MagicMock()
     app.created_at.isoformat.return_value = "2025-01-01T00:00:00"

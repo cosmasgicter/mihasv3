@@ -50,17 +50,22 @@ const ALL_ROLES = [
   'admin',
   'super_admin',
 ] as const
+const MIN_ISO_TIMESTAMP = new Date('2020-01-01T00:00:00.000Z').getTime()
+const MAX_ISO_TIMESTAMP = new Date('2030-01-01T00:00:00.000Z').getTime()
 
 // ── Arbitraries ─────────────────────────────────────────────────────────
 
 const roleArb = fc.constantFrom(...ALL_ROLES)
+const isoDateArb = fc
+  .integer({ min: MIN_ISO_TIMESTAMP, max: MAX_ISO_TIMESTAMP })
+  .map((timestamp) => new Date(timestamp).toISOString())
 
 const userArb: fc.Arbitrary<User> = fc.record({
   id: fc.uuid(),
   email: fc.emailAddress(),
   role: roleArb,
   full_name: fc.option(fc.string({ minLength: 1, maxLength: 50 }), { nil: undefined }),
-  created_at: fc.option(fc.date().map((d) => d.toISOString()), { nil: undefined }),
+  created_at: fc.option(isoDateArb, { nil: undefined }),
 })
 
 const profileArb: fc.Arbitrary<UserProfile> = fc.record({

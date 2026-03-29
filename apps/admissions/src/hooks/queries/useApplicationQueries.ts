@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { applicationService } from '@/services/applications'
-import { apiClient } from '@/services/client'
+import { adminDashboardService } from '@/services/admin/dashboard'
 import { CACHE_CONFIG } from './useQueryConfig'
 
 export const useApplicationDrafts = (userId?: string) => {
@@ -38,8 +38,8 @@ export const useApplicationAnalytics = () => {
   return useQuery({
     queryKey: ['application_analytics'],
     queryFn: async () => {
-      const result = await apiClient.request<{ data: unknown[] }>('/admin?action=stats')
-      return result?.data ?? []
+      const result = await adminDashboardService.getOverview()
+      return result.recentActivity ?? []
     },
     ...CACHE_CONFIG.analytics
   })

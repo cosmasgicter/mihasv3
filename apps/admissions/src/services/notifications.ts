@@ -26,7 +26,7 @@ type SendNotificationApiResponse = {
 }
 
 export const notificationService = {
-  /** Send a notification (admin only). Maps to POST /api/notifications?action=send */
+  /** Send a notification (admin only). Maps to POST /notifications/ */
   send: async (payload: SendNotificationPayload): Promise<boolean> => {
     const backendPayload = {
       user_id: payload.to,
@@ -34,7 +34,7 @@ export const notificationService = {
       message: payload.message,
       type: 'info'
     }
-    const response = await apiClient.request<SendNotificationApiResponse>('/notifications?action=send', {
+    const response = await apiClient.request<SendNotificationApiResponse>('/notifications/', {
       method: 'POST',
       body: JSON.stringify(backendPayload)
     })
@@ -47,15 +47,15 @@ export const notificationService = {
     return Boolean(response.notification || response.id)
   },
 
-  /** Get notification preferences. Maps to GET /api/notifications?action=preferences */
+  /** Get notification preferences. Maps to GET /notifications/preferences/ */
   getPreferences: () =>
-    apiClient.request('/notifications?action=preferences', {
+    apiClient.request('/notifications/preferences/', {
       method: 'GET'
     }),
 
   /** Update notification preferences. Django currently supports email/push + quiet hours only. */
   updatePreferences: (payload: UpdatePreferencesPayload) =>
-    apiClient.request('/notifications?action=preferences', {
+    apiClient.request('/notifications/preferences/', {
       method: 'PUT',
       body: JSON.stringify({
         email_enabled: payload.marketing_emails ?? payload.application_updates ?? true,
@@ -70,17 +70,29 @@ export const notificationService = {
       })
     }),
 
-  /** Notification inbox APIs are not available on the Django backend yet. */
-  list: async () => [],
+  /** List notifications for the current user. Maps to GET /notifications/ */
+  list: () =>
+    apiClient.request('/notifications/', {
+      method: 'GET'
+    }),
 
-  /** Notification inbox APIs are not available on the Django backend yet. */
-  markRead: async (_notificationId: string) => false,
+  /** Mark a single notification as read. Maps to PUT /notifications/{id}/read/ */
+  markRead: (notificationId: string) =>
+    apiClient.request(`/notifications/${encodeURIComponent(notificationId)}/read/`, {
+      method: 'PUT'
+    }),
 
-  /** Notification inbox APIs are not available on the Django backend yet. */
-  markAllRead: async () => false,
+  /** Mark all notifications as read. Maps to PUT /notifications/read-all/ */
+  markAllRead: () =>
+    apiClient.request('/notifications/read-all/', {
+      method: 'PUT'
+    }),
 
-  /** Notification inbox APIs are not available on the Django backend yet. */
-  delete: async (_notificationId: string) => false,
+  /** Delete a notification. Maps to DELETE /notifications/{id}/ */
+  delete: (notificationId: string) =>
+    apiClient.request(`/notifications/${encodeURIComponent(notificationId)}/`, {
+      method: 'DELETE'
+    }),
 }
 
 
@@ -119,7 +131,7 @@ export class NotificationService {
   static async sendNotification(data: NotificationData): Promise<boolean> {
     if (!data.userId || !data.title || !data.content) return false;
     try {
-      await apiClient.request('/notifications?action=send', {
+      await apiClient.request('/notifications/', {
         method: 'POST',
         body: JSON.stringify({
           user_id: data.userId,

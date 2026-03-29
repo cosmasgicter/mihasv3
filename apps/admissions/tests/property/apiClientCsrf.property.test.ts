@@ -65,6 +65,9 @@ const stateChangingMethodArb = fc.constantFrom('POST', 'PUT', 'PATCH', 'DELETE')
 
 /** Track captured request headers from fetch calls */
 let capturedRequests: { url: string; method: string; headers: Record<string, string> }[] = [];
+const BASE = 'http://localhost:3000';
+const APPLICATIONS_URL = `${BASE}/api/v1/applications/`;
+const CATALOG_PROGRAMS_URL = `${BASE}/api/v1/catalog/programs/`;
 
 function setupFetchMock(csrfTokenToReturn: string | null, responseBody: any = { success: true, data: { ok: true } }) {
   const mockFetch = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
@@ -129,7 +132,7 @@ describe('ApiClient CSRF Property Tests', () => {
           const { apiClient } = await import('@/services/client');
 
           // Make a request with the given method
-          await apiClient.request('/api/health?action=ping', { method });
+          await apiClient.request('/api/applications', { method });
 
           // The CSRF token store should now contain the token from the response
           expect(getCsrfToken()).toBe(token);
@@ -172,7 +175,7 @@ describe('ApiClient CSRF Property Tests', () => {
 
           const { apiClient } = await import('@/services/client');
 
-          await apiClient.request('/api/health?action=ping', { method: 'POST' });
+          await apiClient.request('/api/applications', { method: 'POST' });
 
           // The existing token should remain unchanged
           expect(getCsrfToken()).toBe(existingToken);
@@ -197,10 +200,9 @@ describe('ApiClient CSRF Property Tests', () => {
 
           const { apiClient } = await import('@/services/client');
 
-          await apiClient.request('/api/health?action=ping', { method });
+          await apiClient.request('/api/applications', { method });
 
-          // Find the actual API request (not any internal requests)
-          const apiRequest = capturedRequests.find(r => r.url.includes('/api/health'));
+          const apiRequest = capturedRequests.find(r => r.url === APPLICATIONS_URL);
           expect(apiRequest).toBeDefined();
           expect(apiRequest!.headers['X-CSRF-Token']).toBe(token);
         }),
@@ -225,7 +227,7 @@ describe('ApiClient CSRF Property Tests', () => {
 
           // GET requests go through fetchWithCache, check captured requests
           // The fetch mock captures the request made by fetchWithCache
-          const getRequest = capturedRequests.find(r => r.url.includes('/api/catalog'));
+          const getRequest = capturedRequests.find(r => r.url === CATALOG_PROGRAMS_URL);
           if (getRequest) {
             // GET requests should NOT have the CSRF token header
             expect(getRequest.headers['X-CSRF-Token']).toBeUndefined();
@@ -247,9 +249,9 @@ describe('ApiClient CSRF Property Tests', () => {
 
           const { apiClient } = await import('@/services/client');
 
-          await apiClient.request('/api/health?action=ping', { method });
+          await apiClient.request('/api/applications', { method });
 
-          const apiRequest = capturedRequests.find(r => r.url.includes('/api/health'));
+          const apiRequest = capturedRequests.find(r => r.url === APPLICATIONS_URL);
           expect(apiRequest).toBeDefined();
           // No CSRF token should be attached when store is empty
           expect(apiRequest!.headers['X-CSRF-Token']).toBeUndefined();

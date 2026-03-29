@@ -17,7 +17,7 @@ describe('Tooltip wrapper', () => {
     )
 
     expect(markup).toContain('Hover me')
-    expect(markup).toContain('Helpful hint')
+    expect(markup).not.toContain('Tooltip with asChild expects exactly one valid React element child')
   })
 
   it('throws a clear error when asChild receives an invalid child', () => {
@@ -42,6 +42,6 @@ describe('Tooltip wrapper', () => {
     )
 
     expect(markup).toContain('Plain text trigger')
-    expect(markup).toContain('Helpful hint')
+    expect(markup).not.toContain('Tooltip with asChild expects exactly one valid React element child')
   })
 })

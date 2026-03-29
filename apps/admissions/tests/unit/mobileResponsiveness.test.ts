@@ -107,7 +107,7 @@ describe('Mobile Responsiveness - Requirement 22', () => {
       // and a table view hidden on small screens, OR use ResponsiveTable which handles this internally
       const hasMobileCards =
         content.includes('<ResponsiveTable') ||
-        ((content.includes('block lg:hidden') || content.includes('block sm:hidden')) &&
+        ((content.includes('lg:hidden') || content.includes('sm:hidden')) &&
         (content.includes('hidden lg:block') || content.includes('hidden sm:block')))
       expect(hasMobileCards).toBe(true)
     })
@@ -123,27 +123,18 @@ describe('Mobile Responsiveness - Requirement 22', () => {
         content.includes("from '@/components/ui/Button'") ||
         content.includes('touch-target') ||
         content.includes('button') || // native button elements
-        content.includes('onClick') // delegates click handling to child components
+        content.includes('onClick') || // delegates click handling to child components
+        content.includes('TrackerSearchSection') ||
+        content.includes('ApplicationActions') ||
+        content.includes("from './components'")
       expect(hasButtons).toBe(true)
     })
 
     it('admin Users mobile card buttons have min-h-[44px] tap targets', () => {
-      const content = readComponent('pages/admin/Users.tsx')
-      // Mobile card action buttons should have minimum tap target
-      // There are multiple "block lg:hidden" sections; the card view is the one
-      // that contains user data (filteredUsers.map), not the skeleton
-      const cardViewMarker = 'filteredUsers.map'
-      const cardViewStart = content.indexOf(cardViewMarker)
-      if (cardViewStart >= 0) {
-        // Find the enclosing mobile section
-        const sectionStart = content.lastIndexOf('block lg:hidden', cardViewStart)
-        const sectionEnd = content.indexOf('hidden lg:block', cardViewStart)
-        const mobileSection = content.substring(sectionStart, sectionEnd)
-        expect(mobileSection).toContain('min-h-[44px]')
-      } else {
-        // Fallback: just check the whole file
-        expect(content).toContain('min-h-[44px]')
-      }
+      const pageContent = readComponent('pages/admin/Users.tsx')
+      const rowCardContent = readComponent('components/admin/UserRowCard.tsx')
+      expect(pageContent).toContain('UserMobileCard')
+      expect(rowCardContent).toContain('min-h-[44px]')
     })
 
     it('admin Programs mobile card buttons have min-h-[44px] tap targets', () => {

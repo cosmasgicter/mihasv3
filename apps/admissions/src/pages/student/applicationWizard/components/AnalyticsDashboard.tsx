@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { BarChart3, Clock, TrendingUp, AlertCircle } from 'lucide-react'
-import { apiClient } from '@/services/client'
+import { applicationService } from '@/services/applications'
 import { animateClasses } from '@/lib/animations'
 import { buildWizardProgressSummary } from '../lib/progressSummary'
 
@@ -34,21 +34,17 @@ export const AnalyticsDashboard = ({
     if (!userId) return
     
     try {
-      // MIGRATED: Using new API client instead of legacy applicationsApi
-      const data = await apiClient.request<{
-        total_drafts: number
-        completed_applications: number
-        total_applications: number
-      }>('/applications?action=stats')
-
-      if (!data) {
-        console.error('Analytics query returned no data')
-        return
-      }
+      const result = await applicationService.list({
+        mine: true,
+        pageSize: 100,
+        sortBy: 'date',
+        sortOrder: 'desc',
+      })
+      const applications = result?.applications ?? []
 
       setStats({
-        completed_applications: data.completed_applications || 0,
-        total_drafts: data.total_drafts || 0,
+        completed_applications: applications.filter((application) => application.status !== 'draft').length,
+        total_drafts: applications.filter((application) => application.status === 'draft').length,
       })
     } catch (error) {
       console.error('Failed to fetch analytics:', error)

@@ -96,7 +96,7 @@ export function CanonicalSelect({
         id={label ? selectId : undefined}
         error={hasError}
         className={cn(
-          'min-h-[52px] rounded-md border-input',
+          'min-h-[52px] h-11 rounded-md border-input',
           'focus:ring-ring',
           'transition-colors duration-fast',
           'motion-reduce:transition-none',

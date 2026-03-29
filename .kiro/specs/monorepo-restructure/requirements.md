@@ -21,7 +21,7 @@ This spec covers the restructuring of the MIHAS Application System from a flat r
 
 ### Requirement 1: Migrate JTI Blacklist to Redis
 
-**User Story:** As a platform operator, I want revoked JWT token identifiers persisted in Redis, so that token revocation survives process restarts and works across multiple gunicorn workers.
+**User Story:** As a platform operator, I want revoked JWT token identifiers persisted in Redis, so that token revocation survives process restarts and works across multiple backend worker processes.
 
 #### Acceptance Criteria
 
@@ -35,15 +35,15 @@ This spec covers the restructuring of the MIHAS Application System from a flat r
 
 ### Requirement 2: Migrate SSE to Async Workers
 
-**User Story:** As a platform operator, I want SSE connections handled by async workers, so that long-lived streaming connections do not block sync gunicorn threads and limit concurrency.
+**User Story:** As a platform operator, I want SSE connections handled by async workers, so that long-lived streaming connections do not block sync worker processes and limit concurrency.
 
 #### Acceptance Criteria
 
-1. THE Backend SHALL switch from gunicorn (WSGI) to uvicorn (ASGI) as the production application server, running the entire Django app under ASGI so that both sync and async views are handled transparently.
+1. THE Backend SHALL switch from the legacy WSGI deployment to uvicorn (ASGI) as the production application server, running the entire Django app under ASGI so that both sync and async views are handled transparently.
 2. WHEN an authenticated user connects to the SSE stream endpoint, THE SSE_Service SHALL handle the connection using an `async def` view with `StreamingHttpResponse` and `async for` iteration.
 3. THE SSE_Service SHALL use `asyncio.sleep` instead of `time.sleep` for the 8-second keepalive interval.
 4. THE SSE_Service SHALL maintain the existing 8-second keepalive ping interval and 30-second maximum connection duration.
-5. THE Backend SHALL update `config/asgi.py` to serve as the primary application entry point, and update the Dockerfile CMD and gunicorn.conf.py to use uvicorn with `--workers 3`.
+5. THE Backend SHALL update `config/asgi.py` to serve as the primary application entry point, and update the Dockerfile CMD to use uvicorn with `--workers 3`.
 6. WHILE the SSE stream is active, THE SSE_Service SHALL query for unread notifications using `sync_to_async` wrapped ORM calls and emit them as SSE events.
 7. THE SSE_Service SHALL preserve the existing polling fallback endpoint (`/api/v1/events/poll/`) as a sync view for clients that do not support SSE.
 8. IF the database query for notifications fails during an active SSE stream, THEN THE SSE_Service SHALL log the error and continue sending keepalive pings without crashing the stream.
@@ -87,7 +87,7 @@ This spec covers the restructuring of the MIHAS Application System from a flat r
 6. THE Workspace_Root SHALL contain a `docs/` directory for project documentation.
 7. THE `.kiro/` directory SHALL remain at the Workspace_Root.
 8. WHEN the admissions frontend is moved to `apps/admissions/`, THE Admissions_App SHALL have its own `package.json`, `vercel.json`, and `vite.config.ts` for independent deployment to Vercel.
-9. WHEN the backend is moved to `backend/`, THE Backend SHALL remain independently deployable to Koyeb using its existing `Dockerfile` and `gunicorn` configuration.
+9. WHEN the backend is moved to `backend/`, THE Backend SHALL remain independently deployable to Koyeb using its existing `Dockerfile` and Uvicorn ASGI configuration.
 10. WHEN placeholder app directories (`apps/website/`, `apps/student-portal/`) are created, each SHALL contain a minimal `package.json` and a `README.md` describing the planned purpose.
 11. THE Workspace_Root SHALL move the `migrations/` directory (legacy SQL migration files) to `backend/migrations/` since database migrations are backend-owned.
 12. THE Workspace_Root SHALL move the `tests/` directory (frontend tests: Vitest, fast-check, Playwright) to `apps/admissions/tests/` and update all import paths accordingly.

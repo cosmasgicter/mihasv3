@@ -1,8 +1,6 @@
 import { useRef, useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
-import { applicationService } from '@/services/applications'
-import { notificationService } from '@/services/notifications'
 import { apiClient } from '@/services/client'
 
 interface WizardFormData {
@@ -38,8 +36,8 @@ interface NotificationData {
 }
 
 /**
- * Triggers submission notifications via the notification service.
- * Errors are handled gracefully and don't fail the submission.
+ * Submission notifications are still being migrated to Django.
+ * This remains a non-blocking no-op so submission itself can complete cleanly.
  */
 export async function triggerSubmissionNotifications(data: NotificationData): Promise<{
   success: boolean
@@ -48,45 +46,14 @@ export async function triggerSubmissionNotifications(data: NotificationData): Pr
   emailNotificationSuccess: boolean
   errors: string[]
 }> {
-  const { applicationId, userId, email, fullName, applicationNumber, program } = data
+  void data
   const errors: string[] = []
-  let emailQueueSuccess = false
-  let inAppSuccess = false
-  let emailNotificationSuccess = false
+  const emailQueueSuccess = false
+  const inAppSuccess = false
+  const emailNotificationSuccess = false
 
-  // 1. Send notification via notificationService (handles email queue + in-app)
-  try {
-    const sent = await notificationService.send({
-      to: userId,
-      subject: '✅ Application Submitted Successfully - MIHAS',
-      message: `Your application #${applicationNumber} for ${program} has been submitted and is now under review.`,
-    })
-    emailQueueSuccess = sent
-    inAppSuccess = sent
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
-    console.error('Failed to send notification:', err)
-    errors.push(`Notification: ${errorMessage}`)
-  }
-
-  // 2. Fire-and-forget email notification tracking
-  try {
-    await apiClient.request('/notifications?action=send', {
-      method: 'POST',
-      body: JSON.stringify({
-        application_id: applicationId,
-        recipient_email: email,
-        subject: '✅ Application Submitted Successfully - MIHAS',
-        body: `Application #${applicationNumber} for ${program} submitted successfully.`,
-        status: 'pending'
-      })
-    })
-    emailNotificationSuccess = true
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
-    console.error('Failed to create email notification tracking:', err)
-    errors.push(`Email notification tracking: ${errorMessage}`)
-  }
+  // The Django backend only exposes admin-only notification/email send routes.
+  // Student self-service submission cannot call those endpoints directly yet.
 
   return {
     success: emailQueueSuccess || inAppSuccess || emailNotificationSuccess,
@@ -194,7 +161,7 @@ export function useApplicationSubmit() {
       const cleanId = applicationId.replace(/^applications-/, '')
       const updatedApp = await retryWithBackoff(
         () => apiClient.request<{ id: string; application_number?: string }>(`/applications?id=${cleanId}`, {
-          method: 'PUT',
+          method: 'PATCH',
           body: JSON.stringify(updateData),
           headers: {
             'X-Idempotency-Key': idempotencyKeyRef.current,

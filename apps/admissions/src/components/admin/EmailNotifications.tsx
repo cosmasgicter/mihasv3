@@ -51,7 +51,7 @@ export default function EmailNotifications() {
       <div className="divide-y divide-border max-h-96 overflow-y-auto">
         {notifications.length === 0 ? (
           <div className="px-6 py-8 text-center text-foreground">
-            No email notifications found
+            Email notification history is not available on the Django backend yet.
           </div>
         ) : (
           notifications.map((notification) => (

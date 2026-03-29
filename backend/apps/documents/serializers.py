@@ -27,6 +27,8 @@ class DocumentUploadSerializer(serializers.Serializer):
 class DocumentSerializer(serializers.ModelSerializer):
     """Read-only serializer for listing documents."""
 
+    application_id = serializers.UUIDField(read_only=True)
+
     class Meta:
         model = ApplicationDocument
         fields = [
@@ -52,6 +54,10 @@ class DocumentSerializer(serializers.ModelSerializer):
 
 class PaymentSerializer(serializers.ModelSerializer):
     """Read-only serializer for payment data."""
+
+    application_id = serializers.UUIDField(read_only=True)
+    user_id = serializers.UUIDField(read_only=True)
+    verified_by_id = serializers.UUIDField(read_only=True, allow_null=True)
 
     class Meta:
         model = Payment

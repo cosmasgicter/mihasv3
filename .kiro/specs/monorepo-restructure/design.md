@@ -44,7 +44,6 @@ The work breaks into three tiers:
 │   ├── config/
 │   ├── Dockerfile
 │   ├── requirements.txt
-│   ├── gunicorn.conf.py
 │   └── manage.py
 ├── apps/
 │   ├── admissions/           # React admissions SPA (moved from src/, public/, etc.)
@@ -100,12 +99,12 @@ graph TB
 
 ### ASGI Migration (Requirement 2)
 
-The backend switches from gunicorn (WSGI) to uvicorn (ASGI). The entire Django app runs under ASGI — sync views work transparently via Django's built-in `sync_to_async` wrapping. No hybrid WSGI/ASGI setup.
+The backend switches from the legacy WSGI deployment to uvicorn (ASGI). The entire Django app runs under ASGI — sync views work transparently via Django's built-in `sync_to_async` wrapping. No hybrid WSGI/ASGI setup.
 
 ```mermaid
 graph LR
-    subgraph "Before (WSGI)"
-        A1[gunicorn] --> B1[config/wsgi.py]
+    subgraph "Before (Legacy WSGI)"
+        A1[legacy WSGI server] --> B1[sync Django entrypoint]
         B1 --> C1[Django sync views]
         B1 --> D1[SSE: time.sleep blocks thread]
     end
@@ -118,10 +117,10 @@ graph LR
 ```
 
 **Key decisions:**
-- `uvicorn[standard]` with `--workers 3` replaces gunicorn entirely
+- `uvicorn[standard]` with `--workers 3` replaces the legacy WSGI server entirely
 - `config/asgi.py` becomes the primary entry point
-- Dockerfile CMD changes from `gunicorn config.wsgi:application` to `uvicorn config.asgi:application --host 0.0.0.0 --port $PORT --workers 3`
-- `gunicorn.conf.py` is removed (uvicorn uses CLI flags or env vars)
+- Dockerfile CMD changes to `uvicorn config.asgi:application --host 0.0.0.0 --port $PORT --workers 3`
+- Legacy WSGI-only process manager config is removed (uvicorn uses CLI flags or env vars)
 
 ### Redis JTI Blacklist (Requirement 1)
 
@@ -483,4 +482,3 @@ This spec uses both unit tests and property-based tests:
 - Tag format: `Feature: monorepo-restructure, Property {N}: {title}`
 - Unit tests focus on edge cases (Redis failures, DB failures) and specific examples
 - Property tests focus on universal behaviors across all valid inputs
-

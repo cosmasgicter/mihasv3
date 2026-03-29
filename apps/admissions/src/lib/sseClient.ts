@@ -453,7 +453,7 @@ let defaultClient: SSEClient | null = null;
 export function getDefaultSSEClient(config?: Partial<SSEClientConfig>): SSEClient {
   if (!defaultClient) {
     defaultClient = createSSEClient({
-      endpoint: '/api/sessions?action=connect',
+      endpoint: '/api/v1/events/stream/',
       ...config,
     });
   }

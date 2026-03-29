@@ -1,55 +1,37 @@
 /**
- * Feature: migration-recovery-hardening, Property 5: Interview service routes all requests through /applications
- * 
+ * Feature: migration-recovery-hardening, Property 5: Interview service routes requests through nested application interview resources
+ *
  * Validates: Requirements 5.1, 5.2, 5.3
  */
 import { describe, it, expect } from 'vitest'
 import * as fc from 'fast-check'
-import { buildQueryString } from '@/services/client'
 
-describe('Property 5: Interview service routes all requests through /applications', () => {
-  it('PROPERTY: Schedule interview URL starts with /applications', () => {
-    // The interviews service calls: /applications?action=schedule-interview
-    const url = '/applications?action=schedule-interview'
-    expect(url.startsWith('/applications')).toBe(true)
-    expect(url).toContain('action=schedule-interview')
-  })
+function buildInterviewRoute(applicationId: string): string {
+  return `/applications/${applicationId}/interviews`
+}
 
-  it('PROPERTY: List interviews URL starts with /applications', () => {
+describe('Property 5: Interview service routes all requests through nested application interview resources', () => {
+  it('PROPERTY: Schedule interview uses /applications/:id/interviews', () => {
     fc.assert(
-      fc.property(
-        fc.option(fc.uuid(), { nil: undefined }),
-        (applicationId) => {
-          const params: Record<string, string> = { action: 'interviews' }
-          if (applicationId) params.applicationId = applicationId
-          
-          const qs = buildQueryString(params)
-          const url = `/applications${qs}`
-          
-          expect(url.startsWith('/applications')).toBe(true)
-          expect(url).toContain('action=interviews')
-          if (applicationId) {
-            expect(url).toContain(`applicationId=${applicationId}`)
-          }
-        }
-      ),
+      fc.property(fc.uuid(), (applicationId) => {
+        const url = buildInterviewRoute(applicationId)
+        expect(url).toBe(`/applications/${applicationId}/interviews`)
+        expect(url.startsWith('/applications/')).toBe(true)
+        expect(url.endsWith('/interviews')).toBe(true)
+        expect(url).not.toContain('action=')
+      }),
       { numRuns: 10 }
     )
   })
 
-  it('PROPERTY: All interview actions route through /applications endpoint', () => {
-    const actions = ['schedule-interview', 'interviews']
-    
+  it('PROPERTY: Per-application interview listing uses the same nested route', () => {
     fc.assert(
-      fc.property(
-        fc.constantFrom(...actions),
-        (action) => {
-          const qs = buildQueryString({ action })
-          const url = `/applications${qs}`
-          expect(url.startsWith('/applications')).toBe(true)
-          expect(url).toContain(`action=${action}`)
-        }
-      ),
+      fc.property(fc.uuid(), (applicationId) => {
+        const url = buildInterviewRoute(applicationId)
+        expect(url.startsWith('/applications/')).toBe(true)
+        expect(url.endsWith('/interviews')).toBe(true)
+        expect(url).not.toContain('?')
+      }),
       { numRuns: 10 }
     )
   })
