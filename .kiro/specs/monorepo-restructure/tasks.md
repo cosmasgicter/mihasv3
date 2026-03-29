@@ -129,26 +129,26 @@ This plan implements the monorepo restructure in strict priority order: P0 produ
     - Ensure `docs/` directory exists at workspace root
     - _Requirements: 5.3, 5.4, 5.5, 5.6_
 
-- [ ] 8. Update frontend API client for Django REST paths
-  - [ ] 8.1 Rewrite `normalizeEndpoint()` in `apps/admissions/src/services/client.ts`
+- [x] 8. Update frontend API client for Django REST paths
+  - [x] 8.1 Rewrite `normalizeEndpoint()` in `apps/admissions/src/services/client.ts`
     - Remove the query-parameter translation logic entirely
     - The client should pass Django REST-style paths directly (e.g., `/auth/login/`)
     - Ensure `API_BASE` reads from `VITE_API_BASE_URL` pointing to `https://api.mihas.edu.zm/api/v1`
     - _Requirements: 6.1, 6.4, 6.5_
 
-  - [ ] 8.2 Update all frontend service files, hooks, and components to use Django REST-style paths
+  - [x] 8.2 Update all frontend service files, hooks, and components to use Django REST-style paths
     - Update files in `apps/admissions/src/services/`, `apps/admissions/src/hooks/queries/`, `apps/admissions/src/hooks/auth/`, `apps/admissions/src/contexts/AuthContext`
     - Replace all query-parameter-style paths (e.g., `/api/auth?action=login`) with REST-style paths (e.g., `/auth/login/`)
     - Follow the path mapping table in the design document
     - Remove any references to Vercel Functions, `api-src/`, or `lib/` backend utilities
     - _Requirements: 6.2, 6.4, 6.7_
 
-  - [ ] 8.3 Remove backend-only dependencies from `apps/admissions/package.json`
+  - [x] 8.3 Remove backend-only dependencies from `apps/admissions/package.json`
     - Remove: `@arcjet/decorate`, `@arcjet/node`, `@aws-sdk/client-sqs`, `@neondatabase/serverless`, `bcryptjs`, `cors`, `express`, `jose`, `node-fetch`, `pg`, `resend`, `web-push`, and their `@types/` packages
     - Set `VITE_API_BASE_URL=https://api.mihas.edu.zm/api/v1` in production env config
     - _Requirements: 6.3, 6.6_
 
-  - [ ]* 8.4 Write property test for API client REST-style path format
+  - [x]* 8.4 Write property test for API client REST-style path format
     - **Property 4: API Client REST-Style Path Format**
     - Generate random endpoint paths from the known endpoint set using fast-check
     - Verify constructed URLs use REST-style paths with trailing slashes and no `?action=` parameters
@@ -157,24 +157,24 @@ This plan implements the monorepo restructure in strict priority order: P0 produ
     - `{ numRuns: 100 }`
     - **Validates: Requirements 6.4**
 
-  - [ ]* 8.5 Write unit tests for API client and package deps
+  - [x]* 8.5 Write unit tests for API client and package deps
     - Test `normalizeEndpoint` removal: verify no query-parameter translation occurs
     - Test no backend deps in admissions `package.json`: parse and verify excluded deps are absent
     - Files: `apps/admissions/tests/unit/test_api_client.test.ts`, `apps/admissions/tests/unit/test_package_deps.test.ts`
     - _Requirements: 6.5, 6.6_
 
-- [ ] 9. Checkpoint — Restructure and API client update complete
+- [x] 9. Checkpoint — Restructure and API client update complete
   - Ensure all tests pass, ask the user if questions arise.
   - Verify monorepo directory structure matches target state in design document
   - Verify frontend API client uses Django REST-style paths exclusively
 
-- [ ] 10. Migrate frontend tests to `apps/admissions/tests/`
-  - [ ] 10.1 Move `tests/` directory to `apps/admissions/tests/` and update import paths
+- [x] 10. Migrate frontend tests to `apps/admissions/tests/`
+  - [x] 10.1 Move `tests/` directory to `apps/admissions/tests/` and update import paths
     - Move all test files from `tests/` → `apps/admissions/tests/`
     - Update all import paths in test files to reflect new location relative to `apps/admissions/src/`
     - _Requirements: 9.1_
 
-  - [ ] 10.2 Update test configuration files for new monorepo location
+  - [x] 10.2 Update test configuration files for new monorepo location
     - Update `apps/admissions/vitest.config.ts` to discover tests in `apps/admissions/tests/`
     - Update `apps/admissions/playwright.config.ts` to discover E2E specs in `apps/admissions/tests/e2e/`
     - Add `test`, `test:unit`, `test:property`, and `test:e2e` scripts to `apps/admissions/package.json`
@@ -191,29 +191,29 @@ This plan implements the monorepo restructure in strict priority order: P0 produ
     - Create root `README.md` describing monorepo layout, listing all projects, and documenting setup/dev/deploy for each
     - _Requirements: 8.3, 8.4_
 
-- [ ] 12. Update steering files for monorepo structure
-  - [ ] 12.1 Update `.kiro/steering/tech.md`
+- [x] 12. Update steering files for monorepo structure
+  - [x] 12.1 Update `.kiro/steering/tech.md`
     - Remove "Legacy Backend (Vercel Functions)" section and all Vercel Function patterns/conventions/endpoint tables
     - Update directory table to reflect `backend/`, `apps/admissions/`, etc.
     - Update commands table for monorepo layout
     - _Requirements: 7.5_
 
-  - [ ] 12.2 Update `.kiro/steering/structure.md`
+  - [x] 12.2 Update `.kiro/steering/structure.md`
     - Replace flat directory rules with monorepo directory rules reflecting new layout
     - Update import paths, test locations, API development workflow
     - _Requirements: 7.6_
 
-  - [ ] 12.3 Update `.kiro/steering/product.md`
+  - [x] 12.3 Update `.kiro/steering/product.md`
     - Update migration state table: mark Node.js backend removal as complete, monorepo restructure as complete
     - _Requirements: 7.7_
 
-  - [ ] 12.4 Verify all steering files reflect monorepo layout
+  - [x] 12.4 Verify all steering files reflect monorepo layout
     - Ensure no references to Vercel Functions, Arcjet, `api-src/`, or `lib/` as active backend components
     - Ensure each app in `apps/` documented as independently deployable to Vercel
     - Ensure `backend/` documented as independently deployable to Koyeb
     - _Requirements: 7.1, 7.2, 7.3, 7.4_
 
-- [ ] 13. Final checkpoint — All tasks complete
+- [x] 13. Final checkpoint — All tasks complete
   - Ensure all tests pass, ask the user if questions arise.
   - Verify monorepo directory structure matches target state
   - Verify backend deploys independently (Dockerfile uses uvicorn, no gunicorn.conf.py)
