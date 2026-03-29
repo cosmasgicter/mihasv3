@@ -48,7 +48,7 @@ async function fetchServerVersion(userId: string): Promise<{
     const data = await apiClient.request<{
       draft_data?: Record<string, unknown>
       updated_at?: string
-    }>(`/applications?action=draft&user_id=${encodeURIComponent(userId)}`)
+    }>(`/applications/${encodeURIComponent(userId)}/`)
     if (data) {
       return { form_data: data.draft_data || {}, version: 1 }
     }
@@ -233,7 +233,7 @@ class OfflineSyncService {
     switch (item.type) {
       case 'application_draft': {
         const draftData = item.data as OfflineApplicationDraftData
-        await apiClient.request('/applications?action=draft', {
+        await apiClient.request('/applications/draft/', {
           method: 'POST',
           body: JSON.stringify({
             user_id: item.userId,
@@ -252,7 +252,7 @@ class OfflineSyncService {
 
       case 'form_submission': {
         const submissionData = item.data as OfflineFormSubmissionData
-        await apiClient.request('/applications', {
+        await apiClient.request('/applications/', {
           method: 'POST',
           body: JSON.stringify({
             ...submissionData,

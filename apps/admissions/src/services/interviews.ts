@@ -1,3 +1,11 @@
+/**
+ * Interviews Service
+ * Manages interview scheduling and listing for applications
+ *
+ * Django REST paths (no /api/v1/ prefix — apiClient prepends it):
+ *   POST /applications/{id}/interviews/  → schedule an interview
+ *   GET  /applications/{id}/interviews/  → list interviews for an application
+ */
 import { applicationService } from './applications'
 import { apiClient } from './client'
 
@@ -42,7 +50,7 @@ export const interviewsService = {
     }
 
     const interview = await apiClient.request<Interview>(
-      `/applications/${encodeURIComponent(applicationId)}/interviews`,
+      `/applications/${encodeURIComponent(applicationId)}/interviews/`,
       {
         method: 'POST',
         body: JSON.stringify({
@@ -64,7 +72,7 @@ export const interviewsService = {
   list: async (applicationId?: string): Promise<ListInterviewsResponse> => {
     if (applicationId) {
       const interviews = await apiClient.request<Interview[]>(
-        `/applications/${encodeURIComponent(applicationId)}/interviews`
+        `/applications/${encodeURIComponent(applicationId)}/interviews/`
       )
       return { interviews: interviews ?? [] }
     }
@@ -79,7 +87,7 @@ export const interviewsService = {
     const interviewsByApplication = await Promise.all(
       (applications.applications ?? []).map(async (application) => {
         const interviews = await apiClient
-          .request<Interview[]>(`/applications/${encodeURIComponent(application.id)}/interviews`)
+          .request<Interview[]>(`/applications/${encodeURIComponent(application.id)}/interviews/`)
           .catch(() => [])
 
         return (interviews ?? []).map((interview) => ({

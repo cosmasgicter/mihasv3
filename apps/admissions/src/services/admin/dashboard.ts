@@ -70,7 +70,7 @@ export interface AdminDashboardResponse {
 }
 
 export interface AdminDashboardDiagnostics {
-  endpoint: '/admin?action=dashboard'
+  endpoint: '/admin/dashboard/'
   ok: boolean
   status: number | null
   errorMessage: string | null
@@ -338,13 +338,13 @@ export const adminDashboardService = {
   async getOverviewWithDiagnostics(): Promise<AdminDashboardOverviewResult> {
     const requestedAt = new Date().toISOString()
     try {
-      const response = await apiClient.request('/admin?action=dashboard')
+      const response = await apiClient.request('/admin/dashboard/')
 
       if (!response || typeof response !== 'object') {
         return {
           data: createEmptyDashboardResponse(),
           diagnostics: {
-            endpoint: '/admin?action=dashboard',
+            endpoint: '/admin/dashboard/',
             ok: false,
             status: null,
             errorMessage: 'Dashboard API returned a non-object payload.',
@@ -419,7 +419,7 @@ export const adminDashboardService = {
           generatedAt
         },
         diagnostics: {
-          endpoint: '/admin?action=dashboard',
+          endpoint: '/admin/dashboard/',
           ok: true,
           status: null,
           errorMessage: null,
@@ -434,7 +434,7 @@ export const adminDashboardService = {
       return {
         data: createEmptyDashboardResponse(),
         diagnostics: {
-          endpoint: '/admin?action=dashboard',
+          endpoint: '/admin/dashboard/',
           ok: false,
           status: typeof errorWithStatus.status === 'number' ? errorWithStatus.status : null,
           errorMessage: errorWithStatus.message || 'Unknown dashboard API failure',
