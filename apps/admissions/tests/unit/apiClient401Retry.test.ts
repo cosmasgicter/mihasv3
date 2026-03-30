@@ -103,7 +103,7 @@ describe('ApiClient 401 Retry Unit Tests', () => {
 
     const { apiClient } = await import('@/services/client');
 
-    const result = await apiClient.request('/api/applications?action=details', {
+    const result = await apiClient.request('/applications/', {
       method: 'POST',
       retries: 0,
     });
@@ -155,7 +155,7 @@ describe('ApiClient 401 Retry Unit Tests', () => {
 
     // The request should throw AuthenticationError
     await expect(
-      apiClient.request('/api/applications?action=details', {
+      apiClient.request('/applications/', {
         method: 'POST',
         retries: 0,
       })
@@ -185,7 +185,7 @@ describe('ApiClient 401 Retry Unit Tests', () => {
     // Request to the refresh endpoint itself returns 401
     // It should NOT trigger another refresh (would cause infinite loop)
     await expect(
-      apiClient.request('/api/auth?action=refresh', {
+      apiClient.request('/auth/refresh/', {
         method: 'POST',
         retries: 0,
       })
@@ -214,7 +214,7 @@ describe('ApiClient 401 Retry Unit Tests', () => {
     // Request to the login endpoint returns 401
     // It should NOT trigger a refresh attempt
     await expect(
-      apiClient.request('/api/auth?action=login', {
+      apiClient.request('/auth/login/', {
         method: 'POST',
         retries: 0,
       })

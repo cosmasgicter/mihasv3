@@ -26,7 +26,7 @@ describe('document upload payloads', () => {
 
     expect(result.success).toBe(true)
     expect(requestMock).toHaveBeenCalledTimes(1)
-    expect(requestMock.mock.calls[0]?.[0]).toBe('/documents?action=upload')
+    expect(requestMock.mock.calls[0]?.[0]).toBe('/documents/upload/')
 
     const requestInit = requestMock.mock.calls[0]?.[1] as { method: string; body: FormData }
     expect(requestInit.method).toBe('POST')

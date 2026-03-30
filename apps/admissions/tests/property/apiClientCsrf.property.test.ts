@@ -132,7 +132,7 @@ describe('ApiClient CSRF Property Tests', () => {
           const { apiClient } = await import('@/services/client');
 
           // Make a request with the given method
-          await apiClient.request('/api/applications', { method });
+          await apiClient.request('/applications/', { method });
 
           // The CSRF token store should now contain the token from the response
           expect(getCsrfToken()).toBe(token);
@@ -154,7 +154,7 @@ describe('ApiClient CSRF Property Tests', () => {
           const { apiClient } = await import('@/services/client');
 
           // Make a GET request (default method)
-          await apiClient.request('/api/auth?action=session');
+          await apiClient.request('/auth/session/');
 
           // The CSRF token store should contain the token from the GET response
           expect(getCsrfToken()).toBe(token);
@@ -175,7 +175,7 @@ describe('ApiClient CSRF Property Tests', () => {
 
           const { apiClient } = await import('@/services/client');
 
-          await apiClient.request('/api/applications', { method: 'POST' });
+          await apiClient.request('/applications/', { method: 'POST' });
 
           // The existing token should remain unchanged
           expect(getCsrfToken()).toBe(existingToken);
@@ -200,7 +200,7 @@ describe('ApiClient CSRF Property Tests', () => {
 
           const { apiClient } = await import('@/services/client');
 
-          await apiClient.request('/api/applications', { method });
+          await apiClient.request('/applications/', { method });
 
           const apiRequest = capturedRequests.find(r => r.url === APPLICATIONS_URL);
           expect(apiRequest).toBeDefined();
@@ -223,7 +223,7 @@ describe('ApiClient CSRF Property Tests', () => {
           const { apiClient } = await import('@/services/client');
 
           // GET request should NOT have CSRF header
-          await apiClient.request('/api/catalog?type=programs');
+          await apiClient.request('/catalog/programs/');
 
           // GET requests go through fetchWithCache, check captured requests
           // The fetch mock captures the request made by fetchWithCache
@@ -249,7 +249,7 @@ describe('ApiClient CSRF Property Tests', () => {
 
           const { apiClient } = await import('@/services/client');
 
-          await apiClient.request('/api/applications', { method });
+          await apiClient.request('/applications/', { method });
 
           const apiRequest = capturedRequests.find(r => r.url === APPLICATIONS_URL);
           expect(apiRequest).toBeDefined();

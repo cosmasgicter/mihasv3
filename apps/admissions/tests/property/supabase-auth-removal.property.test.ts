@@ -220,8 +220,8 @@ describe('Feature: supabase-auth-removal, Property Tests', () => {
       const content = readFileContent(sessionListenerPath);
       const apiClientContent = readFileContent(apiClientPath);
       
-      // Cookie credentials are centralized in ApiClient, while auth hooks delegate to it.
-      expect(content).toContain('apiClient.request');
+      // Cookie credentials are centralized in ApiClient, while auth hooks delegate via authService.
+      expect(content).toContain('authService');
       expect(apiClientContent).toContain("credentials: 'include'");
       
       // Should NOT store tokens in localStorage

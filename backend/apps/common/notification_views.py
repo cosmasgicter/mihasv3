@@ -1,7 +1,7 @@
-"""Notification views — preferences and admin send.
+"""Notification views — preferences, admin send, list, mark-read, delete.
 
-Implements tasks 20.1, 20.3.
-Requirements: 8.1, 8.2, 8.3, 8.5, 8.6
+Implements tasks 20.1, 20.3, 11.1 (admissions-frontend-overhaul).
+Requirements: 6.1, 6.2, 6.3, 8.1, 8.2, 8.3, 8.5, 8.6
 """
 
 import logging
@@ -21,6 +21,7 @@ from apps.common.models import (
 from apps.common.openapi_helpers import (
     ErrorResponseSerializer,
     IdMessageSerializer,
+    MessageSerializer,
     envelope_serializer,
 )
 
@@ -52,6 +53,15 @@ class EmailSendSerializer(serializers.Serializer):
     body = serializers.CharField()
 
 
+class NotificationItemSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    title = serializers.CharField()
+    message = serializers.CharField()
+    type = serializers.CharField()
+    is_read = serializers.BooleanField()
+    created_at = serializers.DateTimeField()
+
+
 NotificationPreferenceResponseSerializer = envelope_serializer(
     "NotificationPreferenceResponse",
     NotificationPreferenceSerializer(),
@@ -63,6 +73,22 @@ NotificationSendResponseSerializer = envelope_serializer(
 EmailSendResponseSerializer = envelope_serializer(
     "EmailSendResponse",
     IdMessageSerializer(),
+)
+NotificationListResponseSerializer = envelope_serializer(
+    "NotificationListResponse",
+    NotificationItemSerializer(many=True),
+)
+NotificationMarkReadResponseSerializer = envelope_serializer(
+    "NotificationMarkReadResponse",
+    MessageSerializer(),
+)
+NotificationMarkAllReadResponseSerializer = envelope_serializer(
+    "NotificationMarkAllReadResponse",
+    MessageSerializer(),
+)
+NotificationDeleteResponseSerializer = envelope_serializer(
+    "NotificationDeleteResponse",
+    MessageSerializer(),
 )
 
 
@@ -275,3 +301,177 @@ class EmailSendView(APIView):
             },
             status=status.HTTP_202_ACCEPTED,
         )
+
+
+# ---------------------------------------------------------------------------
+# 11.1 — List Notifications for Current User
+# ---------------------------------------------------------------------------
+
+
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="notifications_list",
+        tags=["notifications"],
+        responses={200: OpenApiResponse(response=NotificationListResponseSerializer)},
+    ),
+    post=extend_schema(
+        operation_id="notifications_send_create",
+        tags=["notifications"],
+        request=NotificationSendSerializer,
+        responses={
+            201: OpenApiResponse(response=NotificationSendResponseSerializer),
+            200: OpenApiResponse(response=NotificationSendResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+)
+class NotificationListView(APIView):
+    """GET /api/v1/notifications/ — list notifications for current user.
+    POST /api/v1/notifications/ — admin send notification (delegates to NotificationSendView).
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        notifications = (
+            Notification.objects.filter(user_id=request.user.pk)
+            .order_by("-created_at")
+        )
+        data = NotificationItemSerializer(notifications, many=True).data
+        return Response({"success": True, "data": data})
+
+    def post(self, request):
+        """Delegate to NotificationSendView for admin send."""
+        send_view = NotificationSendView()
+        send_view.request = request
+        # Check admin permission for POST
+        if not IsAdmin().has_permission(request, self):
+            return Response(
+                {
+                    "success": False,
+                    "error": "Admin access required",
+                    "code": "FORBIDDEN",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        return send_view.post(request)
+
+
+# ---------------------------------------------------------------------------
+# 11.1 — Mark Single Notification as Read
+# ---------------------------------------------------------------------------
+
+
+@extend_schema_view(
+    put=extend_schema(
+        operation_id="notifications_mark_read",
+        tags=["notifications"],
+        responses={
+            200: OpenApiResponse(response=NotificationMarkReadResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+)
+class NotificationMarkReadView(APIView):
+    """PUT /api/v1/notifications/{id}/read/
+
+    Mark a single notification as read. Only the notification owner can do this.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, pk):
+        try:
+            notification = Notification.objects.get(pk=pk, user_id=request.user.pk)
+        except Notification.DoesNotExist:
+            return Response(
+                {
+                    "success": False,
+                    "error": "Notification not found",
+                    "code": "NOT_FOUND",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        notification.is_read = True
+        notification.save(update_fields=["is_read"])
+
+        return Response({
+            "success": True,
+            "data": {"message": "Notification marked as read"},
+        })
+
+
+# ---------------------------------------------------------------------------
+# 11.1 — Mark All Notifications as Read
+# ---------------------------------------------------------------------------
+
+
+@extend_schema_view(
+    put=extend_schema(
+        operation_id="notifications_mark_all_read",
+        tags=["notifications"],
+        responses={200: OpenApiResponse(response=NotificationMarkAllReadResponseSerializer)},
+    ),
+)
+class NotificationMarkAllReadView(APIView):
+    """PUT /api/v1/notifications/read-all/
+
+    Mark all unread notifications as read for the authenticated user.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        updated = Notification.objects.filter(
+            user_id=request.user.pk, is_read=False
+        ).update(is_read=True)
+
+        return Response({
+            "success": True,
+            "data": {"message": f"{updated} notification(s) marked as read"},
+        })
+
+
+# ---------------------------------------------------------------------------
+# 11.1 — Delete a Notification
+# ---------------------------------------------------------------------------
+
+
+@extend_schema_view(
+    delete=extend_schema(
+        operation_id="notifications_delete",
+        tags=["notifications"],
+        responses={
+            200: OpenApiResponse(response=NotificationDeleteResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+)
+class NotificationDeleteView(APIView):
+    """DELETE /api/v1/notifications/{id}/
+
+    Delete a notification. Only the notification owner can do this.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        try:
+            notification = Notification.objects.get(pk=pk, user_id=request.user.pk)
+        except Notification.DoesNotExist:
+            return Response(
+                {
+                    "success": False,
+                    "error": "Notification not found",
+                    "code": "NOT_FOUND",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        notification.delete()
+
+        return Response({
+            "success": True,
+            "data": {"message": "Notification deleted"},
+        })

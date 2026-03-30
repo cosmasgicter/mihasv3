@@ -13,6 +13,6 @@ describe('bulk/push client usage consistency', () => {
   it('uses apiClient for push subscription sync', () => {
     const source = fs.readFileSync(path.resolve(process.cwd(), 'src/services/pushNotificationManager.ts'), 'utf-8')
     expect(source).toContain("localStorage.setItem('push_subscription'")
-    expect(source).not.toContain("push-subscribe")
+    expect(source).toContain("apiClient.request('/notifications/push-subscribe/'")
   })
 })

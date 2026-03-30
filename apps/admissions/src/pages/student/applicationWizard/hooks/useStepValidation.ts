@@ -27,7 +27,6 @@ export const useStepValidation = (
   const values = (() => {
     try {
       // watch is a function on the form object — call it if present
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return typeof form?.watch === 'function' ? (form.watch() as Partial<ApplicationFormData> ?? {}) : {}
     } catch {
       return {}

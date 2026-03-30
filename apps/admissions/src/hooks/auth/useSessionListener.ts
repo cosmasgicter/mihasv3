@@ -69,13 +69,21 @@ function normalizeAuthUser(
   }
 }
 
-function extractAuthUser(result: User | { user?: User } | null | undefined): User | null {
+type AuthUserEnvelope = {
+  user?: (Partial<User> & { first_name?: string; last_name?: string }) | null
+}
+
+function hasUserEnvelope(result: unknown): result is AuthUserEnvelope {
+  return Boolean(result && typeof result === 'object' && 'user' in result)
+}
+
+function extractAuthUser(result: unknown): User | null {
   if (!result) {
     return null
   }
 
-  if (typeof result === 'object' && 'user' in result) {
-    return normalizeAuthUser(result.user)
+  if (hasUserEnvelope(result)) {
+    return normalizeAuthUser(result.user ?? null)
   }
 
   return normalizeAuthUser(result)

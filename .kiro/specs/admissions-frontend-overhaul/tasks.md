@@ -6,7 +6,7 @@ Migrate the MIHAS admissions React frontend from legacy Vercel Functions API con
 
 ## Tasks
 
-- [ ] 1. API Client Core Migration
+- [x] 1. API Client Core Migration
   - [x] 1.1 Rewrite `src/services/client.ts` — remove `normalizeEndpoint()` and `supportedResources`
     - Delete the `normalizeEndpoint()` method (~60 lines) and the `supportedResources` set
     - Delete `getResourceSegments()` if unused after removal
@@ -205,7 +205,7 @@ Migrate the MIHAS admissions React frontend from legacy Vercel Functions API con
   - Verify auth context references only Django REST paths
   - Verify SSE endpoints point to `/api/v1/events/stream/` and `/api/v1/events/poll/`
 
-- [ ] 9. Raw Fetch and Storage Migration
+- [x] 9. Raw Fetch and Storage Migration
   - [x] 9.1 Migrate `src/lib/storage.ts` — replace all 6 raw `fetch()` calls
     - `uploadApplicationFile` / `uploadFile` → `apiClient.request('/documents/upload/', ...)` POST with FormData
     - `deleteFile` → `apiClient.request('/documents/{path}/', ...)` DELETE
@@ -229,18 +229,18 @@ Migrate the MIHAS admissions React frontend from legacy Vercel Functions API con
     - `syncGradesWithRecovery` → PUT `/applications/{id}/grades/` instead of PATCH with `action: 'sync_grades'`
     - _Requirements: 13.4_
 
-  - [-] 9.4 Scan for and replace any remaining raw `fetch('/api/...')` calls
+  - [x] 9.4 Scan for and replace any remaining raw `fetch('/api/...')` calls
     - Search all files under `src/` for raw `fetch` calls to legacy API paths
     - Replace each with `apiClient.request()` using the correct Django REST path
     - _Requirements: 13.3, 13.5_
 
-- [ ] 10. Checkpoint — Raw fetch migration complete
+- [x] 10. Checkpoint — Raw fetch migration complete
   - Ensure all tests pass, ask the user if questions arise.
   - Run `grep -r "action=" apps/admissions/src/` and verify zero matches for legacy query-parameter actions
   - Run `grep -r "normalizeEndpoint" apps/admissions/src/` and verify zero matches
 
-- [ ] 11. Backend Notification Endpoints (Backend Gap)
-  - [~] 11.1 Add missing notification endpoints to Django backend
+- [x] 11. Backend Notification Endpoints (Backend Gap)
+  - [x] 11.1 Add missing notification endpoints to Django backend
     - Verify whether `PUT /api/v1/notifications/{id}/read/` (mark single notification as read) exists in `backend/apps/common/` — if missing, add the view + URL route
     - Verify whether `PUT /api/v1/notifications/read-all/` (mark all notifications as read) exists — if missing, add the view + URL route
     - Verify whether `DELETE /api/v1/notifications/{id}/` (delete a notification) exists — if missing, add the view + URL route
@@ -248,18 +248,18 @@ Migrate the MIHAS admissions React frontend from legacy Vercel Functions API con
     - Add URL patterns in `backend/apps/common/urls.py` (or the appropriate notifications URL config)
     - _Requirements: 6.1, 6.2, 6.3_
 
-  - [~]* 11.2 Write backend tests for new notification endpoints
+  - [x]* 11.2 Write backend tests for new notification endpoints
     - Test mark-read, mark-all-read, and delete endpoints with valid and invalid notification IDs
     - Test authentication and authorization (only notification owner can modify)
     - Test response envelope format
     - _Requirements: 6.1, 6.2, 6.3_
 
-- [ ] 12. Checkpoint — Backend notification endpoints complete
+- [x] 12. Checkpoint — Backend notification endpoints complete
   - Ensure all tests pass, ask the user if questions arise.
   - Verify notification endpoints respond correctly via the Django test suite
 
-- [ ] 13. Backend-Only Dependency Removal
-  - [~] 13.1 Verify no source files import removed packages, then remove from `package.json`
+- [x] 13. Backend-Only Dependency Removal
+  - [x] 13.1 Verify no source files import removed packages, then remove from `package.json`
     - Scan all files under `apps/admissions/src/` for imports from: `@arcjet/decorate`, `@arcjet/node`, `@neondatabase/serverless`, `bcryptjs`, `cors`, `express`, `jose`, `node-fetch`, `pg`, `resend`, `web-push`, `@aws-sdk/client-sqs`, `@vercel/node`
     - Remove any remaining import references found
     - Remove production deps: `@arcjet/decorate`, `@arcjet/node`, `@neondatabase/serverless`, `bcryptjs`, `cors`, `express`, `jose`, `node-fetch`, `pg`, `resend`, `web-push`, `@aws-sdk/client-sqs`
@@ -267,82 +267,82 @@ Migrate the MIHAS admissions React frontend from legacy Vercel Functions API con
     - Remove dev dep: `@vercel/node`
     - _Requirements: 14.1, 14.2, 14.3, 14.5, 14.6_
 
-  - [~] 13.2 Remove legacy scripts from `package.json`
+  - [x] 13.2 Remove legacy scripts from `package.json`
     - Remove `dev:api` and `dev:full` scripts since `local-server.js` does not exist
     - _Requirements: 14.4_
 
-  - [~] 13.3 Regenerate lockfile
+  - [x] 13.3 Regenerate lockfile
     - Run `bun install` from `apps/admissions/` to regenerate the lockfile without removed packages
     - _Requirements: 14.7_
 
-  - [~]* 13.4 Write property test for no imports from removed packages (Property 14)
+  - [x]* 13.4 Write property test for no imports from removed packages (Property 14)
     - **Property 14: No imports from removed backend packages** — scan all `.ts`/`.tsx` source files under `apps/admissions/src/`, assert no import statement references any removed package
     - **Validates: Requirement 14.6**
     - Test file: `tests/property/dependencies.property.test.ts`
 
-- [ ] 14. Checkpoint — Dependency removal complete
+- [x] 14. Checkpoint — Dependency removal complete
   - Ensure all tests pass, ask the user if questions arise.
   - Verify removed packages are absent from `package.json` and lockfile
 
-- [ ] 15. Neon Database Schema Verification
-  - [~] 15.1 Verify all 26 tables exist and match Django model definitions
+- [x] 15. Neon Database Schema Verification
+  - [x] 15.1 Verify all 26 tables exist and match Django model definitions
     - Run `backend/scripts/verify_migration.py` or write a verification query to confirm all 26 tables exist: `profiles`, `applications`, `application_documents`, `application_grades`, `application_status_history`, `application_drafts`, `application_interviews`, `programs`, `intakes`, `program_intakes`, `course_requirements`, `subjects`, `institutions`, `payments`, `notifications`, `user_notification_preferences`, `email_queue`, `device_sessions`, `csrf_tokens`, `password_reset_tokens`, `login_attempts`, `audit_logs`, `idempotency_keys`, `settings`, `user_permission_overrides`, `migration_history`
     - Verify foreign key relationships match Django model `ForeignKey` and `ManyToManyField` definitions
     - Verify indexes exist for commonly filtered columns: `applications.user_id`, `applications.status`, `applications.program`, `applications.institution`, `audit_logs.entity_type`, `audit_logs.actor_id`, `device_sessions.user_id`, `notifications.user_id`
     - If discrepancies found, produce a report listing expected vs actual schema
     - _Requirements: 15.1, 15.2, 15.3, 15.4_
 
-- [ ] 16. Checkpoint — Database verification complete
+- [x] 16. Checkpoint — Database verification complete
   - Ensure verification results are reviewed, ask the user if questions arise.
 
-- [ ] 17. Steering Files Update
-  - [~] 17.1 Update `.kiro/steering/tech.md`
+- [x] 17. Steering Files Update
+  - [x] 17.1 Update `.kiro/steering/tech.md`
     - Remove all references to Vercel Functions, legacy `/api/...` query-parameter routing, and `normalizeEndpoint()` translation layer
     - Document that the frontend API client sends requests directly to `/api/v1/` paths on `api.mihas.edu.zm`
     - _Requirements: 16.1, 16.2_
 
-  - [~] 17.2 Update `.kiro/steering/structure.md`
+  - [x] 17.2 Update `.kiro/steering/structure.md`
     - Remove references to `local-server.js`, `dev:api` script, and legacy API handler modules
     - Document that `apps/admissions/src/services/client.ts` sends requests directly to Django REST paths without a translation layer
     - _Requirements: 16.3, 16.4_
 
-  - [~] 17.3 Update `.kiro/steering/product.md`
+  - [x] 17.3 Update `.kiro/steering/product.md`
     - Remove the "Migration Reality" section describing the frontend/backend contract mismatch
     - Replace with a statement that the frontend consumes the Django `/api/v1/` contract directly
     - _Requirements: 16.5_
 
-  - [~] 17.4 Update all three steering files to reflect monorepo structure
+  - [x] 17.4 Update all three steering files to reflect monorepo structure
     - Ensure `backend/` for Django API, `apps/admissions/` for React frontend, `shared/` for cross-app code are consistently documented
     - _Requirements: 16.6_
 
-- [ ] 18. Checkpoint — Steering files complete
+- [x] 18. Checkpoint — Steering files complete
   - Ensure steering files are accurate, ask the user if questions arise.
 
-- [ ] 19. Frontend Build Verification and Final Tests
-  - [~] 19.1 Fix or update existing tests that reference legacy modules
+- [x] 19. Frontend Build Verification and Final Tests
+  - [x] 19.1 Fix or update existing tests that reference legacy modules
     - Update tests that import from deleted legacy API handler modules to import from migrated modules
     - Update test assertions from legacy query-parameter URL patterns to Django REST URL patterns
     - Remove tests that are no longer relevant after migration
     - _Requirements: 17.4, 17.5_
 
-  - [~] 19.2 Run full build and type-check verification
+  - [x] 19.2 Run full build and type-check verification
     - Run `tsc --noEmit` from `apps/admissions/` — fix any type errors
     - Run `bun run build` from `apps/admissions/` — fix any build errors
     - Run `bun run lint` from `apps/admissions/` — fix any new ESLint errors
     - _Requirements: 17.1, 17.2, 17.6_
 
-  - [~] 19.3 Run full test suite
+  - [x] 19.3 Run full test suite
     - Run `bun run test` from `apps/admissions/` — ensure all tests pass
     - _Requirements: 17.3_
 
-  - [~] 19.4 Run migration verification checks
+  - [x] 19.4 Run migration verification checks
     - `grep -r "action=" apps/admissions/src/` returns zero matches (no legacy query-parameter actions)
     - `grep -r "normalizeEndpoint" apps/admissions/src/` returns zero matches
     - `grep -r "supportedResources" apps/admissions/src/` returns zero matches
     - All 15 service files use only `/api/v1/`-prefixable paths
     - _Requirements: 1.2, 2.8, 3.20, 4.5, 5.3, 6.3, 8.4_
 
-- [ ] 20. Final Checkpoint — All migration complete
+- [x] 20. Final Checkpoint — All migration complete
   - Ensure all tests pass, ask the user if questions arise.
   - Verify the full build pipeline is green: build, type-check, lint, test
   - Confirm zero legacy endpoint references remain in the codebase

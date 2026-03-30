@@ -10,7 +10,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
-import { cardVariants } from '@/components/ui/card';
+import { cardVariants } from '@/components/ui';
 
 // Expected class substrings for each variant
 const VARIANT_CLASSES = {

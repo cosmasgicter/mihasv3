@@ -102,7 +102,7 @@ All active backend code lives under `backend/`.
 
 | Area | Location | Notes |
 |------|----------|-------|
-| Frontend unit/integration/property tests | `apps/admissions/tests/` | Some tests still reference removed legacy API modules |
+| Frontend unit/integration/property tests | `apps/admissions/tests/` | Some legacy test files still import from a non-existent `api/` directory |
 | Backend unit tests | `backend/tests/unit/` | Fast structural and behavior checks |
 | Backend property tests | `backend/tests/property/` | Schema, middleware, validation, migration invariants |
 | Backend contract tests | `backend/tests/contract/` | Response-shape and parity focused |
@@ -111,16 +111,15 @@ All active backend code lives under `backend/`.
 
 These are current repo facts, not aspirational rules:
 
-- `apps/admissions/src/services/client.ts` still normalizes requests into legacy `/api/{resource}?action=...` paths.
-- Many admissions services, hooks, and pages still call `/api/...` endpoints directly.
+- `apps/admissions/src/services/client.ts` sends requests directly to Django REST paths via `toApiV1Path()`. There is no `normalizeEndpoint()` translation layer and no `supportedResources` set — those were removed during the admissions frontend overhaul.
+- All admissions services, hooks, and pages use `/api/v1/` REST-style paths. No legacy `?action=` query-parameter patterns remain in source code.
 - The backend only exposes `/api/v1/...` routes; it does not ship a legacy compatibility router.
-- `apps/admissions/package.json` contains `dev:api`, but `apps/admissions/local-server.js` does not exist.
-- `apps/admissions/tsconfig.json` still includes missing paths: `netlify`, `vite.config.local.ts`, and `vite.config.production.ts`.
-- Several admissions tests import from `../../../api/...`, but there is no `apps/admissions/api/` directory.
+- Several legacy test files under `apps/admissions/tests/` still import from `../../../api/...`, but there is no `apps/admissions/api/` directory. These tests target the defunct Vercel Functions backend and need cleanup.
 
 ## What Not To Copy Forward
 
 - Do not add new code that assumes root `api/` or `api-src/` bundles exist.
-- Do not add new frontend calls using the legacy query-parameter action pattern unless the task is explicitly about maintaining a legacy path.
+- Do not add new frontend calls using the legacy query-parameter action pattern. All endpoints use resource-style REST paths under `/api/v1/`.
+- Do not reintroduce `normalizeEndpoint()`, `supportedResources`, `local-server.js`, or `dev:api` scripts — these are removed artifacts of the Vercel Functions era.
 - Do not describe the backend as `django_api/`; the real package is `backend/`.
 - Do not describe the frontend as root `src/`; the real package is `apps/admissions/src/`.

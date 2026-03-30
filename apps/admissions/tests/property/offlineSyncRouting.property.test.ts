@@ -37,7 +37,7 @@ function buildSyncRoute(
   switch (itemType) {
     case 'application_draft':
       return {
-        endpoint: '/applications?action=draft',
+        endpoint: '/applications/draft/',
         method: 'POST',
         body: {
           user_id: userId,
@@ -53,7 +53,7 @@ function buildSyncRoute(
       }
     case 'form_submission':
       return {
-        endpoint: '/applications',
+        endpoint: '/applications/',
         method: 'POST',
         body: {
           ...data,
@@ -146,7 +146,7 @@ describe('Feature: supabase-remnant-purge, Property 2: Offline sync routes throu
         )
 
         expect(route).not.toBeNull()
-        expect(route!.endpoint).toBe('/applications?action=draft')
+        expect(route!.endpoint).toBe('/applications/draft/')
         expect(route!.method).toBe('POST')
         expect(route!.body.user_id).toBe(userId)
         expect(route!.body.draft_data).toEqual({
@@ -173,7 +173,7 @@ describe('Feature: supabase-remnant-purge, Property 2: Offline sync routes throu
         )
 
         expect(route).not.toBeNull()
-        expect(route!.endpoint).toBe('/applications')
+        expect(route!.endpoint).toBe('/applications/')
         expect(route!.method).toBe('POST')
         expect(route!.body.user_id).toBe(userId)
         expect(route!.body.is_offline_sync).toBe(true)

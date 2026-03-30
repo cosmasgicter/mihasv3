@@ -17,8 +17,9 @@ export interface RadioProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 export const Radio = React.forwardRef<HTMLInputElement, RadioProps>(
   ({ className, label, description, id, ...props }, ref) => {
-    // Generate a unique ID if not provided
-    const radioId = id || `radio-${React.useId()}`
+    // Always call useId unconditionally per React rules of hooks
+    const generatedId = React.useId()
+    const radioId = id || `radio-${generatedId}`
     
     return (
       <div className="flex items-start gap-3 min-h-[44px] py-2">

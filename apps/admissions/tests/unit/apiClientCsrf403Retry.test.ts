@@ -109,7 +109,7 @@ describe('ApiClient CSRF 403 Retry Unit Tests', () => {
 
     const { apiClient } = await import('@/services/client');
 
-    const result = await apiClient.request('/api/applications?action=details', {
+    const result = await apiClient.request('/applications/', {
       method: 'POST',
       retries: 0,
     });
@@ -150,7 +150,7 @@ describe('ApiClient CSRF 403 Retry Unit Tests', () => {
 
     // Should throw without retrying
     await expect(
-      apiClient.request('/api/applications?action=details', {
+      apiClient.request('/applications/', {
         method: 'POST',
         retries: 0,
       })

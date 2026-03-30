@@ -70,43 +70,31 @@ inclusion: always
 | `cd backend && python3 -m uvicorn config.asgi:application --reload` | Local ASGI runtime parity check |
 | `cd backend && python3 scripts/verify_migration.py` | Migration verification helper |
 
-## API Contract Reality
+## API Contract
 
-This is the most important technical nuance in the repo right now.
+The frontend and backend share a single, unified API contract. There is no translation layer or compatibility shim.
 
-### Current Frontend Assumptions
-
-- `apps/admissions/src/services/client.ts` still builds legacy `/api/...` URLs.
-- Many frontend callers still rely on query-parameter actions such as `?action=login`, `?action=dashboard`, or `?action=upload`.
-- Several comments and tests still describe the old Vercel function contract.
-
-### Current Backend Reality
-
-- `backend/config/urls.py` only mounts the API under `/api/v1/...`.
-- Backend routes are resource-style, for example:
+- The frontend API client (`apps/admissions/src/services/client.ts`) sends requests directly to `/api/v1/` paths on `api.mihas.edu.zm`.
+- `toApiV1Path()` prepends `/api/v1` to service-layer paths that are not already prefixed. This is the only path transformation.
+- `backend/config/urls.py` mounts all API routes under `/api/v1/...`.
+- Routes are resource-style, for example:
   - `/api/v1/auth/login/`
   - `/api/v1/sessions/`
   - `/api/v1/applications/`
   - `/api/v1/catalog/programs/`
   - `/api/v1/documents/upload/`
   - `/api/v1/admin/dashboard/`
-- There is no backend compatibility layer for legacy `/api/...` query-action routes.
-
-### Implication
-
-If you are working on frontend/backend integration, you must do one of these intentionally:
-
-1. Migrate the frontend callers and tests to the Django `/api/v1/...` contract.
-2. Add and document an explicit compatibility layer.
-
-Do not leave half-migrated endpoint behavior that mixes both contracts without a clear boundary.
+  - `/api/v1/events/stream/` (SSE)
+- There are no legacy `/api/{resource}?action=` query-parameter routes in either the frontend or the backend.
+- All cross-origin requests from `apply.mihas.edu.zm` to `api.mihas.edu.zm` use `credentials: 'include'` for cookie-based auth.
 
 ## Response And Auth Conventions
 
-- Browser auth remains cookie-based.
-- CSRF remains required for state-changing requests.
-- Backend responses still use an envelope shape, so frontend unwrapping logic may remain useful.
-- Route shape, request method, and payload semantics are the unstable parts of the migration, not the idea of a response envelope itself.
+- Auth is cookie-based. Django sets `access_token` and `refresh_token` as HTTP-only cookies with `Domain=.mihas.edu.zm`, `SameSite=Lax`, `Secure=true`.
+- CSRF is required for state-changing requests (POST, PUT, PATCH, DELETE). The token is exchanged via the `X-CSRF-Token` request/response header and stored in memory (`lib/csrfToken.ts`).
+- All responses use the `{"success": true, "data": ...}` envelope. The frontend `unwrapApiResponse()` method handles unwrapping.
+- Paginated responses use `{page, pageSize, totalCount, results}`. Service methods map `results` to domain-specific field names (e.g., `applications`, `users`).
+- On 401, the client attempts a single token refresh via `/api/v1/auth/refresh/` before signing out.
 
 ## Conventions For New Code
 
@@ -115,7 +103,8 @@ Do not leave half-migrated endpoint behavior that mixes both contracts without a
 - Use the `@/` alias for imports inside `apps/admissions/src/`.
 - Prefer `apps/admissions/src/lib/` for new shared frontend helpers.
 - Use `apiClient` instead of raw `fetch` unless there is a clear reason not to.
-- When touching an existing raw `fetch('/api/...')` call, verify whether it should be migrated to the Django route instead of copied forward.
+- All service methods pass short paths (e.g., `/applications/`, `/auth/login/`) to `apiClient.request()`. The client prepends `/api/v1` via `toApiV1Path()`.
+- Do not introduce `?action=` query-parameter patterns. All endpoints use resource-style REST paths.
 
 ### Backend
 
@@ -126,15 +115,11 @@ Do not leave half-migrated endpoint behavior that mixes both contracts without a
 
 ## Known Technical Debt To Account For
 
-- Admissions scripts still reference `local-server.js`, which is missing.
 - Admissions TypeScript config still references missing files and directories from the pre-monorepo layout.
-- Some frontend tests still import deleted Vercel API handler modules.
 - `shared/` exists but is not yet a meaningful dependency in the live app.
 
 ## Verification Expectations
 
-For migration-sensitive changes:
-
 - Run the relevant backend pytest suite when you change Django code.
-- Run admissions tests when you touch frontend API integration, if the targeted tests are still valid.
-- If a test still targets deleted legacy modules, update or replace the test instead of treating it as authoritative.
+- Run admissions tests when you touch frontend API integration.
+- Property tests in `apps/admissions/tests/property/` validate API client invariants, service URL construction, and dependency hygiene.

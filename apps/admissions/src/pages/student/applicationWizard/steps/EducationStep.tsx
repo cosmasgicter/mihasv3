@@ -8,6 +8,7 @@ import { FileUpload } from '@/components/ui/FileUpload'
 import { EligibilityNotification } from '@/components/application/EligibilityNotification'
 import { animateClasses, staggerChild } from '@/lib/animations'
 
+// eslint-disable-next-line no-restricted-imports -- type import from eligibilityEngine until API-backed replacement is ready
 import type { EligibilityResult } from '@/lib/eligibilityEngine'
 
 import type { Grade12Subject, SubjectGrade } from '../types'

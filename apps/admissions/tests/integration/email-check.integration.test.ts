@@ -8,6 +8,7 @@
  * **Validates: Requirements 5.2, 10.2**
  * 
  * @created 2026-02-02 - Part of Supabase complete removal migration
+ * @updated 2026-06-01 - Updated to Django REST paths
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -43,7 +44,7 @@ describe('Email Check Integration Tests', () => {
         data: { available: true },
       }));
 
-      const response = await fetch(`/api/auth?action=check-email&email=${encodeURIComponent(newEmail)}`, {
+      const response = await fetch(`/api/v1/auth/check-email/?email=${encodeURIComponent(newEmail)}`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -63,7 +64,7 @@ describe('Email Check Integration Tests', () => {
         data: { available: false },
       }));
 
-      const response = await fetch(`/api/auth?action=check-email&email=${encodeURIComponent(existingEmail)}`, {
+      const response = await fetch(`/api/v1/auth/check-email/?email=${encodeURIComponent(existingEmail)}`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -76,7 +77,6 @@ describe('Email Check Integration Tests', () => {
     });
 
     it('should handle case-insensitive email check', async () => {
-      // Email should be normalized to lowercase
       const mixedCaseEmail = 'User@Example.COM';
       
       mockFetch.mockResolvedValueOnce(createMockResponse({
@@ -84,7 +84,7 @@ describe('Email Check Integration Tests', () => {
         data: { available: false },
       }));
 
-      const response = await fetch(`/api/auth?action=check-email&email=${encodeURIComponent(mixedCaseEmail)}`, {
+      const response = await fetch(`/api/v1/auth/check-email/?email=${encodeURIComponent(mixedCaseEmail)}`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -93,7 +93,6 @@ describe('Email Check Integration Tests', () => {
 
       expect(response.ok).toBe(true);
       expect(result.success).toBe(true);
-      // Should find existing user regardless of case
       expect(result.data).toHaveProperty('available');
     });
 
@@ -106,7 +105,7 @@ describe('Email Check Integration Tests', () => {
         code: 'INVALID_EMAIL',
       }, 400));
 
-      const response = await fetch(`/api/auth?action=check-email&email=${encodeURIComponent(invalidEmail)}`, {
+      const response = await fetch(`/api/v1/auth/check-email/?email=${encodeURIComponent(invalidEmail)}`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -125,7 +124,7 @@ describe('Email Check Integration Tests', () => {
         code: 'MISSING_EMAIL',
       }, 400));
 
-      const response = await fetch('/api/auth?action=check-email', {
+      const response = await fetch('/api/v1/auth/check-email/', {
         method: 'GET',
         credentials: 'include',
       });
@@ -147,16 +146,14 @@ describe('Email Check Integration Tests', () => {
         data: { available: false },
       }));
 
-      const response = await fetch(`/api/auth?action=check-email&email=${encodeURIComponent(existingEmail)}`, {
+      const response = await fetch(`/api/v1/auth/check-email/?email=${encodeURIComponent(existingEmail)}`, {
         method: 'GET',
         credentials: 'include',
       });
 
       const result = await response.json();
 
-      // Response should only contain availability status
       expect(result.data).toEqual({ available: false });
-      // Should NOT contain any user details
       expect(result.data).not.toHaveProperty('user');
       expect(result.data).not.toHaveProperty('id');
       expect(result.data).not.toHaveProperty('name');
@@ -164,7 +161,6 @@ describe('Email Check Integration Tests', () => {
     });
 
     it('should not reveal timing differences between existing and non-existing emails', async () => {
-      // Both responses should have similar structure regardless of email existence
       const existingResponse = {
         success: true,
         data: { available: false },
@@ -175,7 +171,6 @@ describe('Email Check Integration Tests', () => {
         data: { available: true },
       };
 
-      // Verify response structure is identical
       expect(Object.keys(existingResponse)).toEqual(Object.keys(newResponse));
       expect(Object.keys(existingResponse.data)).toEqual(Object.keys(newResponse.data));
     });
@@ -188,7 +183,7 @@ describe('Email Check Integration Tests', () => {
         data: { available: true },
       }));
 
-      const response = await fetch(`/api/auth?action=check-email&email=${encodeURIComponent(emailWithSpecialChars)}`, {
+      const response = await fetch(`/api/v1/auth/check-email/?email=${encodeURIComponent(emailWithSpecialChars)}`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -208,14 +203,13 @@ describe('Email Check Integration Tests', () => {
         code: 'INVALID_EMAIL',
       }, 400));
 
-      const response = await fetch(`/api/auth?action=check-email&email=${encodeURIComponent(maliciousEmail)}`, {
+      const response = await fetch(`/api/v1/auth/check-email/?email=${encodeURIComponent(maliciousEmail)}`, {
         method: 'GET',
         credentials: 'include',
       });
 
       const result = await response.json();
 
-      // Should reject as invalid email, not execute SQL
       expect(response.ok).toBe(false);
       expect(result.success).toBe(false);
     });
@@ -228,14 +222,13 @@ describe('Email Check Integration Tests', () => {
         data: { available: true },
       }));
 
-      const response = await fetch('/api/auth?action=check-email&email=new@example.com', {
+      const response = await fetch('/api/v1/auth/check-email/?email=new@example.com', {
         method: 'GET',
         credentials: 'include',
       });
 
       const result = await response.json();
 
-      // Verify structure
       expect(result).toHaveProperty('success');
       expect(result).toHaveProperty('data');
       expect(result.data).toHaveProperty('available');
@@ -248,14 +241,13 @@ describe('Email Check Integration Tests', () => {
         data: { available: false },
       }));
 
-      const response = await fetch('/api/auth?action=check-email&email=existing@example.com', {
+      const response = await fetch('/api/v1/auth/check-email/?email=existing@example.com', {
         method: 'GET',
         credentials: 'include',
       });
 
       const result = await response.json();
 
-      // Verify structure
       expect(result).toHaveProperty('success');
       expect(result).toHaveProperty('data');
       expect(result.data).toHaveProperty('available');
@@ -269,14 +261,13 @@ describe('Email Check Integration Tests', () => {
         code: 'INVALID_EMAIL',
       }, 400));
 
-      const response = await fetch('/api/auth?action=check-email&email=invalid', {
+      const response = await fetch('/api/v1/auth/check-email/?email=invalid', {
         method: 'GET',
         credentials: 'include',
       });
 
       const result = await response.json();
 
-      // Verify error structure
       expect(result).toHaveProperty('success', false);
       expect(result).toHaveProperty('error');
       expect(result).toHaveProperty('code');
@@ -293,7 +284,7 @@ describe('Email Check Integration Tests', () => {
         code: 'RATE_LIMITED',
       }, 429));
 
-      const response = await fetch('/api/auth?action=check-email&email=test@example.com', {
+      const response = await fetch('/api/v1/auth/check-email/?email=test@example.com', {
         method: 'GET',
         credentials: 'include',
       });

@@ -279,7 +279,6 @@ function parseKeyframes(configContent: string): Record<string, Record<string, Re
     .replace(/require\([^)]+\)/g, '(() => ({}))') // stub out require() calls
     .replace('module.exports =', 'return')
 
-  // eslint-disable-next-line no-new-func
   const getConfig = new Function(wrappedContent)
   const config = getConfig()
 

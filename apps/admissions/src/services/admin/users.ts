@@ -13,10 +13,32 @@ const splitFullName = (fullName: string): { firstName: string; lastName: string 
   }
 }
 
+export interface AdminUserRecord {
+  id: string
+  user_id?: string
+  email: string
+  first_name?: string
+  last_name?: string
+  full_name: string
+  phone?: string
+  role: string
+  is_active?: boolean
+  created_at?: string
+  updated_at?: string
+}
+
 export interface AdminUserMutationResult {
-  user?: Record<string, any>
+  user?: AdminUserRecord
   revokedSessions?: number
   message?: string
+}
+
+export interface AdminUserListResult {
+  users: AdminUserRecord[]
+  totalCount: number
+  page?: number
+  pageSize?: number
+  totalPages?: number
 }
 
 export interface AdminUserPermissionsResult {
@@ -37,7 +59,7 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
 
 export const userService = {
   /** List users with pagination. Maps to GET /admin/users/ */
-  list: async (filters?: { page?: number; pageSize?: number; search?: string; role?: string }) => {
+  list: async (filters?: { page?: number; pageSize?: number; search?: string; role?: string }): Promise<AdminUserListResult> => {
     const params: Record<string, string> = {}
     if (filters?.page) params.page = String(filters.page)
     if (filters?.pageSize) params.pageSize = String(filters.pageSize)
@@ -46,7 +68,7 @@ export const userService = {
 
     const qs = buildQueryString(params)
     const response = await apiClient.request<{
-      results?: Array<Record<string, any>>
+      results?: Array<Partial<AdminUserRecord>>
       totalCount?: number
       page?: number
       pageSize?: number
@@ -55,10 +77,13 @@ export const userService = {
 
     const users = (response?.results || []).map((user) => ({
       ...user,
+      id: String(user.id ?? ''),
       full_name:
         user.full_name ||
         [user.first_name, user.last_name].filter(Boolean).join(' ').trim(),
-    }))
+      email: String(user.email ?? ''),
+      role: typeof user.role === 'string' ? user.role : 'student',
+    })) as AdminUserRecord[]
 
     return {
       users,
@@ -71,13 +96,13 @@ export const userService = {
 
   /** Get a single user by ID. Maps to GET /admin/users/{id}/ */
   getById: (id: string) =>
-    apiClient.request<Record<string, any>>(`/admin/users/${encodeURIComponent(id)}/`, {
+    apiClient.request<AdminUserRecord>(`/admin/users/${encodeURIComponent(id)}/`, {
       method: 'GET',
     }),
 
   /** Get user permissions (derived from role). Maps to GET /admin/users/{id}/ */
   getPermissions: async (id: string): Promise<AdminUserPermissionsResult> => {
-    const user = await apiClient.request<Record<string, any>>(`/admin/users/${encodeURIComponent(id)}/`, {
+    const user = await apiClient.request<AdminUserRecord>(`/admin/users/${encodeURIComponent(id)}/`, {
       method: 'GET',
     })
     const role = typeof user?.role === 'string' ? user.role : 'student'
@@ -99,7 +124,7 @@ export const userService = {
     const role = matchingRole?.[0] ?? 'student'
 
     await apiClient.request<AdminUserMutationResult>(`/admin/users/${encodeURIComponent(id)}/`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify({ role }),
     })
 
@@ -125,10 +150,10 @@ export const userService = {
       }),
     }),
 
-  /** Update a user. Maps to PUT /admin/users/{id}/ */
+  /** Update a user. Maps to PATCH /admin/users/{id}/ */
   update: (id: string, data: { full_name: string; email: string; phone?: string; role: string }) =>
     apiClient.request<AdminUserMutationResult>(`/admin/users/${encodeURIComponent(id)}/`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify({
         ...splitFullName(data.full_name),
         email: data.email,
@@ -137,10 +162,11 @@ export const userService = {
       }),
     }),
 
-  /** Remove (delete) a user. Maps to DELETE /admin/users/{id}/ */
+  /** Deactivate a user. Maps to PATCH /admin/users/{id}/ */
   remove: (id: string) =>
     apiClient.request<AdminUserMutationResult>(`/admin/users/${encodeURIComponent(id)}/`, {
-      method: 'DELETE',
+      method: 'PATCH',
+      body: JSON.stringify({ is_active: false }),
     }),
 
   /** Export users as CSV. Maps to GET /admin/users/export/ */

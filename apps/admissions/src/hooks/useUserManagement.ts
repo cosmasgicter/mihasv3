@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import type { UserProfile } from '@/types/database'
 import { UserStatsSummary } from '@/types/users'
-import { userService } from '@/services/admin/users'
+import { userService, type AdminUserRecord } from '@/services/admin/users'
 import { usersData } from '@/data/users'
 import { sanitizeForLog } from '@/lib/sanitize'
 
@@ -148,7 +148,7 @@ export function useUserManagement() {
     try {
       const result = await userService.list()
 
-      const roleData = (result?.users ?? []) as Array<Pick<UserProfile, 'role'>>
+      const roleData = (result?.users ?? []) as Array<Pick<AdminUserRecord, 'role'>>
       const stats = roleData.reduce<Record<string, number>>((acc, user) => {
         acc[user.role] = (acc[user.role] || 0) + 1
         return acc

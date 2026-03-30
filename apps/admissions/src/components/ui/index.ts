@@ -13,7 +13,7 @@ export { Switch } from './switch'
 export { Label } from './label'
 
 // Layout Components
-export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './card'
+export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, cardVariants } from './card'
 export { Container } from './Container'
 export { Grid } from './Grid'
 export { Stack } from './Stack'

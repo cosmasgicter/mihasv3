@@ -81,8 +81,8 @@ export const PWA_CONFIG = {
     // Never cache these routes
     exclude: [
       '/admin',
-      '/api/auth',
-      '/api/payments'
+      '/api/v1/auth',
+      '/api/v1/payments'
     ]
   },
 

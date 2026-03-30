@@ -2,7 +2,7 @@ import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { Tooltip } from '@/components/ui/tooltip'
+import { Tooltip } from '@/components/ui'
 
 describe('Tooltip wrapper', () => {
   afterEach(() => {

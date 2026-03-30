@@ -16,8 +16,8 @@ import {
 } from '@/components/ui/Dialog'
 import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { ResponsiveTable } from '@/components/ui/ResponsiveTable'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   ArrowLeft,

@@ -66,17 +66,22 @@ export const extractApplicationFromEnvelope = (
   envelope: unknown,
   endpoint: string
 ): ApplicationPayload => {
-  const parsedEnvelope = envelope as
-    | ApplicationPayload
-    | { data?: { application?: ApplicationPayload }; application?: ApplicationPayload }
-    | null
-    | undefined;
+  const record =
+    envelope && typeof envelope === 'object'
+      ? (envelope as Record<string, unknown>)
+      : null;
+  const dataRecord =
+    record?.data && typeof record.data === 'object'
+      ? (record.data as Record<string, unknown>)
+      : null;
+  const applicationCandidate =
+    dataRecord?.application ??
+    record?.application ??
+    (record && 'application_number' in record ? record : null);
   const application =
-    parsedEnvelope?.data?.application ??
-    parsedEnvelope?.application ??
-    (parsedEnvelope && typeof parsedEnvelope === 'object' && 'application_number' in parsedEnvelope
-      ? parsedEnvelope
-      : null);
+    applicationCandidate && typeof applicationCandidate === 'object'
+      ? (applicationCandidate as ApplicationPayload)
+      : null;
 
   if (!application || typeof application !== 'object') {
     console.error('[useDocumentGeneration] Malformed payload: missing application object', {

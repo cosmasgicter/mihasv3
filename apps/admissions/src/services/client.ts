@@ -160,19 +160,6 @@ function getServiceName(endpoint: string): string {
   return stripped.split('/')[0] || 'unknown';
 }
 
-function getResourceSegments(path: string): string[] {
-  return path
-    .replace(/^\/api(?:\/v1)?\/?/, '/')
-    .replace(/^\/+|\/+$/g, '')
-    .split('/')
-    .filter(Boolean);
-}
-
-function appendQuery(path: string, params: URLSearchParams): string {
-  const query = params.toString();
-  return query ? `${path}?${query}` : path;
-}
-
 class ApiClient {
   /**
    * Promise-lock for token refresh deduplication.
@@ -288,238 +275,6 @@ class ApiClient {
     });
   }
 
-  private normalizeEndpoint(endpoint: string, method: string): string {
-    if (!endpoint || endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
-      return endpoint;
-    }
-
-    if (endpoint.startsWith('/api/v1/') || endpoint.startsWith('/health/')) {
-      return endpoint;
-    }
-
-    const [rawPath, rawQuery = ''] = endpoint.split('?');
-    const path = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
-    const segments = getResourceSegments(path);
-
-    if (segments.length === 0) {
-      return endpoint;
-    }
-
-    const [resource, ...rest] = segments;
-    const params = new URLSearchParams(rawQuery);
-    const action = params.get('action') ?? '';
-    const applicationId = params.get('id') ?? params.get('applicationId') ?? params.get('application_id');
-    const sessionId = params.get('sessionId') ?? params.get('id');
-    const documentId = params.get('documentId') ?? params.get('id');
-    const paymentId = params.get('paymentId') ?? params.get('id');
-    const adminEntityId = params.get('id') ?? params.get('userId');
-
-    switch (resource) {
-      case 'auth': {
-        const authAction = action || rest.join('-');
-        params.delete('action');
-        switch (authAction) {
-          case 'login':
-          case 'logout':
-          case 'refresh':
-          case 'register':
-          case 'session':
-            return appendQuery(toApiV1Path(`auth/${authAction}/`), params);
-          case 'forgot-password':
-          case 'password-reset':
-            return appendQuery(toApiV1Path('auth/password-reset/'), params);
-          case 'reset-password':
-            return appendQuery(toApiV1Path('auth/password-reset/confirm/'), params);
-          default:
-            return appendQuery(toApiV1Path(`auth/${authAction}/`), params);
-        }
-      }
-      case 'sessions': {
-        const sessionAction = action || rest.join('-') || 'list';
-        params.delete('action');
-        if (sessionAction === 'revoke-all') {
-          return appendQuery(toApiV1Path('sessions/revoke-all/'), params);
-        }
-        if (sessionAction === 'revoke' && sessionId) {
-          params.delete('sessionId');
-          params.delete('id');
-          return appendQuery(toApiV1Path(`sessions/${sessionId}/revoke/`), params);
-        }
-        return appendQuery(toApiV1Path('sessions/'), params);
-      }
-      case 'admin': {
-        if (rest[0] === 'users') {
-          return rest[1]
-            ? appendQuery(toApiV1Path(`admin/users/${rest[1]}/`), params)
-            : appendQuery(toApiV1Path('admin/users/'), params);
-        }
-
-        if (rest[0] === 'settings') {
-          return rest[1]
-            ? appendQuery(toApiV1Path(`admin/settings/${rest[1]}/`), params)
-            : appendQuery(toApiV1Path('admin/settings/'), params);
-        }
-
-        const adminAction = action || rest.join('-');
-        params.delete('action');
-        switch (adminAction) {
-          case 'dashboard':
-          case 'stats':
-            return appendQuery(toApiV1Path('admin/dashboard/'), params);
-          case 'users':
-          case 'register':
-            if (adminEntityId && ['GET', 'PATCH', 'PUT', 'DELETE'].includes(method)) {
-              params.delete('id');
-              params.delete('userId');
-              return appendQuery(toApiV1Path(`admin/users/${adminEntityId}/`), params);
-            }
-            return appendQuery(toApiV1Path('admin/users/'), params);
-          case 'settings':
-            if (adminEntityId && ['GET', 'PATCH', 'PUT', 'DELETE'].includes(method)) {
-              params.delete('id');
-              params.delete('userId');
-              return appendQuery(toApiV1Path(`admin/settings/${adminEntityId}/`), params);
-            }
-            return appendQuery(toApiV1Path('admin/settings/'), params);
-          case 'audit-logs':
-            return appendQuery(toApiV1Path('admin/audit-logs/'), params);
-          default:
-            return appendQuery(toApiV1Path(`admin/${adminAction}/`), params);
-        }
-      }
-      case 'applications': {
-        const collectionActions = new Set(['track', 'draft', 'export', 'bulk-status', 'stats', 'versions']);
-        const directApplicationId =
-          rest[0] && !collectionActions.has(rest[0]) ? rest[0] : null;
-        const directNestedAction = directApplicationId ? rest[1] ?? '' : '';
-
-        if (directApplicationId) {
-          switch (directNestedAction) {
-            case 'documents':
-            case 'grades':
-            case 'summary':
-            case 'review':
-            case 'interviews':
-              return appendQuery(
-                toApiV1Path(`applications/${directApplicationId}/${directNestedAction}/`),
-                params,
-              );
-            default:
-              return appendQuery(toApiV1Path(`applications/${directApplicationId}/`), params);
-          }
-        }
-
-        const applicationAction = action || rest.join('-') || '';
-        params.delete('action');
-        switch (applicationAction) {
-          case 'track':
-            return appendQuery(toApiV1Path('applications/track/'), params);
-          case 'draft':
-            return appendQuery(toApiV1Path('applications/draft/'), params);
-          case 'export':
-            return appendQuery(toApiV1Path('applications/export/'), params);
-          case 'bulk':
-          case 'bulk-status':
-            return appendQuery(toApiV1Path('applications/bulk-status/'), params);
-          case 'details':
-            if (applicationId) {
-              params.delete('id');
-              params.delete('applicationId');
-              params.delete('application_id');
-              return appendQuery(toApiV1Path(`applications/${applicationId}/`), params);
-            }
-            break;
-          case 'summary':
-          case 'review':
-          case 'documents':
-          case 'grades':
-          case 'interviews':
-            if (applicationId) {
-              params.delete('id');
-              params.delete('applicationId');
-              params.delete('application_id');
-              return appendQuery(toApiV1Path(`applications/${applicationId}/${applicationAction}/`), params);
-            }
-            break;
-          case 'schedule-interview':
-            if (applicationId) {
-              params.delete('id');
-              params.delete('applicationId');
-              params.delete('application_id');
-              return appendQuery(toApiV1Path(`applications/${applicationId}/interviews/`), params);
-            }
-            break;
-          default:
-            break;
-        }
-
-        if (applicationId && ['GET', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-          params.delete('id');
-          params.delete('applicationId');
-          params.delete('application_id');
-          return appendQuery(toApiV1Path(`applications/${applicationId}/`), params);
-        }
-
-        return appendQuery(toApiV1Path('applications/'), params);
-      }
-      case 'notifications': {
-        const notificationAction = action || rest.join('-');
-        params.delete('action');
-        if (notificationAction === 'preferences') {
-          return appendQuery(toApiV1Path('notifications/preferences/'), params);
-        }
-        return appendQuery(toApiV1Path('notifications/'), params);
-      }
-      case 'documents': {
-        const documentAction = action || rest.join('-');
-        params.delete('action');
-        if (documentAction === 'upload') {
-          return appendQuery(toApiV1Path('documents/upload/'), params);
-        }
-        if (documentAction === 'extract' && documentId) {
-          params.delete('documentId');
-          params.delete('id');
-          return appendQuery(toApiV1Path(`documents/${documentId}/extract/`), params);
-        }
-        return appendQuery(toApiV1Path('documents/'), params);
-      }
-      case 'payments': {
-        const paymentAction = action || rest.join('-');
-        params.delete('action');
-        if (paymentId && paymentAction === 'receipt') {
-          params.delete('paymentId');
-          params.delete('id');
-          return appendQuery(toApiV1Path(`payments/${paymentId}/receipt/`), params);
-        }
-        if (paymentId && paymentAction === 'verify') {
-          params.delete('paymentId');
-          params.delete('id');
-          return appendQuery(toApiV1Path(`payments/${paymentId}/verify/`), params);
-        }
-        return appendQuery(toApiV1Path('payments/'), params);
-      }
-      case 'catalog': {
-        const type = params.get('type') ?? rest[0];
-        const catalogEntityId = params.get('id') ?? rest[1];
-        params.delete('type');
-        if (catalogEntityId) {
-          params.delete('id');
-        }
-        if (!type) {
-          return appendQuery(toApiV1Path('catalog/'), params);
-        }
-        if (catalogEntityId && ['GET', 'PATCH', 'PUT', 'DELETE'].includes(method)) {
-          return appendQuery(toApiV1Path(`catalog/${type}/${catalogEntityId}/`), params);
-        }
-        return appendQuery(toApiV1Path(`catalog/${type}/`), params);
-      }
-      case 'health': {
-        return action === 'ready' ? '/health/ready/' : '/health/live/';
-      }
-      default:
-        return endpoint;
-    }
-  }
 
 
   private async parseJsonSafely<TResponse>(
@@ -770,8 +525,7 @@ class ApiClient {
   ): Promise<TResponse | null> {
     const start = Date.now();
     const method = (options.method ?? 'GET').toString().toUpperCase();
-    const normalizedEndpoint = this.normalizeEndpoint(endpoint, method);
-    const apiEndpoint = toApiV1Path(normalizedEndpoint);
+    const apiEndpoint = toApiV1Path(endpoint);
     const service = getServiceName(apiEndpoint);
 
     const timeoutMs = options.timeout ?? getTimeoutForEndpoint(apiEndpoint);
@@ -811,7 +565,7 @@ class ApiClient {
 
         // Log retry attempt (dev only — terser strips console.log in prod)
         logger.warn(
-          `[API Client] Retrying ${method} ${normalizedEndpoint} (attempt ${attempt + 1}/${maxRetries})`
+          `[API Client] Retrying ${method} ${apiEndpoint} (attempt ${attempt + 1}/${maxRetries})`
         );
       }
     }
