@@ -12,6 +12,13 @@ from datetime import timedelta
 from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.utils import timezone
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiResponse,
+    OpenApiTypes,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -21,6 +28,12 @@ from apps.accounts.models import Profile
 from apps.accounts.permissions import IsAdmin
 from apps.accounts.services import hash_password
 from apps.common.models import AuditLog, Setting
+from apps.common.openapi_helpers import (
+    ErrorResponseSerializer,
+    MessageSerializer,
+    envelope_serializer,
+    paginated_serializer,
+)
 from apps.common.pagination import StandardPagination
 
 logger = logging.getLogger(__name__)
@@ -89,11 +102,67 @@ class AuditLogSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField(read_only=True)
 
 
+class AdminDashboardApplicationStatsSerializer(serializers.Serializer):
+    by_status = serializers.JSONField()
+    today = serializers.IntegerField()
+    this_week = serializers.IntegerField()
+    this_month = serializers.IntegerField()
+    total = serializers.IntegerField()
+
+
+class AdminDashboardUserStatsSerializer(serializers.Serializer):
+    total = serializers.IntegerField()
+    active = serializers.IntegerField()
+
+
+class AdminDashboardSerializer(serializers.Serializer):
+    applications = AdminDashboardApplicationStatsSerializer()
+    users = AdminDashboardUserStatsSerializer()
+    recent_activity = AuditLogSerializer(many=True)
+
+
+AdminDashboardResponseSerializer = envelope_serializer(
+    "AdminDashboardResponse",
+    AdminDashboardSerializer(),
+)
+AdminUserResponseSerializer = envelope_serializer(
+    "AdminUserResponse",
+    AdminUserSerializer(),
+)
+AdminUserListResponseSerializer = envelope_serializer(
+    "AdminUserListResponse",
+    paginated_serializer("AdminUserPage", AdminUserSerializer),
+)
+AdminSettingsResponseSerializer = envelope_serializer(
+    "AdminSettingResponse",
+    SettingSerializer(),
+)
+AdminSettingsListResponseSerializer = envelope_serializer(
+    "AdminSettingListResponse",
+    paginated_serializer("AdminSettingPage", SettingSerializer),
+)
+AdminAuditLogListResponseSerializer = envelope_serializer(
+    "AdminAuditLogListResponse",
+    paginated_serializer("AdminAuditLogPage", AuditLogSerializer),
+)
+AdminMessageResponseSerializer = envelope_serializer(
+    "AdminMessageResponse",
+    MessageSerializer(),
+)
+
+
 # ---------------------------------------------------------------------------
 # 19.1 — Admin Dashboard
 # ---------------------------------------------------------------------------
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="admin_dashboard_retrieve",
+        tags=["admin"],
+        responses={200: OpenApiResponse(response=AdminDashboardResponseSerializer)},
+    )
+)
 class AdminDashboardView(APIView):
     """GET /api/v1/admin/dashboard/
 
@@ -102,6 +171,7 @@ class AdminDashboardView(APIView):
     """
 
     permission_classes = [IsAuthenticated, IsAdmin]
+    serializer_class = AdminDashboardSerializer
 
     def get(self, request):
         now = timezone.now()
@@ -155,6 +225,30 @@ class AdminDashboardView(APIView):
 # ---------------------------------------------------------------------------
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="admin_users_list",
+        tags=["admin"],
+        parameters=[
+            OpenApiParameter("role", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Filter by role."),
+            OpenApiParameter("search", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Match name or email."),
+            OpenApiParameter("include_inactive", OpenApiTypes.BOOL, OpenApiParameter.QUERY, description="Include inactive accounts."),
+            OpenApiParameter("page", OpenApiTypes.INT, OpenApiParameter.QUERY, description="Page number."),
+            OpenApiParameter("pageSize", OpenApiTypes.INT, OpenApiParameter.QUERY, description="Page size."),
+        ],
+        responses={200: OpenApiResponse(response=AdminUserListResponseSerializer)},
+    ),
+    post=extend_schema(
+        operation_id="admin_users_create",
+        tags=["admin"],
+        request=AdminUserCreateSerializer,
+        responses={
+            201: OpenApiResponse(response=AdminUserResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            409: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+)
 class AdminUserListView(APIView):
     """GET /api/v1/admin/users/ — paginated user listing.
     POST /api/v1/admin/users/ — create user with role assignment.
@@ -163,6 +257,7 @@ class AdminUserListView(APIView):
     """
 
     permission_classes = [IsAuthenticated, IsAdmin]
+    serializer_class = AdminUserSerializer
 
     def get(self, request):
         queryset = Profile.objects.all().order_by("-created_at")
@@ -235,6 +330,32 @@ class AdminUserListView(APIView):
 # ---------------------------------------------------------------------------
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="admin_users_retrieve",
+        tags=["admin"],
+        parameters=[
+            OpenApiParameter("pk", OpenApiTypes.UUID, OpenApiParameter.PATH, description="User UUID."),
+        ],
+        responses={
+            200: OpenApiResponse(response=AdminUserResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+    patch=extend_schema(
+        operation_id="admin_users_update",
+        tags=["admin"],
+        parameters=[
+            OpenApiParameter("pk", OpenApiTypes.UUID, OpenApiParameter.PATH, description="User UUID."),
+        ],
+        request=AdminUserUpdateSerializer,
+        responses={
+            200: OpenApiResponse(response=AdminUserResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+)
 class AdminUserDetailView(APIView):
     """GET/PATCH /api/v1/admin/users/{id}/
 
@@ -243,6 +364,7 @@ class AdminUserDetailView(APIView):
     """
 
     permission_classes = [IsAuthenticated, IsAdmin]
+    serializer_class = AdminUserSerializer
 
     def get(self, request, pk):
         try:
@@ -327,6 +449,22 @@ class AdminUserDetailView(APIView):
 # ---------------------------------------------------------------------------
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="admin_users_export",
+        tags=["admin"],
+        parameters=[
+            OpenApiParameter("role", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Filter by role."),
+            OpenApiParameter("include_inactive", OpenApiTypes.BOOL, OpenApiParameter.QUERY, description="Include inactive accounts."),
+        ],
+        responses={
+            200: OpenApiResponse(
+                response=OpenApiTypes.BINARY,
+                description="CSV export of matching users.",
+            ),
+        },
+    )
+)
 class AdminUserExportView(APIView):
     """GET /api/v1/admin/users/export/
 
@@ -334,6 +472,7 @@ class AdminUserExportView(APIView):
     """
 
     permission_classes = [IsAuthenticated, IsAdmin]
+    serializer_class = AdminUserSerializer
 
     def get(self, request):
         queryset = Profile.objects.all().order_by("-created_at")
@@ -389,6 +528,28 @@ class AdminUserExportView(APIView):
 # ---------------------------------------------------------------------------
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="admin_settings_list",
+        tags=["admin"],
+        parameters=[
+            OpenApiParameter("category", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Filter by setting category."),
+            OpenApiParameter("page", OpenApiTypes.INT, OpenApiParameter.QUERY, description="Page number."),
+            OpenApiParameter("pageSize", OpenApiTypes.INT, OpenApiParameter.QUERY, description="Page size."),
+        ],
+        responses={200: OpenApiResponse(response=AdminSettingsListResponseSerializer)},
+    ),
+    post=extend_schema(
+        operation_id="admin_settings_create",
+        tags=["admin"],
+        request=SettingSerializer,
+        responses={
+            201: OpenApiResponse(response=AdminSettingsResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            409: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+)
 class AdminSettingsListView(APIView):
     """GET/POST /api/v1/admin/settings/
 
@@ -396,6 +557,7 @@ class AdminSettingsListView(APIView):
     """
 
     permission_classes = [IsAuthenticated, IsAdmin]
+    serializer_class = SettingSerializer
 
     def get(self, request):
         queryset = Setting.objects.all().order_by("key")
@@ -437,6 +599,44 @@ class AdminSettingsListView(APIView):
         )
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="admin_settings_retrieve",
+        tags=["admin"],
+        parameters=[
+            OpenApiParameter("pk", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Setting UUID."),
+        ],
+        responses={
+            200: OpenApiResponse(response=AdminSettingsResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+    patch=extend_schema(
+        operation_id="admin_settings_update",
+        tags=["admin"],
+        parameters=[
+            OpenApiParameter("pk", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Setting UUID."),
+        ],
+        request=SettingUpdateSerializer,
+        responses={
+            200: OpenApiResponse(response=AdminSettingsResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+    delete=extend_schema(
+        operation_id="admin_settings_delete",
+        tags=["admin"],
+        parameters=[
+            OpenApiParameter("pk", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Setting UUID."),
+        ],
+        request=None,
+        responses={
+            200: OpenApiResponse(response=AdminMessageResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+)
 class AdminSettingDetailView(APIView):
     """GET/PATCH/DELETE /api/v1/admin/settings/{id}/
 
@@ -444,6 +644,7 @@ class AdminSettingDetailView(APIView):
     """
 
     permission_classes = [IsAuthenticated, IsAdmin]
+    serializer_class = SettingSerializer
 
     def get(self, request, pk):
         try:
@@ -503,6 +704,22 @@ class AdminSettingDetailView(APIView):
 # ---------------------------------------------------------------------------
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="admin_audit_logs_list",
+        tags=["admin"],
+        parameters=[
+            OpenApiParameter("entity_type", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Filter by entity type."),
+            OpenApiParameter("action", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Filter by action."),
+            OpenApiParameter("actor_id", OpenApiTypes.UUID, OpenApiParameter.QUERY, description="Filter by actor UUID."),
+            OpenApiParameter("date_from", OpenApiTypes.DATETIME, OpenApiParameter.QUERY, description="ISO timestamp lower bound."),
+            OpenApiParameter("date_to", OpenApiTypes.DATETIME, OpenApiParameter.QUERY, description="ISO timestamp upper bound."),
+            OpenApiParameter("page", OpenApiTypes.INT, OpenApiParameter.QUERY, description="Page number."),
+            OpenApiParameter("pageSize", OpenApiTypes.INT, OpenApiParameter.QUERY, description="Page size."),
+        ],
+        responses={200: OpenApiResponse(response=AdminAuditLogListResponseSerializer)},
+    )
+)
 class AdminAuditLogView(APIView):
     """GET /api/v1/admin/audit-logs/
 
@@ -510,6 +727,7 @@ class AdminAuditLogView(APIView):
     """
 
     permission_classes = [IsAuthenticated, IsAdmin]
+    serializer_class = AuditLogSerializer
 
     def get(self, request):
         queryset = AuditLog.objects.all().order_by("-created_at")

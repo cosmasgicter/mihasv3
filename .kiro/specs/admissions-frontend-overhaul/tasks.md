@@ -145,7 +145,7 @@ Migrate the MIHAS admissions React frontend from legacy Vercel Functions API con
   - Ensure all tests pass, ask the user if questions arise.
   - Verify all 15 service files use only Django REST paths (no `?action=` patterns remain)
 
-- [ ] 5. Hook Layer Migration
+- [x] 5. Hook Layer Migration
   - [x] 5.1 Update auth hooks in `src/hooks/auth/`
     - Update `useSessionListener`, `useProfileQuery`, `useRoleVerification` to use migrated auth service methods
     - Ensure session validation calls `/api/v1/auth/session/` via the auth service
@@ -175,16 +175,16 @@ Migrate the MIHAS admissions React frontend from legacy Vercel Functions API con
     - Update any keys that reference legacy query-parameter patterns
     - _Requirements: 9.10_
 
-  - [-] 5.7 Replace any raw `fetch()` calls in hooks with migrated service methods
+  - [x] 5.7 Replace any raw `fetch()` calls in hooks with migrated service methods
     - Scan all hooks for raw `fetch('/api/...')` calls and replace with corresponding service method or `apiClient.request()`
     - _Requirements: 9.11_
 
-- [ ] 6. Checkpoint — Hook layer complete
+- [x] 6. Checkpoint — Hook layer complete
   - Ensure all tests pass, ask the user if questions arise.
   - Verify no hook files contain legacy `?action=` patterns or raw `fetch('/api/...')` calls
 
-- [ ] 7. Auth Context and SSE Migration
-  - [~] 7.1 Migrate auth context in `src/contexts/` to Django JWT cookies
+- [x] 7. Auth Context and SSE Migration
+  - [x] 7.1 Migrate auth context in `src/contexts/` to Django JWT cookies
     - Remove any references to Vercel Functions auth endpoints or Vercel-specific cookie handling
     - Ensure auth context expects `access_token` and `refresh_token` as HTTP-only cookies set by Django with `Domain=.mihas.edu.zm`, `SameSite=Lax`, `Secure=true`
     - Update session validation flow to call `/api/v1/auth/session/` on page load and after visibility change events
@@ -192,7 +192,7 @@ Migrate the MIHAS admissions React frontend from legacy Vercel Functions API con
     - On refresh failure: clear React Query cache, clear CSRF token store, clear secure storage, dispatch `mihas:auth-expired` event, redirect to login
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
 
-  - [~] 7.2 Migrate SSE client and `useRealtime` hook
+  - [x] 7.2 Migrate SSE client and `useRealtime` hook
     - Update `lib/sseClient.ts` default endpoint from `/api/sessions?action=connect` to `${API_BASE}/api/v1/events/stream/`
     - Verify `withCredentials: true` is set on EventSource for cross-origin cookie transmission
     - Update `useRealtime` hook: `SSE_ENDPOINT` → `${API_BASE}/api/v1/events/stream/`, `POLLING_ENDPOINT` → `/events/poll/`
@@ -200,13 +200,13 @@ Migrate the MIHAS admissions React frontend from legacy Vercel Functions API con
     - Update polling fallback to use `apiClient.request()` instead of raw `fetch()` for CSRF handling and cookie credentials
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6_
 
-- [ ] 8. Checkpoint — Auth context and SSE complete
+- [x] 8. Checkpoint — Auth context and SSE complete
   - Ensure all tests pass, ask the user if questions arise.
   - Verify auth context references only Django REST paths
   - Verify SSE endpoints point to `/api/v1/events/stream/` and `/api/v1/events/poll/`
 
 - [ ] 9. Raw Fetch and Storage Migration
-  - [~] 9.1 Migrate `src/lib/storage.ts` — replace all 6 raw `fetch()` calls
+  - [x] 9.1 Migrate `src/lib/storage.ts` — replace all 6 raw `fetch()` calls
     - `uploadApplicationFile` / `uploadFile` → `apiClient.request('/documents/upload/', ...)` POST with FormData
     - `deleteFile` → `apiClient.request('/documents/{path}/', ...)` DELETE
     - `getFileUrl` → `apiClient.request('/documents/{path}/signed-url/')` GET
@@ -215,7 +215,7 @@ Migrate the MIHAS admissions React frontend from legacy Vercel Functions API con
     - `getFileInfo` → `apiClient.request('/documents/{path}/info/')` GET
     - _Requirements: 13.1_
 
-  - [~] 9.2 Migrate `src/lib/api/adminApi.ts` — replace all 16 legacy admin API calls
+  - [x] 9.2 Migrate `src/lib/api/adminApi.ts` — replace all 16 legacy admin API calls
     - Replace `adminFetch()` wrapper with `apiClient.request()` calls using Django REST paths
     - Settings: GET/POST/PUT/DELETE `/admin/settings/`, `/admin/settings/{id}/`, `/admin/settings/import/`, `/admin/settings/reset/`
     - Eligibility rules: GET/POST/PUT/DELETE `/admin/eligibility-rules/`, `/admin/eligibility-rules/{id}/`
@@ -224,12 +224,12 @@ Migrate the MIHAS admissions React frontend from legacy Vercel Functions API con
     - Remove `adminFetch()`, `parseJsonResponse()`, and `HtmlResponseError` if no longer needed
     - _Requirements: 7.7, 13.2_
 
-  - [~] 9.3 Migrate `src/lib/connectionFix.ts`
+  - [x] 9.3 Migrate `src/lib/connectionFix.ts`
     - `testConnection` → `fetch(API_BASE + '/api/v1/health/live/')` (or `apiClient.request('/health/live/')`)
     - `syncGradesWithRecovery` → PUT `/applications/{id}/grades/` instead of PATCH with `action: 'sync_grades'`
     - _Requirements: 13.4_
 
-  - [~] 9.4 Scan for and replace any remaining raw `fetch('/api/...')` calls
+  - [-] 9.4 Scan for and replace any remaining raw `fetch('/api/...')` calls
     - Search all files under `src/` for raw `fetch` calls to legacy API paths
     - Replace each with `apiClient.request()` using the correct Django REST path
     - _Requirements: 13.3, 13.5_

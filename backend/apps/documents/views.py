@@ -10,6 +10,7 @@ import uuid
 
 from django.conf import settings
 from django.utils import timezone
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, OpenApiTypes, extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -24,10 +25,48 @@ from apps.documents.serializers import (
     PaymentVerifySerializer,
 )
 from apps.documents.validators import validate_file_magic_bytes
+from apps.common.openapi_helpers import (
+    ErrorResponseSerializer,
+    PaymentReceiptSerializer,
+    TaskQueuedSerializer,
+    envelope_serializer,
+)
 
 logger = logging.getLogger(__name__)
 
 
+DocumentResponseSerializer = envelope_serializer(
+    "DocumentResponse",
+    DocumentSerializer(),
+)
+TaskQueuedResponseSerializer = envelope_serializer(
+    "DocumentTaskQueuedResponse",
+    TaskQueuedSerializer(),
+)
+PaymentReceiptResponseSerializer = envelope_serializer(
+    "PaymentReceiptResponse",
+    PaymentReceiptSerializer(),
+)
+PaymentResponseSerializer = envelope_serializer(
+    "PaymentResponse",
+    PaymentSerializer(),
+)
+
+
+@extend_schema_view(
+    post=extend_schema(
+        operation_id="documents_upload",
+        tags=["documents"],
+        request=DocumentUploadSerializer,
+        responses={
+            201: OpenApiResponse(response=DocumentResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+            500: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
 class DocumentUploadView(APIView):
     """POST /api/v1/documents/upload/ — upload a document.
 
@@ -35,6 +74,7 @@ class DocumentUploadView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = DocumentUploadSerializer
 
     def post(self, request):
         serializer = DocumentUploadSerializer(data=request.data)
@@ -116,10 +156,26 @@ class DocumentUploadView(APIView):
         )
 
 
+@extend_schema_view(
+    post=extend_schema(
+        operation_id="documents_extract",
+        tags=["documents"],
+        parameters=[
+            OpenApiParameter("document_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Document UUID."),
+        ],
+        request=None,
+        responses={
+            202: OpenApiResponse(response=TaskQueuedResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
 class DocumentExtractView(APIView):
     """POST /api/v1/documents/{id}/extract/ — enqueue OCR Celery task."""
 
     permission_classes = [IsAuthenticated]
+    serializer_class = TaskQueuedSerializer
 
     def post(self, request, document_id):
         try:
@@ -164,6 +220,20 @@ class DocumentExtractView(APIView):
         )
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="payments_receipt",
+        tags=["payments"],
+        parameters=[
+            OpenApiParameter("payment_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Payment UUID."),
+        ],
+        responses={
+            200: OpenApiResponse(response=PaymentReceiptResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
 class PaymentReceiptView(APIView):
     """GET /api/v1/payments/{id}/receipt/ — generate receipt data.
 
@@ -171,6 +241,7 @@ class PaymentReceiptView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = PaymentReceiptSerializer
 
     def get(self, request, payment_id):
         try:
@@ -213,6 +284,21 @@ class PaymentReceiptView(APIView):
         return Response(receipt)
 
 
+@extend_schema_view(
+    post=extend_schema(
+        operation_id="payments_verify",
+        tags=["payments"],
+        parameters=[
+            OpenApiParameter("payment_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Payment UUID."),
+        ],
+        request=PaymentVerifySerializer,
+        responses={
+            200: OpenApiResponse(response=PaymentResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
 class PaymentVerifyView(APIView):
     """POST /api/v1/payments/{id}/verify/ — admin verifies/rejects payment.
 
@@ -220,6 +306,7 @@ class PaymentVerifyView(APIView):
     """
 
     permission_classes = [IsAdmin]
+    serializer_class = PaymentVerifySerializer
 
     def post(self, request, payment_id):
         try:

@@ -1,7 +1,6 @@
 """Root URL configuration for MIHAS Django API."""
 from django.contrib import admin
 from django.urls import path, include
-from django.views.generic import RedirectView
 
 from drf_spectacular.views import (
     SpectacularAPIView,
@@ -10,10 +9,11 @@ from drf_spectacular.views import (
 )
 
 from apps.common.health import LivenessView, ReadinessView
+from apps.common.views import APIHomeView
 from apps.documents.urls import document_urlpatterns, payment_urlpatterns
 
 urlpatterns = [
-    path("", RedirectView.as_view(url="/api/v1/docs/", permanent=False), name="api-root"),
+    path("", APIHomeView.as_view(), name="api-root"),
     path("admin/", admin.site.urls),
     # Health checks at root level (not under /api/v1/)
     path("health/live/", LivenessView.as_view(), name="health-live"),

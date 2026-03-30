@@ -289,7 +289,7 @@ export function useApplicationFileUploads({
         }
 
         // Verify session via apiClient (handles CSRF, 401 retry, endpoint normalization)
-        const sessionResult = await apiClient.request<{ user?: unknown }>('/api/auth?action=session')
+        const sessionResult = await apiClient.request<{ user?: unknown }>('/auth/session/')
         if (!sessionResult?.user) {
           throw new Error('Session expired. Please refresh the page.')
         }

@@ -1,8 +1,8 @@
 /**
- * Storage Utilities - Uses R2 via API
+ * Storage Utilities - Uses R2 via Django API
  * 
- * MIGRATION COMPLETE: Legacy storage -> R2
- * All storage operations now go through /api/documents endpoint
+ * All storage operations go through the Django /documents/ endpoints
+ * via apiClient.request() for proper CSRF and cookie handling.
  */
 
 import { sanitizeForLog } from './security'
@@ -80,7 +80,7 @@ async function uploadDocument(
     formData.append('application_id', applicationId)
     formData.append('document_type', documentType)
 
-    const uploaded = await apiClient.request<UploadedDocument>('/documents?action=upload', {
+    const uploaded = await apiClient.request<UploadedDocument>('/documents/upload/', {
       method: 'POST',
       body: formData
     })
@@ -210,6 +210,7 @@ export async function uploadFile(
   path?: string,
   userId?: string
 ): Promise<UploadResult> {
+  void path
   void userId
   try {
     // Validate file
@@ -240,12 +241,12 @@ export async function uploadFile(
  */
 export async function deleteFile(bucket: string, path: string): Promise<{ success: boolean; error?: string }> {
   void bucket
-  void path
   try {
-    return {
-      success: false,
-      error: 'Document deletion is not implemented in the Django backend yet',
-    }
+    const encodedPath = encodeURIComponent(path)
+    await apiClient.request(`/documents/${encodedPath}/`, {
+      method: 'DELETE',
+    })
+    return { success: true }
   } catch (error) {
     console.error('Delete error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
     return {
@@ -265,9 +266,11 @@ export async function getFileUrl(bucket: string, path: string): Promise<{ succes
       return { success: true, url: path }
     }
 
+    const encodedPath = encodeURIComponent(path)
+    const result = await apiClient.request<{ url: string }>(`/documents/${encodedPath}/signed-url/`)
     return {
-      success: false,
-      error: 'Signed document URLs are not implemented in the Django backend yet',
+      success: true,
+      url: result?.url,
     }
   } catch (error) {
     console.error('Get URL error:', error)
@@ -284,24 +287,30 @@ export async function getFileUrl(bucket: string, path: string): Promise<{ succes
 export async function downloadFile(bucket: string, path: string): Promise<{ success: boolean; data?: Blob; error?: string }> {
   void bucket
   try {
-    if (!/^https?:\/\//.test(path)) {
+    if (/^https?:\/\//.test(path)) {
+      const response = await fetch(path)
+      if (!response.ok) {
+        return {
+          success: false,
+          error: `Download failed: ${response.status}`
+        }
+      }
       return {
-        success: false,
-        error: 'Document download requires a direct file URL from the backend',
+        success: true,
+        data: await response.blob()
       }
     }
 
-    const response = await fetch(path)
-    if (!response.ok) {
-      return {
-        success: false,
-        error: `Download failed: ${response.status}`
-      }
+    const encodedPath = encodeURIComponent(path)
+    const result = await apiClient.request<string>(`/documents/${encodedPath}/download/`)
+    // apiClient returns raw text for non-JSON responses; convert to Blob
+    if (result) {
+      const blob = new Blob([result])
+      return { success: true, data: blob }
     }
-
     return {
-      success: true,
-      data: await response.blob()
+      success: false,
+      error: 'Download returned empty response'
     }
   } catch (error) {
     console.error('Download error:', error)
@@ -317,11 +326,12 @@ export async function downloadFile(bucket: string, path: string): Promise<{ succ
  */
 export async function listFiles(bucket: string, folder?: string): Promise<{ success: boolean; files?: any[]; error?: string }> {
   void bucket
-  void folder
   try {
+    const params = folder ? `?folder=${encodeURIComponent(folder)}` : ''
+    const result = await apiClient.request<any[]>(`/documents/${params}`)
     return {
-      success: false,
-      error: 'Document listing is not implemented in the Django backend yet',
+      success: true,
+      files: result ?? [],
     }
   } catch (error) {
     console.error('List error:', error)
@@ -346,11 +356,12 @@ export async function ensureBucketExists(bucketName: string): Promise<{ success:
  */
 export async function getFileInfo(bucket: string, path: string): Promise<{ success: boolean; info?: any; error?: string }> {
   void bucket
-  void path
   try {
+    const encodedPath = encodeURIComponent(path)
+    const result = await apiClient.request<Record<string, unknown>>(`/documents/${encodedPath}/info/`)
     return {
-      success: false,
-      error: 'Document metadata lookup is not implemented in the Django backend yet',
+      success: true,
+      info: result,
     }
   } catch (error) {
     console.error('File info error:', error)

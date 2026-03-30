@@ -56,7 +56,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "version", "created_at", "updated_at",
         ]
 
-    def get_payment_verified_by_name(self, obj):
+    def get_payment_verified_by_name(self, obj) -> str | None:
         verifier = getattr(obj, "payment_verified_by", None)
         if verifier is None:
             return None
@@ -67,7 +67,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
         ).strip()
         return full_name or None
 
-    def get_payment_verified_by_email(self, obj):
+    def get_payment_verified_by_email(self, obj) -> str | None:
         verifier = getattr(obj, "payment_verified_by", None)
         if verifier is None:
             return None
@@ -174,7 +174,7 @@ class ApplicationListSerializer(serializers.ModelSerializer):
             "created_at", "updated_at",
         ]
 
-    def get_payment_verified_by_name(self, obj):
+    def get_payment_verified_by_name(self, obj) -> str | None:
         verifier = getattr(obj, "payment_verified_by", None)
         if verifier is None:
             return None
@@ -185,7 +185,7 @@ class ApplicationListSerializer(serializers.ModelSerializer):
         ).strip()
         return full_name or None
 
-    def get_payment_verified_by_email(self, obj):
+    def get_payment_verified_by_email(self, obj) -> str | None:
         verifier = getattr(obj, "payment_verified_by", None)
         if verifier is None:
             return None

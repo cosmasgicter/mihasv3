@@ -7,26 +7,50 @@ Readiness: /health/ready/ — verifies Neon Postgres and Redis connectivity.
 import redis as redis_lib
 from django.conf import settings
 from django.db import connection
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.common.openapi_helpers import HealthStatusSerializer
 
+
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="health_liveness",
+        tags=["health"],
+        auth=[],
+        responses={200: OpenApiResponse(response=HealthStatusSerializer, description="Liveness probe response.")},
+    )
+)
 class LivenessView(APIView):
     """Liveness probe — returns HTTP 200 with no external dependencies."""
 
     permission_classes = [AllowAny]
     authentication_classes = []
+    serializer_class = HealthStatusSerializer
 
     def get(self, request):
         return Response({"status": "ok"}, status=200)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="health_readiness",
+        tags=["health"],
+        auth=[],
+        responses={
+            200: OpenApiResponse(response=HealthStatusSerializer, description="All backend dependencies are healthy."),
+            503: OpenApiResponse(response=HealthStatusSerializer, description="One or more backend dependencies are unavailable."),
+        },
+    )
+)
 class ReadinessView(APIView):
     """Readiness probe — verifies Neon Postgres and Redis connectivity."""
 
     permission_classes = [AllowAny]
     authentication_classes = []
+    serializer_class = HealthStatusSerializer
 
     def get(self, request):
         db_ok = self._check_db()

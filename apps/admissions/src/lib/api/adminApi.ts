@@ -1,13 +1,16 @@
 /**
  * Admin API Client - Cookie-based authentication
- * 
- * All admin operations use HTTP-only cookies (credentials: 'include')
- * NO Bearer token headers - cookies are managed by the browser
- * 
+ *
+ * All admin operations use apiClient.request() which handles:
+ * - HTTP-only cookies (credentials: 'include')
+ * - CSRF token attachment for state-changing requests
+ * - Response envelope unwrapping
+ * - Error parsing with field-level errors
+ *
  * @module adminApi
  */
 
-import { getApiBaseUrl } from '../apiConfig';
+import { apiClient } from '@/services/client';
 import type { StudentNotification } from '@/types/notifications';
 
 /**
@@ -34,11 +37,11 @@ export function isHtmlResponse(text: string): boolean {
  */
 export async function parseJsonResponse<T>(response: Response): Promise<T> {
   const text = await response.text();
-  
+
   if (isHtmlResponse(text)) {
     throw new HtmlResponseError();
   }
-  
+
   try {
     return JSON.parse(text) as T;
   } catch {
@@ -78,7 +81,6 @@ export interface SystemSettingPayload {
   is_public?: boolean;
 }
 
-
 interface LegacySystemSettingPayload {
   setting_key?: string;
   setting_value?: string;
@@ -103,7 +105,6 @@ function normalizeSettingValue(value: unknown): string {
 
   return typeof value === 'object' ? JSON.stringify(value) : String(value);
 }
-
 
 function toSystemSettingPayload(
   setting: Partial<SystemSettingPayload> | LegacySystemSettingPayload
@@ -133,54 +134,23 @@ function mapBackendSetting(setting: BackendSystemSetting): SystemSetting {
   };
 }
 
-/**
- * Fetch wrapper with credentials (HTTP-only cookies)
- */
-async function adminFetch<T>(
-  url: string,
-  options: RequestInit = {}
-): Promise<{ ok: boolean; data?: T }> {
-  try {
-    const response = await fetch(url, {
-      ...options,
-      credentials: 'include', // CRITICAL: Send HTTP-only cookies
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
-
-    if (!response.ok) {
-      return { ok: false };
-    }
-
-    const result = await parseJsonResponse<{ data?: T } | T>(response);
-    const payload =
-      result && typeof result === 'object' && 'data' in result
-        ? result.data
-        : result;
-
-    return { ok: true, data: payload as T };
-  } catch {
-    return { ok: false };
-  }
-}
+// ---------------------------------------------------------------------------
+// Settings CRUD — /admin/settings/
+// ---------------------------------------------------------------------------
 
 export async function fetchSettings(): Promise<SystemSetting[]> {
-  const result = await adminFetch<{ results?: BackendSystemSetting[] }>(
-    `${getApiBaseUrl()}/api/v1/admin/settings/`
+  const result = await apiClient.request<{ results?: BackendSystemSetting[] }>(
+    '/admin/settings/'
   );
-
-  return result.data?.results?.map(mapBackendSetting) || [];
+  return result?.results?.map(mapBackendSetting) ?? [];
 }
 
 export async function createSetting(
   setting: SystemSettingPayload | LegacySystemSettingPayload
 ): Promise<boolean> {
   const payload = toSystemSettingPayload(setting);
-  const result = await adminFetch(
-    `${getApiBaseUrl()}/api/v1/admin/settings/`,
-    {
+  try {
+    await apiClient.request('/admin/settings/', {
       method: 'POST',
       body: JSON.stringify({
         key: payload.key,
@@ -189,9 +159,11 @@ export async function createSetting(
         category: payload.category,
         is_public: payload.is_public ?? false,
       }),
-    }
-  );
-  return result.ok;
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function updateSetting(
@@ -199,61 +171,67 @@ export async function updateSetting(
   updates: Partial<SystemSettingPayload | LegacySystemSettingPayload>
 ): Promise<boolean> {
   const payload = toSystemSettingPayload(updates);
-  const result = await adminFetch(
-    `${getApiBaseUrl()}/api/v1/admin/settings/${id}/`,
-    {
-      method: 'PATCH',
+  try {
+    await apiClient.request(`/admin/settings/${id}/`, {
+      method: 'PUT',
       body: JSON.stringify({
         value: payload.value,
         description: payload.description,
         category: payload.category,
         is_public: payload.is_public,
       }),
-    }
-  );
-  return result.ok;
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function deleteSetting(id: string, key?: string): Promise<boolean> {
-  const result = await adminFetch(
-    `${getApiBaseUrl()}/api/v1/admin/settings/${id}/`,
-    {
+  void key;
+  try {
+    await apiClient.request(`/admin/settings/${id}/`, {
       method: 'DELETE',
-      body: JSON.stringify({ id, key }),
-    }
-  );
-  return result.ok;
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function importSettings(
   settings: Array<SystemSettingPayload | LegacySystemSettingPayload>
 ): Promise<{ success: boolean; imported?: string[]; errors?: string[]; message?: string }> {
-  void settings;
-  return { success: false, message: 'Bulk settings import is not implemented in the Django backend yet' };
+  try {
+    const normalized = settings.map(toSystemSettingPayload);
+    const result = await apiClient.request<{ imported?: string[]; errors?: string[]; message?: string }>(
+      '/admin/settings/import/',
+      {
+        method: 'POST',
+        body: JSON.stringify({ settings: normalized }),
+      }
+    );
+    return { success: true, ...result };
+  } catch {
+    return { success: false, message: 'Failed to import settings' };
+  }
 }
 
 export async function resetSettings(): Promise<{ success: boolean; message?: string }> {
-  return { success: false, message: 'Settings reset is not implemented in the Django backend yet' };
+  try {
+    const result = await apiClient.request<{ message?: string }>(
+      '/admin/settings/reset/',
+      { method: 'POST' }
+    );
+    return { success: true, ...result };
+  } catch {
+    return { success: false, message: 'Failed to reset settings' };
+  }
 }
 
-export async function fetchNotifications(): Promise<StudentNotification[]> {
-  return [];
-}
-
-export async function markNotificationRead(notificationId: string): Promise<boolean> {
-  void notificationId;
-  return false;
-}
-
-export async function markAllNotificationsRead(): Promise<boolean> {
-  return false;
-}
-
-export async function deleteNotification(notificationId: string): Promise<boolean> {
-  void notificationId;
-  return false;
-}
-
+// ---------------------------------------------------------------------------
+// Eligibility Rules CRUD — /admin/eligibility-rules/
+// ---------------------------------------------------------------------------
 
 export interface EligibilityRule {
   id: string;
@@ -269,30 +247,55 @@ export interface EligibilityRule {
 }
 
 export async function fetchEligibilityRules(): Promise<EligibilityRule[]> {
-  return [];
+  const result = await apiClient.request<{ results?: EligibilityRule[] }>(
+    '/admin/eligibility-rules/'
+  );
+  return result?.results ?? [];
 }
 
 export async function createEligibilityRule(
   rule: Omit<EligibilityRule, 'id' | 'created_at' | 'updated_at' | 'programs'>
 ): Promise<boolean> {
-  void rule;
-  return false;
+  try {
+    await apiClient.request('/admin/eligibility-rules/', {
+      method: 'POST',
+      body: JSON.stringify(rule),
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function updateEligibilityRule(
   id: string,
   updates: Partial<Omit<EligibilityRule, 'id' | 'created_at' | 'updated_at' | 'programs'>>
 ): Promise<boolean> {
-  void id;
-  void updates;
-  return false;
+  try {
+    await apiClient.request(`/admin/eligibility-rules/${id}/`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function deleteEligibilityRule(id: string): Promise<boolean> {
-  void id;
-  return false;
+  try {
+    await apiClient.request(`/admin/eligibility-rules/${id}/`, {
+      method: 'DELETE',
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
+// ---------------------------------------------------------------------------
+// Users / Roles — /admin/users/
+// ---------------------------------------------------------------------------
 
 export interface UserWithRole {
   id: string;
@@ -304,19 +307,64 @@ export interface UserWithRole {
 }
 
 export async function fetchUsersWithRoles(): Promise<UserWithRole[]> {
-  const result = await adminFetch<{ results?: UserWithRole[]; totalCount?: number }>(
-    `${getApiBaseUrl()}/api/v1/admin/users/?pageSize=100`
+  const result = await apiClient.request<{ results?: UserWithRole[]; totalCount?: number }>(
+    '/admin/users/?pageSize=100'
   );
-  return result.data?.results || [];
+  return result?.results ?? [];
 }
 
 export async function updateUserRole(userId: string, role: string): Promise<boolean> {
-  const result = await adminFetch(
-    `${getApiBaseUrl()}/api/v1/admin/users/${userId}/`,
-    {
-      method: 'PATCH',
+  try {
+    await apiClient.request(`/admin/users/${userId}/`, {
+      method: 'PUT',
       body: JSON.stringify({ role }),
-    }
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Notifications — /notifications/
+// ---------------------------------------------------------------------------
+
+export async function fetchNotifications(): Promise<StudentNotification[]> {
+  const result = await apiClient.request<{ results?: StudentNotification[] }>(
+    '/notifications/'
   );
-  return result.ok;
+  return result?.results ?? [];
+}
+
+export async function markNotificationRead(notificationId: string): Promise<boolean> {
+  try {
+    await apiClient.request(`/notifications/${notificationId}/read/`, {
+      method: 'PUT',
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function markAllNotificationsRead(): Promise<boolean> {
+  try {
+    await apiClient.request('/notifications/read-all/', {
+      method: 'PUT',
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteNotification(notificationId: string): Promise<boolean> {
+  try {
+    await apiClient.request(`/notifications/${notificationId}/`, {
+      method: 'DELETE',
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }

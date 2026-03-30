@@ -1,12 +1,21 @@
 /**
- * Consolidated Session Listener Hook - Cookie-based authentication
+ * Consolidated Session Listener Hook — Django JWT Cookie Authentication
  *
  * Merges useOptimizedAuthState's React Query caching and profile fetching
  * into a single hook that provides both state AND actions.
  *
  * This is the single source of truth for auth state — no competing hooks.
  *
- * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5
+ * Authentication relies on HTTP-only cookies (`access_token`, `refresh_token`)
+ * set by the Django backend with `Domain=.mihas.edu.zm`, `SameSite=Lax`,
+ * `Secure=true`. The frontend never reads or writes these cookies directly.
+ *
+ * Session validation:
+ *   - On mount: GET /api/v1/auth/session/ validates the current cookie
+ *   - On visibility change: AuthContext invalidates the session query
+ *   - On 401: API client attempts single refresh via /api/v1/auth/refresh/
+ *
+ * Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6
  */
 
 import { useCallback } from 'react'
@@ -106,8 +115,11 @@ export function resolveAuthLoadingState({
 export function useSessionListener() {
   const queryClient = useQueryClient()
 
-  // Single session query — replaces both the useState approach in old useSessionListener
-  // and the separate useSessionQuery in useOptimizedAuthState
+  // Single session query — validates auth on page load by calling
+  // GET /api/v1/auth/session/. The Django backend checks the HTTP-only
+  // access_token cookie and returns the current user or 401.
+  // Visibility-change revalidation is handled by AuthContext invalidating
+  // this query key when the tab regains focus.
   const { data: sessionData, isLoading: sessionLoading } = useQuery({
     queryKey: ['auth', 'session'],
     queryFn: async () => {
@@ -118,7 +130,7 @@ export function useSessionListener() {
     staleTime: CACHE_CONFIG.auth.staleTime,   // 10 minutes
     gcTime: CACHE_CONFIG.auth.gcTime,          // 30 minutes
     retry: false,
-    refetchOnMount: false,
+    refetchOnMount: 'always',
     refetchOnWindowFocus: false,
   })
 
@@ -359,7 +371,7 @@ export function useAuthCheck(): {
     staleTime: CACHE_CONFIG.auth.staleTime,
     gcTime: CACHE_CONFIG.auth.gcTime,
     retry: false,
-    refetchOnMount: false,
+    refetchOnMount: 'always',
     refetchOnWindowFocus: false,
   })
 

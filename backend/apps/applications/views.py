@@ -12,7 +12,14 @@ import uuid
 from django.db.models import Q
 from django.http import HttpResponse
 from django.utils import timezone
-from rest_framework import status
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiResponse,
+    OpenApiTypes,
+    extend_schema,
+    extend_schema_view,
+)
+from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -28,10 +35,120 @@ from apps.applications.serializers import (
     ApplicationInterviewSerializer, ApplicationListSerializer,
     ApplicationReviewSerializer, ApplicationSerializer, ApplicationTrackingSerializer,
 )
+from apps.common.openapi_helpers import (
+    ErrorResponseSerializer,
+    MessageSerializer,
+    StatusTransitionSerializer,
+    UpdatedCountSerializer,
+    envelope_serializer,
+    paginated_serializer,
+)
 from apps.common.pagination import StandardPagination
 from apps.documents.models import ApplicationDocument, ApplicationGrade
+from apps.documents.serializers import DocumentSerializer
 
 logger = logging.getLogger(__name__)
+
+
+class ApplicationGradeReadSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    subject_id = serializers.UUIDField()
+    grade = serializers.IntegerField()
+    created_at = serializers.DateTimeField(required=False, allow_null=True)
+
+
+class ApplicationGradeMutationSerializer(serializers.Serializer):
+    id = serializers.UUIDField(required=False)
+    subject_id = serializers.UUIDField(required=False)
+    grade = serializers.IntegerField(required=False)
+    grades = ApplicationGradeReadSerializer(many=True, required=False)
+
+
+class ApplicationGradeRequestSerializer(serializers.Serializer):
+    subject_id = serializers.UUIDField(required=False)
+    grade = serializers.IntegerField(required=False)
+    grades = ApplicationGradeSerializer(many=True, required=False)
+
+
+class ApplicationStatusHistorySerializer(serializers.Serializer):
+    old_status = serializers.CharField()
+    new_status = serializers.CharField()
+    notes = serializers.CharField()
+    created_at = serializers.DateTimeField()
+
+
+class ApplicationSummarySerializer(serializers.Serializer):
+    application = ApplicationSerializer()
+    documents_count = serializers.IntegerField()
+    grades_count = serializers.IntegerField()
+    status_history = ApplicationStatusHistorySerializer(many=True)
+
+
+class ApplicationDraftWriteSerializer(serializers.Serializer):
+    application_id = serializers.UUIDField(required=False, allow_null=True)
+    draft_data = serializers.JSONField(required=False, default=dict)
+
+
+class ApplicationInterviewWriteSerializer(serializers.Serializer):
+    scheduled_at = serializers.DateTimeField(required=False)
+    mode = serializers.CharField(required=False, allow_blank=True)
+    location = serializers.CharField(required=False, allow_blank=True)
+    status = serializers.CharField(required=False, allow_blank=True)
+    notes = serializers.CharField(required=False, allow_blank=True)
+
+
+ApplicationListResponseSerializer = envelope_serializer(
+    "ApplicationListResponse",
+    paginated_serializer("ApplicationListPage", ApplicationListSerializer),
+)
+ApplicationResponseSerializer = envelope_serializer(
+    "ApplicationResponse",
+    ApplicationSerializer(),
+)
+ApplicationDocumentsResponseSerializer = envelope_serializer(
+    "ApplicationDocumentsResponse",
+    DocumentSerializer(many=True),
+)
+ApplicationGradesResponseSerializer = envelope_serializer(
+    "ApplicationGradesResponse",
+    ApplicationGradeReadSerializer(many=True),
+)
+ApplicationGradeMutationResponseSerializer = envelope_serializer(
+    "ApplicationGradeMutationResponse",
+    ApplicationGradeMutationSerializer(),
+)
+ApplicationSummaryResponseSerializer = envelope_serializer(
+    "ApplicationSummaryResponse",
+    ApplicationSummarySerializer(),
+)
+ApplicationReviewResponseSerializer = envelope_serializer(
+    "ApplicationReviewResponse",
+    StatusTransitionSerializer(),
+)
+ApplicationTrackingResponseSerializer = envelope_serializer(
+    "ApplicationTrackingResponse",
+    ApplicationTrackingSerializer(),
+)
+ApplicationBulkStatusResponseSerializer = envelope_serializer(
+    "ApplicationBulkStatusResponse",
+    UpdatedCountSerializer(),
+)
+ApplicationDraftResponseSerializer = envelope_serializer(
+    "ApplicationDraftResponse",
+    ApplicationDraftSerializer(),
+)
+ApplicationInterviewListResponseSerializer = envelope_serializer(
+    "ApplicationInterviewListResponse",
+    ApplicationInterviewSerializer(many=True),
+)
+ApplicationInterviewResponseSerializer = envelope_serializer(
+    "ApplicationInterviewResponse",
+    ApplicationInterviewSerializer(),
+)
+ApplicationMessageResponseSerializer = envelope_serializer(
+    "ApplicationMessageResponse",
+    MessageSerializer(),
+)
 
 
 def _generate_application_number():
@@ -42,8 +159,32 @@ def _generate_tracking_code():
     return f"TRK-{uuid.uuid4().hex[:12].upper()}"
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="applications_list",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("status", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Filter by application status."),
+            OpenApiParameter("search", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Searchable fields handled by the application filter."),
+            OpenApiParameter("sort", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Custom sort expression."),
+            OpenApiParameter("page", OpenApiTypes.INT, OpenApiParameter.QUERY, description="Page number."),
+            OpenApiParameter("pageSize", OpenApiTypes.INT, OpenApiParameter.QUERY, description="Page size."),
+        ],
+        responses={200: OpenApiResponse(response=ApplicationListResponseSerializer)},
+    ),
+    post=extend_schema(
+        operation_id="applications_create",
+        tags=["applications"],
+        request=ApplicationCreateSerializer,
+        responses={
+            201: OpenApiResponse(response=ApplicationResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+)
 class ApplicationListCreateView(APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = ApplicationSerializer
 
     def get(self, request):
         user = request.user
@@ -80,8 +221,44 @@ class ApplicationListCreateView(APIView):
         return Response(ApplicationSerializer(application).data, status=status.HTTP_201_CREATED)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="applications_retrieve",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Application UUID."),
+        ],
+        responses={
+            200: OpenApiResponse(response=ApplicationResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+    patch=extend_schema(
+        operation_id="applications_update",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Application UUID."),
+        ],
+        request=ApplicationSerializer,
+        responses={
+            200: OpenApiResponse(response=ApplicationResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+    delete=extend_schema(
+        operation_id="applications_delete",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Application UUID."),
+        ],
+        request=None,
+        responses={204: OpenApiResponse(description="Application deleted.")},
+    ),
+)
 class ApplicationDetailView(APIView):
     permission_classes = [IsOwnerOrAdmin]
+    serializer_class = ApplicationSerializer
 
     def get(self, request, application_id):
         app = self._get_application(request, application_id)
@@ -116,8 +293,23 @@ class ApplicationDetailView(APIView):
         return app
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="applications_documents_list",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Application UUID."),
+        ],
+        responses={
+            200: OpenApiResponse(response=ApplicationDocumentsResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
 class ApplicationDocumentsView(APIView):
     permission_classes = [IsOwnerOrAdmin]
+    serializer_class = DocumentSerializer
 
     def get(self, request, application_id):
         try:
@@ -127,28 +319,47 @@ class ApplicationDocumentsView(APIView):
         if not IsOwnerOrAdmin().has_object_permission(request, self, app):
             return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
         docs = ApplicationDocument.objects.filter(application_id=application_id)
-        data = [
-            {
-                "id": str(d.id),
-                "application_id": str(d.application_id),
-                "document_type": d.document_type,
-                "document_name": d.document_name,
-                "file_url": d.file_url,
-                "file_size": d.file_size,
-                "mime_type": d.mime_type,
-                "verification_status": d.verification_status,
-                "verification_notes": d.verification_notes,
-                "uploaded_at": d.uploaded_at.isoformat() if d.uploaded_at else None,
-                "created_at": d.created_at.isoformat() if d.created_at else None,
-                "updated_at": d.updated_at.isoformat() if d.updated_at else None,
-            }
-            for d in docs
-        ]
-        return Response(data)
+        return Response(DocumentSerializer(docs, many=True).data)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="applications_grades_list",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Application UUID."),
+        ],
+        responses={
+            200: OpenApiResponse(response=ApplicationGradesResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+    post=extend_schema(
+        operation_id="applications_grades_upsert",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Application UUID."),
+        ],
+        request=ApplicationGradeRequestSerializer,
+        responses={
+            200: OpenApiResponse(
+                response=ApplicationGradeMutationResponseSerializer,
+                description="Updates one or more grades for the application.",
+            ),
+            201: OpenApiResponse(
+                response=ApplicationGradeMutationResponseSerializer,
+                description="Creates a new single grade entry for the application.",
+            ),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+)
 class ApplicationGradesView(APIView):
     permission_classes = [IsOwnerOrAdmin]
+    serializer_class = ApplicationGradeReadSerializer
 
     def get(self, request, application_id):
         try:
@@ -158,7 +369,15 @@ class ApplicationGradesView(APIView):
         if not IsOwnerOrAdmin().has_object_permission(request, self, app):
             return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
         grades = ApplicationGrade.objects.filter(application_id=application_id)
-        data = [{"id": str(g.id), "subject_id": str(g.subject_id), "grade": g.grade, "created_at": g.created_at.isoformat() if g.created_at else None} for g in grades]
+        data = [
+            {
+                "id": str(g.id),
+                "subject_id": str(g.subject_id),
+                "grade": g.grade,
+                "created_at": g.created_at.isoformat() if g.created_at else None,
+            }
+            for g in grades
+        ]
         return Response(data)
 
     def post(self, request, application_id):
@@ -194,8 +413,23 @@ class ApplicationGradesView(APIView):
         return Response({"id": str(grade.id), "subject_id": str(grade.subject_id), "grade": grade.grade}, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="applications_summary_retrieve",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Application UUID."),
+        ],
+        responses={
+            200: OpenApiResponse(response=ApplicationSummaryResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
 class ApplicationSummaryView(APIView):
     permission_classes = [IsOwnerOrAdmin]
+    serializer_class = ApplicationSummarySerializer
 
     def get(self, request, application_id):
         try:
@@ -210,8 +444,24 @@ class ApplicationSummaryView(APIView):
         return Response({"application": ApplicationSerializer(app).data, "documents_count": docs_count, "grades_count": grades_count, "status_history": list(history)})
 
 
+@extend_schema_view(
+    post=extend_schema(
+        operation_id="applications_review",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Application UUID."),
+        ],
+        request=ApplicationReviewSerializer,
+        responses={
+            200: OpenApiResponse(response=ApplicationReviewResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
 class ApplicationReviewView(APIView):
     permission_classes = [IsAdmin]
+    serializer_class = ApplicationReviewSerializer
 
     def post(self, request, application_id):
         try:
@@ -257,8 +507,26 @@ class ApplicationReviewView(APIView):
         return Response({"message": f"Status updated from {old_status} to {new_status}", "application_id": str(app.id), "old_status": old_status, "new_status": new_status})
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="applications_export",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("status", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Filter by status."),
+            OpenApiParameter("search", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Search term applied by the application filter."),
+            OpenApiParameter("sort", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Optional sort expression."),
+        ],
+        responses={
+            200: OpenApiResponse(
+                response=OpenApiTypes.BINARY,
+                description="CSV export of applications that match the current filters.",
+            ),
+        },
+    )
+)
 class ApplicationExportView(APIView):
     permission_classes = [IsAdmin]
+    serializer_class = ApplicationListSerializer
 
     def get(self, request):
         queryset = Application.objects.all().order_by("-created_at")
@@ -274,9 +542,31 @@ class ApplicationExportView(APIView):
         return response
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="applications_track",
+        tags=["applications"],
+        auth=[],
+        parameters=[
+            OpenApiParameter(
+                "code",
+                OpenApiTypes.STR,
+                OpenApiParameter.QUERY,
+                description="Public tracking code or application number.",
+                required=True,
+            ),
+        ],
+        responses={
+            200: OpenApiResponse(response=ApplicationTrackingResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
 class ApplicationTrackView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
+    serializer_class = ApplicationTrackingSerializer
 
     def get(self, request):
         code = request.query_params.get("code", "").strip()
@@ -289,8 +579,20 @@ class ApplicationTrackView(APIView):
         return Response(ApplicationTrackingSerializer(app).data)
 
 
+@extend_schema_view(
+    post=extend_schema(
+        operation_id="applications_bulk_status_update",
+        tags=["applications"],
+        request=ApplicationBulkStatusSerializer,
+        responses={
+            200: OpenApiResponse(response=ApplicationBulkStatusResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
 class ApplicationBulkStatusView(APIView):
     permission_classes = [IsAdmin]
+    serializer_class = ApplicationBulkStatusSerializer
 
     def post(self, request):
         serializer = ApplicationBulkStatusSerializer(data=request.data)
@@ -328,8 +630,28 @@ class ApplicationBulkStatusView(APIView):
         return Response({"message": f"{updated} application(s) updated", "updated": updated})
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="applications_draft_retrieve",
+        tags=["applications"],
+        responses={
+            200: OpenApiResponse(response=ApplicationDraftResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+    post=extend_schema(
+        operation_id="applications_draft_save",
+        tags=["applications"],
+        request=ApplicationDraftWriteSerializer,
+        responses={
+            200: OpenApiResponse(response=ApplicationDraftResponseSerializer),
+            201: OpenApiResponse(response=ApplicationDraftResponseSerializer),
+        },
+    ),
+)
 class ApplicationDraftView(APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = ApplicationDraftSerializer
 
     def get(self, request):
         user_id = str(request.user.id)
@@ -347,8 +669,52 @@ class ApplicationDraftView(APIView):
         return Response(ApplicationDraftSerializer(draft).data, status=resp_status)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="applications_interviews_list",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Application UUID."),
+        ],
+        responses={
+            200: OpenApiResponse(response=ApplicationInterviewListResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+    post=extend_schema(
+        operation_id="applications_interviews_create",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Application UUID."),
+        ],
+        request=ApplicationInterviewWriteSerializer,
+        responses={
+            201: OpenApiResponse(response=ApplicationInterviewResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+    patch=extend_schema(
+        operation_id="applications_interviews_update_latest",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Application UUID."),
+        ],
+        request=ApplicationInterviewWriteSerializer,
+        responses={
+            200: OpenApiResponse(response=ApplicationInterviewResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+        description="Updates the most recently scheduled interview for the application.",
+    ),
+)
 class ApplicationInterviewView(APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = ApplicationInterviewSerializer
 
     def get(self, request, application_id):
         try:
