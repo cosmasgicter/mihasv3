@@ -159,27 +159,25 @@ export default function PaymentPage() {
       if (!user?.id) return []
 
       const response = await applicationService.list({ mine: true })
+      return (response.applications ?? []).map((app) => {
+        const record = app as Record<string, unknown>
 
-      type ListPayload = ApplicationsListPayload | ApplicationWithPayment[] | null | undefined
-      const payload = response as ListPayload
-      const listData = payload && !Array.isArray(payload) && Array.isArray(payload.applications)
-        ? payload.applications
-        : (Array.isArray(payload) ? payload : [])
-
-      return listData.map((app) => ({
-        id: app.id,
-        status: app.status,
-        payment_status: app.payment_status,
-        payment_method: app.payment_method,
-        payer_name: (app as any).payer_name ?? null,
-        payer_phone: (app as any).payer_phone ?? null,
-        amount: app.amount,
-        paid_at: (app as any).paid_at ?? null,
-        momo_ref: app.momo_ref,
-        last_payment_audit_notes: (app as any).last_payment_audit_notes ?? null,
-        created_at: app.created_at,
-        program: app.program
-      }))
+        return {
+          id: app.id,
+          status: app.status,
+          payment_status: typeof app.payment_status === 'string' ? app.payment_status : null,
+          payment_method: typeof record.payment_method === 'string' ? record.payment_method : null,
+          payer_name: typeof record.payer_name === 'string' ? record.payer_name : null,
+          payer_phone: typeof record.payer_phone === 'string' ? record.payer_phone : null,
+          amount: typeof record.amount === 'number' ? record.amount : null,
+          paid_at: typeof record.paid_at === 'string' ? record.paid_at : null,
+          momo_ref: typeof record.momo_ref === 'string' ? record.momo_ref : null,
+          last_payment_audit_notes:
+            typeof record.last_payment_audit_notes === 'string' ? record.last_payment_audit_notes : null,
+          created_at: typeof app.created_at === 'string' ? app.created_at : new Date().toISOString(),
+          program: typeof app.program === 'string' ? app.program : null,
+        }
+      })
     },
     enabled: !!user?.id,
     ...CACHE_CONFIG.applications,

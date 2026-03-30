@@ -618,7 +618,6 @@ const ApplicationWizardContent = () => {
             if (draftData[key] !== undefined && draftData[key] !== null) {
               // form is typed via useWizardController (@ts-nocheck); key is a runtime
               // string from draft data so we cast to the expected path type here.
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               form.setValue(key as Parameters<typeof form.setValue>[0], draftData[key])
             }
           })

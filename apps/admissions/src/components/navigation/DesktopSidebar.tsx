@@ -3,7 +3,7 @@ import { Home, FileText, Bell, LayoutDashboard, Users, ChevronLeft, ChevronRight
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSidebar } from '@/contexts/SidebarContext'
-import { Tooltip } from '@/components/ui/tooltip'
+import { Tooltip } from '@/components/ui'
 import { cn } from '@/lib/utils'
 
 interface NavItem {

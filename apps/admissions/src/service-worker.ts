@@ -174,7 +174,7 @@ const addFromCacheHeader = (response: Response): Response => {
 
 // Google Fonts
 registerRoute(
-  ({ url }) => url.origin === 'https://fonts.googleapis.com',
+  ({ url }: { url: URL }) => url.origin === 'https://fonts.googleapis.com',
   new StaleWhileRevalidate({
     cacheName: STATIC_CACHE,
     plugins: [
@@ -190,7 +190,7 @@ registerRoute(
 
 // All images — StaleWhileRevalidate into static-v1
 registerRoute(
-  ({ request }) => request.destination === 'image',
+  ({ request }: { request: Request }) => request.destination === 'image',
   new StaleWhileRevalidate({
     cacheName: STATIC_CACHE,
     plugins: [
@@ -207,7 +207,7 @@ registerRoute(
 
 // CSS and JavaScript bundles — StaleWhileRevalidate into static-v1
 registerRoute(
-  ({ request, url }) => {
+  ({ request, url }: { request: Request; url: URL }) => {
     if (url.origin !== self.location.origin) return false
     return request.destination === 'style' || request.destination === 'script'
   },
@@ -226,7 +226,7 @@ registerRoute(
 
 // Fonts — StaleWhileRevalidate into static-v1
 registerRoute(
-  ({ request }) => request.destination === 'font',
+  ({ request }: { request: Request }) => request.destination === 'font',
   new StaleWhileRevalidate({
     cacheName: STATIC_CACHE,
     plugins: [
@@ -246,8 +246,8 @@ registerRoute(
 // ============================================================================
 
 registerRoute(
-  ({ url }) =>
-    url.pathname.startsWith('/api/auth') ||
+  ({ url }: { url: URL }) =>
+    url.pathname.startsWith('/api/v1/auth') ||
     url.pathname.startsWith('/auth/'),
   new NetworkOnly()
 )
@@ -260,7 +260,7 @@ registerRoute(
 
 // All non-auth API endpoints — NetworkFirst with 5s timeout
 registerRoute(
-  ({ url }) =>
+  ({ url }: { url: URL }) =>
     url.pathname.startsWith('/api/') ||
     url.pathname.startsWith('/applications') ||
     url.pathname.startsWith('/notifications') ||
@@ -269,7 +269,7 @@ registerRoute(
     url.pathname.startsWith('/payments/') ||
     url.pathname.startsWith('/catalog'),
   {
-    handle: async ({ request, event }) => {
+    handle: async ({ request, event }: { request: Request; event: ExtendableEvent }) => {
       const networkFirst = new NetworkFirst({
         cacheName: API_CACHE,
         networkTimeoutSeconds: 5,
@@ -302,7 +302,7 @@ registerRoute(
 
 // HTML Documents — NetworkFirst with 5s timeout (app shell)
 registerRoute(
-  ({ request }) => request.destination === 'document',
+  ({ request }: { request: Request }) => request.destination === 'document',
   new NetworkFirst({
     cacheName: STATIC_CACHE,
     networkTimeoutSeconds: 5,
@@ -319,7 +319,7 @@ registerRoute(
 
 // Non-critical resources — StaleWhileRevalidate into static-v1
 registerRoute(
-  ({ url }) =>
+  ({ url }: { url: URL }) =>
     url.pathname.startsWith('/generate/') ||
     url.pathname.startsWith('/interview/'),
   new StaleWhileRevalidate({
@@ -531,7 +531,7 @@ self.addEventListener('notificationclose', event => {
 })
 
 
-setCatchHandler(async ({ request }) => {
+setCatchHandler(async ({ request }: { request: Request }) => {
   if (request.destination === 'image') {
     return imageFallbackResponse()
   }

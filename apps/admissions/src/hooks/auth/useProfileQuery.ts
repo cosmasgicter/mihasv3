@@ -2,14 +2,8 @@ import { useCallback, useMemo } from 'react'
 import { logger } from '@/lib/logger'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
-import type { UserProfile } from '@/types/auth'
+import type { User, UserProfile } from '@/types/auth'
 import { sanitizeForDisplay } from '@/lib/sanitize'
-
-interface User {
-  id: string
-  email?: string
-  user_metadata?: Record<string, any>
-}
 
 /**
  * Password update mutation — relocated from useAuthMutations.ts
@@ -86,8 +80,8 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
     }
   })
 
-  const updateProfileMutation = useMutation({
-    mutationFn: async (updates: ProfileUpdate) => {
+  const updateProfileMutation = useMutation<UserProfile, Error, ProfileUpdate>({
+    mutationFn: async (updates: ProfileUpdate): Promise<UserProfile> => {
       if (!user?.id) {
         throw new Error('User not authenticated or user ID missing')
       }
@@ -139,7 +133,7 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
       logger.info('Sanitized updates:', sanitizedUpdates)
       throw new Error('Profile updates are not implemented in the Django backend yet')
     },
-    onSuccess: async (data) => {
+    onSuccess: async (data: UserProfile) => {
       queryClient.setQueryData(PROFILE_QUERY_KEY(user?.id), (current: UserProfile | null | undefined) => ({
         ...(current ?? {}),
         ...data,

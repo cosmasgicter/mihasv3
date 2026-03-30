@@ -15,6 +15,7 @@ import { useProfileAutoPopulation, getBestValue, getUserMetadata } from '@/hooks
 import { useApplicationSubmit } from '@/hooks/useApplicationSubmit'
 import { useEligibilityChecker } from '@/hooks/useEligibilityChecker'
 import { draftManager } from '@/lib/draftManager'
+// eslint-disable-next-line no-restricted-imports -- eligibilityEngine is still used until API-backed replacement is ready
 import { checkEligibility, getRecommendedSubjects } from '@/lib/eligibilityEngine'
 import { createApplicationSlip } from '@/lib/slipService'
 import type { ApplicationSlipData } from '@/lib/applicationSlip'

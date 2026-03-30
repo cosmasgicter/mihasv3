@@ -7,6 +7,7 @@ import { userService } from '@/services/admin/users'
 
 type UserUpdateInput = Parameters<typeof userService.update>[1]
 type RegistrationMetadata = Record<string, unknown>
+type UserListResponse = Awaited<ReturnType<typeof userService.list>>
 type UserPermissionsResponse = Awaited<ReturnType<typeof userService.getPermissions>>
 
 // Auth hooks
@@ -80,9 +81,9 @@ export const useUploadDocument = () => {
 
 // User management hooks
 export const useUsers = () => {
-  return useQuery({
+  return useQuery<UserListResponse>({
     queryKey: ['users'],
-    queryFn: userService.list
+    queryFn: () => userService.list()
   })
 }
 

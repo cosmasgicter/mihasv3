@@ -88,7 +88,7 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
               applicationId={application.id}
               applicationNumber={application.application_number}
               status={application.status}
-              paymentStatus={application.payment_status}
+              paymentStatus={application.payment_status ?? null}
             />
           </div>
           <Link to={`/student/application/${application.id}`} className="sm:w-auto">

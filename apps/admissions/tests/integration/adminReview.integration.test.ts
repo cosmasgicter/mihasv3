@@ -359,7 +359,7 @@ describe('Feature: production-remediation — Admin Review Flow Integration (Req
 
       // Use POST (state-changing) since GET goes through fetchWithCache
       await expect(
-        apiClient.request('/api/admin?action=users', {
+        apiClient.request('/admin/users/', {
           method: 'POST',
           body: JSON.stringify({}),
           retries: 0,

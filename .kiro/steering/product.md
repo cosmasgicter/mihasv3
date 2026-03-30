@@ -26,15 +26,12 @@ MIHAS now lives in a monorepo. The only production application in active use tod
 | Keep auth cookie and CSRF protections intact | Admissions and admin actions are state-changing and sensitive |
 | Treat file upload and document handling as high risk | Uploaded records are business-critical and security-sensitive |
 
-## Migration Reality
+## API Contract
 
-The repository migration to a monorepo is complete at the filesystem level, but not complete at the runtime-contract level.
+The frontend API client consumes the Django `/api/v1/` contract directly. There is no translation layer or compatibility shim. Both `apps/admissions/` and `backend/` are fully aligned on resource-style REST paths under `/api/v1/`.
 
-- The Django backend serves routes under `/api/v1/...`.
-- Large parts of the admissions frontend still call legacy Vercel-style `/api/...` endpoints with query-parameter actions.
-- There is no compatibility router in `backend/config/urls.py` for those legacy `/api/...` routes.
-- Do not assume frontend and backend are already aligned just because both now live in one repo.
 - Do not reintroduce old repo conventions such as root-level `src/`, `api-src/`, `api/`, or `django_api/`. Those are stale in this codebase.
+- Do not introduce `?action=` query-parameter patterns. All endpoints use resource-style REST paths.
 
 ## User Roles
 
@@ -72,7 +69,7 @@ The repository migration to a monorepo is complete at the filesystem level, but 
 | Layer | Current Expectation |
 |-------|---------------------|
 | Transport | TLS only, strict transport headers in production |
-| Auth | HTTP-only cookies, refresh rotation, shared signing strategy during migration where needed |
+| Auth | HTTP-only cookies, refresh rotation, Django-managed JWT signing |
 | CSRF | Required on state-changing requests |
 | Validation | Validate every input at the API boundary |
 | File uploads | Validate content type and file shape defensively |
@@ -84,14 +81,13 @@ The repository migration to a monorepo is complete at the filesystem level, but 
 When modifying code, always verify:
 
 - Which package you are changing: `apps/admissions`, `backend`, or `shared`
-- Whether the code is using the current Django contract or a legacy `/api/...` contract
+- Whether the code follows the `/api/v1/` REST contract
 - Whether the change affects draft persistence, auth cookies, CSRF, uploads, or admin actions
 - Whether the change is safe on mobile and degraded networks
 - Whether you need to update frontend tests, backend tests, or both
 
-## Migration-Specific Warnings
+## Development Guardrails
 
-- New backend work should target `backend/` and `/api/v1/...` routes.
-- New frontend work must not deepen reliance on legacy query-parameter API actions.
-- If you touch an existing legacy frontend endpoint, either migrate it fully or document why it still depends on the old contract.
+- All backend work targets `backend/` with routes under `/api/v1/`.
+- All frontend API calls use `apiClient.request()` with resource-style REST paths. Do not use raw `fetch()` for API calls.
 - If a task spans frontend and backend, check both sides before assuming parity.

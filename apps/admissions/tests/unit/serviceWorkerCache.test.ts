@@ -87,20 +87,20 @@ describe('Service Worker Cache Strategy', () => {
     // Test the URL matching logic used in service worker routes
 
     it('auth endpoints should never be cached', () => {
-      const authPaths = ['/api/auth', '/api/auth?action=login', '/auth/callback']
+      const authPaths = ['/api/v1/auth/login/', '/api/v1/auth/session/', '/auth/callback']
       for (const path of authPaths) {
         const url = new URL(path, '***REMOVED***')
-        const isAuth = url.pathname.startsWith('/api/auth') || url.pathname.startsWith('/auth/')
+        const isAuth = url.pathname.startsWith('/api/v1/auth') || url.pathname.startsWith('/auth/')
         expect(isAuth).toBe(true)
       }
     })
 
     it('API paths match the NetworkFirst route', () => {
       const apiPaths = [
-        '/api/applications',
-        '/api/catalog?type=programs',
-        '/api/notifications?action=preferences',
-        '/api/health?action=ping',
+        '/api/v1/applications/',
+        '/api/v1/catalog/programs/',
+        '/api/v1/notifications/preferences/',
+        '/api/v1/health/',
         '/applications',
         '/notifications',
         '/admin/dashboard',
@@ -125,9 +125,9 @@ describe('Service Worker Cache Strategy', () => {
 
     it('auth paths are excluded from general API route', () => {
       // Auth route is registered BEFORE the general API route,
-      // so /api/auth is handled by NetworkOnly, not NetworkFirst
-      const url = new URL('/api/auth?action=login', '***REMOVED***')
-      const isAuth = url.pathname.startsWith('/api/auth')
+      // so /api/v1/auth is handled by NetworkOnly, not NetworkFirst
+      const url = new URL('/api/v1/auth/login/', '***REMOVED***')
+      const isAuth = url.pathname.startsWith('/api/v1/auth')
       expect(isAuth).toBe(true)
     })
   })

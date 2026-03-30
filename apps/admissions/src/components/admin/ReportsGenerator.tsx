@@ -506,7 +506,10 @@ export function ReportsGenerator() {
         : undefined
 
       const institutionStats = applications.reduce((acc: Record<string, number>, app) => {
-        const institutionName = app.institution || 'Unknown'
+        const institutionName =
+          typeof app.institution === 'string' && app.institution.trim().length > 0
+            ? app.institution
+            : 'Unknown'
         acc[institutionName] = (acc[institutionName] || 0) + 1
         return acc
       }, {})

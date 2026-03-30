@@ -5,6 +5,8 @@ import { logger } from '@/lib/logger'
 import { normalizeSearchTerm, validateSearchTerm } from '../utils/trackerUtils'
 
 export interface PublicApplicationStatus {
+  id?: string | null
+  public_tracking_code?: string | null
   application_number: string | null
   status: string
   payment_status: string | null
@@ -19,23 +21,26 @@ export interface PublicApplicationStatus {
   admin_feedback_date?: string | null
 }
 
-interface TrackApplicationResponse {
-  application?: {
-    application_number: string
-    status: string
-    payment_status?: string | null
-    program_name: string | null
-    intake_name: string | null
-    institution?: string | null
-    email?: string | null
-    submitted_at: string | null
-    updated_at: string | null
-    feedback_summary: string | null
-  }
+interface TrackerApplicationPayload {
+  id?: string | null
+  public_tracking_code?: string | null
+  application_number?: string | null
   status?: string
+  payment_status?: string | null
+  program_name?: string | null
+  intake_name?: string | null
+  institution?: string | null
+  email?: string | null
+  submitted_at?: string | null
+  updated_at?: string | null
+  created_at?: string | null
+  feedback_summary?: string | null
   program?: string | null
   intake?: string | null
-  created_at?: string | null
+}
+
+interface TrackApplicationResponse extends TrackerApplicationPayload {
+  application?: TrackerApplicationPayload
 }
 
 export const useApplicationTracker = () => {
@@ -66,7 +71,7 @@ export const useApplicationTracker = () => {
 
       const result = await apiClient.request<TrackApplicationResponse>(`/applications/track/?code=${encodeURIComponent(normalizedTerm)}`)
 
-      const data = result?.application ?? result ?? null
+      const data: TrackerApplicationPayload | null = result?.application ?? result ?? null
 
       if (!data) {
         setError('Application not found. Please check your application number or tracking code.')
@@ -75,8 +80,10 @@ export const useApplicationTracker = () => {
       }
 
       setApplication({
+        id: data.id ?? null,
+        public_tracking_code: data.public_tracking_code ?? null,
         application_number: data.application_number ?? null,
-        status: data.status,
+        status: data.status ?? 'submitted',
         payment_status: data.payment_status ?? null,
         feedback_summary: data.feedback_summary ?? null,
         submitted_at: data.submitted_at ?? data.created_at ?? null,

@@ -157,7 +157,7 @@ function normalizeProgram(record: RawProgram | Program | null | undefined): Prog
         ? requirements.description
         : ''
 
-  const institution = normalizeInstitution(record.institution)
+  const institution = normalizeInstitution('institution' in record ? record.institution : null)
 
   return {
     id: record.id,
@@ -211,7 +211,12 @@ function normalizeSubject(record: RawSubject | Subject | null | undefined): Subj
     name: record.name,
     code: record.code,
     category: record.category,
-    is_active: record.is_core ?? true,
+    is_active:
+      'is_core' in record
+        ? record.is_core ?? true
+        : 'is_active' in record
+          ? record.is_active ?? true
+          : true,
   }
 }
 

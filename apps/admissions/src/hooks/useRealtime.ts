@@ -504,7 +504,7 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
     return () => {
       mountedRef.current = false
     }
-  }, [opts.enabled, opts.pollingEnabled]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [opts.enabled, opts.pollingEnabled])
 
   // Listen for external reconnect events
   useEffect(() => {
@@ -525,7 +525,7 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
       mountedRef.current = false
       disconnect()
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   return {
     isConnected,
@@ -561,7 +561,7 @@ export function useRealtimeEvent(
   useEffect(() => {
     const unsubscribe = subscribe(eventType, handler)
     return unsubscribe
-  }, [eventType, subscribe, ...deps]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [eventType, subscribe, ...deps])
 }
 
 /**

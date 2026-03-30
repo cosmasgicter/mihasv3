@@ -15,18 +15,20 @@ function envValidationPlugin(): Plugin {
     name: 'vite-plugin-env-validation',
     configResolved(config) {
       // Variables that MUST be set for a production build
-      const required: string[] = [
-        // Currently all VITE_* vars have fallbacks, but this list
-        // is the single place to add mandatory ones in the future.
-      ]
+      const isProd = config.command === 'build'
+      const required: string[] = isProd
+        ? [
+            'VITE_API_BASE_URL',
+            'VITE_APP_BASE_URL',
+            'VITE_SITE_URL',
+            'VITE_APP_VERSION',
+          ]
+        : []
 
       // Variables that SHOULD be set — warn if missing
       const recommended: string[] = [
-        'VITE_APP_VERSION',
-        'VITE_APP_BASE_URL',
+        'VITE_VAPID_PUBLIC_KEY',
       ]
-
-      const isProd = config.command === 'build'
       const missing = required.filter(
         (v) => !process.env[v] || process.env[v]!.trim().length === 0,
       )
@@ -79,8 +81,10 @@ export default defineConfig(({ mode, command }) => {
         injectRegister: false,
         injectManifest: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
-          // Reduced from 10MB to 3MB after bundle splitting (R15/P-1)
-          maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+          // Allow up to 10MB per asset for precaching; very large vendor
+          // chunks (e.g. tesseract/OCR) are dynamically imported and rarely
+          // change, so caching them is acceptable.
+          maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
         },
       })
     ],

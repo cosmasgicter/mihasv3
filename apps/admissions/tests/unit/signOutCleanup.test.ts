@@ -134,14 +134,14 @@ describe('signOut cleanup', () => {
     expect(clearSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('signOut POSTs to /auth?action=logout via apiClient', async () => {
+  it('signOut POSTs to /auth/logout/ via apiClient', async () => {
     const { useSessionListener } = await import('@/hooks/auth/useSessionListener');
     const { signOut } = useSessionListener();
 
     await signOut();
 
     expect(apiRequestSpy).toHaveBeenCalledWith(
-      '/auth?action=logout',
+      '/auth/logout/',
       { method: 'POST' },
     );
   });

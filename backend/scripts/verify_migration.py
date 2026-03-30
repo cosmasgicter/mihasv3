@@ -148,25 +148,37 @@ def verify_row_counts(checkpoint: dict) -> dict[str, int]:
 
 
 def verify_foreign_keys() -> list[str]:
-    """Check foreign key integrity (placeholder — logs expected checks)."""
+    """Check foreign key integrity — logs expected checks."""
     fk_checks = [
         ("applications.user_id", "profiles.id"),
         ("application_documents.application_id", "applications.id"),
+        ("application_documents.verified_by", "profiles.id"),
         ("application_grades.application_id", "applications.id"),
         ("application_grades.subject_id", "subjects.id"),
         ("application_status_history.application_id", "applications.id"),
+        ("application_status_history.changed_by", "profiles.id"),
         ("application_drafts.application_id", "applications.id"),
+        ("application_drafts.user_id", "profiles.id"),
         ("application_interviews.application_id", "applications.id"),
+        ("application_interviews.created_by", "profiles.id"),
+        ("application_interviews.updated_by", "profiles.id"),
+        ("applications.payment_verified_by", "profiles.id"),
+        ("applications.admin_feedback_by", "profiles.id"),
+        ("applications.reviewed_by", "profiles.id"),
         ("payments.application_id", "applications.id"),
         ("payments.user_id", "profiles.id"),
+        ("payments.verified_by", "profiles.id"),
         ("programs.institution_id", "institutions.id"),
         ("program_intakes.program_id", "programs.id"),
         ("program_intakes.intake_id", "intakes.id"),
         ("course_requirements.program_id", "programs.id"),
         ("course_requirements.subject_id", "subjects.id"),
         ("device_sessions.user_id", "profiles.id"),
+        ("csrf_tokens.user_id", "profiles.id"),
+        ("password_reset_tokens.user_id", "profiles.id"),
         ("notifications.user_id", "profiles.id"),
         ("user_notification_preferences.user_id", "profiles.id"),
+        ("user_permission_overrides.user_id", "profiles.id"),
     ]
     issues = []
     for child_col, parent_col in fk_checks:
@@ -192,6 +204,48 @@ def verify_foreign_keys() -> list[str]:
             print(msg)
             issues.append(msg)
     return issues
+
+
+# Expected indexes for commonly filtered columns
+EXPECTED_INDEXES = [
+    ("applications", "user_id"),
+    ("applications", "status"),
+    ("applications", "program"),
+    ("applications", "institution"),
+    ("audit_logs", "entity_type"),
+    ("audit_logs", "actor_id"),
+    ("device_sessions", "user_id"),
+    ("notifications", "user_id"),
+]
+
+
+def verify_indexes() -> tuple[list[str], list[str]]:
+    """Check that expected indexes exist on commonly filtered columns."""
+    found = []
+    missing = []
+    for table_name, column_name in EXPECTED_INDEXES:
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT indexname FROM pg_indexes "
+                    "WHERE tablename = %s AND indexdef LIKE %s",
+                    [table_name, f"%{column_name}%"],
+                )
+                rows = cursor.fetchall()
+                if rows:
+                    index_names = [r[0] for r in rows]
+                    msg = f"  [ok]   {table_name}.{column_name}: {', '.join(index_names)}"
+                    print(msg)
+                    found.append(msg)
+                else:
+                    msg = f"  [miss] {table_name}.{column_name}: no index found"
+                    print(msg)
+                    missing.append(msg)
+        except Exception as exc:
+            msg = f"  [err]  {table_name}.{column_name}: {exc}"
+            print(msg)
+            missing.append(msg)
+    return found, missing
 
 
 # ---------------------------------------------------------------------------
@@ -222,6 +276,11 @@ def main() -> int:
     fk_issues = verify_foreign_keys()
     print()
 
+    # Step 3: Index verification
+    print("Step 3: Index verification for commonly filtered columns")
+    idx_found, idx_missing = verify_indexes()
+    print()
+
     end_time = datetime.now(timezone.utc)
     error_count = sum(1 for v in counts.values() if v == -1) + len(fk_issues)
 
@@ -233,6 +292,8 @@ def main() -> int:
         "duration_seconds": (end_time - start_time).total_seconds(),
         "row_counts": counts,
         "fk_issues": fk_issues,
+        "index_found": idx_found,
+        "index_missing": idx_missing,
         "error_count": error_count,
         "tables_checked": len(counts),
     }

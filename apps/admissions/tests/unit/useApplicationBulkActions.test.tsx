@@ -2,6 +2,7 @@ import React from 'react'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { createRoot } from 'react-dom/client'
 import { act } from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 ;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
@@ -20,6 +21,7 @@ describe('useApplicationBulkActions', () => {
   let container: HTMLDivElement
   let root: ReturnType<typeof createRoot>
   let latestHook: HookState | null = null
+  let queryClient: QueryClient
 
   function HookHarness() {
     latestHook = useApplicationBulkActions()
@@ -28,17 +30,23 @@ describe('useApplicationBulkActions', () => {
 
   beforeEach(() => {
     latestHook = null
+    queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
     container = document.createElement('div')
     document.body.appendChild(container)
     root = createRoot(container)
     act(() => {
-      root.render(<HookHarness />)
+      root.render(
+        <QueryClientProvider client={queryClient}>
+          <HookHarness />
+        </QueryClientProvider>
+      )
     })
   })
 
   afterEach(() => {
     act(() => root.unmount())
     container.remove()
+    queryClient.clear()
   })
 
   it('toggles select-all from current state even when called twice before rerender', () => {

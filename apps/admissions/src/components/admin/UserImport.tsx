@@ -374,10 +374,10 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
                           <tr key={index}>
                             <td className="px-3 py-2 text-sm text-foreground">{sanitizeText(user.full_name)}</td>
                             <td className="px-3 py-2 text-sm text-foreground">{sanitizeText(user.email)}</td>
-                            <td className="px-3 py-2 text-sm text-foreground">{sanitizeText(user.phone) || '-'}</td>
+                            <td className="px-3 py-2 text-sm text-foreground">{sanitizeText(user.phone ?? '') || '-'}</td>
                             <td className="px-3 py-2 text-sm text-foreground">
                               <span className="px-2 py-1 bg-primary/10 text-primary-foreground rounded text-xs">
-                                {sanitizeText(user.role)}
+                                {sanitizeText(user.role ?? '')}
                               </span>
                             </td>
                           </tr>

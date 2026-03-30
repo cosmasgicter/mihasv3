@@ -247,7 +247,7 @@ describe('Auth Fetch with 401 Handling', () => {
         json: () => Promise.resolve({ success: false, error: 'Refresh token invalid' }),
       });
 
-    await expect(authFetch('/api/auth?action=session')).rejects.toThrow('Session expired');
+    await expect(authFetch('/api/v1/auth/session/')).rejects.toThrow('Session expired');
     expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 
@@ -258,7 +258,7 @@ describe('Auth Fetch with 401 Handling', () => {
       json: () => Promise.resolve({ success: false, error: 'Invalid credentials', code: 'INVALID_CREDENTIALS' }),
     });
 
-    await expect(authFetch('/api/auth?action=login', {
+    await expect(authFetch('/api/v1/auth/login/', {
       method: 'POST',
       body: JSON.stringify({ email: 'test@example.com', password: 'wrong' }),
     })).rejects.toThrow('Invalid credentials');
