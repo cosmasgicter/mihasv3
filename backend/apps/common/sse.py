@@ -11,11 +11,13 @@ import time
 
 from asgiref.sync import sync_to_async
 from django.http import StreamingHttpResponse
+from drf_spectacular.utils import OpenApiResponse, OpenApiTypes, extend_schema, extend_schema_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.common.models import Notification
+from apps.common.openapi_helpers import NotificationEventSerializer, envelope_serializer
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +80,24 @@ async def _async_event_stream(user_id):
         await asyncio.sleep(KEEPALIVE_INTERVAL)
 
 
+NotificationPollResponseSerializer = envelope_serializer(
+    "NotificationPollResponse",
+    NotificationEventSerializer(many=True),
+)
+
+
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="events_stream",
+        tags=["notifications"],
+        responses={
+            200: OpenApiResponse(
+                response=OpenApiTypes.STR,
+                description="Server-Sent Events stream delivering notifications and keepalive pings.",
+            )
+        },
+    )
+)
 class SSEStreamView(APIView):
     """GET /api/v1/events/stream/
 
@@ -86,6 +106,7 @@ class SSEStreamView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = NotificationEventSerializer
 
     async def get(self, request):
         user_id = request.user.pk
@@ -99,6 +120,18 @@ class SSEStreamView(APIView):
         return response
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="events_poll",
+        tags=["notifications"],
+        responses={
+            200: OpenApiResponse(
+                response=NotificationPollResponseSerializer,
+                description="Unread notifications returned as a polling fallback.",
+            )
+        },
+    )
+)
 class SSEPollView(APIView):
     """GET /api/v1/events/poll/
 
@@ -106,6 +139,7 @@ class SSEPollView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = NotificationEventSerializer
 
     def get(self, request):
         user_id = request.user.pk

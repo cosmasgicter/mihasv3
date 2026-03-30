@@ -10,7 +10,7 @@ import { getApiBaseUrl } from '@/lib/apiConfig'
 async function testConnection(): Promise<{ status: 'online' | 'offline' }> {
   if (!navigator.onLine) return { status: 'offline' };
   try {
-    await fetch(`${getApiBaseUrl()}/health/live/`, { method: 'HEAD', cache: 'no-store' });
+    await fetch(`${getApiBaseUrl()}/api/v1/health/live/`, { method: 'HEAD', cache: 'no-store' });
     return { status: 'online' };
   } catch {
     return { status: 'offline' };
@@ -183,8 +183,8 @@ export async function syncGradesWithRecovery(
 ): Promise<any> {
   const connectionManager = ConnectionManager.getInstance()
   
-  return connectionManager.makeRequest(`/applications/${applicationId}/grades`, {
-    method: 'POST',
+  return connectionManager.makeRequest(`/applications/${applicationId}/grades/`, {
+    method: 'PUT',
     body: JSON.stringify({ grades }),
     retryKey: `sync_grades_${applicationId}`
   })

@@ -246,7 +246,7 @@ async function uploadSlipViaDocumentsApi(applicationId: string, applicationNumbe
   formData.append('application_id', applicationId);
   formData.append('document_type', 'application_slip');
 
-  return apiClient.request<UploadedSlipDocument>('/documents?action=upload', {
+  return apiClient.request<UploadedSlipDocument>('/documents/upload/', {
     method: 'POST',
     body: formData,
   });

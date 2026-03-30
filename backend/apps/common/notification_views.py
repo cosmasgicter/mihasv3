@@ -6,6 +6,7 @@ Requirements: 8.1, 8.2, 8.3, 8.5, 8.6
 
 import logging
 
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -16,6 +17,11 @@ from apps.common.models import (
     EmailQueue,
     Notification,
     UserNotificationPreference,
+)
+from apps.common.openapi_helpers import (
+    ErrorResponseSerializer,
+    IdMessageSerializer,
+    envelope_serializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -46,11 +52,41 @@ class EmailSendSerializer(serializers.Serializer):
     body = serializers.CharField()
 
 
+NotificationPreferenceResponseSerializer = envelope_serializer(
+    "NotificationPreferenceResponse",
+    NotificationPreferenceSerializer(),
+)
+NotificationSendResponseSerializer = envelope_serializer(
+    "NotificationSendResponse",
+    IdMessageSerializer(),
+)
+EmailSendResponseSerializer = envelope_serializer(
+    "EmailSendResponse",
+    IdMessageSerializer(),
+)
+
+
 # ---------------------------------------------------------------------------
 # 20.1 — Notification Preferences
 # ---------------------------------------------------------------------------
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="notifications_preferences_get",
+        tags=["notifications"],
+        responses={200: OpenApiResponse(response=NotificationPreferenceResponseSerializer)},
+    ),
+    put=extend_schema(
+        operation_id="notifications_preferences_update",
+        tags=["notifications"],
+        request=NotificationPreferenceSerializer,
+        responses={
+            200: OpenApiResponse(response=NotificationPreferenceResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+)
 class NotificationPreferenceView(APIView):
     """GET/PUT /api/v1/notifications/preferences/
 
@@ -58,6 +94,7 @@ class NotificationPreferenceView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = NotificationPreferenceSerializer
 
     def get(self, request):
         pref = UserNotificationPreference.objects.filter(user_id=request.user.pk).first()
@@ -107,6 +144,18 @@ class NotificationPreferenceView(APIView):
 # ---------------------------------------------------------------------------
 
 
+@extend_schema_view(
+    post=extend_schema(
+        operation_id="notifications_send",
+        tags=["notifications"],
+        request=NotificationSendSerializer,
+        responses={
+            201: OpenApiResponse(response=NotificationSendResponseSerializer),
+            200: OpenApiResponse(response=NotificationSendResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
 class NotificationSendView(APIView):
     """POST /api/v1/notifications/
 
@@ -114,6 +163,7 @@ class NotificationSendView(APIView):
     """
 
     permission_classes = [IsAuthenticated, IsAdmin]
+    serializer_class = NotificationSendSerializer
 
     def post(self, request):
         serializer = NotificationSendSerializer(data=request.data)
@@ -168,6 +218,17 @@ class NotificationSendView(APIView):
 # ---------------------------------------------------------------------------
 
 
+@extend_schema_view(
+    post=extend_schema(
+        operation_id="email_send",
+        tags=["email"],
+        request=EmailSendSerializer,
+        responses={
+            202: OpenApiResponse(response=EmailSendResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
 class EmailSendView(APIView):
     """POST /api/v1/email/send/
 
@@ -175,6 +236,7 @@ class EmailSendView(APIView):
     """
 
     permission_classes = [IsAuthenticated, IsAdmin]
+    serializer_class = EmailSendSerializer
 
     def post(self, request):
         serializer = EmailSendSerializer(data=request.data)

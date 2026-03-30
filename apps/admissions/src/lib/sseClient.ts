@@ -12,7 +12,11 @@
  * - 5.3: Auto-reconnect on connection loss
  * - 5.4: Exponential backoff strategy
  * - 5.5: Battery-friendly on mobile devices
+ * - 12.1: SSE connects to /api/v1/events/stream/ on api.mihas.edu.zm
+ * - 12.2: Cross-origin SSE with withCredentials: true
  */
+
+import { getApiBaseUrl } from '@/lib/apiConfig'
 
 /**
  * SSE Client Configuration
@@ -108,7 +112,7 @@ export function calculateBackoff(
  * @example
  * ```typescript
  * const client = createSSEClient({
- *   endpoint: '/api/sessions?action=connect',
+ *   endpoint: `${getApiBaseUrl()}/api/v1/events/stream/`,
  *   onConnect: () => console.log('Connected'),
  *   onDisconnect: () => console.log('Disconnected'),
  *   onError: (err) => console.error('Error:', err),
@@ -453,7 +457,7 @@ let defaultClient: SSEClient | null = null;
 export function getDefaultSSEClient(config?: Partial<SSEClientConfig>): SSEClient {
   if (!defaultClient) {
     defaultClient = createSSEClient({
-      endpoint: '/api/v1/events/stream/',
+      endpoint: `${getApiBaseUrl()}/api/v1/events/stream/`,
       ...config,
     });
   }

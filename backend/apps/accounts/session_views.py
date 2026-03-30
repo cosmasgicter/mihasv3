@@ -6,6 +6,7 @@ Requirements: 9.1, 9.2, 9.3
 
 import logging
 
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -13,10 +14,33 @@ from rest_framework.views import APIView
 
 from apps.accounts.models import DeviceSession
 from apps.accounts.tokens import blacklist_jti, verify_token
+from apps.common.openapi_helpers import (
+    ErrorResponseSerializer,
+    MessageSerializer,
+    SessionDeviceSerializer,
+    envelope_serializer,
+)
 
 logger = logging.getLogger(__name__)
 
 
+SessionListResponseSerializer = envelope_serializer(
+    "SessionListResponse",
+    SessionDeviceSerializer(many=True),
+)
+MessageEnvelopeSerializer = envelope_serializer(
+    "SessionMessageResponse",
+    MessageSerializer(),
+)
+
+
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="sessions_list",
+        tags=["sessions"],
+        responses={200: OpenApiResponse(response=SessionListResponseSerializer)},
+    )
+)
 class SessionListView(APIView):
     """GET /api/v1/sessions/
 
@@ -24,6 +48,7 @@ class SessionListView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = SessionDeviceSerializer
 
     def get(self, request):
         user_id = str(getattr(request.user, "id", ""))
@@ -43,6 +68,19 @@ class SessionListView(APIView):
         return Response(data)
 
 
+@extend_schema_view(
+    post=extend_schema(
+        operation_id="sessions_revoke",
+        tags=["sessions"],
+        parameters=[
+            OpenApiParameter("session_id", str, OpenApiParameter.PATH, description="Session UUID to revoke."),
+        ],
+        responses={
+            200: OpenApiResponse(response=MessageEnvelopeSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
 class SessionRevokeView(APIView):
     """POST /api/v1/sessions/{id}/revoke/
 
@@ -50,6 +88,7 @@ class SessionRevokeView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = MessageSerializer
 
     def post(self, request, session_id):
         user_id = str(getattr(request.user, "id", ""))
@@ -76,6 +115,13 @@ class SessionRevokeView(APIView):
         return Response({"message": "Session revoked"})
 
 
+@extend_schema_view(
+    post=extend_schema(
+        operation_id="sessions_revoke_all",
+        tags=["sessions"],
+        responses={200: OpenApiResponse(response=MessageEnvelopeSerializer)},
+    )
+)
 class SessionRevokeAllView(APIView):
     """POST /api/v1/sessions/revoke-all/
 
@@ -83,6 +129,7 @@ class SessionRevokeAllView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = MessageSerializer
 
     def post(self, request):
         user_id = str(getattr(request.user, "id", ""))

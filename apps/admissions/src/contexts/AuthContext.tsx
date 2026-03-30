@@ -1,3 +1,24 @@
+/**
+ * Auth Context — Django JWT Cookie Authentication
+ *
+ * Authentication relies on HTTP-only cookies (`access_token`, `refresh_token`)
+ * set by the Django backend with `Domain=.mihas.edu.zm`, `SameSite=Lax`,
+ * `Secure=true`. The frontend never reads or writes these cookies directly;
+ * they are transmitted automatically via `credentials: 'include'` on every
+ * cross-origin request to `api.mihas.edu.zm`.
+ *
+ * Session validation flow:
+ *   - On page load: GET /api/v1/auth/session/ (via useSessionListener)
+ *   - On visibility change (tab refocus): re-validate session
+ *   - On 401 response: single token refresh via /api/v1/auth/refresh/
+ *   - On refresh failure: clear caches, dispatch mihas:auth-expired, redirect
+ *
+ * CSRF tokens are exchanged via the X-CSRF-Token header and stored in-memory
+ * (lib/csrfToken.ts). They are captured on login, refresh, and session check
+ * responses.
+ *
+ * Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6
+ */
 import React, { createContext, useContext, useMemo, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth'
@@ -25,6 +46,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient()
   const auth = useSessionListener()
 
+  // Configure the API client's auth failure callback.
+  // When a 401 triggers a refresh attempt that also fails, the API client
+  // invokes this callback to perform the full auth-expired cascade:
+  //   1. Clear React Query cache (all queries)
+  //   2. Clear CSRF token store (in-memory)
+  //   3. Clear secure storage (encrypted localStorage)
+  //   4. Dispatch mihas:auth-expired event (route guards listen for this)
+  //   5. Redirect to login page
   useEffect(() => {
     configureApiClientAuthFailure(() => {
       // Clear auth state in React Query cache
@@ -60,6 +89,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }))
       }
     })
+  }, [queryClient])
+
+  // Re-validate session when the page becomes visible again (tab refocus).
+  // This catches expired tokens after the user has been away, ensuring the
+  // UI reflects the current auth state without waiting for a data fetch to 401.
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'visible') {
+        queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
   }, [queryClient])
 
   const value = useMemo(() => ({

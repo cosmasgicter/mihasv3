@@ -10,7 +10,8 @@ import secrets
 from datetime import timedelta
 
 from django.conf import settings
-from rest_framework import status
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
+from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -40,8 +41,36 @@ from apps.accounts.tokens import (
     rotate_tokens,
     verify_token,
 )
+from apps.common.openapi_helpers import ErrorResponseSerializer, MessageSerializer, envelope_serializer
 
 logger = logging.getLogger(__name__)
+
+
+class AuthUserPayloadSerializer(serializers.Serializer):
+    user = SessionSerializer()
+
+
+class RegisterPayloadSerializer(serializers.Serializer):
+    message = serializers.CharField()
+    user = SessionSerializer(required=False)
+
+
+LoginResponseSerializer = envelope_serializer(
+    "AuthLoginResponse",
+    AuthUserPayloadSerializer(),
+)
+RegisterResponseSerializer = envelope_serializer(
+    "AuthRegisterResponse",
+    RegisterPayloadSerializer(),
+)
+SessionResponseSerializer = envelope_serializer(
+    "AuthSessionResponse",
+    SessionSerializer(),
+)
+MessageEnvelopeSerializer = envelope_serializer(
+    "AuthMessageResponse",
+    MessageSerializer(),
+)
 
 
 def _get_client_ip(request) -> str:
@@ -115,6 +144,22 @@ def _generate_csrf_token(user) -> str:
 # ---------------------------------------------------------------------------
 
 
+@extend_schema_view(
+    post=extend_schema(
+        operation_id="auth_login",
+        tags=["auth"],
+        auth=[],
+        request=LoginSerializer,
+        responses={
+            200: OpenApiResponse(
+                response=LoginResponseSerializer,
+                description="Authenticates the user, sets access and refresh cookies, and returns the current user summary.",
+            ),
+            401: OpenApiResponse(response=ErrorResponseSerializer),
+            429: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
 class LoginView(APIView):
     """POST /api/v1/auth/login/
 
@@ -125,6 +170,7 @@ class LoginView(APIView):
 
     permission_classes = [AllowAny]
     authentication_classes = []  # Skip JWT auth for login
+    serializer_class = LoginSerializer
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
@@ -237,6 +283,20 @@ class LoginView(APIView):
 # ---------------------------------------------------------------------------
 
 
+@extend_schema_view(
+    post=extend_schema(
+        operation_id="auth_logout",
+        tags=["auth"],
+        request=None,
+        responses={
+            200: OpenApiResponse(
+                response=MessageEnvelopeSerializer,
+                description="Clears auth cookies and revokes the current device session when present.",
+            ),
+            401: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
 class LogoutView(APIView):
     """POST /api/v1/auth/logout/
 
@@ -244,6 +304,7 @@ class LogoutView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = MessageSerializer
 
     def post(self, request):
         # Deactivate the device session matching the current refresh token
@@ -277,6 +338,21 @@ class LogoutView(APIView):
 # ---------------------------------------------------------------------------
 
 
+@extend_schema_view(
+    post=extend_schema(
+        operation_id="auth_refresh",
+        tags=["auth"],
+        auth=[],
+        request=None,
+        responses={
+            200: OpenApiResponse(
+                response=MessageEnvelopeSerializer,
+                description="Rotates the refresh token, reissues auth cookies, and returns a success message.",
+            ),
+            401: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
 class RefreshView(APIView):
     """POST /api/v1/auth/refresh/
 
@@ -285,6 +361,7 @@ class RefreshView(APIView):
 
     permission_classes = [AllowAny]
     authentication_classes = []  # Skip JWT auth — we use the refresh cookie
+    serializer_class = MessageSerializer
 
     def post(self, request):
         refresh_token = request.COOKIES.get("refresh_token")
@@ -340,6 +417,21 @@ class RefreshView(APIView):
 # ---------------------------------------------------------------------------
 
 
+@extend_schema_view(
+    post=extend_schema(
+        operation_id="auth_register",
+        tags=["auth"],
+        auth=[],
+        request=RegisterSerializer,
+        responses={
+            201: OpenApiResponse(
+                response=RegisterResponseSerializer,
+                description="Creates a student profile. Existing emails still return a success-shaped response to avoid account enumeration.",
+            ),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
 class RegisterView(APIView):
     """POST /api/v1/auth/register/
 
@@ -349,6 +441,7 @@ class RegisterView(APIView):
 
     permission_classes = [AllowAny]
     authentication_classes = []
+    serializer_class = RegisterSerializer
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -412,6 +505,13 @@ class RegisterView(APIView):
 # ---------------------------------------------------------------------------
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="auth_session",
+        tags=["auth"],
+        responses={200: OpenApiResponse(response=SessionResponseSerializer)},
+    )
+)
 class SessionView(APIView):
     """GET /api/v1/auth/session/
 
@@ -419,6 +519,7 @@ class SessionView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = SessionSerializer
 
     def get(self, request):
         user = request.user
@@ -437,6 +538,21 @@ class SessionView(APIView):
 # ---------------------------------------------------------------------------
 
 
+@extend_schema_view(
+    post=extend_schema(
+        operation_id="auth_password_reset_request",
+        tags=["auth"],
+        auth=[],
+        request=PasswordResetRequestSerializer,
+        responses={
+            200: OpenApiResponse(
+                response=MessageEnvelopeSerializer,
+                description="Always returns success to avoid revealing whether an email exists.",
+            ),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
 class PasswordResetRequestView(APIView):
     """POST /api/v1/auth/password-reset/
 
@@ -446,6 +562,7 @@ class PasswordResetRequestView(APIView):
 
     permission_classes = [AllowAny]
     authentication_classes = []
+    serializer_class = PasswordResetRequestSerializer
 
     def post(self, request):
         serializer = PasswordResetRequestSerializer(data=request.data)
@@ -510,6 +627,18 @@ class PasswordResetRequestView(APIView):
 # ---------------------------------------------------------------------------
 
 
+@extend_schema_view(
+    post=extend_schema(
+        operation_id="auth_password_reset_confirm",
+        tags=["auth"],
+        auth=[],
+        request=PasswordResetConfirmSerializer,
+        responses={
+            200: OpenApiResponse(response=MessageEnvelopeSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
 class PasswordResetConfirmView(APIView):
     """POST /api/v1/auth/password-reset/confirm/
 
@@ -518,6 +647,7 @@ class PasswordResetConfirmView(APIView):
 
     permission_classes = [AllowAny]
     authentication_classes = []
+    serializer_class = PasswordResetConfirmSerializer
 
     def post(self, request):
         serializer = PasswordResetConfirmSerializer(data=request.data)

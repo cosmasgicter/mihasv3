@@ -25,7 +25,7 @@ import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 type DashboardFetchMode = 'initial' | 'manual'
 
 type DashboardApiStatus = {
-  endpoint: '/admin?action=dashboard'
+  endpoint: '/admin/dashboard/'
   phase: 'idle' | 'loading' | 'success' | 'error'
   responseShape: 'unknown' | 'valid' | 'empty' | 'invalid'
   authState: 'authenticated-admin' | 'authenticated-non-admin' | 'unauthenticated'
@@ -71,7 +71,7 @@ export default function AdminDashboard() {
   const [initialLoadFailed, setInitialLoadFailed] = useState(false)
   const [hasLoadedSuccessfully, setHasLoadedSuccessfully] = useState(false)
   const [apiStatus, setApiStatus] = useState<DashboardApiStatus>({
-    endpoint: '/admin?action=dashboard',
+    endpoint: '/admin/dashboard/',
     phase: 'idle',
     responseShape: 'unknown',
     authState: user ? (isAdmin ? 'authenticated-admin' : 'authenticated-non-admin') : 'unauthenticated',

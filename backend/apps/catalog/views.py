@@ -6,6 +6,13 @@ Requirements: 5.1, 5.2, 5.3, 5.4, 5.5
 
 import logging
 
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiResponse,
+    OpenApiTypes,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -20,9 +27,56 @@ from apps.catalog.serializers import (
     ProgramSerializer,
     SubjectSerializer,
 )
+from apps.common.openapi_helpers import (
+    ErrorResponseSerializer,
+    MessageSerializer,
+    envelope_serializer,
+    paginated_serializer,
+)
 from apps.common.pagination import StandardPagination
 
 logger = logging.getLogger(__name__)
+
+
+ProgramListResponseSerializer = envelope_serializer(
+    "CatalogProgramListResponse",
+    paginated_serializer("CatalogProgramPage", ProgramSerializer),
+)
+ProgramResponseSerializer = envelope_serializer(
+    "CatalogProgramResponse",
+    ProgramSerializer(),
+)
+IntakeListResponseSerializer = envelope_serializer(
+    "CatalogIntakeListResponse",
+    IntakeSerializer(many=True),
+)
+IntakeResponseSerializer = envelope_serializer(
+    "CatalogIntakeResponse",
+    IntakeSerializer(),
+)
+SubjectListResponseSerializer = envelope_serializer(
+    "CatalogSubjectListResponse",
+    SubjectSerializer(many=True),
+)
+InstitutionListResponseSerializer = envelope_serializer(
+    "CatalogInstitutionListResponse",
+    InstitutionSerializer(many=True),
+)
+InstitutionResponseSerializer = envelope_serializer(
+    "CatalogInstitutionResponse",
+    InstitutionSerializer(),
+)
+CatalogMessageResponseSerializer = envelope_serializer(
+    "CatalogMessageResponse",
+    MessageSerializer(),
+)
+
+
+def _request_method(view, default="GET"):
+    """Read the current request method safely during schema generation."""
+    request = getattr(view, "request", None)
+    method = getattr(request, "method", None)
+    return method or default
 
 
 def _is_admin(request):
@@ -39,6 +93,27 @@ def _set_public_cache(response):
     return response
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="catalog_programs_list",
+        tags=["catalog"],
+        auth=[],
+        parameters=[
+            OpenApiParameter("page", OpenApiTypes.INT, OpenApiParameter.QUERY, description="Page number."),
+            OpenApiParameter("pageSize", OpenApiTypes.INT, OpenApiParameter.QUERY, description="Page size."),
+        ],
+        responses={200: OpenApiResponse(response=ProgramListResponseSerializer)},
+    ),
+    post=extend_schema(
+        operation_id="catalog_programs_create",
+        tags=["catalog"],
+        request=ProgramCreateUpdateSerializer,
+        responses={
+            201: OpenApiResponse(response=ProgramResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+)
 class ProgramListCreateView(APIView):
     """GET /api/v1/catalog/programs/ — list programs (public + admin)
     POST /api/v1/catalog/programs/ — create program (admin only)
@@ -46,18 +121,19 @@ class ProgramListCreateView(APIView):
 
     permission_classes = [AllowAny]
     authentication_classes = []
+    serializer_class = ProgramSerializer
 
     def get_permissions(self):
-        if self.request.method == "POST":
+        if _request_method(self) == "POST":
             return [IsAdmin()]
         return [AllowAny()]
 
     def get_authenticators(self):
-        if self.request.method == "POST":
-            from apps.accounts.authentication import JWTCookieAuthentication
-            return [JWTCookieAuthentication()]
+        method = _request_method(self)
         # For GET, try auth but don't require it
         from apps.accounts.authentication import JWTCookieAuthentication
+        if method == "POST":
+            return [JWTCookieAuthentication()]
         return [JWTCookieAuthentication()]
 
     def get(self, request):
@@ -98,10 +174,49 @@ class ProgramListCreateView(APIView):
         return Response(out.data, status=status.HTTP_201_CREATED)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="catalog_programs_retrieve",
+        tags=["catalog"],
+        parameters=[
+            OpenApiParameter("program_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Program UUID."),
+        ],
+        responses={
+            200: OpenApiResponse(response=ProgramResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+    patch=extend_schema(
+        operation_id="catalog_programs_update",
+        tags=["catalog"],
+        parameters=[
+            OpenApiParameter("program_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Program UUID."),
+        ],
+        request=ProgramCreateUpdateSerializer,
+        responses={
+            200: OpenApiResponse(response=ProgramResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+    delete=extend_schema(
+        operation_id="catalog_programs_deactivate",
+        tags=["catalog"],
+        parameters=[
+            OpenApiParameter("program_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Program UUID."),
+        ],
+        request=None,
+        responses={
+            200: OpenApiResponse(response=CatalogMessageResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+)
 class ProgramDetailView(APIView):
     """GET/PATCH/DELETE /api/v1/catalog/programs/{id}/"""
 
     permission_classes = [IsAdmin]
+    serializer_class = ProgramSerializer
 
     def get(self, request, program_id):
         try:
@@ -153,6 +268,23 @@ class ProgramDetailView(APIView):
         return Response({"message": "Program deactivated"})
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="catalog_intakes_list",
+        tags=["catalog"],
+        auth=[],
+        responses={200: OpenApiResponse(response=IntakeListResponseSerializer)},
+    ),
+    post=extend_schema(
+        operation_id="catalog_intakes_create",
+        tags=["catalog"],
+        request=IntakeSerializer,
+        responses={
+            201: OpenApiResponse(response=IntakeResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+)
 class IntakeListCreateView(APIView):
     """GET /api/v1/catalog/intakes/ — list intakes
     POST /api/v1/catalog/intakes/ — create intake (admin)
@@ -160,9 +292,10 @@ class IntakeListCreateView(APIView):
 
     permission_classes = [AllowAny]
     authentication_classes = []
+    serializer_class = IntakeSerializer
 
     def get_permissions(self):
-        if self.request.method == "POST":
+        if _request_method(self) == "POST":
             return [IsAdmin()]
         return [AllowAny()]
 
@@ -201,10 +334,49 @@ class IntakeListCreateView(APIView):
         return Response(out.data, status=status.HTTP_201_CREATED)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="catalog_intakes_retrieve",
+        tags=["catalog"],
+        parameters=[
+            OpenApiParameter("intake_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Intake UUID."),
+        ],
+        responses={
+            200: OpenApiResponse(response=IntakeResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+    patch=extend_schema(
+        operation_id="catalog_intakes_update",
+        tags=["catalog"],
+        parameters=[
+            OpenApiParameter("intake_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Intake UUID."),
+        ],
+        request=IntakeSerializer,
+        responses={
+            200: OpenApiResponse(response=IntakeResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+    delete=extend_schema(
+        operation_id="catalog_intakes_deactivate",
+        tags=["catalog"],
+        parameters=[
+            OpenApiParameter("intake_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Intake UUID."),
+        ],
+        request=None,
+        responses={
+            200: OpenApiResponse(response=CatalogMessageResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+)
 class IntakeDetailView(APIView):
     """GET/PATCH/DELETE /api/v1/catalog/intakes/{id}/"""
 
     permission_classes = [IsAdmin]
+    serializer_class = IntakeSerializer
 
     def get(self, request, intake_id):
         try:
@@ -254,11 +426,20 @@ class IntakeDetailView(APIView):
         return Response({"message": "Intake deactivated"})
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="catalog_subjects_list",
+        tags=["catalog"],
+        auth=[],
+        responses={200: OpenApiResponse(response=SubjectListResponseSerializer)},
+    )
+)
 class SubjectListView(APIView):
     """GET /api/v1/catalog/subjects/ — list subjects (public)"""
 
     permission_classes = [AllowAny]
     authentication_classes = []
+    serializer_class = SubjectSerializer
 
     def get(self, request):
         queryset = Subject.objects.all().order_by("name")
@@ -268,6 +449,23 @@ class SubjectListView(APIView):
         return response
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="catalog_institutions_list",
+        tags=["catalog"],
+        auth=[],
+        responses={200: OpenApiResponse(response=InstitutionListResponseSerializer)},
+    ),
+    post=extend_schema(
+        operation_id="catalog_institutions_create",
+        tags=["catalog"],
+        request=InstitutionSerializer,
+        responses={
+            201: OpenApiResponse(response=InstitutionResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+)
 class InstitutionListCreateView(APIView):
     """GET /api/v1/catalog/institutions/ — list institutions
     POST /api/v1/catalog/institutions/ — create institution (admin)
@@ -275,9 +473,10 @@ class InstitutionListCreateView(APIView):
 
     permission_classes = [AllowAny]
     authentication_classes = []
+    serializer_class = InstitutionSerializer
 
     def get_permissions(self):
-        if self.request.method == "POST":
+        if _request_method(self) == "POST":
             return [IsAdmin()]
         return [AllowAny()]
 
@@ -316,10 +515,50 @@ class InstitutionListCreateView(APIView):
         return Response(out.data, status=status.HTTP_201_CREATED)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="catalog_institutions_retrieve",
+        tags=["catalog"],
+        parameters=[
+            OpenApiParameter("institution_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Institution UUID."),
+        ],
+        responses={
+            200: OpenApiResponse(response=InstitutionResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+    patch=extend_schema(
+        operation_id="catalog_institutions_update",
+        tags=["catalog"],
+        parameters=[
+            OpenApiParameter("institution_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Institution UUID."),
+        ],
+        request=InstitutionSerializer,
+        responses={
+            200: OpenApiResponse(response=InstitutionResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+    delete=extend_schema(
+        operation_id="catalog_institutions_deactivate",
+        tags=["catalog"],
+        parameters=[
+            OpenApiParameter("institution_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Institution UUID."),
+        ],
+        request=None,
+        responses={
+            200: OpenApiResponse(response=CatalogMessageResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+            409: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+)
 class InstitutionDetailView(APIView):
     """GET/PATCH/DELETE /api/v1/catalog/institutions/{id}/"""
 
     permission_classes = [IsAdmin]
+    serializer_class = InstitutionSerializer
 
     def get(self, request, institution_id):
         try:

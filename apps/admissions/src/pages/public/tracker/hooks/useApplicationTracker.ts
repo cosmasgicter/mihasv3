@@ -64,7 +64,7 @@ export const useApplicationTracker = () => {
       setError('')
       setApplication(null)
 
-      const result = await apiClient.request<TrackApplicationResponse>(`/applications?action=track&code=${encodeURIComponent(normalizedTerm)}`)
+      const result = await apiClient.request<TrackApplicationResponse>(`/applications/track/?code=${encodeURIComponent(normalizedTerm)}`)
 
       const data = result?.application ?? result ?? null
 

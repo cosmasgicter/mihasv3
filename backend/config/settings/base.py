@@ -255,9 +255,57 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "MIHAS Admissions API",
-    "DESCRIPTION": "Django REST Framework API for the MIHAS admissions portal",
+    "DESCRIPTION": """
+The MIHAS Admissions API is the execution layer behind a modern, audit-ready admissions platform
+for MIHAS, KATC, and related education brands.
+
+## What this API demonstrates
+
+- Product-led admissions design: clear student flows, fast admin workflows, and strong contract boundaries
+- Backend discipline: JWT auth, CSRF protection, rate limiting, audit trails, idempotency, and async task processing
+- Deployment rigor: ASGI-first Django on Koyeb, Redis-backed coordination, Cloudflare R2 storage, and OpenAPI-driven integration
+
+## Surface areas
+
+- `auth`: login, session, refresh, registration, and password recovery
+- `applications`: submission, draft handling, review, tracking, and interview workflows
+- `catalog`: institutions, programs, intakes, and subject metadata
+- `documents` and `payments`: uploads, extraction, verification, and receipt operations
+- `admin`: dashboard, user management, settings, and audit visibility
+
+## Authentication
+
+Protected endpoints accept either:
+
+- a bearer access token for direct API testing
+- or the `access_token` cookie issued by the login flow
+""".strip(),
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    "SERVERS": [
+        {"url": "https://api.mihas.edu.zm", "description": "Production"},
+        {"url": "http://localhost:8000", "description": "Local development"},
+    ],
+    "TAGS": [
+        {"name": "auth", "description": "Authentication, session, and identity flows."},
+        {"name": "sessions", "description": "Device sessions and token lifecycle controls."},
+        {"name": "applications", "description": "Student application creation, review, tracking, and drafts."},
+        {"name": "catalog", "description": "Programs, institutions, intakes, and subject reference data."},
+        {"name": "documents", "description": "Uploads, OCR extraction, and document operations."},
+        {"name": "payments", "description": "Payment verification and receipt flows."},
+        {"name": "admin", "description": "Operational dashboards, staff actions, settings, and audits."},
+        {"name": "notifications", "description": "Notifications, SSE streams, and messaging preferences."},
+        {"name": "email", "description": "Email delivery and messaging endpoints."},
+        {"name": "health", "description": "Operational liveness and readiness endpoints."},
+    ],
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "displayRequestDuration": True,
+        "filter": True,
+        "persistAuthorization": True,
+        "docExpansion": "list",
+        "defaultModelsExpandDepth": 2,
+    },
 }
 
 # ---------------------------------------------------------------------------

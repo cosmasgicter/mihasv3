@@ -82,11 +82,11 @@ export default function ResetPasswordPage() {
 
   const resetPasswordMutation = useMutation({
     mutationFn: async (values: ResetPasswordForm) => {
-      await apiClient.request('/auth?action=reset-password', {
+      await apiClient.request('/auth/password-reset/confirm/', {
         method: 'POST',
         body: JSON.stringify({ 
           token: resetToken,
-          new_password: values.password 
+          newPassword: values.password 
         })
       })
     },

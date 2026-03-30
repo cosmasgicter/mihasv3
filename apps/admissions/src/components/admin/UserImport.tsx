@@ -46,7 +46,7 @@ function splitFullName(fullName: string): { first_name: string; last_name: strin
 async function checkUserExists(email: string): Promise<boolean> {
   const result = await apiClient.request<{
     results?: Array<{ email?: string }>
-  }>(`/admin?action=users&search=${encodeURIComponent(email)}&include_inactive=true`)
+  }>(`/admin/users/?search=${encodeURIComponent(email)}&include_inactive=true`)
 
   return Boolean(
     result?.results?.some((user) => user.email?.toLowerCase() === email.toLowerCase())
@@ -217,7 +217,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
 
             // Create user via admin register endpoint
             const password = userData.password || `temp${Math.random().toString(36).slice(-8)}`
-            const createResult = await apiClient.request<{ id?: string; message?: string }>('/admin?action=register', {
+            const createResult = await apiClient.request<{ id?: string; message?: string }>('/admin/users/', {
               method: 'POST',
               body: JSON.stringify({
                 email: userData.email,

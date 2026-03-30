@@ -62,7 +62,7 @@ export interface UserProfile {
 }
 
 /**
- * Auth session response from /api/auth?action=session
+ * Auth session response from /api/v1/auth/session/
  */
 export interface AuthSession {
   user: User | null;
@@ -70,7 +70,7 @@ export interface AuthSession {
 }
 
 /**
- * Sign in result from /api/auth?action=login
+ * Sign in result from /api/v1/auth/login/
  */
 export interface SignInResult {
   user?: User;
@@ -79,7 +79,7 @@ export interface SignInResult {
 }
 
 /**
- * Sign up result from /api/auth?action=register
+ * Sign up result from /api/v1/auth/register/
  */
 export interface SignUpResult {
   user?: User | null;

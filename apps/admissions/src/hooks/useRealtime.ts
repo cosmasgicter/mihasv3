@@ -33,6 +33,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { dispatchSSEStatus, triggerSSEReconnect, SSE_RECONNECT_EVENT } from '@/contexts/RealtimeStatusContext'
 import { createSSEClient, type SSEClient } from '@/lib/sseClient'
 import { getApiBaseUrl } from '@/lib/apiConfig'
+import { apiClient } from '@/services/client'
 import { useRealtimeStore, type RealtimeEventEnvelope } from '@/stores/realtimeStore'
 
 /**
@@ -113,12 +114,12 @@ interface UseRealtimeReturn {
  * Default options
  */
 const DEFAULT_OPTIONS: Required<UseRealtimeOptions> = {
-  enabled: false, // SSE disabled - Vercel Hobby has 10s function timeout, SSE requires persistent connections
+  enabled: true, // SSE enabled - Django supports persistent connections, no Vercel 10s timeout
   pollingInterval: 30000,
   maxReconnectAttempts: 3,
   initialBackoff: 1000,
   maxBackoff: 30000,
-  pollingEnabled: true, // Polling enabled - backend endpoint exists at /api/sessions?action=poll
+  pollingEnabled: true, // Polling enabled - backend endpoint exists at /api/v1/events/poll/
   batteryFriendly: true,
 }
 
@@ -126,11 +127,6 @@ const DEFAULT_OPTIONS: Required<UseRealtimeOptions> = {
  * SSE endpoint for realtime connections
  */
 const SSE_ENDPOINT = `${getApiBaseUrl()}/api/v1/events/stream/`
-
-/**
- * Polling endpoint for fallback
- */
-const POLLING_ENDPOINT = `${getApiBaseUrl()}/api/v1/events/poll/`
 
 /**
  * useRealtime Hook
@@ -233,29 +229,20 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
       if (document.visibilityState === 'hidden') return
       
       try {
-        const url = new URL(POLLING_ENDPOINT)
+        let pollingPath = '/events/poll/'
         if (lastEventIdRef.current) {
-          url.searchParams.set('lastEventId', lastEventIdRef.current)
+          pollingPath += `?lastEventId=${encodeURIComponent(lastEventIdRef.current)}`
         }
         
-        const response = await fetch(url.toString(), {
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-        })
+        const data = await apiClient.request<{ events?: SSEEvent[] } | SSEEvent[]>(pollingPath)
         
-        if (!response.ok) {
-          throw new Error(`Polling failed: ${response.status}`)
-        }
-        
-        const data = await response.json()
-        
-        const events = Array.isArray(data?.data?.events)
-          ? data.data.events
-          : Array.isArray(data?.data)
-            ? data.data
+        const events = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.events)
+            ? data.events
             : []
 
-        if (data.success && Array.isArray(events)) {
+        if (Array.isArray(events)) {
           const hasEvents = events.length > 0
           events.forEach((event: SSEEvent) => {
             dispatchEvent(event)
