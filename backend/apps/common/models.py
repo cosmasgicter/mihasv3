@@ -122,6 +122,28 @@ class EmailQueue(models.Model):
         return f"Email to {self.recipient_email} ({self.status})"
 
 
+class ErrorLog(models.Model):
+    """Maps to 'error_logs' table. Self-hosted error monitoring."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    source = models.CharField(max_length=20)  # 'backend' or 'frontend'
+    level = models.CharField(max_length=20)  # 'error' or 'warning'
+    message = models.TextField()
+    stack_trace = models.TextField(null=True, blank=True)
+    context = models.JSONField(null=True, blank=True)
+    request_path = models.TextField(null=True, blank=True)
+    user_id = models.UUIDField(null=True, blank=True)
+    ip_hash = models.CharField(max_length=64, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = 'error_logs'
+
+    def __str__(self):
+        return f"[{self.source}/{self.level}] {self.message[:80]}"
+
+
 class MigrationHistory(models.Model):
     """Maps to 'migration_history' table."""
 

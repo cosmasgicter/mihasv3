@@ -615,9 +615,41 @@ class PasswordResetRequestView(APIView):
         # Generate token
         raw_token = generate_password_reset_token(user)
 
-        # Enqueue email via Celery (placeholder — will be wired in task 17.2)
-        logger.info("Password reset token generated for user_id=%s", user.id)
-        # TODO: send_email_task.delay(...)
+        # Enqueue password reset email via Celery
+        try:
+            from apps.common.models import EmailQueue
+            from apps.common.tasks import send_email_task
+
+            reset_link = (
+                f"***REMOVED***/auth/reset-password?token={raw_token}"
+            )
+            subject = "Password Reset Request"
+            body = (
+                "<p>You requested a password reset for your MIHAS account.</p>"
+                f'<p><a href="{reset_link}">Click here to reset your password</a></p>'
+                "<p>If you did not request this, you can safely ignore this email. "
+                "The link will expire in 1 hour.</p>"
+            )
+
+            email_record = EmailQueue.objects.create(
+                recipient_email=user.email,
+                subject=subject,
+                body=body,
+                status="pending",
+            )
+
+            send_email_task.delay(str(email_record.id))
+
+            logger.info(
+                "Password reset email queued for user_id=%s (email_queue_id=%s)",
+                user.id,
+                email_record.id,
+            )
+        except Exception:
+            logger.exception(
+                "Failed to queue password reset email for user_id=%s",
+                user.id,
+            )
 
         return success_response
 

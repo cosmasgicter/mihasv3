@@ -1,13 +1,17 @@
-"""Common Celery tasks — email delivery and bulk notifications.
+"""Common Celery tasks — email delivery, bulk notifications, uptime monitoring, and audit cleanup.
 
 Implements task 17.2.
-Requirements: 8.3, 8.4, 12.2, 12.3
+Requirements: 8.3, 8.4, 12.2, 12.3, 5.2, 5.3, 5.4, 5.5, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6
 """
 
 import logging
+from datetime import timedelta
 
+import requests as http_requests
 from celery import shared_task
 from django.conf import settings
+from django.core.cache import cache
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -126,3 +130,149 @@ def send_bulk_notifications_task(self, notification_ids):
 
         except Exception:
             logger.exception("Failed to process notification %s", notification.id)
+
+
+UPTIME_REDIS_KEY = "uptime:last_status"
+UPTIME_STATUS_OK = "ok"
+UPTIME_STATUS_DOWN = "down"
+
+
+@shared_task(bind=True, max_retries=0)
+def check_uptime_task(self):
+    """Internal health check — pings /health/ready/ and alerts on failure.
+
+    Sends HTTP GET to the configured HEALTH_CHECK_URL with a 10-second
+    timeout.  Tracks previous status in Redis key 'uptime:last_status'.
+
+    On transition healthy → unhealthy: dispatches alert email.
+    On transition unhealthy → healthy: dispatches recovery email.
+    Repeated failures without recovery do not produce duplicate alerts.
+
+    Requirements: 5.2, 5.3, 5.4, 5.5
+    """
+    from apps.common.models import EmailQueue
+
+    health_url = getattr(settings, "HEALTH_CHECK_URL", "***REMOVED***")
+    alert_email = getattr(settings, "ERROR_ALERT_EMAIL", "***REMOVED***")
+    email_from = getattr(settings, "EMAIL_FROM", "noreply@mihas.edu.zm")
+
+    # Determine current health status.
+    current_status = UPTIME_STATUS_DOWN
+    try:
+        resp = http_requests.get(health_url, timeout=10)
+        if resp.status_code == 200:
+            current_status = UPTIME_STATUS_OK
+    except Exception:
+        # Timeout, connection error, etc. — treat as down.
+        current_status = UPTIME_STATUS_DOWN
+
+    # Read previous status from Redis (default to 'ok' on first run).
+    try:
+        previous_status = cache.get(UPTIME_REDIS_KEY, UPTIME_STATUS_OK)
+    except Exception:
+        logger.error("Failed to read uptime status from Redis, treating as new incident")
+        previous_status = UPTIME_STATUS_OK
+
+    # Persist current status.
+    try:
+        cache.set(UPTIME_REDIS_KEY, current_status, timeout=None)
+    except Exception:
+        logger.error("Failed to write uptime status to Redis")
+
+    # Detect transitions and dispatch emails.
+    if previous_status == UPTIME_STATUS_OK and current_status == UPTIME_STATUS_DOWN:
+        # Healthy → unhealthy transition: send alert.
+        logger.warning("Health check FAILED for %s — dispatching alert", health_url)
+        try:
+            email_record = EmailQueue.objects.create(
+                recipient_email=alert_email,
+                subject="🔴 MIHAS API Down — Health Check Failed",
+                body=(
+                    f"<p>The internal health check to <code>{health_url}</code> has failed.</p>"
+                    "<p>The API may be experiencing an outage. Please investigate immediately.</p>"
+                    f"<p>Checked by: <code>check_uptime_task</code></p>"
+                ),
+                status="pending",
+            )
+            send_email_task.delay(str(email_record.id))
+        except Exception:
+            logger.exception("Failed to dispatch uptime alert email")
+
+    elif previous_status == UPTIME_STATUS_DOWN and current_status == UPTIME_STATUS_OK:
+        # Unhealthy → healthy transition: send recovery notification.
+        logger.info("Health check RECOVERED for %s — dispatching recovery notice", health_url)
+        try:
+            email_record = EmailQueue.objects.create(
+                recipient_email=alert_email,
+                subject="🟢 MIHAS API Recovered — Health Check Passed",
+                body=(
+                    f"<p>The internal health check to <code>{health_url}</code> is now passing.</p>"
+                    "<p>The API has recovered from the previous outage.</p>"
+                    f"<p>Checked by: <code>check_uptime_task</code></p>"
+                ),
+                status="pending",
+            )
+            send_email_task.delay(str(email_record.id))
+        except Exception:
+            logger.exception("Failed to dispatch uptime recovery email")
+
+    elif current_status == UPTIME_STATUS_DOWN:
+        # Still down — no duplicate alert.
+        logger.warning("Health check still failing for %s — no duplicate alert", health_url)
+    else:
+        logger.debug("Health check OK for %s", health_url)
+
+
+STANDARD_RETENTION_DAYS = 90
+SECURITY_RETENTION_DAYS = 365
+BATCH_SIZE = 1000
+
+
+@shared_task(bind=True, max_retries=1, default_retry_delay=300)
+def cleanup_audit_logs_task(self):
+    """Purge expired audit log records in batches of 1000.
+
+    Deletes standard-retention records older than 90 days and
+    security-retention records older than 365 days.  Batches deletes
+    to avoid long-running transactions.
+
+    On database error: logs the error and retries once after 5 minutes.
+
+    Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6
+    """
+    from apps.common.models import AuditLog
+
+    now = timezone.now()
+
+    retention_rules = [
+        ("standard", now - timedelta(days=STANDARD_RETENTION_DAYS)),
+        ("security", now - timedelta(days=SECURITY_RETENTION_DAYS)),
+    ]
+
+    try:
+        for category, cutoff in retention_rules:
+            total_deleted = 0
+            while True:
+                # Fetch a batch of IDs to delete.
+                batch_ids = list(
+                    AuditLog.objects.filter(
+                        retention_category=category,
+                        created_at__lt=cutoff,
+                    )
+                    .values_list("id", flat=True)[:BATCH_SIZE]
+                )
+                if not batch_ids:
+                    break
+                deleted_count, _ = AuditLog.objects.filter(id__in=batch_ids).delete()
+                total_deleted += deleted_count
+
+            logger.info(
+                "Audit log cleanup: deleted %d '%s' records older than %s",
+                total_deleted,
+                category,
+                cutoff.isoformat(),
+            )
+
+    except Exception as exc:
+        logger.error("Audit log cleanup failed: %s", exc)
+        raise self.retry(exc=exc)

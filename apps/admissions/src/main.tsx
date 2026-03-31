@@ -11,9 +11,13 @@ import {
 } from '@/lib/reloadControl'
 import { registerSW } from 'virtual:pwa-register'
 import { evaluateChunkAutoReloadPolicy } from '@/lib/chunkAutoReloadPolicy'
+import { initErrorReporter } from '@/lib/errorReporter'
 
 // Initialize connection manager to suppress extension errors
 import { connectionManager } from '@/lib/connectionFix'
+
+// Activate the global error reporter (respects VITE_ERROR_REPORT_ENABLED)
+initErrorReporter()
 
 const CHUNK_RELOAD_LAST_TS_KEY = 'mihas_chunk_reload_ts_v2'
 const CHUNK_RELOAD_COUNT_KEY = 'mihas_chunk_reload_count_v2'

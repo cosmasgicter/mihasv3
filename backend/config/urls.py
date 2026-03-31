@@ -53,4 +53,6 @@ urlpatterns = [
     path("api/v1/events/", include("apps.common.event_urls")),
     # Email endpoints
     path("api/v1/email/", include("apps.common.email_urls")),
+    # Error monitoring endpoints
+    path("api/v1/errors/", include("apps.common.error_urls")),
 ]
