@@ -7,6 +7,7 @@ Requirements: 10.1
 from django.urls import path
 
 from apps.applications.views import (
+    AcceptanceLetterView,
     ApplicationBulkStatusView,
     ApplicationDetailView,
     ApplicationDocumentsView,
@@ -18,6 +19,8 @@ from apps.applications.views import (
     ApplicationReviewView,
     ApplicationSummaryView,
     ApplicationTrackView,
+    ApplicationVerifyDocumentView,
+    FinanceReceiptView,
 )
 
 app_name = "applications"
@@ -34,4 +37,7 @@ urlpatterns = [
     path("<uuid:application_id>/summary/", ApplicationSummaryView.as_view(), name="application-summary"),
     path("<uuid:application_id>/review/", ApplicationReviewView.as_view(), name="application-review"),
     path("<uuid:application_id>/interviews/", ApplicationInterviewView.as_view(), name="application-interviews"),
+    path("<uuid:application_id>/verify-document/", ApplicationVerifyDocumentView.as_view(), name="application-verify-document"),
+    path("<uuid:application_id>/acceptance-letter/", AcceptanceLetterView.as_view(), name="application-acceptance-letter"),
+    path("<uuid:application_id>/finance-receipt/", FinanceReceiptView.as_view(), name="application-finance-receipt"),
 ]

@@ -5,6 +5,7 @@ Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 4.10
 """
 
 import csv
+import hashlib
 import io
 import logging
 import uuid
@@ -116,6 +117,22 @@ ApplicationGradesResponseSerializer = envelope_serializer(
 ApplicationGradeMutationResponseSerializer = envelope_serializer(
     "ApplicationGradeMutationResponse",
     ApplicationGradeMutationSerializer(),
+)
+ApplicationDocumentMutationResponseSerializer = envelope_serializer(
+    "ApplicationDocumentMutationResponse",
+    DocumentSerializer(),
+)
+
+
+class ApplicationAsyncTaskSerializer(serializers.Serializer):
+    task_id = serializers.CharField()
+    application_id = serializers.UUIDField()
+    status = serializers.CharField()
+
+
+ApplicationAsyncTaskResponseSerializer = envelope_serializer(
+    "ApplicationAsyncTaskResponse",
+    ApplicationAsyncTaskSerializer(),
 )
 ApplicationSummaryResponseSerializer = envelope_serializer(
     "ApplicationSummaryResponse",
@@ -772,3 +789,351 @@ class ApplicationInterviewView(APIView):
 
         serializer.save(updated_by_id=str(request.user.id))
         return Response(serializer.data)
+
+
+class DocumentVerifySerializer(serializers.Serializer):
+    """Validates document verification requests."""
+
+    documentId = serializers.UUIDField()
+    documentType = serializers.CharField(required=False, allow_blank=True)
+    status = serializers.ChoiceField(choices=["verified", "rejected"])
+    notes = serializers.CharField(required=False, allow_blank=True, default="")
+
+
+class ApplicationVerifyDocumentView(APIView):
+    """POST /api/v1/applications/{id}/verify-document/"""
+
+    permission_classes = [IsAdmin]
+    serializer_class = DocumentVerifySerializer
+
+    @extend_schema(
+        operation_id="applications_verify_document",
+        tags=["applications"],
+        request=DocumentVerifySerializer,
+        responses={
+            200: OpenApiResponse(response=ApplicationDocumentMutationResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+
+    def post(self, request, application_id):
+        # Look up application
+        try:
+            application = Application.objects.get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Validate request body
+        serializer = DocumentVerifySerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                {
+                    "success": False,
+                    "error": "Validation failed",
+                    "code": "VALIDATION_ERROR",
+                    "details": serializer.errors,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        document_id = serializer.validated_data["documentId"]
+        verification_status = serializer.validated_data["status"]
+        notes = serializer.validated_data.get("notes", "")
+
+        # Look up document belonging to this application
+        try:
+            document = ApplicationDocument.objects.get(
+                id=document_id, application_id=application.id
+            )
+        except ApplicationDocument.DoesNotExist:
+            return Response(
+                {
+                    "success": False,
+                    "error": "Document not found for this application",
+                    "code": "NOT_FOUND",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Update verification fields
+        old_status = document.verification_status
+        document.verification_status = verification_status
+        document.verified_by_id = str(request.user.id)
+        document.verified_at = timezone.now()
+        document.verification_notes = notes
+        document.save(
+            update_fields=[
+                "verification_status",
+                "verified_by",
+                "verified_at",
+                "verification_notes",
+                "updated_at",
+            ]
+        )
+
+        # Create audit log entry
+        from apps.common.models import AuditLog
+
+        ip_address = request.META.get("HTTP_X_FORWARDED_FOR", "")
+        if ip_address:
+            ip_address = ip_address.split(",")[0].strip()
+        else:
+            ip_address = request.META.get("REMOTE_ADDR", "")
+
+        AuditLog.objects.create(
+            actor_id=str(request.user.id),
+            action=f"document_{verification_status}",
+            entity_type="application_documents",
+            entity_id=document.id,
+            changes={
+                "old_status": old_status,
+                "new_status": verification_status,
+                "notes": notes,
+            },
+            ip_address=hashlib.sha256(ip_address.encode()).hexdigest(),
+            user_agent=hashlib.sha256(
+                request.META.get("HTTP_USER_AGENT", "").encode()
+            ).hexdigest(),
+            retention_category="standard",
+        )
+
+        return Response({"success": True, "data": DocumentSerializer(document).data})
+
+
+class AcceptanceLetterView(APIView):
+    """POST /api/v1/applications/{id}/acceptance-letter/
+
+    Enqueues a Celery task to generate an acceptance letter PDF.
+    Returns 202 immediately with task metadata.
+    Idempotent within a 1-hour window.
+    """
+
+    permission_classes = [IsAdmin]
+    serializer_class = ApplicationAsyncTaskSerializer
+
+    @extend_schema(
+        operation_id="applications_generate_acceptance_letter",
+        tags=["applications"],
+        request=None,
+        responses={
+            202: OpenApiResponse(response=ApplicationAsyncTaskResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+            503: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+
+    def post(self, request, application_id):
+        # Look up application
+        try:
+            application = Application.objects.get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Validate application status
+        if application.status != "approved":
+            return Response(
+                {
+                    "success": False,
+                    "error": "Application must be in accepted status to generate an acceptance letter",
+                    "code": "INVALID_STATUS",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check idempotency — 1-hour TTL
+        from apps.common.models import AuditLog, IdempotencyKey
+        from datetime import timedelta
+
+        idempotency_key = f"acceptance-letter:{application_id}"
+        ttl_threshold = timezone.now() - timedelta(hours=1)
+
+        existing = IdempotencyKey.objects.filter(
+            key=idempotency_key, created_at__gt=ttl_threshold
+        ).first()
+        if existing:
+            return Response(
+                {"success": True, "data": existing.response_json},
+                status=status.HTTP_202_ACCEPTED,
+            )
+
+        # Enqueue Celery task (lazy import — task file created in Task 8)
+        try:
+            from apps.applications.tasks import generate_acceptance_letter_task
+        except ImportError:
+            logger.warning("generate_acceptance_letter_task not yet available")
+            return Response(
+                {
+                    "success": False,
+                    "error": "Task handler not available",
+                    "code": "SERVICE_UNAVAILABLE",
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        task = generate_acceptance_letter_task.delay(str(application.id))
+
+        response_data = {
+            "task_id": task.id,
+            "application_id": str(application.id),
+            "status": "queued",
+        }
+
+        # Store idempotency key
+        IdempotencyKey.objects.create(
+            key=idempotency_key,
+            endpoint=f"/api/v1/applications/{application_id}/acceptance-letter/",
+            response_json=response_data,
+        )
+
+        # Create audit log entry
+        ip_address = request.META.get("HTTP_X_FORWARDED_FOR", "")
+        if ip_address:
+            ip_address = ip_address.split(",")[0].strip()
+        else:
+            ip_address = request.META.get("REMOTE_ADDR", "")
+
+        AuditLog.objects.create(
+            actor_id=str(request.user.id),
+            action="generate_acceptance_letter",
+            entity_type="applications",
+            entity_id=application.id,
+            changes={"task_id": task.id, "status": "queued"},
+            ip_address=hashlib.sha256(ip_address.encode()).hexdigest(),
+            user_agent=hashlib.sha256(
+                request.META.get("HTTP_USER_AGENT", "").encode()
+            ).hexdigest(),
+            retention_category="standard",
+        )
+
+        return Response(
+            {"success": True, "data": response_data},
+            status=status.HTTP_202_ACCEPTED,
+        )
+
+
+class FinanceReceiptView(APIView):
+    """POST /api/v1/applications/{id}/finance-receipt/
+
+    Enqueues a Celery task to generate a finance receipt PDF.
+    Returns 202 immediately with task metadata.
+    Idempotent within a 1-hour window.
+    """
+
+    permission_classes = [IsAdmin]
+    serializer_class = ApplicationAsyncTaskSerializer
+
+    @extend_schema(
+        operation_id="applications_generate_finance_receipt",
+        tags=["applications"],
+        request=None,
+        responses={
+            202: OpenApiResponse(response=ApplicationAsyncTaskResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+            503: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+
+    def post(self, request, application_id):
+        # Look up application
+        try:
+            application = Application.objects.get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Validate that a verified payment exists
+        from apps.documents.models import Payment
+
+        has_verified_payment = Payment.objects.filter(
+            application_id=application.id, status="verified"
+        ).exists()
+        if not has_verified_payment:
+            return Response(
+                {
+                    "success": False,
+                    "error": "Application must have a completed payment to generate a finance receipt",
+                    "code": "PAYMENT_REQUIRED",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check idempotency — 1-hour TTL
+        from apps.common.models import AuditLog, IdempotencyKey
+        from datetime import timedelta
+
+        idempotency_key = f"finance-receipt:{application_id}"
+        ttl_threshold = timezone.now() - timedelta(hours=1)
+
+        existing = IdempotencyKey.objects.filter(
+            key=idempotency_key, created_at__gt=ttl_threshold
+        ).first()
+        if existing:
+            return Response(
+                {"success": True, "data": existing.response_json},
+                status=status.HTTP_202_ACCEPTED,
+            )
+
+        # Enqueue Celery task (lazy import — task file created in Task 8)
+        try:
+            from apps.applications.tasks import generate_finance_receipt_task
+        except ImportError:
+            logger.warning("generate_finance_receipt_task not yet available")
+            return Response(
+                {
+                    "success": False,
+                    "error": "Task handler not available",
+                    "code": "SERVICE_UNAVAILABLE",
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        task = generate_finance_receipt_task.delay(str(application.id))
+
+        response_data = {
+            "task_id": task.id,
+            "application_id": str(application.id),
+            "status": "queued",
+        }
+
+        # Store idempotency key
+        IdempotencyKey.objects.create(
+            key=idempotency_key,
+            endpoint=f"/api/v1/applications/{application_id}/finance-receipt/",
+            response_json=response_data,
+        )
+
+        # Create audit log entry
+        ip_address = request.META.get("HTTP_X_FORWARDED_FOR", "")
+        if ip_address:
+            ip_address = ip_address.split(",")[0].strip()
+        else:
+            ip_address = request.META.get("REMOTE_ADDR", "")
+
+        AuditLog.objects.create(
+            actor_id=str(request.user.id),
+            action="generate_finance_receipt",
+            entity_type="applications",
+            entity_id=application.id,
+            changes={"task_id": task.id, "status": "queued"},
+            ip_address=hashlib.sha256(ip_address.encode()).hexdigest(),
+            user_agent=hashlib.sha256(
+                request.META.get("HTTP_USER_AGENT", "").encode()
+            ).hexdigest(),
+            retention_category="standard",
+        )
+
+        return Response(
+            {"success": True, "data": response_data},
+            status=status.HTTP_202_ACCEPTED,
+        )

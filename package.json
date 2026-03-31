@@ -4,8 +4,12 @@
   "workspaces": ["apps/*", "shared"],
   "scripts": {
     "dev:admissions": "cd apps/admissions && bun run dev",
+    "dev:jobs-ops": "cd apps/jobs-ops && bun run dev",
     "build:admissions": "cd apps/admissions && bun run build",
+    "build:jobs-ops": "cd apps/jobs-ops && bun run build",
     "test:admissions": "cd apps/admissions && bun run test",
-    "lint:admissions": "cd apps/admissions && bun run lint"
+    "lint:admissions": "cd apps/admissions && bun run lint",
+    "lint:jobs-ops": "cd apps/jobs-ops && bun run lint",
+    "type-check:jobs-ops": "cd apps/jobs-ops && bun run type-check"
   }
 }

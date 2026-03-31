@@ -105,6 +105,7 @@ The frontend and backend share a single, unified API contract. There is no trans
 - Use `apiClient` instead of raw `fetch` unless there is a clear reason not to.
 - All service methods pass short paths (e.g., `/applications/`, `/auth/login/`) to `apiClient.request()`. The client prepends `/api/v1` via `toApiV1Path()`.
 - Do not introduce `?action=` query-parameter patterns. All endpoints use resource-style REST paths.
+- `downloadFile()` in `lib/storage.ts` uses raw `fetch()` for absolute URLs (R2 signed URLs, external CDN links). This is intentional — these requests target external origins where CSRF/cookie handling should not be applied.
 
 ### Backend
 

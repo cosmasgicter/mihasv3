@@ -115,6 +115,7 @@ These are current repo facts, not aspirational rules:
 - All admissions services, hooks, and pages use `/api/v1/` REST-style paths. No legacy `?action=` query-parameter patterns remain in source code.
 - The backend only exposes `/api/v1/...` routes; it does not ship a legacy compatibility router.
 - Several legacy test files under `apps/admissions/tests/` still import from `../../../api/...`, but there is no `apps/admissions/api/` directory. These tests target the defunct Vercel Functions backend and need cleanup.
+- `downloadFile()` in `apps/admissions/src/lib/storage.ts` uses raw `fetch()` instead of `apiClient` for absolute URLs. This is intentional — R2 signed URLs and external CDN links target external origins where CSRF/cookie handling should not be applied.
 
 ## What Not To Copy Forward
 

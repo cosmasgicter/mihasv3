@@ -65,8 +65,23 @@ const draftDataArb = fc.record({
   ),
 })
 
-/** Arbitrary JSON-serializable values (no undefined, no functions, no symbols) */
-const jsonSerializableArb = fc.jsonValue()
+/**
+ * Arbitrary JSON-serializable values (no undefined, no functions, no symbols).
+ * Excludes -0 because JSON.stringify(-0) === "0", so JSON.parse round-trips
+ * -0 to +0. This is expected JavaScript behavior, not a bug in auto-save.
+ */
+const jsonSerializableArb = fc.jsonValue().map(function stripNegativeZero(v: unknown): unknown {
+  if (typeof v === 'number' && Object.is(v, -0)) return 0
+  if (Array.isArray(v)) return v.map(stripNegativeZero)
+  if (v !== null && typeof v === 'object') {
+    const out: Record<string, unknown> = {}
+    for (const [k, val] of Object.entries(v)) {
+      out[k] = stripNegativeZero(val)
+    }
+    return out
+  }
+  return v
+})
 
 // ── Tests ────────────────────────────────────────────────────────────────
 

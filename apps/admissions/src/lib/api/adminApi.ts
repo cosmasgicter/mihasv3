@@ -13,42 +13,6 @@
 import { apiClient } from '@/services/client';
 import type { StudentNotification } from '@/types/notifications';
 
-/**
- * Custom error class for HTML response detection
- */
-export class HtmlResponseError extends Error {
-  constructor(message: string = 'Server returned an unexpected response. Please try again.') {
-    super(message);
-    this.name = 'HtmlResponseError';
-  }
-}
-
-/**
- * Checks if a response body contains HTML instead of JSON
- */
-export function isHtmlResponse(text: string): boolean {
-  if (!text || typeof text !== 'string') return false;
-  const trimmed = text.trim().toLowerCase();
-  return trimmed.startsWith('<!doctype') || trimmed.startsWith('<html');
-}
-
-/**
- * Parses a response as JSON, detecting and handling HTML responses
- */
-export async function parseJsonResponse<T>(response: Response): Promise<T> {
-  const text = await response.text();
-
-  if (isHtmlResponse(text)) {
-    throw new HtmlResponseError();
-  }
-
-  try {
-    return JSON.parse(text) as T;
-  } catch {
-    throw new Error('Failed to parse server response');
-  }
-}
-
 export interface SystemSetting {
   id: string;
   key: string;
