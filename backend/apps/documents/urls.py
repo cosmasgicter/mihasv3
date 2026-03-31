@@ -12,16 +12,32 @@ from apps.documents.views import (
     PaymentReceiptView,
     PaymentVerifyView,
 )
+from apps.documents.job_views import (
+    CoverLetterGenerateView,
+    DocumentVersionListView,
+    QuestionBankAnswerView,
+    ResumeListView,
+    ResumeVariantCreateView,
+)
 
 app_name = "documents"
 
 # Document endpoints: /api/v1/documents/...
 document_urlpatterns = [
     path("upload/", DocumentUploadView.as_view(), name="document-upload"),
+    path("resumes/", ResumeListView.as_view(), name="resume-list"),
+    path("resumes/variants/", ResumeVariantCreateView.as_view(), name="resume-variant-create"),
+    path("cover-letters/generate/", CoverLetterGenerateView.as_view(), name="cover-letter-generate"),
+    path("question-bank/answer/", QuestionBankAnswerView.as_view(), name="question-bank-answer"),
     path(
         "<uuid:document_id>/extract/",
         DocumentExtractView.as_view(),
         name="document-extract",
+    ),
+    path(
+        "<uuid:document_id>/versions/",
+        DocumentVersionListView.as_view(),
+        name="document-version-list",
     ),
 ]
 

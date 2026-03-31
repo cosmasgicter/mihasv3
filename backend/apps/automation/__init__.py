@@ -1,0 +1,2 @@
+"""Automation domain scaffold."""
+

@@ -245,10 +245,13 @@ export const applicationService = {
   },
 
   verifyDocument: async (
-    _id: string,
-    _payload: { documentId?: string; documentType?: string; status: string; notes?: string }
+    id: string,
+    payload: { documentId?: string; documentType?: string; status: string; notes?: string }
   ) => {
-    throw new Error('Document verification is not implemented in the Django backend yet')
+    return apiClient.request(`/applications/${encodeURIComponent(id)}/verify-document/`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
   },
 
   syncGrades: async (id: string, grades: Array<{ subject_id: string; grade: number }>) => {
@@ -275,12 +278,18 @@ export const applicationService = {
     return { success: true }
   },
 
-  generateAcceptanceLetter: async (_id: string) => {
-    throw new Error('Acceptance-letter generation is not implemented in the Django backend yet')
+  generateAcceptanceLetter: async (id: string) => {
+    return apiClient.request<{ task_id: string; application_id: string; status: string }>(
+      `/applications/${encodeURIComponent(id)}/acceptance-letter/`,
+      { method: 'POST' }
+    )
   },
 
-  generateFinanceReceipt: async (_id: string) => {
-    throw new Error('Finance receipt generation is not implemented in the Django backend yet')
+  generateFinanceReceipt: async (id: string) => {
+    return apiClient.request<{ task_id: string; application_id: string; status: string }>(
+      `/applications/${encodeURIComponent(id)}/finance-receipt/`,
+      { method: 'POST' }
+    )
   },
 
   /** POST /applications/{id}/interviews/ — schedule interview */

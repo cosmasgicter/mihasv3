@@ -379,6 +379,7 @@ class NotificationMarkReadView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = MessageSerializer
 
     def put(self, request, pk):
         try:
@@ -421,6 +422,7 @@ class NotificationMarkAllReadView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = MessageSerializer
 
     def put(self, request):
         updated = Notification.objects.filter(

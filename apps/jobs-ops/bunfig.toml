@@ -1,0 +1,9 @@
+[install]
+exact = true
+
+[install.lockfile]
+save = true
+
+[run]
+silent = false
+

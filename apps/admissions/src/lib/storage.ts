@@ -287,6 +287,8 @@ export async function getFileUrl(bucket: string, path: string): Promise<{ succes
 export async function downloadFile(bucket: string, path: string): Promise<{ success: boolean; data?: Blob; error?: string }> {
   void bucket
   try {
+    // Absolute URLs (R2 signed URLs / external CDN links) use raw fetch() intentionally.
+    // These target external origins where CSRF tokens and auth cookies should not be sent.
     if (/^https?:\/\//.test(path)) {
       const response = await fetch(path)
       if (!response.ok) {

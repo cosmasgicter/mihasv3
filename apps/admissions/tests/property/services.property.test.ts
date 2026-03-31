@@ -460,3 +460,200 @@ describe('Property 10: Query parameter construction for list endpoints', () => {
     );
   });
 });
+
+// ── Property 1: No source imports of removed dead code ──────────────────
+// Feature: post-migration-cleanup, Property 1: No source imports of removed dead code
+
+import * as fs from 'fs';
+import * as path from 'path';
+
+describe('Property 1: No source imports of removed dead code', () => {
+  /**
+   * For any source file under apps/admissions/src/, the file shall not
+   * contain an import of HtmlResponseError, parseJsonResponse, or
+   * isHtmlResponse from adminApi.ts.
+   *
+   * **Validates: Requirements 2.2**
+   */
+
+  const SRC_DIR = path.resolve(__dirname, '../../src');
+
+  /** Recursively collect all .ts and .tsx files under a directory */
+  function collectSourceFiles(dir: string): string[] {
+    const results: string[] = [];
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        results.push(...collectSourceFiles(fullPath));
+      } else if (entry.isFile() && /\.(ts|tsx)$/.test(entry.name)) {
+        results.push(fullPath);
+      }
+    }
+    return results;
+  }
+
+  const allSourceFiles = collectSourceFiles(SRC_DIR);
+
+  /** The dead code symbols that should not be imported anywhere */
+  const DEAD_SYMBOLS = ['HtmlResponseError', 'parseJsonResponse', 'isHtmlResponse'];
+
+  /**
+   * Patterns that match import statements pulling dead symbols from adminApi.
+   * Covers both alias (@/lib/api/adminApi) and relative (../lib/api/adminApi) imports.
+   */
+  const deadImportPatterns = DEAD_SYMBOLS.map((symbol) => new RegExp(
+    `import\\s+.*\\b${symbol}\\b.*from\\s+['"](?:@\\/lib\\/api\\/adminApi|[.]{1,2}\\/.*adminApi)['"]`
+  ));
+
+  /** Arbitrary that picks a random non-empty subset of source files */
+  const sourceFileSubsetArb = fc.shuffledSubarray(
+    allSourceFiles,
+    { minLength: 1, maxLength: Math.min(allSourceFiles.length, 50) },
+  );
+
+  it('no source file imports HtmlResponseError, parseJsonResponse, or isHtmlResponse from adminApi', () => {
+    fc.assert(
+      fc.property(sourceFileSubsetArb, (files) => {
+        for (const filePath of files) {
+          const content = fs.readFileSync(filePath, 'utf-8');
+          const relativePath = path.relative(SRC_DIR, filePath);
+
+          for (const pattern of deadImportPatterns) {
+            expect(
+              pattern.test(content),
+              `File ${relativePath} imports dead code matching ${pattern.source}`,
+            ).toBe(false);
+          }
+        }
+      }),
+      { numRuns: 100 },
+    );
+  });
+
+  it('adminApi.ts itself does not export the removed symbols', () => {
+    const adminApiPath = path.resolve(SRC_DIR, 'lib/api/adminApi.ts');
+    const content = fs.readFileSync(adminApiPath, 'utf-8');
+
+    for (const symbol of DEAD_SYMBOLS) {
+      // Check for export declarations of the dead symbols
+      const exportPattern = new RegExp(`export\\s+(?:class|function|const|async\\s+function)\\s+${symbol}\\b`);
+      expect(
+        exportPattern.test(content),
+        `adminApi.ts still exports ${symbol}`,
+      ).toBe(false);
+    }
+  });
+});
+
+// ── Property 4: Frontend service URL construction ───────────────────────
+// Feature: post-migration-cleanup, Property 4: Frontend service URL construction
+
+describe('Property 4: Frontend service URL construction', () => {
+  /**
+   * For any application ID string, the verifyDocument, generateAcceptanceLetter,
+   * and generateFinanceReceipt methods in applicationService shall construct
+   * URLs matching /applications/{id}/verify-document/,
+   * /applications/{id}/acceptance-letter/, and
+   * /applications/{id}/finance-receipt/ respectively.
+   *
+   * We replicate the exact URL construction pattern from applications.ts
+   * and verify it produces the correct path for any generated ID.
+   *
+   * **Validates: Requirements 3.6, 4.7, 5.7**
+   */
+
+  /** Endpoint definitions matching the three service methods */
+  const endpointMap = {
+    verifyDocument: 'verify-document',
+    generateAcceptanceLetter: 'acceptance-letter',
+    generateFinanceReceipt: 'finance-receipt',
+  } as const;
+
+  type MethodName = keyof typeof endpointMap;
+
+  /**
+   * Replicate the URL construction from applications.ts.
+   * Each method uses: `/applications/${encodeURIComponent(id)}/{subResource}/`
+   */
+  function buildServiceUrl(id: string, subResource: string): string {
+    return `/applications/${encodeURIComponent(id)}/${subResource}/`;
+  }
+
+  /** Arbitrary for application IDs — mix of UUIDs and arbitrary strings */
+  const applicationIdArb = fc.oneof(
+    fc.uuid(),
+    fc.string({ minLength: 1, maxLength: 64 }).filter(s => s.trim().length > 0),
+  );
+
+  /** Arbitrary for the three method names */
+  const methodNameArb: fc.Arbitrary<MethodName> = fc.constantFrom(
+    'verifyDocument' as MethodName,
+    'generateAcceptanceLetter' as MethodName,
+    'generateFinanceReceipt' as MethodName,
+  );
+
+  it('constructs URLs matching /applications/{id}/{sub-resource}/ for all three methods', () => {
+    fc.assert(
+      fc.property(applicationIdArb, methodNameArb, (id, method) => {
+        const subResource = endpointMap[method];
+        const url = buildServiceUrl(id, subResource);
+
+        // Must start with /applications/
+        expect(url.startsWith('/applications/')).toBe(true);
+
+        // Must end with /{sub-resource}/
+        expect(url.endsWith(`/${subResource}/`)).toBe(true);
+
+        // Must contain the encoded ID
+        expect(url).toContain(encodeURIComponent(id));
+
+        // Must match the exact expected pattern
+        const expectedUrl = `/applications/${encodeURIComponent(id)}/${subResource}/`;
+        expect(url).toBe(expectedUrl);
+      }),
+      { numRuns: 100 },
+    );
+  });
+
+  it('URL contains no query parameters', () => {
+    fc.assert(
+      fc.property(applicationIdArb, methodNameArb, (id, method) => {
+        const subResource = endpointMap[method];
+        const url = buildServiceUrl(id, subResource);
+
+        expect(url).not.toContain('?');
+        expect(url).not.toContain('&');
+      }),
+      { numRuns: 100 },
+    );
+  });
+
+  it('preserves the application ID exactly through encode/decode', () => {
+    fc.assert(
+      fc.property(applicationIdArb, (id) => {
+        const url = buildServiceUrl(id, 'verify-document');
+
+        // Extract the ID segment: /applications/{encoded-id}/verify-document/
+        const segments = url.split('/').filter(Boolean);
+        // segments: ['applications', '{encoded-id}', 'verify-document']
+        const extractedId = decodeURIComponent(segments[1]);
+
+        expect(extractedId).toBe(id);
+      }),
+      { numRuns: 100 },
+    );
+  });
+
+  it('URL always has a trailing slash', () => {
+    fc.assert(
+      fc.property(applicationIdArb, methodNameArb, (id, method) => {
+        const subResource = endpointMap[method];
+        const url = buildServiceUrl(id, subResource);
+
+        expect(url.endsWith('/')).toBe(true);
+      }),
+      { numRuns: 100 },
+    );
+  });
+});

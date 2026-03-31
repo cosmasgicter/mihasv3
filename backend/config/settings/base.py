@@ -49,6 +49,11 @@ INSTALLED_APPS = [
     "apps.documents",
     "apps.catalog",
     "apps.common",
+    "apps.jobs",
+    "apps.outreach",
+    "apps.automation",
+    "apps.integrations",
+    "apps.analytics",
 ]
 
 MIDDLEWARE = [
@@ -254,14 +259,17 @@ REST_FRAMEWORK = {
 # ---------------------------------------------------------------------------
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "MIHAS Admissions API",
+    "TITLE": "MIHAS Platform APIs",
     "DESCRIPTION": """
-The MIHAS Admissions API is the execution layer behind a modern, audit-ready admissions platform
-for MIHAS, KATC, and related education brands.
+Creator: Cosmas Kanchepa
+Developed by Beanola Technologies - https://beanola.com
+
+The MIHAS platform API surface now includes the existing admissions backend plus the implemented
+Jobs Ops v1 domain for AI-driven job discovery, application operations, outreach, and reporting.
 
 ## What this API demonstrates
 
-- Product-led admissions design: clear student flows, fast admin workflows, and strong contract boundaries
+- Product-led operations design: clear user flows, fast operator workflows, and strong contract boundaries
 - Backend discipline: JWT auth, CSRF protection, rate limiting, audit trails, idempotency, and async task processing
 - Deployment rigor: ASGI-first Django on Koyeb, Redis-backed coordination, Cloudflare R2 storage, and OpenAPI-driven integration
 
@@ -271,7 +279,10 @@ for MIHAS, KATC, and related education brands.
 - `applications`: submission, draft handling, review, tracking, and interview workflows
 - `catalog`: institutions, programs, intakes, and subject metadata
 - `documents` and `payments`: uploads, extraction, verification, and receipt operations
+- `jobs` and `job-applications`: discovery, match scoring, review decisions, and job pursuit flows
+- `outreach`, `automation`, `integrations`, `analytics`, and `reports`: the Jobs Ops scaffold domains
 - `admin`: dashboard, user management, settings, and audit visibility
+- `meta`: platform identity and attribution metadata
 
 ## Authentication
 
@@ -297,6 +308,14 @@ Protected endpoints accept either:
         {"name": "notifications", "description": "Notifications, SSE streams, and messaging preferences."},
         {"name": "email", "description": "Email delivery and messaging endpoints."},
         {"name": "health", "description": "Operational liveness and readiness endpoints."},
+        {"name": "jobs", "description": "Job discovery, scoring, review, and detail endpoints."},
+        {"name": "job-applications", "description": "Job pursuit records, approvals, and submission actions."},
+        {"name": "outreach", "description": "Contacts, campaigns, message generation, and send flows."},
+        {"name": "automation", "description": "Rules, orchestration runs, approvals, and cancellation flows."},
+        {"name": "integrations", "description": "Telegram, OpenAI, and provider connectivity endpoints."},
+        {"name": "analytics", "description": "Funnel and source performance reporting."},
+        {"name": "reports", "description": "Digest-style reporting endpoints."},
+        {"name": "meta", "description": "Platform identity, creator, and developer metadata."},
     ],
     "SWAGGER_UI_SETTINGS": {
         "deepLinking": True,
@@ -367,7 +386,15 @@ _is_testing = "test" in sys.argv or os.environ.get("TESTING", "").lower() in (
     "1",
     "true",
     "yes",
-)
+) or "pytest" in sys.modules or "PYTEST_CURRENT_TEST" in os.environ
+
+if _is_testing:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "mihas-test-cache",
+        }
+    }
 
 if REQUIRED_ENV_VARS and not _is_testing:
     from apps.common.env_validator import validate_required_env_vars

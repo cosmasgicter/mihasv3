@@ -1,0 +1,2 @@
+"""Automation migrations package."""
+
