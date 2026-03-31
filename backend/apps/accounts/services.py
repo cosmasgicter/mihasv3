@@ -187,12 +187,48 @@ def verify_password_reset_token(token: str):
 def send_lockout_email(user) -> None:
     """Enqueue a lockout notification email via Celery.
 
-    Placeholder — will be wired to Celery email task in task 17.2.
+    Creates an EmailQueue record with the lockout notification body,
+    then dispatches send_email_task.delay() to send it asynchronously.
+    Errors are logged but never raised to the caller.
     """
-    logger.warning(
-        "Account locked for user_id=%s — lockout email would be sent",
-        getattr(user, "id", "unknown"),
-    )
-    # TODO: Wire to Celery send_email_task when implemented
-    # from apps.common.tasks import send_email_task
-    # send_email_task.delay(...)
+    try:
+        from apps.common.models import EmailQueue
+        from apps.common.tasks import send_email_task
+
+        recipient = getattr(user, "email", None)
+        if not recipient:
+            logger.warning(
+                "Cannot send lockout email — no email for user_id=%s",
+                getattr(user, "id", "unknown"),
+            )
+            return
+
+        subject = "Account Temporarily Locked"
+        body = (
+            "<p>Your account has been temporarily locked due to repeated "
+            "failed login attempts.</p>"
+            "<p>For your security, please wait before trying again. "
+            "If you did not make these attempts, we recommend resetting "
+            "your password immediately.</p>"
+            "<p>If you need assistance, please contact support.</p>"
+        )
+
+        email_record = EmailQueue.objects.create(
+            recipient_email=recipient,
+            subject=subject,
+            body=body,
+            status="pending",
+        )
+
+        send_email_task.delay(str(email_record.id))
+
+        logger.info(
+            "Lockout email queued for user_id=%s (email_queue_id=%s)",
+            getattr(user, "id", "unknown"),
+            email_record.id,
+        )
+    except Exception:
+        logger.exception(
+            "Failed to queue lockout email for user_id=%s",
+            getattr(user, "id", "unknown"),
+        )

@@ -99,6 +99,7 @@ class RateLimitMiddleware:
         ("/api/v1/documents/", "20/10m"),
         ("/api/v1/sessions/", "30/10m"),
         ("/api/v1/notifications/", "50/10m"),
+        ("/api/v1/errors/", "10/5m"),
     ]
 
     def __init__(self, get_response):
@@ -149,21 +150,103 @@ class RateLimitMiddleware:
 
 
 # ---------------------------------------------------------------------------
-# 7.8 (stub) — JWTAuthenticationMiddleware
+# 7.8 — JWTAuthenticationMiddleware
 # ---------------------------------------------------------------------------
 
 
 class JWTAuthenticationMiddleware:
     """Extract JWT from cookies/Bearer header and set request.user.
 
-    This is a pass-through stub. Full implementation in task 9.1.
+    Purely stateless — no database queries. On any validation failure the
+    request passes through silently so DRF permission classes can enforce
+    authentication downstream.
+
+    Token extraction order:
+      1. ``access_token`` HTTP-only cookie (primary)
+      2. ``Authorization: Bearer <token>`` header (fallback)
+
+    Requirements: 1.1–1.9
     """
+
+    COOKIE_NAME = "access_token"
 
     def __init__(self, get_response):
         self.get_response = get_response
+        self._signing_key: str | None = None
+        self._algorithm: str | None = None
 
     def __call__(self, request):
+        token = self._extract_token(request)
+        if token:
+            user = self._authenticate(token)
+            if user is not None:
+                request.user = user
         return self.get_response(request)
+
+    # ------------------------------------------------------------------
+    # Token extraction
+    # ------------------------------------------------------------------
+
+    def _extract_token(self, request) -> str | None:
+        """Return the raw JWT string, or *None* if no token is present."""
+        # 1. Cookie first
+        token = request.COOKIES.get(self.COOKIE_NAME)
+        if token:
+            return token
+        # 2. Authorization: Bearer fallback
+        auth = request.META.get("HTTP_AUTHORIZATION", "")
+        if auth.startswith("Bearer "):
+            return auth[7:].strip()
+        return None
+
+    # ------------------------------------------------------------------
+    # Token validation (stateless — no DB queries)
+    # ------------------------------------------------------------------
+
+    def _authenticate(self, token: str):
+        """Decode *token* and return a ``JWTUser``, or *None* on failure."""
+        import jwt as pyjwt
+
+        from apps.accounts.authentication import JWTUser
+
+        signing_key, algorithm = self._get_jwt_config()
+        if not signing_key:
+            logger.error("JWT_SIGNING_KEY is not configured — middleware cannot authenticate")
+            return None
+
+        try:
+            payload = pyjwt.decode(token, signing_key, algorithms=[algorithm])
+        except pyjwt.ExpiredSignatureError:
+            # Expired tokens are expected; pass through silently.
+            return None
+        except pyjwt.InvalidTokenError as exc:
+            logger.warning("Invalid JWT token in middleware: %s", exc)
+            return None
+
+        # Validate token_type == 'access'
+        if payload.get("token_type") != "access":
+            return None
+
+        # Validate user_id is present and non-empty
+        user_id = payload.get("user_id")
+        if not user_id:
+            return None
+
+        return JWTUser(payload)
+
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
+    def _get_jwt_config(self) -> tuple[str, str]:
+        """Lazy-load signing key and algorithm from ``settings.SIMPLE_JWT``."""
+        if self._signing_key is None:
+            from django.conf import settings
+
+            jwt_settings = getattr(settings, "SIMPLE_JWT", {})
+            self._signing_key = jwt_settings.get("SIGNING_KEY", "")
+            self._algorithm = jwt_settings.get("ALGORITHM", "HS256")
+        return self._signing_key, self._algorithm
 
 
 # ---------------------------------------------------------------------------
@@ -184,6 +267,7 @@ class CSRFEnforcementMiddleware:
         re.compile(r"^/api/v1/auth/login/?$"),
         re.compile(r"^/api/v1/auth/register/?$"),
         re.compile(r"^/api/v1/auth/password-reset/?$"),
+        re.compile(r"^/api/v1/errors/report/?$"),
     ]
 
     STATE_CHANGING_METHODS = {"POST", "PUT", "PATCH", "DELETE"}

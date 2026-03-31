@@ -144,6 +144,20 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
 
+# Celery Beat — periodic task schedule
+from celery.schedules import crontab  # noqa: E402
+
+CELERY_BEAT_SCHEDULE = {
+    "check-uptime": {
+        "task": "apps.common.tasks.check_uptime_task",
+        "schedule": 300.0,
+    },
+    "cleanup-audit-logs": {
+        "task": "apps.common.tasks.cleanup_audit_logs_task",
+        "schedule": crontab(hour=3, minute=0),
+    },
+}
+
 # Enable TLS for rediss:// connections (Upstash, Redis Cloud, etc.)
 if CELERY_BROKER_URL.startswith("rediss://"):
     import ssl
@@ -333,6 +347,15 @@ Protected endpoints accept either:
 
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 EMAIL_FROM = os.environ.get("EMAIL_FROM", "noreply@mihas.edu.zm")
+ERROR_ALERT_EMAIL = os.environ.get("ERROR_ALERT_EMAIL", "admin@mihas.edu.zm")
+
+# ---------------------------------------------------------------------------
+# Uptime monitoring — internal health check URL
+# ---------------------------------------------------------------------------
+
+HEALTH_CHECK_URL = os.environ.get(
+    "HEALTH_CHECK_URL", "https://api.mihas.edu.zm/health/ready/"
+)
 
 # ---------------------------------------------------------------------------
 # Password hashing

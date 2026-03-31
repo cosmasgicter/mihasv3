@@ -11,7 +11,7 @@ inclusion: always
 | Layer | Technology | Notes |
 |-------|------------|-------|
 | Workspace root | Bun workspaces | Defined in the root `package.json` |
-| JS package scope | `apps/*`, `shared` | Only admissions is currently a live JS app |
+| JS package scope | `apps/*`, `shared` | `apps/admissions` and `apps/jobs-ops` are active frontend apps |
 | Python backend | Standalone Django package in `backend/` | Not managed by Bun |
 
 ### Admissions Frontend
@@ -20,12 +20,24 @@ inclusion: always
 |-------|------------|-------|
 | Runtime | Bun | Use Bun for install, dev, build, lint, and test |
 | UI | React 18 + TypeScript | Vite-based SPA |
-| Routing | React Router v6 | Route-level pages live in `apps/admissions/src/pages/` |
+| Routing | React Router | Route-level pages live in `apps/admissions/src/pages/` |
 | State | React Query and Zustand | Keep server and client state concerns separate |
 | Forms | React Hook Form + Zod | Client-side validation remains Zod-based |
 | Styling | Tailwind CSS + Radix UI | Existing app conventions still apply |
 | Testing | Vitest, fast-check, Playwright | Frontend tests live under `apps/admissions/tests/` |
 | Hosting | Vercel | App-local config in `apps/admissions/vercel.json` |
+
+### Jobs Ops Frontend
+
+| Layer | Technology | Notes |
+|-------|------------|-------|
+| Runtime | Bun | Use Bun for install, type-check, lint, and build |
+| UI | React 18 + TypeScript | Vite-based SPA in `apps/jobs-ops/` |
+| Routing | React Router | Central route map in `apps/jobs-ops/src/app/router.tsx` |
+| State | React Query + Zustand | Query state for backend data, Zustand for UI shell state |
+| Forms | React Hook Form + Zod | Planned/expected for write flows |
+| Styling | Tailwind CSS + Lucide | Production-style operator dashboard |
+| Validation | `bun run type-check`, `bun run lint`, `vite build` | Current quality gates for jobs-ops |
 
 ### Backend
 
@@ -34,10 +46,12 @@ inclusion: always
 | Framework | Django 5 + Django REST Framework | Active server implementation |
 | Runtime | Python 3.12+ | Repo config targets Python 3.12+ |
 | App server | Uvicorn (ASGI) | Deployed backend entrypoint is `config.asgi:application` |
-| Data | Neon Postgres | Existing production schema, `managed = False` models |
-| Async | Celery + Redis | For background work and retries |
+| Data | Neon Postgres | Admissions and jobs-ops backend runtime database |
+| Async | Celery + Redis | Background work, retries, and periodic tasks |
 | Storage | Cloudflare R2 via `django-storages` | Signed URL workflow |
-| Email | Resend | Async delivery path |
+| Email | Resend live, Zoho planned placeholders | Resend is wired for alerting; Zoho env placeholders exist for jobs-ops |
+| AI + messaging | OpenAI and Telegram planned placeholders | Env scaffolding now exists; integration wiring remains to be completed |
+| Browser automation | Playwright worker service planned | Placeholder envs now exist |
 | API docs | drf-spectacular | Schema and docs under `/api/v1/` |
 | Testing | pytest + hypothesis | Backend tests live under `backend/tests/` |
 
@@ -51,6 +65,10 @@ inclusion: always
 | `bun run build:admissions` | Build the admissions app |
 | `bun run test:admissions` | Run admissions tests |
 | `bun run lint:admissions` | Lint the admissions app |
+| `bun run dev:jobs-ops` | Run the jobs-ops app |
+| `bun run build:jobs-ops` | Build the jobs-ops app |
+| `bun run type-check:jobs-ops` | Type-check the jobs-ops app |
+| `bun run lint:jobs-ops` | Lint the jobs-ops app |
 
 ### Admissions App
 
@@ -61,66 +79,82 @@ inclusion: always
 | `cd apps/admissions && bun run test` | Vitest suite |
 | `cd apps/admissions && bun run lint` | ESLint suite |
 
+### Jobs Ops App
+
+| Command | Purpose |
+|---------|---------|
+| `cd apps/jobs-ops && bun run dev` | Start the jobs-ops Vite dev server |
+| `cd apps/jobs-ops && bun run type-check` | TypeScript verification |
+| `cd apps/jobs-ops && bun run lint` | ESLint suite |
+| `cd apps/jobs-ops && ./node_modules/.bin/vite build` | Production build |
+
 ### Backend
 
 | Command | Purpose |
 |---------|---------|
 | `cd backend && python3 -m pytest` | Run backend tests |
+| `cd backend && python3 manage.py check` | Django system checks |
+| `cd backend && python3 manage.py spectacular --file /tmp/schema.yaml` | Generate and verify OpenAPI schema |
 | `cd backend && python3 manage.py runserver` | Local Django dev server |
 | `cd backend && python3 -m uvicorn config.asgi:application --reload` | Local ASGI runtime parity check |
-| `cd backend && python3 scripts/verify_migration.py` | Migration verification helper |
 
 ## API Contract
 
-The frontend and backend share a single, unified API contract. There is no translation layer or compatibility shim.
+The frontend and backend share a single, unified API contract. There is no compatibility shim.
 
-- The frontend API client (`apps/admissions/src/services/client.ts`) sends requests directly to `/api/v1/` paths on `api.mihas.edu.zm`.
-- `toApiV1Path()` prepends `/api/v1` to service-layer paths that are not already prefixed. This is the only path transformation.
-- `backend/config/urls.py` mounts all API routes under `/api/v1/...`.
+- Backend routes are mounted in `backend/config/urls.py` under `/api/v1/...`.
+- Admissions frontend calls `/api/v1/...` directly.
+- Jobs-ops frontend also calls `/api/v1/...` directly through app-local API services.
 - Routes are resource-style, for example:
   - `/api/v1/auth/login/`
-  - `/api/v1/sessions/`
   - `/api/v1/applications/`
-  - `/api/v1/catalog/programs/`
-  - `/api/v1/documents/upload/`
-  - `/api/v1/admin/dashboard/`
-  - `/api/v1/events/stream/` (SSE)
-- There are no legacy `/api/{resource}?action=` query-parameter routes in either the frontend or the backend.
-- All cross-origin requests from `apply.mihas.edu.zm` to `api.mihas.edu.zm` use `credentials: 'include'` for cookie-based auth.
+  - `/api/v1/jobs/`
+  - `/api/v1/job-applications/`
+  - `/api/v1/outreach/contacts/`
+  - `/api/v1/automation/runs/`
+  - `/api/v1/email/threads/`
+  - `/api/v1/analytics/funnel/`
+  - `/api/v1/meta/platform/`
+- There are no legacy `/api/{resource}?action=` query-parameter routes.
 
 ## Response And Auth Conventions
 
-- Auth is cookie-based. Django sets `access_token` and `refresh_token` as HTTP-only cookies with `Domain=.mihas.edu.zm`, `SameSite=Lax`, `Secure=true`.
-- CSRF is required for state-changing requests (POST, PUT, PATCH, DELETE). The token is exchanged via the `X-CSRF-Token` request/response header and stored in memory (`lib/csrfToken.ts`).
-- All responses use the `{"success": true, "data": ...}` envelope. The frontend `unwrapApiResponse()` method handles unwrapping.
-- Paginated responses use `{page, pageSize, totalCount, results}`. Service methods map `results` to domain-specific field names (e.g., `applications`, `users`).
-- On 401, the client attempts a single token refresh via `/api/v1/auth/refresh/` before signing out.
+- The platform uses the `{"success": true, "data": ...}` envelope for API responses handled through DRF renderers.
+- Paginated responses use `{page, pageSize, totalCount, results}` inside the `data` envelope.
+- Auth remains cookie-based for the main backend auth stack.
+- CSRF is required for state-changing requests in authenticated flows.
+- Jobs-ops currently exposes public read-oriented scaffold routes for some surfaces while keeping risky write actions authenticated and policy-gated.
 
 ## Conventions For New Code
 
 ### Frontend
 
-- Use the `@/` alias for imports inside `apps/admissions/src/`.
-- Prefer `apps/admissions/src/lib/` for new shared frontend helpers.
-- Use `apiClient` instead of raw `fetch` unless there is a clear reason not to.
-- All service methods pass short paths (e.g., `/applications/`, `/auth/login/`) to `apiClient.request()`. The client prepends `/api/v1` via `toApiV1Path()`.
-- Do not introduce `?action=` query-parameter patterns. All endpoints use resource-style REST paths.
-- `downloadFile()` in `lib/storage.ts` uses raw `fetch()` for absolute URLs (R2 signed URLs, external CDN links). This is intentional — these requests target external origins where CSRF/cookie handling should not be applied.
+- Use app-local code inside the target app first.
+- `apps/admissions` and `apps/jobs-ops` should not casually share implementation through `shared/` unless the code is intentionally cross-app.
+- In `apps/jobs-ops`, keep route-level logic inside `src/features/*`.
+- Prefer React Query for backend data and keep shell/UI state in Zustand.
+- Use app-local API service modules instead of raw `fetch`.
 
 ### Backend
 
-- Keep new API work inside `backend/apps/`.
+- Keep new API work inside explicit domain apps under `backend/apps/`.
 - Keep routes resource-oriented under `/api/v1/`.
-- Validate inputs at the serializer or view boundary.
-- Keep models compatible with the existing Neon schema.
+- Preserve explicit jobs-ops domain naming such as `JobApplication`.
+- Shared jobs-ops scaffold data currently lives in `backend/apps/common/jobs_ops_seed.py`; do not re-duplicate that seed state across views.
+- Current default error-alert recipient is `admin@mihas.edu.zm`.
 
-## Known Technical Debt To Account For
+## Current Jobs Ops State
 
-- Admissions TypeScript config still references missing files and directories from the pre-monorepo layout.
-- `shared/` exists but is not yet a meaningful dependency in the live app.
+- `apps/jobs-ops` is a real operator dashboard, not a placeholder shell.
+- Search and recommendation filtering are implemented in the jobs inbox.
+- Major views have loading states.
+- Backend jobs-ops domains exist for jobs, outreach, automation, integrations, analytics, and reports.
+- Schema generation is currently clean.
+- Verified backend suites currently include application endpoints, notification endpoints, and jobs-ops endpoint coverage.
 
 ## Verification Expectations
 
-- Run the relevant backend pytest suite when you change Django code.
-- Run admissions tests when you touch frontend API integration.
-- Property tests in `apps/admissions/tests/property/` validate API client invariants, service URL construction, and dependency hygiene.
+- Run relevant backend pytest suites when you change Django code.
+- Run jobs-ops type-check, lint, and build when you change `apps/jobs-ops`.
+- Regenerate the schema after backend API changes.
+- Keep steering files aligned with the actual repo state.
