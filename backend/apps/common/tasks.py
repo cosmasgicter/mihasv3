@@ -57,7 +57,7 @@ def send_email_task(self, email_queue_id):
 
     except Exception as exc:
         email_record.retry_count += 1
-        email_record.last_error = str(exc)[:500]
+        email_record.error_message = str(exc)[:500]
         email_record.status = "retrying"
         email_record.save()
 

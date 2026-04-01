@@ -67,7 +67,7 @@ class LoginAttempt(models.Model):
     email_hash = models.CharField(max_length=64)
     ip_hash = models.CharField(max_length=64)
     success = models.BooleanField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    attempted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
@@ -84,7 +84,7 @@ class PasswordResetToken(models.Model):
     user = models.ForeignKey(Profile, on_delete=models.CASCADE)
     token_hash = models.CharField(max_length=64)
     expires_at = models.DateTimeField()
-    used = models.BooleanField(default=False)
+    used_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -84,7 +84,7 @@ def check_login_attempts(email_hash: str) -> LoginStatus:
     recent_failures = LoginAttempt.objects.filter(
         email_hash=email_hash,
         success=False,
-        created_at__gte=window_start,
+        attempted_at__gte=window_start,
     ).count()
 
     if recent_failures >= 5:
@@ -103,7 +103,7 @@ def _count_consecutive_failures(email_hash: str) -> int:
 
     attempts = LoginAttempt.objects.filter(
         email_hash=email_hash,
-    ).order_by("-created_at").values_list("success", flat=True)[:20]
+    ).order_by("-attempted_at").values_list("success", flat=True)[:20]
 
     count = 0
     for success in attempts:
@@ -143,7 +143,6 @@ def generate_password_reset_token(user) -> str:
         user=user,
         token_hash=token_hash,
         expires_at=timezone.now() + timedelta(hours=1),
-        used=False,
     )
 
     return raw_token
@@ -164,7 +163,7 @@ def verify_password_reset_token(token: str):
     try:
         reset_token = PasswordResetToken.objects.select_related("user").get(
             token_hash=token_hash,
-            used=False,
+            used_at__isnull=True,
         )
     except PasswordResetToken.DoesNotExist:
         return None
@@ -173,8 +172,8 @@ def verify_password_reset_token(token: str):
         return None
 
     # Mark as used
-    reset_token.used = True
-    reset_token.save(update_fields=["used"])
+    reset_token.used_at = timezone.now()
+    reset_token.save(update_fields=["used_at"])
 
     return reset_token.user
 

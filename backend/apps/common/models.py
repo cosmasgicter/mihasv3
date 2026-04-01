@@ -110,9 +110,8 @@ class EmailQueue(models.Model):
     body = models.TextField()
     status = models.CharField(max_length=50, default='pending')
     retry_count = models.IntegerField(default=0)
-    last_error = models.TextField(blank=True)
+    error_message = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
