@@ -100,7 +100,7 @@ class TestUptimeStateTransitions(SimpleTestCase):
                 requests_return = None
 
             with patch(
-                "apps.common.tasks.http_requests.get",
+                "requests.get",
                 side_effect=requests_side_effect,
                 return_value=requests_return,
             ), patch(
