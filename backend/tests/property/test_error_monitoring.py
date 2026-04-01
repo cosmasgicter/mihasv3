@@ -271,3 +271,106 @@ class TestErrorReportHashesClientIP(SimpleTestCase):
                 str_value,
                 f"Raw IP '{ip_addr}' found in field '{field_name}': {str_value}",
             )
+
+
+# =========================================================================
+# Property 5: Frontend error report validation rejects malformed payloads
+# Feature: go-live-readiness, Property 5: Frontend error report validation
+#          rejects malformed payloads
+# =========================================================================
+
+# Strategy: generate random JSON payloads that are missing the required
+# `message` field (absent, None, or empty string), POST them to the
+# ErrorReportView, and verify HTTP 400 with code "VALIDATION_ERROR" and
+# no ErrorLog created.
+
+_arbitrary_json_values = st.recursive(
+    st.none() | st.booleans() | st.integers() | st.floats(allow_nan=False) | st.text(max_size=100),
+    lambda children: st.lists(children, max_size=5) | st.dictionaries(st.text(max_size=20), children, max_size=5),
+    max_leaves=10,
+)
+
+# Payloads that explicitly lack a valid `message` field
+_malformed_payloads = st.one_of(
+    # Case 1: dict with no `message` key at all (may have other keys)
+    st.dictionaries(
+        st.text(min_size=1, max_size=30).filter(lambda k: k != "message"),
+        _arbitrary_json_values,
+        max_size=5,
+    ),
+    # Case 2: dict with `message` set to None
+    st.dictionaries(
+        st.text(min_size=1, max_size=30).filter(lambda k: k != "message"),
+        _arbitrary_json_values,
+        max_size=5,
+    ).map(lambda d: {**d, "message": None}),
+    # Case 3: dict with `message` set to empty string
+    st.dictionaries(
+        st.text(min_size=1, max_size=30).filter(lambda k: k != "message"),
+        _arbitrary_json_values,
+        max_size=5,
+    ).map(lambda d: {**d, "message": ""}),
+)
+
+
+class TestFrontendErrorReportRejectsMalformed(SimpleTestCase):
+    """Property 5: Frontend error report validation rejects malformed payloads.
+
+    For any POST payload to /api/v1/errors/report/ that is missing the
+    required `message` field (absent, None, or empty string), the endpoint
+    should return HTTP 400 with code "VALIDATION_ERROR" and no ErrorLog
+    record should be created.
+
+    Feature: go-live-readiness, Property 5: Frontend error report validation
+    rejects malformed payloads
+
+    **Validates: Requirements 5.5**
+    """
+
+    @given(payload=_malformed_payloads)
+    @settings(max_examples=100, deadline=None)
+    def test_malformed_payload_returns_400_no_error_log(self, payload):
+        """Payloads missing a valid `message` field return 400 and create
+        no ErrorLog record."""
+        from apps.common.error_views import ErrorReportView
+
+        factory = APIRequestFactory()
+        request = factory.post(
+            "/api/v1/errors/report/",
+            payload,
+            format="json",
+        )
+
+        create_called = []
+
+        def mock_create(**kwargs):
+            create_called.append(kwargs)
+            return MagicMock()
+
+        with patch(
+            "apps.common.models.ErrorLog.objects.create",
+            side_effect=mock_create,
+        ), patch(
+            "apps.common.error_views.ErrorReportView._dispatch_throttled_alert",
+        ):
+            view = ErrorReportView.as_view()
+            response = view(request)
+
+        # Must return 400
+        self.assertEqual(
+            response.status_code,
+            400,
+            f"Expected 400 for payload {payload!r}, got {response.status_code}",
+        )
+
+        # Must include VALIDATION_ERROR code
+        self.assertEqual(response.data["code"], "VALIDATION_ERROR")
+        self.assertFalse(response.data["success"])
+
+        # ErrorLog must NOT have been created
+        self.assertEqual(
+            len(create_called),
+            0,
+            f"ErrorLog.objects.create was called {len(create_called)} time(s) "
+            f"for malformed payload {payload!r}",
+        )

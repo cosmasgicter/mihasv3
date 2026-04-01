@@ -82,7 +82,7 @@ class LoginAttempt(models.Model):
     email_hash = models.CharField(max_length=64)
     ip_hash = models.CharField(max_length=64)
     success = models.BooleanField()
-    attempted_at = models.DateTimeField()
+    attempted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
@@ -100,7 +100,7 @@ class PasswordResetToken(models.Model):
     token_hash = models.CharField(max_length=64)
     expires_at = models.DateTimeField()
     used_at = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
@@ -117,7 +117,7 @@ class CSRFToken(models.Model):
     user = models.ForeignKey(Profile, on_delete=models.CASCADE)
     token_hash = models.CharField(max_length=64)
     expires_at = models.DateTimeField()
-    created_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
@@ -133,8 +133,8 @@ class UserPermissionOverride(models.Model):
     user = models.OneToOneField(Profile, on_delete=models.CASCADE, primary_key=True)
     permissions = models.JSONField()  # DB stores as text[] but Django reads via JSONField
     updated_by = models.UUIDField(null=True, blank=True)
-    created_at = models.DateTimeField()
-    updated_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
