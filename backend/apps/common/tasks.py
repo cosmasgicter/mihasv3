@@ -7,7 +7,6 @@ Requirements: 8.3, 8.4, 12.2, 12.3, 5.2, 5.3, 5.4, 5.5, 7.1, 7.2, 7.3, 7.4, 7.5,
 import logging
 from datetime import timedelta
 
-import requests as http_requests
 from celery import shared_task
 from django.conf import settings
 from django.core.cache import cache
@@ -159,6 +158,8 @@ def check_uptime_task(self):
     # Determine current health status.
     current_status = UPTIME_STATUS_DOWN
     try:
+        import requests as http_requests
+
         resp = http_requests.get(health_url, timeout=10)
         if resp.status_code == 200:
             current_status = UPTIME_STATUS_OK
