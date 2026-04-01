@@ -9,17 +9,15 @@ class AuditLog(models.Model):
     """Maps to 'audit_logs' table. No PII stored."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    actor_id = models.UUIDField(null=True)
-    action = models.CharField(max_length=100)
-    entity_type = models.CharField(max_length=100)
-    entity_id = models.UUIDField(null=True)
-    changes = models.JSONField(default=dict)
-    ip_address = models.CharField(max_length=64)  # SHA-256 hash
-    user_agent = models.CharField(max_length=64, blank=True)  # SHA-256 hash
-    retention_category = models.CharField(
-        max_length=20, default='standard'
-    )  # standard (90d) / security (365d)
-    created_at = models.DateTimeField(auto_now_add=True)
+    actor_id = models.UUIDField(null=True, blank=True)
+    action = models.CharField(max_length=50)
+    entity_type = models.CharField(max_length=50)
+    entity_id = models.UUIDField()
+    changes = models.JSONField(null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
+    retention_category = models.CharField(max_length=20, default='standard')
+    created_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         managed = False
@@ -32,10 +30,10 @@ class AuditLog(models.Model):
 class IdempotencyKey(models.Model):
     """Maps to 'idempotency_keys' table."""
 
-    key = models.CharField(max_length=255, primary_key=True)
-    endpoint = models.CharField(max_length=255)
+    key = models.TextField(primary_key=True)
+    endpoint = models.TextField()
     response_json = models.JSONField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField()
 
     class Meta:
         managed = False
@@ -49,19 +47,21 @@ class Setting(models.Model):
     """Maps to 'settings' table."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    key = models.CharField(max_length=255, unique=True)
-    value = models.TextField()
-    category = models.CharField(max_length=100, blank=True)
-    description = models.TextField(blank=True)
-    is_public = models.BooleanField(default=False)
-    updated_at = models.DateTimeField(auto_now=True)
+    key = models.CharField(max_length=100, unique=True)
+    value = models.JSONField()
+    description = models.TextField(null=True, blank=True)
+    category = models.CharField(max_length=50, null=True, blank=True)
+    is_public = models.BooleanField(null=True, blank=True, default=False)
+    updated_by = models.UUIDField(null=True, blank=True)
+    created_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         managed = False
         db_table = 'settings'
 
     def __str__(self):
-        return f"{self.key} = {self.value[:50]}"
+        return f"{self.key}"
 
 
 class Notification(models.Model):
@@ -71,10 +71,15 @@ class Notification(models.Model):
     user = models.ForeignKey('accounts.Profile', on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     message = models.TextField()
-    type = models.CharField(max_length=50)
-    is_read = models.BooleanField(default=False)
-    idempotency_key = models.CharField(max_length=255, unique=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    type = models.CharField(max_length=50, null=True, blank=True)
+    priority = models.CharField(max_length=20, null=True, blank=True)
+    action_url = models.TextField(null=True, blank=True)
+    metadata = models.JSONField(null=True, blank=True)
+    is_read = models.BooleanField(null=True, blank=True, default=False)
+    read_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
+    idempotency_key = models.TextField(null=True, blank=True, unique=True)
 
     class Meta:
         managed = False
@@ -89,9 +94,18 @@ class UserNotificationPreference(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField('accounts.Profile', on_delete=models.CASCADE)
-    email_enabled = models.BooleanField(default=True)
-    push_enabled = models.BooleanField(default=False)
-    quiet_hours = models.JSONField(default=dict)
+    email_enabled = models.BooleanField(null=True, blank=True, default=True)
+    push_enabled = models.BooleanField(null=True, blank=True, default=False)
+    sms_enabled = models.BooleanField(null=True, blank=True, default=False)
+    application_updates = models.BooleanField(null=True, blank=True)
+    payment_reminders = models.BooleanField(null=True, blank=True)
+    interview_reminders = models.BooleanField(null=True, blank=True)
+    marketing_emails = models.BooleanField(null=True, blank=True)
+    quiet_hours_start = models.TimeField(null=True, blank=True)
+    quiet_hours_end = models.TimeField(null=True, blank=True)
+    timezone = models.CharField(max_length=50, null=True, blank=True)
+    created_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         managed = False
@@ -105,13 +119,20 @@ class EmailQueue(models.Model):
     """Maps to 'email_queue' table."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    recipient_email = models.EmailField()
-    subject = models.CharField(max_length=500)
+    recipient_email = models.CharField(max_length=255)
+    recipient_name = models.CharField(max_length=255, null=True, blank=True)
+    subject = models.CharField(max_length=255)
     body = models.TextField()
-    status = models.CharField(max_length=50, default='pending')
-    retry_count = models.IntegerField(default=0)
-    error_message = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    html_body = models.TextField(null=True, blank=True)
+    template_name = models.CharField(max_length=100, null=True, blank=True)
+    template_data = models.JSONField(null=True, blank=True)
+    status = models.CharField(max_length=20, null=True, blank=True, default='pending')
+    priority = models.IntegerField(null=True, blank=True)
+    retry_count = models.IntegerField(null=True, blank=True, default=0)
+    max_retries = models.IntegerField(null=True, blank=True)
+    error_message = models.TextField(null=True, blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         managed = False
@@ -133,7 +154,7 @@ class ErrorLog(models.Model):
     request_path = models.TextField(null=True, blank=True)
     user_id = models.UUIDField(null=True, blank=True)
     ip_hash = models.CharField(max_length=64, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField()
 
     class Meta:
         managed = False
@@ -146,9 +167,9 @@ class ErrorLog(models.Model):
 class MigrationHistory(models.Model):
     """Maps to 'migration_history' table."""
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    migration_name = models.CharField(max_length=255)
-    applied_at = models.DateTimeField(auto_now_add=True)
+    id = models.AutoField(primary_key=True)
+    migration_name = models.TextField()
+    applied_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         managed = False

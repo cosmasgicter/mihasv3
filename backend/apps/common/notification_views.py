@@ -36,7 +36,14 @@ logger = logging.getLogger(__name__)
 class NotificationPreferenceSerializer(serializers.Serializer):
     email_enabled = serializers.BooleanField(required=False, default=True)
     push_enabled = serializers.BooleanField(required=False, default=False)
-    quiet_hours = serializers.JSONField(required=False, default=dict)
+    sms_enabled = serializers.BooleanField(required=False, default=False)
+    application_updates = serializers.BooleanField(required=False, allow_null=True)
+    payment_reminders = serializers.BooleanField(required=False, allow_null=True)
+    interview_reminders = serializers.BooleanField(required=False, allow_null=True)
+    marketing_emails = serializers.BooleanField(required=False, allow_null=True)
+    quiet_hours_start = serializers.TimeField(required=False, allow_null=True)
+    quiet_hours_end = serializers.TimeField(required=False, allow_null=True)
+    timezone = serializers.CharField(max_length=50, required=False, allow_null=True)
 
 
 class NotificationSendSerializer(serializers.Serializer):
@@ -116,7 +123,7 @@ NotificationDeleteResponseSerializer = envelope_serializer(
 class NotificationPreferenceView(APIView):
     """GET/PUT /api/v1/notifications/preferences/
 
-    Manage email_enabled, push_enabled, quiet_hours. Auth required.
+    Manage notification preferences. Auth required.
     """
 
     permission_classes = [IsAuthenticated]
@@ -131,7 +138,14 @@ class NotificationPreferenceView(APIView):
                 "data": {
                     "email_enabled": True,
                     "push_enabled": False,
-                    "quiet_hours": {},
+                    "sms_enabled": False,
+                    "application_updates": None,
+                    "payment_reminders": None,
+                    "interview_reminders": None,
+                    "marketing_emails": None,
+                    "quiet_hours_start": None,
+                    "quiet_hours_end": None,
+                    "timezone": None,
                 },
             })
 

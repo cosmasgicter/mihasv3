@@ -52,8 +52,12 @@ class ReadOnlyMiddleware:
             from apps.common.models import Setting
 
             setting = Setting.objects.filter(key="READ_ONLY_MODE").first()
-            if setting and setting.value.lower() in ("1", "true", "yes"):
-                return True
+            if setting:
+                val = setting.value
+                if isinstance(val, bool):
+                    return val
+                if isinstance(val, str) and val.lower() in ("1", "true", "yes"):
+                    return True
         except Exception:
             pass
 

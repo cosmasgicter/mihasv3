@@ -14,8 +14,13 @@ class InstitutionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Institution
-        fields = ["id", "name", "code", "full_name", "type", "accreditation_status", "is_active", "created_at"]
-        read_only_fields = ["id", "created_at"]
+        fields = [
+            "id", "name", "code", "full_name", "type",
+            "address", "phone", "email", "website",
+            "accreditation_status", "is_active", "description",
+            "created_at", "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
 
 
 class ProgramSerializer(serializers.ModelSerializer):
@@ -26,10 +31,12 @@ class ProgramSerializer(serializers.ModelSerializer):
     class Meta:
         model = Program
         fields = [
-            "id", "name", "code", "institution", "duration_years",
-            "application_fee", "requirements", "is_active", "created_at",
+            "id", "name", "code", "institution", "duration_months",
+            "application_fee", "tuition_fee", "requirements",
+            "regulatory_body", "accreditation_status",
+            "is_active", "created_at", "updated_at",
         ]
-        read_only_fields = ["id", "created_at"]
+        read_only_fields = ["id", "created_at", "updated_at"]
 
 
 class ProgramCreateUpdateSerializer(serializers.ModelSerializer):
@@ -40,8 +47,9 @@ class ProgramCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Program
         fields = [
-            "name", "code", "institution_id", "duration_years",
-            "application_fee", "requirements", "is_active",
+            "name", "code", "institution_id", "duration_months",
+            "application_fee", "tuition_fee", "requirements",
+            "regulatory_body", "accreditation_status", "is_active",
         ]
 
     def validate_institution_id(self, value):
@@ -55,8 +63,13 @@ class IntakeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Intake
-        fields = ["id", "name", "year", "application_deadline", "max_capacity", "is_active", "created_at"]
-        read_only_fields = ["id", "created_at"]
+        fields = [
+            "id", "name", "year", "semester",
+            "start_date", "end_date", "application_start_date",
+            "application_deadline", "max_capacity", "current_enrollment",
+            "is_active", "created_at", "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
 
 
 class SubjectSerializer(serializers.ModelSerializer):
@@ -64,4 +77,5 @@ class SubjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Subject
-        fields = ["id", "name", "code", "category", "is_core"]
+        fields = ["id", "name", "code", "category", "is_core", "is_active", "created_at"]
+        read_only_fields = ["id", "created_at"]
