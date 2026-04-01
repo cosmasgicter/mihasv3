@@ -520,7 +520,7 @@ class ApplicationReviewView(APIView):
             "decision_date",
             "updated_at",
         ])
-        ApplicationStatusHistory.objects.create(application=app, old_status=old_status, new_status=new_status, changed_by_id=str(request.user.id), notes=notes)
+        ApplicationStatusHistory.objects.create(application=app, status=new_status, old_status=old_status, new_status=new_status, changed_by_id=str(request.user.id), notes=notes)
         return Response({"message": f"Status updated from {old_status} to {new_status}", "application_id": str(app.id), "old_status": old_status, "new_status": new_status})
 
 
@@ -642,7 +642,7 @@ class ApplicationBulkStatusView(APIView):
                 "decision_date",
                 "updated_at",
             ])
-            ApplicationStatusHistory.objects.create(application=app, old_status=old_status, new_status=new_status, changed_by_id=str(request.user.id), notes=notes)
+            ApplicationStatusHistory.objects.create(application=app, status=new_status, old_status=old_status, new_status=new_status, changed_by_id=str(request.user.id), notes=notes)
             updated += 1
         return Response({"message": f"{updated} application(s) updated", "updated": updated})
 
