@@ -179,16 +179,16 @@ Systematic verification and hardening of the MIHAS admissions platform before go
     - Confirm malformed payloads (missing `message`) return HTTP 400 with no ErrorLog created
     - _Requirements: 5.4, 5.5_
 
-- [ ] 9. Steering File Updates
-  - [-] 9.1 Update `.kiro/steering/tech.md`
+- [x] 9. Steering File Updates
+  - [x] 9.1 Update `.kiro/steering/tech.md`
     - Document the error monitoring system (ErrorLog model, `/api/v1/errors/report/`, throttled alert emails)
     - Document Celery Beat periodic tasks (`check_uptime_task` at 300s, `cleanup_audit_logs_task` at daily 03:00 UTC)
     - Document uptime monitoring setup (internal Celery task + external UptimeRobot)
     - _Requirements: 6.1, 6.2, 6.3_
-  - [ ] 9.2 Update `.kiro/steering/product.md`
+  - [x] 9.2 Update `.kiro/steering/product.md`
     - Document error alerting default recipient (`***REMOVED***`) and error monitoring pipeline
     - _Requirements: 6.4_
-  - [ ] 9.3 Update `.kiro/steering/structure.md`
+  - [x] 9.3 Update `.kiro/steering/structure.md`
     - Document new files added during remediation: `error_urls.py`, `error_views.py`, `exceptions.py`, `health.py`
     - Remove or correct any statements that are no longer accurate
     - _Requirements: 6.5, 6.6_
@@ -278,28 +278,28 @@ Systematic verification and hardening of the MIHAS admissions platform before go
     - **Property 10: Rate limiting enforcement**
     - **Validates: Requirements 4.2**
 
-- [ ] 15. Verify Existing Property Tests Pass (P3, P4, P6, P7, P8)
-  - [ ] 15.1 Verify P3 (ErrorLog required fields) passes
+- [x] 15. Verify Existing Property Tests Pass (P3, P4, P6, P7, P8)
+  - [x] 15.1 Verify P3 (ErrorLog required fields) passes
     - Run `cd backend && python3 -m pytest tests/property/test_error_monitoring.py::TestUnhandledExceptionCreatesErrorLog -v`
     - Existing test in `backend/tests/property/test_error_monitoring.py` — do not rewrite
     - **Property 3: ErrorLog creation includes all required fields**
     - **Validates: Requirements 1.8, 5.1, 5.4, 5.6**
-  - [ ] 15.2 Verify P4 (Error alert throttling) passes
+  - [x] 15.2 Verify P4 (Error alert throttling) passes
     - Run `cd backend && python3 -m pytest tests/property/test_error_monitoring.py::TestErrorAlertThrottling -v`
     - Existing test in `backend/tests/property/test_error_monitoring.py` — do not rewrite
     - **Property 4: Error alert throttling suppresses duplicates**
     - **Validates: Requirements 5.2, 5.3**
-  - [ ] 15.3 Verify P6 (Email task status lifecycle) passes
+  - [x] 15.3 Verify P6 (Email task status lifecycle) passes
     - Run `cd backend && python3 -m pytest tests/property/test_email_dispatch.py -v`
     - Existing test in `backend/tests/property/test_email_dispatch.py` — do not rewrite
     - **Property 6: Email task status lifecycle**
     - **Validates: Requirements 3.2, 3.3**
-  - [ ] 15.4 Verify P7 (Uptime task state transitions) passes
+  - [x] 15.4 Verify P7 (Uptime task state transitions) passes
     - Run `cd backend && python3 -m pytest tests/property/test_uptime_task.py -v`
     - Existing test in `backend/tests/property/test_uptime_task.py` — do not rewrite
     - **Property 7: Uptime task state transition correctness**
     - **Validates: Requirements 3.6**
-  - [ ] 15.5 Verify P8 (Audit log cleanup retention) passes
+  - [x] 15.5 Verify P8 (Audit log cleanup retention) passes
     - Run `cd backend && python3 -m pytest tests/property/test_audit_cleanup.py -v`
     - Existing test in `backend/tests/property/test_audit_cleanup.py` — do not rewrite
     - **Property 8: Audit log cleanup respects retention periods**

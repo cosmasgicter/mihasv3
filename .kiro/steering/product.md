@@ -20,6 +20,10 @@ Both are backed by the Django API in `backend/`. Treat changes as production-sen
 - `apps/website/` and `apps/student-portal/` are still placeholder/future apps.
 - `apps/librarymanagement/` exists in the repo but is not yet a wired application package.
 
+### Error Monitoring
+
+The platform uses self-hosted error monitoring with no third-party tracker (no Sentry). Backend 500 errors are caught by `envelope_exception_handler`, which creates an `ErrorLog` row and dispatches a throttled alert email via Redis + Resend. Frontend errors are captured by `errorReporter.ts` and POSTed to `POST /api/v1/errors/report/`, which follows the same pipeline. Alert emails default to `ops@mihas.edu.zm` (configurable via `ERROR_ALERT_EMAIL` env var). Throttling is one alert per unique error message per 15 minutes.
+
 ## Hard Constraints
 
 | Rule | Reason |

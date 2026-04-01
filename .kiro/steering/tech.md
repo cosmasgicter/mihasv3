@@ -143,7 +143,7 @@ The frontend and backend share a single, unified API contract. There is no compa
 - Keep routes resource-oriented under `/api/v1/`.
 - Preserve explicit jobs-ops domain naming such as `JobApplication`.
 - Shared jobs-ops scaffold data currently lives in `backend/apps/common/jobs_ops_seed.py`; do not re-duplicate that seed state across views.
-- Current default error-alert recipient is `***REMOVED***`.
+- Current default error-alert recipient is `ops@mihas.edu.zm` (configurable via `ERROR_ALERT_EMAIL` env var; code fallback is `***REMOVED***`).
 
 ## Error Monitoring
 
@@ -180,6 +180,10 @@ Two layers of uptime monitoring are in place:
 
 1. **Internal**: `check_uptime_task` (Celery Beat, every 5 minutes) sends `GET` to the configured `HEALTH_CHECK_URL` (default: `***REMOVED***`) with a 10-second timeout. Tracks previous status in Redis key `uptime:last_status`. On healthy→unhealthy transition: dispatches alert email. On unhealthy→healthy: dispatches recovery email. Repeated failures without recovery do not produce duplicate alerts. Uses the `requests` library.
 2. **External**: [UptimeRobot](https://uptimerobot.com/) (free tier) monitors `***REMOVED***` every 5 minutes from outside the network. Sends email alerts to `ops@mihas.edu.zm` on failure and recovery.
+
+## Secrets Rotation
+
+A runbook for rotating production secrets lives at `docs/runbooks/secrets-rotation.md`. It covers JWT signing key, database credentials, Resend API key, S3/R2 keys, and Redis URL rotation with step-by-step procedures and rollback guidance.
 
 ## Current Jobs Ops State
 
