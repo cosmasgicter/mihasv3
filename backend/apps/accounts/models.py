@@ -101,6 +101,7 @@ class CSRFToken(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(Profile, on_delete=models.CASCADE)
     token_hash = models.CharField(max_length=64)
+    expires_at = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
