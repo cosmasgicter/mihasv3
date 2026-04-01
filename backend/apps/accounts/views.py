@@ -246,9 +246,9 @@ class LoginView(APIView):
         DeviceSession.objects.create(
             user=user,
             device_info={"user_agent": user_agent},
-            ip_hash=ip_hash,
-            refresh_token_hash=refresh_hash,
-            last_active=tz.now(),
+            ip_address=ip_hash,
+            session_token=refresh_hash,
+            last_activity=tz.now(),
             is_active=True,
         )
 

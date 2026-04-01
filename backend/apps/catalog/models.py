@@ -32,11 +32,16 @@ class Program(models.Model):
     name = models.CharField(max_length=255)
     code = models.CharField(max_length=50, unique=True)
     institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
-    duration_years = models.IntegerField()
+    description = models.TextField(blank=True, default="")
+    duration_months = models.IntegerField()
     application_fee = models.DecimalField(max_digits=10, decimal_places=2)
+    tuition_fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     requirements = models.JSONField(default=dict)
+    regulatory_body = models.CharField(max_length=100, blank=True, default="")
+    accreditation_status = models.CharField(max_length=50, blank=True, default="")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False

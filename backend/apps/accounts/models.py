@@ -41,12 +41,16 @@ class DeviceSession(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    device_id = models.CharField(max_length=255, blank=True, default="")
     device_info = models.JSONField()
-    ip_hash = models.CharField(max_length=64)
-    refresh_token_hash = models.CharField(max_length=64)
-    last_active = models.DateTimeField()
+    session_token = models.CharField(max_length=64, blank=True, default="")
+    ip_address = models.CharField(max_length=64, blank=True, default="")
+    user_agent = models.CharField(max_length=500, blank=True, default="")
+    last_activity = models.DateTimeField()
     is_active = models.BooleanField(default=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
