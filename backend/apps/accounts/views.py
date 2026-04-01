@@ -5,6 +5,7 @@ Requirements: 2.1, 2.3, 2.4, 2.5, 2.9, 2.10, 2.11, 2.12, 18.2
 """
 
 import hashlib
+import json
 import logging
 import secrets
 from datetime import timedelta
@@ -251,7 +252,7 @@ class LoginView(APIView):
         DeviceSession.objects.create(
             user=user,
             device_id=ip_hash[:32],
-            device_info=str({"user_agent": user_agent}),
+            device_info=json.dumps({"user_agent": user_agent}),
             ip_address=ip_hash,
             session_token=refresh_hash,
             user_agent=user_agent[:500],

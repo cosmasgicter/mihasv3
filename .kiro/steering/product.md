@@ -104,21 +104,22 @@ Jobs-ops expectations:
 | Password reset | Token-based, time-bound, single-use, and rate-limited |
 | Auth | Cookie-based auth remains the intended browser model |
 | Outreach safety | Jobs-ops must avoid duplicate spammy outreach and must not bypass approval controls for risky sends |
-| Error alerting | Error notifications default to `admin@mihas.edu.zm` unless explicitly overridden |
+| Error alerting | Error notifications default to `ops@mihas.edu.zm` (via `ERROR_ALERT_EMAIL` env var) unless explicitly overridden |
 
 ## Security Posture
 
 | Layer | Current Expectation |
 |-------|---------------------|
 | Transport | TLS only, strict transport headers in production |
-| Auth | HTTP-only cookies, refresh rotation, Django-managed signing |
-| CSRF | Required on state-changing requests |
+| Auth | HTTP-only cookies, refresh rotation, Django-managed signing, JWT middleware fully implemented |
+| CSRF | Required on state-changing requests; custom `CSRFEnforcementMiddleware` with exempt patterns for unauthenticated endpoints |
 | Validation | Validate every input at the API boundary |
 | File uploads | Validate content type and file shape defensively |
 | Secrets | Credentials must be environment-backed and masked in logs |
 | Audit | Keep audit trails while avoiding PII in logs |
 | URL safety | Prevent open redirects and unsafe external URL handling |
 | Automation safety | Respect approval thresholds, domain policies, and send caps |
+| Error monitoring | Self-hosted via `ErrorLog` model + throttled alert emails (no Sentry) |
 
 ## Working Assumptions For Changes
 

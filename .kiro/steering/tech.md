@@ -50,8 +50,10 @@ inclusion: always
 | Async | Celery + Redis | Background work, retries, and periodic tasks |
 | Storage | Cloudflare R2 via `django-storages` | Signed URL workflow |
 | Email | Resend live, Zoho planned placeholders | Resend is wired for alerting; Zoho env placeholders exist for jobs-ops |
+| HTTP client | `requests` | Used by `check_uptime_task` for internal health checks |
 | AI + messaging | OpenAI and Telegram planned placeholders | Env scaffolding now exists; integration wiring remains to be completed |
 | Browser automation | Playwright worker service planned | Placeholder envs now exist |
+| Error monitoring | Self-hosted via `ErrorLog` model + throttled alert emails | No Sentry — see Error Monitoring section below |
 | API docs | drf-spectacular | Schema and docs under `/api/v1/` |
 | Testing | pytest + hypothesis | Backend tests live under `backend/tests/` |
 
@@ -142,6 +144,42 @@ The frontend and backend share a single, unified API contract. There is no compa
 - Preserve explicit jobs-ops domain naming such as `JobApplication`.
 - Shared jobs-ops scaffold data currently lives in `backend/apps/common/jobs_ops_seed.py`; do not re-duplicate that seed state across views.
 - Current default error-alert recipient is `admin@mihas.edu.zm`.
+
+## Error Monitoring
+
+The platform uses self-hosted error monitoring — there is no Sentry or third-party error tracker.
+
+### Pipeline
+
+1. Backend 500 errors: `envelope_exception_handler` in `backend/apps/common/exceptions.py` catches DRF exceptions, creates an `ErrorLog` row (source=`backend`), and dispatches a throttled alert email via Redis `cache.add` (15-minute TTL per unique message hash).
+2. Frontend errors: `apps/admissions/src/lib/errorReporter.ts` captures `window.onerror` and `unhandledrejection` events, batches them with a 5-second debounce, and POSTs to `POST /api/v1/errors/report/`. The backend `ErrorReportView` in `backend/apps/common/error_views.py` creates an `ErrorLog` row (source=`frontend`) and dispatches a throttled alert email using the same logic.
+3. Alert emails are enqueued in `EmailQueue` and dispatched via `send_email_task` through Celery + Resend.
+
+### Key details
+
+- `ErrorLog` model lives in `backend/apps/common/models.py` with `managed = False`. The `error_logs` table was created via the SQL migration script `backend/scripts/create_error_logs_table.sql`, not Django migrations.
+- Default alert recipient: `ops@mihas.edu.zm` (configurable via `ERROR_ALERT_EMAIL` env var; code fallback is `admin@mihas.edu.zm`).
+- Throttle: one alert per unique error message per 15 minutes, backed by Redis `cache.add`. If Redis is unavailable, alerts fail-open (dispatch anyway).
+- Frontend error reporting is unauthenticated (`AllowAny`) and CSRF-exempt, rate-limited to 10 requests per IP per 5 minutes.
+- Frontend reporter respects `VITE_ERROR_REPORT_ENABLED` env var — does nothing when disabled.
+
+## Celery Beat Periodic Tasks
+
+Celery Beat runs as a dedicated Koyeb worker service (exactly 1 instance to avoid duplicate dispatches). The schedule is defined in `CELERY_BEAT_SCHEDULE` in `backend/config/settings/base.py`:
+
+| Task | Schedule | Purpose |
+|------|----------|---------|
+| `check_uptime_task` | Every 300 seconds (5 minutes) | Internal health check — pings `/health/ready/`, alerts on failure/recovery transitions |
+| `cleanup_audit_logs_task` | Daily at 03:00 UTC (`crontab(hour=3, minute=0)`) | Purge expired audit log records: standard retention 90 days, security retention 365 days |
+
+Both tasks live in `backend/apps/common/tasks.py`.
+
+## Uptime Monitoring
+
+Two layers of uptime monitoring are in place:
+
+1. **Internal**: `check_uptime_task` (Celery Beat, every 5 minutes) sends `GET` to the configured `HEALTH_CHECK_URL` (default: `https://api.mihas.edu.zm/health/ready/`) with a 10-second timeout. Tracks previous status in Redis key `uptime:last_status`. On healthy→unhealthy transition: dispatches alert email. On unhealthy→healthy: dispatches recovery email. Repeated failures without recovery do not produce duplicate alerts. Uses the `requests` library.
+2. **External**: [UptimeRobot](https://uptimerobot.com/) (free tier) monitors `https://api.mihas.edu.zm/health/ready/` every 5 minutes from outside the network. Sends email alerts to `ops@mihas.edu.zm` on failure and recovery.
 
 ## Current Jobs Ops State
 
