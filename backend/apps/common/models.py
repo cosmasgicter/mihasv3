@@ -12,7 +12,7 @@ class AuditLog(models.Model):
     actor_id = models.UUIDField(null=True, blank=True)
     action = models.CharField(max_length=50)
     entity_type = models.CharField(max_length=50)
-    entity_id = models.UUIDField()
+    entity_id = models.UUIDField(null=True, blank=True)
     changes = models.JSONField(null=True, blank=True)
     ip_address = models.CharField(max_length=64, null=True, blank=True)  # SHA-256 hash of IP
     user_agent = models.TextField(null=True, blank=True)
