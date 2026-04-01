@@ -33,7 +33,7 @@ class IdempotencyKey(models.Model):
     key = models.TextField(primary_key=True)
     endpoint = models.TextField()
     response_json = models.JSONField()
-    created_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
@@ -154,7 +154,7 @@ class ErrorLog(models.Model):
     request_path = models.TextField(null=True, blank=True)
     user_id = models.UUIDField(null=True, blank=True)
     ip_hash = models.CharField(max_length=64, null=True, blank=True)
-    created_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
