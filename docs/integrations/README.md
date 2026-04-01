@@ -212,6 +212,10 @@ See the [examples directory](./examples/) for complete integration examples in v
 - [PHP/Laravel](./examples/php/)
 - [C#/.NET](./examples/dotnet/)
 
+## Project-Specific Guides
+
+- [OpenClaw integration plan for jobs-ops](./2026-04-01-openclaw-jobs-ops-integration-plan.md)
+
 ## Support
 
 For integration support:

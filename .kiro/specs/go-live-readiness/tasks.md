@@ -1,0 +1,342 @@
+# Implementation Plan: Go-Live Readiness
+
+## Overview
+
+Systematic verification and hardening of the MIHAS admissions platform before go-live. Work is ordered by blast radius: DB-model audit first (go-live blocker), then E2E live testing, error pipeline, steering files, Celery/Redis, schema hardening, new property tests, and finally the regression script for CI. The schema audit is performed directly via Neon MCP table-by-table — the regression script is built afterward.
+
+## Tasks
+
+- [x] 1. DB-Model Audit: accounts app (6 tables via Neon MCP)
+  - [x] 1.1 Audit `profiles` table against `accounts.Profile` model
+    - Query `information_schema.columns` for `profiles` via Neon MCP (project: wild-bar-37055823)
+    - Compare all 11 fields: id, email, password_hash, first_name, last_name, phone, nationality, role, is_active, created_at, updated_at
+    - Fix any mismatches immediately: ALTER TABLE or update Django model
+    - Re-query to confirm fix
+    - _Requirements: 2.1_
+  - [x] 1.2 Audit `device_sessions` table against `accounts.DeviceSession` model
+    - Query columns for `device_sessions` via Neon MCP
+    - Compare all 12 fields: id, user_id, device_id, device_info, session_token, ip_address, user_agent, last_activity, is_active, expires_at, created_at, updated_at
+    - This table had previous fixes — verify they hold (Requirement 2.10)
+    - _Requirements: 2.1, 2.10_
+  - [x] 1.3 Audit `login_attempts` table against `accounts.LoginAttempt` model
+    - Query columns for `login_attempts` via Neon MCP
+    - Compare all 5 fields: id, email_hash, ip_hash, success, attempted_at
+    - This table had previous fixes — verify they hold (Requirement 2.10)
+    - _Requirements: 2.1, 2.10_
+  - [x] 1.4 Audit `password_reset_tokens` table against `accounts.PasswordResetToken` model
+    - Query columns for `password_reset_tokens` via Neon MCP
+    - Compare all 6 fields: id, user_id, token_hash, expires_at, used_at, created_at
+    - This table had previous fixes — verify they hold (Requirement 2.10)
+    - _Requirements: 2.1, 2.10_
+  - [x] 1.5 Audit `csrf_tokens` table against `accounts.CSRFToken` model
+    - Query columns for `csrf_tokens` via Neon MCP
+    - Compare all 5 fields: id, user_id, token_hash, expires_at, created_at
+    - This table had previous fixes — verify they hold (Requirement 2.10)
+    - _Requirements: 2.1, 2.10_
+  - [x] 1.6 Audit `user_permission_overrides` table against `accounts.UserPermissionOverride` model
+    - Query columns for `user_permission_overrides` via Neon MCP
+    - Compare all 3 fields: id, user_id, permissions
+    - _Requirements: 2.1_
+
+- [x] 2. DB-Model Audit: applications app (4 tables via Neon MCP)
+  - [x] 2.1 Audit `applications` table against `applications.Application` model
+    - Query columns for `applications` via Neon MCP
+    - Compare all ~45 fields including user_id, application_number, public_tracking_code, full_name, status, all payment fields, all review fields, version, submitted_at, created_at, updated_at
+    - Pay special attention to DecimalField→numeric and URLField→text mappings
+    - _Requirements: 2.2_
+  - [x] 2.2 Audit `application_status_history` table against `applications.ApplicationStatusHistory` model
+    - Query columns for `application_status_history` via Neon MCP
+    - Compare all 11 fields: id, application_id, status, old_status, new_status, changed_by, notes, changes, ip_address, user_agent, created_at
+    - _Requirements: 2.2_
+  - [x] 2.3 Audit `application_drafts` table against `applications.ApplicationDraft` model
+    - Query columns for `application_drafts` via Neon MCP
+    - Compare all 10 fields: id, application_id, user_id, draft_data, draft_name, step_completed, is_active, last_accessed_at, created_at, updated_at
+    - _Requirements: 2.2_
+  - [x] 2.4 Audit `application_interviews` table against `applications.ApplicationInterview` model
+    - Query columns for `application_interviews` via Neon MCP
+    - Compare all 11 fields: id, application_id, scheduled_at, mode, location, status, notes, created_by, updated_by, created_at, updated_at
+    - _Requirements: 2.2_
+
+- [x] 3. DB-Model Audit: catalog app (6 tables via Neon MCP)
+  - [x] 3.1 Audit `institutions` table against `catalog.Institution` model
+    - Query columns for `institutions` via Neon MCP
+    - Compare all 8 fields: id, name, code, full_name, type, accreditation_status, is_active, created_at
+    - _Requirements: 2.3_
+  - [x] 3.2 Audit `programs` table against `catalog.Program` model
+    - Query columns for `programs` via Neon MCP
+    - Compare all 14 fields: id, name, code, institution_id, description, duration_months, application_fee, tuition_fee, requirements, regulatory_body, accreditation_status, is_active, created_at, updated_at
+    - This table had previous fixes — verify they hold (Requirement 2.10)
+    - _Requirements: 2.3, 2.10_
+  - [x] 3.3 Audit `intakes` table against `catalog.Intake` model
+    - Query columns for `intakes` via Neon MCP
+    - Compare all 7 fields: id, name, year, application_deadline, max_capacity, is_active, created_at
+    - _Requirements: 2.3_
+  - [x] 3.4 Audit `program_intakes` table against `catalog.ProgramIntake` model
+    - Query columns for `program_intakes` via Neon MCP
+    - Compare all 5 fields: id, program_id, intake_id, max_capacity, current_enrollment
+    - _Requirements: 2.3_
+  - [x] 3.5 Audit `subjects` table against `catalog.Subject` model
+    - Query columns for `subjects` via Neon MCP
+    - Compare all 5 fields: id, name, code, category, is_core
+    - _Requirements: 2.3_
+  - [x] 3.6 Audit `course_requirements` table against `catalog.CourseRequirement` model
+    - Query columns for `course_requirements` via Neon MCP
+    - Compare all 4 fields: id, program_id, subject_id, minimum_grade
+    - _Requirements: 2.3_
+
+- [x] 4. DB-Model Audit: documents app (3 tables via Neon MCP)
+  - [x] 4.1 Audit `application_documents` table against `documents.ApplicationDocument` model
+    - Query columns for `application_documents` via Neon MCP
+    - Compare all 16 fields: id, application_id, document_type, document_name, file_url, file_size, mime_type, verification_status, verified_by, verified_at, verification_notes, system_generated, uploaded_at, extracted_text, created_at, updated_at
+    - Pay attention to URLField→text mapping for file_url
+    - _Requirements: 2.4_
+  - [x] 4.2 Audit `application_grades` table against `documents.ApplicationGrade` model
+    - Query columns for `application_grades` via Neon MCP
+    - Compare all 5 fields: id, application_id, subject_id, grade, created_at
+    - _Requirements: 2.4_
+  - [x] 4.3 Audit `payments` table against `documents.Payment` model
+    - Query columns for `payments` via Neon MCP
+    - Compare all 16 fields: id, application_id, user_id, amount, currency, payment_method, transaction_reference, status, verified_by, verified_at, receipt_number, receipt_url, metadata, notes, created_at, updated_at
+    - Pay attention to DecimalField→numeric and URLField→text mappings
+    - _Requirements: 2.4_
+
+- [x] 5. DB-Model Audit: common app (8 tables via Neon MCP)
+  - [x] 5.1 Audit `audit_logs` table against `common.AuditLog` model
+    - Query columns for `audit_logs` via Neon MCP
+    - Compare all 10 fields: id, actor_id, action, entity_type, entity_id, changes, ip_address, user_agent, retention_category, created_at
+    - _Requirements: 2.5_
+  - [x] 5.2 Audit `idempotency_keys` table against `common.IdempotencyKey` model
+    - Query columns for `idempotency_keys` via Neon MCP
+    - Compare all 4 fields: key, endpoint, response_json, created_at
+    - _Requirements: 2.5_
+  - [x] 5.3 Audit `settings` table against `common.Setting` model
+    - Query columns for `settings` via Neon MCP
+    - Compare all 7 fields: id, key, value, category, description, is_public, updated_at
+    - _Requirements: 2.5_
+  - [x] 5.4 Audit `notifications` table against `common.Notification` model
+    - Query columns for `notifications` via Neon MCP
+    - Compare all 8 fields: id, user_id, title, message, type, is_read, idempotency_key, created_at
+    - _Requirements: 2.5_
+  - [x] 5.5 Audit `user_notification_preferences` table against `common.UserNotificationPreference` model
+    - Query columns for `user_notification_preferences` via Neon MCP
+    - Compare all 5 fields: id, user_id, email_enabled, push_enabled, quiet_hours
+    - _Requirements: 2.5_
+  - [x] 5.6 Audit `email_queue` table against `common.EmailQueue` model
+    - Query columns for `email_queue` via Neon MCP
+    - Compare all 8 fields: id, recipient_email, subject, body, status, retry_count, error_message, created_at
+    - This table had previous fixes — verify they hold (Requirement 2.10)
+    - _Requirements: 2.5, 2.10_
+  - [x] 5.7 Audit `error_logs` table against `common.ErrorLog` model
+    - Query columns for `error_logs` via Neon MCP
+    - Compare all 10 fields: id, source, level, message, stack_trace, context, request_path, user_id, ip_hash, created_at
+    - _Requirements: 2.5_
+  - [x] 5.8 Audit `migration_history` table against `common.MigrationHistory` model
+    - Query columns for `migration_history` via Neon MCP
+    - Compare all 3 fields: id, migration_name, applied_at
+    - _Requirements: 2.5_
+
+- [x] 6. Checkpoint — DB-model audit complete
+  - Ensure all 26 tables have been audited and all mismatches resolved
+  - Confirm previously fixed models (DeviceSession, LoginAttempt, PasswordResetToken, CSRFToken, Program, EmailQueue) have not regressed
+  - Ask the user if questions arise
+
+- [ ] 7. E2E Live Environment Testing
+  - [ ] 7.1 Test health endpoints against live API
+    - Call `GET ***REMOVED***/health/live/` — verify HTTP 200 with `{"status": "ok"}`
+    - Call `GET ***REMOVED***` — verify HTTP 200 with `{"status": "ok", "db": "ok", "redis": "ok"}`
+    - _Requirements: 1.7_
+  - [ ] 7.2 Test auth flow against live API
+    - POST student login to `***REMOVED***/api/v1/auth/login/` — verify HTTP-only cookies set
+    - POST admin login — verify admin-role cookies set
+    - Verify `device_sessions` row created in Neon MCP
+    - Test token refresh and logout
+    - _Requirements: 1.1, 1.2_
+  - [ ] 7.3 Test catalog endpoints against live API
+    - GET `/api/v1/catalog/programs/`, `/api/v1/catalog/intakes/`, `/api/v1/catalog/subjects/`
+    - Cross-check response counts with Neon MCP `SELECT COUNT(*)` on each table
+    - _Requirements: 1.6_
+  - [ ] 7.4 Test application endpoints against live API
+    - GET `/api/v1/applications/` as authenticated student — verify own applications returned
+    - GET `/api/v1/admin/users/` as authenticated admin — verify user listing
+    - _Requirements: 1.3, 1.4_
+  - [ ] 7.5 Test state-changing operations against live API
+    - Perform a create/update operation on applications or documents
+    - Verify the corresponding row change in Neon MCP
+    - _Requirements: 1.5_
+  - [ ] 7.6 Test error reporting endpoint against live API
+    - POST to `***REMOVED***/api/v1/errors/report/` with `{"message": "go-live-test"}`
+    - Verify `error_logs` row created with `source='frontend'` in Neon MCP
+    - _Requirements: 1.8_
+
+- [ ] 8. Error Pipeline Verification
+  - [ ] 8.1 Verify backend exception → ErrorLog → alert email chain
+    - Confirm `envelope_exception_handler` in `backend/apps/common/exceptions.py` creates ErrorLog records with source='backend', level, message, stack_trace, request_path, user_id, ip_hash
+    - Confirm throttled alert email dispatches via `cache.add` with 15-minute TTL
+    - Confirm `EmailQueue` record created and `send_email_task.delay()` called
+    - _Requirements: 5.1, 5.2, 5.3, 5.6_
+  - [ ] 8.2 Verify frontend error report endpoint
+    - Confirm `ErrorReportView` in `backend/apps/common/error_views.py` creates ErrorLog with source='frontend'
+    - Confirm malformed payloads (missing `message`) return HTTP 400 with no ErrorLog created
+    - _Requirements: 5.4, 5.5_
+
+- [ ] 9. Steering File Updates
+  - [ ] 9.1 Update `.kiro/steering/tech.md`
+    - Document the error monitoring system (ErrorLog model, `/api/v1/errors/report/`, throttled alert emails)
+    - Document Celery Beat periodic tasks (`check_uptime_task` at 300s, `cleanup_audit_logs_task` at daily 03:00 UTC)
+    - Document uptime monitoring setup (internal Celery task + external UptimeRobot)
+    - _Requirements: 6.1, 6.2, 6.3_
+  - [ ] 9.2 Update `.kiro/steering/product.md`
+    - Document error alerting default recipient (`***REMOVED***`) and error monitoring pipeline
+    - _Requirements: 6.4_
+  - [ ] 9.3 Update `.kiro/steering/structure.md`
+    - Document new files added during remediation: `error_urls.py`, `error_views.py`, `exceptions.py`, `health.py`
+    - Remove or correct any statements that are no longer accurate
+    - _Requirements: 6.5, 6.6_
+
+- [ ] 10. Checkpoint — E2E, error pipeline, and steering updates complete
+  - Ensure all live API tests passed
+  - Ensure error pipeline chain is verified end-to-end
+  - Ensure steering files reflect current platform state
+  - Ask the user if questions arise
+
+- [ ] 11. Celery/Redis Verification
+  - [ ] 11.1 Verify Redis TLS connectivity
+    - Confirm backend connects to Upstash Redis via `rediss://` URL
+    - Verify `/health/ready/` reports `redis: ok`
+    - Test `cache.get`, `cache.set`, `cache.add` operations
+    - _Requirements: 4.1, 4.5_
+  - [ ] 11.2 Verify Celery task dispatch and execution
+    - Confirm `send_email_task` dispatches to Redis broker and executes
+    - Confirm `EmailQueue` row status updates on success/failure
+    - Confirm retry with exponential backoff on transient failure
+    - _Requirements: 3.1, 3.2, 3.3, 4.4_
+  - [ ] 11.3 Verify Celery Beat periodic tasks
+    - Confirm `CELERY_BEAT_SCHEDULE` contains `check_uptime_task` (300s interval) and `cleanup_audit_logs_task` (daily 03:00 UTC)
+    - Confirm `check_uptime_task` verifies Postgres and Redis connectivity
+    - Confirm `cleanup_audit_logs_task` respects retention periods (standard: 90d, security: 365d)
+    - _Requirements: 3.4, 3.5, 3.6, 3.7_
+  - [ ] 11.4 Verify Redis rate limiting
+    - Confirm rate-limited endpoints use Redis-backed counters
+    - Confirm exceeding threshold returns HTTP 429
+    - _Requirements: 4.2_
+  - [ ] 11.5 Verify Redis CSRF token storage
+    - Confirm CSRF token generated during auth is stored in Redis with configured TTL
+    - _Requirements: 4.3_
+
+- [ ] 12. Schema Hardening (indexes, constraints, FKs via Neon MCP)
+  - [ ] 12.1 Add indexes on frequently filtered columns
+    - Use `CREATE INDEX CONCURRENTLY` via Neon MCP for: `applications.user_id`, `applications.status`, `applications.application_number`, `audit_logs.created_at`, `email_queue.status`, `notifications.user_id`
+    - Verify each index via `pg_indexes` query
+    - _Requirements: 7.1, 7.4_
+  - [ ] 12.2 Add NOT NULL constraints on required columns
+    - Backfill any NULL values with appropriate defaults first
+    - Apply NOT NULL on: `applications.status`, `applications.email`, `profiles.email`, `profiles.role`, `email_queue.status`
+    - Verify via `information_schema.columns` query
+    - _Requirements: 7.2, 7.5_
+  - [ ] 12.3 Add foreign key constraints where missing
+    - Check for orphaned records first using LEFT JOIN queries
+    - Clean up orphans if found
+    - Add FK constraints for Django ForeignKey fields that lack DB-level enforcement
+    - Verify via `information_schema.table_constraints`
+    - _Requirements: 7.3, 7.6, 7.7_
+
+- [ ] 13. Checkpoint — Schema hardening complete
+  - Ensure all indexes created and verified via `pg_indexes`
+  - Ensure all NOT NULL constraints applied and verified
+  - Ensure all FK constraints added and verified
+  - Ask the user if questions arise
+
+- [ ] 14. New Property Tests
+  - [ ]* 14.1 Write property test P1: Schema auditor detects all field discrepancies
+    - Create `backend/tests/property/test_schema_auditor.py`
+    - Generate random model field sets and DB column sets via Hypothesis
+    - Verify auditor correctly classifies matches, missing-in-DB, extra-in-DB, and type mismatches
+    - **Property 1: Schema auditor detects all field discrepancies**
+    - **Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5, 2.7, 2.8**
+  - [ ]* 14.2 Write property test P2: Schema auditor generates valid corrective SQL
+    - Add to `backend/tests/property/test_schema_auditor.py`
+    - Generate random missing field definitions via Hypothesis
+    - Verify generated ALTER TABLE SQL has correct table name, column name, Postgres type, and NULL constraint
+    - **Property 2: Schema auditor generates valid corrective SQL**
+    - **Validates: Requirements 2.6**
+  - [ ]* 14.3 Write property test P5: Frontend error report validation rejects malformed payloads
+    - Add to `backend/tests/property/test_error_monitoring.py`
+    - Generate random payloads missing the `message` field via Hypothesis
+    - Verify HTTP 400 with `code: "VALIDATION_ERROR"` and no ErrorLog created
+    - **Property 5: Frontend error report validation rejects malformed payloads**
+    - **Validates: Requirements 5.5**
+  - [ ]* 14.4 Write property test P9: Health endpoint reflects dependency state
+    - Create `backend/tests/property/test_health_endpoint.py`
+    - Mock DB/Redis as reachable/unreachable in all 4 combinations
+    - Verify correct HTTP status code (200 vs 503) and response body
+    - **Property 9: Health endpoint reflects dependency state**
+    - **Validates: Requirements 4.5, 4.6**
+  - [ ]* 14.5 Write property test P10: Rate limiting enforcement
+    - Create `backend/tests/property/test_rate_limiting.py`
+    - Generate random request counts and rate limits via Hypothesis
+    - Verify first L requests pass and requests L+1..N return HTTP 429 with Retry-After header
+    - **Property 10: Rate limiting enforcement**
+    - **Validates: Requirements 4.2**
+
+- [ ] 15. Verify Existing Property Tests Pass (P3, P4, P6, P7, P8)
+  - [ ] 15.1 Verify P3 (ErrorLog required fields) passes
+    - Run `cd backend && python3 -m pytest tests/property/test_error_monitoring.py::TestUnhandledExceptionCreatesErrorLog -v`
+    - Existing test in `backend/tests/property/test_error_monitoring.py` — do not rewrite
+    - **Property 3: ErrorLog creation includes all required fields**
+    - **Validates: Requirements 1.8, 5.1, 5.4, 5.6**
+  - [ ] 15.2 Verify P4 (Error alert throttling) passes
+    - Run `cd backend && python3 -m pytest tests/property/test_error_monitoring.py::TestErrorAlertThrottling -v`
+    - Existing test in `backend/tests/property/test_error_monitoring.py` — do not rewrite
+    - **Property 4: Error alert throttling suppresses duplicates**
+    - **Validates: Requirements 5.2, 5.3**
+  - [ ] 15.3 Verify P6 (Email task status lifecycle) passes
+    - Run `cd backend && python3 -m pytest tests/property/test_email_dispatch.py -v`
+    - Existing test in `backend/tests/property/test_email_dispatch.py` — do not rewrite
+    - **Property 6: Email task status lifecycle**
+    - **Validates: Requirements 3.2, 3.3**
+  - [ ] 15.4 Verify P7 (Uptime task state transitions) passes
+    - Run `cd backend && python3 -m pytest tests/property/test_uptime_task.py -v`
+    - Existing test in `backend/tests/property/test_uptime_task.py` — do not rewrite
+    - **Property 7: Uptime task state transition correctness**
+    - **Validates: Requirements 3.6**
+  - [ ] 15.5 Verify P8 (Audit log cleanup retention) passes
+    - Run `cd backend && python3 -m pytest tests/property/test_audit_cleanup.py -v`
+    - Existing test in `backend/tests/property/test_audit_cleanup.py` — do not rewrite
+    - **Property 8: Audit log cleanup respects retention periods**
+    - **Validates: Requirements 3.7**
+
+- [ ] 16. Build Schema Regression Script for CI
+  - [ ] 16.1 Create `backend/scripts/verify_schema_live.py`
+    - Build a Python script that connects to Neon Postgres and compares all 26 tables against Django model definitions
+    - Use the Django-to-Postgres type mapping from the design document
+    - Accept both `character varying(N)` and `text` for URLField columns
+    - Output: list of mismatches (missing columns, extra columns, type mismatches) with corrective SQL
+    - Exit code 0 if clean, 1 if mismatches found
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10_
+  - [ ]* 16.2 Write unit tests for the schema regression script
+    - Create `backend/tests/unit/test_schema_auditor.py`
+    - Test known mismatch cases from previous fixes (DeviceSession, LoginAttempt, PasswordResetToken, CSRFToken, Program, EmailQueue)
+    - Test the Django-to-Postgres type mapping function
+    - _Requirements: 2.10_
+
+- [ ] 17. Final Checkpoint — All go-live readiness work complete
+  - Ensure all 26 tables audited and clean
+  - Ensure all E2E live tests passed
+  - Ensure error pipeline verified end-to-end
+  - Ensure steering files updated
+  - Ensure Celery/Redis verified
+  - Ensure schema hardening applied and verified
+  - Ensure all existing property tests (P3, P4, P6, P7, P8) pass
+  - Ensure regression script built and working
+  - Ask the user if questions arise
+
+## Notes
+
+- Tasks marked with `*` are optional and can be skipped for faster MVP
+- The schema audit (tasks 1–6) is the go-live blocker and must be completed first
+- The audit is done directly via Neon MCP table-by-table, not by building a Python script first
+- Properties P3, P4, P6, P7, P8 already have test implementations from the CTO remediation spec — task 15 verifies they still pass
+- New property tests needed: P1, P2 (schema auditor), P5 (frontend error validation), P9 (health endpoint), P10 (rate limiting)
+- Schema hardening (task 12) carries the most risk and is done last before property tests
+- Neon project ID: wild-bar-37055823
+- Live API: api.mihas.edu.zm

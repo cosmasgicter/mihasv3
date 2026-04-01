@@ -76,17 +76,19 @@ class AdminUserUpdateSerializer(serializers.Serializer):
 
 class SettingSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
-    key = serializers.CharField(max_length=255)
-    value = serializers.CharField()
-    category = serializers.CharField(max_length=100, required=False, default="")
+    key = serializers.CharField(max_length=100)
+    value = serializers.JSONField()
+    category = serializers.CharField(max_length=50, required=False, default="")
     description = serializers.CharField(required=False, default="")
     is_public = serializers.BooleanField(required=False, default=False)
+    updated_by = serializers.UUIDField(read_only=True, allow_null=True)
+    created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
 
 
 class SettingUpdateSerializer(serializers.Serializer):
-    value = serializers.CharField(required=False)
-    category = serializers.CharField(max_length=100, required=False)
+    value = serializers.JSONField(required=False)
+    category = serializers.CharField(max_length=50, required=False)
     description = serializers.CharField(required=False)
     is_public = serializers.BooleanField(required=False)
 

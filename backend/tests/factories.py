@@ -74,10 +74,12 @@ class DeviceSessionFactory(factory.django.DjangoModelFactory):
 
     id = factory.LazyFunction(uuid.uuid4)
     user = factory.SubFactory(ProfileFactory)
-    device_info = factory.LazyFunction(lambda: {"browser": "Chrome", "os": "Linux"})
-    ip_hash = factory.LazyFunction(lambda: _sha256(str(uuid.uuid4())))
-    refresh_token_hash = factory.LazyFunction(lambda: _sha256(str(uuid.uuid4())))
-    last_active = factory.LazyFunction(timezone.now)
+    device_id = factory.LazyFunction(lambda: str(uuid.uuid4()))
+    device_info = factory.LazyFunction(lambda: '{"browser": "Chrome", "os": "Linux"}')
+    session_token = factory.LazyFunction(lambda: _sha256(str(uuid.uuid4())))
+    ip_address = factory.Faker("ipv4")
+    user_agent = factory.Faker("user_agent")
+    last_activity = factory.LazyFunction(timezone.now)
     is_active = True
 
 
@@ -99,7 +101,7 @@ class PasswordResetTokenFactory(factory.django.DjangoModelFactory):
     user = factory.SubFactory(ProfileFactory)
     token_hash = factory.LazyFunction(lambda: _sha256(str(uuid.uuid4())))
     expires_at = factory.LazyFunction(lambda: timezone.now() + timedelta(hours=1))
-    used = False
+    used_at = None
 
 
 class CSRFTokenFactory(factory.django.DjangoModelFactory):
@@ -109,15 +111,15 @@ class CSRFTokenFactory(factory.django.DjangoModelFactory):
     id = factory.LazyFunction(uuid.uuid4)
     user = factory.SubFactory(ProfileFactory)
     token_hash = factory.LazyFunction(lambda: _sha256(str(uuid.uuid4())))
+    expires_at = factory.LazyFunction(lambda: timezone.now() + timedelta(hours=24))
 
 
 class UserPermissionOverrideFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = UserPermissionOverride
 
-    id = factory.LazyFunction(uuid.uuid4)
     user = factory.SubFactory(ProfileFactory)
-    permissions = factory.LazyFunction(lambda: {})
+    permissions = factory.LazyFunction(lambda: [])
 
 
 # ---------------------------------------------------------------------------
@@ -198,7 +200,7 @@ class ApplicationDocumentFactory(factory.django.DjangoModelFactory):
     document_type = factory.Faker(
         "random_element", elements=["nrc", "certificate", "transcript", "passport_photo"]
     )
-    file_key = factory.LazyFunction(lambda: f"documents/{uuid.uuid4()}.pdf")
+    document_name = factory.LazyFunction(lambda: f"document_{uuid.uuid4()}.pdf")
     file_url = ""
     verification_status = "pending"
     extracted_text = ""
@@ -254,7 +256,7 @@ class ProgramFactory(factory.django.DjangoModelFactory):
     name = factory.Faker("bs")
     code = factory.Sequence(lambda n: f"PRG-{n:04d}")
     institution = factory.SubFactory(InstitutionFactory)
-    duration_years = factory.Faker("random_int", min=1, max=5)
+    duration_months = factory.Faker("random_int", min=12, max=60)
     application_fee = factory.LazyFunction(lambda: Decimal("250.00"))
     requirements = factory.LazyFunction(lambda: {})
     is_active = True
@@ -267,7 +269,7 @@ class IntakeFactory(factory.django.DjangoModelFactory):
     id = factory.LazyFunction(uuid.uuid4)
     name = factory.Faker("random_element", elements=["January Intake", "September Intake"])
     year = factory.Faker("random_int", min=2024, max=2026)
-    application_deadline = factory.LazyFunction(lambda: timezone.now() + timedelta(days=90))
+    application_deadline = factory.LazyFunction(lambda: (timezone.now() + timedelta(days=90)).date())
     max_capacity = factory.Faker("random_int", min=50, max=500)
     is_active = True
 
@@ -349,7 +351,7 @@ class SettingFactory(factory.django.DjangoModelFactory):
 
     id = factory.LazyFunction(uuid.uuid4)
     key = factory.Sequence(lambda n: f"setting_key_{n}")
-    value = factory.Faker("word")
+    value = factory.LazyFunction(lambda: {"default": True})
     category = factory.Faker("random_element", elements=["general", "email", "security"])
     description = factory.Faker("sentence")
     is_public = False
@@ -376,7 +378,7 @@ class UserNotificationPreferenceFactory(factory.django.DjangoModelFactory):
     user = factory.SubFactory(ProfileFactory)
     email_enabled = True
     push_enabled = False
-    quiet_hours = factory.LazyFunction(lambda: {})
+    sms_enabled = False
 
 
 class EmailQueueFactory(factory.django.DjangoModelFactory):
@@ -396,5 +398,4 @@ class MigrationHistoryFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = MigrationHistory
 
-    id = factory.LazyFunction(uuid.uuid4)
     migration_name = factory.Sequence(lambda n: f"migration_{n:04d}_add_feature")
