@@ -128,12 +128,17 @@ def _clear_auth_cookies(response: Response) -> None:
 
 def _generate_csrf_token(user) -> str:
     """Generate a CSRF token, store its SHA-256 hash, return the raw token."""
+    from datetime import timedelta
+
+    from django.utils import timezone as tz
+
     raw_token = secrets.token_hex(32)
     token_hash = _hash_value(raw_token)
 
     CSRFToken.objects.create(
         user=user,
         token_hash=token_hash,
+        expires_at=tz.now() + timedelta(hours=24),
     )
 
     return raw_token
@@ -245,9 +250,11 @@ class LoginView(APIView):
 
         DeviceSession.objects.create(
             user=user,
+            device_id=ip_hash[:32],
             device_info={"user_agent": user_agent},
             ip_address=ip_hash,
             session_token=refresh_hash,
+            user_agent=user_agent[:500],
             last_activity=tz.now(),
             is_active=True,
         )
