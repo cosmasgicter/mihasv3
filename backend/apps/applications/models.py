@@ -94,12 +94,16 @@ class ApplicationStatusHistory(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     application = models.ForeignKey(Application, on_delete=models.CASCADE)
-    old_status = models.CharField(max_length=50)
-    new_status = models.CharField(max_length=50)
+    status = models.CharField(max_length=50, blank=True, default="")
+    old_status = models.CharField(max_length=50, blank=True, default="")
+    new_status = models.CharField(max_length=50, blank=True, default="")
     changed_by = models.ForeignKey(
         'accounts.Profile', on_delete=models.SET_NULL, null=True
     )
     notes = models.TextField(blank=True)
+    changes = models.JSONField(blank=True, null=True)
+    ip_address = models.CharField(max_length=64, blank=True, default="")
+    user_agent = models.CharField(max_length=255, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -114,7 +118,7 @@ class ApplicationDraft(models.Model):
     """Maps to 'application_drafts' table."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    application = models.ForeignKey(Application, on_delete=models.CASCADE, null=True)
+    application = models.ForeignKey(Application, on_delete=models.CASCADE, null=True, blank=True)
     user = models.ForeignKey('accounts.Profile', on_delete=models.CASCADE)
     draft_data = models.JSONField()
     draft_name = models.CharField(max_length=255, blank=True, null=True)

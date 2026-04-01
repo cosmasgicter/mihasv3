@@ -389,7 +389,7 @@ class EmailQueueFactory(factory.django.DjangoModelFactory):
     body = factory.Faker("paragraph")
     status = "pending"
     retry_count = 0
-    last_error = ""
+    error_message = ""
 
 
 class MigrationHistoryFactory(factory.django.DjangoModelFactory):
