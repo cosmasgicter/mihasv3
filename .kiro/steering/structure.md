@@ -99,7 +99,7 @@ inclusion: always
 | `backend/apps/applications/` | Admissions application domain |
 | `backend/apps/catalog/` | Programs, intakes, subjects, institutions |
 | `backend/apps/documents/` | Documents, OCR, payment-related endpoints |
-| `backend/apps/common/` | Shared middleware, renderers, health, notifications, shared jobs-ops seed data |
+| `backend/apps/common/` | Shared middleware, renderers, health, notifications, error monitoring, shared jobs-ops seed data |
 | `backend/apps/jobs/` | Jobs and job-application APIs |
 | `backend/apps/outreach/` | Contacts, campaigns, messaging |
 | `backend/apps/automation/` | Rules and runs |
@@ -118,6 +118,16 @@ inclusion: always
 | Shared middleware or renderer | `backend/apps/common/` | Reuse before creating new cross-cutting modules |
 | New route | App `urls.py` plus `backend/config/urls.py` include if needed | Backend routes are resource-style under `/api/v1/` |
 | Tests | `backend/tests/{unit,property,contract}/` | Match the behavior and risk level |
+
+### Files Added During CTO Remediation
+
+| Path | Purpose |
+|------|---------|
+| `backend/apps/common/error_urls.py` | URL patterns for `/api/v1/errors/` (error report endpoint) |
+| `backend/apps/common/error_views.py` | `ErrorReportView` — accepts frontend error reports, creates `ErrorLog` rows, dispatches throttled alerts |
+| `apps/admissions/src/lib/errorReporter.ts` | Frontend error reporter — captures `window.onerror` and unhandled rejections, batches and POSTs to `/api/v1/errors/report/` |
+| `backend/scripts/create_error_logs_table.sql` | SQL migration script to create the `error_logs` table (used instead of Django migrations because `managed = False`) |
+| `docs/runbooks/secrets-rotation.md` | Runbook for rotating production secrets (JWT key, DB credentials, API keys) |
 
 ## Testing Layout
 

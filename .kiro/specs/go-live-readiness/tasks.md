@@ -180,7 +180,7 @@ Systematic verification and hardening of the MIHAS admissions platform before go
     - _Requirements: 5.4, 5.5_
 
 - [ ] 9. Steering File Updates
-  - [ ] 9.1 Update `.kiro/steering/tech.md`
+  - [-] 9.1 Update `.kiro/steering/tech.md`
     - Document the error monitoring system (ErrorLog model, `/api/v1/errors/report/`, throttled alert emails)
     - Document Celery Beat periodic tasks (`check_uptime_task` at 300s, `cleanup_audit_logs_task` at daily 03:00 UTC)
     - Document uptime monitoring setup (internal Celery task + external UptimeRobot)
