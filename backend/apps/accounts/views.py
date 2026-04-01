@@ -239,29 +239,36 @@ class LoginView(APIView):
         # Record successful login
         record_login_attempt(email_hash, ip_hash, success=True)
 
-        # Generate tokens
-        access_token = generate_access_token(user)
-        refresh_token = generate_refresh_token(user)
+        try:
+            # Generate tokens
+            access_token = generate_access_token(user)
+            refresh_token = generate_refresh_token(user)
 
-        # Create device session
-        refresh_hash = _hash_value(refresh_token)
-        user_agent = request.META.get("HTTP_USER_AGENT", "unknown")
+            # Create device session
+            refresh_hash = _hash_value(refresh_token)
+            user_agent = request.META.get("HTTP_USER_AGENT", "unknown")
 
-        from django.utils import timezone as tz
+            from django.utils import timezone as tz
 
-        DeviceSession.objects.create(
-            user=user,
-            device_id=ip_hash[:32],
-            device_info=json.dumps({"user_agent": user_agent}),
-            ip_address=ip_hash,
-            session_token=refresh_hash,
-            user_agent=user_agent[:500],
-            last_activity=tz.now(),
-            is_active=True,
-        )
+            DeviceSession.objects.create(
+                user=user,
+                device_id=ip_hash[:32],
+                device_info=json.dumps({"user_agent": user_agent}),
+                ip_address=ip_hash,
+                session_token=refresh_hash,
+                user_agent=user_agent[:500],
+                last_activity=tz.now(),
+                is_active=True,
+            )
 
-        # Generate CSRF token
-        csrf_token = _generate_csrf_token(user)
+            # Generate CSRF token
+            csrf_token = _generate_csrf_token(user)
+        except Exception as exc:
+            logger.exception("Login post-auth failed for user %s: %s", user.email, exc)
+            return Response(
+                {"success": False, "error": f"Post-auth error: {exc}", "code": "INTERNAL_ERROR"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         # Build response
         response = Response(
