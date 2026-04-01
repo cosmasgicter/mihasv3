@@ -141,11 +141,11 @@ Systematic verification and hardening of the MIHAS admissions platform before go
   - Ask the user if questions arise
 
 - [ ] 7. E2E Live Environment Testing
-  - [ ] 7.1 Test health endpoints against live API
+  - [x] 7.1 Test health endpoints against live API
     - Call `GET https://api.mihas.edu.zm/health/live/` — verify HTTP 200 with `{"status": "ok"}`
     - Call `GET https://api.mihas.edu.zm/health/ready/` — verify HTTP 200 with `{"status": "ok", "db": "ok", "redis": "ok"}`
     - _Requirements: 1.7_
-  - [ ] 7.2 Test auth flow against live API
+  - [-] 7.2 Test auth flow against live API
     - POST student login to `https://api.mihas.edu.zm/api/v1/auth/login/` — verify HTTP-only cookies set
     - POST admin login — verify admin-role cookies set
     - Verify `device_sessions` row created in Neon MCP

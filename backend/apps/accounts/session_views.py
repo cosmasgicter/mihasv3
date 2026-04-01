@@ -164,7 +164,7 @@ def _try_blacklist_refresh_for_session(request, session):
     import hashlib
 
     current_hash = hashlib.sha256(refresh_token.encode("utf-8")).hexdigest()
-    if current_hash == session.refresh_token_hash:
+    if current_hash == session.session_token:
         try:
             payload = verify_token(refresh_token, token_type="refresh")
             blacklist_jti(payload.get("jti", ""))

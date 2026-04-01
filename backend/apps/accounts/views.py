@@ -251,7 +251,7 @@ class LoginView(APIView):
         DeviceSession.objects.create(
             user=user,
             device_id=ip_hash[:32],
-            device_info={"user_agent": user_agent},
+            device_info=str({"user_agent": user_agent}),
             ip_address=ip_hash,
             session_token=refresh_hash,
             user_agent=user_agent[:500],
@@ -319,7 +319,7 @@ class LogoutView(APIView):
         if refresh_token:
             refresh_hash = _hash_value(refresh_token)
             DeviceSession.objects.filter(
-                refresh_token_hash=refresh_hash,
+                session_token=refresh_hash,
                 is_active=True,
             ).update(is_active=False)
 
@@ -404,11 +404,11 @@ class RefreshView(APIView):
         from django.utils import timezone as tz
 
         DeviceSession.objects.filter(
-            refresh_token_hash=old_refresh_hash,
+            session_token=old_refresh_hash,
             is_active=True,
         ).update(
-            refresh_token_hash=new_refresh_hash,
-            last_active=tz.now(),
+            session_token=new_refresh_hash,
+            last_activity=tz.now(),
         )
 
         response = Response(
