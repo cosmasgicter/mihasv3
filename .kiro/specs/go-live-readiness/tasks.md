@@ -140,12 +140,12 @@ Systematic verification and hardening of the MIHAS admissions platform before go
   - Confirm previously fixed models (DeviceSession, LoginAttempt, PasswordResetToken, CSRFToken, Program, EmailQueue) have not regressed
   - Ask the user if questions arise
 
-- [ ] 7. E2E Live Environment Testing
+- [x] 7. E2E Live Environment Testing
   - [x] 7.1 Test health endpoints against live API
     - Call `GET https://api.mihas.edu.zm/health/live/` — verify HTTP 200 with `{"status": "ok"}`
     - Call `GET https://api.mihas.edu.zm/health/ready/` — verify HTTP 200 with `{"status": "ok", "db": "ok", "redis": "ok"}`
     - _Requirements: 1.7_
-  - [-] 7.2 Test auth flow against live API
+  - [x] 7.2 Test auth flow against live API
     - POST student login to `https://api.mihas.edu.zm/api/v1/auth/login/` — verify HTTP-only cookies set
     - POST admin login — verify admin-role cookies set
     - Verify `device_sessions` row created in Neon MCP
@@ -155,15 +155,15 @@ Systematic verification and hardening of the MIHAS admissions platform before go
     - GET `/api/v1/catalog/programs/`, `/api/v1/catalog/intakes/`, `/api/v1/catalog/subjects/`
     - Cross-check response counts with Neon MCP `SELECT COUNT(*)` on each table
     - _Requirements: 1.6_
-  - [ ] 7.4 Test application endpoints against live API
+  - [x] 7.4 Test application endpoints against live API
     - GET `/api/v1/applications/` as authenticated student — verify own applications returned
     - GET `/api/v1/admin/users/` as authenticated admin — verify user listing
     - _Requirements: 1.3, 1.4_
-  - [ ] 7.5 Test state-changing operations against live API
+  - [x] 7.5 Test state-changing operations against live API
     - Perform a create/update operation on applications or documents
     - Verify the corresponding row change in Neon MCP
     - _Requirements: 1.5_
-  - [ ] 7.6 Test error reporting endpoint against live API
+  - [x] 7.6 Test error reporting endpoint against live API
     - POST to `https://api.mihas.edu.zm/api/v1/errors/report/` with `{"message": "go-live-test"}`
     - Verify `error_logs` row created with `source='frontend'` in Neon MCP
     - _Requirements: 1.8_
@@ -193,85 +193,85 @@ Systematic verification and hardening of the MIHAS admissions platform before go
     - Remove or correct any statements that are no longer accurate
     - _Requirements: 6.5, 6.6_
 
-- [ ] 10. Checkpoint — E2E, error pipeline, and steering updates complete
+- [x] 10. Checkpoint — E2E, error pipeline, and steering updates complete
   - Ensure all live API tests passed
   - Ensure error pipeline chain is verified end-to-end
   - Ensure steering files reflect current platform state
   - Ask the user if questions arise
 
-- [ ] 11. Celery/Redis Verification
+- [x] 11. Celery/Redis Verification
   - [x] 11.1 Verify Redis TLS connectivity
     - Confirm backend connects to Upstash Redis via `rediss://` URL
     - Verify `/health/ready/` reports `redis: ok`
     - Test `cache.get`, `cache.set`, `cache.add` operations
     - _Requirements: 4.1, 4.5_
-  - [ ] 11.2 Verify Celery task dispatch and execution
+  - [x] 11.2 Verify Celery task dispatch and execution
     - Confirm `send_email_task` dispatches to Redis broker and executes
     - Confirm `EmailQueue` row status updates on success/failure
     - Confirm retry with exponential backoff on transient failure
     - _Requirements: 3.1, 3.2, 3.3, 4.4_
-  - [ ] 11.3 Verify Celery Beat periodic tasks
+  - [x] 11.3 Verify Celery Beat periodic tasks
     - Confirm `CELERY_BEAT_SCHEDULE` contains `check_uptime_task` (300s interval) and `cleanup_audit_logs_task` (daily 03:00 UTC)
     - Confirm `check_uptime_task` verifies Postgres and Redis connectivity
     - Confirm `cleanup_audit_logs_task` respects retention periods (standard: 90d, security: 365d)
     - _Requirements: 3.4, 3.5, 3.6, 3.7_
-  - [ ] 11.4 Verify Redis rate limiting
+  - [x] 11.4 Verify Redis rate limiting
     - Confirm rate-limited endpoints use Redis-backed counters
     - Confirm exceeding threshold returns HTTP 429
     - _Requirements: 4.2_
-  - [ ] 11.5 Verify Redis CSRF token storage
+  - [x] 11.5 Verify Redis CSRF token storage
     - Confirm CSRF token generated during auth is stored in Redis with configured TTL
     - _Requirements: 4.3_
 
-- [ ] 12. Schema Hardening (indexes, constraints, FKs via Neon MCP)
-  - [ ] 12.1 Add indexes on frequently filtered columns
+- [x] 12. Schema Hardening (indexes, constraints, FKs via Neon MCP)
+  - [x] 12.1 Add indexes on frequently filtered columns
     - Use `CREATE INDEX CONCURRENTLY` via Neon MCP for: `applications.user_id`, `applications.status`, `applications.application_number`, `audit_logs.created_at`, `email_queue.status`, `notifications.user_id`
     - Verify each index via `pg_indexes` query
     - _Requirements: 7.1, 7.4_
-  - [ ] 12.2 Add NOT NULL constraints on required columns
+  - [x] 12.2 Add NOT NULL constraints on required columns
     - Backfill any NULL values with appropriate defaults first
     - Apply NOT NULL on: `applications.status`, `applications.email`, `profiles.email`, `profiles.role`, `email_queue.status`
     - Verify via `information_schema.columns` query
     - _Requirements: 7.2, 7.5_
-  - [ ] 12.3 Add foreign key constraints where missing
+  - [x] 12.3 Add foreign key constraints where missing
     - Check for orphaned records first using LEFT JOIN queries
     - Clean up orphans if found
     - Add FK constraints for Django ForeignKey fields that lack DB-level enforcement
     - Verify via `information_schema.table_constraints`
     - _Requirements: 7.3, 7.6, 7.7_
 
-- [ ] 13. Checkpoint — Schema hardening complete
+- [x] 13. Checkpoint — Schema hardening complete
   - Ensure all indexes created and verified via `pg_indexes`
   - Ensure all NOT NULL constraints applied and verified
   - Ensure all FK constraints added and verified
   - Ask the user if questions arise
 
-- [ ] 14. New Property Tests
-  - [ ]* 14.1 Write property test P1: Schema auditor detects all field discrepancies
+- [x] 14. New Property Tests
+  - [x]* 14.1 Write property test P1: Schema auditor detects all field discrepancies
     - Create `backend/tests/property/test_schema_auditor.py`
     - Generate random model field sets and DB column sets via Hypothesis
     - Verify auditor correctly classifies matches, missing-in-DB, extra-in-DB, and type mismatches
     - **Property 1: Schema auditor detects all field discrepancies**
     - **Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5, 2.7, 2.8**
-  - [ ]* 14.2 Write property test P2: Schema auditor generates valid corrective SQL
+  - [x]* 14.2 Write property test P2: Schema auditor generates valid corrective SQL
     - Add to `backend/tests/property/test_schema_auditor.py`
     - Generate random missing field definitions via Hypothesis
     - Verify generated ALTER TABLE SQL has correct table name, column name, Postgres type, and NULL constraint
     - **Property 2: Schema auditor generates valid corrective SQL**
     - **Validates: Requirements 2.6**
-  - [ ]* 14.3 Write property test P5: Frontend error report validation rejects malformed payloads
+  - [x]* 14.3 Write property test P5: Frontend error report validation rejects malformed payloads
     - Add to `backend/tests/property/test_error_monitoring.py`
     - Generate random payloads missing the `message` field via Hypothesis
     - Verify HTTP 400 with `code: "VALIDATION_ERROR"` and no ErrorLog created
     - **Property 5: Frontend error report validation rejects malformed payloads**
     - **Validates: Requirements 5.5**
-  - [ ]* 14.4 Write property test P9: Health endpoint reflects dependency state
+  - [x]* 14.4 Write property test P9: Health endpoint reflects dependency state
     - Create `backend/tests/property/test_health_endpoint.py`
     - Mock DB/Redis as reachable/unreachable in all 4 combinations
     - Verify correct HTTP status code (200 vs 503) and response body
     - **Property 9: Health endpoint reflects dependency state**
     - **Validates: Requirements 4.5, 4.6**
-  - [ ]* 14.5 Write property test P10: Rate limiting enforcement
+  - [x]* 14.5 Write property test P10: Rate limiting enforcement
     - Create `backend/tests/property/test_rate_limiting.py`
     - Generate random request counts and rate limits via Hypothesis
     - Verify first L requests pass and requests L+1..N return HTTP 429 with Retry-After header
@@ -305,21 +305,21 @@ Systematic verification and hardening of the MIHAS admissions platform before go
     - **Property 8: Audit log cleanup respects retention periods**
     - **Validates: Requirements 3.7**
 
-- [ ] 16. Build Schema Regression Script for CI
-  - [ ] 16.1 Create `backend/scripts/verify_schema_live.py`
+- [x] 16. Build Schema Regression Script for CI
+  - [x] 16.1 Create `backend/scripts/verify_schema_live.py`
     - Build a Python script that connects to Neon Postgres and compares all 26 tables against Django model definitions
     - Use the Django-to-Postgres type mapping from the design document
     - Accept both `character varying(N)` and `text` for URLField columns
     - Output: list of mismatches (missing columns, extra columns, type mismatches) with corrective SQL
     - Exit code 0 if clean, 1 if mismatches found
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10_
-  - [ ]* 16.2 Write unit tests for the schema regression script
+  - [x]* 16.2 Write unit tests for the schema regression script
     - Create `backend/tests/unit/test_schema_auditor.py`
     - Test known mismatch cases from previous fixes (DeviceSession, LoginAttempt, PasswordResetToken, CSRFToken, Program, EmailQueue)
     - Test the Django-to-Postgres type mapping function
     - _Requirements: 2.10_
 
-- [ ] 17. Final Checkpoint — All go-live readiness work complete
+- [x] 17. Final Checkpoint — All go-live readiness work complete
   - Ensure all 26 tables audited and clean
   - Ensure all E2E live tests passed
   - Ensure error pipeline verified end-to-end

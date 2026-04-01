@@ -9,7 +9,7 @@ class Application(models.Model):
     """Maps to 'applications' table."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    application_number = models.CharField(max_length=20, unique=True)
+    application_number = models.CharField(max_length=50, unique=True)
     user = models.ForeignKey('accounts.Profile', on_delete=models.CASCADE)
     full_name = models.CharField(max_length=255)
     nrc_number = models.CharField(max_length=20, null=True, blank=True)
@@ -74,7 +74,7 @@ class Application(models.Model):
         db_column='reviewed_by',
     )
     additional_subjects = models.JSONField(null=True, blank=True)
-    public_tracking_code = models.CharField(max_length=20, null=True, blank=True, unique=True)
+    public_tracking_code = models.CharField(max_length=50, null=True, blank=True, unique=True)
     submitted_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(null=True, blank=True)
