@@ -151,7 +151,7 @@ Systematic verification and hardening of the MIHAS admissions platform before go
     - Verify `device_sessions` row created in Neon MCP
     - Test token refresh and logout
     - _Requirements: 1.1, 1.2_
-  - [ ] 7.3 Test catalog endpoints against live API
+  - [x] 7.3 Test catalog endpoints against live API
     - GET `/api/v1/catalog/programs/`, `/api/v1/catalog/intakes/`, `/api/v1/catalog/subjects/`
     - Cross-check response counts with Neon MCP `SELECT COUNT(*)` on each table
     - _Requirements: 1.6_
@@ -168,13 +168,13 @@ Systematic verification and hardening of the MIHAS admissions platform before go
     - Verify `error_logs` row created with `source='frontend'` in Neon MCP
     - _Requirements: 1.8_
 
-- [ ] 8. Error Pipeline Verification
-  - [ ] 8.1 Verify backend exception → ErrorLog → alert email chain
+- [x] 8. Error Pipeline Verification
+  - [x] 8.1 Verify backend exception → ErrorLog → alert email chain
     - Confirm `envelope_exception_handler` in `backend/apps/common/exceptions.py` creates ErrorLog records with source='backend', level, message, stack_trace, request_path, user_id, ip_hash
     - Confirm throttled alert email dispatches via `cache.add` with 15-minute TTL
     - Confirm `EmailQueue` record created and `send_email_task.delay()` called
     - _Requirements: 5.1, 5.2, 5.3, 5.6_
-  - [ ] 8.2 Verify frontend error report endpoint
+  - [x] 8.2 Verify frontend error report endpoint
     - Confirm `ErrorReportView` in `backend/apps/common/error_views.py` creates ErrorLog with source='frontend'
     - Confirm malformed payloads (missing `message`) return HTTP 400 with no ErrorLog created
     - _Requirements: 5.4, 5.5_
@@ -200,7 +200,7 @@ Systematic verification and hardening of the MIHAS admissions platform before go
   - Ask the user if questions arise
 
 - [ ] 11. Celery/Redis Verification
-  - [ ] 11.1 Verify Redis TLS connectivity
+  - [x] 11.1 Verify Redis TLS connectivity
     - Confirm backend connects to Upstash Redis via `rediss://` URL
     - Verify `/health/ready/` reports `redis: ok`
     - Test `cache.get`, `cache.set`, `cache.add` operations
