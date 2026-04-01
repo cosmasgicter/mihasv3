@@ -59,7 +59,7 @@ class DeviceSession(models.Model):
     device_id = models.TextField(default="")
     device_info = models.TextField(null=True, blank=True)
     session_token = models.TextField(default="")
-    ip_address = models.CharField(max_length=45, null=True, blank=True)
+    ip_address = models.CharField(max_length=64, null=True, blank=True)
     user_agent = models.TextField(null=True, blank=True)
     last_activity = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(null=True, blank=True, default=True)
