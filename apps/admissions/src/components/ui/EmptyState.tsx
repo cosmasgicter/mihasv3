@@ -5,8 +5,6 @@ import { Button } from '@/components/ui/Button'
 export interface EmptyStateProps {
   icon?: React.ReactNode
   heading: string
-  /** @deprecated Use `heading` instead */
-  title?: string
   description?: string
   action?: {
     label: string
@@ -20,11 +18,10 @@ export function EmptyState({
   className,
   icon,
   heading,
-  title,
   description,
   action,
 }: EmptyStateProps) {
-  const displayHeading = heading || title || ''
+  const displayHeading = heading
 
   return (
     <div

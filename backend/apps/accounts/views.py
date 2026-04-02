@@ -331,7 +331,7 @@ class LogoutView(APIView):
                 payload = verify_token(refresh_token, token_type="refresh")
                 blacklist_jti(payload.get("jti", ""))
             except Exception:
-                pass  # Token may already be invalid
+                logger.warning("JTI blacklisting failed during logout", exc_info=True)
 
         response = Response(
             {"success": True, "data": {"message": "Logged out successfully"}},
@@ -393,6 +393,7 @@ class RefreshView(APIView):
 
             new_access, new_refresh = rotate_tokens(refresh_token, user=user)
         except Exception:
+            logger.warning("Token rotation failed during refresh", exc_info=True)
             return Response(
                 {"success": False, "error": "Invalid or expired refresh token", "code": "TOKEN_EXPIRED"},
                 status=status.HTTP_401_UNAUTHORIZED,

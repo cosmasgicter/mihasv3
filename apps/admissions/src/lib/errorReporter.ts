@@ -115,6 +115,17 @@ function handleUnhandledRejection(event: PromiseRejectionEvent): void {
 }
 
 /**
+ * Report an error directly (e.g. from an error boundary).
+ * Enqueues the error into the batch buffer for delivery to the backend.
+ */
+export function reportError(
+  error: Error,
+  extra?: Record<string, unknown>,
+): void {
+  enqueue(buildPayload(error.message, error.stack, extra))
+}
+
+/**
  * Activate the global error reporter. Call once at app startup.
  * Respects `VITE_ERROR_REPORT_ENABLED` — does nothing when disabled.
  */

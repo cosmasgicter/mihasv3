@@ -63,7 +63,7 @@ def _log_error_and_alert(error_msg, request):
         logger.warning("Redis unavailable for error alert throttle check, dispatching alert")
 
     if should_alert:
-        alert_email = getattr(settings, "ERROR_ALERT_EMAIL", "***REMOVED***")
+        alert_email = settings.ERROR_ALERT_EMAIL
         from apps.common.models import EmailQueue
 
         email_record = EmailQueue.objects.create(

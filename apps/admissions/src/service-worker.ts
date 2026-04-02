@@ -258,16 +258,24 @@ registerRoute(
 // Cached responses include X-From-Cache: true header for offline indicator
 // ============================================================================
 
-// All non-auth API endpoints — NetworkFirst with 5s timeout
+// Same-origin non-auth API endpoints — NetworkFirst with 5s timeout
+//
+// Production API traffic is served from api.mihas.edu.zm, not the app origin.
+// Let those cross-origin requests go straight to the network so the service
+// worker does not cache authenticated responses or interfere with SSE/CORS.
 registerRoute(
   ({ url }: { url: URL }) =>
-    url.pathname.startsWith('/api/') ||
-    url.pathname.startsWith('/applications') ||
-    url.pathname.startsWith('/notifications') ||
-    url.pathname.startsWith('/admin/') ||
-    url.pathname.startsWith('/documents/') ||
-    url.pathname.startsWith('/payments/') ||
-    url.pathname.startsWith('/catalog'),
+    url.origin === self.location.origin &&
+    !url.pathname.startsWith('/api/v1/events/') &&
+    (
+      url.pathname.startsWith('/api/') ||
+      url.pathname.startsWith('/applications') ||
+      url.pathname.startsWith('/notifications') ||
+      url.pathname.startsWith('/admin/') ||
+      url.pathname.startsWith('/documents/') ||
+      url.pathname.startsWith('/payments/') ||
+      url.pathname.startsWith('/catalog')
+    ),
   {
     handle: async ({ request, event }: { request: Request; event: ExtendableEvent }) => {
       const networkFirst = new NetworkFirst({

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -9,6 +9,7 @@ import { Card, CardContent, CardTitle } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { ArrowLeft, Mail, Phone, MapPin } from '@/components/icons'
 import { contactInfo } from '@/lib/constants/landing'
+import { apiClient } from '@/services/client'
 
 // Zod schema for contact form validation (Requirement 3.1)
 export const contactFormSchema = z.object({
@@ -19,21 +20,44 @@ export const contactFormSchema = z.object({
 
 export type ContactFormData = z.infer<typeof contactFormSchema>
 
+export type SubmitState = 'idle' | 'submitting' | 'success' | 'error'
+
 export default function ContactPage() {
+  const [submitState, setSubmitState] = useState<SubmitState>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
+
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
     reset,
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: { name: '', email: '', message: '' },
   })
 
-  const onSubmit = (data: ContactFormData) => {
-    // TODO: integrate with backend notification/email endpoint
-    console.log('Contact form submitted:', data)
-    reset()
+  const onSubmit = async (data: ContactFormData) => {
+    setSubmitState('submitting')
+    setErrorMessage('')
+
+    try {
+      const payload = {
+        title: `Contact inquiry from ${data.name}`,
+        message: `From: ${data.name} <${data.email}>\n\n${data.message}`,
+        type: 'contact_inquiry',
+      }
+
+      await apiClient.request('/notifications/', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      })
+
+      setSubmitState('success')
+      reset()
+    } catch {
+      setSubmitState('error')
+      setErrorMessage('Unable to send your message. Please try again or contact us directly.')
+    }
   }
 
   return (
@@ -91,6 +115,19 @@ export default function ContactPage() {
             <Card className="shadow-sm">
               <CardContent className="p-6">
                 <CardTitle className="mb-4">Send a Message</CardTitle>
+
+                {submitState === 'success' && (
+                  <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-4 text-sm text-green-800" role="status">
+                    Thank you for your inquiry. Our admissions team will get back to you shortly.
+                  </div>
+                )}
+
+                {submitState === 'error' && errorMessage && (
+                  <div className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive" role="alert">
+                    {errorMessage}
+                  </div>
+                )}
+
                 <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
                   <div>
                     <label htmlFor="contact-name" className="block text-sm font-medium text-foreground mb-2">
@@ -102,6 +139,7 @@ export default function ContactPage() {
                       className="w-full min-h-[44px] rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                       aria-invalid={!!errors.name}
                       aria-describedby={errors.name ? 'contact-name-error' : undefined}
+                      disabled={submitState === 'submitting'}
                       {...register('name')}
                     />
                     {errors.name && (
@@ -122,6 +160,7 @@ export default function ContactPage() {
                       className="w-full min-h-[44px] rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                       aria-invalid={!!errors.email}
                       aria-describedby={errors.email ? 'contact-email-error' : undefined}
+                      disabled={submitState === 'submitting'}
                       {...register('email')}
                     />
                     {errors.email && (
@@ -142,6 +181,7 @@ export default function ContactPage() {
                       className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                       aria-invalid={!!errors.message}
                       aria-describedby={errors.message ? 'contact-message-error' : undefined}
+                      disabled={submitState === 'submitting'}
                       {...register('message')}
                     />
                     {errors.message && (
@@ -151,8 +191,8 @@ export default function ContactPage() {
                     )}
                   </div>
 
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? 'Sending…' : 'Submit Inquiry'}
+                  <Button type="submit" className="w-full" disabled={submitState === 'submitting'}>
+                    {submitState === 'submitting' ? 'Sending…' : 'Submit Inquiry'}
                   </Button>
                 </form>
               </CardContent>

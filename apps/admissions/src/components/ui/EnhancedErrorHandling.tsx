@@ -1,6 +1,7 @@
 import React from 'react'
 import { AlertCircle, CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { reportError } from '@/lib/errorReporter'
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info'
 
@@ -182,7 +183,6 @@ export function formatErrorMessage(error: unknown): string {
   if (typeof error === 'object' && error !== null) {
     const errorObj = error as { message?: string; name?: string; code?: string; details?: string }
     
-    // Supabase error format
     if (errorObj.message) {
       return translateTechnicalError(errorObj.message)
     }
@@ -335,27 +335,14 @@ export class EnhancedErrorBoundary extends React.Component<
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Error boundary caught an error:', error, errorInfo)
     
-    // Log error to analytics service
-    if (typeof window !== 'undefined') {
-      try {
-        // Send error to logging service
-        fetch('/log-error', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            error: error.message,
-            stack: error.stack,
-            errorInfo,
-            url: window.location.href,
-            userAgent: navigator.userAgent,
-            timestamp: new Date().toISOString()
-          })
-        }).catch(() => {
-          // Silently fail if logging fails
-        })
-      } catch {
-        // Silently fail if logging fails
-      }
+    // Report error through the centralized error reporter pipeline
+    try {
+      reportError(error, {
+        componentStack: errorInfo.componentStack,
+        url: typeof window !== 'undefined' ? window.location.href : undefined,
+      })
+    } catch {
+      // Silent degradation — never break the fallback UI
     }
   }
 

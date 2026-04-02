@@ -4,8 +4,6 @@
  * Provides centralized realtime connection status tracking across the application.
  * Components can use this to show connection indicators and trigger reconnection.
  * 
- * Now uses SSE/polling instead of Supabase Realtime.
- * 
  * @requirements 1.4, 3.4, 4.4 - Connection status indicators
  */
 

@@ -10,6 +10,7 @@ import io
 import logging
 import uuid
 
+from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse
 from django.utils import timezone
@@ -284,6 +285,12 @@ class ApplicationDetailView(APIView):
         return Response(ApplicationSerializer(app).data)
 
     def patch(self, request, application_id):
+        return self._update_application(request, application_id)
+
+    def put(self, request, application_id):
+        return self._update_application(request, application_id)
+
+    def _update_application(self, request, application_id):
         app = self._get_application(request, application_id)
         if app is None:
             return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
@@ -480,12 +487,52 @@ class ApplicationReviewView(APIView):
     permission_classes = [IsAdmin]
     serializer_class = ApplicationReviewSerializer
 
+    @staticmethod
+    def _normalize_legacy_review_payload(request_data):
+        if not isinstance(request_data, dict):
+            return request_data
+
+        if request_data.get("new_status"):
+            return request_data
+
+        normalized = request_data.copy()
+        legacy_status = normalized.get("status")
+        if legacy_status and not normalized.get("new_status"):
+            normalized["new_status"] = legacy_status
+        return normalized
+
     def post(self, request, application_id):
+        from apps.applications.services import transition_application_status
+
         try:
             app = Application.objects.get(id=application_id)
         except Application.DoesNotExist:
             return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
-        serializer = ApplicationReviewSerializer(data=request.data)
+
+        if isinstance(request.data, dict) and (request.data.get("paymentStatus") or request.data.get("payment_status")):
+            payment_status = request.data.get("paymentStatus") or request.data.get("payment_status")
+            notes = request.data.get("verificationNotes") or request.data.get("notes") or ""
+
+            app.payment_status = payment_status
+            if notes:
+                app.admin_feedback = notes
+                app.admin_feedback_date = timezone.now()
+                app.admin_feedback_by_id = str(request.user.id)
+            app.save(update_fields=[
+                "payment_status",
+                "admin_feedback",
+                "admin_feedback_date",
+                "admin_feedback_by",
+                "updated_at",
+            ])
+
+            return Response({
+                "message": f"Payment status updated to {payment_status}",
+                "application_id": str(app.id),
+                "payment_status": payment_status,
+            })
+
+        serializer = ApplicationReviewSerializer(data=self._normalize_legacy_review_payload(request.data))
         if not serializer.is_valid():
             return Response({"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         new_status = serializer.validated_data["new_status"]
@@ -499,29 +546,16 @@ class ApplicationReviewView(APIView):
             )
             if not has_verified:
                 return Response({"success": False, "error": "Application has unverified payment. Use force=true to override.", "code": "PAYMENT_UNVERIFIED"}, status=status.HTTP_400_BAD_REQUEST)
-        old_status = app.status
-        app.status = new_status
-        if not app.review_started_at:
-            app.review_started_at = timezone.now()
-        app.reviewed_by_id = str(request.user.id)
-        if notes:
-            app.admin_feedback = notes
-            app.admin_feedback_date = timezone.now()
-            app.admin_feedback_by_id = str(request.user.id)
-        if new_status in ("approved", "rejected"):
-            app.decision_date = timezone.now()
-        app.save(update_fields=[
-            "status",
-            "review_started_at",
-            "reviewed_by",
-            "admin_feedback",
-            "admin_feedback_date",
-            "admin_feedback_by",
-            "decision_date",
-            "updated_at",
-        ])
-        ApplicationStatusHistory.objects.create(application=app, status=new_status, old_status=old_status, new_status=new_status, changed_by_id=str(request.user.id), notes=notes)
+        old_status = transition_application_status(
+            application=app,
+            new_status=new_status,
+            changed_by=str(request.user.id),
+            notes=notes,
+        )
         return Response({"message": f"Status updated from {old_status} to {new_status}", "application_id": str(app.id), "old_status": old_status, "new_status": new_status})
+
+    def patch(self, request, application_id):
+        return self.post(request, application_id)
 
 
 @extend_schema_view(
@@ -612,38 +646,29 @@ class ApplicationBulkStatusView(APIView):
     serializer_class = ApplicationBulkStatusSerializer
 
     def post(self, request):
+        from apps.applications.services import transition_application_status
+
         serializer = ApplicationBulkStatusSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         app_ids = serializer.validated_data["application_ids"]
         new_status = serializer.validated_data["new_status"]
         notes = serializer.validated_data.get("notes", "")
-        applications = Application.objects.filter(id__in=app_ids)
-        updated = 0
-        for app in applications:
-            old_status = app.status
-            app.status = new_status
-            if not app.review_started_at:
-                app.review_started_at = timezone.now()
-            app.reviewed_by_id = str(request.user.id)
-            if notes:
-                app.admin_feedback = notes
-                app.admin_feedback_date = timezone.now()
-                app.admin_feedback_by_id = str(request.user.id)
-            if new_status in ("approved", "rejected"):
-                app.decision_date = timezone.now()
-            app.save(update_fields=[
-                "status",
-                "review_started_at",
-                "reviewed_by",
-                "admin_feedback",
-                "admin_feedback_date",
-                "admin_feedback_by",
-                "decision_date",
-                "updated_at",
-            ])
-            ApplicationStatusHistory.objects.create(application=app, status=new_status, old_status=old_status, new_status=new_status, changed_by_id=str(request.user.id), notes=notes)
-            updated += 1
+        try:
+            with transaction.atomic():
+                applications = Application.objects.filter(id__in=app_ids).select_for_update()
+                updated = 0
+                for app in applications:
+                    transition_application_status(
+                        application=app,
+                        new_status=new_status,
+                        changed_by=str(request.user.id),
+                        notes=notes,
+                    )
+                    updated += 1
+        except Exception:
+            logger.exception("Bulk status update failed for applications %s", app_ids)
+            return Response({"success": False, "error": "Bulk status update failed", "code": "BULK_UPDATE_ERROR"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({"message": f"{updated} application(s) updated", "updated": updated})
 
 
@@ -904,6 +929,101 @@ class ApplicationVerifyDocumentView(APIView):
         return Response({"success": True, "data": DocumentSerializer(document).data})
 
 
+def _enqueue_document_task(application, task_type, task_func, request):
+    """Shared helper for document generation endpoints.
+
+    Handles idempotency check, Celery task dispatch, audit logging,
+    and response construction. Used by AcceptanceLetterView and
+    FinanceReceiptView to eliminate duplicated logic.
+
+    Args:
+        application: The Application model instance.
+        task_type: A short identifier used for the idempotency key prefix
+            and audit action name (e.g. "acceptance-letter", "finance-receipt").
+        task_func: The Celery task callable to dispatch (e.g.
+            generate_acceptance_letter_task).
+        request: The DRF request object (used for audit metadata).
+
+    Returns:
+        A DRF Response (202 on success/idempotent hit, 503 if task
+        unavailable).
+    """
+    from datetime import timedelta
+
+    from apps.common.models import AuditLog, IdempotencyKey
+
+    application_id = str(application.id)
+
+    # Idempotency check — 1-hour TTL
+    idempotency_key = f"{task_type}:{application_id}"
+    ttl_threshold = timezone.now() - timedelta(hours=1)
+
+    existing = IdempotencyKey.objects.filter(
+        key=idempotency_key, created_at__gt=ttl_threshold
+    ).first()
+    if existing:
+        return Response(
+            {"success": True, "data": existing.response_json},
+            status=status.HTTP_202_ACCEPTED,
+        )
+
+    # Dispatch Celery task
+    if task_func is None:
+        logger.warning("%s task handler not yet available", task_type)
+        return Response(
+            {
+                "success": False,
+                "error": "Task handler not available",
+                "code": "SERVICE_UNAVAILABLE",
+            },
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+    task = task_func.delay(application_id)
+
+    response_data = {
+        "task_id": task.id,
+        "application_id": application_id,
+        "status": "queued",
+    }
+
+    # Store idempotency key
+    # Derive the audit action from the task_type slug (e.g. "acceptance-letter" → "generate_acceptance_letter")
+    action_name = f"generate_{task_type.replace('-', '_')}"
+    endpoint = f"/api/v1/applications/{application_id}/{task_type}/"
+
+    IdempotencyKey.objects.create(
+        key=idempotency_key,
+        endpoint=endpoint,
+        response_json=response_data,
+    )
+
+    # Audit log
+    ip_address = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    if ip_address:
+        ip_address = ip_address.split(",")[0].strip()
+    else:
+        ip_address = request.META.get("REMOTE_ADDR", "")
+
+    AuditLog.objects.create(
+        actor_id=str(request.user.id),
+        action=action_name,
+        entity_type="applications",
+        entity_id=application.id,
+        changes={"task_id": task.id, "status": "queued"},
+        ip_address=hashlib.sha256(ip_address.encode()).hexdigest(),
+        user_agent=hashlib.sha256(
+            request.META.get("HTTP_USER_AGENT", "").encode()
+        ).hexdigest(),
+        retention_category="standard",
+    )
+
+    return Response(
+        {"success": True, "data": response_data},
+        status=status.HTTP_202_ACCEPTED,
+    )
+
+
 class AcceptanceLetterView(APIView):
     """POST /api/v1/applications/{id}/acceptance-letter/
 
@@ -948,75 +1068,14 @@ class AcceptanceLetterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Check idempotency — 1-hour TTL
-        from apps.common.models import AuditLog, IdempotencyKey
-        from datetime import timedelta
-
-        idempotency_key = f"acceptance-letter:{application_id}"
-        ttl_threshold = timezone.now() - timedelta(hours=1)
-
-        existing = IdempotencyKey.objects.filter(
-            key=idempotency_key, created_at__gt=ttl_threshold
-        ).first()
-        if existing:
-            return Response(
-                {"success": True, "data": existing.response_json},
-                status=status.HTTP_202_ACCEPTED,
-            )
-
-        # Enqueue Celery task (lazy import — task file created in Task 8)
+        # Resolve task function (lazy import)
         try:
             from apps.applications.tasks import generate_acceptance_letter_task
+            task_func = generate_acceptance_letter_task
         except ImportError:
-            logger.warning("generate_acceptance_letter_task not yet available")
-            return Response(
-                {
-                    "success": False,
-                    "error": "Task handler not available",
-                    "code": "SERVICE_UNAVAILABLE",
-                },
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
+            task_func = None
 
-        task = generate_acceptance_letter_task.delay(str(application.id))
-
-        response_data = {
-            "task_id": task.id,
-            "application_id": str(application.id),
-            "status": "queued",
-        }
-
-        # Store idempotency key
-        IdempotencyKey.objects.create(
-            key=idempotency_key,
-            endpoint=f"/api/v1/applications/{application_id}/acceptance-letter/",
-            response_json=response_data,
-        )
-
-        # Create audit log entry
-        ip_address = request.META.get("HTTP_X_FORWARDED_FOR", "")
-        if ip_address:
-            ip_address = ip_address.split(",")[0].strip()
-        else:
-            ip_address = request.META.get("REMOTE_ADDR", "")
-
-        AuditLog.objects.create(
-            actor_id=str(request.user.id),
-            action="generate_acceptance_letter",
-            entity_type="applications",
-            entity_id=application.id,
-            changes={"task_id": task.id, "status": "queued"},
-            ip_address=hashlib.sha256(ip_address.encode()).hexdigest(),
-            user_agent=hashlib.sha256(
-                request.META.get("HTTP_USER_AGENT", "").encode()
-            ).hexdigest(),
-            retention_category="standard",
-        )
-
-        return Response(
-            {"success": True, "data": response_data},
-            status=status.HTTP_202_ACCEPTED,
-        )
+        return _enqueue_document_task(application, "acceptance-letter", task_func, request)
 
 
 class FinanceReceiptView(APIView):
@@ -1068,72 +1127,11 @@ class FinanceReceiptView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Check idempotency — 1-hour TTL
-        from apps.common.models import AuditLog, IdempotencyKey
-        from datetime import timedelta
-
-        idempotency_key = f"finance-receipt:{application_id}"
-        ttl_threshold = timezone.now() - timedelta(hours=1)
-
-        existing = IdempotencyKey.objects.filter(
-            key=idempotency_key, created_at__gt=ttl_threshold
-        ).first()
-        if existing:
-            return Response(
-                {"success": True, "data": existing.response_json},
-                status=status.HTTP_202_ACCEPTED,
-            )
-
-        # Enqueue Celery task (lazy import — task file created in Task 8)
+        # Resolve task function (lazy import)
         try:
             from apps.applications.tasks import generate_finance_receipt_task
+            task_func = generate_finance_receipt_task
         except ImportError:
-            logger.warning("generate_finance_receipt_task not yet available")
-            return Response(
-                {
-                    "success": False,
-                    "error": "Task handler not available",
-                    "code": "SERVICE_UNAVAILABLE",
-                },
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
+            task_func = None
 
-        task = generate_finance_receipt_task.delay(str(application.id))
-
-        response_data = {
-            "task_id": task.id,
-            "application_id": str(application.id),
-            "status": "queued",
-        }
-
-        # Store idempotency key
-        IdempotencyKey.objects.create(
-            key=idempotency_key,
-            endpoint=f"/api/v1/applications/{application_id}/finance-receipt/",
-            response_json=response_data,
-        )
-
-        # Create audit log entry
-        ip_address = request.META.get("HTTP_X_FORWARDED_FOR", "")
-        if ip_address:
-            ip_address = ip_address.split(",")[0].strip()
-        else:
-            ip_address = request.META.get("REMOTE_ADDR", "")
-
-        AuditLog.objects.create(
-            actor_id=str(request.user.id),
-            action="generate_finance_receipt",
-            entity_type="applications",
-            entity_id=application.id,
-            changes={"task_id": task.id, "status": "queued"},
-            ip_address=hashlib.sha256(ip_address.encode()).hexdigest(),
-            user_agent=hashlib.sha256(
-                request.META.get("HTTP_USER_AGENT", "").encode()
-            ).hexdigest(),
-            retention_category="standard",
-        )
-
-        return Response(
-            {"success": True, "data": response_data},
-            status=status.HTTP_202_ACCEPTED,
-        )
+        return _enqueue_document_task(application, "finance-receipt", task_func, request)

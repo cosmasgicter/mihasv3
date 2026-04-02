@@ -116,9 +116,10 @@ class DocumentUploadView(APIView):
         declared_mime = file_obj.content_type or ""
         try:
             validate_file_magic_bytes(file_obj, declared_mime)
-        except Exception as e:
+        except Exception:
+            logger.exception("File magic-byte validation failed for upload to application %s", application_id)
             return Response(
-                {"success": False, "error": str(e), "code": "INVALID_FILE"},
+                {"success": False, "error": "Invalid file format", "code": "INVALID_FILE"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

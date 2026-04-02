@@ -32,6 +32,7 @@ urlpatterns = [
     path("bulk-status/", ApplicationBulkStatusView.as_view(), name="application-bulk-status"),
     path("draft/", ApplicationDraftView.as_view(), name="application-draft"),
     path("<uuid:application_id>/", ApplicationDetailView.as_view(), name="application-detail"),
+    path("<uuid:application_id>/details/", ApplicationDetailView.as_view(), name="application-details"),
     path("<uuid:application_id>/documents/", ApplicationDocumentsView.as_view(), name="application-documents"),
     path("<uuid:application_id>/grades/", ApplicationGradesView.as_view(), name="application-grades"),
     path("<uuid:application_id>/summary/", ApplicationSummaryView.as_view(), name="application-summary"),

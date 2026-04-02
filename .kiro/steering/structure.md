@@ -18,6 +18,14 @@ inclusion: always
 | `docs/` | Project documentation | Modify when task requires documentation or handoff updates |
 | `.kiro/` | Specs, steering, and Kiro metadata | Keep steering aligned with the real repo state |
 
+## Spec Completion Markers
+
+Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a spec's work is fully completed (all tasks done), add `"status": "completed"` to its `.config.kiro` file. This makes the status of past work immediately visible without reading every task file.
+
+- Completed specs: `{"specId": "...", "workflowType": "...", "specType": "...", "status": "completed"}`
+- In-progress specs: no `status` field (or omit it until done)
+- New specs should follow this convention when all tasks are finished.
+
 ## Monorepo Rules
 
 - Do not assume a root-level `src/` directory exists.
