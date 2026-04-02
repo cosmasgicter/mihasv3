@@ -56,8 +56,11 @@ const resolveManifestFingerprint = (manifest: Array<unknown>): string | null => 
 const WB_MANIFEST = self.__WB_MANIFEST
 
 // Cache version for invalidation on deployment.
-// Uses VITE_APP_VERSION when provided, otherwise derives from the generated Workbox manifest.
-const APP_VERSION = import.meta.env.VITE_APP_VERSION?.trim() || resolveManifestFingerprint(WB_MANIFEST) || 'dev'
+// Combine the explicit release id with the generated manifest fingerprint so
+// cache keys still rotate even if VITE_APP_VERSION is configured as a static value.
+const EXPLICIT_APP_VERSION = import.meta.env.VITE_APP_VERSION?.trim() || null
+const MANIFEST_FINGERPRINT = resolveManifestFingerprint(WB_MANIFEST)
+const APP_VERSION = [EXPLICIT_APP_VERSION, MANIFEST_FINGERPRINT].filter(Boolean).join('-') || 'dev'
 const CACHE_VERSION = `v${APP_VERSION}`
 const CACHE_PREFIX = 'mihas-app'
 const LEGACY_CACHE_PREFIXES = ['mihas-v2-cache']

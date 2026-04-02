@@ -24,6 +24,40 @@ const CHUNK_RELOAD_COUNT_KEY = 'mihas_chunk_reload_count_v2'
 const CHUNK_RELOAD_ROUTE_KEY = 'mihas_chunk_reload_route_v2'
 const CHUNK_RELOAD_MAX_PER_SESSION = 1
 const CHUNK_RELOAD_COOLDOWN_MS = 120_000
+const CACHE_RESET_STORAGE_KEY = 'mihas_runtime_cache_reset'
+const CACHE_RESET_VERSION = 'django-cutover-2026-04-02'
+
+async function runOneTimeRuntimeCacheReset(): Promise<boolean> {
+  if (typeof window === 'undefined' || !import.meta.env.PROD) {
+    return false
+  }
+
+  try {
+    if (localStorage.getItem(CACHE_RESET_STORAGE_KEY) === CACHE_RESET_VERSION) {
+      return false
+    }
+
+    const registrations = 'serviceWorker' in navigator
+      ? await navigator.serviceWorker.getRegistrations()
+      : []
+    const cacheKeys = 'caches' in window ? await caches.keys() : []
+
+    await Promise.all([
+      ...registrations.map((registration) => registration.unregister()),
+      ...cacheKeys.map((cacheKey) => caches.delete(cacheKey)),
+    ])
+
+    localStorage.setItem(CACHE_RESET_STORAGE_KEY, CACHE_RESET_VERSION)
+
+    const url = new URL(window.location.href)
+    url.searchParams.set('_cache_reset', CACHE_RESET_VERSION)
+    window.location.replace(url.toString())
+    return true
+  } catch (error) {
+    console.warn('[PWA] One-time runtime cache reset failed:', error)
+    return false
+  }
+}
 
 // Handle stale chunk errors after deployment (must run before app mounts)
 // When a new build deploys, old hashed chunks no longer exist on the CDN.
@@ -174,20 +208,30 @@ if (typeof window !== 'undefined') {
   // Register vite-plugin-pwa service worker and retire legacy /sw.js registrations
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
     setTimeout(() => {
-      registerSW({
-        immediate: true,
-        onRegisterError(error) {
-          console.error('[PWA] Service worker registration failed:', error)
-        }
-      })
+      runOneTimeRuntimeCacheReset()
+        .then((didReset) => {
+          if (didReset) {
+            return
+          }
 
-      navigator.serviceWorker.getRegistrations()
-        .then((registrations) => Promise.all(
-          registrations
-            .filter((registration) => registration.active?.scriptURL.endsWith('/sw.js'))
-            .map((registration) => registration.unregister())
-        ))
-        .catch(() => {})
+          registerSW({
+            immediate: true,
+            onRegisterError(error) {
+              console.error('[PWA] Service worker registration failed:', error)
+            }
+          })
+
+          navigator.serviceWorker.getRegistrations()
+            .then((registrations) => Promise.all(
+              registrations
+                .filter((registration) => registration.active?.scriptURL.endsWith('/sw.js'))
+                .map((registration) => registration.unregister())
+            ))
+            .catch(() => {})
+        })
+        .catch((error) => {
+          console.warn('[PWA] Runtime cache reset bootstrap failed:', error)
+        })
     }, 3000)
   }
 }
