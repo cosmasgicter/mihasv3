@@ -9,6 +9,7 @@ from django.urls import path
 from apps.documents.views import (
     DocumentExtractView,
     DocumentUploadView,
+    PaymentListView,
     PaymentReceiptView,
     PaymentVerifyView,
 )
@@ -43,6 +44,11 @@ document_urlpatterns = [
 
 # Payment endpoints: /api/v1/payments/...
 payment_urlpatterns = [
+    path(
+        "",
+        PaymentListView.as_view(),
+        name="payment-list",
+    ),
     path(
         "<uuid:payment_id>/receipt/",
         PaymentReceiptView.as_view(),

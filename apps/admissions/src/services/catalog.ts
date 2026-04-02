@@ -177,8 +177,8 @@ function normalizeProgram(record: RawProgram | Program | null | undefined): Prog
   const durationYears =
     typeof record.duration_years === 'number'
       ? record.duration_years
-      : typeof record.duration_months === 'number'
-        ? Number((record.duration_months / 12).toFixed(1))
+      : typeof (record as RawProgram).duration_months === 'number'
+        ? Number(((record as RawProgram).duration_months! / 12).toFixed(1))
         : 0
 
   return {
@@ -251,13 +251,36 @@ function normalizeCollection<T>(
   key: CollectionKey,
   normalizeItem: (item: T | null | undefined) => unknown
 ): unknown[] {
-  const rawItems = Array.isArray(response)
-    ? response
-    : Array.isArray((response as RawPaginatedCollection<T> | undefined)?.results)
-      ? ((response as RawPaginatedCollection<T>).results as T[])
-    : Array.isArray(response?.[key])
-      ? (response[key] as T[])
-      : []
+  let rawItems: T[]
+
+  if (Array.isArray(response)) {
+    rawItems = response
+  } else if (Array.isArray((response as RawPaginatedCollection<T> | undefined)?.results)) {
+    rawItems = (response as RawPaginatedCollection<T>).results as T[]
+  } else if (Array.isArray((response as Record<string, unknown> | undefined)?.[key])) {
+    rawItems = (response as Record<string, unknown>)[key] as T[]
+  } else if (response != null && typeof response === 'object' && !Array.isArray(response)) {
+    // Defensive fallback: extract the first array-valued property from an unexpected shape
+    const firstArrayProp = Object.values(response).find((v) => Array.isArray(v)) as T[] | undefined
+    if (firstArrayProp) {
+      console.warn(
+        `[catalog] normalizeCollection: unexpected response shape for "${key}". ` +
+        `Expected array, {results}, or {${key}} but got keys: [${Object.keys(response).join(', ')}]. ` +
+        `Using fallback array property.`
+      )
+      rawItems = firstArrayProp
+    } else {
+      if (Object.keys(response).length > 0) {
+        console.warn(
+          `[catalog] normalizeCollection: non-null response for "${key}" yielded no items. ` +
+          `Response keys: [${Object.keys(response).join(', ')}]`
+        )
+      }
+      rawItems = []
+    }
+  } else {
+    rawItems = []
+  }
 
   return rawItems
     .map((item) => normalizeItem(item))

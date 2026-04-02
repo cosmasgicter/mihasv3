@@ -753,6 +753,35 @@ class ApplicationDraftView(APIView):
         },
         description="Updates the most recently scheduled interview for the application.",
     ),
+    put=extend_schema(
+        operation_id="applications_interviews_put_latest",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Application UUID."),
+        ],
+        request=ApplicationInterviewWriteSerializer,
+        responses={
+            200: OpenApiResponse(response=ApplicationInterviewResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+        description="Updates the most recently scheduled interview (PUT alias for PATCH).",
+    ),
+    delete=extend_schema(
+        operation_id="applications_interviews_delete_latest",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Application UUID."),
+        ],
+        request=None,
+        responses={
+            200: OpenApiResponse(response=ApplicationMessageResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+        description="Deletes the most recently scheduled interview for the application.",
+    ),
 )
 class ApplicationInterviewView(APIView):
     permission_classes = [IsAuthenticated]
@@ -796,6 +825,12 @@ class ApplicationInterviewView(APIView):
         return Response(ApplicationInterviewSerializer(interview).data, status=status.HTTP_201_CREATED)
 
     def patch(self, request, application_id):
+        return self._update_latest_interview(request, application_id)
+
+    def put(self, request, application_id):
+        return self._update_latest_interview(request, application_id)
+
+    def _update_latest_interview(self, request, application_id):
         if not IsAdmin().has_permission(request, self):
             return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
 
@@ -814,6 +849,22 @@ class ApplicationInterviewView(APIView):
 
         serializer.save(updated_by_id=str(request.user.id))
         return Response(serializer.data)
+
+    def delete(self, request, application_id):
+        if not IsAdmin().has_permission(request, self):
+            return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
+
+        interview = (
+            ApplicationInterview.objects.filter(application_id=application_id)
+            .order_by("-scheduled_at", "-created_at")
+            .first()
+        )
+
+        if interview is None:
+            return Response({"success": False, "error": "Interview not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        interview.delete()
+        return Response({"success": True, "data": {"message": "Interview deleted"}})
 
 
 class DocumentVerifySerializer(serializers.Serializer):

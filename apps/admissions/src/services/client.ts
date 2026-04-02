@@ -768,7 +768,7 @@ class ApiClient {
         if (
           response.status === 403 &&
           ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) &&
-          (errorCode === 'CSRF_INVALID' || errorCode === 'CSRF_MISSING')
+          (errorCode === 'CSRF_INVALID' || errorCode === 'CSRF_MISSING' || errorCode === 'CSRF_VALIDATION_FAILED')
         ) {
           logger.warn('[API Client] 403 CSRF error - re-fetching CSRF token');
           const csrfRetryResponse = await this.handleCsrf403(
