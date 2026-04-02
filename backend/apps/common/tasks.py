@@ -152,7 +152,7 @@ def check_uptime_task(self):
     from apps.common.models import EmailQueue
 
     health_url = getattr(settings, "HEALTH_CHECK_URL", "https://api.mihas.edu.zm/health/ready/")
-    alert_email = getattr(settings, "ERROR_ALERT_EMAIL", "admin@mihas.edu.zm")
+    alert_email = settings.ERROR_ALERT_EMAIL
     email_from = getattr(settings, "EMAIL_FROM", "noreply@mihas.edu.zm")
 
     # Determine current health status.

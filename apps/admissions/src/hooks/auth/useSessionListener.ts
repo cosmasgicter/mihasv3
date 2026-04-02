@@ -277,39 +277,37 @@ export function useSessionListener() {
     }
   }, [queryClient])
 
-  // signOut — clear CSRF → POST logout → clear ALL caches → clear storage → dispatch events
+  // signOut — POST logout while CSRF/cookies are still valid, then clear local state
   const signOut = useCallback(async () => {
-    // 1. Clear CSRF token (local-only, safe to do first)
-    clearCsrfToken()
-
-    // 2. POST logout while cookies are still valid, then wipe all cached queries
+    // 1. POST logout while cookies and CSRF token are still available
     try {
       await authService.logout()
     } catch {
       // Ignore — server logout is best-effort
     } finally {
+      clearCsrfToken()
       queryClient.clear()
     }
 
-    // 3. Clear secure storage
+    // 2. Clear secure storage
     try {
       await secureStorage.clearSession()
     } catch {
       // Ignore — secure storage clear is best-effort
     }
 
-    // 3b. Clear redirect/session intent keys to avoid cross-role stale redirects
+    // 2b. Clear redirect/session intent keys to avoid cross-role stale redirects
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('mihas:post-auth-redirect')
       sessionStorage.removeItem('mihas:wizard-auth-redirect-guard')
     }
 
-    // 4. Dispatch auth signed out event
+    // 3. Dispatch auth signed out event
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('authSignedOut'))
     }
 
-    // 5. Navigate to sign-in route using router-safe event dispatch
+    // 4. Navigate to sign-in route using router-safe event dispatch
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('mihas:auth-redirect', {
         detail: { to: '/auth/signin', replace: true },

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { logReloadEvent, performReload, resolveBuildKey } from '@/lib/reloadControl'
 import { resolveServiceWorkerUpdateTrigger } from '@/lib/serviceWorkerUpdatePolicy'
 
@@ -20,6 +20,7 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
   const [newVersion, setNewVersion] = useState<string | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null)
+  const currentVersionRef = useRef<string | null>(null)
   const SW_RELOAD_PENDING_KEY = 'mihas_sw_reload_pending'
   const SW_RELOAD_HANDLED_KEY = 'mihas_sw_reload_handled'
   const SW_RELOAD_REQUESTED_AT_KEY = 'mihas_sw_reload_requested_at'
@@ -32,6 +33,33 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
     sessionStorage.removeItem(SW_RELOAD_REQUESTED_AT_KEY)
     sessionStorage.removeItem(SW_RELOAD_REQUEST_TOKEN_KEY)
   }
+
+  const applyDiscoveredVersion = (version: string | null, worker: ServiceWorker | null) => {
+    if (!version) {
+      return
+    }
+
+    if (currentVersionRef.current && version === currentVersionRef.current) {
+      setWaitingWorker(null)
+      setNewVersion(null)
+      setUpdateAvailable(false)
+      return
+    }
+
+    setWaitingWorker(worker)
+    setNewVersion(version)
+    setUpdateAvailable(true)
+  }
+
+  useEffect(() => {
+    if (!currentVersion || !newVersion || currentVersion !== newVersion) {
+      return
+    }
+
+    setWaitingWorker(null)
+    setNewVersion(null)
+    setUpdateAvailable(false)
+  }, [currentVersion, newVersion])
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) {
@@ -46,6 +74,7 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
         messageChannel.port1.onmessage = (event) => {
           if (event.data.appVersion) {
             setCurrentVersion(event.data.appVersion)
+            currentVersionRef.current = event.data.appVersion
           }
         }
 
@@ -70,13 +99,11 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
 
       if (trackedInstallingWorker.state === 'installed' && navigator.serviceWorker.controller) {
         console.log('[SW Update] New service worker available')
-        setWaitingWorker(trackedInstallingWorker)
-        setUpdateAvailable(true)
 
         const messageChannel = new MessageChannel()
         messageChannel.port1.onmessage = (event) => {
           if (event.data.appVersion) {
-            setNewVersion(event.data.appVersion)
+            applyDiscoveredVersion(event.data.appVersion, trackedInstallingWorker)
           }
         }
 
@@ -172,8 +199,7 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
     const handleServiceWorkerMessage = (event: MessageEvent) => {
       if (event.data.type === 'cache-updated') {
         console.log('[SW Update] Cache updated to version:', event.data.version)
-        setNewVersion(event.data.appVersion)
-        setUpdateAvailable(true)
+        applyDiscoveredVersion(event.data.appVersion ?? null, waitingWorker)
       }
     }
 
@@ -186,8 +212,15 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
 
       if (registration.waiting) {
         console.log('[SW Update] Service worker already waiting')
-        setWaitingWorker(registration.waiting)
-        setUpdateAvailable(true)
+        const waiting = registration.waiting
+        const messageChannel = new MessageChannel()
+        messageChannel.port1.onmessage = (event) => {
+          if (event.data.appVersion) {
+            applyDiscoveredVersion(event.data.appVersion, waiting)
+          }
+        }
+
+        waiting.postMessage({ type: 'GET_VERSION' }, [messageChannel.port2])
       }
 
       registration.addEventListener('updatefound', handleUpdateFound)
@@ -234,7 +267,7 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
       navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange)
       navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage)
     }
-  }, [])
+  }, [waitingWorker])
 
   const updateServiceWorker = async () => {
     const action = resolveServiceWorkerUpdateTrigger({
@@ -330,6 +363,7 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
   const dismissUpdate = () => {
     setUpdateAvailable(false)
     setWaitingWorker(null)
+    setNewVersion(null)
   }
 
   return {

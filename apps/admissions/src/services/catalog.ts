@@ -14,9 +14,11 @@ type RawProgram = {
   id: string
   name: string
   code?: string
+  description?: string
   institution?: RawInstitution | null
   institution_id?: string
-  duration_years: number
+  duration_years?: number
+  duration_months?: number
   application_fee?: number | string
   requirements?: Record<string, unknown> | null
   is_active?: boolean
@@ -26,8 +28,12 @@ type RawIntake = {
   id: string
   name: string
   year: number
+  start_date?: string
+  end_date?: string
+  application_start_date?: string
   application_deadline: string
   max_capacity?: number
+  current_enrollment?: number
   is_active?: boolean
 }
 
@@ -94,6 +100,14 @@ type InstitutionMutationResponse = { institution: Institution | null }
 
 type CollectionKey = 'programs' | 'intakes' | 'subjects' | 'institutions'
 
+type RawPaginatedCollection<T> = {
+  results?: T[]
+  count?: number
+  totalCount?: number
+  page?: number
+  pageSize?: number
+}
+
 function generateCatalogCode(name: string, prefix: string): string {
   const slug = name
     .trim()
@@ -155,15 +169,23 @@ function normalizeProgram(record: RawProgram | Program | null | undefined): Prog
       ? requirements.summary
       : typeof requirements.description === 'string'
         ? requirements.description
-        : ''
+        : typeof record.description === 'string'
+          ? record.description
+          : ''
 
   const institution = normalizeInstitution('institution' in record ? record.institution : null)
+  const durationYears =
+    typeof record.duration_years === 'number'
+      ? record.duration_years
+      : typeof record.duration_months === 'number'
+        ? Number((record.duration_months / 12).toFixed(1))
+        : 0
 
   return {
     id: record.id,
     name: record.name,
     description: summary,
-    duration_years: record.duration_years,
+    duration_years: durationYears,
     institution_id: record.institution_id ?? institution?.id ?? '',
     institutions: institution,
     is_active: record.is_active,
@@ -183,16 +205,20 @@ function normalizeIntake(record: RawIntake | Intake | null | undefined): Intake 
   }
 
   const deadline = record.application_deadline
+  const startDate = record.start_date || record.application_start_date || deadline
+  const endDate = record.end_date || deadline
+  const totalCapacity = toNumber(record.max_capacity, 0)
+  const currentEnrollment = toNumber(record.current_enrollment, 0)
 
   return {
     id: record.id,
     name: record.name,
     year: record.year,
-    start_date: deadline,
-    end_date: deadline,
+    start_date: startDate,
+    end_date: endDate,
     application_deadline: deadline,
-    total_capacity: toNumber(record.max_capacity, 0),
-    available_spots: toNumber(record.max_capacity, 0),
+    total_capacity: totalCapacity,
+    available_spots: Math.max(totalCapacity - currentEnrollment, 0),
     is_active: record.is_active,
   }
 }
@@ -221,12 +247,14 @@ function normalizeSubject(record: RawSubject | Subject | null | undefined): Subj
 }
 
 function normalizeCollection<T>(
-  response: T[] | Record<string, unknown> | null | undefined,
+  response: T[] | RawPaginatedCollection<T> | Record<string, unknown> | null | undefined,
   key: CollectionKey,
   normalizeItem: (item: T | null | undefined) => unknown
 ): unknown[] {
   const rawItems = Array.isArray(response)
     ? response
+    : Array.isArray((response as RawPaginatedCollection<T> | undefined)?.results)
+      ? ((response as RawPaginatedCollection<T>).results as T[])
     : Array.isArray(response?.[key])
       ? (response[key] as T[])
       : []
@@ -237,7 +265,7 @@ function normalizeCollection<T>(
 }
 
 function normalizeProgramsResponse(
-  response: RawProgram[] | ProgramCollectionResponse | null | undefined
+  response: RawProgram[] | ProgramCollectionResponse | RawPaginatedCollection<RawProgram> | null | undefined
 ): ProgramCollectionResponse {
   return {
     programs: normalizeCollection(response, 'programs', normalizeProgram) as Program[],
@@ -245,7 +273,7 @@ function normalizeProgramsResponse(
 }
 
 function normalizeIntakesResponse(
-  response: RawIntake[] | IntakeCollectionResponse | null | undefined
+  response: RawIntake[] | IntakeCollectionResponse | RawPaginatedCollection<RawIntake> | null | undefined
 ): IntakeCollectionResponse {
   return {
     intakes: normalizeCollection(response, 'intakes', normalizeIntake) as Intake[],
@@ -253,7 +281,7 @@ function normalizeIntakesResponse(
 }
 
 function normalizeSubjectsResponse(
-  response: RawSubject[] | SubjectCollectionResponse | null | undefined
+  response: RawSubject[] | SubjectCollectionResponse | RawPaginatedCollection<RawSubject> | null | undefined
 ): SubjectCollectionResponse {
   return {
     subjects: normalizeCollection(response, 'subjects', normalizeSubject) as Subject[],
@@ -261,7 +289,7 @@ function normalizeSubjectsResponse(
 }
 
 function normalizeInstitutionsResponse(
-  response: RawInstitution[] | InstitutionCollectionResponse | null | undefined
+  response: RawInstitution[] | InstitutionCollectionResponse | RawPaginatedCollection<RawInstitution> | null | undefined
 ): InstitutionCollectionResponse {
   return {
     institutions: normalizeCollection(response, 'institutions', normalizeInstitution) as Institution[],
@@ -350,7 +378,7 @@ function buildProgramPayload(data: ProgramFormData, existing?: RawProgram | null
     name: data.name,
     code: existing?.code ?? generateCatalogCode(data.name, 'PRG'),
     institution_id: data.institution_id,
-    duration_years: data.duration_years,
+    duration_months: Math.max(0, Math.round(data.duration_years * 12)),
     application_fee: toNumber(existing?.application_fee, 0),
     requirements: data.description
       ? { ...existingRequirements, summary: data.description }
@@ -363,6 +391,9 @@ function buildIntakePayload(data: IntakeFormData, existing?: RawIntake | null) {
   return {
     name: data.name,
     year: data.year,
+    start_date: data.start_date,
+    end_date: data.end_date,
+    application_start_date: data.start_date,
     application_deadline: data.application_deadline,
     max_capacity: data.total_capacity,
     is_active: existing?.is_active ?? true,
@@ -374,31 +405,32 @@ function buildInstitutionPayload(data: InstitutionFormData, existing?: RawInstit
     name: data.name,
     full_name: data.full_name || data.name,
     code: existing?.code ?? data.code ?? generateCatalogCode(data.name, 'INS'),
-    type: data.description?.trim() || existing?.type || 'Institution',
+    type: existing?.type || 'Institution',
     accreditation_status: existing?.accreditation_status || 'active',
     is_active: data.is_active ?? existing?.is_active ?? true,
+    description: data.description ?? '',
   }
 }
 
 export const catalogService = {
   getPrograms: async (): Promise<ProgramCollectionResponse> =>
     normalizeProgramsResponse(
-      await apiClient.request<RawProgram[] | ProgramCollectionResponse>('/catalog/programs/')
+      await apiClient.request<RawProgram[] | ProgramCollectionResponse | RawPaginatedCollection<RawProgram>>('/catalog/programs/')
     ),
 
   getIntakes: async (): Promise<IntakeCollectionResponse> =>
     normalizeIntakesResponse(
-      await apiClient.request<RawIntake[] | IntakeCollectionResponse>('/catalog/intakes/')
+      await apiClient.request<RawIntake[] | IntakeCollectionResponse | RawPaginatedCollection<RawIntake>>('/catalog/intakes/')
     ),
 
   getSubjects: async (): Promise<SubjectCollectionResponse> =>
     normalizeSubjectsResponse(
-      await apiClient.request<RawSubject[] | SubjectCollectionResponse>('/catalog/subjects/')
+      await apiClient.request<RawSubject[] | SubjectCollectionResponse | RawPaginatedCollection<RawSubject>>('/catalog/subjects/')
     ),
 
   getInstitutions: async (): Promise<InstitutionCollectionResponse> =>
     normalizeInstitutionsResponse(
-      await apiClient.request<RawInstitution[] | InstitutionCollectionResponse>('/catalog/institutions/')
+      await apiClient.request<RawInstitution[] | InstitutionCollectionResponse | RawPaginatedCollection<RawInstitution>>('/catalog/institutions/')
     ),
 }
 
@@ -422,7 +454,7 @@ export const programService = {
 
     return normalizeProgramMutationResponse(
       await apiClient.request<RawProgram | ProgramMutationResponse>(`/catalog/programs/${encodeURIComponent(data.id)}/`, {
-        method: 'PUT',
+        method: 'PATCH',
         body: JSON.stringify(buildProgramPayload(data, existing)),
       })
     )
@@ -452,7 +484,7 @@ export const intakeService = {
 
     return normalizeIntakeMutationResponse(
       await apiClient.request<RawIntake | IntakeMutationResponse>(`/catalog/intakes/${encodeURIComponent(data.id)}/`, {
-        method: 'PUT',
+        method: 'PATCH',
         body: JSON.stringify(buildIntakePayload(data)),
       })
     )
@@ -484,7 +516,7 @@ export const institutionService = {
 
     return normalizeInstitutionMutationResponse(
       await apiClient.request<RawInstitution | InstitutionMutationResponse>(`/catalog/institutions/${encodeURIComponent(data.id)}/`, {
-        method: 'PUT',
+        method: 'PATCH',
         body: JSON.stringify(buildInstitutionPayload(data, existing)),
       })
     )

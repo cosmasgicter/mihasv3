@@ -248,8 +248,8 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
         self.assertEqual(response.status_code, 429)
         self.assertEqual(response["Retry-After"], str(expected_seconds))
 
-    def test_scope_limits_match_arcjet_config(self):
-        """Verify the configured scopes match the Arcjet rate limits from requirements."""
+    def test_scope_limits_match_rate_limit_config(self):
+        """Verify the configured scopes match the rate limit middleware configuration."""
         expected_scopes = {
             "/api/v1/auth/": "60/5m",
             "/api/v1/admin/": "60/10m",

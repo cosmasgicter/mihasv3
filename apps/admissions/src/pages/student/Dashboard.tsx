@@ -72,7 +72,6 @@ export default function StudentDashboard() {
     }
   })
 
-  // Polling-based updates for dashboard (replaces Supabase Realtime)
   // Requirements: 1.1, 1.2 - Dashboard data refresh via polling
   useStudentDashboardPolling({
     onApplicationChange: () => {
@@ -82,7 +81,6 @@ export default function StudentDashboard() {
     onDataChange: () => {},
   })
 
-  // Realtime application status updates via useRealtime polling
   // Requirements: 8.1, 8.2 - Subscribe to application_update events and refresh dashboard
   const queryClient = useQueryClient()
   useApplicationUpdates(
@@ -284,7 +282,6 @@ export default function StudentDashboard() {
 
       // Fetch scheduled interviews for the user's applications
       // Requirements: 2.4, 4.3 - Check for scheduled or rescheduled interviews
-      // MIGRATED: Using API client instead of direct Supabase calls
       if (user.id) {
         try {
           const interviewData = await interviewsService.list()

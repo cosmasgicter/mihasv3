@@ -42,11 +42,11 @@ export function ServiceWorkerUpdatePrompt() {
 
   return (
     <div
-      className="fixed bottom-4 right-4 z-50 max-w-md animate-in slide-in-from-bottom-5"
+      className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-[70] animate-in slide-in-from-bottom-5 pointer-events-none sm:inset-x-auto sm:bottom-4 sm:right-4 sm:max-w-md"
       role="alert"
       aria-live="polite"
     >
-      <div className="rounded-lg border border-border bg-background p-4 shadow-lg">
+      <div className="pointer-events-auto rounded-xl border border-border bg-background p-4 shadow-xl sm:min-w-[22rem]">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0">
             <RefreshCw className="h-5 w-5 text-primary" />
@@ -65,12 +65,12 @@ export function ServiceWorkerUpdatePrompt() {
               </p>
             </div>
             
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <Button
                 size="sm"
                 onClick={handleUpdate}
                 disabled={isUpdating}
-                className="flex-1"
+                className="w-full sm:flex-1"
               >
                 {isUpdating ? (
                   <>
@@ -87,6 +87,7 @@ export function ServiceWorkerUpdatePrompt() {
                 variant="outline"
                 onClick={handleDismiss}
                 disabled={isUpdating}
+                className="w-full sm:w-auto"
               >
                 Later
               </Button>

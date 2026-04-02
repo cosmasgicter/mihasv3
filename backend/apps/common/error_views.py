@@ -97,7 +97,7 @@ class ErrorReportView(APIView):
             logger.warning("Redis unavailable for error alert throttle check, dispatching alert")
 
         if should_alert:
-            alert_email = getattr(settings, "ERROR_ALERT_EMAIL", "admin@mihas.edu.zm")
+            alert_email = settings.ERROR_ALERT_EMAIL
             email_record = EmailQueue.objects.create(
                 recipient_email=alert_email,
                 subject=f"[ALERT] Frontend error: {error_msg[:100]}",

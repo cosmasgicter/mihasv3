@@ -25,9 +25,7 @@ export interface Interview {
 }
 
 export interface ScheduleInterviewData {
-  applicationId?: string
-  /** @deprecated Use applicationId instead. */
-  application_id?: string
+  applicationId: string
   scheduled_at: string
   mode: InterviewMode
   location: string
@@ -44,7 +42,7 @@ export interface ListInterviewsResponse {
 
 export const interviewsService = {
   schedule: async (data: ScheduleInterviewData) => {
-    const applicationId = data.applicationId ?? data.application_id
+    const { applicationId } = data
     if (!applicationId) {
       throw new Error('Application ID is required to schedule an interview')
     }

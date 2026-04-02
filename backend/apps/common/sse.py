@@ -13,6 +13,7 @@ from asgiref.sync import sync_to_async
 from django.http import StreamingHttpResponse
 from drf_spectacular.utils import OpenApiResponse, OpenApiTypes, extend_schema, extend_schema_view
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.renderers import BaseRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -23,6 +24,18 @@ logger = logging.getLogger(__name__)
 
 KEEPALIVE_INTERVAL = 8  # seconds
 MAX_DURATION = 30  # seconds
+
+
+class ServerSentEventRenderer(BaseRenderer):
+    """Renderer used only to satisfy DRF content negotiation for SSE."""
+
+    media_type = "text/event-stream"
+    format = "event-stream"
+    charset = None
+    render_style = "binary"
+
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        return data
 
 
 def _sse_event(data, event=None, event_id=None):
@@ -107,6 +120,7 @@ class SSEStreamView(APIView):
 
     permission_classes = [IsAuthenticated]
     serializer_class = NotificationEventSerializer
+    renderer_classes = [ServerSentEventRenderer]
 
     def get(self, request):
         user_id = request.user.pk

@@ -1,7 +1,6 @@
 /**
  * useRealtime Hook - SSE/Polling for Real-time Updates
  * 
- * Replaces Supabase Realtime with Bun-native SSE implementation.
  * Uses the robust SSE client with automatic reconnection, exponential backoff,
  * and polling fallback.
  * 
@@ -10,7 +9,6 @@
  * - 5.10: Polling fallback for graceful degradation
  * - 7.1: SSE for server-to-client streaming
  * - 7.2: Polling fallback for graceful degradation
- * - 7.10: Zero Supabase Realtime dependencies
  * 
  * @example
  * ```tsx
