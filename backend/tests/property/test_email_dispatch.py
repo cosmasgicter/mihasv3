@@ -69,6 +69,7 @@ class TestEmailDispatchCreatesQueueRecord(SimpleTestCase):
         fields before dispatching send_email_task.delay()."""
         user = _make_mock_user(email=email)
 
+        # Track the order of operations: create must happen before delay
         call_order = []
 
         mock_record = MagicMock()
@@ -98,7 +99,10 @@ class TestEmailDispatchCreatesQueueRecord(SimpleTestCase):
 
             send_lockout_email(user)
 
+        # Verify create was called before delay
         self.assertEqual(call_order, ["create", "delay"])
+
+        # Verify EmailQueue record fields
         self.assertEqual(captured_create_kwargs["recipient_email"], email)
         self.assertEqual(captured_create_kwargs["status"], "pending")
         self.assertTrue(len(captured_create_kwargs["subject"]) > 0)
@@ -151,7 +155,7 @@ class TestEmailDispatchCreatesQueueRecord(SimpleTestCase):
             "apps.accounts.views.generate_password_reset_token",
             return_value=raw_token,
         ), patch(
-            "apps.accounts.models.PasswordResetToken.objects.filter",
+            "apps.accounts.views.PasswordResetToken.objects.filter",
         ) as mock_reset_filter:
             mock_reset_filter.return_value.count.return_value = 0
 
@@ -165,7 +169,10 @@ class TestEmailDispatchCreatesQueueRecord(SimpleTestCase):
             view = PasswordResetRequestView.as_view()
             view(request)
 
+        # Verify create was called before delay
         self.assertEqual(call_order, ["create", "delay"])
+
+        # Verify EmailQueue record fields
         self.assertEqual(captured_create_kwargs["recipient_email"], email)
         self.assertEqual(captured_create_kwargs["status"], "pending")
         self.assertTrue(len(captured_create_kwargs["subject"]) > 0)
@@ -235,6 +242,7 @@ class TestPasswordResetEmailContainsTokenAndUrl(SimpleTestCase):
             view = PasswordResetRequestView.as_view()
             view(request)
 
+        # The email body must have been captured
         self.assertIn("body", captured_create_kwargs)
         body = captured_create_kwargs["body"]
 
