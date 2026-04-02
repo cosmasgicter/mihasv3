@@ -82,8 +82,36 @@ def _log_error_and_alert(error_msg, request):
 def envelope_exception_handler(exc, context):
     """Map DRF exceptions to the envelope error format."""
     response = exception_handler(exc, context)
+
+    request = context.get("request")
+    request_id = getattr(request, "request_id", None) if request else None
+
+    # DRF's exception_handler returns None for non-DRF exceptions (e.g.,
+    # ProgrammingError, OperationalError, ValueError).  Catch those here
+    # so the client always receives a structured JSON envelope instead of
+    # Django's default HTML 500 page or the generic "An unexpected error
+    # occurred" message.
     if response is None:
-        return response
+        import traceback
+        from rest_framework.response import Response
+
+        error_msg = f"{exc.__class__.__name__}: {exc}"
+        logger.exception("Unhandled exception in DRF view")
+
+        try:
+            _log_error_and_alert(error_msg, request)
+        except Exception:
+            logger.exception("Failed to log error or dispatch alert for unhandled exception")
+
+        envelope = {
+            "success": False,
+            "error": error_msg[:500],
+            "code": "INTERNAL_ERROR",
+        }
+        if request_id:
+            envelope["request_id"] = request_id
+
+        return Response(envelope, status=500)
 
     request = context.get("request")
     request_id = getattr(request, "request_id", None) if request else None
