@@ -176,50 +176,65 @@ class AdminDashboardView(APIView):
     serializer_class = AdminDashboardSerializer
 
     def get(self, request):
-        now = timezone.now()
-        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        week_start = today_start - timedelta(days=today_start.weekday())
-        month_start = today_start.replace(day=1)
+        try:
+            now = timezone.now()
+            today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            week_start = today_start - timedelta(days=today_start.weekday())
+            month_start = today_start.replace(day=1)
 
-        from apps.applications.models import Application
+            from apps.applications.models import Application
 
-        # Application counts by status
-        status_counts = dict(
-            Application.objects.values_list("status")
-            .annotate(count=Count("id"))
-            .values_list("status", "count")
-        )
+            # Application counts by status
+            status_counts = dict(
+                Application.objects.values_list("status")
+                .annotate(count=Count("id"))
+                .values_list("status", "count")
+            )
 
-        # Period totals
-        today_count = Application.objects.filter(created_at__gte=today_start).count()
-        week_count = Application.objects.filter(created_at__gte=week_start).count()
-        month_count = Application.objects.filter(created_at__gte=month_start).count()
+            # Period totals
+            today_count = Application.objects.filter(created_at__gte=today_start).count()
+            week_count = Application.objects.filter(created_at__gte=week_start).count()
+            month_count = Application.objects.filter(created_at__gte=month_start).count()
 
-        # Recent activity (last 10 audit log entries)
-        recent_logs = AuditLog.objects.order_by("-created_at")[:10]
-        recent_activity = AuditLogSerializer(recent_logs, many=True).data
+            # Recent activity (last 10 audit log entries)
+            try:
+                recent_logs = AuditLog.objects.order_by("-created_at")[:10]
+                recent_activity = AuditLogSerializer(recent_logs, many=True).data
+            except Exception:
+                logger.warning("Failed to load audit logs for admin dashboard", exc_info=True)
+                recent_activity = []
 
-        # Total users
-        total_users = Profile.objects.count()
-        active_users = Profile.objects.filter(is_active=True).count()
+            # Total users
+            total_users = Profile.objects.count()
+            active_users = Profile.objects.filter(is_active=True).count()
 
-        return Response({
-            "success": True,
-            "data": {
-                "applications": {
-                    "by_status": status_counts,
-                    "today": today_count,
-                    "this_week": week_count,
-                    "this_month": month_count,
-                    "total": Application.objects.count(),
+            return Response({
+                "success": True,
+                "data": {
+                    "applications": {
+                        "by_status": status_counts,
+                        "today": today_count,
+                        "this_week": week_count,
+                        "this_month": month_count,
+                        "total": Application.objects.count(),
+                    },
+                    "users": {
+                        "total": total_users,
+                        "active": active_users,
+                    },
+                    "recent_activity": recent_activity,
                 },
-                "users": {
-                    "total": total_users,
-                    "active": active_users,
+            })
+        except Exception as exc:
+            logger.exception("Admin dashboard data load failed")
+            return Response(
+                {
+                    "success": False,
+                    "error": f"Dashboard data load failed: {exc.__class__.__name__}: {exc}",
+                    "code": "DASHBOARD_ERROR",
                 },
-                "recent_activity": recent_activity,
-            },
-        })
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 # ---------------------------------------------------------------------------
