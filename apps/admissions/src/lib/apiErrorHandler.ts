@@ -20,38 +20,54 @@ export class ApiErrorHandler {
       !/^bad request$/i.test(originalMessage) &&
       !/^invalid request/i.test(originalMessage)
     )
+
+    const buildError = (message: string): Error => {
+      const error = new Error(message) as Error & {
+        status?: number
+        endpoint?: string
+        method?: string
+      }
+
+      if (statusCode) {
+        error.status = statusCode
+      }
+
+      error.endpoint = endpoint
+      error.method = method
+      return error
+    }
     
     // Handle specific HTTP status codes
     if (statusCode) {
       switch (statusCode) {
         case 400:
           if (hasActionableValidationMessage) {
-            return new Error(originalMessage)
+            return buildError(originalMessage)
           }
-          return new Error('Invalid request. Please check your input and try again.')
+          return buildError('Invalid request. Please check your input and try again.')
         case 401:
-          return new Error('Authentication required. Please sign in again.')
+          return buildError('Authentication required. Please sign in again.')
         case 403:
-          return new Error('Access denied. You do not have permission for this action.')
+          return buildError('Access denied. You do not have permission for this action.')
         case 404:
-          return new Error('Resource not found. The requested item may have been deleted.')
+          return buildError('Resource not found. The requested item may have been deleted.')
         case 409:
-          return new Error('Conflict detected. The resource may have been modified by another user.')
+          return buildError('Conflict detected. The resource may have been modified by another user.')
         case 422:
           if (hasActionableValidationMessage) {
-            return new Error(originalMessage)
+            return buildError(originalMessage)
           }
-          return new Error('Validation failed. Please check your input data.')
+          return buildError('Validation failed. Please check your input data.')
         case 429:
-          return new Error('Too many requests. Please wait a moment and try again.')
+          return buildError('Too many requests. Please wait a moment and try again.')
         case 500:
-          return new Error('Server error. Please try again later.')
+          return buildError('Server error. Please try again later.')
         case 502:
-          return new Error('Service temporarily unavailable. Please try again in a moment.')
+          return buildError('Service temporarily unavailable. Please try again in a moment.')
         case 503:
-          return new Error('Service maintenance in progress. Please try again later.')
+          return buildError('Service maintenance in progress. Please try again later.')
         case 504:
-          return new Error('Request timeout. Please check your connection and try again.')
+          return buildError('Request timeout. Please check your connection and try again.')
       }
     }
 
@@ -60,39 +76,39 @@ export class ApiErrorHandler {
       const message = originalError.message.toLowerCase()
       
       if (message.includes('network') || message.includes('fetch')) {
-        return new Error('Network connection issue. Please check your internet and try again.')
+        return buildError('Network connection issue. Please check your internet and try again.')
       }
       
       if (message.includes('timeout')) {
-        return new Error('Request timed out. Please try again.')
+        return buildError('Request timed out. Please try again.')
       }
       
       if (message.includes('cors')) {
-        return new Error('Cross-origin request blocked. Please refresh the page.')
+        return buildError('Cross-origin request blocked. Please refresh the page.')
       }
       
       if (message.includes('abort')) {
-        return new Error('Request was cancelled. Please try again.')
+        return buildError('Request was cancelled. Please try again.')
       }
     }
 
     // Handle specific endpoint errors
     if (endpoint.includes('/applications/')) {
       if (method === 'PATCH' && endpoint.includes('sync_grades')) {
-        return new Error('Failed to save grades. Your other data has been saved. You can continue and add grades later.')
+        return buildError('Failed to save grades. Your other data has been saved. You can continue and add grades later.')
       }
       
       if (method === 'POST') {
-        return new Error('Failed to create application. Please check your information and try again.')
+        return buildError('Failed to create application. Please check your information and try again.')
       }
       
       if (method === 'PUT') {
-        return new Error('Failed to update application. Please try again.')
+        return buildError('Failed to update application. Please try again.')
       }
     }
 
     // Default error message
-    return new Error('An unexpected error occurred. Please try again.')
+    return buildError('An unexpected error occurred. Please try again.')
   }
 
   static isRetryableError(error: unknown): boolean {
