@@ -101,23 +101,57 @@ NotificationPollResponseSerializer = envelope_serializer(
 class SSEStreamView(APIView):
     """GET /api/v1/events/stream/
 
-    Async Server-Sent Events with 8-second keepalive. Auth required.
-    Uses Django StreamingHttpResponse with an async generator.
+    Server-Sent Events with 8-second keepalive. Auth required.
+    Falls back to synchronous streaming to avoid async/auth compatibility issues.
     """
 
     permission_classes = [IsAuthenticated]
     serializer_class = NotificationEventSerializer
 
-    async def get(self, request):
+    def get(self, request):
         user_id = request.user.pk
 
         response = StreamingHttpResponse(
-            _async_event_stream(user_id),
+            self._sync_event_stream(user_id),
             content_type="text/event-stream",
         )
         response["Cache-Control"] = "no-cache"
         response["X-Accel-Buffering"] = "no"
         return response
+
+    @staticmethod
+    def _sync_event_stream(user_id):
+        """Synchronous generator that yields SSE events."""
+        import time as _time
+
+        start = _time.monotonic()
+        last_seen_id = None
+
+        while _time.monotonic() - start < MAX_DURATION:
+            try:
+                qs = Notification.objects.filter(user_id=user_id, is_read=False).order_by("created_at")
+                if last_seen_id:
+                    qs = qs.filter(created_at__gt=last_seen_id)
+                notifications = list(qs[:10])
+
+                for notif in notifications:
+                    yield _sse_event(
+                        {
+                            "id": str(notif.id),
+                            "title": notif.title,
+                            "message": notif.message,
+                            "type": notif.type,
+                            "created_at": notif.created_at.isoformat() if notif.created_at else None,
+                        },
+                        event="notification",
+                        event_id=str(notif.id),
+                    )
+                    last_seen_id = notif.created_at
+            except Exception:
+                logger.error("DB query failed in SSE stream", exc_info=True)
+
+            yield _sse_event({"type": "keepalive"}, event="ping")
+            _time.sleep(KEEPALIVE_INTERVAL)
 
 
 @extend_schema_view(
