@@ -274,7 +274,7 @@ const normalizeRecentActivity = (items: unknown): AdminDashboardActivity[] => {
         : action
           ? `${action.replace(/_/g, ' ')}${entityType ? ` ${entityType}` : ''}`
           : ''
-      const timestamp = 'timestamp' in item && typeof item.timestamp === 'string'
+      const rawTimestamp = 'timestamp' in item && typeof item.timestamp === 'string'
         ? item.timestamp
         : 'updatedAt' in item && typeof item.updatedAt === 'string'
           ? item.updatedAt
@@ -282,7 +282,14 @@ const normalizeRecentActivity = (items: unknown): AdminDashboardActivity[] => {
             ? item.createdAt
             : 'created_at' in item && typeof item.created_at === 'string'
               ? item.created_at
-            : ''
+              : ''
+
+      // Fallback: if a timestamp key exists but value is null, use current time
+      const timestamp = rawTimestamp || (
+        ('created_at' in item || 'createdAt' in item || 'timestamp' in item || 'updatedAt' in item)
+          ? new Date().toISOString()
+          : ''
+      )
 
       if (!id || !message || !timestamp) {
         return null
@@ -450,3 +457,6 @@ export const adminDashboardService = {
     return result.data
   }
 }
+
+// Exported for property testing
+export { normalizeRecentActivity, normalizeStats }

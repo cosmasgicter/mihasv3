@@ -101,9 +101,9 @@ class ApplicationStatusHistory(models.Model):
     )
     notes = models.TextField(null=True, blank=True)
     changes = models.JSONField(null=True, blank=True)
-    ip_address = models.CharField(max_length=45, null=True, blank=True)
+    ip_address = models.CharField(max_length=64, null=True, blank=True)
     user_agent = models.TextField(null=True, blank=True)
-    created_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     old_status = models.TextField(null=True, blank=True)
     new_status = models.TextField(null=True, blank=True)
 
