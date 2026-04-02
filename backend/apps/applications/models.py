@@ -96,7 +96,8 @@ class ApplicationStatusHistory(models.Model):
     application = models.ForeignKey(Application, on_delete=models.CASCADE)
     status = models.CharField(max_length=20)
     changed_by = models.ForeignKey(
-        'accounts.Profile', on_delete=models.SET_NULL, null=True, blank=True
+        'accounts.Profile', on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='changed_by',
     )
     notes = models.TextField(null=True, blank=True)
     changes = models.JSONField(null=True, blank=True)

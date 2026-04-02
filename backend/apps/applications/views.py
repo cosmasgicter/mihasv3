@@ -482,14 +482,6 @@ class ApplicationReviewView(APIView):
 
     def post(self, request, application_id):
         try:
-            return self._do_review(request, application_id)
-        except Exception as exc:
-            import traceback
-            logger.exception("Review failed: %s", exc)
-            return Response({"success": False, "error": f"Review error: {exc}", "trace": traceback.format_exc()[-500:]}, status=500)
-
-    def _do_review(self, request, application_id):
-        try:
             app = Application.objects.get(id=application_id)
         except Application.DoesNotExist:
             return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
