@@ -122,6 +122,17 @@ class SSEStreamView(APIView):
     serializer_class = NotificationEventSerializer
     renderer_classes = [ServerSentEventRenderer]
 
+    def perform_content_negotiation(self, request, force=False):
+        """Always select ServerSentEventRenderer for SSE requests.
+
+        DRF's default content negotiation consults DEFAULT_RENDERER_CLASSES
+        (which only contains EnvelopeRenderer). Since SSEStreamView returns a
+        raw StreamingHttpResponse, we bypass that negotiation entirely and
+        always select our SSE renderer regardless of the Accept header.
+        """
+        renderer = ServerSentEventRenderer()
+        return renderer, renderer.media_type
+
     def get(self, request):
         user_id = request.user.pk
 

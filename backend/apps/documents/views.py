@@ -17,6 +17,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin
+from apps.common.pagination import StandardPagination
 from apps.documents.models import ApplicationDocument, Payment
 from apps.documents.serializers import (
     DocumentSerializer,
@@ -51,6 +52,53 @@ PaymentResponseSerializer = envelope_serializer(
     "PaymentResponse",
     PaymentSerializer(),
 )
+
+
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="payments_list",
+        tags=["payments"],
+        parameters=[
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.QUERY, required=False, description="Filter by application UUID."),
+        ],
+        responses={
+            200: OpenApiResponse(response=PaymentResponseSerializer),
+        },
+    )
+)
+class PaymentListView(APIView):
+    """GET /api/v1/payments/ — list payments for the authenticated user.
+
+    Students see their own payments. Admins see all payments.
+    Supports optional ?application_id= filter.
+    """
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = PaymentSerializer
+
+    def get(self, request):
+        user = request.user
+        role = getattr(user, "role", "student")
+
+        if role in ("admin", "super_admin"):
+            queryset = Payment.objects.all()
+        else:
+            queryset = Payment.objects.filter(user_id=str(user.id))
+
+        application_id = request.query_params.get("application_id")
+        if application_id:
+            queryset = queryset.filter(application_id=application_id)
+
+        queryset = queryset.order_by("-created_at")
+
+        paginator = StandardPagination()
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            serializer = PaymentSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
+        serializer = PaymentSerializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 @extend_schema_view(

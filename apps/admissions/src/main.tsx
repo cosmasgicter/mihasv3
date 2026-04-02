@@ -25,7 +25,7 @@ const CHUNK_RELOAD_ROUTE_KEY = 'mihas_chunk_reload_route_v2'
 const CHUNK_RELOAD_MAX_PER_SESSION = 1
 const CHUNK_RELOAD_COOLDOWN_MS = 120_000
 const CACHE_RESET_STORAGE_KEY = 'mihas_runtime_cache_reset'
-const CACHE_RESET_VERSION = 'django-cutover-2026-04-02'
+const CACHE_RESET_VERSION = 'post-qa-2026-04-02'
 
 async function runOneTimeRuntimeCacheReset(): Promise<boolean> {
   if (typeof window === 'undefined' || !import.meta.env.PROD) {

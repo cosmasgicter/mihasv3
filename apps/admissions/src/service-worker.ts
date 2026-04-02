@@ -245,6 +245,19 @@ registerRoute(
 
 
 // ============================================================================
+// CROSS-ORIGIN API — NetworkOnly (never cache cross-origin API traffic)
+// Production API is at api.mihas.edu.zm, separate from the app origin.
+// ============================================================================
+
+registerRoute(
+  ({ url }: { url: URL }) =>
+    url.origin !== self.location.origin &&
+    (url.hostname === 'api.mihas.edu.zm' || url.pathname.startsWith('/api/')),
+  new NetworkOnly()
+)
+
+
+// ============================================================================
 // AUTH ENDPOINTS — NetworkOnly (never cache auth)
 // ============================================================================
 
@@ -360,9 +373,7 @@ self.addEventListener('activate', (event) => {
       const oldCaches = cacheNames.filter((name) => {
         const isLegacyCache = LEGACY_CACHE_PREFIXES.some((prefix) => name.startsWith(prefix))
         const isCurrentPrefixOutdated = name.startsWith(CACHE_PREFIX) && !name.includes(CACHE_VERSION)
-        // Keep static-v1 across versions (it's version-independent)
-        const isStaticCache = name === STATIC_CACHE
-        return (isLegacyCache || isCurrentPrefixOutdated) && !isStaticCache
+        return isLegacyCache || isCurrentPrefixOutdated
       })
       
       if (oldCaches.length > 0) {
@@ -375,6 +386,39 @@ self.addEventListener('activate', (event) => {
         )
       } else {
         console.log('[Service Worker] No old caches to delete')
+      }
+
+      // Purge stale JS/CSS bundle entries from static-v1 that are not in
+      // the current precache manifest. This prevents serving outdated bundles
+      // after a new deploy when the old hashed filenames no longer exist on CDN.
+      try {
+        const staticCache = await caches.open(STATIC_CACHE)
+        const cachedRequests = await staticCache.keys()
+        const manifestUrls = new Set(
+          WB_MANIFEST.map((entry) => {
+            if (typeof entry === 'string') return entry
+            if (typeof entry === 'object' && entry !== null && 'url' in entry) {
+              return (entry as ManifestEntry).url ?? null
+            }
+            return null
+          }).filter((url): url is string => Boolean(url))
+        )
+
+        const staleEntries = cachedRequests.filter((request) => {
+          const url = new URL(request.url)
+          const pathname = url.pathname
+          const isBundle = pathname.endsWith('.js') || pathname.endsWith('.css')
+          if (!isBundle) return false
+          // Check if this bundle URL is in the current precache manifest
+          return !manifestUrls.has(pathname) && !manifestUrls.has(url.href)
+        })
+
+        if (staleEntries.length > 0) {
+          console.log(`[Service Worker] Purging ${staleEntries.length} stale JS/CSS entries from ${STATIC_CACHE}`)
+          await Promise.all(staleEntries.map((request) => staticCache.delete(request)))
+        }
+      } catch (error) {
+        console.warn('[Service Worker] Failed to purge stale static cache entries:', error)
       }
 
       // Enforce 50MB total cache budget

@@ -39,7 +39,15 @@ export function useServiceWorkerUpdate(): ServiceWorkerUpdateState & ServiceWork
       return
     }
 
-    if (currentVersionRef.current && version === currentVersionRef.current) {
+    // Use a compound key of version + timestamp to avoid suppressing updates
+    // when VITE_APP_VERSION is static and manifest fingerprint collides.
+    // Two different builds should always be treated as distinct even if the
+    // version string happens to match (e.g., due to 32-bit hash collision).
+    const versionKey = worker ? `${version}-${Date.now()}` : version
+
+    if (currentVersionRef.current && version === currentVersionRef.current && !worker) {
+      // Only suppress if there's no waiting worker — a waiting worker means
+      // a genuinely new build is available regardless of version string match.
       setWaitingWorker(null)
       setNewVersion(null)
       setUpdateAvailable(false)

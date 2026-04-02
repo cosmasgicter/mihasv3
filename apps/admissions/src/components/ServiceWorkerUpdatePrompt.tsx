@@ -42,7 +42,7 @@ export function ServiceWorkerUpdatePrompt() {
 
   return (
     <div
-      className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-[70] animate-in slide-in-from-bottom-5 pointer-events-none sm:inset-x-auto sm:bottom-4 sm:right-4 sm:max-w-md"
+      className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom,0px)+9rem)] z-[70] animate-in slide-in-from-bottom-5 pointer-events-none sm:inset-x-auto sm:bottom-4 sm:right-4 sm:max-w-md"
       role="alert"
       aria-live="polite"
     >

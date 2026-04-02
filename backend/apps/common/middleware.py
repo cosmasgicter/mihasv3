@@ -267,6 +267,8 @@ class CSRFEnforcementMiddleware:
         re.compile(r"^/api/v1/auth/login/?$"),
         re.compile(r"^/api/v1/auth/register/?$"),
         re.compile(r"^/api/v1/auth/password-reset/?$"),
+        re.compile(r"^/api/v1/auth/logout/?$"),
+        re.compile(r"^/api/v1/auth/refresh/?$"),
         re.compile(r"^/api/v1/errors/report/?$"),
     ]
 

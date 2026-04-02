@@ -60,11 +60,19 @@ function normalizeAuthUser(
     ? payload.full_name.trim()
     : [firstName, lastName].filter(Boolean).join(' ').trim()
 
+  // Resolve role from top-level, then user_metadata, then app_metadata.
+  // Django login responses may nest the role differently than expected.
+  const resolvedRole =
+    payload.role ||
+    (typeof payload.user_metadata?.role === 'string' ? payload.user_metadata.role : undefined) ||
+    (typeof payload.app_metadata?.role === 'string' ? payload.app_metadata.role : undefined) ||
+    'student'
+
   return {
     ...payload,
     id: String(payload.id),
     email: payload.email,
-    role: payload.role || 'student',
+    role: resolvedRole,
     full_name: fullName || undefined,
   }
 }
