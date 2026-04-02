@@ -151,6 +151,7 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
   let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   let intentionalDisconnect = false;
   let wasConnectedBeforeHidden = false;
+  let hasLoggedError = false;
 
   // Event handlers map: event type -> Set of handlers
   const handlers = new Map<string, Set<EventHandler>>();
@@ -203,7 +204,8 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
     }
 
     const delay = calculateBackoff(retryCount, initialBackoff, maxBackoff);
-    console.log(`[SSEClient] Scheduling reconnect in ${delay}ms (attempt ${retryCount + 1})`);
+    const reconnectLog = retryCount > 0 ? console.debug : console.log;
+    reconnectLog(`[SSEClient] Scheduling reconnect in ${delay}ms (attempt ${retryCount + 1})`);
 
     reconnectTimeout = setTimeout(() => {
       reconnectTimeout = null;
@@ -301,6 +303,10 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
       eventSource.onopen = () => {
         console.log('[SSEClient] Connected');
         connected = true;
+        if (hasLoggedError) {
+          console.log('[SSEClient] Connection recovered');
+          hasLoggedError = false;
+        }
         retryCount = 0; // Reset retry count on successful connection
         onConnect?.();
       };
@@ -313,7 +319,12 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
 
       // Handle errors
       eventSource.onerror = (event) => {
-        console.log('[SSEClient] Connection error');
+        if (!hasLoggedError) {
+          console.log('[SSEClient] Connection error');
+          hasLoggedError = true;
+        } else {
+          console.debug('[SSEClient] Connection error');
+        }
         
         // EventSource automatically closes on error
         const wasConnected = connected;
