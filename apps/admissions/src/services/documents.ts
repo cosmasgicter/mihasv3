@@ -1,3 +1,4 @@
+import { logApiError } from '@/lib/apiErrorLogger'
 import { apiClient } from './client'
 
 export const documentService = {
@@ -9,10 +10,16 @@ export const documentService = {
     formData.append('application_id', data.applicationId)
     formData.append('document_type', data.fileType)
 
-    return apiClient.request('/documents/upload/', {
-      method: 'POST',
-      body: formData
-    })
+    try {
+      const result = await apiClient.request('/documents/upload/', {
+        method: 'POST',
+        body: formData
+      })
+      return result ?? null
+    } catch (err) {
+      logApiError('documents', '/documents/upload/', err)
+      throw err
+    }
   },
 
   /** Extract text from an uploaded document via Celery. */
@@ -24,15 +31,29 @@ export const documentService = {
       throw new Error('Document extraction requires an uploaded document ID')
     }
 
-    return apiClient.request(`/documents/${encodeURIComponent(data.documentId)}/extract/`, {
-      method: 'POST'
-    })
+    const endpoint = `/documents/${encodeURIComponent(data.documentId)}/extract/`
+    try {
+      const result = await apiClient.request(endpoint, {
+        method: 'POST'
+      })
+      return result ?? null
+    } catch (err) {
+      logApiError('documents', endpoint, err)
+      throw err
+    }
   },
 
   /** Get a signed download URL for a document. */
   getSignedUrl: async (documentId: string) => {
-    return apiClient.request<{ url: string }>(`/documents/${encodeURIComponent(documentId)}/signed-url/`, {
-      method: 'GET'
-    })
+    const endpoint = `/documents/${encodeURIComponent(documentId)}/signed-url/`
+    try {
+      const result = await apiClient.request<{ url: string }>(endpoint, {
+        method: 'GET'
+      })
+      return result ?? null
+    } catch (err) {
+      logApiError('documents', endpoint, err)
+      throw err
+    }
   },
 }

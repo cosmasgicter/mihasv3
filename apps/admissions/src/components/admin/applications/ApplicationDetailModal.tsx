@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/Button'
 import { formatDate, formatTimestamp } from '@/lib/dateFormat'
 import { XCircle, User, Clock, CheckCircle, FileText, CreditCard, Mail, Phone, Calendar, MapPin, Users, GraduationCap, Building, AlertCircle, Download, Send, History, Eye, MessageSquare } from 'lucide-react'
 import { applicationService } from '@/services/applications'
+import { logApiError } from '@/lib/apiErrorLogger'
 import { UnifiedLoader, UnifiedSpinner } from '@/components/ui/UnifiedLoader'
 import type { ApplicationInterview } from '@/types/database'
 import { calculateBestFivePoints, sanitizeGradeValue } from '@/utils/grades'
@@ -441,7 +442,7 @@ export function ApplicationDetailModal({
  })
  }
  } catch (error) {
- console.error('Failed to save feedback:', error)
+ logApiError('admin-application-detail', `/applications/${application.id}/`, error)
  } finally {
  setSavingFeedback(false)
  }
@@ -473,7 +474,7 @@ export function ApplicationDetailModal({
  interview: payload?.interview || payload?.application?.interview || null
  })
  } catch (error) {
- console.error('Failed to load application details:', error)
+ logApiError('admin-application-detail', `/applications/${application?.id}/details/`, error)
  // Set empty data on error to prevent infinite loading
  setApplicationData({
  application: application,

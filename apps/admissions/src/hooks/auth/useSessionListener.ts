@@ -85,7 +85,7 @@ function hasUserEnvelope(result: unknown): result is AuthUserEnvelope {
   return Boolean(result && typeof result === 'object' && 'user' in result)
 }
 
-function extractAuthUser(result: unknown): User | null {
+export function extractAuthUser(result: unknown): User | null {
   if (!result) {
     return null
   }
@@ -94,7 +94,14 @@ function extractAuthUser(result: unknown): User | null {
     return normalizeAuthUser(result.user ?? null)
   }
 
-  return normalizeAuthUser(result)
+  const direct = normalizeAuthUser(result)
+  if (!direct) {
+    console.warn(
+      '[auth] Unexpected auth response shape — could not extract user:',
+      typeof result === 'object' ? Object.keys(result as object) : typeof result
+    )
+  }
+  return direct
 }
 
 function buildProfileFromUser(user: User | null): UserProfile | null {
@@ -241,6 +248,8 @@ export function useSessionListener() {
         email,
         password,
         fullName: normalizedFullName,
+        phone: typeof cleanUserData.phone === 'string' ? cleanUserData.phone : undefined,
+        nationality: typeof cleanUserData.nationality === 'string' ? cleanUserData.nationality : undefined,
       }) as { user?: User; profile?: UserProfile } | null
 
       let loginResult: { user?: User; profile?: UserProfile } | null = null

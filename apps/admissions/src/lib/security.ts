@@ -97,7 +97,7 @@ export function generateSecureToken(length: number = 32): string {
   crypto.getRandomValues(randomArray)
   
   for (let i = 0; i < length; i++) {
-    result += chars[randomArray[i] % chars.length]
+    result += chars[randomArray[i]! % chars.length]
   }
   
   return result

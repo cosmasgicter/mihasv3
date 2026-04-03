@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
@@ -41,6 +40,7 @@ import { getDisplayName } from '@/utils/userDisplayName'
 import { Seo } from '@/components/seo/Seo'
 import { applicationSessionManager } from '@/lib/applicationSession'
 import { requiresStudentPaymentAction } from '@/lib/paymentStatus'
+import { logApiError } from '@/lib/apiErrorLogger'
 
 export default function StudentDashboard() {
   const { user } = useAuth()
@@ -50,7 +50,9 @@ export default function StudentDashboard() {
   const [intakes, setIntakes] = useState<Intake[]>([])
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [error, setError] = useState('')
+  const [applicationsError, setApplicationsError] = useState('')
+  const [intakesError, setIntakesError] = useState('')
+  const [interviewsError, setInterviewsError] = useState('')
   const [hasDraft, setHasDraft] = useState(false)
   const [isClearingAllDrafts, setIsClearingAllDrafts] = useState(false)
   const [scheduledInterviews, setScheduledInterviews] = useState<ApplicationInterview[]>([])
@@ -202,7 +204,9 @@ export default function StudentDashboard() {
       setIntakes([])
       setScheduledInterviews([])
       setHasDraft(false)
-      setError('')
+      setApplicationsError('')
+      setIntakesError('')
+      setInterviewsError('')
       setIsInitialLoading(false)
       setIsRefreshing(false)
       hasLoadedRef.current = false
@@ -224,7 +228,9 @@ export default function StudentDashboard() {
       } else {
         setIsRefreshing(true)
       }
-      setError('')
+      setApplicationsError('')
+      setIntakesError('')
+      setInterviewsError('')
 
       const localDraft = await applicationSessionManager.getLocalWizardDraft(user.id)
 
@@ -235,84 +241,93 @@ export default function StudentDashboard() {
         setHasDraft(false)
       }
 
-      const draftResponse = await applicationService.list({
-        page: 0,
-        pageSize: 1,
-        status: 'draft',
-        sortBy: 'date',
-        sortOrder: 'desc',
-        mine: true
-      })
+      // --- Applications section (per-section error handling) ---
+      try {
+        const draftResponse = await applicationService.list({
+          page: 0,
+          pageSize: 1,
+          status: 'draft',
+          sortBy: 'date',
+          sortOrder: 'desc',
+          mine: true
+        })
 
-      // Check if request was aborted
-      if (!isLatestRequest() || signal.aborted) return
+        if (!isLatestRequest() || signal.aborted) return
 
-      if (draftResponse?.applications && draftResponse.applications.length > 0) {
-        setHasDraft(true)
-      }
-
-      const applicationsResponse = await applicationService.list({
-        page: 0,
-        pageSize: 50,
-        sortBy: 'date',
-        sortOrder: 'desc',
-        mine: true
-      })
-
-      // Check if request was aborted
-      if (!isLatestRequest() || signal.aborted) return
-
-      const loadedApplications = (applicationsResponse?.applications || []) as Application[]
-      setApplications(loadedApplications)
-
-      if (localDraft?.applicationId) {
-        const matchingApplication = loadedApplications.find(application => application.id === localDraft.applicationId)
-        if (matchingApplication && matchingApplication.status !== 'draft') {
-          clearAllDraftData()
-          setHasDraft(false)
+        if (draftResponse?.applications && draftResponse.applications.length > 0) {
+          setHasDraft(true)
         }
+
+        const applicationsResponse = await applicationService.list({
+          page: 0,
+          pageSize: 50,
+          sortBy: 'date',
+          sortOrder: 'desc',
+          mine: true
+        })
+
+        if (!isLatestRequest() || signal.aborted) return
+
+        const loadedApplications = (applicationsResponse?.applications || []) as Application[]
+        setApplications(loadedApplications)
+        setApplicationsError('')
+
+        if (localDraft?.applicationId) {
+          const matchingApplication = loadedApplications.find(application => application.id === localDraft.applicationId)
+          if (matchingApplication && matchingApplication.status !== 'draft') {
+            clearAllDraftData()
+            setHasDraft(false)
+          }
+        }
+      } catch (appError) {
+        if (!isLatestRequest()) return
+        if (appError instanceof Error && (appError.name === 'AbortError' || appError.message.includes('aborted'))) return
+        logApiError('student-dashboard', '/api/v1/applications/', appError)
+        setApplicationsError(`Failed to load applications (/api/v1/applications/). ${appError instanceof Error ? appError.message : 'Please try again.'}`)
       }
 
-      const intakesResponse = await catalogService.getIntakes() as { intakes: Intake[] }
+      // --- Intakes section (per-section error handling) ---
+      try {
+        const intakesResponse = await catalogService.getIntakes() as { intakes: Intake[] }
 
-      // Check if request was aborted
-      if (!isLatestRequest() || signal.aborted) return
+        if (!isLatestRequest() || signal.aborted) return
 
-      setIntakes(intakesResponse.intakes || [])
+        setIntakes(intakesResponse.intakes || [])
+        setIntakesError('')
+      } catch (intakeError) {
+        if (!isLatestRequest()) return
+        if (intakeError instanceof Error && (intakeError.name === 'AbortError' || intakeError.message.includes('aborted'))) return
+        logApiError('student-dashboard', '/api/v1/catalog/intakes/', intakeError)
+        setIntakesError(`Failed to load intakes (/api/v1/catalog/intakes/). ${intakeError instanceof Error ? intakeError.message : 'Please try again.'}`)
+      }
 
-      // Fetch scheduled interviews for the user's applications
+      // --- Interviews section (per-section error handling) ---
       // Requirements: 2.4, 4.3 - Check for scheduled or rescheduled interviews
       if (user.id) {
         try {
           const interviewData = await interviewsService.list()
 
-          // Check if request was aborted
           if (!isLatestRequest() || signal.aborted) return
 
-          // Filter for scheduled/rescheduled interviews
           const scheduledOnly = (interviewData?.interviews || []).filter(
             interview => interview.status === 'scheduled' || interview.status === 'rescheduled'
           )
           setScheduledInterviews(scheduledOnly as ApplicationInterview[])
+          setInterviewsError('')
         } catch (interviewError) {
-          // Silently handle interview fetch errors - not critical for dashboard
-          console.warn(
-            'Could not fetch interview data:',
-            sanitizeForLog(interviewError instanceof Error ? interviewError.message : String(interviewError)),
-          )
+          if (!isLatestRequest()) return
+          if (interviewError instanceof Error && (interviewError.name === 'AbortError' || interviewError.message.includes('aborted'))) return
+          logApiError('student-dashboard', '/api/v1/interviews/', interviewError)
+          setInterviewsError(`Failed to load interviews (/api/v1/interviews/). ${interviewError instanceof Error ? interviewError.message : 'Please try again.'}`)
           setScheduledInterviews([])
         }
       }
     } catch (error) {
-      // Ignore abort errors
-      if (!isLatestRequest()) {
-        return
-      }
-      if (error instanceof Error && (error.name === 'AbortError' || error.message.includes('aborted'))) {
-        return
-      }
-      console.error('Error loading dashboard data:', sanitizeForLog(error))
-      setError(error instanceof Error ? sanitizeForLog(error.message) : 'Failed to load dashboard data')
+      // Catch-all for unexpected errors (e.g. draft loading)
+      if (!isLatestRequest()) return
+      if (error instanceof Error && (error.name === 'AbortError' || error.message.includes('aborted'))) return
+      logApiError('student-dashboard', '/api/v1/applications/', error)
+      setApplicationsError(error instanceof Error ? sanitizeForLog(error.message) : 'Failed to load dashboard data')
     } finally {
       if (!isLatestRequest() || signal.aborted) {
         return
@@ -411,12 +426,12 @@ export default function StudentDashboard() {
       
       setApplications(prev => prev.filter(app => app.status !== 'draft'))
       setHasDraft(false)
-      setError('')
+      setApplicationsError('')
       useToastStore.getState().addToast('success', 'All drafts cleared successfully')
     } catch (error) {
-      console.error('Clear drafts error:', sanitizeForLog(error))
+      logApiError('student-dashboard', '/api/v1/applications/ (clear drafts)', error)
       const errorMsg = error instanceof Error ? error.message : 'Failed to clear drafts'
-      setError(errorMsg)
+      setApplicationsError(errorMsg)
       useToastStore.getState().addToast('error', errorMsg)
     } finally {
       setIsClearingAllDrafts(false)
@@ -464,14 +479,6 @@ export default function StudentDashboard() {
               </div>
             )}
 
-            {error && (
-              <ErrorDisplay
-                title="Dashboard load failed"
-                message={error}
-                onRetry={() => loadDashboardData()}
-              />
-            )}
-
             {/* Status Overview with 8starlabs StatusIndicator */}
             <DashboardStatusOverview 
               applications={applications}
@@ -488,7 +495,16 @@ export default function StudentDashboard() {
                 headerVariant="tinted"
                 contentClassName="p-0"
               >
-                {submittedApplications.length === 0 ? (
+                {applicationsError ? (
+                  <div className="px-6 py-6">
+                    <ErrorDisplay
+                      title="Applications failed to load"
+                      message={applicationsError}
+                      onRetry={() => loadDashboardData()}
+                      variant="inline"
+                    />
+                  </div>
+                ) : submittedApplications.length === 0 ? (
                   totalDraftCount > 0 ? (
                     <div className="px-6 py-12">
                       <EmptyState
@@ -567,22 +583,30 @@ export default function StudentDashboard() {
                   icon={<Clock className="h-5 w-5" />}
                 >
                   <div className="space-y-3">
-                    {intakes.slice(0, 3).map((intake, index) => (
-                      <div
-                        key={intake.id}
-                        className={`rounded-xl border border-warning/30 bg-warning/5 px-4 py-3 ${animateClasses.slideUp}`}
-                        style={staggerChild(index, 100)}
-                      >
-                        <p className="text-sm font-semibold text-foreground">{intake.name}</p>
-                        <p className="text-xs font-semibold text-warning">Deadline: {formatDate(intake.application_deadline)}</p>
-                      </div>
-                    ))}
-                    {intakes.length === 0 && (
+                    {intakesError ? (
+                      <ErrorDisplay
+                        title="Intakes failed to load"
+                        message={intakesError}
+                        onRetry={() => loadDashboardData()}
+                        variant="inline"
+                      />
+                    ) : intakes.length === 0 ? (
                       <EmptyState
                         icon={<Calendar className="h-12 w-12" />}
                         heading="No upcoming deadlines yet"
                         description="Check back soon for the next intake and application deadline."
                       />
+                    ) : (
+                      intakes.slice(0, 3).map((intake, index) => (
+                        <div
+                          key={intake.id}
+                          className={`rounded-xl border border-warning/30 bg-warning/5 px-4 py-3 ${animateClasses.slideUp}`}
+                          style={staggerChild(index, 100)}
+                        >
+                          <p className="text-sm font-semibold text-foreground">{intake.name}</p>
+                          <p className="text-xs font-semibold text-warning">Deadline: {formatDate(intake.application_deadline)}</p>
+                        </div>
+                      ))
                     )}
                   </div>
                 </SectionCard>
@@ -591,6 +615,14 @@ export default function StudentDashboard() {
                 <ApplicationTimeline applications={applications} />
 
                 {/* Quick Actions component */}
+                {interviewsError && (
+                  <ErrorDisplay
+                    title="Interviews failed to load"
+                    message={interviewsError}
+                    onRetry={() => loadDashboardData()}
+                    variant="inline"
+                  />
+                )}
                 <QuickActions
                   hasDrafts={totalDraftCount > 0}
                   hasPendingPayment={hasPendingPayment}

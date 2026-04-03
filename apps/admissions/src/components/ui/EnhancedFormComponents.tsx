@@ -1,9 +1,8 @@
-// @ts-nocheck
 import React from 'react'
-import { useForm, FieldError } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { FieldError } from 'react-hook-form'
 import { z } from 'zod'
 import { cn } from '@/lib/utils'
+import { SELECT_CHEVRON_SVG } from '@/design-system/tokens'
 import { ErrorDisplay } from './ErrorDisplay'
 
 // Minimal inline success message (no canonical replacement needed)
@@ -300,7 +299,7 @@ export function EnhancedSelect({
           className
         )}
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+          backgroundImage: SELECT_CHEVRON_SVG,
           backgroundPosition: 'right 0.5rem center'
         }}
       >
@@ -371,17 +370,17 @@ export function FormSection({
 }
 
 // Real-time validation hook
-export function useRealTimeValidation<T extends Record<string, any>>(
-  schema: z.ZodSchema<T>
+export function useRealTimeValidation<T extends z.ZodRawShape>(
+  schema: z.ZodObject<T>
 ) {
   const [errors, setErrors] = React.useState<Record<string, string>>({})
   
-  const validateField = React.useCallback((name: string, value: any) => {
+  const validateField = React.useCallback((name: string, value: unknown) => {
     try {
       // Validate single field
-      const fieldSchema = schema.shape[name as keyof typeof schema.shape] as z.ZodSchema
+      const fieldSchema = schema.shape[name as keyof T]
       if (fieldSchema) {
-        fieldSchema.parse(value)
+        (fieldSchema as unknown as z.ZodTypeAny).parse(value)
         setErrors(prev => {
           const { [name]: removed, ...rest } = prev
           return rest
@@ -391,13 +390,13 @@ export function useRealTimeValidation<T extends Record<string, any>>(
       if (error instanceof z.ZodError) {
         setErrors(prev => ({
           ...prev,
-          [name]: error.errors[0]?.message || 'Invalid value'
+          [name]: error.issues[0]?.message || 'Invalid value'
         }))
       }
     }
   }, [schema])
   
-  const validateForm = React.useCallback((data: T) => {
+  const validateForm = React.useCallback((data: z.infer<z.ZodObject<T>>) => {
     try {
       schema.parse(data)
       setErrors({})
@@ -405,7 +404,7 @@ export function useRealTimeValidation<T extends Record<string, any>>(
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {}
-        error.errors.forEach((err) => {
+        error.issues.forEach((err: z.core.$ZodIssue) => {
           if (err.path[0]) {
             fieldErrors[err.path[0] as string] = err.message
           }

@@ -30,6 +30,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { applicationService } from '@/services/applications'
 import { useAuth } from '@/contexts/AuthContext'
 import { documentService } from '@/services/documents'
+import { logApiError } from '@/lib/apiErrorLogger'
 import { buildApplicationPaymentUpdate, validatePaymentStep } from './applicationWizard/lib/paymentFlow'
 import {
   getPaymentStatusLabel,
@@ -48,6 +49,7 @@ interface ApplicationWithPayment {
   amount: number | null
   paid_at: string | null
   momo_ref: string | null
+  pop_url: string | null
   last_payment_audit_notes: string | null
   created_at: string
   program: string | null
@@ -138,6 +140,39 @@ function getPaymentStatusDisplay(paymentStatus: string | null): {
   }
 }
 
+/**
+ * Maps payment-related API errors to specific, actionable user messages.
+ * @requirements 7.4 — specific error messages for payment failures
+ */
+function getPaymentErrorMessage(error: unknown): string {
+  const status = (error as { status?: number })?.status
+  const raw = error instanceof Error ? error.message : String(error ?? '')
+  const lower = raw.toLowerCase()
+
+  if (lower.includes('insufficient funds') || lower.includes('insufficient_funds')) {
+    return 'Payment failed: insufficient funds. Please check your balance and try again.'
+  }
+  if (status === 504 || lower.includes('gateway timeout') || lower.includes('gateway_timeout')) {
+    return 'Payment gateway timed out. Please wait a moment and try again.'
+  }
+  if (status === 502 || lower.includes('bad gateway')) {
+    return 'Payment service is temporarily unavailable. Please try again shortly.'
+  }
+  if (status === 409 || lower.includes('conflict') || lower.includes('duplicate')) {
+    return 'A payment for this application is already being processed. Please refresh and check the status.'
+  }
+  if (status === 413 || lower.includes('too large')) {
+    return 'Proof of payment file is too large. Please upload a smaller file (max 10 MB).'
+  }
+  if (status === 422 || lower.includes('validation')) {
+    return 'Payment details are invalid. Please check the form and try again.'
+  }
+  if (raw) {
+    return raw
+  }
+  return 'Failed to submit payment. Please try again.'
+}
+
 export default function PaymentPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -172,6 +207,7 @@ export default function PaymentPage() {
           amount: typeof record.amount === 'number' ? record.amount : null,
           paid_at: typeof record.paid_at === 'string' ? record.paid_at : null,
           momo_ref: typeof record.momo_ref === 'string' ? record.momo_ref : null,
+          pop_url: typeof record.pop_url === 'string' ? record.pop_url : null,
           last_payment_audit_notes:
             typeof record.last_payment_audit_notes === 'string' ? record.last_payment_audit_notes : null,
           created_at: typeof app.created_at === 'string' ? app.created_at : new Date().toISOString(),
@@ -186,6 +222,7 @@ export default function PaymentPage() {
   // Sync fetch error to local error state for unified display
   useEffect(() => {
     if (fetchError) {
+      logApiError('payment-page', '/applications/?mine=true', fetchError)
       setError('Failed to load payment information. Please try again.')
     }
   }, [fetchError])
@@ -319,7 +356,8 @@ export default function PaymentPage() {
       })
       await refetchApplications()
     } catch (submitError) {
-      const message = submitError instanceof Error ? submitError.message : 'Failed to submit payment'
+      logApiError('payment-page', `/applications/${applicationId}`, submitError)
+      const message = getPaymentErrorMessage(submitError)
       setFormError(message)
     } finally {
       setSubmittingApplicationId(null)

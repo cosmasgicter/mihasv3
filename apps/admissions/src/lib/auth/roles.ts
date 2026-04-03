@@ -1,11 +1,9 @@
-export const ADMIN_ROLES = [
-  'admin',
-  'super_admin',
-  'admissions_officer',
-  'registrar',
-  'finance_officer',
-  'academic_head'
-] as const
+// Current backend ROLE_CHOICES: student, admin, reviewer, super_admin
+export const ADMIN_ROLES = ['admin', 'super_admin'] as const
+
+// Future roles (not yet in backend ROLE_CHOICES — add to backend first):
+// 'admissions_officer', 'registrar', 'finance_officer', 'academic_head'
+// Also update REPORT_MANAGER_ROLES when these are added to the backend.
 
 export type AdminRole = (typeof ADMIN_ROLES)[number]
 
@@ -14,13 +12,10 @@ export function isAdminRole(role?: string | null): role is AdminRole {
   return ADMIN_ROLES.includes(role as AdminRole)
 }
 
-export const REPORT_MANAGER_ROLES = [
-  'admissions_officer',
-  'registrar',
-  'finance_officer',
-  'admin',
-  'super_admin'
-] as const
+export const REPORT_MANAGER_ROLES = ['admin', 'super_admin'] as const
+
+// Future report manager roles (not yet in backend ROLE_CHOICES):
+// 'admissions_officer', 'registrar', 'finance_officer'
 
 export type ReportManagerRole = (typeof REPORT_MANAGER_ROLES)[number]
 

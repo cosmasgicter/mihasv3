@@ -109,9 +109,9 @@ export function parseGradesFromSummary(summary: string): Array<{ subject: string
     return lines.map(line => {
       const match = line.match(/(.+?):\s*Grade\s*(\d)/i);
       if (match) {
-        const grade = parseInt(match[2]);
+        const grade = parseInt(match[2]!);
         return {
-          subject: match[1].trim(),
+          subject: match[1]!.trim(),
           grade
         };
       }

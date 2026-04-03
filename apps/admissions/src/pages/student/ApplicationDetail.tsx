@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -30,6 +29,13 @@ import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
 
 type ApplicationRecord = ApplicationDetailResponse['application']
 
+/** Fields that come from the Django API but aren't in the base Application interface */
+type ApplicationRecordWithExtras = ApplicationRecord & {
+  institution?: string
+  application_fee?: string | number
+  public_tracking_code?: string
+}
+
 export default function ApplicationDetail() {
   const { id } = useParams<{ id: string }>()
 
@@ -42,11 +48,11 @@ export default function ApplicationDetail() {
     queryFn: async () => {
       const response = await applicationService.getById(id!)
       const normalizedResponse = response as ApplicationDetailResponse & {
-        data?: ApplicationRecord | null
+        data?: ApplicationRecordWithExtras | null
       }
 
       const applicationRecord =
-        normalizedResponse?.application ?? normalizedResponse?.data ?? null
+        (normalizedResponse?.application ?? normalizedResponse?.data ?? null) as ApplicationRecordWithExtras | null
 
       return {
         application: applicationRecord,
@@ -142,7 +148,7 @@ export default function ApplicationDetail() {
             className={`mb-8 ${animateClasses.slideUp}`}
             style={staggerChild(1, 100)}
           >
-            <InterviewDetails interview={interview} />
+            <InterviewDetails interview={{ ...interview, location: interview.location ?? '', notes: interview.notes ?? undefined }} />
           </div>
         )}
 
@@ -160,7 +166,7 @@ export default function ApplicationDetail() {
               applicationId={application.id}
               applicationNumber={application.application_number}
               status={application.status}
-              paymentStatus={application.payment_status}
+              paymentStatus={application.payment_status ?? null}
             />
           </div>
         </div>

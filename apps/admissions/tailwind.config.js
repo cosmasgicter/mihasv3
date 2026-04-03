@@ -1,3 +1,5 @@
+const { adminColors } = require('./src/design-system/tokens.colors.cjs')
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: 'media',
@@ -95,14 +97,14 @@ module.exports = {
           DEFAULT: 'rgb(var(--color-success-rgb) / <alpha-value>)',
           foreground: 'rgb(var(--color-primary-foreground-rgb) / <alpha-value>)',
         },
-        // Admin-specific colors
+        // Admin-specific colors (sourced from tokens.colors.js)
         admin: {
-          bg: '#f9fafb',                /* Admin background */
-          card: '#ffffff',              /* Admin card */
-          border: '#858c98',            /* Admin border - 3.39:1 on white, 3.24:1 on admin bg - WCAG AA compliant */
-          text: '#111827',              /* 16.75:1 on admin bg */
-          'text-secondary': '#374151',  /* 7.59:1 on admin bg */
-          'text-muted': '#6b7280',      /* 4.69:1 on admin bg */
+          bg: adminColors.bg,                       /* Admin background */
+          card: adminColors.card,                   /* Admin card */
+          border: adminColors.border,               /* Admin border - 3.39:1 on white, 3.24:1 on admin bg - WCAG AA compliant */
+          text: adminColors.text,                   /* 16.75:1 on admin bg */
+          'text-secondary': adminColors.textSecondary, /* 7.59:1 on admin bg */
+          'text-muted': adminColors.textMuted,      /* 4.69:1 on admin bg */
         },
         // Link colors
         link: {

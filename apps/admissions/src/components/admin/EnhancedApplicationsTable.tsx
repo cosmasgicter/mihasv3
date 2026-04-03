@@ -120,7 +120,7 @@ export function EnhancedApplicationsTable({
       // Eligibility range filter
       if (filters.eligibilityRange && app.eligibilityScore !== undefined) {
         const [min, max] = filters.eligibilityRange.split('-').map(Number)
-        if (app.eligibilityScore < min || app.eligibilityScore > max) return false
+        if (app.eligibilityScore < (min ?? 0) || app.eligibilityScore > (max ?? 100)) return false
       }
 
       return true

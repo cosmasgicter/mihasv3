@@ -18,15 +18,27 @@ export interface Application {
   email?: string;
   phone?: string;
   nrc?: string;
+  nrc_number?: string;
   date_of_birth?: string;
   gender?: string;
+  sex?: 'Male' | 'Female' | (string & {});
   nationality?: string;
   address?: string;
   city?: string;
   province?: string;
   country?: string;
   postal_code?: string;
+  residence_town?: string;
+  guardian_name?: string;
+  guardian_phone?: string;
   result_slip_url?: string;
+  extra_kyc_url?: string;
+  pop_url?: string;
+  payment_reference?: string;
+  payment_method?: string;
+  paid_amount?: string | number;
+  amount?: string | number;
+  application_fee?: string | number;
   created_at?: string;
   updated_at?: string;
   submitted_at?: string;
@@ -150,6 +162,7 @@ export interface ApplicationWithDetails extends Application {
   programs?: Program;
   intakes?: Intake;
   documents?: ApplicationDocument[];
+  interview?: ApplicationInterview;
 }
 
 export interface Institution {

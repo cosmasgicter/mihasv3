@@ -38,8 +38,8 @@ function splitFullName(fullName: string): { first_name: string; last_name: strin
 
   const [first_name, ...rest] = normalized.split(' ')
   return {
-    first_name,
-    last_name: rest.join(' ') || first_name,
+    first_name: first_name ?? '',
+    last_name: rest.join(' ') || (first_name ?? ''),
   }
 }
 
@@ -90,7 +90,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
         return
       }
 
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase())
+      const headers = lines[0]!.split(',').map(h => h.trim().toLowerCase())
       const data: UserData[] = []
       
       // Check if required fields are present
@@ -105,20 +105,20 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
       }
 
       for (let i = 1; i < lines.length && i <= 6; i++) { // Preview first 5 rows
-        const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''))
+        const values = lines[i]!.split(',').map(v => v.trim().replace(/"/g, ''))
         const userData: any = {}
         
         headers.forEach((header, index) => {
           if (header.includes('name') || header.includes('full_name')) {
-            userData.full_name = sanitizeText(values[index])
+            userData.full_name = sanitizeText(values[index] ?? '')
           } else if (header.includes('email')) {
-            userData.email = sanitizeEmail(values[index])
+            userData.email = sanitizeEmail(values[index] ?? '')
           } else if (header.includes('phone')) {
-            userData.phone = sanitizeText(values[index])
+            userData.phone = sanitizeText(values[index] ?? '')
           } else if (header.includes('role')) {
-            userData.role = sanitizeText(values[index])
+            userData.role = sanitizeText(values[index] ?? '')
           } else if (header.includes('password')) {
-            userData.password = sanitizeText(values[index])
+            userData.password = sanitizeText(values[index] ?? '')
           }
         })
         
@@ -167,7 +167,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
       reader.onload = async (e) => {
         const text = e.target?.result as string
         const lines = text.split('\n').filter(line => line.trim())
-        const headers = lines[0].split(',').map(h => h.trim().toLowerCase())
+        const headers = lines[0]!.split(',').map(h => h.trim().toLowerCase())
         
         const result: ImportResult = {
           success: 0,
@@ -177,20 +177,20 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
         }
 
         for (let i = 1; i < lines.length; i++) {
-          const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''))
+          const values = lines[i]!.split(',').map(v => v.trim().replace(/"/g, ''))
           const userData: any = {}
           
           headers.forEach((header, index) => {
             if (header.includes('name') || header.includes('full_name')) {
-              userData.full_name = sanitizeText(values[index])
+              userData.full_name = sanitizeText(values[index] ?? '')
             } else if (header.includes('email')) {
-              userData.email = sanitizeEmail(values[index])
+              userData.email = sanitizeEmail(values[index] ?? '')
             } else if (header.includes('phone')) {
-              userData.phone = sanitizeText(values[index])
+              userData.phone = sanitizeText(values[index] ?? '')
             } else if (header.includes('role')) {
-              userData.role = sanitizeText(values[index])?.toLowerCase()
+              userData.role = sanitizeText(values[index] ?? '')?.toLowerCase()
             } else if (header.includes('password')) {
-              userData.password = sanitizeText(values[index])
+              userData.password = sanitizeText(values[index] ?? '')
             }
           })
 

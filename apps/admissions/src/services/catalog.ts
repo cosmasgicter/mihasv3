@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import { logApiError } from '@/lib/apiErrorLogger'
 
 type RawInstitution = {
   id: string
@@ -126,8 +127,19 @@ function toNumber(value: unknown, fallback = 0): number {
 }
 
 function normalizeInstitution(record: RawInstitution | Institution | null | undefined): Institution | null {
-  if (!record) {
+  if (!record || typeof record !== 'object') {
     return null
+  }
+
+  const missing: string[] = []
+  if (!record.id) missing.push('id')
+  if (!record.name) missing.push('name')
+  if (missing.length > 0) {
+    console.warn(
+      `[catalog] normalizeInstitution: missing required fields [${missing.join(', ')}]`,
+      { keys: Object.keys(record) }
+    )
+    if (!record.id) return null
   }
 
   const description =
@@ -139,7 +151,7 @@ function normalizeInstitution(record: RawInstitution | Institution | null | unde
 
   return {
     id: record.id,
-    name: record.name,
+    name: record.name || '',
     full_name: record.full_name,
     code: record.code,
     description,
@@ -151,8 +163,19 @@ function normalizeInstitution(record: RawInstitution | Institution | null | unde
 }
 
 function normalizeProgram(record: RawProgram | Program | null | undefined): Program | null {
-  if (!record) {
+  if (!record || typeof record !== 'object') {
     return null
+  }
+
+  const missing: string[] = []
+  if (!record.id) missing.push('id')
+  if (!record.name) missing.push('name')
+  if (missing.length > 0) {
+    console.warn(
+      `[catalog] normalizeProgram: missing required fields [${missing.join(', ')}]`,
+      { keys: Object.keys(record) }
+    )
+    if (!record.id) return null
   }
 
   if ('institutions' in record) {
@@ -183,7 +206,7 @@ function normalizeProgram(record: RawProgram | Program | null | undefined): Prog
 
   return {
     id: record.id,
-    name: record.name,
+    name: record.name || '',
     description: summary,
     duration_years: durationYears,
     institution_id: record.institution_id ?? institution?.id ?? '',
@@ -196,8 +219,19 @@ function normalizeProgram(record: RawProgram | Program | null | undefined): Prog
 }
 
 function normalizeIntake(record: RawIntake | Intake | null | undefined): Intake | null {
-  if (!record) {
+  if (!record || typeof record !== 'object') {
     return null
+  }
+
+  const missing: string[] = []
+  if (!record.id) missing.push('id')
+  if (!record.name) missing.push('name')
+  if (missing.length > 0) {
+    console.warn(
+      `[catalog] normalizeIntake: missing required fields [${missing.join(', ')}]`,
+      { keys: Object.keys(record) }
+    )
+    if (!record.id) return null
   }
 
   if ('total_capacity' in record) {
@@ -212,7 +246,7 @@ function normalizeIntake(record: RawIntake | Intake | null | undefined): Intake 
 
   return {
     id: record.id,
-    name: record.name,
+    name: record.name || '',
     year: record.year,
     start_date: startDate,
     end_date: endDate,
@@ -224,8 +258,19 @@ function normalizeIntake(record: RawIntake | Intake | null | undefined): Intake 
 }
 
 function normalizeSubject(record: RawSubject | Subject | null | undefined): Subject | null {
-  if (!record) {
+  if (!record || typeof record !== 'object') {
     return null
+  }
+
+  const missing: string[] = []
+  if (!record.id) missing.push('id')
+  if (!record.name) missing.push('name')
+  if (missing.length > 0) {
+    console.warn(
+      `[catalog] normalizeSubject: missing required fields [${missing.join(', ')}]`,
+      { keys: Object.keys(record) }
+    )
+    if (!record.id) return null
   }
 
   if ('is_active' in record) {
@@ -234,7 +279,7 @@ function normalizeSubject(record: RawSubject | Subject | null | undefined): Subj
 
   return {
     id: record.id,
-    name: record.name,
+    name: record.name || '',
     code: record.code,
     category: record.category,
     is_active:
@@ -436,117 +481,204 @@ function buildInstitutionPayload(data: InstitutionFormData, existing?: RawInstit
 }
 
 export const catalogService = {
-  getPrograms: async (): Promise<ProgramCollectionResponse> =>
-    normalizeProgramsResponse(
-      await apiClient.request<RawProgram[] | ProgramCollectionResponse | RawPaginatedCollection<RawProgram>>('/catalog/programs/')
-    ),
+  getPrograms: async (): Promise<ProgramCollectionResponse> => {
+    try {
+      return normalizeProgramsResponse(
+        await apiClient.request<RawProgram[] | ProgramCollectionResponse | RawPaginatedCollection<RawProgram>>('/catalog/programs/')
+      )
+    } catch (error) {
+      logApiError('catalog', '/catalog/programs/', error)
+      throw error
+    }
+  },
 
-  getIntakes: async (): Promise<IntakeCollectionResponse> =>
-    normalizeIntakesResponse(
-      await apiClient.request<RawIntake[] | IntakeCollectionResponse | RawPaginatedCollection<RawIntake>>('/catalog/intakes/')
-    ),
+  getIntakes: async (): Promise<IntakeCollectionResponse> => {
+    try {
+      return normalizeIntakesResponse(
+        await apiClient.request<RawIntake[] | IntakeCollectionResponse | RawPaginatedCollection<RawIntake>>('/catalog/intakes/')
+      )
+    } catch (error) {
+      logApiError('catalog', '/catalog/intakes/', error)
+      throw error
+    }
+  },
 
-  getSubjects: async (): Promise<SubjectCollectionResponse> =>
-    normalizeSubjectsResponse(
-      await apiClient.request<RawSubject[] | SubjectCollectionResponse | RawPaginatedCollection<RawSubject>>('/catalog/subjects/')
-    ),
+  getSubjects: async (): Promise<SubjectCollectionResponse> => {
+    try {
+      return normalizeSubjectsResponse(
+        await apiClient.request<RawSubject[] | SubjectCollectionResponse | RawPaginatedCollection<RawSubject>>('/catalog/subjects/')
+      )
+    } catch (error) {
+      logApiError('catalog', '/catalog/subjects/', error)
+      throw error
+    }
+  },
 
-  getInstitutions: async (): Promise<InstitutionCollectionResponse> =>
-    normalizeInstitutionsResponse(
-      await apiClient.request<RawInstitution[] | InstitutionCollectionResponse | RawPaginatedCollection<RawInstitution>>('/catalog/institutions/')
-    ),
+  getInstitutions: async (): Promise<InstitutionCollectionResponse> => {
+    try {
+      return normalizeInstitutionsResponse(
+        await apiClient.request<RawInstitution[] | InstitutionCollectionResponse | RawPaginatedCollection<RawInstitution>>('/catalog/institutions/')
+      )
+    } catch (error) {
+      logApiError('catalog', '/catalog/institutions/', error)
+      throw error
+    }
+  },
 }
 
 export const programService = {
   list: () => catalogService.getPrograms(),
 
-  create: async (data: ProgramFormData): Promise<ProgramMutationResponse> =>
-    normalizeProgramMutationResponse(
-      await apiClient.request<RawProgram | ProgramMutationResponse>('/catalog/programs/', {
-        method: 'POST',
-        body: JSON.stringify(buildProgramPayload(data)),
-      })
-    ),
+  create: async (data: ProgramFormData): Promise<ProgramMutationResponse> => {
+    try {
+      return normalizeProgramMutationResponse(
+        await apiClient.request<RawProgram | ProgramMutationResponse>('/catalog/programs/', {
+          method: 'POST',
+          body: JSON.stringify(buildProgramPayload(data)),
+        })
+      )
+    } catch (error) {
+      logApiError('catalog', 'POST /catalog/programs/', error)
+      throw error
+    }
+  },
 
   update: async (data: ProgramFormData): Promise<ProgramMutationResponse> => {
     if (!data.id) {
       throw new Error('Program ID is required')
     }
 
-    const existing = await getCurrentProgram(data.id)
+    try {
+      const existing = await getCurrentProgram(data.id)
 
-    return normalizeProgramMutationResponse(
-      await apiClient.request<RawProgram | ProgramMutationResponse>(`/catalog/programs/${encodeURIComponent(data.id)}/`, {
-        method: 'PATCH',
-        body: JSON.stringify(buildProgramPayload(data, existing)),
-      })
-    )
+      return normalizeProgramMutationResponse(
+        await apiClient.request<RawProgram | ProgramMutationResponse>(`/catalog/programs/${encodeURIComponent(data.id)}/`, {
+          method: 'PATCH',
+          body: JSON.stringify(buildProgramPayload(data, existing)),
+        })
+      )
+    } catch (error) {
+      logApiError('catalog', `PATCH /catalog/programs/${data.id}/`, error)
+      throw error
+    }
   },
 
-  delete: (id: string) =>
-    apiClient.request<void>(`/catalog/programs/${encodeURIComponent(id)}/`, {
-      method: 'DELETE',
-    }),
+  delete: async (id: string) => {
+    try {
+      return await apiClient.request<void>(`/catalog/programs/${encodeURIComponent(id)}/`, {
+        method: 'DELETE',
+      })
+    } catch (error) {
+      logApiError('catalog', `DELETE /catalog/programs/${id}/`, error)
+      throw error
+    }
+  },
 }
 
 export const intakeService = {
   list: () => catalogService.getIntakes(),
 
-  create: async (data: IntakeFormData): Promise<IntakeMutationResponse> =>
-    normalizeIntakeMutationResponse(
-      await apiClient.request<RawIntake | IntakeMutationResponse>('/catalog/intakes/', {
-        method: 'POST',
-        body: JSON.stringify(buildIntakePayload(data)),
-      })
-    ),
+  create: async (data: IntakeFormData): Promise<IntakeMutationResponse> => {
+    try {
+      return normalizeIntakeMutationResponse(
+        await apiClient.request<RawIntake | IntakeMutationResponse>('/catalog/intakes/', {
+          method: 'POST',
+          body: JSON.stringify(buildIntakePayload(data)),
+        })
+      )
+    } catch (error) {
+      logApiError('catalog', 'POST /catalog/intakes/', error)
+      throw error
+    }
+  },
 
   update: async (data: IntakeFormData): Promise<IntakeMutationResponse> => {
     if (!data.id) {
       throw new Error('Intake ID is required')
     }
 
-    return normalizeIntakeMutationResponse(
-      await apiClient.request<RawIntake | IntakeMutationResponse>(`/catalog/intakes/${encodeURIComponent(data.id)}/`, {
-        method: 'PATCH',
-        body: JSON.stringify(buildIntakePayload(data)),
-      })
-    )
+    try {
+      return normalizeIntakeMutationResponse(
+        await apiClient.request<RawIntake | IntakeMutationResponse>(`/catalog/intakes/${encodeURIComponent(data.id)}/`, {
+          method: 'PATCH',
+          body: JSON.stringify(buildIntakePayload(data)),
+        })
+      )
+    } catch (error) {
+      logApiError('catalog', `PATCH /catalog/intakes/${data.id}/`, error)
+      throw error
+    }
   },
 
-  delete: (id: string) =>
-    apiClient.request<void>(`/catalog/intakes/${encodeURIComponent(id)}/`, {
-      method: 'DELETE',
-    }),
+  delete: async (id: string) => {
+    try {
+      return await apiClient.request<void>(`/catalog/intakes/${encodeURIComponent(id)}/`, {
+        method: 'DELETE',
+      })
+    } catch (error) {
+      logApiError('catalog', `DELETE /catalog/intakes/${id}/`, error)
+      throw error
+    }
+  },
 }
 
 export const institutionService = {
   list: () => catalogService.getInstitutions(),
 
-  create: async (data: InstitutionFormData): Promise<InstitutionMutationResponse> =>
-    normalizeInstitutionMutationResponse(
-      await apiClient.request<RawInstitution | InstitutionMutationResponse>('/catalog/institutions/', {
-        method: 'POST',
-        body: JSON.stringify(buildInstitutionPayload(data)),
-      })
-    ),
+  create: async (data: InstitutionFormData): Promise<InstitutionMutationResponse> => {
+    try {
+      return normalizeInstitutionMutationResponse(
+        await apiClient.request<RawInstitution | InstitutionMutationResponse>('/catalog/institutions/', {
+          method: 'POST',
+          body: JSON.stringify(buildInstitutionPayload(data)),
+        })
+      )
+    } catch (error) {
+      logApiError('catalog', 'POST /catalog/institutions/', error)
+      throw error
+    }
+  },
 
   update: async (data: InstitutionFormData): Promise<InstitutionMutationResponse> => {
     if (!data.id) {
       throw new Error('Institution ID is required')
     }
 
-    const existing = await getCurrentInstitution(data.id)
+    try {
+      const existing = await getCurrentInstitution(data.id)
 
-    return normalizeInstitutionMutationResponse(
-      await apiClient.request<RawInstitution | InstitutionMutationResponse>(`/catalog/institutions/${encodeURIComponent(data.id)}/`, {
-        method: 'PATCH',
-        body: JSON.stringify(buildInstitutionPayload(data, existing)),
-      })
-    )
+      return normalizeInstitutionMutationResponse(
+        await apiClient.request<RawInstitution | InstitutionMutationResponse>(`/catalog/institutions/${encodeURIComponent(data.id)}/`, {
+          method: 'PATCH',
+          body: JSON.stringify(buildInstitutionPayload(data, existing)),
+        })
+      )
+    } catch (error) {
+      logApiError('catalog', `PATCH /catalog/institutions/${data.id}/`, error)
+      throw error
+    }
   },
 
-  delete: (id: string) =>
-    apiClient.request<void>(`/catalog/institutions/${encodeURIComponent(id)}/`, {
-      method: 'DELETE',
-    }),
+  delete: async (id: string) => {
+    try {
+      return await apiClient.request<void>(`/catalog/institutions/${encodeURIComponent(id)}/`, {
+        method: 'DELETE',
+      })
+    } catch (error) {
+      logApiError('catalog', `DELETE /catalog/institutions/${id}/`, error)
+      throw error
+    }
+  },
+}
+
+// Exported for property testing
+export {
+  normalizeProgram,
+  normalizeIntake,
+  normalizeSubject,
+  normalizeInstitution,
+  normalizeProgramsResponse,
+  normalizeIntakesResponse,
+  normalizeSubjectsResponse,
+  normalizeInstitutionsResponse,
 }

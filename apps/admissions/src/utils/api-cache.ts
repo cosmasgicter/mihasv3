@@ -1,4 +1,3 @@
-// @ts-nocheck
 // API response caching utilities for improved performance
 
 import { getEnvVariable } from './env'
@@ -37,7 +36,7 @@ class ApiCache {
   ): void {
     // Remove oldest entries if cache is full
     if (this.cache.size >= this.maxSize) {
-      const oldestKey = this.cache.keys().next().value
+      const oldestKey = this.cache.keys().next().value as string
       this.cache.delete(oldestKey)
     }
 
@@ -163,7 +162,7 @@ export async function fetchWithCache<T>(
 
   // Generate cache key
   const normalizedHeaders = Object.keys(headers).sort().reduce((acc, key) => {
-    acc[key] = headers[key]
+    acc[key] = headers[key]!
     return acc
   }, {} as Record<string, string>)
 

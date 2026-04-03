@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
 import { animateClasses } from '@/lib/animations';
+import { logApiError } from '@/lib/apiErrorLogger';
 import { Seo } from '@/components/seo/Seo';
 import { 
   Loader2, 
@@ -48,8 +49,9 @@ export default function ForgotPasswordPage() {
       // regardless of whether the email exists — prevents email enumeration
       try {
         await requestPasswordReset(data.email);
-      } catch {
-        // Swallow errors silently — we never reveal whether the email exists
+      } catch (error) {
+        // Log the error for diagnostics but don't reveal to user (anti-enumeration)
+        logApiError('forgot-password', '/auth/password-reset/', error);
       }
     },
     onSettled: () => {

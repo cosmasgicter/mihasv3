@@ -27,7 +27,7 @@ export const useWizardState = () => {
   const updateGrade = useCallback((index: number, field: keyof SubjectGrade, value: string | number) => {
     setSelectedGrades(prev => {
       const next = [...prev]
-      next[index] = { ...next[index], [field]: value }
+      next[index] = { ...next[index]!, [field]: value }
       return next
     })
   }, [])

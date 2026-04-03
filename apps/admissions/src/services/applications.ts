@@ -1,5 +1,6 @@
 import type { Application, ApplicationInterview } from '@/types/database'
 
+import { logApiError } from '@/lib/apiErrorLogger'
 import { apiClient, buildQueryString, QueryParams } from './client'
 import { notificationService } from './notifications'
 
@@ -44,7 +45,7 @@ type CancelInterviewPayload = {
   notes?: string
 }
 
-type BackendPaginatedApplications =
+export type BackendPaginatedApplications =
   | {
       applications?: Application[]
       results?: Application[]
@@ -87,8 +88,18 @@ function normalizeApplicationRecord(value: unknown): Application | null {
 /**
  * Map Django pagination response `{results}` → `{applications}`.
  * Handles both Django `results` field and legacy `applications` field.
+ * Returns safe defaults for null/undefined input.
  */
-function normalizePaginatedApplications(response: BackendPaginatedApplications): PaginatedApplicationsResponse {
+export function normalizePaginatedApplications(response: BackendPaginatedApplications): PaginatedApplicationsResponse {
+  if (response == null) {
+    return {
+      applications: [],
+      totalCount: 0,
+      page: 1,
+      pageSize: 0,
+    }
+  }
+
   if (Array.isArray(response)) {
     return {
       applications: response,
@@ -140,7 +151,10 @@ async function loadApplicationDetails(
     shouldLoadStatusHistory
       ? apiClient.request<ApplicationSummaryResponse>(`/applications/${encodedId}/summary/`)
       : Promise.resolve(null),
-    apiClient.request<ApplicationInterview[]>(`/applications/${encodedId}/interviews/`).catch(() => null),
+    apiClient.request<ApplicationInterview[]>(`/applications/${encodedId}/interviews/`).catch((err) => {
+      logApiError('applications', `/applications/${encodedId}/interviews/`, err)
+      return null
+    }),
   ])
 
   const application = normalizeApplicationRecord(detailsResponse)
@@ -218,7 +232,7 @@ export const applicationService = {
     const encodedId = encodeURIComponent(id)
     await apiClient.request(`/applications/${encodedId}/review/`, {
       method: 'PATCH',
-      body: JSON.stringify({ status, notes, ...(force ? { force: true } : {}) }),
+      body: JSON.stringify({ new_status: status, notes, ...(force ? { force: true } : {}) }),
     })
 
     return getApplicationById(id)
@@ -388,7 +402,12 @@ export const applicationService = {
   bulkStatus: async (data: { applicationIds: string[]; status: string; notes?: string }) => {
     return apiClient.request<unknown>('/applications/bulk-status/', {
       method: 'POST',
-      body: JSON.stringify(data),
+      // camelCase → snake_case: Django expects `application_ids`, not `applicationIds`
+      body: JSON.stringify({
+        application_ids: data.applicationIds,
+        new_status: data.status,
+        notes: data.notes,
+      }),
     })
   },
 

@@ -25,7 +25,7 @@ export const generateApplicationNumber = (config: ApplicationNumberConfig): stri
   }
   
   // Convert to 5-digit number (10000-99999 range)
-  const randomNumber = (randomBytes[0] << 16 | randomBytes[1] << 8 | randomBytes[2]) % 90000 + 10000
+  const randomNumber = (randomBytes[0]! << 16 | randomBytes[1]! << 8 | randomBytes[2]!) % 90000 + 10000
   
   return `${institution}${year}${randomNumber}`
 }

@@ -20,6 +20,7 @@ import { Banner } from '@/components/ui/Banner';
 import { FormErrorAnnouncer } from '@/components/ui/FormErrorAnnouncer';
 import { Seo } from '@/components/seo/Seo';
 import { isAdminRole } from '@/lib/auth/roles';
+import { logApiError } from '@/lib/apiErrorLogger';
 
 const ADMIN_REDIRECT_ALLOWLIST = [
   '/admin/dashboard',
@@ -140,7 +141,8 @@ export default function SignInPage() {
 
       navigate(redirectTo, { replace: true });
     },
-    onError: () => {
+    onError: (error: unknown) => {
+      logApiError('sign-in', '/auth/login/', error);
       setIsAuthenticating(false);
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('mihas:post-auth-redirect');
@@ -153,6 +155,27 @@ export default function SignInPage() {
     const message = error.message || 'Failed to sign in. Please try again.';
     return message.includes('Invalid') ? 'Invalid email or password.' : message;
   };
+
+  // Extract field-level errors from Django validation responses
+  const getFieldErrors = (error: Error | null): Record<string, string> => {
+    if (!error) return {};
+    try {
+      const parsed = error as Error & { fieldErrors?: Record<string, string | string[]>; details?: Record<string, string | string[]> };
+      const fieldErrors = parsed.fieldErrors || parsed.details;
+      if (fieldErrors && typeof fieldErrors === 'object') {
+        const result: Record<string, string> = {};
+        for (const [key, value] of Object.entries(fieldErrors)) {
+          result[key] = Array.isArray(value) ? (value[0] ?? '') : String(value);
+        }
+        return result;
+      }
+    } catch {
+      // Ignore parsing errors
+    }
+    return {};
+  };
+
+  const serverFieldErrors = getFieldErrors(signInMutation.error as Error | null);
 
   return (
     <>
@@ -191,11 +214,11 @@ export default function SignInPage() {
       >
         <form className="space-y-6" onSubmit={handleSubmit((data) => signInMutation.mutate(data))} noValidate>
           <FormErrorAnnouncer errors={errors} fieldLabels={{ email: 'Email', password: 'Password' }} />
-          {signInMutation.error && (
+          {signInMutation.error ? (
             <Banner variant="error" dismissible onDismiss={() => signInMutation.reset()}>
               {getErrorMessage(signInMutation.error as Error)}
             </Banner>
-          )}
+          ) : null}
 
           <fieldset className="space-y-5 rounded-2xl border border-border/60 bg-background/80 p-4 sm:p-5">
             <legend className="text-sm font-semibold text-foreground">Applicant sign-in details</legend>
@@ -204,7 +227,7 @@ export default function SignInPage() {
               {...register('email')}
               type="email"
               label="Account email"
-              error={errors.email?.message}
+              error={errors.email?.message || serverFieldErrors.email}
               autoComplete="email"
               disabled={signInMutation.isPending}
               required
@@ -214,7 +237,7 @@ export default function SignInPage() {
             <PasswordInput
               {...register('password')}
               label="Account password"
-              error={errors.password?.message}
+              error={errors.password?.message || serverFieldErrors.password}
               autoComplete="current-password"
               disabled={signInMutation.isPending}
               required

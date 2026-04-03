@@ -1,7 +1,6 @@
-// @ts-nocheck
 import { EligibilityAssessment, MissingRequirement } from '@/lib/eligibilityEngine'
 
-export interface EligibilityAssessmentRow extends EligibilityAssessment {
+export interface EligibilityAssessmentRow extends Omit<EligibilityAssessment, 'detailed_breakdown' | 'missing_requirements' | 'recommendations'> {
   id: string
   created_at: string
   updated_at?: string | null

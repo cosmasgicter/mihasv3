@@ -71,14 +71,14 @@ export function FocusTrap({
       if (event.shiftKey) {
         if (activeElement === firstElement) {
           event.preventDefault()
-          lastElement.focus()
+          lastElement!.focus()
         }
       } 
       // Tab (forwards)
       else {
         if (activeElement === lastElement) {
           event.preventDefault()
-          firstElement.focus()
+          firstElement!.focus()
         }
       }
     }

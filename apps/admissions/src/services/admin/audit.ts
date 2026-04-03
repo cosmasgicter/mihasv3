@@ -1,4 +1,5 @@
 import { apiClient, buildQueryString } from '@/services/client'
+import { logApiError } from '@/lib/apiErrorLogger'
 
 export type AuditCategory =
   | 'Authentication'
@@ -242,10 +243,10 @@ class AdminAuditService {
     if (filters.from) params.filter_from = filters.from
     if (filters.to) params.filter_to = filters.to
 
+    const endpoint = `/admin/audit-logs/${buildQueryString(params)}`
+
     try {
-      const result = await apiClient.request<BackendAuditResponse>(
-        `/admin/audit-logs/${buildQueryString(params)}`
-      )
+      const result = await apiClient.request<BackendAuditResponse>(endpoint)
 
       if (!result) {
         return { entries: [], page, pageSize, totalPages: 1, totalCount: 0, summary: EMPTY_SUMMARY }
@@ -263,6 +264,7 @@ class AdminAuditService {
         summary: mapSummary(result.summary),
       }
     } catch (error) {
+      logApiError('admin-audit', endpoint, error)
       console.error('Failed to fetch audit logs:', error)
       throw error
     }

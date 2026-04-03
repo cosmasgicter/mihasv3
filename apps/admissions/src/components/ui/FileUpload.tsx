@@ -1,5 +1,5 @@
 import React, { useCallback, useId, useMemo } from 'react'
-import { useDropzone } from 'react-dropzone'
+import { useDropzone, type FileRejection } from 'react-dropzone'
 import {
   Upload,
   X,
@@ -110,22 +110,22 @@ function FileUpload({
       if (multiple) {
         onChange(acceptedFiles)
       } else {
-        onChange(acceptedFiles[0])
+        onChange(acceptedFiles[0]!)
       }
     },
     [onChange, multiple]
   )
 
   const onDropRejected = useCallback(
-    (rejections: Array<{ file: File; errors: Array<{ code: string; message: string }> }>) => {
+    (rejections: FileRejection[]) => {
       if (!onError || rejections.length === 0) return
-      const first = rejections[0].errors[0]
-      if (first.code === 'file-too-large') {
+      const first = rejections[0]!.errors[0]
+      if (first?.code === 'file-too-large') {
         onError(`File exceeds maximum size of ${formatFileSize(maxSize)}`)
-      } else if (first.code === 'file-invalid-type') {
+      } else if (first?.code === 'file-invalid-type') {
         onError(`Invalid file type. Accepted: ${accept}`)
       } else {
-        onError(first.message)
+        onError(first?.message ?? 'Unknown error')
       }
     },
     [onError, maxSize, accept]

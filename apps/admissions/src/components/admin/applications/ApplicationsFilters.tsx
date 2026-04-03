@@ -175,7 +175,7 @@ export function ApplicationsFilters({
             value={`${sortBy}-${sortOrder}`}
             onChange={(e) => {
               const [field, order] = e.target.value.split('-')
-              onSortChange(field, order)
+              onSortChange(field!, order!)
             }}
             className="form-input-mobile w-full px-3 sm:px-4 py-3 border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
           >

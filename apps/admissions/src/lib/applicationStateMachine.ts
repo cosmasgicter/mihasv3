@@ -50,7 +50,7 @@ export function createStateMachine(initialContext: Partial<StateMachineContext> 
       case 'NEXT_STEP': {
         const currentIndex = STEP_ORDER.indexOf(context.currentStep)
         if (currentIndex < STEP_ORDER.length - 1) {
-          context = { ...context, currentStep: STEP_ORDER[currentIndex + 1], error: null }
+          context = { ...context, currentStep: STEP_ORDER[currentIndex + 1]!, error: null }
         }
         break
       }
@@ -58,7 +58,7 @@ export function createStateMachine(initialContext: Partial<StateMachineContext> 
       case 'PREV_STEP': {
         const currentIndex = STEP_ORDER.indexOf(context.currentStep)
         if (currentIndex > 0) {
-          context = { ...context, currentStep: STEP_ORDER[currentIndex - 1], error: null }
+          context = { ...context, currentStep: STEP_ORDER[currentIndex - 1]!, error: null }
         }
         break
       }

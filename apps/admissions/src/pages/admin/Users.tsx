@@ -49,6 +49,7 @@ import {
 } from 'lucide-react'
 import { useToastStore } from '@/hooks/useToast'
 import { sanitizeForLog } from '@/lib/security'
+import { isAdminRole } from '@/lib/auth/roles'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import type { AdminUserMutationResult } from '@/services/admin/users'
 
@@ -78,8 +79,6 @@ const AVAILABLE_ROLES = [
   { value: 'super_admin', label: 'Super Admin', description: 'Platform-wide administrative control' },
 ]
 
-const ADMIN_ROLES = new Set(['admin', 'super_admin'])
-
 const getRoleLabel = (role: string) => {
   const roleMatch = AVAILABLE_ROLES.find((entry) => entry.value === role)
   return roleMatch ? roleMatch.label : role.replace(/_/g, ' ').toUpperCase()
@@ -91,7 +90,7 @@ const getRoleDescription = (role: string) => {
 }
 
 const getRoleIcon = (role: string) => {
-  if (ADMIN_ROLES.has(role)) {
+  if (isAdminRole(role)) {
     return <Shield className="h-4 w-4 text-destructive" />
   }
 
@@ -103,7 +102,7 @@ const getRoleIcon = (role: string) => {
 }
 
 const getRoleColor = (role: string) => {
-  if (ADMIN_ROLES.has(role)) {
+  if (isAdminRole(role)) {
     return 'border-destructive/30 bg-destructive/5 text-destructive'
   }
 
@@ -205,7 +204,7 @@ export default function AdminUsers() {
   const selectedCount = selectedUsers.length
   const hasActiveFilters = Boolean(searchTerm || roleFilter)
   const staffCount = useMemo(() => users.filter((user) => user.role !== 'student').length, [users])
-  const privilegedCount = useMemo(() => users.filter((user) => ADMIN_ROLES.has(user.role)).length, [users])
+  const privilegedCount = useMemo(() => users.filter((user) => isAdminRole(user.role)).length, [users])
   const newThisMonthCount = useMemo(() => {
     const cutoff = new Date()
     cutoff.setDate(cutoff.getDate() - 30)

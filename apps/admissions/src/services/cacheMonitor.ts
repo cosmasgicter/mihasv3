@@ -11,6 +11,7 @@
  */
 
 import { QueryClient } from '@tanstack/react-query'
+import { logApiError } from '@/lib/apiErrorLogger'
 
 export interface CacheMetrics {
   timestamp: Date
@@ -326,6 +327,7 @@ class CacheMonitorService {
       return metrics
     } catch (error) {
       console.error('[Cache Monitor] Failed to collect service worker metrics:', error)
+      logApiError('cache-monitor', '/api/v1/cache/service-worker-metrics', error)
       return null
     }
   }
@@ -481,7 +483,14 @@ class CacheMonitorService {
   exportMetrics(): {
     metrics: CacheMetrics[]
     logs: CachePerformanceLog[]
-    stats: ReturnType<typeof this.getCacheStats>
+    stats: {
+      hitRate: number
+      totalHits: number
+      totalMisses: number
+      totalRequests: number
+      averageQueryTime: number
+      slowQueriesCount: number
+    }
   } {
     return {
       metrics: this.getMetricsHistory(),

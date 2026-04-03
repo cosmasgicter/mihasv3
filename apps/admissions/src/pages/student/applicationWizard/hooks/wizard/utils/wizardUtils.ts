@@ -22,7 +22,7 @@ export function findProgramId(
   const normalized = trimmed.toLowerCase()
   const exactMatches = programs.filter(p => p.name?.trim().toLowerCase() === normalized)
   
-  if (exactMatches.length === 1) return exactMatches[0].id
+  if (exactMatches.length === 1) return exactMatches[0]!.id
   if (exactMatches.length > 1 && institutionHint) {
     const hint = institutionHint.trim().toLowerCase()
     const byInst = exactMatches.find(p => {
@@ -31,7 +31,7 @@ export function findProgramId(
       return norm === hint || norm.includes(hint) || hint.includes(norm)
     })
     if (byInst) return byInst.id
-    return exactMatches[0].id
+    return exactMatches[0]!.id
   }
 
   const partialMatches = programs.filter(p => {
@@ -39,7 +39,7 @@ export function findProgramId(
     return name.includes(normalized) || normalized.includes(name)
   })
   
-  if (partialMatches.length === 1) return partialMatches[0].id
+  if (partialMatches.length === 1) return partialMatches[0]!.id
   if (partialMatches.length > 1 && institutionHint) {
     const hint = institutionHint.trim().toLowerCase()
     const byInst = partialMatches.find(p => {

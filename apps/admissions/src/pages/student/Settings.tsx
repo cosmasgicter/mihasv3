@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
@@ -11,17 +10,13 @@ import { Button } from '@/components/ui/Button'
 import { FormSelect } from '@/components/ui/form-select'
 import { Input } from '@/components/ui/input'
 import { ActiveSessions } from '@/components/ui/ActiveSessions'
-import { Container } from '@/components/ui/Container'
-import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { PageShell } from '@/components/ui/PageShell'
 import {
   ArrowLeft,
   Bell,
-  Globe2,
   Mail,
   MapPin,
-  Phone,
   Save,
   Shield,
   User,
@@ -49,7 +44,7 @@ const profileSchema = z.object({
   full_name: z.string().min(2, 'Full name must be at least 2 characters'),
   phone: z.string().min(10, 'Please enter a valid phone number').or(z.literal('')).optional(),
   date_of_birth: optionalString(),
-  sex: z.enum(['Male', 'Female'], { required_error: 'Please select a sex' }).optional(),
+  sex: z.enum(['Male', 'Female'], { error: 'Please select a sex' }).optional(),
   residence_town: z
     .string()
     .transform(normalizeResidenceTown)
@@ -118,7 +113,7 @@ export default function StudentSettings() {
     control,
     formState: { errors, isDirty, dirtyFields },
   } = useForm<ProfileForm>({
-    resolver: zodResolver(profileSchema),
+    resolver: zodResolver(profileSchema) as never,
     defaultValues: {
       country: DEFAULT_RESIDENCE_COUNTRY,
       nrc_number: '',

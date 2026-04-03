@@ -214,7 +214,7 @@ export function createUserFriendlyError(error: any): string {
   }
   
   if (error?.code && errorMessages[error.code]) {
-    return errorMessages[error.code]
+    return errorMessages[error.code]!
   }
   
   return 'An unexpected error occurred. Please try again.'
@@ -339,7 +339,7 @@ export function validateFile(
     if (type.startsWith('.')) {
       return file.name.toLowerCase().endsWith(type.toLowerCase())
     } else if (type.includes('*')) {
-      const baseType = type.split('/')[0]
+      const baseType = type.split('/')[0]!
       return file.type.startsWith(baseType)
     } else {
       return file.type === type
@@ -454,7 +454,7 @@ export function fileToBase64(file: File): Promise<string> {
     reader.readAsDataURL(file)
     reader.onload = () => {
       if (typeof reader.result === 'string') {
-        const base64 = reader.result.split(',')[1]
+        const base64 = reader.result.split(',')[1]!
         resolve(base64)
       } else {
         reject(new Error('Failed to convert file to base64'))

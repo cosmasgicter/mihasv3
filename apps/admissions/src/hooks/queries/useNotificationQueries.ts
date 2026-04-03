@@ -23,9 +23,9 @@ export const useNotificationPreferences = (userId?: string) => {
 export const useEmailNotificationsEnabled = (userId?: string) => {
   return useQuery({
     queryKey: ['notification_preferences', userId],
-    queryFn: async () => {
+    queryFn: async (): Promise<Record<string, unknown> | null> => {
       const result = await notificationService.getPreferences()
-      return result ?? null
+      return (result as Record<string, unknown>) ?? null
     },
     enabled: !!userId,
     select: useCallback((data: Record<string, unknown> | null) => {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -39,7 +38,7 @@ import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
 
 interface ApplicationTimeline {
   status: string
-  date: string
+  date: string | undefined
   description: string
   completed: boolean
 }
@@ -190,7 +189,7 @@ export default function ApplicationStatus() {
   return (
     <PageShell
       title={`Application #${application.application_number}`}
-      subtitle={`${application.program?.length > 40 ? application.program.substring(0, 40) + '...' : application.program || 'Programme pending'} • Submitted on ${formatDate(application.submitted_at)}`}
+      subtitle={`${(application.program?.length ?? 0) > 40 ? application.program!.substring(0, 40) + '...' : application.program || 'Programme pending'} • Submitted on ${formatDate(application.submitted_at)}`}
       maxWidth="7xl"
       actions={
         <div className="flex items-center gap-2">
@@ -208,7 +207,7 @@ export default function ApplicationStatus() {
             Back to dashboard
           </Link>
 
-          {hasActiveInterview && interview && (
+          {hasActiveInterview && interview ? (
             <SectionCard
               title="Admissions interview"
               description="Your interview is scheduled—review the key details below."
@@ -235,7 +234,7 @@ export default function ApplicationStatus() {
                 </div>
               </div>
             </SectionCard>
-          )}
+          ) : null}
 
           {!hasActiveInterview && (
             <SectionCard
@@ -467,7 +466,7 @@ export default function ApplicationStatus() {
                   applicationId={application.id}
                   applicationNumber={application.application_number}
                   status={application.status}
-                  paymentStatus={application.payment_status}
+                  paymentStatus={application.payment_status ?? null}
                 />
               </SectionCard>
 

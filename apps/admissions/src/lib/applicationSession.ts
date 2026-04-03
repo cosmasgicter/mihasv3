@@ -253,11 +253,11 @@ class ApplicationSessionManager {
         const apps = result?.applications ?? []
 
         if (apps.length > 0) {
-          const data = apps[0]
+          const data = apps[0]!
           return {
             id: data.id,
             user_id: (data as any).user_id || userId,
-            form_data: data || {},
+            form_data: data as Partial<ApplicationFormData> || {},
             current_step: (data as any).step_completed || 1,
             uploaded_files: [],
             selected_subjects: [],
@@ -438,7 +438,7 @@ class ApplicationSessionManager {
       const draftApps = result?.applications ?? []
 
       if (draftApps.length > 0) {
-        const app = draftApps[0]
+        const app = draftApps[0]!
         const steps = ['Basic KYC', 'Education', 'Payment', 'Submit']
         let currentStep = 1
         
@@ -453,7 +453,7 @@ class ApplicationSessionManager {
           exists: true,
           step: currentStep,
           lastSaved: app.updated_at,
-          progress: `Step ${currentStep}/4: ${steps[currentStep - 1]}`,
+          progress: `Step ${currentStep}/4: ${steps[currentStep - 1]!}`,
           expiresAt
         }
       }
