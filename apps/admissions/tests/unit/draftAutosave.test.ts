@@ -76,7 +76,7 @@ describe('draftAutosave', () => {
       public_tracking_code: 'TRKABC123',
       full_name: 'Jane Student',
       residence_town: 'Lusaka',
-      program: 'program-1',
+      program: 'Registered Nursing',
       intake: 'intake-2026-aug',
       institution: 'MIHAS',
       nationality: 'Zambian',

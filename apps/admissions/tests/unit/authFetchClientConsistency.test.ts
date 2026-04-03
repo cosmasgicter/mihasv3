@@ -7,7 +7,8 @@ describe('auth/session API client consistency', () => {
     const resetSource = fs.readFileSync(path.resolve(process.cwd(), 'src/pages/auth/ResetPasswordPage.tsx'), 'utf-8')
     const callbackSource = fs.readFileSync(path.resolve(process.cwd(), 'src/pages/auth/AuthCallbackPage.tsx'), 'utf-8')
 
-    expect(resetSource).toContain("from '@/services/client'")
+    // ResetPasswordPage uses authService (which wraps apiClient) — not direct fetch
+    expect(resetSource).toContain("from '@/services/auth'")
     expect(resetSource).not.toContain("fetch('/api/auth")
 
     expect(callbackSource).not.toContain("fetch('/api/auth")

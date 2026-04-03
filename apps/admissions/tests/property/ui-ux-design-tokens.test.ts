@@ -276,7 +276,11 @@ function parseKeyframes(configContent: string): Record<string, Record<string, Re
   // Use a sandboxed evaluation approach: extract the module.exports object
   // by wrapping in a function that captures the config
   const wrappedContent = configContent
-    .replace(/require\([^)]+\)/g, '(() => ({}))') // stub out require() calls
+    .replace(
+      /require\([^)]+tokens\.colors[^)]*\)/g,
+      '({ adminColors: { bg: "#f9fafb", card: "#ffffff", border: "#858c98", text: "#111827", textSecondary: "#374151", textMuted: "#6b7280" } })'
+    )
+    .replace(/require\([^)]+\)/g, '(() => ({}))') // stub out remaining require() calls
     .replace('module.exports =', 'return')
 
   const getConfig = new Function(wrappedContent)
