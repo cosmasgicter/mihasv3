@@ -240,6 +240,7 @@ export const exportReportAsPdf = async (reportData: ReportExportData, fileName: 
 }
 
 export const exportReportAsExcel = async (reportData: ReportExportData, fileName: string) => {
+  // @ts-ignore -- exceljs is an optional peer dependency, may not have type declarations in CI
   const ExcelJS = (await import('exceljs')).default
   const workbook = new ExcelJS.Workbook()
   workbook.created = new Date()
@@ -279,7 +280,7 @@ export const exportReportAsExcel = async (reportData: ReportExportData, fileName
     })
   }
 
-  summarySheet.eachRow((row, rowNumber) => {
+  summarySheet.eachRow((row: { border: unknown }, rowNumber: number) => {
     if (rowNumber !== 1) {
       row.border = {
         top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
@@ -318,7 +319,7 @@ export const exportReportAsExcel = async (reportData: ReportExportData, fileName
       })
     })
 
-    programSheet.eachRow((row, rowNumber) => {
+    programSheet.eachRow((row: { border: unknown }, rowNumber: number) => {
       if (rowNumber !== 1) {
         row.border = {
           top: { style: 'thin', color: { argb: 'FFD1D5DB' } },

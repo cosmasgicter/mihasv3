@@ -213,6 +213,7 @@ export async function exportToExcel(
   source: ApplicationDataSource,
   filename: string = 'applications.xlsx'
 ) {
+  // @ts-ignore -- xlsx is an optional peer dependency, may not have type declarations in CI
   const XLSX = await import('xlsx')
   const workbook = XLSX.utils.book_new()
   const worksheet = XLSX.utils.aoa_to_sheet([[...HEADERS]])

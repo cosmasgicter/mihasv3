@@ -250,6 +250,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
   }
 
   const exportToExcel = async (data: UserProfile[]) => {
+    // @ts-ignore -- xlsx is an optional peer dependency, may not have type declarations in CI
     const XLSX = await import('xlsx')
     const exportRows = buildExportRows(data)
     const worksheet = XLSX.utils.json_to_sheet(exportRows)
