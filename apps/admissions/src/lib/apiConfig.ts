@@ -17,7 +17,13 @@ function normalizeBaseUrl(value: string): string {
 export function getApiBaseUrl(): string {
   const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()
   if (configuredBaseUrl) {
-    return normalizeBaseUrl(configuredBaseUrl)
+    const normalized = normalizeBaseUrl(configuredBaseUrl)
+    // Guard: if VITE_API_BASE_URL accidentally points to the frontend origin
+    // (e.g. ***REMOVED***), fall through to the origin-based
+    // resolution below instead of sending API traffic to the static site.
+    if (normalized !== PRODUCTION_APP_ORIGIN) {
+      return normalized
+    }
   }
 
   const browserOrigin = typeof window !== 'undefined' && window.location?.origin
