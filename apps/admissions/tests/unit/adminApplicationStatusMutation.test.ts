@@ -131,7 +131,7 @@ describe('admin status mutation canonical path', () => {
     expect(approveCall[0]).toBe('/api/v1/applications/app-1/review/')
     expect(approveCall[1].method).toBe('PATCH')
     expect(JSON.parse(approveCall[1].body)).toEqual({
-      status: 'approved',
+      new_status: 'approved',
       notes: 'Approved after review',
     })
 
@@ -139,7 +139,7 @@ describe('admin status mutation canonical path', () => {
     expect(rejectCall[0]).toBe('/api/v1/applications/app-1/review/')
     expect(rejectCall[1].method).toBe('PATCH')
     expect(JSON.parse(rejectCall[1].body)).toEqual({
-      status: 'rejected',
+      new_status: 'rejected',
       notes: 'Rejected due to missing documents',
       force: true,
     })

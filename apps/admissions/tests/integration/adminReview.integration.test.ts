@@ -247,7 +247,7 @@ describe('Feature: production-remediation — Admin Review Flow Integration (Req
 
       // Verify the request body includes status change details
       const statusBody = JSON.parse(statusCall[1].body);
-      expect(statusBody.status).toBe('approved');
+      expect(statusBody.new_status).toBe('approved');
       expect(statusBody.notes).toBe('Meets all requirements. Approved for 2025 intake.');
 
       // ── Step 4: Verify audit log entry was created ────────────────────
