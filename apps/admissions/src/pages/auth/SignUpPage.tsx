@@ -21,6 +21,7 @@ import { Banner } from '@/components/ui/Banner';
 import { Seo } from '@/components/seo/Seo';
 import { CheckCircle, Loader2, XCircle } from 'lucide-react';
 import { animateClasses } from '@/lib/animations';
+import { logApiError } from '@/lib/apiErrorLogger';
 
 export const signUpSchema = z
   .object({
@@ -111,7 +112,8 @@ export default function SignUpPage() {
     onMutate: () => {
       setIsRegistering(true);
     },
-    onError: () => {
+    onError: (error: unknown) => {
+      logApiError('sign-up', '/auth/register/', error);
       setIsRegistering(false);
     },
   });
@@ -128,6 +130,27 @@ export default function SignUpPage() {
     }
     return message
   };
+
+  // Extract field-level errors from Django validation responses (details/fieldErrors)
+  const getFieldErrors = (error: Error | null): Record<string, string> => {
+    if (!error) return {};
+    try {
+      const parsed = error as Error & { fieldErrors?: Record<string, string | string[]>; details?: Record<string, string | string[]> };
+      const fieldErrors = parsed.fieldErrors || parsed.details;
+      if (fieldErrors && typeof fieldErrors === 'object') {
+        const result: Record<string, string> = {};
+        for (const [key, value] of Object.entries(fieldErrors)) {
+          result[key] = Array.isArray(value) ? (value[0] ?? '') : String(value);
+        }
+        return result;
+      }
+    } catch {
+      // Ignore parsing errors
+    }
+    return {};
+  };
+
+  const serverFieldErrors = getFieldErrors(signUpMutation.error as Error | null);
 
   if (success) {
     return (
@@ -178,11 +201,11 @@ export default function SignUpPage() {
         }
       >
         <form className="space-y-6" onSubmit={handleSubmit((data) => signUpMutation.mutate(data))} noValidate>
-          {signUpMutation.error && (
+          {signUpMutation.error ? (
             <Banner variant="error" dismissible onDismiss={() => signUpMutation.reset()}>
               {getErrorMessage(signUpMutation.error as Error)}
             </Banner>
-          )}
+          ) : null}
           {emailAvailable === false && !signUpMutation.error && (
             <Banner variant="error" dismissible onDismiss={() => setEmailAvailable(null)}>
               This email is already registered. Please sign in instead.
@@ -199,7 +222,7 @@ export default function SignUpPage() {
                 })}
                 type="email"
                 label="Account email"
-                error={errors.email?.message || (emailAvailable === false ? 'Already registered' : undefined)}
+                error={errors.email?.message || serverFieldErrors.email || (emailAvailable === false ? 'Already registered' : undefined)}
                 autoComplete="email"
                 disabled={signUpMutation.isPending}
                 required
@@ -242,7 +265,7 @@ export default function SignUpPage() {
               <PasswordInput
                 {...register('password')}
                 label="Create password"
-                error={errors.password?.message}
+                error={errors.password?.message || serverFieldErrors.password}
                 autoComplete="new-password"
                 disabled={signUpMutation.isPending}
                 required
@@ -268,7 +291,7 @@ export default function SignUpPage() {
                 {...register('first_name')}
                 type="text"
                 label="First name"
-                error={errors.first_name?.message}
+                error={errors.first_name?.message || serverFieldErrors.first_name}
                 autoComplete="given-name"
                 disabled={signUpMutation.isPending}
                 required
@@ -278,7 +301,7 @@ export default function SignUpPage() {
                 {...register('last_name')}
                 type="text"
                 label="Last name"
-                error={errors.last_name?.message}
+                error={errors.last_name?.message || serverFieldErrors.last_name}
                 autoComplete="family-name"
                 disabled={signUpMutation.isPending}
                 required
@@ -290,7 +313,7 @@ export default function SignUpPage() {
               {...register('phone')}
               type="tel"
               label="Phone number"
-              error={errors.phone?.message}
+              error={errors.phone?.message || serverFieldErrors.phone}
               autoComplete="tel"
               disabled={signUpMutation.isPending}
               required

@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import { logApiError } from '@/lib/apiErrorLogger'
 
 type UpdatePreferencesPayload = {
   sms_enabled?: boolean
@@ -141,7 +142,8 @@ export class NotificationService {
         }),
       });
       return true;
-    } catch {
+    } catch (error) {
+      logApiError('NotificationService.sendNotification', '/notifications/', error);
       return false;
     }
   }

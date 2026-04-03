@@ -1,4 +1,5 @@
 import { apiClient, buildQueryString } from '../client'
+import { logApiError } from '@/lib/apiErrorLogger'
 
 const splitFullName = (fullName: string): { firstName: string; lastName: string } => {
   const normalized = fullName.trim().replace(/\s+/g, ' ')
@@ -8,8 +9,8 @@ const splitFullName = (fullName: string): { firstName: string; lastName: string 
 
   const [firstName, ...rest] = normalized.split(' ')
   return {
-    firstName,
-    lastName: rest.join(' ') || firstName,
+    firstName: firstName ?? '',
+    lastName: rest.join(' ') || (firstName ?? ''),
   }
 }
 
@@ -67,51 +68,67 @@ export const userService = {
     if (filters?.role) params.role = filters.role
 
     const qs = buildQueryString(params)
-    const response = await apiClient.request<{
-      results?: Array<Partial<AdminUserRecord>>
-      totalCount?: number
-      page?: number
-      pageSize?: number
-      totalPages?: number
-    }>(`/admin/users/${qs}`)
+    try {
+      const response = await apiClient.request<{
+        results?: Array<Partial<AdminUserRecord>>
+        totalCount?: number
+        page?: number
+        pageSize?: number
+        totalPages?: number
+      }>(`/admin/users/${qs}`)
 
-    const users = (response?.results || []).map((user) => ({
-      ...user,
-      id: String(user.id ?? ''),
-      full_name:
-        user.full_name ||
-        [user.first_name, user.last_name].filter(Boolean).join(' ').trim(),
-      email: String(user.email ?? ''),
-      role: typeof user.role === 'string' ? user.role : 'student',
-    })) as AdminUserRecord[]
+      const users = (response?.results || []).map((user) => ({
+        ...user,
+        id: String(user.id ?? ''),
+        full_name:
+          user.full_name ||
+          [user.first_name, user.last_name].filter(Boolean).join(' ').trim(),
+        email: String(user.email ?? ''),
+        role: typeof user.role === 'string' ? user.role : 'student',
+      })) as AdminUserRecord[]
 
-    return {
-      users,
-      totalCount: response?.totalCount ?? users.length,
-      page: response?.page,
-      pageSize: response?.pageSize,
-      totalPages: response?.totalPages,
+      return {
+        users,
+        totalCount: response?.totalCount ?? users.length,
+        page: response?.page,
+        pageSize: response?.pageSize,
+        totalPages: response?.totalPages,
+      }
+    } catch (error) {
+      logApiError('admin-users', '/api/v1/admin/users/', error)
+      throw error
     }
   },
 
   /** Get a single user by ID. Maps to GET /admin/users/{id}/ */
-  getById: (id: string) =>
-    apiClient.request<AdminUserRecord>(`/admin/users/${encodeURIComponent(id)}/`, {
-      method: 'GET',
-    }),
+  getById: async (id: string) => {
+    try {
+      return await apiClient.request<AdminUserRecord>(`/admin/users/${encodeURIComponent(id)}/`, {
+        method: 'GET',
+      })
+    } catch (error) {
+      logApiError('admin-users', `/api/v1/admin/users/${id}/`, error)
+      throw error
+    }
+  },
 
   /** Get user permissions (derived from role). Maps to GET /admin/users/{id}/ */
   getPermissions: async (id: string): Promise<AdminUserPermissionsResult> => {
-    const user = await apiClient.request<AdminUserRecord>(`/admin/users/${encodeURIComponent(id)}/`, {
-      method: 'GET',
-    })
-    const role = typeof user?.role === 'string' ? user.role : 'student'
-    return {
-      userId: id,
-      role,
-      permissions: ROLE_PERMISSIONS[role] ?? [],
-      defaultPermissions: ROLE_PERMISSIONS[role] ?? [],
-      source: 'derived-from-role',
+    try {
+      const user = await apiClient.request<AdminUserRecord>(`/admin/users/${encodeURIComponent(id)}/`, {
+        method: 'GET',
+      })
+      const role = typeof user?.role === 'string' ? user.role : 'student'
+      return {
+        userId: id,
+        role,
+        permissions: ROLE_PERMISSIONS[role] ?? [],
+        defaultPermissions: ROLE_PERMISSIONS[role] ?? [],
+        source: 'derived-from-role',
+      }
+    } catch (error) {
+      logApiError('admin-users', `/api/v1/admin/users/${id}/`, error)
+      throw error
     }
   },
 
@@ -123,55 +140,84 @@ export const userService = {
     )
     const role = matchingRole?.[0] ?? 'student'
 
-    await apiClient.request<AdminUserMutationResult>(`/admin/users/${encodeURIComponent(id)}/`, {
-      method: 'PATCH',
-      body: JSON.stringify({ role }),
-    })
+    try {
+      await apiClient.request<AdminUserMutationResult>(`/admin/users/${encodeURIComponent(id)}/`, {
+        method: 'PATCH',
+        body: JSON.stringify({ role }),
+      })
 
-    return {
-      userId: id,
-      role,
-      permissions: ROLE_PERMISSIONS[role] ?? [],
-      defaultPermissions: ROLE_PERMISSIONS[role] ?? [],
-      source: 'derived-from-role',
+      return {
+        userId: id,
+        role,
+        permissions: ROLE_PERMISSIONS[role] ?? [],
+        defaultPermissions: ROLE_PERMISSIONS[role] ?? [],
+        source: 'derived-from-role',
+      }
+    } catch (error) {
+      logApiError('admin-users', `/api/v1/admin/users/${id}/`, error)
+      throw error
     }
   },
 
   /** Create a new user. Maps to POST /admin/users/ */
-  create: (data: { email: string; password: string; full_name: string; phone?: string; role: string }) =>
-    apiClient.request<AdminUserMutationResult>('/admin/users/', {
-      method: 'POST',
-      body: JSON.stringify({
-        email: data.email,
-        password: data.password,
-        phone: data.phone,
-        ...splitFullName(data.full_name),
-        role: data.role,
-      }),
-    }),
+  create: async (data: { email: string; password: string; full_name: string; phone?: string; role: string }) => {
+    try {
+      return await apiClient.request<AdminUserMutationResult>('/admin/users/', {
+        method: 'POST',
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          phone: data.phone,
+          ...splitFullName(data.full_name),
+          role: data.role,
+        }),
+      })
+    } catch (error) {
+      logApiError('admin-users', '/api/v1/admin/users/', error)
+      throw error
+    }
+  },
 
   /** Update a user. Maps to PATCH /admin/users/{id}/ */
-  update: (id: string, data: { full_name: string; email: string; phone?: string; role: string }) =>
-    apiClient.request<AdminUserMutationResult>(`/admin/users/${encodeURIComponent(id)}/`, {
-      method: 'PATCH',
-      body: JSON.stringify({
-        ...splitFullName(data.full_name),
-        email: data.email,
-        phone: data.phone,
-        role: data.role,
-      }),
-    }),
+  update: async (id: string, data: { full_name: string; email: string; phone?: string; role: string }) => {
+    try {
+      return await apiClient.request<AdminUserMutationResult>(`/admin/users/${encodeURIComponent(id)}/`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          ...splitFullName(data.full_name),
+          email: data.email,
+          phone: data.phone,
+          role: data.role,
+        }),
+      })
+    } catch (error) {
+      logApiError('admin-users', `/api/v1/admin/users/${id}/`, error)
+      throw error
+    }
+  },
 
   /** Deactivate a user. Maps to PATCH /admin/users/{id}/ */
-  remove: (id: string) =>
-    apiClient.request<AdminUserMutationResult>(`/admin/users/${encodeURIComponent(id)}/`, {
-      method: 'PATCH',
-      body: JSON.stringify({ is_active: false }),
-    }),
+  remove: async (id: string) => {
+    try {
+      return await apiClient.request<AdminUserMutationResult>(`/admin/users/${encodeURIComponent(id)}/`, {
+        method: 'PATCH',
+        body: JSON.stringify({ is_active: false }),
+      })
+    } catch (error) {
+      logApiError('admin-users', `/api/v1/admin/users/${id}/`, error)
+      throw error
+    }
+  },
 
   /** Export users as CSV. Maps to GET /admin/users/export/ */
-  export: () =>
-    apiClient.request('/admin/users/export/', {
-      method: 'GET',
-    }),
+  export: async () => {
+    try {
+      return await apiClient.request('/admin/users/export/', {
+        method: 'GET',
+      })
+    } catch (error) {
+      logApiError('admin-users', '/api/v1/admin/users/export/', error)
+      throw error
+    }
+  },
 }

@@ -214,4 +214,4 @@ Implements 30 audit items across 17 requirements, grouped into 6 implementation 
 - Frontend tests: `cd apps/admissions && bun run test`
 - Backend tests: `cd backend && python3 -m pytest tests/unit/ tests/property/ -x -q`
 - Do NOT run dev servers during implementation
-/.
+/.x

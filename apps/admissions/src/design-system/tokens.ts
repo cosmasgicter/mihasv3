@@ -3,6 +3,11 @@
  * Central source of truth for all design values
  */
 
+// Admin colors are sourced from the shared JS file so that both
+// this TypeScript module and the CommonJS tailwind.config.js
+// consume the exact same literal values.
+import { adminColors as _adminColors } from './tokens.colors.cjs'
+
 export const designTokens = {
   colors: {
     primary: {
@@ -38,6 +43,21 @@ export const designTokens = {
       600: '#4B5563',
       700: '#374151',
       900: '#111827',
+    },
+    chart: {
+      success: '#047857',
+      warning: '#b45309',
+      destructive: '#cc2424',
+      primary: '#2563eb',
+      purple: '#7c3aed',
+    },
+    admin: {
+      bg: _adminColors.bg as '#f9fafb',
+      card: _adminColors.card as '#ffffff',
+      border: _adminColors.border as '#858c98',
+      text: _adminColors.text as '#111827',
+      textSecondary: _adminColors.textSecondary as '#374151',
+      textMuted: _adminColors.textMuted as '#6b7280',
     },
   },
   // Layout sizes (numbers are pixels where appropriate)
@@ -88,3 +108,10 @@ export const designTokens = {
     },
   },
 } as const
+
+/**
+ * SVG data URI for the select dropdown chevron arrow.
+ * Uses the neutral-500 design token instead of a hardcoded hex value,
+ * so the color stays in sync with the token system.
+ */
+export const SELECT_CHEVRON_SVG = `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23${designTokens.colors.neutral[500].slice(1)}' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`

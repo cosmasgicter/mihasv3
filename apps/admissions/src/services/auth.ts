@@ -1,9 +1,12 @@
 import { apiClient } from './client'
+import { logApiError } from '@/lib/apiErrorLogger'
 
 interface RegisterData {
   email: string
   password: string
   fullName: string
+  phone?: string
+  nationality?: string
 }
 
 interface LoginData {
@@ -21,52 +24,96 @@ interface PasswordResetConfirmData {
 }
 
 export const authService = {
-  register: (data: RegisterData) => {
+  register: async (data: RegisterData) => {
     const [firstName, ...lastNameParts] = data.fullName.split(' ')
-    return apiClient.request('/auth/register/', {
-      method: 'POST',
-      body: JSON.stringify({
-        email: data.email,
-        password: data.password,
-        first_name: firstName || '',
-        last_name: lastNameParts.join(' ') || '',
-      }),
-    })
+    try {
+      return await apiClient.request('/auth/register/', {
+        method: 'POST',
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          first_name: firstName || '',
+          last_name: lastNameParts.join(' ') || '',
+          phone: data.phone || '',
+          nationality: data.nationality || '',
+        }),
+      })
+    } catch (error) {
+      logApiError('auth', '/api/v1/auth/register/', error)
+      throw error
+    }
   },
 
-  login: (data: LoginData) =>
-    apiClient.request('/auth/login/', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
+  login: async (data: LoginData) => {
+    try {
+      return await apiClient.request('/auth/login/', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+    } catch (error) {
+      logApiError('auth', '/api/v1/auth/login/', error)
+      throw error
+    }
+  },
 
-  logout: () =>
-    apiClient.request('/auth/logout/', {
-      method: 'POST',
-    }),
+  logout: async () => {
+    try {
+      return await apiClient.request('/auth/logout/', {
+        method: 'POST',
+      })
+    } catch (error) {
+      logApiError('auth', '/api/v1/auth/logout/', error)
+      throw error
+    }
+  },
 
-  session: () =>
-    apiClient.request('/auth/session/', {
-      method: 'GET',
-    }),
+  session: async () => {
+    try {
+      return await apiClient.request('/auth/session/', {
+        method: 'GET',
+      })
+    } catch (error) {
+      logApiError('auth', '/api/v1/auth/session/', error)
+      throw error
+    }
+  },
 
-  refresh: () =>
-    apiClient.request('/auth/refresh/', {
-      method: 'POST',
-    }),
+  refresh: async () => {
+    try {
+      return await apiClient.request('/auth/refresh/', {
+        method: 'POST',
+      })
+    } catch (error) {
+      logApiError('auth', '/api/v1/auth/refresh/', error)
+      throw error
+    }
+  },
 
-  passwordReset: (data: PasswordResetData) =>
-    apiClient.request('/auth/password-reset/', {
-      method: 'POST',
-      body: JSON.stringify({ email: data.email }),
-    }),
+  passwordReset: async (data: PasswordResetData) => {
+    try {
+      return await apiClient.request('/auth/password-reset/', {
+        method: 'POST',
+        body: JSON.stringify({ email: data.email }),
+      })
+    } catch (error) {
+      logApiError('auth', '/api/v1/auth/password-reset/', error)
+      throw error
+    }
+  },
 
-  passwordResetConfirm: (data: PasswordResetConfirmData) =>
-    apiClient.request('/auth/password-reset/confirm/', {
-      method: 'POST',
-      body: JSON.stringify({
-        token: data.token,
-        newPassword: data.newPassword,
-      }),
-    }),
+  passwordResetConfirm: async (data: PasswordResetConfirmData) => {
+    try {
+      return await apiClient.request('/auth/password-reset/confirm/', {
+        method: 'POST',
+        body: JSON.stringify({
+          token: data.token,
+          // Django PasswordResetConfirmSerializer expects snake_case `new_password`
+          new_password: data.newPassword,
+        }),
+      })
+    } catch (error) {
+      logApiError('auth', '/api/v1/auth/password-reset/confirm/', error)
+      throw error
+    }
+  },
 }

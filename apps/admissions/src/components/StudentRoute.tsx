@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
+import { useAuthCheck } from '@/hooks/auth/useSessionListener'
 import { StudentErrorBoundary } from '@/components/student/StudentErrorBoundary'
 import { GuardInlineSkeleton } from '@/components/ui/GuardInlineSkeleton'
 import { startLoaderTelemetry } from '@/lib/loaderTelemetry'
@@ -19,10 +20,22 @@ const AUTH_BOOTSTRAP_MAX_WAIT_MS = 5000
  */
 export function StudentRoute({ children }: StudentRouteProps) {
   const { user, isAdmin, loading } = useAuth()
+  const { retrySessionCheck } = useAuthCheck()
   const location = useLocation()
   const [maxWaitReached, setMaxWaitReached] = useState(false)
+  const [isRecoveringSession, setIsRecoveringSession] = useState(false)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const loaderTelemetryRef = useRef<ReturnType<typeof startLoaderTelemetry> | null>(null)
+
+  const runSessionRecovery = useCallback(async () => {
+    if (isRecoveringSession) return
+    setIsRecoveringSession(true)
+    try {
+      await retrySessionCheck()
+    } finally {
+      setIsRecoveringSession(false)
+    }
+  }, [isRecoveringSession, retrySessionCheck])
 
   useEffect(() => {
     if (loading && !loaderTelemetryRef.current) {
@@ -68,9 +81,18 @@ export function StudentRoute({ children }: StudentRouteProps) {
   if (loading) {
     if (maxWaitReached) {
       return (
-        <div className="mx-auto w-full max-w-2xl px-4 py-10 text-center">
-          <p className="text-sm text-muted-foreground">Still verifying your student session.</p>
-          <p className="mt-2 text-xs text-muted-foreground/80">If this continues, refresh the page to retry auth bootstrap.</p>
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-center space-y-3">
+            <p className="text-gray-600">Taking longer than expected to verify your student session...</p>
+            <button
+              type="button"
+              onClick={() => void runSessionRecovery()}
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-70"
+              disabled={isRecoveringSession}
+            >
+              {isRecoveringSession ? 'Retrying session…' : 'Retry session'}
+            </button>
+          </div>
         </div>
       )
     }

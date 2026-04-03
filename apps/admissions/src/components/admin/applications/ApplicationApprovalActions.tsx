@@ -3,6 +3,7 @@ import { CheckCircle, XCircle, Clock, RotateCcw } from 'lucide-react'
 import { UnifiedLoader, UnifiedSpinner } from '@/components/ui/UnifiedLoader'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
+import { logApiError } from '@/lib/apiErrorLogger'
 import {
   Dialog,
   DialogContent,
@@ -112,7 +113,7 @@ export function ApplicationApprovalActions({
       await onStatusUpdate(applicationId, newStatus)
       // Success - state will be updated by parent component
     } catch (error) {
-      console.error('Status update failed:', error)
+      logApiError('admin-approval-actions', `/applications/${applicationId}/review/`, error)
       // Show error to user
       await confirmDialog.confirm({
         title: 'Update Failed',
@@ -157,7 +158,7 @@ export function ApplicationApprovalActions({
       await onPaymentStatusUpdate(applicationId, pendingPaymentStatus, normalizedNotes || undefined)
       handlePaymentDialogOpenChange(false)
     } catch (error) {
-      console.error('Payment status update failed:', error)
+      logApiError('admin-approval-actions', `/applications/${applicationId}/review/`, error)
       await confirmDialog.confirm({
         title: 'Update Failed',
         message: error instanceof Error ? error.message : 'Failed to update payment status. Please try again.',

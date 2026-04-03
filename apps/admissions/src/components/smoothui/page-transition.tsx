@@ -65,7 +65,7 @@ export function PageTransition({
     return <div className={className}>{children}</div>;
   }
 
-  const classes = modeClasses[mode] || modeClasses.fade;
+  const classes = (modeClasses[mode] ?? modeClasses.fade)!;
   const durationMs = Math.min((duration ?? 0.3) * 1000, 300);
 
   return (
@@ -154,7 +154,7 @@ export function AnimatedRoutes({ children, locationKey, mode = 'fade' }: Animate
     return <div>{children}</div>;
   }
 
-  const classes = modeClasses[mode || 'fade'] || modeClasses.fade;
+  const classes = (modeClasses[mode || 'fade'] ?? modeClasses.fade)!;
 
   return (
     <div
@@ -225,7 +225,7 @@ export function ContentTransition({
     return <div className={className}>{children}</div>;
   }
 
-  const classes = modeClasses[mode || 'fade'] || modeClasses.fade;
+  const classes = (modeClasses[mode || 'fade'] ?? modeClasses.fade)!;
 
   return (
     <div

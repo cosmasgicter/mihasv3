@@ -105,7 +105,7 @@ export function SubjectSelection({ selectedSubjects, onSubjectsChange, error }: 
     if (draggedIndex === null) return
 
     const newSubjects = [...selectedSubjects]
-    const draggedSubject = newSubjects[draggedIndex]
+    const draggedSubject = newSubjects[draggedIndex]!
     newSubjects.splice(draggedIndex, 1)
     newSubjects.splice(dropIndex, 0, draggedSubject)
     

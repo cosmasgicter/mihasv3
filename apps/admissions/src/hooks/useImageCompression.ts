@@ -67,7 +67,7 @@ export function useImageCompression({
 
   const compressFile = useCallback(async (file: File): Promise<File> => {
     const [result] = await compressFiles([file])
-    return result
+    return result!
   }, [compressFiles])
 
   const clearResults = useCallback(() => {

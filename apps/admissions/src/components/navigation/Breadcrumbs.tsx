@@ -120,7 +120,7 @@ function formatSegmentLabel(segment: string): string {
 function truncateBreadcrumbs(items: BreadcrumbItem[], maxItems: number): BreadcrumbItem[] {
   if (items.length <= maxItems) return items;
   
-  const firstItem = items[0];
+  const firstItem = items[0]!;
   const lastItems = items.slice(-(maxItems - 2));
   
   return [

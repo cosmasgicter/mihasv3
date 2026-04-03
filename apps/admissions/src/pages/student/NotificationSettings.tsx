@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
@@ -120,15 +119,17 @@ export default function NotificationSettings() {
     error: preferencesError,
   } = useQuery<NotificationPreferencesResponse | null>({
     queryKey: ['notification-preferences'],
-    queryFn: async () => {
+    queryFn: async (): Promise<NotificationPreferencesResponse | null> => {
       const response = await notificationService.getPreferences() as
         | { preferences?: NotificationPreferencesResponse }
         | NotificationPreferencesResponse
         | null
 
-      return response && 'preferences' in response
-        ? response.preferences ?? null
-        : response
+      if (!response) return null
+      if ('preferences' in response && !(('channels' in response))) {
+        return (response as { preferences?: NotificationPreferencesResponse }).preferences ?? null
+      }
+      return response as NotificationPreferencesResponse
     },
     ...CACHE_CONFIG.realtime,
   })
@@ -196,16 +197,16 @@ export default function NotificationSettings() {
         | NotificationPreferencesResponse
         | null
 
-      const updatedPreferences =
-        response && 'preferences' in response
-          ? response.preferences ?? null
-          : response
+      const updatedPreferences: NotificationPreferencesResponse | null =
+        response && 'preferences' in response && !('channels' in response)
+          ? (response as { preferences?: NotificationPreferencesResponse }).preferences ?? null
+          : (response as NotificationPreferencesResponse | null)
 
       queryClient.setQueryData<NotificationPreferencesResponse | null>(['notification-preferences'], (prev) => ({
         ...(prev ?? {}),
         ...(updatedPreferences ?? {}),
         phone: updatedPreferences?.phone ?? prev?.phone ?? profile?.phone ?? null
-      }))
+      } as NotificationPreferencesResponse))
 
       setSuccess(enable ? `${CHANNEL_DETAILS[channel].title} enabled.` : `${CHANNEL_DETAILS[channel].title} disabled.`)
     } catch (requestError) {
@@ -253,8 +254,8 @@ export default function NotificationSettings() {
 
   const renderChannelCard = (channel: ChannelKey) => {
     const details = CHANNEL_DETAILS[channel]
-    const optedIn = isChannelOptedIn(preferences, channel)
-    const entry = resolveChannelEntry(preferences, channel)
+    const optedIn = isChannelOptedIn(preferences as NotificationPreferencesResponse | null, channel)
+    const entry = resolveChannelEntry(preferences as NotificationPreferencesResponse | null, channel)
     const summary = channelSummaries[channel]
     const disableGrant = !hasPhoneNumber && !optedIn
     const buttonLabel = optedIn ? 'Opt Out' : 'Opt In'

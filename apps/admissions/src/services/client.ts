@@ -685,6 +685,16 @@ class ApiClient {
             errorCode = parsed.code;
             if (parsed.fieldErrors && typeof parsed.fieldErrors === 'object') {
               fieldErrors = parsed.fieldErrors as Record<string, string>;
+            } else if (parsed.details && typeof parsed.details === 'object') {
+              // Django REST Framework returns validation errors in `details`
+              // e.g. { details: { program: ["Invalid program reference."] } }
+              const mapped: Record<string, string> = {};
+              for (const [field, messages] of Object.entries(parsed.details)) {
+                mapped[field] = Array.isArray(messages) ? messages.join(', ') : String(messages);
+              }
+              if (Object.keys(mapped).length > 0) {
+                fieldErrors = mapped;
+              }
             }
           }
         } catch {

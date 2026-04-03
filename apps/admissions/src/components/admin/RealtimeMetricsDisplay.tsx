@@ -133,6 +133,7 @@ function DataUpdateFlash({
     <div
       className={cn(
         'rounded-2xl transition-shadow duration-600 motion-reduce:transition-none',
+        // Intentional inline rgba: blue-500 at 30% opacity for highlight glow ring — Tailwind has no semantic shadow-color utility for this
         show && 'shadow-[0_0_0_4px_rgba(59,130,246,0.3)]'
       )}
     >

@@ -1,4 +1,5 @@
 import { apiClient } from '../client'
+import { logApiError } from '@/lib/apiErrorLogger'
 
 export type AdminDashboardStatusBreakdown = Record<string, number>
 
@@ -155,6 +156,11 @@ type RawDashboardResponse = {
 
 const toNumber = (value: unknown): number => {
   if (value === null || value === undefined) {
+    return 0
+  }
+
+  // Guard against objects that can't be converted to a primitive (e.g. {__proto__: null})
+  if (typeof value === 'object') {
     return 0
   }
 
@@ -362,6 +368,19 @@ export const adminDashboardService = {
       }
 
       const raw = response as RawDashboardResponse
+
+      // Shape mismatch warning: log when expected Django top-level keys are missing (Req 3.4)
+      const expectedKeys = ['applications', 'users', 'recent_activity'] as const
+      const missingKeys = expectedKeys.filter(key => !(key in raw))
+      if (missingKeys.length > 0) {
+        console.warn(
+          '[admin-dashboard] Response shape mismatch — missing expected keys:',
+          missingKeys,
+          '— received keys:',
+          Object.keys(raw)
+        )
+      }
+
       const applications = raw.applications as Record<string, unknown> | undefined
       const applicationStatusBreakdown = applications?.by_status as Record<string, unknown> | undefined
       const users = raw.users as Record<string, unknown> | undefined
@@ -436,7 +455,7 @@ export const adminDashboardService = {
       }
     } catch (error) {
       const errorWithStatus = error as Error & { status?: number }
-      console.error('Dashboard service error:', error)
+      logApiError('admin-dashboard', '/admin/dashboard/', error)
 
       return {
         data: createEmptyDashboardResponse(),

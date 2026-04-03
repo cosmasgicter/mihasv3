@@ -1,6 +1,7 @@
 import { offlineStorage } from '@/lib/offlineStorage'
 import { getCsrfToken } from '@/lib/csrfToken'
 import { sanitizeForLog } from '@/lib/security'
+import { logApiError } from '@/lib/apiErrorLogger'
 import { apiClient } from '@/services/client'
 import type { QueryClient } from '@tanstack/react-query'
 import {
@@ -53,7 +54,8 @@ async function fetchServerVersion(userId: string): Promise<{
       return { form_data: data.draft_data || {}, version: 1 }
     }
     return null
-  } catch {
+  } catch (error) {
+    logApiError('offline-sync', `/applications/${userId}/`, error)
     return null
   }
 }
@@ -119,7 +121,7 @@ class OfflineSyncService {
         userId
       })
     } catch (error) {
-      console.error('Failed to store data offline:', error)
+      logApiError('offline-sync:store', `storeOffline(${type})`, error)
     }
   }
 
@@ -222,7 +224,7 @@ class OfflineSyncService {
         }
       }
     } catch (error) {
-      console.error('Error processing offline data:', error)
+      logApiError('offline-sync:process', 'processOfflineData', error)
     } finally {
       this.isProcessing = false
     }
@@ -278,8 +280,8 @@ class OfflineSyncService {
 
     try {
       await offlineStorage.init()
-    } catch {
-      // Silently handle initialization errors
+    } catch (error) {
+      logApiError('offline-sync:init', 'offlineStorage.init', error)
     }
 
     // Store handler reference for cleanup
@@ -330,7 +332,7 @@ class OfflineSyncService {
       const data = await offlineStorage.getAll(userId)
       return data.length
     } catch (error) {
-      console.error('Failed to get offline data count:', error)
+      logApiError('offline-sync:count', 'getOfflineDataCount', error)
       return 0
     }
   }

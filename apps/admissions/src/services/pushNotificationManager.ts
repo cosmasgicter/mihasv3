@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/client'
+import { logApiError } from '@/lib/apiErrorLogger'
 
 /**
  * Push Notification Manager
@@ -112,7 +113,7 @@ class PushNotificationManager {
 
       return true
     } catch (error) {
-      console.error('Failed to initialize push notifications:', error)
+      logApiError('push-notifications', '/initialize', error)
       return false
     }
   }
@@ -142,7 +143,7 @@ class PushNotificationManager {
 
       return true
     } catch (error) {
-      console.error('Failed to request push notification permission:', error)
+      logApiError('push-notifications', '/requestPermission', error)
       return false
     }
   }
@@ -197,7 +198,7 @@ class PushNotificationManager {
     } catch (error) {
       schedule.status = 'failed'
       schedule.failureReason = error instanceof Error ? error.message : 'Unknown error'
-      console.error('Failed to send notification:', error)
+      logApiError('push-notifications', '/sendNotification', error)
     }
 
     this.scheduledNotifications.set(notificationId, schedule)
@@ -294,7 +295,7 @@ class PushNotificationManager {
         return JSON.parse(stored)
       }
     } catch (error) {
-      console.error('Failed to load user preferences:', error)
+      logApiError('push-notifications', '/getUserPreferences', error)
     }
 
     // Return default preferences
@@ -519,7 +520,7 @@ class PushNotificationManager {
         })
       })
     } catch (error) {
-      console.error('Failed to send subscription to server:', error)
+      logApiError('push-notifications', '/api/v1/notifications/push-subscribe/', error)
       // Store locally as fallback for retry
       localStorage.setItem('push_subscription', JSON.stringify(subscription.toJSON()))
     }
@@ -579,7 +580,7 @@ class PushNotificationManager {
         }
       }
     } catch (error) {
-      console.error('Failed to load scheduled notifications:', error)
+      logApiError('push-notifications', '/loadScheduledNotifications', error)
     }
   }
 
@@ -591,7 +592,7 @@ class PushNotificationManager {
       const data = Object.fromEntries(this.scheduledNotifications)
       localStorage.setItem('push_scheduled_notifications', JSON.stringify(data))
     } catch (error) {
-      console.error('Failed to save scheduled notifications:', error)
+      logApiError('push-notifications', '/saveScheduledNotifications', error)
     }
   }
 
@@ -606,7 +607,7 @@ class PushNotificationManager {
         this.deliveryStats = new Map(Object.entries(data))
       }
     } catch (error) {
-      console.error('Failed to load delivery stats:', error)
+      logApiError('push-notifications', '/loadDeliveryStats', error)
     }
   }
 
@@ -618,7 +619,7 @@ class PushNotificationManager {
       const data = Object.fromEntries(this.deliveryStats)
       localStorage.setItem('push_delivery_stats', JSON.stringify(data))
     } catch (error) {
-      console.error('Failed to save delivery stats:', error)
+      logApiError('push-notifications', '/saveDeliveryStats', error)
     }
   }
 

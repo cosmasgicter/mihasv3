@@ -52,6 +52,8 @@ export function buildServerDraftPayload({
   applicationNumber: string
   trackingCode: string
 }): DraftApplicationPayload {
+  // Django validates program/intake/institution by name, not by ID
+  const programName = selectedProgramDetails?.name?.trim() || formData.program
   return {
     application_number: applicationNumber,
     public_tracking_code: trackingCode,
@@ -59,14 +61,14 @@ export function buildServerDraftPayload({
     nrc_number: formData.nrc_number?.trim() || null,
     passport_number: formData.passport_number?.trim() || null,
     date_of_birth: formData.date_of_birth,
-    sex: formData.sex,
+    sex: formData.sex?.toLowerCase() || formData.sex,
     phone: formData.phone.trim(),
     email: formData.email.trim(),
     residence_town: normalizeResidenceTown(formData.residence_town),
     country: formData.country?.trim() || 'Zambia',
     next_of_kin_name: formData.next_of_kin_name?.trim() || null,
     next_of_kin_phone: formData.next_of_kin_phone?.trim() || null,
-    program: selectedProgramDetails?.id || formData.program,
+    program: programName,
     intake: formData.intake,
     institution: institutionCode,
     nationality: nationality.trim() || 'Zambian',

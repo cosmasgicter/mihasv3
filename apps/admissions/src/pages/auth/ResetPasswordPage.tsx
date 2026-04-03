@@ -17,7 +17,8 @@ import { Button } from '@/components/ui/Button';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { animateClasses } from '@/lib/animations';
 import { Seo } from '@/components/seo/Seo';
-import { apiClient } from '@/services/client';
+import { authService } from '@/services/auth';
+import { logApiError } from '@/lib/apiErrorLogger';
 import {
   Loader2,
   AlertCircle,
@@ -82,17 +83,23 @@ export default function ResetPasswordPage() {
 
   const resetPasswordMutation = useMutation({
     mutationFn: async (values: ResetPasswordForm) => {
-      await apiClient.request('/auth/password-reset/confirm/', {
-        method: 'POST',
-        body: JSON.stringify({ 
-          token: resetToken,
-          newPassword: values.password 
-        })
+      await authService.passwordResetConfirm({
+        token: resetToken!,
+        newPassword: values.password,
       })
     },
     onSuccess: () => {
       reset({ password: '', confirmPassword: '' });
       setStatus('success');
+    },
+    onError: (error: unknown) => {
+      logApiError('reset-password', '/auth/password-reset/confirm/', error);
+      // Handle token-expired errors
+      const message = error instanceof Error ? error.message : 'Failed to update password';
+      if (/expired|invalid.*token/i.test(message)) {
+        setVerifyError('This password reset link has expired. Please request a new one.');
+        setStatus('error');
+      }
     },
   });
 
@@ -267,7 +274,7 @@ export default function ResetPasswordPage() {
         />
 
         {/* Error message */}
-        {resetPasswordMutation.error && (
+        {resetPasswordMutation.error ? (
           <div className={`overflow-hidden ${animateClasses.fadeIn}`}>
             <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
               <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
@@ -276,7 +283,7 @@ export default function ResetPasswordPage() {
               </div>
             </div>
           </div>
-        )}
+        ) : null}
 
         <Button
           type="submit"

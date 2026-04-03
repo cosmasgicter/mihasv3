@@ -108,7 +108,7 @@ export function initWebVitals(callback: (metrics: Partial<WebVitalsMetrics>) => 
   // Time to First Byte
   const navigationEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
   if (navigationEntries.length > 0) {
-    const navEntry = navigationEntries[0]
+    const navEntry = navigationEntries[0]!
     callback({ ttfb: navEntry.responseStart - navEntry.requestStart })
   }
 }

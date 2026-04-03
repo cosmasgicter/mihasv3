@@ -96,7 +96,7 @@ export class SecureCodeExecution {
     const clean = expr.replace(/\s/g, '');
     const parseNumber = (): number => {
       let num = '';
-      while (pos < clean.length && /[0-9.]/.test(clean[pos])) num += clean[pos++];
+      while (pos < clean.length && /[0-9.]/.test(clean[pos]!)) num += clean[pos++];
       return parseFloat(num) || 0;
     };
     const parseFactor = (): number => {

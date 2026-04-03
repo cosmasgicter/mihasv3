@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { applicationService } from '@/services/applications'
+import { logApiError } from '@/lib/apiErrorLogger'
 import { ApplicationFilters, DEFAULT_APPLICATION_FILTERS } from './useApplicationFilters'
 import { calculatePointsFromSummary } from '@/utils/grades'
 import { invalidateAdminApplicationQueries } from './applicationQueryInvalidation'
@@ -140,7 +141,7 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
       const result = await applicationService.getById(id)
       return result?.application ? mapApplicationRow(result.application) : null
     } catch (err) {
-      console.error('Failed to hydrate application:', err)
+      logApiError('admin-applications', `/applications/${id}/details/`, err)
       return null
     }
   }, [])
@@ -213,6 +214,7 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
         if (!isRefresh) setCurrentPage(safePage)
       }
     } catch (err: any) {
+      logApiError('admin-applications', '/applications/', err)
       setError(err.message || 'Failed to load applications.')
       if (mode === 'loadMore') {
         setCurrentPage(prev => Math.max(prev - 1, 1))
@@ -272,7 +274,7 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
       await loadPage(currentPage, 'refresh')
       return result
     } catch (error) {
-      console.error('Failed to update status:', error)
+      logApiError('admin-applications', `/applications/${applicationId}/review/`, error)
       setApplications(previousApplications)
       throw error
     }
@@ -304,7 +306,7 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
       })
       await loadPage(currentPage, 'refresh')
     } catch (error) {
-      console.error('Failed to update payment status:', error)
+      logApiError('admin-applications', `/applications/${applicationId}/review/`, error)
       setApplications(previousApplications)
       throw error
     }

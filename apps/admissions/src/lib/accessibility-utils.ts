@@ -96,7 +96,7 @@ export function validateHeadingHierarchy(headings: HeadingLevel[]): boolean {
     const previous = headings[i - 1]
     
     // Can go down any number of levels, but can only go up by 1
-    if (current > previous + 1) {
+    if (current! > previous! + 1) {
       return false
     }
   }
@@ -222,10 +222,10 @@ export function trapFocus(container: Element, event: KeyboardEvent): void {
   
   if (event.shiftKey && document.activeElement === firstElement) {
     event.preventDefault()
-    lastElement.focus()
+    lastElement!.focus()
   } else if (!event.shiftKey && document.activeElement === lastElement) {
     event.preventDefault()
-    firstElement.focus()
+    firstElement!.focus()
   }
 }
 
@@ -241,9 +241,9 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } | nul
   const result = /^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(fullHex)
   return result
     ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16),
+        r: parseInt(result[1]!, 16),
+        g: parseInt(result[2]!, 16),
+        b: parseInt(result[3]!, 16),
       }
     : null
 }
@@ -255,9 +255,9 @@ export function rgbStringToRgb(rgb: string): { r: number; g: number; b: number }
   const match = rgb.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
   if (match) {
     return {
-      r: parseInt(match[1], 10),
-      g: parseInt(match[2], 10),
-      b: parseInt(match[3], 10)
+      r: parseInt(match[1]!, 10),
+      g: parseInt(match[2]!, 10),
+      b: parseInt(match[3]!, 10)
     }
   }
   return null
@@ -275,7 +275,7 @@ const NAMED_COLORS: Record<string, string> = {
 export function parseColor(color: string): { r: number; g: number; b: number } | null {
   if (color.startsWith('#')) return hexToRgb(color)
   if (color.startsWith('rgb(')) return rgbStringToRgb(color)
-  if (NAMED_COLORS[color.toLowerCase()]) return hexToRgb(NAMED_COLORS[color.toLowerCase()])
+  if (NAMED_COLORS[color.toLowerCase()]) return hexToRgb(NAMED_COLORS[color.toLowerCase()]!)
   return null
 }
 
@@ -293,7 +293,7 @@ export function getRelativeLuminance(color: string): number {
       : Math.pow((sRGB + 0.055) / 1.055, 2.4)
   })
 
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+  return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!
 }
 
 /**

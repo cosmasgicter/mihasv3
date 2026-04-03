@@ -416,7 +416,7 @@ export function EnhancedDataTable<T extends object>({
       const statusKey = String(value);
       return (
         <StatusBadge
-          status={column.statusMapping[statusKey]}
+          status={column.statusMapping[statusKey]!}
           label={statusKey.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
         />
       );

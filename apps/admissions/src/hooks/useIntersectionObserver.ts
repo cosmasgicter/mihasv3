@@ -14,7 +14,7 @@ export function useIntersectionObserver(options: UseIntersectionObserverOptions 
     if (!element) return;
 
     const observer = new IntersectionObserver(([entry]) => {
-      setIsIntersecting(entry.isIntersecting);
+      setIsIntersecting(entry!.isIntersecting);
     }, { threshold: options.threshold || 0, rootMargin: options.rootMargin || '0px' });
 
     observer.observe(element);

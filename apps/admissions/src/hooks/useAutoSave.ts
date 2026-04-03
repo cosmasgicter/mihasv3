@@ -216,7 +216,7 @@ export function useAutoSave(
       
       // Process queued saves in order
       for (let index = 0; index < saveQueue.length; index += 1) {
-        const queuedData = saveQueue[index]
+        const queuedData = saveQueue[index]!
         try {
           await onSave(queuedData)
         } catch (error) {

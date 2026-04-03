@@ -545,7 +545,7 @@ export async function exportUsersToPDF<TRecord extends Record<string, unknown>>(
 
     if (lines.length > maxLinesPerCell) {
       const truncated = lines.slice(0, maxLinesPerCell)
-      const last = truncated[maxLinesPerCell - 1]
+      const last = truncated[maxLinesPerCell - 1]!
       truncated[maxLinesPerCell - 1] = last.length >= 1 ? `${last.replace(/\.?$/, '')}…` : '…'
       return truncated
     }
@@ -596,7 +596,7 @@ export async function exportUsersToPDF<TRecord extends Record<string, unknown>>(
       const textX = columnX + cellPadding
       const textY = headerBottom + (headerHeight - headerFontSize) / 2
 
-      page.drawText(columnLabels[index], {
+      page.drawText(columnLabels[index] ?? '', {
         x: textX,
         y: textY,
         size: headerFontSize,

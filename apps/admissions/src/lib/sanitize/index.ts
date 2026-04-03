@@ -77,7 +77,7 @@ export function sanitizeHtml(input: string): string {
     let attrs = '';
     let attrMatch;
     while ((attrMatch = attrPattern.exec(match)) !== null) {
-      const attrName = attrMatch[1].toLowerCase();
+      const attrName = attrMatch[1]!.toLowerCase();
       const attrValue = attrMatch[2] ?? attrMatch[3] ?? attrMatch[4] ?? '';
       if (ALLOWED_ATTRS.includes(attrName)) {
         // Prevent javascript: URLs in href

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Smart features for auto-filling forms and processing documents
 
 import { compressImage } from '@/lib/utils'
@@ -64,6 +63,8 @@ export interface ExtractedData {
   examYear?: string
   email?: string
   phone?: string
+  /** Sanitized raw text for debugging/manual review */
+  _rawText?: string
 }
 
 // Document parser for different document types
@@ -173,19 +174,19 @@ export class DocumentParser {
     // Extract student name
     const nameMatch = text.match(/(?:Student|Candidate|Name)\s*[:\-]?\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/i)
     if (nameMatch) {
-      extracted.name = this.cleanName(nameMatch[1])
+      extracted.name = this.cleanName(nameMatch[1]!)
     }
 
     // Extract school name
     const schoolMatch = text.match(/(?:School|Institution)\s*[:\-]?\s*([A-Z][A-Za-z\s]+)/i)
     if (schoolMatch) {
-      extracted.schoolName = schoolMatch[1].trim()
+      extracted.schoolName = schoolMatch[1]!.trim()
     }
 
     // Extract exam year
     const yearMatch = text.match(/(?:Year|Examination)\s*[:\-]?\s*(20\d{2})/i)
     if (yearMatch) {
-      extracted.examYear = yearMatch[1]
+      extracted.examYear = yearMatch[1]!
     }
 
     // Extract grades
@@ -237,8 +238,8 @@ export class DocumentParser {
     for (const pattern of patterns) {
       let match
       while ((match = pattern.exec(text)) !== null) {
-        const subjectRaw = match[1].trim().toLowerCase()
-        const gradeStr = match[2]
+        const subjectRaw = match[1]!.trim().toLowerCase()
+        const gradeStr = match[2]!
         
         const subject = this.normalizeSubject(subjectRaw)
         const grade = parseInt(gradeStr, 10)
@@ -255,7 +256,7 @@ export class DocumentParser {
 
   private static normalizeSubject(subject: string): string {
     const normalized = subject.toLowerCase().trim()
-    return this.SUBJECT_MAPPINGS[normalized] || this.toTitleCase(subject)
+    return this.SUBJECT_MAPPINGS[normalized] ?? this.toTitleCase(subject)
   }
 
   private static toTitleCase(str: string): string {
@@ -293,7 +294,7 @@ export class DocumentParser {
     // Try to parse and format date consistently
     const parsed = new Date(date)
     if (!isNaN(parsed.getTime())) {
-      return parsed.toISOString().split('T')[0]
+      return parsed.toISOString().split('T')[0]!
     }
     
     return date.trim()

@@ -132,7 +132,7 @@ const enforceCacheBudget = async (): Promise<void> => {
       // Evict oldest 10% of entries (LRU approximation)
       const evictCount = Math.max(1, Math.floor(keys.length * 0.1))
       for (let i = 0; i < evictCount; i++) {
-        await cache.delete(keys[i])
+        await cache.delete(keys[i]!)
       }
     }
   } catch {
@@ -448,7 +448,7 @@ self.addEventListener('message', (event) => {
   }
   
   if (event.data && event.data.type === 'GET_VERSION') {
-    event.ports[0].postMessage({
+    event.ports[0]!.postMessage({
       version: CACHE_VERSION,
       appVersion: APP_VERSION
     })

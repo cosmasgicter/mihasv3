@@ -21,7 +21,7 @@ export interface SectionCardProps extends Omit<React.HTMLAttributes<HTMLElement>
   description?: React.ReactNode
   icon?: React.ReactNode
   actions?: React.ReactNode
-  children: React.ReactNode
+  children?: React.ReactNode
   footer?: React.ReactNode
   contentClassName?: string
   headerClassName?: string

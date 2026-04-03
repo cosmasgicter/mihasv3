@@ -1,14 +1,13 @@
-// @ts-nocheck
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { useForm, type UseFormReturn, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { connectionManager } from '@/lib/connectionFix'
 
 import { useToastStore } from '@/hooks/useToast'
 import { useAuth } from '@/contexts/AuthContext'
-import { applicationsData } from '@/data/applications'
+import { applicationsData, type ApplicationUpdateData } from '@/data/applications'
 import { catalogData } from '@/data/catalog'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useProfileAutoPopulation, getBestValue, getUserMetadata } from '@/hooks/useProfileAutoPopulation'
@@ -20,9 +19,12 @@ import { checkEligibility, getRecommendedSubjects } from '@/lib/eligibilityEngin
 import { createApplicationSlip } from '@/lib/slipService'
 import type { ApplicationSlipData } from '@/lib/applicationSlip'
 import { sanitizeForLog } from '@/lib/security'
+import { logApiError } from '@/lib/apiErrorLogger'
+import { toError } from '@/lib/toError'
 import { findBestSubjectId } from '@/lib/subjectMatcher'
 import { apiClient } from '@/services/client'
 import { applicationService } from '@/services/applications'
+import type { Application, Intake } from '@/types/database'
 import { logger } from '@/lib/logger'
 import { safeJsonParse } from '@/lib/utils'
 import { clearAllDraftData, isDraftDeleted, clearDraftDeletedFlag } from '@/lib/draftManager'
@@ -66,7 +68,7 @@ interface UseWizardControllerResult {
   uploading: boolean
   error: string
   setError: (message: string) => void
-  form: ReturnType<typeof useForm<WizardFormData>>
+  form: UseFormReturn<WizardFormData, any, any>
   totalSteps: number
   currentStepIndex: number
   currentStepConfig: typeof wizardSteps[number]
@@ -102,7 +104,7 @@ interface UseWizardControllerResult {
   handleResultSlipUpload: (file: File | null) => void
   handleExtraKycUpload: (file: File | null) => void
   handleProofOfPaymentUpload: (file: File | null) => void
-  getPaymentTarget: () => string
+  getPaymentTarget: () => Promise<string>
   handleNextStep: () => Promise<void>
   handlePrevStep: () => void
   handleSubmitApplication: (data: WizardFormData) => Promise<void>
@@ -146,11 +148,11 @@ export const hasRecentWizardRedirectGuard = (rawGuardValue: string | null, now: 
   return now - guard.createdAt < 15_000
 }
 
-function sanitizeInput(value: any): any {
+function sanitizeInput(value: string | undefined | null): string {
   if (typeof value === 'string') {
     return value.trim().replace(/<script[^>]*>.*?<\/script>/gi, '').replace(/<[^>]+>/g, '')
   }
-  return value
+  return ''
 }
 
 const useWizardController = (): UseWizardControllerResult => {
@@ -202,7 +204,7 @@ const useWizardController = (): UseWizardControllerResult => {
       
       // Exact name match
       const exactMatches = list.filter(program => program.name?.trim().toLowerCase() === normalized)
-      if (exactMatches.length === 1) return exactMatches[0].id
+      if (exactMatches.length === 1) return exactMatches[0]!.id
 
       // Multiple exact matches - use institution hint
       if (exactMatches.length > 1 && institutionHint) {
@@ -214,7 +216,7 @@ const useWizardController = (): UseWizardControllerResult => {
         })
         if (byInstitution) return byInstitution.id
         // Return first match if institution hint doesn't help
-        return exactMatches[0].id
+        return exactMatches[0]!.id
       }
 
       // Partial name match (fallback)
@@ -223,7 +225,7 @@ const useWizardController = (): UseWizardControllerResult => {
         return programName.includes(normalized) || normalized.includes(programName)
       })
       
-      if (partialMatches.length === 1) return partialMatches[0].id
+      if (partialMatches.length === 1) return partialMatches[0]!.id
       if (partialMatches.length > 1 && institutionHint) {
         const hint = institutionHint.trim().toLowerCase()
         const byInstitution = partialMatches.find(program => {
@@ -302,7 +304,7 @@ const useWizardController = (): UseWizardControllerResult => {
   }, [])
 
   const totalSteps = wizardSteps.length
-  const currentStepConfig = wizardSteps[currentStepIndex] ?? wizardSteps[0]
+  const currentStepConfig = (wizardSteps[currentStepIndex] ?? wizardSteps[0])!
   const isLastStep = currentStepConfig.key === 'submit'
 
   const { data: programsData } = catalogData.usePrograms()
@@ -319,7 +321,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
   useEffect(() => {
     if (intakesData?.intakes) {
-      const formattedIntakes = (intakesData.intakes as WizardIntake[]).map(intake => {
+      const formattedIntakes = (intakesData.intakes as unknown as Array<Intake & { year?: number }>).map(intake => {
         const normalizedName = intake.name?.trim() || ''
         const yearString = Number.isFinite(intake.year) ? String(intake.year) : ''
         const includesYear = yearString && normalizedName.includes(yearString)
@@ -348,7 +350,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const resolver = useMemo(() => zodResolver(schema), [schema])
 
   const form = useForm<WizardFormData>({
-    resolver,
+    resolver: resolver as unknown as Resolver<WizardFormData>,
     defaultValues: async () => {
       const { PAYMENT_CONFIG } = await import('@/config/payments')
       return {
@@ -356,7 +358,7 @@ const useWizardController = (): UseWizardControllerResult => {
         payment_option: 'pay_now',
         amount: PAYMENT_CONFIG.DEFAULT_AMOUNT,
         payment_method: PAYMENT_CONFIG.PAYMENT_METHODS[0]
-      }
+      } as WizardFormData
     }
   })
   const { watch, setValue, getValues } = form
@@ -430,11 +432,11 @@ const useWizardController = (): UseWizardControllerResult => {
         }
         
         const gradesToSync = parsed.grades
-          .map((g: any) => ({
+          .map((g: { subject?: unknown; grade?: unknown }) => ({
             subject_id: findBestSubjectId(g.subject?.toString() || '', subjects) || '',
             grade: Number(g.grade) || 0
           }))
-          .filter((g: any) => g.subject_id && g.grade > 0)
+          .filter((g: { subject_id: string; grade: number }) => g.subject_id && g.grade > 0)
           
         if (gradesToSync.length === 0) {
           showWarning('Could not match subjects. Please enter grades manually.')
@@ -682,7 +684,7 @@ const useWizardController = (): UseWizardControllerResult => {
     return () => window.removeEventListener('mihas:before-auth-redirect', handleAuthRedirect)
   }, [preserveDraftBeforeAuthRedirect])
 
-  const { completionPercentage, missingFields, hasAutoPopulatedData } = useProfileAutoPopulation(setValue)
+  const { completionPercentage, missingFields, hasAutoPopulatedData } = useProfileAutoPopulation(setValue as (field: string, value: string) => void)
 
   useEffect(() => {
     const currentIntake = watch('intake')
@@ -744,15 +746,54 @@ const useWizardController = (): UseWizardControllerResult => {
         }
         
         // Load both local and server drafts, then reconcile by timestamp
-        let localDraft: any = null
+        interface LocalDraftShape {
+          formData: Record<string, unknown>
+          selectedGrades?: unknown[]
+          currentStep?: number
+          currentStepKey?: string
+          applicationId?: string
+          savedAt?: string
+          userId?: string
+          version?: number
+        }
+        interface ServerDraftShape {
+          id: string
+          full_name?: string
+          nrc_number?: string
+          passport_number?: string
+          date_of_birth?: string
+          sex?: string
+          phone?: string
+          email?: string
+          residence_town?: string
+          country?: string
+          nationality?: string
+          next_of_kin_name?: string
+          next_of_kin_phone?: string
+          pop_url?: string
+          payment_method?: string
+          paid_at?: string
+          payer_name?: string
+          payer_phone?: string
+          amount?: number
+          momo_ref?: string
+          program?: string
+          intake?: string
+          institution?: string
+          result_slip_url?: string
+          status?: string
+          updated_at?: string
+          created_at?: string
+        }
+        let localDraft: LocalDraftShape | null = null
         let localTimestamp: Date | null = null
-        let serverApp: any = null
+        let serverApp: ServerDraftShape | null = null
         let serverTimestamp: Date | null = null
         
         // 1. Check localStorage for local draft
         const draft = await applicationSessionManager.getLocalWizardDraft(user.id)
         if (draft && draft.formData && draft.version === 2) {
-          localDraft = draft
+          localDraft = draft as LocalDraftShape
           localTimestamp = draft.savedAt ? new Date(draft.savedAt) : null
         } else if (localStorage.getItem('applicationWizardDraft')) {
           localStorage.removeItem('applicationWizardDraft')
@@ -763,7 +804,7 @@ const useWizardController = (): UseWizardControllerResult => {
         
         // 2. Check database for server draft
         if (draftApplications?.applications && draftApplications.applications.length > 0) {
-          serverApp = draftApplications.applications[0]
+          serverApp = draftApplications.applications[0] as unknown as ServerDraftShape
           serverTimestamp = serverApp.updated_at ? new Date(serverApp.updated_at) : 
                           (serverApp.created_at ? new Date(serverApp.created_at) : null)
         }
@@ -793,14 +834,14 @@ const useWizardController = (): UseWizardControllerResult => {
                   ? normalizeDateTimeLocalValue(rawValue)
                   : rawValue
               if (value !== undefined && value !== null && value !== '') {
-                setValue(key as keyof WizardFormData, value, { shouldValidate: false })
+                setValue(key as keyof WizardFormData, value as WizardFormData[keyof WizardFormData], { shouldValidate: false })
               }
             })
             
             // Handle program ID resolution correctly
             if (localDraft.formData.program) {
               const resolvedProgramId = findProgramId(
-                localDraft.formData.program,
+                localDraft.formData.program as string,
                 undefined,
                 programsData?.programs as WizardProgram[] | undefined
               )
@@ -811,20 +852,23 @@ const useWizardController = (): UseWizardControllerResult => {
             
             // Ensure intake is restored
             if (localDraft.formData.intake) {
-              setValue('intake', localDraft.formData.intake, { shouldValidate: false })
+              setValue('intake', localDraft.formData.intake as string, { shouldValidate: false })
             }
             
             // 3.3: Validate grades array structure before setting
             if (localDraft.selectedGrades && Array.isArray(localDraft.selectedGrades)) {
-              const validGrades = localDraft.selectedGrades.filter((grade: any) => 
+              const validGrades = localDraft.selectedGrades.filter((grade: unknown) => 
                 grade && 
                 typeof grade === 'object' &&
-                typeof grade.subject_id === 'string' &&
-                (typeof grade.grade === 'number' || typeof grade.grade === 'string')
-              ).map((grade: any) => ({
-                subject_id: grade.subject_id,
-                grade: typeof grade.grade === 'string' ? parseInt(grade.grade, 10) : grade.grade
-              }))
+                typeof (grade as Record<string, unknown>).subject_id === 'string' &&
+                (typeof (grade as Record<string, unknown>).grade === 'number' || typeof (grade as Record<string, unknown>).grade === 'string')
+              ).map((grade: unknown) => {
+                const g = grade as { subject_id: string; grade: string | number }
+                return {
+                  subject_id: g.subject_id,
+                  grade: typeof g.grade === 'string' ? parseInt(g.grade, 10) : g.grade
+                }
+              })
               
               if (validGrades.length > 0) {
                 setSelectedGrades(validGrades)
@@ -867,12 +911,12 @@ const useWizardController = (): UseWizardControllerResult => {
           setValue('nrc_number', app.nrc_number || '', { shouldValidate: false })
           setValue('passport_number', app.passport_number || '', { shouldValidate: false })
           setValue('date_of_birth', normalizeDateInputValue(app.date_of_birth || ''), { shouldValidate: false })
-          setValue('sex', app.sex || '', { shouldValidate: false })
+          setValue('sex', (app.sex || '') as WizardFormData['sex'], { shouldValidate: false })
           setValue('phone', app.phone || '', { shouldValidate: false })
           setValue('email', app.email || '', { shouldValidate: false })
           setValue('residence_town', normalizeResidenceTown(app.residence_town || ''), { shouldValidate: false })
-          setValue('country', (app as any).country || DEFAULT_RESIDENCE_COUNTRY, { shouldValidate: false })
-          setValue('nationality', (app as any).nationality || 'Zambian', { shouldValidate: false })
+          setValue('country', (String(app.country ?? '') || DEFAULT_RESIDENCE_COUNTRY), { shouldValidate: false })
+          setValue('nationality', (String(app.nationality ?? '') || 'Zambian'), { shouldValidate: false })
           setValue('next_of_kin_name', app.next_of_kin_name || '', { shouldValidate: false })
           setValue('next_of_kin_phone', app.next_of_kin_phone || '', { shouldValidate: false })
           setValue(
@@ -880,7 +924,7 @@ const useWizardController = (): UseWizardControllerResult => {
             app.pop_url || app.payment_method || app.paid_at ? 'pay_now' : 'pay_later',
             { shouldValidate: false }
           )
-          setValue('payment_method', app.payment_method || '', { shouldValidate: false })
+          setValue('payment_method', (app.payment_method || '') as WizardFormData['payment_method'], { shouldValidate: false })
           setValue('payer_name', app.payer_name || '', { shouldValidate: false })
           setValue('payer_phone', app.payer_phone || '', { shouldValidate: false })
           setValue('amount', app.amount || 153, { shouldValidate: false })
@@ -942,7 +986,7 @@ const useWizardController = (): UseWizardControllerResult => {
           }
         }
       } catch (error) {
-        console.error('Error loading draft application:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
+        console.error('Error loading draft application:', { error: sanitizeForLog(toError(error).message) })
       } finally {
         setRestoringDraft(false)
         setDraftLoaded(true)
@@ -996,7 +1040,7 @@ const useWizardController = (): UseWizardControllerResult => {
         sessionStorage.removeItem('applicationWizardDraft')
         window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: draft }))
       } catch (error) {
-        console.error('Error saving draft:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
+        console.error('Error saving draft:', { error: sanitizeForLog(toError(error).message) })
       }
 
       if (!applicationId && navigator.onLine && canCreateServerDraft(formData)) {
@@ -1024,11 +1068,11 @@ const useWizardController = (): UseWizardControllerResult => {
             buildServerDraftPayload({
               formData: {
                 ...formData,
-                program: resolvedProgram.id,
-                intake: resolvedIntake.id
+                program: resolvedProgram.label,
+                intake: resolvedIntake.label
               },
               selectedProgramDetails,
-              institutionCode: institutionId,
+              institutionCode: institutionLabel,
               nationality,
               applicationNumber,
               trackingCode,
@@ -1051,7 +1095,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
             setSubmittedApplication(prev => ({
               applicationNumber: app.application_number || applicationNumber,
-              trackingCode: app.public_tracking_code || trackingCode,
+              trackingCode: String(app.public_tracking_code || trackingCode),
               program: resolvedProgram.label,
               institution: institutionLabel,
               intake: resolvedIntake.label,
@@ -1066,7 +1110,8 @@ const useWizardController = (): UseWizardControllerResult => {
             window.dispatchEvent(new CustomEvent('applicationCreated', { detail: { applicationId: app.id, source: 'autosave' } }))
           }
         } catch (serverError) {
-          console.warn('Server draft create failed, local draft retained:', sanitizeForLog(serverError instanceof Error ? serverError.message : 'Unknown error'))
+          logApiError('application-wizard', 'POST /applications/', serverError)
+          console.warn('Server draft create failed, local draft retained:', sanitizeForLog(toError(serverError).message))
         }
       }
 
@@ -1083,7 +1128,7 @@ const useWizardController = (): UseWizardControllerResult => {
             nrc_number: formData.nrc_number || undefined,
             passport_number: formData.passport_number || undefined,
             date_of_birth: formData.date_of_birth || undefined,
-            sex: formData.sex || undefined,
+            sex: formData.sex?.toLowerCase() || undefined,
             phone: formData.phone || undefined,
             email: formData.email || undefined,
             residence_town: normalizeResidenceTown(formData.residence_town) || undefined,
@@ -1101,10 +1146,10 @@ const useWizardController = (): UseWizardControllerResult => {
             ...(Object.prototype.hasOwnProperty.call(paymentUpdate, 'pop_url')
               ? { pop_url: paymentUpdate.pop_url }
               : {}),
-          } as any)
+          } as Partial<Application>)
         } catch (serverError) {
           // Non-blocking: local draft is retained, will retry on next 8-second interval
-          console.warn('Server draft save failed, local draft retained:', sanitizeForLog(serverError instanceof Error ? serverError.message : 'Unknown error'))
+          logApiError('application-wizard', `PATCH /applications/${applicationId}/`, serverError)
         }
       }
 
@@ -1147,7 +1192,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const updateGrade = useCallback((index: number, field: keyof SubjectGrade, value: string | number) => {
     setSelectedGrades(prev => {
       const next = [...prev]
-      next[index] = { ...next[index], [field]: value }
+      next[index] = { ...next[index]!, [field]: value }
       return next
     })
   }, [])
@@ -1261,7 +1306,7 @@ const useWizardController = (): UseWizardControllerResult => {
         if (!applicationId) {
           const { checkDuplicateApplication } = await import('@/lib/duplicateApplicationCheck')
           const duplicateCheck = await checkDuplicateApplication(
-            user.id,
+            user!.id,
             resolvedProgram.id,
             resolvedIntake.id
           )
@@ -1287,31 +1332,31 @@ const useWizardController = (): UseWizardControllerResult => {
               nrc_number: formData.nrc_number || null,
               passport_number: formData.passport_number || null,
               date_of_birth: formData.date_of_birth,
-              sex: formData.sex,
+              sex: formData.sex?.toLowerCase(),
               phone: formData.phone,
               email: formData.email,
               residence_town: normalizeResidenceTown(formData.residence_town),
               country: formData.country || country,
               next_of_kin_name: formData.next_of_kin_name || null,
               next_of_kin_phone: formData.next_of_kin_phone || null,
-              program: resolvedProgram.id,
-              intake: resolvedIntake.id,
-              institution: institutionId,
+              program: resolvedProgram.label,
+              intake: resolvedIntake.label,
+              institution: institutionLabel,
               nationality: nationality
             }
           })
 
           setSubmittedApplication(prev => ({
-            applicationNumber: updatedApp.application_number,
-            trackingCode: updatedApp.public_tracking_code,
+            applicationNumber: updatedApp?.application_number || prev?.applicationNumber || '',
+            trackingCode: String(updatedApp?.public_tracking_code || prev?.trackingCode || ''),
             program: programName,
             institution: institutionLabel,
             intake: resolvedIntake.label,
             fullName: formData.full_name,
             email: formData.email,
             phone: formData.phone,
-            status: updatedApp.status || 'draft',
-            paymentStatus: updatedApp.payment_status ?? prev?.paymentStatus ?? null
+            status: updatedApp?.status || 'draft',
+            paymentStatus: updatedApp?.payment_status ?? prev?.paymentStatus ?? null
           }))
           
           // Invalidate cache and notify dashboard
@@ -1334,16 +1379,16 @@ const useWizardController = (): UseWizardControllerResult => {
             nrc_number: sanitizeInput(formData.nrc_number) || null,
             passport_number: sanitizeInput(formData.passport_number) || null,
             date_of_birth: formData.date_of_birth,
-            sex: formData.sex,
+            sex: formData.sex?.toLowerCase(),
             phone: sanitizeInput(formData.phone),
             email: sanitizeInput(formData.email),
             residence_town: normalizeResidenceTown(formData.residence_town),
             country: sanitizeInput(formData.country) || country,
             next_of_kin_name: sanitizeInput(formData.next_of_kin_name) || null,
             next_of_kin_phone: sanitizeInput(formData.next_of_kin_phone) || null,
-            program: resolvedProgram.id,
-            intake: resolvedIntake.id,
-            institution: institutionId,
+            program: resolvedProgram.label,
+            intake: resolvedIntake.label,
+            institution: institutionLabel,
             nationality: nationality,
             status: 'draft'
           })
@@ -1373,12 +1418,26 @@ const useWizardController = (): UseWizardControllerResult => {
         
         goToStep(currentStepIndex + 1)
       } catch (error) {
-        console.error('Application save error:', error)
-        let errorMessage = error instanceof Error ? error.message : 'Failed to save application'
+        logApiError('application-wizard', '/applications/', error)
+        let errorMessage = toError(error).message || 'Failed to save application'
         
-        // Handle development mode - API should now return success
-        if (errorMessage.includes('Bad Request')) {
+        // Handle 404 for unavailable programs/intakes (Req 6.5)
+        const errorStatus = (error as { status?: number })?.status
+        if (errorStatus === 404) {
+          errorMessage = 'The selected program or intake is no longer available. Please select a different option.'
+        } else if (errorMessage.includes('Bad Request')) {
           errorMessage = 'Connection issue - please try again'
+        }
+        
+        // Map Django field-level validation errors to wizard display (Req 6.3)
+        const fieldErrors = (error as { fieldErrors?: Record<string, string> })?.fieldErrors
+        if (fieldErrors && Object.keys(fieldErrors).length > 0) {
+          errorMessage = Object.entries(fieldErrors)
+            .map(([field, msg]) => {
+              const label = field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+              return `${label}: ${msg}`
+            })
+            .join('; ')
         }
         
         setError(errorMessage)
@@ -1430,8 +1489,8 @@ const useWizardController = (): UseWizardControllerResult => {
         }
         goToStep(currentStepIndex + 1)
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Failed to save grades'
-        console.error('Education step error:', error)
+        const errorMessage = toError(error).message || 'Failed to save grades'
+        logApiError('application-wizard', `/applications/${applicationId}/grades/`, error)
         setError(errorMessage)
       }
       return
@@ -1463,13 +1522,13 @@ const useWizardController = (): UseWizardControllerResult => {
         })
         await updateApplication.mutateAsync({
           id: applicationId,
-          data: paymentUpdate
+          data: paymentUpdate as unknown as ApplicationUpdateData
         })
         queryClient.invalidateQueries({ queryKey: ['applications'] })
         goToStep(currentStepIndex + 1)
       } catch (error) {
+        logApiError('application-wizard', `/applications/${applicationId}/`, error)
         showError('Failed to save payment data. Please try again.')
-        console.error('Payment save error:', error)
       }
     }
   }, [
@@ -1553,7 +1612,7 @@ const useWizardController = (): UseWizardControllerResult => {
       
       const updatedApp = await updateApplication.mutateAsync({
         id: applicationId,
-        data: updateData
+        data: updateData as unknown as ApplicationUpdateData
       })
       
 
@@ -1565,11 +1624,11 @@ const useWizardController = (): UseWizardControllerResult => {
       let institutionName = updatedApp.institution
       try {
         const result = await apiClient.request<{ institutions?: Array<{ id: string; slug?: string; name: string }> } | Array<{ id: string; slug?: string; name: string }>>(
-          `/catalog?type=institutions`
+          `/catalog/institutions/`
         )
         const institutions = Array.isArray(result) ? result : result?.institutions ?? []
         const match = institutions.find(
-          (inst: any) =>
+          (inst: { id: string; slug?: string; name: string }) =>
             inst.id === updatedApp.institution
             || inst.slug === updatedApp.institution
             || inst.name === updatedApp.institution
@@ -1578,19 +1637,19 @@ const useWizardController = (): UseWizardControllerResult => {
           institutionName = match.name
         }
       } catch (e) {
-        console.error('Failed to fetch institution name:', e)
+        logApiError('application-wizard', '/catalog/institutions/', e)
       }
 
       setSubmittedApplication(prev => ({
-        applicationNumber: updatedApp.application_number,
-        trackingCode: updatedApp.public_tracking_code,
-        program: updatedApp.program,
-        institution: institutionName,
-        intake: updatedApp.intake,
-        fullName: updatedApp.full_name,
-        email: updatedApp.email,
-        phone: updatedApp.phone,
-        status: updatedApp.status,
+        applicationNumber: updatedApp.application_number || prev?.applicationNumber || '',
+        trackingCode: String(updatedApp.public_tracking_code || prev?.trackingCode || ''),
+        program: updatedApp.program || prev?.program || '',
+        institution: String(institutionName || prev?.institution || ''),
+        intake: updatedApp.intake || prev?.intake || '',
+        fullName: updatedApp.full_name || prev?.fullName || '',
+        email: updatedApp.email || prev?.email || '',
+        phone: updatedApp.phone || prev?.phone || '',
+        status: updatedApp.status || 'submitted',
         paymentStatus: updatedApp.payment_status ?? prev?.paymentStatus ?? null,
         submittedAt: updatedApp.submitted_at,
         updatedAt: updatedApp.updated_at,
@@ -1626,11 +1685,28 @@ const useWizardController = (): UseWizardControllerResult => {
       showSuccess('Application submitted successfully!')
       setSuccess(true)
     } catch (error) {
-      console.error('Submission error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
-      let message = error instanceof Error ? error.message : 'Failed to submit application'
-      if (message.includes('Bad Request')) {
+      logApiError('application-wizard', `/applications/${applicationId}/`, error)
+      let message = toError(error).message || 'Failed to submit application'
+      
+      // Handle 404 for unavailable programs/intakes (Req 6.5)
+      const errorStatus = (error as { status?: number })?.status
+      if (errorStatus === 404) {
+        message = 'The selected program or intake is no longer available. Please go back and select a different option.'
+      } else if (message.includes('Bad Request')) {
         message = 'Connection issue - please try again'
       }
+      
+      // Map Django field-level validation errors (Req 6.3)
+      const fieldErrors = (error as { fieldErrors?: Record<string, string> })?.fieldErrors
+      if (fieldErrors && Object.keys(fieldErrors).length > 0) {
+        message = Object.entries(fieldErrors)
+          .map(([field, msg]) => {
+            const label = field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+            return `${label}: ${msg}`
+          })
+          .join('; ')
+      }
+      
       setError(message)
       showError(message)
     } finally {

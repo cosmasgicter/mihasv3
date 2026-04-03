@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { z } from 'zod'
 
 import type { Institution, Program, Intake } from '@/types/database'
@@ -20,7 +19,7 @@ export type WizardIntake = Intake & {
 
 const createProgramValidator = (validProgramIds: string[]) =>
   z
-    .string({ required_error: 'Please select a program' })
+    .string({ error: 'Please select a program' })
     .min(1, 'Please select a program')
     .refine(
       value =>
@@ -32,7 +31,7 @@ const createProgramValidator = (validProgramIds: string[]) =>
 
 const createIntakeValidator = (validIntakeIds: string[]) =>
   z
-    .string({ required_error: 'Please select an intake' })
+    .string({ error: 'Please select an intake' })
     .min(1, 'Please select an intake')
     .refine(
       value =>
@@ -58,7 +57,7 @@ const createSchema = (validProgramIds: string[], validIntakeIds: string[]) =>
         }, {
           message: 'Please enter a valid date of birth (must be at least 16 years old)'
         }),
-      sex: z.enum(['Male', 'Female'], { required_error: 'Please select sex' }),
+      sex: z.enum(['Male', 'Female'], { error: 'Please select sex' }),
       phone: z.string().min(10, 'Valid phone number is required'),
       email: z.string().email('Valid email is required'),
       residence_town: z

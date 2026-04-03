@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { useToastStore } from '@/hooks/useToast'
 import { applicationService } from '@/services/applications'
+import { logApiError } from '@/lib/apiErrorLogger'
 import { PageShell } from '@/components/ui/PageShell'
 import { VirtualizedApplicationsGrid } from '@/components/admin/applications/VirtualizedApplicationsGrid'
 import { ApplicationCard } from '@/components/admin/applications/ApplicationCard'
@@ -105,7 +106,7 @@ const buildApplicationsExportFileName = (filters: {
   programFilter?: string
   institutionFilter?: string
 }) => {
-  const datePart = new Date().toISOString().split('T')[0]
+  const datePart = new Date().toISOString().split('T')[0]!
   const segments = ['applications']
 
   if (filters.statusFilter) {
@@ -297,7 +298,7 @@ export default function Applications() {
 
       showSuccess('Export complete', 'Your applications report has been downloaded.')
     } catch (error) {
-      console.error('Failed to export applications', error)
+      logApiError('admin-applications', '/applications/export/', error)
       showError('Export failed', error instanceof Error ? error.message : 'Unable to export applications right now.')
     } finally {
       setExportingFormat(null)
@@ -332,6 +333,7 @@ export default function Applications() {
       })
       showSuccess('Notification sent', 'Student has been notified successfully.')
     } catch (error) {
+      logApiError('admin-applications', `/applications/${selectedApplication}/notification`, error)
       showError('Failed to send notification', error instanceof Error ? error.message : 'Unable to send notification.')
     } finally {
       setModalLoading(prev => ({ ...prev, notification: false }))
@@ -369,9 +371,10 @@ export default function Applications() {
         showInfo('No history', 'No status changes recorded for this application.')
       }
     } catch (error) {
+      logApiError('admin-applications', `/applications/${selectedApplication}/summary/`, error)
       showError('Failed to load history', error instanceof Error ? error.message : 'Unable to load application history.')
     }
-  }, [selectedApplication, showSuccess, showError, showInfo])
+  }, [selectedApplication, showError, showInfo])
 
   const handleGenerateAcceptanceLetter = useCallback(async () => {
     if (!selectedApplication) return
@@ -381,6 +384,7 @@ export default function Applications() {
       await applicationService.generateAcceptanceLetter(selectedApplication)
       showSuccess('Acceptance letter generated', 'The acceptance letter has been generated and sent to the student.')
     } catch (error) {
+      logApiError('admin-applications', `/applications/${selectedApplication}/acceptance-letter/`, error)
       showError('Failed to generate letter', error instanceof Error ? error.message : 'Unable to generate acceptance letter.')
     } finally {
       setModalLoading(prev => ({ ...prev, acceptance: false }))
@@ -395,6 +399,7 @@ export default function Applications() {
       await applicationService.generateFinanceReceipt(selectedApplication)
       showSuccess('Finance receipt generated', 'The finance receipt has been generated and sent to the student.')
     } catch (error) {
+      logApiError('admin-applications', `/applications/${selectedApplication}/finance-receipt/`, error)
       showError('Failed to generate receipt', error instanceof Error ? error.message : 'Unable to generate finance receipt.')
     } finally {
       setModalLoading(prev => ({ ...prev, receipt: false }))
@@ -419,14 +424,29 @@ export default function Applications() {
       
       showSuccess('Status updated', `Application status changed to ${formatApplicationStatus(newStatus)}.`)
       return result
-    } catch (error) {
-      console.error('Failed to update application status:', error)
-      showError('Status update failed', error instanceof Error ? error.message : 'Unable to update application status. Please try again.')
+    } catch (error: any) {
+      const status = error?.status ?? 0
+      const message = error instanceof Error ? error.message : String(error)
+
+      // Handle 409 conflict — application was modified by another user
+      if (status === 409 || message.includes('Conflict detected') || message.includes('modified')) {
+        logApiError('admin-applications', `/applications/${applicationId}/review/`, error)
+        showError(
+          'Conflict detected',
+          'This application was modified by another user. Please reload to see the latest data.'
+        )
+        // Offer automatic reload of the current page data
+        await refreshCurrentPage()
+        return undefined
+      }
+
+      logApiError('admin-applications', `/applications/${applicationId}/review/`, error)
+      showError('Status update failed', message || 'Unable to update application status. Please try again.')
       throw error // Re-throw to let the calling component know the operation failed
     } finally {
       setUpdatingStatusId(null)
     }
-  }, [updateStatus, showSuccess, showError])
+  }, [updateStatus, showSuccess, showError, refreshCurrentPage])
 
   // Wrapper for updatePaymentStatus with error handling and toast notifications
   const handlePaymentStatusUpdate = useCallback(async (
@@ -451,14 +471,28 @@ export default function Applications() {
       }
 
       showSuccess('Payment status updated', `Payment status changed to ${getPaymentStatusLabel(newPaymentStatus)}.`)
-    } catch (error) {
-      console.error('Failed to update payment status:', error)
-      showError('Payment update failed', error instanceof Error ? error.message : 'Unable to update payment status. Please try again.')
+    } catch (error: any) {
+      const status = error?.status ?? 0
+      const message = error instanceof Error ? error.message : String(error)
+
+      // Handle 409 conflict — application was modified by another user
+      if (status === 409 || message.includes('Conflict detected') || message.includes('modified')) {
+        logApiError('admin-applications', `/applications/${applicationId}/review/`, error)
+        showError(
+          'Conflict detected',
+          'This application was modified by another user. Please reload to see the latest data.'
+        )
+        await refreshCurrentPage()
+        return
+      }
+
+      logApiError('admin-applications', `/applications/${applicationId}/review/`, error)
+      showError('Payment update failed', message || 'Unable to update payment status. Please try again.')
       throw error // Re-throw to let the calling component know the operation failed
     } finally {
       setUpdatingPaymentId(null)
     }
-  }, [updatePaymentStatus, showSuccess, showError])
+  }, [updatePaymentStatus, showSuccess, showError, refreshCurrentPage])
 
   const handleBulkAction = useCallback(async (action: BulkApplicationAction, ids: string[]) => {
     if (ids.length === 0) {
@@ -469,17 +503,33 @@ export default function Applications() {
     setBulkActionLoading(true)
     try {
       const targetStatus = BULK_ACTION_STATUS_MAP[action]
-      const promises = ids.map(id => updateStatus(id, targetStatus))
+      await applicationService.bulkStatus({
+        applicationIds: ids,
+        status: targetStatus,
+      })
 
-      await Promise.all(promises)
       showSuccess('Bulk action completed', `${ids.length} applications updated successfully.`)
       setSelectedIds([])
-    } catch (error) {
-      showError('Bulk action failed', error instanceof Error ? error.message : 'Unable to complete bulk action.')
+      await refreshCurrentPage()
+    } catch (error: any) {
+      const status = error?.status ?? 0
+      const message = error instanceof Error ? error.message : String(error)
+
+      if (status === 409 || message.includes('Conflict detected') || message.includes('modified')) {
+        logApiError('admin-applications', '/applications/bulk-status/', error)
+        showError(
+          'Conflict detected',
+          'One or more applications were modified by another user. Please reload and try again.'
+        )
+        await refreshCurrentPage()
+      } else {
+        logApiError('admin-applications', '/applications/bulk-status/', error)
+        showError('Bulk action failed', message || 'Unable to complete bulk action.')
+      }
     } finally {
       setBulkActionLoading(false)
     }
-  }, [updateStatus, showSuccess, showError])
+  }, [showSuccess, showError, refreshCurrentPage])
 
   const stats = useMemo(() => {
     return buildApplicationsOverview(applications, pagination.totalCount)
@@ -697,7 +747,7 @@ export default function Applications() {
           <ApplicationsTableView
             applications={applications}
             onViewDetails={handleViewDetails}
-            onStatusUpdate={handleStatusUpdate}
+            onStatusUpdate={handleStatusUpdate as (id: string, status: string) => Promise<void>}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
             loading={isRefreshing}
@@ -705,7 +755,7 @@ export default function Applications() {
         ) : applications.length > 100 ? (
           <VirtualizedApplicationsGrid
             applications={applications}
-            onStatusUpdate={handleStatusUpdate}
+            onStatusUpdate={handleStatusUpdate as (id: string, status: string) => Promise<void>}
             onPaymentStatusUpdate={handlePaymentStatusUpdate}
             onViewDetails={handleViewDetails}
             updatingStatusId={updatingStatusId}
@@ -721,7 +771,7 @@ export default function Applications() {
             hasMore={hasMore}
             isLoadingMore={isLoadingMore}
             onLoadMore={loadNextPage}
-            onStatusUpdate={handleStatusUpdate}
+            onStatusUpdate={handleStatusUpdate as (id: string, status: string) => Promise<void>}
             onPaymentStatusUpdate={handlePaymentStatusUpdate}
             onViewDetails={handleViewDetails}
             selectedIds={selectedIds}
@@ -731,7 +781,7 @@ export default function Applications() {
 
         <BulkActionsBar
           selectedIds={selectedIds}
-          onBulkAction={handleBulkAction}
+          onBulkAction={handleBulkAction as (action: string, ids: string[]) => Promise<void>}
           onClearSelection={() => setSelectedIds([])}
         />
 
@@ -743,7 +793,7 @@ export default function Applications() {
           onSendNotification={handleSendNotification}
           onViewDocuments={handleViewDocuments}
           onViewHistory={handleViewHistory}
-          onUpdateStatus={handleStatusUpdate}
+          onUpdateStatus={handleStatusUpdate as (id: string, status: string, options?: { notes?: string; force?: boolean }) => Promise<any>}
           onPaymentStatusUpdate={handlePaymentStatusUpdate}
           onGenerateAcceptanceLetter={handleGenerateAcceptanceLetter}
           onGenerateFinanceReceipt={handleGenerateFinanceReceipt}

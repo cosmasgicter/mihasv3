@@ -336,15 +336,18 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
         if (!mountedRef.current) return
         
         console.error('[useRealtime] SSE error:', err.message)
-        setError(err.message)
         
-        // If SSE fails after max retries, fall back to polling
+        // If SSE fails after max retries, fall back to polling gracefully
         if (err.message.includes('Max reconnection attempts')) {
           console.log('[useRealtime] SSE failed, falling back to polling')
-          setStatus('error')
+          setStatus('polling')
+          setError(null)
           setIsReconnecting(false)
           sseFailedRef.current = true
           startPolling()
+        } else {
+          // Only set error state for non-fallback failures
+          setError(err.message)
         }
       },
     })

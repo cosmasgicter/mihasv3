@@ -113,6 +113,7 @@ function HeroSection() {
       {/* Gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary via-secondary to-primary opacity-95" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-black/10" />
+      {/* Intentional inline rgba: semi-transparent white overlay for decorative gradient effect — not a design token color */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_40%)]" />
 
       {/* Hero content with scroll-triggered animation */}

@@ -74,8 +74,8 @@ export function ApplicationsTableView({
       sortable: true,
       filterable: true,
       width: '120px',
-      render: (value: string) => (
-        <span className="font-mono text-sm text-primary">{value}</span>
+      render: (value: unknown) => (
+        <span className="font-mono text-sm text-primary">{String(value)}</span>
       ),
     },
     {
@@ -83,11 +83,11 @@ export function ApplicationsTableView({
       header: 'Applicant',
       sortable: true,
       filterable: true,
-      render: (value: string, row: ApplicationSummary) => (
+      render: (value: unknown, row: ApplicationSummary) => (
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
             <User className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="font-medium text-foreground">{value}</span>
+            <span className="font-medium text-foreground">{String(value)}</span>
           </div>
           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
@@ -103,9 +103,9 @@ export function ApplicationsTableView({
       header: 'Program',
       sortable: true,
       filterable: true,
-      render: (value: string, row: ApplicationSummary) => (
+      render: (value: unknown, row: ApplicationSummary) => (
         <div className="flex flex-col">
-          <span className="font-medium text-sm">{value}</span>
+          <span className="font-medium text-sm">{String(value)}</span>
           <span className="text-xs text-muted-foreground">{row.intake}</span>
         </div>
       ),
@@ -116,7 +116,8 @@ export function ApplicationsTableView({
       sortable: true,
       filterable: true,
       align: 'center',
-      render: (value: string, row: ApplicationSummary) => {
+      render: (value: unknown, row: ApplicationSummary) => {
+        const strValue = String(value ?? '')
         if (row.isDraft) {
           return (
             <DraftBadge
@@ -132,7 +133,7 @@ export function ApplicationsTableView({
           approved: { color: 'bg-green-100 text-green-800 border-green-300', label: 'APPROVED' },
           rejected: { color: 'bg-red-100 text-red-800 border-red-300', label: 'REJECTED' },
         };
-        const config = statusConfig[value] || { color: 'bg-gray-100 text-foreground border-gray-300', label: value?.toUpperCase() || 'UNKNOWN' };
+        const config = statusConfig[strValue] || { color: 'bg-gray-100 text-foreground border-gray-300', label: strValue?.toUpperCase() || 'UNKNOWN' };
         return (
           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${config.color}`}>
             {config.label}
@@ -146,8 +147,8 @@ export function ApplicationsTableView({
       sortable: true,
       filterable: true,
       align: 'center',
-      render: (value: string) => {
-        const normalized = normalizePaymentStatus(value);
+      render: (value: unknown) => {
+        const normalized = normalizePaymentStatus(String(value ?? ''));
         const badgeStyles: Record<string, string> = {
           not_paid: 'bg-slate-100 text-slate-800 border-slate-300',
           pending_review: 'bg-orange-100 text-orange-800 border-orange-300',
@@ -168,10 +169,12 @@ export function ApplicationsTableView({
       sortable: true,
       align: 'center',
       width: '80px',
-      render: (value: number, row: ApplicationSummary) => (
+      render: (value: unknown, row: ApplicationSummary) => {
+        const numValue = Number(value) || 0
+        return (
         <div className="flex flex-col items-center">
-          <span className={cn('font-semibold', getPointsColor(value))}>
-            {value > 0 ? value : '-'}
+          <span className={cn('font-semibold', getPointsColor(numValue))}>
+            {numValue > 0 ? numValue : '-'}
           </span>
           {row.total_subjects > 0 && (
             <span className="text-xs text-muted-foreground">
@@ -179,16 +182,17 @@ export function ApplicationsTableView({
             </span>
           )}
         </div>
-      ),
+        )
+      },
     },
     {
       key: 'submitted_at',
       header: 'Submitted',
       sortable: true,
       width: '120px',
-      render: (value: string, row: ApplicationSummary) => (
+      render: (value: unknown, row: ApplicationSummary) => (
         <div className="flex flex-col">
-          <span className="text-sm">{formatTableDate(value || row.created_at)}</span>
+          <span className="text-sm">{formatTableDate(String(value ?? '') || row.created_at)}</span>
           {row.days_since_submission > 0 && (
             <span className="text-xs text-muted-foreground">
               {row.days_since_submission}d ago
@@ -219,8 +223,8 @@ export function ApplicationsTableView({
   }, [onViewDetails]);
 
   // Handle selection change
-  const handleSelectionChange = useCallback((ids: string[]) => {
-    onSelectionChange?.(ids);
+  const handleSelectionChange = useCallback((ids: (string | number | boolean | undefined)[]) => {
+    onSelectionChange?.(ids.filter((id): id is string => typeof id === 'string'));
   }, [onSelectionChange]);
 
   return (
