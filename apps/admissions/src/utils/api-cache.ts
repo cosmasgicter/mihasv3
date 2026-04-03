@@ -1,17 +1,33 @@
 // API response caching utilities for improved performance
 
 import { getEnvVariable } from './env'
+import { getApiBaseUrl } from '@/lib/apiConfig'
+
+function addAllowedHost(hosts: Set<string>, url: string | undefined): void {
+  if (!url) {
+    return
+  }
+
+  try {
+    hosts.add(new URL(url).hostname)
+  } catch {
+    // Ignore invalid URLs and keep the existing allowlist.
+  }
+}
 
 function getAllowedRequestHosts(): string[] {
   const hosts = new Set<string>(['apply.mihas.edu.zm', 'localhost', '127.0.0.1'])
   const r2PublicUrl = getEnvVariable('VITE_R2_PUBLIC_URL', '')
+  const apiBaseUrl = getApiBaseUrl()
+
+  addAllowedHost(hosts, apiBaseUrl)
+
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    addAllowedHost(hosts, window.location.origin)
+  }
 
   if (r2PublicUrl) {
-    try {
-      hosts.add(new URL(r2PublicUrl).hostname)
-    } catch {
-      // Ignore invalid env values and keep safe defaults.
-    }
+    addAllowedHost(hosts, r2PublicUrl)
   }
 
   return Array.from(hosts)
