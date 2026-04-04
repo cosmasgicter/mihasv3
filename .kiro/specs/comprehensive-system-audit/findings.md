@@ -2095,3 +2095,351 @@ No serializer uses `fields = "__all__"` — all serializers define explicit fiel
 
 1. **P3-DB-001 (Medium):** Add `select_related` to querysets accessing FK fields — 46 relationships, only 4 optimized
 2. **P3-TEST-001 (Medium):** Add tests for jobs-ops backend apps (jobs, outreach, automation, integrations, analytics)
+
+---
+
+## Phase 4 — Frontend Quality
+
+### P4-EB-001: Error boundaries correctly layered at app, route, and section levels
+
+**Finding ID:** P4-EB-001
+**Severity:** Info (Positive finding)
+**Requirement:** Req 17.1, 17.2, 17.3
+**Summary:** Three error boundary layers: (1) App-level `ErrorBoundary` wraps the entire app, (2) `LazyLoadErrorBoundary` wraps each lazy-loaded route with retry prompt, (3) Section-level `ErrorBoundary` in the application wizard. `LazyLoadErrorBoundary` uses `getDerivedStateFromError` and `componentDidCatch` correctly.
+
+**Status:** Verified — No action needed
+
+---
+
+### P4-UX-001: Loading and empty states are widely implemented
+
+**Finding ID:** P4-UX-001
+**Severity:** Info (Positive finding)
+**Requirement:** Req 18.1, 18.2, 18.3, 18.4
+**Summary:** 89 loading state indicators (isLoading, skeleton, Spinner, UnifiedLoader, animate-pulse) found across page components. 31 empty state messages found. Pages use consistent `UnifiedLoader` and `animate-pulse` skeleton patterns.
+
+**Status:** Verified — No action needed
+
+---
+
+### P4-MOBILE-001: Mobile responsiveness well-implemented — 124 touch target enforcements
+
+**Finding ID:** P4-MOBILE-001
+**Severity:** Info (Positive finding)
+**Requirement:** Req 19.1, 19.2
+**Summary:** 124 instances of touch target size enforcement (`min-h-[44px]`, `min-h-touch`, `min-w-touch`) found across components. Tailwind config includes touch-specific breakpoints, safe-area spacing, and orientation breakpoints. Full mobile verification requires device testing (not possible in this environment).
+
+**Status:** Verified at code level — device testing recommended
+
+---
+
+### P4-JOPS-001: Jobs-ops API services correctly use apiClient — no raw fetch
+
+**Finding ID:** P4-JOPS-001
+**Severity:** Info (Positive finding)
+**Requirement:** Req 21.1, 21.2, 21.4
+**Summary:** 10 API service files in `apps/jobs-ops/src/services/api/` all use the shared `apiClient` instance. No raw `fetch` or `axios` usage found. All URLs match `/api/v1/` backend route patterns.
+
+**Status:** Verified — No action needed
+
+---
+
+### P4-JOPS-002: Jobs-ops routes don't use lazy loading
+
+**Finding ID:** P4-JOPS-002
+**Severity:** Medium
+**Requirement:** Req 22.1
+**Summary:** 13 routes defined in `apps/jobs-ops/src/app/router.tsx` but none use `React.lazy()` for code splitting. All page components are eagerly imported, which means the entire app loads upfront.
+
+**Remediation:** Add `React.lazy()` for route-level page components to enable code splitting.
+
+**Status:** Open
+
+---
+
+### P4-JOPS-003: Jobs-ops has basic loading states but limited coverage
+
+**Finding ID:** P4-JOPS-003
+**Severity:** Low
+**Requirement:** Req 23.1, 23.2, 23.3
+**Summary:** 12 loading state indicators found across jobs-ops feature pages. Basic coverage exists but is less comprehensive than the admissions app (89 indicators). Error states and retry actions need verification with actual runtime testing.
+
+**Status:** Partially verified — needs runtime testing
+
+---
+
+### P4-TEST-001: Admissions test coverage map — 272 files across 7 categories
+
+**Finding ID:** P4-TEST-001
+**Severity:** Info
+**Requirement:** Req 48.1, 48.2, 48.3, 48.4
+**Summary:** 272 test files organized by type:
+
+| Category | Count | Coverage |
+|----------|-------|----------|
+| Property tests | 144 | Extensive — API client, CSRF, envelope, validation, admin, auth, accessibility |
+| Unit tests | 111 | Good — page verification, services, utilities, contracts |
+| Integration tests | 8 | Moderate — admin review, application submission, auth flows, security headers |
+| UI tests | 5 | Basic — design token enforcement, animation properties |
+| E2E tests | 2 | Minimal — accessibility and application flow (Playwright) |
+| Hook tests | 1 | Minimal |
+| Admin tests | 1 | Minimal |
+
+Critical flows covered: registration ✅, application wizard ✅, payment ✅, admin review ✅, auth flows ✅. E2E coverage is thin (only 2 Playwright specs).
+
+**Status:** Verified — E2E coverage could be expanded
+
+---
+
+### P4-TEST-002: Jobs-ops minimum viable test plan
+
+**Finding ID:** P4-TEST-002
+**Severity:** Critical (planning artifact)
+**Requirement:** Req 49.1, 49.2, 49.3, 49.4
+**Summary:** Minimum viable test plan for jobs-ops:
+
+**Priority 1 — API service layer (10 files, ~20 tests):**
+- Test each of the 10 API service files (jobs, job-applications, automation, outreach, email, analytics, documents, platform, contracts, client)
+- Verify apiClient calls use correct URLs and handle error responses
+
+**Priority 2 — Route resolution (1 file, ~13 tests):**
+- Test all 13 routes resolve to existing components
+- Test 404 handling for undefined routes
+
+**Priority 3 — Critical component rendering (5 files, ~10 tests):**
+- Jobs inbox renders with mock data
+- Overview dashboard renders
+- Automation rules list renders
+- Outreach contacts list renders
+- Email threads list renders
+
+**Top 10 highest-risk untested paths:**
+1. Jobs inbox search and filtering
+2. Job application status transitions
+3. Automation rule execution flow
+4. Outreach campaign creation
+5. Email thread reply
+6. Document upload/generation
+7. Analytics funnel calculation
+8. Platform metadata loading
+9. Auth flow (login/logout)
+10. Error boundary recovery
+
+**Estimated effort:** 3-5 days for minimum viable coverage (Vitest setup + 43 tests)
+
+**Status:** Open — plan produced, implementation pending
+
+---
+
+### P4-TEST-003: Integration and E2E test audit — 2 Playwright specs, 8 integration tests
+
+**Finding ID:** P4-TEST-003
+**Severity:** Medium
+**Requirement:** Req 51.1, 51.2, 51.3, 52.1
+**Summary:** 2 Playwright E2E specs (accessibility + application flow) and 8 integration tests exist. Property tests extensively cover round-trip serialization, API envelope parsing, CSRF flow, and validation. Missing: E2E tests for payment flow, admin review flow, and document upload flow.
+
+**Status:** Open — E2E coverage gaps identified
+
+---
+
+## Phase 4 Summary
+
+### Finding Count by Severity
+
+| Severity | Count | IDs |
+|----------|-------|-----|
+| Critical | 1 | P4-TEST-002 (jobs-ops test plan — planning artifact) |
+| Medium | 2 | P4-JOPS-002 (no lazy loading), P4-TEST-003 (E2E gaps) |
+| Low | 1 | P4-JOPS-003 (limited loading states) |
+| Info | 4 | P4-EB-001, P4-UX-001, P4-MOBILE-001, P4-JOPS-001, P4-TEST-001 |
+
+### Open Remediation Items
+
+1. **P4-JOPS-002 (Medium):** Add React.lazy to jobs-ops route components
+2. **P4-TEST-003 (Medium):** Add E2E tests for payment, admin review, and document upload flows
+3. **P4-TEST-002 (Critical):** Implement the jobs-ops minimum viable test plan (43 tests, 3-5 days)
+
+---
+
+## Phase 5 — Design & Docs
+
+### P5-TOKEN-001: Zero hardcoded hex colors in components — design tokens fully adopted
+
+**Finding ID:** P5-TOKEN-001
+**Severity:** Info (Positive finding)
+**Requirement:** Req 38.1
+**Summary:** Zero hardcoded hex color values found in component TSX files or page TSX files. The admissions-quality-hardening spec's color audit (Task 12) successfully migrated all colors to design tokens or Tailwind semantic classes.
+
+**Status:** Verified — No action needed
+
+---
+
+### P5-A11Y-001: WCAG contrast and accessibility require manual testing
+
+**Finding ID:** P5-A11Y-001
+**Severity:** Medium
+**Requirement:** Req 39.1, 39.2, 42.1, 42.2, 42.3, 42.4, 42.5
+**Summary:** WCAG contrast ratio verification, keyboard navigation testing, and screen reader compatibility require runtime testing with assistive technologies. Code-level analysis shows: ARIA attributes present in Radix UI components, `htmlFor`/`id` associations on form inputs, focus trap implementation in modals (`useFocusTrap` hook), and `prefers-reduced-motion` media query support in animations. Full accessibility audit requires axe-core or manual testing.
+
+**Status:** Open — requires runtime accessibility testing
+
+---
+
+### P5-ANIM-001: Animations respect prefers-reduced-motion
+
+**Finding ID:** P5-ANIM-001
+**Severity:** Info (Positive finding)
+**Requirement:** Req 43.1, 43.2
+**Summary:** Tailwind config includes `tailwindcss-animate` plugin. CSS animations use `motion-safe:` and `motion-reduce:` variants. The `animateClasses` utility in `src/lib/animations.ts` provides consistent animation classes. Property tests in `ui-ux-design-tokens.test.ts` verify animation duration tokens and keyframe properties.
+
+**Status:** Verified at code level — runtime testing recommended
+
+---
+
+### P5-DOCS-001: 229 of 479 docs reference removed technologies — major cleanup needed
+
+**Finding ID:** P5-DOCS-001
+**Severity:** High
+**Requirement:** Req 44.1, 44.2, 44.3, 44.4
+**Summary:** 479 markdown files exist in `docs/`. 229 (48%) reference removed technologies (Supabase, Cloudflare Pages, NestJS, Spring Boot). These are legacy planning documents, migration reports, and archived specs that no longer reflect the current architecture (Django + Vercel + Neon).
+
+**Remediation:** Archive or delete the 229 stale docs. Create a `docs/archive/` directory for historical reference, move stale docs there, and update any links.
+
+**Status:** Open
+
+---
+
+### P5-DOCS-002: Steering files accurately reflect current architecture
+
+**Finding ID:** P5-DOCS-002
+**Severity:** Info (Positive finding)
+**Requirement:** Req 45.1, 45.2, 45.3
+**Summary:** `.kiro/steering/tech.md`, `structure.md`, and `product.md` all reference the current stack (Django 5, React 18, Vite, Bun, Vercel, Koyeb, Neon Postgres). These files are actively maintained and serve as the source of truth for the codebase.
+
+**Status:** Verified — No action needed
+
+---
+
+### P5-API-001: OpenAPI schema generates with 3 warnings and 1 error (4 instances)
+
+**Finding ID:** P5-API-001
+**Severity:** Low
+**Requirement:** Req 46.1, 46.2
+**Summary:** `python3 manage.py spectacular` generates the schema successfully but with 3 operationId collision warnings (applications retrieve/update/delete have duplicate paths) and 1 error repeated 4 times (ErrorReportView has no serializer_class — expected for the unauthenticated error report endpoint).
+
+**Remediation:** Add `@extend_schema` decorators to disambiguate the colliding application endpoints. Add a simple serializer to ErrorReportView for schema documentation.
+
+**Status:** Open (minor)
+
+---
+
+### P5-DOCS-003: Secrets rotation runbook exists and is current
+
+**Finding ID:** P5-DOCS-003
+**Severity:** Info (Positive finding)
+**Requirement:** Req 47.1
+**Summary:** `docs/runbooks/secrets-rotation.md` exists and covers JWT signing key, database credentials, Resend API key, S3/R2 keys, and Redis URL rotation with step-by-step procedures.
+
+**Status:** Verified — No action needed
+
+---
+
+### P5-ENV-001: Environment variables documented in .env.example — 20 key variables covered
+
+**Finding ID:** P5-ENV-001
+**Severity:** Info (Positive finding)
+**Requirement:** Req 37.1, 37.2, 37.3
+**Summary:** `.env.example` documents 20 key environment variables covering database, storage, JWT, email, VAPID, and frontend URLs. Vite env validation plugin checks required `VITE_*` variables during production builds. `SECRET_KEY` default `insecure-dev-key-change-me` is documented as needing override.
+
+**Status:** Verified — No action needed
+
+---
+
+## Phase 5 Summary
+
+### Finding Count by Severity
+
+| Severity | Count | IDs |
+|----------|-------|-----|
+| High | 1 | P5-DOCS-001 (229 stale docs) |
+| Medium | 1 | P5-A11Y-001 (accessibility needs runtime testing) |
+| Low | 1 | P5-API-001 (OpenAPI schema warnings) |
+| Info | 4 | P5-TOKEN-001, P5-ANIM-001, P5-DOCS-002, P5-DOCS-003, P5-ENV-001 |
+
+### Open Remediation Items
+
+1. **P5-DOCS-001 (High):** Archive or delete 229 stale docs referencing removed technologies
+2. **P5-A11Y-001 (Medium):** Run axe-core accessibility audit on production site
+3. **P5-API-001 (Low):** Fix OpenAPI schema operationId collisions
+
+---
+
+## Consolidated Audit Report
+
+### Executive Summary
+
+Full-stack audit of the MIHAS monorepo completed across 5 phases (29 tasks). **54 findings** documented with evidence and remediation recommendations.
+
+| Phase | Findings | Critical | High | Medium | Low | Info |
+|-------|----------|----------|------|--------|-----|------|
+| 1 — Security | 29 | 0 | 5 | 5 | 5 | 14 |
+| 2 — Production Stability | 8 | 1 | 1 | 2 | 0 | 4 |
+| 3 — Backend Quality | 9 | 0 | 0 | 2 | 1 | 6 |
+| 4 — Frontend Quality | 8 | 1 | 0 | 2 | 1 | 4 |
+| 5 — Design & Docs | 7 | 0 | 1 | 1 | 1 | 4 |
+| **Total** | **61** | **2** | **7** | **12** | **8** | **32** |
+
+### Resolved During Audit (2)
+
+1. P1-SEC-001: Removed `unsafe-eval` from CSP via Zod `jitless` config
+2. P1-SEC-015: Fixed stale rate limit scope test
+
+### Top 10 Remediation Priority (Severity × Impact)
+
+| # | Finding | Severity | Area | Effort |
+|---|---------|----------|------|--------|
+| 1 | P1-SEC-020: password-reset/confirm not CSRF-exempt | High | Security | 1 line |
+| 2 | P1-SEC-018: CSRF middleware doesn't check token expiry | High | Security | 2 lines |
+| 3 | P1-SEC-014: Rate limiter fails closed on Redis outage | High | Security | 1 line + try/except |
+| 4 | P1-SEC-013: 13 API endpoint groups have no rate limiting | High | Security | 10 lines |
+| 5 | P1-SEC-023: Frontend error reporter uses wrong URL | High | Monitoring | 2 lines |
+| 6 | P2-PERF-001: Main bundle 8.7MB (target 500KB) | High | Performance | Multi-day |
+| 7 | P2-JOPS-001: Jobs-ops has zero test files | Critical | Testing | 3-5 days |
+| 8 | P4-TEST-002: Jobs-ops minimum viable test plan | Critical | Testing | 3-5 days |
+| 9 | P5-DOCS-001: 229 stale docs reference removed tech | High | Documentation | 1 day |
+| 10 | P1-SEC-019: CSRF middleware doesn't verify user binding | Medium | Security | 5 lines |
+
+### Quick Wins (< 1 hour each)
+
+1. Add `/api/v1/auth/password-reset/confirm/` to CSRF exempt patterns (P1-SEC-020)
+2. Add `expires_at__gt=tz.now()` to CSRF middleware query (P1-SEC-018)
+3. Add `RATELIMIT_FAIL_OPEN = True` to base.py (P1-SEC-014)
+4. Fix error reporter URL to use API base URL (P1-SEC-023)
+5. Enable `VITE_ERROR_REPORT_ENABLED=true` in Vercel env vars (P1-SEC-024)
+6. Add CSRF token generation to RefreshView (P1-SEC-009)
+7. Add user binding to CSRF middleware query (P1-SEC-019)
+
+### Positive Findings (What's Working Well)
+
+- Cookie security: Secure, HttpOnly, correct SameSite for cross-origin
+- CORS: Locked down in production with explicit origins and well-anchored regexes
+- JWT: Refresh flow with rotation, JTI blacklisting, deduplication all correct
+- Auth middleware: All edge cases handled, no info leakage
+- TypeScript: strict mode enabled, zero errors, 1849 tests passing
+- Design tokens: Zero hardcoded hex colors in components
+- Error boundaries: Three-layer protection (app, route, section)
+- Mobile: 124 touch target enforcements
+- Audit logging: PII-free with SHA-256 hashed IP/UA
+- Health checks: Correctly configured and excluded from auth/CSRF
+
+### Tech Debt Ratio Estimate
+
+Based on the audit findings:
+- **Maintenance items:** 21 open findings requiring remediation
+- **Quick wins (< 1 hour):** 7 items
+- **Medium effort (1-3 days):** 8 items
+- **Large effort (3+ days):** 6 items (bundle size, jobs-ops tests, docs cleanup)
+- **Estimated total remediation:** 15-25 engineering days
+- **Tech debt ratio:** ~15-20% of a quarter's engineering capacity
+
+This is within the CTO's target of < 25% tech debt ratio.
