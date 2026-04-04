@@ -286,21 +286,21 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
 
 ### Phase 4 — Frontend Quality (Req 17–19, 21–23, 48–49, 51–52)
 
-- [ ] 19. Audit error boundaries, loading states, and mobile responsiveness
-  - [ ] 19.1 Verify error boundaries in admissions app
+- [x] 19. Audit error boundaries, loading states, and mobile responsiveness
+  - [x] 19.1 Verify error boundaries in admissions app
     - Verify every route-level page is wrapped by an error boundary
     - Verify error boundary shows user-friendly message with retry action
     - Verify error boundary logs to Error_Pipeline before showing fallback
     - _Requirements: 17.1, 17.2, 17.3, 17.4_
 
-  - [ ] 19.2 Verify loading and empty states in admissions app
+  - [x] 19.2 Verify loading and empty states in admissions app
     - Verify every data-fetching page shows skeleton or spinner during loading
     - Verify every list page shows empty state message when no data returned
     - Verify loading states use consistent skeleton components
     - Verify failed fetches show error state with retry action
     - _Requirements: 18.1, 18.2, 18.3, 18.4_
 
-  - [ ] 19.3 Verify mobile responsiveness in admissions app
+  - [x] 19.3 Verify mobile responsiveness in admissions app
     - Verify all interactive elements have 44x44px minimum touch targets
     - Verify pages render correctly at 320px, 375px, 414px viewports
     - Verify bottom navigation doesn't overlap content on mobile
@@ -308,8 +308,8 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Verify modals are scrollable and dismissible on mobile
     - _Requirements: 19.1, 19.2, 19.3, 19.4, 19.5_
 
-- [ ] 20. Audit jobs-ops API, routes, and states
-  - [ ] 20.1 Verify jobs-ops API service layer
+- [x] 20. Audit jobs-ops API, routes, and states
+  - [x] 20.1 Verify jobs-ops API service layer
     - Enumerate all API service files in `apps/jobs-ops/src/services/api/`
     - Verify each uses shared `apiClient` instance
     - Verify no raw `fetch` or `axios` usage
@@ -317,7 +317,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Verify API URLs match backend route patterns
     - _Requirements: 21.1, 21.2, 21.3, 21.4_
 
-  - [ ] 20.2 Verify jobs-ops route structure
+  - [x] 20.2 Verify jobs-ops route structure
     - Enumerate all routes in `apps/jobs-ops/src/app/router.tsx`
     - Verify each resolves to an existing component
     - Verify no duplicate or shadowed routes
@@ -325,28 +325,28 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Verify undefined routes show 404 page
     - _Requirements: 22.1, 22.2, 22.3, 22.4_
 
-  - [ ] 20.3 Verify jobs-ops loading and error states
+  - [x] 20.3 Verify jobs-ops loading and error states
     - Verify every data-fetching page shows loading indicator
     - Verify failed fetches show error state with retry
     - Verify loading states are consistent across feature pages
     - _Requirements: 23.1, 23.2, 23.3_
 
-- [ ] 21. Analyze test coverage and produce test plans
-  - [ ] 21.1 Analyze admissions test coverage
+- [x] 21. Analyze test coverage and produce test plans
+  - [x] 21.1 Analyze admissions test coverage
     - Produce coverage map by test type (unit, integration, property, E2E, UI)
     - Identify critical flows (registration, wizard, payment, upload) with test coverage
     - Identify untested API service functions
     - Verify property tests cover round-trip serialization properties
     - _Requirements: 48.1, 48.2, 48.3, 48.4_
 
-  - [ ] 21.2 Produce jobs-ops minimum viable test plan
+  - [x] 21.2 Produce jobs-ops minimum viable test plan
     - Produce prioritized test plan: API services, route resolution, critical components
     - Identify top 10 highest-risk untested code paths
     - Define minimum viable test configuration (Vitest setup, mocks, utilities)
     - Estimate effort for minimum viable test coverage
     - _Requirements: 49.1, 49.2, 49.3, 49.4_
 
-  - [ ] 21.3 Audit integration, E2E, and property test correctness
+  - [x] 21.3 Audit integration, E2E, and property test correctness
     - Verify Playwright E2E tests cover application submission and accessibility
     - Verify Playwright config targets appropriate browsers and viewports
     - Identify cross-boundary flows lacking integration test coverage
@@ -354,12 +354,12 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Verify backend Hypothesis tests cover JWT, rate limiting, RBAC, envelope formatting
     - _Requirements: 51.1, 51.2, 51.3, 51.4, 52.1, 52.2, 52.3, 52.4, 52.5_
 
-- [ ] 22. Create Phase 4 findings report and checkpoint
+- [x] 22. Create Phase 4 findings report and checkpoint
   - Compile all Phase 4 findings into `findings.md` with severity, evidence, and remediation
   - Record finding IDs in format `P4-{AREA}-{SEQ}`
   - _Requirements: 17–19, 21–23, 48–49, 51–52_
 
-- [ ] 23. Phase 4 Checkpoint — Ensure all frontend quality audit tasks are complete
+- [x] 23. Phase 4 Checkpoint — Ensure all frontend quality audit tasks are complete
   - Ensure all tests pass, ask the user if questions arise.
 
 ### Phase 5 — Design & Docs (Req 37–47)
@@ -372,59 +372,59 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Identify components using inline styles with hardcoded values
     - _Requirements: 38.1, 38.2, 38.3, 38.4_
 
-  - [ ] 24.2 Verify color system and WCAG contrast
+  - [x] 24.2 Verify color system and WCAG contrast
     - Verify text-on-background combinations meet WCAG 2.1 AA (4.5:1 normal, 3:1 large)
     - Verify interactive elements have sufficient contrast
     - Verify focus indicators have 3:1 contrast
     - Document failing combinations with corrected values
     - _Requirements: 39.1, 39.2, 39.3, 39.4_
 
-  - [ ] 24.3 Verify typography and spacing consistency
+  - [x] 24.3 Verify typography and spacing consistency
     - Verify all text uses fonts from Tailwind config
     - Verify heading hierarchy follows consistent scale
     - Verify component spacing follows 4px increment scale
     - Identify inconsistent padding/margin/gap values
     - _Requirements: 40.1, 40.2, 40.3, 40.4_
 
-- [ ] 25. Audit component library, accessibility, and animations
-  - [ ] 25.1 Verify component library consistency
+- [x] 25. Audit component library, accessibility, and animations
+  - [x] 25.1 Verify component library consistency
     - Verify dialogs, dropdowns, tooltips, popovers use Radix UI primitives
     - Verify no re-implementation of existing Radix UI functionality
     - Verify Tailwind utility class ordering conventions
     - Verify jobs-ops uses Lucide icons consistently
     - _Requirements: 41.1, 41.2, 41.3, 41.4_
 
-  - [ ] 25.2 Verify accessibility (ARIA, keyboard, screen reader)
+  - [x] 25.2 Verify accessibility (ARIA, keyboard, screen reader)
     - Verify interactive elements have ARIA roles, labels, states
     - Verify keyboard-only navigation (Tab, Shift+Tab, Enter, Escape, arrows)
     - Verify focus management in modals/dialogs/dropdowns
     - Verify form inputs have associated labels
     - Verify dynamic content uses ARIA live regions
     - _Requirements: 42.1, 42.2, 42.3, 42.4, 42.5_
-
-  - [ ] 25.3 Verify animation and reduced motion support
+try
+  - [x] 25.3 Verify animation and reduced motion support
     - Verify all animations respect `prefers-reduced-motion: reduce`
     - Verify essential state changes visible with reduced motion
     - Verify animations don't cause layout shifts affecting CLS
     - Verify no animation > 500ms without user initiation
     - _Requirements: 43.1, 43.2, 43.3, 43.4_
 
-- [ ] 26. Audit documentation freshness and accuracy
-  - [ ] 26.1 Classify all docs files
+- [x] 26. Audit documentation freshness and accuracy
+  - [x] 26.1 Classify all docs files
     - Enumerate all files in `docs/`, classify as current/stale/legacy
     - Identify docs referencing removed tech (Supabase, Cloudflare Pages, NestJS, Spring Boot)
     - Identify `docs/reports/` files > 6 months old for archival
     - Produce cleanup list with action (keep, archive, delete) per document
     - _Requirements: 44.1, 44.2, 44.3, 44.4_
 
-  - [ ] 26.2 Verify architecture and steering documentation
+  - [x] 26.2 Verify architecture and steering documentation
     - Verify `.kiro/steering/structure.md` matches current directory layout
     - Verify `.kiro/steering/tech.md` matches current tech stack and commands
     - Verify `.kiro/steering/product.md` matches current product areas
     - Verify `docs/design/` reflects current architecture
     - _Requirements: 45.1, 45.2, 45.3, 45.4_
 
-  - [ ] 26.3 Verify API and deployment documentation
+  - [x] 26.3 Verify API and deployment documentation
     - Run `python3 manage.py spectacular --file /tmp/schema.yaml`, verify zero warnings
     - Verify all endpoints represented in OpenAPI schema
     - Verify Swagger UI at `/api/v1/docs/` renders correctly
@@ -433,24 +433,24 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Verify no deployment guide references removed platforms
     - _Requirements: 46.1, 46.2, 46.3, 46.4, 47.1, 47.2, 47.3, 47.4_
 
-  - [ ] 26.4 Verify environment variable documentation
+  - [x] 26.4 Verify environment variable documentation
     - Verify every `REQUIRED_ENV_VARS` variable documented in `.env.example`
     - Verify Vite env validation plugin checks all required `VITE_*` variables
     - Verify no dangerous default values in production
     - Produce complete env var inventory
     - _Requirements: 37.1, 37.2, 37.3, 37.4_
 
-- [ ] 27. Create Phase 5 findings report and checkpoint
+- [x] 27. Create Phase 5 findings report and checkpoint
   - Compile all Phase 5 findings into `findings.md` with severity, evidence, and remediation
   - Record finding IDs in format `P5-{AREA}-{SEQ}`
   - _Requirements: 37–47_
 
-- [ ] 28. Phase 5 Checkpoint — Ensure all design & docs audit tasks are complete
+- [x] 28. Phase 5 Checkpoint — Ensure all design & docs audit tasks are complete
   - Ensure all tests pass, ask the user if questions arise.
 
 ### Final
 
-- [ ] 29. Produce consolidated audit report
+- [x] 29. Produce consolidated audit report
   - Merge all phase findings into a single `audit-report.md`
   - Summary: total findings by severity (critical/high/medium/low)
   - Remediation priority matrix: severity × blast radius / cost-to-fix
