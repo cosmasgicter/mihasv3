@@ -111,23 +111,23 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
 
 ### Phase 2 — Production Stability (Req 11–16, 20, 32–35)
 
-- [ ] 7. Audit TypeScript strict mode and test suite health
-  - [ ] 7.1 Verify TypeScript strict mode in admissions app
+- [x] 7. Audit TypeScript strict mode and test suite health
+  - [x] 7.1 Verify TypeScript strict mode in admissions app
     - Verify `tsconfig.json` has `strict: true` and `noUncheckedIndexedAccess: true`
     - Run `cd apps/admissions && bun run build` and verify zero TS errors
     - Grep for `@ts-ignore` and `as any` casts, document any added solely for strict mode suppression
     - Verify `noUncheckedIndexedAccess` does not cause runtime `undefined` access
     - _Requirements: 11.1, 11.2, 11.3, 11.4_
 
-  - [ ] 7.2 Verify admissions test suite health
+  - [x] 7.2 Verify admissions test suite health
     - Run `cd apps/admissions && bun run test` three times, identify flaky tests
     - Verify property tests use deterministic seeds or are resilient to randomness
     - Verify integration tests do not depend on external services
     - Verify E2E tests have proper setup/teardown and no state leakage
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5_
 
-- [ ] 8. Audit bundle size and Core Web Vitals
-  - [ ] 8.1 Analyze admissions bundle size
+- [x] 8. Audit bundle size and Core Web Vitals
+  - [x] 8.1 Analyze admissions bundle size
     - Run production build, analyze chunk sizes
     - Verify main bundle (entry chunk) < 500KB gzipped
     - Identify vendor chunks > 200KB, verify lazy loading
@@ -136,7 +136,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Produce bundle analysis report
     - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5_
 
-  - [ ] 8.2 Measure Core Web Vitals
+  - [x] 8.2 Measure Core Web Vitals
     - Measure FCP against 1.5s target on simulated 3G
     - Measure LCP against 2.5s target on simulated 3G
     - Measure CLS against 0.1 target
@@ -144,8 +144,8 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Verify app shell renders skeleton before data fetches complete
     - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5_
 
-- [ ] 9. Audit lazy loading and service worker
-  - [ ] 9.1 Verify lazy loading and code splitting
+- [x] 9. Audit lazy loading and service worker
+  - [x] 9.1 Verify lazy loading and code splitting
     - Verify all route-level pages in `apps/admissions/src/pages/` use `React.lazy` or dynamic imports
     - Verify heavy feature components (document generation, OCR, charts, PDF) are dynamically imported
     - Verify `LazyLoadErrorBoundary` wraps all lazily loaded components
@@ -153,7 +153,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Verify service worker precaches critical chunks without blocking initial render
     - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5_
 
-  - [ ] 9.2 Verify service worker and offline support
+  - [x] 9.2 Verify service worker and offline support
     - Verify `injectManifest` strategy from `vite-plugin-pwa`
     - Verify offline behavior: cached pages served, offline indicator displayed
     - Verify online recovery: queued operations sync in FIFO order
@@ -161,8 +161,8 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Verify `/service-worker.js` has `Cache-Control: no-cache` headers
     - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5_
 
-- [ ] 10. Audit jobs-ops quality gates and deployment configs
-  - [ ] 10.1 Verify jobs-ops test coverage gap and quality gates
+- [x] 10. Audit jobs-ops quality gates and deployment configs
+  - [x] 10.1 Verify jobs-ops test coverage gap and quality gates
     - Document current test coverage state (expected: zero test files)
     - Verify `bun run type-check` passes with zero errors
     - Verify `bun run lint` passes with zero errors
@@ -170,7 +170,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Produce minimum viable test plan covering API service layer, route resolution, critical component rendering
     - _Requirements: 20.1, 20.2, 20.3, 20.4, 20.5_
 
-  - [ ] 10.2 Verify Vercel deployment configuration
+  - [x] 10.2 Verify Vercel deployment configuration
     - Verify `apps/admissions/vercel.json` build command, install command, output directory
     - Verify SPA rewrite rule routes non-asset paths to `/index.html`
     - Verify security headers (HSTS, X-Frame-Options, X-Content-Type-Options, CSP, Permissions-Policy, Referrer-Policy)
@@ -178,7 +178,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Verify service worker has `Cache-Control: no-cache, no-store, must-revalidate`
     - _Requirements: 32.1, 32.2, 32.3, 32.4, 32.5_
 
-  - [ ] 10.3 Verify Koyeb backend deployment configuration
+  - [x] 10.3 Verify Koyeb backend deployment configuration
     - Verify Docker entrypoint uses `uvicorn config.asgi:application`
     - Verify liveness/readiness probes point to `/health/live/` and `/health/ready/`
     - Verify Celery Beat runs as exactly one instance
@@ -186,7 +186,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Document scaling configuration
     - _Requirements: 33.1, 33.2, 33.3, 33.4, 33.5_
 
-  - [ ] 10.4 Verify Neon Postgres and Redis connections
+  - [x] 10.4 Verify Neon Postgres and Redis connections
     - Verify `DATABASE_URL` uses Neon pooler endpoint with `?pgbouncer=true`
     - Verify `CONN_MAX_AGE=600` and `conn_health_checks=True`
     - Verify `ssl_require=True` for all database connections
@@ -196,12 +196,12 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Verify Redis graceful degradation: rate limiting fails open, cache misses tolerated, Celery tasks queue for retry
     - _Requirements: 34.1, 34.2, 34.3, 34.4, 34.5, 35.1, 35.2, 35.3, 35.4_
 
-- [ ] 11. Create Phase 2 findings report and checkpoint
+- [x] 11. Create Phase 2 findings report and checkpoint
   - Compile all Phase 2 findings into `findings.md` with severity, evidence, and remediation
   - Record finding IDs in format `P2-{AREA}-{SEQ}`
   - _Requirements: 11–16, 20, 32–35_
 
-- [ ] 12. Phase 2 Checkpoint — Ensure all production stability audit tasks are complete
+- [x] 12. Phase 2 Checkpoint — Ensure all production stability audit tasks are complete
   - Ensure all tests pass, ask the user if questions arise.
 
 ### Phase 3 — Backend Quality (Req 24–28, 30–31, 36, 50)
