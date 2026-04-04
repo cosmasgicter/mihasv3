@@ -31,7 +31,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Review regex patterns for overly permissive matches
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-- [x] 2. Audit JWT, rate limiting, and CSRF flows
+- [ ] 2. Audit JWT, rate limiting, and CSRF flows
   - [x] 2.1 Trace JWT refresh flow end-to-end
     - Trace frontend `apiClient` 401 interceptor → refresh endpoint
     - Trace backend `JWTCookieAuthentication` and `JWTAuthenticationMiddleware` token extraction and validation
@@ -57,8 +57,8 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Verify CSRF token is session-bound
     - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-- [ ] 3. Audit error pipeline, secrets, and input validation
-  - [~] 3.1 Verify error monitoring pipeline end-to-end
+- [x] 3. Audit error pipeline, secrets, and input validation
+  - [x] 3.1 Verify error monitoring pipeline end-to-end
     - Verify backend 500 path: `envelope_exception_handler` → `ErrorLog.create(source='backend')` → throttled alert
     - Verify frontend path: `errorReporter.ts` → batch POST → `ErrorReportView` → `ErrorLog.create(source='frontend')` → throttled alert
     - Verify throttle: `cache.add(key, 1, 900)` — 15-min TTL per unique message hash
@@ -66,7 +66,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Verify `ErrorLog` schema has timestamp, source, message, stack_trace fields
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6_
 
-  - [~] 3.2 Scan for hardcoded secrets across all source files
+  - [x] 3.2 Scan for hardcoded secrets across all source files
     - Grep for API key patterns (`sk_live_`, `pk_live_`), connection strings, JWT keys, generic password/secret/token patterns
     - Verify `.gitignore` excludes all `.env*` files
     - Verify `REQUIRED_ENV_VARS` matches actual secrets used
@@ -75,7 +75,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Verify no PII/secrets in log output or audit trail
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
-  - [~] 3.3 Verify input validation and file upload security
+  - [x] 3.3 Verify input validation and file upload security
     - Enumerate all DRF views with POST/PUT/PATCH, verify serializer usage
     - Verify no endpoint accepts raw `request.data` without serializer
     - Verify no serializer uses `fields = "__all__"`
@@ -84,8 +84,8 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Verify uploaded files get non-guessable R2 keys and signed URLs
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 10.1, 10.2, 10.3, 10.4, 10.5_
 
-- [ ] 4. Audit backend auth edge cases
-  - [~] 4.1 Verify JWT middleware edge case handling
+- [x] 4. Audit backend auth edge cases
+  - [x] 4.1 Verify JWT middleware edge case handling
     - Verify expired token → 401 with clear message (no internal details)
     - Verify malformed JWT → 401 without stack trace leakage
     - Verify no credentials → anonymous request with permission checks
@@ -94,19 +94,19 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Run existing tests in `backend/tests/property/test_jwt_middleware.py` and `backend/tests/unit/test_jwt_middleware.py`
     - _Requirements: 29.1, 29.2, 29.3, 29.4, 29.5_
 
-  - [~]* 4.2 Write property tests for auth edge cases
+  - [x]* 4.2 Write property tests for auth edge cases
     - **Property: Expired tokens always produce 401 without internal details**
     - **Property: Malformed JWTs always produce 401 without stack traces**
     - **Property: Blacklisted JTIs are always rejected**
     - **Validates: Requirements 29.1, 29.2, 29.5**
 
-- [~] 5. Create Phase 1 findings report and checkpoint
+- [x] 5. Create Phase 1 findings report and checkpoint
   - Compile all Phase 1 findings into `findings.md` with severity, evidence, and remediation
   - Record finding IDs in format `P1-SEC-{SEQ}`
   - Remediate any Critical findings before proceeding
   - _Requirements: 1–10, 29_
 
-- [~] 6. Phase 1 Checkpoint — Ensure all security audit tasks are complete
+- [x] 6. Phase 1 Checkpoint — Ensure all security audit tasks are complete
   - Ensure all tests pass, ask the user if questions arise.
 
 ### Phase 2 — Production Stability (Req 11–16, 20, 32–35)
