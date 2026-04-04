@@ -115,7 +115,7 @@ export function useStudentDashboardPolling(
     }
 
     const result = await applicationService.list({
-      page: 0,
+      page: 1,
       pageSize: 50,
       sortBy: 'date',
       sortOrder: 'desc',
@@ -218,7 +218,7 @@ export function useStudentApplicationCount(options: { enabled?: boolean } = {}) 
     queryFn: async (): Promise<StudentDashboardData> => {
       if (!user?.id) return { applications: [] }
       const result = await applicationService.list({
-        page: 0,
+        page: 1,
         pageSize: 50,
         sortBy: 'date',
         sortOrder: 'desc',
@@ -258,7 +258,7 @@ export function useHasApplicationWithStatus(
     queryFn: async (): Promise<StudentDashboardData> => {
       if (!user?.id) return { applications: [] }
       const result = await applicationService.list({
-        page: 0,
+        page: 1,
         pageSize: 50,
         sortBy: 'date',
         sortOrder: 'desc',

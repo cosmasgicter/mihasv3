@@ -87,7 +87,7 @@ export const applicationsData = {
       queryFn: async ({ signal }) => {
         try {
           return await applicationService.list({
-            page: filters.page || 0,
+            page: Math.max(filters.page || 1, 1),
             pageSize: filters.pageSize || 15,
             status: filters.status === 'all' ? undefined : filters.status,
             search: filters.search,
@@ -103,7 +103,7 @@ export const applicationsData = {
           })
         } catch (error: any) {
           if (signal?.aborted) {
-            return { applications: [], totalCount: 0, page: 0, pageSize: 15 }
+            return { applications: [], totalCount: 0, page: 1, pageSize: 15 }
           }
           console.error('Applications fetch error:', sanitizeForLog(error?.message || error))
           throw error

@@ -24,7 +24,7 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Auth cookie domain — shared across apply.mihas.edu.zm and api.mihas.edu.zm
 AUTH_COOKIE_DOMAIN = ".mihas.edu.zm"
-AUTH_COOKIE_SAMESITE = "Lax"
+AUTH_COOKIE_SAMESITE = "None"
 AUTH_COOKIE_SECURE = True
 AUTH_COOKIE_HTTPONLY = True
 
