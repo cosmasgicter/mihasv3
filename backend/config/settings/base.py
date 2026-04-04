@@ -200,7 +200,7 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = split_csv_env("CORS_ALLOWED_ORIGINS")
 CORS_ALLOWED_ORIGIN_REGEXES = split_csv_env("CORS_ALLOWED_ORIGIN_REGEXES")
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_HEADERS = list(dict.fromkeys([*default_headers, "cache-control", "last-event-id"]))
+CORS_ALLOW_HEADERS = list(dict.fromkeys([*default_headers, "cache-control", "last-event-id", "x-csrf-token"]))
 CORS_EXPOSE_HEADERS = ["X-CSRF-Token", "X-Request-ID"]
 CORS_PREFLIGHT_MAX_AGE = 86400
 

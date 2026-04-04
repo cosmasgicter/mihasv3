@@ -985,6 +985,13 @@ export function buildQueryString(params: QueryParams = {}) {
       return;
     }
 
+    // Django pagination is 1-based — clamp page to >= 1
+    if (key === 'page') {
+      const pageNum = Number(value);
+      query.set(key, String(Math.max(pageNum || 1, 1)));
+      return;
+    }
+
     query.set(key, String(value));
   });
 
