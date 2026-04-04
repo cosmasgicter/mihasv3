@@ -789,3 +789,320 @@ def __call__(self, request):
 
 **Status:** Resolved
 
+
+---
+
+### P1-SEC-016: CSRF enforcement flow is correctly implemented end-to-end
+
+**Finding ID:** P1-SEC-016
+**Severity:** Info (Positive finding)
+**Requirement:** Req 6.1, 6.2, 6.4
+**Summary:** The CSRF enforcement flow — token issuance, frontend in-memory storage, header attachment on state-changing requests, and backend hash-based validation — is correctly implemented. POST/PUT/PATCH/DELETE requests without a valid `X-CSRF-Token` header are rejected with HTTP 403.
+
+**Evidence:**
+
+#### End-to-End CSRF Flow Trace
+
+**Step 1 — Token Issuance** (`backend/apps/accounts/views.py`, `_generate_csrf_token()`)
+
+On successful login, `LoginView.post()` generates a CSRF token:
+
+1. `secrets.token_hex(32)` produces a 64-character hex string (256 bits of entropy)
+2. The raw token is SHA-256 hashed: `hashlib.sha256(raw_token.encode()).hexdigest()`
+3. A `CSRFToken` row is created in the `csrf_tokens` table with:
+   - `user` FK → the authenticated user (session-bound)
+   - `token_hash` → the SHA-256 hash of the raw token
+   - `expires_at` → `now + 24 hours`
+4. The raw token is returned in the `X-CSRF-Token` response header: `response["X-CSRF-Token"] = csrf_token`
+
+The backend never stores the raw token — only the hash. This means even if the database is compromised, the raw CSRF tokens cannot be recovered.
+
+**Step 2 — Frontend Storage** (`apps/admissions/src/lib/csrfToken.ts`)
+
+The CSRF token is stored in a module-level variable — never persisted to `localStorage` or `sessionStorage`:
+
+```typescript
+let csrfToken: string | null = null;
+export function setCsrfToken(token: string | null): void { csrfToken = token; }
+export function getCsrfToken(): string | null { return csrfToken; }
+export function clearCsrfToken(): void { csrfToken = null; }
+```
+
+The `ApiClient` captures the token from response headers in multiple places:
+- `performRefresh()`: `response.headers.get('X-CSRF-Token')` → `setCsrfToken()`
+- `executeRequest()` (non-GET): `response.headers.get('X-CSRF-Token')` → `setCsrfToken()`
+- `executeRequest()` (GET with cache): `onResponse` callback captures `X-CSRF-Token` → `setCsrfToken()`
+- 401 retry path: captures from retry response
+- 403 CSRF retry path: re-fetches from session endpoint
+
+In-memory storage is the correct choice: it's cleared on page refresh (forcing re-authentication) and cannot be accessed by XSS attacks that target `localStorage`.
+
+**Step 3 — Header Attachment** (`apps/admissions/src/services/client.ts`, `executeRequest()`)
+
+For state-changing requests (`POST`, `PUT`, `PATCH`, `DELETE`), the `ApiClient` attaches the CSRF token:
+
+```typescript
+if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+    const csrfToken = getCsrfToken();
+    if (csrfToken) {
+        requestHeaders['X-CSRF-Token'] = csrfToken;
+    }
+}
+```
+
+This is also done on the refresh request in `performRefresh()` and on 401 retry paths.
+
+**Step 4 — Backend Validation** (`backend/apps/common/middleware.py`, `CSRFEnforcementMiddleware`)
+
+1. Checks if the request method is in `STATE_CHANGING_METHODS = {"POST", "PUT", "PATCH", "DELETE"}`
+2. Checks if the path matches any `EXEMPT_PATTERNS` — if so, skips validation
+3. Extracts `X-CSRF-Token` from `request.META.get("HTTP_X_CSRF_TOKEN")`
+4. If missing → returns 403 with `{"success": false, "error": "CSRF validation failed", "code": "CSRF_VALIDATION_FAILED"}`
+5. SHA-256 hashes the token: `hashlib.sha256(csrf_token.encode()).hexdigest()`
+6. Looks up the hash in the `csrf_tokens` table: `CSRFToken.objects.filter(token_hash=token_hash).exists()`
+7. If not found → returns 403
+
+**Step 5 — Frontend 403 Recovery** (`apps/admissions/src/services/client.ts`, `handleCsrf403()`)
+
+When a 403 with `CSRF_VALIDATION_FAILED` code is received:
+
+1. Fetches `GET /api/v1/auth/session/` to attempt CSRF token refresh
+2. Captures `X-CSRF-Token` from the session response header
+3. Retries the original request with the fresh token
+4. If the retry also fails, throws an enhanced error
+
+**Verification — 403 on missing/invalid token (Req 6.2):**
+
+- Missing `X-CSRF-Token` header → `csrf_token` is `None` → `_forbidden_response()` returns 403 ✅
+- Invalid token (not in DB) → hash lookup returns `False` → `_forbidden_response()` returns 403 ✅
+- GET/HEAD/OPTIONS requests → bypass CSRF check entirely (correct — these are safe methods) ✅
+
+**Status:** Verified — Core flow is correct
+
+---
+
+### P1-SEC-017: CSRF exempt endpoints are justified
+
+**Finding ID:** P1-SEC-017
+**Severity:** Info (Positive finding)
+**Requirement:** Req 6.3
+**Summary:** All CSRF-exempt patterns in `CSRFEnforcementMiddleware` are justified. Each exempt endpoint is either unauthenticated (no CSRF token available) or requires exemption for the auth flow to function.
+
+**Evidence:**
+
+#### Exempt Pattern Inventory
+
+| Pattern | Endpoint | Justification |
+|---------|----------|---------------|
+| `^/api/v1/auth/login/?$` | Login | Unauthenticated — user has no CSRF token before login. Login itself issues the CSRF token. |
+| `^/api/v1/auth/register/?$` | Register | Unauthenticated — new user has no session or CSRF token. |
+| `^/api/v1/auth/password-reset/?$` | Password reset request | Unauthenticated — user requesting a reset link has no active session. |
+| `^/api/v1/auth/logout/?$` | Logout | Exempt to ensure logout always succeeds even if CSRF token is stale or missing. Logout is idempotent and only deactivates the user's own session (identified by refresh cookie). |
+| `^/api/v1/auth/refresh/?$` | Token refresh | Exempt because the CSRF token may be stale during refresh. The refresh endpoint is protected by the HTTP-only refresh cookie, which cannot be read by JavaScript (XSS-resistant). |
+| `^/api/v1/errors/report/?$` | Frontend error reporting | Unauthenticated (`AllowAny`) — error reports must work even when the user is not logged in or the CSRF token is unavailable. Rate-limited to 10 req/5min/IP to prevent abuse. |
+
+**Analysis:**
+
+All exempt endpoints fall into two categories:
+1. **Unauthenticated endpoints** (login, register, password-reset, error report): The user has no CSRF token because they haven't logged in yet. These endpoints use `AllowAny` permission and `authentication_classes = []`.
+2. **Auth flow endpoints** (logout, refresh): These need to work even when the CSRF token is expired or missing, to prevent users from being stuck in a broken auth state.
+
+No authenticated, state-changing endpoint is exempt from CSRF validation.
+
+**Status:** Verified — No action needed
+
+---
+
+### P1-SEC-018: CSRF middleware does not validate token expiry
+
+**Finding ID:** P1-SEC-018
+**Severity:** High
+**Requirement:** Req 6.1, 6.4
+**Summary:** The `CSRFEnforcementMiddleware` checks that a `CSRFToken` row exists with the matching hash but does NOT check the `expires_at` field. Expired CSRF tokens remain valid indefinitely until the database row is manually deleted.
+
+**Evidence:**
+
+- `CSRFEnforcementMiddleware.__call__()` in `backend/apps/common/middleware.py`:
+  ```python
+  if not CSRFToken.objects.filter(token_hash=token_hash).exists():
+      return self._forbidden_response()
+  ```
+- The query filters only on `token_hash` — no `expires_at__gt=now()` condition
+- `CSRFToken` model has `expires_at = models.DateTimeField()` field (set to `now + 24h` at creation)
+- No cleanup task or signal deletes expired `CSRFToken` rows
+
+**Analysis:**
+
+The `_generate_csrf_token()` function sets `expires_at = tz.now() + timedelta(hours=24)`, but this field is never checked during validation. This means:
+
+1. A CSRF token issued at login remains valid forever (as long as the DB row exists)
+2. Old CSRF tokens from previous sessions are never invalidated
+3. If a user logs in multiple times, all previously issued CSRF tokens remain valid
+4. The `expires_at` field is effectively dead code — it's written but never read
+
+This weakens the CSRF protection because:
+- Stolen CSRF tokens have an unlimited validity window
+- Token accumulation in the `csrf_tokens` table grows unbounded (no cleanup)
+
+**Remediation:**
+
+1. Add expiry check to the middleware query:
+   ```python
+   from django.utils import timezone as tz
+   if not CSRFToken.objects.filter(token_hash=token_hash, expires_at__gt=tz.now()).exists():
+       return self._forbidden_response()
+   ```
+
+2. Add a periodic cleanup task (or extend `cleanup_audit_logs_task`) to delete expired `CSRFToken` rows:
+   ```python
+   CSRFToken.objects.filter(expires_at__lt=tz.now()).delete()
+   ```
+
+**Status:** Open
+
+---
+
+### P1-SEC-019: CSRF middleware does not verify token belongs to the requesting user
+
+**Finding ID:** P1-SEC-019
+**Severity:** Medium
+**Requirement:** Req 6.1, 6.4
+**Summary:** The `CSRFEnforcementMiddleware` validates that a `CSRFToken` row exists with the matching hash but does NOT verify that the token belongs to the authenticated user making the request. Any valid CSRF token from any user is accepted for any authenticated request.
+
+**Evidence:**
+
+- `CSRFEnforcementMiddleware.__call__()` in `backend/apps/common/middleware.py`:
+  ```python
+  token_hash = hashlib.sha256(csrf_token.encode()).hexdigest()
+  if not CSRFToken.objects.filter(token_hash=token_hash).exists():
+      return self._forbidden_response()
+  ```
+- The query filters only on `token_hash` — no `user=request.user` condition
+- `CSRFToken` model has `user = models.ForeignKey(Profile, on_delete=models.CASCADE)` — the FK exists but is unused during validation
+- The middleware runs after `JWTAuthenticationMiddleware` (position 9 vs 8), so `request.user` is available
+
+**Analysis:**
+
+The `CSRFToken` model correctly stores a `user` FK, and `_generate_csrf_token(user)` correctly associates the token with the logged-in user. However, the middleware validation ignores this association. In practice, this means:
+
+- User A's CSRF token could be used to authorize User B's state-changing requests
+- If an attacker obtains any valid CSRF token (from any user), they can use it for requests on behalf of any other user (provided they also have that user's auth cookies)
+
+The practical exploitability is low because:
+1. The attacker would need both a valid CSRF token AND the victim's auth cookies
+2. CSRF tokens are stored in-memory (not in `localStorage`), making XSS extraction harder
+3. Auth cookies are `HttpOnly`, preventing JavaScript access
+
+However, the missing user binding violates the principle that CSRF tokens should be session-bound.
+
+**Remediation:**
+
+Add user binding to the middleware query:
+```python
+if not hasattr(request, 'user') or not getattr(request.user, 'is_authenticated', False):
+    return self._forbidden_response()
+
+user_id = getattr(request.user, 'pk', None) or getattr(request.user, 'id', None)
+if not user_id:
+    return self._forbidden_response()
+
+if not CSRFToken.objects.filter(token_hash=token_hash, user_id=user_id).exists():
+    return self._forbidden_response()
+```
+
+**Status:** Open
+
+---
+
+### P1-SEC-020: `password-reset/confirm/` POST is not CSRF-exempt but is unauthenticated
+
+**Finding ID:** P1-SEC-020
+**Severity:** High
+**Requirement:** Req 6.3
+**Summary:** The `PasswordResetConfirmView` at `/api/v1/auth/password-reset/confirm/` is a POST endpoint with `AllowAny` permission and no authentication classes, but it is NOT in the CSRF exempt patterns. Users clicking a password reset link will submit a POST without a CSRF token, which will be rejected with 403.
+
+**Evidence:**
+
+- `PasswordResetConfirmView` in `backend/apps/accounts/views.py`:
+  ```python
+  class PasswordResetConfirmView(APIView):
+      permission_classes = [AllowAny]
+      authentication_classes = []
+  ```
+- URL: `path("password-reset/confirm/", PasswordResetConfirmView.as_view())`
+- Full path: `/api/v1/auth/password-reset/confirm/`
+- CSRF exempt patterns in `CSRFEnforcementMiddleware`:
+  ```python
+  re.compile(r"^/api/v1/auth/password-reset/?$"),  # only matches /password-reset/ not /password-reset/confirm/
+  ```
+- The regex `^/api/v1/auth/password-reset/?$` matches `/api/v1/auth/password-reset` and `/api/v1/auth/password-reset/` but NOT `/api/v1/auth/password-reset/confirm/`
+
+**Analysis:**
+
+The password reset flow is:
+1. User requests reset → `POST /api/v1/auth/password-reset/` (CSRF-exempt ✅)
+2. User receives email with reset link containing a token
+3. User clicks link, submits new password → `POST /api/v1/auth/password-reset/confirm/` (NOT CSRF-exempt ❌)
+
+At step 3, the user is unauthenticated (they forgot their password) and has no CSRF token. The CSRF middleware will reject this request with 403, making password reset non-functional.
+
+**Remediation:**
+
+Add the confirm endpoint to the CSRF exempt patterns:
+```python
+EXEMPT_PATTERNS = [
+    re.compile(r"^/api/v1/auth/login/?$"),
+    re.compile(r"^/api/v1/auth/register/?$"),
+    re.compile(r"^/api/v1/auth/password-reset/?$"),
+    re.compile(r"^/api/v1/auth/password-reset/confirm/?$"),  # ← add this
+    re.compile(r"^/api/v1/auth/logout/?$"),
+    re.compile(r"^/api/v1/auth/refresh/?$"),
+    re.compile(r"^/api/v1/errors/report/?$"),
+]
+```
+
+Alternatively, use a broader pattern: `re.compile(r"^/api/v1/auth/password-reset(/confirm)?/?$")`
+
+**Status:** Open
+
+---
+
+### P1-SEC-021: CSRF token is user-bound at creation but not validated as session-bound
+
+**Finding ID:** P1-SEC-021
+**Severity:** Medium
+**Requirement:** Req 6.4
+**Summary:** The CSRF token is correctly associated with a user at creation time (`_generate_csrf_token(user)` stores a `user` FK), but the session-binding is incomplete because: (1) the middleware doesn't verify the user FK during validation (see P1-SEC-019), (2) old tokens from previous sessions are never invalidated, and (3) the `RefreshView` doesn't issue new CSRF tokens (see P1-SEC-009).
+
+**Evidence:**
+
+This finding consolidates the session-binding aspects of P1-SEC-009, P1-SEC-018, and P1-SEC-019:
+
+| Aspect | Expected | Actual |
+|--------|----------|--------|
+| Token created with user FK | ✅ `CSRFToken.objects.create(user=user, ...)` | Correct |
+| Token validated against requesting user | ❌ Middleware only checks `token_hash` | Missing user check |
+| Token has expiry | ✅ `expires_at = now + 24h` | Set but never validated |
+| Token rotated on refresh | ❌ `RefreshView` doesn't issue new CSRF token | Missing rotation |
+| Old tokens invalidated on logout | ❌ `LogoutView` doesn't delete CSRF tokens | Missing cleanup |
+| Old tokens cleaned up periodically | ❌ No cleanup task for expired tokens | Missing cleanup |
+
+**Analysis:**
+
+For the CSRF token to be truly "session-bound" (Req 6.4), the following should hold:
+1. Each token is tied to a specific user session ← partially implemented (user FK exists)
+2. The token is validated against the current session ← not implemented
+3. The token expires with the session ← not enforced (expiry not checked)
+4. Old tokens are invalidated when the session ends ← not implemented
+
+The current implementation provides "token existence" validation rather than "session-bound" validation. The 256-bit entropy of the token makes brute-force infeasible, so the practical security impact is limited, but the design intent of session binding is not fully realized.
+
+**Remediation:** Address P1-SEC-018 (expiry check), P1-SEC-019 (user binding), and P1-SEC-009 (refresh rotation) to achieve full session-bound CSRF protection. Additionally, add CSRF token cleanup to `LogoutView`:
+
+```python
+# In LogoutView.post(), before clearing cookies:
+if hasattr(request, 'user') and getattr(request.user, 'is_authenticated', False):
+    CSRFToken.objects.filter(user=request.user).delete()
+```
+
+**Status:** Open
