@@ -256,6 +256,7 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
             "/api/v1/documents/": "20/10m",
             "/api/v1/sessions/": "30/10m",
             "/api/v1/notifications/": "50/10m",
+            "/api/v1/errors/": "10/5m",
         }
         actual_scopes = dict(RateLimitMiddleware.SCOPE_LIMITS)
         self.assertEqual(actual_scopes, expected_scopes)

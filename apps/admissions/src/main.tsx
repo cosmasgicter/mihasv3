@@ -1,7 +1,15 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { z } from 'zod'
 import App from './App'
 import './index.css'
+
+// Disable Zod v4 JIT compilation to eliminate the need for 'unsafe-eval' in CSP.
+// Zod v4 uses `new Function()` for JIT-compiled object schema parsing, which
+// requires 'unsafe-eval' in Content-Security-Policy. Setting jitless: true
+// bypasses the JIT path entirely, using the standard interpreter instead.
+// The performance difference is negligible for client-side form validation.
+z.config({ jitless: true })
 import {
   consumeAutoReloadGuard,
   performReload,

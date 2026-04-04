@@ -8,15 +8,15 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
 
 ### Phase 1 — Security (Req 1–10, 29)
 
-- [ ] 1. Audit CSP policy and cookie security
-  - [ ] 1.1 Analyze CSP header in `apps/admissions/vercel.json` and determine if `unsafe-eval` is required by Zod v4 JIT
+- [x] 1. Audit CSP policy and cookie security
+  - [x] 1.1 Analyze CSP header in `apps/admissions/vercel.json` and determine if `unsafe-eval` is required by Zod v4 JIT
     - Search `node_modules/zod/` for `new Function` and `eval` usage
     - Test admissions build with `unsafe-eval` removed
     - Document whether `zod.setGlobalConfig({ jitless: true })` or alternative eliminates the requirement
     - Verify CSP blocks inline scripts (no `unsafe-inline` in `script-src`)
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
-  - [ ] 1.2 Verify cookie security attributes across all environments
+  - [x] 1.2 Verify cookie security attributes across all environments
     - Read `backend/config/settings/base.py` and `prod.py` for `AUTH_COOKIE_*` settings
     - Verify `Secure=True`, `HttpOnly=True` on all auth cookies
     - Verify `SameSite=None` is justified by cross-origin requirement (api.mihas.edu.zm → apply.mihas.edu.zm)
@@ -24,7 +24,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Produce cookie attribute matrix per environment
     - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-  - [ ] 1.3 Verify CORS configuration across all environments
+  - [x] 1.3 Verify CORS configuration across all environments
     - Enumerate `CORS_ALLOWED_ORIGINS` and `CORS_ALLOWED_ORIGIN_REGEXES` from all settings and `.env.*` files
     - Verify `CORS_ALLOW_ALL_ORIGINS = False` in production
     - Verify `CORS_ALLOW_CREDENTIALS = True` paired with explicit origin lists
@@ -32,7 +32,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
 - [ ] 2. Audit JWT, rate limiting, and CSRF flows
-  - [ ] 2.1 Trace JWT refresh flow end-to-end
+  - [x] 2.1 Trace JWT refresh flow end-to-end
     - Trace frontend `apiClient` 401 interceptor → refresh endpoint
     - Trace backend `JWTCookieAuthentication` and `JWTAuthenticationMiddleware` token extraction and validation
     - Verify `ROTATE_REFRESH_TOKENS=True`, `BLACKLIST_AFTER_ROTATION=True`
@@ -41,7 +41,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Check frontend refresh deduplication for concurrent 401s
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-  - [ ] 2.2 Verify rate limiting coverage and Redis fallback
+  - [x] 2.2 Verify rate limiting coverage and Redis fallback
     - Read `RateLimitMiddleware` in `middleware.py`, enumerate scopes and limits
     - Map each API endpoint to its rate limit scope
     - Verify auth endpoints have stricter limits than general endpoints
@@ -50,7 +50,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Run existing property tests in `backend/tests/property/test_rate_limiting.py`
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-  - [ ] 2.3 Verify CSRF enforcement flow
+  - [~] 2.3 Verify CSRF enforcement flow
     - Trace token issuance, frontend storage, header attachment, backend validation
     - Read `CSRFEnforcementMiddleware` exempt patterns and verify justifications
     - Verify POST/PUT/PATCH/DELETE without valid `X-CSRF-Token` returns 403
@@ -58,7 +58,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
 - [ ] 3. Audit error pipeline, secrets, and input validation
-  - [ ] 3.1 Verify error monitoring pipeline end-to-end
+  - [~] 3.1 Verify error monitoring pipeline end-to-end
     - Verify backend 500 path: `envelope_exception_handler` → `ErrorLog.create(source='backend')` → throttled alert
     - Verify frontend path: `errorReporter.ts` → batch POST → `ErrorReportView` → `ErrorLog.create(source='frontend')` → throttled alert
     - Verify throttle: `cache.add(key, 1, 900)` — 15-min TTL per unique message hash
@@ -66,7 +66,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Verify `ErrorLog` schema has timestamp, source, message, stack_trace fields
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6_
 
-  - [ ] 3.2 Scan for hardcoded secrets across all source files
+  - [~] 3.2 Scan for hardcoded secrets across all source files
     - Grep for API key patterns (`sk_live_`, `pk_live_`), connection strings, JWT keys, generic password/secret/token patterns
     - Verify `.gitignore` excludes all `.env*` files
     - Verify `REQUIRED_ENV_VARS` matches actual secrets used
@@ -75,7 +75,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Verify no PII/secrets in log output or audit trail
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
-  - [ ] 3.3 Verify input validation and file upload security
+  - [~] 3.3 Verify input validation and file upload security
     - Enumerate all DRF views with POST/PUT/PATCH, verify serializer usage
     - Verify no endpoint accepts raw `request.data` without serializer
     - Verify no serializer uses `fields = "__all__"`
@@ -85,7 +85,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 10.1, 10.2, 10.3, 10.4, 10.5_
 
 - [ ] 4. Audit backend auth edge cases
-  - [ ] 4.1 Verify JWT middleware edge case handling
+  - [~] 4.1 Verify JWT middleware edge case handling
     - Verify expired token → 401 with clear message (no internal details)
     - Verify malformed JWT → 401 without stack trace leakage
     - Verify no credentials → anonymous request with permission checks
@@ -94,19 +94,19 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Run existing tests in `backend/tests/property/test_jwt_middleware.py` and `backend/tests/unit/test_jwt_middleware.py`
     - _Requirements: 29.1, 29.2, 29.3, 29.4, 29.5_
 
-  - [ ]* 4.2 Write property tests for auth edge cases
+  - [~]* 4.2 Write property tests for auth edge cases
     - **Property: Expired tokens always produce 401 without internal details**
     - **Property: Malformed JWTs always produce 401 without stack traces**
     - **Property: Blacklisted JTIs are always rejected**
     - **Validates: Requirements 29.1, 29.2, 29.5**
 
-- [ ] 5. Create Phase 1 findings report and checkpoint
+- [~] 5. Create Phase 1 findings report and checkpoint
   - Compile all Phase 1 findings into `findings.md` with severity, evidence, and remediation
   - Record finding IDs in format `P1-SEC-{SEQ}`
   - Remediate any Critical findings before proceeding
   - _Requirements: 1–10, 29_
 
-- [ ] 6. Phase 1 Checkpoint — Ensure all security audit tasks are complete
+- [~] 6. Phase 1 Checkpoint — Ensure all security audit tasks are complete
   - Ensure all tests pass, ask the user if questions arise.
 
 ### Phase 2 — Production Stability (Req 11–16, 20, 32–35)
