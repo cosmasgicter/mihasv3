@@ -31,7 +31,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Review regex patterns for overly permissive matches
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 2. Audit JWT, rate limiting, and CSRF flows
+- [x] 2. Audit JWT, rate limiting, and CSRF flows
   - [x] 2.1 Trace JWT refresh flow end-to-end
     - Trace frontend `apiClient` 401 interceptor → refresh endpoint
     - Trace backend `JWTCookieAuthentication` and `JWTAuthenticationMiddleware` token extraction and validation
@@ -50,7 +50,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Run existing property tests in `backend/tests/property/test_rate_limiting.py`
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-  - [~] 2.3 Verify CSRF enforcement flow
+  - [x] 2.3 Verify CSRF enforcement flow
     - Trace token issuance, frontend storage, header attachment, backend validation
     - Read `CSRFEnforcementMiddleware` exempt patterns and verify justifications
     - Verify POST/PUT/PATCH/DELETE without valid `X-CSRF-Token` returns 403
