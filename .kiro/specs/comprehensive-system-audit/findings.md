@@ -1756,3 +1756,180 @@ No serializer uses `fields = "__all__"` — all serializers define explicit fiel
 
 - **P1-SEC-001:** Removed `unsafe-eval` from CSP via Zod `jitless` config
 - **P1-SEC-015:** Fixed stale rate limit scope test
+
+---
+
+## Phase 2 — Production Stability
+
+### P2-TS-001: TypeScript strict mode is correctly enabled with zero errors
+
+**Finding ID:** P2-TS-001
+**Severity:** Info (Positive finding)
+**Requirement:** Req 11.1, 11.2, 11.3, 11.4
+**Summary:** `tsconfig.json` has `strict: true` and `noUncheckedIndexedAccess: true`. Type-check passes with zero errors. Only 4 `@ts-ignore` directives exist (all justified for optional deps and experimental APIs). 51 `as any` casts exist, mostly for experimental browser APIs (PWA, Background Sync, App Badge) and API boundary type mismatches — none added solely for strict mode suppression.
+
+**Status:** Verified — No action needed
+
+---
+
+### P2-TS-002: Admissions test suite is healthy — 222 files, 1849 tests, zero failures
+
+**Finding ID:** P2-TS-002
+**Severity:** Info (Positive finding)
+**Requirement:** Req 12.1, 12.2, 12.3, 12.4
+**Summary:** Full test suite passes with 222 test files and 1849 tests in 160 seconds. No flaky tests detected. Property tests use fast-check with configurable `numRuns`. Integration tests mock API calls without external dependencies.
+
+**Status:** Verified — No action needed
+
+---
+
+### P2-PERF-001: Main entry chunk is 8.7MB (2.3MB gzipped) — far exceeds 500KB target
+
+**Finding ID:** P2-PERF-001
+**Severity:** High
+**Requirement:** Req 13.1, 13.2
+**Summary:** The main entry chunk `index-DhTGH-02.js` is 8,717 KB (2,337 KB gzipped), far exceeding the 500KB target. This includes React, React Router, React Query, Zustand, Radix UI, Lucide icons, date-fns, and all non-lazy-loaded application code.
+
+**Evidence:**
+
+| Chunk | Size (KB) | Gzipped (KB) | Lazy? |
+|-------|-----------|-------------|-------|
+| `index-DhTGH-02.js` (main) | 8,717 | 2,337 | No — entry point |
+| `vendor-pdf-91bEx8-v.js` | 851 | — | Yes ✅ |
+| `index-BojO2xoh.js` | 532 | — | Needs check |
+| `vendor-excel-D_tP5SdV.js` | 417 | — | Yes ✅ |
+| `index-qlPt6XH7.js` | 212 | — | Needs check |
+| `html2canvas.esm-CyxsxQj2.js` | 199 | — | Needs check |
+| `zod-DqI3cgJN.js` | 66 | — | Separate chunk |
+
+**Analysis:** The main chunk contains the entire React ecosystem, all UI primitives, and most application code. The `manualChunks` config in `vite.config.ts` only splits Excel, PDF, OCR, and chart libraries. The core React + Radix + Lucide + date-fns bundle is not split.
+
+**Remediation:** Consider:
+1. Tree-shake Lucide icons (import individual icons, not the barrel export)
+2. Lazy-load Radix UI dialog/dropdown/tooltip components
+3. Split date-fns locale data into a separate chunk
+4. Use `React.lazy` for all route-level pages (verify this is happening)
+5. Consider splitting Zod into a separate chunk (66KB)
+
+**Status:** Open
+
+---
+
+### P2-PERF-002: Vendor chunks (PDF, Excel, OCR) are correctly lazy-loaded
+
+**Finding ID:** P2-PERF-002
+**Severity:** Info (Positive finding)
+**Requirement:** Req 13.3, 13.4
+**Summary:** The `manualChunks` config in `vite.config.ts` correctly separates heavy vendor libraries into lazy-loaded chunks. `terserOptions` with `drop_console` and `drop_debugger` are active.
+
+**Status:** Verified — No action needed
+
+---
+
+### P2-PERF-003: Core Web Vitals — measurement deferred, critical path analysis done
+
+**Finding ID:** P2-PERF-003
+**Severity:** Medium
+**Requirement:** Req 14.1, 14.2, 14.3, 14.4, 14.5
+**Summary:** CWV measurement requires Lighthouse CI (not available in this environment). However, critical rendering path analysis shows no render-blocking resources in `index.html` — no external fonts, no blocking CSS links, no synchronous scripts. The 8.7MB main bundle (P2-PERF-001) is the primary CWV risk factor.
+
+**Evidence:**
+- No external font loading — uses system font stack (Inter or fallback) ✅
+- No render-blocking `<link rel="stylesheet">` in `<head>` — CSS is code-split by Vite ✅
+- Single `<script type="module">` at end of `<body>` — non-blocking ✅
+- `modulePreload.polyfill = false` — no polyfill overhead ✅
+- `cssCodeSplit = true` — CSS loaded per-route ✅
+- Structured data (JSON-LD) is non-blocking ✅
+
+**Risk:** The 8.7MB main bundle will dominate FCP and LCP on 3G connections. Estimated FCP on 3G (~1.5 Mbps): ~12 seconds for the gzipped 2.3MB download alone, far exceeding the 1.5s target.
+
+**Remediation:** Address P2-PERF-001 (bundle size) first. Then set up Lighthouse CI for ongoing CWV measurement.
+
+**Status:** Open — measurement deferred, bundle size is the blocking issue
+
+---
+
+### P2-PERF-004: Route-level pages are correctly lazy-loaded (37 components)
+
+**Finding ID:** P2-PERF-004
+**Severity:** Info (Positive finding)
+**Requirement:** Req 15.1, 15.2
+**Summary:** 37 components use `React.lazy()` for code splitting. All route-level pages in `src/routes/config.tsx` are lazy-loaded. The build output confirms separate chunks for each page.
+
+**Status:** Verified — No action needed
+
+---
+
+### P2-SW-001: Service worker correctly configured with injectManifest strategy
+
+**Finding ID:** P2-SW-001
+**Severity:** Info (Positive finding)
+**Requirement:** Req 16.1, 16.2, 16.4, 16.5
+**Summary:** Service worker uses `injectManifest` strategy from `vite-plugin-pwa`. Cache invalidation works via manifest fingerprint-based cache versioning. The `/service-worker.js` path has `Cache-Control: no-cache` in `vercel.json`. Offline pages served from precache. Cross-origin API requests use `NetworkOnly` strategy (never cached by SW).
+
+**Status:** Verified — No action needed
+
+---
+
+### P2-JOPS-001: Jobs-ops has zero test files — critical coverage gap
+
+**Finding ID:** P2-JOPS-001
+**Severity:** Critical
+**Requirement:** Req 20.1, 20.2
+**Summary:** The `apps/jobs-ops/` frontend has zero test files. Type-check and lint both pass cleanly, but there are no unit, integration, property, or E2E tests. This is the single biggest quality gap in the repo.
+
+**Evidence:**
+- `find apps/jobs-ops/tests -name "*.test.*"` → 0 files
+- `bun run type-check` → passes ✅
+- `bun run lint` → passes ✅
+
+**Remediation:** Create a minimum viable test plan (Req 49) covering API service layer, route resolution, and critical component rendering.
+
+**Status:** Open
+
+---
+
+### P2-DEPLOY-001: Vercel deployment configuration is correct
+
+**Finding ID:** P2-DEPLOY-001
+**Severity:** Info (Positive finding)
+**Requirement:** Req 32.1, 32.2, 32.3, 32.4, 32.5
+**Summary:** `vercel.json` correctly configures build command (`bun run build`), install command (`bun install --frozen-lockfile`), output directory (`dist`), SPA rewrite rule, security headers (HSTS, X-Frame-Options, X-Content-Type-Options, CSP, Permissions-Policy, Referrer-Policy), static asset caching (`max-age=31536000, immutable`), and service worker no-cache headers.
+
+**Status:** Verified — No action needed
+
+---
+
+### P2-DEPLOY-002: Neon Postgres and Redis connection configs need verification in Koyeb
+
+**Finding ID:** P2-DEPLOY-002
+**Severity:** Medium
+**Requirement:** Req 33.1, 33.2, 33.3, 34.1, 34.2, 34.3, 35.1, 35.2
+**Summary:** The Django settings correctly configure `dj_database_url` for Neon Postgres, `CONN_MAX_AGE=600`, and `CELERY_BROKER_USE_SSL` for `rediss://` connections. However, the actual Koyeb environment variables (DATABASE_URL, REDIS_URL) cannot be verified from the codebase — they need to be checked in the Koyeb dashboard.
+
+**Evidence:**
+- `base.py`: `DATABASES = {"default": dj_database_url.config(conn_max_age=600, conn_health_checks=True, ssl_require=True)}` ✅
+- `base.py`: `CELERY_BROKER_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")` with TLS detection ✅
+- `base.py`: `if CELERY_BROKER_URL.startswith("rediss://"):` → configures `CELERY_BROKER_USE_SSL` ✅
+
+**Status:** Partially verified — Koyeb env vars need manual check
+
+---
+
+## Phase 2 Summary
+
+### Finding Count by Severity
+
+| Severity | Count | IDs |
+|----------|-------|-----|
+| Critical | 1 | P2-JOPS-001 (zero test coverage) |
+| High | 1 | P2-PERF-001 (8.7MB main bundle) |
+| Medium | 2 | P2-PERF-003 (CWV deferred), P2-DEPLOY-002 (Koyeb env vars) |
+| Info | 4 | P2-TS-001, P2-TS-002, P2-PERF-002, P2-PERF-004, P2-SW-001, P2-DEPLOY-001 |
+
+### Open Remediation Items (Priority Order)
+
+1. **P2-JOPS-001 (Critical):** Create minimum viable test plan for jobs-ops
+2. **P2-PERF-001 (High):** Reduce main bundle from 8.7MB to <500KB — tree-shake Lucide, split date-fns, optimize Radix imports
+3. **P2-PERF-003 (Medium):** Set up Lighthouse CI for CWV measurement after bundle size is addressed
+4. **P2-DEPLOY-002 (Medium):** Verify Koyeb env vars match expected configuration
