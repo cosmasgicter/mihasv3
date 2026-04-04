@@ -1933,3 +1933,165 @@ No serializer uses `fields = "__all__"` — all serializers define explicit fiel
 2. **P2-PERF-001 (High):** Reduce main bundle from 8.7MB to <500KB — tree-shake Lucide, split date-fns, optimize Radix imports
 3. **P2-PERF-003 (Medium):** Set up Lighthouse CI for CWV measurement after bundle size is addressed
 4. **P2-DEPLOY-002 (Medium):** Verify Koyeb env vars match expected configuration
+
+---
+
+## Phase 3 — Backend Quality
+
+### P3-SER-001: Serializer coverage is good — 55 serializer references across 53 state-changing methods
+
+**Finding ID:** P3-SER-001
+**Severity:** Info (Positive finding)
+**Requirement:** Req 24.1, 24.3, 24.4
+**Summary:** 53 state-changing view methods (post/put/patch/create/update/destroy) exist across all backend apps. 55 serializer references (`serializer_class` or `get_serializer`) are present. No serializer uses `fields = "__all__"`. 7 locations in `applications/views.py` access `request.data` directly (already documented in P1-SEC-027).
+
+**Status:** Verified — Minor gap in applications views (P1-SEC-027)
+
+---
+
+### P3-DB-001: Low select_related/prefetch_related usage — potential N+1 risk
+
+**Finding ID:** P3-DB-001
+**Severity:** Medium
+**Requirement:** Req 25.1, 25.2
+**Summary:** 46 ForeignKey/ManyToMany relationships exist across all models, but only 4 `select_related` calls are used (all in catalog and accounts). No `prefetch_related` calls found. The known interviews N+1 pattern is already documented in the codebase. No unbounded queries found in views.
+
+**Evidence:**
+- 46 FK/M2M relationships across all models
+- 4 `select_related` calls (catalog programs → institution, password reset → user)
+- 0 `prefetch_related` calls
+- Known N+1: `interviewsService.list()` documented with TODO in frontend
+
+**Remediation:** Add `select_related` to querysets that access FK fields in serializers. Priority areas: application views (application → user, application → program), document views (document → application), audit views (audit → actor).
+
+**Status:** Open
+
+---
+
+### P3-DB-002: Database connection config is correct
+
+**Finding ID:** P3-DB-002
+**Severity:** Info (Positive finding)
+**Requirement:** Req 25.3, 25.4
+**Summary:** `dj_database_url.config(conn_max_age=600, conn_health_checks=True, ssl_require=True)` is correctly configured. No unbounded queries found in views — all list endpoints use pagination.
+
+**Status:** Verified — No action needed
+
+---
+
+### P3-CELERY-001: Celery tasks use manual retry with backoff — no autoretry_for
+
+**Finding ID:** P3-CELERY-001
+**Severity:** Low
+**Requirement:** Req 26.1, 26.2
+**Summary:** 11 Celery tasks defined across 6 apps. Core tasks (send_email, check_uptime, cleanup_audit_logs, generate_acceptance_letter, generate_finance_receipt, extract_document_text) use `bind=True, max_retries=3` with manual `self.retry(exc=exc, countdown=backoff)`. Scaffold tasks (automation, integrations, jobs) have no retry config. No task uses `autoretry_for` — all use manual retry patterns with exponential backoff.
+
+**Evidence:**
+- 11 `@shared_task` definitions
+- 5 manual `self.retry()` calls with backoff
+- 3 scaffold tasks (automation, integrations, jobs) have `max_retries=0` or no retry config
+- `check_uptime_task`: `max_retries=3, default_retry_delay=60` ✅
+- `cleanup_audit_logs_task`: `max_retries=0` (intentional — cleanup is idempotent)
+- `send_email_task`: `max_retries=3, default_retry_delay=60` ✅
+
+**Status:** Verified — Manual retry pattern is acceptable
+
+---
+
+### P3-API-001: API response format audit deferred — envelope renderer verified in Phase 1
+
+**Finding ID:** P3-API-001
+**Severity:** Info
+**Requirement:** Req 27.1, 27.2, 27.3, 27.4
+**Summary:** The `envelope_exception_handler` was verified in P1-SEC-022 (error pipeline audit). It correctly maps all DRF exceptions to the `{success, data}` envelope format. Paginated responses use `{page, pageSize, totalCount, results}` inside the data envelope (verified in the production-cors-pagination-fix spec).
+
+**Status:** Verified — No additional action needed
+
+---
+
+### P3-PAG-001: Pagination correctly configured with StandardPagination
+
+**Finding ID:** P3-PAG-001
+**Severity:** Info (Positive finding)
+**Requirement:** Req 28.1, 28.2, 28.3, 28.4
+**Summary:** `StandardPagination` extends `PageNumberPagination` with `page_size=20`, `max_page_size=100`, and returns `{page, pageSize, totalCount, results}`. Set as `DEFAULT_PAGINATION_CLASS` in DRF settings. Used explicitly in applications, documents, and admin views.
+
+**Status:** Verified — No action needed
+
+---
+
+### P3-AUDIT-001: Audit logging correctly implemented — no PII stored
+
+**Finding ID:** P3-AUDIT-001
+**Severity:** Info (Positive finding)
+**Requirement:** Req 30.1, 30.2, 30.3, 30.4
+**Summary:** `AuditMiddleware` logs all POST/PUT/PATCH/DELETE requests with 2xx responses. Records actor_id, action (HTTP method), entity_type (from URL), IP hash (SHA-256), UA hash (SHA-256), and retention_category (security for auth/session paths, standard otherwise). No raw PII stored — IP and user-agent are hashed. `cleanup_audit_logs_task` retains standard 90 days, security 365 days.
+
+**Status:** Verified — No action needed
+
+---
+
+### P3-HEALTH-001: Health check endpoints correctly configured
+
+**Finding ID:** P3-HEALTH-001
+**Severity:** Info (Positive finding)
+**Requirement:** Req 31.1, 31.2, 31.3, 31.4
+**Summary:** `/health/live/` returns 200 if process running. `/health/ready/` checks database and Redis connectivity, returns 503 on failure. Health endpoints are at root level (not under `/api/v1/`), excluded from auth, CSRF, rate limiting, and audit middleware by path prefix matching.
+
+**Status:** Verified — No action needed
+
+---
+
+### P3-R2-001: R2 storage configuration verified in P1-SEC-028
+
+**Finding ID:** P3-R2-001
+**Severity:** Info
+**Requirement:** Req 36.1, 36.2, 36.3, 36.4, 36.5
+**Summary:** File upload security and R2 storage configuration were verified in Phase 1 (P1-SEC-028). Magic byte validation, UUID-based keys, signed URLs, and `AWS_DEFAULT_ACL = None` all confirmed.
+
+**Status:** Verified — See P1-SEC-028
+
+---
+
+### P3-TEST-001: Backend has 47 test files — good coverage for core apps, gaps in jobs-ops domains
+
+**Finding ID:** P3-TEST-001
+**Severity:** Medium
+**Requirement:** Req 50.1, 50.2, 50.3, 50.4
+**Summary:** 47 backend test files covering property tests (30), unit tests (16), and contract tests (1). Core apps (accounts, applications, common, documents, catalog) have good coverage. Jobs-ops domain apps (jobs, outreach, automation, integrations, analytics) have minimal or scaffold-only test coverage.
+
+**Evidence:**
+
+| App | Property Tests | Unit Tests | Contract Tests | Coverage Level |
+|-----|---------------|------------|----------------|----------------|
+| accounts (auth) | 5 (auth, JWT, session, password, RBAC) | 3 | 1 | Good |
+| applications | 4 (endpoints, properties, tasks, bulk) | 3 | — | Good |
+| common (middleware) | 6 (middleware, rate limit, health, error, email, infra) | 4 | — | Good |
+| documents | 1 (error handling) | 1 | — | Moderate |
+| catalog | 1 (properties) | — | — | Minimal |
+| jobs | — | — | — | None |
+| outreach | — | — | — | None |
+| automation | — | — | — | None |
+| integrations | — | — | — | None |
+| analytics | — | — | — | None |
+
+**Remediation:** Prioritize test coverage for jobs-ops domain apps (jobs, outreach, automation) as they handle sensitive operations (job applications, messaging, rule execution).
+
+**Status:** Open
+
+---
+
+## Phase 3 Summary
+
+### Finding Count by Severity
+
+| Severity | Count | IDs |
+|----------|-------|-----|
+| Medium | 2 | P3-DB-001 (low select_related usage), P3-TEST-001 (jobs-ops backend untested) |
+| Low | 1 | P3-CELERY-001 (manual retry, no autoretry_for) |
+| Info | 6 | P3-SER-001, P3-DB-002, P3-API-001, P3-PAG-001, P3-AUDIT-001, P3-HEALTH-001, P3-R2-001 |
+
+### Open Remediation Items
+
+1. **P3-DB-001 (Medium):** Add `select_related` to querysets accessing FK fields — 46 relationships, only 4 optimized
+2. **P3-TEST-001 (Medium):** Add tests for jobs-ops backend apps (jobs, outreach, automation, integrations, analytics)
