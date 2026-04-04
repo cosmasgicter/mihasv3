@@ -206,8 +206,8 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
 
 ### Phase 3 — Backend Quality (Req 24–28, 30–31, 36, 50)
 
-- [ ] 13. Audit backend serializer coverage and query performance
-  - [ ] 13.1 Verify DRF serializer coverage across all backend apps
+- [x] 13. Audit backend serializer coverage and query performance
+  - [x] 13.1 Verify DRF serializer coverage across all backend apps
     - Enumerate all DRF views with POST/PUT/PATCH across all apps
     - Verify each uses a serializer class for request validation
     - Verify no view directly accesses `request.data` without serializer
@@ -215,7 +215,7 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Verify nested serializer relationships use appropriate depth limits
     - _Requirements: 24.1, 24.2, 24.3, 24.4_
 
-  - [ ] 13.2 Document N+1 query patterns and missing indexes
+  - [x] 13.2 Document N+1 query patterns and missing indexes
     - Document known N+1 patterns (interviews N+1 already documented)
     - Identify additional querysets accessing related objects without `select_related`/`prefetch_related`
     - Identify model fields used in `filter()`/`order_by()` without indexes
@@ -223,8 +223,8 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Document known slow queries and recommend optimization
     - _Requirements: 25.1, 25.2, 25.3, 25.4, 25.5_
 
-- [ ] 14. Audit Celery tasks and API response format
-  - [ ] 14.1 Verify Celery task reliability
+- [x] 14. Audit Celery tasks and API response format
+  - [x] 14.1 Verify Celery task reliability
     - Enumerate all Celery tasks, verify `autoretry_for`, `retry_backoff`, `max_retries`
     - Verify exception handling and error logging before retry
     - Verify `check_uptime_task` and `cleanup_audit_logs_task` schedules
@@ -232,36 +232,36 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Verify exhausted-retry tasks log final failure and dispatch alert
     - _Requirements: 26.1, 26.2, 26.3, 26.4, 26.5_
 
-  - [ ] 14.2 Verify API response format consistency
+  - [x] 14.2 Verify API response format consistency
     - Verify all endpoints use `{success, data}` envelope via `EnvelopeRenderer`
     - Verify error responses use `{success: false, error: {code, message, details}}`
     - Verify paginated responses include `{page, pageSize, totalCount, results}`
     - Verify `envelope_exception_handler` catches all DRF exceptions
     - _Requirements: 27.1, 27.2, 27.3, 27.4_
 
-- [ ] 15. Audit pagination, audit logging, health checks, and R2 storage
-  - [ ] 15.1 Verify pagination across all list endpoints
+- [x] 15. Audit pagination, audit logging, health checks, and R2 storage
+  - [x] 15.1 Verify pagination across all list endpoints
     - Verify all list endpoints use `StandardPagination` with default page size 20
     - Verify pagination parameters are validated and bounded
     - Verify page-beyond-data returns empty results with correct `totalCount`
     - Verify no list endpoint returns unbounded result sets
     - _Requirements: 28.1, 28.2, 28.3, 28.4_
 
-  - [ ] 15.2 Verify audit logging completeness
+  - [x] 15.2 Verify audit logging completeness
     - Verify `AuditMiddleware` logs all POST/PUT/PATCH/DELETE with timestamp, user, endpoint, status
     - Verify audit logs contain no PII, passwords, or document bodies
     - Verify `cleanup_audit_logs_task` retains standard 90 days, security 365 days
     - Verify audit records are queryable by timestamp, user, endpoint
     - _Requirements: 30.1, 30.2, 30.3, 30.4_
 
-  - [ ] 15.3 Verify health check endpoints
+  - [x] 15.3 Verify health check endpoints
     - Verify `/health/live/` returns 200 if process running
     - Verify `/health/ready/` returns 200 only if DB and Redis healthy
     - Verify DB failure → 503 on readiness check
     - Verify health checks excluded from auth, CSRF, rate limiting, audit
     - _Requirements: 31.1, 31.2, 31.3, 31.4_
 
-  - [ ] 15.4 Verify R2 storage configuration
+  - [x] 15.4 Verify R2 storage configuration
     - Verify `django-storages` S3-compatible config for Cloudflare R2
     - Verify signed URLs expire after 15 minutes
     - Verify `AWS_DEFAULT_ACL = None` prevents public access
@@ -269,19 +269,19 @@ Full-stack audit of the MIHAS monorepo executed in 5 phases following the CTO's 
     - Verify files retrievable via signed URLs, inaccessible via direct bucket URLs
     - _Requirements: 36.1, 36.2, 36.3, 36.4, 36.5_
 
-- [ ] 16. Analyze backend test coverage
+- [x] 16. Analyze backend test coverage
   - Produce coverage map by app (accounts, applications, catalog, documents, common, jobs, outreach, automation, integrations, analytics)
   - Identify apps with zero or minimal test coverage, prioritize by risk
   - Verify property tests cover schema validation, middleware behavior, migration invariants
   - Verify contract tests validate frontend-backend API parity
   - _Requirements: 50.1, 50.2, 50.3, 50.4_
 
-- [ ] 17. Create Phase 3 findings report and checkpoint
+- [x] 17. Create Phase 3 findings report and checkpoint
   - Compile all Phase 3 findings into `findings.md` with severity, evidence, and remediation
   - Record finding IDs in format `P3-{AREA}-{SEQ}`
   - _Requirements: 24–28, 30–31, 36, 50_
 
-- [ ] 18. Phase 3 Checkpoint — Ensure all backend quality audit tasks are complete
+- [x] 18. Phase 3 Checkpoint — Ensure all backend quality audit tasks are complete
   - Ensure all tests pass, ask the user if questions arise.
 
 ### Phase 4 — Frontend Quality (Req 17–19, 21–23, 48–49, 51–52)
