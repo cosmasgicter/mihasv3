@@ -179,6 +179,9 @@ CACHES = {
 # django-ratelimit only whitelists django-redis's backend string, but Django's
 # built-in Redis cache is sufficient for the shared atomic operations we use.
 SILENCED_SYSTEM_CHECKS = ["django_ratelimit.W001"]
+# Fail open if the shared cache is unavailable so Redis outages do not
+# block legitimate requests on rate-limited endpoints.
+RATELIMIT_FAIL_OPEN = True
 
 # ---------------------------------------------------------------------------
 # JWT — SimpleJWT with shared signing key for dual-run compatibility
