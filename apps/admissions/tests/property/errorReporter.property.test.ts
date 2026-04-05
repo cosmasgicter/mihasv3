@@ -35,6 +35,7 @@ const errorBatchArb = fc.array(errorEventArb, { minLength: 1, maxLength: 10 });
 
 describe('Property 8: Frontend error reporter batches and includes metadata', () => {
   const TEST_URL = '***REMOVED***/applications/new';
+  const TEST_API_BASE_URL = '***REMOVED***';
   const TEST_USER_AGENT = 'Mozilla/5.0 (Test Agent)';
   const TEST_APP_VERSION = '2.5.0';
 
@@ -71,6 +72,7 @@ describe('Property 8: Frontend error reporter batches and includes metadata', ()
 
     // Mock import.meta.env
     vi.stubEnv('VITE_APP_VERSION', TEST_APP_VERSION);
+    vi.stubEnv('VITE_API_BASE_URL', TEST_API_BASE_URL);
     vi.stubEnv('VITE_ERROR_REPORT_ENABLED', 'true');
   });
 
@@ -125,7 +127,7 @@ describe('Property 8: Frontend error reporter batches and includes metadata', ()
         expect(capturedCalls.length).toBe(1);
 
         const call = capturedCalls[0];
-        expect(call.url).toBe('/api/v1/errors/report/');
+        expect(call.url).toBe(`${TEST_API_BASE_URL}/api/v1/errors/report/`);
         expect(call.init.method).toBe('POST');
 
         // Parse the body

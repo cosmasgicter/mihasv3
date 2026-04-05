@@ -37,14 +37,13 @@ class ErrorReportView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        data = request.data
-
-        message = data.get("message")
-        if not message:
+        try:
+            reports = self._extract_reports(request.data)
+        except ValueError as exc:
             return Response(
                 {
                     "success": False,
-                    "error": "Field 'message' is required",
+                    "error": str(exc),
                     "code": "VALIDATION_ERROR",
                 },
                 status=400,
@@ -54,29 +53,60 @@ class ErrorReportView(APIView):
         raw_ip = _get_client_ip(request)
         ip_hash = hashlib.sha256(raw_ip.encode("utf-8")).hexdigest()
 
-        try:
-            from apps.common.models import ErrorLog
+        for report in reports:
+            message = str(report["message"])[:2000]
+            try:
+                from apps.common.models import ErrorLog
 
-            ErrorLog.objects.create(
-                source="frontend",
-                level="error",
-                message=str(message)[:2000],
-                stack_trace=data.get("stack_trace"),
-                context=data.get("context"),
-                request_path=data.get("url"),
-                ip_hash=ip_hash,
-            )
-        except Exception:
-            logger.exception("Failed to create ErrorLog for frontend error report")
+                ErrorLog.objects.create(
+                    source="frontend",
+                    level="error",
+                    message=message,
+                    stack_trace=report.get("stack_trace"),
+                    context=report.get("context"),
+                    request_path=report.get("url"),
+                    ip_hash=ip_hash,
+                )
+            except Exception:
+                logger.exception("Failed to create ErrorLog for frontend error report")
 
-        # Dispatch throttled alert email (reuse the same logic as exceptions.py).
-        try:
-            self._dispatch_throttled_alert(str(message)[:2000])
-        except Exception:
-            # Alert dispatch must never break the response.
-            logger.exception("Failed to dispatch alert for frontend error report")
+            # Dispatch throttled alert email (reuse the same logic as exceptions.py).
+            try:
+                self._dispatch_throttled_alert(message)
+            except Exception:
+                # Alert dispatch must never break the response.
+                logger.exception("Failed to dispatch alert for frontend error report")
 
-        return Response({"success": True, "data": {"message": "Error report received"}})
+        return Response(
+            {
+                "success": True,
+                "data": {
+                    "message": "Error report received",
+                    "received": len(reports),
+                },
+            }
+        )
+
+    @staticmethod
+    def _extract_reports(data):
+        if isinstance(data, dict) and isinstance(data.get("errors"), list):
+            reports = data["errors"]
+            if not reports:
+                raise ValueError("Field 'errors' must be a non-empty list")
+
+            normalized_reports = []
+            for report in reports:
+                if not isinstance(report, dict):
+                    raise ValueError("Each item in 'errors' must be an object")
+                if not report.get("message"):
+                    raise ValueError("Each error payload must include a non-empty 'message'")
+                normalized_reports.append(report)
+            return normalized_reports
+
+        message = data.get("message") if hasattr(data, "get") else None
+        if not message:
+            raise ValueError("Field 'message' is required")
+        return [data]
 
     @staticmethod
     def _dispatch_throttled_alert(error_msg: str):

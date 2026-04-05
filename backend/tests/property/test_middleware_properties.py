@@ -197,6 +197,7 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
             "20/10m": 600,
             "30/10m": 600,
             "50/10m": 600,
+            "10/5m": 300,
         }
         for rate, expected_seconds in expected_mapping.items():
             result = RateLimitMiddleware._retry_after_seconds(rate)
@@ -225,9 +226,7 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
         # Auth scope is 60/5m → 300 seconds
         self.assertEqual(response["Retry-After"], "300")
 
-    @given(
-        scope_idx=st.integers(min_value=0, max_value=4),
-    )
+    @given(scope_idx=st.integers(min_value=0, max_value=len(RateLimitMiddleware.SCOPE_LIMITS) - 1))
     @settings(max_examples=100)
     def test_each_scope_returns_correct_retry_after_on_limit(self, scope_idx):
         """For each configured scope, when rate limited, the Retry-After header
@@ -247,6 +246,20 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
 
         self.assertEqual(response.status_code, 429)
         self.assertEqual(response["Retry-After"], str(expected_seconds))
+
+    def test_rate_limit_cache_failure_fails_open(self):
+        """Cache/backend failures must not block legitimate requests."""
+
+        def mock_get_response(request):
+            return HttpResponse("OK", status=200)
+
+        middleware = RateLimitMiddleware(mock_get_response)
+        request = _make_request(method="GET", path="/api/v1/auth/login/")
+
+        with patch("django_ratelimit.core.is_ratelimited", side_effect=RuntimeError("cache down")):
+            response = middleware(request)
+
+        self.assertEqual(response.status_code, 200)
 
     def test_scope_limits_match_rate_limit_config(self):
         """Verify the configured scopes match the rate limit middleware configuration."""
@@ -272,8 +285,8 @@ class TestCSRFEnforcementProperty(SimpleTestCase):
 
     For any POST/PUT/PATCH/DELETE request to a non-exempt endpoint,
     if X-CSRF-Token is missing, return 403.
-    For exempt endpoints (login, register, password-reset), CSRF should
-    not be enforced.
+    For exempt endpoints (login, register, password-reset, reset confirm),
+    CSRF should not be enforced.
 
     **Validates: Requirements 2.6**
     """
@@ -293,6 +306,7 @@ class TestCSRFEnforcementProperty(SimpleTestCase):
                     r"^/api/v1/auth/login/?$",
                     r"^/api/v1/auth/register/?$",
                     r"^/api/v1/auth/password-reset/?$",
+                    r"^/api/v1/auth/password-reset/confirm/?$",
                 ]
             )
         ),
@@ -336,6 +350,17 @@ class TestCSRFEnforcementProperty(SimpleTestCase):
     def test_exempt_password_reset_path_skips_csrf(self, method):
         """Password-reset endpoint should skip CSRF enforcement."""
         request = _make_request(method=method, path="/api/v1/auth/password-reset/")
+        request.META.pop("HTTP_X_CSRF_TOKEN", None)
+
+        response = self.middleware(request)
+
+        self.assertEqual(response.status_code, 200)
+
+    @given(method=_state_changing_methods)
+    @settings(max_examples=100)
+    def test_exempt_password_reset_confirm_path_skips_csrf(self, method):
+        """Password-reset confirm endpoint should skip CSRF enforcement."""
+        request = _make_request(method=method, path="/api/v1/auth/password-reset/confirm/")
         request.META.pop("HTTP_X_CSRF_TOKEN", None)
 
         response = self.middleware(request)

@@ -324,7 +324,7 @@ class TestPasswordResetTokenGeneration(SimpleTestCase):
     @given(role=_roles)
     @_default_settings
     def test_generated_token_stored_as_unused(self, role):
-        """The stored token must have used=False."""
+        """The stored token must start unused (`used_at` is null)."""
         user = _make_mock_user(role=role)
         created_objects = []
 
@@ -332,7 +332,7 @@ class TestPasswordResetTokenGeneration(SimpleTestCase):
             mock_objects.create.side_effect = lambda **kw: created_objects.append(kw)
             generate_password_reset_token(user)
 
-        self.assertFalse(created_objects[0]["used"])
+        self.assertIsNone(created_objects[0]["used_at"])
 
 
 # =========================================================================
