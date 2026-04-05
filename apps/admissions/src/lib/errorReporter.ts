@@ -7,6 +7,8 @@
  * auth / CSRF infrastructure is initialized.
  */
 
+import { getApiBaseUrl } from './apiConfig'
+
 interface ErrorPayload {
   message: string
   stack_trace?: string
@@ -15,7 +17,6 @@ interface ErrorPayload {
   context?: Record<string, unknown>
 }
 
-const REPORT_URL = '/api/v1/errors/report/'
 const BATCH_DELAY_MS = 5_000
 
 let buffer: ErrorPayload[] = []
@@ -50,7 +51,7 @@ function flush(): void {
   )
 
   try {
-    fetch(REPORT_URL, {
+    fetch(`${getApiBaseUrl()}/api/v1/errors/report/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body,
