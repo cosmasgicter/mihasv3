@@ -122,3 +122,38 @@ class TestErrorReportUnauthenticated(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.data["success"])
         mock_create.assert_called_once()
+
+
+class TestErrorReportBatchPayload(SimpleTestCase):
+    """A batch payload should be accepted and stored item-by-item."""
+
+    @patch.object(ErrorReportView, "_dispatch_throttled_alert")
+    @patch("apps.common.models.ErrorLog.objects.create")
+    def test_batch_payload_creates_error_log_per_item(self, mock_create, mock_alert):
+        request = factory.post(
+            "/api/v1/errors/report/",
+            {
+                "errors": [
+                    {
+                        "message": "First client error",
+                        "stack_trace": "at first.js:1:1",
+                        "url": "https://apply.mihas.edu.zm/apply",
+                    },
+                    {
+                        "message": "Second client error",
+                        "stack_trace": "at second.js:2:2",
+                        "url": "https://apply.mihas.edu.zm/apply",
+                    },
+                ],
+            },
+            format="json",
+        )
+
+        view = ErrorReportView.as_view()
+        response = view(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.data["success"])
+        self.assertEqual(response.data["data"]["received"], 2)
+        self.assertEqual(mock_create.call_count, 2)
+        self.assertEqual(mock_alert.call_count, 2)

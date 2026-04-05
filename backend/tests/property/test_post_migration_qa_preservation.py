@@ -216,6 +216,8 @@ class TestCSRFEnforcementPreservation:
             "/api/v1/auth/register",
             "/api/v1/auth/password-reset/",
             "/api/v1/auth/password-reset",
+            "/api/v1/auth/password-reset/confirm/",
+            "/api/v1/auth/password-reset/confirm",
             "/api/v1/errors/report/",
             "/api/v1/errors/report",
         ]),
@@ -224,8 +226,9 @@ class TestCSRFEnforcementPreservation:
     def test_existing_exempt_paths_remain_exempt(self, path):
         """Existing CSRF-exempt paths must remain exempt after fixes.
 
-        Login, register, password-reset, and error report are currently
-        exempt and must stay exempt to avoid breaking unauthenticated flows.
+        Login, register, password-reset, password-reset confirm, and error
+        report are exempt and must stay exempt to avoid breaking
+        unauthenticated flows.
         """
         middleware = CSRFEnforcementMiddleware(lambda r: None)
         is_exempt = middleware._is_exempt(path)
