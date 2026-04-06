@@ -11,6 +11,7 @@ from apps.accounts.views import (
     LogoutView,
     PasswordResetConfirmView,
     PasswordResetRequestView,
+    ProfileView,
     RefreshView,
     RegisterView,
     SessionView,
@@ -26,4 +27,5 @@ urlpatterns = [
     path("session/", SessionView.as_view(), name="auth-session"),
     path("password-reset/", PasswordResetRequestView.as_view(), name="auth-password-reset"),
     path("password-reset/confirm/", PasswordResetConfirmView.as_view(), name="auth-password-reset-confirm"),
+    path("profile/", ProfileView.as_view(), name="auth-profile"),
 ]

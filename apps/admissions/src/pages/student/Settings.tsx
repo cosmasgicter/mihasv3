@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useMutation } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
+import { useToastStore } from '@/hooks/useToast'
 import { Button } from '@/components/ui/Button'
 import { FormSelect } from '@/components/ui/form-select'
 import { Input } from '@/components/ui/input'
@@ -15,6 +15,7 @@ import { PageShell } from '@/components/ui/PageShell'
 import {
   ArrowLeft,
   Bell,
+  Loader2,
   Mail,
   MapPin,
   Save,
@@ -71,45 +72,19 @@ function getDisplayValue(value?: string | null, fallback = 'Not provided') {
 
 export default function StudentSettings() {
   const { user } = useAuth()
-  const { profile, updateProfile } = useProfileQuery()
+  const { profile, updateProfile, updatingProfile } = useProfileQuery()
   const { metadata } = useProfileAutoPopulation()
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-
-  const profileMutation = useMutation({
-    mutationFn: async (data: ProfileForm) => {
-      if (!user?.id) {
-        throw new Error('You must be signed in to update your profile')
-      }
-
-      const cleanData = Object.entries(data).reduce((acc, [key, value]) => {
-        const normalizedValue =
-          key === 'residence_town' && typeof value === 'string'
-            ? normalizeResidenceTown(value)
-            : value
-        acc[key] = normalizedValue === '' ? null : normalizedValue
-        return acc
-      }, {} as Record<string, string | null>)
-
-      await updateProfile(cleanData)
-    },
-    onSuccess: () => {
-      setError('')
-      setSuccess('Your profile details were saved successfully.')
-    },
-    onError: (requestError: Error) => {
-      setSuccess('')
-      setError(`Failed to update profile: ${requestError.message}`)
-    },
-  })
+  const toast = useToastStore()
+  const profileEditingEnabled = true
 
   const {
     register,
-    handleSubmit,
     setValue,
     reset,
     watch,
     getValues,
+    setError,
+    handleSubmit,
     control,
     formState: { errors, isDirty, dirtyFields },
   } = useForm<ProfileForm>({
@@ -167,22 +142,47 @@ export default function StudentSettings() {
     })
   }, [profile, metadata, user?.email, getValues, reset, setValue, isDirty, dirtyFields])
 
+  const onSubmit = handleSubmit(async (formValues) => {
+    // Extract only the dirty fields
+    const dirtyFieldValues: Partial<ProfileForm> = {}
+    for (const key of Object.keys(dirtyFields) as (keyof ProfileForm)[]) {
+      dirtyFieldValues[key] = formValues[key] as never
+    }
+
+    if (Object.keys(dirtyFieldValues).length === 0) return
+
+    try {
+      const updatedProfile = await updateProfile(dirtyFieldValues)
+      toast.success('Profile updated', 'Your changes have been saved.')
+      // Reset form dirty state with the server-returned data
+      reset({
+        ...formValues,
+        ...updatedProfile,
+        date_of_birth: updatedProfile.date_of_birth ?? formValues.date_of_birth,
+        sex: (updatedProfile.sex as 'Male' | 'Female') ?? formValues.sex,
+      })
+    } catch (error: unknown) {
+      const err = error as Error & { fieldErrors?: Record<string, string> }
+      if (err.fieldErrors && Object.keys(err.fieldErrors).length > 0) {
+        Object.entries(err.fieldErrors).forEach(([field, message]) => {
+          setError(field as keyof ProfileForm, { type: 'server', message })
+        })
+      } else {
+        toast.error('Save failed', 'Something went wrong. Please try again.')
+      }
+    }
+  })
+
   const notificationPhone =
     currentPhone?.trim() ||
     profile?.phone?.trim() ||
     metadata?.phone?.trim() ||
     ''
 
-  const onSubmit = async (data: ProfileForm) => {
-    setError('')
-    setSuccess('')
-    profileMutation.mutate(data)
-  }
-
   return (
     <PageShell
       title="Profile and security settings"
-      subtitle="Keep your account details, residence information, notification contact, and active sessions aligned before you continue with applications and payments."
+      subtitle="Review your account details, residence information, notification contact, and active sessions before you continue with applications and payments."
       actions={
         <Button asChild variant="secondary">
           <Link to="/student/notifications">
@@ -201,19 +201,7 @@ export default function StudentSettings() {
           Back to dashboard
         </Link>
 
-        {error && (
-          <div className="rounded-2xl border border-destructive/30 bg-destructive/5 px-5 py-4 text-sm font-medium text-destructive shadow-sm">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="rounded-2xl border border-success/30 bg-success/5 px-5 py-4 text-sm font-medium text-success shadow-sm">
-            {success}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <div className="space-y-6">
           <SectionCard
             title="Applicant profile"
             description="These are the core account details that appear throughout the student portal."
@@ -226,6 +214,7 @@ export default function StudentSettings() {
                 label="Full name"
                 helperText="Use the same name you want admissions to see on your records."
                 error={errors.full_name?.message}
+                disabled={!profileEditingEnabled}
                 required
               />
 
@@ -245,8 +234,9 @@ export default function StudentSettings() {
                 type="tel"
                 label="Phone number"
                 placeholder="+260-123-456-789"
-                helperText="This number is reused for SMS and WhatsApp notification delivery."
+                helperText="This number is reused for SMS notification delivery."
                 error={errors.phone?.message}
+                disabled={!profileEditingEnabled}
               />
 
               <Input
@@ -254,6 +244,7 @@ export default function StudentSettings() {
                 type="date"
                 label="Date of birth"
                 error={errors.date_of_birth?.message}
+                disabled={!profileEditingEnabled}
               />
 
               <FormSelect
@@ -263,6 +254,7 @@ export default function StudentSettings() {
                 options={sexOptions}
                 placeholder="Select sex"
                 error={errors.sex?.message}
+                disabled={!profileEditingEnabled}
               />
             </div>
           </SectionCard>
@@ -280,7 +272,7 @@ export default function StudentSettings() {
                 options={countryOptions}
                 placeholder="Select country"
                 error={errors.country?.message}
-                disabled={loadingCountries}
+                disabled={loadingCountries || !profileEditingEnabled}
                 helperText="Defaults to Zambia. Change it only if you currently live elsewhere."
               />
 
@@ -297,6 +289,7 @@ export default function StudentSettings() {
                     defaultCountry: DEFAULT_RESIDENCE_COUNTRY,
                   })}
                   error={errors.residence_town?.message}
+                  disabled={!profileEditingEnabled}
                 />
                 <datalist id={residenceTownDatalistId}>
                   {cityOptions.map((option) => (
@@ -312,6 +305,7 @@ export default function StudentSettings() {
                 options={NATIONALITY_OPTIONS}
                 placeholder="Select nationality"
                 error={errors.nationality?.message}
+                disabled={!profileEditingEnabled}
               />
             </div>
 
@@ -323,6 +317,7 @@ export default function StudentSettings() {
                 placeholder="123456/78/1"
                 helperText="Use your national registration card number as it appears on official records."
                 error={errors.nrc_number?.message}
+                disabled={!profileEditingEnabled}
               />
 
               <Input
@@ -332,6 +327,7 @@ export default function StudentSettings() {
                 placeholder="Plot, street, area"
                 helperText="This is used for identity and residence verification during application review."
                 error={errors.address?.message}
+                disabled={!profileEditingEnabled}
               />
             </div>
           </SectionCard>
@@ -348,6 +344,7 @@ export default function StudentSettings() {
                 label="Next of kin name"
                 placeholder="Full name of your emergency contact"
                 error={errors.next_of_kin_name?.message}
+                disabled={!profileEditingEnabled}
               />
 
               <Input
@@ -356,13 +353,14 @@ export default function StudentSettings() {
                 label="Next of kin phone"
                 placeholder="+260-123-456-789"
                 error={errors.next_of_kin_phone?.message}
+                disabled={!profileEditingEnabled}
               />
             </div>
           </SectionCard>
 
           <SectionCard
             title="Notification delivery"
-            description="Portal inbox notifications stay available in-app, while SMS and WhatsApp delivery use the phone number stored on this profile."
+            description="Portal inbox notifications stay available in-app, while SMS delivery uses the phone number stored on this profile."
             icon={<Bell className="h-5 w-5" />}
             actions={
               <Button asChild variant="outline" size="sm">
@@ -374,7 +372,7 @@ export default function StudentSettings() {
               <div className="rounded-2xl border border-border bg-muted/40 px-4 py-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Delivery phone</p>
                 <p className="mt-2 text-sm font-semibold text-foreground">
-                  {getDisplayValue(notificationPhone, 'Add a phone number above')}
+                  {getDisplayValue(notificationPhone, 'No phone number on file')}
                 </p>
               </div>
               <div className="rounded-2xl border border-border bg-muted/40 px-4 py-3">
@@ -383,7 +381,7 @@ export default function StudentSettings() {
               </div>
               <div className="rounded-2xl border border-border bg-muted/40 px-4 py-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Channel controls</p>
-                <p className="mt-2 text-sm font-semibold text-foreground">SMS, WhatsApp, and push settings</p>
+                <p className="mt-2 text-sm font-semibold text-foreground">SMS and browser push settings</p>
               </div>
             </div>
           </SectionCard>
@@ -403,12 +401,27 @@ export default function StudentSettings() {
             <Button asChild variant="outline" className="w-full md:w-auto">
               <Link to="/student/dashboard">Cancel</Link>
             </Button>
-            <Button type="submit" loading={profileMutation.isPending} variant="gradient" className="w-full md:w-auto">
-              <Save className="h-4 w-4" />
-              {profileMutation.isPending ? 'Saving changes...' : 'Save profile changes'}
+            <Button
+              type="button"
+              disabled={!isDirty || updatingProfile}
+              variant="gradient"
+              className="w-full md:w-auto"
+              onClick={onSubmit}
+            >
+              {updatingProfile ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Saving…
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Save changes
+                </>
+              )}
             </Button>
           </div>
-        </form>
+        </div>
       </div>
     </PageShell>
   )
