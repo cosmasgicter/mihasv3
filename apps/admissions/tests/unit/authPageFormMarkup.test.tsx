@@ -84,4 +84,13 @@ describe('auth page form markup', () => {
     expect(markup).toContain('<legend class="text-base font-semibold text-foreground">Residence and identity</legend>')
     expect(markup).toContain('<legend class="text-base font-semibold text-foreground">Emergency contact</legend>')
   })
+
+  it('uses honest helper copy instead of fake email availability states', () => {
+    const markup = renderAuthPage(<SignUpPage />)
+
+    expect(markup).toContain('We verify this email when you submit the form.')
+    expect(markup).not.toContain('Checking...')
+    expect(markup).not.toContain('>Available<')
+    expect(markup).not.toContain('action=check-email')
+  })
 })

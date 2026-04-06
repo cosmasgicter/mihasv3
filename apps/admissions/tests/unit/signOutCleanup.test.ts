@@ -17,6 +17,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 const clearCsrfTokenSpy = vi.fn();
 const clearSessionSpy = vi.fn().mockResolvedValue(undefined);
 const apiRequestSpy = vi.fn().mockResolvedValue(undefined);
+const broadcastLogoutSpy = vi.fn();
 
 // ── Mocks ───────────────────────────────────────────────────────────────
 
@@ -36,6 +37,11 @@ vi.mock('@/services/client', () => ({
   apiClient: {
     request: (...args: any[]) => apiRequestSpy(...args),
   },
+}));
+
+vi.mock('@/lib/authBroadcast', () => ({
+  broadcastLogout: (...args: any[]) => broadcastLogoutSpy(...args),
+  broadcastLogin: vi.fn(),
 }));
 
 vi.mock('@/lib/auth/roles', () => ({
@@ -153,6 +159,15 @@ describe('signOut cleanup', () => {
     await signOut();
 
     expect(clearSessionSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('signOut broadcasts logout to other tabs', async () => {
+    const { useSessionListener } = await import('@/hooks/auth/useSessionListener');
+    const { signOut } = useSessionListener();
+
+    await signOut();
+
+    expect(broadcastLogoutSpy).toHaveBeenCalledTimes(1);
   });
 
   it('signOut completes even if logout POST fails', async () => {

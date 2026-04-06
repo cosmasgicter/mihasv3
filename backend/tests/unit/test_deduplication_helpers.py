@@ -140,8 +140,11 @@ class TestEnqueueDocumentTaskDispatch(SimpleTestCase):
         assert data["application_id"] == str(app.id)
         assert data["status"] == "queued"
 
-    def test_returns_503_when_task_func_is_none(self):
+    @patch(_IDEM)
+    def test_returns_503_when_task_func_is_none(self, mock_idem):
         """When task_func is None, returns 503 SERVICE_UNAVAILABLE."""
+        mock_idem.filter.return_value.first.return_value = None
+
         app = _make_application()
         request = _make_request()
 

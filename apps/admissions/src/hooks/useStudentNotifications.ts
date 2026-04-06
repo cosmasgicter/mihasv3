@@ -89,13 +89,26 @@ function countUnread(notifications: StudentNotification[]) {
   return notifications.filter(notification => !notification.read).length
 }
 
-function formatNotification(notification: any): StudentNotification {
+type NotificationApiShape = Partial<{
+  id: string
+  title: string
+  content: string
+  message: string
+  type: string
+  read: boolean
+  is_read: boolean
+  action_url: string | null
+  created_at: string
+  read_at: string | null
+}>
+
+export function normalizeNotificationPayload(notification: NotificationApiShape): StudentNotification {
   return {
     id: notification.id,
     title: notification.title,
-    content: notification.content,
+    content: notification.content ?? notification.message ?? '',
     type: notification.type || 'info',
-    read: Boolean(notification.read),
+    read: Boolean(notification.read ?? notification.is_read),
     action_url: notification.action_url,
     created_at: notification.created_at,
     read_at: notification.read_at,
@@ -136,7 +149,7 @@ async function loadNotificationsForUser(
         return
       }
 
-      const notifications = Array.isArray(data) ? data.map(formatNotification) : []
+      const notifications = Array.isArray(data) ? data.map(normalizeNotificationPayload) : []
 
       updateState(previous => ({
         ...previous,

@@ -17,22 +17,16 @@ vi.mock('@/components/smoothui', () => ({
   ),
 }))
 
-// Mock apiClient
-vi.mock('@/services/client', () => ({
-  apiClient: {
-    request: vi.fn(),
-  },
-}))
-
 import ContactPage from '@/pages/ContactPage'
-import { apiClient } from '@/services/client'
 
 describe('ContactPage form submission', () => {
   let container: HTMLDivElement
   let root: ReturnType<typeof createRoot>
+  const openSpy = vi.fn()
 
   beforeEach(() => {
-    vi.mocked(apiClient.request).mockReset()
+    openSpy.mockReset()
+    vi.stubGlobal('open', openSpy)
     container = document.createElement('div')
     document.body.appendChild(container)
     root = createRoot(container)
@@ -83,9 +77,7 @@ describe('ContactPage form submission', () => {
     })
   }
 
-  it('calls apiClient.request with correct payload on valid submit', async () => {
-    vi.mocked(apiClient.request).mockResolvedValueOnce(null)
-
+  it('opens a prefilled mailto link on valid submit', async () => {
     renderPage()
     fillForm('Jane Doe', 'jane@example.com', 'Hello admissions')
     await submitForm()
@@ -95,21 +87,17 @@ describe('ContactPage form submission', () => {
       await new Promise((r) => setTimeout(r, 50))
     })
 
-    expect(apiClient.request).toHaveBeenCalledOnce()
-    const [endpoint, options] = vi.mocked(apiClient.request).mock.calls[0]
-    expect(endpoint).toBe('/notifications/')
-    expect(options).toMatchObject({ method: 'POST' })
-
-    const body = JSON.parse(options!.body as string)
-    expect(body.title).toContain('Jane Doe')
-    expect(body.message).toContain('jane@example.com')
-    expect(body.message).toContain('Hello admissions')
-    expect(body.type).toBe('contact_inquiry')
+    expect(openSpy).toHaveBeenCalledOnce()
+    const [url, target] = openSpy.mock.calls[0]
+    expect(target).toBe('_self')
+    expect(url).toContain('mailto:info@mihas.edu.zm')
+    expect(url).toContain(encodeURIComponent('Admissions inquiry from Jane Doe'))
+    expect(url).toContain(encodeURIComponent('Name: Jane Doe'))
+    expect(url).toContain(encodeURIComponent('Email: jane@example.com'))
+    expect(url).toContain(encodeURIComponent('Hello admissions'))
   })
 
-  it('shows confirmation and resets form on success', async () => {
-    vi.mocked(apiClient.request).mockResolvedValueOnce(null)
-
+  it('shows confirmation and resets form after mailto handoff', async () => {
     renderPage()
     fillForm('Jane Doe', 'jane@example.com', 'Hello admissions')
     await submitForm()
@@ -121,7 +109,7 @@ describe('ContactPage form submission', () => {
     // Success message should be visible
     const successMsg = container.querySelector('[role="status"]')
     expect(successMsg).not.toBeNull()
-    expect(successMsg!.textContent).toContain('Thank you')
+    expect(successMsg!.textContent).toContain('Your email app should open')
 
     // Form fields should be reset
     const nameInput = container.querySelector('#contact-name') as HTMLInputElement
@@ -132,8 +120,10 @@ describe('ContactPage form submission', () => {
     expect(messageInput.value).toBe('')
   })
 
-  it('shows error message and preserves data on failure', async () => {
-    vi.mocked(apiClient.request).mockRejectedValueOnce(new Error('Network error'))
+  it('shows error message and preserves data when the mail app handoff fails', async () => {
+    openSpy.mockImplementationOnce(() => {
+      throw new Error('Window open failed')
+    })
 
     renderPage()
     fillForm('Jane Doe', 'jane@example.com', 'Hello admissions')
@@ -146,7 +136,7 @@ describe('ContactPage form submission', () => {
     // Error message should be visible
     const errorMsg = container.querySelector('[role="alert"]')
     expect(errorMsg).not.toBeNull()
-    expect(errorMsg!.textContent).toContain('Unable to send')
+    expect(errorMsg!.textContent).toContain('Unable to open your email app')
 
     // Form data should be preserved
     const nameInput = container.querySelector('#contact-name') as HTMLInputElement

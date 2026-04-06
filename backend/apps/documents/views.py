@@ -228,7 +228,7 @@ class DocumentExtractView(APIView):
 
     def post(self, request, document_id):
         try:
-            document = ApplicationDocument.objects.get(id=document_id)
+            document = ApplicationDocument.objects.select_related('application').get(id=document_id)
         except ApplicationDocument.DoesNotExist:
             return Response(
                 {"success": False, "error": "Document not found", "code": "NOT_FOUND"},

@@ -22,4 +22,13 @@ describe('resolveAuthLoadingState', () => {
       profileLoading: true,
     })).toBe(false)
   })
+
+  it('blocks route rendering while a cached session is being revalidated', () => {
+    expect(resolveAuthLoadingState({
+      sessionLoading: false,
+      sessionPendingValidation: true,
+      user: null,
+      profileLoading: false,
+    })).toBe(true)
+  })
 })

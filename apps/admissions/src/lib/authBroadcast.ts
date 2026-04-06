@@ -11,7 +11,6 @@
 
 import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
 import { syncApiClientCsrfToken } from '@/services/client'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -152,7 +151,6 @@ export function broadcastCsrfUpdate(token: string): void {
  */
 export function useAuthBroadcast(): void {
   const queryClient = useQueryClient()
-  const navigate = useNavigate()
 
   useEffect(() => {
     // Ensure the transport is initialized (idempotent)
@@ -165,7 +163,12 @@ export function useAuthBroadcast(): void {
           queryClient.setQueryData(['auth', 'session'], null)
           queryClient.removeQueries({ queryKey: ['user-profile'] })
           useAuthStore.getState().clearAuth()
-          navigate('/auth/signin', { replace: true })
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('authSignedOut'))
+            window.dispatchEvent(new CustomEvent('mihas:auth-redirect', {
+              detail: { to: '/auth/signin', replace: true },
+            }))
+          }
           break
 
         case 'login':
@@ -185,7 +188,7 @@ export function useAuthBroadcast(): void {
     return () => {
       unsubscribe()
     }
-  }, [queryClient, navigate])
+  }, [queryClient])
 }
 
 // ── Testing helpers (exported for unit tests only) ──────────────────────────

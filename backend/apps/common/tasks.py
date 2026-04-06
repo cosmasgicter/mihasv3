@@ -241,9 +241,18 @@ def cleanup_audit_logs_task(self):
 
     Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6
     """
+    from apps.accounts.models import CSRFToken
     from apps.common.models import AuditLog
 
     now = timezone.now()
+
+    # Clean up expired CSRF tokens
+    try:
+        expired_csrf_count, _ = CSRFToken.objects.filter(expires_at__lt=now).delete()
+        if expired_csrf_count:
+            logger.info("CSRF token cleanup: deleted %d expired tokens", expired_csrf_count)
+    except Exception:
+        logger.exception("CSRF token cleanup failed")
 
     retention_rules = [
         ("standard", now - timedelta(days=STANDARD_RETENTION_DAYS)),

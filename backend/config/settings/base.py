@@ -192,8 +192,8 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "SIGNING_KEY": os.environ.get("JWT_SIGNING_KEY", ""),
     "ALGORITHM": "HS256",
-    "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": True,
+    "ROTATE_REFRESH_TOKENS": True,  # Declarative only — actual rotation/blacklisting logic is in backend/apps/accounts/tokens.py
+    "BLACKLIST_AFTER_ROTATION": True,  # Declarative only — actual rotation/blacklisting logic is in backend/apps/accounts/tokens.py
 }
 
 # ---------------------------------------------------------------------------
@@ -224,7 +224,7 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # ---------------------------------------------------------------------------
 
 AUTH_COOKIE_DOMAIN = ".mihas.edu.zm"
-AUTH_COOKIE_SAMESITE = "Lax"
+AUTH_COOKIE_SAMESITE = "Lax"  # Production overrides to "None" in prod.py for cross-origin cookie support (api.mihas.edu.zm → apply.mihas.edu.zm)
 AUTH_COOKIE_SECURE = True
 AUTH_COOKIE_HTTPONLY = True
 

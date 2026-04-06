@@ -3,7 +3,8 @@
  * Contact Page Verification Test
  *
  * Verifies the contact page renders its form and contact info sections without errors.
- * The ContactPage uses react-hook-form + Zod for validation and apiClient for submission.
+ * The ContactPage uses react-hook-form + Zod for validation and opens a prefilled
+ * mailto link for admissions contact.
  * Tests cover rendering, form input acceptance, and submission state transitions.
  *
  * Requirements: 8.2, 8.10, 8.11, 8.12
@@ -98,13 +99,6 @@ vi.mock('@/components/smoothui', () => ({
   ),
 }))
 
-// ── Mock apiClient for form submission ────────────────────────────────
-const mockRequest = vi.fn()
-
-vi.mock('@/services/client', () => ({
-  apiClient: { request: (...args: unknown[]) => mockRequest(...args) },
-}))
-
 // ── Mock logApiError (no-op for tests) ────────────────────────────────
 vi.mock('@/lib/apiErrorLogger', () => ({
   logApiError: vi.fn(),
@@ -116,10 +110,11 @@ import ContactPage from '@/pages/ContactPage'
 describe('Contact page verification', () => {
   let container: HTMLDivElement
   let root: ReturnType<typeof createRoot>
+  const openSpy = vi.fn()
 
   beforeEach(() => {
-    mockRequest.mockClear()
-    mockRequest.mockResolvedValue({ success: true })
+    openSpy.mockReset()
+    vi.stubGlobal('open', openSpy)
 
     container = document.createElement('div')
     document.body.appendChild(container)
@@ -127,13 +122,17 @@ describe('Contact page verification', () => {
   })
 
   afterEach(() => {
-    root.unmount()
+    act(() => {
+      root.unmount()
+    })
     container.remove()
     vi.clearAllMocks()
   })
 
   async function renderAndWait(ms = 300) {
-    root.render(<ContactPage />)
+    await act(async () => {
+      root.render(<ContactPage />)
+    })
     await new Promise((r) => setTimeout(r, ms))
   }
 
@@ -261,8 +260,7 @@ describe('Contact page verification', () => {
 
   // ── Form submission ─────────────────────────────────────────────────
 
-  it('shows success message after successful form submission', async () => {
-    mockRequest.mockResolvedValue({ success: true })
+  it('shows success message after opening the mail client handoff', async () => {
     await renderAndWait()
 
     const nameInput = container.querySelector('#contact-name') as HTMLInputElement
@@ -293,12 +291,15 @@ describe('Contact page verification', () => {
     // Wait for async submission
     await new Promise((r) => setTimeout(r, 300))
 
+    expect(openSpy).toHaveBeenCalledOnce()
     const text = container.textContent || ''
-    expect(text).toContain('Thank you for your inquiry')
+    expect(text).toContain('Your email app should open')
   })
 
-  it('shows error message when form submission fails', async () => {
-    mockRequest.mockRejectedValue(new Error('Network error'))
+  it('shows error message when the mail client handoff fails', async () => {
+    openSpy.mockImplementationOnce(() => {
+      throw new Error('Window open failed')
+    })
     await renderAndWait()
 
     const nameInput = container.querySelector('#contact-name') as HTMLInputElement
@@ -327,7 +328,7 @@ describe('Contact page verification', () => {
     await new Promise((r) => setTimeout(r, 300))
 
     const text = container.textContent || ''
-    expect(text).toContain('Unable to send your message')
+    expect(text).toContain('Unable to open your email app')
   })
 
   // ── "Send a Message" card title ─────────────────────────────────────

@@ -36,6 +36,7 @@ from apps.applications.serializers import (
     ApplicationDraftSerializer, ApplicationGradeSerializer,
     ApplicationInterviewSerializer, ApplicationListSerializer,
     ApplicationReviewSerializer, ApplicationSerializer, ApplicationTrackingSerializer,
+    PaymentStatusUpdateSerializer,
 )
 from apps.common.openapi_helpers import (
     ErrorResponseSerializer,
@@ -208,9 +209,9 @@ class ApplicationListCreateView(APIView):
         user = request.user
         role = getattr(user, "role", "student")
         if role in ("admin", "super_admin"):
-            queryset = Application.objects.all()
+            queryset = Application.objects.select_related('user').all()
         else:
-            queryset = Application.objects.filter(user_id=str(user.id))
+            queryset = Application.objects.select_related('user').filter(user_id=str(user.id))
         filterset = ApplicationFilter(request.query_params, queryset=queryset)
         queryset = filterset.qs
         if not request.query_params.get("sort"):
@@ -309,7 +310,7 @@ class ApplicationDetailView(APIView):
 
     def _get_application(self, request, application_id):
         try:
-            app = Application.objects.get(id=application_id)
+            app = Application.objects.select_related('user').get(id=application_id)
         except Application.DoesNotExist:
             return None
         if not IsOwnerOrAdmin().has_object_permission(request, self, app):
@@ -342,7 +343,7 @@ class ApplicationDocumentsView(APIView):
             return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
         if not IsOwnerOrAdmin().has_object_permission(request, self, app):
             return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
-        docs = ApplicationDocument.objects.filter(application_id=application_id)
+        docs = ApplicationDocument.objects.select_related('application').filter(application_id=application_id)
         return Response(DocumentSerializer(docs, many=True).data)
 
 
@@ -510,8 +511,18 @@ class ApplicationReviewView(APIView):
             return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         if isinstance(request.data, dict) and (request.data.get("paymentStatus") or request.data.get("payment_status")):
-            payment_status = request.data.get("paymentStatus") or request.data.get("payment_status")
-            notes = request.data.get("verificationNotes") or request.data.get("notes") or ""
+            raw_payment_status = request.data.get("paymentStatus") or request.data.get("payment_status")
+            raw_notes = request.data.get("verificationNotes") or request.data.get("notes") or ""
+
+            ps_serializer = PaymentStatusUpdateSerializer(data={
+                "payment_status": raw_payment_status,
+                "notes": raw_notes,
+            })
+            if not ps_serializer.is_valid():
+                return Response({"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": ps_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+            payment_status = ps_serializer.validated_data["payment_status"]
+            notes = ps_serializer.validated_data["notes"]
 
             app.payment_status = payment_status
             if notes:
