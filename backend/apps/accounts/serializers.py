@@ -6,6 +6,7 @@ Requirements: 11.5
 
 from rest_framework import serializers
 
+from apps.accounts.models import Profile
 from apps.common.validators import normalize_nationality, validate_zambian_phone
 
 
@@ -59,3 +60,84 @@ class SessionSerializer(serializers.Serializer):
     first_name = serializers.CharField(read_only=True)
     last_name = serializers.CharField(read_only=True)
     role = serializers.CharField(read_only=True)
+
+
+class ProfileReadSerializer(serializers.ModelSerializer):
+    """Read-only serializer for full profile GET responses."""
+
+    class Meta:
+        model = Profile
+        fields = [
+            "id",
+            "email",
+            "role",
+            "full_name",
+            "phone",
+            "date_of_birth",
+            "sex",
+            "residence_town",
+            "country",
+            "nrc_number",
+            "address",
+            "nationality",
+            "next_of_kin_name",
+            "next_of_kin_phone",
+            "updated_at",
+        ]
+        read_only_fields = fields
+
+
+class ProfileUpdateSerializer(serializers.Serializer):
+    """Validates PATCH input for profile updates.
+
+    All fields are optional with empty strings accepted (partial update semantics).
+    Protected fields are excluded from the writable set entirely.
+    """
+
+    full_name = serializers.CharField(
+        required=False, allow_blank=True, min_length=2, max_length=255
+    )
+    phone = serializers.CharField(
+        required=False, allow_blank=True, max_length=20
+    )
+    date_of_birth = serializers.DateField(required=False, allow_null=True)
+    sex = serializers.ChoiceField(
+        choices=["Male", "Female"],
+        required=False,
+        allow_blank=True,
+    )
+    residence_town = serializers.CharField(
+        required=False, allow_blank=True, max_length=255
+    )
+    country = serializers.CharField(
+        required=False, allow_blank=True, max_length=255
+    )
+    nrc_number = serializers.CharField(
+        required=False, allow_blank=True, max_length=20
+    )
+    address = serializers.CharField(
+        required=False, allow_blank=True
+    )
+    nationality = serializers.CharField(
+        required=False, allow_blank=True, max_length=100
+    )
+    next_of_kin_name = serializers.CharField(
+        required=False, allow_blank=True, max_length=255
+    )
+    next_of_kin_phone = serializers.CharField(
+        required=False, allow_blank=True, max_length=50
+    )
+
+    def validate_phone(self, value):
+        if value:
+            return validate_zambian_phone(value)
+        return value
+
+    def validate_full_name(self, value):
+        """Allow empty strings without triggering min_length."""
+        if value == "":
+            return value
+        return value
+
+    def validate_nationality(self, value):
+        return normalize_nationality(value)

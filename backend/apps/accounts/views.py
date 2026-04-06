@@ -18,10 +18,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import CSRFToken, DeviceSession, Profile
+from django.utils import timezone
+
 from apps.accounts.serializers import (
     LoginSerializer,
     PasswordResetConfirmSerializer,
     PasswordResetRequestSerializer,
+    ProfileReadSerializer,
+    ProfileUpdateSerializer,
     RegisterSerializer,
     SessionSerializer,
 )
@@ -333,6 +337,9 @@ class LogoutView(APIView):
             except Exception:
                 logger.warning("JTI blacklisting failed during logout", exc_info=True)
 
+        # Delete all CSRF tokens for this user before clearing cookies
+        CSRFToken.objects.filter(user=request.user).delete()
+
         response = Response(
             {"success": True, "data": {"message": "Logged out successfully"}},
             status=status.HTTP_200_OK,
@@ -418,6 +425,11 @@ class RefreshView(APIView):
             status=status.HTTP_200_OK,
         )
         _set_auth_cookies(response, new_access, new_refresh)
+
+        # Generate new CSRF token so it doesn't expire before the refresh token
+        csrf_token = _generate_csrf_token(user)
+        response["X-CSRF-Token"] = csrf_token
+
         return response
 
 
@@ -539,7 +551,45 @@ class SessionView(APIView):
             "last_name": user.last_name,
             "role": user.role,
         })
-        return Response(serializer.data)
+        response = Response(serializer.data)
+        response["X-CSRF-Token"] = _generate_csrf_token(user)
+        return response
+
+
+# ---------------------------------------------------------------------------
+# ProfileView
+# ---------------------------------------------------------------------------
+
+
+class ProfileView(APIView):
+    """GET/PATCH /api/v1/auth/profile/
+
+    GET: Return the authenticated user's full profile.
+    PATCH: Validate and update editable profile fields.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        profile = Profile.objects.get(id=request.user.id)
+        serializer = ProfileReadSerializer(profile)
+        return Response({"success": True, "data": serializer.data})
+
+    def patch(self, request):
+        profile = Profile.objects.get(id=request.user.id)
+        serializer = ProfileUpdateSerializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        for field, value in serializer.validated_data.items():
+            setattr(profile, field, value)
+
+        profile.updated_at = timezone.now()
+        profile.save(
+            update_fields=list(serializer.validated_data.keys()) + ["updated_at"]
+        )
+
+        read_serializer = ProfileReadSerializer(profile)
+        return Response({"success": True, "data": read_serializer.data})
 
 
 # ---------------------------------------------------------------------------
