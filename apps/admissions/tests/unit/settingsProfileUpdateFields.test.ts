@@ -3,16 +3,22 @@ import fs from 'fs'
 import path from 'path'
 
 describe('Settings profile update field coverage', () => {
-  it('keeps country and next-of-kin fields in frontend profile update allowlist', () => {
+  it('sends profile updates via PATCH to /auth/profile/', () => {
     const filePath = path.resolve(__dirname, '../../src/hooks/auth/useProfileQuery.ts')
     const source = fs.readFileSync(filePath, 'utf8')
 
-    const match = source.match(/const\s+allowedFields\s*=\s*\[([\s\S]*?)\]/)
-    expect(match).not.toBeNull()
+    // The mutation should call PATCH /auth/profile/ via apiClient
+    expect(source).toContain("'/auth/profile/'")
+    expect(source).toContain("method: 'PATCH'")
+  })
 
-    const fieldsBlock = match?.[1] ?? ''
-    expect(fieldsBlock).toContain("'country'")
-    expect(fieldsBlock).toContain("'next_of_kin_name'")
-    expect(fieldsBlock).toContain("'next_of_kin_phone'")
+  it('includes country and next-of-kin fields in the profile form schema', () => {
+    const filePath = path.resolve(__dirname, '../../src/pages/student/Settings.tsx')
+    const source = fs.readFileSync(filePath, 'utf8')
+
+    // The form schema must include these fields so they can be submitted
+    expect(source).toContain('country')
+    expect(source).toContain('next_of_kin_name')
+    expect(source).toContain('next_of_kin_phone')
   })
 })
