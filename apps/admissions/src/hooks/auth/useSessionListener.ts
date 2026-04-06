@@ -27,9 +27,15 @@ import { authService } from '@/services/auth'
 import { isAdminRole } from '@/lib/auth/roles'
 import { clearCsrfToken } from '@/lib/csrfToken'
 import { secureStorage } from '@/lib/secureStorage'
+import { broadcastLogin, broadcastLogout } from '@/lib/authBroadcast'
 
 export type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth'
 export type AuthUser = User
+
+type SessionQueryData =
+  | { user: User }
+  | { pendingValidation: true }
+  | null
 
 /**
  * Check if user has admin role (deterministic, no DB lookup)
@@ -120,12 +126,15 @@ function buildProfileFromUser(user: User | null): UserProfile | null {
 
 export function resolveAuthLoadingState({
   sessionLoading,
+  sessionPendingValidation = false,
   user,
 }: {
   sessionLoading: boolean
+  sessionPendingValidation?: boolean
   user: User | null
   profileLoading: boolean
 }): boolean {
+  if (sessionPendingValidation) return true
   // If we already have user data in the cache (e.g., seeded from login response),
   // don't report loading even if React Query's isLoading is technically true
   // due to a background refetch. This prevents the post-login skeleton hang.
@@ -143,7 +152,7 @@ export function useSessionListener() {
   // access_token cookie and returns the current user or 401.
   // Visibility-change revalidation is handled by AuthContext invalidating
   // this query key when the tab regains focus.
-  const { data: sessionData, isLoading: sessionLoading } = useQuery({
+  const { data: sessionData, isLoading: sessionLoading } = useQuery<SessionQueryData>({
     queryKey: ['auth', 'session'],
     queryFn: async () => {
       const result = await authService.session() as User | { user?: User } | null
@@ -157,7 +166,8 @@ export function useSessionListener() {
     refetchOnWindowFocus: false,
   })
 
-  const user = sessionData?.user ?? null
+  const sessionPendingValidation = sessionData?.pendingValidation === true
+  const user = sessionPendingValidation ? null : sessionData?.user ?? null
 
   // Profile query (moved from useOptimizedAuthState)
   const { data: fetchedProfile, isLoading: profileLoading } = useQuery({
@@ -178,6 +188,7 @@ export function useSessionListener() {
   const isAdmin = checkIsAdmin(user)
   const loading = resolveAuthLoadingState({
     sessionLoading,
+    sessionPendingValidation,
     user,
     profileLoading,
   })
@@ -220,6 +231,7 @@ export function useSessionListener() {
       // Force invalidation of any remaining cached queries so they refetch with new auth
       queryClient.invalidateQueries()
 
+      broadcastLogin(authUser.id)
       window.dispatchEvent(new CustomEvent('userLoggedIn', {
         detail: { userId: authUser.id },
       }))
@@ -283,6 +295,7 @@ export function useSessionListener() {
         })
         queryClient.invalidateQueries()
 
+        broadcastLogin(userPayload.id)
         window.dispatchEvent(new CustomEvent('userLoggedIn', { detail: { userId: userPayload.id } }))
         return { user: userPayload, profile: normalizedProfile }
       }
@@ -323,6 +336,8 @@ export function useSessionListener() {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('authSignedOut'))
     }
+
+    broadcastLogout()
 
     // 4. Navigate to sign-in route using router-safe event dispatch
     if (typeof window !== 'undefined') {
@@ -384,7 +399,7 @@ export function useAuthCheck(): {
   retrySessionCheck: () => Promise<unknown>
 } {
   const queryClient = useQueryClient()
-  const { data: sessionData, isLoading, refetch } = useQuery({
+  const { data: sessionData, isLoading, refetch } = useQuery<SessionQueryData>({
     queryKey: ['auth', 'session'],
     queryFn: async () => {
       const result = await authService.session() as User | { user?: User } | null
@@ -398,10 +413,12 @@ export function useAuthCheck(): {
     refetchOnWindowFocus: false,
   })
 
+  const sessionPendingValidation = sessionData?.pendingValidation === true
+
   return {
-    isAuthenticated: Boolean(sessionData?.user),
-    isLoading,
-    user: sessionData?.user || null,
+    isAuthenticated: !sessionPendingValidation && Boolean(sessionData?.user),
+    isLoading: isLoading || sessionPendingValidation,
+    user: sessionPendingValidation ? null : sessionData?.user || null,
     retrySessionCheck: async () => {
       await queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
       return refetch()

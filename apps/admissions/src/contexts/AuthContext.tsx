@@ -26,6 +26,7 @@ import { useSessionListener } from '@/hooks/auth/useSessionListener'
 import { configureApiClientAuthFailure } from '@/services/client'
 import { clearCsrfToken } from '@/lib/csrfToken'
 import { secureStorage } from '@/lib/secureStorage'
+import { useAuthBroadcast } from '@/lib/authBroadcast'
 
 interface AuthContextType {
   user: User | null
@@ -45,6 +46,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient()
   const auth = useSessionListener()
+  useAuthBroadcast()
 
   // Configure the API client's auth failure callback.
   // When a 401 triggers a refresh attempt that also fails, the API client
@@ -101,9 +103,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
+    function handlePageShow(event: PageTransitionEvent) {
+      if (event.persisted) {
+        queryClient.setQueryData(['auth', 'session'], { pendingValidation: true })
+        queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
+      }
+    }
+
     document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('pageshow', handlePageShow)
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('pageshow', handlePageShow)
     }
   }, [queryClient])
 

@@ -4,7 +4,7 @@
  * @requirements 31.2, 31.4, 31.5 - Minimal layout, concise labels, touch targets
  */
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,8 +19,7 @@ import { UnifiedLoader } from '@/components/ui/UnifiedLoader';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { Banner } from '@/components/ui/Banner';
 import { Seo } from '@/components/seo/Seo';
-import { CheckCircle, Loader2, XCircle } from 'lucide-react';
-import { animateClasses } from '@/lib/animations';
+import { CheckCircle } from 'lucide-react';
 import { logApiError } from '@/lib/apiErrorLogger';
 
 export const signUpSchema = z
@@ -52,9 +51,6 @@ export default function SignUpPage() {
   const { signUp } = useAuth();
   const [success, setSuccess] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
-  const [emailChecking, setEmailChecking] = useState(false);
-  const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
-  const emailCheckRequestIdRef = useRef(0);
   const redirectTimerRef = useRef<number | null>(null);
 
   const {
@@ -65,15 +61,8 @@ export default function SignUpPage() {
     resolver: zodResolver(signUpSchema),
   });
 
-  const checkEmailAvailability = useCallback(async (email: string) => {
-    emailCheckRequestIdRef.current += 1;
-    setEmailChecking(false);
-    setEmailAvailable(email && email.includes('@') ? null : null);
-  }, []);
-
   useEffect(() => {
     return () => {
-      emailCheckRequestIdRef.current += 1;
       if (redirectTimerRef.current !== null) {
         window.clearTimeout(redirectTimerRef.current);
       }
@@ -82,10 +71,6 @@ export default function SignUpPage() {
 
   const signUpMutation = useMutation({
     mutationFn: async (data: SignUpForm) => {
-      if (emailAvailable === false) {
-        throw new Error('This email is already registered. Please sign in instead.');
-      }
-
       const { confirmPassword: _confirmPassword, first_name, last_name, ...rest } = data;
       const full_name = `${first_name} ${last_name}`;
       const result = await signUp(data.email, data.password, {
@@ -206,60 +191,20 @@ export default function SignUpPage() {
               {getErrorMessage(signUpMutation.error as Error)}
             </Banner>
           ) : null}
-          {emailAvailable === false && !signUpMutation.error && (
-            <Banner variant="error" dismissible onDismiss={() => setEmailAvailable(null)}>
-              This email is already registered. Please sign in instead.
-            </Banner>
-          )}
-
           <fieldset className="space-y-4 rounded-2xl border border-border/60 bg-background/80 p-4 sm:p-5">
             <legend className="text-base font-semibold text-foreground">Portal access</legend>
 
-            <div className="relative">
-              <Input
-                {...register('email', {
-                  onBlur: (e) => checkEmailAvailability(e.target.value),
-                })}
-                type="email"
-                label="Account email"
-                error={errors.email?.message || serverFieldErrors.email || (emailAvailable === false ? 'Already registered' : undefined)}
-                autoComplete="email"
-                disabled={signUpMutation.isPending}
-                required
-                className={cn(
-                  'min-h-[48px]',
-                  emailAvailable === true
-                    ? 'border-success focus:ring-success'
-                    : emailAvailable === false
-                      ? 'border-destructive focus:ring-destructive'
-                      : ''
-                )}
-              />
-              <div className="mt-1 min-h-5" aria-live="polite">
-                {emailChecking && (
-                  <span className="flex items-center gap-1.5 text-xs text-primary" role="status">
-                    <Loader2 className="h-3 w-3 animate-spin" /> Checking...
-                  </span>
-                )}
-                {!emailChecking && emailAvailable === true && (
-                  <span className={`flex items-center gap-1.5 text-xs text-success ${animateClasses.fadeIn}`} role="status">
-                    <CheckCircle className="h-3 w-3" /> Available
-                  </span>
-                )}
-                {!emailChecking && emailAvailable === false && (
-                  <span className={`flex items-center gap-1.5 text-xs text-destructive ${animateClasses.fadeIn}`} role="alert">
-                    <XCircle className="h-3 w-3" />
-                    Already registered.{' '}
-                    <Link to="/auth/signin" className="underline hover:text-destructive">Sign in</Link>
-                  </span>
-                )}
-                {!emailChecking && emailAvailable === null && (
-                  <span className="text-xs text-foreground/70">
-                    Duplicate email checks are completed when your account is created.
-                  </span>
-                )}
-              </div>
-            </div>
+            <Input
+              {...register('email')}
+              type="email"
+              label="Account email"
+              error={errors.email?.message || serverFieldErrors.email}
+              helperText="We verify this email when you submit the form. If you already have an account, use sign in instead."
+              autoComplete="email"
+              disabled={signUpMutation.isPending}
+              required
+              className={cn('min-h-[48px]')}
+            />
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <PasswordInput

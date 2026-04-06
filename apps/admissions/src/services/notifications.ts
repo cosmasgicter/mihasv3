@@ -2,14 +2,18 @@ import { apiClient } from './client'
 import { logApiError } from '@/lib/apiErrorLogger'
 
 type UpdatePreferencesPayload = {
+  email_enabled?: boolean
+  push_enabled?: boolean
   sms_enabled?: boolean
   whatsapp_enabled?: boolean
+  in_app_enabled?: boolean
   application_updates?: boolean
   payment_reminders?: boolean
   interview_reminders?: boolean
   marketing_emails?: boolean
   quiet_hours_start?: string | null
   quiet_hours_end?: string | null
+  timezone?: string | null
 }
 
 type SendNotificationPayload = {
@@ -59,22 +63,27 @@ export const notificationService = {
     apiClient.request('/notifications/preferences/', {
       method: 'PUT',
       body: JSON.stringify({
-        email_enabled: payload.marketing_emails ?? payload.application_updates ?? true,
-        push_enabled: payload.whatsapp_enabled ?? payload.sms_enabled ?? false,
-        quiet_hours:
-          payload.quiet_hours_start || payload.quiet_hours_end
-            ? {
-                start: payload.quiet_hours_start ?? null,
-                end: payload.quiet_hours_end ?? null,
-              }
-            : {},
+        ...('email_enabled' in payload ? { email_enabled: payload.email_enabled } : {}),
+        ...('push_enabled' in payload ? { push_enabled: payload.push_enabled } : {}),
+        ...(!('push_enabled' in payload) && 'whatsapp_enabled' in payload
+          ? { push_enabled: payload.whatsapp_enabled }
+          : {}),
+        ...('sms_enabled' in payload ? { sms_enabled: payload.sms_enabled } : {}),
+        ...('application_updates' in payload ? { application_updates: payload.application_updates } : {}),
+        ...('payment_reminders' in payload ? { payment_reminders: payload.payment_reminders } : {}),
+        ...('interview_reminders' in payload ? { interview_reminders: payload.interview_reminders } : {}),
+        ...('marketing_emails' in payload ? { marketing_emails: payload.marketing_emails } : {}),
+        ...('quiet_hours_start' in payload ? { quiet_hours_start: payload.quiet_hours_start } : {}),
+        ...('quiet_hours_end' in payload ? { quiet_hours_end: payload.quiet_hours_end } : {}),
+        ...('timezone' in payload ? { timezone: payload.timezone } : {}),
       })
     }),
 
   /** List notifications for the current user. Maps to GET /notifications/ */
   list: () =>
     apiClient.request('/notifications/', {
-      method: 'GET'
+      method: 'GET',
+      useCache: false,
     }),
 
   /** Mark a single notification as read. Maps to PUT /notifications/{id}/read/ */

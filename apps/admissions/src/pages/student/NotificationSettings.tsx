@@ -16,34 +16,50 @@ import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useStudentNotifications } from '@/hooks/useStudentNotifications'
 import { isSafeNavigationUrl } from '@/lib/urlSafety'
 import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
+import { useAuth } from '@/contexts/AuthContext'
 
-type ChannelKey = 'sms' | 'whatsapp'
+type ChannelKey = 'sms' | 'push'
 
-interface ChannelPreference {
-  type: string
-  enabled: boolean
-  priority: number
+export interface NotificationPreferencesResponse {
+  email_enabled: boolean
+  push_enabled: boolean
+  sms_enabled: boolean
+  application_updates: boolean | null
+  payment_reminders: boolean | null
+  interview_reminders: boolean | null
+  marketing_emails: boolean | null
+  quiet_hours_start: string | null
+  quiet_hours_end: string | null
+  timezone: string | null
 }
 
-interface NotificationPreferencesResponse {
-  channels: ChannelPreference[]
-  optimalTiming: boolean
-  frequency: string
-  sms_opt_in_at: string | null
-  sms_opt_in_source: string | null
-  sms_opt_in_actor: string | null
-  sms_opt_out_at: string | null
-  sms_opt_out_source: string | null
-  sms_opt_out_actor: string | null
-  sms_opt_out_reason: string | null
-  whatsapp_opt_in_at: string | null
-  whatsapp_opt_in_source: string | null
-  whatsapp_opt_in_actor: string | null
-  whatsapp_opt_out_at: string | null
-  whatsapp_opt_out_source: string | null
-  whatsapp_opt_out_actor: string | null
-  whatsapp_opt_out_reason: string | null
-  phone?: string | null
+export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferencesResponse = {
+  email_enabled: true,
+  push_enabled: false,
+  sms_enabled: false,
+  application_updates: null,
+  payment_reminders: null,
+  interview_reminders: null,
+  marketing_emails: null,
+  quiet_hours_start: null,
+  quiet_hours_end: null,
+  timezone: null,
+}
+
+export function normalizeNotificationPreferences(
+  preferences: Partial<NotificationPreferencesResponse> | null | undefined
+): NotificationPreferencesResponse {
+  return {
+    ...DEFAULT_NOTIFICATION_PREFERENCES,
+    ...(preferences ?? {}),
+  }
+}
+
+export function isNotificationChannelEnabled(
+  preferences: NotificationPreferencesResponse,
+  channel: ChannelKey
+) {
+  return channel === 'sms' ? preferences.sms_enabled : preferences.push_enabled
 }
 
 const CHANNEL_DETAILS: Record<ChannelKey, { title: string; description: string; Icon: React.ComponentType<{ className?: string }> }> = {
@@ -52,9 +68,9 @@ const CHANNEL_DETAILS: Record<ChannelKey, { title: string; description: string; 
     description: 'Receive important application updates as text messages directly to your phone.',
     Icon: MessageSquare
   },
-  whatsapp: {
-    title: 'WhatsApp Updates',
-    description: 'Get real-time WhatsApp messages when there are changes to your application status.',
+  push: {
+    title: 'Browser Push Alerts',
+    description: 'Receive browser push notifications on this device when you grant notification permission.',
     Icon: MessageCircle
   }
 }
@@ -72,28 +88,8 @@ function formatTimestamp(timestamp?: string | null) {
   }
 }
 
-function resolveChannelEntry(preferences: NotificationPreferencesResponse | null, channel: ChannelKey) {
-  const entry = preferences?.channels?.find(item => item.type === channel)
-  return entry ?? { type: channel, enabled: false, priority: channel === 'sms' ? 2 : 3 }
-}
-
-function isChannelOptedIn(preferences: NotificationPreferencesResponse | null, channel: ChannelKey) {
-  if (!preferences) {
-    return false
-  }
-
-  const entry = resolveChannelEntry(preferences, channel)
-  if (!entry.enabled) {
-    return false
-  }
-
-  const optInAt = channel === 'sms' ? preferences.sms_opt_in_at : preferences.whatsapp_opt_in_at
-  const optOutAt = channel === 'sms' ? preferences.sms_opt_out_at : preferences.whatsapp_opt_out_at
-
-  return Boolean(optInAt) && !optOutAt
-}
-
 export default function NotificationSettings() {
+  const { user } = useAuth()
   const { profile } = useProfileQuery()
   const queryClient = useQueryClient()
   const {
@@ -112,79 +108,36 @@ export default function NotificationSettings() {
   const [savingChannel, setSavingChannel] = useState<ChannelKey | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const preferenceQueryKey = useMemo(() => ['notification_preferences', user?.id] as const, [user?.id])
 
   const {
-    data: preferences = null,
+    data: preferences = DEFAULT_NOTIFICATION_PREFERENCES,
     isLoading: loading,
     error: preferencesError,
-  } = useQuery<NotificationPreferencesResponse | null>({
-    queryKey: ['notification-preferences'],
-    queryFn: async (): Promise<NotificationPreferencesResponse | null> => {
-      const response = await notificationService.getPreferences() as
-        | { preferences?: NotificationPreferencesResponse }
-        | NotificationPreferencesResponse
-        | null
-
-      if (!response) return null
-      if ('preferences' in response && !(('channels' in response))) {
-        return (response as { preferences?: NotificationPreferencesResponse }).preferences ?? null
-      }
-      return response as NotificationPreferencesResponse
+  } = useQuery<NotificationPreferencesResponse>({
+    queryKey: preferenceQueryKey,
+    queryFn: async (): Promise<NotificationPreferencesResponse> => {
+      const response = await notificationService.getPreferences() as Partial<NotificationPreferencesResponse> | null
+      return normalizeNotificationPreferences(response)
     },
+    enabled: Boolean(user?.id),
     ...CACHE_CONFIG.realtime,
   })
 
   const preferencesErrorMessage = preferencesError instanceof Error ? preferencesError.message : preferencesError ? 'Failed to load notification preferences' : null
 
-
-
-  const contactPhone = preferences?.phone?.trim() || profile?.phone?.trim() || null
+  const contactPhone = profile?.phone?.trim() || null
   const hasPhoneNumber = Boolean(contactPhone?.trim())
-  const contactSourceLabel = preferences?.phone?.trim()
-    ? 'Stored in notification preferences'
-    : profile?.phone?.trim()
-      ? 'Using your profile phone number'
-      : 'No phone number connected yet'
+  const contactSourceLabel = profile?.phone?.trim()
+    ? 'Using your profile phone number'
+    : 'No phone number connected yet'
   const inboxRefreshLabel = isSSEConnected
     ? 'Live push connection active'
     : isPolling
       ? 'Auto-refreshing every 30 seconds and when you return to the tab'
       : 'Manual refresh only'
 
-  const channelSummaries = useMemo(
-    () => ({
-      sms: {
-        optInAt: formatTimestamp(preferences?.sms_opt_in_at),
-        optOutAt: formatTimestamp(preferences?.sms_opt_out_at),
-        optOutReason: preferences?.sms_opt_out_reason,
-        source: preferences?.sms_opt_in_source
-      },
-      whatsapp: {
-        optInAt: formatTimestamp(preferences?.whatsapp_opt_in_at),
-        optOutAt: formatTimestamp(preferences?.whatsapp_opt_out_at),
-        optOutReason: preferences?.whatsapp_opt_out_reason,
-        source: preferences?.whatsapp_opt_in_source
-      }
-    }),
-    [
-      preferences?.sms_opt_in_at,
-      preferences?.sms_opt_in_source,
-      preferences?.sms_opt_out_at,
-      preferences?.sms_opt_out_reason,
-      preferences?.whatsapp_opt_in_at,
-      preferences?.whatsapp_opt_in_source,
-      preferences?.whatsapp_opt_out_at,
-      preferences?.whatsapp_opt_out_reason
-    ]
-  )
-
-
-
   const handleConsentChange = async (channel: ChannelKey, enable: boolean) => {
-    if (!preferences) {
-      return
-    }
-
     setSavingChannel(channel)
     setError(null)
     setSuccess(null)
@@ -192,21 +145,12 @@ export default function NotificationSettings() {
     try {
       const response = await notificationService.updatePreferences({
         [`${channel}_enabled`]: enable
-      }) as
-        | { preferences?: NotificationPreferencesResponse }
-        | NotificationPreferencesResponse
-        | null
+      }) as Partial<NotificationPreferencesResponse> | null
 
-      const updatedPreferences: NotificationPreferencesResponse | null =
-        response && 'preferences' in response && !('channels' in response)
-          ? (response as { preferences?: NotificationPreferencesResponse }).preferences ?? null
-          : (response as NotificationPreferencesResponse | null)
-
-      queryClient.setQueryData<NotificationPreferencesResponse | null>(['notification-preferences'], (prev) => ({
-        ...(prev ?? {}),
-        ...(updatedPreferences ?? {}),
-        phone: updatedPreferences?.phone ?? prev?.phone ?? profile?.phone ?? null
-      } as NotificationPreferencesResponse))
+      queryClient.setQueryData<NotificationPreferencesResponse>(
+        preferenceQueryKey,
+        normalizeNotificationPreferences(response)
+      )
 
       setSuccess(enable ? `${CHANNEL_DETAILS[channel].title} enabled.` : `${CHANNEL_DETAILS[channel].title} disabled.`)
     } catch (requestError) {
@@ -254,11 +198,15 @@ export default function NotificationSettings() {
 
   const renderChannelCard = (channel: ChannelKey) => {
     const details = CHANNEL_DETAILS[channel]
-    const optedIn = isChannelOptedIn(preferences as NotificationPreferencesResponse | null, channel)
-    const entry = resolveChannelEntry(preferences as NotificationPreferencesResponse | null, channel)
-    const summary = channelSummaries[channel]
-    const disableGrant = !hasPhoneNumber && !optedIn
+    const optedIn = isNotificationChannelEnabled(preferences, channel)
+    const disableGrant = channel === 'sms' && !hasPhoneNumber && !optedIn
     const buttonLabel = optedIn ? 'Opt Out' : 'Opt In'
+    const contactDetail = channel === 'sms'
+      ? (contactPhone || 'No phone number on file')
+      : 'Uses this browser or device after permission is granted'
+    const channelSupportText = channel === 'sms'
+      ? 'SMS uses the phone number on your profile.'
+      : 'Push notifications also depend on your browser permission settings below.'
 
     return (
       <div
@@ -273,7 +221,7 @@ export default function NotificationSettings() {
             </div>
             <div>
               <h2 className="text-lg font-bold text-foreground">{details.title}</h2>
-              <p className="text-sm text-foreground">{details.description} <span className="text-accent font-medium">(Enabled by default)</span></p>
+              <p className="text-sm text-foreground">{details.description}</p>
             </div>
           </div>
           <span
@@ -286,23 +234,7 @@ export default function NotificationSettings() {
         </div>
 
         <div className="space-y-2 text-sm text-foreground">
-          {optedIn && summary.optInAt && (
-            <p>
-              <span className="font-semibold">Opted in:</span> {summary.optInAt}
-              {summary.source && <span className="text-foreground"> · via {summary.source}</span>}
-            </p>
-          )}
-
-          {!optedIn && summary.optOutAt && (
-            <p>
-              <span className="font-semibold">Consent revoked:</span> {summary.optOutAt}
-              {summary.optOutReason && <span className="text-foreground"> · {summary.optOutReason}</span>}
-            </p>
-          )}
-
-          {!optedIn && !summary.optOutAt && (
-            <p className="text-foreground">This channel is enabled by default. You can opt out if you prefer.</p>
-          )}
+          <p className="text-foreground">{channelSupportText}</p>
 
           {disableGrant && (
             <div className="rounded-xl bg-accent/5 border border-yellow-200 px-4 py-3 text-xs text-yellow-700">
@@ -316,16 +248,17 @@ export default function NotificationSettings() {
           )}
 
           <div className="flex flex-col gap-2 text-xs text-foreground">
-            <span className="uppercase tracking-wide text-foreground font-semibold">Current contact</span>
-            <span className="text-sm text-foreground">{contactPhone || 'No phone number on file'}</span>
-            <span className="text-xs text-muted-foreground">{contactSourceLabel}</span>
+            <span className="uppercase tracking-wide text-foreground font-semibold">
+              {channel === 'sms' ? 'Current contact' : 'Current delivery target'}
+            </span>
+            <span className="text-sm text-foreground">{contactDetail}</span>
+            {channel === 'sms' && (
+              <span className="text-xs text-muted-foreground">{contactSourceLabel}</span>
+            )}
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-border">
-          <div className="text-xs text-foreground">
-            Priority: <span className="font-medium text-foreground">{entry.priority}</span>
-          </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 pt-2 border-t border-border">
           <Button
             type="button"
             variant={optedIn ? 'outline' : 'primary'}
@@ -343,7 +276,7 @@ export default function NotificationSettings() {
   return (
     <PageShell
       title="Notification preferences and portal inbox"
-      subtitle="In-app notifications stay available inside the portal. SMS and WhatsApp delivery use the phone number stored on your profile or notification preferences."
+      subtitle="In-app notifications stay available inside the portal. You can manage SMS and browser push delivery below."
     >
       <div className="space-y-6 sm:space-y-8">
         <div className="mb-6 sm:mb-8">
@@ -413,20 +346,20 @@ export default function NotificationSettings() {
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Always enabled</p>
                   <p className="mt-2 text-sm font-semibold text-foreground">Portal inbox notifications</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    SMS, WhatsApp, and push preferences can be changed below.
+                    SMS and browser push preferences can be changed below.
                   </p>
                 </div>
               </div>
             </SectionCard>
 
             <section className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              {(['sms', 'whatsapp'] as ChannelKey[]).map(channel => renderChannelCard(channel))}
+              {(['sms', 'push'] as ChannelKey[]).map(channel => renderChannelCard(channel))}
             </section>
 
             <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_0.8fr]">
               <SectionCard
                 title="Portal inbox"
-                description="Important application, payment, and interview updates appear here even if you opt out of SMS or WhatsApp."
+                description="Important application, payment, and interview updates appear here even if you opt out of SMS or browser push delivery."
                 icon={<Bell className="h-5 w-5" />}
                 className={animateClasses.slideUp}
                 actions={

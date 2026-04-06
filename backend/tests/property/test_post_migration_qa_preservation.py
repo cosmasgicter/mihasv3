@@ -379,7 +379,7 @@ class TestApplicationAPIContractsPreservation:
         # Mock the serializer save to avoid DB writes
         with patch("apps.applications.views.Application.objects") as mock_qs, \
              patch("apps.applications.views.ApplicationSerializer") as mock_ser_cls:
-            mock_qs.get.return_value = application
+            mock_qs.select_related.return_value.get.return_value = application
 
             mock_serializer = MagicMock()
             mock_serializer.is_valid.return_value = True

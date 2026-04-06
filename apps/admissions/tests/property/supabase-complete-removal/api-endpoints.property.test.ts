@@ -67,9 +67,16 @@ const applicationFiltersArb = fc.record({
 });
 
 /**
- * Generate valid email addresses for email check
+ * Generate valid registration payloads
  */
-const emailArb = fc.emailAddress();
+const registrationArb = fc.record({
+  email: fc.emailAddress(),
+  password: fc.string({ minLength: 8, maxLength: 32 }),
+  first_name: fc.string({ minLength: 2, maxLength: 20 }),
+  last_name: fc.string({ minLength: 2, maxLength: 20 }),
+  phone: fc.option(fc.string({ minLength: 10, maxLength: 15 }), { nil: undefined }),
+  nationality: fc.option(fc.string({ minLength: 3, maxLength: 20 }), { nil: undefined }),
+});
 
 // ============================================================================
 // API Client Simulation (mirrors src/lib/apiClient.ts behavior)
@@ -117,11 +124,19 @@ async function simulateGetStats() {
   });
 }
 
-async function simulateCheckEmail(email: string) {
-  return fetch(`${API_BASE}/auth?action=check-email&email=${encodeURIComponent(email)}`, {
-    method: 'GET',
+async function simulateRegister(payload: {
+  email: string;
+  password: string;
+  first_name: string;
+  last_name: string;
+  phone?: string;
+  nationality?: string;
+}) {
+  return fetch(`${API_BASE}/auth/register`, {
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
+    body: JSON.stringify(payload),
   });
 }
 
@@ -309,57 +324,48 @@ describe('Feature: supabase-complete-removal, Property 1: API Endpoint Correctne
   describe('SignUpPage.tsx API calls', () => {
     /**
      * **Validates: Requirements 5.1**
-     * WHEN a user enters an email on the SignUp page, THE API_Client SHALL check availability
-     * via `/api/auth?action=check-email` instead of direct Supabase calls
+     * WHEN a user submits the SignUp page, THE API_Client SHALL create the account
+     * via `POST /api/auth/register` without relying on a background email-availability endpoint.
      */
-    it('PROPERTY: SignUpPage SHALL call /api/auth with action=check-email for email validation', async () => {
+    it('PROPERTY: SignUpPage SHALL post registrations to /api/auth/register', async () => {
       await fc.assert(
         fc.asyncProperty(
-          emailArb,
-          async (email) => {
+          registrationArb,
+          async (payload) => {
             fetchCalls = [];
-            
-            await simulateCheckEmail(email);
-            
+
+            await simulateRegister(payload);
+
             expect(fetchCalls.length).toBe(1);
             const call = fetchCalls[0];
-            
-            // Must call /api/auth
-            expect(call.url).toContain('/api/auth');
-            
-            // Must include action=check-email
-            expect(call.url).toContain('action=check-email');
-            
-            // Must include the email parameter (URL encoded)
-            expect(call.url).toContain(`email=${encodeURIComponent(email)}`);
-            
-            // Must use GET method
-            expect(call.options.method).toBe('GET');
+
+            expect(call.url).toContain('/api/auth/register');
+            expect(call.url).not.toContain('action=check-email');
+            expect(call.options.method).toBe('POST');
+            expect(call.options.credentials).toBe('include');
+            expect(call.options.headers).toEqual({ 'Content-Type': 'application/json' });
+
+            const body = JSON.parse(String(call.options.body));
+            expect(body.email).toBe(payload.email);
+            expect(body.first_name).toBe(payload.first_name);
+            expect(body.last_name).toBe(payload.last_name);
           }
         ),
         { numRuns: NUM_RUNS }
       );
     });
 
-    it('PROPERTY: Email parameter SHALL be properly URL encoded', async () => {
+    it('PROPERTY: SignUpPage SHALL not call a check-email endpoint before submit', async () => {
       await fc.assert(
         fc.asyncProperty(
-          // Generate emails with special characters
-          fc.tuple(
-            fc.array(fc.constantFrom('a', 'b', 'c', '1', '2', '3', '+', '.', '_', '-'), { minLength: 1, maxLength: 10 }).map(arr => arr.join('')),
-            fc.constantFrom('example.com', 'test.org', 'mail.co.uk')
-          ).map(([local, domain]) => `${local}@${domain}`),
-          async (email) => {
+          registrationArb,
+          async (payload) => {
             fetchCalls = [];
-            
-            await simulateCheckEmail(email);
-            
+
+            await simulateRegister(payload);
+
             const call = fetchCalls[0];
-            const url = new URL(call.url, 'http://localhost');
-            const emailParam = url.searchParams.get('email');
-            
-            // The email should be properly decoded back to original
-            expect(emailParam).toBe(email);
+            expect(call.url).not.toContain('check-email');
           }
         ),
         { numRuns: NUM_RUNS }

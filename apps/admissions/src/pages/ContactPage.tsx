@@ -9,7 +9,6 @@ import { Card, CardContent, CardTitle } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { ArrowLeft, Mail, Phone, MapPin } from '@/components/icons'
 import { contactInfo } from '@/lib/constants/landing'
-import { apiClient } from '@/services/client'
 
 // Zod schema for contact form validation (Requirement 3.1)
 export const contactFormSchema = z.object({
@@ -21,6 +20,20 @@ export const contactFormSchema = z.object({
 export type ContactFormData = z.infer<typeof contactFormSchema>
 
 export type SubmitState = 'idle' | 'submitting' | 'success' | 'error'
+
+export function buildContactMailtoUrl(data: ContactFormData): string {
+  const subject = encodeURIComponent(`Admissions inquiry from ${data.name}`)
+  const body = encodeURIComponent(
+    [
+      `Name: ${data.name}`,
+      `Email: ${data.email}`,
+      '',
+      data.message,
+    ].join('\n')
+  )
+
+  return `mailto:${contactInfo.email}?subject=${subject}&body=${body}`
+}
 
 export default function ContactPage() {
   const [submitState, setSubmitState] = useState<SubmitState>('idle')
@@ -41,22 +54,13 @@ export default function ContactPage() {
     setErrorMessage('')
 
     try {
-      const payload = {
-        title: `Contact inquiry from ${data.name}`,
-        message: `From: ${data.name} <${data.email}>\n\n${data.message}`,
-        type: 'contact_inquiry',
-      }
-
-      await apiClient.request('/notifications/', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      })
-
+      const mailtoUrl = buildContactMailtoUrl(data)
+      window.open(mailtoUrl, '_self')
       setSubmitState('success')
       reset()
     } catch {
       setSubmitState('error')
-      setErrorMessage('Unable to send your message. Please try again or contact us directly.')
+      setErrorMessage('Unable to open your email app. Please use the phone or email details below.')
     }
   }
 
@@ -118,7 +122,7 @@ export default function ContactPage() {
 
                 {submitState === 'success' && (
                   <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-4 text-sm text-green-800" role="status">
-                    Thank you for your inquiry. Our admissions team will get back to you shortly.
+                    Your email app should open with a pre-filled message to admissions. If it does not, use the contact details shown on this page.
                   </div>
                 )}
 

@@ -132,7 +132,7 @@ export function reportError(
  */
 export function initErrorReporter(): void {
   if (typeof window === 'undefined') return
-  if (import.meta.env.VITE_ERROR_REPORT_ENABLED !== 'true') return
+  if (import.meta.env.VITE_ERROR_REPORT_ENABLED === 'false') return
 
   window.onerror = handleWindowError
   window.addEventListener('unhandledrejection', handleUnhandledRejection)

@@ -22,6 +22,7 @@ import re
 import uuid
 
 from django.http import JsonResponse
+from django.utils import timezone as tz
 
 logger = logging.getLogger(__name__)
 
@@ -84,22 +85,46 @@ class RequestIDMiddleware:
 class RateLimitMiddleware:
     """Per-scope rate limiting using django-ratelimit.
 
-    Scopes and limits (matching existing Arcjet configuration):
-      /api/v1/auth/          → 60/5m
-      /api/v1/admin/         → 60/10m
-      /api/v1/documents/     → 20/10m
-      /api/v1/sessions/      → 30/10m
-      /api/v1/notifications/ → 50/10m
+    Scopes and limits (ordered most-specific first):
+      /api/v1/auth/login/          → 10/5m
+      /api/v1/auth/register/       → 5/5m
+      /api/v1/auth/password-reset/ → 5/5m
+      /api/v1/auth/                → 60/5m
+      /api/v1/admin/               → 60/10m
+      /api/v1/documents/           → 20/10m
+      /api/v1/sessions/            → 30/10m
+      /api/v1/notifications/       → 50/10m
+      /api/v1/errors/              → 10/5m
+      /api/v1/outreach/            → 30/10m
+      /api/v1/email/               → 30/10m
+      /api/v1/integrations/        → 20/10m
+      /api/v1/payments/            → 20/10m
+      /api/v1/                     → 120/10m  (catch-all)
     """
 
     # (prefix, rate string)
+    # Order matters: more specific paths MUST come before less specific ones
+    # because matching uses startswith() and the first match wins.
     SCOPE_LIMITS = [
+        # Stricter auth sub-scopes (before general /api/v1/auth/)
+        ("/api/v1/auth/login/", "10/5m"),
+        ("/api/v1/auth/register/", "5/5m"),
+        ("/api/v1/auth/password-reset/", "5/5m"),
+        # General auth scope
         ("/api/v1/auth/", "60/5m"),
+        # Existing scopes
         ("/api/v1/admin/", "60/10m"),
         ("/api/v1/documents/", "20/10m"),
         ("/api/v1/sessions/", "30/10m"),
         ("/api/v1/notifications/", "50/10m"),
         ("/api/v1/errors/", "10/5m"),
+        # High-risk endpoint scopes
+        ("/api/v1/outreach/", "30/10m"),
+        ("/api/v1/email/", "30/10m"),
+        ("/api/v1/integrations/", "20/10m"),
+        ("/api/v1/payments/", "20/10m"),
+        # Catch-all (must be last)
+        ("/api/v1/", "120/10m"),
     ]
 
     def __init__(self, get_response):
@@ -294,16 +319,28 @@ class CSRFEnforcementMiddleware:
         if self._is_exempt(request.path):
             return self.get_response(request)
 
+        # Guard: user must be authenticated for state-changing requests.
+        if not getattr(request, "user", None) or not getattr(
+            request.user, "is_authenticated", False
+        ):
+            return self._forbidden_response()
+
+        user_id = request.user.pk
+
         csrf_token = request.META.get("HTTP_X_CSRF_TOKEN")
         if not csrf_token:
             return self._forbidden_response()
 
-        # Hash the token and look it up.
+        # Hash the token and look it up, scoped to the requesting user.
         token_hash = hashlib.sha256(csrf_token.encode()).hexdigest()
 
         from apps.accounts.models import CSRFToken
 
-        if not CSRFToken.objects.filter(token_hash=token_hash).exists():
+        if not CSRFToken.objects.filter(
+            token_hash=token_hash,
+            expires_at__gt=tz.now(),
+            user_id=user_id,
+        ).exists():
             return self._forbidden_response()
 
         return self.get_response(request)

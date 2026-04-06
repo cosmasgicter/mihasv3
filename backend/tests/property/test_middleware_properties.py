@@ -198,6 +198,8 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
             "30/10m": 600,
             "50/10m": 600,
             "10/5m": 300,
+            "5/5m": 300,
+            "120/10m": 600,
         }
         for rate, expected_seconds in expected_mapping.items():
             result = RateLimitMiddleware._retry_after_seconds(rate)
@@ -223,7 +225,7 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
 
         self.assertEqual(response.status_code, 429)
         self.assertIn("Retry-After", response)
-        # Auth scope is 60/5m → 300 seconds
+        # Auth login scope is 10/5m → 300 seconds
         self.assertEqual(response["Retry-After"], "300")
 
     @given(scope_idx=st.integers(min_value=0, max_value=len(RateLimitMiddleware.SCOPE_LIMITS) - 1))
@@ -263,16 +265,23 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
 
     def test_scope_limits_match_rate_limit_config(self):
         """Verify the configured scopes match the rate limit middleware configuration."""
-        expected_scopes = {
-            "/api/v1/auth/": "60/5m",
-            "/api/v1/admin/": "60/10m",
-            "/api/v1/documents/": "20/10m",
-            "/api/v1/sessions/": "30/10m",
-            "/api/v1/notifications/": "50/10m",
-            "/api/v1/errors/": "10/5m",
-        }
-        actual_scopes = dict(RateLimitMiddleware.SCOPE_LIMITS)
-        self.assertEqual(actual_scopes, expected_scopes)
+        expected_scopes = [
+            ("/api/v1/auth/login/", "10/5m"),
+            ("/api/v1/auth/register/", "5/5m"),
+            ("/api/v1/auth/password-reset/", "5/5m"),
+            ("/api/v1/auth/", "60/5m"),
+            ("/api/v1/admin/", "60/10m"),
+            ("/api/v1/documents/", "20/10m"),
+            ("/api/v1/sessions/", "30/10m"),
+            ("/api/v1/notifications/", "50/10m"),
+            ("/api/v1/errors/", "10/5m"),
+            ("/api/v1/outreach/", "30/10m"),
+            ("/api/v1/email/", "30/10m"),
+            ("/api/v1/integrations/", "20/10m"),
+            ("/api/v1/payments/", "20/10m"),
+            ("/api/v1/", "120/10m"),
+        ]
+        self.assertEqual(RateLimitMiddleware.SCOPE_LIMITS, expected_scopes)
 
 
 # =========================================================================
@@ -379,7 +388,7 @@ class TestCSRFEnforcementProperty(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_valid_csrf_token_allows_request(self):
-        """A valid CSRF token (found in DB) should allow the request through."""
+        """A valid CSRF token (found in DB, not expired, bound to user) should allow the request through."""
         token = "test-csrf-token-value"
         token_hash = hashlib.sha256(token.encode()).hexdigest()
 
@@ -388,13 +397,20 @@ class TestCSRFEnforcementProperty(SimpleTestCase):
             path="/api/v1/applications/",
             meta_overrides={"HTTP_X_CSRF_TOKEN": token},
         )
+        # Simulate an authenticated user (required after user-binding was added).
+        request.user.is_authenticated = True
+        request.user.pk = 42
 
         with patch("apps.accounts.models.CSRFToken.objects") as mock_objects:
             mock_objects.filter.return_value.exists.return_value = True
             response = self.middleware(request)
 
         self.assertEqual(response.status_code, 200)
-        mock_objects.filter.assert_called_once_with(token_hash=token_hash)
+        # The filter now includes expiry check and user binding.
+        call_kwargs = mock_objects.filter.call_args[1]
+        self.assertEqual(call_kwargs["token_hash"], token_hash)
+        self.assertEqual(call_kwargs["user_id"], 42)
+        self.assertIn("expires_at__gt", call_kwargs)
 
     def test_invalid_csrf_token_returns_403(self):
         """A CSRF token not found in DB should return 403."""

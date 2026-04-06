@@ -255,6 +255,20 @@ class ApplicationReviewSerializer(serializers.Serializer):
     force = serializers.BooleanField(required=False, default=False)
 
 
+class PaymentStatusUpdateSerializer(serializers.Serializer):
+    """Validates payment status updates (P1-SEC-027)."""
+
+    PAYMENT_STATUS_CHOICES = [
+        ("not_paid", "Not Paid"),
+        ("pending_review", "Pending Review"),
+        ("verified", "Verified"),
+        ("rejected", "Rejected"),
+    ]
+
+    payment_status = serializers.ChoiceField(choices=PAYMENT_STATUS_CHOICES)
+    notes = serializers.CharField(max_length=1000, required=False, allow_blank=True, default="")
+
+
 class ApplicationBulkStatusSerializer(serializers.Serializer):
     """Admin bulk status update."""
 
