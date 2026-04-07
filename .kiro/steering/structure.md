@@ -127,7 +127,25 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | New route | App `urls.py` plus `backend/config/urls.py` include if needed | Backend routes are resource-style under `/api/v1/` |
 | Tests | `backend/tests/{unit,property,contract}/` | Match the behavior and risk level |
 
-### Files Added During CTO Remediation
+### Files Added During Lenco Payment Integration
+
+| Path | Purpose |
+|------|---------|
+| `backend/apps/documents/payment_service.py` | `PaymentService` — payment lifecycle: initiate, verify, webhook processing, forward-only status transitions |
+| `backend/apps/documents/fee_resolver.py` | `FeeResolver` — dynamic fee resolution by program code + residency (local/international) |
+| `backend/apps/documents/webhook_processor.py` | `WebhookProcessor` — HMAC-SHA512 signature validation, event logging, delegation to PaymentService |
+| `backend/scripts/lenco_payment_integration.sql` | SQL migration: `program_fees`, `webhook_event_logs` tables, `payments` column additions, `applications.payment_status` default change |
+| `apps/admissions/src/hooks/useLencoWidget.ts` | Dynamic Lenco widget script loading and `LencoPay.getPaid` wrapper |
+| `apps/admissions/src/hooks/useFeeResolver.ts` | Frontend fee resolution hook (calls `/api/v1/payments/resolve-fee/`) |
+| `apps/admissions/src/hooks/usePaymentStatus.ts` | Payment status polling hook |
+
+### Files Removed During Lenco Payment Integration
+
+| Path | Reason |
+|------|--------|
+| `apps/admissions/src/config/payments.ts` | Hardcoded K153 fee and mobile money phone numbers — replaced by dynamic fee resolution |
+| `apps/admissions/src/pages/student/applicationWizard/lib/paymentFlow.ts` | Legacy manual payment validation — replaced by Lenco widget |
+| `apps/admissions/tests/unit/paymentFlow.test.ts` | Tests for deleted paymentFlow module |
 
 | Path | Purpose |
 |------|---------|
