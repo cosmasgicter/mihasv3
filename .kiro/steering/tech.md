@@ -136,6 +136,7 @@ The frontend and backend share a single, unified API contract. There is no compa
 - In `apps/jobs-ops`, keep route-level logic inside `src/features/*`.
 - Prefer React Query for backend data and keep shell/UI state in Zustand.
 - Use app-local API service modules instead of raw `fetch`.
+- Payment in the admissions wizard is handled exclusively by the Lenco inline widget (`LencoPay.getPaid`). Do not reintroduce manual payment flows, proof-of-payment uploads, or pay-later options.
 
 ### Backend
 
@@ -144,6 +145,36 @@ The frontend and backend share a single, unified API contract. There is no compa
 - Preserve explicit jobs-ops domain naming such as `JobApplication`.
 - Shared jobs-ops scaffold data currently lives in `backend/apps/common/jobs_ops_seed.py`; do not re-duplicate that seed state across views.
 - Current default error-alert recipient is `ops@mihas.edu.zm` (configurable via `ERROR_ALERT_EMAIL` env var; code fallback is `***REMOVED***`).
+- Payment records live in the `payments` table (managed by `backend/apps/documents/`). The Application model's inline payment fields (`payment_method`, `payer_name`, `payer_phone`, `amount`, `paid_at`, `momo_ref`, `pop_url`, `receipt_number`, `payment_verified_at`, `payment_verified_by`) are deprecated — do NOT read or write them in new code.
+
+## Lenco Payment Integration
+
+The platform uses Lenco as its payment gateway for application fees. Key components:
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| `PaymentService` | `backend/apps/documents/payment_service.py` | Payment lifecycle: initiate, verify, webhook processing |
+| `FeeResolver` | `backend/apps/documents/fee_resolver.py` | Dynamic fee resolution by program + residency |
+| `WebhookProcessor` | `backend/apps/documents/webhook_processor.py` | HMAC-SHA512 signature validation + event logging |
+| `ProgramFee` model | `backend/apps/documents/models.py` | Per-program fee configuration (local vs international) |
+| `WebhookEventLog` model | `backend/apps/documents/models.py` | Audit trail for all webhook events |
+| `useLencoWidget` | `apps/admissions/src/hooks/useLencoWidget.ts` | Dynamic Lenco widget script loading |
+| `useFeeResolver` | `apps/admissions/src/hooks/useFeeResolver.ts` | Frontend fee resolution hook |
+| `usePaymentStatus` | `apps/admissions/src/hooks/usePaymentStatus.ts` | Payment status polling hook |
+| `PaymentStep` | `apps/admissions/src/pages/student/applicationWizard/steps/PaymentStep.tsx` | Lenco widget payment step |
+
+Payment API endpoints:
+- `POST /api/v1/payments/initiate/` — create pending payment, returns widget config
+- `POST /api/v1/payments/{id}/verify/` — verify payment via Lenco API
+- `POST /api/v1/payments/webhook/lenco/` — webhook receiver (unauthenticated, HMAC-validated)
+- `GET /api/v1/payments/resolve-fee/` — resolve fee for program + residency
+- `GET/POST/PUT/DELETE /api/v1/programs/{id}/fees/` — admin fee management
+
+Environment variables:
+- Backend: `LENCO_API_SECRET_KEY`, `LENCO_API_BASE_URL`, `LENCO_PUBLIC_KEY`
+- Frontend: `VITE_LENCO_PUBLIC_KEY`, `VITE_LENCO_WIDGET_URL`
+
+Webhook URL registered with Lenco: `***REMOVED***/api/v1/payments/webhook/lenco/`
 
 ## Error Monitoring
 
@@ -171,8 +202,9 @@ Celery Beat runs as a dedicated Koyeb worker service (exactly 1 instance to avoi
 |------|----------|---------|
 | `check_uptime_task` | Every 300 seconds (5 minutes) | Internal health check — pings `/health/ready/`, alerts on failure/recovery transitions |
 | `cleanup_audit_logs_task` | Daily at 03:00 UTC (`crontab(hour=3, minute=0)`) | Purge expired audit log records: standard retention 90 days, security retention 365 days |
+| `poll_pending_payments_task` | Every 600 seconds (10 minutes) | Polls Lenco API for pending payments older than 5 min and younger than 24 hr, max 50 per run |
 
-Both tasks live in `backend/apps/common/tasks.py`.
+The first two tasks live in `backend/apps/common/tasks.py`. The payment polling task lives in `backend/apps/documents/tasks.py`.
 
 ## Uptime Monitoring
 

@@ -41,8 +41,9 @@ The platform uses self-hosted error monitoring with no third-party tracker (no S
 
 ### Admissions
 
-- Student onboarding, profile management, application wizard, document upload, payment, interview progression, and decisions
-- Admin and reviewer tools for application review, verification, audit, and operational oversight
+- Student onboarding, profile management, application wizard, document upload, payment via Lenco gateway, interview progression, and decisions
+- Admin and reviewer tools for application review, verification, fee management, payment status override, audit, and operational oversight
+- Payment is processed in real-time via the Lenco inline widget — no manual proof-of-payment uploads
 
 ### Jobs Ops
 
@@ -77,7 +78,7 @@ The frontend apps consume the Django `/api/v1/` contract directly. There is no t
 
 ### Admissions
 
-`Registration -> Email Verification -> Profile Setup -> Application Wizard -> Payment -> Interview -> Decision`
+`Registration -> Email Verification -> Profile Setup -> Application Wizard -> Lenco Payment -> Submission -> Interview -> Decision`
 
 Admissions expectations:
 
@@ -85,6 +86,8 @@ Admissions expectations:
 - Auto-save must remain silent and resilient.
 - Eligibility checks are advisory, not hard blockers.
 - Drafts must survive refreshes, reconnects, and interrupted sessions.
+- Payment is handled by the Lenco inline widget in the payment step — no manual proof-of-payment.
+- NRC or Passport document upload is mandatory before submission.
 
 ### Jobs Ops
 
@@ -101,8 +104,8 @@ Jobs-ops expectations:
 
 | Rule | Details |
 |------|---------|
-| Payment timing | Admissions payment must be completed before interview progression where required |
-| Documents | Requirements vary by program or job context and must be validated defensively |
+| Payment timing | Application fee is collected via Lenco gateway before submission. Admin can override payment status for offline payments. |
+| Documents | NRC or Passport upload is mandatory. Requirements vary by program and must be validated defensively |
 | Grading | Zambian ECZ grading semantics must remain correct in admissions |
 | Audit | Administrative and automation state changes require audit coverage |
 | Password reset | Token-based, time-bound, single-use, and rate-limited |
