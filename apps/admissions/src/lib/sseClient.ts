@@ -69,7 +69,7 @@ export interface SSEClient {
  * Default configuration values
  */
 const DEFAULT_CONFIG: Required<Omit<SSEClientConfig, 'endpoint' | 'onConnect' | 'onDisconnect' | 'onError'>> = {
-  maxRetries: Infinity,
+  maxRetries: 5,
   initialBackoff: 1000,
   maxBackoff: 30000,
   batteryFriendly: true,

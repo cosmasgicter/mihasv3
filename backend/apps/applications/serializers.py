@@ -109,8 +109,8 @@ class ApplicationCreateSerializer(serializers.Serializer):
     """Serializer for application creation with field-level validation."""
 
     full_name = serializers.CharField(max_length=255)
-    nrc_number = serializers.CharField(max_length=20, required=False, allow_blank=True, default="")
-    passport_number = serializers.CharField(max_length=50, required=False, allow_blank=True, default="")
+    nrc_number = serializers.CharField(max_length=20, required=False, allow_blank=True, allow_null=True, default="")
+    passport_number = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True, default="")
     date_of_birth = serializers.DateField()
     sex = serializers.ChoiceField(choices=["male", "female"])
     phone = serializers.CharField(max_length=20)

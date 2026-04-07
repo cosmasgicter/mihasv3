@@ -151,7 +151,7 @@ from celery.schedules import crontab  # noqa: E402
 CELERY_BEAT_SCHEDULE = {
     "check-uptime": {
         "task": "apps.common.tasks.check_uptime_task",
-        "schedule": 300.0,
+        "schedule": 900.0,  # Every 15 minutes (was 5m — reduced to conserve Upstash free-tier Redis requests)
     },
     "cleanup-audit-logs": {
         "task": "apps.common.tasks.cleanup_audit_logs_task",
