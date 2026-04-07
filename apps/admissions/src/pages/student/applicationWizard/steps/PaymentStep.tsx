@@ -11,6 +11,10 @@ import { useLencoWidget } from '@/hooks/useLencoWidget'
 import { usePaymentStatus } from '@/hooks/usePaymentStatus'
 import type { WizardFormData } from '../types'
 
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
 interface PaymentStepProps {
   title: string
   form: UseFormReturn<WizardFormData>
@@ -30,19 +34,37 @@ interface VerifyResponse {
   status: string
 }
 
+type PaymentStatus = 'idle' | 'initiating' | 'pending' | 'successful' | 'failed'
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function formatCurrency(amount: number, currency: string): string {
+  if (currency === 'ZMW') return `K${amount.toFixed(2)}`
+  if (currency === 'USD') return `$${amount.toFixed(2)}`
+  return `${currency} ${amount.toFixed(2)}`
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
 const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
   const { watch } = form
   const programCode = watch('program') || ''
   const nationality = watch('nationality') || ''
   const country = watch('country') || ''
+
   const { fee, isLoading: feeLoading, error: feeError } = useFeeResolver(programCode, nationality, country)
   const { openWidget, isLoading: widgetLoading, isScriptLoaded } = useLencoWidget()
   const { status: polledStatus, refetch: refetchStatus } = usePaymentStatus(applicationId || '')
-  type PStatus = 'idle' | 'initiating' | 'pending' | 'successful' | 'failed'
-  const [paymentStatus, setPaymentStatus] = useState<PStatus>('idle')
+
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('idle')
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [initiateError, setInitiateError] = useState<string | null>(null)
 
+  // Sync polled status into local state
   useEffect(() => {
     if (polledStatus === 'successful') {
       setPaymentStatus('successful')
@@ -68,7 +90,7 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
     try {
       const data = await apiClient.request<InitiateResponse>(
         '/payments/initiate/',
-        { method: 'POST', body: JSON.stringify({ application_id: applicationId }) }
+        { method: 'POST', body: JSON.stringify({ application_id: applicationId }) },
       )
       if (!data) throw new Error('No response from payment service')
 
@@ -130,12 +152,6 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
 
   const canPay = isScriptLoaded && fee != null && !feeLoading && paymentStatus !== 'successful' && paymentStatus !== 'initiating'
 
-  const fmtCur = (amt: number, cur: string) => {
-    if (cur === 'ZMW') return `K${amt.toFixed(2)}`
-    if (cur === 'USD') return `$${amt.toFixed(2)}`
-    return `${cur} ${amt.toFixed(2)}`
-  }
-
   return (
     <SectionCard
       title={title}
@@ -145,6 +161,7 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
       contentClassName="space-y-6"
       data-testid="payment-step"
     >
+      {/* Fee display */}
       <div className="rounded-xl border border-border bg-card p-4">
         <div className="flex items-center justify-between">
           <div>
@@ -157,17 +174,20 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
             ) : feeError ? (
               <p className="mt-1 text-sm text-destructive">{feeError}</p>
             ) : fee ? (
-              <p className="mt-1 text-2xl font-bold text-foreground">{fmtCur(fee.amount, fee.currency)}</p>
+              <p className="mt-1 text-2xl font-bold text-foreground">{formatCurrency(fee.amount, fee.currency)}</p>
             ) : (
               <p className="mt-1 text-sm text-muted-foreground">Select a program to see the fee</p>
             )}
           </div>
           {fee?.residency_category && (
-            <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium capitalize text-muted-foreground">{fee.residency_category}</span>
+            <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium capitalize text-muted-foreground">
+              {fee.residency_category}
+            </span>
           )}
         </div>
       </div>
 
+      {/* Status alerts */}
       {paymentStatus === 'successful' && (
         <Alert variant="success" className={animateClasses.scaleIn}>
           <AlertTitle className="flex items-center gap-2 text-foreground">
@@ -220,6 +240,7 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
         </Alert>
       )}
 
+      {/* Pay Now / Retry button */}
       {paymentStatus !== 'successful' && (
         <Button
           type="button"

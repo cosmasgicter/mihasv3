@@ -37,11 +37,6 @@ import {
   normalizeDateInputValue,
   normalizeDateTimeLocalValue,
 } from '@/lib/profileFieldMapping'
-import {
-  buildApplicationPaymentUpdate,
-  requiresImmediatePayment,
-  validatePaymentStep,
-} from '../lib/paymentFlow'
 import { mergeWizardSubjects } from '../lib/educationCatalog'
 import {
   buildServerDraftPayload,
@@ -364,12 +359,8 @@ const useWizardController = (): UseWizardControllerResult => {
   const form = useForm<WizardFormData>({
     resolver: resolver as unknown as Resolver<WizardFormData>,
     defaultValues: async () => {
-      const { PAYMENT_CONFIG } = await import('@/config/payments')
       return {
         country: DEFAULT_RESIDENCE_COUNTRY,
-        payment_option: 'pay_now',
-        amount: PAYMENT_CONFIG.DEFAULT_AMOUNT,
-        payment_method: PAYMENT_CONFIG.PAYMENT_METHODS[0]
       } as WizardFormData
     }
   })
@@ -931,17 +922,6 @@ const useWizardController = (): UseWizardControllerResult => {
           setValue('nationality', (String(app.nationality ?? '') || 'Zambian'), { shouldValidate: false })
           setValue('next_of_kin_name', app.next_of_kin_name || '', { shouldValidate: false })
           setValue('next_of_kin_phone', app.next_of_kin_phone || '', { shouldValidate: false })
-          setValue(
-            'payment_option',
-            app.pop_url || app.payment_method || app.paid_at ? 'pay_now' : 'pay_later',
-            { shouldValidate: false }
-          )
-          setValue('payment_method', (app.payment_method || '') as WizardFormData['payment_method'], { shouldValidate: false })
-          setValue('payer_name', app.payer_name || '', { shouldValidate: false })
-          setValue('payer_phone', app.payer_phone || '', { shouldValidate: false })
-          setValue('amount', app.amount || 153, { shouldValidate: false })
-          setValue('paid_at', normalizeDateTimeLocalValue(app.paid_at || ''), { shouldValidate: false })
-          setValue('momo_ref', app.momo_ref || '', { shouldValidate: false })
           
           if (app.program) {
             const resolvedProgramId = findProgramId(
@@ -1131,10 +1111,6 @@ const useWizardController = (): UseWizardControllerResult => {
       // This is non-blocking — local draft is retained on failure and retried next interval
       if (applicationId && navigator.onLine) {
         try {
-          const paymentUpdate = buildApplicationPaymentUpdate(formData, {
-            clearProofOfPayment: !requiresImmediatePayment(formData),
-            markPendingReview: false
-          })
           await applicationService.update(applicationId, {
             full_name: formData.full_name || undefined,
             nrc_number: formData.nrc_number || undefined,
@@ -1148,16 +1124,6 @@ const useWizardController = (): UseWizardControllerResult => {
             nationality: formData.nationality || undefined,
             next_of_kin_name: formData.next_of_kin_name || undefined,
             next_of_kin_phone: formData.next_of_kin_phone || undefined,
-            payment_method: paymentUpdate.payment_method,
-            payer_name: paymentUpdate.payer_name,
-            payer_phone: paymentUpdate.payer_phone,
-            amount: paymentUpdate.amount,
-            paid_at: paymentUpdate.paid_at,
-            momo_ref: paymentUpdate.momo_ref,
-            payment_status: paymentUpdate.payment_status,
-            ...(Object.prototype.hasOwnProperty.call(paymentUpdate, 'pop_url')
-              ? { pop_url: paymentUpdate.pop_url }
-              : {}),
           } as Partial<Application>)
         } catch (serverError) {
           // Non-blocking: local draft is retained, will retry on next 8-second interval
@@ -1235,19 +1201,8 @@ const useWizardController = (): UseWizardControllerResult => {
   )
 
   const getPaymentTarget = useCallback(async () => {
-    const institutionLabel = deriveInstitutionLabel(selectedProgramDetails?.institutions)
-    if (!institutionLabel) return ''
-
-    const institutionCode = resolveInstitutionCode(institutionLabel)
-    const { PAYMENT_CONFIG } = await import('@/config/payments')
-    
-    const target = PAYMENT_CONFIG.PAYMENT_TARGETS[institutionCode as keyof typeof PAYMENT_CONFIG.PAYMENT_TARGETS]
-    if (target) {
-      return `${target.name} MTN ${target.mtn}`
-    }
-
-    return `Admissions Office (${institutionLabel})`
-  }, [deriveInstitutionLabel, resolveInstitutionCode, selectedProgramDetails])
+    return 'Processed via Lenco payment gateway'
+  }, [])
 
   const goToStep = useCallback((index: number) => {
     setCurrentStepIndex(Math.min(Math.max(index, 0), totalSteps - 1))
@@ -1514,34 +1469,9 @@ const useWizardController = (): UseWizardControllerResult => {
         return
       }
       
-      const formData = watch()
-      const isValid = validatePaymentStep({
-        formData,
-        proofOfPaymentFile: popFile,
-        setError,
-        showError
-      })
-
-      if (!isValid) {
-        return
-      }
-
-      // POP already uploaded, just save payment data
-      try {
-        const paymentUpdate = buildApplicationPaymentUpdate(formData, {
-          clearProofOfPayment: !requiresImmediatePayment(formData),
-          markPendingReview: requiresImmediatePayment(formData)
-        })
-        await updateApplication.mutateAsync({
-          id: applicationId,
-          data: paymentUpdate as unknown as ApplicationUpdateData
-        })
-        queryClient.invalidateQueries({ queryKey: ['applications'] })
-        goToStep(currentStepIndex + 1)
-      } catch (error) {
-        logApiError('application-wizard', `/applications/${applicationId}/`, error)
-        showError('Failed to save payment data. Please try again.')
-      }
+      // Payment is handled by the Lenco widget in PaymentStep.
+      // Just advance to the next step.
+      goToStep(currentStepIndex + 1)
     }
   }, [
     saveDraft,
@@ -1585,12 +1515,6 @@ const useWizardController = (): UseWizardControllerResult => {
       showError(errorMessage)
       return
     }
-    if (requiresImmediatePayment(data) && !popFile) {
-      const errorMessage = 'Proof of payment is required'
-      setError('')
-      showError(errorMessage)
-      return
-    }
     if (!applicationId) {
       const errorMessage = 'Application ID not found. Please try refreshing the page.'
       setError('')
@@ -1603,20 +1527,13 @@ const useWizardController = (): UseWizardControllerResult => {
       setError('')
       
       logger.info('[handleSubmitApplication] Verifying authentication...')
-      // Verify authentication via useAuth() — the single source of truth.
-      // ApiClient handles 401 refresh transparently on subsequent requests.
       if (!user?.id) {
         throw new Error('Please sign in again to submit your application')
       }
 
-      // POP already uploaded, just update submission data
+      // Payment is handled by Lenco widget — just submit the application
       logger.info('[handleSubmitApplication] Finalizing submission...')
-      const paymentUpdate = buildApplicationPaymentUpdate(data, {
-        clearProofOfPayment: !requiresImmediatePayment(data),
-        markPendingReview: requiresImmediatePayment(data)
-      })
       const updateData = {
-        ...paymentUpdate,
         status: 'submitted',
         submitted_at: new Date().toISOString()
       }

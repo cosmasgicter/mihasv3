@@ -31,7 +31,6 @@ import { applicationService } from '@/services/applications'
 import { useAuth } from '@/contexts/AuthContext'
 import { documentService } from '@/services/documents'
 import { logApiError } from '@/lib/apiErrorLogger'
-import { buildApplicationPaymentUpdate, validatePaymentStep } from './applicationWizard/lib/paymentFlow'
 import {
   getPaymentStatusLabel,
   normalizePaymentStatus,
@@ -297,22 +296,21 @@ export default function PaymentPage() {
     const amount = Number(form.amount)
     const setFormError = (message: string | null) => updatePaymentForm(applicationId, { error: message })
 
-    const isValid = validatePaymentStep({
-      formData: {
-        payment_option: 'pay_now',
-        payment_method: form.payment_method as any,
-        payer_name: form.payer_name,
-        payer_phone: form.payer_phone,
-        amount,
-        paid_at: form.paid_at,
-        momo_ref: form.momo_ref,
-      } as any,
-      proofOfPaymentFile: form.file,
-      setError: () => setFormError(null),
-      showError: (message) => setFormError(message),
-    })
-
-    if (!isValid || !form.file) {
+    // Basic validation for legacy deferred payment form
+    if (!form.payment_method) {
+      setFormError('Please select a payment method.')
+      return
+    }
+    if (!form.payer_name) {
+      setFormError('Please enter the payer name.')
+      return
+    }
+    if (!amount || amount < 153) {
+      setFormError('Amount must be at least K153.')
+      return
+    }
+    if (!form.file) {
+      setFormError('Please upload proof of payment.')
       return
     }
 
@@ -332,18 +330,14 @@ export default function PaymentPage() {
         throw new Error('Upload completed without a document URL')
       }
 
-      const paymentUpdate = buildApplicationPaymentUpdate({
-        payment_option: 'pay_now',
-        payment_method: form.payment_method as any,
+      await applicationService.update(applicationId, {
+        payment_method: form.payment_method,
         payer_name: form.payer_name,
         payer_phone: form.payer_phone,
         amount,
-        paid_at: form.paid_at,
-        momo_ref: form.momo_ref,
-      } as any, { markPendingReview: true })
-
-      await applicationService.update(applicationId, {
-        ...paymentUpdate,
+        paid_at: form.paid_at || undefined,
+        momo_ref: form.momo_ref || undefined,
+        payment_status: 'pending_review',
         pop_url: uploadResult.url,
       } as any)
 
