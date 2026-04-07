@@ -1,295 +1,243 @@
-import { useEffect, useState } from 'react'
-
-import { CreditCard, Radio } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { CheckCircle, CreditCard, Loader2, RefreshCw, XCircle, Clock } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
-
-import { AnimatedInput } from '@/components/smoothui/animated-input'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
-import { FormSelect } from '@/components/ui/form-select'
-import { FileUpload } from '@/components/ui/FileUpload'
+import { Button } from '@/components/ui/Button'
 import { SectionCard } from '@/components/ui/SectionCard'
-import { animateClasses, staggerChild } from '@/lib/animations'
-import { cn } from '@/lib/utils'
-
+import { animateClasses } from '@/lib/animations'
+import { apiClient } from '@/services/client'
+import { useFeeResolver } from '@/hooks/useFeeResolver'
+import { useLencoWidget } from '@/hooks/useLencoWidget'
+import { usePaymentStatus } from '@/hooks/usePaymentStatus'
 import type { WizardFormData } from '../types'
 
 interface PaymentStepProps {
   title: string
   form: UseFormReturn<WizardFormData>
-  getPaymentTarget: () => Promise<string>
-  handleProofOfPaymentUpload: (file: File | null) => void
-  proofOfPaymentFile: File | null
-  uploadProgress: Record<string, number>
-  uploadedFiles: Record<string, boolean>
+  applicationId: string | null
+  applicationNumber: string | null
 }
 
-const PaymentStep = ({
-  title,
-  form,
-  getPaymentTarget,
-  handleProofOfPaymentUpload,
-  proofOfPaymentFile,
-  uploadProgress,
-  uploadedFiles
-}: PaymentStepProps) => {
-  const { register, control, setValue, watch, formState: { errors } } = form
-  const [paymentTarget, setPaymentTarget] = useState<string | null>(null)
-  const [paymentTargetStatus, setPaymentTargetStatus] = useState<'loading' | 'ready' | 'unavailable'>('loading')
-  const paymentOption = watch('payment_option') || 'pay_now'
-  const isPayLater = paymentOption === 'pay_later'
+interface InitiateResponse {
+  payment_id: string
+  reference: string
+  amount: string
+  currency: string
+  lenco_public_key: string
+}
+
+interface VerifyResponse {
+  status: string
+}
+
+const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
+  const { watch } = form
+  const programCode = watch('program') || ''
+  const nationality = watch('nationality') || ''
+  const country = watch('country') || ''
+  const { fee, isLoading: feeLoading, error: feeError } = useFeeResolver(programCode, nationality, country)
+  const { openWidget, isLoading: widgetLoading, isScriptLoaded } = useLencoWidget()
+  const { status: polledStatus, refetch: refetchStatus } = usePaymentStatus(applicationId || '')
+  type PStatus = 'idle' | 'initiating' | 'pending' | 'successful' | 'failed'
+  const [paymentStatus, setPaymentStatus] = useState<PStatus>('idle')
+  const [statusMessage, setStatusMessage] = useState<string | null>(null)
+  const [initiateError, setInitiateError] = useState<string | null>(null)
 
   useEffect(() => {
-    let isActive = true
-
-    setPaymentTargetStatus('loading')
-    getPaymentTarget()
-      .then((target) => {
-        if (!isActive) return
-        setPaymentTarget(target)
-        setPaymentTargetStatus('ready')
-      })
-      .catch(() => {
-        if (!isActive) return
-        setPaymentTarget(null)
-        setPaymentTargetStatus('unavailable')
-      })
-
-    return () => {
-      isActive = false
+    if (polledStatus === 'successful') {
+      setPaymentStatus('successful')
+      setStatusMessage('Payment confirmed.')
+    } else if (polledStatus === 'failed') {
+      setPaymentStatus('failed')
+      setStatusMessage('Payment failed. You can retry.')
+    } else if (polledStatus === 'pending' && paymentStatus === 'idle') {
+      setPaymentStatus('pending')
+      setStatusMessage('Payment is being confirmed\u2026')
     }
-  }, [getPaymentTarget])
+  }, [polledStatus, paymentStatus])
 
-  // Payment method options
-  const paymentMethodOptions = [
-    { value: 'MTN Money', label: 'MTN Money' },
-    { value: 'Airtel Money', label: 'Airtel Money (Cross Network)' },
-    { value: 'Zamtel Money', label: 'Zamtel Money (Cross Network)' },
-    { value: 'Ewallet', label: 'Ewallet' },
-    { value: 'Bank To Cell', label: 'Bank To Cell' },
-  ]
+  const handlePayNow = useCallback(async () => {
+    if (!applicationId) {
+      setInitiateError('Application not found. Please go back to step 1.')
+      return
+    }
+    setInitiateError(null)
+    setPaymentStatus('initiating')
+    setStatusMessage(null)
 
-  const paymentChoices = [
-    {
-      value: 'pay_now',
-      title: 'Pay now',
-      description: 'Upload your proof of payment now and send the application to admissions for payment review.',
-    },
-    {
-      value: 'pay_later',
-      title: 'Pay later',
-      description: 'Submit the application first and complete payment later from the dashboard payment section.',
-    },
-  ] as const
+    try {
+      const data = await apiClient.request<InitiateResponse>(
+        '/payments/initiate/',
+        { method: 'POST', body: JSON.stringify({ application_id: applicationId }) }
+      )
+      if (!data) throw new Error('No response from payment service')
+
+      const { payment_id, reference, amount, currency, lenco_public_key } = data
+      const fullName = watch('full_name') || ''
+      const nameParts = fullName.trim().split(/\s+/)
+      const firstName = nameParts[0] || ''
+      const lastName = nameParts.slice(1).join(' ') || firstName
+      const email = watch('email') || ''
+      const phone = watch('phone') || ''
+
+      openWidget({
+        publicKey: lenco_public_key,
+        reference,
+        amount: parseFloat(amount),
+        currency,
+        customerEmail: email,
+        customerFirstName: firstName,
+        customerLastName: lastName,
+        customerPhone: phone || undefined,
+        onSuccess: async () => {
+          setPaymentStatus('pending')
+          setStatusMessage('Verifying payment\u2026')
+          try {
+            const verifyPath = `/payments/${encodeURIComponent(payment_id)}/verify/`
+            const v = await apiClient.request<VerifyResponse>(verifyPath, { method: 'POST' })
+            if (v?.status === 'successful') {
+              setPaymentStatus('successful')
+              setStatusMessage('Payment confirmed.')
+            } else if (v?.status === 'failed') {
+              setPaymentStatus('failed')
+              setStatusMessage('Payment could not be verified. You can retry.')
+            } else {
+              setPaymentStatus('pending')
+              setStatusMessage('Payment is being confirmed. You can proceed \u2014 we will update the status automatically.')
+            }
+          } catch {
+            setPaymentStatus('pending')
+            setStatusMessage('Payment is being confirmed. You can proceed \u2014 we will update the status automatically.')
+          }
+        },
+        onConfirmationPending: () => {
+          setPaymentStatus('pending')
+          setStatusMessage('Payment is being confirmed. You can proceed \u2014 we will update the status automatically.')
+        },
+        onClose: () => {
+          if (paymentStatus !== 'successful' && paymentStatus !== 'pending') {
+            setPaymentStatus('idle')
+            setStatusMessage('Payment not completed. You can retry when ready.')
+          }
+        },
+      })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to initiate payment'
+      setInitiateError(message)
+      setPaymentStatus('idle')
+    }
+  }, [applicationId, openWidget, watch, paymentStatus])
+
+  const canPay = isScriptLoaded && fee != null && !feeLoading && paymentStatus !== 'successful' && paymentStatus !== 'initiating'
+
+  const fmtCur = (amt: number, cur: string) => {
+    if (cur === 'ZMW') return `K${amt.toFixed(2)}`
+    if (cur === 'USD') return `$${amt.toFixed(2)}`
+    return `${cur} ${amt.toFixed(2)}`
+  }
 
   return (
     <SectionCard
       title={title}
-      description="Choose how you want to complete payment. The application can continue even if payment verification is delayed."
+      description="Complete your application fee payment to proceed."
       icon={<CreditCard className="h-5 w-5" />}
       className={animateClasses.fadeIn}
       contentClassName="space-y-6"
       data-testid="payment-step"
     >
-      <fieldset className="space-y-3">
-        <legend id="payment-option-legend" className="text-sm font-semibold text-foreground">
-          Choose when you want to complete payment
-        </legend>
-        <p className="text-sm text-muted-foreground" id="payment-option-hint">
-          Pick the option that matches your situation. You can still submit without blocking on payment verification.
-        </p>
-        <div
-          role="radiogroup"
-          aria-labelledby="payment-option-legend"
-          aria-describedby="payment-option-hint"
-          className="grid gap-3 md:grid-cols-2"
-        >
-          {paymentChoices.map(choice => {
-            const checked = paymentOption === choice.value
-
-            return (
-              <label
-                key={choice.value}
-                className={cn(
-                  'block cursor-pointer rounded-2xl border bg-card p-4 transition-all',
-                  'focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
-                  checked ? 'border-primary bg-primary/5 shadow-sm' : 'border-border hover:border-primary/40'
-                )}
-              >
-                <input
-                  type="radio"
-                  name="payment_option"
-                  value={choice.value}
-                  checked={checked}
-                  onChange={() => setValue('payment_option', choice.value, { shouldDirty: true, shouldValidate: false })}
-                  className="sr-only"
-                />
-                <div className="flex items-start gap-3">
-                  <span
-                    className={cn(
-                      'mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full border',
-                      checked ? 'border-primary bg-primary text-primary-foreground' : 'border-border text-transparent'
-                    )}
-                    aria-hidden="true"
-                  >
-                    <Radio className="h-3 w-3" />
-                  </span>
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold text-foreground">{choice.title}</p>
-                    <p className="text-sm text-muted-foreground">{choice.description}</p>
-                  </div>
-                </div>
-              </label>
-            )
-          })}
-        </div>
-      </fieldset>
-
-      <Alert variant="info" className={animateClasses.scaleIn}>
-        <AlertTitle className="text-foreground">Application fee and payment instructions</AlertTitle>
-        <AlertDescription className="space-y-4 text-muted-foreground">
-          <dl className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-xl border border-border/70 bg-card px-3 py-2">
-              <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Application fee</dt>
-              <dd className="mt-1 text-base font-semibold text-foreground">K153.00</dd>
-            </div>
-            <div className="rounded-xl border border-border/70 bg-card px-3 py-2">
-              <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Payment target</dt>
-              <dd className="mt-1 text-base font-semibold text-foreground">
-                {paymentTargetStatus === 'loading' && 'Checking payment details...'}
-                {paymentTargetStatus === 'ready' && paymentTarget}
-                {paymentTargetStatus === 'unavailable' && 'Temporarily unavailable'}
-              </dd>
-            </div>
-          </dl>
-
-          <div className="rounded-xl border border-border/70 bg-card px-3 py-3">
-            <p className="text-sm font-semibold text-foreground">Available payment methods</p>
-            <ul className="mt-2 grid gap-2 text-sm text-foreground sm:grid-cols-2">
-              {paymentMethodOptions.map(option => (
-                <li key={option.value} className="rounded-lg bg-muted/60 px-3 py-2">
-                  {option.label}
-                </li>
-              ))}
-            </ul>
+      <div className="rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Application fee</p>
+            {feeLoading ? (
+              <div className="mt-1 flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Resolving fee&hellip;</span>
+              </div>
+            ) : feeError ? (
+              <p className="mt-1 text-sm text-destructive">{feeError}</p>
+            ) : fee ? (
+              <p className="mt-1 text-2xl font-bold text-foreground">{fmtCur(fee.amount, fee.currency)}</p>
+            ) : (
+              <p className="mt-1 text-sm text-muted-foreground">Select a program to see the fee</p>
+            )}
           </div>
-
-          <ul className="space-y-2 text-sm text-foreground">
-            <li>Secure payment verification remains non-blocking while you complete the application.</li>
-            <li>{isPayLater ? 'You can submit now and return later to upload payment proof from the dashboard.' : 'Upload proof of payment so admissions can review it alongside your application.'}</li>
-            <li>Receipts are generated after payment verification is completed.</li>
-          </ul>
-
-          {paymentTargetStatus === 'unavailable' && (
-            <p className="text-sm font-medium text-foreground">
-              Payment contact details are temporarily unavailable. You can still continue and choose <span className="font-semibold">Pay later</span> if needed.
-            </p>
+          {fee?.residency_category && (
+            <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium capitalize text-muted-foreground">{fee.residency_category}</span>
           )}
-        </AlertDescription>
-      </Alert>
+        </div>
+      </div>
 
-      {isPayLater ? (
-        <Alert variant="warning">
-          <AlertTitle className="text-foreground">Complete payment later from your dashboard</AlertTitle>
+      {paymentStatus === 'successful' && (
+        <Alert variant="success" className={animateClasses.scaleIn}>
+          <AlertTitle className="flex items-center gap-2 text-foreground">
+            <CheckCircle className="h-4 w-4" />Payment successful
+          </AlertTitle>
           <AlertDescription className="text-muted-foreground">
-            Your application will be submitted without proof of payment. After submission, open the dashboard payment section to upload proof and send it for review.
+            {statusMessage || 'Your payment has been confirmed. You can proceed to the next step.'}
           </AlertDescription>
         </Alert>
-      ) : (
-        <>
-          <SectionCard
-            title="Payment details"
-            description="Provide the transfer details exactly as they appear on the mobile money or bank confirmation."
-            padding="sm"
-            className="shadow-none"
-          >
-            <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
-              <div style={staggerChild(0)}>
-                <FormSelect
-                  name="payment_method"
-                  control={control}
-                  options={paymentMethodOptions}
-                  label="Payment method"
-                  placeholder="Select payment method"
-                  error={errors.payment_method?.message}
-                />
-              </div>
-
-              <div style={staggerChild(1)}>
-                <AnimatedInput
-                  {...register('payer_name')}
-                  label="Payer name"
-                  placeholder="Name of person who made payment"
-                  error={errors.payer_name?.message}
-                />
-              </div>
-
-              <div style={staggerChild(2)}>
-                <AnimatedInput
-                  {...register('payer_phone')}
-                  label="Payer phone"
-                  placeholder="Phone number used for payment"
-                  error={errors.payer_phone?.message}
-                />
-              </div>
-
-              <div style={staggerChild(3)}>
-                <AnimatedInput
-                  type="number"
-                  {...register('amount', { valueAsNumber: true })}
-                  label="Amount paid"
-                  defaultValue={153}
-                  min={153}
-                  error={errors.amount?.message}
-                />
-              </div>
-
-              <div style={staggerChild(4)}>
-                <AnimatedInput
-                  type="datetime-local"
-                  {...register('paid_at')}
-                  label="Payment date and time"
-                  error={errors.paid_at?.message}
-                />
-              </div>
-
-              <div style={staggerChild(5)}>
-                <AnimatedInput
-                  {...register('momo_ref')}
-                  label="Mobile money reference (optional)"
-                  placeholder="Transaction reference number"
-                  helperText="Enter your transaction reference for faster verification"
-                  error={errors.momo_ref?.message}
-                />
-              </div>
-            </div>
-          </SectionCard>
-
-          <SectionCard
-            title="Proof of payment upload"
-            description="Upload the receipt or screenshot that admissions will use to confirm your payment."
-            padding="sm"
-            className="shadow-none"
-          >
-            <FileUpload
-              label="Proof of payment"
-              accept=".pdf,.jpg,.jpeg,.png"
-              maxSize={10 * 1024 * 1024}
-              onChange={(files) => handleProofOfPaymentUpload(files as File | null)}
-              value={proofOfPaymentFile}
-              uploading={uploadProgress.proof_of_payment !== undefined && uploadProgress.proof_of_payment < 100}
-              progress={uploadProgress.proof_of_payment}
-              preview={uploadedFiles.proof_of_payment && proofOfPaymentFile ? {
-                url: URL.createObjectURL(proofOfPaymentFile),
-                type: proofOfPaymentFile.type.startsWith('image/') ? 'image' : 'pdf'
-              } : undefined}
-            />
-
-            <p className="text-sm font-medium text-foreground">
-              Submit for review once your proof upload is complete.
-            </p>
-          </SectionCard>
-        </>
       )}
+
+      {paymentStatus === 'failed' && (
+        <Alert variant="destructive" className={animateClasses.scaleIn}>
+          <AlertTitle className="flex items-center gap-2 text-foreground">
+            <XCircle className="h-4 w-4" />Payment failed
+          </AlertTitle>
+          <AlertDescription className="text-muted-foreground">
+            {statusMessage || 'Your payment could not be processed. Please try again.'}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {paymentStatus === 'pending' && (
+        <Alert variant="info" className={animateClasses.scaleIn}>
+          <AlertTitle className="flex items-center gap-2 text-foreground">
+            <Clock className="h-4 w-4" />Payment pending
+          </AlertTitle>
+          <AlertDescription className="space-y-2 text-muted-foreground">
+            <p>{statusMessage || 'Your payment is being confirmed. This usually takes a few seconds.'}</p>
+            <Button type="button" variant="outline" size="sm" onClick={() => refetchStatus()}>
+              <RefreshCw className="mr-1 h-3 w-3" />Check status
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {initiateError && (
+        <Alert variant="destructive">
+          <AlertTitle className="text-foreground">Payment error</AlertTitle>
+          <AlertDescription className="text-muted-foreground">{initiateError}</AlertDescription>
+        </Alert>
+      )}
+
+      {!isScriptLoaded && !widgetLoading && (
+        <Alert variant="warning">
+          <AlertTitle className="text-foreground">Payment widget unavailable</AlertTitle>
+          <AlertDescription className="text-muted-foreground">
+            The payment widget could not be loaded. Please check your connection and refresh the page.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {paymentStatus !== 'successful' && (
+        <Button
+          type="button"
+          variant="primary"
+          size="lg"
+          className="w-full"
+          disabled={!canPay}
+          loading={paymentStatus === 'initiating' || widgetLoading}
+          onClick={handlePayNow}
+          data-testid="pay-now-button"
+        >
+          {paymentStatus === 'initiating' ? 'Preparing payment\u2026' : paymentStatus === 'failed' ? 'Retry payment' : 'Pay now'}
+        </Button>
+      )}
+
+      <p className="text-center text-xs text-muted-foreground">
+        Payments are processed securely by Lenco. Your card details are never stored on our servers.
+      </p>
     </SectionCard>
   )
 }

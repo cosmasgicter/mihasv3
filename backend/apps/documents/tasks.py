@@ -1,15 +1,65 @@
-"""Document Celery tasks — OCR text extraction.
+"""Document Celery tasks — OCR text extraction and payment polling.
 
-Implements task 17.3.
-Requirements: 6.3, 12.2
+Implements task 17.3 (OCR) and task 7.1 (Lenco payment polling).
+Requirements: 6.3, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6
 """
 
 import logging
 import tempfile
+from datetime import timedelta
 
 from celery import shared_task
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
+
+
+@shared_task(bind=True, max_retries=0)
+def poll_pending_payments_task(self):
+    """Every 10 minutes: query pending payments 5min–24hr old, verify via Lenco API, max 50 per run.
+
+    Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6
+    """
+    from apps.documents.models import Payment
+    from apps.documents.payment_service import PaymentService
+
+    now = timezone.now()
+    five_minutes_ago = now - timedelta(minutes=5)
+    twenty_four_hours_ago = now - timedelta(hours=24)
+
+    pending_payments = Payment.objects.filter(
+        status='pending',
+        created_at__lt=five_minutes_ago,
+        created_at__gt=twenty_four_hours_ago,
+    )[:50]
+
+    count = len(pending_payments)
+    logger.info("poll_pending_payments_task: found %d pending payments to verify", count)
+
+    if count == 0:
+        return
+
+    service = PaymentService()
+
+    for payment in pending_payments:
+        try:
+            logger.info(
+                "Verifying pending payment %s (ref=%s, created=%s)",
+                payment.id,
+                payment.transaction_reference,
+                payment.created_at,
+            )
+            result = service.verify_payment(payment.id)
+            logger.info(
+                "Verification result for payment %s: status=%s error=%s",
+                payment.id,
+                result.status,
+                result.error,
+            )
+        except Exception:
+            logger.exception(
+                "Failed to verify payment %s during polling", payment.id
+            )
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)

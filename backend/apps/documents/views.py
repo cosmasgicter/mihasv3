@@ -1,10 +1,11 @@
 """Document and payment views.
 
-Implements tasks 16.2, 16.3.
-Requirements: 6.1, 6.2, 6.3, 6.4, 6.5
+Implements tasks 16.2, 16.3, 5.1, 5.2, 5.3, 5.4, 5.5.
+Requirements: 2.1, 2.2, 2.3, 3.1–3.5, 4.1, 4.2, 4.7, 6.1–6.3, 10.1, 13.1–13.6
 """
 
 import hashlib
+import json
 import logging
 import uuid
 
@@ -12,18 +13,20 @@ from django.conf import settings
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, OpenApiTypes, extend_schema, extend_schema_view
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 
 from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin
 from apps.common.pagination import StandardPagination
-from apps.documents.models import ApplicationDocument, Payment
+from apps.documents.models import ApplicationDocument, Payment, ProgramFee
 from apps.documents.serializers import (
     DocumentSerializer,
     DocumentUploadSerializer,
     PaymentSerializer,
     PaymentVerifySerializer,
+    ProgramFeeSerializer,
 )
 from apps.documents.validators import validate_file_magic_bytes
 from apps.common.openapi_helpers import (
@@ -340,22 +343,23 @@ class PaymentReceiptView(APIView):
         parameters=[
             OpenApiParameter("payment_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Payment UUID."),
         ],
-        request=PaymentVerifySerializer,
+        request=None,
         responses={
             200: OpenApiResponse(response=PaymentResponseSerializer),
-            400: OpenApiResponse(response=ErrorResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
             404: OpenApiResponse(response=ErrorResponseSerializer),
         },
     )
 )
 class PaymentVerifyView(APIView):
-    """POST /api/v1/payments/{id}/verify/ — admin verifies/rejects payment.
+    """POST /api/v1/payments/{id}/verify/ — verify payment via Lenco API.
 
-    Admin only. Records action in audit log with verifier identity.
+    Authenticated. Students can only verify their own payments.
+    Admins can verify any payment.
+    Requirements: 3.1, 3.2, 3.3, 3.4, 3.5
     """
 
-    permission_classes = [IsAdmin]
-    serializer_class = PaymentVerifySerializer
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, payment_id):
         try:
@@ -366,53 +370,291 @@ class PaymentVerifyView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = PaymentVerifySerializer(data=request.data)
-        if not serializer.is_valid():
+        # Ownership check: students can only verify their own payments.
+        user = request.user
+        role = getattr(user, "role", "student")
+        if role not in ("admin", "super_admin") and str(payment.user_id) != str(user.id):
             return Response(
-                {
-                    "success": False,
-                    "error": "Validation failed",
-                    "code": "VALIDATION_ERROR",
-                    "details": serializer.errors,
-                },
+                {"success": False, "error": "Not authorized", "code": "INSUFFICIENT_PERMISSIONS"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        from apps.documents.payment_service import PaymentService
+
+        service = PaymentService()
+        result = service.verify_payment(payment_id)
+
+        data = {
+            "status": result.status,
+            "amount": str(result.amount) if result.amount is not None else None,
+            "currency": result.currency,
+            "lenco_reference": result.lenco_reference,
+            "payment_method": result.payment_method,
+        }
+
+        if result.error:
+            return Response(
+                {"success": False, "error": result.error, "code": "VERIFICATION_ERROR", "data": data},
+                status=status.HTTP_200_OK,
+            )
+
+        return Response({"success": True, "data": data})
+
+
+# ---------------------------------------------------------------------------
+# Lenco payment views (tasks 5.1, 5.3, 5.4, 5.5)
+# ---------------------------------------------------------------------------
+
+
+class PaymentInitiateView(APIView):
+    """POST /api/v1/payments/initiate/ — create a pending payment record.
+
+    Authenticated. Creates a Payment via PaymentService and returns the
+    reference, amount, currency, and Lenco public key so the frontend can
+    open the Lenco widget.
+
+    Requirements: 2.1, 2.2, 2.3
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        application_id = request.data.get("application_id")
+        if not application_id:
+            return Response(
+                {"success": False, "error": "application_id is required", "code": "VALIDATION_ERROR"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        action = serializer.validated_data["action"]
-        notes = serializer.validated_data.get("notes", "")
+        from apps.applications.models import Application
 
-        new_status = "verified" if action == "verify" else "rejected"
-        old_status = payment.status
+        try:
+            application = Application.objects.get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-        payment.status = new_status
-        payment.verified_by_id = str(request.user.id)
-        payment.notes = notes
-        payment.save()
+        # Ownership check: students can only initiate payments for their own applications.
+        user = request.user
+        role = getattr(user, "role", "student")
+        if role not in ("admin", "super_admin") and str(application.user_id) != str(user.id):
+            return Response(
+                {"success": False, "error": "Not authorized", "code": "INSUFFICIENT_PERMISSIONS"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
-        # Record in audit log.
-        from apps.common.models import AuditLog
+        from apps.documents.payment_service import PaymentService
 
-        ip_address = request.META.get("HTTP_X_FORWARDED_FOR", "")
-        if ip_address:
-            ip_address = ip_address.split(",")[0].strip()
-        else:
-            ip_address = request.META.get("REMOTE_ADDR", "")
+        service = PaymentService()
 
-        AuditLog.objects.create(
-            actor_id=str(request.user.id),
-            action=f"payment_{action}",
-            entity_type="payments",
-            entity_id=payment.id,
-            changes={
-                "old_status": old_status,
-                "new_status": new_status,
-                "notes": notes,
+        try:
+            result = service.initiate_payment(
+                application_id=application.id,
+                user_id=user.id,
+            )
+        except Exception:
+            logger.exception("Failed to initiate payment for application %s", application_id)
+            return Response(
+                {"success": False, "error": "Failed to initiate payment", "code": "PAYMENT_ERROR"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        lenco_public_key = getattr(settings, "LENCO_PUBLIC_KEY", "") or ""
+
+        return Response(
+            {
+                "success": True,
+                "data": {
+                    "payment_id": str(result.payment_id),
+                    "reference": result.reference,
+                    "amount": str(result.amount),
+                    "currency": result.currency,
+                    "lenco_public_key": lenco_public_key,
+                },
             },
-            ip_address=hashlib.sha256(ip_address.encode()).hexdigest(),
-            user_agent=hashlib.sha256(
-                request.META.get("HTTP_USER_AGENT", "").encode()
-            ).hexdigest(),
-            retention_category="standard",
+            status=status.HTTP_201_CREATED,
         )
 
-        return Response(PaymentSerializer(payment).data)
+
+class LencoWebhookView(APIView):
+    """POST /api/v1/payments/webhook/lenco/ — receive Lenco webhook events.
+
+    Unauthenticated (AllowAny). Validates X-Lenco-Signature header via
+    WebhookProcessor. Returns 401 for invalid signature, 200 for valid events.
+
+    Requirements: 4.1, 4.2, 4.7, 10.1
+    """
+
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        raw_body = request.body
+        signature = request.META.get("HTTP_X_LENCO_SIGNATURE", "")
+
+        from apps.documents.webhook_processor import WebhookProcessor
+
+        processor = WebhookProcessor()
+
+        # Parse the payload.
+        try:
+            payload = json.loads(raw_body) if raw_body else {}
+        except (json.JSONDecodeError, ValueError):
+            return Response(
+                {"success": False, "error": "Invalid JSON payload"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        event_type = payload.get("event", "")
+
+        # Validate signature.
+        sig_valid = processor.validate_signature(raw_body, signature)
+
+        if not sig_valid:
+            # Log the event with invalid signature, then return 401.
+            processor.process(event_type, payload, signature_valid=False)
+            return Response(
+                {"success": False, "error": "Invalid webhook signature"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        # Process the valid event.
+        processor.process(event_type, payload, signature_valid=True)
+
+        return Response({"received": True}, status=status.HTTP_200_OK)
+
+
+class FeeResolveView(APIView):
+    """GET /api/v1/payments/resolve-fee/ — resolve application fee.
+
+    Authenticated. Returns the resolved fee amount and currency for a
+    given program code and student residency.
+
+    Query params: program_code, nationality, country
+
+    Requirements: 6.1, 6.2, 6.3
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        program_code = request.query_params.get("program_code")
+        if not program_code:
+            return Response(
+                {"success": False, "error": "program_code query parameter is required", "code": "VALIDATION_ERROR"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        nationality = request.query_params.get("nationality")
+        country = request.query_params.get("country")
+
+        from apps.documents.fee_resolver import FeeResolver
+        from apps.catalog.models import Program
+
+        resolver = FeeResolver()
+
+        try:
+            resolved = resolver.resolve_fee(
+                program_code=program_code,
+                nationality=nationality,
+                country=country,
+            )
+        except Program.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Program not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        return Response({
+            "success": True,
+            "data": {
+                "amount": str(resolved.amount),
+                "currency": resolved.currency,
+                "residency_category": resolved.residency_category,
+                "source": resolved.source,
+            },
+        })
+
+
+class ProgramFeeViewSet(ModelViewSet):
+    """CRUD for /api/v1/programs/:id/fees/ — admin only.
+
+    - GET: list active fees for a program
+    - POST: create a new fee
+    - PUT/PATCH: update an existing fee
+    - DELETE: soft delete (set is_active=false)
+
+    Validates unique active (program, fee_type, residency_category) on
+    create and update.
+
+    Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6
+    """
+
+    permission_classes = [IsAdmin]
+    serializer_class = ProgramFeeSerializer
+
+    def get_queryset(self):
+        program_id = self.kwargs.get("program_id")
+        return ProgramFee.objects.filter(
+            program_id=program_id,
+            is_active=True,
+        ).order_by("-created_at")
+
+    def perform_create(self, serializer):
+        program_id = self.kwargs.get("program_id")
+        fee_type = serializer.validated_data.get("fee_type")
+        residency_category = serializer.validated_data.get("residency_category")
+
+        # Validate unique active constraint.
+        if ProgramFee.objects.filter(
+            program_id=program_id,
+            fee_type=fee_type,
+            residency_category=residency_category,
+            is_active=True,
+        ).exists():
+            from rest_framework.exceptions import ValidationError
+
+            raise ValidationError(
+                {"detail": f"An active {fee_type} fee for {residency_category} already exists for this program."}
+            )
+
+        serializer.save(
+            program_id=program_id,
+            is_active=True,
+            created_at=timezone.now(),
+            updated_at=timezone.now(),
+        )
+
+    def perform_update(self, serializer):
+        program_id = self.kwargs.get("program_id")
+        fee_type = serializer.validated_data.get("fee_type", serializer.instance.fee_type)
+        residency_category = serializer.validated_data.get(
+            "residency_category", serializer.instance.residency_category
+        )
+
+        # Validate unique active constraint (exclude current record).
+        duplicate = ProgramFee.objects.filter(
+            program_id=program_id,
+            fee_type=fee_type,
+            residency_category=residency_category,
+            is_active=True,
+        ).exclude(id=serializer.instance.id)
+
+        if duplicate.exists():
+            from rest_framework.exceptions import ValidationError
+
+            raise ValidationError(
+                {"detail": f"An active {fee_type} fee for {residency_category} already exists for this program."}
+            )
+
+        serializer.save(updated_at=timezone.now())
+
+    def destroy(self, request, *args, **kwargs):
+        """Soft delete: set is_active=false instead of deleting the record."""
+        instance = self.get_object()
+        instance.is_active = False
+        instance.updated_at = timezone.now()
+        instance.save(update_fields=["is_active", "updated_at"])
+        return Response(status=status.HTTP_204_NO_CONTENT)

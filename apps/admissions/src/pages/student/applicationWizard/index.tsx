@@ -70,6 +70,7 @@ const ApplicationWizardContent = () => {
     draftSaved,
     draftLoaded,
     submittedApplication,
+    applicationId,
     persistingSlip,
     slipLoading,
     emailLoading,
@@ -473,11 +474,8 @@ const ApplicationWizardContent = () => {
               <PaymentStep
                 title={currentStepConfig.title}
                 form={form}
-                getPaymentTarget={async () => getPaymentTarget()}
-                handleProofOfPaymentUpload={handleProofOfPaymentUpload}
-                proofOfPaymentFile={popFile}
-                uploadProgress={uploadProgress}
-                uploadedFiles={uploadedFiles}
+                applicationId={applicationId}
+                applicationNumber={submittedApplication?.applicationNumber ?? null}
               />
             )}
 

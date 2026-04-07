@@ -10,7 +10,7 @@ from drf_spectacular.views import (
 
 from apps.common.health import LivenessView, ReadinessView
 from apps.common.views import APIHomeView
-from apps.documents.urls import document_urlpatterns, payment_urlpatterns
+from apps.documents.urls import document_urlpatterns, payment_urlpatterns, program_fee_urlpatterns
 
 urlpatterns = [
     path("", APIHomeView.as_view(), name="api-root"),
@@ -45,6 +45,7 @@ urlpatterns = [
     path("api/v1/reports/", include("apps.analytics.report_urls")),
     path("api/v1/documents/", include((document_urlpatterns, "documents"))),
     path("api/v1/payments/", include((payment_urlpatterns, "payments"))),
+    path("api/v1/programs/<uuid:program_id>/fees/", include((program_fee_urlpatterns, "program-fees"))),
     # Admin endpoints
     path("api/v1/admin/", include("apps.accounts.admin_urls")),
     # Notification endpoints
