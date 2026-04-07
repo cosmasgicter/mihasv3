@@ -5,8 +5,9 @@
  * full notification settings page stay in sync.
  */
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useRealtime } from '@/hooks/useRealtime'
 import { notificationService } from '@/services/notifications'
 import type { StudentNotification } from '@/types/notifications'
 
@@ -16,9 +17,14 @@ interface UseStudentNotificationsOptions {
   pollingEnabled?: boolean
 }
 
+/** Polling interval when SSE is connected (consistency fallback) */
+const SSE_CONNECTED_POLLING_INTERVAL = 60000
+/** Polling interval when SSE is disconnected (primary data source) */
+const SSE_DISCONNECTED_POLLING_INTERVAL = 30000
+
 const DEFAULT_OPTIONS: Required<UseStudentNotificationsOptions> = {
-  sseEnabled: false,
-  pollingInterval: 30000,
+  sseEnabled: true,
+  pollingInterval: SSE_DISCONNECTED_POLLING_INTERVAL,
   pollingEnabled: true,
 }
 
@@ -120,6 +126,22 @@ function applyNotifications(notifications: StudentNotification[]) {
     ...previous,
     notifications,
     unreadCount: countUnread(notifications),
+  }))
+}
+
+/**
+ * Prepend a notification to the shared list, deduplicating by id.
+ * If a notification with the same id already exists, skip the prepend.
+ */
+function prependNotification(notification: StudentNotification) {
+  const exists = sharedState.notifications.some(n => n.id === notification.id)
+  if (exists) return
+
+  const updated = [notification, ...sharedState.notifications]
+  updateState(previous => ({
+    ...previous,
+    notifications: updated,
+    unreadCount: countUnread(updated),
   }))
 }
 
@@ -268,7 +290,45 @@ function detachVisibilityListeners() {
 export function useStudentNotifications(options: UseStudentNotificationsOptions = {}) {
   const opts = { ...DEFAULT_OPTIONS, ...options }
   const { user } = useAuth()
+  const { subscribe, isConnected: sseConnected } = useRealtime({ enabled: opts.sseEnabled })
   const [state, setState] = useState<SharedNotificationState>(() => createSnapshot())
+  const sseConnectedRef = useRef(sseConnected)
+  sseConnectedRef.current = sseConnected
+
+  // Subscribe to SSE notification events
+  useEffect(() => {
+    if (!opts.sseEnabled || !user?.id) return
+
+    const unsubscribe = subscribe('notification', (data) => {
+      // The SSE event payload contains notification fields — extract from
+      // nested `payload` if present (RealtimeEventEnvelope shape), otherwise
+      // treat the data itself as the notification payload.
+      const raw = (data.payload && typeof data.payload === 'object')
+        ? data.payload as Record<string, unknown>
+        : data
+      const notification = normalizeNotificationPayload(raw as NotificationApiShape)
+      if (notification.id) {
+        prependNotification(notification)
+      }
+    })
+
+    return unsubscribe
+  }, [subscribe, opts.sseEnabled, user?.id])
+
+  // Sync SSE connection status into shared state and adjust polling interval
+  useEffect(() => {
+    if (!user?.id || !opts.pollingEnabled) return
+
+    if (sseConnected) {
+      // SSE is live — reduce polling to consistency fallback (60s)
+      updateState(prev => ({ ...prev, isSSEConnected: true }))
+      startPollingForUser(user.id, SSE_CONNECTED_POLLING_INTERVAL)
+    } else {
+      // SSE is down — poll at default rate (30s)
+      updateState(prev => ({ ...prev, isSSEConnected: false }))
+      startPollingForUser(user.id, SSE_DISCONNECTED_POLLING_INTERVAL)
+    }
+  }, [sseConnected, user?.id, opts.pollingEnabled])
 
   useEffect(() => {
     const handleSignedOut = () => {
@@ -324,6 +384,9 @@ export function useStudentNotifications(options: UseStudentNotificationsOptions 
 
     attachVisibilityListeners()
 
+    // When SSE is enabled, the SSE connection status effect manages polling intervals
+    if (opts.sseEnabled) return
+
     if (opts.pollingEnabled) {
       startPollingForUser(user.id, opts.pollingInterval)
       return
@@ -331,7 +394,7 @@ export function useStudentNotifications(options: UseStudentNotificationsOptions 
 
     stopPolling()
     void loadNotificationsForUser(user.id, { showLoading: true })
-  }, [opts.pollingEnabled, opts.pollingInterval, user?.id])
+  }, [opts.pollingEnabled, opts.pollingInterval, opts.sseEnabled, user?.id])
 
   const markAsRead = useCallback(async (notificationId: string) => {
     if (!user?.id) {

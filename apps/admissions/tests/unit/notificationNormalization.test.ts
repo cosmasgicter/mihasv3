@@ -45,7 +45,7 @@ describe('normalizeNotificationPayload', () => {
       read: false,
       action_url: '/student/status',
       created_at: '2026-04-05T10:00:00Z',
-      read_at: null,
+      read_at: undefined,
     })
   })
 })
