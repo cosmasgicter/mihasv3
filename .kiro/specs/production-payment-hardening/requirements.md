@@ -4,6 +4,19 @@
 
 The MIHAS admissions platform completed a Lenco payment gateway integration that introduced real-time payment via the Lenco inline widget, backend payment services (PaymentService, FeeResolver, WebhookProcessor), and supporting database tables. However, the system is not production-ready. This spec covers the hardening work needed: removing legacy manual payment code, adding admin payment management UI, enforcing mandatory identity document uploads, preventing race conditions, improving wizard resilience, and verifying the end-to-end flow and database integrity.
 
+### CTO Review Notes (from live DB inspection via Neon MCP + codebase audit)
+
+- **Conflicting unique constraints on `program_fees`**: The table has BOTH a full `UNIQUE (program_id, fee_type, residency_category)` constraint (`uq_program_fee_type_residency`) AND a partial unique index `uq_program_fee_active WHERE is_active = true`. The full constraint blocks soft-deleted records from being replaced with new active records. The full constraint must be dropped, keeping only the partial index.
+- **No `nrc` or `passport` document_type records exist**: The `application_documents` table only has `application_slip`, `acceptance_letter`, and `finance_receipt` types. The column is `VARCHAR(100)` with no CHECK constraint. The wizard must use consistent type names (`nrc`, `passport`) for identity documents.
+- **0 program_fees records**: No fees have been configured. The admin UI is critical for go-live. Seed data for the 4 existing programs (DRN, DCM, DEH, CPC — all K153 ZMW) should be inserted as part of the hardening.
+- **25 existing applications have `payment_status = 'verified'`**: These were verified under the old manual system. The new Lenco flow uses `paid`/`successful`. The payment gate and admin review logic must treat `verified` as equivalent to `paid` for backward compatibility.
+- **3 existing applications have `payment_status = 'rejected'`**: These need to be handled gracefully — students should be able to retry payment via Lenco.
+- **~30+ frontend files still reference deprecated payment fields**: `pop_url`, `momo_ref`, `payer_name`, `payer_phone`, `payment_method` enum values, `proofOfPayment`, `popFile`, `handleProofOfPaymentUpload` are scattered across admin components, types, schemas, the wizard controller, the Payment page, and the state machine.
+- **`useWizardController` still has full proof-of-payment upload logic**: `popFile`, `handleProofOfPaymentUploadWrapped`, `baseHandleProofOfPaymentUpload`, `baseHandleProofOfPaymentFile` are all still present and wired up.
+- **Missing composite index on `payments(application_id, status)`**: The double-payment prevention query (`WHERE application_id=X AND status='pending'`) would benefit from this index for production performance.
+- **`payments` table has 0 rows**: Clean slate — no backward compatibility concerns for payment records.
+- **4 programs exist**: DRN, DCM, DEH, CPC — all with `application_fee = 153.00`.
+
 ## Glossary
 
 - **Application_Wizard**: The multi-step React form at `/student/application-wizard` that guides students through personal info, education, payment, and submission.
@@ -218,3 +231,43 @@ The MIHAS admissions platform completed a Lenco payment gateway integration that
 1. WHEN the Lenco API returns a successful payment with an amount different from the expected fee stored in the payment record, THE PaymentService SHALL log a warning and not transition the payment to `successful`.
 2. WHEN a webhook event reports a successful collection with a mismatched amount, THE PaymentService SHALL log the mismatch and skip the status transition.
 3. THE PaymentService SHALL use `Decimal` comparison for amount matching to avoid floating-point precision errors.
+
+
+### Requirement 18: Drop Conflicting Full Unique Constraint on program_fees
+
+**User Story:** As a developer, I want the `program_fees` table to only enforce uniqueness on active records, so that soft-deleted fees can be replaced with new active fees for the same program/type/residency combination.
+
+#### Acceptance Criteria
+
+1. THE migration script SHALL drop the `uq_program_fee_type_residency` full unique constraint from the `program_fees` table.
+2. THE partial unique index `uq_program_fee_active` on `(program_id, fee_type, residency_category) WHERE is_active = true` SHALL remain in place.
+3. AFTER the migration, creating a new active ProgramFee for a combination that has a soft-deleted (inactive) record SHALL succeed without constraint violation.
+
+### Requirement 19: Add Composite Index on payments(application_id, status)
+
+**User Story:** As a system operator, I want the double-payment prevention query to be fast, so that payment initiation does not slow down under load.
+
+#### Acceptance Criteria
+
+1. THE migration script SHALL add a composite index on `payments(application_id, status)` for efficient lookup during double-payment prevention.
+2. THE index SHALL be created with `IF NOT EXISTS` for idempotency.
+
+### Requirement 20: Seed Initial Program Fees
+
+**User Story:** As an admin, I want the 4 existing programs to have default application fees configured, so that fee resolution works immediately after deployment.
+
+#### Acceptance Criteria
+
+1. THE migration or seed script SHALL insert active ProgramFee records for all 4 existing programs (DRN, DCM, DEH, CPC) with fee_type `application`, residency_category `local`, amount `153.00`, and currency `ZMW`.
+2. THE seed SHALL use `ON CONFLICT DO NOTHING` to be idempotent.
+3. THE admin SHALL be able to modify these fees via the admin UI after deployment.
+
+### Requirement 21: Backward Compatibility with Legacy Payment Statuses
+
+**User Story:** As a system operator, I want the payment gate to treat legacy `verified` payment status as equivalent to `paid`, so that existing approved applications are not blocked.
+
+#### Acceptance Criteria
+
+1. WHEN checking payment gate for submission, THE backend SHALL accept applications where `payment_status` is `verified` OR where a `successful` payment record exists in the `payments` table.
+2. WHEN checking payment gate for approval, THE backend SHALL treat `verified` as equivalent to `paid` for backward compatibility.
+3. THE admin payment status override SHALL continue to accept `verified` as a valid status value.

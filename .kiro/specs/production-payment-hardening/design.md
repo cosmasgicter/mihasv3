@@ -11,6 +11,15 @@ The changes span three areas:
 
 All changes target `apps/admissions/` (frontend) and `backend/apps/documents/` + `backend/apps/applications/` (backend). No new database tables are needed — only index verification and minor constraint additions on existing tables.
 
+### CTO Review Notes (from live DB inspection via Neon MCP)
+
+- **CRITICAL: Drop `uq_program_fee_type_residency` full unique constraint** — The `program_fees` table has both a full UNIQUE constraint and a partial unique index (`uq_program_fee_active WHERE is_active = true`). The full constraint blocks soft-deleted records from being replaced. Must drop the full constraint, keeping only the partial index.
+- **Add composite index `idx_payments_app_status` on `payments(application_id, status)`** — The double-payment prevention query needs this for production performance.
+- **Seed initial program fees** — 0 program_fees records exist. Insert defaults for all 4 programs (DRN, DCM, DEH, CPC) at K153 ZMW local.
+- **Backward compatibility: `verified` status** — 25 existing applications have `payment_status = 'verified'` from the old manual system. The payment gate must treat `verified` as equivalent to `paid`.
+- **No identity documents uploaded yet** — `application_documents` only has `application_slip`, `acceptance_letter`, `finance_receipt` types. The wizard must use `nrc` and `passport` as document_type values.
+- **~30+ frontend files still reference deprecated fields** — Full cleanup list identified via grep: `pop_url`, `momo_ref`, `payer_name`, `payer_phone`, `payment_method` enums, `proofOfPayment`/`popFile`/`handleProofOfPaymentUpload` in wizard controller, state machine, types, schemas, admin components.
+
 ## Architecture
 
 ### Current Architecture
