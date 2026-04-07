@@ -6,7 +6,7 @@ Requirements: 6.1, 6.2, 6.4
 
 from rest_framework import serializers
 
-from apps.documents.models import ApplicationDocument, Payment
+from apps.documents.models import ApplicationDocument, Payment, ProgramFee
 
 
 class DocumentUploadSerializer(serializers.Serializer):
@@ -87,3 +87,32 @@ class PaymentVerifySerializer(serializers.Serializer):
 
     action = serializers.ChoiceField(choices=["verify", "reject"])
     notes = serializers.CharField(required=False, allow_blank=True, default="")
+
+
+class ProgramFeeSerializer(serializers.ModelSerializer):
+    """Serializer for ProgramFee CRUD operations."""
+
+    class Meta:
+        model = ProgramFee
+        fields = [
+            "id",
+            "program_id",
+            "fee_type",
+            "residency_category",
+            "amount",
+            "currency",
+            "is_active",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+    def validate_fee_type(self, value):
+        if value not in ("application", "tuition"):
+            raise serializers.ValidationError("fee_type must be 'application' or 'tuition'.")
+        return value
+
+    def validate_residency_category(self, value):
+        if value not in ("local", "international"):
+            raise serializers.ValidationError("residency_category must be 'local' or 'international'.")
+        return value

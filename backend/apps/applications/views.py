@@ -569,6 +569,20 @@ class ApplicationReviewView(APIView):
             )
             if not has_verified:
                 return Response({"success": False, "error": "Application has unverified payment. Use force=true to override.", "code": "PAYMENT_UNVERIFIED"}, status=status.HTTP_400_BAD_REQUEST)
+        if new_status == "submitted":
+            from apps.documents.models import Payment
+            has_successful_payment = Payment.objects.filter(
+                application_id=application_id, status="successful"
+            ).exists()
+            if not has_successful_payment:
+                return Response(
+                    {
+                        "success": False,
+                        "error": "Payment must be completed before submitting the application.",
+                        "code": "PAYMENT_REQUIRED",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
         old_status = transition_application_status(
             application=app,
             new_status=new_status,

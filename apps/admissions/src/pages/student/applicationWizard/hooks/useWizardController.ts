@@ -95,6 +95,7 @@ interface UseWizardControllerResult {
   draftSaved: boolean
   draftLoaded: boolean
   submittedApplication: SubmittedApplicationSummary | null
+  applicationId: string | null
   persistingSlip: boolean
   slipLoading: boolean
   emailLoading: boolean
@@ -1761,6 +1762,7 @@ const useWizardController = (): UseWizardControllerResult => {
     draftSaved,
     draftLoaded,
     submittedApplication,
+    applicationId,
     persistingSlip,
     slipLoading,
     emailLoading,

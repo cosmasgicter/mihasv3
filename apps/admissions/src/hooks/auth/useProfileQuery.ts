@@ -41,6 +41,7 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
   const user = options.user ?? contextUser
   const enabled = options.enabled ?? Boolean(user?.id)
 
+
   const profileQuery = useQuery({
     queryKey: PROFILE_QUERY_KEY(user?.id),
     enabled: enabled && Boolean(user?.id),
@@ -63,6 +64,7 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
       }
     }
   })
+
 
   const updateProfileMutation = useMutation<
     UserProfile, Error, ProfileUpdate,
@@ -97,6 +99,7 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
       queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY(user?.id) })
     },
   })
+
 
   const updateProfile = useCallback(async (updates: ProfileUpdate) => {
     const result = await updateProfileMutation.mutateAsync(updates)

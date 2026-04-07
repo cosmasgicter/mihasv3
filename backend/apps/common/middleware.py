@@ -127,6 +127,7 @@ class RateLimitMiddleware:
         ("/api/v1/outreach/", "30/10m"),
         ("/api/v1/email/", "30/10m"),
         ("/api/v1/integrations/", "20/10m"),
+        ("/api/v1/payments/webhook/", "30/10m"),
         ("/api/v1/payments/", "20/10m"),
         # Catch-all (must be last)
         ("/api/v1/", "120/10m"),
@@ -312,6 +313,7 @@ class CSRFEnforcementMiddleware:
         re.compile(r"^/api/v1/auth/logout/?$"),
         re.compile(r"^/api/v1/auth/refresh/?$"),
         re.compile(r"^/api/v1/errors/report/?$"),
+        re.compile(r"^/api/v1/payments/webhook/"),
     ]
 
     STATE_CHANGING_METHODS = {"POST", "PUT", "PATCH", "DELETE"}

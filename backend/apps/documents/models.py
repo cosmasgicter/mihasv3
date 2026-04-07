@@ -89,6 +89,9 @@ class Payment(models.Model):
     created_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(null=True, blank=True)
     notes = models.TextField(null=True, blank=True)
+    lenco_reference = models.CharField(max_length=100, null=True, blank=True)
+    fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    bearer = models.CharField(max_length=20, null=True, blank=True)
 
     class Meta:
         managed = False
@@ -96,3 +99,44 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Payment {self.id} — {self.amount} {self.currency} ({self.status})"
+
+
+class ProgramFee(models.Model):
+    """Maps to 'program_fees' table."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    program = models.ForeignKey('catalog.Program', on_delete=models.CASCADE)
+    fee_type = models.CharField(max_length=20)  # 'application' or 'tuition'
+    residency_category = models.CharField(max_length=20)  # 'local' or 'international'
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=3, default='ZMW')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = 'program_fees'
+
+    def __str__(self):
+        return f"{self.fee_type} fee for {self.program_id} ({self.residency_category})"
+
+
+class WebhookEventLog(models.Model):
+    """Maps to 'webhook_event_logs' table."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    event_type = models.CharField(max_length=50)
+    reference = models.CharField(max_length=100)
+    payload = models.JSONField(default=dict)
+    signature_valid = models.BooleanField(default=False)
+    processed = models.BooleanField(default=False)
+    processing_error = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = 'webhook_event_logs'
+
+    def __str__(self):
+        return f"{self.event_type} — {self.reference}"

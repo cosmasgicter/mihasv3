@@ -1,7 +1,7 @@
 """Document and payment URL routing.
 
-Implements task 16.4.
-Requirements: 10.1
+Implements task 16.4, 5.8.
+Requirements: 2.1, 4.1, 6.1, 10.1, 13.1
 """
 
 from django.urls import path
@@ -9,9 +9,13 @@ from django.urls import path
 from apps.documents.views import (
     DocumentExtractView,
     DocumentUploadView,
+    FeeResolveView,
+    LencoWebhookView,
+    PaymentInitiateView,
     PaymentListView,
     PaymentReceiptView,
     PaymentVerifyView,
+    ProgramFeeViewSet,
 )
 from apps.documents.job_views import (
     CoverLetterGenerateView,
@@ -50,6 +54,21 @@ payment_urlpatterns = [
         name="payment-list",
     ),
     path(
+        "initiate/",
+        PaymentInitiateView.as_view(),
+        name="payment-initiate",
+    ),
+    path(
+        "resolve-fee/",
+        FeeResolveView.as_view(),
+        name="fee-resolve",
+    ),
+    path(
+        "webhook/lenco/",
+        LencoWebhookView.as_view(),
+        name="lenco-webhook",
+    ),
+    path(
         "<uuid:payment_id>/receipt/",
         PaymentReceiptView.as_view(),
         name="payment-receipt",
@@ -58,6 +77,21 @@ payment_urlpatterns = [
         "<uuid:payment_id>/verify/",
         PaymentVerifyView.as_view(),
         name="payment-verify",
+    ),
+]
+
+# ProgramFee endpoints: /api/v1/programs/<uuid:program_id>/fees/...
+# These are registered in config/urls.py under a separate prefix.
+program_fee_urlpatterns = [
+    path(
+        "",
+        ProgramFeeViewSet.as_view({"get": "list", "post": "create"}),
+        name="program-fee-list",
+    ),
+    path(
+        "<uuid:pk>/",
+        ProgramFeeViewSet.as_view({"get": "retrieve", "put": "update", "patch": "partial_update", "delete": "destroy"}),
+        name="program-fee-detail",
     ),
 ]
 

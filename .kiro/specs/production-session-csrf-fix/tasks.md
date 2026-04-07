@@ -154,6 +154,7 @@
   - **P2 — Add server-side logging:** Add `logger.warning(f"Application validation failed: {serializer.errors}")` to `ApplicationListCreateView.post` when `serializer.is_valid()` returns `False`. Currently the 400 response includes `details: serializer.errors` but there's no server-side log to diagnose production failures.
   - **P3 — Consider accepting catalog references by ID:** Accept program/intake/institution by UUID in addition to name, which would eliminate all name-matching fragility. This is a larger change but would be the most robust solution.
 
+
 - [x] 7. Checkpoint — Ensure all tests pass
   - Run backend test suite: `cd backend && python3 -m pytest tests/property/test_csrf_bug_condition.py tests/property/test_csrf_preservation.py -v`
   - Run frontend test suite: `cd apps/admissions && bun run test -- --run`

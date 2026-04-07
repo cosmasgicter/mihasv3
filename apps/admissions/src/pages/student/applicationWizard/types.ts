@@ -71,17 +71,6 @@ const createSchema = (validProgramIds: string[], validIntakeIds: string[]) =>
       next_of_kin_phone: z.string().optional(),
       program: createProgramValidator(validProgramIds),
       intake: createIntakeValidator(validIntakeIds),
-      payment_option: z
-        .enum(['pay_now', 'pay_later'])
-        .default('pay_now'),
-      payment_method: z
-        .enum(['MTN Money', 'Airtel Money', 'Zamtel Money', 'Ewallet', 'Bank To Cell'])
-        .default('MTN Money'),
-      payer_name: z.string().optional(),
-      payer_phone: z.string().optional(),
-      amount: z.number().min(153, 'Minimum amount is K153').optional(),
-      paid_at: z.string().optional(),
-      momo_ref: z.string().optional(),
     })
     .refine(
       data => Boolean(data.nrc_number || data.passport_number),

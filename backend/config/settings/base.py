@@ -161,6 +161,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.common.tasks.cleanup_sse_events_task",
         "schedule": crontab(hour=4, minute=0),
     },
+    "poll-pending-payments": {
+        "task": "apps.documents.tasks.poll_pending_payments_task",
+        "schedule": 600.0,
+    },
 }
 
 # Enable TLS for rediss:// connections (Upstash, Redis Cloud, etc.)
@@ -391,6 +395,16 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ---------------------------------------------------------------------------
+# Lenco payment gateway
+# ---------------------------------------------------------------------------
+
+LENCO_API_SECRET_KEY = os.environ.get("LENCO_API_SECRET_KEY", "")
+LENCO_API_BASE_URL = os.environ.get(
+    "LENCO_API_BASE_URL", "https://sandbox.lenco.co/access/v2/"
+)
+LENCO_PUBLIC_KEY = os.environ.get("LENCO_PUBLIC_KEY", "")
+
+# ---------------------------------------------------------------------------
 # Required environment variables — validated at startup (task 1.3)
 # ---------------------------------------------------------------------------
 
@@ -432,3 +446,11 @@ if REQUIRED_ENV_VARS and not _is_testing:
     from apps.common.env_validator import validate_required_env_vars
 
     validate_required_env_vars()
+
+# Warn if Lenco payment gateway is not configured
+if not _is_testing and not LENCO_API_SECRET_KEY:
+    import logging
+
+    logging.getLogger("django").warning(
+        "LENCO_API_SECRET_KEY is not set — payment processing will be unavailable."
+    )
