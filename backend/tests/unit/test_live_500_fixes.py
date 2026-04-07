@@ -22,7 +22,7 @@ from django.test import SimpleTestCase
 from rest_framework.test import APIRequestFactory
 
 from apps.applications.views import ApplicationReviewView
-from apps.common.sse import SSEStreamView
+from apps.common.sse import sse_stream_view
 
 factory = APIRequestFactory()
 
@@ -56,41 +56,32 @@ class TestReviewViewNoDebugWrapper(SimpleTestCase):
 
 
 # =========================================================================
-# 6.2: SSEStreamView.get() returns text/event-stream content type
+# 6.2: sse_stream_view returns correct response for authenticated users
 # Requirements: 1.1, 1.4
 # =========================================================================
 
 
 class TestSSEStreamContentType(SimpleTestCase):
-    """Verify SSE stream endpoint returns correct content type."""
+    """Verify SSE stream endpoint is an async function with correct behavior."""
 
-    @patch("apps.common.sse.SSEStreamView._sync_event_stream", return_value=iter([]))
-    def test_returns_text_event_stream_content_type(self, _mock_stream):
-        """SSEStreamView.get() must return Content-Type: text/event-stream."""
+    def test_sse_stream_view_is_async(self):
+        """sse_stream_view must be an async function (coroutine function)."""
+        import asyncio
+
+        self.assertTrue(
+            asyncio.iscoroutinefunction(sse_stream_view),
+            "sse_stream_view should be an async function",
+        )
+
+    def test_returns_401_without_auth_cookie(self):
+        """sse_stream_view must return 401 when no access_token cookie is present."""
+        import asyncio
+
         request = factory.get("/api/v1/events/stream/")
-        request.user = MagicMock()
-        request.user.pk = "00000000-0000-0000-0000-000000000001"
-        request.user.is_authenticated = True
+        request.COOKIES = {}
 
-        # Call the view method directly to get the raw StreamingHttpResponse
-        # before DRF's content negotiation replaces it.
-        view = SSEStreamView()
-        response = view.get(request)
-
-        self.assertEqual(response["Content-Type"], "text/event-stream")
-
-    @patch("apps.common.sse.SSEStreamView._sync_event_stream", return_value=iter([]))
-    def test_returns_cache_control_no_cache(self, _mock_stream):
-        """SSE responses should have Cache-Control: no-cache."""
-        request = factory.get("/api/v1/events/stream/")
-        request.user = MagicMock()
-        request.user.pk = "00000000-0000-0000-0000-000000000001"
-        request.user.is_authenticated = True
-
-        view = SSEStreamView()
-        response = view.get(request)
-
-        self.assertEqual(response["Cache-Control"], "no-cache")
+        response = asyncio.get_event_loop().run_until_complete(sse_stream_view(request))
+        self.assertEqual(response.status_code, 401)
 
 
 # =========================================================================

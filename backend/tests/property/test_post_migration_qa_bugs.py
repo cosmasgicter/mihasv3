@@ -32,7 +32,7 @@ from unittest.mock import MagicMock, patch  # noqa: E402
 
 from apps.accounts.authentication import JWTUser  # noqa: E402
 from apps.common.middleware import CSRFEnforcementMiddleware  # noqa: E402
-from apps.common.sse import SSEStreamView, ServerSentEventRenderer  # noqa: E402
+from apps.common.sse import sse_stream_view  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -66,28 +66,10 @@ def _auth_request(factory, method, path, user, **kwargs):
 class TestSSEContentNegotiation:
     """Bug 1: SSE stream endpoint has content negotiation issues.
 
-    The SSEStreamView returns a raw StreamingHttpResponse (not a DRF
-    Response), but DRF's dispatch pipeline runs perform_content_negotiation()
-    before calling get(). The view sets renderer_classes = [ServerSentEventRenderer],
-    which handles negotiation at the view level.
-
-    However, the SSEStreamView does NOT override perform_content_negotiation,
-    meaning if a client sends Accept: text/event-stream, DRF's default
-    negotiation must find a matching renderer. The view has
-    ServerSentEventRenderer in renderer_classes, so negotiation succeeds
-    at the view level — but the view should also explicitly handle the
-    case where content negotiation is bypassed or where the response
-    needs proper CORS headers for cross-origin SSE.
-
-    The key issue: SSEStreamView.get() returns a StreamingHttpResponse
-    directly, bypassing DRF's response finalization. This means:
-    1. The accepted_renderer set by perform_content_negotiation is ignored
-    2. CORS headers may not be applied correctly for streaming responses
-    3. The view should override perform_content_negotiation to be explicit
-
-    This test verifies that SSEStreamView properly overrides
-    perform_content_negotiation to always select ServerSentEventRenderer,
-    ensuring robust SSE handling regardless of Accept header variations.
+    RESOLVED: SSEStreamView has been replaced with a standalone async function
+    `sse_stream_view` that bypasses DRF entirely. Content negotiation is no
+    longer relevant since the async function returns StreamingHttpResponse
+    directly without going through DRF's dispatch pipeline.
 
     **Validates: Requirements 1.1**
     """
@@ -101,32 +83,17 @@ class TestSSEContentNegotiation:
         ]),
     )
     @settings(max_examples=10, deadline=None)
-    def test_sse_view_overrides_content_negotiation(self, accept_header):
-        """SSEStreamView should override perform_content_negotiation
-        to always select ServerSentEventRenderer for SSE requests.
+    def test_sse_view_is_async_function(self, accept_header):
+        """sse_stream_view should be a standalone async function, not a DRF class.
 
-        On unfixed code, this will FAIL because SSEStreamView does NOT
-        override perform_content_negotiation — it relies on DRF's default
-        negotiation which may select the wrong renderer or fail for
-        certain Accept header combinations.
+        This confirms the SSE endpoint no longer uses DRF content negotiation,
+        resolving the original Bug 1 by design.
         """
-        # The fix requires SSEStreamView to override perform_content_negotiation
-        # to always return ServerSentEventRenderer, ensuring SSE works
-        # regardless of Accept header or global DEFAULT_RENDERER_CLASSES
-        has_override = (
-            "perform_content_negotiation" in SSEStreamView.__dict__
-            or "content_negotiation_class" in SSEStreamView.__dict__
-        )
+        import asyncio
 
-        assert has_override, (
-            "SSEStreamView does NOT override perform_content_negotiation or "
-            "content_negotiation_class. This means SSE content negotiation "
-            "relies on DRF's default behavior, which may fail when: "
-            "(1) Accept header is 'application/json' (browser preflight), "
-            "(2) CORS preflight doesn't include text/event-stream, or "
-            "(3) DRF's response finalization interferes with StreamingHttpResponse. "
-            "The view should explicitly override content negotiation to always "
-            "select ServerSentEventRenderer for robust SSE handling."
+        assert asyncio.iscoroutinefunction(sse_stream_view), (
+            "sse_stream_view should be an async function (coroutine function). "
+            "The SSE endpoint must bypass DRF to avoid content negotiation issues."
         )
 
 

@@ -102,10 +102,15 @@ class RateLimitMiddleware:
       /api/v1/                     → 120/10m  (catch-all)
     """
 
-    # (prefix, rate string)
+    # (prefix, rate string | None)
     # Order matters: more specific paths MUST come before less specific ones
     # because matching uses startswith() and the first match wins.
+    # A rate of None means the path is exempt from rate limiting entirely
+    # (no Redis counter increment).
     SCOPE_LIMITS = [
+        # SSE stream is exempt — long-lived connections must not consume
+        # rate-limit quota or generate Redis requests.
+        ("/api/v1/events/stream/", None),
         # Stricter auth sub-scopes (before general /api/v1/auth/)
         ("/api/v1/auth/login/", "10/5m"),
         ("/api/v1/auth/register/", "5/5m"),
@@ -135,6 +140,9 @@ class RateLimitMiddleware:
 
         for prefix, rate in self.SCOPE_LIMITS:
             if request.path.startswith(prefix):
+                # A None rate means this path is exempt from rate limiting.
+                if rate is None:
+                    break
                 # Derive a stable group name from the prefix.
                 group = prefix.strip("/").replace("/", ".")
                 try:

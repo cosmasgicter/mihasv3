@@ -157,6 +157,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.common.tasks.cleanup_audit_logs_task",
         "schedule": crontab(hour=3, minute=0),
     },
+    "cleanup-sse-events": {
+        "task": "apps.common.tasks.cleanup_sse_events_task",
+        "schedule": crontab(hour=4, minute=0),
+    },
 }
 
 # Enable TLS for rediss:// connections (Upstash, Redis Cloud, etc.)

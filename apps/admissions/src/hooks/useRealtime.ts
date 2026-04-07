@@ -29,7 +29,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { dispatchSSEStatus, triggerSSEReconnect, SSE_RECONNECT_EVENT } from '@/contexts/RealtimeStatusContext'
-import { createSSEClient, type SSEClient } from '@/lib/sseClient'
+import { createSSEClient, type SSEClient, calculatePollingBackoff } from '@/lib/sseClient'
 import { getApiBaseUrl } from '@/lib/apiConfig'
 import { apiClient } from '@/services/client'
 import { useRealtimeStore, type RealtimeEventEnvelope } from '@/stores/realtimeStore'
@@ -112,12 +112,12 @@ interface UseRealtimeReturn {
  * Default options
  */
 const DEFAULT_OPTIONS: Required<UseRealtimeOptions> = {
-  enabled: false, // SSE disabled — backend does not implement /api/v1/events/stream/ yet
+  enabled: true,
   pollingInterval: 30000,
-  maxReconnectAttempts: 3,
+  maxReconnectAttempts: 5,
   initialBackoff: 1000,
   maxBackoff: 30000,
-  pollingEnabled: false, // Polling disabled — backend does not implement /api/v1/events/poll/ yet
+  pollingEnabled: true,
   batteryFriendly: true,
 }
 

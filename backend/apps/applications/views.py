@@ -46,6 +46,7 @@ from apps.common.openapi_helpers import (
     envelope_serializer,
     paginated_serializer,
 )
+from apps.common.event_dispatcher import dispatch_event
 from apps.common.pagination import StandardPagination
 from apps.documents.models import ApplicationDocument, ApplicationGrade
 from apps.documents.serializers import DocumentSerializer
@@ -537,6 +538,17 @@ class ApplicationReviewView(APIView):
                 "updated_at",
             ])
 
+            dispatch_event(
+                user_id=app.user_id,
+                event_type='payment_update',
+                payload={
+                    'payment_id': str(app.id),
+                    'status': payment_status,
+                    'updated_at': timezone.now().isoformat(),
+                },
+                entity_id=app.id,
+            )
+
             return Response({
                 "message": f"Payment status updated to {payment_status}",
                 "application_id": str(app.id),
@@ -562,6 +574,16 @@ class ApplicationReviewView(APIView):
             new_status=new_status,
             changed_by=str(request.user.id),
             notes=notes,
+        )
+        dispatch_event(
+            user_id=app.user_id,
+            event_type='application_update',
+            payload={
+                'application_id': str(app.id),
+                'status': new_status,
+                'updated_at': timezone.now().isoformat(),
+            },
+            entity_id=app.id,
         )
         return Response({"message": f"Status updated from {old_status} to {new_status}", "application_id": str(app.id), "old_status": old_status, "new_status": new_status})
 

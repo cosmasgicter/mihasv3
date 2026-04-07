@@ -104,6 +104,36 @@ export function calculateBackoff(
 }
 
 /**
+ * Calculate progressive polling backoff interval.
+ *
+ * When SSE falls back to polling, idle polls (no new events) increase the
+ * interval by a 1.5× multiplier, starting from `baseInterval` and capped at
+ * `maxInterval`.
+ *
+ * Formula: min(baseInterval * 1.5^n, maxInterval)
+ *
+ * @param idlePolls - Number of consecutive idle polls (0-indexed)
+ * @param baseInterval - Starting polling interval in ms (default 30000)
+ * @param maxInterval - Maximum polling interval in ms (default 120000)
+ * @returns Polling interval in ms
+ *
+ * @example
+ * calculatePollingBackoff(0) // 30000
+ * calculatePollingBackoff(1) // 45000
+ * calculatePollingBackoff(2) // 67500
+ * calculatePollingBackoff(3) // 101250
+ * calculatePollingBackoff(4) // 120000 (capped)
+ */
+export function calculatePollingBackoff(
+  idlePolls: number,
+  baseInterval: number = 30000,
+  maxInterval: number = 120000
+): number {
+  const interval = baseInterval * Math.pow(1.5, idlePolls);
+  return Math.min(interval, maxInterval);
+}
+
+/**
  * Create a robust SSE client
  * 
  * @param config - SSE client configuration

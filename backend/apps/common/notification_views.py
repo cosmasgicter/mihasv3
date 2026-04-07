@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsAdmin
+from apps.common.event_dispatcher import dispatch_event
 from apps.common.models import (
     EmailQueue,
     Notification,
@@ -240,6 +241,22 @@ class NotificationSendView(APIView):
             type=data.get("type", "general"),
             idempotency_key=idempotency_key,
         )
+
+        # Dispatch SSE event for realtime delivery
+        try:
+            dispatch_event(
+                user_id=data["user_id"],
+                event_type="notification",
+                payload={
+                    "notification_id": str(notification.id),
+                    "title": data["title"],
+                    "message": data["message"],
+                    "type": data.get("type", "general"),
+                },
+                entity_id=notification.id,
+            )
+        except Exception:
+            logger.exception("Failed to dispatch SSE event for notification %s", notification.id)
 
         return Response(
             {
