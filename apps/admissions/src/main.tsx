@@ -206,6 +206,16 @@ if (typeof window !== 'undefined') {
   })
 }
 
+// Immediately strip _cache_reset query param if present — runs synchronously
+// before React mounts so the user never sees the polluted URL.
+if (typeof window !== 'undefined' && import.meta.env.PROD) {
+  const _url = new URL(window.location.href)
+  if (_url.searchParams.has('_cache_reset')) {
+    _url.searchParams.delete('_cache_reset')
+    window.history.replaceState({}, '', _url.toString())
+  }
+}
+
 // Suppress browser extension errors that interfere with the application
 if (typeof window !== 'undefined') {
   connectionManager.suppressExtensionErrors()

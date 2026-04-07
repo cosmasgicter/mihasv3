@@ -216,8 +216,6 @@ export function useSessionListener() {
 
       // Clear stale non-auth queries (e.g., previous user's data) WITHOUT touching auth cache.
       // This replaces the old queryClient.clear() that caused the skeleton hang.
-      // IMPORTANT: Also invalidate all remaining queries to force refetch with new user context.
-      // This fixes the role-switch bug where student dashboard data persists after admin login.
       queryClient.removeQueries({
         predicate: (query) => {
           const key = query.queryKey
@@ -227,9 +225,6 @@ export function useSessionListener() {
           return true
         },
       })
-
-      // Force invalidation of any remaining cached queries so they refetch with new auth
-      queryClient.invalidateQueries()
 
       broadcastLogin(authUser.id)
       window.dispatchEvent(new CustomEvent('userLoggedIn', {
@@ -309,6 +304,8 @@ export function useSessionListener() {
 
   // signOut — POST logout while CSRF/cookies are still valid, then clear local state
   const signOut = useCallback(async () => {
+    const currentUserId = user?.id
+
     // 1. POST logout while cookies and CSRF token are still available
     try {
       await authService.logout()
@@ -323,6 +320,9 @@ export function useSessionListener() {
       // the data to null first ensures observers see the unauthenticated
       // state immediately, preventing stale role routing on re-login.
       queryClient.setQueryData(['auth', 'session'], null)
+      if (currentUserId) {
+        queryClient.setQueryData(['user-profile', currentUserId], null)
+      }
       queryClient.setQueryData(['user-profile', undefined], null)
 
       queryClient.clear()
@@ -356,7 +356,7 @@ export function useSessionListener() {
         detail: { to: '/auth/signin', replace: true },
       }))
     }
-  }, [queryClient])
+  }, [queryClient, user?.id])
 
   const requestPasswordReset = useCallback(async (email: string): Promise<PasswordResetResult> => {
     try {

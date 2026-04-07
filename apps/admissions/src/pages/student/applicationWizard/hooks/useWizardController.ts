@@ -148,6 +148,49 @@ export const hasRecentWizardRedirectGuard = (rawGuardValue: string | null, now: 
   return now - guard.createdAt < 15_000
 }
 
+type ResolvedIntakeIdentity = {
+  id: string
+  name: string
+  label: string
+}
+
+export const buildWizardIntakeDisplayName = (intake: Intake & { year?: number }) => {
+  const normalizedName = intake.name?.trim() || ''
+  const yearString = Number.isFinite(intake.year) ? String(intake.year) : ''
+  const includesYear = yearString && normalizedName.includes(yearString)
+  const nameWithYear = includesYear ? normalizedName : `${normalizedName} ${yearString}`.trim()
+  return (nameWithYear || normalizedName || yearString || 'Upcoming Intake').trim()
+}
+
+export const resolveWizardIntakeIdentity = (
+  availableIntakes: WizardIntake[],
+  value?: string | null
+): ResolvedIntakeIdentity | null => {
+  const trimmed = value?.trim() || ''
+  if (!trimmed) return null
+
+  const toResolvedIdentity = (intake: WizardIntake): ResolvedIntakeIdentity => {
+    const canonicalName = intake.name?.trim() || intake.displayName?.trim() || ''
+    const displayLabel = intake.displayName?.trim() || canonicalName
+    return {
+      id: intake.id,
+      name: canonicalName,
+      label: displayLabel,
+    }
+  }
+
+  const byId = availableIntakes.find(intake => intake.id === trimmed)
+  if (byId) return toResolvedIdentity(byId)
+
+  const byDisplayName = availableIntakes.find(intake => intake.displayName?.trim() === trimmed)
+  if (byDisplayName) return toResolvedIdentity(byDisplayName)
+
+  const byName = availableIntakes.find(intake => intake.name?.trim() === trimmed)
+  if (byName) return toResolvedIdentity(byName)
+
+  return null
+}
+
 function sanitizeInput(value: string | undefined | null): string {
   if (typeof value === 'string') {
     return value.trim().replace(/<script[^>]*>.*?<\/script>/gi, '').replace(/<[^>]+>/g, '')
@@ -264,36 +307,10 @@ const useWizardController = (): UseWizardControllerResult => {
     [deriveInstitutionLabel, findProgramId, programs]
   )
 
-  const resolveIntakeIdentity = useCallback((value?: string | null) => {
-    const trimmed = value?.trim() || ''
-    if (!trimmed) return null
-
-    const byId = intakes.find(intake => intake.id === trimmed)
-    if (byId) {
-      return {
-        id: byId.id,
-        label: byId.displayName?.trim() || byId.name?.trim() || '',
-      }
-    }
-
-    const byDisplayName = intakes.find(intake => intake.displayName?.trim() === trimmed)
-    if (byDisplayName) {
-      return {
-        id: byDisplayName.id,
-        label: byDisplayName.displayName.trim(),
-      }
-    }
-
-    const byName = intakes.find(intake => intake.name?.trim() === trimmed)
-    if (byName) {
-      return {
-        id: byName.id,
-        label: byName.displayName?.trim() || byName.name?.trim() || '',
-      }
-    }
-
-    return null
-  }, [intakes])
+  const resolveIntakeIdentity = useCallback(
+    (value?: string | null) => resolveWizardIntakeIdentity(intakes, value),
+    [intakes]
+  )
 
   const resolveInstitutionCode = useCallback((institutionLabel: string) => {
     const normalized = institutionLabel.trim().toLowerCase()
@@ -322,15 +339,9 @@ const useWizardController = (): UseWizardControllerResult => {
   useEffect(() => {
     if (intakesData?.intakes) {
       const formattedIntakes = (intakesData.intakes as unknown as Array<Intake & { year?: number }>).map(intake => {
-        const normalizedName = intake.name?.trim() || ''
-        const yearString = Number.isFinite(intake.year) ? String(intake.year) : ''
-        const includesYear = yearString && normalizedName.includes(yearString)
-        const nameWithYear = includesYear ? normalizedName : `${normalizedName} ${yearString}`.trim()
-        const displayName = (nameWithYear || normalizedName || yearString || 'Upcoming Intake').trim()
-
         return {
           ...intake,
-          displayName
+          displayName: buildWizardIntakeDisplayName(intake)
         }
       })
 
@@ -1069,7 +1080,7 @@ const useWizardController = (): UseWizardControllerResult => {
               formData: {
                 ...formData,
                 program: resolvedProgram.label,
-                intake: resolvedIntake.label
+                intake: resolvedIntake.name
               },
               selectedProgramDetails,
               institutionCode: institutionLabel,
@@ -1340,7 +1351,7 @@ const useWizardController = (): UseWizardControllerResult => {
               next_of_kin_name: formData.next_of_kin_name || null,
               next_of_kin_phone: formData.next_of_kin_phone || null,
               program: resolvedProgram.label,
-              intake: resolvedIntake.label,
+              intake: resolvedIntake.name,
               institution: institutionLabel,
               nationality: nationality
             }
@@ -1387,7 +1398,7 @@ const useWizardController = (): UseWizardControllerResult => {
             next_of_kin_name: sanitizeInput(formData.next_of_kin_name) || null,
             next_of_kin_phone: sanitizeInput(formData.next_of_kin_phone) || null,
             program: resolvedProgram.label,
-            intake: resolvedIntake.label,
+            intake: resolvedIntake.name,
             institution: institutionLabel,
             nationality: nationality,
             status: 'draft'

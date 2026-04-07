@@ -52,7 +52,8 @@ export function buildServerDraftPayload({
   applicationNumber: string
   trackingCode: string
 }): DraftApplicationPayload {
-  // Django validates program/intake/institution by name, not by ID
+  // Django validates program/intake/institution by name, not by ID.
+  // The caller is expected to pass the canonical intake name here.
   const programName = selectedProgramDetails?.name?.trim() || formData.program
   return {
     application_number: applicationNumber,

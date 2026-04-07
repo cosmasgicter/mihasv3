@@ -8,9 +8,9 @@ describe('useWizardController Step 1 API contract regression', () => {
   const source = fs.readFileSync(filePath, 'utf8')
 
   it('uses resolved program/intake identities in create and update payloads', () => {
-    // Django validates by name, so payloads use resolvedProgram.label / resolvedIntake.label
+    // Django validates by program name and intake.name, not the display label.
     expect(source).toContain('program: resolvedProgram.label')
-    expect(source).toContain('intake: resolvedIntake.label')
+    expect(source).toContain('intake: resolvedIntake.name')
     // IDs are still used for duplicate checking
     expect(source).toContain('resolvedProgram.id')
     expect(source).toContain('resolvedIntake.id')
@@ -22,8 +22,8 @@ describe('useWizardController Step 1 API contract regression', () => {
 
   it('passes program details into buildServerDraftPayload for server draft creation', () => {
     expect(source).toContain('buildServerDraftPayload({')
-    // Draft payloads also use label (name) for Django compatibility
+    // Draft payloads use the canonical intake name for Django compatibility.
     expect(source).toContain('program: resolvedProgram.label')
-    expect(source).toContain('intake: resolvedIntake.label')
+    expect(source).toContain('intake: resolvedIntake.name')
   })
 })

@@ -155,6 +155,7 @@ describe('signOut cleanup', () => {
     await signOut();
 
     expect(setQueryDataSpy).toHaveBeenCalledWith(['auth', 'session'], null);
+    expect(setQueryDataSpy).toHaveBeenCalledWith(['user-profile', '1'], null);
     expect(setQueryDataSpy).toHaveBeenCalledWith(['user-profile', undefined], null);
   });
 
