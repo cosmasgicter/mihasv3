@@ -241,36 +241,36 @@ export default function StudentDashboard() {
         setHasDraft(false)
       }
 
-      // --- Applications section (per-section error handling) ---
-      try {
-        const draftResponse = await applicationService.list({
-          page: 0,
-          pageSize: 1,
-          status: 'draft',
-          sortBy: 'date',
-          sortOrder: 'desc',
-          mine: true
-        })
-
-        if (!isLatestRequest() || signal.aborted) return
-
-        if (draftResponse?.applications && draftResponse.applications.length > 0) {
-          setHasDraft(true)
-        }
-
-        const applicationsResponse = await applicationService.list({
+      // --- Load all sections in parallel for faster dashboard render ---
+      const [applicationsResult, intakesResult, interviewsResult] = await Promise.allSettled([
+        // Applications: single call for all (draft check merged into full list)
+        applicationService.list({
           page: 0,
           pageSize: 50,
           sortBy: 'date',
           sortOrder: 'desc',
           mine: true
-        })
+        }),
+        // Intakes
+        catalogService.getIntakes() as Promise<{ intakes: Intake[] }>,
+        // Interviews
+        user.id ? interviewsService.list() : Promise.resolve(null),
+      ])
 
-        if (!isLatestRequest() || signal.aborted) return
+      if (!isLatestRequest() || signal.aborted) return
 
+      // --- Process applications result ---
+      if (applicationsResult.status === 'fulfilled') {
+        const applicationsResponse = applicationsResult.value
         const loadedApplications = (applicationsResponse?.applications || []) as Application[]
         setApplications(loadedApplications)
         setApplicationsError('')
+
+        // Check for drafts in the loaded applications
+        const hasDraftApp = loadedApplications.some(app => app.status === 'draft')
+        if (hasDraftApp) {
+          setHasDraft(true)
+        }
 
         if (localDraft?.applicationId) {
           const matchingApplication = loadedApplications.find(application => application.id === localDraft.applicationId)
@@ -279,46 +279,42 @@ export default function StudentDashboard() {
             setHasDraft(false)
           }
         }
-      } catch (appError) {
-        if (!isLatestRequest()) return
-        if (appError instanceof Error && (appError.name === 'AbortError' || appError.message.includes('aborted'))) return
-        logApiError('student-dashboard', '/api/v1/applications/', appError)
-        setApplicationsError(`Failed to load applications (/api/v1/applications/). ${appError instanceof Error ? appError.message : 'Please try again.'}`)
+      } else {
+        const appError = applicationsResult.reason
+        if (appError instanceof Error && (appError.name === 'AbortError' || appError.message.includes('aborted'))) { /* skip */ }
+        else {
+          logApiError('student-dashboard', '/api/v1/applications/', appError)
+          setApplicationsError(`Failed to load applications. ${appError instanceof Error ? appError.message : 'Please try again.'}`)
+        }
       }
 
-      // --- Intakes section (per-section error handling) ---
-      try {
-        const intakesResponse = await catalogService.getIntakes() as { intakes: Intake[] }
-
-        if (!isLatestRequest() || signal.aborted) return
-
-        setIntakes(intakesResponse.intakes || [])
+      // --- Process intakes result ---
+      if (intakesResult.status === 'fulfilled') {
+        setIntakes(intakesResult.value?.intakes || [])
         setIntakesError('')
-      } catch (intakeError) {
-        if (!isLatestRequest()) return
-        if (intakeError instanceof Error && (intakeError.name === 'AbortError' || intakeError.message.includes('aborted'))) return
-        logApiError('student-dashboard', '/api/v1/catalog/intakes/', intakeError)
-        setIntakesError(`Failed to load intakes (/api/v1/catalog/intakes/). ${intakeError instanceof Error ? intakeError.message : 'Please try again.'}`)
+      } else {
+        const intakeError = intakesResult.reason
+        if (intakeError instanceof Error && (intakeError.name === 'AbortError' || intakeError.message.includes('aborted'))) { /* skip */ }
+        else {
+          logApiError('student-dashboard', '/api/v1/catalog/intakes/', intakeError)
+          setIntakesError(`Failed to load intakes. ${intakeError instanceof Error ? intakeError.message : 'Please try again.'}`)
+        }
       }
 
-      // --- Interviews section (per-section error handling) ---
-      // Requirements: 2.4, 4.3 - Check for scheduled or rescheduled interviews
-      if (user.id) {
-        try {
-          const interviewData = await interviewsService.list()
-
-          if (!isLatestRequest() || signal.aborted) return
-
-          const scheduledOnly = (interviewData?.interviews || []).filter(
-            interview => interview.status === 'scheduled' || interview.status === 'rescheduled'
-          )
-          setScheduledInterviews(scheduledOnly as ApplicationInterview[])
-          setInterviewsError('')
-        } catch (interviewError) {
-          if (!isLatestRequest()) return
-          if (interviewError instanceof Error && (interviewError.name === 'AbortError' || interviewError.message.includes('aborted'))) return
+      // --- Process interviews result ---
+      if (interviewsResult.status === 'fulfilled' && interviewsResult.value) {
+        const interviewData = interviewsResult.value
+        const scheduledOnly = (interviewData?.interviews || []).filter(
+          (interview: { status: string }) => interview.status === 'scheduled' || interview.status === 'rescheduled'
+        )
+        setScheduledInterviews(scheduledOnly as ApplicationInterview[])
+        setInterviewsError('')
+      } else if (interviewsResult.status === 'rejected') {
+        const interviewError = interviewsResult.reason
+        if (interviewError instanceof Error && (interviewError.name === 'AbortError' || interviewError.message.includes('aborted'))) { /* skip */ }
+        else {
           logApiError('student-dashboard', '/api/v1/interviews/', interviewError)
-          setInterviewsError(`Failed to load interviews (/api/v1/interviews/). ${interviewError instanceof Error ? interviewError.message : 'Please try again.'}`)
+          setInterviewsError(`Failed to load interviews. ${interviewError instanceof Error ? interviewError.message : 'Please try again.'}`)
           setScheduledInterviews([])
         }
       }

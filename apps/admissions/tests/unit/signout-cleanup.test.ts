@@ -35,24 +35,31 @@ import { clearCsrfToken, getCsrfToken } from '@/lib/csrfToken'
  *   1. authService.logout() (network call — best-effort, not relevant here)
  *   2. clearCsrfToken()
  *   3. queryClient.setQueryData(['auth', 'session'], null)
- *   4. queryClient.setQueryData(['user-profile', undefined], null)
- *   5. queryClient.clear()
- *   6. secureStorage.clearSession() (best-effort)
- *   7. Remove redirect keys from localStorage/sessionStorage
- *   8. Dispatch events
+ *   4. queryClient.setQueryData(['user-profile', currentUserId], null)
+ *   5. queryClient.setQueryData(['user-profile', undefined], null)
+ *   6. queryClient.clear()
+ *   7. secureStorage.clearSession() (best-effort)
+ *   8. Remove redirect keys from localStorage/sessionStorage
+ *   9. Dispatch events
  */
 async function simulateSignOutCleanup(queryClient: QueryClient): Promise<void> {
+  const currentUser = queryClient.getQueryData<{ user?: { id?: string } }>(['auth', 'session'])
+  const currentUserId = currentUser?.user?.id
+
   // Step 2: Clear CSRF token
   clearCsrfToken()
 
-  // Steps 3-4: Explicitly null out session and profile queries
+  // Steps 3-5: Explicitly null out session and profile queries
   queryClient.setQueryData(['auth', 'session'], null)
+  if (currentUserId) {
+    queryClient.setQueryData(['user-profile', currentUserId], null)
+  }
   queryClient.setQueryData(['user-profile', undefined], null)
 
-  // Step 5: Clear all queries
+  // Step 6: Clear all queries
   queryClient.clear()
 
-  // Step 7: Clear redirect/session intent keys
+  // Step 8: Clear redirect/session intent keys
   localStorage.removeItem('mihas:post-auth-redirect')
   sessionStorage.removeItem('mihas:post-auth-redirect')
   localStorage.removeItem('mihas:wizard-auth-redirect-guard')

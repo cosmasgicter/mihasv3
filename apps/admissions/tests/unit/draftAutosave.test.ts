@@ -53,6 +53,7 @@ describe('draftAutosave', () => {
         ...completeFormData,
         full_name: '  Jane Student  ',
         residence_town: '  Lusaka ',
+        intake: 'January',
       },
       selectedProgramDetails: {
         id: 'program-1',
@@ -77,7 +78,7 @@ describe('draftAutosave', () => {
       full_name: 'Jane Student',
       residence_town: 'Lusaka',
       program: 'Registered Nursing',
-      intake: 'intake-2026-aug',
+      intake: 'January',
       institution: 'MIHAS',
       nationality: 'Zambian',
       status: 'draft',
