@@ -148,6 +148,16 @@ describe('signOut cleanup', () => {
     expect(clearSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('signOut nulls auth and profile query data before clearing', async () => {
+    const { useSessionListener } = await import('@/hooks/auth/useSessionListener');
+    const { signOut } = useSessionListener();
+
+    await signOut();
+
+    expect(setQueryDataSpy).toHaveBeenCalledWith(['auth', 'session'], null);
+    expect(setQueryDataSpy).toHaveBeenCalledWith(['user-profile', undefined], null);
+  });
+
   it('signOut POSTs to /auth/logout/ via apiClient', async () => {
     const { useSessionListener } = await import('@/hooks/auth/useSessionListener');
     const { signOut } = useSessionListener();
@@ -176,6 +186,18 @@ describe('signOut cleanup', () => {
     await signOut();
 
     expect(broadcastLogoutSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('signOut removes redirect guard keys from localStorage and sessionStorage', async () => {
+    const { useSessionListener } = await import('@/hooks/auth/useSessionListener');
+    const { signOut } = useSessionListener();
+
+    await signOut();
+
+    expect(localStorage.removeItem).toHaveBeenCalledWith('mihas:post-auth-redirect');
+    expect(sessionStorage.removeItem).toHaveBeenCalledWith('mihas:post-auth-redirect');
+    expect(localStorage.removeItem).toHaveBeenCalledWith('mihas:wizard-auth-redirect-guard');
+    expect(sessionStorage.removeItem).toHaveBeenCalledWith('mihas:wizard-auth-redirect-guard');
   });
 
   it('signOut completes even if logout POST fails', async () => {
