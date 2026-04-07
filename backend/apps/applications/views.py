@@ -231,7 +231,7 @@ class ApplicationListCreateView(APIView):
         application = Application.objects.create(
             user_id=str(request.user.id), application_number=_generate_application_number(),
             public_tracking_code=_generate_tracking_code(), full_name=data["full_name"],
-            nrc_number=data.get("nrc_number", ""), passport_number=data.get("passport_number", ""),
+            nrc_number=data.get("nrc_number") or "", passport_number=data.get("passport_number") or "",
             date_of_birth=data["date_of_birth"], sex=data["sex"], phone=data["phone"],
             email=data["email"], residence_town=data["residence_town"],
             nationality=data.get("nationality", "Zambian"), program=data["program"],

@@ -112,12 +112,12 @@ interface UseRealtimeReturn {
  * Default options
  */
 const DEFAULT_OPTIONS: Required<UseRealtimeOptions> = {
-  enabled: true, // SSE enabled - Django supports persistent connections, no Vercel 10s timeout
+  enabled: false, // SSE disabled — backend does not implement /api/v1/events/stream/ yet
   pollingInterval: 30000,
   maxReconnectAttempts: 3,
   initialBackoff: 1000,
   maxBackoff: 30000,
-  pollingEnabled: true, // Polling enabled - backend endpoint exists at /api/v1/events/poll/
+  pollingEnabled: false, // Polling disabled — backend does not implement /api/v1/events/poll/ yet
   batteryFriendly: true,
 }
 
