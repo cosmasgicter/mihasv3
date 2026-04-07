@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
 import type { ApplicationFormData } from '../types'
-import { requiresImmediatePayment } from '../lib/paymentFlow'
 
 export interface StepValidation {
   isValid: boolean
@@ -22,11 +21,8 @@ export const useStepValidation = (
   form: UseFormReturn<ApplicationFormData>,
   currentStep: number
 ): StepValidation => {
-  // form.watch() may return undefined in some test setups — default to an empty object
-  // to keep validation logic defensive and avoid throwing during rendering/tests.
   const values = (() => {
     try {
-      // watch is a function on the form object — call it if present
       return typeof form?.watch === 'function' ? (form.watch() as Partial<ApplicationFormData> ?? {}) : {}
     } catch {
       return {}
@@ -69,27 +65,12 @@ export const useStepValidation = (
         }
       },
       2: () => {
-        if (!requiresImmediatePayment(values)) {
-          return {
-            isValid: true,
-            completedFields: 1,
-            totalFields: 1,
-            missingFields: []
-          }
-        }
-
-        const fields = [
-          { label: 'Payment Method', complete: isFieldComplete(values.payment_method) },
-          { label: 'Payer Name', complete: isFieldComplete(values.payer_name) },
-          { label: 'Amount', complete: values.amount && values.amount >= 153 }
-        ]
-        const completed = fields.filter(f => f.complete)
-        const missing = fields.filter(f => !f.complete).map(f => f.label)
+        // Payment is handled by the Lenco widget — always valid from the form perspective
         return {
-          isValid: completed.length === fields.length,
-          completedFields: completed.length,
-          totalFields: fields.length,
-          missingFields: missing
+          isValid: true,
+          completedFields: 1,
+          totalFields: 1,
+          missingFields: []
         }
       },
       3: () => {

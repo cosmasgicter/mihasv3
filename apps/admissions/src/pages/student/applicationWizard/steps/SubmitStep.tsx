@@ -55,7 +55,6 @@ const SubmitStep = ({
   const formValues = form.watch()
   const programLabel = selectedProgramName?.trim() || formValues.program
   const institutionLabel = selectedInstitutionLabel?.trim() || ''
-  const isPayLater = formValues.payment_option === 'pay_later'
   const readinessChecks = [
     {
       label: 'Personal information completed',
@@ -73,13 +72,9 @@ const SubmitStep = ({
       completed: Boolean(resultSlipFile),
     },
     {
-      label: isPayLater ? 'Payment will be completed later' : 'Proof of payment attached',
-      detail: isPayLater
-        ? 'You chose to submit first and pay later from the dashboard.'
-        : proofOfPaymentFile
-          ? proofOfPaymentFile.name
-          : 'Upload proof of payment or return to the payment step.',
-      completed: isPayLater || Boolean(proofOfPaymentFile),
+      label: 'Payment completed via Lenco',
+      detail: 'Payment is processed through the secure Lenco gateway in the payment step.',
+      completed: true,
     },
   ]
 
@@ -164,7 +159,7 @@ const SubmitStep = ({
               <div className="rounded-xl border border-border/70 bg-muted/50 px-4 py-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Payment</dt>
                 <dd className="mt-1 text-sm font-medium text-foreground">
-                  {isPayLater ? 'Pay later selected' : proofOfPaymentFile ? 'Proof of payment attached' : 'Proof of payment missing'}
+                  Processed via Lenco payment gateway
                 </dd>
               </div>
             </dl>

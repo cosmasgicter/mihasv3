@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
 import type { ApplicationFormData } from '../types'
-import { requiresImmediatePayment } from '../lib/paymentFlow'
 
 export interface OverallProgress {
   percentage: number
@@ -52,28 +51,22 @@ export const useOverallProgress = (
     const step1Completed = Math.min(validGrades.length, 5)
     const step1Total = 5
 
-    // Step 2: Payment (3 fields)
-    const step2Fields = requiresImmediatePayment(values)
-      ? [
-          isFieldComplete(values.payment_method),
-          isFieldComplete(values.payer_name),
-          values.amount && values.amount >= 153
-        ]
-      : [true, true, true]
-    const step2Completed = step2Fields.filter(Boolean).length
+    // Step 2: Payment — handled by Lenco widget, always counts as 1 field
+    const step2Completed = 1
+    const step2Total = 1
 
     // Step 3: Review (always 1/1 when reached)
     const step3Total = 1
-    const step3Completed = step0Completed === 9 && step1Completed >= 5 && step2Completed === 3 ? 1 : 0
+    const step3Completed = step0Completed === 9 && step1Completed >= 5 ? 1 : 0
 
     const stepProgress = [
       { step: 0, completed: step0Completed, total: step0Fields.length },
       { step: 1, completed: step1Completed, total: step1Total },
-      { step: 2, completed: step2Completed, total: step2Fields.length },
+      { step: 2, completed: step2Completed, total: step2Total },
       { step: 3, completed: step3Completed, total: step3Total }
     ]
 
-    const totalFields = step0Fields.length + step1Total + step2Fields.length + step3Total
+    const totalFields = step0Fields.length + step1Total + step2Total + step3Total
     const completedFields = step0Completed + step1Completed + step2Completed + step3Completed
     const percentage = Math.round((completedFields / totalFields) * 100)
 
