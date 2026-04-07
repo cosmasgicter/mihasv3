@@ -42,6 +42,12 @@ async function runOneTimeRuntimeCacheReset(): Promise<boolean> {
 
   try {
     if (localStorage.getItem(CACHE_RESET_STORAGE_KEY) === CACHE_RESET_VERSION) {
+      // Strip _cache_reset query param if present (prevents URL pollution)
+      const url = new URL(window.location.href)
+      if (url.searchParams.has('_cache_reset')) {
+        url.searchParams.delete('_cache_reset')
+        window.history.replaceState({}, '', url.toString())
+      }
       return false
     }
 

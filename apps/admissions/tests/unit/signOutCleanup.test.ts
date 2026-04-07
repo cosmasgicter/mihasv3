@@ -107,6 +107,14 @@ describe('signOut cleanup', () => {
       key: vi.fn(),
       length: 0,
     };
+    (globalThis as any).localStorage = {
+      removeItem: vi.fn(),
+      setItem: vi.fn(),
+      getItem: vi.fn(),
+      clear: vi.fn(),
+      key: vi.fn(),
+      length: 0,
+    };
     (globalThis as any).CustomEvent = class CustomEvent {
       type: string;
       detail: unknown;

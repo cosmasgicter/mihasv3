@@ -316,6 +316,15 @@ export function useSessionListener() {
       // Ignore — server logout is best-effort
     } finally {
       clearCsrfToken()
+
+      // Explicitly null out session and profile queries before clearing.
+      // queryClient.clear() removes queries from the cache but components
+      // that are still mounted may not re-render with null state. Setting
+      // the data to null first ensures observers see the unauthenticated
+      // state immediately, preventing stale role routing on re-login.
+      queryClient.setQueryData(['auth', 'session'], null)
+      queryClient.setQueryData(['user-profile', undefined], null)
+
       queryClient.clear()
     }
 
@@ -328,7 +337,9 @@ export function useSessionListener() {
 
     // 2b. Clear redirect/session intent keys to avoid cross-role stale redirects
     if (typeof window !== 'undefined') {
+      localStorage.removeItem('mihas:post-auth-redirect')
       sessionStorage.removeItem('mihas:post-auth-redirect')
+      localStorage.removeItem('mihas:wizard-auth-redirect-guard')
       sessionStorage.removeItem('mihas:wizard-auth-redirect-guard')
     }
 

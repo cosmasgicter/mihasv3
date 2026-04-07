@@ -137,6 +137,10 @@ def _generate_csrf_token(user) -> str:
 
     from django.utils import timezone as tz
 
+    # Resolve JWTUser to Profile for FK compatibility
+    if not isinstance(user, Profile):
+        user = Profile.objects.get(id=user.id)
+
     raw_token = secrets.token_hex(32)
     token_hash = _hash_value(raw_token)
 
@@ -338,7 +342,7 @@ class LogoutView(APIView):
                 logger.warning("JTI blacklisting failed during logout", exc_info=True)
 
         # Delete all CSRF tokens for this user before clearing cookies
-        CSRFToken.objects.filter(user=request.user).delete()
+        CSRFToken.objects.filter(user_id=request.user.id).delete()
 
         response = Response(
             {"success": True, "data": {"message": "Logged out successfully"}},
