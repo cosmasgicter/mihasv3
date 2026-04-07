@@ -18,7 +18,8 @@ django.setup()
 from django.test import SimpleTestCase
 from rest_framework.test import APIRequestFactory
 
-from apps.accounts.views import RefreshView, SessionView
+from apps.accounts.authentication import JWTUser
+from apps.accounts.views import LogoutView, RefreshView, SessionView
 
 
 factory = APIRequestFactory()
@@ -44,6 +45,34 @@ class TestSessionViewCsrfHeader(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["X-CSRF-Token"], "session-csrf-token")
         mock_generate_csrf.assert_called_once_with(request.user)
+
+    @patch("apps.accounts.views.CSRFToken.objects.create")
+    @patch("apps.accounts.views.Profile.objects.get")
+    def test_session_view_accepts_jwt_user_when_reissuing_csrf_header(
+        self, mock_get_profile, mock_create
+    ):
+        profile = MagicMock()
+        profile.id = "user-1"
+        mock_get_profile.return_value = profile
+
+        request = factory.get("/api/v1/auth/session/")
+        request.user = JWTUser(
+            {
+                "user_id": "user-1",
+                "email": "user@example.com",
+                "role": "student",
+                "first_name": "Test",
+                "last_name": "User",
+                "token_type": "access",
+            }
+        )
+
+        response = SessionView().get(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response["X-CSRF-Token"]), 64)
+        mock_get_profile.assert_called_once_with(id="user-1")
+        mock_create.assert_called_once()
 
 
 class TestRefreshViewCsrfHeader(SimpleTestCase):
@@ -79,3 +108,25 @@ class TestRefreshViewCsrfHeader(SimpleTestCase):
         mock_set_auth_cookies.assert_called_once()
         mock_filter.return_value.update.assert_called_once()
         mock_generate_csrf.assert_called_once_with(user)
+
+
+class TestLogoutViewCsrfCleanup(SimpleTestCase):
+    """LogoutView should delete CSRF rows for JWT-authenticated users."""
+
+    @patch("apps.accounts.views.CSRFToken.objects.filter")
+    def test_logout_view_filters_csrf_tokens_by_user_id_for_jwt_user(self, mock_filter):
+        request = factory.post("/api/v1/auth/logout/", {}, format="json")
+        request.user = JWTUser(
+            {
+                "user_id": "user-1",
+                "email": "user@example.com",
+                "role": "student",
+                "token_type": "access",
+            }
+        )
+
+        response = LogoutView().post(request)
+
+        self.assertEqual(response.status_code, 200)
+        mock_filter.assert_called_once_with(user_id="user-1")
+        mock_filter.return_value.delete.assert_called_once()

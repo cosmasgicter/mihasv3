@@ -32,10 +32,10 @@ import { broadcastLogin, broadcastLogout } from '@/lib/authBroadcast'
 export type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth'
 export type AuthUser = User
 
-type SessionQueryData =
-  | { user: User }
-  | { pendingValidation: true }
-  | null
+type SessionQueryData = {
+  user?: User
+  pendingValidation?: true
+} | null
 
 /**
  * Check if user has admin role (deterministic, no DB lookup)

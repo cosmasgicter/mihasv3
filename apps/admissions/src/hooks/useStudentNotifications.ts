@@ -104,14 +104,14 @@ type NotificationApiShape = Partial<{
 
 export function normalizeNotificationPayload(notification: NotificationApiShape): StudentNotification {
   return {
-    id: notification.id,
-    title: notification.title,
+    id: notification.id ?? '',
+    title: notification.title ?? '',
     content: notification.content ?? notification.message ?? '',
-    type: notification.type || 'info',
+    type: (notification.type as StudentNotification['type']) || 'info',
     read: Boolean(notification.read ?? notification.is_read),
-    action_url: notification.action_url,
-    created_at: notification.created_at,
-    read_at: notification.read_at,
+    action_url: notification.action_url ?? undefined,
+    created_at: notification.created_at ?? '',
+    read_at: notification.read_at ?? undefined,
   }
 }
 
