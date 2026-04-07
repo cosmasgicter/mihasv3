@@ -6,22 +6,37 @@ Bottom-up hardening of the MIHAS Lenco payment integration for production readin
 
 ## Tasks
 
-- [ ] 1. Database schema verification via Neon
+- [ ] 1. Database schema verification and fixes via Neon
   - [ ] 1.1 Verify `program_fees` partial unique index on `(program_id, fee_type, residency_category) WHERE is_active = true`
     - Run the verification SQL from the design document against Neon
     - If missing, create the index via SQL script in `backend/scripts/`
     - _Requirements: 13.1_
-  - [ ] 1.2 Verify `webhook_event_logs` index on `reference` column
+  - [ ] 1.2 Drop conflicting full unique constraint `uq_program_fee_type_residency` from `program_fees`
+    - This full UNIQUE constraint blocks soft-deleted records from being replaced with new active records
+    - Create SQL migration: `ALTER TABLE program_fees DROP CONSTRAINT IF EXISTS uq_program_fee_type_residency;`
+    - Execute via Neon MCP (prepare → verify → complete)
+    - The partial unique index `uq_program_fee_active` remains and is sufficient
+    - _Requirements: 18.1, 18.2, 18.3_
+  - [ ] 1.3 Add composite index `idx_payments_app_status` on `payments(application_id, status)`
+    - Create SQL: `CREATE INDEX IF NOT EXISTS idx_payments_app_status ON payments (application_id, status);`
+    - Execute via Neon MCP
+    - _Requirements: 19.1, 19.2_
+  - [ ] 1.4 Seed initial program fees for all 4 programs
+    - Insert active ProgramFee records for DRN, DCM, DEH, CPC with fee_type='application', residency_category='local', amount=153.00, currency='ZMW'
+    - Use `INSERT ... ON CONFLICT DO NOTHING` for idempotency
+    - Execute via Neon MCP
+    - _Requirements: 20.1, 20.2_
+  - [ ] 1.5 Verify `webhook_event_logs` index on `reference` column
     - Run verification SQL against Neon
     - If missing, create the index via SQL script
     - _Requirements: 13.2_
-  - [ ] 1.3 Verify `payments` table has `lenco_reference`, `fee`, and `bearer` columns
+  - [ ] 1.6 Verify `payments` table has `lenco_reference`, `fee`, and `bearer` columns
     - Run verification SQL against Neon
     - _Requirements: 13.3_
-  - [ ] 1.4 Verify `applications.payment_status` column default is `pending`
+  - [ ] 1.7 Verify `applications.payment_status` column default is `pending`
     - Run verification SQL against Neon
     - _Requirements: 13.4_
-  - [ ] 1.5 Verify `application_documents` supports `nrc` and `passport` document_type values
+  - [ ] 1.8 Verify `application_documents` supports `nrc` and `passport` document_type values
     - Query existing document_type values or check constraint
     - _Requirements: 13.5_
 
@@ -68,6 +83,12 @@ Bottom-up hardening of the MIHAS Lenco payment integration for production readin
     - Return `PAYMENT_UNVERIFIED` error otherwise
     - File: `backend/apps/applications/views.py`
     - _Requirements: 4.6, 14.3_
+  - [ ] 4.4 Add backward compatibility for legacy `verified` payment status
+    - Payment gate for submission: accept `payment_status = 'verified'` OR `successful` payment in `payments` table
+    - Payment gate for approval: treat `verified` as equivalent to `paid`
+    - Admin override: continue accepting `verified` as a valid status value
+    - File: `backend/apps/applications/views.py`
+    - _Requirements: 21.1, 21.2, 21.3_
 
 - [ ] 5. Checkpoint — Backend hardening complete
   - Ensure all backend changes compile and existing tests pass (`cd backend && python3 -m pytest`), ask the user if questions arise.
@@ -251,3 +272,11 @@ Bottom-up hardening of the MIHAS Lenco payment integration for production readin
 - Property tests validate universal correctness properties from the design document
 - Backend uses Python (pytest + hypothesis), frontend uses TypeScript (Vitest + fast-check)
 - No changes needed to WebhookProcessor, FeeResolver, or ProgramFeeViewSet — they are already correct
+- **Neon project ID:** `wild-bar-37055823`
+- **CTO Review findings (from live DB audit):**
+  - `uq_program_fee_type_residency` full unique constraint must be dropped (task 1.2) — it conflicts with the partial index and blocks soft-delete replacement
+  - Composite index `idx_payments_app_status` needed for double-payment prevention performance (task 1.3)
+  - 0 program_fees records exist — seed data for 4 programs needed (task 1.4)
+  - 25 existing applications have `payment_status = 'verified'` — backward compatibility required (task 4.4)
+  - ~30+ frontend files still reference deprecated payment fields — full cleanup list in requirements
+  - `useWizardController` still has full proof-of-payment upload logic (`popFile`, `handleProofOfPaymentUploadWrapped`) — must be removed (task 7.1)
