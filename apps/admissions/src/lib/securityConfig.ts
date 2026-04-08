@@ -12,7 +12,10 @@ export const CSP_CONFIG = {
   'default-src': ["'self'"],
   'script-src': [
     "'self'",
-    "'unsafe-inline'" // Required for Vite in development
+    "'unsafe-inline'", // Required for Vite in development and JSON-LD injection
+    "https://va.vercel-scripts.com",
+    "https://pay.lenco.co",
+    "https://pay.sandbox.lenco.co"
   ],
   'style-src': [
     "'self'",
@@ -31,7 +34,11 @@ export const CSP_CONFIG = {
     "http:"
   ],
   'connect-src': [
-    "'self'"
+    "'self'",
+    "https://api.mihas.edu.zm",
+    "https://*.neon.tech",
+    "https://pay.lenco.co",
+    "https://pay.sandbox.lenco.co"
   ],
   'object-src': ["'none'"],
   'base-uri': ["'self'"],
