@@ -92,8 +92,29 @@ class PaymentService:
     ) -> PaymentInitiationResult:
         """Create a *pending* Payment record with the resolved fee.
 
+        If a pending payment already exists for the same application, the
+        existing record is returned instead of creating a duplicate.  This
+        prevents double-payment initiation from rapid clicks or retries.
+
         Raises ``Application.DoesNotExist`` when the application is not found.
         """
+        # Double-payment prevention: return existing pending payment if one exists.
+        existing = Payment.objects.filter(
+            application_id=application_id, status='pending'
+        ).first()
+        if existing:
+            logger.info(
+                "Returning existing pending payment %s for application %s",
+                existing.id,
+                application_id,
+            )
+            return PaymentInitiationResult(
+                payment_id=existing.id,
+                reference=existing.transaction_reference,
+                amount=existing.amount,
+                currency=existing.currency,
+            )
+
         application = Application.objects.get(id=application_id)
 
         resolved = self._fee_resolver.resolve_fee(
@@ -252,9 +273,22 @@ class PaymentService:
 
         If the referenced payment does not exist or is already in a terminal
         state, the call is a safe no-op.
+
+        The payment lookup uses ``SELECT FOR UPDATE`` inside
+        ``transaction.atomic()`` so that concurrent webhook events for the
+        same payment are serialized at the row level.  This prevents two
+        webhooks from both reading the payment before either applies a
+        status transition.
         """
+        from django.db import transaction
+
         try:
-            payment = Payment.objects.get(transaction_reference=reference)
+            with transaction.atomic():
+                payment = (
+                    Payment.objects
+                    .select_for_update()
+                    .get(transaction_reference=reference)
+                )
         except Payment.DoesNotExist:
             logger.warning("Webhook references unknown payment: reference=%s", reference)
             return
@@ -298,53 +332,82 @@ class PaymentService:
     ) -> None:
         """Apply a forward-only status transition and persist Lenco fields.
 
+        Uses ``SELECT FOR UPDATE`` to re-read the payment row under a
+        row-level lock inside an atomic transaction.  This prevents the
+        webhook handler and the verification endpoint from concurrently
+        transitioning the same payment.
+
         If the transition is not allowed (e.g. already ``successful``), the
         call is a no-op — this makes webhook processing idempotent.
         """
-        allowed = _ALLOWED_TRANSITIONS.get(payment.status, set())
-        if new_status not in allowed:
+        from django.db import transaction
+
+        with transaction.atomic():
+            # Re-read the row under an exclusive lock so we check the
+            # *latest* status, not the potentially-stale in-memory copy.
+            locked = Payment.objects.select_for_update().get(id=payment.id)
+
+            allowed = _ALLOWED_TRANSITIONS.get(locked.status, set())
+            if new_status not in allowed:
+                logger.info(
+                    "Skipping transition %s → %s for payment %s (not allowed)",
+                    locked.status,
+                    new_status,
+                    locked.id,
+                )
+                return
+
+            # Amount mismatch detection (Req 17.1, 17.2, 17.3)
+            # When transitioning to 'successful', verify the Lenco-reported
+            # amount matches the expected amount stored on the payment record.
+            # Uses Decimal comparison to avoid floating-point precision errors.
+            if new_status == 'successful':
+                lenco_amount = _parse_amount(lenco_data.get('amount'))
+                if lenco_amount is not None and lenco_amount != locked.amount:
+                    logger.warning(
+                        "Amount mismatch in _update_payment_status for payment %s: "
+                        "expected=%s got=%s — skipping transition to successful",
+                        locked.id,
+                        locked.amount,
+                        lenco_amount,
+                    )
+                    return
+
+            locked.status = new_status
+            locked.lenco_reference = lenco_data.get('lencoReference') or locked.lenco_reference
+            locked.payment_method = lenco_data.get('type') or locked.payment_method
+
+            lenco_fee = _parse_amount(lenco_data.get('fee'))
+            if lenco_fee is not None:
+                locked.fee = lenco_fee
+
+            locked.bearer = lenco_data.get('bearer') or locked.bearer
+
+            # Merge any extra Lenco data into metadata.
+            meta = locked.metadata or {}
+            meta['lenco_response'] = lenco_data
+            locked.metadata = meta
+            locked.updated_at = timezone.now()
+
+            locked.save(update_fields=[
+                'status',
+                'lenco_reference',
+                'payment_method',
+                'fee',
+                'bearer',
+                'metadata',
+                'updated_at',
+            ])
+
             logger.info(
-                "Skipping transition %s → %s for payment %s (not allowed)",
-                payment.status,
+                "Payment %s transitioned to %s (lenco_ref=%s)",
+                locked.id,
                 new_status,
-                payment.id,
+                locked.lenco_reference,
             )
-            return
 
-        payment.status = new_status
-        payment.lenco_reference = lenco_data.get('lencoReference') or payment.lenco_reference
-        payment.payment_method = lenco_data.get('type') or payment.payment_method
-
-        lenco_fee = _parse_amount(lenco_data.get('fee'))
-        if lenco_fee is not None:
-            payment.fee = lenco_fee
-
-        payment.bearer = lenco_data.get('bearer') or payment.bearer
-
-        # Merge any extra Lenco data into metadata.
-        meta = payment.metadata or {}
-        meta['lenco_response'] = lenco_data
-        payment.metadata = meta
-        payment.updated_at = timezone.now()
-
-        payment.save(update_fields=[
-            'status',
-            'lenco_reference',
-            'payment_method',
-            'fee',
-            'bearer',
-            'metadata',
-            'updated_at',
-        ])
-
-        logger.info(
-            "Payment %s transitioned to %s (lenco_ref=%s)",
-            payment.id,
-            new_status,
-            payment.lenco_reference,
-        )
-
-        # Sync application payment_status.
+        # Sync application payment_status (outside the FOR UPDATE lock —
+        # the payment row is already committed at this point).
         if payment.application_id:
             if new_status == 'successful':
                 self._update_application_payment_status(payment.application_id, 'paid')

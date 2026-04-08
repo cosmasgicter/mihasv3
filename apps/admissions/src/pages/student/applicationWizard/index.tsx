@@ -1,6 +1,6 @@
 import { ArrowLeft, ArrowRight, CheckCircle, Send } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
 import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
 import { Button } from '@/components/ui/Button'
@@ -29,6 +29,7 @@ import { useStepValidation } from './hooks/useStepValidation'
 import { useOverallProgress } from './hooks/useOverallProgress'
 import { useSmartAutoSave } from './hooks/useSmartAutoSave'
 import { useEstimatedTime } from './hooks/useEstimatedTime'
+import { usePaymentStatus } from '@/hooks/usePaymentStatus'
 import { previousButtonLabel, saveNowLabel, wizardSteps } from './steps/config'
 import type { SubjectGrade } from './types'
 import { WIZARD_COPY } from './constants'
@@ -63,7 +64,6 @@ const ApplicationWizardContent = () => {
     setConfirmSubmission,
     resultSlipFile,
     extraKycFile,
-    popFile,
     uploadProgress,
     uploadedFiles,
     isDraftSaving,
@@ -79,7 +79,6 @@ const ApplicationWizardContent = () => {
     dismissSlipProgress,
     handleResultSlipUpload,
     handleExtraKycUpload,
-    handleProofOfPaymentUpload,
     getPaymentTarget,
     handleNextStep,
     handlePrevStep,
@@ -89,28 +88,79 @@ const ApplicationWizardContent = () => {
     updateGrade,
     getUsedSubjects,
     saveDraft,
-    watchValues
+    watchValues,
+    goToStep
   } = useWizardController()
 
   const stepValidation = useStepValidation(form, currentStepIndex)
   const overallProgress = useOverallProgress(form)
+  const { formattedTime } = useEstimatedTime(currentStepIndex, totalSteps)
+  const { shouldAnimate, prefersReducedMotion, isMobile } = useOptimizedAnimation()
+  const { status: paymentPolledStatus } = usePaymentStatus(applicationId || '')
+
+  // Pause auto-save during critical operations (Req 9.1, 9.2):
+  // - Payment step with payment in progress (initiating or pending)
+  // - Submission processing (loading flag)
+  const isPaymentStepActive = currentStepConfig.key === 'payment'
+  const isPaymentInProgress = isPaymentStepActive && (paymentPolledStatus === 'pending')
   const smartAutoSave = useSmartAutoSave({
     onSave: saveDraft,
     watchValues,
-    enabled: draftLoaded && !loading && !uploading && !restoringDraft && !success
+    enabled: draftLoaded && !loading && !uploading && !restoringDraft && !success && !isPaymentInProgress
   })
-  const { formattedTime } = useEstimatedTime(currentStepIndex, totalSteps)
-  const { shouldAnimate, prefersReducedMotion, isMobile } = useOptimizedAnimation()
+
   const progressPercent = Math.round(((currentStepIndex + 1) / totalSteps) * 100)
 
   // Aria-live region announcement for screen readers on step transition
   const [stepAnnouncement, setStepAnnouncement] = useState('')
   const [stepDirection, setStepDirection] = useState<'forward' | 'backward'>('forward')
   const [stepKey, setStepKey] = useState(currentStepIndex)
+  const isPopstateNavRef = useRef(false)
+
   useEffect(() => {
     setStepAnnouncement(`Step ${currentStepIndex + 1} of ${totalSteps}: ${currentStepConfig.title}`)
     setStepKey(currentStepIndex)
   }, [currentStepIndex, totalSteps, currentStepConfig.title])
+
+  // Browser back/forward navigation support (Req 11.2, 11.3)
+  // Push history state when step changes (but not on popstate-driven changes)
+  useEffect(() => {
+    if (success) return
+    if (isPopstateNavRef.current) {
+      isPopstateNavRef.current = false
+      return
+    }
+    const url = new URL(window.location.href)
+    url.searchParams.set('step', currentStepConfig.key)
+    window.history.pushState({ wizardStep: currentStepIndex }, '', url.toString())
+  }, [currentStepIndex, currentStepConfig.key, success])
+
+  // Listen for popstate (browser back/forward)
+  useEffect(() => {
+    if (success) return
+
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state as { wizardStep?: number } | null
+      if (state && typeof state.wizardStep === 'number') {
+        isPopstateNavRef.current = true
+        goToStep(state.wizardStep)
+        return
+      }
+      // Fallback: read step from URL
+      const url = new URL(window.location.href)
+      const stepParam = url.searchParams.get('step')
+      if (stepParam) {
+        const stepIndex = wizardSteps.findIndex(s => s.key === stepParam)
+        if (stepIndex >= 0) {
+          isPopstateNavRef.current = true
+          goToStep(stepIndex)
+        }
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [success, goToStep])
 
   // Track step direction for transitions
   const originalHandleNextStep = handleNextStep
@@ -160,18 +210,12 @@ const ApplicationWizardContent = () => {
       case 1:
         return [
           { label: `${selectedGrades.length} subjects added (min 5)`, completed: selectedGrades.length >= 5 },
-          { label: 'Result slip uploaded', completed: !!resultSlipFile || !!uploadedFiles.result_slip }
+          { label: 'Result slip uploaded', completed: !!resultSlipFile || !!uploadedFiles.result_slip },
+          { label: 'Identity document uploaded (NRC or Passport)', completed: !!extraKycFile || !!uploadedFiles.extra_kyc }
         ]
       case 2:
-        return values.payment_option === 'pay_later'
-          ? [
-              { label: 'Pay later selected', completed: true },
-              { label: 'Payment will be completed from the dashboard', completed: true }
-            ]
-          : [
-              { label: 'Payment method selected', completed: !!values.payment_method },
-              { label: 'Payment reference provided', completed: !!(values.momo_ref) },
-              { label: 'Proof of payment uploaded', completed: !!popFile || !!uploadedFiles.proof_of_payment }
+        return [
+              { label: 'Payment processed via Lenco gateway', completed: paymentPolledStatus === 'successful' }
             ]
       case 3:
         return [
@@ -407,9 +451,16 @@ const ApplicationWizardContent = () => {
                 <AlertTitle className="text-foreground">Something needs attention</AlertTitle>
                 <AlertDescription className="mt-1 text-foreground">{error}</AlertDescription>
               </div>
-              <Button type="button" variant="ghost" size="sm" onClick={() => setError('')}>
-                Dismiss
-              </Button>
+              <div className="flex gap-2 flex-shrink-0">
+                {(error.toLowerCase().includes('network') || error.toLowerCase().includes('connection') || error.toLowerCase().includes('failed to') || error.toLowerCase().includes('timeout')) && (
+                  <Button type="button" variant="outline" size="sm" onClick={wrappedHandleNextStep}>
+                    Retry
+                  </Button>
+                )}
+                <Button type="button" variant="ghost" size="sm" onClick={() => setError('')}>
+                  Dismiss
+                </Button>
+              </div>
             </div>
           </Alert>
         )}
@@ -488,7 +539,6 @@ const ApplicationWizardContent = () => {
                 eligibilityCheck={eligibilityCheck}
                 resultSlipFile={resultSlipFile}
                 extraKycFile={extraKycFile}
-                proofOfPaymentFile={popFile}
                 confirmSubmission={confirmSubmission}
                 onConfirmChange={setConfirmSubmission}
                 selectedProgramName={selectedProgramDetails?.name}
@@ -497,6 +547,7 @@ const ApplicationWizardContent = () => {
                   selectedProgramDetails?.institutions?.name ||
                   undefined
                 }
+                paymentStatus={paymentPolledStatus}
               />
             )}
             </div>

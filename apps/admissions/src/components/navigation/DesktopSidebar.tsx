@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react'
-import { Home, FileText, Bell, LayoutDashboard, Users, ChevronLeft, ChevronRight, ChevronDown, GraduationCap, Calendar, Settings, FileSearch, CreditCard } from 'lucide-react'
+import { Home, FileText, Bell, LayoutDashboard, Users, ChevronLeft, ChevronRight, ChevronDown, GraduationCap, Calendar, Settings, FileSearch, CreditCard, DollarSign } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSidebar } from '@/contexts/SidebarContext'
@@ -35,6 +35,7 @@ const adminSections: NavSection[] = [
       { to: '/admin/users', icon: Users, label: 'Users' },
       { to: '/admin/programs', icon: GraduationCap, label: 'Programs' },
       { to: '/admin/intakes', icon: Calendar, label: 'Intakes' },
+      { to: '/admin/program-fees', icon: DollarSign, label: 'Program Fees' },
     ],
   },
   {

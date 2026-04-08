@@ -6,7 +6,6 @@ export interface StateMachineContext {
   state: ApplicationState
   applicationId: string | null
   hasResultSlip: boolean
-  hasProofOfPayment: boolean
   error: string | null
 }
 
@@ -22,7 +21,6 @@ export type StateMachineEvent =
   | { type: 'ERROR'; error: string }
   | { type: 'SET_APPLICATION_ID'; id: string }
   | { type: 'SET_RESULT_SLIP'; hasFile: boolean }
-  | { type: 'SET_PROOF_OF_PAYMENT'; hasFile: boolean }
 
 const STEP_ORDER: ApplicationStep[] = ['basicKyc', 'education', 'payment', 'submit']
 
@@ -32,7 +30,6 @@ export function createStateMachine(initialContext: Partial<StateMachineContext> 
     state: 'idle',
     applicationId: null,
     hasResultSlip: false,
-    hasProofOfPayment: false,
     error: null,
     ...initialContext
   }
@@ -98,10 +95,6 @@ export function createStateMachine(initialContext: Partial<StateMachineContext> 
       case 'SET_RESULT_SLIP':
         context = { ...context, hasResultSlip: event.hasFile }
         break
-
-      case 'SET_PROOF_OF_PAYMENT':
-        context = { ...context, hasProofOfPayment: event.hasFile }
-        break
     }
 
     if (prevContext !== context) {
@@ -125,7 +118,7 @@ export function createStateMachine(initialContext: Partial<StateMachineContext> 
       case 'education':
         return context.hasResultSlip
       case 'payment':
-        return context.hasProofOfPayment
+        return true // Payment is handled by Lenco widget; gate enforced at submission
       case 'submit':
         return true
       default:

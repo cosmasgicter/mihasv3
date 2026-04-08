@@ -26,6 +26,7 @@ import {
   Calendar,
   GraduationCap,
   FileSearch,
+  DollarSign,
   LogOut,
   UserCircle2,
   BriefcaseBusiness,
@@ -52,6 +53,7 @@ const pageTitles: Record<string, string> = {
   '/admin/programs': 'Programs',
   '/admin/intakes': 'Intakes',
   '/admin/audit': 'Audit Trail',
+  '/admin/program-fees': 'Program Fees',
   '/admin/settings': 'Settings',
 }
 
@@ -67,6 +69,7 @@ const backRoutes = new Set([
   '/admin/programs',
   '/admin/intakes',
   '/admin/audit',
+  '/admin/program-fees',
 ])
 
 /** Admin bottom nav items */
@@ -76,6 +79,7 @@ const adminNavItems = [
   { href: '/admin/programs', label: 'Programs', icon: GraduationCap },
   { href: '/admin/intakes', label: 'Intakes', icon: Calendar },
   { href: '/admin/users', label: 'Users', icon: Users },
+  { href: '/admin/program-fees', label: 'Fees', icon: DollarSign },
   { href: '/admin/audit', label: 'Audit', icon: FileSearch },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]

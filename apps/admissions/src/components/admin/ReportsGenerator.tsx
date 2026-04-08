@@ -262,9 +262,7 @@ export function ReportsGenerator() {
       const paymentReference =
         typeof app.last_payment_reference === 'string' && app.last_payment_reference.trim()
           ? app.last_payment_reference
-          : typeof app.momo_ref === 'string'
-            ? app.momo_ref
-            : ''
+          : ''
 
       setDocumentForm(prev => ({
         ...prev,

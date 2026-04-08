@@ -564,17 +564,22 @@ class ApplicationReviewView(APIView):
         if new_status == "approved" and not force:
             from apps.documents.models import Payment
             has_verified = (
-                app.payment_status == "verified"
-                or Payment.objects.filter(application_id=application_id, status="verified").exists()
+                app.payment_status in ("paid", "verified")
+                or Payment.objects.filter(application_id=application_id, status="successful").exists()
             )
             if not has_verified:
-                return Response({"success": False, "error": "Application has unverified payment. Use force=true to override.", "code": "PAYMENT_UNVERIFIED"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"success": False, "error": "Payment must be verified before approval. Set force=true to override.", "code": "PAYMENT_UNVERIFIED"}, status=status.HTTP_400_BAD_REQUEST)
         if new_status == "submitted":
             from apps.documents.models import Payment
-            has_successful_payment = Payment.objects.filter(
-                application_id=application_id, status="successful"
-            ).exists()
-            if not has_successful_payment:
+            # Accept BOTH legacy verified/paid payment_status on the application
+            # AND a successful payment record in the payments table (Req 21.1).
+            has_payment = (
+                app.payment_status in ("verified", "paid")
+                or Payment.objects.filter(
+                    application_id=application_id, status="successful"
+                ).exists()
+            )
+            if not has_payment:
                 return Response(
                     {
                         "success": False,
@@ -583,6 +588,50 @@ class ApplicationReviewView(APIView):
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+            has_identity_document = ApplicationDocument.objects.filter(
+                application_id=application_id,
+                document_type__in=['nrc', 'passport'],
+            ).exists()
+            if not has_identity_document:
+                return Response(
+                    {
+                        "success": False,
+                        "error": "An NRC or Passport document must be uploaded before submission.",
+                        "code": "IDENTITY_DOCUMENT_REQUIRED",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            # Double-submission prevention: lock the application row and
+            # re-check status inside the transaction to serialise concurrent
+            # submission attempts (Requirements 8.1, 8.2, 8.4).
+            with transaction.atomic():
+                locked_app = Application.objects.select_for_update().get(id=application_id)
+                if locked_app.status != "draft":
+                    return Response(
+                        {
+                            "success": False,
+                            "error": "This application has already been submitted.",
+                            "code": "ALREADY_SUBMITTED",
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                old_status = transition_application_status(
+                    application=locked_app,
+                    new_status=new_status,
+                    changed_by=str(request.user.id),
+                    notes=notes,
+                )
+            dispatch_event(
+                user_id=locked_app.user_id,
+                event_type='application_update',
+                payload={
+                    'application_id': str(locked_app.id),
+                    'status': new_status,
+                    'updated_at': timezone.now().isoformat(),
+                },
+                entity_id=locked_app.id,
+            )
+            return Response({"message": f"Status updated from {old_status} to {new_status}", "application_id": str(locked_app.id), "old_status": old_status, "new_status": new_status})
         old_status = transition_application_status(
             application=app,
             new_status=new_status,

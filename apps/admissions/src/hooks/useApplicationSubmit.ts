@@ -18,12 +18,6 @@ interface WizardFormData {
   next_of_kin_phone?: string
   program: string
   intake: string
-  payment_method?: string
-  payer_name?: string
-  payer_phone?: string
-  amount?: number
-  paid_at?: string
-  momo_ref?: string
 }
 
 interface NotificationData {
@@ -125,7 +119,7 @@ export function useApplicationSubmit() {
     idempotencyKeyRef.current = generateIdempotencyKey()
   }, [])
 
-  const submitApplication = useCallback(async (data: WizardFormData, applicationId: string, popUrl: string) => {
+  const submitApplication = useCallback(async (data: WizardFormData, applicationId: string) => {
     // Double-click guard: ignore if already submitting (Req 3.1, 3.2)
     if (isSubmittingRef.current) {
       return
@@ -144,15 +138,8 @@ export function useApplicationSubmit() {
 
       const user = authUser
 
-      // Prepare update data
+      // Prepare update data — only set status and timestamp; payment is handled by Lenco
       const updateData = {
-        payment_method: data.payment_method || 'MTN Money',
-        payer_name: data.payer_name || null,
-        payer_phone: data.payer_phone || null,
-        amount: data.amount || 153,
-        paid_at: data.paid_at ? new Date(data.paid_at).toISOString() : null,
-        momo_ref: data.momo_ref || null,
-        pop_url: popUrl,
         status: 'submitted',
         submitted_at: new Date().toISOString()
       }

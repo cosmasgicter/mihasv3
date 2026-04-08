@@ -117,3 +117,174 @@ class TestWebhookSignatureRejectsIncorrect(SimpleTestCase):
             f"validate_signature should return False for an incorrect signature. "
             f"bad_sig={bad_signature[:20]}..., correct_sig={correct_sig[:20]}...",
         )
+
+
+# ---------------------------------------------------------------------------
+# Feature: production-payment-hardening — Properties 5 and 12
+# ---------------------------------------------------------------------------
+
+from decimal import Decimal  # noqa: E402
+from unittest.mock import MagicMock, patch  # noqa: E402
+
+
+class TestInvalidSignatureRejectionAndLogging(SimpleTestCase):
+    """# Feature: production-payment-hardening, Property 5: Invalid webhook signature rejection and logging
+
+    For any webhook event with an invalid signature, the WebhookProcessor.process
+    method SHALL create a WebhookEventLog record with signature_valid=False and
+    SHALL not delegate to PaymentService for status updates.
+
+    **Validates: Requirements 16.4**
+    """
+
+    @given(
+        event_type=st.sampled_from([
+            "collection.successful",
+            "collection.failed",
+            "collection.settled",
+            "unknown.event",
+        ]),
+        reference=st.text(
+            alphabet=st.sampled_from("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-"),
+            min_size=1,
+            max_size=30,
+        ),
+    )
+    @settings(max_examples=100)
+    def test_invalid_signature_logs_but_does_not_process(self, event_type, reference):
+        """When signature_valid=False, a WebhookEventLog is created with
+        signature_valid=False and PaymentService is NOT called."""
+        processor = WebhookProcessor()
+
+        payload = {"event": event_type, "data": {"reference": reference}}
+
+        mock_log_entry = MagicMock()
+        mock_log_entry.id = "test-log-id"
+        mock_log_entry.processing_error = None
+
+        with (
+            patch("apps.documents.webhook_processor.WebhookEventLog.objects") as mock_log_qs,
+            patch.object(processor, "_payment_service") as mock_payment_svc,
+        ):
+            mock_log_qs.create.return_value = mock_log_entry
+
+            processor.process(event_type, payload, signature_valid=False)
+
+            # Verify log was created with signature_valid=False
+            create_kwargs = mock_log_qs.create.call_args[1]
+            self.assertFalse(create_kwargs["signature_valid"])
+            self.assertEqual(create_kwargs["event_type"], event_type)
+
+            # Verify PaymentService was NOT called
+            mock_payment_svc.process_webhook_event.assert_not_called()
+
+            # Verify processing_error was set
+            self.assertEqual(
+                mock_log_entry.processing_error,
+                "Invalid webhook signature",
+            )
+
+
+class TestWebhookProcessingIdempotence(SimpleTestCase):
+    """# Feature: production-payment-hardening, Property 12: Webhook processing idempotence
+
+    For any valid webhook event, processing it N times (N >= 1) SHALL produce
+    the same final payment state as processing it exactly once.
+
+    **Validates: Requirements 7.4**
+    """
+
+    @given(
+        payment_id=st.uuids(),
+        application_id=st.uuids(),
+        amount=st.decimals(
+            min_value=Decimal("0.01"),
+            max_value=Decimal("99999.99"),
+            places=2,
+            allow_nan=False,
+            allow_infinity=False,
+        ),
+        n_times=st.integers(min_value=1, max_value=5),
+    )
+    @settings(max_examples=100)
+    def test_repeated_webhook_produces_same_state(
+        self, payment_id, application_id, amount, n_times
+    ):
+        """Processing a successful webhook N times yields the same final
+        payment status as processing it once."""
+        from contextlib import contextmanager
+
+        from apps.documents.payment_service import PaymentService
+
+        @contextmanager
+        def _noop_atomic():
+            yield
+
+        reference = f"MIHAS-TEST-{payment_id.hex[:8]}"
+        payload = {
+            "data": {
+                "reference": reference,
+                "amount": str(amount),
+            }
+        }
+
+        current_status = "pending"
+        service = PaymentService()
+
+        for i in range(n_times):
+            webhook_mock = MagicMock()
+            webhook_mock.id = payment_id
+            webhook_mock.application_id = application_id
+            webhook_mock.status = current_status
+            webhook_mock.amount = amount
+            webhook_mock.currency = "ZMW"
+            webhook_mock.transaction_reference = reference
+            webhook_mock.lenco_reference = None
+            webhook_mock.payment_method = None
+            webhook_mock.fee = None
+            webhook_mock.bearer = None
+            webhook_mock.metadata = {}
+            webhook_mock.updated_at = None
+            webhook_mock.save = MagicMock()
+
+            locked_mock = MagicMock()
+            locked_mock.id = payment_id
+            locked_mock.application_id = application_id
+            locked_mock.status = current_status
+            locked_mock.amount = amount
+            locked_mock.currency = "ZMW"
+            locked_mock.lenco_reference = None
+            locked_mock.payment_method = None
+            locked_mock.fee = None
+            locked_mock.bearer = None
+            locked_mock.metadata = {}
+            locked_mock.updated_at = None
+            locked_mock.save = MagicMock()
+
+            with (
+                patch(
+                    "apps.documents.payment_service.Payment.objects"
+                ) as mock_payment_qs,
+                patch(
+                    "apps.documents.payment_service.Application.objects"
+                ) as mock_app_qs,
+                patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+            ):
+                mock_payment_qs.select_for_update.return_value.get.side_effect = [
+                    webhook_mock,
+                    locked_mock,
+                ]
+                mock_app_qs.filter.return_value.update.return_value = 1
+
+                service.process_webhook_event(
+                    event_type="collection.successful",
+                    reference=reference,
+                    payload=payload,
+                )
+
+                if i == 0:
+                    self.assertEqual(locked_mock.status, "successful")
+                    current_status = "successful"
+                else:
+                    # Already successful — no-op, status stays successful
+                    self.assertEqual(locked_mock.status, "successful")

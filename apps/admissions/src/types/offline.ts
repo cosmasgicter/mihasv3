@@ -13,12 +13,8 @@ export interface OfflineApplicationDraftData {
 export interface OfflineFormSubmissionData extends Partial<Application> {
   application_fee?: number
   payment_method?: string
-  payer_name?: string
-  payer_phone?: string
   amount?: number
   paid_at?: string
-  momo_ref?: string
-  pop_url?: string
 }
 
 export interface OfflineDocumentUploadData {

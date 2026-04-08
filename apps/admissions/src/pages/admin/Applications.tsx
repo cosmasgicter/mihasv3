@@ -346,7 +346,6 @@ export default function Applications() {
     const documents: Array<{ name: string; url: string }> = []
     if (selectedApp.result_slip_url) documents.push({ name: 'Result Slip', url: selectedApp.result_slip_url })
     if (selectedApp.extra_kyc_url) documents.push({ name: 'Identity Support Document', url: selectedApp.extra_kyc_url })
-    if (selectedApp.pop_url) documents.push({ name: 'Proof of Payment', url: selectedApp.pop_url })
     
     if (documents.length === 0) {
       showInfo('No documents', 'No documents have been uploaded for this application.')

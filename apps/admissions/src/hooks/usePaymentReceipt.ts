@@ -1,14 +1,18 @@
 /**
  * Payment Receipt Hook - Cookie-based authentication
  * 
- * Uses HTTP-only cookies (credentials: 'include') for authentication
- * 
+ * Uses HTTP-only cookies (credentials: 'include') for authentication.
+ * Reads payment data from the `payments` table instead of deprecated
+ * Application model fields.
+ *
  * @module usePaymentReceipt
+ * @requirements 2.7
  */
 
 import { useState } from 'react';
 import { generatePaymentReceipt, generateReceiptNumber } from '@/lib/receiptGenerator';
 import { applicationService } from '@/services/applications';
+import { apiClient } from '@/services/client';
 
 type ReceiptApplication = {
   application_number?: string | null
@@ -17,14 +21,25 @@ type ReceiptApplication = {
   phone?: string | null
   program?: string | null
   institution?: string | null
-  amount?: number | string | null
   application_fee?: number | string | null
-  payment_method?: string | null
-  momo_ref?: string | null
-  paid_at?: string | null
-  payment_verified_at?: string | null
   payment_verified_by_name?: string | null
   receipt_number?: string | null
+}
+
+interface PaymentRecord {
+  id: string
+  status: string
+  amount: number | null
+  currency: string | null
+  payment_method?: string | null
+  transaction_reference?: string | null
+  created_at: string
+  updated_at?: string
+}
+
+interface PaymentListResponse {
+  results?: PaymentRecord[]
+  [key: string]: unknown
 }
 
 function normalizeAmount(value: number | string | null | undefined): number {
@@ -36,7 +51,19 @@ function normalizeAmount(value: number | string | null | undefined): number {
   return 0
 }
 
-function buildReceiptData(application: ReceiptApplication) {
+async function fetchSuccessfulPayment(applicationId: string): Promise<PaymentRecord | null> {
+  try {
+    const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>(
+      `/payments/?application_id=${encodeURIComponent(applicationId)}`
+    )
+    const records = Array.isArray(data) ? data : (data?.results ?? [])
+    return records.find(r => r.status === 'successful') ?? records[0] ?? null
+  } catch {
+    return null
+  }
+}
+
+function buildReceiptData(application: ReceiptApplication, payment: PaymentRecord | null) {
   return {
     receiptNumber: application.receipt_number || generateReceiptNumber(),
     applicationNumber: application.application_number || 'Unknown',
@@ -45,11 +72,11 @@ function buildReceiptData(application: ReceiptApplication) {
     phone: application.phone || 'Not provided',
     program: application.program || 'Not specified',
     institution: application.institution || 'MIHAS',
-    amount: normalizeAmount(application.amount ?? application.application_fee),
-    paymentMethod: application.payment_method || 'Mobile Money',
-    paymentReference: application.momo_ref || undefined,
-    paymentDate: application.paid_at || application.payment_verified_at || new Date().toISOString(),
-    verifiedDate: application.payment_verified_at || new Date().toISOString(),
+    amount: payment ? normalizeAmount(payment.amount) : normalizeAmount(application.application_fee),
+    paymentMethod: payment?.payment_method || 'Online Payment',
+    paymentReference: payment?.transaction_reference || undefined,
+    paymentDate: payment?.created_at || new Date().toISOString(),
+    verifiedDate: payment?.updated_at || payment?.created_at || new Date().toISOString(),
     verifiedBy: application.payment_verified_by_name || 'Admissions Office',
   }
 }
@@ -70,11 +97,14 @@ export function usePaymentReceipt() {
         throw new Error('Application details are unavailable')
       }
 
-      if (application.payment_status !== 'verified') {
+      const pStatus = application.payment_status
+      if (pStatus !== 'verified' && pStatus !== 'paid') {
         throw new Error('Payment must be verified before a receipt can be generated')
       }
 
-      const pdfBlob = await generatePaymentReceipt(buildReceiptData(application));
+      const payment = await fetchSuccessfulPayment(applicationId)
+
+      const pdfBlob = await generatePaymentReceipt(buildReceiptData(application, payment));
 
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');

@@ -33,6 +33,7 @@ export interface Application {
   guardian_phone?: string;
   result_slip_url?: string;
   extra_kyc_url?: string;
+  /** @deprecated Use payments table data instead */
   pop_url?: string;
   payment_reference?: string;
   payment_method?: string;

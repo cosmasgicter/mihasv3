@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react'
 import { UnifiedLoader, UnifiedSpinner } from '@/components/ui/UnifiedLoader'
-import { Eye, FileText, CreditCard, Clock, CheckCircle, XCircle, AlertTriangle, User, Calendar, Phone, Mail, GraduationCap, Building, MessageSquare } from 'lucide-react'
+import { Eye, FileText, Clock, CheckCircle, XCircle, AlertTriangle, User, Calendar, Phone, Mail, GraduationCap, Building, MessageSquare } from 'lucide-react'
 import { ApplicationApprovalActions } from './ApplicationApprovalActions'
 import { DraftBadge } from './DraftBadge'
 import { useToastStore } from '@/hooks/useToast'
@@ -49,7 +49,6 @@ export interface ApplicationSummary {
   created_at: string
   result_slip_url: string
   extra_kyc_url: string
-  pop_url: string
   grades_summary: string
   total_subjects: number
   points: number
@@ -177,7 +176,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
     return 'text-error'
   }
 
-  const documentsCount = [app.result_slip_url, app.extra_kyc_url, app.pop_url].filter(Boolean).length
+  const documentsCount = [app.result_slip_url, app.extra_kyc_url].filter(Boolean).length
 
 
   return (
@@ -373,17 +372,6 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
                 title="Result Slip"
               >
                 <FileText className="h-4 w-4" />
-              </a>
-            )}
-            {app.pop_url && (
-              <a
-                href={app.pop_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-accent hover:bg-skeleton text-foreground p-2.5 rounded-lg transition-colors"
-                title="Proof of Payment"
-              >
-                <CreditCard className="h-4 w-4" />
               </a>
             )}
           </div>

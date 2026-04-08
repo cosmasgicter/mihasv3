@@ -83,7 +83,6 @@ interface UseWizardControllerResult {
   setConfirmSubmission: (value: boolean) => void
   resultSlipFile: File | null
   extraKycFile: File | null
-  popFile: File | null
   uploadProgress: Record<string, number>
   uploadedFiles: Record<string, boolean>
   isDraftSaving: boolean
@@ -99,7 +98,6 @@ interface UseWizardControllerResult {
   dismissSlipProgress: () => void
   handleResultSlipUpload: (file: File | null) => void
   handleExtraKycUpload: (file: File | null) => void
-  handleProofOfPaymentUpload: (file: File | null) => void
   getPaymentTarget: () => Promise<string>
   handleNextStep: () => Promise<void>
   handlePrevStep: () => void
@@ -110,6 +108,7 @@ interface UseWizardControllerResult {
   getUsedSubjects: () => string[]
   saveDraft: () => Promise<void>
   watchValues: () => WizardFormData
+  goToStep: (index: number) => void
 }
 
 export interface PaymentValidationContext {
@@ -221,6 +220,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const [programs, setPrograms] = useState<WizardProgram[]>([])
   const [intakes, setIntakes] = useState<WizardIntake[]>([])
   const isSavingRef = useRef(false)
+  const isSubmittingRef = useRef(false)
   const authRecoveryInFlightRef = useRef(false)
 
   const findProgramId = useCallback(
@@ -393,16 +393,13 @@ const useWizardController = (): UseWizardControllerResult => {
   const {
     resultSlipFile,
     extraKycFile,
-    proofOfPaymentFile: popFile,
     uploading,
     uploadProgress,
     uploadedFiles,
     handleResultSlipUpload: baseHandleResultSlipUpload,
     handleExtraKycUpload: baseHandleExtraKycUpload,
-    handleProofOfPaymentUpload: baseHandleProofOfPaymentUpload,
     handleResultSlipFile: baseHandleResultSlipFile,
     handleExtraKycFile,
-    handleProofOfPaymentFile: baseHandleProofOfPaymentFile,
     startUpload,
     trackUploadTask
   } = useApplicationFileUploads({
@@ -461,20 +458,6 @@ const useWizardController = (): UseWizardControllerResult => {
       }
     })
   }, [baseHandleResultSlipUpload, baseHandleResultSlipFile, applicationId, subjects, syncGrades, updateApplication, queryClient, showSuccess, showInfo, showWarning])
-
-  const handleProofOfPaymentUploadWrapped = useCallback((file: File | null) => {
-    if (!file) {
-      baseHandleProofOfPaymentFile(null)
-      return
-    }
-
-    baseHandleProofOfPaymentUpload({ target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>, async (uploadedFile, url) => {
-      if (!applicationId) return
-      await updateApplication.mutateAsync({ id: applicationId, data: { pop_url: url } })
-      queryClient.invalidateQueries({ queryKey: ['applications'] })
-      showSuccess('Payment proof uploaded successfully!')
-    })
-  }, [baseHandleProofOfPaymentUpload, baseHandleProofOfPaymentFile, applicationId, updateApplication, queryClient, showSuccess])
 
   const preserveDraftBeforeAuthRedirect = useCallback(() => {
     const now = new Date().toISOString()
@@ -669,6 +652,23 @@ const useWizardController = (): UseWizardControllerResult => {
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (currentStepIndex > 0 && !success) {
+        // Preserve form data to localStorage before unload (Req 10.4)
+        try {
+          const formData = getValues()
+          const draft = {
+            formData,
+            selectedGrades,
+            currentStep: currentStepConfig.id,
+            currentStepKey: currentStepConfig.key,
+            applicationId,
+            savedAt: new Date().toISOString(),
+            userId: user?.id,
+            version: 2
+          }
+          localStorage.setItem('applicationWizardDraft', JSON.stringify(draft))
+        } catch {
+          // best effort
+        }
         event.preventDefault()
         event.returnValue = 'You have unsaved changes. Are you sure you want to leave?'
       }
@@ -676,7 +676,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [currentStepIndex, success])
+  }, [currentStepIndex, success, getValues, selectedGrades, currentStepConfig, applicationId, user?.id])
 
   useEffect(() => {
     const handleAuthRedirect = () => {
@@ -1440,6 +1440,14 @@ const useWizardController = (): UseWizardControllerResult => {
         return
       }
 
+      // Require identity document (NRC or Passport) — Req 5.1, 5.2
+      if (!extraKycFile && !uploadedFiles['extra_kyc']) {
+        const errorMessage = 'An NRC or Passport document is required before proceeding'
+        setError('')
+        showError(errorMessage)
+        return
+      }
+
       // Wait for upload to complete if still uploading
       if (uploading) {
         const errorMessage = 'Please wait for file upload to complete'
@@ -1494,7 +1502,6 @@ const useWizardController = (): UseWizardControllerResult => {
     updateApplication,
     programIds,
     intakeIds,
-    popFile,
     resolveIntakeIdentity,
     resolveProgramIdentity,
     showError
@@ -1509,16 +1516,22 @@ const useWizardController = (): UseWizardControllerResult => {
 
   const handleSubmitApplication = useCallback(async (data: WizardFormData) => {
     logger.info('[handleSubmitApplication] Starting submission...')
+    // Prevent double-click on submit (Req 8.3)
+    if (isSubmittingRef.current) return
+    isSubmittingRef.current = true
+
     if (!confirmSubmission) {
       const errorMessage = 'Please confirm that all information is accurate before submitting'
       setError('')
       showError(errorMessage)
+      isSubmittingRef.current = false
       return
     }
     if (!applicationId) {
       const errorMessage = 'Application ID not found. Please try refreshing the page.'
       setError('')
       showError(errorMessage)
+      isSubmittingRef.current = false
       return
     }
 
@@ -1640,8 +1653,9 @@ const useWizardController = (): UseWizardControllerResult => {
       showError(message)
     } finally {
       setLoading(false)
+      isSubmittingRef.current = false
     }
-  }, [confirmSubmission, popFile, applicationId, startUpload, updateApplication, user?.id, showError, showSuccess])
+  }, [confirmSubmission, applicationId, startUpload, updateApplication, user?.id, showError, showSuccess])
 
   return {
     authLoading,
@@ -1672,7 +1686,6 @@ const useWizardController = (): UseWizardControllerResult => {
     setConfirmSubmission,
     resultSlipFile,
     extraKycFile,
-    popFile,
     uploadProgress,
     uploadedFiles,
     isDraftSaving,
@@ -1688,7 +1701,6 @@ const useWizardController = (): UseWizardControllerResult => {
     dismissSlipProgress,
     handleResultSlipUpload,
     handleExtraKycUpload: handleExtraKycFile,
-    handleProofOfPaymentUpload: handleProofOfPaymentUploadWrapped,
     getPaymentTarget,
     handleNextStep,
     handlePrevStep,
@@ -1698,7 +1710,8 @@ const useWizardController = (): UseWizardControllerResult => {
     updateGrade,
     getUsedSubjects,
     saveDraft,
-    watchValues: watch
+    watchValues: watch,
+    goToStep
   }
 }
 

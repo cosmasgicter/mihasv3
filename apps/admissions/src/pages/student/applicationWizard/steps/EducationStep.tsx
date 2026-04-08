@@ -275,9 +275,9 @@ const EducationStep = ({
                 <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Required</p>
                 <p className="mt-1 text-sm font-medium text-blue-950">Academic result slip</p>
               </div>
-              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Optional</p>
-                <p className="mt-1 text-sm font-medium text-amber-950">NRC or passport copy</p>
+              <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Required</p>
+                <p className="mt-1 text-sm font-medium text-blue-950">NRC or passport copy</p>
               </div>
             </div>
           </div>
@@ -337,13 +337,13 @@ const EducationStep = ({
           <div className="flex h-full flex-col rounded-xl border border-border bg-card p-4">
             <div className="mb-3 flex items-start justify-between gap-3">
               <div>
-                <h3 className="text-sm font-semibold text-foreground">Identity support document</h3>
+                <h3 className="text-sm font-semibold text-foreground">Identity document</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Only upload this when you want to support the KYC details already entered in the earlier step.
+                  Upload a clear NRC or passport copy. This is required before you can submit your application.
                 </p>
               </div>
-              <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-700">
-                Optional
+              <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700">
+                Required
               </span>
             </div>
             <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3">
@@ -359,14 +359,14 @@ const EducationStep = ({
             </div>
             <div className="mb-3">
               <p className="mt-1 text-sm text-muted-foreground">
-                This slot is for a clear NRC or passport copy only. It is not another academic upload.
+                Upload a clear NRC or passport copy. This is required for identity verification before submission.
               </p>
             </div>
             <div
-              className={`mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg ${animateClasses.slideUp}`}
+              className={`mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg ${animateClasses.slideUp}`}
             >
-              <p className="text-sm text-amber-900">
-                Your identity details are captured in the KYC step. Upload this document only when you want to support verification with a clear NRC or passport copy.
+              <p className="text-sm text-blue-900">
+                An NRC or passport document is required before you can submit your application. Please upload a clear copy.
               </p>
             </div>
             <FileUpload

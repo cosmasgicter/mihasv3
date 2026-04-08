@@ -1,9 +1,12 @@
 /**
  * Document Generation Hook - Cookie-based authentication
  * 
- * Uses HTTP-only cookies (credentials: 'include') for authentication
+ * Uses HTTP-only cookies (credentials: 'include') for authentication.
+ * Reads payment data from the `payments` table instead of deprecated
+ * Application model fields.
  * 
  * @module useDocumentGeneration
+ * @requirements 2.7
  */
 
 import { useState } from 'react';
@@ -12,6 +15,7 @@ import { generateApplicationSlip } from '@/lib/applicationSlip';
 import { generateAcceptanceLetter } from '@/lib/acceptanceLetterGenerator';
 import { generatePaymentReceipt, generateReceiptNumber } from '@/lib/receiptGenerator';
 import { applicationService } from '@/services/applications';
+import { apiClient } from '@/services/client';
 
 type ApplicationPayload = {
   id?: string;
@@ -19,14 +23,10 @@ type ApplicationPayload = {
   public_tracking_code?: string;
   status?: string;
   payment_status?: string;
-  payment_method?: string | null;
   payment_verified_at?: string | null;
   payment_verified_by_name?: string | null;
   receipt_number?: string | null;
   application_fee?: number | string | null;
-  amount?: number | string | null;
-  momo_ref?: string | null;
-  paid_at?: string | null;
   submitted_at?: string;
   updated_at?: string;
   program?: string;
@@ -36,6 +36,22 @@ type ApplicationPayload = {
   email?: string;
   phone?: string;
 };
+
+interface PaymentRecord {
+  id: string;
+  status: string;
+  amount: number | null;
+  currency: string | null;
+  payment_method?: string | null;
+  transaction_reference?: string | null;
+  created_at: string;
+  updated_at?: string;
+}
+
+interface PaymentListResponse {
+  results?: PaymentRecord[];
+  [key: string]: unknown;
+}
 
 const summarizePayloadShape = (payload: unknown) => {
   if (!payload || typeof payload !== 'object') {
@@ -115,7 +131,19 @@ function normalizeAmount(value: number | string | null | undefined): number {
   return 0;
 }
 
-function buildReceiptData(application: ApplicationPayload) {
+async function fetchSuccessfulPayment(applicationId: string): Promise<PaymentRecord | null> {
+  try {
+    const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>(
+      `/payments/?application_id=${encodeURIComponent(applicationId)}`
+    );
+    const records = Array.isArray(data) ? data : (data?.results ?? []);
+    return records.find(r => r.status === 'successful') ?? records[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function buildReceiptData(application: ApplicationPayload, payment: PaymentRecord | null) {
   return {
     receiptNumber: application.receipt_number || generateReceiptNumber(),
     applicationNumber: application.application_number || 'Unknown',
@@ -124,11 +152,11 @@ function buildReceiptData(application: ApplicationPayload) {
     phone: application.phone || 'Not provided',
     program: application.program || 'Not specified',
     institution: application.institution || 'MIHAS',
-    amount: normalizeAmount(application.amount ?? application.application_fee),
-    paymentMethod: application.payment_method || 'Mobile Money',
-    paymentReference: application.momo_ref || undefined,
-    paymentDate: application.paid_at || application.payment_verified_at || new Date().toISOString(),
-    verifiedDate: application.payment_verified_at || new Date().toISOString(),
+    amount: payment ? normalizeAmount(payment.amount) : normalizeAmount(application.application_fee),
+    paymentMethod: payment?.payment_method || 'Online Payment',
+    paymentReference: payment?.transaction_reference || undefined,
+    paymentDate: payment?.created_at || application.payment_verified_at || new Date().toISOString(),
+    verifiedDate: payment?.updated_at || application.payment_verified_at || new Date().toISOString(),
     verifiedBy: application.payment_verified_by_name || 'Admissions Office',
   };
 }
@@ -193,10 +221,13 @@ export function useDocumentGeneration() {
           break;
 
         case 'receipt':
-          if (application.payment_status !== 'verified') {
+          if (application.payment_status !== 'verified' && application.payment_status !== 'paid') {
             throw new Error('Payment must be verified to generate receipt');
           }
-          pdfBlob = await generatePaymentReceipt(buildReceiptData(application));
+          {
+            const payment = await fetchSuccessfulPayment(applicationId);
+            pdfBlob = await generatePaymentReceipt(buildReceiptData(application, payment));
+          }
           filename = `receipt_${application.receipt_number || application.application_number || applicationId}.pdf`;
           break;
 

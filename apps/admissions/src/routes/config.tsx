@@ -29,6 +29,7 @@ const AdminIntakes = React.lazy(() => import('@/pages/admin/Intakes'))
 const AdminUsers = React.lazy(() => import('@/pages/admin/Users'))
 const AdminSettings = React.lazy(() => import('@/pages/admin/Settings'))
 const AuditTrail = React.lazy(() => import('@/pages/admin/AuditTrail'))
+const AdminProgramFees = React.lazy(() => import('@/pages/admin/ProgramFees'))
 const PublicApplicationTracker = React.lazy(() => import('@/pages/public/tracker/index'))
 const ContactPage = React.lazy(() => import('@/pages/ContactPage'))
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'))
@@ -93,6 +94,7 @@ export const routes: RouteConfig[] = [
   { path: '/admin/intakes', element: AdminIntakes, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
   { path: '/admin/users', element: AdminUsers, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
   { path: '/admin/audit', element: AuditTrail, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
+  { path: '/admin/program-fees', element: AdminProgramFees, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
   { path: '/admin/settings', element: AdminSettings, guard: 'admin', lazy: true, skeletonType: 'detail' },
   
   // 404 routes
