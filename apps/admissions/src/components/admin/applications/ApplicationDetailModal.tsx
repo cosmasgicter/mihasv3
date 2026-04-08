@@ -61,10 +61,7 @@ interface ApplicationWithDetails {
  program: string
  intake: string
  institution?: string
- payment_method?: string
- amount?: number
  application_fee?: number
- payer_name?: string
  payment_status?: string
  payment_verified_at?: string | null
  payment_verified_by_name?: string | null

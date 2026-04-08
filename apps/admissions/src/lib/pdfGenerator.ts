@@ -104,7 +104,7 @@ export const pdfGenerator = {
     doc.setFontSize(10)
     doc.text(`Application Fee: K${application.application_fee}`, 20, 125)
     doc.text(`Amount Paid: K${application.paid_amount || 0}`, 20, 132)
-    doc.text(`Payment Method: ${application.payment_method || 'N/A'}`, 20, 139)
+    doc.text(`Payment Method: Lenco Payment Gateway`, 20, 139)
     if (application.paid_at) {
       doc.text(`Payment Date: ${formatDate(application.paid_at)}`, 20, 146)
     }

@@ -62,7 +62,7 @@ const calculateCompletionPercentage = (application: any): number => {
   const requiredFields = [
     'full_name', 'date_of_birth', 'sex', 'phone', 'email',
     'residence_town', 'program', 'intake', 'institution',
-    'result_slip_url', 'payment_method', 'amount'
+    'result_slip_url'
   ]
   
   const completedFields = requiredFields.filter(field => {

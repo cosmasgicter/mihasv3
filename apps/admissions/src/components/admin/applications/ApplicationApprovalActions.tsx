@@ -76,9 +76,9 @@ export function ApplicationApprovalActions({
   const handleStatusUpdate = useCallback(async (newStatus: string) => {
     if (updatingStatus || disabled) return
     
-    // Prevent approval without verified payment
-    if (newStatus === 'approved' && currentPaymentStatus !== 'verified') {
-      const confirmed = await confirmDialog.confirm({
+    // Prevent approval without verified payment (accept both 'verified' and 'paid')
+    if (newStatus === 'approved' && currentPaymentStatus !== 'verified' && currentPaymentStatus !== 'paid') {
+      await confirmDialog.confirm({
         title: 'Payment Not Verified',
         message: 'This application cannot be approved because payment has not been verified. Please verify payment first.',
         confirmText: 'OK',
@@ -209,9 +209,9 @@ export function ApplicationApprovalActions({
             <>
               <button
                 onClick={() => handleStatusUpdate('approved')}
-                disabled={updatingStatus || disabled || currentPaymentStatus !== 'verified'}
+                disabled={updatingStatus || disabled || (currentPaymentStatus !== 'verified' && currentPaymentStatus !== 'paid')}
                 className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
-                title={currentPaymentStatus !== 'verified' ? 'Payment must be verified first' : 'Approve application'}
+                title={(currentPaymentStatus !== 'verified' && currentPaymentStatus !== 'paid') ? 'Payment must be verified first' : 'Approve application'}
               >
                 {updatingStatus ? (
                   <UnifiedSpinner size="sm" />
