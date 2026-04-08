@@ -52,6 +52,41 @@ function hasAllowedExtension(fileName: string): boolean {
   return (ALLOWED_EXTENSIONS as readonly string[]).some(ext => lowerName.endsWith(ext))
 }
 
+export function isAuthError(error: unknown): boolean {
+  if (error instanceof Error && error.name === 'AuthenticationError') {
+    return true
+  }
+  const status = (error as { status?: number })?.status
+  return status === 401 || status === 403
+}
+
+export function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+export async function verifySessionWithRetry(): Promise<boolean> {
+  try {
+    const result = await apiClient.request<{ user?: unknown }>('/auth/session/')
+    return !!result?.user
+  } catch (error) {
+    if (isAuthError(error)) {
+      await delay(1000)
+      try {
+        const retryResult = await apiClient.request<{ user?: unknown }>('/auth/session/')
+        return !!retryResult?.user
+      } catch (retryError) {
+        if (isAuthError(retryError)) {
+          throw new Error('Your session has expired. Please sign in again to continue uploading.')
+        }
+        // Network error on retry — proceed with upload
+        return true
+      }
+    }
+    // Network error (not auth) — proceed with upload
+    return true
+  }
+}
+
 function isRetryableUploadError(error: unknown): boolean {
   const explicitRetryable = (error as { retryable?: unknown })?.retryable
   if (typeof explicitRetryable === 'boolean') {
@@ -269,11 +304,8 @@ export function useApplicationFileUploads({
           throw new Error('User or application ID not available')
         }
 
-        // Verify session via apiClient (handles CSRF, 401 retry, endpoint normalization)
-        const sessionResult = await apiClient.request<{ user?: unknown }>('/auth/session/')
-        if (!sessionResult?.user) {
-          throw new Error('Session expired. Please refresh the page.')
-        }
+        // Verify session with retry-once logic for auth errors
+        await verifySessionWithRetry()
 
         setUploadProgress(prev => ({ ...prev, [fileType]: 0 }))
         setUploadedFiles(prev => ({ ...prev, [fileType]: false }))

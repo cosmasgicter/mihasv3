@@ -103,6 +103,29 @@ vi.mock('@/components/smoothui', () => ({
   AnimatedCounter: ({ value, suffix }: { value: number; suffix: string }) => (
     <span>{value}{suffix}</span>
   ),
+  TextEffect: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="text-effect">{children}</div>
+  ),
+  ShinyText: ({ text }: { text: string }) => (
+    <span data-testid="shiny-text">{text}</span>
+  ),
+  InfiniteGrid: () => <div data-testid="infinite-grid" />,
+  TextRotate: ({ phrases }: { phrases: string[] }) => (
+    <span data-testid="text-rotate">{phrases[0]}</span>
+  ),
+  useReducedMotion: () => false,
+}))
+
+vi.mock('@/components/smoothui/shape-landing-hero', () => ({
+  ShapeLandingHero: ({ headline, description, primaryCta, secondaryCta, imageSrc, imageAlt }: any) => (
+    <section data-testid="shape-landing-hero">
+      <h1>{headline}</h1>
+      <p>{description}</p>
+      <a href={primaryCta.href}>{primaryCta.label}</a>
+      <a href={secondaryCta.href}>{secondaryCta.label}</a>
+      <img src={imageSrc} alt={imageAlt} />
+    </section>
+  ),
 }))
 
 // ── Mock logApiError (no-op for tests) ────────────────────────────────

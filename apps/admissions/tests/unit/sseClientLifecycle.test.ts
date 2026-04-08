@@ -66,6 +66,12 @@ class MockEventSource {
 // Install mock
 vi.stubGlobal('EventSource', MockEventSource);
 
+// Mock fetch globally — probeEndpointForAuth uses fetch to detect auth failures.
+// Default: return 500 (non-auth error) so existing tests that trigger onerror
+// continue to schedule reconnects via normal backoff.
+const mockFetch = vi.fn().mockResolvedValue({ status: 500 });
+vi.stubGlobal('fetch', mockFetch);
+
 // Now import the module under test
 import { createSSEClient } from '@/lib/sseClient';
 
@@ -76,6 +82,7 @@ describe('SSE Client Lifecycle', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     MockEventSource.reset();
+    mockFetch.mockResolvedValue({ status: 500 });
     addEventListenerSpy = vi.spyOn(document, 'addEventListener');
     removeEventListenerSpy = vi.spyOn(document, 'removeEventListener');
   });
@@ -172,7 +179,7 @@ describe('SSE Client Lifecycle', () => {
   });
 
   describe('maxRetries emits error event to subscribers', () => {
-    it('should dispatch error event with max_retries_exceeded when maxRetries reached', () => {
+    it('should dispatch error event with max_retries_exceeded when maxRetries reached', async () => {
       const onError = vi.fn();
       const errorHandler = vi.fn();
 
@@ -190,20 +197,29 @@ describe('SSE Client Lifecycle', () => {
       // Connect
       client.connect();
       let es = MockEventSource.instances[MockEventSource.instances.length - 1];
-      es.simulateError(); // retryCount=0, schedules reconnect
+      es.simulateError(); // retryCount=0, probe then schedules reconnect
+
+      // Flush the fetch probe promise
+      await vi.advanceTimersByTimeAsync(0);
 
       // Advance timer to trigger first reconnect
-      vi.advanceTimersByTime(100);
+      await vi.advanceTimersByTimeAsync(100);
       es = MockEventSource.instances[MockEventSource.instances.length - 1];
-      es.simulateError(); // retryCount=1, schedules reconnect
+      es.simulateError(); // retryCount=1, probe then schedules reconnect
+
+      // Flush the fetch probe promise
+      await vi.advanceTimersByTimeAsync(0);
 
       // Advance timer to trigger second reconnect
-      vi.advanceTimersByTime(200);
+      await vi.advanceTimersByTimeAsync(200);
       es = MockEventSource.instances[MockEventSource.instances.length - 1];
       es.simulateError(); // retryCount=2, now >= maxRetries
 
+      // Flush the fetch probe promise
+      await vi.advanceTimersByTimeAsync(0);
+
       // Advance timer - scheduleReconnect should detect maxRetries
-      vi.advanceTimersByTime(400);
+      await vi.advanceTimersByTimeAsync(400);
 
       // The onError callback should have been called with max retries message
       const maxRetriesCall = onError.mock.calls.find(
@@ -215,7 +231,7 @@ describe('SSE Client Lifecycle', () => {
       expect(errorHandler).toHaveBeenCalledWith({ type: 'max_retries_exceeded' });
     });
 
-    it('should not dispatch max_retries_exceeded when retries are below max', () => {
+    it('should not dispatch max_retries_exceeded when retries are below max', async () => {
       const errorHandler = vi.fn();
 
       const client = createSSEClient({
@@ -232,8 +248,11 @@ describe('SSE Client Lifecycle', () => {
       const es = MockEventSource.instances[MockEventSource.instances.length - 1];
       es.simulateError();
 
+      // Flush the fetch probe promise
+      await vi.advanceTimersByTimeAsync(0);
+
       // Advance timer for reconnect
-      vi.advanceTimersByTime(100);
+      await vi.advanceTimersByTimeAsync(100);
 
       // Error handler should NOT have received max_retries_exceeded
       const maxRetriesCalls = errorHandler.mock.calls.filter(
