@@ -84,7 +84,6 @@ export default defineConfig({
       'tests/unit/adminRoleSupport.test.ts',
       'tests/unit/commentedCodeScanner.test.ts',
       'tests/unit/featureFlagScanner.test.ts',
-      'tests/unit/unifiedLoader.test.tsx',
     ],
     coverage: {
       provider: 'v8',

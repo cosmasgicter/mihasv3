@@ -14,7 +14,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/Dialog'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { DashboardSkeleton } from '@/components/ui/skeleton'
 import { ResponsiveTable } from '@/components/ui/ResponsiveTable'
 import { Pencil, Trash2, Plus, ArrowLeft, Calendar } from 'lucide-react'
 import { useForm, type Resolver } from 'react-hook-form'
@@ -251,7 +251,7 @@ export default function AdminIntakes() {
             {loading ? (
               <div className="flex justify-center py-8 sm:py-16">
                 <div className="text-center">
-                  <UnifiedLoader variant="page" label="Loading intakes..." />
+                  <DashboardSkeleton />
                 </div>
               </div>
             ) : error ? (

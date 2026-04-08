@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { Skeleton, SkeletonCard } from '@/components/ui/skeleton'
 import { Container } from '@/components/ui/Container'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
@@ -312,8 +312,14 @@ export default function NotificationSettings() {
         )}
 
         {loading ? (
-          <div className="flex justify-center items-center py-10 sm:py-20">
-            <UnifiedLoader variant="page" />
+          <div className="space-y-6" role="status" aria-label="Loading notification preferences">
+            <SkeletonCard />
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <SkeletonCard />
+              <SkeletonCard />
+            </div>
+            <SkeletonCard />
+            <span className="sr-only">Loading notification preferences</span>
           </div>
         ) : (
           <div className="space-y-6">
@@ -406,8 +412,14 @@ export default function NotificationSettings() {
                 )}
 
                 {notificationsLoading ? (
-                  <div className="flex justify-center py-8">
-                    <UnifiedLoader variant="inline" />
+                  <div className="space-y-3 py-4" role="status" aria-label="Loading notifications">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="rounded-xl border border-border px-4 py-3 space-y-2">
+                        <Skeleton className="h-4 w-3/5" />
+                        <Skeleton className="h-3 w-full" />
+                        <Skeleton className="h-3 w-1/3" />
+                      </div>
+                    ))}
                   </div>
                 ) : notifications.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-border px-4 py-8 text-center">

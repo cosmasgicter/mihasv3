@@ -120,7 +120,8 @@ const EducationStep = ({
       <h2 className="text-lg font-semibold text-foreground mb-4">{title}</h2>
 
       <div className="space-y-6">
-        <div>
+        <fieldset className="border-none p-0 m-0">
+          <legend className="sr-only">Education Details</legend>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
             <h3 className="text-md font-medium text-foreground">Grade 12 Subjects (Minimum 5 required)</h3>
             {selectedGrades.length === 0 && (
@@ -259,9 +260,11 @@ const EducationStep = ({
               </Button>
             </div>
           )}
-        </div>
+        </fieldset>
 
         {/* Document Uploads */}
+        <fieldset className="border-none p-0 m-0">
+          <legend className="sr-only">Document Uploads</legend>
         <div className="rounded-2xl border border-border bg-muted/30 p-4 sm:p-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
             <div>
@@ -384,6 +387,7 @@ const EducationStep = ({
             />
           </div>
         </div>
+        </fieldset>
       </div>
     </div>
   )

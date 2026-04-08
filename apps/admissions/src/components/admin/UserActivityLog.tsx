@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { Button } from '@/components/ui/Button'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog'
 import { adminAuditService, type AuditLogEntry } from '@/services/admin/audit'
@@ -142,8 +142,17 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
           ) : null}
 
           {loading ? (
-            <div className="flex justify-center py-10">
-              <UnifiedLoader variant="page" />
+            <div className="space-y-4 py-6">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-start gap-3 animate-pulse rounded-xl border border-border p-4">
+                  <Skeleton className="h-9 w-9 rounded-full flex-shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-full" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : filteredActivities.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-border bg-muted/20 px-6 py-16 text-center">

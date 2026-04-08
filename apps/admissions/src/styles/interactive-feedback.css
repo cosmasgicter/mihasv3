@@ -85,12 +85,12 @@
   
   /* Focus ring for inputs */
   .focus-ring-input {
-    @apply focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring;
   }
   
-  /* Visible focus indicator for keyboard navigation */
+  /* Visible focus indicator for keyboard navigation — uses global *:focus-visible rule */
   .keyboard-focus {
-    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
   }
   
   /* ===== ACTIVE/PRESSED STATES ===== */
@@ -191,19 +191,19 @@ a:not(.no-hover) {
 
 /* Enhanced focus indicators for keyboard navigation */
 *:focus-visible {
-  @apply outline-2 outline-offset-2 outline-blue-600 ring-2 ring-blue-600 ring-offset-2;
+  @apply outline-none ring-2 ring-ring ring-offset-2;
 }
 
 /* Specific focus styles for form elements */
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  @apply outline-none ring-2 ring-blue-600 border-blue-600;
+  @apply outline-none ring-2 ring-ring border-ring;
 }
 
 /* Focus styles for custom interactive elements */
 [tabindex]:not([tabindex="-1"]):focus-visible {
-  @apply outline-2 outline-offset-2 outline-blue-600 ring-2 ring-blue-600 ring-offset-2;
+  @apply outline-none ring-2 ring-ring ring-offset-2;
 }
 
 /* ===== TOUCH FEEDBACK ===== */

@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react'
-import { UnifiedLoader, UnifiedSpinner } from '@/components/ui/UnifiedLoader'
+import { ButtonSpinner } from '@/components/ui/ButtonSpinner'
 import { FileText, CheckCircle } from 'lucide-react'
 import { useToastStore } from '@/hooks/useToast'
 import { ApplicationCard, ApplicationSummary } from './ApplicationCard'
@@ -95,7 +95,7 @@ export function ApplicationsTable({
                     type="checkbox"
                     checked={selectedIds.length === applications.length && applications.length > 0}
                     onChange={handleSelectAll}
-                    className="h-4 w-4 text-primary focus:ring-blue-500 border-input rounded"
+                    className="h-4 w-4 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border-input rounded"
                   />
                   <span className="text-sm font-medium text-foreground">
                     {selectedIds.length > 0 ? `${selectedIds.length} selected` : 'Select all'}
@@ -156,7 +156,7 @@ export function ApplicationsTable({
                 disabled={isLoadingMore}
                 className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:from-blue-700 hover:to-blue-800 hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {isLoadingMore && <UnifiedSpinner size="sm" className="mr-2" />}
+                {isLoadingMore && <ButtonSpinner size="sm" className="mr-2" />}
                 {isLoadingMore ? 'Loading more...' : 'Load more applications'}
               </button>
             ) : (

@@ -433,7 +433,22 @@ export function suggestAccessibleColor(
     attempts++
   }
 
-  return needsLighter ? '#ffffff' : '#000000'
+  // Fallback: try both extremes and return whichever meets the target,
+  // preferring the initial direction. For mid-luminance backgrounds the
+  // initial heuristic may pick the wrong direction.
+  const whiteRatio = getContrastRatio('#ffffff', background)
+  const blackRatio = getContrastRatio('#000000', background)
+
+  if (needsLighter) {
+    if (whiteRatio >= targetRatio) return '#ffffff'
+    if (blackRatio >= targetRatio) return '#000000'
+  } else {
+    if (blackRatio >= targetRatio) return '#000000'
+    if (whiteRatio >= targetRatio) return '#ffffff'
+  }
+
+  // Neither extreme meets the target — return the one with higher contrast
+  return whiteRatio >= blackRatio ? '#ffffff' : '#000000'
 }
 
 /**

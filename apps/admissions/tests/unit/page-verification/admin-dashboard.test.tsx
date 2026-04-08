@@ -158,8 +158,10 @@ vi.mock('@/components/seo/Seo', () => ({
   Seo: () => null,
 }))
 
-vi.mock('@/components/ui/UnifiedLoader', () => ({
-  UnifiedLoader: ({ label }: { label?: string }) => <div data-testid="loader">{label}</div>,
+vi.mock('@/components/ui/ButtonSpinner', () => ({
+  ButtonSpinner: ({ size, className }: { size?: string; className?: string }) => (
+    <span data-testid="button-spinner" />
+  ),
 }))
 
 vi.mock('@/components/admin/OfflineAdminDashboard', () => ({

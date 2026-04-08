@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import type { ApplicationWithDetails } from '@/types/database'
 import { logger } from '@/lib/logger'
 import { Button } from '@/components/ui/Button'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { Skeleton, SkeletonCard } from '@/components/ui/skeleton'
 import { formatDate, formatTimestamp } from '@/lib/dateFormat'
 import { applicationService } from '@/services/applications'
 import { staggerChild, animateClasses } from '@/lib/animations'
@@ -153,8 +153,20 @@ export default function ApplicationStatus() {
   if (loading) {
     return (
       <PageShell title="Application Status" subtitle="Loading...">
-          <div className="flex min-h-[40vh] items-center justify-center">
-            <UnifiedLoader variant="page" />
+          <div className="space-y-6 sm:space-y-8" role="status" aria-label="Loading application status">
+            <Skeleton className="h-8 w-40 rounded-full" />
+            <SkeletonCard />
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
+              <div className="lg:col-span-2 space-y-6">
+                <SkeletonCard />
+                <SkeletonCard />
+              </div>
+              <div className="space-y-6">
+                <SkeletonCard />
+                <SkeletonCard />
+              </div>
+            </div>
+            <span className="sr-only">Loading application status</span>
           </div>
       </PageShell>
     )

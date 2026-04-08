@@ -4,7 +4,6 @@
  * @requirements 31.1, 31.3, 31.6, 31.7 - Minimal layout, center-aligned card
  */
 
-import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,7 +13,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { Banner } from '@/components/ui/Banner';
 import { FormErrorAnnouncer } from '@/components/ui/FormErrorAnnouncer';
@@ -82,7 +80,6 @@ export default function SignInPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { signIn } = useAuth();
-  const [isAuthenticating, setIsAuthenticating] = useState(false);
   const searchParams = new URLSearchParams(location.search);
   const redirectFromQuery = searchParams.get('redirect');
 
@@ -121,8 +118,6 @@ export default function SignInPage() {
       return result;
     },
     onSuccess: (result) => {
-      setIsAuthenticating(true);
-
       const locationState = location.state as { from?: { pathname?: string; search?: string; hash?: string } } | null;
       const fromPath = locationState?.from?.pathname;
       const fromSearch = locationState?.from?.search || '';
@@ -143,7 +138,6 @@ export default function SignInPage() {
     },
     onError: (error: unknown) => {
       logApiError('sign-in', '/auth/login/', error);
-      setIsAuthenticating(false);
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('mihas:post-auth-redirect');
       }
@@ -180,7 +174,6 @@ export default function SignInPage() {
   return (
     <>
       <Seo title={seoConfig.title} description={seoConfig.description} path={location.pathname} />
-      {isAuthenticating && <UnifiedLoader variant="overlay" label="Signing you in..." />}
       <AuthLayout
         variant="signin"
         title="Sign in"

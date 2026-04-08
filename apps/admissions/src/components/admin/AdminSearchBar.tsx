@@ -128,7 +128,7 @@ export function AdminSearchBar() {
           onKeyDown={handleKeyDown}
           onFocus={() => query.length > 2 && setIsOpen(true)}
           onBlur={() => setTimeout(() => setIsOpen(false), 200)}
-          className="w-full pl-10 pr-4 py-2 bg-card border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary transition-all duration-200"
+          className="w-full pl-10 pr-4 py-2 bg-card border border-input rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all duration-200"
         />
       </div>
 

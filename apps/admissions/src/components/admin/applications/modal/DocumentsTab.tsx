@@ -1,5 +1,5 @@
 import { FileText, Download, CheckCircle, Clock } from 'lucide-react'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface DocumentItem {
   id: string
@@ -11,7 +11,22 @@ interface DocumentItem {
 }
 
 export function DocumentsTab({ documents, loading, application }: { documents: DocumentItem[], loading: boolean, application?: any }) {
-  if (loading) return <UnifiedLoader variant="inline" size="sm" message="Loading details" />
+  if (loading) return (
+    <div className="space-y-3 py-4" role="status" aria-label="Loading documents">
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="flex items-center justify-between p-4 bg-card border rounded-lg">
+          <div className="flex items-center gap-3">
+            <Skeleton className="w-10 h-10 rounded-lg" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-20 rounded-full" />
+            </div>
+          </div>
+          <Skeleton className="h-8 w-16 rounded-lg" />
+        </div>
+      ))}
+    </div>
+  )
   
   const all = [...documents]
   if (application) {

@@ -12,6 +12,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/lib/animation-config';
+import { useStyleInjection } from '@/hooks/useStyleInjection';
 
 interface TextEffectProps {
   /** Text content */
@@ -50,6 +51,52 @@ export function TextEffect({
   const ref = useRef<HTMLDivElement>(null);
   const [hasIntersected, setHasIntersected] = useState(false);
 
+  const textEffectCss = `
+    .text-effect {
+      will-change: opacity, transform, filter;
+    }
+
+    /* --- Initial states (text visible but pre-animation) --- */
+    .text-effect--fade-up-initial {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    .text-effect--fade-in-initial {
+      opacity: 0;
+    }
+    .text-effect--slide-left-initial {
+      opacity: 0;
+      transform: translateX(-32px);
+    }
+    .text-effect--blur-initial {
+      opacity: 0;
+      filter: blur(8px);
+    }
+
+    /* --- Animated states --- */
+    .text-effect--fade-up-animated {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    .text-effect--fade-in-animated {
+      opacity: 1;
+      transition: opacity 0.6s ease-out;
+    }
+    .text-effect--slide-left-animated {
+      opacity: 1;
+      transform: translateX(0);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    .text-effect--blur-animated {
+      opacity: 1;
+      filter: blur(0);
+      transition: opacity 0.6s ease-out, filter 0.6s ease-out;
+    }
+  `;
+
+  useStyleInjection('text-effect', textEffectCss);
+
   useEffect(() => {
     // Skip observer when reduced motion — text renders immediately
     if (reducedMotion) return;
@@ -81,62 +128,17 @@ export function TextEffect({
   }
 
   return (
-    <>
-      <style>{`
-        .text-effect {
-          will-change: opacity, transform, filter;
-        }
-
-        /* --- Initial states (text visible but pre-animation) --- */
-        .text-effect--fade-up-initial {
-          opacity: 0;
-          transform: translateY(24px);
-        }
-        .text-effect--fade-in-initial {
-          opacity: 0;
-        }
-        .text-effect--slide-left-initial {
-          opacity: 0;
-          transform: translateX(-32px);
-        }
-        .text-effect--blur-initial {
-          opacity: 0;
-          filter: blur(8px);
-        }
-
-        /* --- Animated states --- */
-        .text-effect--fade-up-animated {
-          opacity: 1;
-          transform: translateY(0);
-          transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-        }
-        .text-effect--fade-in-animated {
-          opacity: 1;
-          transition: opacity 0.6s ease-out;
-        }
-        .text-effect--slide-left-animated {
-          opacity: 1;
-          transform: translateX(0);
-          transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-        }
-        .text-effect--blur-animated {
-          opacity: 1;
-          filter: blur(0);
-          transition: opacity 0.6s ease-out, filter 0.6s ease-out;
-        }
-      `}</style>
-      <div
-        ref={ref}
-        className={cn(
-          'text-effect',
-          hasIntersected ? animatedStyles[effect] : initialStyles[effect],
-          className,
-        )}
-        style={delay > 0 && hasIntersected ? { transitionDelay: `${delay}ms` } : undefined}
-      >
-        {children}
-      </div>
-    </>
+    <div
+      ref={ref}
+      className={cn(
+        'text-effect',
+        hasIntersected ? animatedStyles[effect] : initialStyles[effect],
+        className,
+      )}
+      style={delay > 0 && hasIntersected ? { transitionDelay: `${delay}ms` } : undefined}
+    >
+      {children}
+    </div>
   );
 }
 

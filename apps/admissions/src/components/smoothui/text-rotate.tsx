@@ -12,6 +12,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/lib/animation-config';
+import { useStyleInjection } from '@/hooks/useStyleInjection';
 
 interface TextRotateProps {
   /** Array of phrases to cycle through */
@@ -35,6 +36,26 @@ export function TextRotate({
   const [isFlipping, setIsFlipping] = useState(false);
 
   const safeIndex = phrases.length > 0 ? currentIndex % phrases.length : 0;
+
+  const textRotateCss = `
+    .text-rotate-wrapper {
+      display: inline-block;
+      perspective: 600px;
+      overflow: hidden;
+      vertical-align: baseline;
+    }
+    .text-rotate-inner {
+      display: inline-block;
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
+      transition: transform ${duration / 2}ms ease-in-out;
+    }
+    .text-rotate-inner--flipping {
+      transform: rotateX(90deg);
+    }
+  `;
+
+  useStyleInjection('text-rotate', textRotateCss);
 
   const advance = useCallback(() => {
     if (phrases.length <= 1) return;
@@ -69,38 +90,19 @@ export function TextRotate({
   }
 
   return (
-    <>
-      <style>{`
-        .text-rotate-wrapper {
-          display: inline-block;
-          perspective: 600px;
-          overflow: hidden;
-          vertical-align: baseline;
-        }
-        .text-rotate-inner {
-          display: inline-block;
-          transform-style: preserve-3d;
-          backface-visibility: hidden;
-          transition: transform ${duration / 2}ms ease-in-out;
-        }
-        .text-rotate-inner--flipping {
-          transform: rotateX(90deg);
-        }
-      `}</style>
+    <span
+      className={cn('text-rotate-wrapper', className)}
+      aria-live="polite"
+    >
       <span
-        className={cn('text-rotate-wrapper', className)}
-        aria-live="polite"
+        className={cn(
+          'text-rotate-inner',
+          isFlipping && 'text-rotate-inner--flipping',
+        )}
       >
-        <span
-          className={cn(
-            'text-rotate-inner',
-            isFlipping && 'text-rotate-inner--flipping',
-          )}
-        >
-          {phrases[safeIndex]}
-        </span>
+        {phrases[safeIndex]}
       </span>
-    </>
+    </span>
   );
 }
 

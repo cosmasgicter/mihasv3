@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/Dialog'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { Skeleton } from '@/components/ui/skeleton'
 import type { UserProfile } from '@/types/database'
 import {
   BarChart3,
@@ -282,8 +282,18 @@ export function UserPermissions({
           )}
 
           {isLoading ? (
-            <div className="flex justify-center py-10">
-              <UnifiedLoader variant="page" />
+            <div className="space-y-4 py-6">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="rounded-2xl border border-border bg-card p-4 animate-pulse space-y-3">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-3 w-48" />
+                  <div className="grid grid-cols-2 gap-2">
+                    {[...Array(4)].map((_, j) => (
+                      <Skeleton key={j} className="h-8 w-full rounded-lg" />
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             categories.map((category) => {

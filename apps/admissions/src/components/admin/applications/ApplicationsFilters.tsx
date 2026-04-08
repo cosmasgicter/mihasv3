@@ -148,7 +148,7 @@ export function ApplicationsFilters({
               placeholder="Search by applicant, email, application number, programme, or institution..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="form-input-mobile w-full pl-10 sm:pl-12 pr-4 py-3 border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
+              className="form-input-mobile w-full pl-10 sm:pl-12 pr-4 py-3 border-2 border-border rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             />
           </div>
         </div>
@@ -158,7 +158,7 @@ export function ApplicationsFilters({
           <select
             value={statusFilter}
             onChange={(e) => onStatusFilterChange(e.target.value)}
-            className="form-input-mobile w-full px-3 sm:px-4 py-3 border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
+            className="form-input-mobile w-full px-3 sm:px-4 py-3 border-2 border-border rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <option value="all">All Application Statuses</option>
             <option value="draft">Draft</option>
@@ -177,7 +177,7 @@ export function ApplicationsFilters({
               const [field, order] = e.target.value.split('-')
               onSortChange(field!, order!)
             }}
-            className="form-input-mobile w-full px-3 sm:px-4 py-3 border-2 border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
+            className="form-input-mobile w-full px-3 sm:px-4 py-3 border-2 border-border rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <option value="date-desc">Newest</option>
             <option value="date-asc">Oldest</option>

@@ -75,8 +75,8 @@ export { Skeleton, SkeletonText, SkeletonCard, SkeletonTable, SkeletonAvatar } f
 export { SkeletonDashboard } from './skeletons'
 
 // Loading Components (canonical)
-export { UnifiedLoader, UnifiedSpinner } from './UnifiedLoader'
-export type { UnifiedLoaderProps } from './UnifiedLoader'
+export { ButtonSpinner } from './ButtonSpinner'
+export type { ButtonSpinnerProps } from './ButtonSpinner'
 
 // Form Components
 export { FileUpload } from './FileUpload'

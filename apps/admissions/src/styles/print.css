@@ -1,13 +1,12 @@
+/* Print stylesheet — optimizes page output for printing (Req 15.1–15.6)
+ * Hides non-content elements, enforces single-column layout,
+ * ensures readable text on white background, and displays link URLs.
+ */
 @media print {
-  /* Hide non-essential elements */
-  nav, header, footer, .no-print,
-  button:not(.print-show),
-  [role="navigation"],
-  [aria-label="Skip to main content"] {
-    display: none !important;
+  @page {
+    margin: 2cm;
   }
 
-  /* Reset layout */
   body {
     background: white !important;
     color: black !important;
@@ -15,7 +14,53 @@
     line-height: 1.5;
   }
 
-  /* Page breaks */
+  /* Hide non-content elements (Req 15.2) */
+  nav,
+  footer,
+  aside,
+  .toast-container,
+  [role="status"],
+  .skip-link,
+  .fab,
+  .floating-action,
+  button:not([type="submit"]):not(.print-show),
+  [aria-hidden="true"],
+  .animate-pulse,
+  .animate-spin,
+  .preloader,
+  .no-print,
+  [role="navigation"],
+  [aria-label="Skip to main content"] {
+    display: none !important;
+  }
+
+  /* Single column layout (Req 15.3) */
+  .grid {
+    display: block !important;
+  }
+
+  /* Ensure links show URLs (Req 15.3, 15.4) */
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 10pt;
+    color: #666;
+  }
+
+  a[href^="#"]::after,
+  a[href^="javascript"]::after {
+    content: "";
+  }
+
+  /* Status cards: clean borders, no shadows, avoid page breaks (Req 15.3, 15.4) */
+  .rounded-xl,
+  .rounded-lg,
+  .rounded-2xl {
+    border: 1px solid #333 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  /* Page break control for headings and media */
   h1, h2, h3, h4, h5, h6 {
     page-break-after: avoid;
     page-break-inside: avoid;
@@ -25,19 +70,7 @@
     page-break-inside: avoid;
   }
 
-  /* Links */
-  a[href]:after {
-    content: " (" attr(href) ")";
-    font-size: 0.8em;
-    color: #666;
-  }
-
-  a[href^="#"]:after,
-  a[href^="javascript:"]:after {
-    content: "";
-  }
-
-  /* Tables */
+  /* Tables: readable borders */
   table {
     border-collapse: collapse;
     width: 100%;
@@ -49,10 +82,15 @@
     text-align: left;
   }
 
-  /* Ensure visibility */
+  /* Remove decorative backgrounds and shadows (Req 15.5) */
   * {
-    background: transparent !important;
     box-shadow: none !important;
     text-shadow: none !important;
+  }
+
+  /* Disable all animations */
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
   }
 }

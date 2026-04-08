@@ -12,6 +12,7 @@
 import { useRef, useState, useEffect, type ElementType } from 'react';
 import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/lib/animation-config';
+import { useStyleInjection } from '@/hooks/useStyleInjection';
 
 interface ShinyTextProps {
   /** Text content to render */
@@ -33,6 +34,15 @@ export function ShinyText({
   const reducedMotion = useReducedMotion();
   const ref = useRef<HTMLElement>(null);
   const [hasAnimated, setHasAnimated] = useState(!animateOnEntry);
+
+  const shinyTextCss = `
+    @keyframes shiny-text-shimmer {
+      0% { background-position: 200% center; }
+      100% { background-position: -200% center; }
+    }
+  `;
+
+  useStyleInjection('shiny-text-shimmer', shinyTextCss);
 
   useEffect(() => {
     if (reducedMotion || !animateOnEntry || hasAnimated) return;
@@ -69,46 +79,38 @@ export function ShinyText({
   }
 
   return (
-    <>
-      <style>{`
-        @keyframes shiny-text-shimmer {
-          0% { background-position: 200% center; }
-          100% { background-position: -200% center; }
+    <Component
+      ref={ref}
+      className={cn(
+        'shiny-text-base',
+        hasAnimated && 'shiny-text-animate',
+        className,
+      )}
+      style={{
+        backgroundImage:
+          'linear-gradient(90deg, currentColor 40%, rgba(255,255,255,0.8) 50%, currentColor 60%)',
+        backgroundSize: '200% auto',
+        WebkitBackgroundClip: 'text',
+        backgroundClip: 'text',
+        WebkitTextFillColor: hasAnimated ? 'transparent' : 'currentColor',
+        color: hasAnimated ? 'transparent' : 'currentColor',
+        ...(hasAnimated
+          ? { animation: 'shiny-text-shimmer 2s ease-in-out forwards' }
+          : {}),
+      }}
+      onAnimationEnd={() => {
+        // After shimmer completes, revert to solid text
+        const el = ref.current;
+        if (el) {
+          el.style.animation = 'none';
+          el.style.backgroundImage = 'none';
+          el.style.webkitTextFillColor = 'currentColor';
+          el.style.color = 'currentColor';
         }
-      `}</style>
-      <Component
-        ref={ref}
-        className={cn(
-          'shiny-text-base',
-          hasAnimated && 'shiny-text-animate',
-          className,
-        )}
-        style={{
-          backgroundImage:
-            'linear-gradient(90deg, currentColor 40%, rgba(255,255,255,0.8) 50%, currentColor 60%)',
-          backgroundSize: '200% auto',
-          WebkitBackgroundClip: 'text',
-          backgroundClip: 'text',
-          WebkitTextFillColor: hasAnimated ? 'transparent' : 'currentColor',
-          color: hasAnimated ? 'transparent' : 'currentColor',
-          ...(hasAnimated
-            ? { animation: 'shiny-text-shimmer 2s ease-in-out forwards' }
-            : {}),
-        }}
-        onAnimationEnd={() => {
-          // After shimmer completes, revert to solid text
-          const el = ref.current;
-          if (el) {
-            el.style.animation = 'none';
-            el.style.backgroundImage = 'none';
-            el.style.webkitTextFillColor = 'currentColor';
-            el.style.color = 'currentColor';
-          }
-        }}
-      >
-        {text}
-      </Component>
-    </>
+      }}
+    >
+      {text}
+    </Component>
   );
 }
 

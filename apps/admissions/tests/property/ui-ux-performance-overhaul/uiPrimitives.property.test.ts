@@ -30,7 +30,6 @@ const UI_DIR = resolve(process.cwd(), 'src/components/ui')
 
 /** All canonical UI primitive component files to check for design token consistency */
 const CANONICAL_COMPONENT_FILES: Array<{ name: string; path: string }> = [
-  { name: 'UnifiedLoader', path: resolve(UI_DIR, 'UnifiedLoader.tsx') },
   { name: 'ErrorDisplay', path: resolve(UI_DIR, 'ErrorDisplay.tsx') },
   { name: 'ErrorBoundary', path: resolve(UI_DIR, 'ErrorBoundary.tsx') },
   { name: 'EmptyState', path: resolve(UI_DIR, 'EmptyState.tsx') },

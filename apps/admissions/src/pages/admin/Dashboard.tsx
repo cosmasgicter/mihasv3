@@ -3,7 +3,8 @@ import { logger } from '@/lib/logger'
 import { useAuth } from '@/contexts/AuthContext'
 import { adminDashboardService } from '@/services/admin/dashboard'
 import type { AdminDashboardActivity, AdminDashboardStats } from '@/services/admin/dashboard'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { DashboardSkeleton } from '@/components/ui/skeleton'
+import { ButtonSpinner } from '@/components/ui/ButtonSpinner'
 import { Button } from '@/components/ui/Button'
 import { useAdminDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useToastStore } from '@/hooks/useToast'
@@ -247,7 +248,7 @@ export default function AdminDashboard() {
           path="/admin/dashboard"
           noindex
         />
-        <UnifiedLoader variant="page" label="Loading admin dashboard" />
+        <DashboardSkeleton />
       </>
     )
   }
@@ -404,7 +405,7 @@ export default function AdminDashboard() {
             <div className="rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2 text-sm font-medium text-info-strong">
-                  <UnifiedLoader variant="inline" size="sm" label="Refreshing metrics" />
+                  <ButtonSpinner size="sm" />
                   <span>Refreshing dashboard metrics…</span>
                 </div>
                 <div className="h-1 w-full overflow-hidden rounded-full bg-primary/10 sm:w-56">

@@ -7,7 +7,7 @@
  * @requirements 5.1, 5.2 - Fast page loading
  */
 
-import { UnifiedSpinner } from './UnifiedLoader'
+import { ButtonSpinner } from './ButtonSpinner'
 import { cn } from '@/lib/utils'
 
 interface InlineLoaderProps {
@@ -47,7 +47,7 @@ export function InlineLoader({
       )}
     >
       {showSpinner && (
-        <UnifiedSpinner 
+        <ButtonSpinner 
           size={size === 'lg' ? 'md' : 'sm'} 
         />
       )}

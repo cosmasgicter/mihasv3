@@ -9,10 +9,9 @@ import { StudentRoute } from '@/components/StudentRoute'
 import { AdminRoute } from '@/components/AdminRoute'
 import { ToastContainer } from '@/components/ui/Toast'
 import { AppLayout } from '@/components/navigation/AppLayout'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
 import { ErrorBoundary as RouteErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { SafeAreaProvider } from '@/components/ui/SafeAreaProvider'
-import { routes, type RouteConfig, type SkeletonType } from '@/routes/config'
+import { routes, type RouteConfig } from '@/routes/config'
 import { LazyLoadErrorBoundary } from '@/components/LazyLoadErrorBoundary'
 import {
   DashboardSkeleton,
@@ -61,37 +60,8 @@ if (import.meta.env.PROD) {
 }
 
 /** Returns the layout-matched skeleton fallback for a given skeleton type */
-function DelayedPageLoader({ delayMs = 400, label = 'Loading page', variant = 'page' }: { delayMs?: number; label?: string; variant?: 'page' | 'inline' }) {
-  const [showLoader, setShowLoader] = useState(false)
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => setShowLoader(true), delayMs)
-    return () => window.clearTimeout(timer)
-  }, [delayMs])
-
-  if (!showLoader) {
-    return null
-  }
-
-  if (variant === 'inline') {
-    return (
-      <div className="mx-auto w-full max-w-3xl px-4 py-8">
-        <UnifiedLoader variant="inline" size="sm" message={label} />
-      </div>
-    )
-  }
-
-  return <UnifiedLoader variant="page" size="lg" label={label} />
-}
-
 function getSkeletonFallback(route: RouteConfig): React.ReactNode {
-  const { skeletonType, guard } = route
-
-  // Public routes should remain non-blocking by default.
-  // Only show a lightweight inline loader after a short delay when chunks are slow.
-  if (guard === 'public') {
-    return <DelayedPageLoader delayMs={650} label="Loading public page" variant="inline" />
-  }
+  const { skeletonType } = route
 
   switch (skeletonType) {
     case 'dashboard':
@@ -105,8 +75,9 @@ function getSkeletonFallback(route: RouteConfig): React.ReactNode {
     case 'detail':
       return <DetailSkeleton />
     case 'none':
+      return <></>
     default:
-      return <DelayedPageLoader delayMs={400} />
+      return <DashboardSkeleton />
   }
 }
 

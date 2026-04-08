@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/Button'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { DashboardSkeleton } from '@/components/ui/skeleton'
 import { CanonicalSelect } from '@/components/ui/CanonicalSelect'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
@@ -585,7 +585,7 @@ export default function AdminSettings() {
             {loading ? (
               <div className="flex justify-center py-16">
                 <div className="text-center">
-                  <UnifiedLoader variant="page" label="Loading settings..." />
+                  <DashboardSkeleton />
                 </div>
               </div>
             ) : (

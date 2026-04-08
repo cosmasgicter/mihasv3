@@ -88,7 +88,7 @@ export function ApplicationsCards({
                         type="checkbox"
                         checked={selectedApplications.includes(application.id)}
                         onChange={() => onToggleSelection(application.id)}
-                        className="h-5 w-5 mt-1 text-primary focus:ring-blue-500 border-input rounded touch-target"
+                        className="h-5 w-5 mt-1 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border-input rounded touch-target"
                         onClick={(e) => e.stopPropagation()}
                       />
                       <div className="flex-1 min-w-0">

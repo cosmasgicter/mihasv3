@@ -474,7 +474,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                       dateRange: { ...exportOptions.filters.dateRange, start: e.target.value }
                     }
                   })}
-                  className="w-full px-3 py-2 border border-input rounded-md focus:ring-2 focus:ring-blue-500 focus:border-primary"
+                  className="w-full px-3 py-2 border border-input rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 />
               </div>
               <div>
@@ -491,7 +491,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
                       dateRange: { ...exportOptions.filters.dateRange, end: e.target.value }
                     }
                   })}
-                  className="w-full px-3 py-2 border border-input rounded-md focus:ring-2 focus:ring-blue-500 focus:border-primary"
+                  className="w-full px-3 py-2 border border-input rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 />
               </div>
             </div>

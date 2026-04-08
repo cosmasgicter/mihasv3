@@ -118,7 +118,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
  <select
  value={filters.regulatory_body}
  onChange={(e) => setFilters({ ...filters, regulatory_body: e.target.value })}
- className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+ className="w-full px-3 py-2 border border-input rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
  >
  <option value="">All Bodies</option>
  <option value="HPCZ">HPCZ</option>
@@ -134,7 +134,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
  <select
  value={filters.program_code}
  onChange={(e) => setFilters({ ...filters, program_code: e.target.value })}
- className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+ className="w-full px-3 py-2 border border-input rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
  >
  <option value="">All Programs</option>
  <option value="CMED">Clinical Medicine</option>
@@ -151,7 +151,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
  <select
  value={filters.compliance_level}
  onChange={(e) => setFilters({ ...filters, compliance_level: e.target.value })}
- className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+ className="w-full px-3 py-2 border border-input rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
  >
  <option value="">All Levels</option>
  <option value="mandatory">Mandatory</option>
