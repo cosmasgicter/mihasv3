@@ -17,7 +17,6 @@ import {
   Video, 
   Phone, 
   Users,
-  Loader2, 
   AlertCircle,
   ArrowLeft,
   ExternalLink,
@@ -30,6 +29,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
 import { PageShell } from '@/components/ui/PageShell'
+import { Skeleton } from '@/components/ui/skeleton'
 import { interviewsService } from '@/services/interviews'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -235,8 +235,30 @@ export default function InterviewPage() {
   if (state.loading) {
     return (
       <PageShell title="Interview Schedule" subtitle="Loading interview information...">
-        <div className="flex items-center justify-center min-h-[40vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="space-y-6" role="status" aria-label="Loading interview information">
+          <div className="rounded-xl border border-primary/20 bg-card p-6">
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+            <div className="mt-6 space-y-4">
+              {[...Array(3)].map((_, index) => (
+                <div key={index} className="rounded-xl border border-border bg-background p-4">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-2">
+                      <Skeleton className="h-5 w-44" />
+                      <Skeleton className="h-4 w-64" />
+                      <Skeleton className="h-4 w-40" />
+                    </div>
+                    <div className="flex gap-2">
+                      <Skeleton className="h-8 w-24 rounded-full" />
+                      <Skeleton className="h-8 w-20 rounded-full" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </PageShell>
     )

@@ -1,11 +1,11 @@
 /**
  * LoadingSpinner Component
  *
- * Backward-compatible wrapper around ButtonSpinner.
+ * Backward-compatible wrapper that renders compact skeleton placeholders.
  */
 
 import { cn } from '@/lib/utils'
-import { ButtonSpinner } from './ButtonSpinner'
+import { Skeleton } from './skeleton'
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg' | 'xl'
@@ -14,11 +14,11 @@ interface LoadingSpinnerProps {
   message?: string
 }
 
-const spinnerSizeMap = {
-  sm: 'sm',
-  md: 'md',
-  lg: 'lg',
-  xl: 'lg',
+const indicatorSizeMap = {
+  sm: 'h-4 w-4',
+  md: 'h-5 w-5',
+  lg: 'h-6 w-6',
+  xl: 'h-7 w-7',
 } as const
 
 const textSizeClasses = {
@@ -41,6 +41,12 @@ export function LoadingSpinner({
   color = 'primary',
   message,
 }: LoadingSpinnerProps) {
+  const indicatorClass = cn(
+    'rounded-full',
+    indicatorSizeMap[size],
+    colorClasses[color].replace('text-', 'bg-'),
+  )
+
   if (message) {
     return (
       <div
@@ -48,7 +54,7 @@ export function LoadingSpinner({
         role="status"
         aria-live="polite"
       >
-        <ButtonSpinner size={spinnerSizeMap[size]} className={colorClasses[color]} />
+        <Skeleton className={indicatorClass} />
         <span className={cn('text-muted-foreground', textSizeClasses[size])}>{message}</span>
       </div>
     )
@@ -56,9 +62,8 @@ export function LoadingSpinner({
 
   return (
     <div className="flex items-center justify-center" aria-hidden="true">
-      <ButtonSpinner
-        size={spinnerSizeMap[size]}
-        className={cn(colorClasses[color], className, textSizeClasses[size] === 'text-lg' && 'scale-110')}
+      <Skeleton
+        className={cn(indicatorClass, className, textSizeClasses[size] === 'text-lg' && 'scale-110')}
       />
     </div>
   )

@@ -46,7 +46,6 @@ function StaticIcon({ size = 'md', className }: ButtonSpinnerProps) {
 
 /**
  * Standalone spinner for use in buttons and other inline contexts.
- * Extracted from UnifiedLoader's UnifiedSpinner sub-component.
  *
  * Renders an animated SVG spinner with a static reduced-motion fallback.
  */

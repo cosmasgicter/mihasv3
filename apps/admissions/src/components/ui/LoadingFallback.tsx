@@ -6,7 +6,6 @@
 
 import { useState, useEffect } from 'react'
 import { Skeleton } from './skeleton'
-import { ButtonSpinner } from './ButtonSpinner'
 import { cn } from '@/lib/utils'
 
 interface LoadingFallbackProps {
@@ -61,11 +60,14 @@ export function LoadingFallback({
             'transition-all duration-300'
           )}
         >
-          <div className="flex items-center justify-center gap-2 mb-2" role="status" aria-live="polite">
-            <ButtonSpinner size="md" />
-            <span className="text-sm text-muted-foreground">Still preparing your session</span>
+          <div className="mb-4 space-y-3" role="status" aria-live="polite">
+            <Skeleton className="mx-auto h-10 w-10 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="mx-auto h-4 w-44" />
+              <Skeleton className="mx-auto h-3 w-52" />
+            </div>
           </div>
-          <h3 className="text-lg font-semibold text-foreground mt-4 mb-2">Taking longer than expected</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">Taking longer than expected</h3>
           <p className="text-muted-foreground mb-4">Please check your internet connection and try refreshing the page.</p>
           <button
             onClick={() => window.location.assign(window.location.pathname)}
@@ -90,6 +92,7 @@ export function LoadingFallback({
       aria-live="polite"
     >
       <div className="w-full max-w-md space-y-4 px-4">
+        <Skeleton className="mx-auto h-10 w-10 rounded-full" />
         <Skeleton className="h-8 w-3/4 mx-auto" />
         <Skeleton className="h-4 w-1/2 mx-auto" />
         <div className="space-y-3 mt-6">

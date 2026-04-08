@@ -1,13 +1,12 @@
 /**
  * InlineLoader Component
  * 
- * Lightweight inline loading indicator using CSS animations.
- * No Framer Motion dependency for better performance.
+ * Lightweight inline loading placeholder using skeleton primitives.
  * 
  * @requirements 5.1, 5.2 - Fast page loading
  */
 
-import { ButtonSpinner } from './ButtonSpinner'
+import { Skeleton } from './skeleton'
 import { cn } from '@/lib/utils'
 
 interface InlineLoaderProps {
@@ -42,28 +41,19 @@ export function InlineLoader({
       className={cn(
         baseClasses[variant], 
         sizeClasses[size], 
-        'animate-fade-in',
+        'animate-fade-in motion-reduce:animate-none',
         className
       )}
     >
       {showSpinner && (
-        <ButtonSpinner 
-          size={size === 'lg' ? 'md' : 'sm'} 
-        />
+        <Skeleton className={cn('rounded-full', size === 'lg' ? 'h-6 w-6' : 'h-4 w-4')} />
       )}
-      <span className="font-medium text-foreground">
-        {message}
-      </span>
-      
-      <style>{`
-        .animate-fade-in {
-          animation: inline-fade-in 0.3s ease-out forwards;
-        }
-        @keyframes inline-fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-      `}</style>
+      <div className="space-y-2">
+        <span className="font-medium text-foreground">
+          {message}
+        </span>
+        <Skeleton className={cn(size === 'lg' ? 'h-2 w-40' : 'h-2 w-28')} />
+      </div>
     </div>
   )
 }

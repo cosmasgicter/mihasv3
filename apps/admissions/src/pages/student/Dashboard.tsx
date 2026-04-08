@@ -492,8 +492,9 @@ export default function StudentDashboard() {
             onClick={() => forceRefresh()}
             disabled={isRefreshing || isManualRefreshing}
             className="flex items-center gap-2"
+            loading={isRefreshing || isManualRefreshing}
           >
-            <RefreshCw className={`h-4 w-4 ${(isRefreshing || isManualRefreshing) ? 'animate-spin' : ''}`} />
+            {!(isRefreshing || isManualRefreshing) && <RefreshCw className="h-4 w-4" />}
             {(isRefreshing || isManualRefreshing) ? 'Refreshing...' : 'Refresh'}
           </Button>
           <ProfileCompletionBadge completionPercentage={profileCompletion} missingFields={profileMissingFields} />

@@ -1,13 +1,11 @@
 /**
  * LoadingButton Component
  * 
- * Button with loading state using CSS animations.
- * No Framer Motion dependency for better performance.
+ * Button wrapper that delegates inline loading indicators to Button.
  * 
  * @requirements 5.1, 5.2 - Fast page loading
  */
 
-import { ButtonSpinner } from './ButtonSpinner'
 import { Button, ButtonProps } from './Button'
 import { cn } from '@/lib/utils'
 
@@ -27,6 +25,7 @@ export function LoadingButton({
 }: LoadingButtonProps) {
   return (
     <Button
+      loading={loading}
       disabled={disabled || loading}
       className={cn(
         'relative overflow-hidden transition-all duration-200',
@@ -34,19 +33,13 @@ export function LoadingButton({
         className
       )}
       {...props}
-    >
+      >
       <span
         className={cn(
           'flex items-center justify-center gap-2 transition-transform duration-200',
           loading && 'scale-95'
         )}
       >
-        {loading && (
-          <ButtonSpinner
-            size="sm"
-            className={props.variant === 'outline' ? 'text-primary' : 'text-white'}
-          />
-        )}
         <span>{loading && loadingText ? loadingText : children}</span>
       </span>
     </Button>

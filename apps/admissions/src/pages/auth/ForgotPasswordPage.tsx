@@ -20,7 +20,6 @@ import { animateClasses } from '@/lib/animations';
 import { logApiError } from '@/lib/apiErrorLogger';
 import { Seo } from '@/components/seo/Seo';
 import { 
-  Loader2, 
   Mail,
   ArrowRight
 } from 'lucide-react';
@@ -152,14 +151,7 @@ export default function ForgotPasswordPage() {
           variant="gradient"
           size="lg"
         >
-          {resetRequestMutation.isPending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Sending...
-            </>
-          ) : (
-            'Send reset instructions'
-          )}
+          {resetRequestMutation.isPending ? 'Sending...' : 'Send reset instructions'}
         </Button>
 
         {/* Help text */}
