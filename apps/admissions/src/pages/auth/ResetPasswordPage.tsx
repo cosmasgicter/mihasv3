@@ -14,13 +14,13 @@ import { useMutation } from '@tanstack/react-query';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Button } from '@/components/ui/Button';
+import { AuthSkeleton } from '@/components/ui/skeleton';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { animateClasses } from '@/lib/animations';
 import { Seo } from '@/components/seo/Seo';
 import { authService } from '@/services/auth';
 import { logApiError } from '@/lib/apiErrorLogger';
 import {
-  Loader2,
   AlertCircle,
   CheckCircle,
   KeyRound,
@@ -112,17 +112,7 @@ export default function ResetPasswordPage() {
           description="Verifying your MIHAS-KATC password reset link before allowing password update."
           path="/auth/reset-password"
         />
-      <AuthLayout
-        title="Verifying your link"
-        description="Please wait while we verify your password reset link..."
-        backLinkHref="/auth/signin"
-        backLinkLabel="Back to sign in"
-      >
-        <div className={`flex flex-col items-center justify-center py-8 space-y-4 ${animateClasses.fadeIn}`}>
-          <Loader2 className="h-12 w-12 text-primary animate-spin" />
-          <p className="text-sm text-foreground/80">Verifying your password reset link...</p>
-        </div>
-      </AuthLayout>
+        <AuthSkeleton />
       </>
     );
   }
@@ -292,14 +282,7 @@ export default function ResetPasswordPage() {
           size="lg"
           loading={resetPasswordMutation.isPending}
         >
-          {resetPasswordMutation.isPending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Updating password...
-            </>
-          ) : (
-            'Update password'
-          )}
+          {resetPasswordMutation.isPending ? 'Updating password...' : 'Update password'}
         </Button>
 
         {/* Password requirements */}

@@ -112,16 +112,21 @@ export function AnimatedCounter({
     ? displayValue.toFixed(decimals) 
     : Math.round(displayValue).toLocaleString();
 
+  const finalFormattedValue = decimals > 0
+    ? value.toFixed(decimals)
+    : value.toLocaleString();
+
   return (
-    <span ref={ref} className={className}>
+    <span ref={ref} className={className} aria-label={`${prefix}${finalFormattedValue}${suffix}`}>
       {prefix}
       <span
         className="transition-opacity duration-300"
         style={{ opacity: isVisible ? 1 : 0 }}
+        aria-hidden="true"
       >
         {formattedValue}
       </span>
-      {suffix}
+      {suffix && <span aria-hidden="true">{suffix}</span>}
     </span>
   );
 }
@@ -183,8 +188,8 @@ export function SimpleCounter({
   }, [inView, from, to, prefersReducedMotion]);
 
   return (
-    <span ref={ref} className={className}>
-      {prefix}{count.toLocaleString()}{suffix}
+    <span ref={ref} className={className} aria-label={`${prefix}${to.toLocaleString()}${suffix}`}>
+      <span aria-hidden="true">{prefix}{count.toLocaleString()}{suffix}</span>
     </span>
   );
 }

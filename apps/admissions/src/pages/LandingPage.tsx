@@ -112,7 +112,7 @@ function smoothScrollToSection(sectionId: string) {
 
 function StatsSection() {
   return (
-    <section id="stats" className="py-12 sm:py-16 lg:py-20 bg-card">
+    <section id="stats" aria-label="Key statistics" className="py-12 sm:py-16 lg:py-20 bg-card">
       <div className="container-responsive px-4 sm:px-6 lg:px-8">
         <StaggerReveal className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-12" staggerDelay={0.15}>
           {stats.map((stat, index) => (
@@ -165,7 +165,7 @@ function FeaturesSection() {
                     'group-hover:scale-110 transition-transform duration-300',
                     feature.gradient
                   )}>
-                    <feature.icon className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-white" />
+                    <feature.icon className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-white" aria-hidden="true" />
                   </div>
                   <CardTitle className="text-lg sm:text-xl md:text-2xl text-foreground mb-3 sm:mb-4">
                     {feature.title}
@@ -189,7 +189,7 @@ function FeaturesSection() {
 
 function AccreditationSection() {
   return (
-    <section className="py-12 sm:py-16 lg:py-20 bg-card">
+    <section id="accreditation" aria-label="Accreditation and recognition" className="py-12 sm:py-16 lg:py-20 bg-card">
       <div className="container-responsive px-4 sm:px-6 lg:px-8">
         <ScrollReveal className="text-center mb-12">
           <TextEffect effect="fadeUp">
@@ -280,7 +280,7 @@ function ProgramsSection() {
                   <div className="space-y-3">
                     {program.courses.map((course, courseIndex) => (
                       <div key={courseIndex} className="flex items-start space-x-3">
-                        <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                        <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" aria-hidden="true" />
                         <span className="text-sm sm:text-base text-foreground font-medium leading-relaxed">
                           {course}
                         </span>
@@ -303,7 +303,7 @@ function ProgramsSection() {
 
 function CTASection() {
   return (
-    <section className="relative py-16 sm:py-20 lg:py-24 overflow-hidden">
+    <section id="cta" aria-label="Apply now" className="relative py-16 sm:py-20 lg:py-24 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary" />
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/20" />
       
@@ -318,13 +318,13 @@ function CTASection() {
         </p>
         <Button 
           asChild
-          variant="outline" 
+          variant="secondary" 
           size="xl" 
-          className="border-2 border-white text-white hover:bg-white hover:text-primary min-h-[48px] px-6 sm:px-8 group"
+          className="bg-white text-primary font-bold hover:bg-white/90 shadow-lg min-h-[48px] px-6 sm:px-8 group"
         >
           <Link to="/auth/signup">
-            <span className="mr-2">Apply Now</span>
-            <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform" />
+            <span className="mr-2">Apply Now — Start Free</span>
+            <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
           </Link>
         </Button>
       </ScrollReveal>

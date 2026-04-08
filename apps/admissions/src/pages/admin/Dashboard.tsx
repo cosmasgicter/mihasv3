@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import { adminDashboardService } from '@/services/admin/dashboard'
 import type { AdminDashboardActivity, AdminDashboardStats } from '@/services/admin/dashboard'
 import { DashboardSkeleton } from '@/components/ui/skeleton'
-import { ButtonSpinner } from '@/components/ui/ButtonSpinner'
 import { Button } from '@/components/ui/Button'
 import { useAdminDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useToastStore } from '@/hooks/useToast'
@@ -306,8 +305,9 @@ export default function AdminDashboard() {
           onClick={handleManualRefresh}
           disabled={isRefreshing || isManualRefreshing}
           className="flex items-center gap-2"
+          loading={isRefreshing || isManualRefreshing}
         >
-          <RefreshCw className={`h-4 w-4 ${(isRefreshing || isManualRefreshing) ? 'animate-spin' : ''}`} />
+          {!(isRefreshing || isManualRefreshing) && <RefreshCw className="h-4 w-4" />}
           {(isRefreshing || isManualRefreshing) ? 'Refreshing...' : 'Refresh'}
         </Button>
       }
@@ -405,7 +405,7 @@ export default function AdminDashboard() {
             <div className="rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2 text-sm font-medium text-info-strong">
-                  <ButtonSpinner size="sm" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse" aria-hidden="true" />
                   <span>Refreshing dashboard metrics…</span>
                 </div>
                 <div className="h-1 w-full overflow-hidden rounded-full bg-primary/10 sm:w-56">

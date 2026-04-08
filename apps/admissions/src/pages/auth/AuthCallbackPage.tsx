@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { logger } from '@/lib/logger'
-import { ButtonSpinner } from '@/components/ui/ButtonSpinner'
+import { AuthSkeleton } from '@/components/ui/skeleton'
 
 export default function AuthCallbackPage() {
   const navigate = useNavigate()
@@ -61,20 +61,6 @@ export default function AuthCallbackPage() {
   }
 
   return (
-    <div className="page-container bg-muted flex flex-col justify-center py-6 sm:py-12">
-      <div className="content-wrapper">
-        <div className="mx-auto w-full max-w-md">
-        <div className="bg-card py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <div className="text-center">
-            <div className="mx-auto mb-4 flex items-center justify-center">
-              <ButtonSpinner size="lg" className="text-primary" />
-            </div>
-            <h3 className="text-lg font-medium text-foreground mb-2">Completing Authentication</h3>
-            <p className="text-sm text-foreground">Please wait while we verify your account...</p>
-          </div>
-        </div>
-        </div>
-      </div>
-    </div>
+    <AuthSkeleton />
   )
 }

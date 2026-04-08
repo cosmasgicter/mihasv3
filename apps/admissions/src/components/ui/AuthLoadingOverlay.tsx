@@ -2,13 +2,13 @@
  * AuthLoadingOverlay Component
  * 
  * Full-screen overlay shown during authentication flows.
- * Uses the new sleek LoadingSpinner.
+ * Uses skeleton placeholders instead of spinners.
  * 
  * @requirements 5.1, 5.2 - Fast page loading
  */
 
 import { useState, useEffect } from 'react'
-import { ButtonSpinner } from '@/components/ui/ButtonSpinner'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface AuthLoadingOverlayProps {
   message?: string
@@ -39,7 +39,7 @@ export function AuthLoadingOverlay({ message = 'Signing you in...' }: AuthLoadin
           ${isVisible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'}
         `}
       >
-        <ButtonSpinner size="lg" />
+        <Skeleton className="h-14 w-14 rounded-full" />
 
         <h3
           className={`
@@ -50,6 +50,10 @@ export function AuthLoadingOverlay({ message = 'Signing you in...' }: AuthLoadin
         >
           {message}
         </h3>
+        <div className="w-56 space-y-2">
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="mx-auto h-3 w-4/5" />
+        </div>
       </div>
     </div>
   )

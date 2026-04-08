@@ -14,7 +14,6 @@ import {
   CreditCard,
   ArrowRight,
   FileText,
-  Loader2,
   CheckCircle,
   XCircle,
   Clock,
@@ -26,6 +25,7 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
 import { PageShell } from '@/components/ui/PageShell'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { Skeleton, SkeletonCard, SkeletonTable } from '@/components/ui/skeleton'
 import { applicationService } from '@/services/applications'
 import { apiClient } from '@/services/client'
 import { useAuth } from '@/contexts/AuthContext'
@@ -174,8 +174,33 @@ export default function PaymentPage() {
   if (loading) {
     return (
       <PageShell title="Application Payment" subtitle="Loading payment information...">
-        <div className="flex items-center justify-center min-h-[40vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="space-y-6" role="status" aria-label="Loading payment information">
+          <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-10 w-10 rounded-lg" />
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-36" />
+                  <Skeleton className="h-4 w-72" />
+                </div>
+              </div>
+              <Skeleton className="h-20 w-full rounded-lg" />
+              <Skeleton className="h-11 w-full rounded-lg" />
+            </div>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-40" />
+                <Skeleton className="h-4 w-56" />
+              </div>
+              <SkeletonTable rows={4} columns={4} />
+              <div className="grid gap-4 md:grid-cols-2">
+                <SkeletonCard />
+                <SkeletonCard />
+              </div>
+            </div>
+          </div>
         </div>
       </PageShell>
     )

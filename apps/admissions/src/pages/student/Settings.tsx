@@ -407,13 +407,9 @@ export default function StudentSettings() {
               variant="gradient"
               className="w-full md:w-auto"
               onClick={onSubmit}
+              loading={updatingProfile}
             >
-              {updatingProfile ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Saving…
-                </>
-              ) : (
+              {updatingProfile ? 'Saving…' : (
                 <>
                   <Save className="h-4 w-4" />
                   Save changes

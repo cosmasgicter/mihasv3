@@ -134,21 +134,44 @@ export function ShapeLandingHero({
                 {primaryCta.icon}
               </Link>
 
-              <Link
-                to={secondaryCta.href}
-                className={cn(
-                  'inline-flex items-center justify-center gap-2 rounded-lg font-semibold',
-                  'border-2 border-white bg-white/10 text-white',
-                  'hover:bg-white hover:text-primary backdrop-blur-sm',
-                  'transition-all duration-150 touch-manipulation',
-                  'w-full xs:w-auto min-h-[48px] px-6 sm:px-8 text-xl',
-                  'motion-reduce:transform-none motion-reduce:transition-none',
-                )}
-                aria-label={secondaryCta.label}
-              >
-                <span>{secondaryCta.label}</span>
-                {secondaryCta.icon}
-              </Link>
+              {secondaryCta.href.startsWith('#') ? (
+                <a
+                  href={secondaryCta.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const id = secondaryCta.href.replace('#', '');
+                    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
+                  className={cn(
+                    'inline-flex items-center justify-center gap-2 rounded-lg font-semibold',
+                    'border-2 border-white bg-white/10 text-white',
+                    'hover:bg-white hover:text-primary backdrop-blur-sm',
+                    'transition-all duration-150 touch-manipulation',
+                    'w-full xs:w-auto min-h-[48px] px-6 sm:px-8 text-xl',
+                    'motion-reduce:transform-none motion-reduce:transition-none',
+                  )}
+                  aria-label={secondaryCta.label}
+                >
+                  <span>{secondaryCta.label}</span>
+                  {secondaryCta.icon}
+                </a>
+              ) : (
+                <Link
+                  to={secondaryCta.href}
+                  className={cn(
+                    'inline-flex items-center justify-center gap-2 rounded-lg font-semibold',
+                    'border-2 border-white bg-white/10 text-white',
+                    'hover:bg-white hover:text-primary backdrop-blur-sm',
+                    'transition-all duration-150 touch-manipulation',
+                    'w-full xs:w-auto min-h-[48px] px-6 sm:px-8 text-xl',
+                    'motion-reduce:transform-none motion-reduce:transition-none',
+                  )}
+                  aria-label={secondaryCta.label}
+                >
+                  <span>{secondaryCta.label}</span>
+                  {secondaryCta.icon}
+                </Link>
+              )}
             </div>
           </div>
 

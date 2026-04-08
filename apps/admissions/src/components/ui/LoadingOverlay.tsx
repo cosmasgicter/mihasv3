@@ -1,12 +1,12 @@
 /**
  * LoadingOverlay Component
  *
- * Overlay loading surface using ButtonSpinner.
+ * Overlay loading surface using skeleton placeholders.
  */
 
 import type { HTMLAttributes } from 'react'
 import { cn } from '@/lib/utils'
-import { ButtonSpinner } from './ButtonSpinner'
+import { Skeleton } from './skeleton'
 
 export interface LoadingOverlayProps extends HTMLAttributes<HTMLDivElement> {
   message?: string
@@ -25,8 +25,16 @@ export function LoadingOverlay({ className, message, transparent = false, ...pro
       aria-live="polite"
       {...props}
     >
-      <ButtonSpinner size="lg" />
-      {message && <p className="mt-4 text-sm text-muted-foreground">{message}</p>}
+      <div className="w-full max-w-sm rounded-2xl border border-border bg-card/90 p-6 shadow-xl">
+        <div className="flex flex-col items-center gap-4">
+          <Skeleton className="h-14 w-14 rounded-full" />
+          <div className="w-full space-y-2 text-center">
+            <Skeleton className="mx-auto h-4 w-40" />
+            <Skeleton className="mx-auto h-3 w-56" />
+          </div>
+          {message && <p className="text-sm text-muted-foreground">{message}</p>}
+        </div>
+      </div>
     </div>
   )
 }
