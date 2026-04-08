@@ -238,9 +238,9 @@ function BrandingPanel({ variant }: { variant: AuthLayoutVariant }) {
               className="animate-fade-in rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm transition-colors hover:bg-white/15"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <feature.icon className="mb-2 h-6 w-6 text-white/80" />
+              <feature.icon className="mb-2 h-6 w-6 text-white/90" />
               <p className="text-sm font-semibold text-white">{feature.title}</p>
-              <p className="mt-1 text-xs text-white/70">{feature.description}</p>
+              <p className="mt-1 text-xs text-white/90">{feature.description}</p>
             </div>
           ))}
         </div>

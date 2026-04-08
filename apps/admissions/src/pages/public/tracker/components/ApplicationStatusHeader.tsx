@@ -66,7 +66,7 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
               <GraduationCap className="h-5 w-5 flex-shrink-0" />
               <span className="break-words">{application.program_name}</span>
             </p>
-            <p className="text-white/80 text-sm sm:text-base flex items-center gap-2">
+            <p className="text-white/90 text-sm sm:text-base flex items-center gap-2">
               <Calendar className="h-4 w-4 flex-shrink-0" />
               <span className="break-words">{application.intake_name}</span>
             </p>
@@ -87,7 +87,7 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
           </div>
           
           {/* Last Updated */}
-          <p className="text-white/80 text-sm flex items-center gap-2">
+          <p className="text-white/90 text-sm flex items-center gap-2">
             <Clock className="h-4 w-4" />
             <span>Updated: {formatDisplayDate(application.updated_at)}</span>
           </p>

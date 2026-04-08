@@ -674,7 +674,7 @@ export function ReportsGenerator() {
               type="date"
               value={config.startDate}
               onChange={(e) => setConfig(prev => ({ ...prev, startDate: e.target.value }))}
-              className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             />
           </div>
           <div>
@@ -683,7 +683,7 @@ export function ReportsGenerator() {
               type="date"
               value={config.endDate}
               onChange={(e) => setConfig(prev => ({ ...prev, endDate: e.target.value }))}
-              className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             />
           </div>
         </div>
@@ -697,7 +697,7 @@ export function ReportsGenerator() {
                 type="checkbox"
                 checked={config.includePrograms}
                 onChange={(e) => setConfig(prev => ({ ...prev, includePrograms: e.target.checked }))}
-                className="rounded border-input text-primary focus:ring-blue-500"
+                className="rounded border-input text-primary focus-visible:ring-ring"
               />
               <span className="ml-2 text-sm text-foreground">Program Analytics</span>
             </label>
@@ -706,7 +706,7 @@ export function ReportsGenerator() {
                 type="checkbox"
                 checked={config.includeEngagement}
                 onChange={(e) => setConfig(prev => ({ ...prev, includeEngagement: e.target.checked }))}
-                className="rounded border-input text-primary focus:ring-blue-500"
+                className="rounded border-input text-primary focus-visible:ring-ring"
               />
               <span className="ml-2 text-sm text-foreground">User Engagement Metrics</span>
             </label>
@@ -715,7 +715,7 @@ export function ReportsGenerator() {
                 type="checkbox"
                 checked={config.includeEligibility}
                 onChange={(e) => setConfig(prev => ({ ...prev, includeEligibility: e.target.checked }))}
-                className="rounded border-input text-primary focus:ring-blue-500"
+                className="rounded border-input text-primary focus-visible:ring-ring"
               />
               <span className="ml-2 text-sm text-foreground">Eligibility Success Rates</span>
             </label>
@@ -797,7 +797,7 @@ export function ReportsGenerator() {
                     id="document-template-select"
                     value={selectedTemplate}
                     onChange={(event) => setSelectedTemplate(event.target.value as DocumentTemplateId)}
-                    className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     {templateOptions.map(option => (
                       <option key={option.id} value={option.id}>
@@ -872,7 +872,7 @@ export function ReportsGenerator() {
                   value={prefillApplicationId}
                   onChange={(event) => setPrefillApplicationId(event.target.value)}
                   placeholder="Enter application ID (UUID)"
-                  className="flex-1 border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 />
                 <Button
                   type="button"
@@ -908,7 +908,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.studentName}
                         onChange={handleDocumentFieldChange('studentName')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="Jane Doe"
                       />
                     </div>
@@ -921,7 +921,7 @@ export function ReportsGenerator() {
                         type="email"
                         value={documentForm.studentEmail}
                         onChange={handleDocumentFieldChange('studentEmail')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="student@example.com"
                       />
                     </div>
@@ -934,7 +934,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.studentPhone}
                         onChange={handleDocumentFieldChange('studentPhone')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="+260 700 000 000"
                       />
                     </div>
@@ -947,7 +947,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.programName}
                         onChange={handleDocumentFieldChange('programName')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="Diploma in Accounting"
                       />
                     </div>
@@ -960,7 +960,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.intake}
                         onChange={handleDocumentFieldChange('intake')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="January 2025"
                       />
                     </div>
@@ -973,7 +973,7 @@ export function ReportsGenerator() {
                         type="date"
                         value={documentForm.startDate}
                         onChange={handleDocumentFieldChange('startDate')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       />
                     </div>
                     <div>
@@ -985,7 +985,7 @@ export function ReportsGenerator() {
                         type="date"
                         value={documentForm.responseDeadline}
                         onChange={handleDocumentFieldChange('responseDeadline')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       />
                     </div>
                     <div>
@@ -997,7 +997,7 @@ export function ReportsGenerator() {
                         type="date"
                         value={documentForm.orientationDate}
                         onChange={handleDocumentFieldChange('orientationDate')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       />
                     </div>
                     <div>
@@ -1009,7 +1009,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.referenceNumber}
                         onChange={handleDocumentFieldChange('referenceNumber')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="APP-2025-001"
                       />
                     </div>
@@ -1022,7 +1022,7 @@ export function ReportsGenerator() {
                         type="date"
                         value={documentForm.decisionDate}
                         onChange={handleDocumentFieldChange('decisionDate')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       />
                     </div>
                   </div>
@@ -1040,7 +1040,7 @@ export function ReportsGenerator() {
                         type="date"
                         value={documentForm.interviewDate}
                         onChange={handleDocumentFieldChange('interviewDate')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       />
                     </div>
                     <div>
@@ -1052,7 +1052,7 @@ export function ReportsGenerator() {
                         type="time"
                         value={documentForm.interviewTime}
                         onChange={handleDocumentFieldChange('interviewTime')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       />
                     </div>
                     <div>
@@ -1064,7 +1064,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.interviewMode}
                         onChange={handleDocumentFieldChange('interviewMode')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="Virtual / In-person"
                       />
                     </div>
@@ -1077,7 +1077,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.interviewLocation}
                         onChange={handleDocumentFieldChange('interviewLocation')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="Admissions Centre / Zoom link"
                       />
                     </div>
@@ -1098,7 +1098,7 @@ export function ReportsGenerator() {
                         value={documentForm.feedbackSummary}
                         onChange={handleDocumentFieldChange('feedbackSummary')}
                         rows={3}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="Overall impression and decision rationale"
                       />
                     </div>
@@ -1111,7 +1111,7 @@ export function ReportsGenerator() {
                         value={documentForm.feedbackStrengths}
                         onChange={handleDocumentFieldChange('feedbackStrengths')}
                         rows={3}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder={"Strong leadership skills\nClear motivation"}
                       />
                     </div>
@@ -1124,7 +1124,7 @@ export function ReportsGenerator() {
                         value={documentForm.feedbackImprovements}
                         onChange={handleDocumentFieldChange('feedbackImprovements')}
                         rows={3}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder={"Strengthen quantitative examples\nProvide additional references"}
                       />
                     </div>
@@ -1137,7 +1137,7 @@ export function ReportsGenerator() {
                         value={documentForm.feedbackRecommendation}
                         onChange={handleDocumentFieldChange('feedbackRecommendation')}
                         rows={2}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="Suggested improvements or follow-up guidance"
                       />
                     </div>
@@ -1156,7 +1156,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.paymentAmountDue}
                         onChange={handleDocumentFieldChange('paymentAmountDue')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="1250"
                       />
                     </div>
@@ -1169,7 +1169,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.paymentAmountPaid}
                         onChange={handleDocumentFieldChange('paymentAmountPaid')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="800"
                       />
                     </div>
@@ -1182,7 +1182,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.paymentBalance}
                         onChange={handleDocumentFieldChange('paymentBalance')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="450"
                       />
                     </div>
@@ -1195,7 +1195,7 @@ export function ReportsGenerator() {
                         type="date"
                         value={documentForm.paymentDueDate}
                         onChange={handleDocumentFieldChange('paymentDueDate')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       />
                     </div>
                     <div>
@@ -1207,7 +1207,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.paymentReference}
                         onChange={handleDocumentFieldChange('paymentReference')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="INV-2025-04"
                       />
                     </div>
@@ -1220,7 +1220,7 @@ export function ReportsGenerator() {
                         type="date"
                         value={documentForm.paymentLastPaymentDate}
                         onChange={handleDocumentFieldChange('paymentLastPaymentDate')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       />
                     </div>
                   </div>
@@ -1233,7 +1233,7 @@ export function ReportsGenerator() {
                       value={documentForm.paymentBreakdown}
                       onChange={handleDocumentFieldChange('paymentBreakdown')}
                       rows={3}
-                      className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       placeholder={"Tuition - 950\nLibrary Fee - 50"}
                     />
                   </div>
@@ -1251,7 +1251,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.staffName}
                         onChange={handleDocumentFieldChange('staffName')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="Dr. Chanda Mwila"
                       />
                     </div>
@@ -1264,7 +1264,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.staffTitle}
                         onChange={handleDocumentFieldChange('staffTitle')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="Admissions Director"
                       />
                     </div>
@@ -1277,7 +1277,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.staffDepartment}
                         onChange={handleDocumentFieldChange('staffDepartment')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="Admissions Office"
                       />
                     </div>
@@ -1290,7 +1290,7 @@ export function ReportsGenerator() {
                         type="email"
                         value={documentForm.staffEmail}
                         onChange={handleDocumentFieldChange('staffEmail')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="admissions@example.com"
                       />
                     </div>
@@ -1303,7 +1303,7 @@ export function ReportsGenerator() {
                         type="text"
                         value={documentForm.staffPhone}
                         onChange={handleDocumentFieldChange('staffPhone')}
-                        className="w-full border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-input rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="+260 900 000 000"
                       />
                     </div>
