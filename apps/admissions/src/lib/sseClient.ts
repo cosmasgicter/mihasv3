@@ -63,6 +63,12 @@ export interface SSEClient {
   getRetryCount(): number;
   /** Reset retry count (useful after successful operations) */
   resetRetryCount(): void;
+  /** Reset auth-failure state to allow fresh connection after re-auth */
+  resetAuthFailure(): void;
+  /** Check if the client is in auth-failed state */
+  isAuthFailed(): boolean;
+  /** Check if retries have been exhausted */
+  isRetriesExhausted(): boolean;
 }
 
 /**
@@ -182,6 +188,8 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
   let intentionalDisconnect = false;
   let wasConnectedBeforeHidden = false;
   let hasLoggedError = false;
+  let authFailed = false;
+  let retriesExhausted = false;
 
   // Event handlers map: event type -> Set of handlers
   const handlers = new Map<string, Set<EventHandler>>();
@@ -221,21 +229,22 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
    * Schedule reconnection with exponential backoff
    */
   function scheduleReconnect(): void {
-    if (intentionalDisconnect) {
+    if (intentionalDisconnect || authFailed) {
       return;
     }
 
     if (retryCount >= maxRetries) {
-      console.log(`[SSEClient] Max retries (${maxRetries}) reached, giving up`);
-      onError?.(new Error(`Max reconnection attempts (${maxRetries}) reached`));
-      // Dispatch error event to all subscribed error handlers
-      dispatchEvent('error', { type: 'max_retries_exceeded' });
+      if (!retriesExhausted) {
+        retriesExhausted = true;
+        console.debug(`[SSEClient] Max retries (${maxRetries}) reached, stopping reconnects`);
+        onError?.(new Error(`Max reconnection attempts (${maxRetries}) reached`));
+        dispatchEvent('error', { type: 'max_retries_exceeded' });
+      }
       return;
     }
 
     const delay = calculateBackoff(retryCount, initialBackoff, maxBackoff);
-    const reconnectLog = retryCount > 0 ? console.debug : console.log;
-    reconnectLog(`[SSEClient] Scheduling reconnect in ${delay}ms (attempt ${retryCount + 1})`);
+    console.debug(`[SSEClient] Scheduling reconnect in ${delay}ms (attempt ${retryCount + 1})`);
 
     reconnectTimeout = setTimeout(() => {
       reconnectTimeout = null;
@@ -272,7 +281,8 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
       }
     } else if (document.visibilityState === 'visible') {
       // Page is visible again - reconnect if we were connected before
-      if (wasConnectedBeforeHidden && !connected && !intentionalDisconnect) {
+      // Do NOT reconnect if auth has failed or retries are exhausted
+      if (wasConnectedBeforeHidden && !connected && !intentionalDisconnect && !authFailed && !retriesExhausted) {
         console.log('[SSEClient] Page visible, reconnecting');
         wasConnectedBeforeHidden = false;
         retryCount = 0; // Reset retry count for fresh reconnection
@@ -299,11 +309,27 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
   }
 
   /**
+   * Probe the SSE endpoint with a HEAD request to detect auth failures.
+   * EventSource.onerror does not expose HTTP status codes, so we use
+   * a lightweight fetch probe to distinguish 401/403 from network errors.
+   * Transport errors (ERR_QUIC_PROTOCOL_ERROR, etc.) are treated as network errors.
+   *
+   * @returns The HTTP status code, or -1 if the probe fails due to a network/transport error
+   */
+  async function probeEndpointForAuth(): Promise<number> {
+    const response = await fetch(endpoint, {
+      method: 'HEAD',
+      credentials: withCredentials ? 'include' : 'same-origin',
+    });
+    return response.status;
+  }
+
+  /**
    * Connect to SSE endpoint
    */
   function connect(): void {
-    // Don't connect if intentionally disconnected
-    if (intentionalDisconnect) {
+    // Don't connect if intentionally disconnected or auth has failed
+    if (intentionalDisconnect || authFailed) {
       return;
     }
 
@@ -348,9 +374,9 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
       };
 
       // Handle errors
-      eventSource.onerror = (event) => {
+      eventSource.onerror = (_event) => {
         if (!hasLoggedError) {
-          console.log('[SSEClient] Connection error');
+          console.debug('[SSEClient] Connection error');
           hasLoggedError = true;
         } else {
           console.debug('[SSEClient] Connection error');
@@ -366,9 +392,26 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
         }
 
         // Only report error and schedule reconnect if not intentional
-        if (!intentionalDisconnect) {
+        if (!intentionalDisconnect && !authFailed) {
           onError?.(new Error('SSE connection error'));
-          scheduleReconnect();
+
+          // Probe the endpoint with a HEAD request to detect auth failures
+          // EventSource.onerror does not expose HTTP status codes
+          probeEndpointForAuth().then((probeStatus) => {
+            if (probeStatus === 401 || probeStatus === 403) {
+              // Auth failure detected — stop reconnecting
+              authFailed = true;
+              clearReconnectTimeout();
+              console.warn(`[SSEClient] Auth failure (${probeStatus}), stopping reconnect`);
+              dispatchEvent('auth_failure', { status: probeStatus });
+            } else {
+              // Network or other error — apply normal backoff
+              scheduleReconnect();
+            }
+          }).catch(() => {
+            // Probe itself failed (network error, QUIC error, etc.) — treat as network error
+            scheduleReconnect();
+          });
         }
       };
 
@@ -458,10 +501,33 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
   }
 
   /**
-   * Reset retry count
+   * Reset retry count and retries-exhausted state
    */
   function resetRetryCount(): void {
     retryCount = 0;
+    retriesExhausted = false;
+  }
+
+  /**
+   * Reset auth-failure state to allow fresh connection after re-auth
+   */
+  function resetAuthFailure(): void {
+    authFailed = false;
+    retriesExhausted = false;
+  }
+
+  /**
+   * Check if the client is in auth-failed state
+   */
+  function isAuthFailedFn(): boolean {
+    return authFailed;
+  }
+
+  /**
+   * Check if retries have been exhausted
+   */
+  function isRetriesExhaustedFn(): boolean {
+    return retriesExhausted;
   }
 
   // Set up visibility change listener for battery-friendly behavior
@@ -478,6 +544,9 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
     isConnected: isConnectedFn,
     getRetryCount,
     resetRetryCount,
+    resetAuthFailure,
+    isAuthFailed: isAuthFailedFn,
+    isRetriesExhausted: isRetriesExhaustedFn,
   };
 }
 

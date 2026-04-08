@@ -184,7 +184,7 @@ export async function syncGradesWithRecovery(
   const connectionManager = ConnectionManager.getInstance()
   
   return connectionManager.makeRequest(`/applications/${applicationId}/grades/`, {
-    method: 'PUT',
+    method: 'POST',
     body: JSON.stringify({ grades }),
     retryKey: `sync_grades_${applicationId}`
   })

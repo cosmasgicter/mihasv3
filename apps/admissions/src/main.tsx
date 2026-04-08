@@ -231,6 +231,41 @@ if (typeof window !== 'undefined') {
   
   // Register vite-plugin-pwa service worker and retire legacy /sw.js registrations
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
+    // Listen for cache-updated messages from the service worker.
+    // Auto-reload on Dashboard or Landing Page so the user sees fresh assets/data.
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'cache-updated') {
+        const pathname = window.location.pathname
+        const isReloadTarget =
+          pathname === '/' ||
+          pathname === '/dashboard' ||
+          pathname.startsWith('/student/dashboard') ||
+          pathname.startsWith('/admin')
+
+        if (isReloadTarget) {
+          console.log('[PWA] Cache updated — reloading page for fresh assets')
+          window.location.reload()
+        }
+      }
+    })
+
+    // 30-second activation timeout: if the SW hasn't activated by then,
+    // proceed without SW support and log a warning (Requirement 11.6).
+    const swActivationTimeout = setTimeout(() => {
+      if (!navigator.serviceWorker.controller) {
+        console.warn('[PWA] Service worker failed to activate within 30 seconds — proceeding without SW support')
+      }
+    }, 30_000)
+
+    // Clear the timeout once a controller is available (SW activated successfully)
+    if (navigator.serviceWorker.controller) {
+      clearTimeout(swActivationTimeout)
+    } else {
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        clearTimeout(swActivationTimeout)
+      }, { once: true })
+    }
+
     setTimeout(() => {
       runOneTimeRuntimeCacheReset()
         .then((didReset) => {
@@ -265,3 +300,19 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <App />
   </React.StrictMode>,
 )
+
+// Remove the preloader after React mounts (Requirement 2.2)
+if (typeof window !== 'undefined') {
+  // Clear the slow-load timeout so the message never appears after mount
+  if ((window as unknown as Record<string, unknown>).__preloaderTimeout) {
+    clearTimeout((window as unknown as Record<string, unknown>).__preloaderTimeout as number)
+  }
+
+  const preloader = document.getElementById('preloader')
+  if (preloader) {
+    preloader.classList.add('fade-out')
+    setTimeout(() => {
+      preloader.remove()
+    }, 500)
+  }
+}

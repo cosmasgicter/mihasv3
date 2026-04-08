@@ -5,7 +5,7 @@
  * Landing sections are intentionally defined in this page to avoid duplicate block patterns.
  */
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { PublicLayout } from '@/components/layout/PublicLayout';
@@ -13,7 +13,8 @@ import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui';
 import { Badge } from '@/components/ui';
 import { Button } from '@/components/ui/Button';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
-import { ScrollReveal, StaggerReveal, StaggerItem, AnimatedCounter } from '@/components/smoothui';
+import { ScrollReveal, StaggerReveal, StaggerItem, AnimatedCounter, TextEffect, ShinyText } from '@/components/smoothui';
+import { ShapeLandingHero } from '@/components/smoothui/shape-landing-hero';
 import { 
   Star, ArrowRight, 
   CheckCircle
@@ -93,90 +94,16 @@ const landingStructuredData = [
   }
 ];
 
+/** Rotating phrases displayed in the hero via TextRotate */
+const heroRotatingPhrases = [
+  'Nursing Excellence',
+  'Clinical Medicine',
+  'Pharmacy',
+  'Public Health',
+];
+
 function smoothScrollToSection(sectionId: string) {
   document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// ============================================================================
-// HERO SECTION COMPONENT
-// ============================================================================
-
-function HeroSection() {
-  const handleInPageAnchor = (event: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
-    event.preventDefault();
-    smoothScrollToSection(sectionId);
-    window.history.replaceState({}, '', `#${sectionId}`);
-  };
-
-  return (
-    <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary via-secondary to-primary opacity-95" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-black/10" />
-      {/* Intentional inline rgba: semi-transparent white overlay for decorative gradient effect — not a design token color */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_40%)]" />
-
-      {/* Hero content with scroll-triggered animation */}
-      <ScrollReveal direction="up" className="relative z-10 container-responsive px-4 sm:px-6 lg:px-8">
-        <div className="grid items-center gap-10 py-24 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
-          <div className="text-center text-white lg:text-left">
-            <p className="mb-4 inline-flex items-center rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
-              Government Accredited Health Programs
-            </p>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
-              Your Future Starts Here
-            </h1>
-            <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed text-white/95 font-medium">
-              Launch Your Healthcare Career in Zambia and beyond with MIHAS-KATC admissions, transparent application tracking, and high-demand accredited training.
-            </p>
-            <div className="flex flex-col xs:flex-row gap-4 sm:gap-6 justify-center lg:justify-start items-center max-w-md xs:max-w-none mx-auto lg:mx-0">
-              <Button asChild variant="gradient" size="xl" className="w-full xs:w-auto min-h-[48px] px-6 sm:px-8">
-                <Link to="/auth/signup">
-                  <span className="mr-2">Start Your Application</span>
-                  <ArrowRight className="w-5 h-5" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="xl" className="w-full xs:w-auto border-2 border-white bg-white/10 text-white hover:bg-white hover:text-primary font-semibold backdrop-blur-sm min-h-[48px] px-6 sm:px-8">
-                <a href="#features" onClick={(event) => handleInPageAnchor(event, 'features')}>
-                  <span className="mr-2">Learn More</span>
-                  <Star className="w-5 h-5" />
-                </a>
-              </Button>
-            </div>
-          </div>
-
-          <div className="mx-auto w-full max-w-xl">
-            <div className="relative overflow-hidden rounded-3xl border border-white/25 bg-white/10 p-2 shadow-2xl backdrop-blur-sm">
-              <OptimizedImage
-                src="/images/programs/mihas-campus.jpg"
-                alt="Students studying at the Mukuba Institute of Health and Allied Sciences campus"
-                className="h-64 w-full rounded-2xl sm:h-80 lg:h-[420px] object-cover"
-                width={1024}
-                height={420}
-              />
-
-              <div className="pointer-events-none absolute inset-x-6 bottom-6 rounded-2xl border border-white/30 bg-black/40 p-4 backdrop-blur-md">
-                <p className="text-sm font-semibold text-white">92% Job Placement Rate</p>
-                <p className="text-xs text-white/80">Trusted by hospitals, clinics, and public health institutions.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </ScrollReveal>
-
-      {/* Scroll indicator */}
-      <a
-        href="#stats"
-        className="absolute bottom-8 sm:bottom-12 left-1/2 transform -translate-x-1/2 cursor-pointer animate-bounce touch-target z-20"
-        aria-label="Scroll to graduate outcomes"
-        onClick={(event) => handleInPageAnchor(event, 'stats')}
-      >
-        <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center hover:border-border transition-colors shadow-sm">
-          <div className="w-1 h-3 bg-card rounded-full mt-2" />
-        </div>
-      </a>
-    </section>
-  );
 }
 
 // ============================================================================
@@ -217,9 +144,11 @@ function FeaturesSection() {
     <section id="features" className="py-12 sm:py-16 lg:py-20 bg-muted">
       <div className="container-responsive px-4 sm:px-6 lg:px-8">
         <ScrollReveal className="text-center mb-12 sm:mb-16">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold gradient-text-primary mb-4 sm:mb-6">
-            Why Choose MIHAS-KATC for Your Healthcare Career?
-          </h2>
+          <TextEffect effect="fadeUp">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold gradient-text-primary mb-4 sm:mb-6">
+              Why Choose <ShinyText text="MIHAS-KATC" className="font-semibold" /> for Your Healthcare Career?
+            </h2>
+          </TextEffect>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto font-medium">
             Join 300+ successful graduates working across Zambia and internationally
           </p>
@@ -263,9 +192,11 @@ function AccreditationSection() {
     <section className="py-12 sm:py-16 lg:py-20 bg-card">
       <div className="container-responsive px-4 sm:px-6 lg:px-8">
         <ScrollReveal className="text-center mb-12">
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold gradient-text-primary mb-4 px-4">
-            Qualifications Recognized by Employers Across Zambia & Beyond
-          </h2>
+          <TextEffect effect="fadeUp">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold gradient-text-primary mb-4 px-4">
+              Qualifications Recognized by Employers Across Zambia & Beyond
+            </h2>
+          </TextEffect>
           <p className="text-base sm:text-lg text-muted-foreground px-4">
             Our graduates are qualified to work in hospitals, clinics, and health organizations throughout Zambia, SADC region, and internationally
           </p>
@@ -311,9 +242,11 @@ function ProgramsSection() {
     <section id="programs" className="py-12 sm:py-16 lg:py-20 bg-card">
       <div className="container-responsive px-4 sm:px-6 lg:px-8">
         <ScrollReveal className="text-center mb-12 sm:mb-16">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold gradient-text-primary mb-6 px-4">
-            High-Demand Healthcare Jobs Training Programs
-          </h2>
+          <TextEffect effect="fadeUp">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold gradient-text-primary mb-6 px-4">
+              High-Demand Healthcare Jobs Training Programs
+            </h2>
+          </TextEffect>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-medium px-4">
             Three government-accredited programs with guaranteed job opportunities
           </p>
@@ -375,9 +308,11 @@ function CTASection() {
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/20" />
       
       <ScrollReveal className="relative z-10 container-responsive px-4 sm:px-6 lg:px-8 text-center text-white">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-6 px-4">
-          Ready to Secure Your Healthcare Job in Zambia?
-        </h2>
+        <TextEffect effect="fadeUp">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-6 px-4">
+            Ready to Secure Your Healthcare Job in Zambia?
+          </h2>
+        </TextEffect>
         <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-8 max-w-3xl mx-auto px-4">
           Applications open now! Join 300+ graduates working in hospitals, clinics, and health organizations
         </p>
@@ -432,7 +367,23 @@ export default function LandingPage() {
         path="/"
         structuredData={landingStructuredData}
       />
-      <HeroSection />
+      <ShapeLandingHero
+        headline="Your Future Starts Here"
+        description="Launch Your Healthcare Career in Zambia and beyond with MIHAS-KATC admissions, transparent application tracking, and high-demand accredited training."
+        rotatingPhrases={heroRotatingPhrases}
+        primaryCta={{
+          label: 'Start Your Application',
+          href: '/auth/signup',
+          icon: <ArrowRight className="w-5 h-5" />,
+        }}
+        secondaryCta={{
+          label: 'Learn More',
+          href: '#features',
+          icon: <Star className="w-5 h-5" />,
+        }}
+        imageSrc="/images/programs/mihas-campus.jpg"
+        imageAlt="Students studying at the Mukuba Institute of Health and Allied Sciences campus"
+      />
       <StatsSection />
       <FeaturesSection />
       <AccreditationSection />

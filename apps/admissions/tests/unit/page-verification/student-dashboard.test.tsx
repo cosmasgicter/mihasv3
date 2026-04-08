@@ -198,6 +198,14 @@ vi.mock('@/hooks/useRealtime', () => ({
   useApplicationUpdates: vi.fn(),
 }))
 
+// ── Mock SSE client for auth-failed state check ───────────────────────
+vi.mock('@/lib/sseClient', () => ({
+  getDefaultSSEClient: () => ({
+    isAuthFailed: () => false,
+    isRetriesExhausted: () => false,
+  }),
+}))
+
 // ── Mock applicationSessionManager ────────────────────────────────────
 vi.mock('@/lib/applicationSession', () => ({
   applicationSessionManager: {

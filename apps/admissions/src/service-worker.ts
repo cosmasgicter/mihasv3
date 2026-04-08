@@ -1,7 +1,6 @@
 /// <reference lib="webworker" />
 
 import { cleanupOutdatedCaches, matchPrecache, precacheAndRoute } from 'workbox-precaching'
-import { clientsClaim } from 'workbox-core'
 import { registerRoute, setCatchHandler } from 'workbox-routing'
 import { NetworkFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies'
 import { ExpirationPlugin } from 'workbox-expiration'
@@ -76,6 +75,12 @@ const CACHE_BUDGET_BYTES = 50 * 1024 * 1024 // 50MB
 // Offline fallback asset used when image requests fail
 const IMAGE_FALLBACK_URL = '/images/placeholder.svg'
 
+// Auto skip-waiting on install so the new SW activates immediately
+// without waiting for the user to close all tabs.
+self.addEventListener('install', () => {
+  self.skipWaiting()
+})
+
 // Suppress extension-related errors in service worker
 self.addEventListener('error', (event) => {
   const message = event.message || ''
@@ -90,8 +95,6 @@ self.addEventListener('error', (event) => {
     return
   }
 })
-
-clientsClaim()
 
 precacheAndRoute(WB_MANIFEST)
 cleanupOutdatedCaches()
@@ -369,6 +372,20 @@ self.addEventListener('activate', (event) => {
     (async () => {
       console.log(`[Service Worker] Activating with cache version: ${CACHE_VERSION}`)
       
+      // Take control of all existing clients immediately
+      await self.clients.claim()
+
+      // Explicitly delete the API cache bucket so stale API responses
+      // are never served after a new deployment.
+      try {
+        const apiCacheDeleted = await caches.delete(API_CACHE)
+        if (apiCacheDeleted) {
+          console.log(`[Service Worker] Deleted API cache bucket: ${API_CACHE}`)
+        }
+      } catch (error) {
+        console.warn('[Service Worker] Failed to delete API cache bucket:', error)
+      }
+
       const cacheNames = await caches.keys()
       const oldCaches = cacheNames.filter((name) => {
         const isLegacyCache = LEGACY_CACHE_PREFIXES.some((prefix) => name.startsWith(prefix))

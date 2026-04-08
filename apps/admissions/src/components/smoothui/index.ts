@@ -33,5 +33,17 @@ export {
   ContentTransition
 } from './page-transition';
 
+// Infinite grid background
+export { InfiniteGrid } from './infinite-grid';
+
+// Shiny text shimmer effect
+export { ShinyText } from './shiny-text';
+
+// Text rotation component
+export { TextRotate } from './text-rotate';
+
+// Text entrance effects
+export { TextEffect } from './text-effect';
+
 // Re-export animation configuration
 export * from '@/lib/animation-config';

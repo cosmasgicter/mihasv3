@@ -41,6 +41,18 @@ import { Seo } from '@/components/seo/Seo'
 import { applicationSessionManager } from '@/lib/applicationSession'
 import { requiresStudentPaymentAction } from '@/lib/paymentStatus'
 import { logApiError } from '@/lib/apiErrorLogger'
+import { getDefaultSSEClient } from '@/lib/sseClient'
+
+/** Check if a rejected promise reason is a 403 Forbidden error */
+function is403Error(error: unknown): boolean {
+  if (error && typeof error === 'object' && 'status' in error) {
+    return (error as { status?: number }).status === 403
+  }
+  if (error instanceof Error) {
+    return error.message.includes('403') || error.message.toLowerCase().includes('forbidden')
+  }
+  return false
+}
 
 export default function StudentDashboard() {
   const { user } = useAuth()
@@ -60,7 +72,17 @@ export default function StudentDashboard() {
   const abortControllerRef = useRef<AbortController | null>(null)
   const loadRequestIdRef = useRef(0)
   const loadDashboardDataRef = useRef<() => Promise<void>>(async () => {})
+  const initialLoadCompleteRef = useRef(false)
   const confirmDialog = useConfirmDialog()
+
+  // Requirements: 8.2 - Check if SSE client is in auth-failed state to skip SSE connection
+  const sseAuthFailed = useMemo(() => {
+    try {
+      return getDefaultSSEClient().isAuthFailed()
+    } catch {
+      return false
+    }
+  }, [])
   
   // Manual refresh hook for React Query cache invalidation
   const { forceRefresh, isRefreshing: isManualRefreshing } = useStudentDashboardRefresh({
@@ -83,10 +105,13 @@ export default function StudentDashboard() {
     onDataChange: () => {},
   })
 
-  // Requirements: 8.1, 8.2 - Subscribe to application_update events and refresh dashboard
+  // Requirements: 8.1, 8.2, 8.4 - Subscribe to application_update events and refresh dashboard
+  // Skip SSE when auth-failed (Req 8.2) or during initial data load (Req 8.4)
   const queryClient = useQueryClient()
   useApplicationUpdates(
     useCallback((data: Record<string, unknown>) => {
+      // Don't process SSE events during initial load to avoid triggering reconnection
+      if (!initialLoadCompleteRef.current) return
       // Invalidate React Query cache to trigger refetch of dashboard data
       queryClient.invalidateQueries({ queryKey: ['applications'] })
       queryClient.invalidateQueries({ queryKey: ['student-dashboard'] })
@@ -318,6 +343,19 @@ export default function StudentDashboard() {
           setScheduledInterviews([])
         }
       }
+
+      // --- Requirements 8.3, 8.5: Detect all-403 (session expired) and redirect to sign-in ---
+      const results = [applicationsResult, intakesResult, interviewsResult]
+      const failedResults = results.filter(r => r.status === 'rejected')
+      const all403 = failedResults.length === results.length &&
+        failedResults.every(r => is403Error((r as PromiseRejectedResult).reason))
+
+      if (all403 && isLatestRequest() && !signal.aborted) {
+        // All sources returned 403 — session expired, redirect within 2 seconds
+        setTimeout(() => {
+          navigate('/auth/signin')
+        }, 2000)
+      }
     } catch (error) {
       // Catch-all for unexpected errors (e.g. draft loading)
       if (!isLatestRequest()) return
@@ -329,6 +367,7 @@ export default function StudentDashboard() {
         return
       }
       hasLoadedRef.current = true
+      initialLoadCompleteRef.current = true
       if (isInitialLoad) {
         setIsInitialLoading(false)
       } else {
