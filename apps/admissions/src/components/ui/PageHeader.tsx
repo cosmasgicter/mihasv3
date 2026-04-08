@@ -100,7 +100,7 @@ export function PageHeader({
 				 <div className={cn('relative flex flex-col gap-6 sm:flex-row sm:justify-between', alignmentStyles[align])}>
 					 <div className="space-y-4 sm:max-w-2xl">
 						 {eyebrow && (
-							 <p className={cn('font-semibold uppercase tracking-wide', isGradient ? 'text-white/80' : 'text-primary')} style={{ fontSize: 'var(--type-xs)' }}>
+							 <p className={cn('font-semibold uppercase tracking-wide', isGradient ? 'text-white/90' : 'text-primary')} style={{ fontSize: 'var(--type-xs)' }}>
 								 {eyebrow}
 							 </p>
 						 )}

@@ -77,7 +77,7 @@ export function SendNotificationModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter notification title..."
-              className="w-full rounded-lg border border-input px-3 py-2 focus:border-primary focus:ring focus:ring-blue-200"
+              className="w-full rounded-lg border border-input px-3 py-2 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring"
               required
             />
           </div>
@@ -91,7 +91,7 @@ export function SendNotificationModal({
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Enter your message to the student..."
               rows={4}
-              className="w-full rounded-lg border border-input px-3 py-2 focus:border-primary focus:ring focus:ring-blue-200"
+              className="w-full rounded-lg border border-input px-3 py-2 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring"
               required
             />
           </div>

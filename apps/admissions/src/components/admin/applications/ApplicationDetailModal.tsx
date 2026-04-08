@@ -1168,7 +1168,7 @@ export function ApplicationDetailModal({
  onChange={(e) => setAdminFeedback(e.target.value)}
  placeholder="Add feedback for the applicant..."
  rows={4}
- className="w-full rounded-lg border border-primary/30 px-3 py-2 text-sm focus:border-primary focus:ring focus:ring-blue-200"
+ className="w-full rounded-lg border border-primary/30 px-3 py-2 text-sm focus:border-primary focus-visible:ring-2 focus-visible:ring-ring"
  />
  
  <div className="flex items-center justify-between">
@@ -1280,7 +1280,7 @@ export function ApplicationDetailModal({
  type="datetime-local"
  value={interviewForm.scheduledAt}
  onChange={handleInterviewFieldChange('scheduledAt')}
- className="w-full rounded-lg border border-input px-3 py-2 focus:border-primary focus:ring focus:ring-blue-200"
+ className="w-full rounded-lg border border-input px-3 py-2 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring"
  required
  />
  </div>
@@ -1292,7 +1292,7 @@ export function ApplicationDetailModal({
  id="interview-mode"
  value={interviewForm.mode}
  onChange={handleInterviewFieldChange('mode')}
- className="w-full rounded-lg border border-input px-3 py-2 focus:border-primary focus:ring focus:ring-blue-200"
+ className="w-full rounded-lg border border-input px-3 py-2 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring"
  >
  <option value="in_person">In person</option>
  <option value="virtual">Virtual</option>
@@ -1311,7 +1311,7 @@ export function ApplicationDetailModal({
  value={interviewForm.location}
  onChange={handleInterviewFieldChange('location')}
  placeholder={interviewForm.mode === 'virtual' ? 'Zoom/Teams link' : 'Campus room or venue'}
- className="w-full rounded-lg border border-input px-3 py-2 focus:border-primary focus:ring focus:ring-blue-200"
+ className="w-full rounded-lg border border-input px-3 py-2 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring"
  />
  </div>
 
@@ -1324,7 +1324,7 @@ export function ApplicationDetailModal({
  value={interviewForm.notes}
  onChange={handleInterviewFieldChange('notes')}
  rows={4}
- className="w-full rounded-lg border border-input px-3 py-2 focus:border-primary focus:ring focus:ring-blue-200"
+ className="w-full rounded-lg border border-input px-3 py-2 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring"
  placeholder="Add preparation details, required documents or virtual meeting instructions"
  />
  </div>
