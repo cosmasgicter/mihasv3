@@ -14,9 +14,9 @@ export const WIZARD_COPY = {
       'Ensure grades match your certificate'
     ],
     payment: [
-      'Keep your payment reference handy',
-      'Upload proof of payment (receipt/screenshot)',
-      'Ensure payment details are correct'
+      'Payment is processed securely via Lenco',
+      'Ensure you have a stable internet connection',
+      'Your payment status updates automatically'
     ],
     submit: [
       'Review all information carefully',

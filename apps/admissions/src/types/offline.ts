@@ -12,9 +12,6 @@ export interface OfflineApplicationDraftData {
 
 export interface OfflineFormSubmissionData extends Partial<Application> {
   application_fee?: number
-  payment_method?: string
-  amount?: number
-  paid_at?: string
 }
 
 export interface OfflineDocumentUploadData {

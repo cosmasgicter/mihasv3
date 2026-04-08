@@ -113,7 +113,6 @@ interface UseWizardControllerResult {
 
 export interface PaymentValidationContext {
   formData: WizardFormData
-  proofOfPaymentFile: File | null
   setError: (value: string) => void
   showError: (title: string, message?: string) => void
 }
@@ -773,13 +772,6 @@ const useWizardController = (): UseWizardControllerResult => {
           nationality?: string
           next_of_kin_name?: string
           next_of_kin_phone?: string
-          pop_url?: string
-          payment_method?: string
-          paid_at?: string
-          payer_name?: string
-          payer_phone?: string
-          amount?: number
-          momo_ref?: string
           program?: string
           intake?: string
           institution?: string
@@ -941,7 +933,6 @@ const useWizardController = (): UseWizardControllerResult => {
             stepId = 2
             if (app.result_slip_url) {
               stepId = 3
-              if (app.pop_url) stepId = 4
             }
           }
           const index = getStepIndexById(stepId)

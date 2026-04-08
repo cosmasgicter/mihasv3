@@ -57,13 +57,6 @@ export interface ApplicationUpdateData {
   program?: string
   intake?: string
   institution?: string
-  payment_method?: string
-  payer_name?: string | null
-  payer_phone?: string | null
-  amount?: number
-  paid_at?: string | null
-  momo_ref?: string | null
-  pop_url?: string
   result_slip_url?: string
   extra_kyc_url?: string | null
   status?: string

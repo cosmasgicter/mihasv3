@@ -35,8 +35,8 @@ export const wizardSteps: WizardStepConfig[] = [
     id: 3,
     key: 'payment',
     progressTitle: 'Payment',
-    title: 'Step 3: Payment Information',
-    description: 'Submit your payment details and proof of payment',
+    title: 'Step 3: Application Fee Payment',
+    description: 'Complete your application fee payment via the secure Lenco gateway',
     icon: CreditCard,
     nextButtonLabel: 'Next Step'
   },

@@ -33,11 +33,14 @@ export interface Application {
   guardian_phone?: string;
   result_slip_url?: string;
   extra_kyc_url?: string;
-  /** @deprecated Use payments table data instead */
+  /** @deprecated Legacy field — kept for backward compat with existing DB rows */
   pop_url?: string;
   payment_reference?: string;
+  /** @deprecated Use payments table data instead */
   payment_method?: string;
+  /** @deprecated Use payments table data instead */
   paid_amount?: string | number;
+  /** @deprecated Use payments table data instead */
   amount?: string | number;
   application_fee?: string | number;
   created_at?: string;

@@ -6,7 +6,6 @@
 
 export interface PaymentValidationContext {
   formData: Record<string, unknown>
-  proofOfPaymentFile?: File | null
   setError: (msg: string | null) => void
   showError: (msg: string) => void
 }

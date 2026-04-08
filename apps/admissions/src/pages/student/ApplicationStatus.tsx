@@ -340,26 +340,23 @@ export default function ApplicationStatus() {
                     <h3 className="text-sm font-bold text-foreground mb-3"><CreditCard className="w-5 h-5" /> Payment information</h3>
                     <div className="grid gap-2 text-sm text-foreground sm:grid-cols-2">
                       <div className="flex justify-between">
-                        <span className="text-foreground">Payment reference:</span>
-                        <span className="font-semibold">{application.payment_reference || 'Not provided'}</span>
+                        <span className="text-foreground">Payment status:</span>
+                        <span className="font-semibold">{paymentStatusLabel}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-foreground">Application fee:</span>
+                        <span className="font-semibold">K{application.application_fee ?? '153.00'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-foreground">Payment method:</span>
-                        <span className="font-semibold">{application.payment_method || 'Not provided'}</span>
+                        <span className="font-semibold">Lenco Payment Gateway</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-foreground">Amount paid:</span>
-                        <span className="font-semibold">
-                          K{application.paid_amount ?? application.amount ?? application.application_fee ?? 'Not provided'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-foreground">Payment status:</span>
-                        <span className="font-semibold">
-                          {paymentStatusLabel}
-                          {normalizedPaymentStatus === 'pending_review' ? ' (proof received)' : ''}
-                        </span>
-                      </div>
+                      {application.payment_verified_at && (
+                        <div className="flex justify-between">
+                          <span className="text-foreground">Verified:</span>
+                          <span className="font-semibold">{formatDate(application.payment_verified_at)}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -420,32 +417,7 @@ export default function ApplicationStatus() {
                     </div>
                   )}
 
-                  {application.pop_url && (
-                    <div
-                      className={`flex items-center justify-between rounded-xl border border-input/30 bg-secondary/5 px-4 py-3 ${animateClasses.fadeIn}`}
-                      style={staggerChild(2, 100)}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="rounded-lg bg-muted p-2">
-                          <FileText className="h-5 w-5 text-secondary" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">Proof of payment</p>
-                          <p className="text-xs font-medium text-foreground">✓ Uploaded</p>
-                        </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(application.pop_url as string, '_blank')}
-                      >
-                        <Eye className="mr-1 h-4 w-4" />
-                        View
-                      </Button>
-                    </div>
-                  )}
-
-                  {!application.result_slip_url && !application.extra_kyc_url && !application.pop_url && (
+                  {!application.result_slip_url && !application.extra_kyc_url && (
                     <EmptyState
                       icon={<FileText className="h-12 w-12" />}
                       heading="No supporting documents uploaded"
