@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/Button'
 import { formatDate, formatTimestamp } from '@/lib/dateFormat'
 import { XCircle, User, Clock, CheckCircle, FileText, CreditCard, Mail, Phone, Calendar, MapPin, Users, GraduationCap, Building, AlertCircle, Download, Send, History, Eye, MessageSquare } from 'lucide-react'
 import { applicationService } from '@/services/applications'
+import { apiClient } from '@/services/client'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { UnifiedLoader, UnifiedSpinner } from '@/components/ui/UnifiedLoader'
 import type { ApplicationInterview } from '@/types/database'
@@ -13,6 +14,24 @@ import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus'
 import { ApplicationApprovalActions } from './ApplicationApprovalActions'
+
+/** Payment record from the `payments` table */
+interface PaymentRecord {
+  id: string
+  status: string
+  amount: number | null
+  currency: string | null
+  payment_method?: string | null
+  transaction_reference?: string | null
+  lenco_reference?: string | null
+  created_at: string
+  updated_at?: string
+}
+
+interface PaymentListResponse {
+  results?: PaymentRecord[]
+  [key: string]: unknown
+}
 
 // Institution code to name mapping
 const INSTITUTION_NAMES: Record<string, string> = {
@@ -61,7 +80,6 @@ interface ApplicationWithDetails {
  updated_at?: string
  result_slip_url?: string
  extra_kyc_url?: string
- pop_url?: string
  admin_feedback?: string
  admin_feedback_date?: string
  admin_feedback_by?: string
@@ -297,16 +315,6 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
  system_generated: false
  } as DocumentItem)
  }
- if (application.pop_url && !existingUrls.has(application.pop_url)) {
- allDocuments.push({
- id: 'proof_of_payment',
- document_type: 'proof_of_payment',
- document_name: 'Proof of Payment',
- file_url: application.pop_url,
- verification_status: 'pending',
- system_generated: false
- } as DocumentItem)
- }
  }
  
  if (allDocuments.length === 0) {
@@ -405,6 +413,8 @@ export function ApplicationDetailModal({
  const [savingFeedback, setSavingFeedback] = useState(false)
  const [showNotificationModal, setShowNotificationModal] = useState(false)
  const [paymentWarning, setPaymentWarning] = useState<{ applicationId: string; status: string } | null>(null)
+ const [paymentRecords, setPaymentRecords] = useState<PaymentRecord[]>([])
+ const [loadingPayments, setLoadingPayments] = useState(false)
  const focusTrapRef = useFocusTrap(show && !!application)
  useEscapeKey(show && !!application, onClose)
 
@@ -418,6 +428,7 @@ export function ApplicationDetailModal({
  setIsGeneratingFinanceReceipt(false)
  setActiveTab('overview')
  setApplicationData(null)
+ setPaymentRecords([])
  setAdminFeedback(application?.admin_feedback || '')
  }, [application?.id, show])
 
@@ -451,8 +462,25 @@ export function ApplicationDetailModal({
  useEffect(() => {
  if (show && application?.id) {
  loadApplicationDetails()
+ loadPaymentRecords(application.id)
  }
  }, [show, application?.id])
+
+ const loadPaymentRecords = async (applicationId: string) => {
+   try {
+     setLoadingPayments(true)
+     const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>(
+       `/payments/?application_id=${encodeURIComponent(applicationId)}`
+     )
+     const records = Array.isArray(data) ? data : (data?.results ?? [])
+     setPaymentRecords(records)
+   } catch (error) {
+     logApiError('admin-application-detail', `/payments/?application_id=${applicationId}`, error)
+     setPaymentRecords([])
+   } finally {
+     setLoadingPayments(false)
+   }
+ }
 
  const loadApplicationDetails = async () => {
  if (!application?.id) return
@@ -1010,41 +1038,70 @@ export function ApplicationDetailModal({
  <CreditCard className="h-5 w-5 text-primary" />
  Payment Information
  </h3>
- <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- <div className="space-y-4">
+
+ {/* Current payment status from application */}
+ <div className="mb-4 p-3 rounded-lg bg-gradient-to-r from-green-50 to-green-100">
+ <div className="flex items-center gap-3">
+ {getPaymentIcon(application.payment_status || 'not_paid')}
  <div>
- <p className="text-sm text-foreground mb-1">Payment Method</p>
- <p className="font-medium text-foreground">{applicationData?.application?.payment_method || application.payment_method || 'Not specified'}</p>
- </div>
- <div>
- <p className="text-sm text-foreground mb-1">Amount Paid</p>
- <p className="text-2xl font-bold text-warning-strong">
- K{applicationData?.application?.amount || application.amount || 0} / K{applicationData?.application?.application_fee || application.application_fee || 153}
+ <p className="text-sm font-medium text-foreground">Current Status</p>
+ <p className={`text-lg font-bold ${paymentStatusTextClass}`}>
+ {paymentStatusLabel}
  </p>
  </div>
+ </div>
+ </div>
+
+ {/* Payment records from payments table */}
  <div>
- <p className="text-sm text-foreground mb-1">Payer Name</p>
- <p className="font-medium text-foreground">{applicationData?.application?.payer_name || application.payer_name || 'Not provided'}</p>
+ <p className="text-sm font-medium text-foreground mb-3">Payment History</p>
+ {loadingPayments ? (
+ <div className="flex items-center gap-2 text-sm text-foreground py-4">
+ <UnifiedSpinner size="sm" />
+ <span>Loading payment records...</span>
  </div>
+ ) : paymentRecords.length === 0 ? (
+ <div className="text-center py-6 text-foreground">
+ <CreditCard className="h-8 w-8 mx-auto mb-2 text-foreground opacity-40" />
+ <p className="text-sm">No payment records found</p>
  </div>
- {application.payment_verified_at && (
- <div className="bg-green-100/30 p-4 rounded-lg">
- <div className="flex items-center gap-2 mb-2">
- <CheckCircle className="h-4 w-4 text-accent" />
- <p className="font-medium text-green-900">Payment Verified</p>
+ ) : (
+ <div className="space-y-3">
+ {paymentRecords.map((payment) => (
+ <div key={payment.id} className="flex items-center justify-between p-3 bg-muted border border-border rounded-lg">
+ <div className="flex items-center gap-3">
+ <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+ payment.status === 'successful' ? 'bg-green-100' :
+ payment.status === 'failed' ? 'bg-red-100' :
+ 'bg-amber-100'
+ }`}>
+ {payment.status === 'successful' ? <CheckCircle className="h-4 w-4 text-green-700" /> :
+ payment.status === 'failed' ? <XCircle className="h-4 w-4 text-red-700" /> :
+ <Clock className="h-4 w-4 text-amber-700" />}
  </div>
- <p className="text-sm text-accent mb-1">
- Verified on {formatDate(application.payment_verified_at)}
+ <div>
+ <p className="text-sm font-medium text-foreground capitalize">{payment.status}</p>
+ <p className="text-xs text-foreground">
+ {payment.transaction_reference || 'No reference'}
+ {payment.payment_method ? ` · ${payment.payment_method}` : ''}
  </p>
- {(application.payment_verified_by_name || application.payment_verified_by_email) && (
- <p className="text-sm text-warning-strong">
- By: {application.payment_verified_by_name || application.payment_verified_by_email}
+ <p className="text-xs text-foreground">{formatDate(payment.created_at)}</p>
+ </div>
+ </div>
+ <div className="text-right">
+ <p className="text-lg font-bold text-foreground">
+ {payment.currency || 'ZMW'} {payment.amount != null ? Number(payment.amount).toFixed(2) : '—'}
  </p>
+ </div>
+ </div>
+ ))}
+ </div>
  )}
  </div>
- )}
+
+ {/* Admin feedback on payment (last review) */}
  {(applicationData?.application?.last_payment_audit_at || application.last_payment_audit_at || applicationData?.application?.last_payment_audit_notes || application.last_payment_audit_notes) && (
- <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+ <div className="mt-4 bg-amber-50 border border-amber-200 p-4 rounded-lg">
  <div className="flex items-center gap-2 mb-2">
  <Clock className="h-4 w-4 text-amber-700" />
  <p className="font-medium text-amber-900">Latest Payment Review</p>
@@ -1066,7 +1123,6 @@ export function ApplicationDetailModal({
  )}
  </div>
  )}
- </div>
  </div>
 
  {/* Admin Feedback */}

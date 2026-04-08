@@ -18,7 +18,6 @@ interface ApplicationWithDetails {
   submitted_at?: string
   result_slip_url?: string
   extra_kyc_url?: string
-  pop_url?: string
 }
 
 interface ApplicationsCardsProps {
@@ -135,7 +134,7 @@ export function ApplicationsCards({
                     <div className="flex items-center justify-between pt-2 border-t border-border">
                       <div className="flex items-center space-x-2 text-xs sm:text-sm text-foreground-secondary">
                         <FileCheck className="h-3 w-3 sm:h-4 sm:w-4" />
-                        <span>{(application.result_slip_url ? 1 : 0) + (application.extra_kyc_url ? 1 : 0) + (application.pop_url ? 1 : 0)} docs</span>
+                        <span>{(application.result_slip_url ? 1 : 0) + (application.extra_kyc_url ? 1 : 0)} docs</span>
                       </div>
                       <div className="flex space-x-1">
                         <Button

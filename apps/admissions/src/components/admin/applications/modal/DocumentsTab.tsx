@@ -18,7 +18,6 @@ export function DocumentsTab({ documents, loading, application }: { documents: D
     const urls = new Set(documents.map(d => d.file_url))
     if (application.result_slip_url && !urls.has(application.result_slip_url)) all.push({ id: 'result_slip', document_name: 'Result Slip', file_url: application.result_slip_url, verification_status: 'pending', system_generated: false } as DocumentItem)
     if (application.extra_kyc_url && !urls.has(application.extra_kyc_url)) all.push({ id: 'extra_kyc', document_name: 'Identity Support Document', file_url: application.extra_kyc_url, verification_status: 'pending', system_generated: false } as DocumentItem)
-    if (application.pop_url && !urls.has(application.pop_url)) all.push({ id: 'pop', document_name: 'Proof of Payment', file_url: application.pop_url, verification_status: 'pending', system_generated: false } as DocumentItem)
   }
   
   if (all.length === 0) return <div className="text-center py-8"><FileText className="h-8 w-8 mx-auto mb-2" /><p>No documents</p></div>

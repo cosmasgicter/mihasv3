@@ -33,7 +33,6 @@ interface ApplicationSummary {
   created_at: string
   result_slip_url: string
   extra_kyc_url: string
-  pop_url: string
   grades_summary: string
   total_subjects: number
   points: number
@@ -101,7 +100,6 @@ const mapApplicationRow = (row: any): ApplicationSummary => ({
   created_at: row.created_at ?? row.submitted_at ?? '',
   result_slip_url: row.result_slip_url ?? '',
   extra_kyc_url: row.extra_kyc_url ?? '',
-  pop_url: row.pop_url ?? '',
   grades_summary: row.grades_summary ?? '',
   total_subjects: Number(row.total_subjects ?? 0),
   points: Number(row.points ?? calculatePointsFromSummary(row.grades_summary)),

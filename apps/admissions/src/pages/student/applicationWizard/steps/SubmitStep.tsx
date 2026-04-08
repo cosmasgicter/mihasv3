@@ -19,11 +19,11 @@ interface SubmitStepProps {
   eligibilityCheck: EligibilityResult | null
   resultSlipFile: File | null
   extraKycFile: File | null
-  proofOfPaymentFile: File | null
   confirmSubmission: boolean
   onConfirmChange: (value: boolean) => void
   selectedProgramName?: string
   selectedInstitutionLabel?: string
+  paymentStatus?: 'pending' | 'successful' | 'failed' | null
 }
 
 const gradeLabelMap: Record<number, string> = {
@@ -46,11 +46,11 @@ const SubmitStep = ({
   eligibilityCheck,
   resultSlipFile,
   extraKycFile,
-  proofOfPaymentFile,
   confirmSubmission,
   onConfirmChange,
   selectedProgramName,
-  selectedInstitutionLabel
+  selectedInstitutionLabel,
+  paymentStatus
 }: SubmitStepProps) => {
   const formValues = form.watch()
   const programLabel = selectedProgramName?.trim() || formValues.program
@@ -72,9 +72,16 @@ const SubmitStep = ({
       completed: Boolean(resultSlipFile),
     },
     {
+      label: 'Identity document attached (NRC or Passport)',
+      detail: extraKycFile ? extraKycFile.name : 'Upload your NRC or passport to complete this step',
+      completed: Boolean(extraKycFile),
+    },
+    {
       label: 'Payment completed via Lenco',
-      detail: 'Payment is processed through the secure Lenco gateway in the payment step.',
-      completed: true,
+      detail: paymentStatus === 'successful'
+        ? 'Payment confirmed through the secure Lenco gateway.'
+        : 'Please complete payment in the payment step before submitting.',
+      completed: paymentStatus === 'successful',
     },
   ]
 
@@ -207,6 +214,14 @@ const SubmitStep = ({
         description="You must confirm that the application is accurate before the submit button is enabled."
         padding="sm"
       >
+        {paymentStatus !== 'successful' && (
+          <Alert variant="warning" className="mb-4">
+            <AlertTitle className="text-foreground">Payment required</AlertTitle>
+            <AlertDescription className="text-muted-foreground">
+              Please go back to the payment step and complete your application fee payment before submitting.
+            </AlertDescription>
+          </Alert>
+        )}
         <CheckboxWithLabel
           id="confirm"
           checked={confirmSubmission}

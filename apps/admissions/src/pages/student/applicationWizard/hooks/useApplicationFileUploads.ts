@@ -11,7 +11,7 @@ export const LARGE_FILE_THRESHOLD = 1 * 1024 * 1024 // 1MB — show progress bar
 const MAX_UPLOAD_RETRIES = 1
 const RETRY_DELAY_MS = 1200
 
-export type ApplicationFileType = 'result_slip' | 'extra_kyc' | 'proof_of_payment'
+export type ApplicationFileType = 'result_slip' | 'extra_kyc'
 
 export interface UseApplicationFileUploadsOptions {
   userId?: string | null
@@ -23,17 +23,14 @@ export interface UseApplicationFileUploadsOptions {
 export interface UseApplicationFileUploadsResult {
   resultSlipFile: File | null
   extraKycFile: File | null
-  proofOfPaymentFile: File | null
   uploading: boolean
   uploadProgress: Record<string, number>
   uploadedFiles: Record<string, boolean>
   handleResultSlipUpload: (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string) => void) => void
   handleExtraKycUpload: (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string) => void) => void
-  handleProofOfPaymentUpload: (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string) => void) => void
   /** File-based handlers for canonical FileUpload component (react-dropzone) */
   handleResultSlipFile: (file: File | null) => void
   handleExtraKycFile: (file: File | null) => void
-  handleProofOfPaymentFile: (file: File | null) => void
   startUpload: (file: File, fileType: ApplicationFileType) => Promise<string>
   trackUploadTask: <T>(task: () => Promise<T>) => Promise<T>
 }
@@ -87,7 +84,6 @@ export function useApplicationFileUploads({
 }: UseApplicationFileUploadsOptions): UseApplicationFileUploadsResult {
   const [resultSlipFile, setResultSlipFile] = useState<File | null>(null)
   const [extraKycFile, setExtraKycFile] = useState<File | null>(null)
-  const [proofOfPaymentFile, setProofOfPaymentFile] = useState<File | null>(null)
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, boolean>>({})
   const [activeTasks, setActiveTasks] = useState(0)
@@ -176,9 +172,6 @@ export function useApplicationFileUploads({
           case 'extra_kyc':
             setExtraKycFile(null)
             break
-          case 'proof_of_payment':
-            setProofOfPaymentFile(null)
-            break
         }
         return false
       }
@@ -194,9 +187,6 @@ export function useApplicationFileUploads({
             break
           case 'extra_kyc':
             setExtraKycFile(null)
-            break
-          case 'proof_of_payment':
-            setProofOfPaymentFile(null)
             break
         }
         resetUploadedState(fileType)
@@ -215,9 +205,6 @@ export function useApplicationFileUploads({
           case 'extra_kyc':
             setExtraKycFile(null)
             break
-          case 'proof_of_payment':
-            setProofOfPaymentFile(null)
-            break
         }
         resetUploadedState(fileType)
         return false
@@ -235,9 +222,6 @@ export function useApplicationFileUploads({
           case 'extra_kyc':
             setExtraKycFile(null)
             break
-          case 'proof_of_payment':
-            setProofOfPaymentFile(null)
-            break
         }
         resetUploadedState(fileType)
         return false
@@ -252,9 +236,6 @@ export function useApplicationFileUploads({
           break
         case 'extra_kyc':
           setExtraKycFile(file)
-          break
-        case 'proof_of_payment':
-          setProofOfPaymentFile(file)
           break
       }
 
@@ -409,13 +390,6 @@ export function useApplicationFileUploads({
     [createFileHandler]
   )
 
-  const handleProofOfPaymentUpload = useCallback(
-    (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string) => void) => {
-      createFileHandler('proof_of_payment', setProofOfPaymentFile, onUploadComplete)(event)
-    },
-    [createFileHandler]
-  )
-
   /**
    * File-based handler factory for canonical FileUpload (react-dropzone).
    * Accepts a File | null directly instead of a ChangeEvent.
@@ -455,26 +429,16 @@ export function useApplicationFileUploads({
     [createDirectFileHandler]
   )
 
-  const handleProofOfPaymentFile = useCallback(
-    (file: File | null) => {
-      createDirectFileHandler('proof_of_payment', setProofOfPaymentFile)(file)
-    },
-    [createDirectFileHandler]
-  )
-
   return {
     resultSlipFile,
     extraKycFile,
-    proofOfPaymentFile,
     uploading,
     uploadProgress,
     uploadedFiles,
     handleResultSlipUpload,
     handleExtraKycUpload,
-    handleProofOfPaymentUpload,
     handleResultSlipFile,
     handleExtraKycFile,
-    handleProofOfPaymentFile,
     startUpload,
     trackUploadTask
   }
