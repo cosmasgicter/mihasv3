@@ -90,8 +90,9 @@ describe('Property 15: EmptyState Rendering Completeness', () => {
    */
 
   it('PROPERTY: EmptyState always renders a heading element', () => {
-    // The source must contain an h-level element that renders the heading prop
-    expect(emptyStateSource).toContain('<h3')
+    // The source must contain a dynamic heading element (Heading component from headingLevel prop)
+    // or a static h-level element that renders the heading prop
+    expect(emptyStateSource).toMatch(/<Heading|<h[23]/)
     // The heading is rendered via displayHeading which falls back to heading || title
     expect(emptyStateSource).toMatch(/displayHeading|heading/)
   })
@@ -101,17 +102,16 @@ describe('Property 15: EmptyState Rendering Completeness', () => {
 
     fc.assert(
       fc.property(headingArb, (heading) => {
-        // The component unconditionally renders <h3>{displayHeading}</h3>
-        // There is no conditional guard around the heading element
-        // Verify the source has an unconditional h3 render (not wrapped in && or ternary)
-        const h3Match = emptyStateSource.match(/<h3[^>]*>.*?<\/h3>/s)
-        expect(h3Match, 'EmptyState must have an <h3> element for heading').toBeTruthy()
+        // The component unconditionally renders a heading element (dynamic via headingLevel prop)
+        // Verify the source has an unconditional heading render (Heading component or h2/h3)
+        const headingMatch = emptyStateSource.match(/<Heading[^>]*>|<h[23][^>]*>/s)
+        expect(headingMatch, 'EmptyState must have a heading element').toBeTruthy()
 
-        // Verify the h3 is NOT conditionally rendered (no {heading && <h3>} pattern)
-        const conditionalH3 = emptyStateSource.match(/\{.*&&\s*<h3/s)
+        // Verify the heading is NOT conditionally rendered (no {heading && <Heading>} pattern)
+        const conditionalHeading = emptyStateSource.match(/\{.*&&\s*<(?:Heading|h[23])/s)
         expect(
-          conditionalH3,
-          'EmptyState heading <h3> must not be conditionally rendered'
+          conditionalHeading,
+          'EmptyState heading must not be conditionally rendered'
         ).toBeNull()
       }),
       { numRuns: NUM_RUNS }

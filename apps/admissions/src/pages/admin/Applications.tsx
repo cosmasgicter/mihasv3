@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { animateClasses } from '@/lib/animations'
 import { useSearchParams } from 'react-router-dom'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { ButtonSpinner } from '@/components/ui/ButtonSpinner'
 import {
   FiltersPanel,
   ApplicationsTable,
@@ -735,7 +735,7 @@ export default function Applications() {
 
         {isRefreshing && (
           <div className="flex items-center gap-2 rounded-xl bg-primary/5 px-4 py-3 text-sm text-primary mb-6">
-            <UnifiedLoader variant="inline" size="sm" />
+            <ButtonSpinner size="sm" />
             <span>Refreshing latest applications…</span>
           </div>
         )}

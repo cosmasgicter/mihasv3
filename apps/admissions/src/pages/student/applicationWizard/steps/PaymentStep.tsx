@@ -161,6 +161,8 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
       contentClassName="space-y-6"
       data-testid="payment-step"
     >
+      <fieldset className="border-none p-0 m-0 space-y-6">
+        <legend className="sr-only">Payment</legend>
       {/* Fee display */}
       <div className="rounded-xl border border-border bg-card p-4">
         <div className="flex items-center justify-between">
@@ -259,6 +261,7 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
       <p className="text-center text-xs text-muted-foreground">
         Payments are processed securely by Lenco. Your card details are never stored on our servers.
       </p>
+      </fieldset>
     </SectionCard>
   )
 }

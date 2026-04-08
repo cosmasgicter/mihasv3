@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react'
 import { CheckCircle, XCircle, Clock, RotateCcw } from 'lucide-react'
-import { UnifiedLoader, UnifiedSpinner } from '@/components/ui/UnifiedLoader'
+import { ButtonSpinner } from '@/components/ui/ButtonSpinner'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { logApiError } from '@/lib/apiErrorLogger'
@@ -195,7 +195,7 @@ export function ApplicationApprovalActions({
               className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
             >
               {updatingStatus ? (
-                <UnifiedSpinner size="sm" />
+                <ButtonSpinner size="sm" />
               ) : (
                 <>
                   <Clock className="h-3 w-3" />
@@ -214,7 +214,7 @@ export function ApplicationApprovalActions({
                 title={(currentPaymentStatus !== 'verified' && currentPaymentStatus !== 'paid') ? 'Payment must be verified first' : 'Approve application'}
               >
                 {updatingStatus ? (
-                  <UnifiedSpinner size="sm" />
+                  <ButtonSpinner size="sm" />
                 ) : (
                   <>
                     <CheckCircle className="h-3 w-3" />
@@ -228,7 +228,7 @@ export function ApplicationApprovalActions({
                 className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 {updatingStatus ? (
-                  <UnifiedSpinner size="sm" />
+                  <ButtonSpinner size="sm" />
                 ) : (
                   <>
                     <XCircle className="h-3 w-3" />
@@ -277,7 +277,7 @@ export function ApplicationApprovalActions({
                 className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 {updatingPayment ? (
-                  <UnifiedSpinner size="sm" />
+                  <ButtonSpinner size="sm" />
                 ) : (
                   <>
                     <CheckCircle className="h-3 w-3" />
@@ -291,7 +291,7 @@ export function ApplicationApprovalActions({
                 className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 {updatingPayment ? (
-                  <UnifiedSpinner size="sm" />
+                  <ButtonSpinner size="sm" />
                 ) : (
                   <>
                     <XCircle className="h-3 w-3" />
@@ -309,7 +309,7 @@ export function ApplicationApprovalActions({
               className="flex-1 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
             >
               {updatingPayment ? (
-                <UnifiedSpinner size="sm" />
+                <ButtonSpinner size="sm" />
               ) : (
                 <>
                   <RotateCcw className="h-3 w-3" />

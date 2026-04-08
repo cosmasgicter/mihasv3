@@ -15,7 +15,6 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { Banner } from '@/components/ui/Banner';
 import { Seo } from '@/components/seo/Seo';
@@ -50,7 +49,6 @@ export default function SignUpPage() {
   const navigate = useNavigate();
   const { signUp } = useAuth();
   const [success, setSuccess] = useState('');
-  const [isRegistering, setIsRegistering] = useState(false);
   const redirectTimerRef = useRef<number | null>(null);
 
   const {
@@ -88,18 +86,13 @@ export default function SignUpPage() {
     },
     onSuccess: () => {
       setSuccess('Account created! Redirecting...');
-      setIsRegistering(false);
 
       redirectTimerRef.current = window.setTimeout(() => {
         navigate('/student/dashboard');
       }, 1500);
     },
-    onMutate: () => {
-      setIsRegistering(true);
-    },
     onError: (error: unknown) => {
       logApiError('sign-up', '/auth/register/', error);
-      setIsRegistering(false);
     },
   });
 
@@ -169,7 +162,6 @@ export default function SignUpPage() {
         description="Create your MIHAS admissions account to start your application."
         path="/auth/signup"
       />
-      {isRegistering && <UnifiedLoader variant="overlay" label="Creating your account..." />}
       <AuthLayout
         variant="signup"
         title="Create account"

@@ -11,6 +11,7 @@
 
 import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/lib/animation-config';
+import { useStyleInjection } from '@/hooks/useStyleInjection';
 
 interface InfiniteGridProps {
   /** Grid cell size in pixels (default: 40) */
@@ -42,20 +43,23 @@ export function InfiniteGrid({
 
   const patternId = 'infinite-grid-pattern';
 
+  const infiniteGridCss = `
+    @keyframes infinite-grid-scroll {
+      from { transform: translate(0, 0); }
+      to { transform: translate(-${cellSize}px, -${cellSize}px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .infinite-grid-animated { animation: none !important; }
+    }
+  `;
+
+  useStyleInjection(`infinite-grid-scroll-${cellSize}`, infiniteGridCss);
+
   return (
     <div
       className={cn('absolute inset-0 z-0 overflow-hidden', className)}
       aria-hidden="true"
     >
-      <style>{`
-        @keyframes infinite-grid-scroll {
-          from { transform: translate(0, 0); }
-          to { transform: translate(-${cellSize}px, -${cellSize}px); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .infinite-grid-animated { animation: none !important; }
-        }
-      `}</style>
       <svg
         className={cn(
           'w-[calc(100%+var(--grid-cell))] h-[calc(100%+var(--grid-cell))]',

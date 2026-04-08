@@ -1,11 +1,11 @@
 /**
  * LoadingSpinner Component
  *
- * Backward-compatible wrapper around the design-system unified spinner.
+ * Backward-compatible wrapper around ButtonSpinner.
  */
 
 import { cn } from '@/lib/utils'
-import { UnifiedLoader, UnifiedSpinner } from './UnifiedLoader'
+import { ButtonSpinner } from './ButtonSpinner'
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg' | 'xl'
@@ -43,18 +43,20 @@ export function LoadingSpinner({
 }: LoadingSpinnerProps) {
   if (message) {
     return (
-      <UnifiedLoader
-        variant="inline"
-        size={spinnerSizeMap[size]}
-        label={message}
-        className={className}
-      />
+      <div
+        className={cn('flex flex-col items-center justify-center gap-2', className)}
+        role="status"
+        aria-live="polite"
+      >
+        <ButtonSpinner size={spinnerSizeMap[size]} className={colorClasses[color]} />
+        <span className={cn('text-muted-foreground', textSizeClasses[size])}>{message}</span>
+      </div>
     )
   }
 
   return (
     <div className="flex items-center justify-center" aria-hidden="true">
-      <UnifiedSpinner
+      <ButtonSpinner
         size={spinnerSizeMap[size]}
         className={cn(colorClasses[color], className, textSizeClasses[size] === 'text-lg' && 'scale-110')}
       />

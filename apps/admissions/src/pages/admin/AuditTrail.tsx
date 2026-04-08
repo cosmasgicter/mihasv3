@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { format, formatDistanceToNow } from 'date-fns'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { DashboardSkeleton } from '@/components/ui/skeleton'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -693,8 +693,7 @@ export default function AuditTrailPage() {
         {loading ? (
           <div className="flex justify-center py-20">
             <div className="text-center">
-              <UnifiedLoader variant="page" />
-              <p className="mt-4 text-sm text-muted-foreground">Loading audit activity...</p>
+              <DashboardSkeleton />
             </div>
           </div>
         ) : response?.entries.length ? (

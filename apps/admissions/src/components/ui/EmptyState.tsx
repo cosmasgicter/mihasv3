@@ -11,6 +11,11 @@ export interface EmptyStateProps {
     onClick: () => void
     variant?: 'primary' | 'outline'
   }
+  secondaryAction?: {
+    label: string
+    onClick: () => void
+  }
+  headingLevel?: 'h2' | 'h3'
   className?: string
 }
 
@@ -20,8 +25,10 @@ export function EmptyState({
   heading,
   description,
   action,
+  secondaryAction,
+  headingLevel = 'h3',
 }: EmptyStateProps) {
-  const displayHeading = heading
+  const Heading = headingLevel
 
   return (
     <div
@@ -35,17 +42,29 @@ export function EmptyState({
           {icon}
         </div>
       )}
-      <h3 className="text-lg font-semibold">{displayHeading}</h3>
+      <Heading className="text-lg font-semibold">{heading}</Heading>
       {description && (
         <p className="max-w-md text-sm text-muted-foreground">{description}</p>
       )}
-      {action && (
-        <Button
-          variant={action.variant === 'outline' ? 'outline' : 'primary'}
-          onClick={action.onClick}
-        >
-          {action.label}
-        </Button>
+      {(action || secondaryAction) && (
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {action && (
+            <Button
+              variant={action.variant === 'outline' ? 'outline' : 'primary'}
+              onClick={action.onClick}
+            >
+              {action.label}
+            </Button>
+          )}
+          {secondaryAction && (
+            <Button
+              variant="outline"
+              onClick={secondaryAction.onClick}
+            >
+              {secondaryAction.label}
+            </Button>
+          )}
+        </div>
       )}
     </div>
   )

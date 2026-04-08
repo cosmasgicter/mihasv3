@@ -281,7 +281,7 @@ export function EligibilityChecker({
                   value={appealReason}
                   onChange={(e) => setAppealReason(e.target.value)}
                   rows={4}
-                  className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-input rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   placeholder="Explain why you believe the assessment should be reconsidered..."
                 />
               </div>

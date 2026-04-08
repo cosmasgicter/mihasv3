@@ -1,5 +1,5 @@
 import { GraduationCap, CheckCircle, XCircle } from 'lucide-react'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { Skeleton } from '@/components/ui/skeleton'
 import { calculateBestFivePoints, sanitizeGradeValue } from '@/utils/grades'
 
 interface Grade {
@@ -9,7 +9,22 @@ interface Grade {
 }
 
 export function GradesTab({ grades, loading }: { grades: Grade[], loading: boolean }) {
-  if (loading) return <UnifiedLoader variant="inline" size="sm" message="Loading details" />
+  if (loading) return (
+    <div className="space-y-3 py-4" role="status" aria-label="Loading grades">
+      <div className="flex justify-between p-4 bg-blue-50 rounded-lg">
+        <Skeleton className="h-5 w-24" />
+        <Skeleton className="h-6 w-12" />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="flex justify-between p-3 border rounded-lg">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-6 w-10 rounded-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
   if (grades.length === 0) return <div className="text-center py-8"><GraduationCap className="h-8 w-8 mx-auto mb-2" /><p>No grades</p></div>
 
   const normalized = grades.map(g => ({ ...g, normalized: sanitizeGradeValue(g.grade) })).filter((g): g is Grade & { normalized: number } => g.normalized !== null)

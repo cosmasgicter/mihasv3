@@ -1,6 +1,7 @@
 import React, { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/Button'
-import { UnifiedLoader, UnifiedSpinner } from '@/components/ui/UnifiedLoader'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ButtonSpinner } from '@/components/ui/ButtonSpinner'
 import {
   Download,
   FileText,
@@ -587,8 +588,13 @@ export function ReportsGenerator() {
           <h3 className="text-lg font-medium text-foreground">Generate Reports</h3>
           <p className="text-sm text-foreground">Create automated reports for analysis and compliance</p>
         </div>
-        <div className="p-6 flex justify-center">
-          <UnifiedLoader variant="page" />
+        <div className="p-6 space-y-4 animate-pulse">
+          <Skeleton className="h-10 w-full rounded-lg" />
+          <div className="grid grid-cols-2 gap-4">
+            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+          </div>
+          <Skeleton className="h-10 w-full rounded-lg" />
         </div>
       </div>
     )
@@ -754,7 +760,7 @@ export function ReportsGenerator() {
           >
             {loading ? (
               <>
-                <UnifiedSpinner size="sm" className="mr-2" />
+                <ButtonSpinner size="sm" className="mr-2" />
                 Generating Report...
               </>
             ) : (
@@ -848,7 +854,7 @@ export function ReportsGenerator() {
                 </div>
                 {documentGenerating && (
                   <div className="flex items-center text-sm text-foreground">
-                    <UnifiedSpinner size="sm" className="mr-2" />
+                    <ButtonSpinner size="sm" className="mr-2" />
                     Preparing document…
                   </div>
                 )}

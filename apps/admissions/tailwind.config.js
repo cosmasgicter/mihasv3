@@ -2,7 +2,7 @@ const { adminColors } = require('./src/design-system/tokens.colors.cjs')
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: 'media',
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",

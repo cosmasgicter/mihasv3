@@ -27,7 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/Dialog'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { DashboardSkeleton } from '@/components/ui/skeleton'
 import { PageShell } from '@/components/ui/PageShell'
 import { ArrowLeft, DollarSign, Pencil, Plus, Trash2 } from 'lucide-react'
 
@@ -306,7 +306,7 @@ export default function ProgramFees() {
       <div className="space-y-6">
         {loading ? (
           <div className="flex justify-center py-16">
-            <UnifiedLoader variant="page" label="Loading program fees..." />
+            <DashboardSkeleton />
           </div>
         ) : (
           <>

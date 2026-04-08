@@ -1,5 +1,5 @@
 import { History, CheckCircle, XCircle, Eye, Clock } from 'lucide-react'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { Skeleton } from '@/components/ui/skeleton'
 import { formatDate } from '@/lib/utils'
 
 interface StatusHistoryItem {
@@ -12,7 +12,22 @@ interface StatusHistoryItem {
 }
 
 export function StatusHistoryTab({ history, loading }: { history: StatusHistoryItem[], loading: boolean }) {
-  if (loading) return <UnifiedLoader variant="inline" size="sm" message="Loading details" />
+  if (loading) return (
+    <div className="space-y-3 py-4" role="status" aria-label="Loading status history">
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="flex gap-4 p-4 bg-card border rounded-lg">
+          <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
+          <div className="flex-1 space-y-2">
+            <div className="flex justify-between">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+            <Skeleton className="h-3 w-32" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
   if (history.length === 0) return <div className="text-center py-8"><History className="h-8 w-8 mx-auto mb-2" /><p>No history</p></div>
   
   const getIcon = (status: string) => {

@@ -86,12 +86,9 @@ vi.mock('@/components/auth/AuthLayout', () => ({
   ),
 }))
 
-vi.mock('@/components/ui/UnifiedLoader', () => ({
-  UnifiedLoader: ({ label }: { label: string }) => (
-    <div data-testid="unified-loader">{label}</div>
-  ),
-  UnifiedSpinner: ({ size, className }: { size?: string; className?: string }) => (
-    <span data-testid="unified-spinner" />
+vi.mock('@/components/ui/ButtonSpinner', () => ({
+  ButtonSpinner: ({ size, className }: { size?: string; className?: string }) => (
+    <span data-testid="button-spinner" />
   ),
 }))
 

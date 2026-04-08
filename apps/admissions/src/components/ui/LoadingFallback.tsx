@@ -1,11 +1,12 @@
 /**
  * LoadingFallback Component
  *
- * Unified full-page loading fallback with optional timeout handling.
+ * Full-page loading fallback using skeleton placeholders with optional timeout handling.
  */
 
 import { useState, useEffect } from 'react'
-import { UnifiedLoader } from './UnifiedLoader'
+import { Skeleton } from './skeleton'
+import { ButtonSpinner } from './ButtonSpinner'
 import { cn } from '@/lib/utils'
 
 interface LoadingFallbackProps {
@@ -60,7 +61,10 @@ export function LoadingFallback({
             'transition-all duration-300'
           )}
         >
-          <UnifiedLoader variant="inline" size="md" message="Still preparing your session" />
+          <div className="flex items-center justify-center gap-2 mb-2" role="status" aria-live="polite">
+            <ButtonSpinner size="md" />
+            <span className="text-sm text-muted-foreground">Still preparing your session</span>
+          </div>
           <h3 className="text-lg font-semibold text-foreground mt-4 mb-2">Taking longer than expected</h3>
           <p className="text-muted-foreground mb-4">Please check your internet connection and try refreshing the page.</p>
           <button
@@ -79,12 +83,22 @@ export function LoadingFallback({
   }
 
   return (
-    <UnifiedLoader
-      variant="page"
-      size="lg"
-      message={message}
-      label={label}
-      className="min-h-screen bg-background"
-    />
+    <div
+      className="min-h-screen bg-background flex flex-col items-center justify-center gap-4"
+      role="status"
+      aria-label={label}
+      aria-live="polite"
+    >
+      <div className="w-full max-w-md space-y-4 px-4">
+        <Skeleton className="h-8 w-3/4 mx-auto" />
+        <Skeleton className="h-4 w-1/2 mx-auto" />
+        <div className="space-y-3 mt-6">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-2/3" />
+        </div>
+      </div>
+      {message && <p className="text-sm text-muted-foreground">{message}</p>}
+    </div>
   )
 }

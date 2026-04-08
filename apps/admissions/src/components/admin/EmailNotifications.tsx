@@ -1,7 +1,7 @@
 import React from 'react'
 import { useEmailNotifications } from '@/hooks/useEmailNotifications'
 import { Button } from '@/components/ui/Button'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { Skeleton } from '@/components/ui/skeleton'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import { formatTimestamp } from '@/lib/dateFormat'
 import { Mail, CheckCircle, XCircle, Clock } from 'lucide-react'
@@ -33,8 +33,17 @@ export default function EmailNotifications() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <UnifiedLoader variant="inline" />
+      <div className="space-y-4 py-6 px-6">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="flex items-start gap-3 animate-pulse">
+            <Skeleton className="h-4 w-4 rounded-full flex-shrink-0 mt-1" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+          </div>
+        ))}
       </div>
     )
   }

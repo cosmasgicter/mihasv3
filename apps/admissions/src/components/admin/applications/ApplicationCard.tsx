@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react'
-import { UnifiedLoader, UnifiedSpinner } from '@/components/ui/UnifiedLoader'
+import { ButtonSpinner } from '@/components/ui/ButtonSpinner'
 import { Eye, FileText, Clock, CheckCircle, XCircle, AlertTriangle, User, Calendar, Phone, Mail, GraduationCap, Building, MessageSquare } from 'lucide-react'
 import { ApplicationApprovalActions } from './ApplicationApprovalActions'
 import { DraftBadge } from './DraftBadge'
@@ -190,7 +190,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
             type="checkbox"
             checked={isSelected}
             onChange={(e) => onSelect(app.id, e.target.checked)}
-            className="h-4 w-4 text-primary focus:ring-blue-500 border-input rounded"
+            className="h-4 w-4 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border-input rounded"
           />
         </div>
       )}
@@ -396,7 +396,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       {(updatingStatus || updatingPayment) && (
         <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-card/80">
           <div className="flex items-center gap-2 text-sm text-foreground">
-            <UnifiedSpinner size="sm" />
+            <ButtonSpinner size="sm" />
             <span>Updating...</span>
           </div>
         </div>

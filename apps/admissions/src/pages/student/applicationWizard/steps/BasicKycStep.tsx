@@ -95,205 +95,208 @@ const BasicKycStep = ({
         Your account details help us pre-fill this step. This KYC section is the admissions record we will review for your application, so confirm that your names, contact details, programme, and identity information are correct here.
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-visible sm:gap-6">
-        <div className="md:col-span-2" style={shouldAnimate ? staggerChild(0) : undefined}>
-          <AnimatedInput
-            {...register('full_name')}
-            label="Full Name *"
-            error={errors.full_name?.message}
-          />
-        </div>
-
-        <div style={shouldAnimate ? staggerChild(1) : undefined}>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-medium text-foreground">NRC Number</span>
-            <FieldHelp
-              title="National Registration Card"
-              description="Your Zambian National Registration Card number. Required for Zambian citizens."
-              example="123456/78/9"
+      <fieldset className="border-none p-0 m-0">
+        <legend className="sr-only">Personal Information</legend>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-visible sm:gap-6">
+          <div className="md:col-span-2" style={shouldAnimate ? staggerChild(0) : undefined}>
+            <AnimatedInput
+              {...register('full_name')}
+              label="Full Name *"
+              error={errors.full_name?.message}
             />
           </div>
-          <AnimatedInput
-            {...register('nrc_number')}
-            aria-label="NRC Number"
-            placeholder="e.g., 123456/78/9"
-            error={errors.nrc_number?.message}
-            helperText="Provide either NRC or Passport (one is sufficient)"
-          />
-        </div>
 
-        <div style={shouldAnimate ? staggerChild(2) : undefined}>
-          <AnimatedInput
-            {...register('passport_number')}
-            label="Passport Number"
-            error={errors.passport_number?.message}
-            helperText="Provide either NRC or Passport (one is sufficient)"
-          />
-        </div>
-
-        <div style={shouldAnimate ? staggerChild(3) : undefined}>
-          <AnimatedInput
-            type="date"
-            {...register('date_of_birth')}
-            label="Date of Birth *"
-            error={errors.date_of_birth?.message}
-          />
-        </div>
-
-        <div style={shouldAnimate ? staggerChild(4) : undefined}>
-          <FormSelect
-            name="sex"
-            control={control}
-            label="Sex"
-            options={[
-              { value: 'Male', label: 'Male' },
-              { value: 'Female', label: 'Female' },
-            ]}
-            placeholder="Select sex"
-            error={errors.sex?.message}
-            required
-          />
-        </div>
-
-        <div style={shouldAnimate ? staggerChild(5) : undefined}>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-medium text-foreground">Phone Number *</span>
-            <FieldHelp
-              title="Contact Phone Number"
-              description="Your primary phone number for communication. Include country code for international numbers."
-              example="+260 97 123 4567"
+          <div style={shouldAnimate ? staggerChild(1) : undefined}>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-sm font-medium text-foreground">NRC Number</span>
+              <FieldHelp
+                title="National Registration Card"
+                description="Your Zambian National Registration Card number. Required for Zambian citizens."
+                example="123456/78/9"
+              />
+            </div>
+            <AnimatedInput
+              {...register('nrc_number')}
+              aria-label="NRC Number"
+              placeholder="e.g., 123456/78/9"
+              error={errors.nrc_number?.message}
+              helperText="Provide either NRC or Passport (one is sufficient)"
             />
           </div>
-          <AnimatedInput
-            {...register('phone')}
-            aria-label="Phone Number"
-            placeholder="e.g., +260 97 123 4567"
-            error={errors.phone?.message}
-          />
-        </div>
 
-        <div style={shouldAnimate ? staggerChild(6) : undefined}>
-          <AnimatedInput
-            type="email"
-            {...register('email')}
-            label="Email Address *"
-            error={errors.email?.message}
-          />
-        </div>
+          <div style={shouldAnimate ? staggerChild(2) : undefined}>
+            <AnimatedInput
+              {...register('passport_number')}
+              label="Passport Number"
+              error={errors.passport_number?.message}
+              helperText="Provide either NRC or Passport (one is sufficient)"
+            />
+          </div>
 
-        <div style={shouldAnimate ? staggerChild(7) : undefined}>
-          <FormSelect
-            name="country"
-            control={control}
-            label="Country of Residence"
-            options={countryOptions}
-            placeholder="Select country"
-            disabled={loadingCountries}
-            helperText="Defaults to Zambia. Change it only if you currently live elsewhere."
-            error={(errors as any).country?.message}
-          />
-        </div>
+          <div style={shouldAnimate ? staggerChild(3) : undefined}>
+            <AnimatedInput
+              type="date"
+              {...register('date_of_birth')}
+              label="Date of Birth *"
+              error={errors.date_of_birth?.message}
+            />
+          </div>
 
-        <div style={shouldAnimate ? staggerChild(8) : undefined}>
-          <AnimatedInput
-            {...register('residence_town', { setValueAs: normalizeResidenceTown })}
-            list={residenceTownDatalistId}
-            label={`${RESIDENCE_TOWN_LABEL} *`}
-            error={errors.residence_town?.message}
-            placeholder={selectedCountry === DEFAULT_RESIDENCE_COUNTRY ? 'Kitwe' : 'Start typing your city or town'}
-            helperText={getResidenceTownHelperText({
-              loadingCities,
-              selectedCountry,
-              defaultCountry: DEFAULT_RESIDENCE_COUNTRY,
-            })}
-          />
-          <datalist id={residenceTownDatalistId}>
-            {cityOptions.map(option => (
-              <option key={option.value} value={option.value} />
-            ))}
-          </datalist>
-        </div>
+          <div style={shouldAnimate ? staggerChild(4) : undefined}>
+            <FormSelect
+              name="sex"
+              control={control}
+              label="Sex"
+              options={[
+                { value: 'Male', label: 'Male' },
+                { value: 'Female', label: 'Female' },
+              ]}
+              placeholder="Select sex"
+              error={errors.sex?.message}
+              required
+            />
+          </div>
 
-        <div style={shouldAnimate ? staggerChild(9) : undefined}>
-          <FormSelect
-            name="nationality"
-            control={control}
-            label="Nationality"
-            options={NATIONALITY_OPTIONS}
-            placeholder="Select nationality"
-            error={errors.nationality?.message}
-          />
-        </div>
+          <div style={shouldAnimate ? staggerChild(5) : undefined}>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-sm font-medium text-foreground">Phone Number *</span>
+              <FieldHelp
+                title="Contact Phone Number"
+                description="Your primary phone number for communication. Include country code for international numbers."
+                example="+260 97 123 4567"
+              />
+            </div>
+            <AnimatedInput
+              {...register('phone')}
+              aria-label="Phone Number"
+              placeholder="e.g., +260 97 123 4567"
+              error={errors.phone?.message}
+            />
+          </div>
 
-        <div style={shouldAnimate ? staggerChild(10) : undefined}>
-          <AnimatedInput
-            {...register('next_of_kin_name')}
-            label="Next of Kin Name (Optional)"
-            error={errors.next_of_kin_name?.message}
-          />
-        </div>
+          <div style={shouldAnimate ? staggerChild(6) : undefined}>
+            <AnimatedInput
+              type="email"
+              {...register('email')}
+              label="Email Address *"
+              error={errors.email?.message}
+            />
+          </div>
 
-        <div style={shouldAnimate ? staggerChild(11) : undefined}>
-          <AnimatedInput
-            {...register('next_of_kin_phone')}
-            label="Next of Kin Phone (Optional)"
-            error={errors.next_of_kin_phone?.message}
-          />
-        </div>
+          <div style={shouldAnimate ? staggerChild(7) : undefined}>
+            <FormSelect
+              name="country"
+              control={control}
+              label="Country of Residence"
+              options={countryOptions}
+              placeholder="Select country"
+              disabled={loadingCountries}
+              helperText="Defaults to Zambia. Change it only if you currently live elsewhere."
+              error={(errors as any).country?.message}
+            />
+          </div>
 
-        <div className="md:col-span-2" style={shouldAnimate ? staggerChild(12) : undefined}>
-          <FormSelect
-            name="program"
-            control={control}
-            label="Program"
-            options={
-              [...programs]
-                .sort((a, b) => {
-                  const instA = a.institutions?.name || ''
-                  const instB = b.institutions?.name || ''
-                  const cmp = instA.localeCompare(instB)
-                  return cmp !== 0 ? cmp : (a.name || '').localeCompare(b.name || '')
-                })
-                .map(program => {
-                  const institutionName = program.institutions?.full_name || program.institutions?.name
-                  return {
-                    value: program.id,
-                    label: program.name,
-                    description: institutionName,
-                  }
-                })
-            }
-            placeholder="Select programme"
-            error={errors.program?.message}
-            disabled={programs.length === 0}
-            helperText={programs.length === 0 ? 'No programmes available for the current intake' : undefined}
-            triggerClassName="min-h-[56px] py-3 [&>span]:max-w-[calc(100%-1.75rem)] [&>span]:line-clamp-2 [&>span]:whitespace-normal [&>span]:leading-snug"
-            required
-          />
-        </div>
+          <div style={shouldAnimate ? staggerChild(8) : undefined}>
+            <AnimatedInput
+              {...register('residence_town', { setValueAs: normalizeResidenceTown })}
+              list={residenceTownDatalistId}
+              label={`${RESIDENCE_TOWN_LABEL} *`}
+              error={errors.residence_town?.message}
+              placeholder={selectedCountry === DEFAULT_RESIDENCE_COUNTRY ? 'Kitwe' : 'Start typing your city or town'}
+              helperText={getResidenceTownHelperText({
+                loadingCities,
+                selectedCountry,
+                defaultCountry: DEFAULT_RESIDENCE_COUNTRY,
+              })}
+            />
+            <datalist id={residenceTownDatalistId}>
+              {cityOptions.map(option => (
+                <option key={option.value} value={option.value} />
+              ))}
+            </datalist>
+          </div>
 
-        <div className="md:col-span-2" style={shouldAnimate ? staggerChild(13) : undefined}>
-          <FormSelect
-            name="intake"
-            control={control}
-            label="Intake"
-            options={intakes.map(intake => {
-              const deadline = formatDeadline(intake.application_deadline)
-              return {
-                value: intake.id,
-                label: intake.displayName,
-                description: deadline ? `Apply by ${deadline}` : undefined,
+          <div style={shouldAnimate ? staggerChild(9) : undefined}>
+            <FormSelect
+              name="nationality"
+              control={control}
+              label="Nationality"
+              options={NATIONALITY_OPTIONS}
+              placeholder="Select nationality"
+              error={errors.nationality?.message}
+            />
+          </div>
+
+          <div style={shouldAnimate ? staggerChild(10) : undefined}>
+            <AnimatedInput
+              {...register('next_of_kin_name')}
+              label="Next of Kin Name (Optional)"
+              error={errors.next_of_kin_name?.message}
+            />
+          </div>
+
+          <div style={shouldAnimate ? staggerChild(11) : undefined}>
+            <AnimatedInput
+              {...register('next_of_kin_phone')}
+              label="Next of Kin Phone (Optional)"
+              error={errors.next_of_kin_phone?.message}
+            />
+          </div>
+
+          <div className="md:col-span-2" style={shouldAnimate ? staggerChild(12) : undefined}>
+            <FormSelect
+              name="program"
+              control={control}
+              label="Program"
+              options={
+                [...programs]
+                  .sort((a, b) => {
+                    const instA = a.institutions?.name || ''
+                    const instB = b.institutions?.name || ''
+                    const cmp = instA.localeCompare(instB)
+                    return cmp !== 0 ? cmp : (a.name || '').localeCompare(b.name || '')
+                  })
+                  .map(program => {
+                    const institutionName = program.institutions?.full_name || program.institutions?.name
+                    return {
+                      value: program.id,
+                      label: program.name,
+                      description: institutionName,
+                    }
+                  })
               }
-            })}
-            placeholder="Select intake"
-            disabled={intakes.length === 0}
-            error={errors.intake?.message}
-            helperText={intakes.length === 0 ? 'Intakes will appear here once enrollment periods are announced.' : undefined}
-            triggerClassName="min-h-[56px] py-3 [&>span]:max-w-[calc(100%-1.75rem)] [&>span]:line-clamp-2 [&>span]:whitespace-normal [&>span]:leading-snug"
-            required
-          />
+              placeholder="Select programme"
+              error={errors.program?.message}
+              disabled={programs.length === 0}
+              helperText={programs.length === 0 ? 'No programmes available for the current intake' : undefined}
+              triggerClassName="min-h-[56px] py-3 [&>span]:max-w-[calc(100%-1.75rem)] [&>span]:line-clamp-2 [&>span]:whitespace-normal [&>span]:leading-snug"
+              required
+            />
+          </div>
+
+          <div className="md:col-span-2" style={shouldAnimate ? staggerChild(13) : undefined}>
+            <FormSelect
+              name="intake"
+              control={control}
+              label="Intake"
+              options={intakes.map(intake => {
+                const deadline = formatDeadline(intake.application_deadline)
+                return {
+                  value: intake.id,
+                  label: intake.displayName,
+                  description: deadline ? `Apply by ${deadline}` : undefined,
+                }
+              })}
+              placeholder="Select intake"
+              disabled={intakes.length === 0}
+              error={errors.intake?.message}
+              helperText={intakes.length === 0 ? 'Intakes will appear here once enrollment periods are announced.' : undefined}
+              triggerClassName="min-h-[56px] py-3 [&>span]:max-w-[calc(100%-1.75rem)] [&>span]:line-clamp-2 [&>span]:whitespace-normal [&>span]:leading-snug"
+              required
+            />
+          </div>
         </div>
-      </div>
+      </fieldset>
 
       {selectedProgramDetails && (
         <div

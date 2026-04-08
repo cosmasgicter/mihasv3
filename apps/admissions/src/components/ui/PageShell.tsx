@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
+import { validateHeadingHierarchy, extractHeadingLevels } from '@/lib/accessibility-utils'
 
 interface PageShellProps {
   title: string
@@ -29,9 +30,24 @@ export function PageShell({
   className,
 }: PageShellProps) {
   const containerClass = maxWidthClasses[maxWidth]
+  const shellRef = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    if (process.env.NODE_ENV !== 'development') return
+    if (!shellRef.current) return
+
+    const headings = extractHeadingLevels(shellRef.current)
+    if (headings.length > 0 && !validateHeadingHierarchy(headings)) {
+      console.warn(
+        `[PageShell] Heading hierarchy violation detected on "${title}". ` +
+        `Found levels: [${headings.join(', ')}]. ` +
+        `Headings must start with h1, have exactly one h1, and not skip levels.`
+      )
+    }
+  })
 
   return (
-    <div className={cn('min-h-screen pb-20 md:pb-0', className)}>
+    <div ref={shellRef} className={cn('min-h-screen pb-20 md:pb-0', className)}>
       <div className={cn('mx-auto px-4 md:px-6 lg:px-8', containerClass)}>
         <header className="py-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

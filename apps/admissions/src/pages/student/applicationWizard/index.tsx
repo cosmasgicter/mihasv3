@@ -1,11 +1,11 @@
 import { ArrowLeft, ArrowRight, CheckCircle, Send } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 
 import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
 import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { WizardSkeleton } from '@/components/ui/skeleton'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { AutoSaveIndicator } from '@/components/ui/AutoSaveIndicator'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
@@ -20,6 +20,7 @@ import { DraftManager } from './components/DraftManager'
 import { ReminderSettings } from './components/ReminderSettings'
 import { AnalyticsDashboard } from './components/AnalyticsDashboard'
 import { EnhancedProgressIndicator } from './components/EnhancedProgressIndicator'
+import { WizardErrorSummary, type WizardValidationError } from './components/WizardErrorSummary'
 import BasicKycStep from './steps/BasicKycStep'
 import EducationStep from './steps/EducationStep'
 import PaymentStep from './steps/PaymentStep'
@@ -111,6 +112,59 @@ const ApplicationWizardContent = () => {
 
   const progressPercent = Math.round(((currentStepIndex + 1) / totalSteps) * 100)
 
+  // Structured validation errors for the error summary (Req 5.2, 5.3)
+  const [validationErrors, setValidationErrors] = useState<WizardValidationError[]>([])
+
+  /**
+   * Collect all validation errors for the current step based on form state
+   * and step-specific required fields. Returns structured errors for the summary.
+   */
+  const collectStepValidationErrors = useCallback((): WizardValidationError[] => {
+    const formData = form.watch()
+    const errors: WizardValidationError[] = []
+
+    if (currentStepConfig.key === 'basicKyc') {
+      const fieldChecks: Array<{ field: string; label: string; check: () => boolean; message: string }> = [
+        { field: 'program', label: 'Program', check: () => !!formData.program, message: 'Please select a program' },
+        { field: 'intake', label: 'Intake', check: () => !!formData.intake, message: 'Please select an intake' },
+        { field: 'full_name', label: 'Full Name', check: () => !!formData.full_name, message: 'Full name is required' },
+        { field: 'date_of_birth', label: 'Date of Birth', check: () => !!formData.date_of_birth, message: 'Date of birth is required' },
+        { field: 'sex', label: 'Sex', check: () => !!formData.sex, message: 'Please select your sex' },
+        { field: 'phone', label: 'Phone', check: () => !!formData.phone, message: 'Phone number is required' },
+        { field: 'email', label: 'Email', check: () => !!formData.email, message: 'Email address is required' },
+        { field: 'residence_town', label: 'City/Town', check: () => !!formData.residence_town, message: 'City or town is required' },
+      ]
+
+      for (const { field, label, check, message } of fieldChecks) {
+        if (!check()) {
+          errors.push({ field, label, message })
+        }
+      }
+
+      if (!formData.nrc_number && !formData.passport_number) {
+        errors.push({ field: 'nrc_number', label: 'NRC or Passport', message: 'Either NRC or Passport number is required' })
+      }
+    }
+
+    if (currentStepConfig.key === 'education') {
+      const validGrades = (formData as Record<string, unknown>).grades
+      const gradeCount = Array.isArray(validGrades)
+        ? validGrades.filter((g: Record<string, unknown>) => g.subject_id && Number(g.grade) >= 1 && Number(g.grade) <= 9).length
+        : 0
+      if (gradeCount < 5) {
+        errors.push({ field: 'grades', label: 'Subject Grades', message: `Minimum 5 subjects required (${gradeCount} added)` })
+      }
+    }
+
+    if (currentStepConfig.key === 'submit') {
+      if (!confirmSubmission) {
+        errors.push({ field: 'confirmSubmission', label: 'Confirmation', message: 'Please confirm that all information is accurate' })
+      }
+    }
+
+    return errors
+  }, [form, currentStepConfig.key, confirmSubmission])
+
   // Aria-live region announcement for screen readers on step transition
   const [stepAnnouncement, setStepAnnouncement] = useState('')
   const [stepDirection, setStepDirection] = useState<'forward' | 'backward'>('forward')
@@ -120,6 +174,8 @@ const ApplicationWizardContent = () => {
   useEffect(() => {
     setStepAnnouncement(`Step ${currentStepIndex + 1} of ${totalSteps}: ${currentStepConfig.title}`)
     setStepKey(currentStepIndex)
+    // Clear validation errors when navigating to a new step
+    setValidationErrors([])
   }, [currentStepIndex, totalSteps, currentStepConfig.title])
 
   // Browser back/forward navigation support (Req 11.2, 11.3)
@@ -168,25 +224,44 @@ const ApplicationWizardContent = () => {
   const wrappedHandleNextStep = () => { setStepDirection('forward'); originalHandleNextStep() }
   const wrappedHandlePrevStep = () => { setStepDirection('backward'); originalHandlePrevStep() }
 
-  // Scroll to first error field on validation error
+  // Populate validation errors and focus first errored field on validation error (Req 5.2, 5.3)
   useEffect(() => {
-    if (!error) return
-    // Small delay to let the error alert render
+    if (!error) {
+      setValidationErrors([])
+      return
+    }
+    // Collect structured errors for the summary
+    const collected = collectStepValidationErrors()
+    setValidationErrors(collected)
+
+    // Small delay to let the error summary render, then focus first errored field
     const timer = setTimeout(() => {
+      if (collected.length > 0) {
+        const firstField = collected[0].field
+        const el =
+          document.querySelector<HTMLElement>(`[name="${firstField}"]`) ||
+          document.querySelector<HTMLElement>(`#${CSS.escape(firstField)}`)
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          el.focus({ preventScroll: true })
+          return
+        }
+      }
+      // Fallback: focus any aria-invalid field
       const errorField = document.querySelector('[aria-invalid="true"]') as HTMLElement
       if (errorField) {
         errorField.scrollIntoView({ behavior: 'smooth', block: 'center' })
         errorField.focus({ preventScroll: true })
         return
       }
-      // Fallback: scroll to the error alert itself
+      // Last fallback: scroll to the error alert itself
       const errorAlert = document.querySelector('[role="alert"]') as HTMLElement
       if (errorAlert) {
         errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }
     }, 100)
     return () => clearTimeout(timer)
-  }, [error])
+  }, [error, collectStepValidationErrors])
 
   const getChecklistItems = () => {
     // Defensive: some test setups call this component without a populated form.watch()
@@ -256,19 +331,7 @@ const ApplicationWizardContent = () => {
 
   if (authLoading || restoringDraft) {
     return (
-      <div className="min-h-screen bg-muted flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <UnifiedLoader variant="inline" />
-          <p className="mt-4 text-foreground font-medium">
-            {authLoading ? 'Loading application...' : 'Restoring your saved progress...'}
-          </p>
-          {restoringDraft && (
-            <p className="mt-2 text-sm text-info-strong">
-              We found a saved draft of your application
-            </p>
-          )}
-        </div>
-      </div>
+      <WizardSkeleton />
     )
   }
 
@@ -443,6 +506,14 @@ const ApplicationWizardContent = () => {
         </Container>
 
         <Container size="md">
+
+        {/* Validation error summary with field links (Req 5.2, 5.3) */}
+        {validationErrors.length > 0 && (
+          <WizardErrorSummary
+            errors={validationErrors}
+            onFieldClick={() => setError('')}
+          />
+        )}
 
         {error && (
           <Alert variant="error" className="mb-6 animate-slide-up">

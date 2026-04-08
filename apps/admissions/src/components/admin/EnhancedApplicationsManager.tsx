@@ -25,7 +25,7 @@ import {
   GraduationCap
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { formatDate } from '@/lib/dateFormat'
 import { formatApplicationStatus, type ApplicationStatus } from '@/types/applicationStatus'
@@ -210,14 +210,14 @@ export function EnhancedApplicationsManager({
                 placeholder="Search applications..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary"
+                className="w-full pl-10 pr-4 py-2 border border-input rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               />
             </div>
             
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-              className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary"
+              className="w-full px-3 py-2 border border-input rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <option value="all">All Status</option>
               {STATUS_FILTER_OPTIONS.map(({ value, label }) => (
@@ -238,7 +238,7 @@ export function EnhancedApplicationsManager({
                   setSortOrder(order as typeof validOrders[number])
                 }
               }}
-              className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-primary"
+              className="w-full px-3 py-2 border border-input rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <option value="date-desc"><Calendar className="w-5 h-5" /> Newest First</option>
               <option value="date-asc"><Calendar className="w-5 h-5" /> Oldest First</option>
@@ -310,8 +310,21 @@ export function EnhancedApplicationsManager({
 
       {/* Applications Display */}
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <UnifiedLoader variant="inline" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 py-6">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="rounded-xl border border-border bg-card p-5 space-y-3 animate-pulse">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="flex-1 space-y-1.5">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              </div>
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-3/4" />
+              <Skeleton className="h-6 w-20 rounded-full" />
+            </div>
+          ))}
         </div>
       ) : filteredApplications.length === 0 ? (
         <EmptyState
@@ -337,7 +350,7 @@ export function EnhancedApplicationsManager({
                       type="checkbox"
                       checked={selectedApplications.includes(application.id)}
                       onChange={() => toggleSelection(application.id)}
-                      className="h-5 w-5 mt-1 text-primary focus:ring-blue-500 border-input rounded"
+                      className="h-5 w-5 mt-1 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border-input rounded"
                     />
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-lg text-foreground truncate" title={application.full_name}>{application.full_name}</h3>
@@ -423,7 +436,7 @@ export function EnhancedApplicationsManager({
                       type="checkbox"
                       checked={selectedApplications.length === filteredApplications.length && filteredApplications.length > 0}
                       onChange={selectAll}
-                      className="h-4 w-4 text-primary focus:ring-blue-500 border-input rounded"
+                      className="h-4 w-4 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border-input rounded"
                     />
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-bold text-foreground uppercase">
@@ -456,7 +469,7 @@ export function EnhancedApplicationsManager({
                         type="checkbox"
                         checked={selectedApplications.includes(application.id)}
                         onChange={() => toggleSelection(application.id)}
-                        className="h-4 w-4 text-primary focus:ring-blue-500 border-input rounded"
+                        className="h-4 w-4 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border-input rounded"
                       />
                     </td>
                     <td className="px-6 py-4">

@@ -5,7 +5,8 @@ import { XCircle, User, Clock, CheckCircle, FileText, CreditCard, Mail, Phone, C
 import { applicationService } from '@/services/applications'
 import { apiClient } from '@/services/client'
 import { logApiError } from '@/lib/apiErrorLogger'
-import { UnifiedLoader, UnifiedSpinner } from '@/components/ui/UnifiedLoader'
+import { ButtonSpinner } from '@/components/ui/ButtonSpinner'
+import { Skeleton } from '@/components/ui/skeleton'
 import type { ApplicationInterview } from '@/types/database'
 import { calculateBestFivePoints, sanitizeGradeValue } from '@/utils/grades'
 import { SendNotificationModal } from './SendNotificationModal'
@@ -145,9 +146,19 @@ interface ApplicationDetailModalProps {
 function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean }) {
  if (loading) {
  return (
- <div className="flex items-center gap-2 text-sm text-foreground">
- <UnifiedSpinner size="sm" />
- <span>Loading grades...</span>
+ <div className="space-y-4" role="status" aria-label="Loading grades">
+ <div className="flex justify-between p-4 bg-blue-50 rounded-lg">
+ <Skeleton className="h-5 w-24" />
+ <Skeleton className="h-6 w-12" />
+ </div>
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ {[...Array(4)].map((_, i) => (
+ <div key={i} className="flex justify-between p-3 border rounded-lg">
+ <Skeleton className="h-4 w-28" />
+ <Skeleton className="h-6 w-10 rounded-full" />
+ </div>
+ ))}
+ </div>
  </div>
  )
  }
@@ -218,9 +229,19 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
 function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem[], loading: boolean }) {
  if (loading) {
  return (
- <div className="flex items-center gap-2 text-sm text-foreground">
- <UnifiedSpinner size="sm" />
- <span>Loading history...</span>
+ <div className="space-y-3" role="status" aria-label="Loading status history">
+ {[...Array(3)].map((_, i) => (
+ <div key={i} className="flex gap-4 p-4 bg-card border rounded-lg">
+ <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
+ <div className="flex-1 space-y-2">
+ <div className="flex justify-between">
+ <Skeleton className="h-4 w-24" />
+ <Skeleton className="h-3 w-20" />
+ </div>
+ <Skeleton className="h-3 w-32" />
+ </div>
+ </div>
+ ))}
  </div>
  )
  }
@@ -278,9 +299,19 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
 function DocumentsDisplay({ documents, loading, application }: { documents: DocumentItem[], loading: boolean, application?: ApplicationWithDetails | null }) {
  if (loading) {
  return (
- <div className="flex items-center gap-2 text-sm text-foreground">
- <UnifiedSpinner size="sm" />
- <span>Loading documents...</span>
+ <div className="space-y-3" role="status" aria-label="Loading documents">
+ {[...Array(3)].map((_, i) => (
+ <div key={i} className="flex items-center justify-between p-4 bg-card border rounded-lg">
+ <div className="flex items-center gap-3">
+ <Skeleton className="w-10 h-10 rounded-lg" />
+ <div className="space-y-2">
+ <Skeleton className="h-4 w-32" />
+ <Skeleton className="h-3 w-20 rounded-full" />
+ </div>
+ </div>
+ <Skeleton className="h-8 w-16 rounded-lg" />
+ </div>
+ ))}
  </div>
  )
  }
@@ -874,9 +905,11 @@ export function ApplicationDetailModal({
  <div className="flex-1 overflow-y-auto">
  <div className="p-4 sm:p-6">
  {loading ? (
- <div className="flex items-center justify-center py-12">
- <div className="text-center">
- <UnifiedLoader variant="page" label="Loading application details..." />
+ <div className="flex items-center justify-center py-12" role="status" aria-label="Loading application details">
+ <div className="space-y-4 w-full max-w-lg">
+ <Skeleton className="h-32 w-full rounded-xl" />
+ <Skeleton className="h-48 w-full rounded-xl" />
+ <Skeleton className="h-48 w-full rounded-xl" />
  </div>
  </div>
  ) : (
@@ -1054,7 +1087,7 @@ export function ApplicationDetailModal({
  <p className="text-sm font-medium text-foreground mb-3">Payment History</p>
  {loadingPayments ? (
  <div className="flex items-center gap-2 text-sm text-foreground py-4">
- <UnifiedSpinner size="sm" />
+ <ButtonSpinner size="sm" />
  <span>Loading payment records...</span>
  </div>
  ) : paymentRecords.length === 0 ? (

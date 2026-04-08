@@ -65,7 +65,7 @@ export function FiltersPanel({
             id="draft-filter"
             value={draftFilter}
             onChange={(e) => onFilterChange('draftFilter', e.target.value)}
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             {DRAFT_FILTER_OPTIONS.map(option => (
               <option key={option.value} value={option.value}>
@@ -81,7 +81,7 @@ export function FiltersPanel({
             id="status-filter"
             value={statusFilter}
             onChange={(e) => onFilterChange('statusFilter', e.target.value)}
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <option value="">All Statuses</option>
             <option value="draft">Draft</option>
@@ -98,7 +98,7 @@ export function FiltersPanel({
             id="payment-filter"
             value={paymentFilter}
             onChange={(e) => onFilterChange('paymentFilter', e.target.value)}
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <option value="">All Payment States</option>
             <option value="not_paid">Awaiting Payment</option>
@@ -114,7 +114,7 @@ export function FiltersPanel({
             id="program-filter"
             value={programFilter}
             onChange={(e) => onFilterChange('programFilter', e.target.value)}
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <option value="">All Programs</option>
             <option value="Clinical Medicine">Clinical Medicine</option>
@@ -132,7 +132,7 @@ export function FiltersPanel({
             id="institution-filter"
             value={institutionFilter}
             onChange={(e) => onFilterChange('institutionFilter', e.target.value)}
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-primary"
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <option value="">All Institutions</option>
             <option value="Kalulushi Training Centre">Kalulushi Training Centre</option>

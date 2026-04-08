@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/Dialog'
-import { UnifiedLoader } from '@/components/ui/UnifiedLoader'
+import { DashboardSkeleton } from '@/components/ui/skeleton'
 import { ResponsiveTable } from '@/components/ui/ResponsiveTable'
 import { Badge } from '@/components/ui'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui'
@@ -670,7 +670,7 @@ export default function AdminPrograms() {
             {loading ? (
               <div className="flex justify-center py-16">
                 <div className="text-center">
-                  <UnifiedLoader variant="page" label="Loading catalog..." />
+                  <DashboardSkeleton />
                 </div>
               </div>
             ) : (

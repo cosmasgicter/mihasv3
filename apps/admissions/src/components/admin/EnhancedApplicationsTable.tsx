@@ -410,7 +410,7 @@ export function EnhancedApplicationsTable({
                     type="checkbox"
                     checked={selectedIds.length === filteredAndSortedApplications.length && filteredAndSortedApplications.length > 0}
                     onChange={handleSelectAll}
-                    className="w-4 h-4 text-primary border-input rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-primary border-input rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   />
                 </th>
                 
@@ -483,7 +483,7 @@ export function EnhancedApplicationsTable({
                       type="checkbox"
                       checked={selectedIds.includes(application.id)}
                       onChange={() => handleSelectOne(application.id)}
-                      className="w-4 h-4 text-primary border-input rounded focus:ring-blue-500"
+                      className="w-4 h-4 text-primary border-input rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     />
                   </td>
                   

@@ -312,7 +312,6 @@ const FOCUS_RING_CRITICAL_FILES = [
   'tabs.tsx',
   'card.tsx',
   'SubjectSelection.tsx',
-  'UnifiedLoader.tsx',
 ]
 
 /** Resolve critical file names to full paths */
