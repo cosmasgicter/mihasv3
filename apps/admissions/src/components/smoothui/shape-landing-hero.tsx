@@ -49,21 +49,22 @@ export function ShapeLandingHero({
       id="hero"
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
     >
-      {/* Gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary via-secondary to-primary opacity-95" />
+      {/* Gradient background — uses primary blue throughout for consistent contrast with white text */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-primary opacity-95" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-black/10" />
 
       {/* InfiniteGrid background layer */}
       <InfiniteGrid
         cellSize={48}
+        lineColor="rgba(255,255,255,0.5)"
         lineOpacity={0.08}
         speed={0.5}
         className="z-[1]"
       />
 
-      {/* Content */}
+      {/* Content — pt-16 accounts for the sticky header height */}
       <div className="relative z-10 container-responsive px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 items-center gap-10 py-24 lg:grid-cols-2 lg:gap-14">
+        <div className="grid grid-cols-1 items-center gap-10 pt-24 pb-16 lg:grid-cols-2 lg:gap-14">
           {/* Text column */}
           <div className="text-center text-white lg:text-left">
             <p className="mb-4 inline-flex items-center rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
@@ -93,7 +94,7 @@ export function ShapeLandingHero({
             <div className="mb-6 sm:mb-8">
               <ShinyText
                 text="MIHAS-KATC"
-                className="text-sm font-bold uppercase tracking-widest text-white/80"
+                className="text-sm font-bold uppercase tracking-widest text-white"
               />
             </div>
 
@@ -149,7 +150,7 @@ export function ShapeLandingHero({
                 <p className="text-sm font-semibold text-white">
                   92% Job Placement Rate
                 </p>
-                <p className="text-xs text-white/80">
+                <p className="text-xs text-white/90">
                   Trusted by hospitals, clinics, and public health institutions.
                 </p>
               </div>

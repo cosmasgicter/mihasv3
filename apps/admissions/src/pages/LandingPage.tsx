@@ -304,7 +304,7 @@ function ProgramsSection() {
 function CTASection() {
   return (
     <section className="relative py-16 sm:py-20 lg:py-24 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-primary" />
+      <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary" />
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/20" />
       
       <ScrollReveal className="relative z-10 container-responsive px-4 sm:px-6 lg:px-8 text-center text-white">
