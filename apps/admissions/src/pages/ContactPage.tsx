@@ -20,7 +20,7 @@ export const contactFormSchema = z.object({
 
 export type ContactFormData = z.infer<typeof contactFormSchema>
 
-export type SubmitState = 'idle' | 'draft_ready' | 'error'
+export type SubmitState = 'idle' | 'draft_ready'
 
 export function buildContactMailtoUrl(data: ContactFormData): string {
   const subject = encodeURIComponent(`Admissions inquiry from ${data.name}`)
@@ -39,20 +39,17 @@ export function buildContactMailtoUrl(data: ContactFormData): string {
 export default function ContactPage() {
   const [submitState, setSubmitState] = useState<SubmitState>('idle')
   const [draftUrl, setDraftUrl] = useState('')
-  const [errorMessage, setErrorMessage] = useState('')
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: { name: '', email: '', message: '' },
   })
 
   const onSubmit = (data: ContactFormData) => {
-    setErrorMessage('')
     setDraftUrl(buildContactMailtoUrl(data))
     setSubmitState('draft_ready')
   }
@@ -140,12 +137,6 @@ export default function ContactPage() {
                         Edit Message
                       </Button>
                     </div>
-                  </div>
-                )}
-
-                {submitState === 'error' && errorMessage && (
-                  <div className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive" role="alert">
-                    {errorMessage}
                   </div>
                 )}
 

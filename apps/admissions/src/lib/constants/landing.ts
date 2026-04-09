@@ -103,7 +103,7 @@ export const features: FeatureItem[] = [
   },
   {
     icon: BookOpen,
-    title: 'Guaranteed Job Placement Support',
+    title: 'Proven Job Placement Support',
     description:
       '92% employment rate with direct connections to hospitals, clinics, and health organizations seeking qualified graduates',
     gradient: 'from-accent to-accent/60',
@@ -181,7 +181,7 @@ export const quickLinks: QuickLinkItem[] = [
 // ============================================================================
 
 export const socialLinks: SocialLinkItem[] = [
-  { name: 'Facebook', href: 'https://www.facebook.com/', icon: Facebook },
-  { name: 'Twitter', href: 'https://x.com/', icon: Twitter },
-  { name: 'LinkedIn', href: 'https://www.linkedin.com/', icon: Linkedin },
+  { name: 'Facebook', href: 'https://www.facebook.com/mihaskatc', icon: Facebook },
+  { name: 'Twitter', href: 'https://x.com/mihaskatc', icon: Twitter },
+  { name: 'LinkedIn', href: 'https://www.linkedin.com/company/mihaskatc', icon: Linkedin },
 ];
