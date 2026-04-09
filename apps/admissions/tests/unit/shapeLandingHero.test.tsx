@@ -41,6 +41,15 @@ const defaultProps = {
   rotatingPhrases: ['Nursing', 'Pharmacy', 'Public Health'],
   primaryCta: { label: 'Start Your Application', href: '/apply' },
   secondaryCta: { label: 'Learn More', href: '/programs' },
+  proofPanel: {
+    image: { src: '/campus.webp', alt: 'Campus', width: 800, height: 600 },
+    eyebrow: 'Why MIHAS-KATC',
+    title: '92% Job Placement',
+    description: 'Trusted by hospitals across Zambia.',
+    badges: ['NMCZ Accredited'],
+    highlights: [{ value: '300+', label: 'Graduates' }],
+    checklist: ['Government accredited'],
+  },
 }
 
 function renderHero(props = defaultProps) {

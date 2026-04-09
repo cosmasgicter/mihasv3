@@ -42,13 +42,13 @@ export const NoResultsView: React.FC<NoResultsViewProps> = ({ onTryAgain }) => {
             <Search className="h-5 w-5 mr-2" />
             Try Again
           </Button>
-          <Link to="/apply">
+          <Link to="/auth/signup">
             <Button 
               size="lg" 
               className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
             >
               <Rocket className="h-5 w-5 mr-2" />
-              Submit New Application
+              Create Account to Apply
             </Button>
           </Link>
         </div>

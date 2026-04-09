@@ -20,7 +20,7 @@ export const contactFormSchema = z.object({
 
 export type ContactFormData = z.infer<typeof contactFormSchema>
 
-export type SubmitState = 'idle' | 'submitting' | 'success' | 'error'
+export type SubmitState = 'idle' | 'draft_ready' | 'error'
 
 export function buildContactMailtoUrl(data: ContactFormData): string {
   const subject = encodeURIComponent(`Admissions inquiry from ${data.name}`)
@@ -38,6 +38,7 @@ export function buildContactMailtoUrl(data: ContactFormData): string {
 
 export default function ContactPage() {
   const [submitState, setSubmitState] = useState<SubmitState>('idle')
+  const [draftUrl, setDraftUrl] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
 
   const {
@@ -50,19 +51,10 @@ export default function ContactPage() {
     defaultValues: { name: '', email: '', message: '' },
   })
 
-  const onSubmit = async (data: ContactFormData) => {
-    setSubmitState('submitting')
+  const onSubmit = (data: ContactFormData) => {
     setErrorMessage('')
-
-    try {
-      const mailtoUrl = buildContactMailtoUrl(data)
-      window.open(mailtoUrl, '_self')
-      setSubmitState('success')
-      reset()
-    } catch {
-      setSubmitState('error')
-      setErrorMessage('Unable to open your email app. Please use the phone or email details below.')
-    }
+    setDraftUrl(buildContactMailtoUrl(data))
+    setSubmitState('draft_ready')
   }
 
   return (
@@ -126,9 +118,28 @@ export default function ContactPage() {
               <CardContent className="p-6">
                 <CardTitle className="mb-4">Send a Message</CardTitle>
 
-                {submitState === 'success' && (
-                  <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-4 text-sm text-green-800" role="status">
-                    Your email app should open with a pre-filled message to admissions. If it does not, use the contact details shown on this page.
+                {submitState === 'draft_ready' && draftUrl && (
+                  <div className="mb-4 space-y-3 rounded-md border border-green-200 bg-green-50 p-4 text-sm text-green-800" role="status">
+                    <p>
+                      Your message draft is ready. Open it in your email app using the button below.
+                      If no email app is available on this device, use the admissions email and phone details shown on this page.
+                    </p>
+                    <div className="flex flex-col gap-3 sm:flex-row">
+                      <Button asChild className="w-full sm:w-auto">
+                        <a href={draftUrl}>Open Email App</a>
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full sm:w-auto"
+                        onClick={() => {
+                          setSubmitState('idle')
+                          setDraftUrl('')
+                        }}
+                      >
+                        Edit Message
+                      </Button>
+                    </div>
                   </div>
                 )}
 
@@ -149,7 +160,6 @@ export default function ContactPage() {
                       className="w-full min-h-[44px] rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       aria-invalid={!!errors.name}
                       aria-describedby={errors.name ? 'contact-name-error' : undefined}
-                      disabled={submitState === 'submitting'}
                       {...register('name')}
                     />
                     {errors.name && (
@@ -170,7 +180,6 @@ export default function ContactPage() {
                       className="w-full min-h-[44px] rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       aria-invalid={!!errors.email}
                       aria-describedby={errors.email ? 'contact-email-error' : undefined}
-                      disabled={submitState === 'submitting'}
                       {...register('email')}
                     />
                     {errors.email && (
@@ -191,7 +200,6 @@ export default function ContactPage() {
                       className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       aria-invalid={!!errors.message}
                       aria-describedby={errors.message ? 'contact-message-error' : undefined}
-                      disabled={submitState === 'submitting'}
                       {...register('message')}
                     />
                     {errors.message && (
@@ -201,8 +209,8 @@ export default function ContactPage() {
                     )}
                   </div>
 
-                  <Button type="submit" className="w-full" disabled={submitState === 'submitting'}>
-                    {submitState === 'submitting' ? 'Sending…' : 'Submit Inquiry'}
+                  <Button type="submit" className="w-full">
+                    {submitState === 'draft_ready' ? 'Update Email Draft' : 'Prepare Email Draft'}
                   </Button>
                 </form>
               </CardContent>

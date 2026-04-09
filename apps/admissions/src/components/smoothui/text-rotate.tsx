@@ -6,7 +6,7 @@
  * @requirements 5.1 - Cycles through a configurable list of phrases
  * @requirements 5.2 - Smooth rotation animation at configurable interval
  * @requirements 5.3 - prefers-reduced-motion shows first phrase only (static)
- * @requirements 5.4 - aria-live="polite" announces current phrase to screen readers
+ * @requirements 5.4 - optional aria-live="polite" announces current phrase to screen readers
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -23,6 +23,8 @@ interface TextRotateProps {
   duration?: number;
   /** Additional className */
   className?: string;
+  /** Whether to announce phrase changes to assistive tech */
+  announce?: boolean;
 }
 
 export function TextRotate({
@@ -30,6 +32,7 @@ export function TextRotate({
   interval = 3000,
   duration = 500,
   className,
+  announce = false,
 }: TextRotateProps) {
   const reducedMotion = useReducedMotion();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -83,7 +86,7 @@ export function TextRotate({
   // Reduced motion: show first phrase only, static
   if (reducedMotion) {
     return (
-      <span className={cn('text-rotate-static', className)} aria-live="polite">
+      <span className={cn('text-rotate-static', className)} aria-live={announce ? 'polite' : undefined}>
         {phrases[0]}
       </span>
     );
@@ -92,7 +95,7 @@ export function TextRotate({
   return (
     <span
       className={cn('text-rotate-wrapper', className)}
-      aria-live="polite"
+      aria-live={announce ? 'polite' : undefined}
     >
       <span
         className={cn(

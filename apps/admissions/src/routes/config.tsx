@@ -8,6 +8,8 @@ const SignInPage = React.lazy(() => import('@/pages/auth/SignInPage'))
 const SignUpPage = React.lazy(() => import('@/pages/auth/SignUpPage'))
 const ForgotPasswordPage = React.lazy(() => import('@/pages/auth/ForgotPasswordPage'))
 const ResetPasswordPage = React.lazy(() => import('@/pages/auth/ResetPasswordPage'))
+const TermsPage = React.lazy(() => import('@/pages/TermsPage'))
+const PrivacyPage = React.lazy(() => import('@/pages/PrivacyPage'))
 
 // Landing page - lazy loaded with preload hint
 const LandingPage = React.lazy(() => import('@/pages/LandingPage'))
@@ -57,6 +59,8 @@ export const routes: RouteConfig[] = [
   { path: '/', element: LandingPage, guard: 'public', lazy: true, skeletonType: 'none' },
   { path: '/track-application', element: PublicApplicationTracker, guard: 'public', lazy: true, skeletonType: 'detail' },
   { path: '/contact', element: ContactPage, guard: 'public', lazy: true, skeletonType: 'none' },
+  { path: '/terms', element: TermsPage, guard: 'public', lazy: true, skeletonType: 'none' },
+  { path: '/privacy', element: PrivacyPage, guard: 'public', lazy: true, skeletonType: 'none' },
   { path: '/auth/signin', element: SignInPage, guard: 'public', lazy: true, skeletonType: 'auth' },
   { path: '/signin', element: SignInPage, guard: 'public', lazy: true, skeletonType: 'auth' },
   { path: '/login', element: SignInPage, guard: 'public', lazy: true, skeletonType: 'auth' },

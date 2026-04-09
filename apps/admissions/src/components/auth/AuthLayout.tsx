@@ -223,9 +223,9 @@ function BrandingPanel({ variant }: { variant: AuthLayoutVariant }) {
           </span>
         </div>
 
-        <h1 className="text-4xl font-bold leading-tight text-white drop-shadow-lg xl:text-5xl">
+        <p className="text-4xl font-bold leading-tight text-white drop-shadow-lg xl:text-5xl">
           {config.heroTitle}
-        </h1>
+        </p>
 
         <p className="mt-6 text-lg leading-relaxed text-white/90">
           {config.heroDescription}
@@ -319,9 +319,9 @@ function FormPanel({
             )}
 
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                 {title}
-              </h2>
+              </h1>
               {description && (
                 <div className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
                   {description}
