@@ -274,16 +274,25 @@ export function usePaymentStatus(applicationId: string) {
 
 ### Req 10: Program-Intake Compatibility Validation
 
-```python
-from apps.catalog.models import ProgramIntake, Intake
+Note: `Application.program` and `Application.intake` are `CharField` fields storing codes/names, not UUIDs. Must resolve to UUIDs first.
 
-def validate_program_intake(program_id, intake_id):
-    if not ProgramIntake.objects.filter(program_id=program_id, intake_id=intake_id).exists():
+```python
+from apps.catalog.models import ProgramIntake, Intake, Program
+
+def validate_program_intake(program_code, intake_name):
+    program = Program.objects.filter(code=program_code).first()
+    intake = Intake.objects.filter(name=intake_name).first()
+    if not program or not intake:
+        raise ValidationError(
+            {"program": "Program or intake not found."},
+            code="INVALID_PROGRAM_INTAKE",
+        )
+    if not ProgramIntake.objects.filter(program_id=program.id, intake_id=intake.id).exists():
         raise ValidationError(
             {"program": "The selected program is not available for this intake."},
             code="INVALID_PROGRAM_INTAKE",
         )
-    if not Intake.objects.filter(id=intake_id, is_active=True).exists():
+    if not intake.is_active:
         raise ValidationError({"intake": "The selected intake is not currently active."}, code="INACTIVE_INTAKE")
 ```
 
@@ -304,6 +313,8 @@ def validate_minimum_age(date_of_birth):
 ```
 
 ### Req 12: International Phone Number Validation
+
+Note: no phone validator currently exists in the codebase. This is a new function.
 
 ```python
 import re

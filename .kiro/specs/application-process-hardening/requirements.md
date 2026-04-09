@@ -152,8 +152,8 @@ The following corrections were applied after cross-referencing the requirements 
 
 #### Acceptance Criteria
 
-1. WHEN an application is created or updated with a `program` and `intake`, THE Application_Create_View SHALL verify that a row exists in the Program_Intakes_Table where `program_id` matches the specified program and `intake_id` matches the specified intake.
-2. IF no matching row exists in Program_Intakes_Table, THEN THE Application_Create_View SHALL return a 400 response with error code `INVALID_PROGRAM_INTAKE` and a message: "The selected program is not available for this intake."
+1. WHEN an application is created or updated with a `program` and `intake`, THE Application_Create_View SHALL resolve the program code and intake name to their respective UUIDs via `Program.objects.filter(code=program)` and `Intake.objects.filter(name=intake)`, then verify that a row exists in the Program_Intakes_Table where `program_id` and `intake_id` match.
+2. IF no matching row exists in Program_Intakes_Table, or if the program code or intake name cannot be resolved, THEN THE Application_Create_View SHALL return a 400 response with error code `INVALID_PROGRAM_INTAKE` and a message: "The selected program is not available for this intake."
 3. THE validation SHALL also verify that the referenced intake's `is_active` flag is true in the `intakes` table.
 4. THE validation SHALL use the existing `program_intakes_program_id_intake_id_key` unique index for efficient lookup.
 

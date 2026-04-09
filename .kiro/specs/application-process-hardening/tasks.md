@@ -39,7 +39,8 @@
     - When `force=True` on approval, set notes to `[FORCE-BYPASS]` prefix with reason
     - Store `{"force_bypass": true, "reason": "..."}` in history `changes` JSONB
     - Log warning with app ID, admin ID, target status
-    - Pass hashed IP and user agent to `transition_application_status()`
+    - Extract hashed IP via `_get_client_ip()` + SHA-256, and user agent from `request.META['HTTP_USER_AGENT']`
+    - Pass hashed IP and user agent to `transition_application_status()` (currently not passed by the view)
     - File: `backend/apps/applications/views.py`
     - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
@@ -61,11 +62,13 @@
 
   - [ ] 3.2 Add prefetch_related to application detail and list views
     - Detail: add `prefetch_related('applicationdocument_set', 'applicationgrade_set', 'applicationinterview_set')`
+    - Note: `ApplicationDocument` and `ApplicationGrade` are in `apps.documents.models`, `ApplicationInterview` is in `apps.applications.models` — all use default reverse names via `ForeignKey('applications.Application')`
     - List: add `prefetch_related('applicationdocument_set')` when documents included
     - File: `backend/apps/applications/views.py`
     - _Requirements: 8.1, 8.2_
 
   - [ ] 3.3 Add program-intake compatibility validation
+    - Note: `Application.program` and `Application.intake` are `CharField` (store codes/names, not UUIDs) — must resolve to UUIDs via `Program.objects.filter(code=program)` and `Intake.objects.filter(name=intake)` before querying `program_intakes`
     - Query `program_intakes` table for `(program_id, intake_id)` existence
     - Check `intakes.is_active` flag
     - Return 400 `INVALID_PROGRAM_INTAKE` if invalid
@@ -78,8 +81,9 @@
     - File: `backend/apps/applications/serializers.py`
     - _Requirements: 11.1, 11.2, 11.3_
 
-  - [ ] 3.5 Update phone validation to E.164 international format
-    - Replace Zambia-only regex with `^\+?[0-9]{7,15}$`
+  - [ ] 3.5 Add phone validation (new validator — none exists currently)
+    - Create `validate_phone_e164` function with regex `^\+?[0-9]{7,15}$`
+    - Note: no phone validator exists in the codebase currently — this is a new function, not an update
     - File: `backend/apps/common/validators.py`
     - _Requirements: 12.1, 12.2_
 
