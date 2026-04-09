@@ -1,7 +1,6 @@
 /* Smooth Animations - Performance Optimized */
 
 /* Hardware acceleration for animated elements only - not global */
-.animate-spin,
 .animate-pulse,
 .animate-bounce,
 [class*="animate-"],
@@ -11,7 +10,6 @@
 }
 
 /* Base animation optimizations */
-.animate-spin,
 .animate-pulse,
 .animate-bounce,
 [class*="animate-"] {

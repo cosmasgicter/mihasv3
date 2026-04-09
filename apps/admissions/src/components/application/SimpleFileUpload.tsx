@@ -402,7 +402,7 @@ export function SimpleFileUpload({
                     {isComplete ? (
                       <CheckCircle className="h-4 w-4 text-accent mr-2" />
                     ) : (
-                      <div className="h-4 w-4 mr-2 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      <div className="h-4 w-4 mr-2 rounded-full bg-primary animate-pulse" aria-hidden="true" />
                     )}
                     <span className={`text-sm font-medium ${
                       isComplete ? 'text-accent-foreground' : 'text-primary-foreground'

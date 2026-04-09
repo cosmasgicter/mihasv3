@@ -170,7 +170,7 @@ export default function SignUpPage() {
             Already have an account?{' '}
             <Link
               to="/auth/signin"
-              className="font-semibold text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md"
+              className="font-semibold text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
             >
               Sign in
             </Link>

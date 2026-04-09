@@ -414,7 +414,7 @@ export function RealtimeMetricsDisplay({
               )}
               aria-label="Refresh metrics"
             >
-              <RefreshCw className={cn('h-4 w-4', isRefreshing && 'animate-spin')} />
+              <RefreshCw className={cn('h-4 w-4', isRefreshing && 'animate-pulse')} />
             </button>
           )}
         </div>

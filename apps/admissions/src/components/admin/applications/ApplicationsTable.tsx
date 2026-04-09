@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react'
-import { ButtonSpinner } from '@/components/ui/ButtonSpinner'
+import { Button } from '@/components/ui/Button'
 import { FileText, CheckCircle } from 'lucide-react'
 import { useToastStore } from '@/hooks/useToast'
 import { ApplicationCard, ApplicationSummary } from './ApplicationCard'
@@ -150,15 +150,14 @@ export function ApplicationsTable({
             </div>
 
             {hasMore ? (
-              <button
+              <Button
                 type="button"
                 onClick={onLoadMore}
-                disabled={isLoadingMore}
-                className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:from-blue-700 hover:to-blue-800 hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
+                loading={isLoadingMore}
+                className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
               >
-                {isLoadingMore && <ButtonSpinner size="sm" className="mr-2" />}
                 {isLoadingMore ? 'Loading more...' : 'Load more applications'}
-              </button>
+              </Button>
             ) : (
               totalCount > 0 && (
                 <div className="flex items-center gap-2 text-sm text-foreground">

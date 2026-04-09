@@ -601,7 +601,7 @@ export default function AuditTrailPage() {
                   <select
                     value={formFilters.targetTable}
                     onChange={(event) => setFormFilters((current) => ({ ...current, targetTable: event.target.value }))}
-                    className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     {ENTITY_OPTIONS.map((option) => (
                       <option key={option.value || 'all'} value={option.value}>
@@ -616,7 +616,7 @@ export default function AuditTrailPage() {
                   <select
                     value={formFilters.category}
                     onChange={(event) => setFormFilters((current) => ({ ...current, category: event.target.value }))}
-                    className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     <option value="">All categories</option>
                     {CATEGORY_OPTIONS.map((category) => (
@@ -658,7 +658,7 @@ export default function AuditTrailPage() {
                       setPageSize(Number.parseInt(event.target.value, 10) || DEFAULT_PAGE_SIZE)
                       setPage(1)
                     }}
-                    className="h-10 rounded-lg border border-input bg-background px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="h-10 rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     {PAGE_SIZE_OPTIONS.map((option) => (
                       <option key={option} value={option}>

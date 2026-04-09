@@ -5,7 +5,6 @@ import { XCircle, User, Clock, CheckCircle, FileText, CreditCard, Mail, Phone, C
 import { applicationService } from '@/services/applications'
 import { apiClient } from '@/services/client'
 import { logApiError } from '@/lib/apiErrorLogger'
-import { ButtonSpinner } from '@/components/ui/ButtonSpinner'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { ApplicationInterview } from '@/types/database'
 import { calculateBestFivePoints, sanitizeGradeValue } from '@/utils/grades'
@@ -1087,7 +1086,7 @@ export function ApplicationDetailModal({
  <p className="text-sm font-medium text-foreground mb-3">Payment History</p>
  {loadingPayments ? (
  <div className="flex items-center gap-2 text-sm text-foreground py-4">
- <ButtonSpinner size="sm" />
+ <div className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse" aria-hidden="true" />
  <span>Loading payment records...</span>
  </div>
  ) : paymentRecords.length === 0 ? (

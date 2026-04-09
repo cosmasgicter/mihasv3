@@ -381,8 +381,6 @@ export default function LandingPage() {
           href: '#features',
           icon: <Star className="w-5 h-5" />,
         }}
-        imageSrc="/images/programs/mihas-campus.webp"
-        imageAlt="Students studying at the Mukuba Institute of Health and Allied Sciences campus"
       />
       <StatsSection />
       <FeaturesSection />

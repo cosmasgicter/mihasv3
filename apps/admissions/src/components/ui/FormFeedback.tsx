@@ -46,7 +46,7 @@ export function FormFeedback({
   const statusConfig = {
     loading: {
       icon: Loader2,
-      iconClass: 'text-primary animate-spin',
+      iconClass: 'text-primary animate-pulse',
       bgClass: 'bg-info/5 border-info/30',
       textClass: 'text-foreground',
     },
@@ -187,7 +187,7 @@ export function FormSubmitButton({
       className={cn(
         'inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold',
         'bg-primary text-primary-foreground hover:bg-primary/90',
-        'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         'transition-all duration-100',
         'active:scale-95',
@@ -197,7 +197,7 @@ export function FormSubmitButton({
     >
       {isLoading ? (
         <>
-          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+          <Loader2 className="h-5 w-5 mr-2 animate-pulse" />
           {loadingText}
         </>
       ) : (

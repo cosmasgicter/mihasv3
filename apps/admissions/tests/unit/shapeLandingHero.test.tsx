@@ -41,8 +41,6 @@ const defaultProps = {
   rotatingPhrases: ['Nursing', 'Pharmacy', 'Public Health'],
   primaryCta: { label: 'Start Your Application', href: '/apply' },
   secondaryCta: { label: 'Learn More', href: '/programs' },
-  imageSrc: '/campus.jpg',
-  imageAlt: 'MIHAS Campus',
 }
 
 function renderHero(props = defaultProps) {

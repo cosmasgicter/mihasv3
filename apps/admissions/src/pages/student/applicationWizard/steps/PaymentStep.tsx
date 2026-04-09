@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { CheckCircle, CreditCard, Loader2, RefreshCw, XCircle, Clock } from 'lucide-react'
+import { CheckCircle, CreditCard, RefreshCw, XCircle, Clock } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { SectionCard } from '@/components/ui/SectionCard'
+import { Skeleton } from '@/components/ui/skeleton'
 import { animateClasses } from '@/lib/animations'
 import { apiClient } from '@/services/client'
 import { useFeeResolver } from '@/hooks/useFeeResolver'
@@ -169,9 +170,9 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Application fee</p>
             {feeLoading ? (
-              <div className="mt-1 flex items-center gap-2 text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-sm">Resolving fee&hellip;</span>
+              <div className="mt-2 space-y-2" role="status" aria-label="Resolving fee">
+                <Skeleton className="h-7 w-32" />
+                <Skeleton className="h-4 w-40" />
               </div>
             ) : feeError ? (
               <p className="mt-1 text-sm text-destructive">{feeError}</p>

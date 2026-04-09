@@ -76,8 +76,7 @@ export function EnhancedInput({
             'text-sm text-foreground placeholder-muted-foreground',
             'transition-colors duration-200',
             // Focus states
-            'focus:border-primary focus:ring-2 focus:ring-ring/20',
-            'focus:outline-none',
+            'focus-visible:outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
             // Mobile optimizations
             'min-h-[44px] px-3 py-2.5', // Ensure 44px touch target
             'text-base sm:text-sm', // Prevent zoom on iOS
@@ -85,9 +84,9 @@ export function EnhancedInput({
             leftIcon && 'pl-10',
             rightIcon && 'pr-10',
             // Error state
-            errorMessage && 'border-destructive/30 focus:border-error focus:ring-destructive/20',
+            errorMessage && 'border-destructive/30 focus-visible:border-destructive',
             // Success state
-            success && 'border-success/30 focus:border-success focus:ring-success/20',
+            success && 'border-success/30 focus-visible:border-success',
             // Disabled state
             'disabled:bg-muted disabled:text-foreground disabled:cursor-not-allowed',
             className
@@ -102,7 +101,7 @@ export function EnhancedInput({
               'absolute right-3 top-1/2 transform -translate-y-1/2',
               'text-foreground hover:text-foreground',
               'min-w-[24px] min-h-[24px] flex items-center justify-center',
-              'focus:outline-none focus:ring-2 focus:ring-ring rounded',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded',
               onRightIconClick ? 'cursor-pointer' : 'cursor-default'
             )}
             disabled={!onRightIconClick}
@@ -187,16 +186,15 @@ export function EnhancedTextarea({
           'text-sm text-foreground placeholder-muted-foreground',
           'transition-colors duration-200',
           // Focus states
-          'focus:border-primary focus:ring-2 focus:ring-ring/20',
-          'focus:outline-none',
+          'focus-visible:outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
           // Mobile optimizations
           'min-h-[88px] px-3 py-2.5', // Double height for textarea
           'text-base sm:text-sm', // Prevent zoom on iOS
           'resize-y', // Allow vertical resize only
           // Error state
-          errorMessage && 'border-destructive/30 focus:border-error focus:ring-destructive/20',
+          errorMessage && 'border-destructive/30 focus-visible:border-destructive',
           // Success state
-          success && 'border-success/30 focus:border-success focus:ring-success/20',
+          success && 'border-success/30 focus-visible:border-success',
           // Disabled state
           'disabled:bg-muted disabled:text-foreground disabled:cursor-not-allowed',
           className
@@ -281,8 +279,7 @@ export function EnhancedSelect({
           'text-sm text-foreground',
           'transition-colors duration-200',
           // Focus states
-          'focus:border-primary focus:ring-2 focus:ring-ring/20',
-          'focus:outline-none',
+          'focus-visible:outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
           // Mobile optimizations
           'min-h-[44px] px-3 py-2.5', // Ensure 44px touch target
           'text-base sm:text-sm', // Prevent zoom on iOS
@@ -291,9 +288,9 @@ export function EnhancedSelect({
           'bg-no-repeat bg-right bg-[length:16px_16px]',
           'pr-10', // Space for arrow
           // Error state
-          errorMessage && 'border-destructive/30 focus:border-error focus:ring-destructive/20',
+          errorMessage && 'border-destructive/30 focus-visible:border-destructive',
           // Success state
-          success && 'border-success/30 focus:border-success focus:ring-success/20',
+          success && 'border-success/30 focus-visible:border-success',
           // Disabled state
           'disabled:bg-muted disabled:text-foreground disabled:cursor-not-allowed',
           className

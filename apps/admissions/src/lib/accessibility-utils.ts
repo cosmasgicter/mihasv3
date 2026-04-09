@@ -58,7 +58,7 @@ export const skipLinkClasses = cn(
   // Hidden by default using transform (more reliable than sr-only)
   '-translate-y-full opacity-0 pointer-events-none',
   // Visible on focus - reset transform and opacity
-  'focus:translate-y-0 focus:opacity-100 focus:pointer-events-auto',
+  'focus-visible:translate-y-0 focus-visible:opacity-100 focus-visible:pointer-events-auto',
   // Smooth transition for focus state
   'transition-all duration-150',
   // Styling
@@ -66,7 +66,7 @@ export const skipLinkClasses = cn(
   'bg-primary text-primary-foreground',
   'font-medium rounded-lg shadow-lg',
   // Focus ring for visibility
-  'outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
   // Ensure proper text rendering
   'whitespace-nowrap'
 )

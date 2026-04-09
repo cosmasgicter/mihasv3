@@ -28,8 +28,8 @@ export const cardVariants = {
 } as const
 
 export const inputVariants = {
-  default: 'w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:border-primary focus-visible:ring-2 focus-visible:ring-ring',
-  error: 'w-full rounded-lg border-2 border-error bg-background px-3 py-2 text-sm focus:border-error focus-visible:ring-2 focus-visible:ring-destructive',
+  default: 'w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+  error: 'w-full rounded-lg border-2 border-error bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:border-destructive focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
 } as const
 
 export const badgeVariants = {

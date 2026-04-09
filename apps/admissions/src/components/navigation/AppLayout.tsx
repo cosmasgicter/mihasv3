@@ -159,7 +159,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
         aria-label="Log out"
         aria-busy={isSigningOut}
       >
-        {isSigningOut ? <Loader2 className="h-5 w-5 animate-spin" /> : <LogOut className="h-5 w-5" />}
+        <LogOut className={cn('h-5 w-5', isSigningOut && 'opacity-60')} />
       </button>
     </div>
   ) : isAdmin ? (
@@ -172,7 +172,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
         aria-label="Sign out"
         aria-busy={isSigningOut}
       >
-        {isSigningOut ? <Loader2 className="h-5 w-5 animate-spin" /> : <LogOut className="h-5 w-5" />}
+        <LogOut className={cn('h-5 w-5', isSigningOut && 'opacity-60')} />
       </button>
     </div>
   ) : undefined

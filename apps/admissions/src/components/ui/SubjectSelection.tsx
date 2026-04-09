@@ -392,7 +392,7 @@ function SubjectCard({
                 id={gradeId}
                 value={subject.grade || ''}
                 onChange={(e) => onUpdate(subject.id, 'grade', e.target.value)}
-                className="w-full px-2 py-1 text-sm border border-input rounded focus:outline-none focus:ring-1 focus:ring-ring"
+                className="w-full px-2 py-1 text-sm border border-input rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 aria-label={`Grade for ${subject.name}`}
               >
                 <option value="">Select grade</option>
@@ -419,7 +419,7 @@ function SubjectCard({
                 max="100"
                 value={subject.score || ''}
                 onChange={(e) => onUpdate(subject.id, 'score', parseInt(e.target.value) || 0)}
-                className="w-full px-2 py-1 text-sm border border-input rounded focus:outline-none focus:ring-1 focus:ring-ring"
+                className="w-full px-2 py-1 text-sm border border-input rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 placeholder="0-100"
                 aria-label={`Score percentage for ${subject.name}`}
               />

@@ -118,7 +118,7 @@ export function Timeline({
                 className={cn(
                   'h-4 w-4',
                   config.color,
-                  status === 'current' && 'animate-spin'
+                  status === 'current' && 'animate-pulse'
                 )} 
               />
             </div>
@@ -187,7 +187,7 @@ function HorizontalTimeline({
                 className={cn(
                   'h-4 w-4',
                   config.color,
-                  status === 'current' && 'animate-spin'
+                  status === 'current' && 'animate-pulse'
                 )} 
               />
             </div>
@@ -251,7 +251,7 @@ export function TimelineItem({
           className={cn(
             'h-4 w-4',
             config.color,
-            status === 'current' && 'animate-spin'
+            status === 'current' && 'animate-pulse'
           )} 
         />
       </div>

@@ -345,7 +345,7 @@ export function EnhancedApplicationsTable({
             <select
               value={filters.status}
               onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value as FilterState['status'] }))}
-              className="flex min-h-[44px] w-full items-center rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              className="flex min-h-[44px] w-full items-center rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <option value="">All Statuses</option>
               {STATUS_FILTER_OPTIONS.map(({ value, label }) => (
@@ -356,7 +356,7 @@ export function EnhancedApplicationsTable({
             <select
               value={filters.paymentStatus}
               onChange={(e) => setFilters(prev => ({ ...prev, paymentStatus: e.target.value }))}
-              className="flex min-h-[44px] w-full items-center rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              className="flex min-h-[44px] w-full items-center rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <option value="">All Payment States</option>
               <option value="not_paid">Awaiting Payment</option>
@@ -368,7 +368,7 @@ export function EnhancedApplicationsTable({
             <select
               value={filters.program}
               onChange={(e) => setFilters(prev => ({ ...prev, program: e.target.value }))}
-              className="flex min-h-[44px] w-full items-center rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              className="flex min-h-[44px] w-full items-center rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <option value="">All Programs</option>
               <option value="clinical-medicine">Clinical Medicine</option>

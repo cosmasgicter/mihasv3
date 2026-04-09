@@ -39,7 +39,7 @@ export function AuthenticationGuard({ children, onAuthenticationRequired }: Auth
     return (
       <div className="flex items-center justify-center p-8">
         <div className="flex items-center space-x-2">
-          <RefreshCw className="h-5 w-5 animate-spin" />
+          <div className="h-5 w-5 rounded-full bg-primary/30 animate-pulse" aria-hidden="true" />
           <span>Verifying authentication...</span>
         </div>
       </div>

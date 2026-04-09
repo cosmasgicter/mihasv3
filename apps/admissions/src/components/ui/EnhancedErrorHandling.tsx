@@ -139,7 +139,7 @@ export function EnhancedToast({
             onClick={handleClose}
             className={cn(
               'p-1 rounded-full hover:bg-black/5 transition-colors',
-              'focus:outline-none focus:ring-2 focus:ring-offset-2',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
               'min-w-[32px] min-h-[32px] flex items-center justify-center',
               'touch-manipulation'
             )}

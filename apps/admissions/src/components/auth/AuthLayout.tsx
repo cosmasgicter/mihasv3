@@ -251,7 +251,7 @@ function BrandingPanel({ variant }: { variant: AuthLayoutVariant }) {
               {index > 0 && <div className="h-12 w-px bg-white/20" aria-hidden />}
               <div>
                 <p className="text-3xl font-bold text-white">{stat.value}</p>
-                <p className="text-sm text-white/70">{stat.label}</p>
+                <p className="text-sm text-white/90">{stat.label}</p>
               </div>
             </div>
           ))}
@@ -283,7 +283,7 @@ function FormPanel({
       <div className={cn('mx-auto w-full', config.panelMaxWidthClass)}>
         <Link
           to={backLinkHref}
-          className="inline-flex items-center gap-2 rounded-md px-2 py-1 -ml-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="inline-flex items-center gap-2 rounded-md px-2 py-1 -ml-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           <ArrowLeft className="h-4 w-4" />
           {backLinkLabel}

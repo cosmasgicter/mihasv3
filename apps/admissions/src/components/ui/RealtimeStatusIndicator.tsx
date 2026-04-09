@@ -86,7 +86,7 @@ export function RealtimeStatusIndicator({
             ${getStatusColor()} 
             rounded-full
             ${isConnected && !isReconnecting ? 'animate-pulse' : ''}
-            ${isReconnecting ? 'animate-spin' : ''}
+            ${isReconnecting ? 'animate-pulse' : ''}
           `}
         />
         {/* Ping animation for connected state */}

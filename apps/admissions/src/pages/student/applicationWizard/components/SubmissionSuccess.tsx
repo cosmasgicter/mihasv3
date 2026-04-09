@@ -2,7 +2,7 @@ import { CheckCircle, Download, Mail, Send, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
-import { ButtonSpinner } from '@/components/ui/ButtonSpinner'
+import { Skeleton } from '@/components/ui/skeleton'
 import { animateClasses } from '@/lib/animations'
 
 import type { SubmittedApplicationSummary } from '../hooks/useApplicationSlip'
@@ -91,7 +91,7 @@ const SubmissionSuccess = ({
             >
               <X className="h-4 w-4 text-foreground" />
             </button>
-            <ButtonSpinner size="lg" className="mx-auto" />
+            <Skeleton className="mx-auto h-12 w-12 rounded-full" />
             <p className="mt-4 text-sm font-medium text-foreground">
               {persistingSlip ? 'Generating application slip...' : 'Preparing your slip...'}
             </p>

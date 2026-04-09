@@ -207,7 +207,7 @@ export function NotificationPreferences({ onPreferencesChange }: NotificationPre
     return (
       <Card className="p-6">
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="h-8 w-8 rounded-full bg-primary/20 animate-pulse" aria-hidden="true"></div>
         </div>
       </Card>
     )

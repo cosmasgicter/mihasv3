@@ -188,7 +188,7 @@ export function RegulatoryGuidelinesTable({ onGuidelineSelect }: RegulatoryGuide
  <div className="bg-card rounded-lg shadow overflow-hidden">
  {loading ? (
  <div className="p-8 text-center">
- <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+ <div className="mx-auto mb-4 h-8 w-8 rounded-full bg-primary/20 animate-pulse"></div>
  <p className="text-foreground">Loading guidelines...</p>
  </div>
  ) : filteredGuidelines.length === 0 ? (

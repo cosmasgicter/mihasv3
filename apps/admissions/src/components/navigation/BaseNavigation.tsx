@@ -81,7 +81,7 @@ export function BaseNavigation({
 
           {/* Mobile Menu Button */}
           <button
-            className="lg:hidden p-3 rounded-xl bg-card hover:bg-muted transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[48px] min-w-[48px] touch-target border-2 border-border shadow-lg active:scale-95 motion-reduce:transform-none"
+            className="lg:hidden p-3 rounded-xl bg-card hover:bg-muted transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[48px] min-w-[48px] touch-target border-2 border-border shadow-lg active:scale-95 motion-reduce:transform-none"
             onClick={toggleMenu}
             aria-label={isOpen ? "Close menu" : "Open menu"}
             aria-expanded={isOpen}
@@ -121,7 +121,7 @@ export function BaseNavigation({
               <div className="flex items-center justify-between p-6 border-b border-border/70 bg-gradient-to-r from-primary/5 to-secondary/5">
                 {mobileHeader}
                 <button
-                  className="p-2 rounded-lg hover:bg-accent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[44px] min-w-[44px] touch-target active:scale-95 motion-reduce:transform-none"
+                  className="p-2 rounded-lg hover:bg-accent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[44px] min-w-[44px] touch-target active:scale-95 motion-reduce:transform-none"
                   onClick={closeMenu}
                   aria-label="Close menu"
                 >

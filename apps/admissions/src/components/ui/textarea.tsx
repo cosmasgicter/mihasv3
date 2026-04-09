@@ -63,7 +63,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             // Resize behavior
             'resize-y',
             // Error state
-            error && 'border-destructive focus:ring-destructive/50 focus:border-destructive hover:border-destructive/70',
+            error && 'border-destructive focus-visible:border-destructive hover:border-destructive/70',
             // Touch optimization
             'touch-manipulation',
             className
