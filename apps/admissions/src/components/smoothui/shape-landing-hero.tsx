@@ -47,10 +47,6 @@ interface ShapeLandingHeroProps {
   primaryCta: { label: string; href: string; icon?: React.ReactNode };
   /** Secondary CTA */
   secondaryCta: { label: string; href: string; icon?: React.ReactNode };
-  /** Campus image src */
-  imageSrc: string;
-  /** Campus image alt */
-  imageAlt: string;
 }
 
 export function ShapeLandingHero({
@@ -59,8 +55,6 @@ export function ShapeLandingHero({
   rotatingPhrases,
   primaryCta,
   secondaryCta,
-  imageSrc,
-  imageAlt,
 }: ShapeLandingHeroProps) {
   return (
     <section
@@ -82,9 +76,9 @@ export function ShapeLandingHero({
 
       {/* Content — pt-16 accounts for the sticky header height */}
       <div className="relative z-10 container-responsive px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 items-center gap-10 pt-24 pb-16 lg:grid-cols-2 lg:gap-14">
-          {/* Text column */}
-          <div className="text-center text-white lg:text-left">
+        <div className="flex items-center justify-center pt-24 pb-16">
+          {/* Text column — centered, full width */}
+          <div className="text-center text-white max-w-3xl mx-auto">
             <p className="mb-4 inline-flex items-center rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
               Government Accredited Health Programs
             </p>
@@ -104,7 +98,7 @@ export function ShapeLandingHero({
               </div>
             )}
 
-            <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed text-white/95 font-medium">
+            <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed text-white/95 font-medium">
               {description}
             </p>
 
@@ -117,7 +111,7 @@ export function ShapeLandingHero({
             </div>
 
             {/* CTA buttons */}
-            <div className="flex flex-col xs:flex-row gap-4 sm:gap-6 justify-center lg:justify-start items-center max-w-md xs:max-w-none mx-auto lg:mx-0">
+            <div className="flex flex-col xs:flex-row gap-4 sm:gap-6 justify-center items-center max-w-md xs:max-w-none mx-auto">
               <Link
                 to={primaryCta.href}
                 className={cn(
@@ -131,7 +125,7 @@ export function ShapeLandingHero({
                 aria-label={primaryCta.label}
               >
                 <span>{primaryCta.label}</span>
-                {primaryCta.icon}
+                {primaryCta.icon && <span aria-hidden="true">{primaryCta.icon}</span>}
               </Link>
 
               {secondaryCta.href.startsWith('#') ? (
@@ -153,7 +147,7 @@ export function ShapeLandingHero({
                   aria-label={secondaryCta.label}
                 >
                   <span>{secondaryCta.label}</span>
-                  {secondaryCta.icon}
+                  {secondaryCta.icon && <span aria-hidden="true">{secondaryCta.icon}</span>}
                 </a>
               ) : (
                 <Link
@@ -169,31 +163,24 @@ export function ShapeLandingHero({
                   aria-label={secondaryCta.label}
                 >
                   <span>{secondaryCta.label}</span>
-                  {secondaryCta.icon}
+                  {secondaryCta.icon && <span aria-hidden="true">{secondaryCta.icon}</span>}
                 </Link>
               )}
             </div>
-          </div>
 
-          {/* Image column */}
-          <div className="mx-auto w-full max-w-xl">
-            <div className="relative overflow-hidden rounded-3xl border border-white/25 bg-white/10 p-2 shadow-2xl backdrop-blur-sm">
-              <img
-                src={imageSrc}
-                alt={imageAlt}
-                className="h-64 w-full rounded-2xl sm:h-80 lg:h-[420px] object-cover"
-                width={1024}
-                height={420}
-                loading="eager"
-              />
-
-              <div className="pointer-events-none absolute inset-x-6 bottom-6 rounded-2xl border border-white/30 bg-black/40 p-4 backdrop-blur-md">
-                <p className="text-sm font-semibold text-white">
-                  92% Job Placement Rate
-                </p>
-                <p className="text-xs text-white">
-                  Trusted by hospitals, clinics, and public health institutions.
-                </p>
+            {/* Stats highlight strip */}
+            <div className="mt-10 sm:mt-12 flex flex-wrap justify-center gap-6 sm:gap-10 text-white/90">
+              <div className="text-center">
+                <p className="text-2xl sm:text-3xl font-bold">92%</p>
+                <p className="text-xs sm:text-sm text-white/80">Job Placement</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl sm:text-3xl font-bold">300+</p>
+                <p className="text-xs sm:text-sm text-white/80">Graduates Employed</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl sm:text-3xl font-bold">25+</p>
+                <p className="text-xs sm:text-sm text-white/80">Employer Partners</p>
               </div>
             </div>
           </div>

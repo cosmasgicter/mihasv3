@@ -59,7 +59,7 @@ export function ProgressIndicator({
       <div className="flex items-center justify-between text-sm">
         <div className="flex items-center space-x-2">
           {status === 'loading' && (
-            <Loader2 className={cn('animate-spin text-primary', iconSizes[size])} />
+            <Loader2 className={cn('animate-pulse text-primary', iconSizes[size])} />
           )}
           {status === 'success' && (
             <CheckCircle className={cn('text-success', iconSizes[size])} />

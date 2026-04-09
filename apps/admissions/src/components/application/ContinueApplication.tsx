@@ -136,9 +136,15 @@ export function ContinueApplication() {
   if (loading) {
     return (
       <SectionCard className="border-border/80 bg-card/90 text-foreground shadow-md" padding="sm">
-        <div className="flex items-center gap-3">
-          <RefreshCw className="h-5 w-5 animate-spin text-primary" />
-          <span>Checking for saved applications...</span>
+        <div className="space-y-3" role="status" aria-label="Checking for saved applications">
+          <div className="flex items-center gap-3">
+            <div className="h-5 w-5 rounded-full bg-primary/30 animate-pulse" aria-hidden="true" />
+            <span>Checking for saved applications...</span>
+          </div>
+          <div className="space-y-2">
+            <div className="h-3 w-40 rounded bg-muted animate-pulse" />
+            <div className="h-3 w-64 rounded bg-muted animate-pulse" />
+          </div>
         </div>
       </SectionCard>
     )
@@ -208,8 +214,9 @@ export function ContinueApplication() {
               onClick={handleDeleteDraft}
               disabled={deleting}
               className="flex-1 text-destructive hover:bg-destructive/5"
+              loading={deleting}
             >
-              {deleting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+              {!deleting && <Trash2 className="h-4 w-4" />}
               <span className="ml-2">Delete</span>
             </Button>
             <Button

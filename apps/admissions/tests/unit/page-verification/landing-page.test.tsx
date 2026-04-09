@@ -117,13 +117,12 @@ vi.mock('@/components/smoothui', () => ({
 }))
 
 vi.mock('@/components/smoothui/shape-landing-hero', () => ({
-  ShapeLandingHero: ({ headline, description, primaryCta, secondaryCta, imageSrc, imageAlt }: any) => (
+  ShapeLandingHero: ({ headline, description, primaryCta, secondaryCta }: any) => (
     <section data-testid="shape-landing-hero">
       <h1>{headline}</h1>
       <p>{description}</p>
       <a href={primaryCta.href}>{primaryCta.label}</a>
       <a href={secondaryCta.href}>{secondaryCta.label}</a>
-      <img src={imageSrc} alt={imageAlt} />
     </section>
   ),
 }))

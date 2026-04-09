@@ -149,7 +149,7 @@ export function NotificationBell() {
               <div className="flex-1 overflow-y-auto">
                 {loading ? (
                   <div className="p-6 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    <div className="mx-auto mb-2 h-8 w-8 rounded-full bg-primary/20 animate-pulse" aria-hidden="true" />
                     <p className="text-muted-foreground text-sm mt-2">Loading notifications...</p>
                   </div>
                 ) : notifications.length === 0 ? (

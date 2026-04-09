@@ -45,7 +45,7 @@ export const Header = React.memo(function Header() {
           <button
             onClick={() => setMobileOpen(true)}
             aria-label="Open navigation menu"
-            className="md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0"
+            className="md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 flex-shrink-0"
           >
             <Menu className="h-5 w-5" />
           </button>

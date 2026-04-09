@@ -141,9 +141,7 @@ export const AnimatedFileUpload = forwardRef<HTMLInputElement, AnimatedFileUploa
                 </>
               ) : (
                 <>
-                  <div
-                    className="w-12 h-12 mx-auto mb-3 rounded-full border-4 border-primary/20 border-t-primary animate-spin motion-reduce:animate-none"
-                  />
+                  <Upload className="w-12 h-12 mx-auto mb-3 text-primary animate-pulse motion-reduce:animate-none" />
                   <p className="text-sm font-medium text-foreground">Uploading...</p>
                   <div className="mt-2 w-full max-w-xs mx-auto">
                     <div className="flex justify-between text-xs text-muted-foreground mb-1">

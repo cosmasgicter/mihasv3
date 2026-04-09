@@ -98,13 +98,9 @@ export function SessionWarning({ warning, onExtend, onDismiss }: SessionWarningP
               onClick={handleExtend}
               disabled={extending}
               className="flex-1"
+              loading={extending}
             >
-              {extending ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Extending...
-                </>
-              ) : (
+              {extending ? 'Extending...' : (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Extend Session

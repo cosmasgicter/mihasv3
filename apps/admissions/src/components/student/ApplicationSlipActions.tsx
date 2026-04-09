@@ -156,12 +156,9 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
         disabled={isDownloading}
         variant="secondary"
         className="flex items-center justify-center space-x-2 border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400 disabled:bg-slate-100 disabled:border-slate-200 disabled:text-slate-400 disabled:shadow-none"
+        loading={isDownloading}
       >
-        {isDownloading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Download className="h-4 w-4" />
-        )}
+        {!isDownloading && <Download className="h-4 w-4" />}
         <span>{isDownloading ? 'Generating...' : 'Download Slip'}</span>
       </Button>
 
@@ -169,13 +166,10 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
         onClick={handleEmailRequest}
         disabled={emailDisabled}
         variant="primary"
-        className="flex items-center justify-center space-x-2 bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-primary disabled:bg-primary/50 disabled:text-primary-foreground disabled:opacity-100 disabled:cursor-not-allowed"
+        className="flex items-center justify-center space-x-2 bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-primary/50 disabled:text-primary-foreground disabled:opacity-100 disabled:cursor-not-allowed"
+        loading={isEmailing}
       >
-        {isEmailing ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Mail className="h-4 w-4" />
-        )}
+        {!isEmailing && <Mail className="h-4 w-4" />}
         <span>
           {isEmailing ? 'Sending...' : emailSent ? 'Email Sent!' : 'Email Slip'}
         </span>

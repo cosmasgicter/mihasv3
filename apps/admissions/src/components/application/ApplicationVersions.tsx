@@ -171,7 +171,8 @@ export function ApplicationVersions({ applicationId, onRestoreVersion }: Applica
               
               {loading ? (
                 <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                  <div className="mx-auto mb-3 h-8 w-8 rounded-full bg-primary/20 animate-pulse" aria-hidden="true" />
+                  <div className="mx-auto h-3 w-32 rounded bg-muted animate-pulse" />
                 </div>
               ) : versions.length === 0 ? (
                 <div className="text-center py-8 text-foreground">

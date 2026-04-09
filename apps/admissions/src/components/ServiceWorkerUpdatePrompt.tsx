@@ -71,15 +71,9 @@ export function ServiceWorkerUpdatePrompt() {
                 onClick={handleUpdate}
                 disabled={isUpdating}
                 className="w-full sm:flex-1"
+                loading={isUpdating}
               >
-                {isUpdating ? (
-                  <>
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                    Updating...
-                  </>
-                ) : (
-                  'Update Now'
-                )}
+                {isUpdating ? 'Updating...' : 'Update Now'}
               </Button>
               
               <Button
@@ -97,7 +91,7 @@ export function ServiceWorkerUpdatePrompt() {
           <button
             onClick={handleDismiss}
             disabled={isUpdating}
-            className="flex-shrink-0 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
+            className="flex-shrink-0 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none"
             aria-label="Dismiss update notification"
           >
             <X className="h-4 w-4" />

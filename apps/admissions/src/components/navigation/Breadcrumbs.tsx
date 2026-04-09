@@ -221,7 +221,7 @@ export function Breadcrumbs({
                     'text-muted-foreground hover:text-foreground',
                     'transition-colors duration-200',
                     'flex items-center gap-1.5',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded',
                     'min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0',
                     'flex items-center justify-center sm:justify-start'
                   )}

@@ -147,7 +147,7 @@ export function BulkOperations({
                       <select
                         value={selectedStatus}
                         onChange={(e) => setSelectedStatus(e.target.value as ApplicationStatus | '')}
-                        className="flex min-h-[44px] w-full items-center rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                        className="flex min-h-[44px] w-full items-center rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       >
                         {statusOptions.map(opt => (
                           <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -179,7 +179,7 @@ export function BulkOperations({
                       <select
                         value={selectedPaymentStatus}
                         onChange={(e) => setSelectedPaymentStatus(e.target.value)}
-                        className="flex min-h-[44px] w-full items-center rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                        className="flex min-h-[44px] w-full items-center rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       >
                         {paymentStatusOptions.map(opt => (
                           <option key={opt.value} value={opt.value}>{opt.label}</option>

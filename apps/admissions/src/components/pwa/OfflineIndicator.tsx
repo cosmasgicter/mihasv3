@@ -88,7 +88,7 @@ export const OfflineIndicator: React.FC = () => {
           {(syncStatus.pendingRequests > 0 || syncStatus.failedRequests > 0) && (
             <div className="flex items-center gap-2">
               {syncStatus.isPending && (
-                <RefreshCw className="h-3 w-3 animate-spin text-muted-foreground" />
+                <RefreshCw className="h-3 w-3 animate-pulse text-muted-foreground" />
               )}
               <span className="text-xs text-muted-foreground">
                 {syncStatus.pendingRequests > 0 && `${syncStatus.pendingRequests} pending`}
@@ -168,8 +168,9 @@ export const OfflineIndicator: React.FC = () => {
                   onClick={handleSync}
                   disabled={syncStatus.isPending}
                   className="flex-1 text-xs"
+                  loading={syncStatus.isPending}
                 >
-                  <RefreshCw className={`h-3 w-3 mr-1 ${syncStatus.isPending ? 'animate-spin' : ''}`} />
+                  {!syncStatus.isPending && <RefreshCw className="h-3 w-3 mr-1" />}
                   Sync Now
                 </Button>
               )}

@@ -136,7 +136,7 @@ function TablePagination({
         <select
           value={pageSize}
           onChange={(e) => onPageSizeChange(Number(e.target.value))}
-          className="h-8 rounded-md border border-input bg-background px-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          className="h-8 rounded-md border border-input bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           {pageSizeOptions.map((size) => (
             <option key={size} value={size}>
@@ -453,7 +453,7 @@ export function EnhancedDataTable<T extends object>({
                   setCurrentPage(1);
                 }}
                 placeholder={searchPlaceholder}
-                className="w-full h-10 pl-10 pr-10 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full h-10 pl-10 pr-10 rounded-lg border border-input bg-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               />
               {searchQuery && (
                 <button
@@ -483,7 +483,7 @@ export function EnhancedDataTable<T extends object>({
                       paginatedData.every((row) => selectedRows.includes(row[keyField]))
                     }
                     onChange={handleSelectAll}
-                    className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
+                    className="h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   />
                 </th>
               )}
@@ -534,7 +534,7 @@ export function EnhancedDataTable<T extends object>({
                           type="checkbox"
                           checked={selectedRows.includes(row[keyField])}
                           onChange={() => handleSelectRow(row[keyField])}
-                          className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
+                          className="h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         />
                       </td>
                     )}

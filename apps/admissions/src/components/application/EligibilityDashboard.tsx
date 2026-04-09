@@ -336,8 +336,9 @@ export function EligibilityDashboard() {
             )
           })() : (
             <div className="h-[300px] flex items-center justify-center">
-              <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" role="status">
-                <span className="sr-only">Loading charts...</span>
+              <div className="w-full max-w-xs space-y-3" role="status" aria-label="Loading charts">
+                <div className="h-4 w-32 rounded bg-muted animate-pulse mx-auto" />
+                <div className="h-40 w-full rounded-2xl bg-muted/60 animate-pulse" />
               </div>
             </div>
           )}
@@ -361,8 +362,9 @@ export function EligibilityDashboard() {
             )
           })() : (
             <div className="h-[300px] flex items-center justify-center">
-              <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" role="status">
-                <span className="sr-only">Loading charts...</span>
+              <div className="w-full max-w-xs space-y-3" role="status" aria-label="Loading charts">
+                <div className="h-4 w-28 rounded bg-muted animate-pulse mx-auto" />
+                <div className="h-40 w-full rounded-2xl bg-muted/60 animate-pulse" />
               </div>
             </div>
           )}

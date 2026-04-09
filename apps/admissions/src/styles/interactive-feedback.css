@@ -80,7 +80,7 @@
   
   /* Focus ring for dark backgrounds */
   .focus-ring-light {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
   
   /* Focus ring for inputs */
@@ -107,13 +107,13 @@
   
   /* ===== LOADING STATES ===== */
   
-  /* Loading spinner */
+  /* Loading indicator */
   .loading-spinner {
-    @apply inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent;
+    @apply inline-block h-4 w-4 animate-pulse rounded-full bg-current;
   }
   
   .loading-spinner-lg {
-    @apply inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-current border-r-transparent;
+    @apply inline-block h-6 w-6 animate-pulse rounded-full bg-current;
   }
   
   /* Loading overlay */

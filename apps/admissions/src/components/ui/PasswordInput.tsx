@@ -41,7 +41,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
               'transition-all duration-200',
               'disabled:opacity-50 disabled:cursor-not-allowed',
               'disabled:hover:border-input disabled:hover:bg-background',
-              error && 'border-destructive focus:ring-destructive/50 focus:border-destructive hover:border-destructive/70',
+              error && 'border-destructive focus-visible:border-destructive hover:border-destructive/70',
               className
             )}
             aria-invalid={error ? 'true' : 'false'}

@@ -51,7 +51,7 @@ export function AuthStatusChecker({ onStatusChange }: AuthStatusCheckerProps) {
 
   const getStatusIcon = () => {
     if (isChecking) {
-      return <RefreshCw className="h-4 w-4 animate-spin text-primary" />
+      return <RefreshCw className="h-4 w-4 animate-pulse text-primary" />
     }
     
     if (authStatus.canSubmitApplication) {

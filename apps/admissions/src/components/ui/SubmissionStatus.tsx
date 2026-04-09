@@ -19,9 +19,9 @@ export const SubmissionStatus: React.FC<SubmissionStatusProps> = ({
       case 'pending':
         return <Clock className="h-5 w-5 text-warning animate-pulse" />
       case 'processing':
-        return <RefreshCw className="h-5 w-5 text-primary animate-spin" />
+        return <RefreshCw className="h-5 w-5 text-primary animate-pulse" />
       case 'retry':
-        return <RefreshCw className="h-5 w-5 text-warning animate-spin" />
+        return <RefreshCw className="h-5 w-5 text-warning animate-pulse" />
       case 'completed':
         return <CheckCircle className="h-5 w-5 text-success" />
       case 'failed':

@@ -443,7 +443,7 @@ export default function AdminUsers() {
                 <select
                   value={roleFilter}
                   onChange={(event) => setRoleFilter(event.target.value)}
-                  className="h-11 w-full rounded-lg border border-input bg-background pl-10 pr-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="h-11 w-full rounded-lg border border-input bg-background pl-10 pr-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="">All roles</option>
                   {AVAILABLE_ROLES.map((role) => (
@@ -726,7 +726,7 @@ export default function AdminUsers() {
                 <select
                   value={createForm.role}
                   onChange={(event) => setCreateForm({ ...createForm, role: event.target.value })}
-                  className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   required
                 >
                   {AVAILABLE_ROLES.map((role) => (
@@ -793,7 +793,7 @@ export default function AdminUsers() {
                 <select
                   value={editForm.role}
                   onChange={(event) => setEditForm({ ...editForm, role: event.target.value })}
-                  className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   required
                   disabled={selectedUser?.role === 'super_admin'}
                 >

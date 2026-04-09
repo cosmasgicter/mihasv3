@@ -1,7 +1,6 @@
 import React, { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ButtonSpinner } from '@/components/ui/ButtonSpinner'
 import {
   Download,
   FileText,
@@ -756,19 +755,11 @@ export function ReportsGenerator() {
           <Button
             onClick={generateReport}
             disabled={loading}
+            loading={loading}
             className="w-full"
           >
-            {loading ? (
-              <>
-                <ButtonSpinner size="sm" className="mr-2" />
-                Generating Report...
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4 mr-2" />
-                Generate & Download Report
-              </>
-            )}
+            {!loading && <Download className="h-4 w-4 mr-2" />}
+            {loading ? 'Generating Report...' : 'Generate & Download Report'}
           </Button>
         </div>
 
@@ -854,7 +845,7 @@ export function ReportsGenerator() {
                 </div>
                 {documentGenerating && (
                   <div className="flex items-center text-sm text-foreground">
-                    <ButtonSpinner size="sm" className="mr-2" />
+                    <div className="mr-2 h-2.5 w-2.5 rounded-full bg-primary animate-pulse" aria-hidden="true" />
                     Preparing document…
                   </div>
                 )}
