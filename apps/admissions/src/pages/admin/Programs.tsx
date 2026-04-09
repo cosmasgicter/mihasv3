@@ -29,6 +29,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { PageShell } from '@/components/ui/PageShell'
+import { Seo } from '@/components/seo/Seo'
 
 interface Institution {
   id: string
@@ -647,6 +648,13 @@ export default function AdminPrograms() {
       : openProgramCreate
 
   return (
+    <>
+      <Seo
+        title="Programs & Intakes | MIHAS-KATC Admissions"
+        description="Manage academic programs, institutions, and intake configurations."
+        path="/admin/programs"
+        noindex
+      />
     <PageShell
       title="Programs & Institutions"
       subtitle="Manage the academic catalog and the institutions that own each program."
@@ -1041,5 +1049,6 @@ export default function AdminPrograms() {
         </DialogContent>
       </Dialog>
     </PageShell>
+    </>
   )
 }

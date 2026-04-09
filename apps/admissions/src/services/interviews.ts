@@ -1,13 +1,12 @@
 /**
  * Interviews Service
- * Manages interview scheduling and listing for applications
+ * Manages interview scheduling and listing for applications.
  *
  * Django REST paths (no /api/v1/ prefix — apiClient prepends it):
- *   POST /applications/{id}/interviews/  → schedule an interview
- *   GET  /applications/{id}/interviews/  → list interviews for an application
+ *   GET  /applications/interviews/?mine=true   → list interviews for the signed-in student
+ *   POST /applications/{id}/interviews/        → schedule an interview
+ *   GET  /applications/{id}/interviews/        → list interviews for a single application
  */
-import { logApiError } from '@/lib/apiErrorLogger'
-import { applicationService } from './applications'
 import { apiClient } from './client'
 
 export type InterviewMode = 'in_person' | 'virtual' | 'phone'
@@ -68,19 +67,6 @@ export const interviewsService = {
     return { interview }
   },
 
-  /**
-   * TODO(N+1): When called without an applicationId, this method fetches ALL
-   * user applications and then makes N parallel requests to
-   * GET /applications/{id}/interviews/ — one per application.
-   *
-   * Recommended backend fix: add a dedicated
-   *   GET /api/v1/interviews/?mine=true
-   * endpoint that returns all interviews for the authenticated user in a
-   * single query, eliminating the fan-out entirely.
-   *
-   * Current mitigation: a semaphore caps concurrency at 5 parallel requests,
-   * which limits network pressure but does not eliminate the N+1 round-trips.
-   */
   list: async (applicationId?: string): Promise<ListInterviewsResponse> => {
     if (applicationId) {
       const interviews = await apiClient.request<Interview[]>(
@@ -89,68 +75,11 @@ export const interviewsService = {
       return { interviews: interviews ?? [] }
     }
 
-    const applications = await applicationService.list({
-      mine: true,
-      pageSize: 100,
-      sortBy: 'date',
-      sortOrder: 'desc',
-    })
+    const interviews = await apiClient.request<Interview[]>(`/applications/interviews/?mine=true`)
 
-    // Semaphore-based concurrency limiter (max 5 parallel requests)
-    const MAX_CONCURRENT = 5
-    let running = 0
-    const queue: Array<() => void> = []
-
-    function acquire(): Promise<void> {
-      if (running < MAX_CONCURRENT) {
-        running++
-        return Promise.resolve()
-      }
-      return new Promise<void>((resolve) => queue.push(resolve))
-    }
-
-    function release(): void {
-      running--
-      const next = queue.shift()
-      if (next) {
-        running++
-        next()
-      }
-    }
-
-    const appList = applications.applications ?? []
-
-    const results = await Promise.allSettled(
-      appList.map(async (application) => {
-        await acquire()
-        try {
-          const endpoint = `/applications/${encodeURIComponent(application.id)}/interviews/`
-          const interviews = await apiClient.request<Interview[]>(endpoint)
-
-          return (interviews ?? []).map((interview) => ({
-            ...interview,
-            application_id: interview.application_id || application.id,
-            program: interview.program ?? application.program,
-            application_number: interview.application_number ?? application.application_number,
-          }))
-        } catch (error) {
-          logApiError(
-            'interviews',
-            `/applications/${encodeURIComponent(application.id)}/interviews/`,
-            error
-          )
-          return [] as Interview[]
-        } finally {
-          release()
-        }
-      })
-    )
-
-    const interviews = results
-      .filter((r): r is PromiseFulfilledResult<Interview[]> => r.status === 'fulfilled')
-      .flatMap((r) => r.value)
+    return {
+      interviews: (interviews ?? [])
       .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())
-
-    return { interviews }
+    }
   }
 }

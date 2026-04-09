@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
-import { apiClient } from '@/services/client'
+import { applicationService } from '@/services/applications'
 
 interface WizardFormData {
   full_name: string
@@ -92,10 +92,10 @@ function generateIdempotencyKey(): string {
  * Consolidated application submission hook with double-submit prevention.
  *
  * - Uses `useRef` for `isSubmitting` to avoid stale closures
- * - Generates a `crypto.randomUUID()` idempotency key stored in state
- * - On submit: checks isSubmitting ref, sets it true, disables button, calls API with idempotency key header
+ * - Generates a `crypto.randomUUID()` idempotency key retained across retries
+ * - On submit: checks isSubmitting ref, sets it true, and calls the dedicated submit endpoint
  * - On success: resets state and generates a new idempotency key
- * - On network failure: re-enables button but preserves the same idempotency key for retry
+ * - On network failure: re-enables button but preserves the same idempotency key for retry bookkeeping
  *
  * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5
  */
@@ -138,22 +138,17 @@ export function useApplicationSubmit() {
 
       const user = authUser
 
-      // Prepare update data — only set status and timestamp; payment is handled by Lenco
-      const updateData = {
-        status: 'submitted',
-        submitted_at: new Date().toISOString()
-      }
-
-      // Submit with idempotency key header for server-side deduplication (Req 3.3)
+      // Submit through the dedicated backend endpoint so payment/document checks
+      // and double-submit protection are enforced server-side.
       const cleanId = applicationId.replace(/^applications-/, '')
       const updatedApp = await retryWithBackoff(
-        () => apiClient.request<{ id: string; application_number?: string }>(`/applications?id=${cleanId}`, {
-          method: 'PATCH',
-          body: JSON.stringify(updateData),
-          headers: {
-            'X-Idempotency-Key': idempotencyKeyRef.current,
-          },
-        }),
+        async () => {
+          const response = await applicationService.submit(cleanId)
+          if (!response?.id) {
+            throw new Error('Application not found or access denied')
+          }
+          return response
+        },
         3,
         1000
       )
@@ -189,8 +184,15 @@ export function useApplicationSubmit() {
         console.error('Failed to trigger submission notifications:', notificationError)
       }
 
-      // Dispatch custom event to trigger dashboard refresh
-      window.dispatchEvent(new CustomEvent('applicationCreated'))
+      // Dispatch the submission event expected by the dashboard/UI.
+      window.dispatchEvent(new CustomEvent('applicationSubmitted', {
+        detail: {
+          applicationId: updatedApp.id,
+          status: 'submitted',
+          submittedAt: updatedApp.submitted_at ?? new Date().toISOString(),
+          paymentStatus: updatedApp.payment_status ?? null,
+        }
+      }))
 
       setSuccess(true)
 

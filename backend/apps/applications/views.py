@@ -50,6 +50,11 @@ from apps.common.event_dispatcher import dispatch_event
 from apps.common.pagination import StandardPagination
 from apps.documents.models import ApplicationDocument, ApplicationGrade
 from apps.documents.serializers import DocumentSerializer
+from apps.applications.services import (
+    ApplicationSubmissionError,
+    submit_application,
+    transition_application_status,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -229,14 +234,33 @@ class ApplicationListCreateView(APIView):
         if not serializer.is_valid():
             return Response({"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         data = serializer.validated_data
+        application_fee = None
+        try:
+            from apps.catalog.models import Program
+            from apps.documents.fee_resolver import FeeResolver
+
+            program = Program.objects.get(name=data["program"], is_active=True)
+            resolved_fee = FeeResolver().resolve_fee(
+                program_code=program.code,
+                nationality=data.get("nationality"),
+                country=data.get("country"),
+            )
+            application_fee = resolved_fee.amount
+        except Exception:
+            logger.exception("Failed to resolve application fee during application create")
+
         application = Application.objects.create(
             user_id=str(request.user.id), application_number=_generate_application_number(),
             public_tracking_code=_generate_tracking_code(), full_name=data["full_name"],
             nrc_number=data.get("nrc_number") or "", passport_number=data.get("passport_number") or "",
             date_of_birth=data["date_of_birth"], sex=data["sex"], phone=data["phone"],
             email=data["email"], residence_town=data["residence_town"],
+            country=data.get("country") or "Zambia",
             nationality=data.get("nationality", "Zambian"), program=data["program"],
-            intake=data["intake"], institution=data["institution"], status="draft", version=1,
+            next_of_kin_name=data.get("next_of_kin_name") or "",
+            next_of_kin_phone=data.get("next_of_kin_phone") or "",
+            intake=data["intake"], institution=data["institution"], application_fee=application_fee,
+            status="draft", version=1,
         )
         return Response(ApplicationSerializer(application).data, status=status.HTTP_201_CREATED)
 
@@ -472,6 +496,68 @@ class ApplicationSummaryView(APIView):
 
 @extend_schema_view(
     post=extend_schema(
+        operation_id="applications_submit",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Application UUID."),
+        ],
+        request=None,
+        responses={
+            200: OpenApiResponse(response=ApplicationResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
+class ApplicationSubmitView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ApplicationSerializer
+
+    def post(self, request, application_id):
+        try:
+            app = Application.objects.select_related("user").get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if not IsOwnerOrAdmin().has_object_permission(request, self, app):
+            return Response(
+                {"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            submitted_app, _old_status = submit_application(
+                application=app,
+                changed_by=str(request.user.id),
+            )
+        except ApplicationSubmissionError as exc:
+            return Response(
+                {"success": False, "error": exc.message, "code": exc.code},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        dispatch_event(
+            user_id=submitted_app.user_id,
+            event_type="application_update",
+            payload={
+                "application_id": str(submitted_app.id),
+                "status": submitted_app.status,
+                "updated_at": timezone.now().isoformat(),
+                "submitted_at": submitted_app.submitted_at.isoformat() if submitted_app.submitted_at else None,
+                "payment_status": submitted_app.payment_status,
+            },
+            entity_id=submitted_app.id,
+        )
+
+        return Response(ApplicationSerializer(submitted_app).data)
+
+
+@extend_schema_view(
+    post=extend_schema(
         operation_id="applications_review",
         tags=["applications"],
         parameters=[
@@ -483,7 +569,20 @@ class ApplicationSummaryView(APIView):
             400: OpenApiResponse(response=ErrorResponseSerializer),
             404: OpenApiResponse(response=ErrorResponseSerializer),
         },
-    )
+    ),
+    patch=extend_schema(
+        operation_id="applications_review_patch",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Application UUID."),
+        ],
+        request=ApplicationReviewSerializer,
+        responses={
+            200: OpenApiResponse(response=ApplicationReviewResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
 )
 class ApplicationReviewView(APIView):
     permission_classes = [IsAdmin]
@@ -504,8 +603,6 @@ class ApplicationReviewView(APIView):
         return normalized
 
     def post(self, request, application_id):
-        from apps.applications.services import transition_application_status
-
         try:
             app = Application.objects.get(id=application_id)
         except Application.DoesNotExist:
@@ -570,56 +667,16 @@ class ApplicationReviewView(APIView):
             if not has_verified:
                 return Response({"success": False, "error": "Payment must be verified before approval. Set force=true to override.", "code": "PAYMENT_UNVERIFIED"}, status=status.HTTP_400_BAD_REQUEST)
         if new_status == "submitted":
-            from apps.documents.models import Payment
-            # Accept BOTH legacy verified/paid payment_status on the application
-            # AND a successful payment record in the payments table (Req 21.1).
-            has_payment = (
-                app.payment_status in ("verified", "paid")
-                or Payment.objects.filter(
-                    application_id=application_id, status="successful"
-                ).exists()
-            )
-            if not has_payment:
-                return Response(
-                    {
-                        "success": False,
-                        "error": "Payment must be completed before submitting the application.",
-                        "code": "PAYMENT_REQUIRED",
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            has_identity_document = ApplicationDocument.objects.filter(
-                application_id=application_id,
-                document_type__in=['nrc', 'passport'],
-            ).exists()
-            if not has_identity_document:
-                return Response(
-                    {
-                        "success": False,
-                        "error": "An NRC or Passport document must be uploaded before submission.",
-                        "code": "IDENTITY_DOCUMENT_REQUIRED",
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            # Double-submission prevention: lock the application row and
-            # re-check status inside the transaction to serialise concurrent
-            # submission attempts (Requirements 8.1, 8.2, 8.4).
-            with transaction.atomic():
-                locked_app = Application.objects.select_for_update().get(id=application_id)
-                if locked_app.status != "draft":
-                    return Response(
-                        {
-                            "success": False,
-                            "error": "This application has already been submitted.",
-                            "code": "ALREADY_SUBMITTED",
-                        },
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-                old_status = transition_application_status(
-                    application=locked_app,
-                    new_status=new_status,
+            try:
+                locked_app, old_status = submit_application(
+                    application=app,
                     changed_by=str(request.user.id),
                     notes=notes,
+                )
+            except ApplicationSubmissionError as exc:
+                return Response(
+                    {"success": False, "error": exc.message, "code": exc.code},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
             dispatch_event(
                 user_id=locked_app.user_id,
@@ -810,6 +867,42 @@ class ApplicationDraftView(APIView):
 @extend_schema_view(
     get=extend_schema(
         operation_id="applications_interviews_list",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("mine", OpenApiTypes.BOOL, OpenApiParameter.QUERY, description="When true, restricts results to the authenticated student's applications."),
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.QUERY, description="Optional application filter."),
+        ],
+        responses={
+            200: OpenApiResponse(response=ApplicationInterviewListResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+        description="Lists interviews in a single query. Students see only their own interviews; admins can see all interviews unless `mine=true` is provided.",
+    ),
+)
+class ApplicationInterviewListView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ApplicationInterviewSerializer
+
+    def get(self, request):
+        mine_param = str(request.query_params.get("mine", "")).lower()
+        mine_only = mine_param in {"1", "true", "yes"}
+        application_id = request.query_params.get("application_id")
+
+        queryset = ApplicationInterview.objects.select_related("application")
+
+        if mine_only or not IsAdmin().has_permission(request, self):
+            queryset = queryset.filter(application__user_id=request.user.id)
+
+        if application_id:
+            queryset = queryset.filter(application_id=application_id)
+
+        interviews = queryset.order_by("scheduled_at", "-created_at")
+        return Response(ApplicationInterviewSerializer(interviews, many=True).data)
+
+
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="applications_interviews_list_for_application",
         tags=["applications"],
         parameters=[
             OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Application UUID."),

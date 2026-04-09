@@ -6,11 +6,12 @@
  * @requirements 3.5 - Consistent layout across all public pages
  */
 
+import { Suspense, lazy } from 'react';
 import { cn } from '@/lib/utils';
 import { APP_MAIN_CONTENT_ID } from '@/lib/accessibility-utils';
-import { ResponsiveHeader } from '@/components/navigation/ResponsiveHeader';
-import { SharedFooter } from '@/components/layout/SharedFooter';
-import { PageTransition } from '@/components/smoothui/page-transition';
+import { PublicSiteHeader } from '@/components/layout/PublicSiteHeader';
+
+const SharedFooter = lazy(() => import('@/components/layout/SharedFooter').then((mod) => ({ default: mod.SharedFooter })));
 
 interface PublicLayoutProps {
   children: React.ReactNode;
@@ -20,12 +21,14 @@ interface PublicLayoutProps {
 
 export function PublicLayout({ children, showFooter = true, className }: PublicLayoutProps) {
   return (
-    <PageTransition mode="fade">
-      <div className={cn('min-h-screen bg-background overflow-x-hidden', className)}>
-        <ResponsiveHeader />
-        <main id={APP_MAIN_CONTENT_ID}>{children}</main>
-        {showFooter && <SharedFooter />}
-      </div>
-    </PageTransition>
+    <div className={cn('min-h-screen bg-background overflow-x-hidden', className)}>
+      <PublicSiteHeader />
+      <main id={APP_MAIN_CONTENT_ID}>{children}</main>
+      {showFooter && (
+        <Suspense fallback={null}>
+          <SharedFooter />
+        </Suspense>
+      )}
+    </div>
   );
 }

@@ -47,6 +47,7 @@ import {
   User,
 } from 'lucide-react'
 import { PageShell } from '@/components/ui/PageShell'
+import { Seo } from '@/components/seo/Seo'
 
 const DEFAULT_PAGE_SIZE = 20
 
@@ -402,6 +403,13 @@ export default function AuditTrailPage() {
   }, [response?.page, response?.totalPages])
 
   return (
+    <>
+      <Seo
+        title="Audit Trail | MIHAS-KATC Admissions"
+        description="Review operational history across authentication, data changes, and staff actions."
+        path="/admin/audit"
+        noindex
+      />
     <PageShell
       title="Audit Trail"
       subtitle="Review real operational history across authentication, application management, settings, and staff actions."
@@ -809,5 +817,6 @@ export default function AuditTrailPage() {
         </div>
       </div>
     </PageShell>
+    </>
   )
 }

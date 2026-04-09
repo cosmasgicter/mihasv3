@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowRight, CheckCircle, Send } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useEffect, useState, useRef, useCallback } from 'react'
+import { Seo } from '@/components/seo/Seo'
 
 import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
 import { Button } from '@/components/ui/Button'
@@ -30,7 +31,6 @@ import { useStepValidation } from './hooks/useStepValidation'
 import { useOverallProgress } from './hooks/useOverallProgress'
 import { useSmartAutoSave } from './hooks/useSmartAutoSave'
 import { useEstimatedTime } from './hooks/useEstimatedTime'
-import { usePaymentStatus } from '@/hooks/usePaymentStatus'
 import { previousButtonLabel, saveNowLabel, wizardSteps } from './steps/config'
 import type { SubjectGrade } from './types'
 import { WIZARD_COPY } from './constants'
@@ -72,6 +72,7 @@ const ApplicationWizardContent = () => {
     draftLoaded,
     submittedApplication,
     applicationId,
+    paymentStatus,
     persistingSlip,
     slipLoading,
     emailLoading,
@@ -93,17 +94,19 @@ const ApplicationWizardContent = () => {
     goToStep
   } = useWizardController()
 
-  const stepValidation = useStepValidation(form, currentStepIndex)
+  const stepValidation = useStepValidation(form, currentStepIndex, {
+    paymentStatus,
+    confirmSubmission,
+  })
   const overallProgress = useOverallProgress(form)
   const { formattedTime } = useEstimatedTime(currentStepIndex, totalSteps)
   const { shouldAnimate, prefersReducedMotion, isMobile } = useOptimizedAnimation()
-  const { status: paymentPolledStatus } = usePaymentStatus(applicationId || '')
 
   // Pause auto-save during critical operations (Req 9.1, 9.2):
   // - Payment step with payment in progress (initiating or pending)
   // - Submission processing (loading flag)
   const isPaymentStepActive = currentStepConfig.key === 'payment'
-  const isPaymentInProgress = isPaymentStepActive && (paymentPolledStatus === 'pending')
+  const isPaymentInProgress = isPaymentStepActive && (paymentStatus === 'pending')
   const smartAutoSave = useSmartAutoSave({
     onSave: saveDraft,
     watchValues,
@@ -165,14 +168,21 @@ const ApplicationWizardContent = () => {
       }
     }
 
+    if (currentStepConfig.key === 'payment' && paymentStatus !== 'successful') {
+      errors.push({ field: 'payment', label: 'Payment', message: 'Complete payment confirmation before moving to the review step' })
+    }
+
     if (currentStepConfig.key === 'submit') {
+      if (paymentStatus !== 'successful') {
+        errors.push({ field: 'payment', label: 'Payment', message: 'Payment must be confirmed before you can submit the application' })
+      }
       if (!confirmSubmission) {
         errors.push({ field: 'confirmSubmission', label: 'Confirmation', message: 'Please confirm that all information is accurate' })
       }
     }
 
     return errors
-  }, [form, currentStepConfig.key, confirmSubmission, resultSlipFile, extraKycFile, uploadedFiles, uploading])
+  }, [form, currentStepConfig.key, confirmSubmission, resultSlipFile, extraKycFile, uploadedFiles, uploading, paymentStatus])
 
   // Aria-live region announcement for screen readers on step transition
   const [stepAnnouncement, setStepAnnouncement] = useState('')
@@ -300,11 +310,11 @@ const ApplicationWizardContent = () => {
         ]
       case 2:
         return [
-              { label: 'Payment processed via Lenco gateway', completed: paymentPolledStatus === 'successful' }
-            ]
+          { label: 'Payment processed via Lenco gateway', completed: paymentStatus === 'successful' }
+        ]
       case 3:
         return [
-          { label: 'Application reviewed', completed: true },
+          { label: 'Payment confirmed', completed: paymentStatus === 'successful' },
           { label: 'Terms accepted', completed: confirmSubmission }
         ]
       default:
@@ -380,6 +390,13 @@ const ApplicationWizardContent = () => {
 
 
   return (
+    <>
+      <Seo
+        title="Application Wizard | MIHAS-KATC Admissions"
+        description="Complete your MIHAS-KATC admissions application step by step."
+        path="/student/application-wizard"
+        noindex
+      />
     <PageShell
       title="Student Application"
       subtitle={`Complete the ${totalSteps}-step application process`}
@@ -625,7 +642,7 @@ const ApplicationWizardContent = () => {
                   selectedProgramDetails?.institutions?.name ||
                   undefined
                 }
-                paymentStatus={paymentPolledStatus}
+                paymentStatus={paymentStatus}
               />
             )}
             </div>
@@ -646,13 +663,13 @@ const ApplicationWizardContent = () => {
             <div className="order-1 sm:order-2">
               {!isLastStep ? (
                 <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
-                  <Button type="button" variant="primary" onClick={wrappedHandleNextStep} loading={loading || uploading} disabled={loading || uploading} className="w-full sm:w-auto min-h-[48px]" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
+                  <Button type="button" variant="primary" onClick={wrappedHandleNextStep} loading={loading || uploading} disabled={loading || uploading || (currentStepConfig.key === 'payment' && paymentStatus !== 'successful')} className="w-full sm:w-auto min-h-[48px]" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
                     {loading || uploading ? 'Processing...' : (<><span>Next Step</span><ArrowRight className="h-4 w-4 ml-2" /></>)}
                   </Button>
                 </div>
               ) : (
                 <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
-                  <Button type="submit" variant="success" loading={loading} disabled={loading || !confirmSubmission} className="w-full sm:w-auto min-h-[48px]">
+                  <Button type="submit" variant="success" loading={loading} disabled={loading || !confirmSubmission || paymentStatus !== 'successful'} className="w-full sm:w-auto min-h-[48px]">
                     {loading ? 'Submitting...' : (<><Send className="h-4 w-4 mr-2" />Submit Application</>)}
                   </Button>
                 </div>
@@ -755,6 +772,7 @@ const ApplicationWizardContent = () => {
         }}
       />
     </PageShell>
+    </>
   )
 }
 

@@ -1,9 +1,6 @@
 @import './styles/legibility.css';
-@import './styles/pwa.css';
 @import './styles/design-tokens.css';
-@import './styles/admin-colors.css';
 @import './styles/interactive-feedback.css';
-@import './styles/print.css';
 
 @tailwind base;
 @tailwind components;

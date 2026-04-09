@@ -8,7 +8,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { z } from '@/lib/zod';
 import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -28,10 +28,6 @@ export const signUpSchema = z
     last_name: z.string().min(2, 'Last name is required'),
     email: z.string().email('Please enter a valid email address'),
     phone: z.string().min(10, 'Please enter a valid phone number'),
-    residence_town: z.string().trim().optional(),
-    nationality: z.string().trim().optional(),
-    next_of_kin_name: z.string().trim().optional(),
-    next_of_kin_phone: z.string().trim().optional(),
     password: z.string()
       .min(8, 'Password must be at least 8 characters')
       .refine((value) => /[A-Z]/.test(value), 'Password must contain at least one uppercase letter')
@@ -188,10 +184,6 @@ export default function SignUpPage() {
               first_name: 'First name',
               last_name: 'Last name',
               phone: 'Phone number',
-              residence_town: 'Residence town',
-              nationality: 'Nationality',
-              next_of_kin_name: 'Next of kin name',
-              next_of_kin_phone: 'Next of kin phone',
             }}
           />
           {signUpMutation.error ? (
@@ -272,56 +264,6 @@ export default function SignUpPage() {
               required
               className="min-h-[48px]"
             />
-          </fieldset>
-
-          <fieldset className="space-y-4 rounded-2xl border border-border/60 bg-background/80 p-4 sm:p-5">
-            <legend className="text-base font-semibold text-foreground">Residence and identity</legend>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input
-                {...register('residence_town')}
-                type="text"
-                label="Residence town"
-                error={errors.residence_town?.message}
-                autoComplete="address-level2"
-                disabled={signUpMutation.isPending}
-                className="min-h-[48px]"
-              />
-              <Input
-                {...register('nationality')}
-                type="text"
-                label="Nationality"
-                error={errors.nationality?.message}
-                autoComplete="country-name"
-                disabled={signUpMutation.isPending}
-                className="min-h-[48px]"
-              />
-            </div>
-          </fieldset>
-
-          <fieldset className="space-y-4 rounded-2xl border border-border/60 bg-background/80 p-4 sm:p-5">
-            <legend className="text-base font-semibold text-foreground">Emergency contact</legend>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input
-                {...register('next_of_kin_name')}
-                type="text"
-                label="Next of kin name"
-                error={errors.next_of_kin_name?.message}
-                autoComplete="name"
-                disabled={signUpMutation.isPending}
-                className="min-h-[48px]"
-              />
-              <Input
-                {...register('next_of_kin_phone')}
-                type="tel"
-                label="Next of kin phone"
-                error={errors.next_of_kin_phone?.message}
-                autoComplete="tel"
-                disabled={signUpMutation.isPending}
-                className="min-h-[48px]"
-              />
-            </div>
           </fieldset>
 
           <Button

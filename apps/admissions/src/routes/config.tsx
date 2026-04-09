@@ -1,7 +1,9 @@
 import React from 'react'
+import LandingPage from '@/pages/LandingPage'
 
-// Lazy load ALL pages for optimal code splitting
-// This ensures the landing page bundle stays under 100KB (Requirement 1.4)
+// Lazy load secondary routes for optimal code splitting.
+// Keep the landing page in the entry build so the first visit can paint
+// meaningful content without waiting for a route-level chunk.
 
 // Auth pages - loaded on demand
 const SignInPage = React.lazy(() => import('@/pages/auth/SignInPage'))
@@ -10,9 +12,6 @@ const ForgotPasswordPage = React.lazy(() => import('@/pages/auth/ForgotPasswordP
 const ResetPasswordPage = React.lazy(() => import('@/pages/auth/ResetPasswordPage'))
 const TermsPage = React.lazy(() => import('@/pages/TermsPage'))
 const PrivacyPage = React.lazy(() => import('@/pages/PrivacyPage'))
-
-// Landing page - lazy loaded with preload hint
-const LandingPage = React.lazy(() => import('@/pages/LandingPage'))
 
 // Lazy load non-critical pages
 const StudentDashboard = React.lazy(() => import('@/pages/student/Dashboard'))
@@ -55,8 +54,8 @@ export interface RouteConfig {
 }
 
 export const routes: RouteConfig[] = [
-  // Public routes - all lazy loaded for optimal bundle size
-  { path: '/', element: LandingPage, guard: 'public', lazy: true, skeletonType: 'none' },
+  // Public routes
+  { path: '/', element: LandingPage, guard: 'public' },
   { path: '/track-application', element: PublicApplicationTracker, guard: 'public', lazy: true, skeletonType: 'detail' },
   { path: '/contact', element: ContactPage, guard: 'public', lazy: true, skeletonType: 'none' },
   { path: '/terms', element: TermsPage, guard: 'public', lazy: true, skeletonType: 'none' },

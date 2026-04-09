@@ -17,6 +17,7 @@ import { useToastStore } from '@/hooks/useToast'
 import { applicationService } from '@/services/applications'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { PageShell } from '@/components/ui/PageShell'
+import { Seo } from '@/components/seo/Seo'
 import { VirtualizedApplicationsGrid } from '@/components/admin/applications/VirtualizedApplicationsGrid'
 import { ApplicationCard } from '@/components/admin/applications/ApplicationCard'
 import {
@@ -534,6 +535,13 @@ export default function Applications() {
   }, [applications, pagination.totalCount])
 
   return (
+    <>
+      <Seo
+        title="Applications | MIHAS-KATC Admissions"
+        description="Review, filter, and manage all student admissions applications."
+        path="/admin/applications"
+        noindex
+      />
     <PageShell
       title="Applications"
       subtitle={`${stats.total} total applications`}
@@ -798,5 +806,6 @@ export default function Applications() {
         />
       </div>
     </PageShell>
+    </>
   )
 }

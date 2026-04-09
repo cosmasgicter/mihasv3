@@ -4,6 +4,7 @@ import { useDocumentGeneration } from '@/hooks/useDocumentGeneration'
 import { useToastStore } from '@/hooks/useToast'
 import { logger } from '@/lib/logger'
 import { ApplicationSlipActions } from '@/components/student/ApplicationSlipActions'
+import { isPaymentVerified } from '@/lib/paymentStatus'
 
 interface DocumentButtonsProps {
   applicationId: string
@@ -51,7 +52,7 @@ export function DocumentButtons({ applicationId, applicationNumber, status, paym
       )}
 
       {/* Payment Receipt - Only for verified payments */}
-      {paymentStatus === 'verified' && (
+      {isPaymentVerified(paymentStatus) && (
         <Button
           onClick={() => handleDownload('receipt')}
           disabled={loading}

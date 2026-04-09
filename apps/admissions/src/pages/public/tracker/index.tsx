@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/Dialog'
-import { repairLegacyDocumentReference } from '@/lib/applicationSlip'
+import { repairLegacyDocumentReference } from '@/lib/applicationSlipStorage'
 import { createApplicationSlip } from '@/lib/slipService'
 import { logger } from '@/lib/logger'
 import { animateClasses } from '@/lib/animations'

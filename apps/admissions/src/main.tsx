@@ -1,15 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { z } from 'zod'
 import App from './App'
 import './index.css'
-
-// Disable Zod v4 JIT compilation to eliminate the need for 'unsafe-eval' in CSP.
-// Zod v4 uses `new Function()` for JIT-compiled object schema parsing, which
-// requires 'unsafe-eval' in Content-Security-Policy. Setting jitless: true
-// bypasses the JIT path entirely, using the standard interpreter instead.
-// The performance difference is negligible for client-side form validation.
-z.config({ jitless: true })
 import {
   consumeAutoReloadGuard,
   performReload,
@@ -219,6 +211,29 @@ if (typeof window !== 'undefined' && import.meta.env.PROD) {
 // Suppress browser extension errors that interfere with the application
 if (typeof window !== 'undefined') {
   connectionManager.suppressExtensionErrors()
+
+  const loadPwaStyles = () => import('./styles/pwa.css')
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as Navigator & { standalone?: boolean }).standalone === true
+
+  if (isStandalone) {
+    void loadPwaStyles()
+  } else {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(() => {
+            void loadPwaStyles()
+          }, { timeout: 3000 })
+          return
+        }
+
+        setTimeout(() => {
+          void loadPwaStyles()
+        }, 1200)
+      })
+    })
+  }
   
   // Force light mode - prevent any dark mode
   document.documentElement.classList.remove('dark')
@@ -313,6 +328,6 @@ if (typeof window !== 'undefined') {
     preloader.classList.add('fade-out')
     setTimeout(() => {
       preloader.remove()
-    }, 500)
+    }, 180)
   }
 }

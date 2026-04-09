@@ -29,8 +29,12 @@ export interface Application {
   country?: string;
   postal_code?: string;
   residence_town?: string;
+  /** @deprecated Legacy alias retained for older UI slices */
   guardian_name?: string;
+  /** @deprecated Legacy alias retained for older UI slices */
   guardian_phone?: string;
+  next_of_kin_name?: string;
+  next_of_kin_phone?: string;
   result_slip_url?: string;
   extra_kyc_url?: string;
   /** @deprecated Legacy field — kept for backward compat with existing DB rows */
@@ -73,6 +77,8 @@ export interface ApplicationInterview {
   interviewer_id?: string;
   status: 'scheduled' | 'rescheduled' | 'completed' | 'cancelled';
   notes?: string | null;
+  program?: string | null;
+  application_number?: string | null;
   created_at?: string;
   updated_at?: string;
   /** Legacy field aliases for backward compatibility */

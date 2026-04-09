@@ -18,9 +18,10 @@ import { DashboardSkeleton } from '@/components/ui/skeleton'
 import { ResponsiveTable } from '@/components/ui/ResponsiveTable'
 import { Pencil, Trash2, Plus, ArrowLeft, Calendar } from 'lucide-react'
 import { useForm, type Resolver } from 'react-hook-form'
-import { z } from 'zod'
+import { z } from '@/lib/zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { PageShell } from '@/components/ui/PageShell'
+import { Seo } from '@/components/seo/Seo'
 
 interface Intake {
   id: string
@@ -226,6 +227,13 @@ export default function AdminIntakes() {
   }
 
   return (
+    <>
+      <Seo
+        title="Intakes | MIHAS-KATC Admissions"
+        description="Create and manage admission intake periods, deadlines, and capacity."
+        path="/admin/intakes"
+        noindex
+      />
     <PageShell
       title="Intakes"
       subtitle="Manage admission intakes"
@@ -456,6 +464,6 @@ export default function AdminIntakes() {
         </DialogContent>
       </Dialog>
     </PageShell>
+    </>
   )
 }
-

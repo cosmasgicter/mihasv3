@@ -14,6 +14,10 @@ interface InterviewDetailsProps {
   interview: Interview
 }
 
+function isMeetingLink(value?: string | null) {
+  return typeof value === 'string' && /^https?:\/\//i.test(value.trim())
+}
+
 export function InterviewDetails({ interview }: InterviewDetailsProps) {
   const getIcon = () => {
     switch (interview.mode) {
@@ -31,6 +35,8 @@ export function InterviewDetails({ interview }: InterviewDetailsProps) {
       default: return 'bg-gray-100 text-foreground'
     }
   }
+
+  const meetingLink = isMeetingLink(interview.location) ? interview.location : null
 
   return (
     <div className="bg-card rounded-lg border p-6 space-y-4">
@@ -58,11 +64,15 @@ export function InterviewDetails({ interview }: InterviewDetailsProps) {
           <div>
             <p className="font-medium">{interview.mode === 'virtual' ? 'Meeting Link' : 'Location'}</p>
             {interview.mode === 'virtual' ? (
-              <a href={interview.location} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
-                {interview.location}
-              </a>
+              meetingLink ? (
+                <a href={meetingLink} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
+                  {meetingLink}
+                </a>
+              ) : (
+                <p className="text-sm text-muted-foreground">Meeting link will be shared by admissions.</p>
+              )
             ) : (
-              <p className="text-sm text-muted-foreground">{interview.location}</p>
+              <p className="text-sm text-muted-foreground">{interview.location || 'Location to be confirmed'}</p>
             )}
           </div>
         </div>

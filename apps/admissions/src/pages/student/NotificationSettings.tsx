@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
+import { Seo } from '@/components/seo/Seo'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { Skeleton, SkeletonCard } from '@/components/ui/skeleton'
@@ -274,6 +275,13 @@ export default function NotificationSettings() {
   }
 
   return (
+    <>
+      <Seo
+        title="Notification Settings | MIHAS-KATC Admissions"
+        description="Manage your notification preferences, SMS alerts, and browser push settings for your MIHAS-KATC admissions portal."
+        path="/student/notifications"
+        noindex
+      />
     <PageShell
       title="Notification preferences and portal inbox"
       subtitle="In-app notifications stay available inside the portal. You can manage SMS and browser push delivery below."
@@ -491,5 +499,6 @@ export default function NotificationSettings() {
         )}
       </div>
     </PageShell>
+    </>
   )
 }

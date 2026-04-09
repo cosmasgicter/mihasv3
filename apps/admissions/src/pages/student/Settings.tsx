@@ -1,8 +1,9 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
+import { Seo } from '@/components/seo/Seo'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { z } from '@/lib/zod'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useToastStore } from '@/hooks/useToast'
@@ -70,11 +71,13 @@ function getDisplayValue(value?: string | null, fallback = 'Not provided') {
 }
 
 export default function StudentSettings() {
+  const navigate = useNavigate()
   const { user } = useAuth()
   const { profile, updateProfile, updatingProfile } = useProfileQuery()
   const { metadata } = useProfileAutoPopulation()
   const toast = useToastStore()
   const profileEditingEnabled = true
+  const [saveStatus, setSaveStatus] = React.useState<{ tone: 'success' | 'error'; message: string } | null>(null)
 
   const {
     register,
@@ -142,6 +145,8 @@ export default function StudentSettings() {
   }, [profile, metadata, user?.email, getValues, reset, setValue, isDirty, dirtyFields])
 
   const onSubmit = handleSubmit(async (formValues) => {
+    setSaveStatus(null)
+
     // Extract only the dirty fields
     const dirtyFieldValues: Partial<ProfileForm> = {}
     for (const key of Object.keys(dirtyFields) as (keyof ProfileForm)[]) {
@@ -152,6 +157,10 @@ export default function StudentSettings() {
 
     try {
       const updatedProfile = await updateProfile(dirtyFieldValues)
+      setSaveStatus({
+        tone: 'success',
+        message: 'Profile changes saved successfully.',
+      })
       toast.success('Profile updated', 'Your changes have been saved.')
       // Reset form dirty state with the server-returned data
       reset({
@@ -163,10 +172,18 @@ export default function StudentSettings() {
     } catch (error: unknown) {
       const err = error as Error & { fieldErrors?: Record<string, string> }
       if (err.fieldErrors && Object.keys(err.fieldErrors).length > 0) {
+        setSaveStatus({
+          tone: 'error',
+          message: 'Please correct the highlighted fields and try again.',
+        })
         Object.entries(err.fieldErrors).forEach(([field, message]) => {
           setError(field as keyof ProfileForm, { type: 'server', message })
         })
       } else {
+        setSaveStatus({
+          tone: 'error',
+          message: 'Something went wrong while saving your profile. Please try again.',
+        })
         toast.error('Save failed', 'Something went wrong. Please try again.')
       }
     }
@@ -178,29 +195,77 @@ export default function StudentSettings() {
     metadata?.phone?.trim() ||
     ''
 
+  const confirmDiscardChanges = React.useCallback(() => {
+    if (!isDirty) {
+      return true
+    }
+
+    return window.confirm('You have unsaved changes. Leave this page and discard them?')
+  }, [isDirty])
+
+  const handleNavigate = React.useCallback((path: string) => {
+    if (confirmDiscardChanges()) {
+      navigate(path)
+    }
+  }, [confirmDiscardChanges, navigate])
+
+  React.useEffect(() => {
+    if (!isDirty) {
+      return undefined
+    }
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault()
+      event.returnValue = ''
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [isDirty])
+
   return (
+    <>
+      <Seo
+        title="My Settings | MIHAS-KATC Admissions"
+        description="Manage your profile details, residence information, and security settings for your MIHAS-KATC admissions account."
+        path="/student/settings"
+        noindex
+      />
     <PageShell
       title="Profile and security settings"
       subtitle="Review your account details, residence information, notification contact, and active sessions before you continue with applications and payments."
       actions={
-        <Button asChild variant="secondary">
-          <Link to="/student/notifications">
-            <Bell className="h-4 w-4" />
-            Manage notifications
-          </Link>
+        <Button type="button" variant="secondary" onClick={() => handleNavigate('/student/notifications')}>
+          <Bell className="h-4 w-4" />
+          Manage notifications
         </Button>
       }
     >
       <div className="space-y-6 sm:space-y-8">
-        <Link
-          to="/student/dashboard"
+        <button
+          type="button"
+          onClick={() => handleNavigate('/student/dashboard')}
           className="inline-flex items-center text-primary transition-colors hover:text-primary/80"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to dashboard
-        </Link>
+        </button>
 
-        <div className="space-y-6">
+        <form className="space-y-6" onSubmit={onSubmit}>
+          {saveStatus && (
+            <div
+              role={saveStatus.tone === 'error' ? 'alert' : 'status'}
+              aria-live={saveStatus.tone === 'error' ? 'assertive' : 'polite'}
+              className={
+                saveStatus.tone === 'error'
+                  ? 'rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive'
+                  : 'rounded-2xl border border-success/30 bg-success/5 px-4 py-3 text-sm text-success'
+              }
+            >
+              {saveStatus.message}
+            </div>
+          )}
+
           <SectionCard
             title="Applicant profile"
             description="These are the core account details that appear throughout the student portal."
@@ -211,6 +276,7 @@ export default function StudentSettings() {
                 {...register('full_name')}
                 type="text"
                 label="Full name"
+                autoComplete="name"
                 helperText="Use the same name you want admissions to see on your records."
                 error={errors.full_name?.message}
                 disabled={!profileEditingEnabled}
@@ -221,6 +287,7 @@ export default function StudentSettings() {
                 type="email"
                 label="Account email"
                 value={profile?.email || user?.email || ''}
+                autoComplete="email"
                 helperText="Your sign-in email is fixed for this account."
                 disabled
                 icon={<Mail className="h-4 w-4" />}
@@ -232,6 +299,7 @@ export default function StudentSettings() {
                 {...register('phone')}
                 type="tel"
                 label="Phone number"
+                autoComplete="tel"
                 placeholder="+260-123-456-789"
                 helperText="This number is reused for SMS notification delivery."
                 error={errors.phone?.message}
@@ -242,6 +310,7 @@ export default function StudentSettings() {
                 {...register('date_of_birth')}
                 type="date"
                 label="Date of birth"
+                autoComplete="bday"
                 error={errors.date_of_birth?.message}
                 disabled={!profileEditingEnabled}
               />
@@ -281,6 +350,7 @@ export default function StudentSettings() {
                   list={residenceTownDatalistId}
                   type="text"
                   label={RESIDENCE_TOWN_LABEL}
+                  autoComplete="address-level2"
                   placeholder={selectedCountry === DEFAULT_RESIDENCE_COUNTRY ? 'Kitwe' : 'Start typing your city or town'}
                   helperText={getResidenceTownHelperText({
                     loadingCities,
@@ -313,6 +383,8 @@ export default function StudentSettings() {
                 {...register('nrc_number')}
                 type="text"
                 label="NRC number"
+                autoComplete="off"
+                spellCheck={false}
                 placeholder="123456/78/1"
                 helperText="Use your national registration card number as it appears on official records."
                 error={errors.nrc_number?.message}
@@ -323,6 +395,7 @@ export default function StudentSettings() {
                 {...register('address')}
                 type="text"
                 label="Residential address"
+                autoComplete="street-address"
                 placeholder="Plot, street, area"
                 helperText="This is used for identity and residence verification during application review."
                 error={errors.address?.message}
@@ -341,6 +414,7 @@ export default function StudentSettings() {
                 {...register('next_of_kin_name')}
                 type="text"
                 label="Next of kin name"
+                autoComplete="name"
                 placeholder="Full name of your emergency contact"
                 error={errors.next_of_kin_name?.message}
                 disabled={!profileEditingEnabled}
@@ -350,6 +424,7 @@ export default function StudentSettings() {
                 {...register('next_of_kin_phone')}
                 type="tel"
                 label="Next of kin phone"
+                autoComplete="tel"
                 placeholder="+260-123-456-789"
                 error={errors.next_of_kin_phone?.message}
                 disabled={!profileEditingEnabled}
@@ -362,8 +437,8 @@ export default function StudentSettings() {
             description="Portal inbox notifications stay available in-app, while SMS delivery uses the phone number stored on this profile."
             icon={<Bell className="h-5 w-5" />}
             actions={
-              <Button asChild variant="outline" size="sm">
-                <Link to="/student/notifications">Open notification preferences</Link>
+              <Button type="button" variant="outline" size="sm" onClick={() => handleNavigate('/student/notifications')}>
+                Open notification preferences
               </Button>
             }
           >
@@ -397,15 +472,19 @@ export default function StudentSettings() {
           </SectionCard>
 
           <div className="flex flex-col gap-3 md:flex-row md:justify-end">
-            <Button asChild variant="outline" className="w-full md:w-auto">
-              <Link to="/student/dashboard">Cancel</Link>
+            {isDirty && (
+              <p className="text-sm text-muted-foreground md:mr-auto md:self-center">
+                You have unsaved changes.
+              </p>
+            )}
+            <Button type="button" variant="outline" className="w-full md:w-auto" onClick={() => handleNavigate('/student/dashboard')}>
+              Cancel
             </Button>
             <Button
-              type="button"
+              type="submit"
               disabled={!isDirty || updatingProfile}
               variant="gradient"
               className="w-full md:w-auto"
-              onClick={onSubmit}
               loading={updatingProfile}
             >
               {updatingProfile ? 'Saving…' : (
@@ -416,8 +495,9 @@ export default function StudentSettings() {
               )}
             </Button>
           </div>
-        </div>
+        </form>
       </div>
     </PageShell>
+    </>
   )
 }

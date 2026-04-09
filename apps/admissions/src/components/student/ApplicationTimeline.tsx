@@ -12,6 +12,7 @@ import { History, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { animateClasses } from '@/lib/animations';
 import type { Application } from '@/types/database';
+import { isPaymentVerified, normalizePaymentStatus } from '@/lib/paymentStatus';
 
 interface ApplicationTimelineProps {
   applications: Application[];
@@ -39,13 +40,17 @@ function mapApplicationStatusToTimelineStatus(status: string): TimelineStatus {
 
 // Get human-readable status description
 function getStatusDescription(status: string, paymentStatus?: string): string {
+  const normalizedPaymentStatus = normalizePaymentStatus(paymentStatus)
+
   switch (status) {
     case 'draft':
       return 'Application started but not yet submitted';
     case 'submitted':
-      return paymentStatus === 'verified' 
+      return normalizedPaymentStatus === 'verified' 
         ? 'Application submitted and payment verified' 
-        : 'Application submitted, awaiting payment verification';
+        : normalizedPaymentStatus === 'pending_review'
+          ? 'Application submitted and payment proof is under review'
+          : 'Application submitted, awaiting payment verification';
     case 'under_review':
       return 'Your application is being reviewed by our team';
     case 'approved':
@@ -168,7 +173,9 @@ function buildTimelineEvents(application: Application) {
   }
 
   // Payment event - using payment_verified_at and payment_status
-  if (application.payment_status === 'verified' && application.payment_verified_at) {
+  const normalizedPaymentStatus = normalizePaymentStatus(application.payment_status)
+
+  if (isPaymentVerified(application.payment_status) && application.payment_verified_at) {
     events.push({
       id: 'payment',
       date: application.payment_verified_at,
@@ -176,7 +183,7 @@ function buildTimelineEvents(application: Application) {
       description: 'Application fee has been verified',
       status: 'completed',
     });
-  } else if (application.status === 'submitted' && application.payment_status === 'pending_review') {
+  } else if (application.status === 'submitted' && normalizedPaymentStatus === 'pending_review') {
     events.push({
       id: 'payment_pending',
       date: new Date().toISOString(),
@@ -184,7 +191,7 @@ function buildTimelineEvents(application: Application) {
       description: 'Your submitted payment proof is awaiting review',
       status: 'pending',
     });
-  } else if (application.payment_status === 'rejected') {
+  } else if (normalizedPaymentStatus === 'rejected') {
     events.push({
       id: 'payment_rejected',
       date: new Date().toISOString(),

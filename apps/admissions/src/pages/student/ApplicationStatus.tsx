@@ -1,9 +1,9 @@
 import React from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
+import { Seo } from '@/components/seo/Seo'
 import { useAuth } from '@/contexts/AuthContext'
 import type { ApplicationWithDetails } from '@/types/database'
-import { logger } from '@/lib/logger'
 import { Button } from '@/components/ui/Button'
 import { Skeleton, SkeletonCard } from '@/components/ui/skeleton'
 import { formatDate, formatTimestamp } from '@/lib/dateFormat'
@@ -29,7 +29,6 @@ import {
   Phone,
   CreditCard
 } from 'lucide-react'
-import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
@@ -43,22 +42,29 @@ interface ApplicationTimeline {
   completed: boolean
 }
 
-const statusAccent = (status: string) => {
-  switch (status) {
-    case 'approved':
-      return 'success' as const
-    case 'rejected':
-      return 'warning' as const
-    case 'under_review':
-      return 'primary' as const
-    default:
-      return 'neutral' as const
+function formatStatusLabel(status: string) {
+  return status.replace(/_/g, ' ').replace(/\b\w/g, (character) => character.toUpperCase())
+}
+
+function truncateValue(value: string | null | undefined, maxLength: number) {
+  if (!value) {
+    return null
   }
+
+  return value.length > maxLength ? `${value.slice(0, maxLength)}…` : value
+}
+
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="grid gap-1 sm:grid-cols-[minmax(0,9rem)_1fr] sm:items-start">
+      <dt className="text-foreground">{label}</dt>
+      <dd className="font-semibold text-foreground break-words">{value}</dd>
+    </div>
+  )
 }
 
 export default function ApplicationStatus() {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
   const { user } = useAuth()
 
   const {
@@ -110,12 +116,19 @@ export default function ApplicationStatus() {
     if (!application) return []
 
     const timeline: ApplicationTimeline[] = [
-      {
-        status: 'submitted',
-        date: application.submitted_at || application.created_at,
-        description: 'Application submitted successfully',
-        completed: true
-      }
+      application.status === 'draft'
+        ? {
+            status: 'draft',
+            date: application.created_at,
+            description: 'Application draft started',
+            completed: true
+          }
+        : {
+            status: 'submitted',
+            date: application.submitted_at || application.created_at,
+            description: 'Application submitted successfully',
+            completed: true
+          }
     ]
 
     if (application.interview && application.interview.status !== 'cancelled') {
@@ -152,6 +165,13 @@ export default function ApplicationStatus() {
 
   if (loading) {
     return (
+      <>
+      <Seo
+        title="Application Status | MIHAS-KATC Admissions"
+        description="Track the status and progress of your MIHAS-KATC admissions application."
+        path={`/student/application/${id}/status`}
+        noindex
+      />
       <PageShell title="Application Status" subtitle="Loading...">
           <div className="space-y-6 sm:space-y-8" role="status" aria-label="Loading application status">
             <Skeleton className="h-8 w-40 rounded-full" />
@@ -169,11 +189,19 @@ export default function ApplicationStatus() {
             <span className="sr-only">Loading application status</span>
           </div>
       </PageShell>
+      </>
     )
   }
 
   if (error || !application) {
     return (
+      <>
+      <Seo
+        title="Application Status | MIHAS-KATC Admissions"
+        description="Track the status and progress of your MIHAS-KATC admissions application."
+        path={`/student/application/${id}/status`}
+        noindex
+      />
       <PageShell title="Application Status">
           <ErrorDisplay
             variant="section"
@@ -183,13 +211,14 @@ export default function ApplicationStatus() {
             className="max-w-2xl"
           />
       </PageShell>
+      </>
     )
   }
 
   const timeline = getTimeline()
   const interview = application.interview
   const hasActiveInterview = Boolean(interview && interview.status !== 'cancelled')
-  const statusLabel = application.status.replace('_', ' ').toUpperCase()
+  const statusLabel = formatStatusLabel(application.status).toUpperCase()
   const paymentReviewNote =
     typeof application.last_payment_audit_notes === 'string' && application.last_payment_audit_notes.trim().length > 0
       ? application.last_payment_audit_notes.trim()
@@ -197,11 +226,45 @@ export default function ApplicationStatus() {
   const needsPaymentAttention = requiresStudentPaymentAction(application.payment_status)
   const paymentStatusLabel = getPaymentStatusLabel(application.payment_status)
   const normalizedPaymentStatus = normalizePaymentStatus(application.payment_status)
+  const paymentStatusDescription =
+    normalizedPaymentStatus === 'verified'
+      ? 'Your application fee has been verified and recorded successfully.'
+      : normalizedPaymentStatus === 'pending_review'
+        ? 'Your proof of payment is under review by the admissions team.'
+        : normalizedPaymentStatus === 'rejected'
+          ? 'Your payment submission needs attention before your application can continue.'
+          : application.status === 'draft'
+            ? 'Payment is completed in the wizard when you are ready to submit this draft.'
+            : 'Payment still needs attention before review can continue.'
+  const applicationTitle = application.application_number
+    ? `Application #${application.application_number}`
+    : 'Application status'
+  const applicationSubtitlePrefix = application.status === 'draft' ? 'Started on' : 'Submitted on'
+  const applicationSubtitleDate = formatDate(application.status === 'draft' ? application.created_at : application.submitted_at)
+  const paymentAction =
+    needsPaymentAttention
+      ? {
+          href: application.status === 'draft' ? '/student/application-wizard' : '/student/payment',
+          label:
+            application.status === 'draft'
+              ? 'Continue draft in wizard'
+              : normalizedPaymentStatus === 'rejected'
+                ? 'Review rejected payment'
+                : 'Open payments',
+        }
+      : null
 
   return (
+    <>
+      <Seo
+        title="Application Status | MIHAS-KATC Admissions"
+        description="Track the status and progress of your MIHAS-KATC admissions application."
+        path={`/student/application/${id}/status`}
+        noindex
+      />
     <PageShell
-      title={`Application #${application.application_number}`}
-      subtitle={`${(application.program?.length ?? 0) > 40 ? application.program!.substring(0, 40) + '...' : application.program || 'Programme pending'} • Submitted on ${formatDate(application.submitted_at)}`}
+      title={applicationTitle}
+      subtitle={`${truncateValue(application.program, 40) || 'Programme pending'} • ${applicationSubtitlePrefix} ${applicationSubtitleDate}`}
       maxWidth="7xl"
       actions={
         <div className="flex items-center gap-2">
@@ -304,72 +367,37 @@ export default function ApplicationStatus() {
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="rounded-xl border border-primary/30 bg-primary/5 px-5 py-4">
                     <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><User className="w-5 h-5" aria-hidden="true" /> Personal information</h3>
-                    <div className="space-y-2 text-sm text-foreground">
-                      <div className="flex justify-between">
-                        <span className="text-foreground">Full name:</span>
-                        <span className="font-semibold break-words">{application.full_name}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-foreground">Date of birth:</span>
-                        <span className="font-semibold">{application.date_of_birth}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-foreground">Sex:</span>
-                        <span className="font-semibold">{application.sex}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-foreground">Phone:</span>
-                        <span className="font-semibold">{application.phone}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-foreground">Email:</span>
-                        <span className="font-semibold truncate">{application.email}</span>
-                      </div>
-                    </div>
+                    <dl className="space-y-2 text-sm">
+                      <DetailRow label="Full name" value={application.full_name || 'Not provided'} />
+                      <DetailRow label="Date of birth" value={application.date_of_birth || 'Not provided'} />
+                      <DetailRow label="Sex" value={application.sex || 'Not provided'} />
+                      <DetailRow label="Phone" value={application.phone || 'Not provided'} />
+                      <DetailRow label="Email" value={application.email || 'Not provided'} />
+                    </dl>
                   </div>
                   <div className="rounded-xl border border-accent/30 bg-accent/10 px-5 py-4">
                     <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><Phone className="w-5 h-5" aria-hidden="true" /> Contact information</h3>
-                    <div className="space-y-2 text-sm text-foreground">
-                      <div className="flex justify-between">
-                        <span className="text-foreground">Residence:</span>
-                        <span className="font-semibold break-words">{application.residence_town}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-foreground">NRC:</span>
-                        <span className="font-semibold break-all">{application.nrc_number || 'Not provided'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-foreground">Guardian:</span>
-                        <span className="font-semibold">{application.guardian_name || 'Not provided'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-foreground">Guardian phone:</span>
-                        <span className="font-semibold">{application.guardian_phone || 'Not provided'}</span>
-                      </div>
-                    </div>
+                    <dl className="space-y-2 text-sm">
+                      <DetailRow label="Residence town" value={application.residence_town || 'Not provided'} />
+                      <DetailRow label="NRC" value={application.nrc_number || 'Not provided'} />
+                      <DetailRow label="Next of kin" value={application.next_of_kin_name || 'Not provided'} />
+                      <DetailRow label="Next of kin phone" value={application.next_of_kin_phone || 'Not provided'} />
+                    </dl>
                   </div>
                   <div className="rounded-xl border border-input/30 bg-secondary/5 px-5 py-4 lg:col-span-2">
                     <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><CreditCard className="w-5 h-5" aria-hidden="true" /> Payment information</h3>
-                    <div className="grid gap-2 text-sm text-foreground sm:grid-cols-2">
-                      <div className="flex justify-between">
-                        <span className="text-foreground">Payment status:</span>
-                        <span className="font-semibold">{paymentStatusLabel}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-foreground">Application fee:</span>
-                        <span className="font-semibold">K{application.application_fee ?? '153.00'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-foreground">Payment method:</span>
-                        <span className="font-semibold">Lenco Payment Gateway</span>
-                      </div>
+                    <dl className="grid gap-2 text-sm sm:grid-cols-2">
+                      <DetailRow label="Payment status" value={paymentStatusLabel} />
+                      <DetailRow
+                        label="Application fee"
+                        value={application.application_fee != null ? `K${application.application_fee}` : 'Resolved at payment step'}
+                      />
+                      <DetailRow label="Payment method" value="Lenco Payment Gateway" />
                       {application.payment_verified_at && (
-                        <div className="flex justify-between">
-                          <span className="text-foreground">Verified:</span>
-                          <span className="font-semibold">{formatDate(application.payment_verified_at)}</span>
-                        </div>
+                        <DetailRow label="Verified" value={formatDate(application.payment_verified_at)} />
                       )}
-                    </div>
+                    </dl>
+                    <p className="mt-3 text-sm text-muted-foreground">{paymentStatusDescription}</p>
                   </div>
                 </div>
               </SectionCard>
@@ -393,13 +421,16 @@ export default function ApplicationStatus() {
                           <p className="text-xs font-medium text-info-strong">✓ Uploaded</p>
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(application.result_slip_url as string, '_blank')}
-                      >
-                        <Eye className="mr-1 h-4 w-4" />
-                        View
+                      <Button asChild variant="outline" size="sm">
+                        <a
+                          href={application.result_slip_url as string}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="View uploaded result slip"
+                        >
+                          <Eye className="mr-1 h-4 w-4" />
+                          View
+                        </a>
                       </Button>
                     </div>
                   )}
@@ -418,13 +449,16 @@ export default function ApplicationStatus() {
                           <p className="text-xs font-medium text-warning-strong">✓ Uploaded</p>
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(application.extra_kyc_url as string, '_blank')}
-                      >
-                        <Eye className="mr-1 h-4 w-4" />
-                        View
+                      <Button asChild variant="outline" size="sm">
+                        <a
+                          href={application.extra_kyc_url as string}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="View uploaded identity document"
+                        >
+                          <Eye className="mr-1 h-4 w-4" />
+                          View
+                        </a>
                       </Button>
                     </div>
                   )}
@@ -469,49 +503,39 @@ export default function ApplicationStatus() {
                 description="Essential application details at a glance."
                 icon={<User className="h-5 w-5" />}
               >
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-foreground">Application ID</span>
-                    <span className="font-semibold">#{application.application_number}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-foreground">Program</span>
-                    <span className="font-semibold break-words">{application.program}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-foreground">Intake</span>
-                    <span className="font-semibold">{application.intake}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-foreground">Submitted</span>
-                    <span className="font-semibold">{formatDate(application.submitted_at)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-foreground">Last updated</span>
-                    <span className="font-semibold">{formatDate(application.updated_at)}</span>
-                  </div>
-                </div>
+                <dl className="space-y-3 text-sm">
+                  <DetailRow label="Application number" value={application.application_number ? `#${application.application_number}` : 'Not assigned'} />
+                  <DetailRow label="Program" value={application.program || 'Not provided'} />
+                  <DetailRow label="Intake" value={application.intake || 'Not provided'} />
+                  <DetailRow label={application.status === 'draft' ? 'Started' : 'Submitted'} value={formatDate(application.status === 'draft' ? application.created_at : application.submitted_at)} />
+                  <DetailRow label="Last updated" value={formatDate(application.updated_at)} />
+                </dl>
               </SectionCard>
 
               <SectionCard title="Next actions" description="Stay in control of your application." icon={<FileText className="h-5 w-5" />}>
                 <div className="flex flex-col gap-3">
-                  {needsPaymentAttention && (
-                    <Link to="/student/payment">
-                      <Button variant="outline" className="w-full">
-                        {application.payment_status === 'rejected' ? 'Fix payment and resubmit' : 'Open payments'}
-                      </Button>
-                    </Link>
+                  {paymentAction && (
+                    <Button asChild variant="outline" className="w-full">
+                      <Link to={paymentAction.href}>
+                        {paymentAction.label}
+                      </Link>
+                    </Button>
                   )}
-                  <Link to="/student/application-wizard">
-                    <Button variant="outline" className="w-full">
-                      Submit new application
-                    </Button>
-                  </Link>
-                  <Link to="/student/dashboard">
-                    <Button variant="ghost" className="w-full">
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to={`/student/application/${application.id}`}>
+                      View full application details
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to="/student/application-wizard">
+                      Start new application
+                    </Link>
+                  </Button>
+                  <Button asChild variant="ghost" className="w-full">
+                    <Link to="/student/dashboard">
                       Back to dashboard
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 </div>
               </SectionCard>
 
@@ -542,6 +566,7 @@ export default function ApplicationStatus() {
           </div>
         </div>
     </PageShell>
+    </>
     
   )
 }

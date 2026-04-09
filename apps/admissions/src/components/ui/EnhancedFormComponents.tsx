@@ -1,6 +1,6 @@
 import React from 'react'
 import { FieldError } from 'react-hook-form'
-import { z } from 'zod'
+import { z } from '@/lib/zod'
 import { cn } from '@/lib/utils'
 import { SELECT_CHEVRON_SVG } from '@/design-system/tokens'
 import { ErrorDisplay } from './ErrorDisplay'

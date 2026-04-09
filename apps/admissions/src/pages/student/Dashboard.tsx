@@ -31,7 +31,7 @@ import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageShell } from '@/components/ui/PageShell'
 import { useStudentDashboardRefresh } from '@/hooks/useManualRefresh'
-import { useStudentDashboardPolling } from '@/hooks/useStudentDashboardPolling'
+import { useStudentDashboardPolling, type StudentDashboardData } from '@/hooks/useStudentDashboardPolling'
 import { useApplicationUpdates } from '@/hooks/useRealtime'
 import { useQueryClient } from '@tanstack/react-query'
 import { staggerChild, animateClasses } from '@/lib/animations'
@@ -72,7 +72,35 @@ export default function StudentDashboard() {
   const loadRequestIdRef = useRef(0)
   const loadDashboardDataRef = useRef<() => Promise<void>>(async () => {})
   const initialLoadCompleteRef = useRef(false)
+  const scheduledRefreshRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const confirmDialog = useConfirmDialog()
+
+  const scheduleDashboardReload = useCallback((delay = 150) => {
+    if (scheduledRefreshRef.current) {
+      clearTimeout(scheduledRefreshRef.current)
+    }
+
+    scheduledRefreshRef.current = setTimeout(() => {
+      scheduledRefreshRef.current = null
+      void loadDashboardDataRef.current()
+    }, delay)
+  }, [])
+
+  const syncApplicationsFromPolling = useCallback((data: StudentDashboardData) => {
+    setApplications((previousApplications) => {
+      const previousById = new Map(previousApplications.map((application) => [application.id, application]))
+      return data.applications.map((application) => ({
+        ...(previousById.get(application.id) ?? {}),
+        ...application,
+      })) as Application[]
+    })
+
+    if (data.applications.some((application) => application.status === 'draft')) {
+      setHasDraft(true)
+    }
+
+    setApplicationsError('')
+  }, [])
 
   // Requirements: 8.2 - Check if SSE client is in auth-failed state to skip SSE connection
   const sseAuthFailed = useMemo(() => {
@@ -86,8 +114,7 @@ export default function StudentDashboard() {
   // Manual refresh hook for React Query cache invalidation
   const { forceRefresh, isRefreshing: isManualRefreshing } = useStudentDashboardRefresh({
     onSuccess: () => {
-      // Also reload local data after cache invalidation
-      void loadDashboardDataRef.current()
+      scheduleDashboardReload(0)
     },
     onError: (error) => {
       console.error('Manual refresh failed:', sanitizeForLog(error))
@@ -97,11 +124,7 @@ export default function StudentDashboard() {
 
   // Requirements: 1.1, 1.2 - Dashboard data refresh via polling
   useStudentDashboardPolling({
-    onApplicationChange: () => {
-      // Reload local data when application changes are detected
-      void loadDashboardDataRef.current()
-    },
-    onDataChange: () => {},
+    onDataChange: syncApplicationsFromPolling,
   })
 
   // Requirements: 8.1, 8.2, 8.4 - Subscribe to application_update events and refresh dashboard
@@ -115,9 +138,8 @@ export default function StudentDashboard() {
       queryClient.invalidateQueries({ queryKey: ['applications'] })
       queryClient.invalidateQueries({ queryKey: ['student-dashboard'] })
       queryClient.invalidateQueries({ queryKey: ['student-dashboard-polling'] })
-      // Also reload local state
-      void loadDashboardDataRef.current()
-    }, [queryClient])
+      scheduleDashboardReload(250)
+    }, [queryClient, scheduleDashboardReload])
   )
 
   useEffect(() => {
@@ -130,6 +152,9 @@ export default function StudentDashboard() {
       loadRequestIdRef.current += 1
       if (abortControllerRef.current) {
         abortControllerRef.current.abort()
+      }
+      if (scheduledRefreshRef.current) {
+        clearTimeout(scheduledRefreshRef.current)
       }
     }
   }, [user])
@@ -154,7 +179,7 @@ export default function StudentDashboard() {
     const handleDraftCleared = async () => {
       setHasDraft(false)
       setApplications(prev => prev.filter(app => app.status !== 'draft'))
-      await loadDashboardDataRef.current()
+      scheduleDashboardReload()
     }
 
     const handleApplicationSubmitted = async (event: Event) => {
@@ -182,20 +207,20 @@ export default function StudentDashboard() {
         )
       }
 
-      await loadDashboardDataRef.current()
+      scheduleDashboardReload()
     }
 
     const handleApplicationUpdated = async () => {
-      await loadDashboardDataRef.current()
+      scheduleDashboardReload()
     }
 
     const handleApplicationCreated = async () => {
-      await loadDashboardDataRef.current()
+      scheduleDashboardReload()
     }
 
     const handleDraftSaved = async () => {
       await handleStorageChange()
-      await loadDashboardDataRef.current()
+      scheduleDashboardReload()
     }
 
     window.addEventListener('storage', handleStorageChange)
@@ -215,7 +240,7 @@ export default function StudentDashboard() {
       window.removeEventListener('applicationUpdated', handleApplicationUpdated)
       window.removeEventListener('applicationCreated', handleApplicationCreated)
     }
-  }, [user])
+  }, [scheduleDashboardReload, user])
 
   const loadDashboardData = async () => {
     const requestId = loadRequestIdRef.current + 1
@@ -269,7 +294,7 @@ export default function StudentDashboard() {
       const [applicationsResult, intakesResult, interviewsResult] = await Promise.allSettled([
         // Applications: single call for all (draft check merged into full list)
         applicationService.list({
-          page: 0,
+          page: 1,
           pageSize: 50,
           sortBy: 'date',
           sortOrder: 'desc',
@@ -449,15 +474,21 @@ export default function StudentDashboard() {
     setIsClearingAllDrafts(true)
     try {
       clearAllDraftData()
-      if (user) {
-        await draftManager.clearAllDrafts(user.id)
+
+      if (!user) {
+        throw new Error('You must be signed in to clear drafts')
       }
-      
-      const draftApps = applications.filter(app => app.status === 'draft')
-      await Promise.allSettled(
-        draftApps.map(app => applicationService.delete(app.id))
-      )
-      
+
+      const deleteResult = await draftManager.clearAllDrafts(user.id)
+      await loadDashboardDataRef.current()
+
+      if (!deleteResult.success) {
+        const errorMessage = deleteResult.error || 'Failed to clear all drafts from the server'
+        setApplicationsError(errorMessage)
+        useToastStore.getState().addToast('error', errorMessage)
+        return
+      }
+
       setApplications(prev => prev.filter(app => app.status !== 'draft'))
       setHasDraft(false)
       setApplicationsError('')

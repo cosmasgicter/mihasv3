@@ -1,4 +1,4 @@
-import { generateApplicationSlip, persistSlip, type ApplicationSlipData } from './applicationSlip'
+import type { ApplicationSlipData } from './applicationSlip'
 import { logger } from '@/lib/logger'
 import { sanitizeForLog } from './security'
 
@@ -34,6 +34,11 @@ export async function createApplicationSlip(
   const appOrigin = typeof window !== 'undefined' ? window.location.origin : ''
 
   try {
+    const [{ generateApplicationSlip }, { persistSlip }] = await Promise.all([
+      import('./applicationSlipPdf'),
+      import('./applicationSlipStorage'),
+    ])
+
     // Always generate locally with jsPDF
     const blob = await generateApplicationSlip(data).catch(err => {
       console.error('Slip generation error:', err)

@@ -2,6 +2,7 @@ import { Download } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { usePaymentReceipt } from '@/hooks/usePaymentReceipt'
 import { useToastStore } from '@/hooks/useToast'
+import { isPaymentVerified } from '@/lib/paymentStatus'
 
 interface DownloadReceiptButtonProps {
   applicationId: string
@@ -26,7 +27,7 @@ export function DownloadReceiptButton({
     }
   }
 
-  if (paymentStatus !== 'verified') {
+  if (!isPaymentVerified(paymentStatus)) {
     return null
   }
 

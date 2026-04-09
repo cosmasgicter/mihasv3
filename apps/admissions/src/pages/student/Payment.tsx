@@ -10,6 +10,7 @@
 
 import { useNavigate, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
+import { Seo } from '@/components/seo/Seo'
 import {
   CreditCard,
   ArrowRight,
@@ -17,7 +18,6 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  AlertCircle,
   ArrowLeft,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui'
@@ -25,12 +25,17 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
 import { PageShell } from '@/components/ui/PageShell'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { Skeleton, SkeletonCard, SkeletonTable } from '@/components/ui/skeleton'
 import { applicationService } from '@/services/applications'
 import { apiClient } from '@/services/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
+import {
+  normalizePaymentStatus,
+  requiresStudentPaymentAction,
+} from '@/lib/paymentStatus'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -38,6 +43,7 @@ import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
 
 interface PaymentRecord {
   id: string
+  application_id: string
   status: string
   amount: number | null
   currency: string | null
@@ -56,6 +62,7 @@ interface ApplicationSummary {
   payment_status: string | null
   program: string | null
   created_at: string
+  last_payment_audit_notes?: string | null
 }
 
 // ---------------------------------------------------------------------------
@@ -91,10 +98,65 @@ function paymentStatusBadge(status: string) {
   }
 }
 
-/** True when the application has no successful payment yet */
-function needsPayment(paymentStatus: string | null): boolean {
-  const s = paymentStatus?.toLowerCase()
-  return s !== 'paid' && s !== 'verified' && s !== 'successful'
+function formatApplicationStatus(status: string) {
+  return status.replace(/_/g, ' ').replace(/\b\w/g, (character) => character.toUpperCase())
+}
+
+function getPaymentStatusBadge(status: string | null) {
+  switch (normalizePaymentStatus(status)) {
+    case 'verified':
+      return { variant: 'success' as const, label: 'Verified' }
+    case 'pending_review':
+      return { variant: 'warning' as const, label: 'Awaiting Review' }
+    case 'rejected':
+      return { variant: 'destructive' as const, label: 'Rejected' }
+    default:
+      return { variant: 'secondary' as const, label: 'Action Required' }
+  }
+}
+
+function getPaymentGuidance(app: ApplicationSummary) {
+  const normalizedPaymentStatus = normalizePaymentStatus(app.payment_status)
+
+  if (app.status === 'draft') {
+    return 'Complete this draft in the wizard. Payment is collected as part of the guided submission flow.'
+  }
+
+  if (normalizedPaymentStatus === 'verified') {
+    return 'Your application fee has been verified. Payment history remains available below for reference.'
+  }
+
+  if (normalizedPaymentStatus === 'pending_review') {
+    return 'Your proof of payment has been submitted and is waiting for admissions review.'
+  }
+
+  if (normalizedPaymentStatus === 'rejected' && app.last_payment_audit_notes) {
+    return app.last_payment_audit_notes
+  }
+
+  if (normalizedPaymentStatus === 'rejected') {
+    return 'Your previous payment submission was rejected. Review the application status and submit updated proof if requested.'
+  }
+
+  return 'This application still needs payment attention before it can move forward in review.'
+}
+
+function getPaymentAction(app: ApplicationSummary) {
+  if (!requiresStudentPaymentAction(app.payment_status)) {
+    return null
+  }
+
+  if (app.status === 'draft') {
+    return {
+      href: '/student/application-wizard',
+      label: 'Continue draft in wizard',
+    }
+  }
+
+  return {
+    href: `/student/application/${app.id}/status`,
+    label: app.payment_status === 'rejected' ? 'Review rejected payment' : 'Review payment status',
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -122,6 +184,8 @@ export default function PaymentPage() {
         payment_status: typeof app.payment_status === 'string' ? app.payment_status : null,
         program: typeof app.program === 'string' ? app.program : null,
         created_at: typeof app.created_at === 'string' ? app.created_at : new Date().toISOString(),
+        last_payment_audit_notes:
+          typeof app.last_payment_audit_notes === 'string' ? app.last_payment_audit_notes : null,
       }))
     },
     enabled: !!user?.id,
@@ -135,29 +199,30 @@ export default function PaymentPage() {
     data: paymentsByApp = {},
     isLoading: loadingPayments,
   } = useQuery<Record<string, PaymentRecord[]>>({
-    queryKey: ['payment-records', applicationIds],
+    queryKey: ['payment-records', user?.id],
     queryFn: async () => {
       const result: Record<string, PaymentRecord[]> = {}
-      await Promise.all(
-        applicationIds.map(async (appId) => {
-          try {
-            const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>(
-              `/payments/?application_id=${encodeURIComponent(appId)}`,
-            )
-            if (!data) {
-              result[appId] = []
-              return
-            }
-            const records: PaymentRecord[] = Array.isArray(data)
-              ? data
-              : (data as PaymentListResponse).results ?? []
-            result[appId] = records
-          } catch (err) {
-            logApiError('payment-page', `/payments/?application_id=${appId}`, err)
-            result[appId] = []
-          }
-        }),
-      )
+
+      if (applicationIds.length === 0) {
+        return result
+      }
+
+      try {
+        const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>('/payments/')
+        const records: PaymentRecord[] = Array.isArray(data)
+          ? data
+          : (data as PaymentListResponse).results ?? []
+
+        applicationIds.forEach((appId) => {
+          result[appId] = records.filter(record => record.application_id === appId)
+        })
+      } catch (err) {
+        logApiError('payment-page', '/payments/', err)
+        applicationIds.forEach((appId) => {
+          result[appId] = []
+        })
+      }
+
       return result
     },
     enabled: applicationIds.length > 0,
@@ -173,6 +238,13 @@ export default function PaymentPage() {
   // ---- Loading state ----
   if (loading) {
     return (
+      <>
+      <Seo
+        title="Payment | MIHAS-KATC Admissions"
+        description="View your application payment history and payment status for MIHAS-KATC admissions."
+        path="/student/payment"
+        noindex
+      />
       <PageShell title="Application Payment" subtitle="Loading payment information...">
         <div className="space-y-6" role="status" aria-label="Loading payment information">
           <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-6">
@@ -203,10 +275,18 @@ export default function PaymentPage() {
           </div>
         </div>
       </PageShell>
+      </>
     )
   }
 
   return (
+    <>
+      <Seo
+        title="Payment | MIHAS-KATC Admissions"
+        description="View your application payment history and payment status for MIHAS-KATC admissions."
+        path="/student/payment"
+        noindex
+      />
     <PageShell
       title="Application Payment"
       subtitle="View your payment history and continue to the Application Wizard to make a payment."
@@ -224,19 +304,13 @@ export default function PaymentPage() {
 
       {/* Error display */}
       {appsError && (
-        <Card className="mb-6 border-destructive/50 bg-destructive/5">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 text-destructive">
-                <AlertCircle className="h-5 w-5 flex-shrink-0" />
-                <p>Failed to load payment information. Please try again.</p>
-              </div>
-              <Button variant="outline" size="sm" onClick={() => refetchApps()} className="flex-shrink-0">
-                Retry
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <ErrorDisplay
+          variant="section"
+          title="Unable to load payment information"
+          message="Failed to load payment information. Please try again."
+          onRetry={() => void refetchApps()}
+          className="mb-6"
+        />
       )}
 
       <div className="grid gap-6">
@@ -257,21 +331,20 @@ export default function PaymentPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">Application Fee</span>
-                <span className="text-2xl font-bold text-primary">K153</span>
-              </div>
+              <p className="text-sm font-medium text-foreground">Application fees are resolved per application</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Non-refundable application processing fee
+                The exact fee is calculated in the wizard based on the selected programme and residency details before payment starts.
               </p>
             </div>
 
             <Button
-              onClick={handleContinueToWizard}
+              asChild
               className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 min-h-[44px]"
             >
-              Continue to Application Wizard
-              <ArrowRight className="h-4 w-4 ml-2" />
+              <Link to="/student/application-wizard">
+                Continue to Application Wizard
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Link>
             </Button>
           </CardContent>
         </Card>
@@ -290,7 +363,8 @@ export default function PaymentPage() {
               <div className="space-y-4">
                 {applications.map((app) => {
                   const records = paymentsByApp[app.id] ?? []
-                  const appNeedsPayment = needsPayment(app.payment_status)
+                  const paymentBadge = getPaymentStatusBadge(app.payment_status)
+                  const paymentAction = getPaymentAction(app)
 
                   return (
                     <div
@@ -298,26 +372,43 @@ export default function PaymentPage() {
                       className="rounded-lg border border-border p-4 space-y-3"
                     >
                       {/* Application header */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <div className="min-w-0">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0 space-y-2">
                           <p className="font-medium text-foreground truncate">
                             {app.program || 'Application'}
                           </p>
-                          <span className="text-xs text-muted-foreground">
-                            Status: {app.status}
-                          </span>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant="secondary">
+                              Application: {formatApplicationStatus(app.status)}
+                            </Badge>
+                            <Badge variant={paymentBadge.variant}>
+                              Payment: {paymentBadge.label}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {getPaymentGuidance(app)}
+                          </p>
                         </div>
-                        {appNeedsPayment && (
+                        {paymentAction && (
                           <Button
+                            asChild
                             size="sm"
-                            onClick={handleContinueToWizard}
                             className="min-h-[44px] flex-shrink-0"
                           >
-                            Pay Now
-                            <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                            <Link to={paymentAction.href}>
+                              {paymentAction.label}
+                              <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                            </Link>
                           </Button>
                         )}
                       </div>
+
+                      {app.last_payment_audit_notes && normalizePaymentStatus(app.payment_status) === 'rejected' && (
+                        <div className="rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-foreground">
+                          <span className="font-semibold text-destructive">Review note:</span>{' '}
+                          {app.last_payment_audit_notes}
+                        </div>
+                      )}
 
                       {/* Payment records list */}
                       {records.length > 0 ? (
@@ -387,5 +478,6 @@ export default function PaymentPage() {
         </Card>
       </div>
     </PageShell>
+    </>
   )
 }

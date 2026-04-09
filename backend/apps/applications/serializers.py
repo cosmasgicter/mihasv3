@@ -116,7 +116,10 @@ class ApplicationCreateSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=20)
     email = serializers.EmailField()
     residence_town = serializers.CharField(max_length=255)
+    country = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True, default="Zambia")
     nationality = serializers.CharField(max_length=100, required=False, default="Zambian")
+    next_of_kin_name = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True, default="")
+    next_of_kin_phone = serializers.CharField(max_length=20, required=False, allow_blank=True, allow_null=True, default="")
     program = serializers.CharField(max_length=255)
     intake = serializers.CharField(max_length=100)
     institution = serializers.CharField(max_length=255)
@@ -236,12 +239,14 @@ class ApplicationInterviewSerializer(serializers.ModelSerializer):
     """Interview scheduling serializer."""
 
     application_id = serializers.UUIDField()
+    program = serializers.CharField(source="application.program", read_only=True)
+    application_number = serializers.CharField(source="application.application_number", read_only=True)
 
     class Meta:
         model = ApplicationInterview
         fields = [
             "id", "application_id", "scheduled_at", "mode", "location",
-            "status", "notes", "created_by", "updated_by",
+            "status", "notes", "program", "application_number", "created_by", "updated_by",
             "created_at", "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]

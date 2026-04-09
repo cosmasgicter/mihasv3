@@ -1,4 +1,5 @@
 import React, { ReactNode } from 'react'
+import '@/styles/admin-colors.css'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { BottomNavigation } from '@/components/ui/BottomNavigation'
 import { MobilePageHeader } from '@/components/ui/MobilePageHeader'

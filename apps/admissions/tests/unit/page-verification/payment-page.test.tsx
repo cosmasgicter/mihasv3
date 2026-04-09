@@ -85,17 +85,27 @@ vi.mock('@/lib/apiErrorLogger', () => ({
 const mockInvalidateQueries = vi.fn()
 const mockRefetch = vi.fn()
 
-let capturedQueryFn: (() => Promise<unknown>) | null = null
+let capturedApplicationQueryFn: (() => Promise<unknown>) | null = null
 
 vi.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({
     invalidateQueries: mockInvalidateQueries,
   }),
   useQuery: (options: { queryFn?: () => Promise<unknown>; queryKey?: unknown[] }) => {
-    // Capture the queryFn so we can call it in tests
-    capturedQueryFn = options.queryFn ?? null
+    const queryKey = Array.isArray(options.queryKey) ? options.queryKey : []
+
+    if (queryKey[0] === 'payment-records') {
+      return {
+        data: currentMockPaymentsData,
+        isLoading: currentMockLoading,
+        error: null,
+        refetch: mockRefetch,
+      }
+    }
+
+    capturedApplicationQueryFn = options.queryFn ?? null
     return {
-      data: currentMockData,
+      data: currentMockApplicationsData,
       isLoading: currentMockLoading,
       error: currentMockError,
       refetch: mockRefetch,
@@ -104,7 +114,8 @@ vi.mock('@tanstack/react-query', () => ({
 }))
 
 // ── Mutable test state for useQuery mock ──────────────────────────────
-let currentMockData: unknown[] = []
+let currentMockApplicationsData: unknown[] = []
+let currentMockPaymentsData: Record<string, unknown[]> = {}
 let currentMockLoading = false
 let currentMockError: Error | null = null
 
@@ -191,17 +202,47 @@ function buildPaymentApplications(apps: typeof djangoApplicationsWithPayment.app
     id: app.id,
     status: app.status,
     payment_status: typeof app.payment_status === 'string' ? app.payment_status : null,
-    payment_method: typeof app.payment_method === 'string' ? app.payment_method : null,
-    payer_name: typeof app.payer_name === 'string' ? app.payer_name : null,
-    payer_phone: typeof app.payer_phone === 'string' ? app.payer_phone : null,
-    amount: typeof app.amount === 'number' ? app.amount : null,
-    paid_at: typeof app.paid_at === 'string' ? app.paid_at : null,
-    momo_ref: typeof app.momo_ref === 'string' ? app.momo_ref : null,
-    pop_url: typeof app.pop_url === 'string' ? app.pop_url : null,
     last_payment_audit_notes: typeof app.last_payment_audit_notes === 'string' ? app.last_payment_audit_notes : null,
     created_at: typeof app.created_at === 'string' ? app.created_at : new Date().toISOString(),
     program: typeof app.program === 'string' ? app.program : null,
   }))
+}
+
+const djangoPaymentRecords = [
+  {
+    id: 'payment-002',
+    application_id: 'app-002',
+    status: 'pending',
+    amount: 153,
+    currency: 'ZMW',
+    created_at: '2025-02-01T14:30:00Z',
+  },
+  {
+    id: 'payment-003',
+    application_id: 'app-003',
+    status: 'successful',
+    amount: 153,
+    currency: 'ZMW',
+    created_at: '2025-01-20T09:00:00Z',
+  },
+  {
+    id: 'payment-004',
+    application_id: 'app-004',
+    status: 'failed',
+    amount: 153,
+    currency: 'ZMW',
+    created_at: '2025-03-01T11:00:00Z',
+  },
+]
+
+function buildPaymentsByApplication(records: typeof djangoPaymentRecords) {
+  return records.reduce<Record<string, typeof djangoPaymentRecords>>((acc, record) => {
+    const existing = acc[record.application_id] ?? []
+    return {
+      ...acc,
+      [record.application_id]: [...existing, record],
+    }
+  }, {})
 }
 
 // ── Import the component under test ───────────────────────────────────
@@ -217,7 +258,8 @@ describe('Payment page verification', () => {
     mockApplicationServiceList.mockResolvedValue(djangoApplicationsWithPayment)
     currentMockError = null
     currentMockLoading = false
-    currentMockData = buildPaymentApplications(djangoApplicationsWithPayment.applications)
+    currentMockApplicationsData = buildPaymentApplications(djangoApplicationsWithPayment.applications)
+    currentMockPaymentsData = buildPaymentsByApplication(djangoPaymentRecords)
 
     container = document.createElement('div')
     document.body.appendChild(container)
@@ -228,7 +270,7 @@ describe('Payment page verification', () => {
     root.unmount()
     container.remove()
     vi.clearAllMocks()
-    capturedQueryFn = null
+    capturedApplicationQueryFn = null
   })
 
   function renderAndWait(ms = 300) {
@@ -247,7 +289,8 @@ describe('Payment page verification', () => {
 
   it('shows loading state when data is loading', async () => {
     currentMockLoading = true
-    currentMockData = []
+    currentMockApplicationsData = []
+    currentMockPaymentsData = {}
 
     await renderAndWait()
 
@@ -262,7 +305,7 @@ describe('Payment page verification', () => {
 
     const text = container.textContent || ''
     // app-001 has null payment_status → normalizes to 'not_paid' → requires action
-    expect(text).toContain('Payment Action Required')
+    expect(text).toContain('Payment: Action Required')
     expect(text).toContain('Bachelor of Nursing')
   })
 
@@ -271,7 +314,7 @@ describe('Payment page verification', () => {
 
     const text = container.textContent || ''
     // app-002 has pending_review status
-    expect(text).toContain('Payment Under Review')
+    expect(text).toContain('Payment: Awaiting Review')
     expect(text).toContain('Diploma in Pharmacy')
   })
 
@@ -295,33 +338,30 @@ describe('Payment page verification', () => {
 
   // ── Summary cards ───────────────────────────────────────────────────
 
-  it('shows correct counts in summary cards', async () => {
+  it('shows the key payment states across applications', async () => {
     await renderAndWait()
 
     const text = container.textContent || ''
-    // Payment Action Required: app-001 (not_paid) + app-004 (rejected) = 2
-    // Awaiting Review: app-002 (pending_review) = 1
-    // Verified Payments: app-003 (verified) = 1
-    expect(text).toContain('Payment Action Required')
+    expect(text).toContain('Action Required')
     expect(text).toContain('Awaiting Review')
-    expect(text).toContain('Verified Payments')
+    expect(text).toContain('Verified')
   })
 
   // ── Payment method display ──────────────────────────────────────────
 
-  it('displays payment method for applications that have one', async () => {
+  it('displays payment record amounts and statuses', async () => {
     await renderAndWait()
 
     const html = container.innerHTML || ''
-    // app-002 has payment_method 'MTN Money', app-003 has 'Airtel Money'
-    expect(html).toContain('MTN Money')
-    expect(html).toContain('Airtel Money')
+    expect(html).toContain('K153.00')
+    expect(html).toContain('Successful')
   })
 
   // ── Empty state ─────────────────────────────────────────────────────
 
   it('shows empty state when no applications exist', async () => {
-    currentMockData = []
+    currentMockApplicationsData = []
+    currentMockPaymentsData = {}
 
     await renderAndWait()
 
@@ -334,7 +374,8 @@ describe('Payment page verification', () => {
 
   it('shows error message when fetch fails', async () => {
     currentMockError = new Error('Network timeout')
-    currentMockData = []
+    currentMockApplicationsData = []
+    currentMockPaymentsData = {}
 
     await renderAndWait()
 
@@ -344,7 +385,8 @@ describe('Payment page verification', () => {
 
   it('shows retry button when fetch fails', async () => {
     currentMockError = new Error('Network timeout')
-    currentMockData = []
+    currentMockApplicationsData = []
+    currentMockPaymentsData = {}
 
     await renderAndWait()
 
@@ -354,20 +396,20 @@ describe('Payment page verification', () => {
 
   // ── Static content ──────────────────────────────────────────────────
 
-  it('displays the K153 application fee', async () => {
+  it('displays per-application fee guidance', async () => {
     await renderAndWait()
 
     const text = container.textContent || ''
-    expect(text).toContain('K153')
+    expect(text).toContain('Application fees are resolved per application')
     expect(text).toContain('Application Fee')
   })
 
-  it('displays payment instructions', async () => {
+  it('explains that payment happens in the wizard', async () => {
     await renderAndWait()
 
     const text = container.textContent || ''
-    expect(text).toContain('Payment Instructions')
-    expect(text).toContain('mobile money')
+    expect(text).toContain('Payment is handled securely in the Application Wizard')
+    expect(text).toContain('The exact fee is calculated in the wizard')
   })
 
   it('displays the continue to wizard button', async () => {
@@ -391,31 +433,22 @@ describe('Payment page verification', () => {
     await renderAndWait()
 
     // The queryFn should have been captured by our useQuery mock
-    expect(capturedQueryFn).toBeDefined()
+    expect(capturedApplicationQueryFn).toBeDefined()
 
     // Call the captured queryFn to verify it maps Django response correctly
-    const result = await capturedQueryFn!()
+    const result = await capturedApplicationQueryFn!()
     const apps = result as Array<Record<string, unknown>>
 
     expect(apps).toHaveLength(4)
 
-    // app-001: null payment fields
+    // app-001: null payment status
     expect(apps[0].id).toBe('app-001')
     expect(apps[0].payment_status).toBeNull()
-    expect(apps[0].payment_method).toBeNull()
-    expect(apps[0].amount).toBeNull()
-    expect(apps[0].paid_at).toBeNull()
-    expect(apps[0].momo_ref).toBeNull()
-    expect(apps[0].pop_url).toBeNull()
 
-    // app-002: pending_review with all payment fields populated
+    // app-002: pending_review with audit metadata preserved
     expect(apps[1].id).toBe('app-002')
     expect(apps[1].payment_status).toBe('pending_review')
-    expect(apps[1].payment_method).toBe('MTN Money')
-    expect(apps[1].amount).toBe(153)
-    expect(apps[1].paid_at).toBe('2025-02-01T14:30:00Z')
-    expect(apps[1].momo_ref).toBe('TXN-12345')
-    expect(apps[1].pop_url).toBe('https://storage.example.com/proof-002.pdf')
+    expect(apps[1].program).toBe('Diploma in Pharmacy')
 
     // app-003: verified
     expect(apps[2].payment_status).toBe('verified')

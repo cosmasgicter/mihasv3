@@ -2,8 +2,6 @@ import type { WizardFormData, WizardProgram } from '../types'
 import { normalizeResidenceTown } from '@/lib/residenceTown'
 
 type DraftApplicationPayload = {
-  application_number: string
-  public_tracking_code: string
   full_name: string
   nrc_number: string | null
   passport_number: string | null
@@ -19,7 +17,6 @@ type DraftApplicationPayload = {
   intake: string
   institution: string
   nationality: string
-  status: 'draft'
 }
 
 const hasText = (value?: string | null) => Boolean(value?.trim())
@@ -42,22 +39,16 @@ export function buildServerDraftPayload({
   selectedProgramDetails,
   institutionCode,
   nationality,
-  applicationNumber,
-  trackingCode,
 }: {
   formData: WizardFormData
   selectedProgramDetails?: WizardProgram
   institutionCode: string
   nationality: string
-  applicationNumber: string
-  trackingCode: string
 }): DraftApplicationPayload {
   // Django validates program/intake/institution by name, not by ID.
   // The caller is expected to pass the canonical intake name here.
   const programName = selectedProgramDetails?.name?.trim() || formData.program
   return {
-    application_number: applicationNumber,
-    public_tracking_code: trackingCode,
     full_name: formData.full_name.trim(),
     nrc_number: formData.nrc_number?.trim() || null,
     passport_number: formData.passport_number?.trim() || null,
@@ -73,6 +64,5 @@ export function buildServerDraftPayload({
     intake: formData.intake,
     institution: institutionCode,
     nationality: nationality.trim() || 'Zambian',
-    status: 'draft',
   }
 }
