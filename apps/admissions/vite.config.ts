@@ -81,10 +81,16 @@ export default defineConfig(({ mode, command }) => {
         injectRegister: false,
         injectManifest: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
-          // Allow up to 10MB per asset for precaching; very large vendor
-          // chunks (e.g. tesseract/OCR) are dynamically imported and rarely
-          // change, so caching them is acceptable.
-          maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+          globIgnores: [
+            '**/vendor-excel-*.js',
+            '**/vendor-location-data-*.js',
+            '**/vendor-ocr-*.js',
+            '**/vendor-pdf-*.js',
+          ],
+          // Keep precaching focused on the core shell so first visits on slow
+          // networks do not immediately background-download very large lazy
+          // chunks such as document/PDF or OCR tooling.
+          maximumFileSizeToCacheInBytes: 600 * 1024,
         },
       })
     ],
@@ -108,6 +114,7 @@ export default defineConfig(({ mode, command }) => {
       reportCompressedSize: false, // Faster builds
       rollupOptions: {
         output: {
+        onlyExplicitManualChunks: true,
         /**
          * Manual Chunks - Minimal Safe Approach
          * 
@@ -122,22 +129,27 @@ export default defineConfig(({ mode, command }) => {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
             // Excel libraries - dynamically imported
-            if (id.includes('xlsx') || id.includes('exceljs')) {
+            if (id.includes('/xlsx/') || id.includes('/exceljs/')) {
               return 'vendor-excel'
             }
             
             // PDF libraries - dynamically imported
-            if (id.includes('jspdf') || id.includes('pdf-lib')) {
+            if (id.includes('/jspdf/') || id.includes('/jspdf-autotable/') || id.includes('/pdf-lib/')) {
               return 'vendor-pdf'
             }
             
             // OCR - tesseract.js (heavy, dynamically imported)
-            if (id.includes('tesseract')) {
+            if (id.includes('/tesseract.js/')) {
               return 'vendor-ocr'
+            }
+
+            // Large country/state/city dataset - lazy loaded for residency forms
+            if (id.includes('/country-state-city/')) {
+              return 'vendor-location-data'
             }
             
             // Charts - recharts (dynamically imported)
-            if (id.includes('recharts') || id.includes('d3-')) {
+            if (id.includes('/recharts/') || id.includes('/d3-')) {
               return 'vendor-charts'
             }
             

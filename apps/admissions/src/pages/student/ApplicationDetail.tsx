@@ -1,6 +1,7 @@
 import React from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
+import { Seo } from '@/components/seo/Seo'
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { DocumentButtons } from '@/components/student/DocumentButtons'
 import { InterviewDetails } from '@/components/student/InterviewDetails'
@@ -9,6 +10,7 @@ import { formatDate, getStatusColor } from '@/lib/utils'
 import { applicationService } from '@/services/applications'
 import type { ApplicationDetailResponse } from '@/services/applications'
 import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus'
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { 
   ArrowLeft, 
   Calendar, 
@@ -36,8 +38,18 @@ type ApplicationRecordWithExtras = ApplicationRecord & {
   public_tracking_code?: string
 }
 
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="grid gap-1 sm:grid-cols-[minmax(0,9rem)_1fr] sm:items-start">
+      <dt className="text-sm font-medium text-foreground">{label}</dt>
+      <dd className="text-foreground font-medium break-words">{value}</dd>
+    </div>
+  )
+}
+
 export default function ApplicationDetail() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
 
   const {
     data,
@@ -82,6 +94,13 @@ export default function ApplicationDetail() {
 
   if (loading) {
     return (
+      <>
+      <Seo
+        title="Application Details | MIHAS-KATC Admissions"
+        description="View the full details of your MIHAS-KATC admissions application."
+        path={`/student/application/${id}`}
+        noindex
+      />
       <PageShell title="Application Details" subtitle="Loading...">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-skeleton rounded w-1/3"></div>
@@ -92,21 +111,29 @@ export default function ApplicationDetail() {
             </div>
           </div>
       </PageShell>
+      </>
     )
   }
 
   if (error || !application) {
     return (
+      <>
+      <Seo
+        title="Application Details | MIHAS-KATC Admissions"
+        description="View the full details of your MIHAS-KATC admissions application."
+        path={`/student/application/${id}`}
+        noindex
+      />
       <PageShell title="Application Not Found">
-          <div className="text-center py-8 sm:py-16">
-            <XCircle className="h-16 w-16 text-error mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-foreground mb-2">Application Not Found</h2>
-            <p className="text-foreground mb-6">{error || 'The application you are looking for does not exist.'}</p>
-            <Link to="/student/dashboard">
-              <Button>Return to Dashboard</Button>
-            </Link>
-          </div>
+          <ErrorDisplay
+            variant="section"
+            title="Application Not Found"
+            message={error || 'The application you are looking for does not exist.'}
+            onGoBack={() => navigate('/student/dashboard')}
+            className="max-w-2xl"
+          />
       </PageShell>
+      </>
     )
   }
 
@@ -122,15 +149,27 @@ export default function ApplicationDetail() {
           : 'text-muted-foreground'
 
   return (
+    <>
+      <Seo
+        title="Application Details | MIHAS-KATC Admissions"
+        description="View the full details of your MIHAS-KATC admissions application."
+        path={`/student/application/${id}`}
+        noindex
+      />
     <PageShell
       title="Application Details"
       subtitle={`#${application.application_number}`}
       actions={
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-3">
           {getStatusIcon(application.status)}
           <span className={`px-4 py-2 rounded-full text-sm font-bold ${getStatusColor(application.status)}`}>
             {application.status?.replace('_', ' ').toUpperCase() || 'PENDING'}
           </span>
+          <Button asChild variant="outline" size="sm">
+            <Link to={`/student/application/${application.id}/status`}>
+              View Status
+            </Link>
+          </Button>
         </div>
       }
     >
@@ -181,33 +220,36 @@ export default function ApplicationDetail() {
               <User className="h-5 w-5 mr-2 text-primary" />
               Personal Information
             </h3>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-foreground">Full Name</label>
-                <p className="text-foreground font-medium break-words">{application.full_name}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-foreground">Email</label>
-                <p className="text-foreground font-medium flex items-center">
-                  <Mail className="h-4 w-4 mr-2 text-foreground flex-shrink-0" />
-                  <span className="break-all">{application.email}</span>
-                </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-foreground">Phone</label>
-                <p className="text-foreground font-medium flex items-center">
-                  <Phone className="h-4 w-4 mr-2 text-foreground flex-shrink-0" />
-                  <span className="break-all">{application.phone}</span>
-                </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-foreground">Nationality</label>
-                <p className="text-foreground font-medium flex items-center">
-                  <MapPin className="h-4 w-4 mr-2 text-foreground" />
-                  {application.nationality || 'Zambian'}
-                </p>
-              </div>
-            </div>
+            <dl className="space-y-4">
+              <DetailRow label="Full Name" value={application.full_name || 'Not provided'} />
+              <DetailRow
+                label="Email"
+                value={(
+                  <span className="flex items-center">
+                    <Mail className="h-4 w-4 mr-2 text-foreground flex-shrink-0" />
+                    <span className="break-all">{application.email || 'Not provided'}</span>
+                  </span>
+                )}
+              />
+              <DetailRow
+                label="Phone"
+                value={(
+                  <span className="flex items-center">
+                    <Phone className="h-4 w-4 mr-2 text-foreground flex-shrink-0" />
+                    <span className="break-all">{application.phone || 'Not provided'}</span>
+                  </span>
+                )}
+              />
+              <DetailRow
+                label="Nationality"
+                value={(
+                  <span className="flex items-center">
+                    <MapPin className="h-4 w-4 mr-2 text-foreground flex-shrink-0" />
+                    <span>{application.nationality || 'Zambian'}</span>
+                  </span>
+                )}
+              />
+            </dl>
           </div>
 
           {/* Program Information */}
@@ -219,28 +261,24 @@ export default function ApplicationDetail() {
               <GraduationCap className="h-5 w-5 mr-2 text-primary" />
               Program Information
             </h3>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-foreground">Program</label>
-                <p className="text-foreground font-medium break-words">{application.program}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-foreground">Institution</label>
-                <p className="text-foreground font-medium break-words">
-                  {application.institution === 'KATC' ? 'Kalulushi Training Centre' : 
-                   application.institution === 'MIHAS' ? 'Mukuba Institute of Health and Allied Sciences' : 
-                   application.institution}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-foreground">Intake</label>
-                <p className="text-foreground font-medium break-words">{application.intake}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-foreground">Application Fee</label>
-                <p className="text-foreground font-medium">ZMW {application.application_fee}</p>
-              </div>
-            </div>
+            <dl className="space-y-4">
+              <DetailRow label="Program" value={application.program || 'Not provided'} />
+              <DetailRow
+                label="Institution"
+                value={
+                  application.institution === 'KATC'
+                    ? 'Kalulushi Training Centre'
+                    : application.institution === 'MIHAS'
+                      ? 'Mukuba Institute of Health and Allied Sciences'
+                      : application.institution || 'Not provided'
+                }
+              />
+              <DetailRow label="Intake" value={application.intake || 'Not provided'} />
+              <DetailRow
+                label="Application Fee"
+                value={application.application_fee != null ? `ZMW ${application.application_fee}` : 'Resolved at payment step'}
+              />
+            </dl>
           </div>
 
           {/* Application Timeline */}
@@ -301,26 +339,22 @@ export default function ApplicationDetail() {
               <CreditCard className="h-5 w-5 mr-2 text-primary" />
               Payment Status
             </h3>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-foreground">Payment Status</label>
-                <p className={`font-medium ${paymentStatusColor}`}>
-                  {paymentStatusLabel}
-                </p>
-              </div>
+            <dl className="space-y-4">
+              <DetailRow
+                label="Payment Status"
+                value={<span className={paymentStatusColor}>{paymentStatusLabel}</span>}
+              />
               {application.payment_verified_at && (
-                <div>
-                  <label className="text-sm font-medium text-foreground">Verified Date</label>
-                  <p className="text-foreground font-medium">{formatDate(application.payment_verified_at)}</p>
-                </div>
+                <DetailRow label="Verified Date" value={formatDate(application.payment_verified_at)} />
               )}
-              <div>
-                <label className="text-sm font-medium text-foreground">Tracking Code</label>
-                <p className="text-foreground font-medium font-mono break-all">{application.public_tracking_code}</p>
-              </div>
-            </div>
+              <DetailRow
+                label="Tracking Code"
+                value={<span className="font-mono break-all">{application.public_tracking_code || 'Not available'}</span>}
+              />
+            </dl>
           </div>
         </div>
     </PageShell>
+    </>
   )
 }

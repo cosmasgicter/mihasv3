@@ -4,8 +4,8 @@
  * Manages application drafts via API client and localStorage.
  */
 import { applicationService } from '@/services/applications'
-import { apiClient } from '@/services/client'
 import { ApplicationFormData } from '@/forms/applicationSchema'
+import { removeDraftStorageEntries } from './draftStorageKeys'
 import { sanitizeForLog, safeJsonParse } from './sanitize'
 import { generateSecureToken } from './security'
 
@@ -70,6 +70,43 @@ class ApplicationSessionManager {
     }
 
     return draft
+  }
+
+  private async resolveDraftApplicationId(userId: string): Promise<string | null> {
+    const wizardDraft = this.getStoredWizardDraft()
+    const wizardDraftId =
+      typeof wizardDraft?.applicationId === 'string'
+        ? wizardDraft.applicationId
+        : typeof wizardDraft?.application_id === 'string'
+          ? wizardDraft.application_id
+          : null
+
+    if (wizardDraftId) {
+      return wizardDraftId
+    }
+
+    const savedDraft = safeJsonParse<Record<string, any> | null>(
+      localStorage.getItem('applicationDraft') ?? '',
+      null,
+    )
+    const savedDraftId =
+      typeof savedDraft?.applicationId === 'string'
+        ? savedDraft.applicationId
+        : typeof savedDraft?.application_id === 'string'
+          ? savedDraft.application_id
+          : null
+
+    if (savedDraftId) {
+      return savedDraftId
+    }
+
+    try {
+      const result = await applicationService.list({ mine: true, status: 'draft', pageSize: 1 })
+      const applications = result?.applications ?? []
+      return applications[0]?.id ?? null
+    } catch {
+      return null
+    }
   }
 
   private shouldDiscardLocalDraft(error: unknown): boolean {
@@ -184,7 +221,9 @@ class ApplicationSessionManager {
     selectedSubjects: any[] = []
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      const draftApplicationId = await this.resolveDraftApplicationId(userId)
       const draft = {
+        application_id: draftApplicationId,
         user_id: userId,
         form_data: formData,
         current_step: currentStep,
@@ -203,14 +242,16 @@ class ApplicationSessionManager {
       }
 
       // Try to save to database via API
-      try {
-        await applicationService.update(userId, {
-          ...formData,
-          uploaded_files: uploadedFiles,
-          selected_subjects: selectedSubjects,
-          step_completed: currentStep
-        } as any)
-      } catch (dbError) {
+      if (draftApplicationId) {
+        try {
+          await applicationService.update(draftApplicationId, {
+            ...formData,
+            uploaded_files: uploadedFiles,
+            selected_subjects: selectedSubjects,
+            step_completed: currentStep
+          } as any)
+        } catch (dbError) {
+        }
       }
 
       return { success: true }
@@ -234,8 +275,19 @@ class ApplicationSessionManager {
         draft.last_saved_at = new Date().toISOString()
         localStorage.setItem('applicationDraft', JSON.stringify(draft))
         
-        // Also update database via API
-        await applicationService.update(draft.user_id, { 
+        const draftApplicationId =
+          typeof draft.application_id === 'string'
+            ? draft.application_id
+            : typeof draft.applicationId === 'string'
+              ? draft.applicationId
+              : await this.resolveDraftApplicationId(String(draft.user_id))
+
+        if (!draftApplicationId) {
+          return
+        }
+
+        // Also update the real draft application via API when one exists.
+        await applicationService.update(draftApplicationId, {
           updated_at: new Date().toISOString()
         } as any)
       }
@@ -308,7 +360,15 @@ class ApplicationSessionManager {
           .filter((id): id is string => typeof id === 'string' && id.length > 0)
 
         if (draftIds.length > 0) {
-          await Promise.allSettled(draftIds.map(id => applicationService.delete(id)))
+          const deleteResults = await Promise.allSettled(draftIds.map(id => applicationService.delete(id)))
+          const failedDeletes = deleteResults.filter(result => result.status === 'rejected')
+
+          if (failedDeletes.length > 0) {
+            return {
+              success: false,
+              error: `Failed to delete ${failedDeletes.length} draft${failedDeletes.length > 1 ? 's' : ''} from the server`
+            }
+          }
         }
       } catch (cleanupError) {
       }
@@ -336,14 +396,9 @@ class ApplicationSessionManager {
         sessionStorage.removeItem(key)
       })
       
-      // Clear any keys containing draft-related terms
       const storages = [localStorage, sessionStorage]
       storages.forEach(storage => {
-        Object.keys(storage).forEach(key => {
-          if (key.includes('draft') || key.includes('wizard') || key.includes('application')) {
-            storage.removeItem(key)
-          }
-        })
+        removeDraftStorageEntries(storage)
       })
     } catch (error) {
     }

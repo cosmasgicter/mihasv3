@@ -227,6 +227,15 @@ export const applicationService = {
     return { success: true }
   },
 
+  /** POST /applications/{id}/submit/ — student self-service submission */
+  submit: async (id: string) => {
+    const response = await apiClient.request<unknown>(`/applications/${encodeURIComponent(id)}/submit/`, {
+      method: 'POST',
+    })
+
+    return normalizeApplicationRecord(response)
+  },
+
   /** PATCH /applications/{id}/review/ — update application status */
   updateStatus: async (id: string, status: Application['status'], notes?: string, force?: boolean) => {
     const encodedId = encodeURIComponent(id)

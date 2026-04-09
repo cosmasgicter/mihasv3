@@ -11,6 +11,7 @@ import { Container } from '@/components/ui/Container'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { PageShell } from '@/components/ui/PageShell'
+import { Seo } from '@/components/seo/Seo'
 import { UserStats } from '@/components/admin/UserStats'
 import { BulkUserOperations } from '@/components/admin/BulkUserOperations'
 import { formatDate } from '@/lib/dateFormat'
@@ -360,6 +361,13 @@ export default function AdminUsers() {
   }, [])
 
   return (
+    <>
+      <Seo
+        title="User Management | MIHAS-KATC Admissions"
+        description="Create accounts, manage roles, permissions, and review user activity."
+        path="/admin/users"
+        noindex
+      />
     <PageShell
       title="User Management"
       subtitle="Create accounts, adjust operational roles, manage effective permissions, and review account activity."
@@ -888,5 +896,6 @@ export default function AdminUsers() {
         />
       </div>
     </PageShell>
+    </>
   )
 }

@@ -126,16 +126,16 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
               setStatusMessage('Payment could not be verified. You can retry.')
             } else {
               setPaymentStatus('pending')
-              setStatusMessage('Payment is being confirmed. You can proceed \u2014 we will update the status automatically.')
+              setStatusMessage('Payment is being confirmed. Stay on this step until the confirmation finishes.')
             }
           } catch {
             setPaymentStatus('pending')
-            setStatusMessage('Payment is being confirmed. You can proceed \u2014 we will update the status automatically.')
+            setStatusMessage('Payment is being confirmed. Stay on this step until the confirmation finishes.')
           }
         },
         onConfirmationPending: () => {
           setPaymentStatus('pending')
-          setStatusMessage('Payment is being confirmed. You can proceed \u2014 we will update the status automatically.')
+          setStatusMessage('Payment is being confirmed. Stay on this step until the confirmation finishes.')
         },
         onClose: () => {
           if (paymentStatus !== 'successful' && paymentStatus !== 'pending') {
@@ -151,7 +151,11 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
     }
   }, [applicationId, openWidget, watch, paymentStatus])
 
-  const canPay = isScriptLoaded && fee != null && !feeLoading && paymentStatus !== 'successful' && paymentStatus !== 'initiating'
+  const canPay =
+    isScriptLoaded &&
+    fee != null &&
+    !feeLoading &&
+    (paymentStatus === 'idle' || paymentStatus === 'failed')
 
   return (
     <SectionCard
@@ -255,7 +259,13 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
           onClick={handlePayNow}
           data-testid="pay-now-button"
         >
-          {paymentStatus === 'initiating' ? 'Preparing payment\u2026' : paymentStatus === 'failed' ? 'Retry payment' : 'Pay now'}
+          {paymentStatus === 'initiating'
+            ? 'Preparing payment\u2026'
+            : paymentStatus === 'pending'
+              ? 'Waiting for confirmation\u2026'
+              : paymentStatus === 'failed'
+                ? 'Retry payment'
+                : 'Pay now'}
         </Button>
       )}
 

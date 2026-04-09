@@ -7,6 +7,7 @@ vi.mock('react-router-dom', () => ({
   Link: ({ children, to, ...rest }: { children: React.ReactNode; to: string }) => (
     <a href={to} {...rest}>{children}</a>
   ),
+  useNavigate: () => vi.fn(),
 }))
 
 vi.mock('@/contexts/AuthContext', () => ({

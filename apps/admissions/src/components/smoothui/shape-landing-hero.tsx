@@ -218,6 +218,8 @@ export function ShapeLandingHero({
                     width={proofPanel.image.width}
                     height={proofPanel.image.height}
                     lazy={false}
+                    fetchPriority="high"
+                    decoding="sync"
                     className="h-[20rem] w-full object-cover sm:h-[24rem]"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/15 to-transparent" />

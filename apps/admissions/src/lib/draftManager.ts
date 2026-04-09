@@ -1,5 +1,6 @@
 import { applicationSessionManager } from './applicationSession'
-import { sanitizeForLog, safeJsonParse } from './sanitize'
+import { isDraftStorageKey, KNOWN_DRAFT_STORAGE_KEYS, removeDraftStorageEntries } from './draftStorageKeys'
+import { sanitizeForLog } from './sanitize'
 
 export class DraftManager {
   private static instance: DraftManager
@@ -74,7 +75,7 @@ export class DraftManager {
 
   // Helper to check if key is draft-related
   private isDraftKey(key: string): boolean {
-    return key.includes('draft') || key.includes('wizard') || key.includes('application')
+    return isDraftStorageKey(key)
   }
 
   // Helper to get draft keys from storage with caching
@@ -136,16 +137,7 @@ export const draftManager = DraftManager.getInstance()
 
 // ─── Standalone Draft Cleanup Functions (merged from src/lib/draftCleanup.ts) ───
 
-const DRAFT_KEYS = [
-  'applicationDraft',
-  'applicationWizardDraft',
-  'applicationDraftOffline',
-  'draftFormData',
-  'wizardFormData',
-  'applicationFormData',
-  'wizardState',
-  'applicationState',
-] as const;
+const DRAFT_KEYS = KNOWN_DRAFT_STORAGE_KEYS.filter((key) => key !== 'draftDeleted') as readonly string[];
 
 /**
  * Clear all draft data from localStorage and sessionStorage.
@@ -158,12 +150,9 @@ export const clearAllDraftData = (): boolean => {
       try { sessionStorage.removeItem(key); } catch {}
     });
 
-    // Clear any other keys that might contain draft data
     [localStorage, sessionStorage].forEach(storage => {
       try {
-        Object.keys(storage)
-          .filter(key => key.includes('draft') || key.includes('wizard') || key.includes('application') || key.includes('form') || key.includes('step'))
-          .forEach(key => { try { storage.removeItem(key); } catch {} });
+        removeDraftStorageEntries(storage)
       } catch {}
     });
 
@@ -192,7 +181,7 @@ export const hasDraftData = (): boolean => {
     }
     for (const storage of [localStorage, sessionStorage]) {
       for (const key of Object.keys(storage)) {
-        if (key.includes('draft') || key.includes('wizard') || key.includes('application')) return true;
+        if (isDraftStorageKey(key)) return true;
       }
     }
     return false;

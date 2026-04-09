@@ -21,8 +21,6 @@ export interface ApplicationFilters {
 }
 
 export interface ApplicationCreateData {
-  application_number: string
-  public_tracking_code: string
   full_name: string
   nrc_number?: string | null
   passport_number?: string | null
@@ -38,7 +36,6 @@ export interface ApplicationCreateData {
   program: string
   intake: string
   institution: string
-  status: string
 }
 
 export interface ApplicationUpdateData {
@@ -245,6 +242,37 @@ export const applicationsData = {
         })
         // Dispatch custom event for dashboard refresh
         window.dispatchEvent(new CustomEvent('applicationUpdated'))
+      }
+    })
+  },
+
+  useSubmit: () => {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+      mutationFn: (id: string) => applicationService.submit(id),
+      onSuccess: async (_, id) => {
+        await queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.applicationDetail(id),
+          refetchType: 'all'
+        })
+        await queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.applications,
+          refetchType: 'all'
+        })
+        await queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.applicationStats,
+          refetchType: 'all'
+        })
+        await queryClient.invalidateQueries({
+          queryKey: ['payment-status'],
+          refetchType: 'all'
+        })
+        await queryClient.invalidateQueries({
+          queryKey: ['student-dashboard'],
+          refetchType: 'all'
+        })
+        window.dispatchEvent(new CustomEvent('applicationSubmitted'))
       }
     })
   },

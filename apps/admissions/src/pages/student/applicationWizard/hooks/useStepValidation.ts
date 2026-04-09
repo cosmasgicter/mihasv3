@@ -9,6 +9,11 @@ export interface StepValidation {
   missingFields: string[]
 }
 
+interface StepValidationOptions {
+  paymentStatus?: 'pending' | 'successful' | 'failed' | null
+  confirmSubmission?: boolean
+}
+
 const isFieldComplete = (value: unknown): boolean => {
   try {
     return value != null && String(value).trim() !== ''
@@ -19,8 +24,10 @@ const isFieldComplete = (value: unknown): boolean => {
 
 export const useStepValidation = (
   form: UseFormReturn<ApplicationFormData>,
-  currentStep: number
+  currentStep: number,
+  options: StepValidationOptions = {}
 ): StepValidation => {
+  const { paymentStatus = null, confirmSubmission = false } = options
   const values = (() => {
     try {
       return typeof form?.watch === 'function' ? (form.watch() as Partial<ApplicationFormData> ?? {}) : {}
@@ -65,20 +72,29 @@ export const useStepValidation = (
         }
       },
       2: () => {
-        // Payment is handled by the Lenco widget — always valid from the form perspective
+        const paymentComplete = paymentStatus === 'successful'
         return {
-          isValid: true,
-          completedFields: 1,
+          isValid: paymentComplete,
+          completedFields: paymentComplete ? 1 : 0,
           totalFields: 1,
-          missingFields: []
+          missingFields: paymentComplete ? [] : ['Complete payment confirmation']
         }
       },
       3: () => {
+        const paymentComplete = paymentStatus === 'successful'
+        const confirmationComplete = confirmSubmission
+        const missing: string[] = []
+        if (!paymentComplete) {
+          missing.push('Payment confirmation')
+        }
+        if (!confirmationComplete) {
+          missing.push('Final confirmation checkbox')
+        }
         return {
-          isValid: true,
-          completedFields: 1,
-          totalFields: 1,
-          missingFields: []
+          isValid: paymentComplete && confirmationComplete,
+          completedFields: Number(paymentComplete) + Number(confirmationComplete),
+          totalFields: 2,
+          missingFields: missing
         }
       }
     }
@@ -89,5 +105,5 @@ export const useStepValidation = (
       totalFields: 0,
       missingFields: []
     }
-  }, [values, currentStep])
+  }, [values, currentStep, paymentStatus, confirmSubmission])
 }

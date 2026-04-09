@@ -5,9 +5,11 @@ Shared business logic extracted from views to eliminate duplication.
 
 import logging
 
+from django.db import transaction
 from django.utils import timezone
 
 from apps.applications.models import Application, ApplicationStatusHistory
+from apps.documents.models import ApplicationDocument, Payment
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +25,15 @@ _STATUS_TRANSITION_UPDATE_FIELDS = [
     "decision_date",
     "updated_at",
 ]
+
+
+class ApplicationSubmissionError(Exception):
+    """Raised when a student-facing submission attempt fails validation."""
+
+    def __init__(self, code: str, message: str):
+        super().__init__(message)
+        self.code = code
+        self.message = message
 
 
 def transition_application_status(
@@ -79,3 +90,66 @@ def transition_application_status(
     )
 
     return old_status
+
+
+def _application_has_completed_payment(application_id) -> bool:
+    return Payment.objects.filter(application_id=application_id, status="successful").exists()
+
+
+def _application_has_identity_document(application_id) -> bool:
+    return ApplicationDocument.objects.filter(
+        application_id=application_id,
+        document_type__in=["nrc", "passport"],
+    ).exists()
+
+
+def submit_application(
+    *,
+    application: Application,
+    changed_by: str,
+    notes: str = "",
+    ip_address: str = "",
+    user_agent: str = "",
+) -> tuple[Application, str]:
+    """Submit an application after enforcing payment/document/state checks."""
+
+    has_payment = (
+        application.payment_status in ("verified", "paid")
+        or _application_has_completed_payment(application.id)
+    )
+    if not has_payment:
+        raise ApplicationSubmissionError(
+            "PAYMENT_REQUIRED",
+            "Payment must be completed before submitting the application.",
+        )
+
+    has_identity_document = _application_has_identity_document(application.id)
+    if not has_identity_document:
+        raise ApplicationSubmissionError(
+            "IDENTITY_DOCUMENT_REQUIRED",
+            "An NRC or Passport document must be uploaded before submission.",
+        )
+
+    with transaction.atomic():
+        locked_app = Application.objects.select_for_update().get(id=application.id)
+        if locked_app.status != "draft":
+            raise ApplicationSubmissionError(
+                "ALREADY_SUBMITTED",
+                "This application has already been submitted.",
+            )
+
+        old_status = transition_application_status(
+            application=locked_app,
+            new_status="submitted",
+            changed_by=changed_by,
+            notes=notes,
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
+
+        now = timezone.now()
+        locked_app.submitted_at = locked_app.submitted_at or now
+        locked_app.updated_at = now
+        locked_app.save(update_fields=["submitted_at", "updated_at"])
+
+    return locked_app, old_status

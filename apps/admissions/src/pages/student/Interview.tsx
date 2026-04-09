@@ -7,9 +7,10 @@
  * @requirements 3.1, 3.2, 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 6.2, 6.3, 6.4
  */
 
-import { useEffect, useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallback, useEffect, useState, useMemo } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { formatDate, formatTimestamp } from '@/lib/dateFormat'
+import { Seo } from '@/components/seo/Seo'
 import { 
   Calendar, 
   Clock, 
@@ -17,18 +18,18 @@ import {
   Video, 
   Phone, 
   Users,
-  AlertCircle,
   ArrowLeft,
   ExternalLink,
   CheckCircle,
   XCircle,
   RefreshCw
 } from 'lucide-react'
-import { Container } from '@/components/ui/Container'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
 import { PageShell } from '@/components/ui/PageShell'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { Skeleton } from '@/components/ui/skeleton'
 import { interviewsService } from '@/services/interviews'
 import { useAuth } from '@/contexts/AuthContext'
@@ -129,9 +130,11 @@ function getStatusDisplay(status: Interview['status']): {
  * Extracts meeting link from notes field if present
  * @requirements 4.3 - Show Join Meeting button if meeting link exists
  */
-function extractMeetingLink(notes: string | null): string | null {
-  if (!notes) return null
-  
+function extractMeetingLink(...sources: Array<string | null | undefined>): string | null {
+  const text = sources.filter(Boolean).join(' ')
+
+  if (!text) return null
+
   // Common patterns for meeting links
   const urlPatterns = [
     /https?:\/\/[^\s]+zoom[^\s]*/i,
@@ -142,7 +145,7 @@ function extractMeetingLink(notes: string | null): string | null {
   ]
   
   for (const pattern of urlPatterns) {
-    const match = notes.match(pattern)
+    const match = text.match(pattern)
     if (match) return match[0]
   }
   
@@ -162,52 +165,57 @@ function formatDateTime(dateString: string): { date: string; time: string } {
 
 export default function InterviewPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [state, setState] = useState<InterviewPageState>({
     loading: true,
     error: null,
     interviews: []
   })
 
-  useEffect(() => {
-    async function fetchInterviews() {
-      if (!user?.id) {
-        setState(prev => ({ ...prev, loading: false }))
-        return
-      }
-
-      try {
-        setState(prev => ({ ...prev, error: null }))
-        
-        // @requirements 3.2 - Query application_interviews for the student's applications
-        // Uses interviewsService which auto-unwraps the API envelope
-        const data = await interviewsService.list()
-
-        // Transform data to match Interview interface
-        const interviews: Interview[] = (data?.interviews || []).map((item) => ({
-          id: item.id,
-          scheduled_at: item.scheduled_at,
-          mode: item.mode,
-          location: item.location,
-          status: item.status,
-          notes: item.notes,
-          application_id: item.application_id,
-          program_name: item.program || null
-        }))
-
-        setState(prev => ({ ...prev, interviews, loading: false }))
-      } catch (err) {
-        console.error('Error fetching interviews:', err)
-        // @requirements 6.2 - Display error message on failure
-        setState(prev => ({
-          ...prev,
-          error: 'Failed to load interview information. Please try again.',
-          loading: false
-        }))
-      }
+  const loadInterviews = useCallback(async () => {
+    if (!user?.id) {
+      setState(prev => ({ ...prev, loading: false }))
+      return
     }
 
-    fetchInterviews()
+    setState(prev => ({ ...prev, loading: true, error: null }))
+
+    try {
+      // @requirements 3.2 - Query application_interviews for the student's applications
+      // Uses interviewsService which auto-unwraps the API envelope
+      const data = await interviewsService.list()
+
+      // Transform data to match Interview interface
+      const interviews: Interview[] = (data?.interviews || []).map((item) => ({
+        id: item.id,
+        scheduled_at: item.scheduled_at,
+        mode: item.mode,
+        location: item.location,
+        status: item.status,
+        notes: item.notes,
+        application_id: item.application_id,
+        program_name: item.program || null
+      }))
+
+      setState({
+        interviews,
+        loading: false,
+        error: null,
+      })
+    } catch (err) {
+      console.error('Error fetching interviews:', err)
+      // @requirements 6.2 - Display error message on failure
+      setState(prev => ({
+        ...prev,
+        error: 'Failed to load interview information. Please try again.',
+        loading: false
+      }))
+    }
   }, [user?.id])
+
+  useEffect(() => {
+    void loadInterviews()
+  }, [loadInterviews])
 
   // @requirements 4.6 - Separate upcoming interviews from past interviews
   const { upcomingInterviews, pastInterviews } = useMemo(() => {
@@ -234,6 +242,13 @@ export default function InterviewPage() {
   // @requirements 6.3 - Display loading spinner
   if (state.loading) {
     return (
+      <>
+      <Seo
+        title="My Interview | MIHAS-KATC Admissions"
+        description="View your scheduled interviews and prepare for your MIHAS-KATC admission process."
+        path="/student/interviews"
+        noindex
+      />
       <PageShell title="Interview Schedule" subtitle="Loading interview information...">
         <div className="space-y-6" role="status" aria-label="Loading interview information">
           <div className="rounded-xl border border-primary/20 bg-card p-6">
@@ -261,10 +276,18 @@ export default function InterviewPage() {
           </div>
         </div>
       </PageShell>
+      </>
     )
   }
 
   return (
+    <>
+      <Seo
+        title="My Interview | MIHAS-KATC Admissions"
+        description="View your scheduled interviews and prepare for your MIHAS-KATC admission process."
+        path="/student/interviews"
+        noindex
+      />
     <PageShell
       title="Interview Schedule"
       subtitle="View your scheduled interviews and prepare for your admission process."
@@ -283,14 +306,13 @@ export default function InterviewPage() {
         {/* Error Display */}
         {/* @requirements 6.2 - Display error message on failure */}
         {state.error && (
-          <Card className="mb-6 border-destructive/50 bg-destructive/5">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3 text-destructive">
-                <AlertCircle className="h-5 w-5 flex-shrink-0" />
-                <p>{state.error}</p>
-              </div>
-            </CardContent>
-          </Card>
+          <ErrorDisplay
+            variant="section"
+            title="Unable to load interview information"
+            message={state.error}
+            onRetry={() => void loadInterviews()}
+            className="mb-6"
+          />
         )}
 
         <div className="grid gap-6">
@@ -345,20 +367,16 @@ export default function InterviewPage() {
           {state.interviews.length === 0 && !state.error && (
             <Card className="bg-muted/30">
               <CardContent className="pt-6">
-                <div className="text-center py-8">
-                  <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-foreground mb-2">No Scheduled Interviews</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    You don't have any interviews scheduled yet. Once your application is reviewed,
-                    you'll receive an interview invitation.
-                  </p>
-                  <Link to="/student/dashboard">
-                    <Button variant="outline">
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      Return to Dashboard
-                    </Button>
-                  </Link>
-                </div>
+                <EmptyState
+                  icon={<Calendar className="h-12 w-12" />}
+                  heading="No Scheduled Interviews"
+                  description="You don't have any interviews scheduled yet. Once your application is reviewed, you'll receive an interview invitation."
+                  action={{
+                    label: 'Return to Dashboard',
+                    onClick: () => navigate('/student/dashboard'),
+                    variant: 'outline',
+                  }}
+                />
               </CardContent>
             </Card>
           )}
@@ -381,6 +399,7 @@ export default function InterviewPage() {
           </Card>
         </div>
     </PageShell>
+    </>
   )
 }
 
@@ -392,7 +411,9 @@ export default function InterviewPage() {
 function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpcoming: boolean }) {
   const { date, time } = formatDateTime(interview.scheduled_at)
   const statusDisplay = getStatusDisplay(interview.status)
-  const meetingLink = interview.mode === 'virtual' ? extractMeetingLink(interview.notes) : null
+  const meetingLink = interview.mode === 'virtual'
+    ? extractMeetingLink(interview.location, interview.notes)
+    : null
 
   return (
     <div 
@@ -449,17 +470,20 @@ function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpco
         {/* @requirements 4.3 - Show Join Meeting button for virtual interviews */}
         {isUpcoming && interview.mode === 'virtual' && meetingLink && (
           <div className="flex-shrink-0">
-            <a 
-              href={meetingLink} 
-              target="_blank" 
-              rel="noopener noreferrer"
+            <Button
+              asChild
+              className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
             >
-              <Button className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90">
+              <a
+                href={meetingLink}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Video className="h-4 w-4 mr-2" />
                 Join Meeting
                 <ExternalLink className="h-3.5 w-3.5 ml-2" />
-              </Button>
-            </a>
+              </a>
+            </Button>
           </div>
         )}
       </div>

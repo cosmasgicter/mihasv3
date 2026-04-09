@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/Dialog'
 import { DashboardSkeleton } from '@/components/ui/skeleton'
 import { PageShell } from '@/components/ui/PageShell'
+import { Seo } from '@/components/seo/Seo'
 import { ArrowLeft, DollarSign, Pencil, Plus, Trash2 } from 'lucide-react'
 
 // --- Types ---
@@ -284,6 +285,13 @@ export default function ProgramFees() {
   type FeeWithProgram = ProgramFee & { programName: string }
 
   return (
+    <>
+      <Seo
+        title="Program Fees | MIHAS-KATC Admissions"
+        description="Manage application and tuition fees for each program and residency category."
+        path="/admin/program-fees"
+        noindex
+      />
     <PageShell
       title="Program Fees"
       subtitle="Manage application and tuition fees for each program and residency category."
@@ -637,5 +645,6 @@ export default function ProgramFees() {
         </DialogContent>
       </Dialog>
     </PageShell>
+    </>
   )
 }

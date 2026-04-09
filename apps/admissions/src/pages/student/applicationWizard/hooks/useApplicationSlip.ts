@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { repairLegacyDocumentReference } from '@/lib/applicationSlip'
+import { repairLegacyDocumentReference } from '@/lib/applicationSlipStorage'
 import type { ApplicationSlipData } from '@/lib/applicationSlip'
 import type { SlipServiceOptions, SlipServiceResult } from '@/lib/slipService'
 

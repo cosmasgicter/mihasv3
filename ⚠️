@@ -1,0 +1,209 @@
+apps/admissions/src/components/ui/EnhancedErrorHandling.tsx:94:      'transition-all duration-300 ease-in-out',
+apps/admissions/src/components/ui/EnhancedErrorHandling.tsx:122:                    'rounded-lg transition-all duration-200 ease-in-out',
+apps/admissions/src/components/ui/EnhancedErrorHandling.tsx:158:              'h-full transition-all ease-linear',
+apps/admissions/src/components/ui/input.tsx:47:              'transition-all duration-200',
+apps/admissions/src/components/ui/SaveStatusIndicator.tsx:123:          'flex flex-col gap-3 rounded-xl border px-3 py-2 shadow-sm transition-all duration-200 sm:flex-row sm:items-start sm:justify-between',
+apps/admissions/src/components/ui/SaveStatusIndicator.tsx:248:        className="flex items-center gap-1 transition-all duration-200"
+apps/admissions/src/components/ui/EnhancedFileUpload.tsx:202:          'relative border-2 border-dashed rounded-lg p-6 transition-all duration-200',
+apps/admissions/src/components/ui/AdminNavigation.tsx:97:                    "flex items-center space-x-2 transition-all duration-200",
+apps/admissions/src/components/ui/AdminNavigation.tsx:163:        className="w-full flex items-center justify-between px-4 py-4 rounded-xl transition-all duration-200 min-h-[48px] touch-target bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground shadow-lg hover:shadow-xl"
+apps/admissions/src/components/ui/ProgressIndicator.tsx:48:            'h-full rounded-full transition-all duration-300 ease-out',
+apps/admissions/src/components/ui/ProgressIndicator.tsx:131:          className="text-primary transition-all duration-500 ease-out"
+apps/admissions/src/components/ui/LoadingButton.tsx:31:        'relative overflow-hidden transition-all duration-200',
+apps/admissions/src/components/ui/FileUpload.tsx:211:                className="h-full bg-primary rounded-full transition-all duration-normal ease-out"
+apps/admissions/src/components/ui/AuthenticatedNavigation.tsx:93:                      "flex items-center space-x-2 transition-all duration-200",
+apps/admissions/src/components/ui/AuthenticatedNavigation.tsx:161:      className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground rounded-xl hover:from-destructive/90 hover:to-destructive/70 shadow-lg hover:shadow-xl transition-all duration-200 font-medium min-h-[48px] touch-target logout-button"
+apps/admissions/src/components/ui/PasswordInput.tsx:41:              'transition-all duration-200',
+apps/admissions/src/components/ui/accordion.tsx:29:        "flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180",
+apps/admissions/src/components/ui/accordion.tsx:47:    className="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+apps/admissions/src/components/ui/MobileNavigation.tsx:140:          className="w-full flex items-center justify-center space-x-3 px-4 py-4 bg-destructive text-destructive-foreground rounded-xl hover:bg-destructive/90 shadow-lg hover:shadow-xl transition-all duration-200 font-medium min-h-[48px] touch-target mb-4"
+apps/admissions/src/components/ui/AuthLoadingOverlay.tsx:38:          transition-all duration-300
+apps/admissions/src/components/ui/AuthLoadingOverlay.tsx:47:            transition-all duration-300 delay-100
+apps/admissions/src/components/ui/FancyPreloader.tsx:21:        <h1 className="text-3xl font-bold text-foreground mb-2 relative z-10 animate-slide-up">
+apps/admissions/src/components/ui/tabs.tsx:32:      "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+apps/admissions/src/components/ui/Button.tsx:18:  'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-semibold ring-offset-background transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 touch-manipulation [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+apps/admissions/src/components/ui/HeadingHierarchy.tsx:75:  '2xl': 'text-3xl font-bold',
+apps/admissions/src/components/ui/HeadingHierarchy.tsx:176:        className="text-3xl sm:text-4xl font-bold text-foreground"
+apps/admissions/src/components/ui/ApplicationProgress.tsx:26:          className={`h-2 rounded-full transition-all duration-300 ${
+apps/admissions/src/components/ui/SubjectSelection.tsx:322:      className={`w-full p-4 border-2 border-dashed rounded-lg transition-all duration-200 ${
+apps/admissions/src/components/ui/SubmissionConfirmation.tsx:46:            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2 break-words px-2">
+apps/admissions/src/components/ui/LoadingFallback.tsx:60:            'transition-all duration-300'
+apps/admissions/src/components/ui/progress.tsx:21:      className="h-full w-full flex-1 bg-primary transition-all"
+apps/admissions/src/components/ui/Toast.tsx:294:        'transition-all duration-200 ease-out',
+apps/admissions/src/components/ui/FormFeedback.tsx:192:        'transition-all duration-100',
+apps/admissions/src/components/application/StepNavigation.tsx:24:          className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-500 ease-out"
+apps/admissions/src/components/application/StepNavigation.tsx:37:              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
+apps/admissions/src/components/application/SimpleFileUpload.tsx:281:              'border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 min-h-[48px] touch-target',
+apps/admissions/src/components/application/SimpleFileUpload.tsx:397:              <div key={fileId} className={`rounded-lg p-4 border transition-all duration-300 ${
+apps/admissions/src/components/application/SimpleFileUpload.tsx:419:                    className={`h-2 rounded-full transition-all duration-500 ${
+apps/admissions/src/components/application/SimpleFileUpload.tsx:446:                className="bg-gradient-to-r from-green-50 to-emerald-50 border border-accent/30 rounded-lg transition-all duration-200 hover:shadow-md group animate-fade-in"
+apps/admissions/src/components/admin/CommunicationModal.tsx:248:                      'flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all',
+apps/admissions/src/components/admin/OfflineAdminDashboard.tsx:72:                  <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 break-words">
+apps/admissions/src/components/admin/OfflineAdminDashboard.tsx:90:                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold break-words">{stats.totalApplications}</div>
+apps/admissions/src/components/admin/OfflineAdminDashboard.tsx:104:            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border"
+apps/admissions/src/components/admin/OfflineAdminDashboard.tsx:120:            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border"
+apps/admissions/src/components/admin/OfflineAdminDashboard.tsx:139:            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border"
+apps/admissions/src/components/admin/OfflineAdminDashboard.tsx:155:            className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border"
+apps/admissions/src/components/admin/OfflineAdminDashboard.tsx:175:            <div className="bg-card rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border hover:border-primary/20">
+apps/admissions/src/components/admin/OfflineAdminDashboard.tsx:189:            <div className="bg-card rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border hover:border-primary/20">
+apps/admissions/src/components/admin/OfflineAdminDashboard.tsx:203:            <div className="bg-card rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-border hover:border-primary/20">
+apps/admissions/src/components/admin/AdminSearchBar.tsx:131:          className="w-full pl-10 pr-4 py-2 bg-card border border-input rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all duration-200"
+apps/admissions/src/components/admin/EnhancedApplicationsManager.tsx:340:              className={`bg-card rounded-xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl animate-fade-in ${
+apps/admissions/src/components/admin/RealtimeMetricsDisplay.tsx:113:        'transition-all duration-300 ease-out motion-reduce:transition-none',
+apps/admissions/src/components/admin/RealtimeMetricsDisplay.tsx:202:          "transition-all duration-300 border border-border relative overflow-hidden",
+apps/admissions/src/components/admin/RealtimeMetricsDisplay.tsx:218:              <div className={cn("font-bold text-foreground", compact ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl")}>
+apps/admissions/src/components/admin/QuickActionsPanel.tsx:90:                      className={`w-full h-24 flex flex-col items-center justify-center space-y-2 bg-gradient-to-r ${action.color} hover:shadow-xl transition-all duration-300 relative overflow-hidden`}
+apps/admissions/src/components/admin/QuickActionsPanel.tsx:133:                    className="w-full justify-start h-12 border-2 hover:border-primary hover:bg-primary/5 transition-all duration-300"
+apps/admissions/src/components/admin/QuickActionsPanel.tsx:153:              className="w-full justify-start h-12 border-2 hover:border-accent hover:bg-accent/5 transition-all duration-300"
+apps/admissions/src/components/admin/AnalyticsCharts.tsx:188: className={`h-2 rounded-full ${item.color} transition-all duration-700 ease-out`}
+apps/admissions/src/components/admin/AnalyticsCharts.tsx:280: className="bg-gradient-to-t from-blue-600 to-purple-600 rounded-lg mx-auto transition-all duration-500 ease-out"
+apps/admissions/src/components/admin/UserStats.tsx:105:              <p className="text-2xl sm:text-3xl font-bold break-words">{stats.total}</p>
+apps/admissions/src/components/admin/UserStats.tsx:115:              <p className="text-2xl sm:text-3xl font-bold break-words">{Object.keys(stats.byRole).length}</p>
+apps/admissions/src/components/admin/UserStats.tsx:125:              <p className="text-2xl sm:text-3xl font-bold break-words">
+apps/admissions/src/components/admin/applications/ApplicationsCards.tsx:76:                className={`relative overflow-hidden rounded-xl shadow-lg transition-all duration-300 card-mobile ${
+apps/admissions/src/components/admin/applications/ApplicationsMetrics.tsx:26:      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-blue-500 to-blue-600 text-white col-span-2 sm:col-span-1">
+apps/admissions/src/components/admin/applications/ApplicationsMetrics.tsx:31:            <p className="text-xl sm:text-3xl font-bold">{stats.total}</p>
+apps/admissions/src/components/admin/applications/ApplicationsMetrics.tsx:38:      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-muted-foreground to-foreground text-white">
+apps/admissions/src/components/admin/applications/ApplicationsMetrics.tsx:43:            <p className="text-xl sm:text-3xl font-bold">{stats.draft}</p>
+apps/admissions/src/components/admin/applications/ApplicationsMetrics.tsx:50:      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-yellow-500 to-orange-500 text-white">
+apps/admissions/src/components/admin/applications/ApplicationsMetrics.tsx:55:            <p className="text-xl sm:text-3xl font-bold">{stats.submitted}</p>
+apps/admissions/src/components/admin/applications/ApplicationsMetrics.tsx:62:      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-purple-500 to-indigo-500 text-white">
+apps/admissions/src/components/admin/applications/ApplicationsMetrics.tsx:67:            <p className="text-xl sm:text-3xl font-bold">{stats.under_review}</p>
+apps/admissions/src/components/admin/applications/ApplicationsMetrics.tsx:74:      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-green-500 to-emerald-500 text-white">
+apps/admissions/src/components/admin/applications/ApplicationsMetrics.tsx:79:            <p className="text-xl sm:text-3xl font-bold">{stats.approved}</p>
+apps/admissions/src/components/admin/applications/ApplicationsMetrics.tsx:86:      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-red-500 to-pink-500 text-white">
+apps/admissions/src/components/admin/applications/ApplicationsMetrics.tsx:91:            <p className="text-xl sm:text-3xl font-bold">{stats.rejected}</p>
+apps/admissions/src/components/admin/applications/AdminMetrics.tsx:79:          <p className="text-2xl sm:text-3xl font-bold text-foreground">{value}</p>
+apps/admissions/src/components/admin/applications/ApplicationCard.tsx:182:    <div className={`relative bg-card rounded-xl border p-4 sm:p-6 hover:shadow-lg transition-all duration-200 group ${
+apps/admissions/src/components/admin/applications/ApplicationCard.tsx:237:                className="bg-yellow-600 h-2 rounded-full transition-all duration-300"
+apps/admissions/src/components/admin/applications/ApplicationCard.tsx:345:          className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm py-2.5 px-4 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium flex items-center justify-center gap-2 group-hover:shadow-md"
+apps/admissions/src/components/admin/applications/ApplicationCard.tsx:355:            className="bg-secondary hover:bg-secondary/90 text-white text-sm py-2.5 px-4 rounded-lg transition-all duration-200 font-medium flex items-center justify-center gap-2"
+apps/admissions/src/components/navigation/MobileBottomNav.tsx:77:            "h-5 w-5 transition-all duration-300",
+apps/admissions/src/components/navigation/MobileBottomNav.tsx:84:          "mt-1 text-xs transition-all duration-300 truncate max-w-[60px]",
+apps/admissions/src/components/navigation/MobileBottomNav.tsx:112:            <MoreHorizontal className="h-5 w-5 text-foreground group-hover:text-primary transition-all duration-300" />
+apps/admissions/src/components/navigation/MobileBottomNav.tsx:113:            <span className="text-xs mt-1 text-foreground group-hover:text-primary transition-all duration-300">More</span>
+apps/admissions/tests/property/ui-ux-performance-overhaul/uiPrimitives.property.test.ts:360:    // Button should have transition-all or transition-colors for hover effects
+apps/admissions/tests/property/ui-ux-performance-overhaul/uiPrimitives.property.test.ts:362:      buttonSource!.includes('transition-all') ||
+apps/admissions/tests/property/ui-ux-performance-overhaul/uiPrimitives.property.test.ts:367:      'Button must include transition-all or transition-colors for hover micro-interaction'
+apps/admissions/src/components/navigation/DesktopSidebar.tsx:96:      className="hidden md:flex flex-col fixed left-0 top-0 h-screen bg-gradient-to-b from-card via-card to-muted/70 backdrop-blur-xl border-r border-border/80 shadow-xl z-40 transition-all duration-300 ease-in-out"
+apps/admissions/src/components/navigation/DesktopSidebar.tsx:101:        'border-b border-border/80 py-4 transition-all duration-300',
+apps/admissions/src/components/navigation/DesktopSidebar.tsx:105:          'flex items-center rounded-2xl bg-white/70 shadow-sm ring-1 ring-border/60 transition-all duration-300',
+apps/admissions/src/components/navigation/DesktopSidebar.tsx:124:          'flex transition-all duration-300',
+apps/admissions/src/components/navigation/DesktopSidebar.tsx:261:            'overflow-hidden transition-all duration-200 ease-out motion-reduce:transition-none',
+apps/admissions/src/components/navigation/DesktopSidebar.tsx:300:        'transition-all duration-200',
+apps/admissions/src/components/navigation/AppLayout.tsx:219:          className="pb-20 md:pb-6 pt-14 md:pt-0 min-h-screen overflow-x-hidden transition-all duration-300 ease-in-out"
+apps/admissions/src/components/navigation/BaseNavigation.tsx:84:            className="lg:hidden p-3 rounded-xl bg-card hover:bg-muted transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[48px] min-w-[48px] touch-target border-2 border-border shadow-lg active:scale-95 motion-reduce:transform-none"
+apps/admissions/src/components/navigation/BaseNavigation.tsx:151:                            "w-full flex items-center justify-between px-4 py-4 rounded-xl transition-all duration-200 min-h-[48px] touch-target",
+apps/admissions/src/components/notifications/PushNotificationSettings.tsx:303:            className="space-y-4 border-t pt-4 transition-all duration-300 ease-out motion-reduce:transition-none animate-fade-in"
+apps/admissions/src/components/notifications/PushNotificationSettings.tsx:374:                  className="flex items-center gap-4 pl-6 transition-all duration-200 ease-out motion-reduce:transition-none animate-fade-in"
+apps/admissions/src/components/8starlabs/partition-bar.tsx:76:              'h-full transition-all duration-500 ease-out motion-reduce:transition-none',
+apps/admissions/src/components/8starlabs/partition-bar.tsx:147:            animate && 'transition-all duration-500 ease-out motion-reduce:transition-none',
+apps/admissions/src/components/auth/AuthLayout.tsx:253:                <p className="text-3xl font-bold text-white">{stat.value}</p>
+apps/admissions/src/components/auth/AuthLayout.tsx:322:              <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+apps/admissions/src/components/student/NotificationItem.tsx:68:      className={`${animateClasses.fadeIn} opacity-0 group p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md ${getBgColor(notification.type, notification.read)} ${
+apps/admissions/src/components/student/DashboardStatusOverview.tsx:93:      'rounded-xl border border-border/50 p-4 transition-all duration-200',
+apps/admissions/src/components/student/QuickActions.tsx:72:        'flex items-center gap-3 p-3 rounded-xl border transition-all duration-200',
+apps/admissions/src/components/smoothui/scroll-reveal.tsx:75:        'transition-all ease-out motion-reduce:transition-none',
+apps/admissions/src/components/smoothui/scroll-reveal.tsx:154:        'transition-all duration-300 ease-out motion-reduce:transition-none',
+apps/admissions/src/components/smoothui/animated-file-upload.tsx:93:            'relative border-2 border-dashed rounded-lg p-6 transition-all duration-150 ease-out motion-reduce:transition-none',
+apps/admissions/src/components/smoothui/animated-file-upload.tsx:131:                        className="h-full bg-primary rounded-full transition-all duration-300 ease-out"
+apps/admissions/src/components/smoothui/animated-file-upload.tsx:153:                        className="h-full bg-primary rounded-full transition-all duration-300 ease-out"
+apps/admissions/src/components/smoothui/animated-file-upload.tsx:210:            'transition-all duration-150 ease-out overflow-hidden motion-reduce:transition-none',
+apps/admissions/src/components/smoothui/animated-input.tsx:60:              'transition-all duration-200 motion-reduce:transition-none',
+apps/admissions/src/components/smoothui/animated-input.tsx:84:              'transition-all duration-300 ease-out motion-reduce:transition-none',
+apps/admissions/src/components/smoothui/page-transition.tsx:74:        'transition-all ease-out motion-reduce:transition-none',
+apps/admissions/src/components/smoothui/page-transition.tsx:162:        'transition-all duration-300 ease-out motion-reduce:transition-none',
+apps/admissions/src/components/smoothui/page-transition.tsx:186:        'transition-all duration-300 ease-out motion-reduce:transition-none',
+apps/admissions/src/components/smoothui/page-transition.tsx:233:        'transition-all duration-300 ease-out motion-reduce:transition-none',
+apps/admissions/src/components/smoothui/animated-select.tsx:61:              'text-muted-foreground transition-all duration-150 ease-out motion-reduce:transition-none',
+apps/admissions/src/components/smoothui/animated-select.tsx:83:              'text-base ring-offset-background transition-all duration-200',
+apps/admissions/src/components/smoothui/animated-select.tsx:135:              'transition-all duration-300 ease-out motion-reduce:transition-none',
+apps/admissions/src/components/smoothui/animated-select.tsx:147:            'transition-all duration-150 ease-out overflow-hidden motion-reduce:transition-none',
+apps/admissions/src/components/smoothui/shape-landing-hero.tsx:21: * | h1 headline (text-3xl–6xl)     | text-white (1.0)   | #ffffff     | ≥13:1  | ✅ AA |
+apps/admissions/src/components/smoothui/shape-landing-hero.tsx:103:            <h1 className="mx-auto mb-4 max-w-3xl text-3xl font-bold leading-tight sm:mb-6 sm:text-4xl md:text-5xl lg:mx-0 lg:text-6xl">
+apps/admissions/src/components/smoothui/shape-landing-hero.tsx:195:                <p className="text-2xl sm:text-3xl font-bold">92%</p>
+apps/admissions/src/components/smoothui/shape-landing-hero.tsx:199:                <p className="text-2xl sm:text-3xl font-bold">300+</p>
+apps/admissions/src/components/smoothui/shape-landing-hero.tsx:203:                <p className="text-2xl sm:text-3xl font-bold">25+</p>
+apps/admissions/src/components/landing/LandingPageSections.tsx:42:                <div className="mb-2 text-3xl font-bold gradient-text-primary sm:text-4xl md:text-5xl lg:text-6xl">
+apps/admissions/src/components/landing/LandingPageSections.tsx:65:            <h2 className="mb-4 text-2xl font-semibold gradient-text-primary sm:mb-6 sm:text-3xl md:text-4xl lg:text-5xl">
+apps/admissions/src/components/landing/LandingPageSections.tsx:115:            <h2 className="mb-4 px-4 text-xl font-bold gradient-text-primary sm:text-2xl md:text-3xl lg:text-4xl">
+apps/admissions/src/components/landing/LandingPageSections.tsx:165:            <h2 className="mb-6 px-4 text-2xl font-bold gradient-text-primary sm:text-3xl md:text-4xl lg:text-5xl">
+apps/admissions/src/components/landing/LandingPageSections.tsx:240:          <h2 className="mb-6 px-4 text-2xl font-bold sm:text-3xl md:text-4xl lg:text-5xl">
+docs/design-system/01-foundation.md:44:text-3xl:  30px / 36px  - Hero headings
+apps/admissions/src/components/pwa/PWAInstallPrompt.tsx:104:        'transform transition-all duration-200 ease-out',
+apps/admissions/src/lib/animations.ts:16:export const slideUp = 'transition-all duration-300 ease-out transform';
+apps/admissions/src/lib/animations.ts:19:export const scaleIn = 'transition-all duration-200 ease-out transform';
+apps/admissions/src/lib/accessibility-utils.ts:63:  'transition-all duration-150',
+apps/admissions/src/index.css:70:    @apply transition-all duration-200;
+apps/admissions/src/index.css:367:    @apply text-2xl sm:text-3xl lg:text-4xl;
+apps/admissions/src/index.css:371:    @apply text-xl sm:text-2xl lg:text-3xl;
+apps/admissions/src/pages/NotFoundPage.tsx:179:                  <span className="text-3xl font-bold text-destructive">404</span>
+apps/admissions/src/pages/admin/Settings.tsx:604:                    <p className="mt-2 text-3xl font-bold text-foreground">{configuredBlueprintCount}/{SETTING_BLUEPRINTS.length}</p>
+apps/admissions/src/pages/admin/Settings.tsx:609:                    <p className="mt-2 text-3xl font-bold text-foreground">{publicSettingsCount}</p>
+apps/admissions/src/pages/admin/Settings.tsx:614:                    <p className="mt-2 text-3xl font-bold text-foreground">{privateSettingsCount}</p>
+apps/admissions/src/pages/admin/Settings.tsx:619:                    <p className="mt-2 text-3xl font-bold text-foreground">{advancedSettingsCount}</p>
+apps/admissions/src/pages/admin/ProgramFees.tsx:343:                  <CardTitle className="flex items-center gap-2 text-3xl">
+apps/admissions/src/pages/admin/ProgramFees.tsx:358:                  <CardTitle className="flex items-center gap-2 text-3xl">
+apps/admissions/src/pages/admin/AuditTrail.tsx:478:                <p className="mt-2 text-3xl font-bold text-foreground">{response?.totalCount || 0}</p>
+apps/admissions/src/pages/admin/AuditTrail.tsx:490:                <p className="mt-2 text-3xl font-bold text-foreground">{summary?.uniqueActors || 0}</p>
+apps/admissions/src/pages/admin/Programs.tsx:708:                      <CardTitle className="flex items-center gap-2 text-3xl">
+apps/admissions/src/pages/admin/Programs.tsx:723:                      <CardTitle className="flex items-center gap-2 text-3xl">
+apps/admissions/src/pages/admin/Programs.tsx:738:                      <CardTitle className="flex items-center gap-2 text-3xl">
+apps/admissions/src/pages/admin/Dashboard.tsx:363:                <span className="text-2xl sm:text-3xl font-bold">{stats.totalApplications}</span>
+apps/admissions/src/pages/admin/Dashboard.tsx:472:                <div className="text-2xl sm:text-3xl font-bold text-primary">{stats.weekApplications}</div>
+apps/admissions/src/pages/admin/Dashboard.tsx:476:                <div className="text-2xl sm:text-3xl font-bold text-foreground">{stats.avgProcessingTime}</div>
+apps/admissions/src/pages/admin/Dashboard.tsx:481:                <div className="text-2xl sm:text-3xl font-bold text-success">
+apps/admissions/src/pages/admin/Applications.tsx:356:      window.open(doc.url, '_blank', 'noopener,noreferrer')
+apps/admissions/src/pages/public/tracker/components/TrackerSearchSection.tsx:79:              className={`mt-4 rounded-xl bg-error/10 border border-error/30 p-4 transition-all duration-300 ease-out ${
+apps/admissions/src/pages/ContactPage.tsx:74:            <h1 className="text-3xl font-bold sm:text-4xl">Contact Admissions</h1>
+apps/admissions/src/pages/student/NotificationSettings.tsx:305:              <div className="text-3xl">⚠️</div>
+apps/admissions/src/pages/student/NotificationSettings.tsx:316:              <div className="text-3xl">✅</div>
+apps/admissions/src/pages/student/ApplicationStatus.tsx:425:                        onClick={() => window.open(application.result_slip_url as string, '_blank')}
+apps/admissions/src/pages/student/ApplicationStatus.tsx:450:                        onClick={() => window.open(application.extra_kyc_url as string, '_blank')}
+apps/admissions/src/pages/student/applicationWizard/components/EnhancedProgressIndicator.tsx:73:          'text-sm font-semibold border-2 transition-all duration-300 z-10',
+apps/admissions/src/pages/student/applicationWizard/components/EnhancedProgressIndicator.tsx:106:          'transition-all duration-300',
+apps/admissions/src/pages/student/applicationWizard/components/EnhancedProgressIndicator.tsx:170:          'text-sm font-semibold border-2 flex-shrink-0 transition-all duration-300',
+apps/admissions/src/pages/student/applicationWizard/components/EnhancedProgressIndicator.tsx:267:          className="absolute top-[22px] left-0 h-0.5 bg-gradient-to-r from-primary via-success to-primary rounded-full transition-all duration-500 ease-out"
+apps/admissions/src/pages/student/applicationWizard/components/EnhancedProgressIndicator.tsx:344:            className="h-full bg-gradient-to-r from-primary to-success rounded-full transition-all duration-500 ease-out"
+apps/admissions/tests/property/cssAnimationEquivalence.property.test.ts:29:  /transition-/,              // Tailwind transition utilities (transition-all, transition-opacity, etc.)
+apps/admissions/tests/property/cssAnimationEquivalence.property.test.ts:158:    // Note: Tailwind's transition-* utilities (transition-colors, transition-all,
+apps/admissions/src/pages/student/applicationWizard/index.tsx:450:                      className="h-2 bg-gradient-to-r from-primary to-success transition-all duration-500 ease-out"
+apps/admissions/src/hooks/useOptimizedAnimation.ts:139:          return { className: 'transition-all duration-300 ease-out' }
+apps/admissions/src/styles/design-tokens.css:121:  --text-3xl: clamp(1.875rem, 1.6rem + 1.375vw, 2.25rem);
+apps/admissions/src/styles/design-tokens.css:381:    font-size: var(--text-3xl);
+apps/admissions/tests/unit/animations.test.ts:29:    it('should include transition-all and transform classes', () => {
+apps/admissions/tests/unit/animations.test.ts:30:      expect(slideUp).toContain('transition-all');
+apps/admissions/tests/unit/animations.test.ts:41:    it('should include transition-all and transform classes', () => {
+apps/admissions/tests/unit/animations.test.ts:42:      expect(scaleIn).toContain('transition-all');
+apps/admissions/src/styles/interactive-feedback.css:12:    @apply transition-all duration-100;
+apps/admissions/src/styles/interactive-feedback.css:40:    @apply transition-all duration-100;
+apps/admissions/src/styles/interactive-feedback.css:49:    @apply transition-all duration-100 rounded-lg;
+apps/admissions/src/styles/interactive-feedback.css:145:    @apply transition-all duration-100;
+apps/admissions/src/styles/interactive-feedback.css:150:    @apply transition-all duration-200;
+apps/admissions/src/styles/interactive-feedback.css:155:    @apply transition-all duration-300;
+apps/admissions/src/styles/interactive-feedback.css:163:  @apply transition-all duration-100;
+apps/admissions/src/styles/interactive-feedback.css:182:  @apply transition-all duration-100;
+docs/reports/MOBILE_NAVIGATION_FIX.md:58:- ✅ Smooth transitions: `transition-all duration-200`
+docs/reports/MOBILE_NAVIGATION_FIX.md:82:- **Properties**: `transition-colors`, `transition-all`
+apps/jobs-ops/src/features/outreach/pages/OutreachCRMPage.tsx:101:                <p className="mt-2 font-display text-3xl font-semibold text-ink">{analytics?.campaignsSent ?? 0}</p>
+apps/jobs-ops/src/features/outreach/pages/OutreachCRMPage.tsx:105:                <p className="mt-2 font-display text-3xl font-semibold text-ink">{analytics?.positiveReplies ?? 0}</p>
+apps/jobs-ops/src/features/outreach/pages/OutreachCRMPage.tsx:109:                <p className="mt-2 font-display text-3xl font-semibold text-ink">{analytics?.interviewsGenerated ?? 0}</p>
+apps/jobs-ops/src/features/analytics/pages/ReportsPage.tsx:59:                  <p className="mt-2 font-display text-3xl font-semibold text-ink">{value}</p>
+apps/jobs-ops/src/features/analytics/pages/ReportsPage.tsx:133:                <p className="mt-2 font-display text-3xl font-semibold text-ink">{outreach?.campaignsSent ?? 0}</p>
+apps/jobs-ops/src/features/analytics/pages/ReportsPage.tsx:137:                <p className="mt-2 font-display text-3xl font-semibold text-ink">{outreach?.positiveReplies ?? 0}</p>
+apps/jobs-ops/src/features/analytics/pages/ReportsPage.tsx:141:                <p className="mt-2 font-display text-3xl font-semibold text-ink">
+apps/jobs-ops/src/features/jobs/pages/JobDetailPage.tsx:81:                <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-ink">{job.title}</h2>
+apps/jobs-ops/src/features/jobs/pages/JobDetailPage.tsx:106:                <p className="mt-2 font-display text-3xl font-semibold text-ink">{job.matchScore}%</p>
+apps/jobs-ops/src/features/jobs/pages/JobsInboxPage.tsx:109:                  <p className="mt-2 font-display text-3xl font-semibold text-ink">{filteredJobs.length}</p>
+apps/jobs-ops/src/features/jobs/pages/JobsInboxPage.tsx:139:                  <p className="mt-2 font-display text-3xl font-semibold text-ink">{jobs.length}</p>
+apps/jobs-ops/src/features/jobs/pages/JobsInboxPage.tsx:143:                <p className="mt-2 font-display text-3xl font-semibold text-ink">
+apps/jobs-ops/src/features/jobs/pages/JobsInboxPage.tsx:149:                  <p className="mt-2 font-display text-3xl font-semibold text-ink">
+apps/jobs-ops/src/features/jobs/pages/JobsInboxPage.tsx:196:                      <p className="mt-2 font-display text-3xl font-semibold text-ink">{job.matchScore}%</p>
+apps/jobs-ops/src/features/integrations/pages/IntegrationsPage.tsx:80:              <p className="mt-2 font-display text-3xl font-semibold tracking-tight text-ink">
+apps/jobs-ops/src/app/layout/JobsOpsShell.tsx:117:          className={`panel animate-rise flex min-h-[calc(100vh-2rem)] flex-col gap-6 overflow-hidden px-4 py-5 transition-all duration-200 ${
+apps/jobs-ops/src/app/layout/JobsOpsShell.tsx:269:                <p className="mt-2 font-display text-3xl font-semibold text-ink">{reviewCount}</p>
+apps/jobs-ops/src/components/ui/PageHeader.tsx:15:        <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight text-ink">{title}</h1>
+apps/jobs-ops/src/components/ui/MetricCard.tsx:16:          <p className="mt-3 font-display text-3xl font-semibold tracking-tight text-ink">{value}</p>
+docs/guides/DESIGN_SYSTEM_REFERENCE.md:356:className="transition-all duration-200"
+docs/guides/DESIGN_SYSTEM.md:79:<div className="bg-card rounded-2xl shadow-lg border border-border p-6 hover:shadow-xl transition-all duration-300">
+docs/guides/DESIGN_SYSTEM.md:87:- **H1**: `text-2xl sm:text-3xl font-bold text-gray-900`

@@ -1,11 +1,17 @@
 const LIGHTWEIGHT_PUBLIC_ROUTES = new Set([
+  '/',
+  '/404',
   '/auth/callback',
   '/auth/forgot-password',
   '/auth/reset-password',
   '/auth/signin',
   '/auth/signup',
+  '/contact',
   '/login',
+  '/privacy',
   '/signin',
+  '/terms',
+  '/track-application',
 ])
 
 function normalizePathname(pathname: string): string {

@@ -7,12 +7,12 @@ import { connectionManager } from '@/lib/connectionFix'
 
 import { useToastStore } from '@/hooks/useToast'
 import { useAuth } from '@/contexts/AuthContext'
-import { applicationsData, type ApplicationUpdateData } from '@/data/applications'
+import { applicationsData } from '@/data/applications'
 import { catalogData } from '@/data/catalog'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useProfileAutoPopulation, getBestValue, getUserMetadata } from '@/hooks/useProfileAutoPopulation'
-import { useApplicationSubmit } from '@/hooks/useApplicationSubmit'
 import { useEligibilityChecker } from '@/hooks/useEligibilityChecker'
+import { usePaymentStatus } from '@/hooks/usePaymentStatus'
 import { draftManager } from '@/lib/draftManager'
 // eslint-disable-next-line no-restricted-imports -- eligibilityEngine is still used until API-backed replacement is ready
 import { checkEligibility, getRecommendedSubjects } from '@/lib/eligibilityEngine'
@@ -90,6 +90,7 @@ interface UseWizardControllerResult {
   draftLoaded: boolean
   submittedApplication: SubmittedApplicationSummary | null
   applicationId: string | null
+  paymentStatus: 'pending' | 'successful' | 'failed' | null
   persistingSlip: boolean
   slipLoading: boolean
   emailLoading: boolean
@@ -328,8 +329,10 @@ const useWizardController = (): UseWizardControllerResult => {
   )
   const createApplication = applicationsData.useCreate()
   const updateApplication = applicationsData.useUpdate()
+  const submitApplicationMutation = applicationsData.useSubmit()
   const syncGrades = applicationsData.useSyncGrades()
   const { data: draftApplications } = applicationsData.useList({ status: 'draft', mine: true, pageSize: 1 })
+  const { status: paymentStatus } = usePaymentStatus(applicationId || '')
 
   useEffect(() => {
     if (intakesData?.intakes) {
@@ -1040,13 +1043,6 @@ const useWizardController = (): UseWizardControllerResult => {
           }
           const institutionLabel =
             resolvedProgram.institutionLabel || deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'MIHAS'
-          const normalizedInstitution = resolveInstitutionCode(institutionLabel)
-          const institutionId =
-            selectedProgramDetails?.institutions?.id || normalizedInstitution
-          const { generateApplicationNumber } = await import('@/lib/applicationNumberGenerator')
-
-          const applicationNumber = generateApplicationNumber({ institution: normalizedInstitution })
-          const trackingCode = `TRK${Math.random().toString(36).substring(2, 8).toUpperCase()}`
           const app = await createApplication.mutateAsync(
             buildServerDraftPayload({
               formData: {
@@ -1057,8 +1053,6 @@ const useWizardController = (): UseWizardControllerResult => {
               selectedProgramDetails,
               institutionCode: institutionLabel,
               nationality,
-              applicationNumber,
-              trackingCode,
             })
           )
 
@@ -1077,8 +1071,8 @@ const useWizardController = (): UseWizardControllerResult => {
             }
 
             setSubmittedApplication(prev => ({
-              applicationNumber: app.application_number || applicationNumber,
-              trackingCode: String(app.public_tracking_code || trackingCode),
+              applicationNumber: app.application_number || prev?.applicationNumber || '',
+              trackingCode: String(app.public_tracking_code || prev?.trackingCode || ''),
               program: resolvedProgram.label,
               institution: institutionLabel,
               intake: resolvedIntake.label,
@@ -1251,8 +1245,6 @@ const useWizardController = (): UseWizardControllerResult => {
         const programName = resolvedProgram.label
         const institutionLabel =
           resolvedProgram.institutionLabel || deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'MIHAS'
-        const normalizedInstitution = resolveInstitutionCode(institutionLabel)
-        const institutionId = selectedProgramDetails?.institutions?.id || normalizedInstitution
         
         // Check for duplicate applications (only for new applications)
         if (!applicationId) {
@@ -1316,17 +1308,11 @@ const useWizardController = (): UseWizardControllerResult => {
           window.dispatchEvent(new CustomEvent('applicationUpdated', { detail: { applicationId } }))
         } else {
           // Create new application
-          const { generateApplicationNumber } = await import('@/lib/applicationNumberGenerator')
-          const applicationNumber = generateApplicationNumber({ institution: normalizedInstitution })
-          const trackingCode = `TRK${Math.random().toString(36).substring(2, 8).toUpperCase()}`
-
           const metadata = getUserMetadata(user)
           const nationality = getBestValue(profile?.nationality, metadata.nationality, 'Zambian')
           const country = getCanonicalResidenceCountry(profile, metadata)
 
           const app = await createApplication.mutateAsync({
-            application_number: applicationNumber,
-            public_tracking_code: trackingCode,
             full_name: sanitizeInput(formData.full_name),
             nrc_number: sanitizeInput(formData.nrc_number) || null,
             passport_number: sanitizeInput(formData.passport_number) || null,
@@ -1342,7 +1328,6 @@ const useWizardController = (): UseWizardControllerResult => {
             intake: resolvedIntake.name,
             institution: institutionLabel,
             nationality: nationality,
-            status: 'draft'
           })
 
           if (!app?.id) {
@@ -1351,16 +1336,17 @@ const useWizardController = (): UseWizardControllerResult => {
 
           setApplicationId(app.id)
           setSubmittedApplication({
-            applicationNumber,
-            trackingCode,
+            applicationNumber: app.application_number || '',
+            trackingCode: String(app.public_tracking_code || ''),
             program: programName,
             institution: institutionLabel,
             intake: resolvedIntake.label,
             fullName: formData.full_name,
             email: formData.email,
             phone: formData.phone,
-            status: 'draft',
-            paymentStatus: null
+            status: app.status || 'draft',
+            paymentStatus: app.payment_status ?? null,
+            nationality,
           })
           
           // Invalidate cache and notify dashboard
@@ -1457,9 +1443,14 @@ const useWizardController = (): UseWizardControllerResult => {
         showError('Application not found. Please go back to step 1.')
         return
       }
-      
-      // Payment is handled by the Lenco widget in PaymentStep.
-      // Just advance to the next step.
+
+      if (paymentStatus !== 'successful') {
+        const errorMessage = 'Complete and confirm payment before continuing to the review step.'
+        setError(errorMessage)
+        showError(errorMessage)
+        return
+      }
+
       goToStep(currentStepIndex + 1)
     }
   }, [
@@ -1485,7 +1476,11 @@ const useWizardController = (): UseWizardControllerResult => {
     intakeIds,
     resolveIntakeIdentity,
     resolveProgramIdentity,
-    showError
+    showError,
+    paymentStatus,
+    user,
+    profile,
+    deriveInstitutionLabel,
   ])
 
   const handlePrevStep = useCallback(() => {
@@ -1513,6 +1508,12 @@ const useWizardController = (): UseWizardControllerResult => {
       isSubmittingRef.current = false
       return
     }
+    if (paymentStatus !== 'successful') {
+      const errorMessage = 'Payment must be confirmed before you can submit your application.'
+      setError(errorMessage)
+      isSubmittingRef.current = false
+      return
+    }
 
     try {
       setLoading(true)
@@ -1523,18 +1524,8 @@ const useWizardController = (): UseWizardControllerResult => {
         throw new Error('Please sign in again to submit your application')
       }
 
-      // Payment is handled by Lenco widget — just submit the application
       logger.info('[handleSubmitApplication] Finalizing submission...')
-      const updateData = {
-        status: 'submitted',
-        submitted_at: new Date().toISOString()
-      }
-      
-      
-      const updatedApp = await updateApplication.mutateAsync({
-        id: applicationId,
-        data: updateData as unknown as ApplicationUpdateData
-      })
+      const updatedApp = await submitApplicationMutation.mutateAsync(applicationId)
       
 
       if (!updatedApp) {
@@ -1606,7 +1597,7 @@ const useWizardController = (): UseWizardControllerResult => {
       showSuccess('Application submitted successfully!')
       setSuccess(true)
     } catch (error) {
-      logApiError('application-wizard', `/applications/${applicationId}/`, error)
+      logApiError('application-wizard', `/applications/${applicationId}/submit/`, error)
       let message = toError(error).message || 'Failed to submit application'
       
       // Handle 404 for unavailable programs/intakes (Req 6.5)
@@ -1634,7 +1625,7 @@ const useWizardController = (): UseWizardControllerResult => {
       setLoading(false)
       isSubmittingRef.current = false
     }
-  }, [confirmSubmission, applicationId, startUpload, updateApplication, user?.id, showError, showSuccess])
+  }, [confirmSubmission, applicationId, paymentStatus, submitApplicationMutation, user?.id, showError, showSuccess, queryClient])
 
   return {
     authLoading,
@@ -1672,6 +1663,7 @@ const useWizardController = (): UseWizardControllerResult => {
     draftLoaded,
     submittedApplication,
     applicationId,
+    paymentStatus,
     persistingSlip,
     slipLoading,
     emailLoading,

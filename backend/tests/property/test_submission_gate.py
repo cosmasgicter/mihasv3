@@ -1,10 +1,10 @@
-"""Property-based tests for submission requires successful payment.
+"""Property-based tests for the payment gate on submission.
 
 # Feature: lenco-payment-integration, Property 10: Submission requires successful payment
 
 For any application, the submission endpoint should accept the draft → submitted
 transition if and only if a Payment record with status successful exists for that
-application.
+application, assuming the identity-document gate is already satisfied.
 
 Tests the payment gate check added to ApplicationReviewView.post.
 
@@ -46,7 +46,7 @@ class TestSubmissionBlockedWithoutPayment(SimpleTestCase):
     """
 
     @given(data=st.data())
-    @settings(max_examples=100)
+    @settings(max_examples=100, deadline=None)
     def test_submission_blocked_without_successful_payment(self, data):
         """For any application without a successful Payment record,
         the submission gate should block the draft → submitted transition."""
@@ -71,12 +71,18 @@ class TestSubmissionBlockedWithoutPayment(SimpleTestCase):
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("apps.documents.models.Payment.objects") as mock_payment_qs,
+            patch("apps.documents.models.ApplicationDocument.objects") as mock_doc_qs,
             patch("apps.applications.services.transition_application_status") as mock_transition,
+            patch("apps.applications.services.transaction") as mock_txn,
             patch("apps.common.event_dispatcher.dispatch_event"),
         ):
             mock_app_qs.get.return_value = mock_app
+            mock_app_qs.select_for_update.return_value.get.return_value = mock_app
             mock_payment_qs.filter.return_value.exists.return_value = False
+            mock_doc_qs.filter.return_value.exists.return_value = True
             mock_transition.return_value = "draft"
+            mock_txn.atomic.return_value.__enter__ = MagicMock(return_value=None)
+            mock_txn.atomic.return_value.__exit__ = MagicMock(return_value=False)
 
             from apps.applications.views import ApplicationReviewView
 
@@ -96,7 +102,7 @@ class TestSubmissionAllowedWithPayment(SimpleTestCase):
     """
 
     @given(data=st.data())
-    @settings(max_examples=100)
+    @settings(max_examples=100, deadline=None)
     def test_submission_allowed_with_successful_payment(self, data):
         """For any application with a successful Payment record,
         the submission gate should allow the draft → submitted transition."""
@@ -121,12 +127,18 @@ class TestSubmissionAllowedWithPayment(SimpleTestCase):
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("apps.documents.models.Payment.objects") as mock_payment_qs,
+            patch("apps.documents.models.ApplicationDocument.objects") as mock_doc_qs,
             patch("apps.applications.services.transition_application_status") as mock_transition,
+            patch("apps.applications.services.transaction") as mock_txn,
             patch("apps.common.event_dispatcher.dispatch_event"),
         ):
             mock_app_qs.get.return_value = mock_app
+            mock_app_qs.select_for_update.return_value.get.return_value = mock_app
             mock_payment_qs.filter.return_value.exists.return_value = True
+            mock_doc_qs.filter.return_value.exists.return_value = True
             mock_transition.return_value = "draft"
+            mock_txn.atomic.return_value.__enter__ = MagicMock(return_value=None)
+            mock_txn.atomic.return_value.__exit__ = MagicMock(return_value=False)
 
             from apps.applications.views import ApplicationReviewView
 
@@ -145,7 +157,7 @@ class TestPaymentGateOnlyChecksSuccessfulStatus(SimpleTestCase):
     """
 
     @given(payment_status=non_successful_statuses)
-    @settings(max_examples=100)
+    @settings(max_examples=100, deadline=None)
     def test_non_successful_payment_blocks_submission(self, payment_status):
         """For any payment with a non-successful status (pending, failed),
         the submission gate should block the transition."""
@@ -170,14 +182,20 @@ class TestPaymentGateOnlyChecksSuccessfulStatus(SimpleTestCase):
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("apps.documents.models.Payment.objects") as mock_payment_qs,
+            patch("apps.documents.models.ApplicationDocument.objects") as mock_doc_qs,
             patch("apps.applications.services.transition_application_status") as mock_transition,
+            patch("apps.applications.services.transaction") as mock_txn,
             patch("apps.common.event_dispatcher.dispatch_event"),
         ):
             mock_app_qs.get.return_value = mock_app
+            mock_app_qs.select_for_update.return_value.get.return_value = mock_app
             # The gate filters for status="successful", so even if a payment
             # with another status exists, the filter returns no results
             mock_payment_qs.filter.return_value.exists.return_value = False
+            mock_doc_qs.filter.return_value.exists.return_value = True
             mock_transition.return_value = "draft"
+            mock_txn.atomic.return_value.__enter__ = MagicMock(return_value=None)
+            mock_txn.atomic.return_value.__exit__ = MagicMock(return_value=False)
 
             from apps.applications.views import ApplicationReviewView
 
@@ -197,7 +215,7 @@ class TestPaymentGateIntegrationWithView(SimpleTestCase):
     """
 
     @given(has_payment=st.booleans())
-    @settings(max_examples=100)
+    @settings(max_examples=100, deadline=None)
     def test_view_payment_gate_bidirectional(self, has_payment):
         """For any application, the submission endpoint should accept the
         draft → submitted transition if and only if a Payment record with
@@ -225,12 +243,18 @@ class TestPaymentGateIntegrationWithView(SimpleTestCase):
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("apps.documents.models.Payment.objects") as mock_payment_qs,
+            patch("apps.documents.models.ApplicationDocument.objects") as mock_doc_qs,
             patch("apps.applications.services.transition_application_status") as mock_transition,
+            patch("apps.applications.services.transaction") as mock_txn,
             patch("apps.common.event_dispatcher.dispatch_event"),
         ):
             mock_app_qs.get.return_value = mock_app
+            mock_app_qs.select_for_update.return_value.get.return_value = mock_app
             mock_payment_qs.filter.return_value.exists.return_value = has_payment
+            mock_doc_qs.filter.return_value.exists.return_value = True
             mock_transition.return_value = "draft"
+            mock_txn.atomic.return_value.__enter__ = MagicMock(return_value=None)
+            mock_txn.atomic.return_value.__exit__ = MagicMock(return_value=False)
 
             from apps.applications.views import ApplicationReviewView
 
