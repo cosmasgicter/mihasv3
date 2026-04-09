@@ -360,9 +360,14 @@ describe('Student Dashboard page verification', () => {
     await renderAndWaitForText('Applications failed to load')
 
     const text = container.textContent || ''
+    // Req 6.1: Assert user-friendly error title and message
     expect(text).toContain('Applications failed to load')
-    expect(text).toContain('/api/v1/applications/')
-    // Intakes should still render (partial failure handling)
+    expect(text).toContain('Failed to load applications. Network timeout')
+    // Req 6.4: No raw API URLs in rendered output
+    expect(text).not.toContain('/api/v1/applications/')
+    // Req 6.5: Retry button is present
+    expect(text).toContain('Retry')
+    // Req 6.6: Partial failure isolation — intakes still render
     expect(text).toContain('January 2026 Intake')
   })
 
@@ -372,21 +377,30 @@ describe('Student Dashboard page verification', () => {
     await renderAndWaitForText('Intakes failed to load')
 
     const text = container.textContent || ''
+    // Req 6.2: Assert user-friendly error title and message
     expect(text).toContain('Intakes failed to load')
-    expect(text).toContain('/api/v1/catalog/intakes/')
-    // Applications should still render
+    expect(text).toContain('Failed to load intakes. Server error')
+    // Req 6.4: No raw API URLs in rendered output
+    expect(text).not.toContain('/api/v1/catalog/intakes/')
+    // Req 6.5: Retry button is present
+    expect(text).toContain('Retry')
+    // Req 6.6: Partial failure isolation — applications still render
     expect(text).toContain('APP-2025-001')
   })
 
   it('shows per-section error when interviews endpoint fails', async () => {
     mockInterviewsServiceList.mockRejectedValue(new Error('Connection refused'))
 
-    // Interview errors render near QuickActions — wait longer for all sections to load
-    await renderAndWaitForText('/api/v1/interviews/', 6000)
+    await renderAndWaitForText('Interviews failed to load')
 
     const text = container.textContent || ''
+    // Req 6.3: Assert user-friendly error title and message
     expect(text).toContain('Interviews failed to load')
-    expect(text).toContain('/api/v1/interviews/')
+    expect(text).toContain('Failed to load interviews. Connection refused')
+    // Req 6.4: No raw API URLs in rendered output
+    expect(text).not.toContain('/api/v1/interviews/')
+    // Req 6.5: Retry button is present
+    expect(text).toContain('Retry')
   })
 
   it('renders empty state when no applications exist', async () => {

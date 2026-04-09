@@ -33,6 +33,7 @@ import {
   X,
 } from 'lucide-react'
 import { PageShell } from '@/components/ui/PageShell'
+import { Seo } from '@/components/seo/Seo'
 
 type SettingValueType = 'string' | 'integer' | 'decimal' | 'boolean'
 type VisibilityFilter = 'all' | 'public' | 'private'
@@ -533,6 +534,13 @@ export default function AdminSettings() {
   const privateSettingsCount = settings.filter((setting) => !setting.is_public).length
 
   return (
+    <>
+      <Seo
+        title="Operational Settings | MIHAS-KATC Admissions"
+        description="Configure admissions portal settings, guided controls, and advanced system keys."
+        path="/admin/settings"
+        noindex
+      />
     <PageShell
       title="Operational Settings"
       subtitle="Configure the admissions portal through guided controls first, then use advanced keys only when needed."
@@ -960,16 +968,16 @@ export default function AdminSettings() {
                                     <div className="flex justify-end gap-2">
                                       {editingId === setting.id ? (
                                         <>
-                                          <Button size="sm" onClick={() => void handleEditSave(setting.id)} loading={saving}>
+                                          <Button size="sm" onClick={() => void handleEditSave(setting.id)} loading={saving} aria-label="Save setting">
                                             <Save className="h-4 w-4" />
                                           </Button>
-                                          <Button size="sm" variant="outline" onClick={handleEditCancel}>
+                                          <Button size="sm" variant="outline" onClick={handleEditCancel} aria-label="Cancel editing">
                                             <X className="h-4 w-4" />
                                           </Button>
                                         </>
                                       ) : (
                                         <>
-                                          <Button size="sm" variant="outline" onClick={() => handleEditStart(setting)}>
+                                          <Button size="sm" variant="outline" onClick={() => handleEditStart(setting)} aria-label="Edit setting">
                                             <Edit2 className="h-4 w-4" />
                                           </Button>
                                           <Button
@@ -977,6 +985,7 @@ export default function AdminSettings() {
                                             variant="outline"
                                             onClick={() => void handleDelete(setting.id, setting.key)}
                                             className="border-destructive/30 text-destructive hover:bg-destructive/5"
+                                            aria-label="Delete setting"
                                           >
                                             <Trash2 className="h-4 w-4" />
                                           </Button>
@@ -1016,5 +1025,6 @@ export default function AdminSettings() {
         variant={confirmDialog.options.variant}
       />
     </PageShell>
+    </>
   )
 }
