@@ -31,10 +31,10 @@ const InfoCard: React.FC<InfoCardProps> = ({ icon, iconBg, label, value, index =
 
 export const ApplicationInfoGrid: React.FC<ApplicationInfoGridProps> = ({ application }) => (
   <div className={`space-y-4 ${animateClasses.fadeIn}`} style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
-    <h4 className="text-lg font-semibold text-foreground flex items-center gap-2">
+    <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
       <Info className="h-5 w-5 text-primary" />
       Application Details
-    </h4>
+    </h3>
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <InfoCard icon={<FileText className="h-4 w-4 text-primary" />} iconBg="bg-primary/10" label="Application Number" value={<span className="font-mono">{application.application_number}</span>} index={0} />
       <InfoCard icon={<User className="h-4 w-4 text-secondary" />} iconBg="bg-secondary/10" label="Applicant" value={displayValue(application.email, 'Applicant details unavailable')} index={1} />

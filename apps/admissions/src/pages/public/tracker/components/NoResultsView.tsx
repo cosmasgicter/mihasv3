@@ -22,9 +22,9 @@ export const NoResultsView: React.FC<NoResultsViewProps> = ({ onTryAgain }) => {
         
         {/* Message */}
         <div className="space-y-2">
-          <h3 className="text-xl font-semibold text-foreground">
+          <h2 className="text-xl font-semibold text-foreground">
             No Application Found
-          </h3>
+          </h2>
           <p className="text-muted-foreground max-w-md mx-auto">
             We couldn't find an application with that number or tracking code. 
             Please double-check your information and try again.

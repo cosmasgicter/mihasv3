@@ -52,10 +52,10 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
         {/* Left Side - Application Info */}
         <div className="space-y-4 flex-1">
           <div className={animateClasses.fadeIn}>
-            <h3 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-3">
+            <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-3">
               <span className="text-2xl">{getStatusEmoji(application.status)}</span>
               <span className="break-all">Application #{application.application_number}</span>
-            </h3>
+            </h2>
           </div>
           
           <div

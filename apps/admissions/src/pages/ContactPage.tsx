@@ -8,6 +8,7 @@ import { PublicLayout } from '@/components/layout/PublicLayout'
 import { Card, CardContent, CardTitle } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { ArrowLeft, Mail, Phone, MapPin } from '@/components/icons'
+import { Seo } from '@/components/seo/Seo'
 import { contactInfo } from '@/lib/constants/landing'
 
 // Zod schema for contact form validation (Requirement 3.1)
@@ -66,6 +67,11 @@ export default function ContactPage() {
 
   return (
     <PublicLayout>
+      <Seo
+        title="Contact Admissions | MIHAS-KATC"
+        description="Reach the MIHAS-KATC admissions team for application help, program guidance, and enrollment support."
+        path="/contact"
+      />
       <div className="container-responsive px-4 py-10 sm:px-6 lg:px-8">
         <ScrollReveal className="mx-auto max-w-5xl space-y-8">
           <div className="rounded-3xl border border-border bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-6 sm:p-10">
@@ -91,25 +97,25 @@ export default function ContactPage() {
                   href={`tel:${contactInfo.katcPhone.replace(/\s/g, '')}`}
                   className="flex items-center gap-3 hover:text-primary"
                 >
-                  <Phone className="h-4 w-4" />
+                  <Phone className="h-4 w-4" aria-hidden="true" />
                   <span>KATC: {contactInfo.katcPhone}</span>
                 </a>
                 <a
                   href={`tel:${contactInfo.mihasPhone.replace(/\s/g, '')}`}
                   className="flex items-center gap-3 hover:text-primary"
                 >
-                  <Phone className="h-4 w-4" />
+                  <Phone className="h-4 w-4" aria-hidden="true" />
                   <span>MIHAS: {contactInfo.mihasPhone}</span>
                 </a>
                 <a
                   href={`mailto:${contactInfo.email}`}
                   className="flex items-center gap-3 hover:text-primary"
                 >
-                  <Mail className="h-4 w-4" />
+                  <Mail className="h-4 w-4" aria-hidden="true" />
                   <span>{contactInfo.email}</span>
                 </a>
                 <p className="flex items-start gap-3 text-muted-foreground">
-                  <MapPin className="mt-1 h-4 w-4" />
+                  <MapPin className="mt-1 h-4 w-4" aria-hidden="true" />
                   <span>{contactInfo.address}</span>
                 </p>
               </CardContent>

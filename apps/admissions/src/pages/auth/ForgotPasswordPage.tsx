@@ -78,7 +78,7 @@ export default function ForgotPasswordPage() {
         <div className={`space-y-6 ${animateClasses.scaleIn}`}>
           {/* Success icon */}
           <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 ${animateClasses.scaleIn}`}>
-            <Mail className="h-8 w-8 text-green-600" />
+            <Mail className="h-8 w-8 text-green-600" aria-hidden="true" />
           </div>
 
           {/* Success message */}
@@ -106,7 +106,7 @@ export default function ForgotPasswordPage() {
             <Link to="/auth/signin" className="block">
               <Button variant="gradient" className="w-full" size="lg">
                 Return to sign in
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Button>
             </Link>
           </div>

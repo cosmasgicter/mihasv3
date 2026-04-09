@@ -1213,26 +1213,22 @@ const useWizardController = (): UseWizardControllerResult => {
       })
       if (missingFields.length > 0) {
         const errorMessage = `Please fill in all required fields: ${missingFields.join(', ')}`
-        setError('')
-        showError(errorMessage)
+        setError(errorMessage)
         return
       }
       if (!formData.nrc_number && !formData.passport_number) {
         const errorMessage = 'Either NRC or Passport number is required'
-        setError('')
-        showError(errorMessage)
+        setError(errorMessage)
         return
       }
       if (formData.program && !programIds.includes(formData.program)) {
         const errorMessage = 'Please select a valid program from the list provided'
-        setError('')
-        showError(errorMessage)
+        setError(errorMessage)
         return
       }
       if (formData.intake && !intakeIds.includes(formData.intake)) {
         const errorMessage = 'Please select a valid intake from the list provided'
-        setError('')
-        showError(errorMessage)
+        setError(errorMessage)
         return
       }
 
@@ -1242,15 +1238,13 @@ const useWizardController = (): UseWizardControllerResult => {
         const resolvedProgram = resolveProgramIdentity(formData.program)
         if (!resolvedProgram) {
           const errorMessage = 'Please select a valid program from the list provided'
-          setError('')
-          showError(errorMessage)
+          setError(errorMessage)
           return
         }
         const resolvedIntake = resolveIntakeIdentity(formData.intake)
         if (!resolvedIntake) {
           const errorMessage = 'Please select a valid intake from the list provided'
-          setError('')
-          showError(errorMessage)
+          setError(errorMessage)
           return
         }
 
@@ -1418,32 +1412,28 @@ const useWizardController = (): UseWizardControllerResult => {
       
       if (selectedGrades.length < 5) {
         const errorMessage = 'Minimum 5 subjects required'
-        setError('')
-        showError(errorMessage)
+        setError(errorMessage)
         return
       }
       if (selectedProgram && eligibilityCheck && !eligibilityCheck.eligible) {
       }
       if (!resultSlipFile && !uploadedFiles['result_slip']) {
         const errorMessage = 'Result slip is required'
-        setError('')
-        showError(errorMessage)
+        setError(errorMessage)
         return
       }
 
       // Require identity document (NRC or Passport) — Req 5.1, 5.2
       if (!extraKycFile && !uploadedFiles['extra_kyc']) {
         const errorMessage = 'An NRC or Passport document is required before proceeding'
-        setError('')
-        showError(errorMessage)
+        setError(errorMessage)
         return
       }
 
       // Wait for upload to complete if still uploading
       if (uploading) {
         const errorMessage = 'Please wait for file upload to complete'
-        setError('')
-        showError(errorMessage)
+        setError(errorMessage)
         return
       }
 
@@ -1513,15 +1503,13 @@ const useWizardController = (): UseWizardControllerResult => {
 
     if (!confirmSubmission) {
       const errorMessage = 'Please confirm that all information is accurate before submitting'
-      setError('')
-      showError(errorMessage)
+      setError(errorMessage)
       isSubmittingRef.current = false
       return
     }
     if (!applicationId) {
       const errorMessage = 'Application ID not found. Please try refreshing the page.'
-      setError('')
-      showError(errorMessage)
+      setError(errorMessage)
       isSubmittingRef.current = false
       return
     }

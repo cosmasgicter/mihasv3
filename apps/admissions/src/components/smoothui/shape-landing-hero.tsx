@@ -172,15 +172,15 @@ export function ShapeLandingHero({
             <div className="mt-10 sm:mt-12 flex flex-wrap justify-center gap-6 sm:gap-10 text-white/90">
               <div className="text-center">
                 <p className="text-2xl sm:text-3xl font-bold">92%</p>
-                <p className="text-xs sm:text-sm text-white/80">Job Placement</p>
+                <p className="text-xs sm:text-sm text-white/90">Job Placement</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl sm:text-3xl font-bold">300+</p>
-                <p className="text-xs sm:text-sm text-white/80">Graduates Employed</p>
+                <p className="text-xs sm:text-sm text-white/90">Graduates Employed</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl sm:text-3xl font-bold">25+</p>
-                <p className="text-xs sm:text-sm text-white/80">Employer Partners</p>
+                <p className="text-xs sm:text-sm text-white/90">Employer Partners</p>
               </div>
             </div>
           </div>

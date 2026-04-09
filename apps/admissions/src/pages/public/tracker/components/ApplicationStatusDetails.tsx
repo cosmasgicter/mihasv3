@@ -34,10 +34,10 @@ export const ApplicationStatusDetails: React.FC<ApplicationStatusDetailsProps> =
     <div className="xl:col-span-2 space-y-6">
       {/* Current Status Card */}
       <div className={animateClasses.slideUp}>
-        <h4 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
           <Target className="h-5 w-5 text-primary" />
           Current Status
-        </h4>
+        </h3>
         
         <div className={`rounded-xl border-2 p-6 ${getStatusStyles(application.status)}`}>
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
@@ -62,10 +62,10 @@ export const ApplicationStatusDetails: React.FC<ApplicationStatusDetailsProps> =
           className={animateClasses.slideUp}
           style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}
         >
-          <h4 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
             <MessageSquare className="h-5 w-5 text-success" />
             Message from Admissions
-          </h4>
+          </h3>
           
           <div className="rounded-xl border-2 border-success/30 bg-success/5 p-6">
             <div className="bg-white/80 rounded-lg p-4 mb-4 border border-success/20">
