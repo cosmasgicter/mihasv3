@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { PublicLayout } from '@/components/layout/PublicLayout'
 import { Home, ArrowLeft, Search, FileText, User, Settings } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { Seo } from '@/components/seo/Seo'
 
 interface SuggestedPage {
   path: string
@@ -163,6 +164,12 @@ export default function NotFoundPage() {
 
   return (
     <PublicLayout>
+      <Seo
+        title="Page Not Found | MIHAS-KATC Admissions"
+        description="The page you're looking for doesn't exist or has been moved."
+        path="/404"
+        noindex
+      />
       <div className="page-container bg-muted flex flex-col justify-center py-6 sm:py-12">
         <div className="content-wrapper">
           <div className="mx-auto w-full max-w-2xl">
@@ -184,7 +191,7 @@ export default function NotFoundPage() {
               <div className="space-y-3 mb-8">
                 <Link to="/" className="block">
                   <Button className="w-full">
-                    <Home className="h-4 w-4 mr-2" />
+                    <Home className="h-4 w-4 mr-2" aria-hidden="true" />
                     Go to Home
                   </Button>
                 </Link>
@@ -193,7 +200,7 @@ export default function NotFoundPage() {
                   className="w-full"
                   onClick={() => window.history.back()}
                 >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
                   Go Back
                 </Button>
               </div>

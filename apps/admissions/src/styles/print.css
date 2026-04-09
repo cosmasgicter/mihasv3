@@ -14,11 +14,19 @@
     line-height: 1.5;
   }
 
+  body * {
+    color: black !important;
+    background: transparent !important;
+  }
+
   /* Hide non-content elements (Req 15.2) */
   nav,
   footer,
   aside,
   .toast-container,
+  [data-toast-container],
+  [data-toast-container] [role="alert"],
+  [data-toast-container] [role="status"],
   [role="status"],
   .skip-link,
   .fab,
@@ -58,6 +66,13 @@
     border: 1px solid #333 !important;
     box-shadow: none !important;
     break-inside: avoid;
+  }
+
+  img,
+  svg,
+  video,
+  canvas {
+    background: transparent !important;
   }
 
   /* Page break control for headings and media */

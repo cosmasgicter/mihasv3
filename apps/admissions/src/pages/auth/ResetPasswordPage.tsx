@@ -135,7 +135,7 @@ export default function ResetPasswordPage() {
         <div className={`space-y-6 ${animateClasses.slideUp}`}>
           {/* Success icon */}
           <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 ${animateClasses.scaleIn}`}>
-            <CheckCircle className="h-8 w-8 text-green-600" />
+            <CheckCircle className="h-8 w-8 text-green-600" aria-hidden="true" />
           </div>
 
           {/* Success message */}
@@ -155,7 +155,7 @@ export default function ResetPasswordPage() {
             onClick={() => navigate('/auth/signin')}
           >
             Sign in with new password
-            <ArrowRight className="ml-2 h-4 w-4" />
+            <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
       </AuthLayout>
@@ -181,7 +181,7 @@ export default function ResetPasswordPage() {
         <div className={`space-y-6 ${animateClasses.slideUp}`}>
           {/* Error icon */}
           <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 ${animateClasses.scaleIn}`}>
-            <AlertCircle className="h-8 w-8 text-red-600" />
+            <AlertCircle className="h-8 w-8 text-red-600" aria-hidden="true" />
           </div>
 
           {/* Error message */}
@@ -199,7 +199,7 @@ export default function ResetPasswordPage() {
               className="w-full"
               onClick={() => navigate('/auth/forgot-password')}
             >
-              <RefreshCw className="mr-2 h-4 w-4" />
+              <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
               Request a new reset link
             </Button>
             <Button
@@ -238,7 +238,7 @@ export default function ResetPasswordPage() {
         {/* Password icon */}
         <div className="flex justify-center mb-2">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <KeyRound className="h-6 w-6 text-primary" />
+            <KeyRound className="h-6 w-6 text-primary" aria-hidden="true" />
           </div>
         </div>
 

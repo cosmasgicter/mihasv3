@@ -256,7 +256,7 @@ export default function PublicApplicationTracker() {
           {/* Page Header */}
           <PageHeader
             variant="gradient"
-            icon={<Search className="h-6 w-6" />}
+            icon={<Search className="h-6 w-6" aria-hidden="true" />}
             title="Track Your Application"
             description="Check your application status instantly — no login required. Enter your application number or tracking code below."
           />

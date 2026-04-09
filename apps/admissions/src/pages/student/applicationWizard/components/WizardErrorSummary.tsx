@@ -71,7 +71,7 @@ export function WizardErrorSummary({ errors, onFieldClick, className = '' }: Wiz
                 <button
                   type="button"
                   onClick={() => focusField(err.field)}
-                  className="text-sm text-destructive underline underline-offset-2 hover:text-destructive/80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 rounded-sm outline-none text-left"
+                  className="text-sm text-destructive underline underline-offset-2 hover:text-destructive/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm text-left"
                 >
                   {err.label}: {err.message}
                 </button>

@@ -154,6 +154,15 @@ const ApplicationWizardContent = () => {
       if (gradeCount < 5) {
         errors.push({ field: 'grades', label: 'Subject Grades', message: `Minimum 5 subjects required (${gradeCount} added)` })
       }
+      if (!resultSlipFile && !uploadedFiles.result_slip) {
+        errors.push({ field: 'result_slip', label: 'Result Slip', message: 'Result slip is required' })
+      }
+      if (!extraKycFile && !uploadedFiles.extra_kyc) {
+        errors.push({ field: 'extra_kyc', label: 'Identity Document', message: 'An NRC or Passport document is required before proceeding' })
+      }
+      if (uploading) {
+        errors.push({ field: 'result_slip', label: 'Uploads', message: 'Please wait for file upload to complete' })
+      }
     }
 
     if (currentStepConfig.key === 'submit') {
@@ -163,7 +172,7 @@ const ApplicationWizardContent = () => {
     }
 
     return errors
-  }, [form, currentStepConfig.key, confirmSubmission])
+  }, [form, currentStepConfig.key, confirmSubmission, resultSlipFile, extraKycFile, uploadedFiles, uploading])
 
   // Aria-live region announcement for screen readers on step transition
   const [stepAnnouncement, setStepAnnouncement] = useState('')
@@ -236,8 +245,9 @@ const ApplicationWizardContent = () => {
 
     // Small delay to let the error summary render, then focus first errored field
     const timer = setTimeout(() => {
-      if (collected.length > 0) {
-        const firstField = collected[0].field
+      const firstError = collected[0]
+      if (firstError) {
+        const firstField = firstError.field
         const el =
           document.querySelector<HTMLElement>(`[name="${firstField}"]`) ||
           document.querySelector<HTMLElement>(`#${CSS.escape(firstField)}`)
@@ -509,13 +519,10 @@ const ApplicationWizardContent = () => {
 
         {/* Validation error summary with field links (Req 5.2, 5.3) */}
         {validationErrors.length > 0 && (
-          <WizardErrorSummary
-            errors={validationErrors}
-            onFieldClick={() => setError('')}
-          />
+          <WizardErrorSummary errors={validationErrors} />
         )}
 
-        {error && (
+        {error && validationErrors.length === 0 && (
           <Alert variant="error" className="mb-6 animate-slide-up">
             <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>

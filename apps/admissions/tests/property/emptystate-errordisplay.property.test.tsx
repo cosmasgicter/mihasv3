@@ -223,8 +223,8 @@ describe('Feature: ui-ux-quality-audit, Property 6: ErrorDisplay supportUrl defa
         // Should have "Go Back" button/link
         const allText = container.textContent || ''
         expect(allText).toContain('Go Back')
-        // Should NOT have "Try Again" (retry)
-        expect(allText).not.toContain('Try Again')
+        // Should NOT have "Retry" (retry)
+        expect(allText).not.toContain('Retry')
 
         cleanup()
       }),
@@ -250,8 +250,8 @@ describe('Feature: ui-ux-quality-audit, Property 6: ErrorDisplay supportUrl defa
         })
 
         const allText = container.textContent || ''
-        // Should have "Try Again" (retry takes precedence)
-        expect(allText).toContain('Try Again')
+        // Should have "Retry" (retry takes precedence)
+        expect(allText).toContain('Retry')
         // Should NOT have "Go Back" when onRetry is present
         expect(allText).not.toContain('Go Back')
 
@@ -271,7 +271,7 @@ describe('Feature: ui-ux-quality-audit, Property 6: ErrorDisplay supportUrl defa
         })
 
         const allText = container.textContent || ''
-        expect(allText).not.toContain('Try Again')
+        expect(allText).not.toContain('Retry')
         expect(allText).not.toContain('Go Back')
         // But Contact Support should still be present
         expect(allText).toContain('Contact Support')

@@ -46,7 +46,7 @@ export function ErrorDisplay({
                 className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
                 <RefreshCw className="h-3 w-3" aria-hidden="true" />
-                Try Again
+                Retry
               </button>
             )}
             {!onRetry && onGoBack && (
@@ -95,7 +95,7 @@ export function ErrorDisplay({
         {onRetry && (
           <Button onClick={onRetry} variant="outline" size="sm">
             <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
-            Try Again
+            Retry
           </Button>
         )}
         {!onRetry && onGoBack && (
@@ -115,4 +115,3 @@ export function ErrorDisplay({
     </div>
   )
 }
-

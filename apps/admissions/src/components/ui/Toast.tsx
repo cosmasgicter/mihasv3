@@ -210,7 +210,10 @@ export function ToastContainer() {
   const politeToasts = toasts.filter((t) => t.type === 'success' || t.type === 'info');
 
   return (
-    <div className="fixed top-4 left-4 right-4 md:left-auto md:right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none sm:max-w-md">
+    <div
+      className="toast-container fixed top-4 left-4 right-4 md:left-auto md:right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none sm:max-w-md"
+      data-toast-container
+    >
       {/* Assertive region for error/warning toasts (Req 19.5) */}
       <div aria-live="assertive" aria-relevant="additions removals" aria-atomic="false">
         {assertiveToasts.map((toast) => (

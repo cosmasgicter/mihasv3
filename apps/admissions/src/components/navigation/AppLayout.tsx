@@ -15,6 +15,7 @@ import { useToastStore } from '@/hooks/useToast'
 import { RouteTransition } from '@/components/smoothui/page-transition'
 import { designTokens } from '@/design-system/tokens'
 import { APP_MAIN_CONTENT_ID } from '@/lib/accessibility-utils'
+import { cn } from '@/lib/utils'
 import {
   Home,
   FileText,
@@ -30,7 +31,6 @@ import {
   LogOut,
   UserCircle2,
   BriefcaseBusiness,
-  Loader2,
 } from 'lucide-react'
 
 interface AppLayoutProps {
