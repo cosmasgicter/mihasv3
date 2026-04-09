@@ -35,6 +35,8 @@ import { cn } from '@/lib/utils';
 import { InfiniteGrid } from './infinite-grid';
 import { TextRotate } from './text-rotate';
 import { ShinyText } from './shiny-text';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
+import { CheckCircle } from '@/components/icons';
 
 interface ShapeLandingHeroProps {
   /** Headline text */
@@ -47,6 +49,21 @@ interface ShapeLandingHeroProps {
   primaryCta: { label: string; href: string; icon?: React.ReactNode };
   /** Secondary CTA */
   secondaryCta: { label: string; href: string; icon?: React.ReactNode };
+  /** Trust-building proof panel content */
+  proofPanel: {
+    image: {
+      src: string;
+      alt: string;
+      width: number;
+      height: number;
+    };
+    eyebrow: string;
+    title: string;
+    description: string;
+    badges: string[];
+    highlights: Array<{ value: string; label: string }>;
+    checklist: string[];
+  };
 }
 
 export function ShapeLandingHero({
@@ -55,11 +72,12 @@ export function ShapeLandingHero({
   rotatingPhrases,
   primaryCta,
   secondaryCta,
+  proofPanel,
 }: ShapeLandingHeroProps) {
   return (
     <section
       id="hero"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden"
+      className="relative flex min-h-[calc(100svh-4rem)] items-center justify-center overflow-hidden"
     >
       {/* Gradient background — uses primary blue throughout for consistent contrast with white text */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-primary opacity-95" />
@@ -76,29 +94,37 @@ export function ShapeLandingHero({
 
       {/* Content — pt-16 accounts for the sticky header height */}
       <div className="relative z-10 container-responsive px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-center pt-24 pb-16">
-          {/* Text column — centered, full width */}
-          <div className="text-center text-white max-w-3xl mx-auto">
+        <div className="grid items-center gap-10 py-20 sm:py-24 lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)] lg:gap-14">
+          <div className="text-center text-white lg:text-left">
             <p className="mb-4 inline-flex items-center rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
               Government Accredited Health Programs
             </p>
 
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
+            <h1 className="mx-auto mb-4 max-w-3xl text-3xl font-bold leading-tight sm:mb-6 sm:text-4xl md:text-5xl lg:mx-0 lg:text-6xl">
               {headline}
             </h1>
 
             {/* Rotating phrases */}
             {rotatingPhrases.length > 0 && (
-              <div className="mb-4 sm:mb-6 text-lg sm:text-xl md:text-2xl font-semibold text-white/90">
+              <>
+                <p className="sr-only">
+                  Programs include {rotatingPhrases.join(', ')}.
+                </p>
+                <div
+                  aria-hidden="true"
+                  className="mb-4 text-lg font-semibold text-white/90 sm:mb-6 sm:text-xl md:text-2xl"
+                >
                 <TextRotate
                   phrases={rotatingPhrases}
                   interval={3000}
                   duration={500}
+                  announce={false}
                 />
-              </div>
+                </div>
+              </>
             )}
 
-            <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed text-white/95 font-medium">
+            <p className="mx-auto mb-6 max-w-2xl text-base font-medium leading-relaxed text-white/95 sm:mb-8 sm:text-lg md:text-xl lg:mx-0">
               {description}
             </p>
 
@@ -111,14 +137,14 @@ export function ShapeLandingHero({
             </div>
 
             {/* CTA buttons */}
-            <div className="flex flex-col xs:flex-row gap-4 sm:gap-6 justify-center items-center max-w-md xs:max-w-none mx-auto">
+            <div className="mx-auto flex max-w-md flex-col items-center justify-center gap-4 xs:max-w-none xs:flex-row lg:mx-0 lg:justify-start">
               <Link
                 to={primaryCta.href}
                 className={cn(
                   'inline-flex items-center justify-center gap-2 rounded-lg font-semibold',
                   'bg-gradient-to-r from-primary via-primary to-info text-primary-foreground',
                   'shadow-lg hover:brightness-105 hover:shadow-xl active:scale-[0.98]',
-                  'transition-all duration-150 touch-manipulation',
+                  'transition-[transform,box-shadow,filter] duration-150 touch-manipulation',
                   'w-full xs:w-auto min-h-[48px] px-6 sm:px-8 text-xl',
                   'motion-reduce:transform-none motion-reduce:transition-none',
                 )}
@@ -131,16 +157,11 @@ export function ShapeLandingHero({
               {secondaryCta.href.startsWith('#') ? (
                 <a
                   href={secondaryCta.href}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    const id = secondaryCta.href.replace('#', '');
-                    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }}
                   className={cn(
                     'inline-flex items-center justify-center gap-2 rounded-lg font-semibold',
                     'border-2 border-white bg-white/10 text-white',
                     'hover:bg-white hover:text-primary backdrop-blur-sm',
-                    'transition-all duration-150 touch-manipulation',
+                    'transition-[transform,background-color,color,border-color] duration-150 touch-manipulation',
                     'w-full xs:w-auto min-h-[48px] px-6 sm:px-8 text-xl',
                     'motion-reduce:transform-none motion-reduce:transition-none',
                   )}
@@ -156,7 +177,7 @@ export function ShapeLandingHero({
                     'inline-flex items-center justify-center gap-2 rounded-lg font-semibold',
                     'border-2 border-white bg-white/10 text-white',
                     'hover:bg-white hover:text-primary backdrop-blur-sm',
-                    'transition-all duration-150 touch-manipulation',
+                    'transition-[transform,background-color,color,border-color] duration-150 touch-manipulation',
                     'w-full xs:w-auto min-h-[48px] px-6 sm:px-8 text-xl',
                     'motion-reduce:transform-none motion-reduce:transition-none',
                   )}
@@ -169,7 +190,7 @@ export function ShapeLandingHero({
             </div>
 
             {/* Stats highlight strip */}
-            <div className="mt-10 sm:mt-12 flex flex-wrap justify-center gap-6 sm:gap-10 text-white/90">
+            <div className="mt-10 flex flex-wrap justify-center gap-6 text-white/90 sm:mt-12 sm:gap-10 lg:justify-start">
               <div className="text-center">
                 <p className="text-2xl sm:text-3xl font-bold">92%</p>
                 <p className="text-xs sm:text-sm text-white/90">Job Placement</p>
@@ -181,6 +202,74 @@ export function ShapeLandingHero({
               <div className="text-center">
                 <p className="text-2xl sm:text-3xl font-bold">25+</p>
                 <p className="text-xs sm:text-sm text-white/90">Employer Partners</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mx-auto w-full max-w-[30rem]">
+            <div className="relative">
+              <div className="absolute inset-6 rounded-full bg-white/15 blur-3xl" aria-hidden="true" />
+
+              <div className="relative rounded-[2rem] border border-white/15 bg-slate-950/20 p-3 shadow-[0_24px_80px_rgba(4,18,33,0.32)] backdrop-blur-xl">
+                <div className="relative overflow-hidden rounded-[1.5rem]">
+                  <OptimizedImage
+                    src={proofPanel.image.src}
+                    alt={proofPanel.image.alt}
+                    width={proofPanel.image.width}
+                    height={proofPanel.image.height}
+                    lazy={false}
+                    className="h-[20rem] w-full object-cover sm:h-[24rem]"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/15 to-transparent" />
+
+                  <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+                    {proofPanel.badges.map((badge) => (
+                      <span
+                        key={badge}
+                        className="rounded-full border border-white/20 bg-slate-950/45 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-white/95 backdrop-blur-sm"
+                      >
+                        {badge}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
+                    <p className="mb-2 text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-white/75">
+                      {proofPanel.eyebrow}
+                    </p>
+                    <p className="text-xl font-semibold leading-tight text-white sm:text-2xl">
+                      {proofPanel.title}
+                    </p>
+                    <p className="mt-2 max-w-md text-sm leading-relaxed text-white/90">
+                      {proofPanel.description}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                  {proofPanel.highlights.map((highlight) => (
+                    <div
+                      key={highlight.label}
+                      className="rounded-[1.25rem] border border-white/12 bg-white/10 px-4 py-3 text-center backdrop-blur-sm"
+                    >
+                      <p className="text-xl font-bold text-white sm:text-2xl">{highlight.value}</p>
+                      <p className="mt-1 text-[0.72rem] font-medium uppercase tracking-[0.16em] text-white/75">
+                        {highlight.label}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-3 rounded-[1.25rem] border border-white/12 bg-slate-950/35 p-4 backdrop-blur-sm">
+                  <ul className="space-y-3">
+                    {proofPanel.checklist.map((item) => (
+                      <li key={item} className="flex items-start gap-3 text-sm text-white/92">
+                        <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-300" aria-hidden="true" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
           </div>

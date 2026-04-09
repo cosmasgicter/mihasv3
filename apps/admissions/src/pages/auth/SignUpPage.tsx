@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { Banner } from '@/components/ui/Banner';
+import { FormErrorAnnouncer } from '@/components/ui/FormErrorAnnouncer';
 import { Seo } from '@/components/seo/Seo';
 import { CheckCircle } from 'lucide-react';
 import { logApiError } from '@/lib/apiErrorLogger';
@@ -178,6 +179,21 @@ export default function SignUpPage() {
         }
       >
         <form className="space-y-6" onSubmit={handleSubmit((data) => signUpMutation.mutate(data))} noValidate>
+          <FormErrorAnnouncer
+            errors={errors}
+            fieldLabels={{
+              email: 'Account email',
+              password: 'Create password',
+              confirmPassword: 'Confirm password',
+              first_name: 'First name',
+              last_name: 'Last name',
+              phone: 'Phone number',
+              residence_town: 'Residence town',
+              nationality: 'Nationality',
+              next_of_kin_name: 'Next of kin name',
+              next_of_kin_phone: 'Next of kin phone',
+            }}
+          />
           {signUpMutation.error ? (
             <Banner variant="error" dismissible onDismiss={() => signUpMutation.reset()}>
               {getErrorMessage(signUpMutation.error as Error)}

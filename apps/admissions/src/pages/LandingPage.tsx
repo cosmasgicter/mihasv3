@@ -22,6 +22,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Seo } from '@/components/seo/Seo';
 import { isAdminRole } from '@/lib/auth/roles';
+import { prefersReducedMotion } from '@/lib/animation-config';
 import {
   stats,
   features,
@@ -103,7 +104,10 @@ const heroRotatingPhrases = [
 ];
 
 function smoothScrollToSection(sectionId: string) {
-  document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById(sectionId)?.scrollIntoView({
+    behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+    block: 'start',
+  });
 }
 
 // ============================================================================
@@ -112,7 +116,7 @@ function smoothScrollToSection(sectionId: string) {
 
 function StatsSection() {
   return (
-    <section id="stats" aria-label="Key statistics" className="py-12 sm:py-16 lg:py-20 bg-card">
+    <section id="stats" aria-label="Key statistics" className="scroll-mt-24 py-12 sm:scroll-mt-28 sm:py-16 lg:py-20 bg-card">
       <div className="container-responsive px-4 sm:px-6 lg:px-8">
         <StaggerReveal className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-12" staggerDelay={0.15}>
           {stats.map((stat, index) => (
@@ -141,7 +145,7 @@ function StatsSection() {
 
 function FeaturesSection() {
   return (
-    <section id="features" className="py-12 sm:py-16 lg:py-20 bg-muted">
+    <section id="features" className="scroll-mt-24 py-12 sm:scroll-mt-28 sm:py-16 lg:py-20 bg-muted">
       <div className="container-responsive px-4 sm:px-6 lg:px-8">
         <ScrollReveal className="text-center mb-12 sm:mb-16">
           <TextEffect effect="fadeUp">
@@ -157,7 +161,7 @@ function FeaturesSection() {
         <StaggerReveal className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10" staggerDelay={0.1}>
           {features.map((feature, index) => (
             <StaggerItem key={index}>
-              <Card className="text-center group hover:shadow-xl transition-all duration-300 h-full">
+              <Card className="text-center group h-full transition-shadow duration-300 hover:shadow-xl">
                 <CardContent className="p-6 sm:p-8">
                   <div className={cn(
                     'bg-gradient-to-br w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-2xl',
@@ -189,7 +193,7 @@ function FeaturesSection() {
 
 function AccreditationSection() {
   return (
-    <section id="accreditation" aria-label="Accreditation and recognition" className="py-12 sm:py-16 lg:py-20 bg-card">
+    <section id="accreditation" aria-label="Accreditation and recognition" className="scroll-mt-24 py-12 sm:scroll-mt-28 sm:py-16 lg:py-20 bg-card">
       <div className="container-responsive px-4 sm:px-6 lg:px-8">
         <ScrollReveal className="text-center mb-12">
           <TextEffect effect="fadeUp">
@@ -205,7 +209,7 @@ function AccreditationSection() {
         <StaggerReveal className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8" staggerDelay={0.1}>
           {accreditations.map((accred, index) => (
             <StaggerItem key={index}>
-              <Card className="text-center border border-border hover:shadow-xl transition-all duration-300 h-full group">
+              <Card className="text-center group h-full border border-border transition-shadow duration-300 hover:shadow-xl">
                 <CardContent className="p-4 sm:p-6">
                   <div className="h-12 w-12 sm:h-16 sm:w-16 mb-4 flex items-center justify-center bg-muted rounded-lg p-2 mx-auto group-hover:scale-110 transition-transform duration-300">
                     <OptimizedImage
@@ -239,7 +243,7 @@ function AccreditationSection() {
 
 function ProgramsSection() {
   return (
-    <section id="programs" className="py-12 sm:py-16 lg:py-20 bg-card">
+    <section id="programs" className="scroll-mt-24 py-12 sm:scroll-mt-28 sm:py-16 lg:py-20 bg-card">
       <div className="container-responsive px-4 sm:px-6 lg:px-8">
         <ScrollReveal className="text-center mb-12 sm:mb-16">
           <TextEffect effect="fadeUp">
@@ -255,7 +259,7 @@ function ProgramsSection() {
         <StaggerReveal className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12" staggerDelay={0.2}>
           {programs.map((program, index) => (
             <StaggerItem key={index}>
-              <Card className="hover:shadow-xl transition-all duration-300 group">
+              <Card className="group transition-shadow duration-300 hover:shadow-xl">
                 <CardContent className="p-6 sm:p-8">
                   <div className="relative mb-6 overflow-hidden rounded-lg">
                     <OptimizedImage
@@ -303,7 +307,7 @@ function ProgramsSection() {
 
 function CTASection() {
   return (
-    <section id="cta" aria-label="Apply now" className="relative py-16 sm:py-20 lg:py-24 overflow-hidden">
+    <section id="cta" aria-label="Apply now" className="relative scroll-mt-24 overflow-hidden py-16 sm:scroll-mt-28 sm:py-20 lg:py-24">
       <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary" />
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/20" />
       
@@ -380,6 +384,28 @@ export default function LandingPage() {
           label: 'Learn More',
           href: '#features',
           icon: <Star className="w-5 h-5" />,
+        }}
+        proofPanel={{
+          image: {
+            src: programs[1]?.image ?? '/images/programs/mihas-campus.webp',
+            alt: 'Students and facilities at the MIHAS-KATC healthcare training campuses',
+            width: 640,
+            height: 768,
+          },
+          eyebrow: 'Admissions Snapshot',
+          title: 'Real campuses. Accredited pathways. Clear admissions tracking.',
+          description: 'Move from first click to confirmed placement with government-recognized programs and live progress visibility.',
+          badges: ['NMCZ', 'HPCZ', 'ECZ', 'UNZA'],
+          highlights: [
+            { value: '2', label: 'campuses' },
+            { value: '3', label: 'diploma tracks' },
+            { value: 'Live', label: 'status updates' },
+          ],
+          checklist: [
+            'Study across Mukuba Institute and Kalulushi Training Centre facilities.',
+            'Apply for Nursing, Clinical Medicine, or Environmental Health from one admissions portal.',
+            'Track each admissions milestone online instead of relying on manual follow-up.',
+          ],
         }}
       />
       <StatsSection />

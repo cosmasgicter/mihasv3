@@ -20,14 +20,14 @@ export const ApplicationActions: React.FC = () => {
         
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3">
-          <Link to="/apply">
+          <Link to="/auth/signup">
             <Button 
               variant="outline" 
               size="lg" 
               className="w-full sm:w-auto border-2 hover:bg-secondary hover:text-white transition-colors"
             >
               <Rocket className="h-5 w-5 mr-2" />
-              New Application
+              Create Account to Apply
             </Button>
           </Link>
           <Link to="/auth/signin">

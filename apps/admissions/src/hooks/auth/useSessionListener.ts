@@ -155,9 +155,15 @@ export function useSessionListener() {
   const { data: sessionData, isLoading: sessionLoading } = useQuery<SessionQueryData>({
     queryKey: ['auth', 'session'],
     queryFn: async () => {
-      const result = await authService.session() as User | { user?: User } | null
-      const normalizedUser = extractAuthUser(result)
-      return normalizedUser ? { user: normalizedUser } : null
+      try {
+        const result = await authService.session() as User | { user?: User } | null
+        const normalizedUser = extractAuthUser(result)
+        return normalizedUser ? { user: normalizedUser } : null
+      } catch {
+        // Session check failed (401/403 for unauthenticated visitors).
+        // Return null silently — this is expected on public pages.
+        return null
+      }
     },
     staleTime: CACHE_CONFIG.auth.staleTime,   // 10 minutes
     gcTime: CACHE_CONFIG.auth.gcTime,          // 30 minutes
@@ -288,7 +294,6 @@ export function useSessionListener() {
             return true
           },
         })
-        queryClient.invalidateQueries()
 
         broadcastLogin(userPayload.id)
         window.dispatchEvent(new CustomEvent('userLoggedIn', { detail: { userId: userPayload.id } }))
@@ -381,7 +386,7 @@ export function useSessionListener() {
       const message = error instanceof Error ? error.message : 'Unable to reset password'
       return { error: message }
     }
-  }, [queryClient])
+  }, [])
 
   return {
     user,
@@ -410,17 +415,28 @@ export function useAuthCheck(): {
   retrySessionCheck: () => Promise<unknown>
 } {
   const queryClient = useQueryClient()
-  const { data: sessionData, isLoading, refetch } = useQuery<SessionQueryData>({
+
+  // Subscribe to the shared ['auth', 'session'] query managed by useSessionListener.
+  // Uses the same queryKey so React Query deduplicates — only one network request.
+  // The queryFn is identical to useSessionListener's to satisfy React Query's
+  // requirement that all observers of a key share the same function shape.
+  const { data: sessionData, isLoading } = useQuery<SessionQueryData>({
     queryKey: ['auth', 'session'],
     queryFn: async () => {
-      const result = await authService.session() as User | { user?: User } | null
-      const normalizedUser = extractAuthUser(result)
-      return normalizedUser ? { user: normalizedUser } : null
+      try {
+        const result = await authService.session() as User | { user?: User } | null
+        const normalizedUser = extractAuthUser(result)
+        return normalizedUser ? { user: normalizedUser } : null
+      } catch {
+        return null
+      }
     },
     staleTime: CACHE_CONFIG.auth.staleTime,
     gcTime: CACHE_CONFIG.auth.gcTime,
     retry: false,
-    refetchOnMount: 'always',
+    // Don't refetch on mount — useSessionListener already handles that.
+    // This observer just subscribes to the same cache entry.
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
   })
 
@@ -432,7 +448,7 @@ export function useAuthCheck(): {
     user: sessionPendingValidation ? null : sessionData?.user || null,
     retrySessionCheck: async () => {
       await queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
-      return refetch()
+      return queryClient.refetchQueries({ queryKey: ['auth', 'session'] })
     },
   }
 }

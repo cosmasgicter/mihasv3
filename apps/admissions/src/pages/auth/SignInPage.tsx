@@ -82,6 +82,7 @@ export default function SignInPage() {
   const { signIn } = useAuth();
   const searchParams = new URLSearchParams(location.search);
   const redirectFromQuery = searchParams.get('redirect');
+  const authErrorFromQuery = searchParams.get('error');
 
   const seoByPath = {
     '/auth/signin': {
@@ -170,6 +171,27 @@ export default function SignInPage() {
   };
 
   const serverFieldErrors = getFieldErrors(signInMutation.error as Error | null);
+  const activeBannerMessage = signInMutation.error
+    ? getErrorMessage(signInMutation.error as Error)
+    : authErrorFromQuery || '';
+
+  const dismissBanner = () => {
+    if (signInMutation.error) {
+      signInMutation.reset();
+    }
+
+    if (authErrorFromQuery) {
+      const nextParams = new URLSearchParams(location.search);
+      nextParams.delete('error');
+      navigate(
+        {
+          pathname: location.pathname,
+          search: nextParams.toString() ? `?${nextParams.toString()}` : '',
+        },
+        { replace: true },
+      );
+    }
+  };
 
   return (
     <>
@@ -207,9 +229,9 @@ export default function SignInPage() {
       >
         <form className="space-y-6" onSubmit={handleSubmit((data) => signInMutation.mutate(data))} noValidate>
           <FormErrorAnnouncer errors={errors} fieldLabels={{ email: 'Email', password: 'Password' }} />
-          {signInMutation.error ? (
-            <Banner variant="error" dismissible onDismiss={() => signInMutation.reset()}>
-              {getErrorMessage(signInMutation.error as Error)}
+          {activeBannerMessage ? (
+            <Banner variant="error" dismissible onDismiss={dismissBanner}>
+              {activeBannerMessage}
             </Banner>
           ) : null}
 

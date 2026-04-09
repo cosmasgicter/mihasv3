@@ -4,6 +4,15 @@ import { useToastStore } from '@/hooks/useToast'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Container } from '@/components/ui/Container'
+import { Input } from '@/components/ui/input'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/Dialog'
 import { repairLegacyDocumentReference } from '@/lib/applicationSlip'
 import { createApplicationSlip } from '@/lib/slipService'
 import { logger } from '@/lib/logger'
@@ -43,6 +52,9 @@ export default function PublicApplicationTracker() {
   const [slipCache, setSlipCache] = useState<{ objectUrl?: string; publicUrl?: string; path?: string; documentId?: string } | null>(null)
   const [slipLoading, setSlipLoading] = useState(false)
   const [emailLoading, setEmailLoading] = useState(false)
+  const [emailPromptOpen, setEmailPromptOpen] = useState(false)
+  const [emailDraftAddress, setEmailDraftAddress] = useState('')
+  const [emailPromptError, setEmailPromptError] = useState('')
 
   useEffect(() => () => {
     if (slipCache?.objectUrl) {
@@ -87,6 +99,12 @@ export default function PublicApplicationTracker() {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+  }, [])
+
+  const closeEmailPrompt = useCallback(() => {
+    setEmailPromptOpen(false)
+    setEmailDraftAddress('')
+    setEmailPromptError('')
   }, [])
 
   const buildSlipPayload = useCallback((email: string, userId?: string) => {
@@ -189,24 +207,13 @@ export default function PublicApplicationTracker() {
     }
   }, [application, buildSlipPayload, slipCache, toast, triggerDownload])
 
-  const handleEmailSlip = useCallback(async () => {
-    if (!application) return
-
-    let emailAddress = application.email?.trim() || ''
-    if (!emailAddress) {
-      const promptResult = window.prompt('Enter the email address to send your application slip to:')
-      emailAddress = promptResult?.trim() || ''
-    }
-
-    if (!emailAddress) {
-      toast.error('Email required', 'Please provide an email address to receive the slip.')
-      return
-    }
+  const sendSlipToEmail = useCallback(async (emailAddress: string) => {
+    if (!application) return false
 
     const payload = buildSlipPayload(emailAddress)
     if (!payload) {
       toast.error('Slip unavailable', 'Missing application details for slip delivery.')
-      return
+      return false
     }
 
     try {
@@ -216,7 +223,7 @@ export default function PublicApplicationTracker() {
       if (result.error || result.emailError) {
         const message = result.error || result.emailError || 'We could not email the slip.'
         toast.error('Email failed', message)
-        return
+        return false
       }
 
       setSlipCache(prev => {
@@ -229,13 +236,52 @@ export default function PublicApplicationTracker() {
           documentId: result.documentId || prev?.documentId
         }
       })
+      toast.success('Slip emailed', `Application slip sent to ${emailAddress}.`)
+      return true
     } catch (emailError) {
       logger.error('Slip email failed:', emailError)
       toast.error('Email failed', emailError instanceof Error ? emailError.message : 'Unable to email slip')
+      return false
     } finally {
       setEmailLoading(false)
     }
   }, [application, buildSlipPayload, toast])
+
+  const handleEmailSlip = useCallback(async () => {
+    if (!application) return
+
+    const existingEmail = application.email?.trim() || ''
+    if (!existingEmail) {
+      setEmailDraftAddress('')
+      setEmailPromptError('')
+      setEmailPromptOpen(true)
+      return
+    }
+
+    await sendSlipToEmail(existingEmail)
+  }, [application, sendSlipToEmail])
+
+  const handleEmailPromptSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const normalizedEmail = emailDraftAddress.trim()
+
+    if (!normalizedEmail) {
+      setEmailPromptError('Email address is required.')
+      return
+    }
+
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)
+    if (!isValidEmail) {
+      setEmailPromptError('Enter a valid email address.')
+      return
+    }
+
+    setEmailPromptError('')
+    const sent = await sendSlipToEmail(normalizedEmail)
+    if (sent) {
+      closeEmailPrompt()
+    }
+  }, [closeEmailPrompt, emailDraftAddress, sendSlipToEmail])
 
   const handleTryAgain = () => {
     setSearchTerm('')
@@ -317,6 +363,51 @@ export default function PublicApplicationTracker() {
             onCopyLink={() => copyToClipboard(window.location.href)}
             onCopyNumber={() => copyToClipboard(application?.application_number || '')}
           />
+
+          <Dialog open={emailPromptOpen} onOpenChange={(open) => {
+            if (!open) {
+              closeEmailPrompt()
+            } else {
+              setEmailPromptOpen(true)
+            }
+          }}>
+            <DialogContent size="sm">
+              <DialogHeader>
+                <DialogTitle>Email Application Slip</DialogTitle>
+                <DialogDescription>
+                  Enter the email address that should receive the application slip.
+                </DialogDescription>
+              </DialogHeader>
+
+              <form className="space-y-4" onSubmit={handleEmailPromptSubmit} noValidate>
+                <Input
+                  id="application-slip-email"
+                  type="email"
+                  label="Recipient email"
+                  value={emailDraftAddress}
+                  onChange={(e) => {
+                    setEmailDraftAddress(e.target.value)
+                    if (emailPromptError) {
+                      setEmailPromptError('')
+                    }
+                  }}
+                  autoComplete="email"
+                  error={emailPromptError}
+                  disabled={emailLoading}
+                  required
+                />
+
+                <DialogFooter className="pt-2">
+                  <Button type="button" variant="outline" onClick={closeEmailPrompt} disabled={emailLoading}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" loading={emailLoading}>
+                    {emailLoading ? 'Sending slip...' : 'Send slip'}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </Container>
       </div>
     </PublicLayout>
