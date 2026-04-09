@@ -303,7 +303,7 @@ export default function ApplicationStatus() {
               >
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="rounded-xl border border-primary/30 bg-primary/5 px-5 py-4">
-                    <h3 className="text-sm font-bold text-foreground mb-3"><User className="w-5 h-5" /> Personal information</h3>
+                    <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><User className="w-5 h-5" aria-hidden="true" /> Personal information</h3>
                     <div className="space-y-2 text-sm text-foreground">
                       <div className="flex justify-between">
                         <span className="text-foreground">Full name:</span>
@@ -328,7 +328,7 @@ export default function ApplicationStatus() {
                     </div>
                   </div>
                   <div className="rounded-xl border border-accent/30 bg-accent/10 px-5 py-4">
-                    <h3 className="text-sm font-bold text-foreground mb-3"><Phone className="w-5 h-5" /> Contact information</h3>
+                    <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><Phone className="w-5 h-5" aria-hidden="true" /> Contact information</h3>
                     <div className="space-y-2 text-sm text-foreground">
                       <div className="flex justify-between">
                         <span className="text-foreground">Residence:</span>
@@ -349,7 +349,7 @@ export default function ApplicationStatus() {
                     </div>
                   </div>
                   <div className="rounded-xl border border-input/30 bg-secondary/5 px-5 py-4 lg:col-span-2">
-                    <h3 className="text-sm font-bold text-foreground mb-3"><CreditCard className="w-5 h-5" /> Payment information</h3>
+                    <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><CreditCard className="w-5 h-5" aria-hidden="true" /> Payment information</h3>
                     <div className="grid gap-2 text-sm text-foreground sm:grid-cols-2">
                       <div className="flex justify-between">
                         <span className="text-foreground">Payment status:</span>

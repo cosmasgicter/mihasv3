@@ -427,15 +427,15 @@ export default function AdminPrograms() {
       return (
         <div className="rounded-2xl border border-dashed border-border bg-muted/40 px-6 py-14 text-center">
           <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <GraduationCap className="h-10 w-10" />
+            <GraduationCap className="h-10 w-10" aria-hidden="true" />
           </div>
-          <h3 className="text-2xl font-bold text-foreground">No Programs Yet</h3>
+          <h2 className="text-2xl font-bold text-foreground">No Programs Yet</h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
             Build the institution catalog first, then add the academic programs students can apply for.
           </p>
           <div className="mt-6 flex justify-center">
             <Button onClick={activeInstitutions.length > 0 ? openProgramCreate : () => openInstitutionCreate()}>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
               {activeInstitutions.length > 0 ? 'Create First Program' : 'Create Institution First'}
             </Button>
           </div>
@@ -525,15 +525,15 @@ export default function AdminPrograms() {
       return (
         <div className="rounded-2xl border border-dashed border-border bg-muted/40 px-6 py-14 text-center">
           <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <Building2 className="h-10 w-10" />
+            <Building2 className="h-10 w-10" aria-hidden="true" />
           </div>
-          <h3 className="text-2xl font-bold text-foreground">No Institutions Yet</h3>
+          <h2 className="text-2xl font-bold text-foreground">No Institutions Yet</h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
             Add institutions here first so program setup, admissions routing, and student applications stay aligned.
           </p>
           <div className="mt-6 flex justify-center">
             <Button onClick={() => openInstitutionCreate()}>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
               Create First Institution
             </Button>
           </div>

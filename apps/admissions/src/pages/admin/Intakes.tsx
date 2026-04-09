@@ -268,13 +268,13 @@ export default function AdminIntakes() {
               </div>
             ) : intakes.length === 0 ? (
               <div className="text-center py-8 sm:py-16">
-                <div className="text-8xl mb-6"><Calendar className="w-5 h-5" /></div>
-                <h3 className="text-2xl font-bold text-foreground mb-2">No Intakes Yet</h3>
+                <div className="text-8xl mb-6"><Calendar className="w-5 h-5" aria-hidden="true" /></div>
+                <h2 className="text-2xl font-bold text-foreground mb-2">No Intakes Yet</h2>
                 <p className="text-foreground mb-6 max-w-md mx-auto">
                   Create admission intakes to define application periods, deadlines, and capacity for student enrollment.
                 </p>
                 <Button onClick={openCreate}>
-                  <Plus className="h-5 w-5 mr-2" />
+                  <Plus className="h-5 w-5 mr-2" aria-hidden="true" />
                   Create First Intake
                 </Button>
               </div>
