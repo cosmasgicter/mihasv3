@@ -206,7 +206,7 @@ describe('Landing page verification', () => {
     expect(text).toContain('Why Choose MIHAS-KATC')
     expect(text).toContain('Career-Ready Training')
     expect(text).toContain('Government Recognized Qualifications')
-    expect(text).toContain('Guaranteed Job Placement Support')
+    expect(text).toContain('Proven Job Placement Support')
   })
 
   // ── Accreditation section ───────────────────────────────────────────

@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { Search } from 'lucide-react'
 import { useToastStore } from '@/hooks/useToast'
+import { Button } from '@/components/ui/Button'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Container } from '@/components/ui/Container'

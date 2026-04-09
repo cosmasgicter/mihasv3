@@ -47,9 +47,9 @@ const landingStructuredData = [
       addressLocality: 'Kalulushi',
     },
     sameAs: [
-      'https://www.facebook.com/',
-      'https://x.com/',
-      'https://www.linkedin.com/'
+      'https://www.facebook.com/mihaskatc',
+      'https://x.com/mihaskatc',
+      'https://www.linkedin.com/company/mihaskatc'
     ]
   },
   {
@@ -91,6 +91,17 @@ const landingStructuredData = [
           }
         }
       ]
+    }
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'MIHAS-KATC Admissions',
+    url: '***REMOVED***',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: '***REMOVED***/track-application?q={search_term_string}',
+      'query-input': 'required name=search_term_string'
     }
   }
 ];
@@ -252,7 +263,7 @@ function ProgramsSection() {
             </h2>
           </TextEffect>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-medium px-4">
-            Three government-accredited programs with guaranteed job opportunities
+            Three government-accredited programs with proven job opportunities
           </p>
         </ScrollReveal>
         
@@ -291,6 +302,14 @@ function ProgramsSection() {
                       </div>
                     ))}
                   </div>
+                  <div className="mt-6">
+                    <Button asChild variant="outline" className="w-full sm:w-auto">
+                      <Link to="/auth/signup">
+                        Apply to {program.institution.split(' ')[0]}
+                        <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                      </Link>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </StaggerItem>
@@ -318,7 +337,7 @@ function CTASection() {
           </h2>
         </TextEffect>
         <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-8 max-w-3xl mx-auto px-4">
-          Applications open now! Join 300+ graduates working in hospitals, clinics, and health organizations
+          January 2026 intake applications closing soon. Join 300+ graduates working in hospitals, clinics, and health organizations.
         </p>
         <Button 
           asChild
@@ -373,7 +392,7 @@ export default function LandingPage() {
       />
       <ShapeLandingHero
         headline="Your Future Starts Here"
-        description="Launch Your Healthcare Career in Zambia and beyond with MIHAS-KATC admissions, transparent application tracking, and high-demand accredited training."
+        description="Launch your healthcare career with accredited training, transparent admissions, and 92% job placement across Zambia and beyond."
         rotatingPhrases={heroRotatingPhrases}
         primaryCta={{
           label: 'Start Your Application',
