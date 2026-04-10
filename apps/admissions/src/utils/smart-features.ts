@@ -1,60 +1,8 @@
 // Smart features for auto-filling forms and processing documents
 
 import { compressImage } from '@/lib/utils'
+import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
 import { sanitizeForLog } from '../lib/security'
-
-const OCR_CHUNK_RECOVERY_GUARD_KEY = 'mihas:ocr-chunk-recovery-v1'
-
-function isRecoverableChunkLoadError(error: unknown): boolean {
-  if (!(error instanceof Error)) {
-    return false
-  }
-
-  const message = error.message.toLowerCase()
-  return (
-    message.includes('failed to fetch dynamically imported module') ||
-    message.includes('importing a module script failed') ||
-    message.includes('loading chunk') ||
-    message.includes('mime type') ||
-    message.includes('vendor-ocr')
-  )
-}
-
-async function recoverFromStaleChunk(error: unknown): Promise<boolean> {
-  if (typeof window === 'undefined' || !isRecoverableChunkLoadError(error)) {
-    return false
-  }
-
-  try {
-    if (sessionStorage.getItem(OCR_CHUNK_RECOVERY_GUARD_KEY)) {
-      return false
-    }
-    sessionStorage.setItem(OCR_CHUNK_RECOVERY_GUARD_KEY, String(Date.now()))
-  } catch {
-    // best effort guard
-  }
-
-  try {
-    if ('serviceWorker' in navigator) {
-      const registrations = await navigator.serviceWorker.getRegistrations()
-      await Promise.all(registrations.map((registration) => registration.unregister()))
-    }
-  } catch {
-    // best effort cleanup
-  }
-
-  try {
-    if ('caches' in window) {
-      const cacheKeys = await caches.keys()
-      await Promise.all(cacheKeys.map((cacheKey) => caches.delete(cacheKey)))
-    }
-  } catch {
-    // best effort cleanup
-  }
-
-  window.location.reload()
-  return true
-}
 
 // OCR Service for extracting text from documents
 export class OCRService {
@@ -66,7 +14,10 @@ export class OCRService {
 
     try {
       // Dynamic import to avoid loading OCR library until needed
-      const Tesseract = await import('tesseract.js')
+      const Tesseract = await importWithChunkRecovery(() => import('tesseract.js'), {
+        guardKey: 'ocr',
+        recoveryMessage: 'A newer version of the OCR tools is loading. Please wait a moment and try again.',
+      })
       
       this.worker = await Tesseract.createWorker()
       
@@ -74,15 +25,7 @@ export class OCRService {
       await this.worker.initialize('eng')
       
       this.isInitialized = true
-      try {
-        sessionStorage.removeItem(OCR_CHUNK_RECOVERY_GUARD_KEY)
-      } catch {
-        // best effort cleanup
-      }
     } catch (error) {
-      if (await recoverFromStaleChunk(error)) {
-        throw new Error('A new version of the application is loading. Please wait a moment and try again.')
-      }
       console.error('Failed to initialize OCR:', sanitizeForLog(error))
       throw new Error('OCR service unavailable')
     }

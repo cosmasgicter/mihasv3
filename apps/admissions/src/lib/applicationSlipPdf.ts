@@ -1,4 +1,5 @@
 import type { ApplicationSlipData } from './applicationSlip.types'
+import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
 import { formatTimestamp } from './dateFormat'
 import { sanitizeForLog } from './security'
 
@@ -37,9 +38,18 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
 
   try {
     const [{ default: QRCode }, { jsPDF }, autoTable] = await Promise.all([
-      import('qrcode'),
-      import('jspdf'),
-      import('jspdf-autotable').then((mod) => mod.default),
+      importWithChunkRecovery(() => import('qrcode'), {
+        guardKey: 'wizard-slip-qrcode',
+        recoveryMessage: 'A newer version of the slip generator is loading. Please wait a moment and try again.',
+      }),
+      importWithChunkRecovery(() => import('jspdf'), {
+        guardKey: 'wizard-slip-jspdf',
+        recoveryMessage: 'A newer version of the slip generator is loading. Please wait a moment and try again.',
+      }),
+      importWithChunkRecovery(() => import('jspdf-autotable').then((mod) => mod.default), {
+        guardKey: 'wizard-slip-autotable',
+        recoveryMessage: 'A newer version of the slip generator is loading. Please wait a moment and try again.',
+      }),
     ])
     const doc = new jsPDF() as InstanceType<typeof jsPDF> & { lastAutoTable?: { finalY: number } }
     const institutionName = getFullInstitutionName(data.institution)
