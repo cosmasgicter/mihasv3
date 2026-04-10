@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { CheckCircle, CreditCard, RefreshCw, XCircle, Clock } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
@@ -64,6 +64,14 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('idle')
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [initiateError, setInitiateError] = useState<string | null>(null)
+  const retryRef = useRef<HTMLButtonElement>(null)
+
+  // Focus retry button when payment fails (Req 15.2)
+  useEffect(() => {
+    if (paymentStatus === 'failed') {
+      retryRef.current?.focus()
+    }
+  }, [paymentStatus])
 
   // Sync polled status into local state
   useEffect(() => {
@@ -211,8 +219,23 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
           <AlertTitle className="flex items-center gap-2 text-foreground">
             <XCircle className="h-4 w-4" />Payment failed
           </AlertTitle>
-          <AlertDescription className="text-muted-foreground">
-            {statusMessage || 'Your payment could not be processed. Please try again.'}
+          <AlertDescription className="space-y-3 text-muted-foreground">
+            <p className="font-semibold text-destructive">
+              {statusMessage || 'Your payment could not be processed.'}
+            </p>
+            <p className="text-sm">
+              You can retry the payment or contact support at ops@mihas.edu.zm if the issue persists.
+            </p>
+            <Button
+              ref={retryRef}
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handlePayNow}
+              data-testid="retry-payment-button"
+            >
+              <RefreshCw className="mr-1 h-3 w-3" />Retry payment
+            </Button>
           </AlertDescription>
         </Alert>
       )}

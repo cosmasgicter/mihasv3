@@ -45,32 +45,35 @@
 
 ### 2. Payment Not Showing as Verified
 
-**Symptoms**: Payment status stuck on "Pending Review"
+**Symptoms**: Payment status stays on "Pending" or does not move to a confirmed state
 
 **Causes & Solutions**:
 
-✅ **Processing time**
-- Wait 1-2 business days
-- Verification is manual process
+✅ **Gateway confirmation delay**
+- Wait a short time and refresh the payment step
+- Check the read-only **Payment** page for the latest recorded payment state
 
-✅ **Proof not uploaded**
-- Check you uploaded proof of payment
-- Re-upload if unclear
+✅ **Transaction did not complete**
+- Confirm the Lenco widget showed a successful completion
+- Check whether your bank or mobile-money provider shows the payment as finished
 
 ✅ **Wrong amount**
-- Verify you paid K153
-- Check transaction was successful
+- Verify the resolved application fee before payment
+- Check the transaction amount that was actually charged
 
-✅ **Admin hasn't reviewed**
+✅ **Review or sync delay**
+- Refresh the application status page
+- Re-open the payment step in the wizard
 - Contact admin@mihas.edu.zm
-- Include transaction reference
+- Include your application number and payment reference if available
 
 **Check Status**:
 ```sql
 -- Admin can check in database
-SELECT payment_status, payment_verified_at 
-FROM applications 
-WHERE application_number = 'MIHAS202500001';
+SELECT status, amount, verified_at, reference
+FROM payments
+WHERE application_id = '<application-uuid>'
+ORDER BY created_at DESC;
 ```
 
 ### 3. Can't Login

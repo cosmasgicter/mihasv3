@@ -84,7 +84,7 @@ export function EnhancedInput({
             leftIcon && 'pl-10',
             rightIcon && 'pr-10',
             // Error state
-            errorMessage && 'border-destructive/30 focus-visible:border-destructive',
+            errorMessage && 'border-error-border focus-visible:border-destructive',
             // Success state
             success && 'border-success/30 focus-visible:border-success',
             // Disabled state
@@ -192,7 +192,7 @@ export function EnhancedTextarea({
           'text-base sm:text-sm', // Prevent zoom on iOS
           'resize-y', // Allow vertical resize only
           // Error state
-          errorMessage && 'border-destructive/30 focus-visible:border-destructive',
+          errorMessage && 'border-error-border focus-visible:border-destructive',
           // Success state
           success && 'border-success/30 focus-visible:border-success',
           // Disabled state
@@ -288,7 +288,7 @@ export function EnhancedSelect({
           'bg-no-repeat bg-right bg-[length:16px_16px]',
           'pr-10', // Space for arrow
           // Error state
-          errorMessage && 'border-destructive/30 focus-visible:border-destructive',
+          errorMessage && 'border-error-border focus-visible:border-destructive',
           // Success state
           success && 'border-success/30 focus-visible:border-success',
           // Disabled state

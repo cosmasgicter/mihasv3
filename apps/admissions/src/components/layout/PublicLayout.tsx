@@ -7,9 +7,11 @@
  */
 
 import { Suspense, lazy } from 'react';
+import { useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { APP_MAIN_CONTENT_ID } from '@/lib/accessibility-utils';
 import { PublicSiteHeader } from '@/components/layout/PublicSiteHeader';
+import { useDeferredHydration } from '@/hooks/useDeferredHydration';
 
 const SharedFooter = lazy(() => import('@/components/layout/SharedFooter').then((mod) => ({ default: mod.SharedFooter })));
 
@@ -20,11 +22,15 @@ interface PublicLayoutProps {
 }
 
 export function PublicLayout({ children, showFooter = true, className }: PublicLayoutProps) {
+  const location = useLocation()
+  const footerDelayMs = location.pathname === '/' ? 1600 : 500
+  const footerHydrated = useDeferredHydration(showFooter, footerDelayMs)
+
   return (
     <div className={cn('min-h-screen bg-background overflow-x-hidden', className)}>
       <PublicSiteHeader />
       <main id={APP_MAIN_CONTENT_ID}>{children}</main>
-      {showFooter && (
+      {showFooter && footerHydrated && (
         <Suspense fallback={null}>
           <SharedFooter />
         </Suspense>

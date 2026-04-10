@@ -31,7 +31,6 @@ const baseApplication: ApplicationSummary = {
   created_at: '2026-01-01T00:00:00.000Z',
   result_slip_url: '',
   extra_kyc_url: '',
-  pop_url: '',
   grades_summary: '',
   total_subjects: 5,
   points: 8,

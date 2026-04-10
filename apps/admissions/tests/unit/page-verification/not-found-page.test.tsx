@@ -3,7 +3,7 @@
  * Not Found Page Verification Test
  *
  * Verifies the 404 page renders its error content and navigation links without errors.
- * The NotFoundPage uses useAuth for role-aware suggestions and useLocation for the
+ * The NotFoundPage uses pathname heuristics for suggestion links and useLocation for the
  * attempted path display. No API calls — purely static/computed content.
  *
  * Requirements: 8.3, 8.10, 8.11, 8.12
@@ -50,13 +50,6 @@ vi.mock('react-router-dom', () => ({
   useLocation: () => mockLocation,
 }))
 
-// ── Mock AuthContext (unauthenticated by default) ─────────────────────
-const mockUseAuth = vi.fn()
-
-vi.mock('@/contexts/AuthContext', () => ({
-  useAuth: () => mockUseAuth(),
-}))
-
 // ── Mock heavy child components ───────────────────────────────────────
 vi.mock('@/components/layout/PublicLayout', () => ({
   PublicLayout: ({ children }: { children: React.ReactNode }) => (
@@ -81,16 +74,6 @@ describe('Not found page verification', () => {
     mockLocation.search = ''
     mockLocation.hash = ''
     mockLocation.state = null
-
-    // Default: unauthenticated visitor
-    mockUseAuth.mockReturnValue({
-      user: null,
-      loading: false,
-      isAdmin: false,
-      signIn: vi.fn(),
-      signUp: vi.fn(),
-      signOut: vi.fn(),
-    })
 
     container = document.createElement('div')
     document.body.appendChild(container)
@@ -148,6 +131,7 @@ describe('Not found page verification', () => {
   // ── Suggested pages for unauthenticated users ───────────────────────
 
   it('shows suggested pages including Home and Track Application for unauthenticated users', async () => {
+    mockLocation.pathname = '/application/not-found'
     await renderAndWait()
     const text = container.textContent || ''
     expect(text).toContain('You might be looking for')
@@ -155,35 +139,19 @@ describe('Not found page verification', () => {
     expect(text).toContain('Track Application')
   })
 
-  // ── Suggested pages for authenticated student ───────────────────────
+  // ── Suggested pages for student-like paths ──────────────────────────
 
-  it('shows student dashboard suggestion for authenticated students', async () => {
-    mockUseAuth.mockReturnValue({
-      user: { id: 'user-001', email: 'student@example.com', role: 'student' },
-      loading: false,
-      isAdmin: false,
-      signIn: vi.fn(),
-      signUp: vi.fn(),
-      signOut: vi.fn(),
-    })
-
+  it('shows student dashboard suggestion for student paths', async () => {
+    mockLocation.pathname = '/student/nonexistent/page'
     await renderAndWait()
     const text = container.textContent || ''
     expect(text).toContain('My Dashboard')
   })
 
-  // ── Suggested pages for authenticated admin ─────────────────────────
+  // ── Suggested pages for admin-like paths ────────────────────────────
 
-  it('shows admin dashboard suggestion for authenticated admins', async () => {
-    mockUseAuth.mockReturnValue({
-      user: { id: 'user-002', email: 'admin@example.com', role: 'admin' },
-      loading: false,
-      isAdmin: true,
-      signIn: vi.fn(),
-      signUp: vi.fn(),
-      signOut: vi.fn(),
-    })
-
+  it('shows admin dashboard suggestion for admin paths', async () => {
+    mockLocation.pathname = '/admin/nonexistent/page'
     await renderAndWait()
     const text = container.textContent || ''
     expect(text).toContain('Admin Dashboard')

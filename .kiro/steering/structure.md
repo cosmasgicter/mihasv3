@@ -47,6 +47,20 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `apps/admissions/src/lib/api/` | API-specific helpers still used by some flows |
 | `apps/admissions/tests/` | Unit, integration, and property tests |
 
+### Admissions High-Risk Flow Paths
+
+| Path | Purpose |
+|------|---------|
+| `apps/admissions/src/pages/student/applicationWizard/` | Core student application and payment flow |
+| `apps/admissions/src/pages/student/Dashboard.tsx` | Student overview and recovery entry point |
+| `apps/admissions/src/pages/student/Payment.tsx` | Read-only payment history and payment guidance |
+| `apps/admissions/src/pages/student/Interview.tsx` | Student interview schedule and join actions |
+| `apps/admissions/src/pages/student/ApplicationStatus.tsx` | Student status tracking and next actions |
+| `apps/admissions/src/pages/student/Settings.tsx` | Student profile/settings form with dirty-state risk |
+| `backend/apps/applications/views.py` | Submission, review, interview list, and tracking endpoints |
+| `backend/apps/applications/services.py` | Submission and transition enforcement |
+| `backend/apps/documents/payment_service.py` | Lenco payment lifecycle and state transitions |
+
 ### Placement Guidance
 
 | Adding | Place It In | Notes |
@@ -144,7 +158,6 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | Path | Reason |
 |------|--------|
 | `apps/admissions/src/config/payments.ts` | Hardcoded K153 fee and mobile money phone numbers — replaced by dynamic fee resolution |
-| `apps/admissions/src/pages/student/applicationWizard/lib/paymentFlow.ts` | Legacy manual payment validation — replaced by Lenco widget |
 | `apps/admissions/tests/unit/paymentFlow.test.ts` | Tests for deleted paymentFlow module |
 
 | Path | Purpose |

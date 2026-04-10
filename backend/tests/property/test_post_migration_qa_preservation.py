@@ -644,8 +644,9 @@ class TestPaymentPreservation:
     def test_application_list_still_includes_payment_fields(self, role):
         """ApplicationListSerializer must still include payment fields.
 
-        The Payment page reads payment data from the Application model.
-        This must continue working after the PaymentListView is added.
+        The Payment page still needs payment summary fields, but they should
+        come from canonical payment records rather than deprecated
+        retired application-inline compatibility columns.
 
         **Validates: Requirements 3.5**
         """
@@ -653,10 +654,17 @@ class TestPaymentPreservation:
 
         fields = ApplicationListSerializer.Meta.fields
         payment_fields = [
-            "payment_status", "payment_method", "payer_name",
-            "payer_phone", "amount", "paid_at", "momo_ref", "pop_url",
+            "payment_status", "payment_method", "paid_amount",
+            "paid_at", "receipt_number", "payment_reference",
+            "last_payment_reference",
         ]
         for field in payment_fields:
             assert field in fields, (
                 f"ApplicationListSerializer must include '{field}' for the Payment page"
+            )
+
+        removed_fields = ["payer_name", "payer_phone", "amount", "momo_ref", "pop_url"]
+        for field in removed_fields:
+            assert field not in fields, (
+                f"ApplicationListSerializer should not expose deprecated field '{field}'"
             )

@@ -24,46 +24,6 @@ const CHUNK_RELOAD_COUNT_KEY = 'mihas_chunk_reload_count_v2'
 const CHUNK_RELOAD_ROUTE_KEY = 'mihas_chunk_reload_route_v2'
 const CHUNK_RELOAD_MAX_PER_SESSION = 1
 const CHUNK_RELOAD_COOLDOWN_MS = 120_000
-const CACHE_RESET_STORAGE_KEY = 'mihas_runtime_cache_reset'
-const CACHE_RESET_VERSION = 'post-qa-2026-04-02'
-
-async function runOneTimeRuntimeCacheReset(): Promise<boolean> {
-  if (typeof window === 'undefined' || !import.meta.env.PROD) {
-    return false
-  }
-
-  try {
-    if (localStorage.getItem(CACHE_RESET_STORAGE_KEY) === CACHE_RESET_VERSION) {
-      // Strip _cache_reset query param if present (prevents URL pollution)
-      const url = new URL(window.location.href)
-      if (url.searchParams.has('_cache_reset')) {
-        url.searchParams.delete('_cache_reset')
-        window.history.replaceState({}, '', url.toString())
-      }
-      return false
-    }
-
-    const registrations = 'serviceWorker' in navigator
-      ? await navigator.serviceWorker.getRegistrations()
-      : []
-    const cacheKeys = 'caches' in window ? await caches.keys() : []
-
-    await Promise.all([
-      ...registrations.map((registration) => registration.unregister()),
-      ...cacheKeys.map((cacheKey) => caches.delete(cacheKey)),
-    ])
-
-    localStorage.setItem(CACHE_RESET_STORAGE_KEY, CACHE_RESET_VERSION)
-
-    const url = new URL(window.location.href)
-    url.searchParams.set('_cache_reset', CACHE_RESET_VERSION)
-    window.location.replace(url.toString())
-    return true
-  } catch (error) {
-    console.warn('[PWA] One-time runtime cache reset failed:', error)
-    return false
-  }
-}
 
 // Handle stale chunk errors after deployment (must run before app mounts)
 // When a new build deploys, old hashed chunks no longer exist on the CDN.
@@ -198,16 +158,6 @@ if (typeof window !== 'undefined') {
   })
 }
 
-// Immediately strip _cache_reset query param if present — runs synchronously
-// before React mounts so the user never sees the polluted URL.
-if (typeof window !== 'undefined' && import.meta.env.PROD) {
-  const _url = new URL(window.location.href)
-  if (_url.searchParams.has('_cache_reset')) {
-    _url.searchParams.delete('_cache_reset')
-    window.history.replaceState({}, '', _url.toString())
-  }
-}
-
 // Suppress browser extension errors that interfere with the application
 if (typeof window !== 'undefined') {
   connectionManager.suppressExtensionErrors()
@@ -281,32 +231,37 @@ if (typeof window !== 'undefined') {
       }, { once: true })
     }
 
-    setTimeout(() => {
-      runOneTimeRuntimeCacheReset()
-        .then((didReset) => {
-          if (didReset) {
-            return
-          }
+    const registerServiceWorker = () => {
+      registerSW({
+        immediate: true,
+        onRegisterError(error) {
+          console.error('[PWA] Service worker registration failed:', error)
+        }
+      })
 
-          registerSW({
-            immediate: true,
-            onRegisterError(error) {
-              console.error('[PWA] Service worker registration failed:', error)
-            }
-          })
+      navigator.serviceWorker.getRegistrations()
+        .then((registrations) => Promise.all(
+          registrations
+            .filter((registration) => registration.active?.scriptURL.endsWith('/sw.js'))
+            .map((registration) => registration.unregister())
+        ))
+        .catch(() => {})
+    }
 
-          navigator.serviceWorker.getRegistrations()
-            .then((registrations) => Promise.all(
-              registrations
-                .filter((registration) => registration.active?.scriptURL.endsWith('/sw.js'))
-                .map((registration) => registration.unregister())
-            ))
-            .catch(() => {})
-        })
-        .catch((error) => {
-          console.warn('[PWA] Runtime cache reset bootstrap failed:', error)
-        })
-    }, 3000)
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(() => {
+            registerServiceWorker()
+          }, { timeout: 5000 })
+          return
+        }
+
+        setTimeout(() => {
+          registerServiceWorker()
+        }, 3500)
+      })
+    })
   }
 }
 

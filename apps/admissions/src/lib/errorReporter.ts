@@ -19,8 +19,17 @@ interface ErrorPayload {
 
 const BATCH_DELAY_MS = 5_000
 
-let buffer: ErrorPayload[] = []
+const bufferMap = new Map<string, { payload: ErrorPayload; count: number }>()
 let timer: ReturnType<typeof setTimeout> | null = null
+
+function computeHash(message: string, stack?: string): string {
+  const input = `${message}::${stack ?? ''}`
+  let hash = 0
+  for (let i = 0; i < input.length; i++) {
+    hash = ((hash << 5) - hash + input.charCodeAt(i)) | 0
+  }
+  return hash.toString(36)
+}
 
 function getAppVersion(): string {
   try {
@@ -31,7 +40,13 @@ function getAppVersion(): string {
 }
 
 function enqueue(payload: ErrorPayload): void {
-  buffer.push(payload)
+  const hash = computeHash(payload.message, payload.stack_trace)
+  const existing = bufferMap.get(hash)
+  if (existing) {
+    existing.count++
+    return
+  }
+  bufferMap.set(hash, { payload, count: 1 })
 
   if (timer !== null) return
   timer = setTimeout(flush, BATCH_DELAY_MS)
@@ -39,10 +54,13 @@ function enqueue(payload: ErrorPayload): void {
 
 function flush(): void {
   timer = null
-  if (buffer.length === 0) return
+  if (bufferMap.size === 0) return
 
-  const batch = buffer
-  buffer = []
+  const batch = Array.from(bufferMap.values()).map(({ payload, count }) => ({
+    ...payload,
+    count,
+  }))
+  bufferMap.clear()
 
   const body = JSON.stringify(
     batch.length === 1

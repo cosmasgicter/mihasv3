@@ -12,6 +12,7 @@ import logging
 
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 logger = logging.getLogger(__name__)
@@ -29,14 +30,27 @@ class ErrorReportView(APIView):
     """POST /api/v1/errors/report/
 
     Accept frontend error reports. No authentication required.
-    Rate-limited to 10 requests per IP per 5 minutes via RateLimitMiddleware.
+    Rate-limited to 5 requests per minute via DRF ScopedRateThrottle.
     CSRF-exempt via CSRFEnforcementMiddleware.EXEMPT_PATTERNS.
     """
 
     authentication_classes = []
     permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'error_report'
 
     def post(self, request):
+        # Reject payloads larger than 16 KB before any processing.
+        if len(request.body) > 16_384:
+            return Response(
+                {
+                    "success": False,
+                    "error": "Payload too large",
+                    "code": "PAYLOAD_TOO_LARGE",
+                },
+                status=413,
+            )
+
         try:
             reports = self._extract_reports(request.data)
         except ValueError as exc:
@@ -48,6 +62,9 @@ class ErrorReportView(APIView):
                 },
                 status=400,
             )
+
+        # Cap batch to first 10 items.
+        reports = reports[:10]
 
         # Hash client IP with SHA-256 — never store raw IP.
         raw_ip = _get_client_ip(request)

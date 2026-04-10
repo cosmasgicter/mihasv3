@@ -1,16 +1,44 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { useForm } from 'react-hook-form'
 
 import PaymentStep from '@/pages/student/applicationWizard/steps/PaymentStep'
 import type { WizardFormData } from '@/pages/student/applicationWizard/types'
 
-function renderPaymentStep(paymentOption: 'pay_now' | 'pay_later' = 'pay_now') {
+const useFeeResolverMock = vi.fn()
+const useLencoWidgetMock = vi.fn()
+const usePaymentStatusMock = vi.fn()
+
+vi.mock('@/hooks/useFeeResolver', () => ({
+  useFeeResolver: (...args: unknown[]) => useFeeResolverMock(...args),
+}))
+
+vi.mock('@/hooks/useLencoWidget', () => ({
+  useLencoWidget: (...args: unknown[]) => useLencoWidgetMock(...args),
+}))
+
+vi.mock('@/hooks/usePaymentStatus', () => ({
+  usePaymentStatus: (...args: unknown[]) => usePaymentStatusMock(...args),
+}))
+
+function renderPaymentStep() {
   const Harness = () => {
     const form = useForm<WizardFormData>({
       defaultValues: {
-        payment_option: paymentOption,
-        payment_method: 'MTN Money',
+        full_name: 'Jane Student',
+        nrc_number: '123456/78/9',
+        passport_number: '',
+        date_of_birth: '2001-09-08',
+        sex: 'Female',
+        phone: '+260971234567',
+        email: 'jane@example.com',
+        residence_town: 'Kitwe',
+        country: 'Zambia',
+        nationality: 'Zambian',
+        next_of_kin_name: 'John Student',
+        next_of_kin_phone: '+260977000000',
+        program: 'program-1',
+        intake: 'intake-2026-aug',
       },
     })
 
@@ -18,11 +46,8 @@ function renderPaymentStep(paymentOption: 'pay_now' | 'pay_later' = 'pay_now') {
       <PaymentStep
         title="Payment"
         form={form}
-        getPaymentTarget={async () => 'MIHAS Collections Account'}
-        handleProofOfPaymentUpload={() => undefined}
-        proofOfPaymentFile={null}
-        uploadProgress={{}}
-        uploadedFiles={{}}
+        applicationId="app-1"
+        applicationNumber="MIHAS-2026-0001"
       />
     )
   }
@@ -31,18 +56,42 @@ function renderPaymentStep(paymentOption: 'pay_now' | 'pay_later' = 'pay_now') {
 }
 
 describe('PaymentStep', () => {
-  it('renders separate payment-details and proof-upload sections for pay-now flows', () => {
-    const markup = renderPaymentStep('pay_now')
-
-    expect(markup).toContain('Payment details')
-    expect(markup).toContain('Proof of payment upload')
-    expect(markup).toContain('Submit for review')
+  beforeEach(() => {
+    useFeeResolverMock.mockReturnValue({
+      fee: { amount: 153, currency: 'ZMW', residency_category: 'resident' },
+      isLoading: false,
+      error: null,
+    })
+    useLencoWidgetMock.mockReturnValue({
+      openWidget: vi.fn(),
+      isLoading: false,
+      isScriptLoaded: true,
+    })
+    usePaymentStatusMock.mockReturnValue({
+      status: 'idle',
+      refetch: vi.fn(),
+    })
   })
 
-  it('renders a clear dashboard follow-up message for pay-later flows', () => {
-    const markup = renderPaymentStep('pay_later')
+  it('renders the resolved application fee and secure payment action', () => {
+    const markup = renderPaymentStep()
 
-    expect(markup).toContain('Complete payment later from your dashboard')
-    expect(markup).toContain('dashboard payment section')
+    expect(markup).toContain('Application fee')
+    expect(markup).toContain('K153.00')
+    expect(markup).toContain('Pay now')
+    expect(markup).toContain('Payments are processed securely by Lenco')
+  })
+
+  it('shows a warning when the payment widget is unavailable', () => {
+    useLencoWidgetMock.mockReturnValue({
+      openWidget: vi.fn(),
+      isLoading: false,
+      isScriptLoaded: false,
+    })
+
+    const markup = renderPaymentStep()
+
+    expect(markup).toContain('Payment widget unavailable')
+    expect(markup).toContain('Please check your connection and refresh the page')
   })
 })

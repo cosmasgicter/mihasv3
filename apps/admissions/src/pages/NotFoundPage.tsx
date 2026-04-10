@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { PublicLayout } from '@/components/layout/PublicLayout'
 import { Home, ArrowLeft, Search, FileText, User, Settings } from 'lucide-react'
-import { useAuth } from '@/contexts/AuthContext'
 import { Seo } from '@/components/seo/Seo'
 
 interface SuggestedPage {
@@ -15,13 +14,14 @@ interface SuggestedPage {
 
 export default function NotFoundPage() {
   const location = useLocation()
-  const { user, isAdmin } = useAuth()
   const [suggestedPages, setSuggestedPages] = useState<SuggestedPage[]>([])
 
   useEffect(() => {
     // Generate suggested pages based on the attempted URL and user role
     const suggestions: SuggestedPage[] = []
     const attemptedPath = location.pathname.toLowerCase()
+    const looksLikeAdminPath = attemptedPath.startsWith('/admin')
+    const looksLikeStudentPath = attemptedPath.startsWith('/student')
 
     // Common suggestions for all users
     suggestions.push({
@@ -31,8 +31,7 @@ export default function NotFoundPage() {
       description: 'Return to the homepage'
     })
 
-    // Suggest track application for public users or if path contains 'track' or 'application'
-    if (!user || attemptedPath.includes('track') || attemptedPath.includes('application')) {
+    if (attemptedPath.includes('track') || attemptedPath.includes('application') || attemptedPath === '/404') {
       suggestions.push({
         path: '/track-application',
         label: 'Track Application',
@@ -41,116 +40,58 @@ export default function NotFoundPage() {
       })
     }
 
-    // Suggestions for authenticated users
-    if (user) {
-      if (isAdmin) {
-        // Admin-specific suggestions
-        suggestions.push({
-          path: '/admin/dashboard',
-          label: 'Admin Dashboard',
-          icon: <FileText className="h-4 w-4" />,
-          description: 'View admin dashboard'
-        })
+    if (looksLikeAdminPath) {
+      suggestions.push({
+        path: '/admin/dashboard',
+        label: 'Admin Dashboard',
+        icon: <FileText className="h-4 w-4" />,
+        description: 'Return to the admin dashboard'
+      })
+    }
 
-        if (attemptedPath.includes('application') || attemptedPath.includes('student')) {
-          suggestions.push({
-            path: '/admin/applications',
-            label: 'Applications',
-            icon: <FileText className="h-4 w-4" />,
-            description: 'Manage student applications'
-          })
-        }
+    if (looksLikeStudentPath) {
+      suggestions.push({
+        path: '/student/dashboard',
+        label: 'My Dashboard',
+        icon: <FileText className="h-4 w-4" />,
+        description: 'Return to your student dashboard'
+      })
+    }
 
-        if (attemptedPath.includes('user') || attemptedPath.includes('role')) {
-          suggestions.push({
-            path: '/admin/users',
-            label: 'User Management',
-            icon: <User className="h-4 w-4" />,
-            description: 'Manage system users'
-          })
-        }
+    if (attemptedPath.includes('signin') || attemptedPath.includes('login') || attemptedPath.includes('auth')) {
+      suggestions.push({
+        path: '/auth/signin',
+        label: 'Sign In',
+        icon: <User className="h-4 w-4" />,
+        description: 'Sign in to your account'
+      })
+    }
 
-        if (attemptedPath.includes('setting') || attemptedPath.includes('config')) {
-          suggestions.push({
-            path: '/admin/settings',
-            label: 'Settings',
-            icon: <Settings className="h-4 w-4" />,
-            description: 'Configure system settings'
-          })
-        }
+    if (attemptedPath.includes('signup') || attemptedPath.includes('register')) {
+      suggestions.push({
+        path: '/auth/signup',
+        label: 'Sign Up',
+        icon: <User className="h-4 w-4" />,
+        description: 'Create a new account'
+      })
+    }
 
-        if (attemptedPath.includes('analytic') || attemptedPath.includes('report')) {
-          suggestions.push({
-            path: '/admin/dashboard',
-            label: 'Dashboard',
-            icon: <FileText className="h-4 w-4" />,
-            description: 'View admin dashboard'
-          })
-        }
-      } else {
-        // Student-specific suggestions
-        suggestions.push({
-          path: '/student/dashboard',
-          label: 'My Dashboard',
-          icon: <FileText className="h-4 w-4" />,
-          description: 'View your dashboard'
-        })
+    if (attemptedPath.includes('apply')) {
+      suggestions.push({
+        path: '/auth/signup',
+        label: 'Apply Now',
+        icon: <FileText className="h-4 w-4" />,
+        description: 'Start your application'
+      })
+    }
 
-        if (attemptedPath.includes('apply') || attemptedPath.includes('application')) {
-          suggestions.push({
-            path: '/apply',
-            label: 'Apply Now',
-            icon: <FileText className="h-4 w-4" />,
-            description: 'Start or continue your application'
-          })
-        }
-
-        if (attemptedPath.includes('status')) {
-          suggestions.push({
-            path: '/student/status',
-            label: 'Application Status',
-            icon: <Search className="h-4 w-4" />,
-            description: 'Check your application status'
-          })
-        }
-
-        if (attemptedPath.includes('setting') || attemptedPath.includes('profile')) {
-          suggestions.push({
-            path: '/student/settings',
-            label: 'Profile Settings',
-            icon: <Settings className="h-4 w-4" />,
-            description: 'Update your profile'
-          })
-        }
-      }
-    } else {
-      // Suggestions for non-authenticated users
-      if (attemptedPath.includes('signin') || attemptedPath.includes('login') || attemptedPath.includes('auth')) {
-        suggestions.push({
-          path: '/auth/signin',
-          label: 'Sign In',
-          icon: <User className="h-4 w-4" />,
-          description: 'Sign in to your account'
-        })
-      }
-
-      if (attemptedPath.includes('signup') || attemptedPath.includes('register')) {
-        suggestions.push({
-          path: '/auth/signup',
-          label: 'Sign Up',
-          icon: <User className="h-4 w-4" />,
-          description: 'Create a new account'
-        })
-      }
-
-      if (attemptedPath.includes('apply')) {
-        suggestions.push({
-          path: '/auth/signup',
-          label: 'Apply Now',
-          icon: <FileText className="h-4 w-4" />,
-          description: 'Sign up to start your application'
-        })
-      }
+    if (attemptedPath.includes('setting') || attemptedPath.includes('profile')) {
+      suggestions.push({
+        path: looksLikeAdminPath ? '/admin/settings' : looksLikeStudentPath ? '/student/settings' : '/contact',
+        label: looksLikeAdminPath || looksLikeStudentPath ? 'Settings' : 'Contact',
+        icon: <Settings className="h-4 w-4" />,
+        description: looksLikeAdminPath || looksLikeStudentPath ? 'Open the settings page' : 'Contact the admissions team for help'
+      })
     }
 
     // Remove duplicates and limit to 4 suggestions
@@ -160,7 +101,7 @@ export default function NotFoundPage() {
     ).slice(0, 4)
 
     setSuggestedPages(uniqueSuggestions)
-  }, [location.pathname, user, isAdmin])
+  }, [location.pathname])
 
   return (
     <PublicLayout>

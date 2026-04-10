@@ -127,7 +127,7 @@ function getPaymentGuidance(app: ApplicationSummary) {
   }
 
   if (normalizedPaymentStatus === 'pending_review') {
-    return 'Your proof of payment has been submitted and is waiting for admissions review.'
+    return 'Your recent payment is awaiting admissions review.'
   }
 
   if (normalizedPaymentStatus === 'rejected' && app.last_payment_audit_notes) {
@@ -135,7 +135,7 @@ function getPaymentGuidance(app: ApplicationSummary) {
   }
 
   if (normalizedPaymentStatus === 'rejected') {
-    return 'Your previous payment submission was rejected. Review the application status and submit updated proof if requested.'
+    return 'Your previous payment was rejected. Review the application status and follow the latest instructions before retrying.'
   }
 
   return 'This application still needs payment attention before it can move forward in review.'

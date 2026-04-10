@@ -325,7 +325,7 @@ export function QuickFilters({
   const quickFilters = [
     { label: 'Pending Review', filter: 'status', value: 'submitted' },
     { label: 'Under Review', filter: 'status', value: 'under-review' },
-    { label: 'Awaiting Proof Review', filter: 'paymentStatus', value: 'pending_review' },
+    { label: 'Awaiting Payment Review', filter: 'paymentStatus', value: 'pending_review' },
     { label: 'Today\'s Applications', filter: 'dateRange', value: 'today' },
     { label: 'This Week', filter: 'dateRange', value: 'week' },
     { label: 'High Scores (80%+)', filter: 'eligibilityRange', value: '80-100' }

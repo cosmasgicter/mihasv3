@@ -1,5 +1,30 @@
 import { useState, type ImgHTMLAttributes } from 'react'
 
+function splitAssetPath(assetPath: string) {
+  const [rawPathname = '', search = ''] = assetPath.split('?')
+  const pathname = rawPathname || assetPath
+  const match = pathname.match(/^(.*?)(\.[^.]+)$/)
+
+  if (!match) {
+    return null
+  }
+
+  return {
+    base: match[1],
+    ext: match[2],
+    search: search ? `?${search}` : '',
+  }
+}
+
+function buildVariantAssetPath(assetPath: string, width: number) {
+  const parts = splitAssetPath(assetPath)
+  if (!parts) {
+    return null
+  }
+
+  return `${parts.base}-${width}w${parts.ext}${parts.search}`
+}
+
 interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'loading'> {
   /** Image source URL */
   src: string
@@ -46,9 +71,13 @@ export function OptimizedImage({
   // Build srcset string from widths
   const buildSrcSet = (baseSrc: string) => {
     if (!srcSetWidths?.length) return undefined
-    return srcSetWidths
-      .map(w => `${baseSrc}?w=${w} ${w}w`)
-      .join(', ')
+    const variants = srcSetWidths
+      .map((variantWidth) => {
+        const variantPath = buildVariantAssetPath(baseSrc, variantWidth)
+        return variantPath ? `${variantPath} ${variantWidth}w` : null
+      })
+      .filter((entry): entry is string => Boolean(entry))
+    return variants.length > 0 ? variants.join(', ') : undefined
   }
 
   if (hasError) {

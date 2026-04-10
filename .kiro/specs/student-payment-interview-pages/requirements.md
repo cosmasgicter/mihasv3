@@ -54,8 +54,8 @@ This document specifies the requirements for fixing three critical issues in the
 1. WHEN a student clicks "Complete Payment" in Quick_Actions THEN the System SHALL navigate to `/student/payment`
 2. WHEN a student clicks "Complete Payment" in Dashboard_Status_Overview THEN the System SHALL navigate to `/student/payment`
 3. THE Payment_Page SHALL display all applications with pending payments
-4. THE Payment_Page SHALL provide clear instructions for completing payment
-5. IF a student needs to upload proof of payment THEN the Payment_Page SHALL provide a link to the relevant application's payment step
+4. THE Payment_Page SHALL provide clear guidance for next actions on each application's payment state
+5. IF a student needs to resolve payment THEN the Payment_Page SHALL provide a link to the relevant wizard or application-status route
 
 ### Requirement 4: Conditional Navigation Display
 

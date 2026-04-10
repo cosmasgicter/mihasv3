@@ -250,8 +250,9 @@ export const applicationsData = {
     const queryClient = useQueryClient()
 
     return useMutation({
-      mutationFn: (id: string) => applicationService.submit(id),
-      onSuccess: async (_, id) => {
+      mutationFn: ({ id, headers }: { id: string; headers?: Record<string, string> }) =>
+        applicationService.submit(id, headers ? { headers } : undefined),
+      onSuccess: async (_, { id }) => {
         await queryClient.invalidateQueries({
           queryKey: QUERY_KEYS.applicationDetail(id),
           refetchType: 'all'

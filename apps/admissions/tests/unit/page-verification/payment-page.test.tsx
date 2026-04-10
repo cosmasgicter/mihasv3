@@ -130,13 +130,6 @@ const djangoApplicationsWithPayment = {
       user_id: 'user-001',
       status: 'submitted',
       payment_status: null,
-      payment_method: null,
-      payer_name: null,
-      payer_phone: null,
-      amount: null,
-      paid_at: null,
-      momo_ref: null,
-      pop_url: null,
       last_payment_audit_notes: null,
       created_at: '2025-01-15T10:00:00Z',
       program: 'Bachelor of Nursing',
@@ -147,12 +140,11 @@ const djangoApplicationsWithPayment = {
       status: 'submitted',
       payment_status: 'pending_review',
       payment_method: 'MTN Money',
-      payer_name: 'Jane Doe',
-      payer_phone: '+260971234567',
-      amount: 153,
+      paid_amount: 153,
       paid_at: '2025-02-01T14:30:00Z',
-      momo_ref: 'TXN-12345',
-      pop_url: 'https://storage.example.com/proof-002.pdf',
+      payment_reference: 'TXN-12345',
+      last_payment_reference: 'TXN-12345',
+      receipt_number: null,
       last_payment_audit_notes: null,
       created_at: '2025-02-01T08:00:00Z',
       program: 'Diploma in Pharmacy',
@@ -163,12 +155,11 @@ const djangoApplicationsWithPayment = {
       status: 'submitted',
       payment_status: 'verified',
       payment_method: 'Airtel Money',
-      payer_name: 'Jane Doe',
-      payer_phone: '+260977654321',
-      amount: 153,
+      paid_amount: 153,
       paid_at: '2025-01-20T09:00:00Z',
-      momo_ref: 'TXN-67890',
-      pop_url: 'https://storage.example.com/proof-003.pdf',
+      payment_reference: 'TXN-67890',
+      last_payment_reference: 'TXN-67890',
+      receipt_number: 'RCT-003',
       last_payment_audit_notes: null,
       created_at: '2024-12-10T08:00:00Z',
       program: 'Certificate in Community Health',
@@ -179,13 +170,12 @@ const djangoApplicationsWithPayment = {
       status: 'submitted',
       payment_status: 'rejected',
       payment_method: 'MTN Money',
-      payer_name: 'Jane Doe',
-      payer_phone: '+260971234567',
-      amount: 153,
+      paid_amount: 153,
       paid_at: '2025-03-01T11:00:00Z',
-      momo_ref: 'TXN-INVALID',
-      pop_url: 'https://storage.example.com/proof-004.pdf',
-      last_payment_audit_notes: 'Proof of payment is blurry and unreadable. Please resubmit.',
+      payment_reference: 'TXN-INVALID',
+      last_payment_reference: 'TXN-INVALID',
+      receipt_number: null,
+      last_payment_audit_notes: 'The last payment attempt could not be verified. Please review the latest instructions and try again.',
       created_at: '2025-03-01T08:00:00Z',
       program: 'Bachelor of Nursing',
     },
@@ -333,7 +323,7 @@ describe('Payment page verification', () => {
     const text = container.textContent || ''
     // app-004 has rejected status with audit notes
     expect(text).toContain('Rejected')
-    expect(text).toContain('Proof of payment is blurry and unreadable')
+    expect(text).toContain('The last payment attempt could not be verified')
   })
 
   // ── Summary cards ───────────────────────────────────────────────────
@@ -455,6 +445,8 @@ describe('Payment page verification', () => {
 
     // app-004: rejected with audit notes
     expect(apps[3].payment_status).toBe('rejected')
-    expect(apps[3].last_payment_audit_notes).toBe('Proof of payment is blurry and unreadable. Please resubmit.')
+    expect(apps[3].last_payment_audit_notes).toBe(
+      'The last payment attempt could not be verified. Please review the latest instructions and try again.'
+    )
   })
 })

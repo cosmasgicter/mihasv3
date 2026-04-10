@@ -39,6 +39,8 @@ export interface FormSelectProps<T extends FieldValues> {
   required?: boolean
   /** Callback when value changes */
   onValueChange?: (value: string) => void
+  /** Additional aria-describedby ids to merge (Req 17.2) */
+  extraDescribedBy?: string
 }
 
 /**
@@ -76,6 +78,7 @@ export function FormSelect<T extends FieldValues>({
   triggerClassName,
   required = false,
   onValueChange,
+  extraDescribedBy,
 }: FormSelectProps<T>) {
   return (
     <Controller
@@ -97,6 +100,7 @@ export function FormSelect<T extends FieldValues>({
           className={className}
           triggerClassName={triggerClassName}
           required={required}
+          extraDescribedBy={extraDescribedBy}
         />
       )}
     />

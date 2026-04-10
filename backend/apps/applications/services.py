@@ -13,6 +13,18 @@ from apps.documents.models import ApplicationDocument, Payment
 
 logger = logging.getLogger(__name__)
 
+# Valid status transitions enforced by transition_application_status().
+# Any (old_status, new_status) pair not represented here is rejected.
+ALLOWED_TRANSITIONS: dict[str, set[str]] = {
+    "draft": {"submitted"},
+    "submitted": {"under_review", "approved", "rejected"},
+    "under_review": {"approved", "rejected", "waitlisted"},
+    "waitlisted": {"approved", "rejected"},
+}
+
+# Error code raised when a disallowed transition is attempted.
+INVALID_STATUS_TRANSITION = "INVALID_STATUS_TRANSITION"
+
 # Fields updated by transition_application_status — kept as a module
 # constant so both the helper and its callers can reference the same list.
 _STATUS_TRANSITION_UPDATE_FIELDS = [
@@ -61,6 +73,21 @@ def transition_application_status(
         The previous status value (``old_status``).
     """
     old_status = application.status
+
+    # --- State machine enforcement (Req 13) ---
+    allowed = ALLOWED_TRANSITIONS.get(old_status, set())
+    if new_status not in allowed:
+        logger.warning(
+            "Invalid transition: app=%s from=%s to=%s by=%s",
+            application.id,
+            old_status,
+            new_status,
+            changed_by,
+        )
+        raise ValueError(
+            f"Cannot transition from '{old_status}' to '{new_status}'."
+        )
+
     application.status = new_status
 
     if not application.review_started_at:

@@ -77,6 +77,7 @@ export const routes: RouteConfig[] = [
   { path: '/student/application-wizard', element: ApplicationWizard, guard: 'student', lazy: true, skeletonType: 'wizard' },
   { path: '/student/status', element: ApplicationStatus, guard: 'student', lazy: true, skeletonType: 'detail' },
   { path: '/application/:id', element: ApplicationStatus, guard: 'student', lazy: true, skeletonType: 'detail' },
+  { path: '/student/application/:id/status', element: ApplicationStatus, guard: 'student', lazy: true, skeletonType: 'detail' },
   { path: '/student/application/:id', element: ApplicationDetail, guard: 'student', lazy: true, skeletonType: 'detail' },
   { path: '/settings', element: <Navigate to="/student/settings" replace />, guard: 'student' },
   { path: '/student/profile', element: <Navigate to="/student/settings" replace />, guard: 'student' },

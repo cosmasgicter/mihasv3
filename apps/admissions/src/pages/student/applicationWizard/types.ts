@@ -58,7 +58,7 @@ const createSchema = (validProgramIds: string[], validIntakeIds: string[]) =>
           message: 'Please enter a valid date of birth (must be at least 16 years old)'
         }),
       sex: z.enum(['Male', 'Female'], { error: 'Please select sex' }),
-      phone: z.string().min(10, 'Valid phone number is required'),
+      phone: z.string().regex(/^\+?[0-9]{7,15}$/, 'Phone must be 7–15 digits, optionally prefixed with +'),
       email: z.string().email('Valid email is required'),
       residence_town: z
         .string()
@@ -101,5 +101,4 @@ export interface ApplicationFormData extends WizardFormData {
   grades?: SubjectGrade[]
   nrc?: string
   passport_number?: string
-  payment_reference?: string
 }

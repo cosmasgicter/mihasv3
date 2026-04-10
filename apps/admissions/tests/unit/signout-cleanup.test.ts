@@ -8,8 +8,7 @@
  *
  * Since signOut lives inside a React hook and @testing-library/react is not
  * available, we replicate the exact cleanup logic from the signOut callback
- * in useSessionListener.ts and test it directly — same pattern used by
- * cache-reset-url-cleanup.test.ts.
+ * in useSessionListener.ts and test it directly as a focused unit.
  *
  * _Requirements: 2.7_
  */

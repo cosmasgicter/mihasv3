@@ -102,9 +102,9 @@ export function FiltersPanel({
           >
             <option value="">All Payment States</option>
             <option value="not_paid">Awaiting Payment</option>
-            <option value="pending_review">Awaiting Proof Review</option>
+            <option value="pending_review">Awaiting Payment Review</option>
             <option value="verified">Verified</option>
-            <option value="rejected">Rejected Proof</option>
+            <option value="rejected">Payment Rejected</option>
           </select>
         </div>
         

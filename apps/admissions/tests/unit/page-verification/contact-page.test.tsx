@@ -3,8 +3,8 @@
  * Contact Page Verification Test
  *
  * Verifies the contact page renders its form and contact info sections without errors.
- * The ContactPage uses react-hook-form + Zod for validation and opens a prefilled
- * mailto link for admissions contact.
+ * The ContactPage uses react-hook-form + Zod and prepares a prefilled
+ * mailto draft for admissions contact.
  * Tests cover rendering, form input acceptance, and submission state transitions.
  *
  * Requirements: 8.2, 8.10, 8.11, 8.12
@@ -110,12 +110,8 @@ import ContactPage from '@/pages/ContactPage'
 describe('Contact page verification', () => {
   let container: HTMLDivElement
   let root: ReturnType<typeof createRoot>
-  const openSpy = vi.fn()
 
   beforeEach(() => {
-    openSpy.mockReset()
-    vi.stubGlobal('open', openSpy)
-
     container = document.createElement('div')
     document.body.appendChild(container)
     root = createRoot(container)
@@ -205,7 +201,7 @@ describe('Contact page verification', () => {
   it('renders the submit button', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Submit Inquiry')
+    expect(text).toContain('Prepare Email Draft')
   })
 
   // ── Form accepts input ──────────────────────────────────────────────
@@ -260,7 +256,7 @@ describe('Contact page verification', () => {
 
   // ── Form submission ─────────────────────────────────────────────────
 
-  it('shows success message after opening the mail client handoff', async () => {
+  it('shows a prepared email draft after form submission', async () => {
     await renderAndWait()
 
     const nameInput = container.querySelector('#contact-name') as HTMLInputElement
@@ -288,18 +284,19 @@ describe('Contact page verification', () => {
       form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
     })
 
-    // Wait for async submission
     await new Promise((r) => setTimeout(r, 300))
 
-    expect(openSpy).toHaveBeenCalledOnce()
     const text = container.textContent || ''
-    expect(text).toContain('Your email app should open')
+    expect(text).toContain('Your message draft is ready')
+    expect(text).toContain('Open Email App')
+    expect(text).toContain('Update Email Draft')
+
+    const emailLink = container.querySelector('a[href^="mailto:info@mihas.edu.zm?subject="]') as HTMLAnchorElement | null
+    expect(emailLink).toBeTruthy()
+    expect(emailLink?.href).toContain('mailto:info@mihas.edu.zm?subject=')
   })
 
-  it('shows error message when the mail client handoff fails', async () => {
-    openSpy.mockImplementationOnce(() => {
-      throw new Error('Window open failed')
-    })
+  it('keeps an editable handoff state after preparing the draft', async () => {
     await renderAndWait()
 
     const nameInput = container.querySelector('#contact-name') as HTMLInputElement
@@ -328,7 +325,8 @@ describe('Contact page verification', () => {
     await new Promise((r) => setTimeout(r, 300))
 
     const text = container.textContent || ''
-    expect(text).toContain('Unable to open your email app')
+    expect(text).toContain('Edit Message')
+    expect(text).not.toContain('Unable to open your email app')
   })
 
   // ── "Send a Message" card title ─────────────────────────────────────

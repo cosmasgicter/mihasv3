@@ -2,6 +2,54 @@ import React, { useRef, useState, useEffect, useCallback } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { ApplicationCard, ApplicationSummary } from './ApplicationCard'
 
+// Hook to track keyboard-focused row index for visible focus styling
+function useGridKeyboardNav(
+  totalRows: number,
+  columns: number,
+  applications: ApplicationSummary[],
+  onViewDetails: (id: string) => void,
+  rowRefs: React.MutableRefObject<Map<number, HTMLDivElement>>
+) {
+  const [focusedRowIndex, setFocusedRowIndex] = useState<number | null>(null)
+
+  const focusRow = useCallback((index: number) => {
+    if (index < 0 || index >= totalRows) return
+    setFocusedRowIndex(index)
+    const el = rowRefs.current.get(index)
+    if (el) {
+      el.focus({ preventScroll: false })
+      el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    }
+  }, [totalRows, rowRefs])
+
+  const handleRowKeyDown = useCallback((e: React.KeyboardEvent, rowIndex: number) => {
+    switch (e.key) {
+      case 'ArrowDown': {
+        e.preventDefault()
+        focusRow(rowIndex + 1)
+        break
+      }
+      case 'ArrowUp': {
+        e.preventDefault()
+        focusRow(rowIndex - 1)
+        break
+      }
+      case 'Enter':
+      case ' ': {
+        e.preventDefault()
+        const startIdx = rowIndex * columns
+        const firstApp = applications[startIdx]
+        if (firstApp) {
+          onViewDetails(firstApp.id)
+        }
+        break
+      }
+    }
+  }, [focusRow, columns, applications, onViewDetails])
+
+  return { focusedRowIndex, setFocusedRowIndex, handleRowKeyDown }
+}
+
 interface VirtualizedApplicationsGridProps {
   applications: ApplicationSummary[]
   onStatusUpdate: (id: string, status: string) => void | Promise<void>
@@ -53,7 +101,17 @@ export function VirtualizedApplicationsGrid({
   onSelectionChange
 }: VirtualizedApplicationsGridProps) {
   const parentRef = useRef<HTMLDivElement>(null)
+  const rowRefs = useRef<Map<number, HTMLDivElement>>(new Map())
   const columns = useResponsiveColumns()
+  const totalRows = Math.ceil(applications.length / columns)
+
+  const { focusedRowIndex, setFocusedRowIndex, handleRowKeyDown } = useGridKeyboardNav(
+    totalRows,
+    columns,
+    applications,
+    onViewDetails,
+    rowRefs
+  )
 
   // Handle selection change for individual cards
   const handleSelect = useCallback((id: string, selected: boolean) => {
@@ -66,15 +124,29 @@ export function VirtualizedApplicationsGrid({
     }
   }, [selectedIds, onSelectionChange])
 
+  const setRowRef = useCallback((index: number, el: HTMLDivElement | null) => {
+    if (el) {
+      rowRefs.current.set(index, el)
+    } else {
+      rowRefs.current.delete(index)
+    }
+  }, [])
+
   const rowVirtualizer = useVirtualizer({
-    count: Math.ceil(applications.length / columns),
+    count: totalRows,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 480,
     overscan: 5 // Increased overscan for smoother mobile scrolling
   })
 
   return (
-    <div ref={parentRef} className="h-[calc(100vh-400px)] overflow-auto">
+    <div
+      ref={parentRef}
+      className="h-[calc(100vh-400px)] overflow-auto"
+      role="grid"
+      aria-label="Applications grid"
+      aria-rowcount={totalRows}
+    >
       <div
         style={{
           height: `${rowVirtualizer.getTotalSize()}px`,
@@ -85,10 +157,22 @@ export function VirtualizedApplicationsGrid({
         {rowVirtualizer.getVirtualItems().map((virtualRow) => {
           const startIdx = virtualRow.index * columns
           const rowApps = applications.slice(startIdx, startIdx + columns)
+          const isFocused = focusedRowIndex === virtualRow.index
 
           return (
             <div
               key={virtualRow.key}
+              ref={(el) => setRowRef(virtualRow.index, el)}
+              role="row"
+              aria-rowindex={virtualRow.index + 1}
+              tabIndex={isFocused ? 0 : -1}
+              onKeyDown={(e) => handleRowKeyDown(e, virtualRow.index)}
+              onFocus={() => setFocusedRowIndex(virtualRow.index)}
+              className={`outline-none ${
+                isFocused
+                  ? 'ring-2 ring-primary ring-offset-2 rounded-xl'
+                  : ''
+              }`}
               style={{
                 position: 'absolute',
                 top: 0,
@@ -104,7 +188,7 @@ export function VirtualizedApplicationsGrid({
                 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
               }`}>
                 {rowApps.map((app) => (
-                  <div key={app.id}>
+                  <div key={app.id} role="gridcell">
                     <ApplicationCard
                       application={app}
                       onStatusUpdate={onStatusUpdate}

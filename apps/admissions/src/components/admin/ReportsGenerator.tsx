@@ -514,8 +514,8 @@ export function ReportsGenerator() {
 
       const paymentBreakdown = {
         Verified: paymentVerified,
-        'Awaiting Proof Review': paymentPendingReview,
-        'Rejected Proof': paymentRejected,
+        'Awaiting Payment Review': paymentPendingReview,
+        'Payment Rejected': paymentRejected,
         'Awaiting Payment': paymentNotPaid,
       }
 

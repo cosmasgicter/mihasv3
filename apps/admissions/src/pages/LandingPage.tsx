@@ -6,7 +6,7 @@
  */
 
 import { Suspense, lazy, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { ShapeLandingHero } from '@/components/smoothui/shape-landing-hero';
 import { 
@@ -14,6 +14,7 @@ import {
 } from '@/components/icons';
 import { Seo } from '@/components/seo/Seo';
 import { prefersReducedMotion } from '@/lib/animation-config';
+import { useDeferredHydration } from '@/hooks/useDeferredHydration';
 
 const LandingPageSections = lazy(() => import('@/components/landing/LandingPageSections').then((mod) => ({ default: mod.LandingPageSections })));
 
@@ -146,56 +147,8 @@ function smoothScrollToSection(sectionId: string) {
 }
 
 export default function LandingPage() {
-  const navigate = useNavigate();
   const location = useLocation();
-
-  useEffect(() => {
-    let cancelled = false
-    let timeoutId: ReturnType<typeof setTimeout> | null = null
-    let idleId: number | null = null
-
-    const checkSession = async () => {
-      try {
-        const [{ authService }, { extractAuthUser, isAdminUser }] = await Promise.all([
-          import('@/services/auth'),
-          import('@/lib/authSession'),
-        ])
-        const user = extractAuthUser(await authService.session())
-        if (!user || cancelled) {
-          return
-        }
-
-        navigate(isAdminUser(user) ? '/admin/dashboard' : '/student/dashboard', { replace: true })
-      } catch {
-        // Expected for logged-out visitors.
-      }
-    }
-
-    const scheduleCheck = () => {
-      if ('requestIdleCallback' in window) {
-        idleId = window.requestIdleCallback(() => {
-          void checkSession()
-        }, { timeout: 1500 })
-        return
-      }
-
-      timeoutId = setTimeout(() => {
-        void checkSession()
-      }, 600)
-    }
-
-    scheduleCheck()
-
-    return () => {
-      cancelled = true
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId)
-      }
-      if (idleId !== null && 'cancelIdleCallback' in window) {
-        window.cancelIdleCallback(idleId)
-      }
-    }
-  }, [navigate]);
+  const showDeferredSections = useDeferredHydration(true, 450)
 
   useEffect(() => {
     if (!location.hash) return;
@@ -229,8 +182,8 @@ export default function LandingPage() {
           image: {
             src: '/images/programs/mihas-campus.webp',
             alt: 'Students and facilities at the MIHAS-KATC healthcare training campuses',
-            width: 640,
-            height: 768,
+            width: 400,
+            height: 300,
           },
           eyebrow: 'Admissions Snapshot',
           title: 'Real campuses. Accredited pathways. Clear admissions tracking.',
@@ -248,9 +201,13 @@ export default function LandingPage() {
           ],
         }}
       />
-      <Suspense fallback={<LandingSectionsFallback />}>
-        <LandingPageSections />
-      </Suspense>
+      {showDeferredSections ? (
+        <Suspense fallback={<LandingSectionsFallback />}>
+          <LandingPageSections />
+        </Suspense>
+      ) : (
+        <LandingSectionsFallback />
+      )}
     </PublicLayout>
   );
 }

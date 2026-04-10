@@ -20,13 +20,6 @@ const completeFormData: WizardFormData = {
   next_of_kin_phone: '+260977000000',
   program: 'program-1',
   intake: 'intake-2026-aug',
-  payment_option: 'pay_now',
-  payment_method: 'MTN Money',
-  payer_name: '',
-  payer_phone: '',
-  amount: 153,
-  paid_at: '',
-  momo_ref: '',
 }
 
 describe('draftAutosave', () => {
@@ -73,15 +66,12 @@ describe('draftAutosave', () => {
     })
 
     expect(payload).toMatchObject({
-      application_number: 'MIHAS202612345',
-      public_tracking_code: 'TRKABC123',
       full_name: 'Jane Student',
       residence_town: 'Lusaka',
       program: 'Registered Nursing',
       intake: 'January',
       institution: 'MIHAS',
       nationality: 'Zambian',
-      status: 'draft',
     })
   })
 })

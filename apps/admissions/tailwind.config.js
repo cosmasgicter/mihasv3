@@ -84,6 +84,7 @@ module.exports = {
         error: {
           DEFAULT: 'rgb(var(--color-destructive-rgb) / <alpha-value>)',
           foreground: 'rgb(var(--color-destructive-foreground-rgb) / <alpha-value>)',
+          border: 'rgb(var(--color-error-border-rgb) / <alpha-value>)',
         },
         warning: {
           DEFAULT: 'rgb(var(--color-warning-rgb) / <alpha-value>)',

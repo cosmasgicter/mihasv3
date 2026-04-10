@@ -51,13 +51,6 @@ interface WizardFormData {
   next_of_kin_phone: string
   program: string
   intake: string
-  payment_option: 'pay_now' | 'pay_later'
-  payment_method: string
-  payer_name: string
-  payer_phone: string
-  amount: number
-  paid_at: string
-  momo_ref: string
 }
 
 // ── Round-trip function ─────────────────────────────────────────────────
@@ -101,11 +94,6 @@ const isoTimestampArb = fc.date({
   max: new Date('2026-12-31'),
 }).map(d => d.toISOString())
 
-/** Payment method options */
-const paymentMethodArb = fc.constantFrom(
-  'MTN Money', 'Airtel Money', 'Zamtel Money', 'Ewallet', 'Bank To Cell'
-)
-
 /** Wizard form data matching the actual schema */
 const wizardFormDataArb: fc.Arbitrary<WizardFormData> = fc.record({
   full_name: fc.string({ minLength: 2, maxLength: 100 }),
@@ -122,13 +110,6 @@ const wizardFormDataArb: fc.Arbitrary<WizardFormData> = fc.record({
   next_of_kin_phone: zambianPhoneArb,
   program: fc.uuid(),
   intake: fc.string({ minLength: 1, maxLength: 50 }),
-  payment_option: fc.constantFrom<'pay_now' | 'pay_later'>('pay_now', 'pay_later'),
-  payment_method: paymentMethodArb,
-  payer_name: fc.string({ minLength: 0, maxLength: 100 }),
-  payer_phone: fc.oneof(zambianPhoneArb, fc.constant('')),
-  amount: fc.integer({ min: 153, max: 10000 }),
-  paid_at: fc.oneof(isoTimestampArb, fc.constant('')),
-  momo_ref: fc.string({ minLength: 0, maxLength: 30 }),
 })
 
 /** Complete wizard draft as stored in localStorage */
@@ -239,8 +220,6 @@ describe('Draft Round-Trip Consistency Property Tests (P1)', () => {
         expect(restored.nationality).toBe(formData.nationality)
         expect(restored.country).toBe(formData.country)
         expect(restored.residence_town).toBe(formData.residence_town)
-        expect(typeof restored.amount).toBe('number')
-        expect(restored.amount).toBe(formData.amount)
       }),
       { numRuns: 10 },
     )

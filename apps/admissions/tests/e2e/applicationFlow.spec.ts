@@ -2,8 +2,7 @@
  * E2E tests for the complete MIHAS application flow.
  *
  * Flow: Registration → Login → Wizard Step 1 (Basic KYC) →
- *       Step 2 (Education & Documents) → Step 3 (Payment) →
- *       Step 4 (Review & Submit) → Submission
+ *       Step 2 (Education & Documents) → Step 3 (Payment readiness)
  *
  * Uses placeholder Zambian test data — no real PII.
  * Requires the dev server running at http://localhost:5173
@@ -177,43 +176,8 @@ async function completeStep2Education(page: Page) {
 
 async function completeStep3Payment(page: Page) {
   await page.waitForSelector('[data-testid="payment-step"]', { timeout: 10_000 });
-
-  // Payment method
-  const paymentMethodCombo = page.getByRole('combobox', { name: /payment method/i });
-  await paymentMethodCombo.click();
-  await page.getByRole('option', { name: 'MTN Money' }).click();
-
-  await fillByLabel(page, 'Payer Name', TEST_FULL_NAME);
-  await fillByLabel(page, 'Payer Phone', TEST_PHONE);
-
-  // Amount defaults to 153 — leave as-is
-  // Payment date
-  const now = new Date();
-  const dateTimeLocal = now.toISOString().slice(0, 16); // "YYYY-MM-DDTHH:MM"
-  await fillByLabel(page, 'Payment Date & Time', dateTimeLocal);
-
-  await fillByLabel(page, 'Mobile Money Reference', 'TXN123456789');
-
-  // Upload proof of payment
-  const popInput = page.locator('input[type="file"]').first();
-  const pdfContent = Buffer.from('%PDF-1.4 proof of payment');
-  await popInput.setInputFiles({
-    name: 'proof_of_payment.pdf',
-    mimeType: 'application/pdf',
-    buffer: pdfContent,
-  });
-
-  await clickButton(page, 'Next Step');
-}
-
-async function completeStep4Submit(page: Page) {
-  await page.waitForSelector('[data-testid="submit-step"]', { timeout: 10_000 });
-
-  // Check the confirmation checkbox
-  await page.locator('#confirm').check();
-
-  // Submit
-  await clickButton(page, 'Submit Application');
+  await expect(page.getByTestId('pay-now-button')).toBeVisible();
+  await expect(page.getByText(/payments are processed securely by lenco/i)).toBeVisible();
 }
 
 // ---------------------------------------------------------------------------
@@ -243,7 +207,7 @@ test.describe('Complete Application Flow', () => {
     await expect(page).toHaveURL(/\/student\/dashboard/);
   });
 
-  test('logged-in student can complete the full wizard and submit', async ({ page }) => {
+  test('logged-in student can reach the payment step after completing required details', async ({ page }) => {
     // Register + auto-login
     await completeRegistration(page);
     await waitForUrl(page, /\/student\/dashboard/, 15_000);
@@ -259,15 +223,6 @@ test.describe('Complete Application Flow', () => {
 
     // Step 3 — Payment
     await completeStep3Payment(page);
-
-    // Step 4 — Review & Submit
-    await completeStep4Submit(page);
-
-    // After submission the wizard shows a success state
-    // The SubmissionSuccess component or a success message should appear
-    await expect(
-      page.getByText(/application submitted|submitted successfully|thank you/i)
-    ).toBeVisible({ timeout: 15_000 });
   });
 });
 

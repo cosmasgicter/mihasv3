@@ -95,7 +95,7 @@ const mapApplicationRow = (row: any): ApplicationSummary => ({
   last_payment_audit_notes: row.last_payment_audit_notes ?? null,
   last_payment_reference: row.last_payment_reference ?? null,
   application_fee: Number(row.application_fee ?? 0),
-  paid_amount: Number(row.paid_amount ?? row.amount ?? 0),
+  paid_amount: Number(row.paid_amount ?? 0),
   submitted_at: row.submitted_at ?? row.created_at ?? '',
   created_at: row.created_at ?? row.submitted_at ?? '',
   result_slip_url: row.result_slip_url ?? '',

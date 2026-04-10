@@ -17,9 +17,6 @@ interface ApplicationWithPayment {
   id: string
   status: string
   payment_status: string | null
-  payment_method: string | null
-  amount: number | null
-  momo_ref: string | null
   created_at: string
   program: string | null
 }
@@ -74,11 +71,6 @@ const programArb = fc.oneof(
   fc.constantFrom('Nursing', 'Clinical Medicine', 'Pharmacy', 'Laboratory Technology', 'Environmental Health'),
 )
 
-const paymentMethodArb = fc.oneof(
-  fc.constant(null),
-  fc.constantFrom('momo', 'bank_transfer', 'cash'),
-)
-
 const isoDateArb = fc
   .integer({ min: 1704067200000, max: 1767225600000 })
   .map((ts) => new Date(ts).toISOString())
@@ -87,9 +79,6 @@ const applicationArb: fc.Arbitrary<ApplicationWithPayment> = fc.record({
   id: fc.uuid(),
   status: applicationStatusArb,
   payment_status: paymentStatusArb,
-  payment_method: paymentMethodArb,
-  amount: fc.oneof(fc.constant(null), fc.integer({ min: 100, max: 500 })),
-  momo_ref: fc.oneof(fc.constant(null), fc.stringMatching(/^MOMO-[A-Z0-9]{8}$/)),
   created_at: isoDateArb,
   program: programArb,
 })

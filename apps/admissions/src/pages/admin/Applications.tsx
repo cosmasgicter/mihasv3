@@ -85,7 +85,7 @@ const mapRecordToApplication = (record: any): ApplicationData => {
     status: record.status ?? '',
     payment_status: record.payment_status ?? 'not_paid',
     application_fee: Number(record.application_fee ?? 0),
-    paid_amount: Number(record.paid_amount ?? record.amount ?? 0),
+    paid_amount: Number(record.paid_amount ?? 0),
     submitted_at: record.submitted_at || record.created_at || '',
     created_at: record.created_at || record.submitted_at || '',
     grades_summary: record.grades_summary ?? '',

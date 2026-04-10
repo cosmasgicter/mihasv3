@@ -115,10 +115,12 @@ export function AnimatedCounter({
   const finalFormattedValue = decimals > 0
     ? value.toFixed(decimals)
     : value.toLocaleString();
+  const accessibleValue = `${prefix}${finalFormattedValue}${suffix}`
 
   return (
-    <span ref={ref} className={className} aria-label={`${prefix}${finalFormattedValue}${suffix}`}>
-      {prefix}
+    <span ref={ref} className={className}>
+      <span className="sr-only">{accessibleValue}</span>
+      {prefix && <span aria-hidden="true">{prefix}</span>}
       <span
         className="transition-opacity duration-300"
         style={{ opacity: isVisible ? 1 : 0 }}
@@ -188,7 +190,8 @@ export function SimpleCounter({
   }, [inView, from, to, prefersReducedMotion]);
 
   return (
-    <span ref={ref} className={className} aria-label={`${prefix}${to.toLocaleString()}${suffix}`}>
+    <span ref={ref} className={className}>
+      <span className="sr-only">{`${prefix}${to.toLocaleString()}${suffix}`}</span>
       <span aria-hidden="true">{prefix}{count.toLocaleString()}{suffix}</span>
     </span>
   );
