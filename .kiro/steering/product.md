@@ -45,6 +45,14 @@ The platform uses self-hosted error monitoring with no third-party tracker (no S
 - Admin and reviewer tools for application review, verification, fee management, payment status override, audit, and operational oversight
 - Payment is processed in real-time via the Lenco inline widget — no manual proof-of-payment uploads
 
+#### Current Admissions Flow Contract
+
+- Student submission is finalized through the dedicated backend endpoint `POST /api/v1/applications/{id}/submit/`, not by generic application updates.
+- Student payment outside the wizard is read-only. `/student/payment` is a history and guidance surface, not a payment entry form.
+- Student interview lists should be loaded through the single-query endpoint `GET /api/v1/applications/interviews/?mine=true` rather than one request per application.
+- Student-facing payment reads must normalize legacy `verified` and newer `paid` / `successful` states consistently.
+- Profile and settings forms must protect unsaved edits before navigation and provide accessible inline save feedback in addition to toast notifications.
+
 ### Jobs Ops
 
 - Job discovery, scoring, review, and application orchestration
@@ -105,6 +113,7 @@ Jobs-ops expectations:
 | Rule | Details |
 |------|---------|
 | Payment timing | Application fee is collected via Lenco gateway before submission. Admin can override payment status for offline payments. |
+| Payment state compatibility | Treat legacy `verified` and current paid/successful payment outcomes as equivalent verified states in student-facing reads and review tools. |
 | Documents | NRC or Passport upload is mandatory. Requirements vary by program and must be validated defensively |
 | Grading | Zambian ECZ grading semantics must remain correct in admissions |
 | Audit | Administrative and automation state changes require audit coverage |

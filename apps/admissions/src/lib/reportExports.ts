@@ -11,9 +11,9 @@ interface JsPDFWithAutoTable {
 const formatMetricName = (metric: string) =>
   ({
     pendingApplications: 'Decision Queue',
-    paymentPendingReview: 'Awaiting Proof Review',
+    paymentPendingReview: 'Awaiting Payment Review',
     paymentNotPaid: 'Awaiting Payment',
-    paymentRejected: 'Rejected Proof',
+    paymentRejected: 'Payment Rejected',
     paymentVerified: 'Verified Payments',
   } as Record<string, string>)[metric] ||
   metric

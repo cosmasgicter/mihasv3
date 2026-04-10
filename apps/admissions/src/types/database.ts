@@ -29,24 +29,16 @@ export interface Application {
   country?: string;
   postal_code?: string;
   residence_town?: string;
-  /** @deprecated Legacy alias retained for older UI slices */
-  guardian_name?: string;
-  /** @deprecated Legacy alias retained for older UI slices */
-  guardian_phone?: string;
   next_of_kin_name?: string;
   next_of_kin_phone?: string;
   result_slip_url?: string;
   extra_kyc_url?: string;
-  /** @deprecated Legacy field — kept for backward compat with existing DB rows */
-  pop_url?: string;
   payment_reference?: string;
-  /** @deprecated Use payments table data instead */
   payment_method?: string;
-  /** @deprecated Use payments table data instead */
   paid_amount?: string | number;
-  /** @deprecated Use payments table data instead */
-  amount?: string | number;
+  paid_at?: string | null;
   application_fee?: string | number;
+  receipt_number?: string | null;
   created_at?: string;
   updated_at?: string;
   submitted_at?: string;

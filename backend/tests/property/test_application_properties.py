@@ -95,14 +95,17 @@ def _make_mock_application(user_id=None, status_val="draft", **overrides):
     app.result_slip_url = None
     app.extra_kyc_url = None
     app.application_fee = Decimal("153.00")
+    app.payment_summary_method = None
+    app.payment_summary_paid_amount = None
+    app.payment_summary_paid_at = None
+    app.payment_summary_receipt_number = None
+    app.payment_summary_reference = None
     app.payment_method = None
-    app.payer_name = None
-    app.payer_phone = None
-    app.amount = None
+    app.paid_amount = None
     app.paid_at = None
-    app.momo_ref = None
-    app.pop_url = None
     app.receipt_number = None
+    app.payment_reference = None
+    app.last_payment_reference = None
     app.payment_status = None
     app.payment_verified_at = None
     app.payment_verified_by = None
@@ -170,10 +173,19 @@ class TestApplicationCRUDRoundTrip(SimpleTestCase):
         # Patch at the catalog models level where the serializer imports from
         with patch("apps.catalog.models.Program.objects") as MockProgramObjects, \
              patch("apps.catalog.models.Intake.objects") as MockIntakeObjects, \
-             patch("apps.catalog.models.Institution.objects") as MockInstitutionObjects:
+             patch("apps.catalog.models.Institution.objects") as MockInstitutionObjects, \
+             patch("apps.catalog.models.ProgramIntake.objects") as MockProgramIntakeObjects:
+            mock_program = MagicMock()
+            mock_program.id = uuid.uuid4()
+            mock_intake = MagicMock()
+            mock_intake.id = uuid.uuid4()
+            mock_intake.is_active = True
             MockProgramObjects.filter.return_value.exists.return_value = True
+            MockProgramObjects.filter.return_value.first.return_value = mock_program
             MockIntakeObjects.filter.return_value.exists.return_value = True
+            MockIntakeObjects.filter.return_value.first.return_value = mock_intake
             MockInstitutionObjects.filter.return_value.exists.return_value = True
+            MockProgramIntakeObjects.filter.return_value.exists.return_value = True
 
             serializer = ApplicationCreateSerializer(data=data)
             self.assertTrue(serializer.is_valid(), serializer.errors)
@@ -406,9 +418,11 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
 
             with patch("apps.applications.views.ApplicationStatusHistory.objects") as mock_history:
                 mock_history.create.return_value = MagicMock()
+                mock_history.filter.return_value.order_by.return_value.first.return_value = MagicMock()
 
-                view = ApplicationReviewView()
-                response = view.post(request, application_id=app.id)
+                with patch("apps.applications.views.dispatch_event"):
+                    view = ApplicationReviewView()
+                    response = view.post(request, application_id=app.id)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["new_status"], "approved")
@@ -432,8 +446,10 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
             with patch("apps.applications.views.ApplicationStatusHistory.objects") as mock_history:
                 mock_history.create.return_value = MagicMock()
 
-                view = ApplicationReviewView()
-                response = view.post(request, application_id=app.id)
+                with patch("apps.applications.views.dispatch_event"):
+                    with patch("apps.applications.views.submit_application", return_value=(app, "submitted")):
+                        view = ApplicationReviewView()
+                        response = view.post(request, application_id=app.id)
 
         self.assertEqual(response.status_code, 200)
 

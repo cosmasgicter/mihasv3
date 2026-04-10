@@ -1,6 +1,7 @@
 import React, { Suspense, lazy, useEffect, useMemo } from 'react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { matchPath, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import '@/styles/legibility.css'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { RealtimeStatusProvider } from '@/contexts/RealtimeStatusContext'
 import { ProtectedRoute } from '@/components/ProtectedRoute'

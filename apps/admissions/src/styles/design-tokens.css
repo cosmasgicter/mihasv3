@@ -68,7 +68,7 @@
   /* Error and Validation Colors - WCAG AA Compliant */
   --color-error: #dc2626;             /* 5.25:1 on white */
   --color-error-bg: #fef2f2;          /* Error background */
-  --color-error-border: #fca5a5;      /* Error border */
+  --color-error-border: #e45858;      /* Error border — 3.42:1 on white, 3.26:1 on #fef2f2 (WCAG AA non-text) */
   --color-error-text: #991b1b;        /* 7.73:1 on white */
   
 
@@ -84,6 +84,7 @@
   --color-secondary-foreground-rgb: 30 41 59;
   --color-destructive-rgb: 220 38 38;
   --color-destructive-foreground-rgb: 255 255 255;
+  --color-error-border-rgb: 228 88 88;
   --color-muted-rgb: 241 245 249;
   --color-muted-foreground-rgb: 55 65 81;
   --color-accent-rgb: 219 234 254;

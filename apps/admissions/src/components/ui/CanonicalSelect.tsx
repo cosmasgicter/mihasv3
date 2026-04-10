@@ -53,6 +53,8 @@ export interface CanonicalSelectProps {
   required?: boolean
   'aria-label'?: string
   'aria-describedby'?: string
+  /** Additional aria-describedby ids to merge with the component's own (Req 17.2) */
+  extraDescribedBy?: string
 }
 
 export function CanonicalSelect({
@@ -71,6 +73,7 @@ export function CanonicalSelect({
   required = false,
   'aria-label': ariaLabel,
   'aria-describedby': ariaDescribedBy,
+  extraDescribedBy,
 }: CanonicalSelectProps) {
   const selectId = React.useId()
   const errorId = `${selectId}-error`
@@ -80,10 +83,12 @@ export function CanonicalSelect({
   const errorMessage = typeof error === 'string' ? error : undefined
   const handleChange = onValueChange ?? onChange
 
-  // Determine aria-describedby: explicit prop > error > helper
-  const computedDescribedBy =
+  // Determine aria-describedby: explicit prop > error > helper, then merge extraDescribedBy (Req 17.2)
+  const baseDescribedBy =
     ariaDescribedBy ??
     (errorMessage ? errorId : helperText ? helperId : undefined)
+  const computedDescribedBy =
+    [baseDescribedBy, extraDescribedBy].filter(Boolean).join(' ') || undefined
 
   const selectElement = (
     <RadixSelect

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
-import type { ApplicationFormData } from '../types'
+import type { ApplicationFormData, SubjectGrade } from '../types'
 
 export interface StepValidation {
   isValid: boolean
@@ -12,6 +12,7 @@ export interface StepValidation {
 interface StepValidationOptions {
   paymentStatus?: 'pending' | 'successful' | 'failed' | null
   confirmSubmission?: boolean
+  selectedGrades?: SubjectGrade[]
 }
 
 const isFieldComplete = (value: unknown): boolean => {
@@ -27,7 +28,7 @@ export const useStepValidation = (
   currentStep: number,
   options: StepValidationOptions = {}
 ): StepValidation => {
-  const { paymentStatus = null, confirmSubmission = false } = options
+  const { paymentStatus = null, confirmSubmission = false, selectedGrades = [] } = options
   const values = (() => {
     try {
       return typeof form?.watch === 'function' ? (form.watch() as Partial<ApplicationFormData> ?? {}) : {}
@@ -61,7 +62,11 @@ export const useStepValidation = (
         }
       },
       1: () => {
-        const validGrades = values.grades?.filter(g => g.subject_id && g.grade >= 1 && g.grade <= 9) || []
+        const validGrades = (
+          selectedGrades.length > 0
+            ? selectedGrades
+            : values.grades ?? []
+        ).filter(g => g.subject_id && g.grade >= 1 && g.grade <= 9)
         const hasEnoughGrades = validGrades.length >= 5
         const hasAnyGrades = validGrades.length > 0
         return {
@@ -105,5 +110,5 @@ export const useStepValidation = (
       totalFields: 0,
       missingFields: []
     }
-  }, [values, currentStep, paymentStatus, confirmSubmission])
+  }, [values, currentStep, paymentStatus, confirmSubmission, selectedGrades])
 }

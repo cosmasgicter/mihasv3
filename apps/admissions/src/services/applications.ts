@@ -228,9 +228,10 @@ export const applicationService = {
   },
 
   /** POST /applications/{id}/submit/ — student self-service submission */
-  submit: async (id: string) => {
+  submit: async (id: string, options?: { headers?: Record<string, string> }) => {
     const response = await apiClient.request<unknown>(`/applications/${encodeURIComponent(id)}/submit/`, {
       method: 'POST',
+      ...(options?.headers ? { headers: options.headers } : {}),
     })
 
     return normalizeApplicationRecord(response)

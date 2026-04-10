@@ -615,7 +615,7 @@ const DOCUMENT_TEMPLATES: Record<DocumentTemplateId, DocumentTemplateDefinition>
       {
         paragraphs: [
           'Please settle the outstanding balance by the due date to avoid interruptions to your studies.',
-          'If you have already made payment, kindly share the proof of payment with our finance office.'
+          'If you have already made payment, kindly share your transaction reference or receipt number with our finance office.'
         ]
       },
       {

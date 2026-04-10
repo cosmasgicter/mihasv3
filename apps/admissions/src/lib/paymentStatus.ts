@@ -29,9 +29,9 @@ export function getPaymentStatusLabel(paymentStatus?: string | null) {
     case 'verified':
       return 'Verified'
     case 'rejected':
-      return 'Rejected'
+      return 'Payment Rejected'
     case 'pending_review':
-      return 'Awaiting Proof Review'
+      return 'Awaiting Payment Review'
     default:
       return 'Awaiting Payment'
   }

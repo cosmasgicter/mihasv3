@@ -205,7 +205,7 @@ export function ApplicationsFilters({
               </Button>
             </div>
             <p className="mb-4 text-sm text-muted-foreground">
-              Use payment filters to separate unpaid pay-later applications from proof that is already waiting for finance review.
+              Use payment filters to separate unpaid applications from payments that are already waiting for finance review.
             </p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -269,9 +269,9 @@ export function ApplicationsFilters({
                 >
                   <option value="all">All Payment States</option>
                   <option value="not_paid">Awaiting Payment</option>
-                  <option value="pending_review">Awaiting Proof Review</option>
+                  <option value="pending_review">Awaiting Payment Review</option>
                   <option value="verified">Verified</option>
-                  <option value="rejected">Rejected Proof</option>
+                  <option value="rejected">Payment Rejected</option>
                 </select>
               </div>
             </div>

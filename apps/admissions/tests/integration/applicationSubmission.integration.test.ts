@@ -47,8 +47,8 @@ vi.mock('@/lib/apiErrorHandler', () => ({
   },
 }));
 
-import { setCsrfToken, getCsrfToken, clearCsrfToken } from '@/lib/csrfToken';
-import { fetchWithCache, invalidateCache } from '@/utils/api-cache';
+import { setCsrfToken, clearCsrfToken } from '@/lib/csrfToken';
+import { fetchWithCache } from '@/utils/api-cache';
 import { apiClient } from '@/services/client';
 import { triggerSubmissionNotifications } from '@/hooks/useApplicationSubmit';
 
@@ -112,7 +112,7 @@ describe('Feature: production-remediation — Application Submission Flow Integr
         })
       );
 
-      const createResult = await apiClient.request<typeof draftApp>('/api/applications', {
+      const createResult = await apiClient.request<typeof draftApp>('/api/applications/', {
         method: 'POST',
         body: JSON.stringify({
           user_id: 'user-1',
@@ -141,7 +141,7 @@ describe('Feature: production-remediation — Application Submission Flow Integr
       );
 
       const saveResult = await apiClient.request<typeof savedApp>(
-        '/api/applications?id=app-uuid-1',
+        '/api/applications/app-uuid-1/',
         {
           method: 'PUT',
           body: JSON.stringify({
@@ -168,7 +168,7 @@ describe('Feature: production-remediation — Application Submission Flow Integr
       );
 
       await expect(
-        apiClient.request('/api/applications?id=app-uuid-1', {
+        apiClient.request('/api/applications/app-uuid-1/', {
           method: 'PUT',
           body: JSON.stringify({ full_name: 'Stale Data', version: 1 }),
           retries: 0,
@@ -191,15 +191,9 @@ describe('Feature: production-remediation — Application Submission Flow Integr
       );
 
       const submitResult = await apiClient.request<typeof submittedApp>(
-        '/api/applications?id=app-uuid-1',
+        '/api/applications/app-uuid-1/submit/',
         {
-          method: 'PUT',
-          body: JSON.stringify({
-            status: 'submitted',
-            submitted_at: new Date().toISOString(),
-            payment_method: 'MTN Money',
-            amount: 153,
-          }),
+          method: 'POST',
           headers: {
             'X-Idempotency-Key': 'idem-key-abc-123',
           },
@@ -226,7 +220,7 @@ describe('Feature: production-remediation — Application Submission Flow Integr
       const dashboardResult = await apiClient.request<{
         applications: Array<{ id: string; status: string }>;
         totalCount: number;
-      }>('/api/applications');
+      }>('/api/applications/');
 
       expect(dashboardResult).toBeDefined();
       expect(dashboardResult!.applications[0].status).toBe('submitted');
@@ -248,10 +242,9 @@ describe('Feature: production-remediation — Application Submission Flow Integr
       );
 
       const first = await apiClient.request<typeof submittedApp>(
-        '/api/applications?id=app-uuid-2',
+        '/api/applications/app-uuid-2/submit/',
         {
-          method: 'PUT',
-          body: JSON.stringify({ status: 'submitted' }),
+          method: 'POST',
           headers: { 'X-Idempotency-Key': 'same-key' },
         }
       );
@@ -262,10 +255,9 @@ describe('Feature: production-remediation — Application Submission Flow Integr
       );
 
       const second = await apiClient.request<typeof submittedApp>(
-        '/api/applications?id=app-uuid-2',
+        '/api/applications/app-uuid-2/submit/',
         {
-          method: 'PUT',
-          body: JSON.stringify({ status: 'submitted' }),
+          method: 'POST',
           headers: { 'X-Idempotency-Key': 'same-key' },
         }
       );
@@ -280,8 +272,8 @@ describe('Feature: production-remediation — Application Submission Flow Integr
     it('should produce correct invalidation patterns for application mutations', () => {
       // Application submit (student-side) via REST path
       const submitPatterns = apiClient.getQueryInvalidationPatterns(
-        '/api/v1/applications/app-1/',
-        'PUT'
+        '/api/v1/applications/app-1/submit/',
+        'POST'
       );
 
       expect(submitPatterns).toContainEqual(['applications']);
@@ -355,7 +347,7 @@ describe('Feature: production-remediation — Application Submission Flow Integr
       );
 
       const result = await apiClient.request<{ id: string; status: string }>(
-        '/api/applications?id=app-1',
+        '/api/applications/app-1/',
         { method: 'PUT', body: JSON.stringify({ status: 'draft' }), retries: 0 }
       );
 

@@ -57,7 +57,7 @@ export function WizardErrorSummary({ errors, onFieldClick, className = '' }: Wiz
       role="alert"
       aria-label={`${errors.length} validation error${errors.length > 1 ? 's' : ''}`}
       tabIndex={-1}
-      className={`mb-6 rounded-lg border border-destructive/50 bg-destructive/5 p-4 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${className}`}
+      className={`mb-6 rounded-lg border border-error-border bg-destructive/5 p-4 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${className}`}
     >
       <div className="flex items-start gap-3">
         <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" aria-hidden="true" />
@@ -70,6 +70,7 @@ export function WizardErrorSummary({ errors, onFieldClick, className = '' }: Wiz
               <li key={err.field}>
                 <button
                   type="button"
+                  id={`wizard-error-${err.field}`}
                   onClick={() => focusField(err.field)}
                   className="text-sm text-destructive underline underline-offset-2 hover:text-destructive/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm text-left"
                 >

@@ -97,8 +97,9 @@ const ApplicationWizardContent = () => {
   const stepValidation = useStepValidation(form, currentStepIndex, {
     paymentStatus,
     confirmSubmission,
+    selectedGrades,
   })
-  const overallProgress = useOverallProgress(form)
+  const overallProgress = useOverallProgress(form, selectedGrades)
   const { formattedTime } = useEstimatedTime(currentStepIndex, totalSteps)
   const { shouldAnimate, prefersReducedMotion, isMobile } = useOptimizedAnimation()
 
@@ -150,10 +151,9 @@ const ApplicationWizardContent = () => {
     }
 
     if (currentStepConfig.key === 'education') {
-      const validGrades = (formData as Record<string, unknown>).grades
-      const gradeCount = Array.isArray(validGrades)
-        ? validGrades.filter((g: Record<string, unknown>) => g.subject_id && Number(g.grade) >= 1 && Number(g.grade) <= 9).length
-        : 0
+      const gradeCount = selectedGrades.filter(
+        grade => grade.subject_id && Number(grade.grade) >= 1 && Number(grade.grade) <= 9
+      ).length
       if (gradeCount < 5) {
         errors.push({ field: 'grades', label: 'Subject Grades', message: `Minimum 5 subjects required (${gradeCount} added)` })
       }
@@ -182,16 +182,17 @@ const ApplicationWizardContent = () => {
     }
 
     return errors
-  }, [form, currentStepConfig.key, confirmSubmission, resultSlipFile, extraKycFile, uploadedFiles, uploading, paymentStatus])
+  }, [form, currentStepConfig.key, confirmSubmission, resultSlipFile, extraKycFile, uploadedFiles, uploading, paymentStatus, selectedGrades])
 
-  // Aria-live region announcement for screen readers on step transition
-  const [stepAnnouncement, setStepAnnouncement] = useState('')
+  // Aria-live region announcement for screen readers on step transition (Req 14.1, 14.2, 14.3)
+  const [stepAnnouncement, setStepAnnouncement] = useState(
+    `Step ${currentStepIndex + 1} of ${wizardSteps.length}: ${currentStepConfig.title}`
+  )
   const [stepDirection, setStepDirection] = useState<'forward' | 'backward'>('forward')
   const [stepKey, setStepKey] = useState(currentStepIndex)
   const isPopstateNavRef = useRef(false)
 
   useEffect(() => {
-    setStepAnnouncement(`Step ${currentStepIndex + 1} of ${totalSteps}: ${currentStepConfig.title}`)
     setStepKey(currentStepIndex)
     // Clear validation errors when navigating to a new step
     setValidationErrors([])
@@ -282,6 +283,34 @@ const ApplicationWizardContent = () => {
     }, 100)
     return () => clearTimeout(timer)
   }, [error, collectStepValidationErrors])
+
+  // Focus first [aria-invalid="true"] field when validation errors appear (Req 17.1)
+  useEffect(() => {
+    if (validationErrors.length === 0) return
+    const timer = setTimeout(() => {
+      const first = document.querySelector('[aria-invalid="true"]')
+      if (first instanceof HTMLElement) {
+        first.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        first.focus({ preventScroll: true })
+      }
+    }, 150)
+    return () => clearTimeout(timer)
+  }, [validationErrors])
+
+  /**
+   * Build an aria-describedby value for a field that includes the wizard-level
+   * error summary item id when the field has a validation error (Req 17.2).
+   */
+  const getFieldAriaDescribedBy = useCallback((fieldName: string): string | undefined => {
+    const hasError = validationErrors.some(e => e.field === fieldName)
+    return hasError ? `wizard-error-${fieldName}` : undefined
+  }, [validationErrors])
+
+  // Update aria-live announcement when validation errors appear on the current step (Req 14.3)
+  useEffect(() => {
+    const base = `Step ${currentStepIndex + 1} of ${wizardSteps.length}: ${currentStepConfig.title}`
+    setStepAnnouncement(validationErrors.length > 0 ? `${base}. Validation errors found.` : base)
+  }, [validationErrors, currentStepIndex, currentStepConfig.title])
 
   const getChecklistItems = () => {
     // Defensive: some test setups call this component without a populated form.watch()
@@ -592,6 +621,7 @@ const ApplicationWizardContent = () => {
                 programs={programs}
                 intakes={intakes}
                 title={currentStepConfig.title}
+                getFieldAriaDescribedBy={getFieldAriaDescribedBy}
               />
             )}
 

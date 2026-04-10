@@ -807,9 +807,9 @@ export function ApplicationDetailModal({
  const paymentStatusLabel = getPaymentStatusLabel(application.payment_status)
  const paymentStatusTextClass = {
  'Awaiting Payment': 'text-slate-900',
- 'Awaiting Proof Review': 'text-orange-900',
+ 'Awaiting Payment Review': 'text-orange-900',
  Verified: 'text-green-900',
- Rejected: 'text-red-900'
+ 'Payment Rejected': 'text-red-900'
  }[paymentStatusLabel] || 'text-foreground'
 
  const handleGenerateAcceptance = async () => {

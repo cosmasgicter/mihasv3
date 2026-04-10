@@ -11,7 +11,8 @@ import logging
 import uuid
 
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import CharField, DateTimeField, DecimalField, OuterRef, Q, QuerySet, Subquery
+from django.db.models.functions import Coalesce
 from django.http import HttpResponse
 from django.utils import timezone
 from drf_spectacular.utils import (
@@ -48,7 +49,7 @@ from apps.common.openapi_helpers import (
 )
 from apps.common.event_dispatcher import dispatch_event
 from apps.common.pagination import StandardPagination
-from apps.documents.models import ApplicationDocument, ApplicationGrade
+from apps.documents.models import ApplicationDocument, ApplicationGrade, Payment
 from apps.documents.serializers import DocumentSerializer
 from apps.applications.services import (
     ApplicationSubmissionError,
@@ -57,6 +58,48 @@ from apps.applications.services import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _with_payment_summary(queryset):
+    """Annotate application querysets with payment summary fields."""
+
+    if not isinstance(queryset, QuerySet):
+        return queryset
+
+    latest_payment = (
+        Payment.objects
+        .filter(application_id=OuterRef("pk"))
+        .order_by("-updated_at", "-created_at")
+    )
+    latest_successful_payment = (
+        Payment.objects
+        .filter(application_id=OuterRef("pk"), status="successful")
+        .annotate(summary_paid_at=Coalesce("verified_at", "updated_at", "created_at"))
+        .order_by("-summary_paid_at")
+    )
+
+    return queryset.annotate(
+        payment_summary_method=Subquery(
+            latest_payment.values("payment_method")[:1],
+            output_field=CharField(),
+        ),
+        payment_summary_reference=Subquery(
+            latest_payment.values("transaction_reference")[:1],
+            output_field=CharField(),
+        ),
+        payment_summary_receipt_number=Subquery(
+            latest_successful_payment.values("receipt_number")[:1],
+            output_field=CharField(),
+        ),
+        payment_summary_paid_amount=Subquery(
+            latest_successful_payment.values("amount")[:1],
+            output_field=DecimalField(max_digits=10, decimal_places=2),
+        ),
+        payment_summary_paid_at=Subquery(
+            latest_successful_payment.values("summary_paid_at")[:1],
+            output_field=DateTimeField(),
+        ),
+    )
 
 
 class ApplicationGradeReadSerializer(serializers.Serializer):
@@ -215,9 +258,10 @@ class ApplicationListCreateView(APIView):
         user = request.user
         role = getattr(user, "role", "student")
         if role in ("admin", "super_admin"):
-            queryset = Application.objects.select_related('user').all()
+            queryset = Application.objects.select_related('user').prefetch_related('applicationdocument_set').all()
         else:
-            queryset = Application.objects.select_related('user').filter(user_id=str(user.id))
+            queryset = Application.objects.select_related('user').prefetch_related('applicationdocument_set').filter(user_id=str(user.id))
+        queryset = _with_payment_summary(queryset)
         filterset = ApplicationFilter(request.query_params, queryset=queryset)
         queryset = filterset.qs
         if not request.query_params.get("sort"):
@@ -335,7 +379,11 @@ class ApplicationDetailView(APIView):
 
     def _get_application(self, request, application_id):
         try:
-            app = Application.objects.select_related('user').get(id=application_id)
+            app = _with_payment_summary(
+                Application.objects.select_related('user').prefetch_related(
+                    'applicationdocument_set', 'applicationgrade_set', 'applicationinterview_set',
+                )
+            ).get(id=application_id)
         except Application.DoesNotExist:
             return None
         if not IsOwnerOrAdmin().has_object_permission(request, self, app):
@@ -363,7 +411,7 @@ class ApplicationDocumentsView(APIView):
 
     def get(self, request, application_id):
         try:
-            app = Application.objects.get(id=application_id)
+            app = _with_payment_summary(Application.objects.all()).get(id=application_id)
         except Application.DoesNotExist:
             return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
         if not IsOwnerOrAdmin().has_object_permission(request, self, app):
@@ -515,8 +563,12 @@ class ApplicationSubmitView(APIView):
     serializer_class = ApplicationSerializer
 
     def post(self, request, application_id):
+        from datetime import timedelta
+
+        from apps.common.models import IdempotencyKey
+
         try:
-            app = Application.objects.select_related("user").get(id=application_id)
+            app = _with_payment_summary(Application.objects.select_related("user")).get(id=application_id)
         except Application.DoesNotExist:
             return Response(
                 {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
@@ -529,6 +581,21 @@ class ApplicationSubmitView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        # --- Idempotency check (Req 3.1, 3.2) ---
+        idempotency_key = request.META.get('HTTP_IDEMPOTENCY_KEY')
+        if idempotency_key:
+            try:
+                existing = IdempotencyKey.objects.get(key=idempotency_key)
+                return Response(existing.response_json)
+            except IdempotencyKey.DoesNotExist:
+                pass
+            except Exception:
+                # Lookup failure → fall through to SELECT FOR UPDATE guard (Req 3.5)
+                logger.warning(
+                    "Idempotency key lookup failed: key=%s app=%s",
+                    idempotency_key, application_id,
+                )
+
         try:
             submitted_app, _old_status = submit_application(
                 application=app,
@@ -539,6 +606,26 @@ class ApplicationSubmitView(APIView):
                 {"success": False, "error": exc.message, "code": exc.code},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        response_data = ApplicationSerializer(submitted_app).data
+
+        # --- Store idempotency key (Req 3.3) ---
+        if idempotency_key:
+            try:
+                IdempotencyKey.objects.create(
+                    key=idempotency_key,
+                    endpoint=f'/api/v1/applications/{application_id}/submit/',
+                    response_json=response_data,
+                )
+                # Inline cleanup: remove keys older than 1 hour (Req 3.4)
+                IdempotencyKey.objects.filter(
+                    created_at__lt=timezone.now() - timedelta(hours=1),
+                ).delete()
+            except Exception:
+                logger.warning(
+                    "Idempotency key store/cleanup failed: key=%s app=%s",
+                    idempotency_key, application_id,
+                )
 
         dispatch_event(
             user_id=submitted_app.user_id,
@@ -553,7 +640,7 @@ class ApplicationSubmitView(APIView):
             entity_id=submitted_app.id,
         )
 
-        return Response(ApplicationSerializer(submitted_app).data)
+        return Response(response_data)
 
 
 @extend_schema_view(
@@ -601,6 +688,15 @@ class ApplicationReviewView(APIView):
         if legacy_status and not normalized.get("new_status"):
             normalized["new_status"] = legacy_status
         return normalized
+
+    @staticmethod
+    def _get_client_ip(request) -> str:
+        """Extract client IP, respecting X-Forwarded-For behind a proxy."""
+        xff = request.META.get("HTTP_X_FORWARDED_FOR")
+        if xff and isinstance(xff, str):
+            return xff.split(",")[0].strip()
+        addr = request.META.get("REMOTE_ADDR", "")
+        return addr if isinstance(addr, str) else ""
 
     def post(self, request, application_id):
         try:
@@ -658,6 +754,7 @@ class ApplicationReviewView(APIView):
         new_status = serializer.validated_data["new_status"]
         notes = serializer.validated_data.get("notes", "")
         force = serializer.validated_data.get("force", False)
+        reason = serializer.validated_data.get("reason", "")
         if new_status == "approved" and not force:
             from apps.documents.models import Payment
             has_verified = (
@@ -666,12 +763,32 @@ class ApplicationReviewView(APIView):
             )
             if not has_verified:
                 return Response({"success": False, "error": "Payment must be verified before approval. Set force=true to override.", "code": "PAYMENT_UNVERIFIED"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Extract hashed IP and user agent for audit trail (Req 5.3)
+        raw_ip = self._get_client_ip(request) or ""
+        ip_hash = hashlib.sha256(str(raw_ip).encode("utf-8")).hexdigest()
+        user_agent = str(request.META.get("HTTP_USER_AGENT", "") or "")
+
+        # Force-bypass audit logging (Req 5.1, 5.2, 5.4)
+        if force and new_status == "approved":
+            bypass_notes = f"[FORCE-BYPASS] Payment verification bypassed. Reason: {reason or 'Not provided'}"
+            bypass_changes = {"force_bypass": True, "reason": reason or "Not provided"}
+            logger.warning(
+                "Force-bypass: app=%s admin=%s status=%s",
+                app.id, request.user.id, new_status,
+            )
+        else:
+            bypass_notes = notes
+            bypass_changes = None
+
         if new_status == "submitted":
             try:
                 locked_app, old_status = submit_application(
                     application=app,
                     changed_by=str(request.user.id),
-                    notes=notes,
+                    notes=bypass_notes,
+                    ip_address=ip_hash,
+                    user_agent=user_agent,
                 )
             except ApplicationSubmissionError as exc:
                 return Response(
@@ -693,8 +810,20 @@ class ApplicationReviewView(APIView):
             application=app,
             new_status=new_status,
             changed_by=str(request.user.id),
-            notes=notes,
+            notes=bypass_notes,
+            ip_address=ip_hash,
+            user_agent=user_agent,
         )
+
+        # Store force-bypass details in history changes JSONB (Req 5.4)
+        if bypass_changes:
+            history = ApplicationStatusHistory.objects.filter(
+                application=app,
+            ).order_by('-created_at').first()
+            if history:
+                history.changes = bypass_changes
+                history.save(update_fields=['changes'])
+
         dispatch_event(
             user_id=app.user_id,
             event_type='application_update',
@@ -733,7 +862,7 @@ class ApplicationExportView(APIView):
     serializer_class = ApplicationListSerializer
 
     def get(self, request):
-        queryset = Application.objects.all().order_by("-created_at")
+        queryset = _with_payment_summary(Application.objects.all()).order_by("-created_at")
         filterset = ApplicationFilter(request.query_params, queryset=queryset)
         queryset = filterset.qs
         output = io.StringIO()

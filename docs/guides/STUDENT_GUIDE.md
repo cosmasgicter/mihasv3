@@ -22,7 +22,7 @@ Fill in your personal details:
 - Date of Birth
 - Sex
 - NRC Number or Passport Number
-- Phone Number (Zambian format: +260...)
+- Phone Number with country code (for example `+260...`)
 - Email Address
 - Residence Town/City
 - Next of Kin Name and Contact
@@ -37,7 +37,7 @@ Fill in your personal details:
 Choose your program:
 1. Select Institution (MIHAS or KATC)
 2. Select Program (e.g., Diploma in Nursing)
-3. Select Intake (e.g., January 2025)
+3. Select Intake shown as available in the portal
 
 **Note**: You can only apply for ONE program per application.
 
@@ -72,14 +72,10 @@ Upload required documents:
    - Must be clear and readable
 
 2. **NRC or Passport Copy**
-   - Both sides of NRC
+   - NRC or passport document is required before submission
+   - Both sides of NRC where applicable
    - Clear photo or scan
    - Max size: 5MB
-
-3. **Proof of Payment**
-   - Bank deposit slip
-   - Mobile money screenshot
-   - Transaction reference visible
 
 #### Optional Documents:
 - Professional registration (HPCZ, GNC, NMCZ)
@@ -94,34 +90,26 @@ Upload required documents:
 
 ### Step 5: Payment (5 minutes)
 
-Application Fee: **K153**
+Application fees are resolved per application inside the wizard. For most local applications the current fallback fee is **K153**, but the final amount is confirmed from the programme and residency selection before payment begins.
 
-#### Payment Methods:
+#### How Payment Works:
 
-**Option 1: Mobile Money**
-1. MTN Money: Send to 0977-XXX-XXX
-2. Airtel Money: Send to 0977-XXX-XXX
-3. Save transaction reference
-4. Upload screenshot as proof
-
-**Option 2: Bank Deposit**
-- Bank: Zanaco
-- Account: 1234567890
-- Account Name: MIHAS
-- Branch: Any
-- Upload deposit slip
+1. The wizard loads the secure **Lenco** payment widget
+2. You review the resolved application fee
+3. You complete payment inside the widget
+4. The system waits for payment confirmation before submission is enabled
 
 **Important**:
-- Keep your receipt/reference
-- Upload proof of payment immediately
-- Payment verification takes 1-2 business days
+- Complete payment in the wizard before trying to submit
+- If payment is still pending, wait for confirmation on the same step
+- The separate **Payment** page shows read-only payment history and guidance; it does not collect payment details manually
 
 ### Step 6: Review & Submit (5 minutes)
 
 Before submitting:
 1. Review all information carefully
 2. Check all documents uploaded
-3. Verify payment proof attached
+3. Verify payment has been confirmed
 4. Read terms and conditions
 5. Click "Submit Application"
 
@@ -135,12 +123,12 @@ Before submitting:
 ### Check Status Online
 
 1. Login to your account
-2. Go to "My Applications"
+2. Use your dashboard, application status page, interview page, and payment page to review progress
 3. View current status:
    - **Draft**: Not yet submitted
-   - **Submitted**: Received, awaiting review
+   - **Submitted**: Received by admissions
    - **Under Review**: Being processed
-   - **Pending Documents**: Additional documents needed
+   - **Interview Scheduled**: Interview details are available
    - **Approved**: Congratulations! Check email for next steps
    - **Rejected**: See feedback for reasons
 
@@ -156,8 +144,8 @@ You'll receive email notifications when:
 ### Public Tracker
 
 Track without logging in:
-1. Visit https://mihasv3.pages.dev/track
-2. Enter your application number
+1. Visit https://mihasv3.pages.dev/track-application
+2. Enter your application number or tracking code
 3. View current status
 
 ## After Approval
@@ -185,7 +173,7 @@ Track without logging in:
 No. Once submitted, you cannot edit. Contact ***REMOVED*** if you need changes.
 
 ### How long does review take?
-Typically 5-7 business days after payment verification.
+Typically 5-7 business days after submission and payment confirmation.
 
 ### Can I apply for multiple programs?
 No. One application per intake. You can apply again in next intake.
@@ -194,7 +182,7 @@ No. One application per intake. You can apply again in next intake.
 You can still submit. Admissions committee reviews each case individually.
 
 ### My payment is not showing as verified
-Payment verification takes 1-2 business days. If longer, contact us with your transaction reference.
+If the wizard still shows pending payment, wait briefly and refresh the payment step. If it remains unresolved, check the Payment page and contact support with your application number.
 
 ### Can I withdraw my application?
 Yes. Email ***REMOVED*** with your application number.
@@ -241,20 +229,14 @@ You'll receive email notification and can check your dashboard.
 - Check internet connection
 
 **Payment not reflecting?**
-- Wait 1-2 business days
-- Check you uploaded proof
-- Verify transaction was successful
-- Contact support with reference number
+- Return to the payment step in the wizard and confirm the payment state there
+- Check the Payment page for history and review notes
+- Verify the transaction completed successfully
+- Contact support with your application number if the status does not move
 
 ## Important Dates
 
-- Application Opens: January 1, 2025
-- Application Deadline: March 31, 2025
-- Review Period: April 1-30, 2025
-- Results Released: May 15, 2025
-- Registration: June 1-15, 2025
-
-**Note**: Dates may change. Check website for updates.
+Application and intake dates change over time. Always use the current intake and programme information shown in the portal rather than relying on printed historic dates.
 
 ## Good Luck!
 

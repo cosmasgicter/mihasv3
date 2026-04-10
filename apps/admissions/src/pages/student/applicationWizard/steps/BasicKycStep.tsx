@@ -27,6 +27,8 @@ interface BasicKycStepProps {
   programs: WizardProgram[]
   intakes: WizardIntake[]
   title: string
+  /** Returns an aria-describedby value linking a field to its wizard-level error message (Req 17.2) */
+  getFieldAriaDescribedBy?: (fieldName: string) => string | undefined
 }
 
 const BasicKycStep = ({
@@ -37,7 +39,8 @@ const BasicKycStep = ({
   selectedProgram,
   programs,
   intakes,
-  title
+  title,
+  getFieldAriaDescribedBy
 }: BasicKycStepProps) => {
   const {
     register,
@@ -103,6 +106,7 @@ const BasicKycStep = ({
               {...register('full_name')}
               label="Full Name *"
               error={errors.full_name?.message}
+              extraDescribedBy={getFieldAriaDescribedBy?.('full_name')}
             />
           </div>
 
@@ -121,6 +125,7 @@ const BasicKycStep = ({
               placeholder="e.g., 123456/78/9"
               error={errors.nrc_number?.message}
               helperText="Provide either NRC or Passport (one is sufficient)"
+              extraDescribedBy={getFieldAriaDescribedBy?.('nrc_number')}
             />
           </div>
 
@@ -139,6 +144,7 @@ const BasicKycStep = ({
               {...register('date_of_birth')}
               label="Date of Birth *"
               error={errors.date_of_birth?.message}
+              extraDescribedBy={getFieldAriaDescribedBy?.('date_of_birth')}
             />
           </div>
 
@@ -154,6 +160,7 @@ const BasicKycStep = ({
               placeholder="Select sex"
               error={errors.sex?.message}
               required
+              extraDescribedBy={getFieldAriaDescribedBy?.('sex')}
             />
           </div>
 
@@ -171,6 +178,7 @@ const BasicKycStep = ({
               aria-label="Phone Number"
               placeholder="e.g., +260 97 123 4567"
               error={errors.phone?.message}
+              extraDescribedBy={getFieldAriaDescribedBy?.('phone')}
             />
           </div>
 
@@ -180,6 +188,7 @@ const BasicKycStep = ({
               {...register('email')}
               label="Email Address *"
               error={errors.email?.message}
+              extraDescribedBy={getFieldAriaDescribedBy?.('email')}
             />
           </div>
 
@@ -208,6 +217,7 @@ const BasicKycStep = ({
                 selectedCountry,
                 defaultCountry: DEFAULT_RESIDENCE_COUNTRY,
               })}
+              extraDescribedBy={getFieldAriaDescribedBy?.('residence_town')}
             />
             <datalist id={residenceTownDatalistId}>
               {cityOptions.map(option => (
@@ -271,6 +281,7 @@ const BasicKycStep = ({
               helperText={programs.length === 0 ? 'No programmes available for the current intake' : undefined}
               triggerClassName="min-h-[56px] py-3 [&>span]:max-w-[calc(100%-1.75rem)] [&>span]:line-clamp-2 [&>span]:whitespace-normal [&>span]:leading-snug"
               required
+              extraDescribedBy={getFieldAriaDescribedBy?.('program')}
             />
           </div>
 
@@ -293,6 +304,7 @@ const BasicKycStep = ({
               helperText={intakes.length === 0 ? 'Intakes will appear here once enrollment periods are announced.' : undefined}
               triggerClassName="min-h-[56px] py-3 [&>span]:max-w-[calc(100%-1.75rem)] [&>span]:line-clamp-2 [&>span]:whitespace-normal [&>span]:leading-snug"
               required
+              extraDescribedBy={getFieldAriaDescribedBy?.('intake')}
             />
           </div>
         </div>

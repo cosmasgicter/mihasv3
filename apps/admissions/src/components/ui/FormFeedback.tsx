@@ -59,7 +59,7 @@ export function FormFeedback({
     error: {
       icon: XCircle,
       iconClass: 'text-destructive',
-      bgClass: 'bg-destructive/5 border-destructive/30',
+      bgClass: 'bg-destructive/5 border-error-border',
       textClass: 'text-foreground',
     },
     warning: {

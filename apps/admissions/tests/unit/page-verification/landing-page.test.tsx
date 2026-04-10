@@ -4,7 +4,7 @@
  *
  * Verifies the landing page renders its key content sections without errors.
  * The LandingPage uses static constants (stats, features, accreditations, programs)
- * rather than API calls, so the test focuses on section rendering and auth redirect behavior.
+ * rather than API calls, so the test focuses on section rendering.
  *
  * Requirements: 8.1, 8.10, 8.11, 8.12
  */
@@ -55,7 +55,6 @@ Object.defineProperty(window, 'IntersectionObserver', {
 })
 
 // ── Mock react-router-dom ──────────────────────────────────────────────
-const mockNavigate = vi.fn()
 const mockLocation = {
   pathname: '/',
   search: '',
@@ -67,15 +66,7 @@ vi.mock('react-router-dom', () => ({
   Link: ({ children, to, ...rest }: { children: React.ReactNode; to: string }) => (
     <a href={to} {...rest}>{children}</a>
   ),
-  useNavigate: () => mockNavigate,
   useLocation: () => mockLocation,
-}))
-
-// ── Mock AuthContext (unauthenticated by default) ─────────────────────
-const mockUseAuth = vi.fn()
-
-vi.mock('@/contexts/AuthContext', () => ({
-  useAuth: () => mockUseAuth(),
 }))
 
 // ── Mock heavy child components ───────────────────────────────────────
@@ -87,6 +78,10 @@ vi.mock('@/components/layout/PublicLayout', () => ({
   PublicLayout: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="public-layout">{children}</div>
   ),
+}))
+
+vi.mock('@/hooks/useDeferredHydration', () => ({
+  useDeferredHydration: () => true,
 }))
 
 // ── Mock smoothui components to render children directly ──────────────
@@ -140,21 +135,10 @@ describe('Landing page verification', () => {
   let root: ReturnType<typeof createRoot>
 
   beforeEach(() => {
-    mockNavigate.mockClear()
     mockLocation.pathname = '/'
     mockLocation.search = ''
     mockLocation.hash = ''
     mockLocation.state = null
-
-    // Default: unauthenticated visitor
-    mockUseAuth.mockReturnValue({
-      user: null,
-      loading: false,
-      isAdmin: false,
-      signIn: vi.fn(),
-      signUp: vi.fn(),
-      signOut: vi.fn(),
-    })
 
     container = document.createElement('div')
     document.body.appendChild(container)
@@ -167,9 +151,11 @@ describe('Landing page verification', () => {
     vi.clearAllMocks()
   })
 
-  async function renderAndWait(ms = 300) {
-    root.render(<LandingPage />)
-    await new Promise((r) => setTimeout(r, ms))
+  async function renderAndWait(ms = 700) {
+    await act(async () => {
+      root.render(<LandingPage />)
+      await new Promise((r) => setTimeout(r, ms))
+    })
   }
 
   // ── Hero section ────────────────────────────────────────────────────
@@ -243,50 +229,6 @@ describe('Landing page verification', () => {
     const html = container.innerHTML || ''
     // CTA links to signup
     expect(html).toContain('/auth/signup')
-  })
-
-  // ── Auth redirect behavior ──────────────────────────────────────────
-
-  it('redirects authenticated student to /student/dashboard', async () => {
-    mockUseAuth.mockReturnValue({
-      user: { id: 'user-001', email: 'student@example.com', role: 'student' },
-      loading: false,
-      isAdmin: false,
-      signIn: vi.fn(),
-      signUp: vi.fn(),
-      signOut: vi.fn(),
-    })
-
-    await renderAndWait()
-    expect(mockNavigate).toHaveBeenCalledWith('/student/dashboard')
-  })
-
-  it('redirects authenticated admin to /admin/dashboard', async () => {
-    mockUseAuth.mockReturnValue({
-      user: { id: 'user-002', email: 'admin@example.com', role: 'admin' },
-      loading: false,
-      isAdmin: true,
-      signIn: vi.fn(),
-      signUp: vi.fn(),
-      signOut: vi.fn(),
-    })
-
-    await renderAndWait()
-    expect(mockNavigate).toHaveBeenCalledWith('/admin/dashboard')
-  })
-
-  it('does not redirect when auth is still loading', async () => {
-    mockUseAuth.mockReturnValue({
-      user: null,
-      loading: true,
-      isAdmin: false,
-      signIn: vi.fn(),
-      signUp: vi.fn(),
-      signOut: vi.fn(),
-    })
-
-    await renderAndWait()
-    expect(mockNavigate).not.toHaveBeenCalled()
   })
 
   // ── Hash-based scroll ───────────────────────────────────────────────

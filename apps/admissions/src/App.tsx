@@ -28,16 +28,18 @@ function App() {
   return (
     <ErrorBoundary>
       <Router>
-        <RouteModeSwitch />
+        <RouteAwareApp />
       </Router>
-      <DeferredGlobalUi />
-      <DeferredTelemetry />
     </ErrorBoundary>
   )
 }
 
-function DeferredGlobalUi() {
-  const hydrated = useDeferredHydration(true, 350)
+function DeferredGlobalUi({
+  delayMs,
+}: {
+  delayMs: number
+}) {
+  const hydrated = useDeferredHydration(true, delayMs)
 
   if (!hydrated) {
     return null
@@ -50,8 +52,12 @@ function DeferredGlobalUi() {
   )
 }
 
-function DeferredTelemetry() {
-  const hydrated = useDeferredHydration(true, 1200)
+function DeferredTelemetry({
+  delayMs,
+}: {
+  delayMs: number
+}) {
+  const hydrated = useDeferredHydration(true, delayMs)
 
   if (!hydrated) {
     return null
@@ -81,18 +87,25 @@ function getShellFallback(pathname: string): React.ReactNode {
   return <AuthSkeleton />
 }
 
-function RouteModeSwitch() {
+function RouteAwareApp() {
   const location = useLocation()
   const marketingRoute = isMarketingPublicRoute(location.pathname)
+  const isLandingRoute = location.pathname === '/'
+  const globalUiDelayMs = isLandingRoute ? 2800 : marketingRoute ? 900 : 350
+  const telemetryDelayMs = isLandingRoute ? 6000 : marketingRoute ? 2500 : 1200
 
   return (
-    marketingRoute ? (
-      <MarketingRoutes />
-    ) : (
-      <Suspense fallback={getShellFallback(location.pathname)}>
-        <AuthenticatedRouteShell />
-      </Suspense>
-    )
+    <>
+      {marketingRoute ? (
+        <MarketingRoutes />
+      ) : (
+        <Suspense fallback={getShellFallback(location.pathname)}>
+          <AuthenticatedRouteShell />
+        </Suspense>
+      )}
+      <DeferredGlobalUi delayMs={globalUiDelayMs} />
+      <DeferredTelemetry delayMs={telemetryDelayMs} />
+    </>
   )
 }
 

@@ -45,6 +45,19 @@ def validate_ecz_subject_code(value):
     return value
 
 
+E164_PATTERN = re.compile(r"^\+?[0-9]{7,15}$")
+
+
+def validate_phone_e164(phone):
+    """Validates international phone: 7-15 digits, optional leading +."""
+    if not E164_PATTERN.match(phone):
+        raise ValidationError(
+            {"phone": "Phone must be 7-15 digits, optionally prefixed with +."},
+            code="INVALID_PHONE",
+        )
+    return phone
+
+
 def normalize_nationality(value):
     """Normalizes nationality, defaults to 'Zambian'."""
     if not value or not value.strip():

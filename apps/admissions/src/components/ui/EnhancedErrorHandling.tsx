@@ -34,7 +34,7 @@ const toastStyles = {
     message: 'text-accent'
   },
   error: {
-    container: 'bg-destructive/5 border-destructive/30',
+    container: 'bg-destructive/5 border-error-border',
     icon: 'text-error',
     title: 'text-destructive-foreground',
     message: 'text-error'

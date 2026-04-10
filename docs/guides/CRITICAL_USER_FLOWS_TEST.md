@@ -32,8 +32,8 @@
 - [ ] Login as student
 - [ ] Click "New Application"
 - [ ] **Step 1 - Personal Info**: Fill all required fields
-- [ ] **Step 2 - Academic**: Add 5+ subjects with grades
-- [ ] **Step 3 - Documents**: Upload result slip, NRC/passport, proof of payment
+- [ ] **Step 2 - Education & Documents**: Add 5+ subjects with grades and upload result slip plus NRC/passport
+- [ ] **Step 3 - Payment**: Confirm resolved fee, launch the Lenco widget, and wait for successful payment confirmation
 - [ ] **Step 4 - Review**: Verify all data correct
 - [ ] Submit application
 - [ ] Verify application number generated
@@ -49,7 +49,7 @@
 
 ---
 
-## 3️⃣ PAYMENT VERIFICATION (Admin)
+## 3️⃣ PAYMENT REVIEW / OVERRIDE (Admin)
 **Priority**: CRITICAL
 
 ### Test Steps:
@@ -57,13 +57,13 @@
 - [ ] Navigate to Applications page
 - [ ] Find test application
 - [ ] Click on application to view details
-- [ ] Verify payment status = "pending_review"
-- [ ] Click "Verify Payment"
-- [ ] Confirm verification
-- [ ] Verify payment status = "verified"
-- [ ] Check student receives email notification
+- [ ] Verify the application shows a confirmed payment state after successful Lenco payment
+- [ ] If testing the override path, open the payment review controls
+- [ ] Set payment to `verified` or `rejected` with notes
+- [ ] Verify payment state and review notes persist
+- [ ] Check student-facing status reflects the review outcome where applicable
 
-**Expected Result**: Payment verified, student notified
+**Expected Result**: Payment state is accurate, and the override path works when it is intentionally used
 
 ---
 
@@ -105,14 +105,14 @@
 **Priority**: HIGH
 
 ### Test Steps:
-- [ ] Navigate to `/tracker` (not logged in)
-- [ ] Enter application number
-- [ ] Enter email address
+- [ ] Navigate to `/track-application` (not logged in)
+- [ ] Enter application number or tracking code
 - [ ] Click "Track Application"
 - [ ] Verify application details displayed
 - [ ] Verify status badge shows correct status
 - [ ] Verify payment status visible
 - [ ] Try downloading application slip
+- [ ] Try emailing application slip if the flow prompts for a destination address
 
 **Expected Result**: Application details visible without login
 
@@ -147,7 +147,7 @@
 - [ ] Login as student
 - [ ] Upload result slip (PDF, <10MB)
 - [ ] Upload NRC scan (Image, <10MB)
-- [ ] Upload proof of payment (PDF, <10MB)
+- [ ] Verify identity document is required before moving beyond the education step
 - [ ] Verify files uploaded successfully
 - [ ] Login as admin
 - [ ] View application documents

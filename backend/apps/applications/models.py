@@ -31,19 +31,6 @@ class Application(models.Model):
     result_slip_url = models.CharField(max_length=500, null=True, blank=True)
     extra_kyc_url = models.CharField(max_length=500, null=True, blank=True)
     application_fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    # --- DEPRECATED: Legacy manual payment fields (Lenco integration replaces these) ---
-    # These columns are retained for backward compatibility with existing application
-    # rows but are NOT read or written by the new Lenco payment flow. New payment data
-    # lives in the `payments` table. Do NOT use these fields in new code.
-    payment_method = models.CharField(max_length=20, null=True, blank=True)  # DEPRECATED — use payments table
-    payer_name = models.CharField(max_length=255, null=True, blank=True)  # DEPRECATED — use payments table
-    payer_phone = models.CharField(max_length=20, null=True, blank=True)  # DEPRECATED — use payments table
-    amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # DEPRECATED — use payments table
-    paid_at = models.DateTimeField(null=True, blank=True)  # DEPRECATED — use payments table
-    momo_ref = models.CharField(max_length=100, null=True, blank=True)  # DEPRECATED — use payments table
-    pop_url = models.CharField(max_length=500, null=True, blank=True)  # DEPRECATED — use payments table
-    receipt_number = models.CharField(max_length=50, null=True, blank=True)  # DEPRECATED — use payments table
-    # --- END DEPRECATED manual payment fields ---
     payment_status = models.CharField(max_length=20, null=True, blank=True)
     payment_verified_at = models.DateTimeField(null=True, blank=True)  # DEPRECATED — use payments table
     payment_verified_by = models.ForeignKey(  # DEPRECATED — use payments table

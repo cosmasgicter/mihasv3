@@ -17,10 +17,12 @@ interface AnimatedInputProps extends React.InputHTMLAttributes<HTMLInputElement>
   label?: string;
   error?: string;
   helperText?: string;
+  /** Additional aria-describedby ids to merge with the component's own (Req 17.2) */
+  extraDescribedBy?: string;
 }
 
 export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
-  ({ label, error, helperText, className, id, ...props }, ref) => {
+  ({ label, error, helperText, extraDescribedBy, className, id, ...props }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const generatedId = useId();
     const inputId = id || generatedId;
@@ -73,7 +75,7 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
             onBlur={handleBlur}
             aria-invalid={error ? 'true' : undefined}
             aria-required={props.required || undefined}
-            aria-describedby={error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined}
+            aria-describedby={[error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined, extraDescribedBy].filter(Boolean).join(' ') || undefined}
             {...props}
           />
           

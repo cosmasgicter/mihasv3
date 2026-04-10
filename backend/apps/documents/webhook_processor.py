@@ -68,6 +68,27 @@ class WebhookProcessor:
         """
         reference = self._extract_reference(payload)
 
+        # Dedup check: skip if this (reference, event_type) was already processed
+        if reference and signature_valid:
+            already_processed = WebhookEventLog.objects.filter(
+                reference=reference,
+                event_type=event_type,
+                processed=True,
+            ).exists()
+
+            if already_processed:
+                WebhookEventLog.objects.create(
+                    event_type=event_type,
+                    reference=reference,
+                    payload=payload,
+                    signature_valid=signature_valid,
+                    processed=True,
+                    processing_error='Duplicate event \u2014 already processed',
+                    created_at=timezone.now(),
+                )
+                logger.info("Duplicate webhook skipped: ref=%s event=%s", reference, event_type)
+                return
+
         log_entry = WebhookEventLog.objects.create(
             event_type=event_type,
             reference=reference,

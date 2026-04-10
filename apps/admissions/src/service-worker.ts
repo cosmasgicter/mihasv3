@@ -63,6 +63,13 @@ const APP_VERSION = [EXPLICIT_APP_VERSION, MANIFEST_FINGERPRINT].filter(Boolean)
 const CACHE_VERSION = `v${APP_VERSION}`
 const CACHE_PREFIX = 'mihas-app'
 const LEGACY_CACHE_PREFIXES = ['mihas-v2-cache']
+const SW_DEBUG = import.meta.env.DEV || import.meta.env.VITE_SW_DEBUG === 'true'
+
+const swLog = (...args: unknown[]) => {
+  if (SW_DEBUG) {
+    console.log(...args)
+  }
+}
 
 // Cache bucket names
 const STATIC_CACHE = 'static-v1'
@@ -370,7 +377,7 @@ registerRoute(
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
-      console.log(`[Service Worker] Activating with cache version: ${CACHE_VERSION}`)
+      swLog(`[Service Worker] Activating with cache version: ${CACHE_VERSION}`)
       
       // Take control of all existing clients immediately
       await self.clients.claim()
@@ -380,7 +387,7 @@ self.addEventListener('activate', (event) => {
       try {
         const apiCacheDeleted = await caches.delete(API_CACHE)
         if (apiCacheDeleted) {
-          console.log(`[Service Worker] Deleted API cache bucket: ${API_CACHE}`)
+          swLog(`[Service Worker] Deleted API cache bucket: ${API_CACHE}`)
         }
       } catch (error) {
         console.warn('[Service Worker] Failed to delete API cache bucket:', error)
@@ -394,15 +401,15 @@ self.addEventListener('activate', (event) => {
       })
       
       if (oldCaches.length > 0) {
-        console.log(`[Service Worker] Deleting ${oldCaches.length} old cache(s):`, oldCaches)
+        swLog(`[Service Worker] Deleting ${oldCaches.length} old cache(s):`, oldCaches)
         await Promise.all(
           oldCaches.map(cacheName => {
-            console.log('[Service Worker] Deleting old cache:', cacheName)
+            swLog('[Service Worker] Deleting old cache:', cacheName)
             return caches.delete(cacheName)
           })
         )
       } else {
-        console.log('[Service Worker] No old caches to delete')
+        swLog('[Service Worker] No old caches to delete')
       }
 
       // Purge stale JS/CSS bundle entries from static-v1 that are not in
@@ -431,7 +438,7 @@ self.addEventListener('activate', (event) => {
         })
 
         if (staleEntries.length > 0) {
-          console.log(`[Service Worker] Purging ${staleEntries.length} stale JS/CSS entries from ${STATIC_CACHE}`)
+          swLog(`[Service Worker] Purging ${staleEntries.length} stale JS/CSS entries from ${STATIC_CACHE}`)
           await Promise.all(staleEntries.map((request) => staticCache.delete(request)))
         }
       } catch (error) {
@@ -444,7 +451,7 @@ self.addEventListener('activate', (event) => {
       // Notify clients about cache update
       const clients = await self.clients.matchAll()
       if (clients.length > 0) {
-        console.log(`[Service Worker] Notifying ${clients.length} client(s) about cache update`)
+        swLog(`[Service Worker] Notifying ${clients.length} client(s) about cache update`)
         clients.forEach(client => {
           client.postMessage({
             type: 'cache-updated',
@@ -460,7 +467,7 @@ self.addEventListener('activate', (event) => {
 // Handle messages from clients
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
-    console.log('[Service Worker] Received SKIP_WAITING message')
+    swLog('[Service Worker] Received SKIP_WAITING message')
     self.skipWaiting()
   }
   
@@ -483,7 +490,7 @@ self.addEventListener('message', (event) => {
             )
             .map(name => caches.delete(name))
         )
-        console.log('[Service Worker] All caches cleared')
+        swLog('[Service Worker] All caches cleared')
         event.ports[0]?.postMessage({ success: true })
       })()
     )

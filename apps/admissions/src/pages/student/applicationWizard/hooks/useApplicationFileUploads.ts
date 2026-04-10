@@ -31,6 +31,7 @@ export interface UseApplicationFileUploadsResult {
   /** File-based handlers for canonical FileUpload component (react-dropzone) */
   handleResultSlipFile: (file: File | null) => void
   handleExtraKycFile: (file: File | null) => void
+  markUploadedFile: (fileType: ApplicationFileType, uploaded: boolean) => void
   startUpload: (file: File, fileType: ApplicationFileType) => Promise<string>
   trackUploadTask: <T>(task: () => Promise<T>) => Promise<T>
 }
@@ -175,6 +176,13 @@ export function useApplicationFileUploads({
       return { ...prev, [fileType]: false }
     })
     clearProgressEntry(fileType)
+  }, [clearProgressEntry])
+
+  const markUploadedFile = useCallback((fileType: ApplicationFileType, uploaded: boolean) => {
+    setUploadedFiles(prev => ({ ...prev, [fileType]: uploaded }))
+    if (!uploaded) {
+      clearProgressEntry(fileType)
+    }
   }, [clearProgressEntry])
 
   useEffect(() => () => {
@@ -471,6 +479,7 @@ export function useApplicationFileUploads({
     handleExtraKycUpload,
     handleResultSlipFile,
     handleExtraKycFile,
+    markUploadedFile,
     startUpload,
     trackUploadTask
   }

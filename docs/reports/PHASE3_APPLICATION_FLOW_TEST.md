@@ -43,18 +43,18 @@ Test complete end-to-end application submission and admin review flows.
    - [ ] Click "Next Step"
 
 4. **Step 3: Payment**
-   - [ ] Payment methods dropdown works
-   - [ ] Amount field visible (min K153)
-   - [ ] Payer name field
-   - [ ] Payer phone field
-   - [ ] Payment date picker
-   - [ ] Reference number field
-   - [ ] Proof of payment upload works
-   - [ ] Click "Next Step"
+   - [ ] Resolved fee displays correctly for the selected programme and residency
+   - [ ] Lenco widget loads without script errors
+   - [ ] Pay button is disabled while initiation is in flight
+   - [ ] Pending state is visible if confirmation is delayed
+   - [ ] Next step remains blocked until payment is confirmed
+   - [ ] Click "Next Step" only after successful payment confirmation
 
 5. **Step 4: Review & Submit**
    - [ ] All entered data displays correctly
    - [ ] Can navigate back to edit
+   - [ ] Validation summary appears at the top when submission prerequisites are missing
+   - [ ] Focus moves to the first errored field when validation fails
    - [ ] Terms checkbox visible
    - [ ] Submit button disabled until checkbox
    - [ ] Check terms checkbox
@@ -131,6 +131,7 @@ Test complete end-to-end application submission and admin review flows.
 3. **File Upload**
    - [ ] File too large (>5MB)
    - [ ] Wrong file type
+   - [ ] Identity document is required before moving past education step
    - [ ] Error messages clear
 
 **Expected Result**: ✅ All validations work correctly
@@ -157,7 +158,6 @@ Test complete end-to-end application submission and admin review flows.
 3. **Multiple Files**
    - [ ] Upload result slip
    - [ ] Upload extra KYC
-   - [ ] Upload proof of payment
    - [ ] All files tracked separately
 
 **Expected Result**: ✅ All uploads work correctly

@@ -35,7 +35,7 @@ const html = generateApplicationSlipEmail({
   program_name: 'Nursing',
   status: 'submitted',
   submitted_at: '2025-01-23T10:00:00Z',
-  slipUrl: 'https://mihasv3.pages.dev/track'
+  slipUrl: 'https://mihasv3.pages.dev/track-application?code=TRK-ABC123'
 });
 ```
 

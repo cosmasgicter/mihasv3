@@ -136,7 +136,9 @@ The frontend and backend share a single, unified API contract. There is no compa
 - In `apps/jobs-ops`, keep route-level logic inside `src/features/*`.
 - Prefer React Query for backend data and keep shell/UI state in Zustand.
 - Use app-local API service modules instead of raw `fetch`.
-- Payment in the admissions wizard is handled exclusively by the Lenco inline widget (`LencoPay.getPaid`). Do not reintroduce manual payment flows, proof-of-payment uploads, or pay-later options.
+- Payment in the admissions wizard is handled exclusively by the Lenco inline widget (`LencoPay.getPaid`). Do not reintroduce the retired pre-Lenco payment UX.
+- Student authenticated pages should prefer the canonical UI primitives already in the repo: `PageShell`, `SectionCard`, `ErrorDisplay`, `EmptyState`, and `Button asChild` for semantic links.
+- Student forms that can lose work, especially settings and wizard-related screens, should protect dirty state on navigation and `beforeunload`.
 
 ### Backend
 
@@ -145,7 +147,7 @@ The frontend and backend share a single, unified API contract. There is no compa
 - Preserve explicit jobs-ops domain naming such as `JobApplication`.
 - Shared jobs-ops scaffold data currently lives in `backend/apps/common/jobs_ops_seed.py`; do not re-duplicate that seed state across views.
 - Current default error-alert recipient is `ops@mihas.edu.zm` (configurable via `ERROR_ALERT_EMAIL` env var; code fallback is `***REMOVED***`).
-- Payment records live in the `payments` table (managed by `backend/apps/documents/`). The Application model's inline payment fields (`payment_method`, `payer_name`, `payer_phone`, `amount`, `paid_at`, `momo_ref`, `pop_url`, `receipt_number`, `payment_verified_at`, `payment_verified_by`) are deprecated — do NOT read or write them in new code.
+- Payment records live in the `payments` table (managed by `backend/apps/documents/`). Application-level payment summaries should be derived from canonical payment records, not from retired inline compatibility columns.
 
 ## Lenco Payment Integration
 
@@ -169,6 +171,15 @@ Payment API endpoints:
 - `POST /api/v1/payments/webhook/lenco/` — webhook receiver (unauthenticated, HMAC-validated)
 - `GET /api/v1/payments/resolve-fee/` — resolve fee for program + residency
 - `GET/POST/PUT/DELETE /api/v1/programs/{id}/fees/` — admin fee management
+
+Related admissions flow endpoints:
+- `POST /api/v1/applications/{id}/submit/` — canonical student submission endpoint with submission gates
+- `POST/PATCH /api/v1/applications/{id}/review/` — admin review and payment override endpoint
+- `GET /api/v1/applications/interviews/?mine=true` — canonical student interview list endpoint
+
+Payment status conventions:
+- Use `normalizePaymentStatus()` and `isPaymentVerified()` from `apps/admissions/src/lib/paymentStatus.ts` for student-facing reads.
+- Do not branch directly on raw payment strings in new UI code unless you are handling backend write payloads.
 
 Environment variables:
 - Backend: `LENCO_API_SECRET_KEY`, `LENCO_API_BASE_URL`, `LENCO_PUBLIC_KEY`

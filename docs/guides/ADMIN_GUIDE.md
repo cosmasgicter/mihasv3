@@ -417,10 +417,10 @@ Dashboard shows:
 3. Set reminder to follow up in 7 days
 
 ### Scenario 2: Payment Dispute
-1. Check proof of payment carefully
-2. Contact finance department if needed
-3. Add detailed notes
-4. Communicate with applicant
+1. Check the application's recorded payment status and payment history
+2. Use payment review or override controls only when the recorded state needs intervention
+3. Contact finance department if gateway or reconciliation details are unclear
+4. Add detailed review notes and communicate with the applicant
 
 ### Scenario 3: Borderline Grades
 1. Review program requirements

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
-import type { ApplicationFormData } from '../types'
+import type { ApplicationFormData, SubjectGrade } from '../types'
 
 export interface OverallProgress {
   percentage: number
@@ -18,7 +18,8 @@ const isFieldComplete = (value: unknown): boolean => {
 }
 
 export const useOverallProgress = (
-  form: UseFormReturn<ApplicationFormData>
+  form: UseFormReturn<ApplicationFormData>,
+  selectedGrades: SubjectGrade[] = []
 ): OverallProgress => {
   const values = (() => {
     try {
@@ -47,7 +48,11 @@ export const useOverallProgress = (
     const step0Completed = step0Fields.filter(Boolean).length
 
     // Step 1: Education (5 subjects minimum)
-    const validGrades = values.grades?.filter(g => g.subject_id && g.grade >= 1 && g.grade <= 9) || []
+    const validGrades = (
+      selectedGrades.length > 0
+        ? selectedGrades
+        : values.grades ?? []
+    ).filter(g => g.subject_id && g.grade >= 1 && g.grade <= 9)
     const step1Completed = Math.min(validGrades.length, 5)
     const step1Total = 5
 
@@ -76,5 +81,5 @@ export const useOverallProgress = (
       totalFields,
       stepProgress
     }
-  }, [values])
+  }, [values, selectedGrades])
 }

@@ -1,9 +1,13 @@
 """Application serializers.
 
-Implements task 13.1.
-Requirements: 4.1, 4.2
+Implements task 13.1, 3.3, 3.4.
+Requirements: 4.1, 4.2, 10.1, 10.2, 10.3, 10.4, 11.1, 11.2, 11.3
 """
 
+import logging
+from datetime import date
+
+from dateutil.relativedelta import relativedelta
 from rest_framework import serializers
 
 from apps.applications.models import (
@@ -13,15 +17,170 @@ from apps.applications.models import (
     ApplicationStatusHistory,
 )
 from apps.common.validators import validate_nrc, validate_zambian_phone
+from apps.documents.models import Payment
+
+logger = logging.getLogger(__name__)
 
 
-class ApplicationSerializer(serializers.ModelSerializer):
+def validate_program_intake_compatibility(program_name: str, intake_name: str) -> None:
+    """Validate that a program-intake combination is valid and active.
+
+    Resolves program and intake by name to their UUIDs, then checks the
+    program_intakes join table for a matching row. Also verifies the intake
+    is currently active.
+
+    Raises serializers.ValidationError with code INVALID_PROGRAM_INTAKE or
+    INACTIVE_INTAKE on failure.
+
+    Requirements: 10.1, 10.2, 10.3, 10.4
+    """
+    from apps.catalog.models import Intake, Program, ProgramIntake
+
+    program = Program.objects.filter(name=program_name).first()
+    intake = Intake.objects.filter(name=intake_name).first()
+
+    if not program or not intake:
+        raise serializers.ValidationError(
+            {"program": "Program or intake not found."},
+            code="INVALID_PROGRAM_INTAKE",
+        )
+
+    if not ProgramIntake.objects.filter(
+        program_id=program.id, intake_id=intake.id
+    ).exists():
+        raise serializers.ValidationError(
+            {"program": "The selected program is not available for this intake."},
+            code="INVALID_PROGRAM_INTAKE",
+        )
+
+    if not intake.is_active:
+        raise serializers.ValidationError(
+            {"intake": "The selected intake is not currently active."},
+            code="INACTIVE_INTAKE",
+        )
+
+
+def validate_minimum_age(date_of_birth):
+    """Validate that the applicant is at least 16 years old.
+
+    Uses relativedelta for accurate leap-year-aware age calculation.
+
+    Raises serializers.ValidationError with code MINIMUM_AGE_NOT_MET if underage.
+
+    Requirements: 11.1, 11.2, 11.3
+    """
+    if date_of_birth is None:
+        return
+    age = relativedelta(date.today(), date_of_birth).years
+    if age < 16:
+        raise serializers.ValidationError(
+            {"date_of_birth": "Applicants must be at least 16 years old."},
+            code="MINIMUM_AGE_NOT_MET",
+        )
+
+
+class ApplicationPaymentSummaryMixin(serializers.Serializer):
+    """Expose payment summary fields from canonical payment records."""
+
+    payment_method = serializers.SerializerMethodField()
+    paid_amount = serializers.SerializerMethodField()
+    paid_at = serializers.SerializerMethodField()
+    receipt_number = serializers.SerializerMethodField()
+    payment_reference = serializers.SerializerMethodField()
+    last_payment_reference = serializers.SerializerMethodField()
+
+    def _get_payment_summary(self, obj) -> dict[str, object | None]:
+        cache = getattr(self, "_payment_summary_cache", None)
+        if cache is None:
+            cache = {}
+            self._payment_summary_cache = cache
+
+        cache_key = getattr(obj, "id", id(obj))
+        if cache_key in cache:
+            return cache[cache_key]
+
+        annotated_summary = {
+            "payment_method": getattr(obj, "payment_summary_method", None),
+            "paid_amount": getattr(obj, "payment_summary_paid_amount", None),
+            "paid_at": getattr(obj, "payment_summary_paid_at", None),
+            "receipt_number": getattr(obj, "payment_summary_receipt_number", None),
+            "payment_reference": getattr(obj, "payment_summary_reference", None),
+            "last_payment_reference": getattr(obj, "payment_summary_reference", None),
+        }
+        if any(value is not None for value in annotated_summary.values()):
+            cache[cache_key] = annotated_summary
+            return annotated_summary
+
+        direct_summary = {
+            "payment_method": getattr(obj, "payment_method", None),
+            "paid_amount": getattr(obj, "paid_amount", None),
+            "paid_at": getattr(obj, "paid_at", None),
+            "receipt_number": getattr(obj, "receipt_number", None),
+            "payment_reference": getattr(obj, "payment_reference", None),
+            "last_payment_reference": getattr(
+                obj,
+                "last_payment_reference",
+                getattr(obj, "payment_reference", None),
+            ),
+        }
+        if any(value is not None for value in direct_summary.values()):
+            cache[cache_key] = direct_summary
+            return direct_summary
+
+        if not isinstance(obj, Application):
+            cache[cache_key] = direct_summary
+            return direct_summary
+
+        latest_payment = (
+            Payment.objects
+            .filter(application_id=getattr(obj, "id", None))
+            .order_by("-updated_at", "-created_at")
+            .first()
+        )
+        latest_successful_payment = (
+            Payment.objects
+            .filter(application_id=getattr(obj, "id", None), status="successful")
+            .order_by("-verified_at", "-updated_at", "-created_at")
+            .first()
+        )
+
+        summary = {
+            "payment_method": getattr(latest_payment, "payment_method", None),
+            "paid_amount": getattr(latest_successful_payment, "amount", None),
+            "paid_at": getattr(latest_successful_payment, "verified_at", None)
+            or getattr(latest_successful_payment, "updated_at", None)
+            or getattr(latest_successful_payment, "created_at", None),
+            "receipt_number": getattr(latest_successful_payment, "receipt_number", None),
+            "payment_reference": getattr(latest_payment, "transaction_reference", None),
+            "last_payment_reference": getattr(latest_payment, "transaction_reference", None),
+        }
+        cache[cache_key] = summary
+        return summary
+
+    def get_payment_method(self, obj):
+        return self._get_payment_summary(obj)["payment_method"]
+
+    def get_paid_amount(self, obj):
+        return self._get_payment_summary(obj)["paid_amount"]
+
+    def get_paid_at(self, obj):
+        return self._get_payment_summary(obj)["paid_at"]
+
+    def get_receipt_number(self, obj):
+        return self._get_payment_summary(obj)["receipt_number"]
+
+    def get_payment_reference(self, obj):
+        return self._get_payment_summary(obj)["payment_reference"]
+
+    def get_last_payment_reference(self, obj):
+        return self._get_payment_summary(obj)["last_payment_reference"]
+
+
+class ApplicationSerializer(ApplicationPaymentSummaryMixin, serializers.ModelSerializer):
     """Full application serializer with all fields."""
 
     user_id = serializers.UUIDField(read_only=True)
     tracking_code = serializers.CharField(source="public_tracking_code", read_only=True)
-    payment_reference = serializers.CharField(source="momo_ref", read_only=True)
-    last_payment_reference = serializers.CharField(source="momo_ref", read_only=True)
     payment_verified_by_name = serializers.SerializerMethodField()
     payment_verified_by_email = serializers.SerializerMethodField()
     last_payment_audit_notes = serializers.CharField(source="admin_feedback", read_only=True)
@@ -37,8 +196,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "next_of_kin_name", "next_of_kin_phone",
             "program", "intake", "institution", "status", "version",
             "result_slip_url", "extra_kyc_url", "application_fee",
-            "payment_method", "payer_name", "payer_phone", "amount",
-            "paid_at", "momo_ref", "pop_url", "receipt_number",
+            "payment_method", "paid_amount", "paid_at", "receipt_number",
             "payment_status", "payment_verified_at", "payment_verified_by",
             "payment_reference", "last_payment_reference",
             "payment_verified_by_name", "payment_verified_by_email",
@@ -83,6 +241,12 @@ class ApplicationSerializer(serializers.ModelSerializer):
             return validate_nrc(value)
         return value
 
+    def validate_date_of_birth(self, value):
+        """Validate applicant meets minimum age requirement (>= 16)."""
+        if value:
+            validate_minimum_age(value)
+        return value
+
     def validate_program(self, value):
         """Validate program exists in catalog."""
         from apps.catalog.models import Program
@@ -103,6 +267,14 @@ class ApplicationSerializer(serializers.ModelSerializer):
         if not Institution.objects.filter(name=value, is_active=True).exists():
             raise serializers.ValidationError("Invalid institution reference.")
         return value
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        program_name = attrs.get("program")
+        intake_name = attrs.get("intake")
+        if program_name and intake_name:
+            validate_program_intake_compatibility(program_name, intake_name)
+        return attrs
 
 
 class ApplicationCreateSerializer(serializers.Serializer):
@@ -134,6 +306,12 @@ class ApplicationCreateSerializer(serializers.Serializer):
             return validate_nrc(value)
         return value
 
+    def validate_date_of_birth(self, value):
+        """Validate applicant meets minimum age requirement (>= 16)."""
+        if value:
+            validate_minimum_age(value)
+        return value
+
     def validate_program(self, value):
         from apps.catalog.models import Program
         if not Program.objects.filter(name=value, is_active=True).exists():
@@ -152,13 +330,19 @@ class ApplicationCreateSerializer(serializers.Serializer):
             raise serializers.ValidationError("Invalid institution reference.")
         return value
 
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        program_name = attrs.get("program")
+        intake_name = attrs.get("intake")
+        if program_name and intake_name:
+            validate_program_intake_compatibility(program_name, intake_name)
+        return attrs
 
-class ApplicationListSerializer(serializers.ModelSerializer):
+
+class ApplicationListSerializer(ApplicationPaymentSummaryMixin, serializers.ModelSerializer):
     """Lightweight serializer for list views."""
 
     tracking_code = serializers.CharField(source="public_tracking_code", read_only=True)
-    payment_reference = serializers.CharField(source="momo_ref", read_only=True)
-    last_payment_reference = serializers.CharField(source="momo_ref", read_only=True)
     payment_verified_by_name = serializers.SerializerMethodField()
     payment_verified_by_email = serializers.SerializerMethodField()
     last_payment_audit_notes = serializers.CharField(source="admin_feedback", read_only=True)
@@ -168,8 +352,8 @@ class ApplicationListSerializer(serializers.ModelSerializer):
         fields = [
             "id", "application_number", "public_tracking_code", "tracking_code",
             "full_name", "email", "phone", "program", "intake", "institution",
-            "status", "payment_status", "payment_method", "payer_name",
-            "payer_phone", "amount", "paid_at", "momo_ref", "pop_url",
+            "status", "payment_status", "payment_method", "paid_amount", "paid_at",
+            "receipt_number",
             "payment_verified_at", "payment_reference", "last_payment_reference",
             "payment_verified_by_name", "payment_verified_by_email",
             "submitted_at", "admin_feedback", "last_payment_audit_notes",
@@ -258,6 +442,7 @@ class ApplicationReviewSerializer(serializers.Serializer):
     new_status = serializers.CharField(max_length=50)
     notes = serializers.CharField(required=False, allow_blank=True, default="")
     force = serializers.BooleanField(required=False, default=False)
+    reason = serializers.CharField(required=False, allow_blank=True, default="")
 
 
 class PaymentStatusUpdateSerializer(serializers.Serializer):

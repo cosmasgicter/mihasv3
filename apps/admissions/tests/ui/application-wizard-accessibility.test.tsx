@@ -1,71 +1,85 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { useForm } from 'react-hook-form'
 
 import PaymentStep from '@/pages/student/applicationWizard/steps/PaymentStep'
 import type { WizardFormData } from '@/pages/student/applicationWizard/types'
 
-function renderMarkup(element: React.ReactElement) {
-  const markup = renderToStaticMarkup(element)
-  return new DOMParser().parseFromString(markup, 'text/html')
-}
+const useFeeResolverMock = vi.fn()
+const useLencoWidgetMock = vi.fn()
+const usePaymentStatusMock = vi.fn()
 
-function PaymentStepHarness() {
-  const form = useForm<WizardFormData>({
-    defaultValues: {
-      full_name: '',
-      nrc_number: '',
-      passport_number: '',
-      date_of_birth: '',
-      sex: 'Male',
-      phone: '',
-      email: '',
-      residence_town: '',
-      country: 'Zambia',
-      nationality: 'Zambian',
-      next_of_kin_name: '',
-      next_of_kin_phone: '',
-      program: '',
-      intake: '',
-      payment_option: 'pay_now',
-      payment_method: 'MTN Money',
-      payer_name: '',
-      payer_phone: '',
-      amount: 153,
-      paid_at: '',
-      momo_ref: '',
-    },
-  })
+vi.mock('@/hooks/useFeeResolver', () => ({
+  useFeeResolver: (...args: unknown[]) => useFeeResolverMock(...args),
+}))
 
-  return (
-    <PaymentStep
-      title="Payment"
-      form={form}
-      getPaymentTarget={async () => '0970000000'}
-      handleProofOfPaymentUpload={() => undefined}
-      proofOfPaymentFile={null}
-      uploadProgress={{}}
-      uploadedFiles={{}}
-    />
-  )
+vi.mock('@/hooks/useLencoWidget', () => ({
+  useLencoWidget: (...args: unknown[]) => useLencoWidgetMock(...args),
+}))
+
+vi.mock('@/hooks/usePaymentStatus', () => ({
+  usePaymentStatus: (...args: unknown[]) => usePaymentStatusMock(...args),
+}))
+
+function renderPaymentMarkup() {
+  const Harness = () => {
+    const form = useForm<WizardFormData>({
+      defaultValues: {
+        full_name: 'Jane Student',
+        nrc_number: '123456/78/9',
+        passport_number: '',
+        date_of_birth: '2001-09-08',
+        sex: 'Female',
+        phone: '+260971234567',
+        email: 'jane@example.com',
+        residence_town: 'Kitwe',
+        country: 'Zambia',
+        nationality: 'Zambian',
+        next_of_kin_name: 'John Student',
+        next_of_kin_phone: '+260977000000',
+        program: 'program-1',
+        intake: 'intake-2026-aug',
+      },
+    })
+
+    return (
+      <PaymentStep
+        title="Payment"
+        form={form}
+        applicationId="app-1"
+        applicationNumber="MIHAS-2026-0001"
+      />
+    )
+  }
+
+  return renderToStaticMarkup(<Harness />)
 }
 
 describe('PaymentStep accessibility', () => {
-  it('exposes payment options as a radio group with clear option descriptions', () => {
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
-    const document = renderMarkup(<PaymentStepHarness />)
+  beforeEach(() => {
+    useFeeResolverMock.mockReturnValue({
+      fee: { amount: 153, currency: 'ZMW', residency_category: 'resident' },
+      isLoading: false,
+      error: null,
+    })
+    useLencoWidgetMock.mockReturnValue({
+      openWidget: vi.fn(),
+      isLoading: false,
+      isScriptLoaded: true,
+    })
+    usePaymentStatusMock.mockReturnValue({
+      status: 'idle',
+      refetch: vi.fn(),
+    })
+  })
 
-    const paymentOptionGroup = document.querySelector('[role="radiogroup"]')
-    const legend = document.querySelector('#payment-option-legend')
-    expect(paymentOptionGroup).not.toBeNull()
-    expect(legend?.textContent).toBe('Choose when you want to complete payment')
-    expect(paymentOptionGroup?.getAttribute('aria-labelledby')).toBe('payment-option-legend')
+  it('uses fieldset semantics and removes the retired payment-choice radios', () => {
+    const markup = renderPaymentMarkup()
 
-    const paymentOptions = [...document.querySelectorAll('input[type="radio"][name="payment_option"]')]
-    expect(paymentOptions).toHaveLength(2)
-    expect(paymentOptions.some(option => option.getAttribute('value') === 'pay_now')).toBe(true)
-    expect(paymentOptions.some(option => option.getAttribute('value') === 'pay_later')).toBe(true)
-
-    consoleError.mockRestore()
+    expect(markup).toContain('<fieldset')
+    expect(markup).toContain('<legend class="sr-only">Payment</legend>')
+    expect(markup).toContain('data-testid="pay-now-button"')
+    expect(markup).not.toContain('radiogroup')
+    expect(markup).not.toContain('type="radio"')
   })
 })

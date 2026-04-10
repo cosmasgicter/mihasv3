@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
-import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui'
-import { Badge } from '@/components/ui'
+import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/Button'
 import { OptimizedImage } from '@/components/ui/OptimizedImage'
 import {
@@ -19,7 +19,6 @@ import {
   programs,
   stats,
 } from '@/lib/constants/landing'
-import '@/styles/accreditation.css'
 
 const deferredSectionStyle = {
   contentVisibility: 'auto',
@@ -183,6 +182,8 @@ function ProgramsSection() {
                       className="h-48 w-full object-cover transition-transform duration-500 group-hover:scale-105 sm:h-56 lg:h-64"
                       width={640}
                       height={256}
+                      srcSetWidths={[320]}
+                      sizes="(min-width: 1024px) 32rem, (min-width: 640px) 80vw, 100vw"
                     />
                     <div className="absolute right-4 top-4 space-y-2">
                       <Badge className="bg-gradient-to-r from-primary to-secondary text-xs text-white sm:text-sm">

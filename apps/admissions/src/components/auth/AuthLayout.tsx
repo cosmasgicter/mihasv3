@@ -118,7 +118,7 @@ const layoutVariants: Record<AuthLayoutVariant, AuthVariantConfig> = {
     panelBadgeClass: 'border-cyan-200 bg-cyan-50 text-cyan-900',
     heroTitle: 'Return to your admissions workspace without losing momentum',
     heroDescription:
-      'Sign in to continue saved drafts, upload documents, complete pay-later submissions, and track your latest admissions updates from one secure dashboard.',
+      'Sign in to continue saved drafts, review payment status, and track your latest admissions updates from one secure dashboard.',
     features: [
       {
         icon: KeyRound,

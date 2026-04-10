@@ -7,7 +7,6 @@
  *   - Wizard Step 1 (Basic KYC)
  *   - Wizard Step 2 (Education & Documents)
  *   - Wizard Step 3 (Payment)
- *   - Wizard Step 4 (Review & Submit)
  *
  * `moderate` and `minor` violations are logged but do NOT fail the test.
  *
@@ -226,88 +225,4 @@ test.describe('Accessibility — wizard steps', () => {
     await assertNoBlockingViolations(page, 'Wizard Step 3 — Payment');
   });
 
-  test('wizard step 4 (Review & Submit) has no critical/serious violations', async ({ page }) => {
-    await page.waitForSelector('[data-testid="basic-kyc-step"]', { timeout: 10_000 });
-
-    // Step 1 → Step 2
-    await page.getByLabel('Full Name', { exact: false }).fill(TEST_FULL_NAME);
-    await page.getByLabel('NRC Number', { exact: false }).fill(TEST_NRC);
-    await page.getByLabel('Date of Birth', { exact: false }).fill(TEST_DOB);
-
-    const sexCombo1 = page.getByRole('combobox', { name: /sex/i });
-    await sexCombo1.click();
-    await page.getByRole('option', { name: 'Male' }).click();
-
-    await page.getByLabel('Phone Number', { exact: false }).fill(TEST_PHONE);
-    await page.getByLabel('Email Address', { exact: false }).fill(TEST_EMAIL);
-    await page.getByLabel('Residence Town', { exact: false }).fill(TEST_CITY);
-    await page.getByLabel('Nationality', { exact: false }).fill(TEST_NATIONALITY);
-
-    const programCombo = page.getByRole('combobox', { name: /program/i });
-    await programCombo.click();
-    await page.getByRole('option').first().click();
-
-    const intakeCombo = page.getByRole('combobox', { name: /intake/i });
-    if (!(await intakeCombo.isDisabled())) {
-      await intakeCombo.click();
-      await page.getByRole('option').first().click();
-    }
-
-    await page.getByRole('button', { name: /next step/i }).click();
-    await page.waitForSelector('[data-testid="education-step"]', { timeout: 10_000 });
-
-    // Step 2 → Step 3
-    for (let i = 0; i < 5; i++) {
-      await page.getByRole('button', { name: /add new subject/i }).click();
-
-      const subjectSelect = page.locator(`[data-testid="subject-select-${i}"]`);
-      await subjectSelect.click();
-      await page
-        .getByRole('option')
-        .filter({ hasNot: page.locator('[aria-disabled="true"]') })
-        .first()
-        .click();
-
-      const gradeSelect = page.locator(`[data-testid="grade-select-${i}"]`);
-      await gradeSelect.click();
-      await page.getByRole('option', { name: /3 \(B\+\)/i }).click();
-    }
-
-    const resultSlipInput = page.locator('input[type="file"]').first();
-    await resultSlipInput.setInputFiles({
-      name: 'result_slip.pdf',
-      mimeType: 'application/pdf',
-      buffer: Buffer.from('%PDF-1.4 test result slip'),
-    });
-
-    await page.getByRole('button', { name: /next step/i }).click();
-    await page.waitForSelector('[data-testid="payment-step"]', { timeout: 10_000 });
-
-    // Step 3 → Step 4
-    const paymentMethodCombo = page.getByRole('combobox', { name: /payment method/i });
-    await paymentMethodCombo.click();
-    await page.getByRole('option', { name: 'MTN Money' }).click();
-
-    await page.getByLabel('Payer Name', { exact: false }).fill(TEST_FULL_NAME);
-    await page.getByLabel('Payer Phone', { exact: false }).fill(TEST_PHONE);
-
-    const now = new Date();
-    await page
-      .getByLabel('Payment Date & Time', { exact: false })
-      .fill(now.toISOString().slice(0, 16));
-
-    await page.getByLabel('Mobile Money Reference', { exact: false }).fill('TXN123456789');
-
-    const popInput = page.locator('input[type="file"]').first();
-    await popInput.setInputFiles({
-      name: 'proof_of_payment.pdf',
-      mimeType: 'application/pdf',
-      buffer: Buffer.from('%PDF-1.4 proof of payment'),
-    });
-
-    await page.getByRole('button', { name: /next step/i }).click();
-    await page.waitForSelector('[data-testid="submit-step"]', { timeout: 10_000 });
-
-    await assertNoBlockingViolations(page, 'Wizard Step 4 — Review & Submit');
-  });
 });

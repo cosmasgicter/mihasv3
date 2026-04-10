@@ -220,6 +220,8 @@ export function ShapeLandingHero({
                     lazy={false}
                     fetchPriority="high"
                     decoding="sync"
+                    srcSetWidths={[320]}
+                    sizes="(min-width: 1024px) 30rem, (min-width: 640px) 88vw, calc(100vw - 2rem)"
                     className="h-[20rem] w-full object-cover sm:h-[24rem]"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/15 to-transparent" />
@@ -236,7 +238,7 @@ export function ShapeLandingHero({
                   </div>
 
                   <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
-                    <p className="mb-2 text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-white/75">
+                    <p className="mb-2 text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-white/90">
                       {proofPanel.eyebrow}
                     </p>
                     <p className="text-xl font-semibold leading-tight text-white sm:text-2xl">
@@ -255,7 +257,7 @@ export function ShapeLandingHero({
                       className="rounded-[1.25rem] border border-white/12 bg-white/10 px-4 py-3 text-center backdrop-blur-sm"
                     >
                       <p className="text-xl font-bold text-white sm:text-2xl">{highlight.value}</p>
-                      <p className="mt-1 text-[0.72rem] font-medium uppercase tracking-[0.16em] text-white/75">
+                      <p className="mt-1 text-[0.72rem] font-medium uppercase tracking-[0.16em] text-white/90">
                         {highlight.label}
                       </p>
                     </div>

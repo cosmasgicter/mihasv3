@@ -87,9 +87,12 @@ const applicationDraftDataArb = fc.record({
 })
 
 const formSubmissionDataArb = fc.record({
+  full_name: fc.string({ minLength: 1, maxLength: 50 }),
+  email: fc.emailAddress(),
+  phone: fc.string({ minLength: 5, maxLength: 20 }),
+  program: fc.uuid(),
+  intake: fc.uuid(),
   application_fee: fc.integer({ min: 100, max: 10000 }),
-  payment_method: fc.constantFrom('mobile_money', 'bank_transfer', 'cash'),
-  payer_name: fc.string({ minLength: 1, maxLength: 50 }),
 })
 
 const timestampArb = fc.integer({ min: 1700000000000, max: 1800000000000 })

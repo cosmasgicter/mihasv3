@@ -6,13 +6,13 @@ import {
   extractApplicationFromEnvelope,
   useDocumentGeneration,
 } from '@/hooks/useDocumentGeneration';
-import { generateApplicationSlip } from '@/lib/applicationSlip';
+import { generateApplicationSlip } from '@/lib/applicationSlipPdf';
 import { generateAcceptanceLetter } from '@/lib/acceptanceLetterGenerator';
 import { generatePaymentReceipt } from '@/lib/receiptGenerator';
 
 const getByIdMock = vi.fn();
 
-vi.mock('@/lib/applicationSlip', () => ({
+vi.mock('@/lib/applicationSlipPdf', () => ({
   generateApplicationSlip: vi.fn(async () => new Blob(['slip'])),
 }));
 
@@ -102,7 +102,7 @@ describe('useDocumentGeneration payload handling', () => {
   it('extracts application from nested envelope format', () => {
     const app = extractApplicationFromEnvelope(
       { success: true, data: { application: baseApplication } },
-      '/api/applications?id=1'
+      '/api/applications/1/'
     );
 
     expect(app).toEqual(baseApplication);
@@ -111,7 +111,7 @@ describe('useDocumentGeneration payload handling', () => {
   it('extracts application from legacy root-level format', () => {
     const app = extractApplicationFromEnvelope(
       { application: baseApplication },
-      '/api/applications?id=1'
+      '/api/applications/1/'
     );
 
     expect(app).toEqual(baseApplication);
@@ -121,13 +121,13 @@ describe('useDocumentGeneration payload handling', () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
     expect(() =>
-      extractApplicationFromEnvelope({ success: true, data: {} }, '/api/applications?id=abc')
+      extractApplicationFromEnvelope({ success: true, data: {} }, '/api/applications/abc/')
     ).toThrow('No application data received');
 
     expect(errorSpy).toHaveBeenCalledWith(
       '[useDocumentGeneration] Malformed payload: missing application object',
       expect.objectContaining({
-        endpoint: '/api/applications?id=abc',
+        endpoint: '/api/applications/abc/',
         responseShape: expect.objectContaining({
           topLevelKeys: ['success', 'data'],
           dataKeys: [],

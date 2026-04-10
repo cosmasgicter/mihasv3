@@ -134,65 +134,72 @@ const mapToRowValues = (application: ApplicationData) => ({
   payment_reference: safeText(application.payment_reference)
 })
 
+const CSV_BATCH_SIZE = 500
+
+function formatCsvRow(record: ApplicationData): string {
+  const row = mapToRowValues(record)
+  return [
+    toCsvValue(row.application_number),
+    toCsvValue(row.full_name),
+    toCsvValue(row.email),
+    toCsvValue(row.phone),
+    toCsvValue(row.program),
+    toCsvValue(row.intake),
+    toCsvValue(row.institution),
+    toCsvValue(row.status),
+    toCsvValue(row.payment_status),
+    toCsvValue(row.application_fee),
+    toCsvValue(row.paid_amount),
+    toCsvValue(row.submitted_at),
+    toCsvValue(row.created_at),
+    toCsvValue(row.grades_summary),
+    toCsvValue(row.total_subjects),
+    toCsvValue(row.points),
+    toCsvValue(row.age),
+    toCsvValue(row.days_since_submission),
+    toCsvValue(row.payment_reviewed_at),
+    toCsvValue(row.payment_reviewed_by),
+    toCsvValue(row.payment_review_notes),
+    toCsvValue(row.payment_reference)
+  ].join(',')
+}
+
 export async function exportToCSV(
   source: ApplicationDataSource,
   filename: string = 'applications.csv'
 ) {
-  const parts: string[] = []
-  parts.push(HEADERS.join(','))
+  // Collect Blob parts incrementally — each part is a batch of up to 500 rows.
+  // Parts are passed directly to the Blob constructor so the browser never
+  // needs to hold the entire CSV as a single contiguous string.
+  const blobParts: string[] = [HEADERS.join(',') + '\n']
 
   let buffer: string[] = []
-  let processed = 0
 
   for await (const record of iterateApplicationData(source)) {
-    const row = mapToRowValues(record)
-    buffer.push([
-      toCsvValue(row.application_number),
-      toCsvValue(row.full_name),
-      toCsvValue(row.email),
-      toCsvValue(row.phone),
-      toCsvValue(row.program),
-      toCsvValue(row.intake),
-      toCsvValue(row.institution),
-      toCsvValue(row.status),
-      toCsvValue(row.payment_status),
-      toCsvValue(row.application_fee),
-      toCsvValue(row.paid_amount),
-      toCsvValue(row.submitted_at),
-      toCsvValue(row.created_at),
-      toCsvValue(row.grades_summary),
-      toCsvValue(row.total_subjects),
-      toCsvValue(row.points),
-      toCsvValue(row.age),
-      toCsvValue(row.days_since_submission),
-      toCsvValue(row.payment_reviewed_at),
-      toCsvValue(row.payment_reviewed_by),
-      toCsvValue(row.payment_review_notes),
-      toCsvValue(row.payment_reference)
-    ].join(','))
+    buffer.push(formatCsvRow(record))
 
-    processed += 1
-
-    if (buffer.length >= 500) {
-      parts.push(buffer.join('\n'))
+    if (buffer.length >= CSV_BATCH_SIZE) {
+      blobParts.push(buffer.join('\n') + '\n')
       buffer = []
-    }
-
-    if (processed % YIELD_INTERVAL === 0) {
+      // Yield to the main thread between batches so the UI stays responsive
       await delayForStreaming()
     }
   }
 
   if (buffer.length) {
-    parts.push(buffer.join('\n'))
+    blobParts.push(buffer.join('\n') + '\n')
   }
 
-  const csvContent = parts.join('\n')
-
-  const blob = new Blob([csvContent], {
+  // Stream-style download: pass parts array directly to Blob to avoid
+  // concatenating everything into one large string (Req 19.1, 19.3).
+  const blob = new Blob(blobParts, {
     type: 'text/csv;charset=utf-8;'
   })
 
+  downloadBlob(blob, filename)
+}
+
+function downloadBlob(blob: Blob, filename: string) {
   if (typeof document === 'undefined') return
 
   const link = document.createElement('a')

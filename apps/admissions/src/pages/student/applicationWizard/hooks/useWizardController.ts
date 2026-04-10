@@ -35,7 +35,6 @@ import {
   getCanonicalResidenceCountry,
   getCanonicalResidenceTown,
   normalizeDateInputValue,
-  normalizeDateTimeLocalValue,
 } from '@/lib/profileFieldMapping'
 import { mergeWizardSubjects } from '../lib/educationCatalog'
 import {
@@ -402,6 +401,7 @@ const useWizardController = (): UseWizardControllerResult => {
     handleExtraKycUpload: baseHandleExtraKycUpload,
     handleResultSlipFile: baseHandleResultSlipFile,
     handleExtraKycFile,
+    markUploadedFile,
     startUpload,
     trackUploadTask
   } = useApplicationFileUploads({
@@ -410,6 +410,56 @@ const useWizardController = (): UseWizardControllerResult => {
     onValidationError: setError,
     onValidationClear: clearValidationError
   })
+
+  const normalizeSelectedGrades = useCallback((grades: SubjectGrade[]): SubjectGrade[] => {
+    return grades.filter((grade) => {
+      const subjectId = typeof grade.subject_id === 'string' ? grade.subject_id.trim() : ''
+      const normalizedGrade = Number(grade.grade)
+      return subjectId.length > 0 && Number.isInteger(normalizedGrade) && normalizedGrade >= 1 && normalizedGrade <= 9
+    })
+  }, [])
+
+  const persistLocalDraftSnapshot = useCallback(() => {
+    const draftSnapshot = {
+      formData: getValues(),
+      selectedGrades,
+      currentStep: currentStepConfig.id,
+      currentStepKey: currentStepConfig.key,
+      applicationId,
+      savedAt: new Date().toISOString(),
+      userId: user?.id,
+      version: 2,
+    }
+
+    try {
+      localStorage.setItem('applicationWizardDraft', JSON.stringify(draftSnapshot))
+      window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: draftSnapshot }))
+    } catch {
+      // best effort local persistence
+    }
+
+    return draftSnapshot
+  }, [applicationId, currentStepConfig.id, currentStepConfig.key, getValues, selectedGrades, user?.id])
+
+  const hydrateServerGrades = useCallback(async (draftApplicationId: string): Promise<SubjectGrade[]> => {
+    try {
+      const response = await applicationService.getGrades(draftApplicationId)
+      const normalized = normalizeSelectedGrades(
+        (Array.isArray(response) ? response : []).map((grade) => {
+          const record = grade as { subject_id?: unknown; grade?: unknown }
+          return {
+            subject_id: typeof record.subject_id === 'string' ? record.subject_id : '',
+            grade: Number(record.grade) || 0,
+          }
+        })
+      )
+      setSelectedGrades(normalized)
+      return normalized
+    } catch (gradeError) {
+      logApiError('application-wizard', `/applications/${draftApplicationId}/grades/`, gradeError)
+      return []
+    }
+  }, [normalizeSelectedGrades])
 
   const handleResultSlipUpload = useCallback((file: File | null) => {
     if (!file) {
@@ -421,6 +471,7 @@ const useWizardController = (): UseWizardControllerResult => {
       if (!applicationId) return
       
       showInfo('Processing document...', 'Extracting grades from your result slip')
+      persistLocalDraftSnapshot()
       
       try {
         const { autoFillService } = await import('@/utils/smart-features')
@@ -433,12 +484,12 @@ const useWizardController = (): UseWizardControllerResult => {
           return
         }
         
-        const gradesToSync = parsed.grades
+        const gradesToSync = normalizeSelectedGrades(parsed.grades
           .map((g: { subject?: unknown; grade?: unknown }) => ({
             subject_id: findBestSubjectId(g.subject?.toString() || '', subjects) || '',
             grade: Number(g.grade) || 0
           }))
-          .filter((g: { subject_id: string; grade: number }) => g.subject_id && g.grade > 0)
+        )
           
         if (gradesToSync.length === 0) {
           showWarning('Could not match subjects. Please enter grades manually.')
@@ -459,38 +510,20 @@ const useWizardController = (): UseWizardControllerResult => {
         queryClient.invalidateQueries({ queryKey: ['applications'] })
       }
     })
-  }, [baseHandleResultSlipUpload, baseHandleResultSlipFile, applicationId, subjects, syncGrades, updateApplication, queryClient, showSuccess, showInfo, showWarning])
+  }, [applicationId, baseHandleResultSlipFile, baseHandleResultSlipUpload, normalizeSelectedGrades, persistLocalDraftSnapshot, queryClient, showInfo, showSuccess, showWarning, subjects, syncGrades, updateApplication])
 
   const preserveDraftBeforeAuthRedirect = useCallback(() => {
-    const now = new Date().toISOString()
-    const draftSnapshot = {
-      formData: getValues(),
-      selectedGrades,
-      currentStep: currentStepConfig.id,
-      currentStepKey: currentStepConfig.key,
-      applicationId,
-      savedAt: now,
-      userId: user?.id,
-      version: 2,
-    }
-
+    persistLocalDraftSnapshot()
     try {
-      localStorage.setItem('applicationWizardDraft', JSON.stringify(draftSnapshot))
       sessionStorage.setItem('mihas:post-auth-redirect', `${location.pathname}${location.search}${location.hash}`)
-      window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: draftSnapshot }))
     } catch {
       // best effort local persistence before auth redirect
     }
   }, [
-    applicationId,
-    currentStepConfig.id,
-    currentStepConfig.key,
-    getValues,
     location.hash,
     location.pathname,
     location.search,
-    selectedGrades,
-    user?.id,
+    persistLocalDraftSnapshot,
   ])
 
   useEffect(() => {
@@ -654,23 +687,7 @@ const useWizardController = (): UseWizardControllerResult => {
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (currentStepIndex > 0 && !success) {
-        // Preserve form data to localStorage before unload (Req 10.4)
-        try {
-          const formData = getValues()
-          const draft = {
-            formData,
-            selectedGrades,
-            currentStep: currentStepConfig.id,
-            currentStepKey: currentStepConfig.key,
-            applicationId,
-            savedAt: new Date().toISOString(),
-            userId: user?.id,
-            version: 2
-          }
-          localStorage.setItem('applicationWizardDraft', JSON.stringify(draft))
-        } catch {
-          // best effort
-        }
+        persistLocalDraftSnapshot()
         event.preventDefault()
         event.returnValue = 'You have unsaved changes. Are you sure you want to leave?'
       }
@@ -678,7 +695,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [currentStepIndex, success, getValues, selectedGrades, currentStepConfig, applicationId, user?.id])
+  }, [currentStepIndex, persistLocalDraftSnapshot, success])
 
   useEffect(() => {
     const handleAuthRedirect = () => {
@@ -779,6 +796,7 @@ const useWizardController = (): UseWizardControllerResult => {
           intake?: string
           institution?: string
           result_slip_url?: string
+          extra_kyc_url?: string
           status?: string
           updated_at?: string
           created_at?: string
@@ -828,9 +846,7 @@ const useWizardController = (): UseWizardControllerResult => {
               const rawValue = localDraft.formData[key]
               const value = key === 'date_of_birth'
                 ? normalizeDateInputValue(rawValue)
-                : key === 'paid_at'
-                  ? normalizeDateTimeLocalValue(rawValue)
-                  : rawValue
+                : rawValue
               if (value !== undefined && value !== null && value !== '') {
                 setValue(key as keyof WizardFormData, value as WizardFormData[keyof WizardFormData], { shouldValidate: false })
               }
@@ -870,7 +886,11 @@ const useWizardController = (): UseWizardControllerResult => {
               
               if (validGrades.length > 0) {
                 setSelectedGrades(validGrades)
+              } else if (localDraft.applicationId) {
+                await hydrateServerGrades(localDraft.applicationId)
               }
+            } else if (localDraft.applicationId) {
+              await hydrateServerGrades(localDraft.applicationId)
             }
             
             // 3.1: ALWAYS restore step - removed currentStepIndex === 0 condition
@@ -887,6 +907,13 @@ const useWizardController = (): UseWizardControllerResult => {
             
             if (localDraft.applicationId) {
               setApplicationId(localDraft.applicationId)
+            }
+
+            if (serverApp?.result_slip_url) {
+              markUploadedFile('result_slip', true)
+            }
+            if (serverApp?.extra_kyc_url) {
+              markUploadedFile('extra_kyc', true)
             }
             
             draftRestored = true
@@ -929,6 +956,9 @@ const useWizardController = (): UseWizardControllerResult => {
             setValue('program', '', { shouldValidate: false })
           }
           setValue('intake', app.intake || '', { shouldValidate: false })
+          markUploadedFile('result_slip', Boolean(app.result_slip_url))
+          markUploadedFile('extra_kyc', Boolean(app.extra_kyc_url))
+          const restoredGrades = await hydrateServerGrades(app.id)
 
           // 3.1: ALWAYS restore step - removed currentStepIndex === 0 condition
           let stepId = 1
@@ -946,7 +976,7 @@ const useWizardController = (): UseWizardControllerResult => {
           // Update localStorage to match server state for future reconciliation
           const syncDraft = {
             formData: getValues(),
-            selectedGrades,
+            selectedGrades: restoredGrades,
             currentStep: stepId,
             currentStepKey: wizardSteps[Math.min(stepId - 1, wizardSteps.length - 1)]?.key,
             applicationId: app.id,
@@ -994,6 +1024,8 @@ const useWizardController = (): UseWizardControllerResult => {
     totalSteps,
     findProgramId,
     programsData,
+    hydrateServerGrades,
+    markUploadedFile,
     showSuccess
   ])
 
@@ -1388,6 +1420,8 @@ const useWizardController = (): UseWizardControllerResult => {
     }
 
     if (currentStepConfig.key === 'education') {
+      const validSelectedGrades = normalizeSelectedGrades(selectedGrades)
+
       if (!applicationId) {
         const errorMessage = 'Application not created. Returning to Basic Information step.'
         setError(errorMessage)
@@ -1396,8 +1430,8 @@ const useWizardController = (): UseWizardControllerResult => {
         return
       }
       
-      if (selectedGrades.length < 5) {
-        const errorMessage = 'Minimum 5 subjects required'
+      if (validSelectedGrades.length < 5) {
+        const errorMessage = `Minimum 5 subjects required (${validSelectedGrades.length} added)`
         setError(errorMessage)
         return
       }
@@ -1425,8 +1459,9 @@ const useWizardController = (): UseWizardControllerResult => {
 
       // Files already uploaded on selection, just sync grades and proceed
       try {
-        if (selectedGrades.length > 0) {
-          await syncGrades.mutateAsync({ id: applicationId, grades: selectedGrades })
+        if (validSelectedGrades.length > 0) {
+          await syncGrades.mutateAsync({ id: applicationId, grades: validSelectedGrades })
+          setSelectedGrades(validSelectedGrades)
           queryClient.invalidateQueries({ queryKey: ['applications'] })
         }
         goToStep(currentStepIndex + 1)
@@ -1472,6 +1507,7 @@ const useWizardController = (): UseWizardControllerResult => {
     syncGrades,
     applicationId,
     updateApplication,
+    normalizeSelectedGrades,
     programIds,
     intakeIds,
     resolveIntakeIdentity,
@@ -1525,7 +1561,11 @@ const useWizardController = (): UseWizardControllerResult => {
       }
 
       logger.info('[handleSubmitApplication] Finalizing submission...')
-      const updatedApp = await submitApplicationMutation.mutateAsync(applicationId)
+      const idempotencyKey = crypto.randomUUID()
+      const updatedApp = await submitApplicationMutation.mutateAsync({
+        id: applicationId,
+        headers: { 'Idempotency-Key': idempotencyKey },
+      })
       
 
       if (!updatedApp) {
