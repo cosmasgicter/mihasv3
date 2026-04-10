@@ -6,6 +6,19 @@ This specification systematically resolves all 12 business logic issues identifi
 
 The goal is to make every core business rule canonical, explainable, and enforceable in one place — backend-first — so that the frontend becomes a guide rather than the final authority.
 
+### CTO Review Notes (2026-04-10)
+
+Cross-referenced against live Neon database (project `wild-bar-37055823`), DRF documentation (Context7), and codebase:
+
+1. 🔴 **Req 1 (FeeResolver) — CONFIRMED P0 BUG.** `PaymentService.initiate_payment()` passes `application.program` (a name like "Diploma in Registered Nursing") to `FeeResolver.resolve_fee(program_code=...)` which does `Program.objects.get(code=...)`. Live data confirms all 4 programs have distinct codes (CPC, DCM, DEH, DRN) that don't match their names. All programs have `application_fee = 153.00` as fallback, but the `ProgramFee` table lookup will fail silently.
+2. 🔴 **Req 2 (Institution drift) — CONFIRMED.** Live applications store mixed values: "KATC" (code), "MIHAS" (code), "Kalulushi Training Centre" (name), "Mukuba Institute of Health and Allied Sciences" (name). The `institutions` table has both `code` and `name` columns plus a `full_name` column. Resolution must try all three.
+3. 🟡 **Req 3 (PATCH guard) — DESIGN UPDATED.** DRF's `DynamicFieldsModelSerializer` pattern (Context7 verified) is the canonical approach. Instead of a separate `guard_patch_fields()` function, override `get_fields()` on the serializer to dynamically restrict writable fields based on context (user role + application status). This is cleaner and more DRF-idiomatic.
+4. 🟢 **Req 5 (Eligibility) — DATA CONFIRMED.** The `course_requirements` table has 18 rows across all 4 programs with `is_mandatory`, `minimum_grade` (1-9 ECZ scale), and `weight` fields. The `subjects` table has 17 subjects. Real data exists to power the engine.
+5. 🟢 **Req 6 (Intake enforcement) — DATA CONFIRMED.** Three intakes exist with real deadlines and capacity: January 2026 (deadline 2025-12-31, capacity 200, enrollment 3), July 2026 (deadline 2026-06-15, capacity 200), January 2027 (deadline 2026-12-31, capacity 150). The `program_intakes` join table links programs to intakes with per-program capacity.
+6. 🟡 **Req 8 (Payment vocabulary) — PARTIALLY DONE.** The `normalizePaymentStatus()` frontend function already handles `verified`, `paid`, `successful` → `verified`. The `force_approved` mapping was added in the hardening spec. Backend `PaymentService` currently maps `successful` → updates `application.payment_status` but the exact mapping needs verification — the `_update_application_payment_status` method may not exist as a separate function.
+7. 🟡 **Req 9 (Document intelligence) — SCOPE ADJUSTED.** The `extracted_text` column exists but most documents have empty extracted text (placeholder URLs). Document intelligence should gracefully handle empty text and focus on completeness scoring first, with identity matching as a secondary feature when OCR data is available.
+8. 🟢 **Req 12 (Analytics) — CONFIRMED SCAFFOLD.** `analytics/views.py` returns hardcoded data from `jobs_ops_seed.py`. The admissions analytics endpoint should be separate from the jobs-ops analytics scaffold.
+
 ## Glossary
 
 - **Application**: A student admissions application record in the `applications` table.

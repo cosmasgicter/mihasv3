@@ -11,6 +11,13 @@ This design resolves the 12 business logic gaps identified in the admissions aud
 
 All changes target existing tables. No new database tables are created. Where columns are needed, they are added to existing tables via SQL ALTER statements (models remain `managed=False`).
 
+### CTO Review Notes
+
+1. **DRF-idiomatic PATCH guard:** Instead of a standalone `guard_patch_fields()` function, the design uses DRF's `DynamicFieldsModelSerializer` pattern (verified via Context7 DRF docs). The `ApplicationSerializer` overrides `get_fields()` to dynamically restrict writable fields based on context (user role + application status). This is cleaner and keeps field restriction logic inside the serializer where DRF expects it.
+2. **IdentifierResolver fallback chain:** Institution resolution tries `code` → `name` → `full_name` (the `institutions` table has all three columns). Program resolution tries `name` → `code`. This handles all existing data patterns confirmed in the live database.
+3. **Eligibility engine data:** 18 `course_requirements` rows exist across 4 programs with real `is_mandatory`, `minimum_grade`, and `weight` values. The engine can produce meaningful results immediately.
+4. **Analytics separation:** Admissions analytics are implemented as a separate service from the jobs-ops scaffold analytics. The jobs-ops views continue to return sample data; only the admissions funnel endpoint switches to live queries.
+
 ## Architecture
 
 The design introduces a thin **Admissions Domain Layer** between the existing Django models and the DRF views. Each requirement maps to a focused service module that owns its business rules and produces `ExplainableRuleResult` responses.
@@ -159,10 +166,10 @@ fee = self._fee_resolver.resolve_fee(
 
 ### Component 2: PatchFieldGuard (Req 3)
 
-Controls which fields are writable via the PATCH endpoint based on application status and user role.
+Controls which fields are writable via the PATCH endpoint based on application status and user role. Uses DRF's `DynamicFieldsModelSerializer` pattern (Context7 verified) by overriding `get_fields()` on the serializer.
 
 ```python
-# backend/apps/applications/patch_guard.py
+# In backend/apps/applications/serializers.py — update ApplicationSerializer
 
 DRAFT_SAFE_FIELDS = frozenset({
     "full_name", "nrc_number", "passport_number", "date_of_birth", "sex",
@@ -180,21 +187,47 @@ LIFECYCLE_FIELDS = frozenset({
 })
 
 
-def guard_patch_fields(data: dict, application_status: str, user_role: str) -> dict:
-    """Filter PATCH payload to allowed fields.
+class ApplicationSerializer(serializers.ModelSerializer):
+    # ... existing fields ...
 
-    - Students: only DRAFT_SAFE_FIELDS when status == 'draft', else reject.
-    - Admins: DRAFT_SAFE_FIELDS always, but never 'status' (use review endpoint).
-    Returns filtered dict. Raises ValueError if student tries to edit non-draft.
-    """
-    if user_role in ("admin", "super_admin"):
-        return {k: v for k, v in data.items() if k in DRAFT_SAFE_FIELDS}
+    def get_fields(self):
+        fields = super().get_fields()
+        request = self.context.get('request')
+        instance = self.instance
 
-    # Student path
-    if application_status != "draft":
-        raise ValueError("APPLICATION_NOT_EDITABLE")
+        if request and request.method in ('PATCH', 'PUT'):
+            user_role = getattr(request.user, 'role', 'student')
+            app_status = getattr(instance, 'status', 'draft') if instance else 'draft'
 
-    return {k: v for k, v in data.items() if k in DRAFT_SAFE_FIELDS}
+            if user_role in ('admin', 'super_admin'):
+                # Admins can edit draft-safe fields on any status, but never 'status' via PATCH
+                for field_name in list(fields.keys()):
+                    if field_name not in DRAFT_SAFE_FIELDS:
+                        fields[field_name].read_only = True
+            else:
+                # Students: only draft-safe fields when status == 'draft'
+                if app_status != 'draft':
+                    # Make all fields read-only — view will return 403
+                    for field_name in fields:
+                        fields[field_name].read_only = True
+                else:
+                    for field_name in list(fields.keys()):
+                        if field_name not in DRAFT_SAFE_FIELDS:
+                            fields[field_name].read_only = True
+
+        return fields
+```
+
+The view-level guard in `ApplicationDetailView` checks status before calling the serializer:
+
+```python
+# In ApplicationDetailView._update_application():
+user_role = getattr(request.user, 'role', 'student')
+if user_role not in ('admin', 'super_admin') and app.status != 'draft':
+    return Response(
+        {"success": False, "error": "Application is not editable", "code": "APPLICATION_NOT_EDITABLE"},
+        status=status.HTTP_403_FORBIDDEN,
+    )
 ```
 
 ### Component 3: DuplicateChecker (Req 4)

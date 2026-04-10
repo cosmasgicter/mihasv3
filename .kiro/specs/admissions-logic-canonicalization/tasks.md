@@ -42,25 +42,26 @@ Systematically resolves 12 business logic gaps from the admissions audit by intr
   - Ensure all tests pass (`cd backend && python3 -m pytest`), ask the user if questions arise.
 
 - [ ] 3. P1 — Mutation Hardening (Req 3, 4)
-  - [ ] 3.1 Create PatchFieldGuard module
-    - Create `backend/apps/applications/patch_guard.py` with `DRAFT_SAFE_FIELDS`, `LIFECYCLE_FIELDS` frozensets, and `guard_patch_fields()` function
-    - Students: allow only `DRAFT_SAFE_FIELDS` when status == "draft", raise `ValueError("APPLICATION_NOT_EDITABLE")` otherwise
-    - Admins: allow `DRAFT_SAFE_FIELDS` regardless of status, never allow `status` via PATCH
+  - [ ] 3.1 Implement PATCH field restriction in ApplicationSerializer
+    - Add `DRAFT_SAFE_FIELDS` and `LIFECYCLE_FIELDS` frozensets to `backend/apps/applications/serializers.py`
+    - Override `get_fields()` on `ApplicationSerializer` to dynamically set lifecycle fields as `read_only` based on request method, user role, and application status (DRF DynamicFieldsModelSerializer pattern — Context7 verified)
+    - Students: only `DRAFT_SAFE_FIELDS` writable when status == "draft"; all fields read-only otherwise
+    - Admins: `DRAFT_SAFE_FIELDS` writable regardless of status; `status` never writable via PATCH
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-  - [ ]* 3.2 Write property tests for PatchFieldGuard
-    - **Property 4: PATCH field guard strips lifecycle fields for students** — any mixed payload returns only DRAFT_SAFE_FIELDS keys for student+draft
+  - [ ]* 3.2 Write property tests for PATCH field restriction
+    - **Property 4: PATCH field guard strips lifecycle fields for students** — any mixed payload with student+draft results in only DRAFT_SAFE_FIELDS being writable
     - **Validates: Requirements 3.1, 3.2**
-    - **Property 5: PATCH rejects non-draft edits for students** — any non-draft status raises ValueError for students
+    - **Property 5: PATCH rejects non-draft edits for students** — any non-draft status returns 403 for students
     - **Validates: Requirements 3.3**
-    - **Property 6: PATCH field guard for admins strips status but allows draft-safe fields** — admin payloads return only DRAFT_SAFE_FIELDS keys regardless of status
+    - **Property 6: PATCH field guard for admins strips status but allows draft-safe fields** — admin payloads only allow DRAFT_SAFE_FIELDS regardless of status
     - **Validates: Requirements 3.4**
     - Add tests to `backend/tests/property/test_admissions_canonicalization.py`
 
-  - [ ] 3.3 Integrate PatchFieldGuard into ApplicationDetailView
-    - Modify `backend/apps/applications/views.py` `ApplicationDetailView._update_application()` to call `guard_patch_fields()` before passing data to the serializer
-    - Determine user role from `request.user.role` and application status from the loaded application
-    - Return 403 with code `APPLICATION_NOT_EDITABLE` when guard raises ValueError
+  - [ ] 3.3 Add status check to ApplicationDetailView
+    - Modify `backend/apps/applications/views.py` `ApplicationDetailView._update_application()` to check user role and application status before calling the serializer
+    - Return 403 with code `APPLICATION_NOT_EDITABLE` when a student tries to edit a non-draft application
+    - Pass `request` in serializer context so `get_fields()` can access user role
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
   - [ ] 3.4 Create DuplicateChecker module
