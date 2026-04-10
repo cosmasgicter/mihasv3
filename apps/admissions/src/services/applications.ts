@@ -1,6 +1,7 @@
 import type { Application, ApplicationInterview } from '@/types/database'
 
 import { logApiError } from '@/lib/apiErrorLogger'
+import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
 import { apiClient, buildQueryString, QueryParams } from './client'
 import { notificationService } from './notifications'
 
@@ -279,7 +280,10 @@ export const applicationService = {
   },
 
   syncGrades: async (id: string, grades: Array<{ subject_id: string; grade: number }>) => {
-    const { syncGradesWithRecovery } = await import('@/lib/connectionFix')
+    const { syncGradesWithRecovery } = await importWithChunkRecovery(() => import('@/lib/connectionFix'), {
+      guardKey: 'wizard-grade-sync',
+      recoveryMessage: 'A newer version of the grade sync tools is loading. Please wait a moment and try again.',
+    })
     return syncGradesWithRecovery(id, grades)
   },
 

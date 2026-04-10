@@ -1,4 +1,5 @@
 import type { ApplicationSlipData } from './applicationSlip'
+import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
 import { logger } from '@/lib/logger'
 import { sanitizeForLog } from './security'
 
@@ -35,8 +36,14 @@ export async function createApplicationSlip(
 
   try {
     const [{ generateApplicationSlip }, { persistSlip }] = await Promise.all([
-      import('./applicationSlipPdf'),
-      import('./applicationSlipStorage'),
+      importWithChunkRecovery(() => import('./applicationSlipPdf'), {
+        guardKey: 'wizard-slip-pdf',
+        recoveryMessage: 'A newer version of the slip generator is loading. Please wait a moment and try again.',
+      }),
+      importWithChunkRecovery(() => import('./applicationSlipStorage'), {
+        guardKey: 'wizard-slip-storage',
+        recoveryMessage: 'A newer version of the slip storage tools is loading. Please wait a moment and try again.',
+      }),
     ])
 
     // Always generate locally with jsPDF

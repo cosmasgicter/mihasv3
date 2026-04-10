@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 
+import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
 import { sanitizeForLog } from '@/lib/security'
 import { apiClient } from '@/services/client'
 
@@ -331,7 +332,10 @@ export function useApplicationFileUploads({
             })
           }, 300)
 
-          const { uploadApplicationFile } = await import('@/lib/storage')
+          const { uploadApplicationFile } = await importWithChunkRecovery(() => import('@/lib/storage'), {
+            guardKey: 'wizard-storage',
+            recoveryMessage: 'A newer version of the upload tools is loading. Please wait a moment and try again.',
+          })
           const result = await uploadApplicationFile(file, userId, applicationId, fileType)
 
           if (!result.success) {

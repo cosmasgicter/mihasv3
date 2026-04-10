@@ -9,6 +9,7 @@ import { useToastStore } from '@/hooks/useToast'
 import { useAuth } from '@/contexts/AuthContext'
 import { applicationsData } from '@/data/applications'
 import { catalogData } from '@/data/catalog'
+import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useProfileAutoPopulation, getBestValue, getUserMetadata } from '@/hooks/useProfileAutoPopulation'
 import { useEligibilityChecker } from '@/hooks/useEligibilityChecker'
@@ -37,6 +38,11 @@ import {
   normalizeDateInputValue,
 } from '@/lib/profileFieldMapping'
 import { mergeWizardSubjects } from '../lib/educationCatalog'
+import {
+  deriveDraftResumeUploads,
+  normalizeDraftResumeGrades,
+  resolveDraftResumeStepId,
+} from '../lib/draftResume'
 import {
   buildServerDraftPayload,
   canCreateServerDraft,
@@ -412,23 +418,21 @@ const useWizardController = (): UseWizardControllerResult => {
   })
 
   const normalizeSelectedGrades = useCallback((grades: SubjectGrade[]): SubjectGrade[] => {
-    return grades.filter((grade) => {
-      const subjectId = typeof grade.subject_id === 'string' ? grade.subject_id.trim() : ''
-      const normalizedGrade = Number(grade.grade)
-      return subjectId.length > 0 && Number.isInteger(normalizedGrade) && normalizedGrade >= 1 && normalizedGrade <= 9
-    })
+    return normalizeDraftResumeGrades(grades)
   }, [])
 
   const persistLocalDraftSnapshot = useCallback(() => {
     const draftSnapshot = {
       formData: getValues(),
       selectedGrades,
+      uploadedFiles,
       currentStep: currentStepConfig.id,
       currentStepKey: currentStepConfig.key,
       applicationId,
       savedAt: new Date().toISOString(),
       userId: user?.id,
       version: 2,
+      paymentStatus,
     }
 
     try {
@@ -439,7 +443,7 @@ const useWizardController = (): UseWizardControllerResult => {
     }
 
     return draftSnapshot
-  }, [applicationId, currentStepConfig.id, currentStepConfig.key, getValues, selectedGrades, user?.id])
+  }, [applicationId, currentStepConfig.id, currentStepConfig.key, getValues, paymentStatus, selectedGrades, uploadedFiles, user?.id])
 
   const hydrateServerGrades = useCallback(async (draftApplicationId: string): Promise<SubjectGrade[]> => {
     try {
@@ -474,7 +478,10 @@ const useWizardController = (): UseWizardControllerResult => {
       persistLocalDraftSnapshot()
       
       try {
-        const { autoFillService } = await import('@/utils/smart-features')
+        const { autoFillService } = await importWithChunkRecovery(() => import('@/utils/smart-features'), {
+          guardKey: 'wizard-smart-features',
+          recoveryMessage: 'A newer version of the document tools is loading. Please wait a moment and try again.',
+        })
         const parsed = await autoFillService.extractDataFromFile(uploadedFile, 'grade12')
         
         if (!parsed || !parsed.grades || parsed.grades.length === 0) {
@@ -771,6 +778,8 @@ const useWizardController = (): UseWizardControllerResult => {
         interface LocalDraftShape {
           formData: Record<string, unknown>
           selectedGrades?: unknown[]
+          uploadedFiles?: Record<string, boolean>
+          paymentStatus?: string | null
           currentStep?: number
           currentStepKey?: string
           applicationId?: string
@@ -797,6 +806,7 @@ const useWizardController = (): UseWizardControllerResult => {
           institution?: string
           result_slip_url?: string
           extra_kyc_url?: string
+          payment_status?: string | null
           status?: string
           updated_at?: string
           created_at?: string
@@ -892,6 +902,13 @@ const useWizardController = (): UseWizardControllerResult => {
             } else if (localDraft.applicationId) {
               await hydrateServerGrades(localDraft.applicationId)
             }
+
+            const mergedLocalUploads = {
+              result_slip: Boolean(localDraft.uploadedFiles?.result_slip) || Boolean(serverApp?.result_slip_url),
+              extra_kyc: Boolean(localDraft.uploadedFiles?.extra_kyc) || Boolean(serverApp?.extra_kyc_url),
+            }
+            markUploadedFile('result_slip', mergedLocalUploads.result_slip)
+            markUploadedFile('extra_kyc', mergedLocalUploads.extra_kyc)
             
             // 3.1: ALWAYS restore step - removed currentStepIndex === 0 condition
             // Use currentStepKey for reliable step matching
@@ -909,13 +926,6 @@ const useWizardController = (): UseWizardControllerResult => {
               setApplicationId(localDraft.applicationId)
             }
 
-            if (serverApp?.result_slip_url) {
-              markUploadedFile('result_slip', true)
-            }
-            if (serverApp?.extra_kyc_url) {
-              markUploadedFile('extra_kyc', true)
-            }
-            
             draftRestored = true
             setRestoringDraft(false)
             setDraftLoaded(true)
@@ -956,18 +966,13 @@ const useWizardController = (): UseWizardControllerResult => {
             setValue('program', '', { shouldValidate: false })
           }
           setValue('intake', app.intake || '', { shouldValidate: false })
-          markUploadedFile('result_slip', Boolean(app.result_slip_url))
-          markUploadedFile('extra_kyc', Boolean(app.extra_kyc_url))
+          const restoredUploads = deriveDraftResumeUploads(app)
+          markUploadedFile('result_slip', restoredUploads.result_slip)
+          markUploadedFile('extra_kyc', restoredUploads.extra_kyc)
           const restoredGrades = await hydrateServerGrades(app.id)
 
           // 3.1: ALWAYS restore step - removed currentStepIndex === 0 condition
-          let stepId = 1
-          if (app.program && app.full_name) {
-            stepId = 2
-            if (app.result_slip_url) {
-              stepId = 3
-            }
-          }
+          const stepId = resolveDraftResumeStepId(app, restoredGrades)
           const index = getStepIndexById(stepId)
           setCurrentStepIndex(index >= 0 ? index : Math.min(Math.max(stepId - 1, 0), totalSteps - 1))
 
@@ -977,12 +982,14 @@ const useWizardController = (): UseWizardControllerResult => {
           const syncDraft = {
             formData: getValues(),
             selectedGrades: restoredGrades,
+            uploadedFiles: restoredUploads,
             currentStep: stepId,
             currentStepKey: wizardSteps[Math.min(stepId - 1, wizardSteps.length - 1)]?.key,
             applicationId: app.id,
             savedAt: app.updated_at || app.created_at || new Date().toISOString(),
             userId: user.id,
-            version: 2
+            version: 2,
+            paymentStatus: app.payment_status ?? null,
           }
           try {
             localStorage.setItem('applicationWizardDraft', JSON.stringify(syncDraft))
@@ -1044,12 +1051,14 @@ const useWizardController = (): UseWizardControllerResult => {
       const draft = {
         formData,
         selectedGrades,
+        uploadedFiles,
         currentStep: currentStepConfig.id,
         currentStepKey: currentStepConfig.key,
         applicationId,
         savedAt: now,
         userId: user.id,
-        version: 2
+        version: 2,
+        paymentStatus,
       }
 
       // Always save to localStorage first for reliability (works offline)
@@ -1160,9 +1169,11 @@ const useWizardController = (): UseWizardControllerResult => {
     restoringDraft,
     success,
     selectedGrades,
+    uploadedFiles,
     currentStepConfig,
     applicationId,
     getValues,
+    paymentStatus,
     profile?.nationality,
     deriveInstitutionLabel,
     selectedProgramDetails,
@@ -1280,7 +1291,10 @@ const useWizardController = (): UseWizardControllerResult => {
         
         // Check for duplicate applications (only for new applications)
         if (!applicationId) {
-          const { checkDuplicateApplication } = await import('@/lib/duplicateApplicationCheck')
+          const { checkDuplicateApplication } = await importWithChunkRecovery(() => import('@/lib/duplicateApplicationCheck'), {
+            guardKey: 'wizard-duplicate-check',
+            recoveryMessage: 'A newer version of the application checks is loading. Please wait a moment and try again.',
+          })
           const duplicateCheck = await checkDuplicateApplication(
             user!.id,
             resolvedProgram.id,
