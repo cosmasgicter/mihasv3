@@ -150,8 +150,8 @@ function resolveDraftConflict<T extends { updated_at: string }>(
 
 // Arbitrary for ISO date strings within a reasonable range
 const isoDateArb = fc
-  .date({ min: new Date('2020-01-01'), max: new Date('2030-12-31') })
-  .map((d) => d.toISOString())
+  .integer({ min: new Date('2020-01-01').getTime(), max: new Date('2030-12-31').getTime() })
+  .map((ms) => new Date(ms).toISOString())
 
 describe('Feature: admissions-logic-canonicalization, Property 15: Draft conflict resolution by timestamp', () => {
   it('prefers the draft with the more recent updated_at', () => {
