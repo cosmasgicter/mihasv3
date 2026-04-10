@@ -51,10 +51,7 @@ export class DraftManager {
             localStorage.removeItem(key)
           })
 
-          // Clear sessionStorage as well
-          this.getDraftKeys(sessionStorage).forEach(key => {
-            sessionStorage.removeItem(key)
-          })
+          // sessionStorage removed as draft storage location (Req 7.6)
         } catch (storageError) {
         }
 
@@ -94,38 +91,28 @@ export class DraftManager {
     return keys
   }
 
-  // Check if any drafts exist
+  // Check if any drafts exist (localStorage only — sessionStorage removed per Req 7.6)
   hasDrafts(): boolean {
     try {
       // Quick check for specific keys first
-      if (localStorage.getItem('applicationWizardDraft') || 
-          sessionStorage.getItem('applicationWizardDraft')) {
+      if (localStorage.getItem('applicationWizardDraft') ||
+          localStorage.getItem('applicationDraft')) {
         return true
       }
 
       // Check for any other draft-related keys
-      return this.getDraftKeys(localStorage).length > 0 || 
-             this.getDraftKeys(sessionStorage).length > 0
+      return this.getDraftKeys(localStorage).length > 0
     } catch (error) {
       console.error('Error checking for drafts:', sanitizeForLog(error))
       return false
     }
   }
 
-  // Force clear all browser storage
+  // Force clear browser storage (localStorage only — sessionStorage removed per Req 7.6)
   forceCleanBrowserStorage(): void {
     try {
       // Clear all localStorage
       localStorage.clear()
-      
-      // Clear all sessionStorage
-      sessionStorage.clear()
-      
-      // Clear any IndexedDB if used
-      if ('indexedDB' in window) {
-        // Note: This is a more aggressive approach
-        // In production, you might want to be more selective
-      }
     } catch (error) {
       console.error('Force clean failed:', sanitizeForLog(error))
     }
@@ -147,16 +134,16 @@ export const clearAllDraftData = (): boolean => {
   try {
     DRAFT_KEYS.forEach(key => {
       try { localStorage.removeItem(key); } catch {}
-      try { sessionStorage.removeItem(key); } catch {}
     });
 
-    [localStorage, sessionStorage].forEach(storage => {
+    // Only clear localStorage — sessionStorage removed (Req 7.6)
+    [localStorage].forEach(storage => {
       try {
         removeDraftStorageEntries(storage)
       } catch {}
     });
 
-    try { sessionStorage.setItem('draftDeleted', 'true'); } catch {}
+    try { localStorage.setItem('draftDeleted', 'true'); } catch {}
     try { window.dispatchEvent(new CustomEvent('draftCleared')); } catch {}
 
     return true;
@@ -167,22 +154,21 @@ export const clearAllDraftData = (): boolean => {
 };
 
 export const isDraftDeleted = (): boolean => {
-  try { return sessionStorage.getItem('draftDeleted') === 'true'; } catch { return false; }
+  try { return localStorage.getItem('draftDeleted') === 'true'; } catch { return false; }
 };
 
 export const clearDraftDeletedFlag = (): void => {
-  try { sessionStorage.removeItem('draftDeleted'); } catch {}
+  try { localStorage.removeItem('draftDeleted'); } catch {}
 };
 
 export const hasDraftData = (): boolean => {
   try {
     for (const key of DRAFT_KEYS) {
-      if (localStorage.getItem(key) || sessionStorage.getItem(key)) return true;
+      if (localStorage.getItem(key)) return true;
     }
-    for (const storage of [localStorage, sessionStorage]) {
-      for (const key of Object.keys(storage)) {
-        if (isDraftStorageKey(key)) return true;
-      }
+    // Only check localStorage — sessionStorage removed (Req 7.6)
+    for (const key of Object.keys(localStorage)) {
+      if (isDraftStorageKey(key)) return true;
     }
     return false;
   } catch { return false; }

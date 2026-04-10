@@ -26,8 +26,16 @@ from django.test import SimpleTestCase  # noqa: E402
 from hypothesis import given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 
+from apps.applications.identifier_resolver import ResolvedIdentifier  # noqa: E402
 from apps.documents.fee_resolver import ResolvedFee  # noqa: E402
 from apps.documents.payment_service import PaymentService  # noqa: E402
+
+
+def _mock_resolved_program(program_code):
+    """Return a ResolvedIdentifier for a program code (simulates successful resolution)."""
+    return ResolvedIdentifier(
+        id=str(uuid.uuid4()), code=program_code, name=program_code, source="name"
+    )
 
 # ---------------------------------------------------------------------------
 # Strategies
@@ -144,10 +152,15 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
             patch(
                 "apps.documents.payment_service.Payment.objects"
             ) as mock_payment_qs,
+            patch(
+                "apps.documents.payment_service.IdentifierResolver.resolve_program",
+                return_value=_mock_resolved_program(program_code),
+            ),
         ):
             mock_app_qs.get.return_value = mock_application
             mock_resolver.resolve_fee.return_value = resolved_fee
             mock_payment_qs.create.return_value = mock_payment
+            mock_payment_qs.filter.return_value.first.return_value = None
 
             service.initiate_payment(application_id, user_id)
 
@@ -217,10 +230,15 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
             patch(
                 "apps.documents.payment_service.Payment.objects"
             ) as mock_payment_qs,
+            patch(
+                "apps.documents.payment_service.IdentifierResolver.resolve_program",
+                return_value=_mock_resolved_program(program_code),
+            ),
         ):
             mock_app_qs.get.return_value = mock_application
             mock_resolver.resolve_fee.return_value = resolved_fee
             mock_payment_qs.create.return_value = mock_payment
+            mock_payment_qs.filter.return_value.first.return_value = None
 
             service.initiate_payment(application_id, user_id)
 
@@ -292,10 +310,15 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
             patch(
                 "apps.documents.payment_service.Payment.objects"
             ) as mock_payment_qs,
+            patch(
+                "apps.documents.payment_service.IdentifierResolver.resolve_program",
+                return_value=_mock_resolved_program(program_code),
+            ),
         ):
             mock_app_qs.get.return_value = mock_application
             mock_resolver.resolve_fee.return_value = resolved_fee
             mock_payment_qs.create.return_value = mock_payment
+            mock_payment_qs.filter.return_value.first.return_value = None
 
             service.initiate_payment(application_id, user_id)
 
@@ -363,10 +386,15 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
             patch(
                 "apps.documents.payment_service.Payment.objects"
             ) as mock_payment_qs,
+            patch(
+                "apps.documents.payment_service.IdentifierResolver.resolve_program",
+                return_value=_mock_resolved_program(program_code),
+            ),
         ):
             mock_app_qs.get.return_value = mock_application
             mock_resolver.resolve_fee.return_value = resolved_fee
             mock_payment_qs.create.return_value = mock_payment
+            mock_payment_qs.filter.return_value.first.return_value = None
 
             service.initiate_payment(application_id, user_id)
 
@@ -435,10 +463,15 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
             patch(
                 "apps.documents.payment_service.Payment.objects"
             ) as mock_payment_qs,
+            patch(
+                "apps.documents.payment_service.IdentifierResolver.resolve_program",
+                return_value=_mock_resolved_program(program_code),
+            ),
         ):
             mock_app_qs.get.return_value = mock_application
             mock_resolver.resolve_fee.return_value = resolved_fee
             mock_payment_qs.create.return_value = mock_payment
+            mock_payment_qs.filter.return_value.first.return_value = None
 
             service.initiate_payment(application_id, user_id)
 

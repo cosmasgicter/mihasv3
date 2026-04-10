@@ -170,21 +170,33 @@ class TestApplicationCRUDRoundTrip(SimpleTestCase):
             "institution": institution,
         }
 
-        # Patch at the catalog models level where the serializer imports from
+        # Patch at the catalog models level where the serializer imports from.
+        # IdentifierResolver also uses these model objects, so mock returns
+        # must have proper name/code/id attributes for the resolver.
         with patch("apps.catalog.models.Program.objects") as MockProgramObjects, \
              patch("apps.catalog.models.Intake.objects") as MockIntakeObjects, \
              patch("apps.catalog.models.Institution.objects") as MockInstitutionObjects, \
              patch("apps.catalog.models.ProgramIntake.objects") as MockProgramIntakeObjects:
             mock_program = MagicMock()
             mock_program.id = uuid.uuid4()
+            mock_program.name = program
+            mock_program.code = "PROG01"
+            mock_program.is_active = True
             mock_intake = MagicMock()
             mock_intake.id = uuid.uuid4()
+            mock_intake.name = intake
             mock_intake.is_active = True
+            mock_institution = MagicMock()
+            mock_institution.id = uuid.uuid4()
+            mock_institution.name = institution
+            mock_institution.code = "INST01"
+            mock_institution.is_active = True
             MockProgramObjects.filter.return_value.exists.return_value = True
             MockProgramObjects.filter.return_value.first.return_value = mock_program
             MockIntakeObjects.filter.return_value.exists.return_value = True
             MockIntakeObjects.filter.return_value.first.return_value = mock_intake
             MockInstitutionObjects.filter.return_value.exists.return_value = True
+            MockInstitutionObjects.filter.return_value.first.return_value = mock_institution
             MockProgramIntakeObjects.filter.return_value.exists.return_value = True
 
             serializer = ApplicationCreateSerializer(data=data)
@@ -213,10 +225,13 @@ class TestApplicationCRUDRoundTrip(SimpleTestCase):
             "institution": "MIHAS Main Campus",
         }
 
+        # IdentifierResolver.resolve_program() calls Program.objects.filter().first()
+        # twice (by name, then by code). Both must return None for "not_found".
         with patch("apps.catalog.models.Program.objects") as MockProgramObjects, \
              patch("apps.catalog.models.Intake.objects") as MockIntakeObjects, \
              patch("apps.catalog.models.Institution.objects") as MockInstitutionObjects:
             MockProgramObjects.filter.return_value.exists.return_value = False
+            MockProgramObjects.filter.return_value.first.return_value = None
             MockIntakeObjects.filter.return_value.exists.return_value = True
             MockInstitutionObjects.filter.return_value.exists.return_value = True
 
