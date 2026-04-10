@@ -141,7 +141,7 @@ def submit_application(
     """Submit an application after enforcing payment/document/state checks."""
 
     has_payment = (
-        application.payment_status in ("verified", "paid")
+        application.payment_status in ("verified", "paid", "force_approved")
         or _application_has_completed_payment(application.id)
     )
     if not has_payment:
@@ -157,12 +157,34 @@ def submit_application(
             "An NRC or Passport document must be uploaded before submission.",
         )
 
+    # Intake deadline and capacity enforcement (Req 6.1, 6.3)
+    from apps.applications.intake_enforcer import IntakeEnforcer
+
+    intake_check = IntakeEnforcer.check_submission(application.intake, application.program)
+    if not intake_check.allowed:
+        raise ApplicationSubmissionError(intake_check.code, intake_check.message)
+
     with transaction.atomic():
         locked_app = Application.objects.select_for_update().get(id=application.id)
         if locked_app.status != "draft":
             raise ApplicationSubmissionError(
                 "ALREADY_SUBMITTED",
                 "This application has already been submitted.",
+            )
+
+        # Duplicate check at submit time (Req 4.3, 4.4)
+        from apps.applications.duplicate_checker import DuplicateChecker
+
+        dup_result = DuplicateChecker.check_at_submit(
+            user_id=str(locked_app.user_id),
+            program=locked_app.program,
+            intake=locked_app.intake,
+            exclude_id=str(locked_app.id),
+        )
+        if dup_result.has_duplicate:
+            raise ApplicationSubmissionError(
+                "DUPLICATE_SUBMITTED_APPLICATION",
+                "Another application for this program and intake has already been submitted.",
             )
 
         old_status = transition_application_status(
@@ -178,5 +200,29 @@ def submit_application(
         locked_app.submitted_at = locked_app.submitted_at or now
         locked_app.updated_at = now
         locked_app.save(update_fields=["submitted_at", "updated_at"])
+
+        # Atomically increment intake enrollment (Req 6.5)
+        IntakeEnforcer.increment_enrollment(locked_app.intake)
+
+    # Advisory eligibility evaluation — non-blocking (Req 5.7)
+    try:
+        from apps.applications.eligibility_engine import EligibilityEngine
+
+        engine = EligibilityEngine()
+        elig = engine.evaluate(str(application.id), application.program)
+        Application.objects.filter(id=application.id).update(
+            eligibility_status=elig.status,
+            eligibility_score=elig.score,
+            eligibility_notes=str(elig.missing_requirements) if elig.missing_requirements else "",
+        )
+    except Exception:
+        logger.warning("Eligibility evaluation failed for application %s", application.id, exc_info=True)
+
+    # Deactivate associated drafts on successful submission (Req 7.7)
+    from apps.applications.models import ApplicationDraft
+
+    ApplicationDraft.objects.filter(
+        user_id=changed_by, application_id=application.id
+    ).update(is_active=False)
 
     return locked_app, old_status

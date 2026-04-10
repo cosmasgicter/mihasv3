@@ -21,6 +21,7 @@ import requests as http_requests
 from django.conf import settings
 from django.utils import timezone
 
+from apps.applications.identifier_resolver import IdentifierResolver
 from apps.applications.models import Application
 from apps.documents.fee_resolver import FeeResolver
 from apps.documents.models import Payment
@@ -117,8 +118,14 @@ class PaymentService:
 
         application = Application.objects.get(id=application_id)
 
+        resolved_program = IdentifierResolver.resolve_program(application.program)
+        if resolved_program.source == "not_found":
+            raise ValueError(
+                f"Cannot resolve program '{application.program}' to a valid program code."
+            )
+
         resolved = self._fee_resolver.resolve_fee(
-            program_code=application.program,
+            program_code=resolved_program.code,
             nationality=application.nationality,
             country=getattr(application, 'country', None),
         )
@@ -406,13 +413,18 @@ class PaymentService:
                 locked.lenco_reference,
             )
 
-        # Sync application payment_status (outside the FOR UPDATE lock —
-        # the payment row is already committed at this point).
-        if payment.application_id:
-            if new_status == 'successful':
-                self._update_application_payment_status(payment.application_id, 'paid')
-            elif new_status == 'failed':
-                self._update_application_payment_status(payment.application_id, 'failed')
+            # Sync application payment_status inside the same atomic block
+            # so both updates commit or roll back together (Req 8.7).
+            _PAYMENT_TO_APP_STATUS = {
+                'successful': 'verified',
+                'paid': 'verified',
+                'failed': 'failed',
+            }
+            app_status = _PAYMENT_TO_APP_STATUS.get(new_status)
+            if app_status and payment.application_id:
+                self._update_application_payment_status(
+                    payment.application_id, app_status
+                )
 
     def _update_application_payment_status(
         self, application_id: UUID, status: str

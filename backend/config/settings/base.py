@@ -165,6 +165,14 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.documents.tasks.poll_pending_payments_task",
         "schedule": 600.0,
     },
+    "send-deadline-reminders": {
+        "task": "apps.applications.notification_tasks.send_deadline_reminders",
+        "schedule": 21600.0,  # Every 6 hours
+    },
+    "send-stale-draft-reminders": {
+        "task": "apps.applications.notification_tasks.send_stale_draft_reminders",
+        "schedule": 21600.0,  # Every 6 hours
+    },
 }
 
 # Enable TLS for rediss:// connections (Upstash, Redis Cloud, etc.)

@@ -51,6 +51,9 @@ from apps.common.event_dispatcher import dispatch_event
 from apps.common.pagination import StandardPagination
 from apps.documents.models import ApplicationDocument, ApplicationGrade, Payment
 from apps.documents.serializers import DocumentSerializer
+from apps.applications.document_intelligence import DocumentIntelligence
+from apps.applications.duplicate_checker import DuplicateChecker
+from apps.applications.review_queue import ReviewQueueScorer
 from apps.applications.services import (
     ApplicationSubmissionError,
     submit_application,
@@ -264,20 +267,78 @@ class ApplicationListCreateView(APIView):
         queryset = _with_payment_summary(queryset)
         filterset = ApplicationFilter(request.query_params, queryset=queryset)
         queryset = filterset.qs
-        if not request.query_params.get("sort"):
+
+        sort_param = request.query_params.get("sort")
+        is_priority_sort = sort_param == "priority" and role in ("admin", "super_admin")
+
+        if not sort_param:
             queryset = queryset.order_by("-created_at")
+
         paginator = StandardPagination()
         page = paginator.paginate_queryset(queryset, request)
         if page is not None:
             serializer = ApplicationListSerializer(page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        return Response(ApplicationListSerializer(queryset, many=True).data)
+            data = serializer.data
+
+            if is_priority_sort:
+                data = self._annotate_priority(page, data)
+
+            return paginator.get_paginated_response(data)
+
+        serializer = ApplicationListSerializer(queryset, many=True)
+        data = serializer.data
+
+        if is_priority_sort:
+            data = self._annotate_priority(list(queryset), data)
+
+        return Response(data)
+
+    @staticmethod
+    def _annotate_priority(applications, serialized_data):
+        """Compute priority scores via ReviewQueueScorer and annotate response data."""
+        scorer = ReviewQueueScorer()
+        doc_intel = DocumentIntelligence()
+        annotated = []
+        for app, item in zip(applications, serialized_data):
+            try:
+                completeness = doc_intel.compute_completeness(app)
+                has_warnings = bool(completeness.warnings)
+                priority = scorer.score(app, completeness.score, has_warnings)
+                item["priority_score"] = priority.score
+                item["priority_classification"] = priority.classification
+            except Exception:
+                logger.exception("Failed to compute priority for application %s", getattr(app, "id", "?"))
+                item["priority_score"] = 0.0
+                item["priority_classification"] = "waiting_for_student"
+            annotated.append(item)
+        annotated.sort(key=lambda x: x["priority_score"], reverse=True)
+        return annotated
 
     def post(self, request):
         serializer = ApplicationCreateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         data = serializer.validated_data
+
+        # Duplicate check before creating (Req 4.1, 4.2, 4.6)
+        dup_result = DuplicateChecker.check_at_create(
+            user_id=str(request.user.id),
+            program=data["program"],
+            intake=data["intake"],
+        )
+        if dup_result.has_duplicate:
+            return Response(
+                {
+                    "success": False,
+                    "error": "A non-terminal application already exists for this program and intake.",
+                    "code": "DUPLICATE_APPLICATION",
+                    "existing_id": dup_result.existing_id,
+                    "existing_status": dup_result.existing_status,
+                    "resume_url": dup_result.resume_url,
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+
         application_fee = None
         try:
             from apps.catalog.models import Program
@@ -364,7 +425,14 @@ class ApplicationDetailView(APIView):
         app = self._get_application(request, application_id)
         if app is None:
             return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
-        serializer = ApplicationSerializer(app, data=request.data, partial=True)
+        # View-level guard: students cannot edit non-draft applications (Req 3.1, 3.3)
+        user_role = getattr(request.user, 'role', 'student')
+        if user_role not in ('admin', 'super_admin') and app.status != 'draft':
+            return Response(
+                {"success": False, "error": "Application is not editable", "code": "APPLICATION_NOT_EDITABLE"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        serializer = ApplicationSerializer(app, data=request.data, partial=True, context={'request': request})
         if not serializer.is_valid():
             return Response({"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()

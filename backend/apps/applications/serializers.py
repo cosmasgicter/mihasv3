@@ -16,44 +16,64 @@ from apps.applications.models import (
     ApplicationInterview,
     ApplicationStatusHistory,
 )
+from apps.applications.identifier_resolver import IdentifierResolver
 from apps.common.validators import validate_nrc, validate_zambian_phone
 from apps.documents.models import Payment
 
 logger = logging.getLogger(__name__)
 
+DRAFT_SAFE_FIELDS = frozenset({
+    "full_name", "nrc_number", "passport_number", "date_of_birth", "sex",
+    "phone", "email", "residence_town", "nationality", "country",
+    "address_line_1", "address_line_2", "postal_code",
+    "next_of_kin_name", "next_of_kin_phone",
+    "program", "intake", "institution", "additional_subjects",
+    "result_slip_url", "extra_kyc_url",
+})
+
+LIFECYCLE_FIELDS = frozenset({
+    "status", "payment_status", "eligibility_status", "eligibility_score",
+    "eligibility_notes", "review_started_at", "decision_date", "reviewed_by",
+    "admin_feedback", "admin_feedback_date", "admin_feedback_by",
+})
+
 
 def validate_program_intake_compatibility(program_name: str, intake_name: str) -> None:
     """Validate that a program-intake combination is valid and active.
 
-    Resolves program and intake by name to their UUIDs, then checks the
-    program_intakes join table for a matching row. Also verifies the intake
-    is currently active.
+    Resolves program and intake using IdentifierResolver for flexible
+    name/code lookup, then checks the program_intakes join table for a
+    matching row. Also verifies the intake is currently active.
 
     Raises serializers.ValidationError with code INVALID_PROGRAM_INTAKE or
     INACTIVE_INTAKE on failure.
 
-    Requirements: 10.1, 10.2, 10.3, 10.4
+    Requirements: 2.2, 2.3, 10.1, 10.2, 10.3, 10.4
     """
-    from apps.catalog.models import Intake, Program, ProgramIntake
+    from apps.catalog.models import ProgramIntake
 
-    program = Program.objects.filter(name=program_name).first()
-    intake = Intake.objects.filter(name=intake_name).first()
+    resolved_program = IdentifierResolver.resolve_program(program_name)
+    resolved_intake = IdentifierResolver.resolve_intake(intake_name)
 
-    if not program or not intake:
+    if resolved_program.source == "not_found" or resolved_intake.source == "not_found":
         raise serializers.ValidationError(
             {"program": "Program or intake not found."},
             code="INVALID_PROGRAM_INTAKE",
         )
 
     if not ProgramIntake.objects.filter(
-        program_id=program.id, intake_id=intake.id
+        program_id=resolved_program.id, intake_id=resolved_intake.id
     ).exists():
         raise serializers.ValidationError(
             {"program": "The selected program is not available for this intake."},
             code="INVALID_PROGRAM_INTAKE",
         )
 
-    if not intake.is_active:
+    # Re-fetch the intake to check is_active (resolver already filters by is_active,
+    # but we verify explicitly for clarity)
+    from apps.catalog.models import Intake
+    intake = Intake.objects.filter(id=resolved_intake.id).first()
+    if intake and not intake.is_active:
         raise serializers.ValidationError(
             {"intake": "The selected intake is not currently active."},
             code="INACTIVE_INTAKE",
@@ -214,6 +234,32 @@ class ApplicationSerializer(ApplicationPaymentSummaryMixin, serializers.ModelSer
             "version", "created_at", "updated_at",
         ]
 
+    def get_fields(self):
+        fields = super().get_fields()
+        request = self.context.get('request')
+        instance = self.instance
+
+        if request and request.method in ('PATCH', 'PUT'):
+            user_role = getattr(request.user, 'role', 'student')
+            app_status = getattr(instance, 'status', 'draft') if instance else 'draft'
+
+            if user_role in ('admin', 'super_admin'):
+                # Admins can edit draft-safe fields on any status, but never 'status' via PATCH
+                for field_name in list(fields.keys()):
+                    if field_name not in DRAFT_SAFE_FIELDS:
+                        fields[field_name].read_only = True
+            else:
+                # Students: only draft-safe fields when status == 'draft'
+                if app_status != 'draft':
+                    for field_name in fields:
+                        fields[field_name].read_only = True
+                else:
+                    for field_name in list(fields.keys()):
+                        if field_name not in DRAFT_SAFE_FIELDS:
+                            fields[field_name].read_only = True
+
+        return fields
+
     def get_payment_verified_by_name(self, obj) -> str | None:
         verifier = getattr(obj, "payment_verified_by", None)
         if verifier is None:
@@ -248,25 +294,31 @@ class ApplicationSerializer(ApplicationPaymentSummaryMixin, serializers.ModelSer
         return value
 
     def validate_program(self, value):
-        """Validate program exists in catalog."""
-        from apps.catalog.models import Program
-        if not Program.objects.filter(name=value, is_active=True).exists():
+        """Validate and canonicalize program via IdentifierResolver."""
+        resolved = IdentifierResolver.resolve_program(value)
+        if resolved.source == "not_found":
             raise serializers.ValidationError("Invalid program reference.")
-        return value
+        return resolved.name
 
     def validate_intake(self, value):
-        """Validate intake exists in catalog."""
-        from apps.catalog.models import Intake
-        if not Intake.objects.filter(name=value, is_active=True).exists():
+        """Validate and canonicalize intake via IdentifierResolver."""
+        resolved = IdentifierResolver.resolve_intake(value)
+        if resolved.source == "not_found":
             raise serializers.ValidationError("Invalid intake reference.")
-        return value
+        return resolved.name
 
     def validate_institution(self, value):
-        """Validate institution exists in catalog."""
-        from apps.catalog.models import Institution
-        if not Institution.objects.filter(name=value, is_active=True).exists():
-            raise serializers.ValidationError("Invalid institution reference.")
-        return value
+        """Validate and canonicalize institution via IdentifierResolver.
+
+        Requirements: 2.1, 2.4
+        """
+        resolved = IdentifierResolver.resolve_institution(value)
+        if resolved.source == "not_found":
+            raise serializers.ValidationError(
+                "Invalid institution reference.",
+                code="INVALID_INSTITUTION",
+            )
+        return resolved.name
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
@@ -313,22 +365,31 @@ class ApplicationCreateSerializer(serializers.Serializer):
         return value
 
     def validate_program(self, value):
-        from apps.catalog.models import Program
-        if not Program.objects.filter(name=value, is_active=True).exists():
+        """Validate and canonicalize program via IdentifierResolver."""
+        resolved = IdentifierResolver.resolve_program(value)
+        if resolved.source == "not_found":
             raise serializers.ValidationError("Invalid program reference.")
-        return value
+        return resolved.name
 
     def validate_intake(self, value):
-        from apps.catalog.models import Intake
-        if not Intake.objects.filter(name=value, is_active=True).exists():
+        """Validate and canonicalize intake via IdentifierResolver."""
+        resolved = IdentifierResolver.resolve_intake(value)
+        if resolved.source == "not_found":
             raise serializers.ValidationError("Invalid intake reference.")
-        return value
+        return resolved.name
 
     def validate_institution(self, value):
-        from apps.catalog.models import Institution
-        if not Institution.objects.filter(name=value, is_active=True).exists():
-            raise serializers.ValidationError("Invalid institution reference.")
-        return value
+        """Validate and canonicalize institution via IdentifierResolver.
+
+        Requirements: 2.1, 2.4
+        """
+        resolved = IdentifierResolver.resolve_institution(value)
+        if resolved.source == "not_found":
+            raise serializers.ValidationError(
+                "Invalid institution reference.",
+                code="INVALID_INSTITUTION",
+            )
+        return resolved.name
 
     def validate(self, attrs):
         attrs = super().validate(attrs)

@@ -2,14 +2,17 @@ export type CanonicalPaymentStatus = 'not_paid' | 'pending_review' | 'verified' 
 
 export function normalizePaymentStatus(paymentStatus?: string | null): CanonicalPaymentStatus {
   switch (paymentStatus) {
+    case 'pending':
     case 'pending_review':
       return 'pending_review'
     case 'verified':
     case 'paid':
     case 'successful':
+    case 'force_approved':
       return 'verified'
+    case 'failed':
     case 'rejected':
-      return paymentStatus
+      return 'rejected'
     default:
       return 'not_paid'
   }

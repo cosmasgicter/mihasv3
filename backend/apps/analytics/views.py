@@ -23,7 +23,35 @@ class FunnelAnalyticsView(APIView):
 
     @extend_schema(operation_id="analytics_funnel", tags=["analytics"], responses={200: OpenApiResponse(response=FUNNEL_RESPONSE)})
     def get(self, request):
-        return Response(sample_funnel_analytics())
+        from django.core.cache import cache
+        from apps.analytics.admissions_analytics import AdmissionsAnalyticsService
+
+        filters = {}
+        if request.query_params.get("start_date"):
+            filters["start_date"] = request.query_params["start_date"]
+        if request.query_params.get("end_date"):
+            filters["end_date"] = request.query_params["end_date"]
+        if request.query_params.get("institution"):
+            filters["institution"] = request.query_params["institution"]
+        if request.query_params.get("program"):
+            filters["program"] = request.query_params["program"]
+
+        cache_key = f"admissions_funnel:{hash(frozenset(filters.items()))}"
+        cached = cache.get(cache_key)
+        if cached:
+            return Response(cached)
+
+        try:
+            service = AdmissionsAnalyticsService()
+            data = {
+                "funnel": service.funnel_metrics(filters),
+                "timing": service.timing_metrics(filters),
+                "payments": service.payment_metrics(filters),
+            }
+            cache.set(cache_key, data, 300)  # 5-minute cache
+            return Response(data)
+        except Exception:
+            return Response(sample_funnel_analytics())
 
 
 class SourceAnalyticsView(APIView):
