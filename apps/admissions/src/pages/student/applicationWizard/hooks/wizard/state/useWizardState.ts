@@ -15,6 +15,7 @@ export const useWizardState = () => {
   const [restoringDraft, setRestoringDraft] = useState(false)
   const [draftLoaded, setDraftLoaded] = useState(false)
   const [confirmSubmission, setConfirmSubmission] = useState(false)
+  const [gradesHydrating, setGradesHydrating] = useState(false)
 
   const addGrade = useCallback(() => {
     setSelectedGrades(prev => (prev.length < 10 ? [...prev, { subject_id: '', grade: 1 }] : prev))
@@ -59,6 +60,8 @@ export const useWizardState = () => {
     setDraftLoaded,
     confirmSubmission,
     setConfirmSubmission,
+    gradesHydrating,
+    setGradesHydrating,
     addGrade,
     removeGrade,
     updateGrade,

@@ -37,7 +37,7 @@ import {
   getCanonicalResidenceTown,
   normalizeDateInputValue,
 } from '@/lib/profileFieldMapping'
-import { mergeWizardSubjects } from '../lib/educationCatalog'
+import { mergeWizardSubjects, resolveWizardSubjectId } from '../lib/educationCatalog'
 import {
   deriveDraftResumeUploads,
   normalizeDraftResumeGrades,
@@ -93,6 +93,7 @@ interface UseWizardControllerResult {
   isDraftSaving: boolean
   draftSaved: boolean
   draftLoaded: boolean
+  gradesHydrating: boolean
   submittedApplication: SubmittedApplicationSummary | null
   applicationId: string | null
   paymentStatus: 'pending' | 'successful' | 'failed' | null
@@ -222,6 +223,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const [restoringDraft, setRestoringDraft] = useState(false)
   const [draftLoaded, setDraftLoaded] = useState(false)
   const [confirmSubmission, setConfirmSubmission] = useState(false)
+  const [gradesHydrating, setGradesHydrating] = useState(false)
   const [programs, setPrograms] = useState<WizardProgram[]>([])
   const [intakes, setIntakes] = useState<WizardIntake[]>([])
   const isSavingRef = useRef(false)
@@ -418,8 +420,13 @@ const useWizardController = (): UseWizardControllerResult => {
   })
 
   const normalizeSelectedGrades = useCallback((grades: SubjectGrade[]): SubjectGrade[] => {
-    return normalizeDraftResumeGrades(grades)
-  }, [])
+    return normalizeDraftResumeGrades(
+      grades.map(grade => ({
+        ...grade,
+        subject_id: resolveWizardSubjectId(grade.subject_id, subjects),
+      }))
+    )
+  }, [subjects])
 
   const persistLocalDraftSnapshot = useCallback(() => {
     const draftSnapshot = {
@@ -897,10 +904,20 @@ const useWizardController = (): UseWizardControllerResult => {
               if (validGrades.length > 0) {
                 setSelectedGrades(validGrades)
               } else if (localDraft.applicationId) {
-                await hydrateServerGrades(localDraft.applicationId)
+                setGradesHydrating(true)
+                try {
+                  await hydrateServerGrades(localDraft.applicationId)
+                } finally {
+                  setGradesHydrating(false)
+                }
               }
             } else if (localDraft.applicationId) {
-              await hydrateServerGrades(localDraft.applicationId)
+              setGradesHydrating(true)
+              try {
+                await hydrateServerGrades(localDraft.applicationId)
+              } finally {
+                setGradesHydrating(false)
+              }
             }
 
             const mergedLocalUploads = {
@@ -969,7 +986,13 @@ const useWizardController = (): UseWizardControllerResult => {
           const restoredUploads = deriveDraftResumeUploads(app)
           markUploadedFile('result_slip', restoredUploads.result_slip)
           markUploadedFile('extra_kyc', restoredUploads.extra_kyc)
-          const restoredGrades = await hydrateServerGrades(app.id)
+          setGradesHydrating(true)
+          let restoredGrades: SubjectGrade[]
+          try {
+            restoredGrades = await hydrateServerGrades(app.id)
+          } finally {
+            setGradesHydrating(false)
+          }
 
           // 3.1: ALWAYS restore step - removed currentStepIndex === 0 condition
           const stepId = resolveDraftResumeStepId(app, restoredGrades)
@@ -1297,8 +1320,8 @@ const useWizardController = (): UseWizardControllerResult => {
           })
           const duplicateCheck = await checkDuplicateApplication(
             user!.id,
-            resolvedProgram.id,
-            resolvedIntake.id
+            { id: resolvedProgram.id, label: resolvedProgram.label },
+            { id: resolvedIntake.id, label: resolvedIntake.name }
           )
           
           if (duplicateCheck.hasDuplicate) {
@@ -1715,6 +1738,7 @@ const useWizardController = (): UseWizardControllerResult => {
     isDraftSaving,
     draftSaved,
     draftLoaded,
+    gradesHydrating,
     submittedApplication,
     applicationId,
     paymentStatus,

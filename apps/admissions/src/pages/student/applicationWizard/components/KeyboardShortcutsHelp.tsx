@@ -25,7 +25,7 @@ export const KeyboardShortcutsHelp = () => {
         variant="ghost"
         size="sm"
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 z-40 shadow-lg"
+        className="fixed bottom-4 right-4 z-40 hidden shadow-lg lg:inline-flex"
         aria-label="Show keyboard shortcuts"
       >
         <Keyboard className="h-4 w-4" />

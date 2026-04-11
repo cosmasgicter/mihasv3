@@ -409,6 +409,11 @@ class ApplicationDetailView(APIView):
     permission_classes = [IsOwnerOrAdmin]
     serializer_class = ApplicationSerializer
 
+    @staticmethod
+    def _student_can_mutate_application(request, app) -> bool:
+        role = getattr(request.user, 'role', 'student')
+        return role in ('admin', 'super_admin') or app.status == 'draft'
+
     def get(self, request, application_id):
         app = self._get_application(request, application_id)
         if app is None:
@@ -426,8 +431,7 @@ class ApplicationDetailView(APIView):
         if app is None:
             return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
         # View-level guard: students cannot edit non-draft applications (Req 3.1, 3.3)
-        user_role = getattr(request.user, 'role', 'student')
-        if user_role not in ('admin', 'super_admin') and app.status != 'draft':
+        if not self._student_can_mutate_application(request, app):
             return Response(
                 {"success": False, "error": "Application is not editable", "code": "APPLICATION_NOT_EDITABLE"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -442,6 +446,11 @@ class ApplicationDetailView(APIView):
         app = self._get_application(request, application_id)
         if app is None:
             return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+        if not self._student_can_mutate_application(request, app):
+            return Response(
+                {"success": False, "error": "Only draft applications can be deleted by students", "code": "APPLICATION_NOT_EDITABLE"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         app.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -553,6 +562,12 @@ class ApplicationGradesView(APIView):
             return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
         if not IsOwnerOrAdmin().has_object_permission(request, self, app):
             return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
+        role = getattr(request.user, 'role', 'student')
+        if role not in ("admin", "super_admin") and app.status != "draft":
+            return Response(
+                {"success": False, "error": "Application is not editable", "code": "APPLICATION_NOT_EDITABLE"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         batch = request.data.get("grades") if isinstance(request.data, dict) else None
         if isinstance(batch, list):
             created = []
@@ -786,18 +801,26 @@ class ApplicationReviewView(APIView):
             payment_status = ps_serializer.validated_data["payment_status"]
             notes = ps_serializer.validated_data["notes"]
 
-            app.payment_status = payment_status
-            if notes:
-                app.admin_feedback = notes
-                app.admin_feedback_date = timezone.now()
-                app.admin_feedback_by_id = str(request.user.id)
-            app.save(update_fields=[
-                "payment_status",
-                "admin_feedback",
-                "admin_feedback_date",
-                "admin_feedback_by",
-                "updated_at",
-            ])
+            try:
+                from apps.documents.payment_service import PaymentService
+
+                app = PaymentService().review_application_payment(
+                    application_id=app.id,
+                    payment_status=payment_status,
+                    reviewed_by_id=str(request.user.id),
+                    notes=notes,
+                )
+            except ValueError as exc:
+                if str(exc) == "PAYMENT_RECORD_REQUIRED":
+                    return Response(
+                        {
+                            "success": False,
+                            "error": "A payment record is required before this payment status can be reviewed.",
+                            "code": "PAYMENT_RECORD_REQUIRED",
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                raise
 
             dispatch_event(
                 user_id=app.user_id,
@@ -1572,3 +1595,127 @@ class FinanceReceiptView(APIView):
             task_func = None
 
         return _enqueue_document_task(application, "finance-receipt", task_func, request)
+
+
+class EmailSlipSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class EmailSlipResponseSerializer(serializers.Serializer):
+    queued_id = serializers.UUIDField()
+
+
+EmailSlipEnvelopeResponseSerializer = envelope_serializer(
+    "EmailSlipResponse",
+    EmailSlipResponseSerializer(),
+)
+
+
+class EmailSlipView(APIView):
+    """POST /api/v1/applications/{id}/email-slip/
+
+    Generates an HTML email with application slip details and queues it
+    for delivery via the existing send_email_task + Resend infrastructure.
+
+    Implements task 19.1.
+    Requirements: 1.10, 1.11, 2.10, 2.11, 2.12
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        operation_id="applications_email_slip",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter(
+                "application_id",
+                OpenApiTypes.UUID,
+                OpenApiParameter.PATH,
+                description="Application UUID.",
+            ),
+        ],
+        request=EmailSlipSerializer,
+        responses={
+            200: OpenApiResponse(response=EmailSlipEnvelopeResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+    def post(self, request, application_id):
+        # Look up application
+        try:
+            application = Application.objects.get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Validate requesting user owns the application
+        if str(application.user_id) != str(request.user.id):
+            role = getattr(request.user, "role", "student")
+            if role not in ("admin", "super_admin"):
+                return Response(
+                    {"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+        # Validate request body
+        serializer = EmailSlipSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                {"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        email = serializer.validated_data["email"]
+
+        # Build HTML email body with slip details
+        submitted_at = ""
+        if application.submitted_at:
+            submitted_at = application.submitted_at.strftime("%d %B %Y")
+        created_at = ""
+        if application.created_at:
+            created_at = application.created_at.strftime("%d %B %Y")
+
+        body_html = (
+            "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>"
+            "<h2 style='color: #1a365d;'>MIHAS Application Slip</h2>"
+            "<table style='width: 100%; border-collapse: collapse;'>"
+            f"<tr><td style='padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;'>Application Number</td>"
+            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{application.application_number}</td></tr>"
+            f"<tr><td style='padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;'>Applicant Name</td>"
+            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{application.full_name}</td></tr>"
+            f"<tr><td style='padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;'>Program</td>"
+            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{application.program}</td></tr>"
+            f"<tr><td style='padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;'>Status</td>"
+            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{application.status}</td></tr>"
+            f"<tr><td style='padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;'>Submitted</td>"
+            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{submitted_at or 'Not yet submitted'}</td></tr>"
+            f"<tr><td style='padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;'>Created</td>"
+            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{created_at or 'N/A'}</td></tr>"
+            "</table>"
+            "<p style='margin-top: 16px; color: #718096; font-size: 12px;'>"
+            "This is an automated email from the MIHAS Application System. Please do not reply.</p>"
+            "</div>"
+        )
+
+        # Create EmailQueue record and dispatch
+        from apps.common.models import EmailQueue
+        from apps.common.tasks import send_email_task
+
+        email_record = EmailQueue.objects.create(
+            recipient_email=email,
+            recipient_name=application.full_name,
+            subject=f"Application Slip — {application.application_number}",
+            body=body_html,
+            status="pending",
+        )
+
+        send_email_task.delay(str(email_record.id))
+
+        return Response(
+            {"success": True, "data": {"queued_id": str(email_record.id)}},
+            status=status.HTTP_200_OK,
+        )

@@ -110,7 +110,7 @@ export default defineConfig(({ mode, command }) => {
       chunkSizeWarningLimit: 500,
       modulePreload: { polyfill: false }, // No polyfills for modern browsers
       cssCodeSplit: true,
-      assetsInlineLimit: 4096, // Inline assets <4KB as base64
+      assetsInlineLimit: 0, // Emit all assets as separate files — eliminates data: URIs in CSP
       reportCompressedSize: false, // Faster builds
       rollupOptions: {
         output: {

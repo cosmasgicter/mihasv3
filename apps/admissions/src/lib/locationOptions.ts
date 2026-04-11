@@ -59,11 +59,12 @@ async function resolveCountryRecord(country?: string | null) {
   const normalizedCountry = normalizeResidenceCountry(country)
   const countries = await loadCountries()
   const normalizedKey = normalizeKey(normalizedCountry)
+  const isDefaultCountry = normalizedKey === normalizeKey(DEFAULT_RESIDENCE_COUNTRY)
 
   return (
     countries.find(entry => normalizeKey(entry.name) === normalizedKey) ||
     countries.find(entry => entry.isoCode.toLowerCase() === normalizedKey) ||
-    countries.find(entry => entry.name === DEFAULT_RESIDENCE_COUNTRY)
+    (isDefaultCountry ? countries.find(entry => entry.name === DEFAULT_RESIDENCE_COUNTRY) : undefined)
   )
 }
 

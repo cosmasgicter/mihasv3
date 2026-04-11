@@ -8,15 +8,12 @@ import { FormSelect } from '@/components/ui/form-select'
 import { ProfileCompletionBadge } from '@/components/ui/ProfileAutoPopulationIndicator'
 import { animateClasses, staggerChild } from '@/lib/animations'
 import { formatDate } from '@/lib/dateFormat'
-import { FieldHelp } from '../components/FieldHelp'
 import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
-import { useResidenceLocationOptions } from '@/hooks/useResidenceLocationOptions'
-import { DEFAULT_RESIDENCE_COUNTRY } from '@/lib/locationOptions'
-import { getResidenceTownHelperText, normalizeResidenceTown, RESIDENCE_TOWN_LABEL } from '@/lib/residenceTown'
 
 import { NATIONALITY_OPTIONS } from '@/lib/nationalityOptions'
 
 import type { WizardFormData, WizardProgram, WizardIntake } from '../types'
+import { ResidenceLocationFields } from '../components/ResidenceLocationFields'
 
 interface BasicKycStepProps {
   form: UseFormReturn<WizardFormData>
@@ -48,9 +45,6 @@ const BasicKycStep = ({
     formState: { errors }
   } = form
   const { shouldAnimate } = useOptimizedAnimation()
-  const selectedCountry = form.watch('country')
-  const { countryOptions, cityOptions, loadingCountries, loadingCities } = useResidenceLocationOptions(selectedCountry)
-  const residenceTownDatalistId = 'wizard-residence-town-options'
 
   const selectedProgramDetails = useMemo(
     () => programs.find(program => program.id === selectedProgram),
@@ -86,17 +80,13 @@ const BasicKycStep = ({
         >
           <div className="flex items-center space-x-2 text-sm text-accent-foreground">
             <CheckCircle className="h-4 w-4" />
-            <span className="font-medium">Profile data automatically populated</span>
+            <span className="font-medium">Profile details pre-filled</span>
           </div>
           <p className="text-xs text-foreground mt-1">
-            Some fields have been pre-filled from your profile. Please review and update as needed.
+            Review them before continuing.
           </p>
         </div>
       )}
-
-      <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">
-        Your account details help us pre-fill this step. This KYC section is the admissions record we will review for your application, so confirm that your names, contact details, programme, and identity information are correct here.
-      </div>
 
       <fieldset className="border-none p-0 m-0">
         <legend className="sr-only">Personal Information</legend>
@@ -111,20 +101,12 @@ const BasicKycStep = ({
           </div>
 
           <div style={shouldAnimate ? staggerChild(1) : undefined}>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm font-medium text-foreground">NRC Number</span>
-              <FieldHelp
-                title="National Registration Card"
-                description="Your Zambian National Registration Card number. Required for Zambian citizens."
-                example="123456/78/9"
-              />
-            </div>
             <AnimatedInput
               {...register('nrc_number')}
-              aria-label="NRC Number"
+              label="NRC Number"
               placeholder="e.g., 123456/78/9"
               error={errors.nrc_number?.message}
-              helperText="Provide either NRC or Passport (one is sufficient)"
+              helperText="NRC or Passport required"
               extraDescribedBy={getFieldAriaDescribedBy?.('nrc_number')}
             />
           </div>
@@ -134,7 +116,7 @@ const BasicKycStep = ({
               {...register('passport_number')}
               label="Passport Number"
               error={errors.passport_number?.message}
-              helperText="Provide either NRC or Passport (one is sufficient)"
+              helperText="NRC or Passport required"
             />
           </div>
 
@@ -165,17 +147,9 @@ const BasicKycStep = ({
           </div>
 
           <div style={shouldAnimate ? staggerChild(5) : undefined}>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm font-medium text-foreground">Phone Number *</span>
-              <FieldHelp
-                title="Contact Phone Number"
-                description="Your primary phone number for communication. Include country code for international numbers."
-                example="+260 97 123 4567"
-              />
-            </div>
             <AnimatedInput
               {...register('phone')}
-              aria-label="Phone Number"
+              label="Phone Number *"
               placeholder="e.g., +260 97 123 4567"
               error={errors.phone?.message}
               extraDescribedBy={getFieldAriaDescribedBy?.('phone')}
@@ -192,38 +166,8 @@ const BasicKycStep = ({
             />
           </div>
 
-          <div style={shouldAnimate ? staggerChild(7) : undefined}>
-            <FormSelect
-              name="country"
-              control={control}
-              label="Country of Residence"
-              options={countryOptions}
-              placeholder="Select country"
-              disabled={loadingCountries}
-              helperText="Defaults to Zambia. Change it only if you currently live elsewhere."
-              error={(errors as any).country?.message}
-            />
-          </div>
-
-          <div style={shouldAnimate ? staggerChild(8) : undefined}>
-            <AnimatedInput
-              {...register('residence_town', { setValueAs: normalizeResidenceTown })}
-              list={residenceTownDatalistId}
-              label={`${RESIDENCE_TOWN_LABEL} *`}
-              error={errors.residence_town?.message}
-              placeholder={selectedCountry === DEFAULT_RESIDENCE_COUNTRY ? 'Kitwe' : 'Start typing your city or town'}
-              helperText={getResidenceTownHelperText({
-                loadingCities,
-                selectedCountry,
-                defaultCountry: DEFAULT_RESIDENCE_COUNTRY,
-              })}
-              extraDescribedBy={getFieldAriaDescribedBy?.('residence_town')}
-            />
-            <datalist id={residenceTownDatalistId}>
-              {cityOptions.map(option => (
-                <option key={option.value} value={option.value} />
-              ))}
-            </datalist>
+          <div className="md:col-span-2" style={shouldAnimate ? staggerChild(7) : undefined}>
+            <ResidenceLocationFields form={form} getFieldAriaDescribedBy={getFieldAriaDescribedBy} />
           </div>
 
           <div style={shouldAnimate ? staggerChild(9) : undefined}>

@@ -22,6 +22,7 @@ from apps.applications.views import (
     ApplicationSummaryView,
     ApplicationTrackView,
     ApplicationVerifyDocumentView,
+    EmailSlipView,
     FinanceReceiptView,
 )
 
@@ -45,4 +46,5 @@ urlpatterns = [
     path("<uuid:application_id>/verify-document/", ApplicationVerifyDocumentView.as_view(), name="application-verify-document"),
     path("<uuid:application_id>/acceptance-letter/", AcceptanceLetterView.as_view(), name="application-acceptance-letter"),
     path("<uuid:application_id>/finance-receipt/", FinanceReceiptView.as_view(), name="application-finance-receipt"),
+    path("<uuid:application_id>/email-slip/", EmailSlipView.as_view(), name="application-email-slip"),
 ]

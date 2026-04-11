@@ -326,6 +326,20 @@ describe('Payment page verification', () => {
     expect(text).toContain('The last payment attempt could not be verified')
   })
 
+  it('links payment review actions to the canonical application status route', async () => {
+    await renderAndWait()
+
+    const reviewLinks = Array.from(container.querySelectorAll<HTMLAnchorElement>('a'))
+      .filter((link) => link.textContent?.includes('Review payment status') || link.textContent?.includes('Review rejected payment'))
+
+    expect(reviewLinks.map((link) => link.getAttribute('href'))).toEqual(
+      expect.arrayContaining([
+        '/student/application/app-001/status',
+        '/student/application/app-004/status',
+      ])
+    )
+  })
+
   // ── Summary cards ───────────────────────────────────────────────────
 
   it('shows the key payment states across applications', async () => {

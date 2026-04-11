@@ -162,6 +162,11 @@ class DocumentUploadView(APIView):
                 {"success": False, "error": "Not authorized", "code": "INSUFFICIENT_PERMISSIONS"},
                 status=status.HTTP_403_FORBIDDEN,
             )
+        if role not in ("admin", "super_admin") and application.status != "draft":
+            return Response(
+                {"success": False, "error": "Application is not editable", "code": "APPLICATION_NOT_EDITABLE"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         # Magic byte validation.
         declared_mime = file_obj.content_type or ""

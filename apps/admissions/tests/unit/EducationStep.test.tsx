@@ -8,7 +8,7 @@ describe('EducationStep', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
   })
 
-  it('renders identity-document copy instead of extra KYC copy', () => {
+  it('renders concise upload cards without repeated instruction copy', () => {
     const markup = renderToStaticMarkup(
       <EducationStep
         title="Education"
@@ -30,11 +30,13 @@ describe('EducationStep', () => {
       />
     )
 
-    expect(markup).toContain('Identity document (NRC or Passport)')
-    expect(markup).toContain('Academic document')
-    expect(markup).toContain('Identity support document')
+    expect(markup).toContain('Result slip')
+    expect(markup).toContain('NRC or passport')
+    expect(markup).toContain('PDF, JPG or PNG. Max 10MB.')
+    expect(markup).not.toContain('Document checklist')
+    expect(markup).not.toContain('Auto-fill enabled')
     expect(markup).not.toContain('Extra KYC Documents')
-    expect(markup).toContain('Your identity details are captured in the KYC step')
+    expect(markup).not.toContain('Your identity details are captured in the KYC step')
   })
 
   it('renders an add-another-subject action after existing subjects', () => {

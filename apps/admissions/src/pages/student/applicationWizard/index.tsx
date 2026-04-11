@@ -70,6 +70,7 @@ const ApplicationWizardContent = () => {
     isDraftSaving,
     draftSaved,
     draftLoaded,
+    gradesHydrating,
     submittedApplication,
     applicationId,
     paymentStatus,
@@ -101,7 +102,7 @@ const ApplicationWizardContent = () => {
   })
   const overallProgress = useOverallProgress(form, selectedGrades)
   const { formattedTime } = useEstimatedTime(currentStepIndex, totalSteps)
-  const { shouldAnimate, prefersReducedMotion, isMobile } = useOptimizedAnimation()
+  const { shouldAnimate } = useOptimizedAnimation()
 
   // Pause auto-save during critical operations (Req 9.1, 9.2):
   // - Payment step with payment in progress (initiating or pending)
@@ -151,11 +152,13 @@ const ApplicationWizardContent = () => {
     }
 
     if (currentStepConfig.key === 'education') {
-      const gradeCount = selectedGrades.filter(
-        grade => grade.subject_id && Number(grade.grade) >= 1 && Number(grade.grade) <= 9
-      ).length
-      if (gradeCount < 5) {
-        errors.push({ field: 'grades', label: 'Subject Grades', message: `Minimum 5 subjects required (${gradeCount} added)` })
+      if (!gradesHydrating) {
+        const gradeCount = selectedGrades.filter(
+          grade => grade.subject_id && Number(grade.grade) >= 1 && Number(grade.grade) <= 9
+        ).length
+        if (gradeCount < 5) {
+          errors.push({ field: 'grades', label: 'Subject Grades', message: `Minimum 5 subjects required (${gradeCount} added)` })
+        }
       }
       if (!resultSlipFile && !uploadedFiles.result_slip) {
         errors.push({ field: 'result_slip', label: 'Result Slip', message: 'Result slip is required' })
@@ -182,7 +185,7 @@ const ApplicationWizardContent = () => {
     }
 
     return errors
-  }, [form, currentStepConfig.key, confirmSubmission, resultSlipFile, extraKycFile, uploadedFiles, uploading, paymentStatus, selectedGrades])
+  }, [form, currentStepConfig.key, confirmSubmission, resultSlipFile, extraKycFile, uploadedFiles, uploading, paymentStatus, selectedGrades, gradesHydrating])
 
   // Aria-live region announcement for screen readers on step transition (Req 14.1, 14.2, 14.3)
   const [stepAnnouncement, setStepAnnouncement] = useState(
@@ -428,7 +431,7 @@ const ApplicationWizardContent = () => {
       />
     <PageShell
       title="Student Application"
-      subtitle={`Complete the ${totalSteps}-step application process`}
+      subtitle={`Apply in ${totalSteps} steps`}
       maxWidth="full"
       className={shouldAnimate ? "animate-fade-in" : ""}
     >
@@ -449,9 +452,6 @@ const ApplicationWizardContent = () => {
             
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-foreground/80">
               <span className="break-all">Logged in as: {user.email}</span>
-              <span className="hidden sm:inline text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                {WIZARD_COPY.keyboardNavigationTip}
-              </span>
             </div>
           </div>
         </Container>
@@ -594,7 +594,7 @@ const ApplicationWizardContent = () => {
             <div className="flex-1">
               <AlertTitle className="text-foreground">This step is still incomplete</AlertTitle>
               <AlertDescription className="mt-1 text-foreground">
-                You can continue, but finishing these items now usually reduces rework during admissions review.
+                Complete the remaining items before continuing.
               </AlertDescription>
               {stepValidation.missingFields.length > 0 && (
                 <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-muted-foreground">
@@ -710,7 +710,7 @@ const ApplicationWizardContent = () => {
             </form>
           </div>
 
-          <aside className="lg:col-span-1" aria-labelledby="wizard-support-heading">
+          <aside className="hidden lg:col-span-1 lg:block" aria-labelledby="wizard-support-heading">
             <div className="sticky top-6 space-y-4">
               <ApplicationPreview
                 form={form}

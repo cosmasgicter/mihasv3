@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Skeleton, SkeletonCard } from '@/components/ui/skeleton'
 import { formatDate, formatTimestamp } from '@/lib/dateFormat'
 import { applicationService } from '@/services/applications'
+import { AuthenticationError } from '@/services/client'
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { DocumentButtons } from '@/components/student/DocumentButtons'
 import {
@@ -75,13 +76,21 @@ export default function ApplicationStatus() {
   } = useQuery<ApplicationWithDetails | null>({
     queryKey: ['application-status', id],
     queryFn: async () => {
-      const response = await applicationService.getById(id!)
+      try {
+        const response = await applicationService.getById(id!)
 
-      if (!response.application) {
+        if (!response.application) {
+          throw new Error('Application not found or access denied')
+        }
+
+        return response.application as ApplicationWithDetails
+      } catch (error) {
+        // Re-throw AuthenticationError so the global auth redirect flow handles it
+        if (error instanceof AuthenticationError) {
+          throw error
+        }
         throw new Error('Application not found or access denied')
       }
-
-      return response.application as ApplicationWithDetails
     },
     enabled: !!id && !!user,
     ...CACHE_CONFIG.applications,

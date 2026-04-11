@@ -4,7 +4,6 @@ import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { applicationSessionManager } from '@/lib/applicationSession'
 import { draftManager } from '@/lib/draftManager'
 import { useToastStore } from '@/hooks/useToast'
-import { clearAllDraftData } from '@/lib/draftManager'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 
 export const useDraftManager = () => {
@@ -27,10 +26,7 @@ export const useDraftManager = () => {
 
     setIsDeleting(true)
     try {
-      // Clear all draft data immediately for instant UI feedback
-      clearAllDraftData()
-      
-      // Then clean up database
+      // Clear database first so we do not report success while a server draft remains.
       const deleteResult = await applicationSessionManager.deleteDraft(profile?.user_id || user.id)
       
       if (deleteResult.success) {
@@ -63,10 +59,7 @@ export const useDraftManager = () => {
 
     setIsDeleting(true)
     try {
-      // Clear local storage immediately
-      clearAllDraftData()
-      
-      // Then clean up database
+      // Clear database first so we do not report success while a server draft remains.
       const deleteResult = await draftManager.clearAllDrafts(profile?.user_id || user.id)
       
       if (deleteResult.success) {

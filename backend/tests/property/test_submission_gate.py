@@ -74,13 +74,22 @@ class TestSubmissionBlockedWithoutPayment(SimpleTestCase):
             patch("apps.documents.models.ApplicationDocument.objects") as mock_doc_qs,
             patch("apps.applications.services.transition_application_status") as mock_transition,
             patch("apps.applications.services.transaction") as mock_txn,
-            patch("apps.common.event_dispatcher.dispatch_event"),
+            patch("apps.applications.intake_enforcer.IntakeEnforcer.check_submission") as mock_intake_check,
+            patch("apps.applications.intake_enforcer.IntakeEnforcer.increment_enrollment"),
+            patch("apps.applications.duplicate_checker.DuplicateChecker.check_at_submit") as mock_duplicate_check,
+            patch("apps.applications.eligibility_engine.EligibilityEngine.evaluate") as mock_eligibility,
+            patch("apps.applications.models.ApplicationDraft.objects") as mock_draft_objects,
+            patch("apps.applications.views.dispatch_event"),
         ):
             mock_app_qs.get.return_value = mock_app
             mock_app_qs.select_for_update.return_value.get.return_value = mock_app
             mock_payment_qs.filter.return_value.exists.return_value = False
             mock_doc_qs.filter.return_value.exists.return_value = True
             mock_transition.return_value = "draft"
+            mock_intake_check.return_value = MagicMock(allowed=True)
+            mock_duplicate_check.return_value = MagicMock(has_duplicate=False)
+            mock_eligibility.return_value = MagicMock(status="eligible", score=100, missing_requirements=[])
+            mock_draft_objects.filter.return_value.update.return_value = 1
             mock_txn.atomic.return_value.__enter__ = MagicMock(return_value=None)
             mock_txn.atomic.return_value.__exit__ = MagicMock(return_value=False)
 
@@ -130,13 +139,22 @@ class TestSubmissionAllowedWithPayment(SimpleTestCase):
             patch("apps.documents.models.ApplicationDocument.objects") as mock_doc_qs,
             patch("apps.applications.services.transition_application_status") as mock_transition,
             patch("apps.applications.services.transaction") as mock_txn,
-            patch("apps.common.event_dispatcher.dispatch_event"),
+            patch("apps.applications.intake_enforcer.IntakeEnforcer.check_submission") as mock_intake_check,
+            patch("apps.applications.intake_enforcer.IntakeEnforcer.increment_enrollment"),
+            patch("apps.applications.duplicate_checker.DuplicateChecker.check_at_submit") as mock_duplicate_check,
+            patch("apps.applications.eligibility_engine.EligibilityEngine.evaluate") as mock_eligibility,
+            patch("apps.applications.models.ApplicationDraft.objects") as mock_draft_objects,
+            patch("apps.applications.views.dispatch_event"),
         ):
             mock_app_qs.get.return_value = mock_app
             mock_app_qs.select_for_update.return_value.get.return_value = mock_app
             mock_payment_qs.filter.return_value.exists.return_value = True
             mock_doc_qs.filter.return_value.exists.return_value = True
             mock_transition.return_value = "draft"
+            mock_intake_check.return_value = MagicMock(allowed=True)
+            mock_duplicate_check.return_value = MagicMock(has_duplicate=False)
+            mock_eligibility.return_value = MagicMock(status="eligible", score=100, missing_requirements=[])
+            mock_draft_objects.filter.return_value.update.return_value = 1
             mock_txn.atomic.return_value.__enter__ = MagicMock(return_value=None)
             mock_txn.atomic.return_value.__exit__ = MagicMock(return_value=False)
 
@@ -185,7 +203,12 @@ class TestPaymentGateOnlyChecksSuccessfulStatus(SimpleTestCase):
             patch("apps.documents.models.ApplicationDocument.objects") as mock_doc_qs,
             patch("apps.applications.services.transition_application_status") as mock_transition,
             patch("apps.applications.services.transaction") as mock_txn,
-            patch("apps.common.event_dispatcher.dispatch_event"),
+            patch("apps.applications.intake_enforcer.IntakeEnforcer.check_submission") as mock_intake_check,
+            patch("apps.applications.intake_enforcer.IntakeEnforcer.increment_enrollment"),
+            patch("apps.applications.duplicate_checker.DuplicateChecker.check_at_submit") as mock_duplicate_check,
+            patch("apps.applications.eligibility_engine.EligibilityEngine.evaluate") as mock_eligibility,
+            patch("apps.applications.models.ApplicationDraft.objects") as mock_draft_objects,
+            patch("apps.applications.views.dispatch_event"),
         ):
             mock_app_qs.get.return_value = mock_app
             mock_app_qs.select_for_update.return_value.get.return_value = mock_app
@@ -194,6 +217,10 @@ class TestPaymentGateOnlyChecksSuccessfulStatus(SimpleTestCase):
             mock_payment_qs.filter.return_value.exists.return_value = False
             mock_doc_qs.filter.return_value.exists.return_value = True
             mock_transition.return_value = "draft"
+            mock_intake_check.return_value = MagicMock(allowed=True)
+            mock_duplicate_check.return_value = MagicMock(has_duplicate=False)
+            mock_eligibility.return_value = MagicMock(status="eligible", score=100, missing_requirements=[])
+            mock_draft_objects.filter.return_value.update.return_value = 1
             mock_txn.atomic.return_value.__enter__ = MagicMock(return_value=None)
             mock_txn.atomic.return_value.__exit__ = MagicMock(return_value=False)
 
@@ -246,13 +273,22 @@ class TestPaymentGateIntegrationWithView(SimpleTestCase):
             patch("apps.documents.models.ApplicationDocument.objects") as mock_doc_qs,
             patch("apps.applications.services.transition_application_status") as mock_transition,
             patch("apps.applications.services.transaction") as mock_txn,
-            patch("apps.common.event_dispatcher.dispatch_event"),
+            patch("apps.applications.intake_enforcer.IntakeEnforcer.check_submission") as mock_intake_check,
+            patch("apps.applications.intake_enforcer.IntakeEnforcer.increment_enrollment"),
+            patch("apps.applications.duplicate_checker.DuplicateChecker.check_at_submit") as mock_duplicate_check,
+            patch("apps.applications.eligibility_engine.EligibilityEngine.evaluate") as mock_eligibility,
+            patch("apps.applications.models.ApplicationDraft.objects") as mock_draft_objects,
+            patch("apps.applications.views.dispatch_event"),
         ):
             mock_app_qs.get.return_value = mock_app
             mock_app_qs.select_for_update.return_value.get.return_value = mock_app
             mock_payment_qs.filter.return_value.exists.return_value = has_payment
             mock_doc_qs.filter.return_value.exists.return_value = True
             mock_transition.return_value = "draft"
+            mock_intake_check.return_value = MagicMock(allowed=True)
+            mock_duplicate_check.return_value = MagicMock(has_duplicate=False)
+            mock_eligibility.return_value = MagicMock(status="eligible", score=100, missing_requirements=[])
+            mock_draft_objects.filter.return_value.update.return_value = 1
             mock_txn.atomic.return_value.__enter__ = MagicMock(return_value=None)
             mock_txn.atomic.return_value.__exit__ = MagicMock(return_value=False)
 

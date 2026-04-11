@@ -220,10 +220,26 @@ class JWTAuthenticationMiddleware:
     def __call__(self, request):
         token = self._extract_token(request)
         if token:
-            user = self._authenticate(token)
+            user = self._authenticate(token, request)
             if user is not None:
                 request.user = user
-        return self.get_response(request)
+
+        response = self.get_response(request)
+
+        # If the token was present but expired, the downstream DRF permission
+        # class will see AnonymousUser and return 403.  Convert that to 401 so
+        # the frontend's refresh-token interceptor fires correctly.
+        if getattr(request, "_jwt_expired", False) and response.status_code == 403:
+            response = JsonResponse(
+                {
+                    "success": False,
+                    "error": "Access token has expired",
+                    "code": "TOKEN_EXPIRED",
+                },
+                status=401,
+            )
+
+        return response
 
     # ------------------------------------------------------------------
     # Token extraction
@@ -245,7 +261,7 @@ class JWTAuthenticationMiddleware:
     # Token validation (stateless — no DB queries)
     # ------------------------------------------------------------------
 
-    def _authenticate(self, token: str):
+    def _authenticate(self, token: str, request=None):
         """Decode *token* and return a ``JWTUser``, or *None* on failure."""
         import jwt as pyjwt
 
@@ -259,7 +275,9 @@ class JWTAuthenticationMiddleware:
         try:
             payload = pyjwt.decode(token, signing_key, algorithms=[algorithm])
         except pyjwt.ExpiredSignatureError:
-            # Expired tokens are expected; pass through silently.
+            # Flag the request so __call__ can convert 403 → 401.
+            if request is not None:
+                request._jwt_expired = True
             return None
         except pyjwt.InvalidTokenError as exc:
             logger.warning("Invalid JWT token in middleware: %s", exc)

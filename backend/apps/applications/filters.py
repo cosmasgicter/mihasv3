@@ -11,19 +11,20 @@ from apps.applications.models import Application
 
 
 class ApplicationFilter(django_filters.FilterSet):
-    """Filter applications by status, payment_status, program, institution, search."""
+    """Filter applications by status, payment_status, program, intake, institution, search."""
 
     status = django_filters.CharFilter(field_name="status", lookup_expr="iexact")
     payment = django_filters.CharFilter(field_name="payment_status", lookup_expr="iexact")
     payment_status = django_filters.CharFilter(field_name="payment_status", lookup_expr="iexact")
     program = django_filters.CharFilter(field_name="program", lookup_expr="icontains")
+    intake = django_filters.CharFilter(field_name="intake", lookup_expr="icontains")
     institution = django_filters.CharFilter(field_name="institution", lookup_expr="icontains")
     search = django_filters.CharFilter(method="filter_search")
     sort = django_filters.CharFilter(method="filter_sort")
 
     class Meta:
         model = Application
-        fields = ["status", "payment", "payment_status", "program", "institution"]
+        fields = ["status", "payment", "payment_status", "program", "intake", "institution"]
 
     def filter_search(self, queryset, name, value):
         """Search by full_name or email (case-insensitive)."""

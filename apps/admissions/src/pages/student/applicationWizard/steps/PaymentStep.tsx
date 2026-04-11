@@ -65,6 +65,13 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [initiateError, setInitiateError] = useState<string | null>(null)
   const retryRef = useRef<HTMLButtonElement>(null)
+  const paymentStatusRef = useRef<PaymentStatus>('idle')
+
+  const updatePaymentStatus = useCallback((status: PaymentStatus, message: string | null = null) => {
+    paymentStatusRef.current = status
+    setPaymentStatus(status)
+    setStatusMessage(message)
+  }, [])
 
   // Focus retry button when payment fails (Req 15.2)
   useEffect(() => {
@@ -76,16 +83,13 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
   // Sync polled status into local state
   useEffect(() => {
     if (polledStatus === 'successful') {
-      setPaymentStatus('successful')
-      setStatusMessage('Payment confirmed.')
+      updatePaymentStatus('successful', 'Payment confirmed.')
     } else if (polledStatus === 'failed') {
-      setPaymentStatus('failed')
-      setStatusMessage('Payment failed. You can retry.')
-    } else if (polledStatus === 'pending' && paymentStatus === 'idle') {
-      setPaymentStatus('pending')
-      setStatusMessage('Payment is being confirmed\u2026')
+      updatePaymentStatus('failed', 'Payment failed. You can retry.')
+    } else if (polledStatus === 'pending' && paymentStatusRef.current === 'idle') {
+      updatePaymentStatus('pending', 'Payment is being confirmed\u2026')
     }
-  }, [polledStatus, paymentStatus])
+  }, [polledStatus, updatePaymentStatus])
 
   const handlePayNow = useCallback(async () => {
     if (!applicationId) {
@@ -93,8 +97,7 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
       return
     }
     setInitiateError(null)
-    setPaymentStatus('initiating')
-    setStatusMessage(null)
+    updatePaymentStatus('initiating')
 
     try {
       const data = await apiClient.request<InitiateResponse>(
@@ -121,43 +124,37 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
         customerLastName: lastName,
         customerPhone: phone || undefined,
         onSuccess: async () => {
-          setPaymentStatus('pending')
-          setStatusMessage('Verifying payment\u2026')
+          updatePaymentStatus('pending', 'Verifying payment\u2026')
           try {
             const verifyPath = `/payments/${encodeURIComponent(payment_id)}/verify/`
             const v = await apiClient.request<VerifyResponse>(verifyPath, { method: 'POST' })
             if (v?.status === 'successful') {
-              setPaymentStatus('successful')
-              setStatusMessage('Payment confirmed.')
+              updatePaymentStatus('successful', 'Payment confirmed.')
             } else if (v?.status === 'failed') {
-              setPaymentStatus('failed')
-              setStatusMessage('Payment could not be verified. You can retry.')
+              updatePaymentStatus('failed', 'Payment could not be verified. You can retry.')
             } else {
-              setPaymentStatus('pending')
-              setStatusMessage('Payment is being confirmed. Stay on this step until the confirmation finishes.')
+              updatePaymentStatus('pending', 'Payment is being confirmed. Stay on this step until the confirmation finishes.')
             }
           } catch {
-            setPaymentStatus('pending')
-            setStatusMessage('Payment is being confirmed. Stay on this step until the confirmation finishes.')
+            updatePaymentStatus('pending', 'Payment is being confirmed. Stay on this step until the confirmation finishes.')
           }
         },
         onConfirmationPending: () => {
-          setPaymentStatus('pending')
-          setStatusMessage('Payment is being confirmed. Stay on this step until the confirmation finishes.')
+          updatePaymentStatus('pending', 'Payment is being confirmed. Stay on this step until the confirmation finishes.')
         },
         onClose: () => {
-          if (paymentStatus !== 'successful' && paymentStatus !== 'pending') {
-            setPaymentStatus('idle')
-            setStatusMessage('Payment not completed. You can retry when ready.')
+          const latestStatus = paymentStatusRef.current
+          if (latestStatus !== 'successful' && latestStatus !== 'pending') {
+            updatePaymentStatus('idle', 'Payment not completed. You can retry when ready.')
           }
         },
       })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to initiate payment'
       setInitiateError(message)
-      setPaymentStatus('idle')
+      updatePaymentStatus('idle')
     }
-  }, [applicationId, openWidget, watch, paymentStatus])
+  }, [applicationId, openWidget, watch, updatePaymentStatus])
 
   const canPay =
     isScriptLoaded &&
@@ -168,7 +165,7 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
   return (
     <SectionCard
       title={title}
-      description="Complete your application fee payment to proceed."
+      description="Pay the application fee to continue."
       icon={<CreditCard className="h-5 w-5" />}
       className={animateClasses.fadeIn}
       contentClassName="space-y-6"

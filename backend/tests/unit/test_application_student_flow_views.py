@@ -3,12 +3,14 @@
 import uuid
 from unittest.mock import MagicMock, patch
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from apps.accounts.authentication import JWTUser
 from apps.applications.services import ApplicationSubmissionError
-from apps.applications.views import ApplicationInterviewListView, ApplicationSubmitView
+from apps.applications.views import ApplicationDetailView, ApplicationGradesView, ApplicationInterviewListView, ApplicationSubmitView
+from apps.documents.views import DocumentUploadView
 
 
 def _make_user(user_id=None, role="student"):
@@ -181,3 +183,86 @@ class TestApplicationInterviewListView:
         assert response.status_code == 200
         queryset.filter.assert_not_called()
         queryset.order_by.assert_called_once_with("scheduled_at", "-created_at")
+
+
+class TestStudentPostSubmissionMutationGuards:
+    def setup_method(self):
+        self.factory = APIRequestFactory()
+
+    @patch("apps.applications.views.IsOwnerOrAdmin")
+    @patch("apps.applications.views._with_payment_summary")
+    def test_student_cannot_delete_submitted_application(self, mock_with_payment_summary, mock_permission):
+        user_id = uuid.uuid4()
+        app_id = uuid.uuid4()
+        student = _student_user(user_id=user_id)
+        application = _make_application(app_id=app_id, status="submitted", user_id=user_id)
+
+        mock_with_payment_summary.return_value.get.return_value = application
+        mock_permission.return_value.has_object_permission.return_value = True
+
+        request = _auth_request(
+            self.factory,
+            "delete",
+            f"/api/v1/applications/{app_id}/",
+            student,
+        )
+        response = ApplicationDetailView.as_view()(request, application_id=app_id)
+
+        assert response.status_code == 403
+        assert response.data["code"] == "APPLICATION_NOT_EDITABLE"
+
+    @patch("apps.applications.views.IsOwnerOrAdmin")
+    @patch("apps.applications.views.Application.objects")
+    def test_student_cannot_update_grades_after_submission(self, mock_app_objects, mock_permission):
+        user_id = uuid.uuid4()
+        app_id = uuid.uuid4()
+        student = _student_user(user_id=user_id)
+        application = _make_application(app_id=app_id, status="submitted", user_id=user_id)
+
+        mock_app_objects.get.return_value = application
+        mock_permission.return_value.has_object_permission.return_value = True
+
+        request = _auth_request(
+            self.factory,
+            "post",
+            f"/api/v1/applications/{app_id}/grades/",
+            student,
+            data={"grades": [{"subject_id": str(uuid.uuid4()), "grade": 1}]},
+            format="json",
+        )
+        response = ApplicationGradesView.as_view()(request, application_id=app_id)
+
+        assert response.status_code == 403
+        assert response.data["code"] == "APPLICATION_NOT_EDITABLE"
+
+    @patch("apps.applications.models.Application.objects")
+    def test_student_cannot_upload_document_after_submission(self, mock_app_objects):
+        user_id = uuid.uuid4()
+        app_id = uuid.uuid4()
+        student = _student_user(user_id=user_id)
+        application = _make_application(app_id=app_id, status="submitted", user_id=user_id)
+
+        mock_app_objects.filter.return_value.exists.return_value = True
+        mock_app_objects.get.return_value = application
+
+        uploaded_file = SimpleUploadedFile(
+            "nrc.pdf",
+            b"%PDF-1.4\n%test",
+            content_type="application/pdf",
+        )
+        request = _auth_request(
+            self.factory,
+            "post",
+            "/api/v1/documents/upload/",
+            student,
+            data={
+                "application_id": str(app_id),
+                "document_type": "nrc",
+                "file": uploaded_file,
+            },
+            format="multipart",
+        )
+        response = DocumentUploadView.as_view()(request)
+
+        assert response.status_code == 403
+        assert response.data["code"] == "APPLICATION_NOT_EDITABLE"

@@ -2,6 +2,7 @@ import type { ApplicationSlipData } from './applicationSlip'
 import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
 import { logger } from '@/lib/logger'
 import { sanitizeForLog } from './security'
+import { apiClient } from '@/services/client'
 
 export interface SlipServiceOptions {
   sendEmail?: boolean
@@ -89,7 +90,24 @@ export async function createApplicationSlip(
         emailError = 'Missing applicant email address'
         toast?.showError?.('Email not sent', 'No email address was available to send the application slip.')
       } else {
-        emailError = 'Application slip email delivery is not implemented in the Django backend yet'
+        try {
+          const response = await apiClient.request<{ queued_id: string }>(
+            `/applications/${data.application_id}/email-slip/`,
+            {
+              method: 'POST',
+              body: JSON.stringify({ email: data.email }),
+            }
+          )
+          if (response?.queued_id) {
+            emailed = true
+            queuedId = response.queued_id
+            toast?.showSuccess?.('Email queued', 'Your application slip will be sent shortly.')
+          }
+        } catch (emailErr) {
+          emailError = emailErr instanceof Error ? emailErr.message : 'Failed to send application slip email'
+          logger.warn('[slipService] Email slip failed, falling back to download:', emailError)
+          toast?.showWarning?.('Email not sent', 'We could not email your slip. You can still download it below.')
+        }
       }
     }
 
