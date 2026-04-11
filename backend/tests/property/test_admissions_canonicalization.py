@@ -821,7 +821,7 @@ class TestDuplicatePreventionAtCreateTime(SimpleTestCase):
         self.assertEqual(result.existing_id, str(existing_id))
         self.assertEqual(result.existing_status, existing_status)
         self.assertEqual(
-            result.resume_url, f"/student/applications/{existing_id}"
+            result.resume_url, f"/student/application/{existing_id}"
         )
 
     @given(

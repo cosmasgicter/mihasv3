@@ -1,6 +1,10 @@
 # backend/apps/applications/identifier_resolver.py
 
 from dataclasses import dataclass
+from uuid import UUID
+
+from django.core.exceptions import ValidationError
+
 from apps.catalog.models import Institution, Intake, Program
 
 
@@ -16,8 +20,23 @@ class IdentifierResolver:
     """Resolves mixed name/code identifiers to canonical catalog records."""
 
     @staticmethod
+    def _looks_like_uuid(value: str) -> bool:
+        try:
+            UUID(str(value))
+            return True
+        except (TypeError, ValueError, AttributeError):
+            return False
+
+    @staticmethod
     def resolve_program(value: str) -> ResolvedIdentifier:
-        """Try name first, then code. Returns canonical name."""
+        """Try UUID id first when applicable, then name, then code."""
+        if IdentifierResolver._looks_like_uuid(value):
+            try:
+                prog = Program.objects.filter(id=value, is_active=True).first()
+                if prog:
+                    return ResolvedIdentifier(str(prog.id), prog.code, prog.name, "id")
+            except (ValidationError, ValueError):
+                pass
         prog = Program.objects.filter(name=value, is_active=True).first()
         if prog:
             return ResolvedIdentifier(str(prog.id), prog.code, prog.name, "name")
@@ -42,7 +61,14 @@ class IdentifierResolver:
 
     @staticmethod
     def resolve_intake(value: str) -> ResolvedIdentifier:
-        """Try name first against active Intake records."""
+        """Try UUID id first when applicable, then name against active Intake records."""
+        if IdentifierResolver._looks_like_uuid(value):
+            try:
+                intake = Intake.objects.filter(id=value, is_active=True).first()
+                if intake:
+                    return ResolvedIdentifier(str(intake.id), "", intake.name, "id")
+            except (ValidationError, ValueError):
+                pass
         intake = Intake.objects.filter(name=value, is_active=True).first()
         if intake:
             return ResolvedIdentifier(str(intake.id), "", intake.name, "name")

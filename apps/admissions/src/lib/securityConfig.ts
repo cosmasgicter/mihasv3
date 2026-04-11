@@ -20,6 +20,13 @@ export const CSP_CONFIG = {
   'style-src': [
     "'self'",
     "'unsafe-inline'", // Required for Tailwind CSS
+    "data:",
+    "https://fonts.googleapis.com"
+  ],
+  'style-src-elem': [
+    "'self'",
+    "'unsafe-inline'",
+    "data:",
     "https://fonts.googleapis.com"
   ],
   'font-src': [

@@ -163,6 +163,83 @@ class PaymentService:
             currency=resolved.currency,
         )
 
+    def review_application_payment(
+        self,
+        *,
+        application_id: UUID,
+        payment_status: str,
+        reviewed_by_id: str,
+        notes: str = "",
+    ) -> Application:
+        """Apply an admin payment review against the canonical payment record.
+
+        Admin review may override the latest payment record, but it must not
+        update only ``Application.payment_status`` when a payment record exists.
+        This keeps application summary state aligned with the payment ledger.
+        """
+        from django.db import transaction
+
+        payment_status_map = {
+            'pending_review': 'pending',
+            'verified': 'successful',
+            'rejected': 'failed',
+        }
+        target_payment_status = payment_status_map.get(payment_status)
+
+        with transaction.atomic():
+            application = Application.objects.select_for_update().get(id=application_id)
+            latest_payment = (
+                Payment.objects.select_for_update()
+                .filter(application_id=application_id)
+                .order_by('-created_at')
+                .first()
+            )
+
+            if target_payment_status and latest_payment is None:
+                raise ValueError("PAYMENT_RECORD_REQUIRED")
+
+            now = timezone.now()
+
+            if latest_payment is not None and target_payment_status:
+                metadata = latest_payment.metadata or {}
+                metadata['admin_review'] = {
+                    'status': payment_status,
+                    'reviewed_by': reviewed_by_id,
+                    'reviewed_at': now.isoformat(),
+                    'notes': notes,
+                }
+                latest_payment.status = target_payment_status
+                latest_payment.metadata = metadata
+                latest_payment.notes = notes or latest_payment.notes
+                latest_payment.verified_by_id = (
+                    reviewed_by_id if payment_status == 'verified' else latest_payment.verified_by_id
+                )
+                latest_payment.verified_at = now if payment_status == 'verified' else latest_payment.verified_at
+                latest_payment.updated_at = now
+                latest_payment.save(update_fields=[
+                    'status',
+                    'metadata',
+                    'notes',
+                    'verified_by',
+                    'verified_at',
+                    'updated_at',
+                ])
+
+            application.payment_status = payment_status
+            if notes:
+                application.admin_feedback = notes
+                application.admin_feedback_date = now
+                application.admin_feedback_by_id = reviewed_by_id
+            application.updated_at = now
+            application.save(update_fields=[
+                'payment_status',
+                'admin_feedback',
+                'admin_feedback_date',
+                'admin_feedback_by',
+                'updated_at',
+            ])
+            return application
+
     def verify_payment(self, payment_id: UUID) -> PaymentVerificationResult:
         """Call the Lenco API to verify payment status and update records.
 

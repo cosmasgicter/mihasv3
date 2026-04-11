@@ -9,6 +9,8 @@ Requirements: 6.1, 6.2, 5.7, 6.5
 from dataclasses import dataclass
 from decimal import Decimal
 
+from django.core.exceptions import ValidationError
+
 from apps.catalog.models import Program
 from apps.documents.models import ProgramFee
 
@@ -30,7 +32,7 @@ class ResolvedFee:
 
 
 class FeeResolver:
-    """Resolves the application fee for a given program code and student residency."""
+    """Resolves the application fee for a given program identifier and residency."""
 
     @staticmethod
     def _classify_residency(
@@ -54,12 +56,18 @@ class FeeResolver:
         1. Determine residency: 'local' if nationality == 'Zambian' or
            country in ('Zambia', 'ZM'), else 'international'.
         2. Look up an active ``ProgramFee`` for (program.id, 'application',
-           residency) via the program code.
+           residency) via program id, name, or code.
         3. Fallback to ``program.application_fee`` with currency ZMW.
 
-        Raises ``Program.DoesNotExist`` when *program_code* matches no program.
+        Raises ``Program.DoesNotExist`` when *program_code* matches no active program.
         """
-        program = Program.objects.get(code=program_code)
+        try:
+            program = Program.objects.get(code=program_code, is_active=True)
+        except Program.DoesNotExist:
+            try:
+                program = Program.objects.get(id=program_code, is_active=True)
+            except (Program.DoesNotExist, ValidationError, ValueError):
+                program = Program.objects.get(name=program_code, is_active=True)
         residency = self._classify_residency(nationality, country)
 
         program_fee = (

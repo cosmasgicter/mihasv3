@@ -8,6 +8,23 @@ export interface DuplicateCheckResult {
   message?: string
 }
 
+type DuplicateCheckIdentity = string | {
+  id?: string
+  label: string
+}
+
+function normalizeIdentity(identity: DuplicateCheckIdentity) {
+  if (typeof identity === 'string') {
+    return { id: undefined, label: identity }
+  }
+
+  return identity
+}
+
+function normalizeKey(value?: string) {
+  return value?.trim().toLowerCase() || ''
+}
+
 /**
  * Check for duplicate applications by querying the backend with targeted
  * filters instead of fetching all applications and filtering client-side.
@@ -20,28 +37,49 @@ export interface DuplicateCheckResult {
  */
 export async function checkDuplicateApplication(
   userId: string,
-  program: string,
-  intake: string
+  program: DuplicateCheckIdentity,
+  intake: DuplicateCheckIdentity
 ): Promise<DuplicateCheckResult> {
+  void userId
   try {
-    // Query backend for the user's non-terminal applications matching program+intake
+    const nonTerminalStatuses = new Set(['draft', 'submitted', 'under_review', 'approved', 'waitlisted'])
+    const programIdentity = normalizeIdentity(program)
+    const intakeIdentity = normalizeIdentity(intake)
+    const normalizedPrograms = new Set([
+      normalizeKey(programIdentity.label),
+      normalizeKey(programIdentity.id),
+    ].filter(Boolean))
+    const normalizedIntakes = new Set([
+      normalizeKey(intakeIdentity.label),
+      normalizeKey(intakeIdentity.id),
+    ].filter(Boolean))
+
+    // Query backend for likely program matches, then perform exact workflow
+    // filtering client-side so this remains advisory even if API filters differ.
     const result = await applicationService.list({
       mine: true,
-      program,
-      intake,
-      status: 'draft,submitted,under_review,approved,waitlisted',
-      pageSize: 1,
+      program: programIdentity.label,
+      pageSize: 50,
     })
 
     const applications = result?.applications ?? []
+    const existing = applications.find((application) => {
+      const status = String(application.status ?? '').toLowerCase()
+      const candidateProgram = String(application.program ?? '').trim().toLowerCase()
+      const candidateIntake = String(application.intake ?? '').trim().toLowerCase()
+      return (
+        nonTerminalStatuses.has(status) &&
+        normalizedPrograms.has(candidateProgram) &&
+        normalizedIntakes.has(candidateIntake)
+      )
+    })
 
-    if (applications.length > 0) {
-      const existing = applications[0]!
+    if (existing) {
       return {
         hasDuplicate: true,
         existingApplicationId: existing.id,
         existingStatus: existing.status,
-        resumeUrl: `/student/applications/${existing.id}`,
+        resumeUrl: `/student/application/${existing.id}`,
         message: `You already have a ${existing.status} application (#${existing.application_number || existing.id?.slice(0, 8)}) for this program and intake.`,
       }
     }

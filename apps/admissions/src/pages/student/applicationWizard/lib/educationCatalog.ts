@@ -48,15 +48,16 @@ const ELECTIVE_SUBJECTS: Grade12Subject[] = [
 ]
 
 const ZAMBIA_SUBJECT_FALLBACKS: Grade12Subject[] = [...CORE_SUBJECTS, ...ELECTIVE_SUBJECTS]
+const BACKEND_SUBJECT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 export const EDUCATION_UPLOAD_COPY: Record<'resultSlip' | 'identityDocument', EducationUploadCopy> = {
   resultSlip: {
-    label: 'Result Slip',
-    helperText: 'Upload a clear scan or photo of your Grade 12 result slip.'
+    label: 'Result slip',
+    helperText: 'Grade 12 result slip.'
   },
   identityDocument: {
-    label: 'Identity document (NRC or Passport)',
-    helperText: 'Upload a clear NRC or passport copy only if you want to support identity verification or admissions asks for it.'
+    label: 'NRC or passport',
+    helperText: 'NRC or passport copy.'
   }
 }
 
@@ -77,24 +78,55 @@ function toCanonicalSubject(subject: Grade12Subject): Grade12Subject {
   }
 }
 
+function isBackendSubjectId(value: string): boolean {
+  return BACKEND_SUBJECT_ID_PATTERN.test(value)
+}
+
+const FALLBACK_SUBJECT_BY_ID = new Map(
+  ZAMBIA_SUBJECT_FALLBACKS.map(subject => [subject.id, subject])
+)
+
+const FALLBACK_SUBJECT_BY_NAME = new Map(
+  ZAMBIA_SUBJECT_FALLBACKS.map(subject => [normalizeSubjectName(subject.name), subject])
+)
+
 export function mergeWizardSubjects(subjects: Grade12Subject[]): Grade12Subject[] {
   const byName = new Map<string, Grade12Subject>()
 
-  for (const subject of ZAMBIA_SUBJECT_FALLBACKS) {
-    byName.set(normalizeSubjectName(subject.name), toCanonicalSubject(subject))
-  }
-
   for (const subject of subjects) {
     const canonical = toCanonicalSubject(subject)
+    if (!isBackendSubjectId(canonical.id)) continue
     const key = normalizeSubjectName(canonical.name)
     if (!key) continue
-    const existing = byName.get(key)
+    const fallback = FALLBACK_SUBJECT_BY_NAME.get(key)
     byName.set(key, {
       id: canonical.id,
-      name: existing?.name || canonical.name,
-      code: canonical.code || existing?.code || '',
+      name: fallback?.name || canonical.name,
+      code: canonical.code || fallback?.code || '',
     })
   }
 
   return Array.from(byName.values()).sort((left, right) => left.name.localeCompare(right.name))
+}
+
+export function resolveWizardSubjectId(value: string | undefined | null, subjects: Grade12Subject[]): string {
+  const trimmed = value?.trim() || ''
+  if (!trimmed) return ''
+
+  if (isBackendSubjectId(trimmed)) {
+    return trimmed
+  }
+
+  const fallbackSubject = FALLBACK_SUBJECT_BY_ID.get(trimmed)
+  const fallbackCode = fallbackSubject?.code.trim().toUpperCase()
+  const normalizedLookup = normalizeSubjectName(fallbackSubject?.name || trimmed)
+
+  const match = subjects.find(subject => {
+    if (!isBackendSubjectId(subject.id)) return false
+    const normalizedName = normalizeSubjectName(subject.name)
+    const normalizedCode = subject.code.trim().toUpperCase()
+    return normalizedName === normalizedLookup || (Boolean(fallbackCode) && normalizedCode === fallbackCode)
+  })
+
+  return match?.id || ''
 }

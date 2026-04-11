@@ -342,13 +342,10 @@ class ApplicationSessionManager {
   // Delete draft with comprehensive cleanup
   async deleteDraft(userId: string): Promise<{ success: boolean; error?: string }> {
     try {
-      // Step 1: Clear all local storage immediately (most important for UI)
-      this.clearAllLocalStorage()
-
-      // Step 2: Clear intervals to stop auto-save
+      // Step 1: Clear intervals to stop auto-save before server deletion.
       this.cleanup()
 
-      // Step 3: Database cleanup via API (delete actual draft application ids, not the user id)
+      // Step 2: Database cleanup via API (delete actual draft application ids, not the user id)
       try {
         const draftList = await applicationService.list({
           mine: true,
@@ -371,9 +368,16 @@ class ApplicationSessionManager {
           }
         }
       } catch (cleanupError) {
+        return {
+          success: false,
+          error: cleanupError instanceof Error ? sanitizeForLog(cleanupError.message) : 'Failed to delete drafts from the server'
+        }
       }
 
-      // Step 4: Set deletion flag for other components
+      // Step 3: Clear browser storage only after server cleanup succeeds.
+      this.clearAllLocalStorage()
+
+      // Step 4: Set deletion flag for other components.
       try {
         sessionStorage.setItem('draftDeleted', 'true')
       } catch (storageError) {
@@ -382,8 +386,10 @@ class ApplicationSessionManager {
       return { success: true }
     } catch (error) {
       console.error('Draft deletion failed:', sanitizeForLog(error))
-      // Even if there's an error, we cleared local storage which is most important
-      return { success: true } // Return success since local cleanup worked
+      return {
+        success: false,
+        error: error instanceof Error ? sanitizeForLog(error.message) : 'Failed to delete draft'
+      }
     }
   }
 

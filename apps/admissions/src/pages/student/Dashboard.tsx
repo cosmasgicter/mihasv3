@@ -473,8 +473,6 @@ export default function StudentDashboard() {
     if (!confirmed) return
     setIsClearingAllDrafts(true)
     try {
-      clearAllDraftData()
-
       if (!user) {
         throw new Error('You must be signed in to clear drafts')
       }

@@ -29,4 +29,10 @@ describe('locationOptions', () => {
     expect(cities.some(option => option.value === 'Lusaka')).toBe(true)
     expect(cities.some(option => option.value === 'Kitwe')).toBe(true)
   })
+
+  it('does not fall back to Zambia city options for unknown typed countries', async () => {
+    const cities = await getCityOptionsForCountry('Not A Country')
+
+    expect(cities).toEqual([])
+  })
 })

@@ -262,131 +262,59 @@ const EducationStep = ({
           )}
         </fieldset>
 
-        {/* Document Uploads */}
         <fieldset className="border-none p-0 m-0">
           <legend className="sr-only">Document Uploads</legend>
-        <div className="rounded-2xl border border-border bg-muted/30 p-4 sm:p-5">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Document checklist</h3>
-              <p className="mt-2 text-sm text-foreground">
-                Keep academic evidence separate from identity support documents. The result slip is the main upload for this step; the identity document is only for supporting KYC verification when needed.
-              </p>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2 lg:min-w-[22rem]">
-              <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Required</p>
-                <p className="mt-1 text-sm font-medium text-blue-950">Academic result slip</p>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="flex h-full flex-col rounded-xl border border-border bg-card p-4 sm:p-5">
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">Result slip</h3>
+                  <p className="mt-1 text-xs text-muted-foreground">PDF, JPG or PNG. Max 10MB.</p>
+                </div>
+                <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${resultSlipStatus.className}`}>
+                  {resultSlipStatus.label}
+                </span>
               </div>
-              <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Required</p>
-                <p className="mt-1 text-sm font-medium text-blue-950">NRC or passport copy</p>
-              </div>
+              <FileUpload
+                label={EDUCATION_UPLOAD_COPY.resultSlip.label}
+                accept=".pdf,.jpg,.jpeg,.png"
+                maxSize={10 * 1024 * 1024}
+                onChange={(files) => handleResultSlipUpload(files as File | null)}
+                value={resultSlipFile}
+                uploading={uploadProgress.result_slip !== undefined && uploadProgress.result_slip < 100}
+                progress={uploadProgress.result_slip}
+                preview={uploadedFiles.result_slip && resultSlipFile ? {
+                  url: URL.createObjectURL(resultSlipFile),
+                  type: resultSlipFile.type.startsWith('image/') ? 'image' : 'pdf'
+                } : undefined}
+              />
             </div>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="flex h-full flex-col rounded-xl border border-border bg-card p-4">
-            <div className="mb-3 flex items-start justify-between gap-3">
-              <div>
-                <h3 className="text-sm font-semibold text-foreground">Academic document</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Upload your result slip here so the wizard can prefill your academic record accurately.
-                </p>
+            <div className="flex h-full flex-col rounded-xl border border-border bg-card p-4 sm:p-5">
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">NRC or passport</h3>
+                  <p className="mt-1 text-xs text-muted-foreground">PDF, JPG or PNG. Max 10MB.</p>
+                </div>
+                <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${identityStatus.className}`}>
+                  {identityStatus.label}
+                </span>
               </div>
-              <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700">
-                Required
-              </span>
+              <FileUpload
+                label={EDUCATION_UPLOAD_COPY.identityDocument.label}
+                accept=".pdf,.jpg,.jpeg,.png"
+                maxSize={10 * 1024 * 1024}
+                onChange={(files) => handleExtraKycUpload(files as File | null)}
+                value={extraKycFile}
+                uploading={uploadProgress.extra_kyc !== undefined && uploadProgress.extra_kyc < 100}
+                progress={uploadProgress.extra_kyc}
+                preview={uploadedFiles.extra_kyc && extraKycFile ? {
+                  url: URL.createObjectURL(extraKycFile),
+                  type: extraKycFile.type.startsWith('image/') ? 'image' : 'pdf'
+                } : undefined}
+              />
             </div>
-            <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Upload status</p>
-                <p className="mt-1 text-sm font-medium text-foreground">
-                  {resultSlipFile?.name || 'No result slip selected yet'}
-                </p>
-              </div>
-              <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${resultSlipStatus.className}`}>
-                {resultSlipStatus.label}
-              </span>
-            </div>
-            <div className="mb-3">
-              <p className="mt-1 text-sm text-muted-foreground">
-                Use this slot for your examination result slip only. The upload is used to extract subject names and grades automatically.
-              </p>
-            </div>
-            <div
-              className={`mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg ${animateClasses.slideUp}`}
-            >
-              <p className="text-sm text-blue-900">
-                ✨ <strong>Auto-fill enabled:</strong> Upload your result slip and grades will be automatically extracted.
-              </p>
-            </div>
-            <FileUpload
-              label={EDUCATION_UPLOAD_COPY.resultSlip.label}
-              accept=".pdf,.jpg,.jpeg,.png"
-              maxSize={10 * 1024 * 1024}
-              onChange={(files) => handleResultSlipUpload(files as File | null)}
-              value={resultSlipFile}
-              uploading={uploadProgress.result_slip !== undefined && uploadProgress.result_slip < 100}
-              progress={uploadProgress.result_slip}
-              preview={uploadedFiles.result_slip && resultSlipFile ? {
-                url: URL.createObjectURL(resultSlipFile),
-                type: resultSlipFile.type.startsWith('image/') ? 'image' : 'pdf'
-              } : undefined}
-            />
           </div>
-
-          <div className="flex h-full flex-col rounded-xl border border-border bg-card p-4">
-            <div className="mb-3 flex items-start justify-between gap-3">
-              <div>
-                <h3 className="text-sm font-semibold text-foreground">Identity document</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Upload a clear NRC or passport copy. This is required before you can submit your application.
-                </p>
-              </div>
-              <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700">
-                Required
-              </span>
-            </div>
-            <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Upload status</p>
-                <p className="mt-1 text-sm font-medium text-foreground">
-                  {extraKycFile?.name || 'No identity support document selected'}
-                </p>
-              </div>
-              <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${identityStatus.className}`}>
-                {identityStatus.label}
-              </span>
-            </div>
-            <div className="mb-3">
-              <p className="mt-1 text-sm text-muted-foreground">
-                Upload a clear NRC or passport copy. This is required for identity verification before submission.
-              </p>
-            </div>
-            <div
-              className={`mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg ${animateClasses.slideUp}`}
-            >
-              <p className="text-sm text-blue-900">
-                An NRC or passport document is required before you can submit your application. Please upload a clear copy.
-              </p>
-            </div>
-            <FileUpload
-              label={EDUCATION_UPLOAD_COPY.identityDocument.label}
-              accept=".pdf,.jpg,.jpeg,.png"
-              maxSize={10 * 1024 * 1024}
-              onChange={(files) => handleExtraKycUpload(files as File | null)}
-              value={extraKycFile}
-              uploading={uploadProgress.extra_kyc !== undefined && uploadProgress.extra_kyc < 100}
-              progress={uploadProgress.extra_kyc}
-              preview={uploadedFiles.extra_kyc && extraKycFile ? {
-                url: URL.createObjectURL(extraKycFile),
-                type: extraKycFile.type.startsWith('image/') ? 'image' : 'pdf'
-              } : undefined}
-            />
-          </div>
-        </div>
         </fieldset>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { FileText, Sparkles, CreditCard, Send, type LucideIcon } from 'lucide-react'
+import { FileText, GraduationCap, CreditCard, Send, type LucideIcon } from 'lucide-react'
 
 export type StepKey = 'basicKyc' | 'education' | 'payment' | 'submit'
 
@@ -16,9 +16,9 @@ export const wizardSteps: WizardStepConfig[] = [
   {
     id: 1,
     key: 'basicKyc',
-    progressTitle: 'Basic Info',
-    title: 'Step 1: Basic KYC Information',
-    description: 'Provide your personal details and select your program',
+    progressTitle: 'Personal',
+    title: 'Personal details',
+    description: 'Select your programme and confirm your details.',
     icon: FileText,
     nextButtonLabel: 'Next Step'
   },
@@ -26,17 +26,17 @@ export const wizardSteps: WizardStepConfig[] = [
     id: 2,
     key: 'education',
     progressTitle: 'Education',
-    title: 'Step 2: Education & Documents',
-    description: 'Enter your grades and upload required documents',
-    icon: Sparkles,
+    title: 'Education',
+    description: 'Add grades and upload documents.',
+    icon: GraduationCap,
     nextButtonLabel: 'Next Step'
   },
   {
     id: 3,
     key: 'payment',
     progressTitle: 'Payment',
-    title: 'Step 3: Application Fee Payment',
-    description: 'Complete your application fee payment via the secure Lenco gateway',
+    title: 'Payment',
+    description: 'Pay the application fee.',
     icon: CreditCard,
     nextButtonLabel: 'Next Step'
   },
@@ -44,8 +44,8 @@ export const wizardSteps: WizardStepConfig[] = [
     id: 4,
     key: 'submit',
     progressTitle: 'Review',
-    title: 'Step 4: Review & Submit',
-    description: 'Review your application and submit for processing',
+    title: 'Review',
+    description: 'Confirm and submit.',
     icon: Send,
     nextButtonLabel: 'Submit Application'
   }

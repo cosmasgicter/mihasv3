@@ -829,6 +829,61 @@ class ApiClient {
           throw csrfEnhancedError;
         }
 
+        // 403 auth-failure intercept (defense-in-depth for expired JWT → 403):
+        // When the backend returns 403 with TOKEN_EXPIRED code, or a non-CSRF 403
+        // on a GET request to a non-auth-excluded endpoint, attempt a token refresh
+        // before treating it as a permanent failure. This handles edge cases where
+        // the backend middleware hasn't converted 403→401 yet.
+        if (
+          response.status === 403 &&
+          !this.isAuthExcludedEndpoint(normalizedEndpoint) &&
+          (
+            errorCode === 'TOKEN_EXPIRED' ||
+            (method === 'GET' && errorCode !== 'CSRF_INVALID' && errorCode !== 'CSRF_MISSING' && errorCode !== 'CSRF_VALIDATION_FAILED')
+          )
+        ) {
+          logger.warn('[API Client] 403 auth-related error - attempting token refresh');
+          const refreshed = await this.attemptRefresh();
+
+          if (refreshed) {
+            // Refresh succeeded — retry the original request once
+            const retryResponse = await fetch(`${API_BASE}${normalizedEndpoint}`, {
+              ...restOptions,
+              method,
+              headers: requestHeaders,
+              credentials: 'include',
+              signal: timeoutController.signal,
+            });
+
+            const retryCsrf = retryResponse.headers.get('X-CSRF-Token');
+            if (retryCsrf) {
+              setCsrfToken(retryCsrf);
+            }
+
+            if (retryResponse.ok) {
+              const retryContentType = retryResponse.headers.get('content-type') ?? '';
+              if (retryContentType && !retryContentType.includes('application/json')) {
+                const rawBody = await retryResponse.text();
+                this.invalidateRelatedCaches(normalizedEndpoint, invalidateTargets);
+                return (rawBody || null) as TResponse | null;
+              }
+              const retryPayload = await this.parseJsonSafely<TResponse>(retryResponse, service, normalizedEndpoint);
+              this.invalidateRelatedCaches(normalizedEndpoint, invalidateTargets);
+              return this.unwrapApiResponse<TResponse>(retryPayload, retryContentType);
+            }
+
+            // Second failure after refresh — treat as auth failure
+            const authFailure = getOnAuthFailure();
+            if (authFailure) authFailure();
+            throw new AuthenticationError();
+          }
+
+          // Refresh failed — invoke onAuthFailure and throw
+          const authFailure = getOnAuthFailure();
+          if (authFailure) authFailure();
+          throw new AuthenticationError();
+        }
+
         // Create error with status for retry logic
         const statusError = new Error(errorMessage) as Error & { status: number };
         statusError.status = response.status;
@@ -902,6 +957,54 @@ class ApiClient {
       // Re-throw AuthenticationError as-is (already handled by 401 intercept logic)
       if (error instanceof AuthenticationError) {
         throw error;
+      }
+
+      // Defense-in-depth: handle 403 auth failures from GET requests (via fetchWithCache).
+      // fetchWithCache throws errors with status property for non-ok responses.
+      // If a GET request got a 403 without a CSRF error code, attempt refresh.
+      const errorStatus = (error as { status?: number })?.status;
+      if (
+        errorStatus === 403 &&
+        method === 'GET' &&
+        !this.isAuthExcludedEndpoint(normalizedEndpoint)
+      ) {
+        logger.warn('[API Client] 403 on GET (via cache layer) - attempting token refresh');
+        const refreshed = await this.attemptRefresh();
+
+        if (refreshed) {
+          // Refresh succeeded — retry the GET request directly (bypass cache)
+          const retryResponse = await fetch(`${API_BASE}${normalizedEndpoint}`, {
+            method: 'GET',
+            headers: requestHeaders,
+            credentials: 'include',
+            signal: timeoutController.signal,
+          });
+
+          const retryCsrf = retryResponse.headers.get('X-CSRF-Token');
+          if (retryCsrf) {
+            setCsrfToken(retryCsrf);
+          }
+
+          if (retryResponse.ok) {
+            const retryContentType = retryResponse.headers.get('content-type') ?? '';
+            if (retryContentType && !retryContentType.includes('application/json')) {
+              const rawBody = await retryResponse.text();
+              return (rawBody || null) as TResponse | null;
+            }
+            const retryPayload = await this.parseJsonSafely<TResponse>(retryResponse, service, normalizedEndpoint);
+            return this.unwrapApiResponse<TResponse>(retryPayload, retryContentType);
+          }
+
+          // Second failure after refresh — treat as auth failure
+          const authFailure = getOnAuthFailure();
+          if (authFailure) authFailure();
+          throw new AuthenticationError();
+        }
+
+        // Refresh failed — invoke onAuthFailure and throw
+        const authFailure = getOnAuthFailure();
+        if (authFailure) authFailure();
+        throw new AuthenticationError();
       }
 
       // Enhance error if not already enhanced

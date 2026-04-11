@@ -24,7 +24,7 @@ class DuplicateChecker:
             status__in=NON_TERMINAL_STATUSES,
         ).first()
         if existing:
-            resume_url = f"/student/applications/{existing.id}"
+            resume_url = f"/student/application/{existing.id}"
             return DuplicateCheckResult(True, str(existing.id), existing.status, resume_url)
         return DuplicateCheckResult(False)
 
