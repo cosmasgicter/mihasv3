@@ -37,13 +37,66 @@ class IntakeEnforcer:
                 f"The application deadline ({intake.application_deadline.isoformat()}) has passed.",
             )
 
-        # Capacity check
-        if intake.max_capacity is not None and intake.current_enrollment is not None:
-            if intake.current_enrollment >= intake.max_capacity:
+        # Capacity check — use live count of non-rejected applications
+        if intake.max_capacity is not None:
+            from apps.applications.models import Application
+            live_count = Application.objects.filter(
+                intake=intake_name,
+                status__in=("submitted", "under_review", "approved", "waitlisted"),
+            ).count()
+            if live_count >= intake.max_capacity:
                 return IntakeCheckResult(False, "INTAKE_CAPACITY_REACHED",
-                    "This intake has reached maximum capacity.")
+                    f"This intake has reached maximum capacity ({live_count}/{intake.max_capacity}).")
 
         return IntakeCheckResult(True)
+
+    @staticmethod
+    def check_draft_creation(intake_name: str) -> IntakeCheckResult:
+        """Check if a draft can be created for this intake (deadline + open date)."""
+        from apps.applications.identifier_resolver import IdentifierResolver
+
+        intake_resolved = IdentifierResolver.resolve_intake(intake_name)
+        if intake_resolved.source == "not_found":
+            return IntakeCheckResult(True)
+
+        intake = Intake.objects.filter(id=intake_resolved.id).first()
+        if not intake:
+            return IntakeCheckResult(True)
+
+        today = date.today()
+
+        # Application start date check
+        if intake.application_start_date and today < intake.application_start_date:
+            return IntakeCheckResult(
+                False, "INTAKE_NOT_OPEN",
+                f"Applications for this intake open on {intake.application_start_date.isoformat()}.",
+            )
+
+        # Deadline check
+        if intake.application_deadline and today > intake.application_deadline:
+            return IntakeCheckResult(
+                False, "INTAKE_DEADLINE_PASSED",
+                f"The application deadline ({intake.application_deadline.isoformat()}) has passed.",
+            )
+
+        return IntakeCheckResult(True)
+
+    @staticmethod
+    def sync_enrollment(intake_name: str) -> None:
+        """Sync current_enrollment with actual count of non-rejected applications."""
+        from apps.applications.identifier_resolver import IdentifierResolver
+        from apps.applications.models import Application
+
+        resolved = IdentifierResolver.resolve_intake(intake_name)
+        if resolved.source == "not_found" or not resolved.id:
+            return
+
+        live_count = Application.objects.filter(
+            intake=intake_name,
+            status__in=("submitted", "under_review", "approved", "waitlisted"),
+        ).count()
+
+        Intake.objects.filter(id=resolved.id).update(current_enrollment=live_count)
 
     @staticmethod
     def increment_enrollment(intake_name: str) -> None:
@@ -54,6 +107,18 @@ class IntakeEnforcer:
         if resolved.source != "not_found" and resolved.id:
             Intake.objects.filter(id=resolved.id).update(
                 current_enrollment=F("current_enrollment") + 1
+            )
+
+    @staticmethod
+    def decrement_enrollment(intake_name: str) -> None:
+        """Atomically decrement current_enrollment (floor at 0)."""
+        from apps.applications.identifier_resolver import IdentifierResolver
+
+        resolved = IdentifierResolver.resolve_intake(intake_name)
+        if resolved.source != "not_found" and resolved.id:
+            from django.db.models.functions import Greatest
+            Intake.objects.filter(id=resolved.id).update(
+                current_enrollment=Greatest(F("current_enrollment") - 1, 0)
             )
 
     @staticmethod

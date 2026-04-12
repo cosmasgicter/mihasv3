@@ -121,6 +121,7 @@ interface UseWizardControllerResult {
   watchValues: () => WizardFormData
   goToStep: (index: number) => void
   refetchPaymentStatus: () => Promise<void>
+  setPaymentStatus: (status: 'pending' | 'successful' | 'failed' | null) => void
 }
 
 export interface PaymentValidationContext {
@@ -348,7 +349,11 @@ const useWizardController = (): UseWizardControllerResult => {
   const submitApplicationMutation = applicationsData.useSubmit()
   const syncGrades = applicationsData.useSyncGrades()
   const { data: draftApplications } = applicationsData.useList({ status: 'draft', mine: true, pageSize: 1 })
-  const { status: paymentStatus, refetch: refetchPaymentStatus } = usePaymentStatus(applicationId || '')
+  const {
+    status: paymentStatus,
+    refetch: refetchPaymentStatus,
+    setStatus: setPaymentStatus,
+  } = usePaymentStatus(applicationId || '')
 
   useEffect(() => {
     if (intakesData?.intakes) {
@@ -1905,7 +1910,8 @@ const useWizardController = (): UseWizardControllerResult => {
     saveDraft,
     watchValues: watch,
     goToStep,
-    refetchPaymentStatus
+    refetchPaymentStatus,
+    setPaymentStatus
   }
 }
 

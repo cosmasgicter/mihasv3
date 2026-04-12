@@ -43,6 +43,11 @@ export function usePaymentStatus(applicationId: string) {
   const intervalRef = useRef(INITIAL_INTERVAL)
   const statusRef = useRef<PaymentStatusValue>(null)
 
+  const updateStatus = useCallback((nextStatus: PaymentStatusValue) => {
+    statusRef.current = nextStatus
+    setStatus(nextStatus)
+  }, [])
+
   // Keep statusRef in sync so the scheduling closure always sees the latest value
   useEffect(() => {
     statusRef.current = status
@@ -65,7 +70,7 @@ export function usePaymentStatus(applicationId: string) {
         : (data as PaymentListResponse).results ?? []
 
       if (records.length === 0) {
-        setStatus(null)
+        updateStatus(null)
         return
       }
 
@@ -73,12 +78,12 @@ export function usePaymentStatus(applicationId: string) {
       const latest = records[0]
       const normalized = latest?.status?.toLowerCase() as PaymentStatusValue
       if (normalized === 'successful' || normalized === 'failed' || normalized === 'pending') {
-        setStatus(normalized)
+        updateStatus(normalized)
       }
     } catch {
       // Swallow — polling is best-effort
     }
-  }, [applicationId])
+  }, [applicationId, updateStatus])
 
   const clearPending = useCallback(() => {
     if (timeoutRef.current) {
@@ -120,7 +125,7 @@ export function usePaymentStatus(applicationId: string) {
     return () => {
       clearPending()
     }
-  }, [applicationId])
+  }, [applicationId, clearPending, fetchStatus, scheduleNext])
 
   // Stop polling when status becomes terminal
   useEffect(() => {
@@ -129,5 +134,5 @@ export function usePaymentStatus(applicationId: string) {
     }
   }, [status, clearPending])
 
-  return { status, refetch }
+  return { status, refetch, setStatus: updateStatus }
 }
