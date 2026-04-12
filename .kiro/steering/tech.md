@@ -221,17 +221,36 @@ Stagehand (`@browserbasehq/stagehand`) is installed at the monorepo root for AI-
 
 ### Integration Pattern
 
-- Stagehand runs in Node.js — use it from the frontend test suite or a dedicated worker script
-- For backend-triggered browser tasks, create a Node.js worker service that the Django backend calls via HTTP or a task queue
-- Requires a `BROWSERBASE_API_KEY` and `BROWSERBASE_PROJECT_ID` for cloud execution, or runs locally with a local Chromium instance
-- Environment variables: `BROWSERBASE_API_KEY`, `BROWSERBASE_PROJECT_ID` (add to `.env.example` when wiring up)
+- Stagehand runs in Node.js with `env: "LOCAL"` — uses a local Chromium instance, no Browserbase account needed
+- Requires an LLM API key (`OPENAI_API_KEY` or `ANTHROPIC_API_KEY`) for AI-driven page interaction
+- For E2E tests against the live site, point Stagehand at the production URL (`***REMOVED***`) so env variables and real behavior are exercised
+- For backend-triggered browser tasks, create a Node.js worker script that the Django backend calls via HTTP or a task queue
+- Environment variables: `OPENAI_API_KEY` (add to `.env.local` — already documented in `.env.example`)
+
+### Local Setup
+
+```typescript
+import { Stagehand } from "@browserbasehq/stagehand";
+
+const stagehand = new Stagehand({
+  env: "LOCAL",
+  model: "openai/gpt-4o",
+  localBrowserLaunchOptions: {
+    headless: false,  // set true for CI
+  },
+});
+
+await stagehand.init();
+const page = stagehand.context.pages()[0];
+await page.goto("***REMOVED***");
+```
 
 ### Commands
 
 | Command | Purpose |
 |---------|---------|
 | `bun add @browserbasehq/stagehand` | Already installed at monorepo root |
-| `npx @browserbasehq/stagehand init` | Scaffold a Stagehand project (if needed) |
+| `npx playwright install chromium` | Install local Chromium for Stagehand |
 
 ## Celery Beat Periodic Tasks
 
