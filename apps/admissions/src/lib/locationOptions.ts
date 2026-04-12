@@ -3,17 +3,63 @@ export interface LocationOption {
   label: string
 }
 
-type CountryRecord = {
-  name: string
-  isoCode: string
-}
-
 export const DEFAULT_RESIDENCE_COUNTRY = 'Zambia'
 
-let countriesPromise: Promise<CountryRecord[]> | null = null
 const cityOptionsCache = new Map<string, Promise<LocationOption[]>>()
 
 const normalizeKey = (value: string) => value.trim().toLowerCase()
+
+const FALLBACK_COUNTRY_CODES = [
+  'ZM', 'ZA', 'ZW', 'BW', 'MW', 'MZ', 'NA', 'TZ', 'KE', 'UG', 'RW', 'BI', 'CD',
+  'AO', 'NG', 'GH', 'ET', 'EG', 'US', 'GB', 'CA', 'AU', 'IN', 'CN', 'JP', 'DE',
+  'FR', 'IT', 'ES', 'BR', 'AE'
+]
+
+const ZAMBIA_CITY_NAMES = [
+  'Chililabombwe',
+  'Chingola',
+  'Chipata',
+  'Choma',
+  'Kabwe',
+  'Kafue',
+  'Kalulushi',
+  'Kapiri Mposhi',
+  'Kasama',
+  'Kitwe',
+  'Livingstone',
+  'Luanshya',
+  'Lusaka',
+  'Mansa',
+  'Mazabuka',
+  'Mongu',
+  'Mpika',
+  'Mufulira',
+  'Ndola',
+  'Solwezi',
+]
+
+function getSupportedRegionCodes(): string[] {
+  const supportedValuesOf = (Intl as unknown as { supportedValuesOf?: (key: string) => string[] }).supportedValuesOf
+  if (typeof supportedValuesOf === 'function') {
+    try {
+      const codes = supportedValuesOf('region').filter(code => /^[A-Z]{2}$/.test(code))
+      if (codes.length > 0) return codes
+    } catch {
+      // Fall back to a compact common-country list below.
+    }
+  }
+
+  return FALLBACK_COUNTRY_CODES
+}
+
+function getCountryNameFromCode(code: string): string | null {
+  try {
+    const displayNames = new Intl.DisplayNames(['en'], { type: 'region' })
+    return displayNames.of(code) || null
+  } catch {
+    return code === 'ZM' ? DEFAULT_RESIDENCE_COUNTRY : null
+  }
+}
 
 const sortOptions = (options: LocationOption[]) =>
   [...options].sort((a, b) => {
@@ -40,34 +86,6 @@ const uniqueOptions = (values: string[]) => {
   return options
 }
 
-async function loadCountries(): Promise<CountryRecord[]> {
-  if (!countriesPromise) {
-    countriesPromise = import('country-state-city')
-      .then(({ Country }) =>
-        Country.getAllCountries().map(country => ({
-          name: country.name,
-          isoCode: country.isoCode,
-        })),
-      )
-      .catch(() => [{ name: DEFAULT_RESIDENCE_COUNTRY, isoCode: 'ZM' }])
-  }
-
-  return countriesPromise
-}
-
-async function resolveCountryRecord(country?: string | null) {
-  const normalizedCountry = normalizeResidenceCountry(country)
-  const countries = await loadCountries()
-  const normalizedKey = normalizeKey(normalizedCountry)
-  const isDefaultCountry = normalizedKey === normalizeKey(DEFAULT_RESIDENCE_COUNTRY)
-
-  return (
-    countries.find(entry => normalizeKey(entry.name) === normalizedKey) ||
-    countries.find(entry => entry.isoCode.toLowerCase() === normalizedKey) ||
-    (isDefaultCountry ? countries.find(entry => entry.name === DEFAULT_RESIDENCE_COUNTRY) : undefined)
-  )
-}
-
 export function normalizeResidenceCountry(value?: string | null): string {
   if (typeof value !== 'string' || value.trim() === '') {
     return DEFAULT_RESIDENCE_COUNTRY
@@ -82,10 +100,18 @@ export function normalizeResidenceCountry(value?: string | null): string {
 }
 
 export async function getCountryOptions(): Promise<LocationOption[]> {
-  const countries = await loadCountries()
+  const countryNames = getSupportedRegionCodes()
+    .map(code => getCountryNameFromCode(code))
+    .filter((name): name is string => Boolean(name))
+
   return sortOptions(
-    uniqueOptions(countries.map(country => country.name))
+    uniqueOptions(countryNames)
   )
+}
+
+function isZambiaCountry(country?: string | null): boolean {
+  const normalizedKey = normalizeKey(normalizeResidenceCountry(country))
+  return normalizedKey === 'zambia' || normalizedKey === 'zm'
 }
 
 export async function getCityOptionsForCountry(country?: string | null): Promise<LocationOption[]> {
@@ -97,18 +123,11 @@ export async function getCityOptionsForCountry(country?: string | null): Promise
     return cached
   }
 
-  const cityOptionsPromise = resolveCountryRecord(normalizedCountry)
-    .then(async countryRecord => {
-      if (!countryRecord) return []
-
-      try {
-        const { City } = await import('country-state-city')
-        const cities = City.getCitiesOfCountry(countryRecord.isoCode) ?? []
-        return uniqueOptions(cities.map(city => city.name)).sort((a, b) => a.label.localeCompare(b.label))
-      } catch {
-        return []
-      }
-    })
+  const cityOptionsPromise = Promise.resolve(
+    isZambiaCountry(normalizedCountry)
+      ? uniqueOptions(ZAMBIA_CITY_NAMES).sort((a, b) => a.label.localeCompare(b.label))
+      : []
+  )
 
   cityOptionsCache.set(cacheKey, cityOptionsPromise)
   return cityOptionsPromise

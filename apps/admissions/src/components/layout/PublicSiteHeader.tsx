@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { GraduationCap, Home, Menu, Phone, Search, UserPlus, X, LogIn } from '@/components/icons'
 import { SkipLink } from '@/components/ui/SkipLink'
 import { cn } from '@/lib/utils'
+import { preloadAuthRoutes } from '@/lib/routePreload'
 
 type PublicNavItem = {
   href: string
@@ -26,6 +27,9 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
   const [open, setOpen] = useState(false)
 
   const items = useMemo(() => baseItems, [])
+  const warmAuthRoutes = () => {
+    void preloadAuthRoutes('public-nav')
+  }
 
   useEffect(() => {
     setOpen(false)
@@ -66,6 +70,9 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
                   <Link
                     key={href}
                     to={href}
+                    onPointerEnter={href.startsWith('/auth') ? warmAuthRoutes : undefined}
+                    onFocus={href.startsWith('/auth') ? warmAuthRoutes : undefined}
+                    onTouchStart={href.startsWith('/auth') ? warmAuthRoutes : undefined}
                     aria-current={active ? 'page' : undefined}
                     className={cn(
                       'rounded-lg px-3 py-2 text-sm font-medium transition-colors',
@@ -78,6 +85,9 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
               })}
               <Link
                 to="/auth/signup"
+                onPointerEnter={warmAuthRoutes}
+                onFocus={warmAuthRoutes}
+                onTouchStart={warmAuthRoutes}
                 className="ml-2 inline-flex min-h-[40px] items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-primary via-primary to-info px-4 py-2 text-sm font-semibold text-primary-foreground shadow-lg transition-[transform,box-shadow,filter] duration-150 hover:brightness-105 hover:shadow-xl active:scale-[0.98]"
               >
                 <UserPlus className="h-4 w-4" />
@@ -114,6 +124,9 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
                 <Link
                   key={href}
                   to={href}
+                  onPointerEnter={href.startsWith('/auth') ? warmAuthRoutes : undefined}
+                  onFocus={href.startsWith('/auth') ? warmAuthRoutes : undefined}
+                  onTouchStart={href.startsWith('/auth') ? warmAuthRoutes : undefined}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
                     'flex min-h-[44px] items-center gap-2 rounded-lg px-3 py-3 text-sm font-medium',
@@ -127,6 +140,9 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
             })}
             <Link
               to="/auth/signup"
+              onPointerEnter={warmAuthRoutes}
+              onFocus={warmAuthRoutes}
+              onTouchStart={warmAuthRoutes}
               className="mt-2 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-primary via-primary to-info px-4 py-3 text-sm font-semibold text-primary-foreground shadow-lg transition-[transform,box-shadow,filter] duration-150 hover:brightness-105 hover:shadow-xl active:scale-[0.98]"
             >
               <UserPlus className="h-4 w-4" />

@@ -5,7 +5,7 @@ import uuid
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import serializers, status
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -48,8 +48,7 @@ DOCUMENT_ACTION_RESPONSE = envelope_serializer("DocumentActionResponse", Documen
 
 
 class ResumeListView(APIView):
-    permission_classes = [AllowAny]
-    authentication_classes = []
+    permission_classes = [IsAuthenticated]
     serializer_class = ResumeAssetSerializer
 
     @extend_schema(operation_id="documents_resumes_list", tags=["documents"], responses={200: OpenApiResponse(response=RESUME_LIST_RESPONSE)})
@@ -97,8 +96,7 @@ class QuestionBankAnswerView(APIView):
 
 
 class DocumentVersionListView(APIView):
-    permission_classes = [AllowAny]
-    authentication_classes = []
+    permission_classes = [IsAuthenticated]
     serializer_class = DocumentVersionSerializer
 
     @extend_schema(operation_id="documents_versions_list", tags=["documents"], responses={200: OpenApiResponse(response=VERSION_LIST_RESPONSE)})

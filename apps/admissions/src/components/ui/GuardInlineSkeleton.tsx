@@ -4,7 +4,7 @@ interface GuardInlineSkeletonProps {
   label?: string
 }
 
-export function GuardInlineSkeleton({ label = 'Checking your session' }: GuardInlineSkeletonProps) {
+export function GuardInlineSkeleton({ label = 'Preparing your workspace' }: GuardInlineSkeletonProps) {
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10" aria-busy="true" aria-live="polite">
       <div className="rounded-xl border border-border bg-card/60 p-4 shadow-sm">

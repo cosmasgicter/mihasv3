@@ -6,6 +6,7 @@ const broadcastLoginSpy = vi.fn()
 const setQueryDataSpy = vi.fn()
 const removeQueriesSpy = vi.fn()
 const invalidateQueriesSpy = vi.fn()
+const cancelQueriesSpy = vi.fn().mockResolvedValue(undefined)
 
 vi.mock('@/services/client', () => ({
   apiClient: {
@@ -51,6 +52,7 @@ vi.mock('@tanstack/react-query', () => ({
     setQueryData: (...args: unknown[]) => setQueryDataSpy(...args),
     removeQueries: (...args: unknown[]) => removeQueriesSpy(...args),
     invalidateQueries: (...args: unknown[]) => invalidateQueriesSpy(...args),
+    cancelQueries: (...args: unknown[]) => cancelQueriesSpy(...args),
     clear: vi.fn(),
   })),
 }))
@@ -101,6 +103,7 @@ describe('signIn login broadcast', () => {
     const result = await signIn('student@example.com', 'secret')
 
     expect(result.error).toBeUndefined()
+    expect(cancelQueriesSpy).toHaveBeenCalledWith({ queryKey: ['auth', 'session'] })
     expect(setQueryDataSpy).toHaveBeenCalledWith(['auth', 'session'], {
       user: expect.objectContaining({
         id: 'student-42',

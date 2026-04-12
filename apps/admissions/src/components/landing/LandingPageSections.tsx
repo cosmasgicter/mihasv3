@@ -13,6 +13,7 @@ import {
 } from '@/components/smoothui'
 import { ArrowRight, CheckCircle } from '@/components/icons'
 import { cn } from '@/lib/utils'
+import { preloadAuthRoutes } from '@/lib/routePreload'
 import {
   accreditations,
   features,
@@ -24,6 +25,10 @@ const deferredSectionStyle = {
   contentVisibility: 'auto',
   containIntrinsicSize: '900px',
 } as const
+
+function warmAuthRoutes() {
+  void preloadAuthRoutes('landing-section-cta')
+}
 
 function StatsSection() {
   return (
@@ -62,11 +67,11 @@ function FeaturesSection() {
         <ScrollReveal className="mb-12 text-center sm:mb-16">
           <TextEffect effect="fadeUp">
             <h2 className="mb-4 text-2xl font-semibold gradient-text-primary sm:mb-6 sm:text-3xl md:text-4xl lg:text-5xl">
-              Why Choose <ShinyText text="MIHAS-KATC" className="font-semibold" /> for Your Healthcare Career?
+              Why Students Pick <ShinyText text="MIHAS-KATC" className="font-semibold" />
             </h2>
           </TextEffect>
           <p className="mx-auto max-w-3xl text-base font-medium text-muted-foreground sm:text-lg md:text-xl">
-            Join 300+ successful graduates working across Zambia and internationally
+            300+ graduates already working in hospitals and clinics across Zambia
           </p>
         </ScrollReveal>
 
@@ -112,11 +117,11 @@ function AccreditationSection() {
         <ScrollReveal className="mb-12 text-center">
           <TextEffect effect="fadeUp">
             <h2 className="mb-4 px-4 text-xl font-bold gradient-text-primary sm:text-2xl md:text-3xl lg:text-4xl">
-              Qualifications Recognized by Employers Across Zambia & Beyond
+              Recognized Qualifications That Get You Hired
             </h2>
           </TextEffect>
           <p className="px-4 text-base text-muted-foreground sm:text-lg">
-            Our graduates are qualified to work in hospitals, clinics, and health organizations throughout Zambia, SADC region, and internationally
+            Our graduates work in hospitals, clinics, and health organizations across Zambia, the SADC region, and internationally
           </p>
         </ScrollReveal>
 
@@ -162,11 +167,11 @@ function ProgramsSection() {
         <ScrollReveal className="mb-12 text-center sm:mb-16">
           <TextEffect effect="fadeUp">
             <h2 className="mb-6 px-4 text-2xl font-bold gradient-text-primary sm:text-3xl md:text-4xl lg:text-5xl">
-              High-Demand Healthcare Jobs Training Programs
+              Three Programs. Real Jobs.
             </h2>
           </TextEffect>
           <p className="px-4 text-base font-medium text-muted-foreground sm:text-lg md:text-xl">
-            Three government-accredited programs with proven job opportunities
+            Government-accredited diplomas with direct paths to employment
           </p>
         </ScrollReveal>
 
@@ -209,7 +214,12 @@ function ProgramsSection() {
                   </div>
                   <div className="mt-6">
                     <Button asChild variant="outline" className="w-full sm:w-auto">
-                      <Link to="/auth/signup">
+                      <Link
+                        to="/auth/signup"
+                        onPointerEnter={warmAuthRoutes}
+                        onFocus={warmAuthRoutes}
+                        onTouchStart={warmAuthRoutes}
+                      >
                         Apply to {program.institution.split(' ')[0]}
                         <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                       </Link>
@@ -239,11 +249,11 @@ function CTASection() {
       <ScrollReveal className="relative z-10 container-responsive px-4 text-center text-white sm:px-6 lg:px-8">
         <TextEffect effect="fadeUp">
           <h2 className="mb-6 px-4 text-2xl font-bold sm:text-3xl md:text-4xl lg:text-5xl">
-            Ready to Secure Your Healthcare Job in Zambia?
+            January 2026 Intake Is Open
           </h2>
         </TextEffect>
         <p className="mx-auto mb-8 max-w-3xl px-4 text-base sm:text-lg md:text-xl lg:text-2xl">
-          January 2026 intake applications closing soon. Join 300+ graduates working in hospitals, clinics, and health organizations.
+          Spots fill up fast. Apply today and join 300+ graduates already working in Zambian hospitals and clinics.
         </p>
         <Button
           asChild
@@ -251,8 +261,13 @@ function CTASection() {
           size="xl"
           className="group min-h-[48px] bg-white px-6 font-bold text-primary shadow-lg hover:bg-white/90 sm:px-8"
         >
-          <Link to="/auth/signup">
-            <span className="mr-2">Apply Now - Start Free</span>
+          <Link
+            to="/auth/signup"
+            onPointerEnter={warmAuthRoutes}
+            onFocus={warmAuthRoutes}
+            onTouchStart={warmAuthRoutes}
+          >
+            <span className="mr-2">Apply Now — It's Free</span>
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1 sm:h-6 sm:w-6" aria-hidden="true" />
           </Link>
         </Button>

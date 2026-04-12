@@ -29,7 +29,11 @@ import type { Application, Intake } from '@/types/database'
 import { logger } from '@/lib/logger'
 import { safeJsonParse } from '@/lib/utils'
 import { clearAllDraftData, isDraftDeleted, clearDraftDeletedFlag } from '@/lib/draftManager'
-import { applicationSessionManager } from '@/lib/applicationSession'
+import {
+  applicationSessionManager,
+  clearStaleApplicationDraftReference,
+  isApplicationMissingError,
+} from '@/lib/applicationSession'
 import { DEFAULT_RESIDENCE_COUNTRY } from '@/lib/locationOptions'
 import { normalizeResidenceTown } from '@/lib/residenceTown'
 import {
@@ -428,6 +432,18 @@ const useWizardController = (): UseWizardControllerResult => {
     )
   }, [subjects])
 
+  const clearStaleApplicationReference = useCallback((staleApplicationId: string, message?: string) => {
+    clearStaleApplicationDraftReference(staleApplicationId)
+    setApplicationId(current => (current === staleApplicationId ? null : current))
+    queryClient.removeQueries({ queryKey: ['application-detail', staleApplicationId] })
+    queryClient.removeQueries({ queryKey: ['applications', 'detail', staleApplicationId] })
+    queryClient.invalidateQueries({ queryKey: ['applications'] })
+    window.dispatchEvent(new CustomEvent('applicationDraftStale', { detail: { applicationId: staleApplicationId } }))
+    if (message) {
+      showWarning(message)
+    }
+  }, [queryClient, showWarning])
+
   const persistLocalDraftSnapshot = useCallback(() => {
     const draftSnapshot = {
       formData: getValues(),
@@ -468,9 +484,12 @@ const useWizardController = (): UseWizardControllerResult => {
       return normalized
     } catch (gradeError) {
       logApiError('application-wizard', `/applications/${draftApplicationId}/grades/`, gradeError)
+      if (isApplicationMissingError(gradeError)) {
+        clearStaleApplicationReference(draftApplicationId)
+      }
       return []
     }
-  }, [normalizeSelectedGrades])
+  }, [clearStaleApplicationReference, normalizeSelectedGrades])
 
   const handleResultSlipUpload = useCallback((file: File | null) => {
     if (!file) {
@@ -483,6 +502,23 @@ const useWizardController = (): UseWizardControllerResult => {
       
       showInfo('Processing document...', 'Extracting grades from your result slip')
       persistLocalDraftSnapshot()
+
+      const persistResultSlipUrl = async () => {
+        try {
+          await updateApplication.mutateAsync({ id: applicationId, data: { result_slip_url: url } })
+          queryClient.invalidateQueries({ queryKey: ['applications'] })
+          return true
+        } catch (error) {
+          if (isApplicationMissingError(error)) {
+            clearStaleApplicationReference(
+              applicationId,
+              'Your online draft was no longer available. The selected file is still on this device; continue from Basic Information to refresh the draft.'
+            )
+            return false
+          }
+          throw error
+        }
+      }
       
       try {
         const { autoFillService } = await importWithChunkRecovery(() => import('@/utils/smart-features'), {
@@ -493,8 +529,7 @@ const useWizardController = (): UseWizardControllerResult => {
         
         if (!parsed || !parsed.grades || parsed.grades.length === 0) {
           showWarning('No grades detected. Please enter them manually.')
-          await updateApplication.mutateAsync({ id: applicationId, data: { result_slip_url: url } })
-          queryClient.invalidateQueries({ queryKey: ['applications'] })
+          await persistResultSlipUrl()
           return
         }
         
@@ -507,24 +542,30 @@ const useWizardController = (): UseWizardControllerResult => {
           
         if (gradesToSync.length === 0) {
           showWarning('Could not match subjects. Please enter grades manually.')
-          await updateApplication.mutateAsync({ id: applicationId, data: { result_slip_url: url } })
-          queryClient.invalidateQueries({ queryKey: ['applications'] })
+          await persistResultSlipUrl()
           return
         }
         
         await syncGrades.mutateAsync({ id: applicationId, grades: gradesToSync })
-        await updateApplication.mutateAsync({ id: applicationId, data: { result_slip_url: url } })
+        if (!(await persistResultSlipUrl())) {
+          return
+        }
         setSelectedGrades(gradesToSync)
-        queryClient.invalidateQueries({ queryKey: ['applications'] })
         showSuccess(`Auto-filled ${gradesToSync.length} grades successfully!`)
       } catch (e) {
+        if (isApplicationMissingError(e)) {
+          clearStaleApplicationReference(
+            applicationId,
+            'Your online draft was no longer available. The selected file is still on this device; continue from Basic Information to refresh the draft.'
+          )
+          return
+        }
         console.error('Auto-fill error:', e)
         showWarning('Auto-fill failed. Please enter grades manually.')
-        await updateApplication.mutateAsync({ id: applicationId, data: { result_slip_url: url } })
-        queryClient.invalidateQueries({ queryKey: ['applications'] })
+        await persistResultSlipUrl()
       }
     })
-  }, [applicationId, baseHandleResultSlipFile, baseHandleResultSlipUpload, normalizeSelectedGrades, persistLocalDraftSnapshot, queryClient, showInfo, showSuccess, showWarning, subjects, syncGrades, updateApplication])
+  }, [applicationId, baseHandleResultSlipFile, baseHandleResultSlipUpload, clearStaleApplicationReference, normalizeSelectedGrades, persistLocalDraftSnapshot, queryClient, showInfo, showSuccess, showWarning, subjects, syncGrades, updateApplication])
 
   const preserveDraftBeforeAuthRedirect = useCallback(() => {
     persistLocalDraftSnapshot()
@@ -857,6 +898,7 @@ const useWizardController = (): UseWizardControllerResult => {
         })()
         
         if (useLocalDraft && localDraft) {
+          let localApplicationId = typeof localDraft.applicationId === 'string' ? localDraft.applicationId : null
           // Restore from localStorage
             // 3.2: Restore form values with shouldValidate: false to prevent validation errors
             Object.keys(localDraft.formData).forEach(key => {
@@ -903,21 +945,35 @@ const useWizardController = (): UseWizardControllerResult => {
               
               if (validGrades.length > 0) {
                 setSelectedGrades(validGrades)
-              } else if (localDraft.applicationId) {
+              } else if (localApplicationId) {
                 setGradesHydrating(true)
                 try {
-                  await hydrateServerGrades(localDraft.applicationId)
+                  await hydrateServerGrades(localApplicationId)
                 } finally {
                   setGradesHydrating(false)
                 }
               }
-            } else if (localDraft.applicationId) {
+            } else if (localApplicationId) {
               setGradesHydrating(true)
               try {
-                await hydrateServerGrades(localDraft.applicationId)
+                await hydrateServerGrades(localApplicationId)
               } finally {
                 setGradesHydrating(false)
               }
+            }
+
+            try {
+              const latestDraft = applicationSessionManager.getStoredDraft()
+              if (
+                localApplicationId &&
+                latestDraft &&
+                latestDraft.applicationId !== localApplicationId &&
+                latestDraft.application_id !== localApplicationId
+              ) {
+                localApplicationId = null
+              }
+            } catch {
+              // localStorage may be unavailable; keep the in-memory draft state
             }
 
             const mergedLocalUploads = {
@@ -939,8 +995,8 @@ const useWizardController = (): UseWizardControllerResult => {
               setCurrentStepIndex(index >= 0 ? index : Math.min(Math.max(localDraft.currentStep - 1, 0), totalSteps - 1))
             }
             
-            if (localDraft.applicationId) {
-              setApplicationId(localDraft.applicationId)
+            if (localApplicationId) {
+              setApplicationId(localApplicationId)
             }
 
             draftRestored = true
@@ -1175,6 +1231,10 @@ const useWizardController = (): UseWizardControllerResult => {
             next_of_kin_phone: formData.next_of_kin_phone || undefined,
           } as Partial<Application>)
         } catch (serverError) {
+          if (isApplicationMissingError(serverError)) {
+            clearStaleApplicationReference(applicationId)
+            return
+          }
           // Non-blocking: local draft is retained, will retry on next 8-second interval
           logApiError('application-wizard', `PATCH /applications/${applicationId}/`, serverError)
         }
@@ -1205,6 +1265,7 @@ const useWizardController = (): UseWizardControllerResult => {
     resolveProgramIdentity,
     createApplication,
     queryClient,
+    clearStaleApplicationReference,
   ])
 
   // Auto-save is handled by useSmartAutoSave (via useAutoSave) in the wizard component.
@@ -1427,10 +1488,73 @@ const useWizardController = (): UseWizardControllerResult => {
       } catch (error) {
         logApiError('application-wizard', '/applications/', error)
         let errorMessage = toError(error).message || 'Failed to save application'
+        let staleRecoveryFailed = false
         
+        if (applicationId && isApplicationMissingError(error)) {
+          clearStaleApplicationReference(applicationId)
+          try {
+            const resolvedProgram = resolveProgramIdentity(formData.program)
+            const resolvedIntake = resolveIntakeIdentity(formData.intake)
+            if (!resolvedProgram || !resolvedIntake) {
+              throw new Error('Please reselect your program and intake before continuing.')
+            }
+
+            const metadata = getUserMetadata(user)
+            const nationality = getBestValue(profile?.nationality, metadata.nationality, 'Zambian')
+            const country = getCanonicalResidenceCountry(profile, metadata)
+            const institutionLabel =
+              resolvedProgram.institutionLabel || deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'MIHAS'
+
+            const app = await createApplication.mutateAsync({
+              full_name: sanitizeInput(formData.full_name),
+              nrc_number: sanitizeInput(formData.nrc_number) || null,
+              passport_number: sanitizeInput(formData.passport_number) || null,
+              date_of_birth: formData.date_of_birth,
+              sex: formData.sex?.toLowerCase(),
+              phone: sanitizeInput(formData.phone),
+              email: sanitizeInput(formData.email),
+              residence_town: normalizeResidenceTown(formData.residence_town),
+              country: sanitizeInput(formData.country) || country,
+              next_of_kin_name: sanitizeInput(formData.next_of_kin_name) || null,
+              next_of_kin_phone: sanitizeInput(formData.next_of_kin_phone) || null,
+              program: resolvedProgram.label,
+              intake: resolvedIntake.name,
+              institution: institutionLabel,
+              nationality,
+            })
+
+            if (!app?.id) {
+              throw new Error('Application created but ID not returned')
+            }
+
+            setApplicationId(app.id)
+            setSubmittedApplication({
+              applicationNumber: app.application_number || '',
+              trackingCode: String(app.public_tracking_code || ''),
+              program: resolvedProgram.label,
+              institution: institutionLabel,
+              intake: resolvedIntake.label,
+              fullName: formData.full_name,
+              email: formData.email,
+              phone: formData.phone,
+              status: app.status || 'draft',
+              paymentStatus: app.payment_status ?? null,
+              nationality,
+            })
+            queryClient.invalidateQueries({ queryKey: ['applications'] })
+            window.dispatchEvent(new CustomEvent('applicationCreated', { detail: { applicationId: app.id, source: 'stale-draft-recovery' } }))
+            goToStep(currentStepIndex + 1)
+            return
+          } catch (recoveryError) {
+            logApiError('application-wizard', 'POST /applications/ stale-draft-recovery', recoveryError)
+            errorMessage = 'Your previous online draft was no longer available. Your details are still saved on this device. Please try Continue again.'
+            staleRecoveryFailed = true
+          }
+        }
+
         // Handle 404 for unavailable programs/intakes (Req 6.5)
         const errorStatus = (error as { status?: number })?.status
-        if (errorStatus === 404) {
+        if (!staleRecoveryFailed && errorStatus === 404) {
           errorMessage = 'The selected program or intake is no longer available. Please select a different option.'
         } else if (errorMessage.includes('Bad Request')) {
           errorMessage = 'Connection issue - please try again'
@@ -1503,8 +1627,16 @@ const useWizardController = (): UseWizardControllerResult => {
         }
         goToStep(currentStepIndex + 1)
       } catch (error) {
-        const errorMessage = toError(error).message || 'Failed to save grades'
         logApiError('application-wizard', `/applications/${applicationId}/grades/`, error)
+        if (isApplicationMissingError(error)) {
+          const errorMessage = 'Your online draft was no longer available. Your grades are saved on this device; please continue from Basic Information to refresh the draft.'
+          clearStaleApplicationReference(applicationId, errorMessage)
+          setError(errorMessage)
+          goToStep(0)
+          return
+        }
+
+        const errorMessage = toError(error).message || 'Failed to save grades'
         setError(errorMessage)
       }
       return
@@ -1554,6 +1686,8 @@ const useWizardController = (): UseWizardControllerResult => {
     user,
     profile,
     deriveInstitutionLabel,
+    clearStaleApplicationReference,
+    queryClient,
   ])
 
   const handlePrevStep = useCallback(() => {
@@ -1592,7 +1726,7 @@ const useWizardController = (): UseWizardControllerResult => {
       setLoading(true)
       setError('')
       
-      logger.info('[handleSubmitApplication] Verifying authentication...')
+      logger.info('[handleSubmitApplication] Checking signed-in user...')
       if (!user?.id) {
         throw new Error('Please sign in again to submit your application')
       }
@@ -1679,7 +1813,11 @@ const useWizardController = (): UseWizardControllerResult => {
       
       // Handle 404 for unavailable programs/intakes (Req 6.5)
       const errorStatus = (error as { status?: number })?.status
-      if (errorStatus === 404) {
+      if (applicationId && isApplicationMissingError(error)) {
+        clearStaleApplicationReference(applicationId)
+        message = 'Your online draft was no longer available. Your details are still saved on this device; please continue from Basic Information to refresh the draft.'
+        goToStep(0)
+      } else if (errorStatus === 404) {
         message = 'The selected program or intake is no longer available. Please go back and select a different option.'
       } else if (message.includes('Bad Request')) {
         message = 'Connection issue - please try again'
@@ -1702,7 +1840,7 @@ const useWizardController = (): UseWizardControllerResult => {
       setLoading(false)
       isSubmittingRef.current = false
     }
-  }, [confirmSubmission, applicationId, paymentStatus, submitApplicationMutation, user?.id, showError, showSuccess, queryClient])
+  }, [confirmSubmission, applicationId, paymentStatus, submitApplicationMutation, user?.id, showError, showSuccess, queryClient, clearStaleApplicationReference, goToStep])
 
   return {
     authLoading,

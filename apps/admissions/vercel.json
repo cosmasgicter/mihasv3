@@ -20,7 +20,8 @@
         { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com https://pay.lenco.co https://pay.sandbox.lenco.co; style-src 'self' 'unsafe-inline'; style-src-elem 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ***REMOVED*** https://*.neon.tech https://pay.lenco.co https://pay.sandbox.lenco.co; frame-src 'self' https://pay.lenco.co https://pay.sandbox.lenco.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" },
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=()" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "X-Permitted-Cross-Domain-Policies", "value": "none" }
+        { "key": "X-Permitted-Cross-Domain-Policies", "value": "none" },
+        { "key": "X-CSP-Note", "value": "TODO: Replace unsafe-inline with nonce-based CSP when server-side rendering is feasible. See docs/security-api-audit-2026-04.md finding H2. Current unsafe-inline is required because Vercel static deploys cannot inject per-request nonces." }
       ]
     },
     {

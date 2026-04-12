@@ -744,30 +744,30 @@ export function ApplicationDetailModal({
  <div className="flex-shrink-0 p-4 sm:p-6 border-b border-border bg-gradient-to-r from-blue-50 to-indigo-50">
  <div className="flex items-center justify-between gap-2">
  <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
- <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-200 rounded-xl animate-pulse flex-shrink-0"></div>
+ <Skeleton className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex-shrink-0" />
  <div className="min-w-0 flex-1 space-y-2">
- <div className="h-6 bg-gray-200 rounded animate-pulse w-48"></div>
- <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
+ <Skeleton className="h-6 w-48" />
+ <Skeleton className="h-4 w-32" />
  </div>
  </div>
- <div className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+ <Skeleton className="w-8 h-8" />
  </div>
  </div>
  
  {/* Content Skeleton */}
  <div className="flex-1 overflow-y-auto p-4 sm:p-6">
  <div className="space-y-4">
- <div className="h-32 bg-gray-200 rounded-xl animate-pulse"></div>
- <div className="h-48 bg-gray-200 rounded-xl animate-pulse"></div>
- <div className="h-48 bg-gray-200 rounded-xl animate-pulse"></div>
+ <Skeleton className="h-32 rounded-xl" />
+ <Skeleton className="h-48 rounded-xl" />
+ <Skeleton className="h-48 rounded-xl" />
  </div>
  </div>
  
  {/* Footer Skeleton */}
  <div className="flex-shrink-0 p-4 sm:p-6 border-t border-border bg-muted">
  <div className="flex justify-between gap-4">
- <div className="h-10 bg-gray-200 rounded animate-pulse w-32"></div>
- <div className="h-10 bg-gray-200 rounded animate-pulse w-24"></div>
+ <Skeleton className="h-10 w-32" />
+ <Skeleton className="h-10 w-24" />
  </div>
  </div>
  </div>

@@ -540,14 +540,21 @@ class RegisterView(APIView):
 class SessionView(APIView):
     """GET /api/v1/auth/session/
 
-    Return current user info. Requires auth.
+    Return current user info when authenticated.
+
+    Public pages call this endpoint during bootstrap. Treat the absence of an
+    access token as a valid "not signed in" state so the browser does not log a
+    failed 403 request before the frontend can render the public page.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     serializer_class = SessionSerializer
 
     def get(self, request):
         user = request.user
+        if not getattr(user, "is_authenticated", False):
+            return Response({"user": None})
+
         serializer = SessionSerializer({
             "id": user.id,
             "email": user.email,

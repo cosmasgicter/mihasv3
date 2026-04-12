@@ -205,7 +205,9 @@ export function useSessionListener() {
   // Instead, seed the auth cache atomically after login succeeds, then clear stale non-auth data.
   const signIn = useCallback(async (email: string, password: string): Promise<SignInResult> => {
     try {
+      await queryClient.cancelQueries({ queryKey: ['auth', 'session'] })
       const result = await authService.login({ email, password }) as { user?: User; profile?: UserProfile } | null
+      await queryClient.cancelQueries({ queryKey: ['auth', 'session'] })
 
       const authUser = extractAuthUser(result)
 
@@ -257,6 +259,7 @@ export function useSessionListener() {
     }
 
     try {
+      await queryClient.cancelQueries({ queryKey: ['auth', 'session'] })
       const registerResult = await authService.register({
         email,
         password,
@@ -268,6 +271,7 @@ export function useSessionListener() {
       let loginResult: { user?: User; profile?: UserProfile } | null = null
       try {
         loginResult = await authService.login({ email, password }) as { user?: User; profile?: UserProfile } | null
+        await queryClient.cancelQueries({ queryKey: ['auth', 'session'] })
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unable to sign in after account creation'
         if (/invalid credentials|unauthorized/i.test(message)) {

@@ -40,7 +40,7 @@ export function AuthenticationGuard({ children, onAuthenticationRequired }: Auth
       <div className="flex items-center justify-center p-8">
         <div className="flex items-center space-x-2">
           <div className="h-5 w-5 rounded-full bg-primary/30 animate-pulse" aria-hidden="true" />
-          <span>Verifying authentication...</span>
+          <span>Preparing your workspace...</span>
         </div>
       </div>
     )

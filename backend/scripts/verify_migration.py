@@ -123,8 +123,9 @@ def write_migration_log(log_entry: dict) -> Path:
 
 def get_row_count(table_name: str) -> int:
     """Return the row count for a given table."""
+    from psycopg2 import sql as psql
     with connection.cursor() as cursor:
-        cursor.execute(f"SELECT COUNT(*) FROM {table_name}")  # noqa: S608
+        cursor.execute(psql.SQL("SELECT COUNT(*) FROM {}").format(psql.Identifier(table_name)))
         return cursor.fetchone()[0]
 
 
@@ -186,11 +187,21 @@ def verify_foreign_keys() -> list[str]:
         parent_table, parent_field = parent_col.split(".")
         print(f"  [check] {child_col} → {parent_col}")
         try:
+            from psycopg2 import sql as psql
             with connection.cursor() as cursor:
                 cursor.execute(
-                    f"SELECT COUNT(*) FROM {child_table} c "  # noqa: S608
-                    f"LEFT JOIN {parent_table} p ON c.{child_field} = p.{parent_field} "
-                    f"WHERE p.{parent_field} IS NULL AND c.{child_field} IS NOT NULL"
+                    psql.SQL(
+                        "SELECT COUNT(*) FROM {} c "
+                        "LEFT JOIN {} p ON c.{} = p.{} "
+                        "WHERE p.{} IS NULL AND c.{} IS NOT NULL"
+                    ).format(
+                        psql.Identifier(child_table),
+                        psql.Identifier(parent_table),
+                        psql.Identifier(child_field),
+                        psql.Identifier(parent_field),
+                        psql.Identifier(parent_field),
+                        psql.Identifier(child_field),
+                    )
                 )
                 orphan_count = cursor.fetchone()[0]
                 if orphan_count > 0:
