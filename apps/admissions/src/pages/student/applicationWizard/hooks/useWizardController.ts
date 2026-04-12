@@ -117,9 +117,10 @@ interface UseWizardControllerResult {
   removeGrade: (index: number) => void
   updateGrade: (index: number, field: keyof SubjectGrade, value: string | number) => void
   getUsedSubjects: () => string[]
-  saveDraft: () => Promise<void>
+  saveDraft: (options?: SaveDraftOptions) => Promise<void>
   watchValues: () => WizardFormData
   goToStep: (index: number) => void
+  refetchPaymentStatus: () => Promise<void>
 }
 
 export interface PaymentValidationContext {
@@ -157,6 +158,10 @@ type ResolvedIntakeIdentity = {
   id: string
   name: string
   label: string
+}
+
+type SaveDraftOptions = {
+  syncServer?: boolean
 }
 
 export const buildWizardIntakeDisplayName = (intake: Intake & { year?: number }) => {
@@ -343,7 +348,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const submitApplicationMutation = applicationsData.useSubmit()
   const syncGrades = applicationsData.useSyncGrades()
   const { data: draftApplications } = applicationsData.useList({ status: 'draft', mine: true, pageSize: 1 })
-  const { status: paymentStatus } = usePaymentStatus(applicationId || '')
+  const { status: paymentStatus, refetch: refetchPaymentStatus } = usePaymentStatus(applicationId || '')
 
   useEffect(() => {
     if (intakesData?.intakes) {
@@ -1115,8 +1120,9 @@ const useWizardController = (): UseWizardControllerResult => {
     showSuccess
   ])
 
-  const saveDraft = useCallback(async () => {
+  const saveDraft = useCallback(async (options: SaveDraftOptions = {}) => {
     if (!user || restoringDraft || success) return
+    const syncServer = options.syncServer ?? true
     
     // Prevent concurrent saves
     if (isSavingRef.current) return
@@ -1149,7 +1155,7 @@ const useWizardController = (): UseWizardControllerResult => {
         console.error('Error saving draft:', { error: sanitizeForLog(toError(error).message) })
       }
 
-      if (!applicationId && navigator.onLine && canCreateServerDraft(formData)) {
+      if (syncServer && !applicationId && navigator.onLine && canCreateServerDraft(formData)) {
         try {
           const metadata = getUserMetadata(user)
           const nationality = getBestValue(profile?.nationality, metadata.nationality, 'Zambian')
@@ -1214,7 +1220,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
       // Persist to server via API if we have an applicationId and are online
       // This is non-blocking — local draft is retained on failure and retried next interval
-      if (applicationId && navigator.onLine) {
+      if (syncServer && applicationId && navigator.onLine) {
         try {
           await applicationService.update(applicationId, {
             full_name: formData.full_name || undefined,
@@ -1321,7 +1327,7 @@ const useWizardController = (): UseWizardControllerResult => {
   }, [totalSteps])
 
   const handleNextStep = useCallback(async () => {
-    saveDraft()
+    await saveDraft({ syncServer: false })
 
     if (currentStepConfig.key === 'basicKyc') {
       const formData = watch()
@@ -1692,7 +1698,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
   const handlePrevStep = useCallback(() => {
     if (currentStepIndex > 0) {
-      saveDraft()
+      void saveDraft({ syncServer: false })
       goToStep(currentStepIndex - 1)
     }
   }, [currentStepIndex, goToStep, saveDraft])
@@ -1898,7 +1904,8 @@ const useWizardController = (): UseWizardControllerResult => {
     getUsedSubjects,
     saveDraft,
     watchValues: watch,
-    goToStep
+    goToStep,
+    refetchPaymentStatus
   }
 }
 

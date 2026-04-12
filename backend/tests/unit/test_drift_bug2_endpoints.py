@@ -25,16 +25,23 @@ from rest_framework.test import APIRequestFactory, force_authenticate  # noqa: E
 from apps.accounts.admin_views import (  # noqa: E402
     AdminSettingsImportView,
     AdminSettingsResetView,
+    DEFAULT_GUIDED_SETTINGS,
 )
+
+
+def _make_user(role="admin"):
+    """Create a mock authenticated user."""
+    user = MagicMock()
+    user.pk = uuid.uuid4()
+    user.id = user.pk
+    user.is_authenticated = True
+    user.role = role
+    return user
 
 
 def _make_admin_user():
     """Create a mock admin user for authentication."""
-    user = MagicMock()
-    user.pk = uuid.uuid4()
-    user.is_authenticated = True
-    user.role = "admin"
-    return user
+    return _make_user("admin")
 
 
 class TestAdminSettingsImportEndpoint(SimpleTestCase):
@@ -107,6 +114,22 @@ class TestAdminSettingsImportEndpoint(SimpleTestCase):
 
         self.assertIn(response.status_code, (401, 403))
 
+    def test_import_requires_admin_role(self):
+        """POST /admin/settings/import/ denies non-admin authenticated users."""
+        factory = APIRequestFactory()
+        request = factory.post(
+            "/api/v1/admin/settings/import/",
+            data={"settings": []},
+            format="json",
+        )
+        force_authenticate(request, user=_make_user("student"))
+
+        with patch("apps.accounts.permissions._check_permission_override", return_value=False):
+            view = AdminSettingsImportView.as_view()
+            response = view(request)
+
+        self.assertEqual(response.status_code, 403)
+
     def test_import_multiple_settings(self):
         """POST /admin/settings/import/ with multiple settings upserts all."""
         factory = APIRequestFactory()
@@ -146,14 +169,19 @@ class TestAdminSettingsResetEndpoint(SimpleTestCase):
         admin = _make_admin_user()
         force_authenticate(request, user=admin)
 
-        with patch("apps.accounts.admin_views.Setting.objects") as mock_qs:
+        with (
+            patch("apps.accounts.admin_views.Setting.objects") as mock_qs,
+            patch("apps.accounts.admin_views.transaction.atomic"),
+        ):
             mock_qs.all.return_value.delete.return_value = (3, {"common.Setting": 3})
             view = AdminSettingsResetView.as_view()
             response = view(request)
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.data["success"])
-        self.assertIn("reset", response.data["data"]["message"].lower())
+        self.assertIn("guided defaults", response.data["data"]["message"].lower())
+        self.assertEqual(response.data["data"]["restored"], len(DEFAULT_GUIDED_SETTINGS))
+        self.assertEqual(mock_qs.bulk_create.call_count, 1)
 
     def test_reset_requires_authentication(self):
         """POST /admin/settings/reset/ without auth returns 403."""
@@ -165,3 +193,15 @@ class TestAdminSettingsResetEndpoint(SimpleTestCase):
         response = view(request)
 
         self.assertIn(response.status_code, (401, 403))
+
+    def test_reset_requires_admin_role(self):
+        """POST /admin/settings/reset/ denies non-admin authenticated users."""
+        factory = APIRequestFactory()
+        request = factory.post("/api/v1/admin/settings/reset/", format="json")
+        force_authenticate(request, user=_make_user("student"))
+
+        with patch("apps.accounts.permissions._check_permission_override", return_value=False):
+            view = AdminSettingsResetView.as_view()
+            response = view(request)
+
+        self.assertEqual(response.status_code, 403)

@@ -19,6 +19,7 @@ interface SubmitStepProps {
   eligibilityCheck: EligibilityResult | null
   resultSlipFile: File | null
   extraKycFile: File | null
+  uploadedFiles: Record<string, boolean>
   confirmSubmission: boolean
   onConfirmChange: (value: boolean) => void
   selectedProgramName?: string
@@ -46,6 +47,7 @@ const SubmitStep = ({
   eligibilityCheck,
   resultSlipFile,
   extraKycFile,
+  uploadedFiles,
   confirmSubmission,
   onConfirmChange,
   selectedProgramName,
@@ -55,6 +57,8 @@ const SubmitStep = ({
   const formValues = form.watch()
   const programLabel = selectedProgramName?.trim() || formValues.program
   const institutionLabel = selectedInstitutionLabel?.trim() || ''
+  const hasResultSlip = Boolean(resultSlipFile || uploadedFiles.result_slip)
+  const hasIdentityDocument = Boolean(extraKycFile || uploadedFiles.extra_kyc)
   const readinessChecks = [
     {
       label: 'Personal information completed',
@@ -68,13 +72,13 @@ const SubmitStep = ({
     },
     {
       label: 'Result slip attached',
-      detail: resultSlipFile ? resultSlipFile.name : 'Upload your result slip to complete this step',
-      completed: Boolean(resultSlipFile),
+      detail: resultSlipFile ? resultSlipFile.name : hasResultSlip ? 'Already uploaded' : 'Upload your result slip to complete this step',
+      completed: hasResultSlip,
     },
     {
       label: 'Identity document attached (NRC or Passport)',
-      detail: extraKycFile ? extraKycFile.name : 'Upload your NRC or passport to complete this step',
-      completed: Boolean(extraKycFile),
+      detail: extraKycFile ? extraKycFile.name : hasIdentityDocument ? 'Already uploaded' : 'Upload your NRC or passport to complete this step',
+      completed: hasIdentityDocument,
     },
     {
       label: 'Payment completed via Lenco',
@@ -162,7 +166,7 @@ const SubmitStep = ({
               <div className="rounded-xl border border-border/70 bg-muted/50 px-4 py-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Documents</dt>
                 <dd className="mt-1 text-sm font-medium text-foreground">
-                  Result slip {resultSlipFile ? 'attached' : 'missing'}, identity document {extraKycFile ? 'attached' : 'not added'}
+                  Result slip {hasResultSlip ? 'attached' : 'missing'}, identity document {hasIdentityDocument ? 'attached' : 'not added'}
                 </dd>
               </div>
               <div className="rounded-xl border border-border/70 bg-muted/50 px-4 py-3">

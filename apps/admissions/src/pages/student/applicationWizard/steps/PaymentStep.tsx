@@ -21,6 +21,7 @@ interface PaymentStepProps {
   form: UseFormReturn<WizardFormData>
   applicationId: string | null
   applicationNumber: string | null
+  onPaymentStatusRefresh?: () => Promise<void>
 }
 
 interface InitiateResponse {
@@ -51,7 +52,7 @@ function formatCurrency(amount: number, currency: string): string {
 // Component
 // ---------------------------------------------------------------------------
 
-const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
+const PaymentStep = ({ title, form, applicationId, onPaymentStatusRefresh }: PaymentStepProps) => {
   const { watch } = form
   const programCode = watch('program') || ''
   const nationality = watch('nationality') || ''
@@ -130,17 +131,22 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
             const v = await apiClient.request<VerifyResponse>(verifyPath, { method: 'POST' })
             if (v?.status === 'successful') {
               updatePaymentStatus('successful', 'Payment confirmed.')
+              await onPaymentStatusRefresh?.()
             } else if (v?.status === 'failed') {
               updatePaymentStatus('failed', 'Payment could not be verified. You can retry.')
+              await onPaymentStatusRefresh?.()
             } else {
               updatePaymentStatus('pending', 'Payment is being confirmed. Stay on this step until the confirmation finishes.')
+              void onPaymentStatusRefresh?.()
             }
           } catch {
             updatePaymentStatus('pending', 'Payment is being confirmed. Stay on this step until the confirmation finishes.')
+            void onPaymentStatusRefresh?.()
           }
         },
         onConfirmationPending: () => {
           updatePaymentStatus('pending', 'Payment is being confirmed. Stay on this step until the confirmation finishes.')
+          void onPaymentStatusRefresh?.()
         },
         onClose: () => {
           const latestStatus = paymentStatusRef.current
@@ -154,7 +160,7 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
       setInitiateError(message)
       updatePaymentStatus('idle')
     }
-  }, [applicationId, openWidget, watch, updatePaymentStatus])
+  }, [applicationId, onPaymentStatusRefresh, openWidget, watch, updatePaymentStatus])
 
   const canPay =
     isScriptLoaded &&
@@ -244,7 +250,15 @@ const PaymentStep = ({ title, form, applicationId }: PaymentStepProps) => {
           </AlertTitle>
           <AlertDescription className="space-y-2 text-muted-foreground">
             <p>{statusMessage || 'Your payment is being confirmed. This usually takes a few seconds.'}</p>
-            <Button type="button" variant="outline" size="sm" onClick={() => refetchStatus()}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                await refetchStatus()
+                await onPaymentStatusRefresh?.()
+              }}
+            >
               <RefreshCw className="mr-1 h-3 w-3" />Check status
             </Button>
           </AlertDescription>

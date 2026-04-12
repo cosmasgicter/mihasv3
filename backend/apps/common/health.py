@@ -4,8 +4,6 @@ Liveness: /health/live/ — returns HTTP 200 without any database access.
 Readiness: /health/ready/ — verifies Neon Postgres and Redis connectivity.
 """
 
-import redis as redis_lib
-from django.conf import settings
 from django.db import connection
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework.permissions import AllowAny
@@ -81,9 +79,10 @@ class ReadinessView(APIView):
             return False
 
     def _check_redis(self):
-        """Ping Redis using the Celery broker URL."""
+        """Ping Redis using Django's cache framework (reuses connection pool)."""
         try:
-            client = redis_lib.from_url(settings.CELERY_BROKER_URL)
-            return client.ping()
+            from django.core.cache import cache
+            cache.set("_health_ping", "1", 10)
+            return cache.get("_health_ping") == "1"
         except Exception:
             return False

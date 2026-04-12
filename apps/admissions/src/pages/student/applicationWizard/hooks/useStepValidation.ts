@@ -13,6 +13,9 @@ interface StepValidationOptions {
   paymentStatus?: 'pending' | 'successful' | 'failed' | null
   confirmSubmission?: boolean
   selectedGrades?: SubjectGrade[]
+  hasResultSlip?: boolean
+  hasIdentityDocument?: boolean
+  uploading?: boolean
 }
 
 const isFieldComplete = (value: unknown): boolean => {
@@ -28,7 +31,14 @@ export const useStepValidation = (
   currentStep: number,
   options: StepValidationOptions = {}
 ): StepValidation => {
-  const { paymentStatus = null, confirmSubmission = false, selectedGrades = [] } = options
+  const {
+    paymentStatus = null,
+    confirmSubmission = false,
+    selectedGrades = [],
+    hasResultSlip = false,
+    hasIdentityDocument = false,
+    uploading = false,
+  } = options
   const values = (() => {
     try {
       return typeof form?.watch === 'function' ? (form.watch() as Partial<ApplicationFormData> ?? {}) : {}
@@ -69,11 +79,24 @@ export const useStepValidation = (
         ).filter(g => g.subject_id && g.grade >= 1 && g.grade <= 9)
         const hasEnoughGrades = validGrades.length >= 5
         const hasAnyGrades = validGrades.length > 0
+        const fields = [
+          { label: 'At least 5 subjects', complete: hasEnoughGrades },
+          { label: 'Result slip', complete: hasResultSlip },
+          { label: 'Identity document', complete: hasIdentityDocument },
+          { label: 'Uploads finished', complete: !uploading },
+        ]
+        const completedFields = fields.filter(f => f.complete).length
+        const missingFields = fields.filter(f => !f.complete).map(f => f.label)
+
         return {
-          isValid: hasEnoughGrades,
-          completedFields: hasAnyGrades ? validGrades.length : 0,
-          totalFields: 5,
-          missingFields: hasEnoughGrades ? [] : hasAnyGrades ? [`${5 - validGrades.length} more subject${5 - validGrades.length > 1 ? 's' : ''} needed`] : ['At least 5 subjects']
+          isValid: missingFields.length === 0,
+          completedFields,
+          totalFields: fields.length,
+          missingFields: hasEnoughGrades
+            ? missingFields
+            : hasAnyGrades
+              ? [`${5 - validGrades.length} more subject${5 - validGrades.length > 1 ? 's' : ''} needed`, ...missingFields.slice(1)]
+              : missingFields
         }
       },
       2: () => {
@@ -110,5 +133,5 @@ export const useStepValidation = (
       totalFields: 0,
       missingFields: []
     }
-  }, [values, currentStep, paymentStatus, confirmSubmission, selectedGrades])
+  }, [values, currentStep, paymentStatus, confirmSubmission, selectedGrades, hasResultSlip, hasIdentityDocument, uploading])
 }

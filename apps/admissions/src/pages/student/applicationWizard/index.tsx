@@ -92,13 +92,17 @@ const ApplicationWizardContent = () => {
     getUsedSubjects,
     saveDraft,
     watchValues,
-    goToStep
+    goToStep,
+    refetchPaymentStatus
   } = useWizardController()
 
   const stepValidation = useStepValidation(form, currentStepIndex, {
     paymentStatus,
     confirmSubmission,
     selectedGrades,
+    hasResultSlip: Boolean(resultSlipFile || uploadedFiles.result_slip),
+    hasIdentityDocument: Boolean(extraKycFile || uploadedFiles.extra_kyc),
+    uploading,
   })
   const overallProgress = useOverallProgress(form, selectedGrades)
   const { formattedTime } = useEstimatedTime(currentStepIndex, totalSteps)
@@ -109,8 +113,12 @@ const ApplicationWizardContent = () => {
   // - Submission processing (loading flag)
   const isPaymentStepActive = currentStepConfig.key === 'payment'
   const isPaymentInProgress = isPaymentStepActive && (paymentStatus === 'pending')
+  const saveWizardDraft = useCallback(
+    () => saveDraft({ syncServer: Boolean(applicationId) }),
+    [applicationId, saveDraft]
+  )
   const smartAutoSave = useSmartAutoSave({
-    onSave: saveDraft,
+    onSave: saveWizardDraft,
     watchValues,
     enabled: draftLoaded && !loading && !uploading && !restoringDraft && !success && !isPaymentInProgress
   })
@@ -370,7 +378,7 @@ const ApplicationWizardContent = () => {
           wrappedHandlePrevStep()
         } else if (e.key === 's') {
           e.preventDefault()
-          saveDraft()
+          saveWizardDraft()
         }
       }
       if (e.key === 'Escape') {
@@ -379,7 +387,7 @@ const ApplicationWizardContent = () => {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentStepIndex, isLastStep, loading, uploading, success, wrappedHandleNextStep, wrappedHandlePrevStep, saveDraft, setError])
+  }, [currentStepIndex, isLastStep, loading, uploading, success, wrappedHandleNextStep, wrappedHandlePrevStep, saveWizardDraft, setError])
 
   if (authLoading || restoringDraft) {
     return (
@@ -652,6 +660,7 @@ const ApplicationWizardContent = () => {
                 form={form}
                 applicationId={applicationId}
                 applicationNumber={submittedApplication?.applicationNumber ?? null}
+                onPaymentStatusRefresh={refetchPaymentStatus}
               />
             )}
 
@@ -664,6 +673,7 @@ const ApplicationWizardContent = () => {
                 eligibilityCheck={eligibilityCheck}
                 resultSlipFile={resultSlipFile}
                 extraKycFile={extraKycFile}
+                uploadedFiles={uploadedFiles}
                 confirmSubmission={confirmSubmission}
                 onConfirmChange={setConfirmSubmission}
                 selectedProgramName={selectedProgramDetails?.name}

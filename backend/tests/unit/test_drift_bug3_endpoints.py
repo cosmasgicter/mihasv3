@@ -32,29 +32,41 @@ from apps.documents.views import (  # noqa: E402
 )
 
 
-def _make_auth_user():
+def _make_auth_user(user_id=None, role="student"):
     """Create a mock authenticated user."""
     user = MagicMock()
-    user.pk = uuid.uuid4()
+    user.pk = user_id or uuid.uuid4()
+    user.id = user.pk
     user.is_authenticated = True
-    user.role = "student"
+    user.role = role
     return user
 
 
-def _make_mock_document(doc_id=None):
+def _make_mock_document(doc_id=None, owner_id=None, file_url="documents/app123/abc_transcript.pdf"):
     """Create a mock ApplicationDocument."""
     doc = MagicMock()
     doc.id = doc_id or uuid.uuid4()
+    doc.application_id = uuid.uuid4()
     doc.document_name = "transcript.pdf"
     doc.document_type = "transcript"
-    doc.file_url = "documents/app123/abc_transcript.pdf"
+    doc.file_url = file_url
     doc.file_size = 102400
     doc.mime_type = "application/pdf"
     doc.verification_status = "pending"
     doc.uploaded_at = MagicMock()
     doc.uploaded_at.isoformat.return_value = "2025-01-15T10:00:00Z"
     doc.save = MagicMock()
+    doc.application = MagicMock()
+    doc.application.user_id = owner_id or uuid.uuid4()
     return doc
+
+
+def _mock_document_lookup(mock_qs, document=None, side_effect=None):
+    lookup = mock_qs.select_related.return_value.get
+    if side_effect is not None:
+        lookup.side_effect = side_effect
+    else:
+        lookup.return_value = document
 
 
 class TestDocumentSignedUrlEndpoint(SimpleTestCase):
@@ -70,11 +82,11 @@ class TestDocumentSignedUrlEndpoint(SimpleTestCase):
         user = _make_auth_user()
         force_authenticate(request, user=user)
 
-        mock_doc = _make_mock_document(doc_id)
+        mock_doc = _make_mock_document(doc_id, owner_id=user.id)
 
         with patch("apps.documents.views.ApplicationDocument.objects") as mock_qs, \
              patch("apps.common.storage.generate_signed_url", return_value="https://r2.example.com/signed"):
-            mock_qs.get.return_value = mock_doc
+            _mock_document_lookup(mock_qs, mock_doc)
             view = DocumentSignedUrlView.as_view()
             response = view(request, document_id=doc_id)
 
@@ -92,11 +104,49 @@ class TestDocumentSignedUrlEndpoint(SimpleTestCase):
         from apps.documents.models import ApplicationDocument as RealModel
 
         with patch("apps.documents.views.ApplicationDocument.objects") as mock_qs:
-            mock_qs.get.side_effect = RealModel.DoesNotExist
+            _mock_document_lookup(mock_qs, side_effect=RealModel.DoesNotExist)
             view = DocumentSignedUrlView.as_view()
             response = view(request, document_id=doc_id)
 
         self.assertEqual(response.status_code, 404)
+
+    def test_signed_url_forbidden_for_other_student_document(self):
+        factory = APIRequestFactory()
+        doc_id = uuid.uuid4()
+        request = factory.get(f"/api/v1/documents/{doc_id}/signed-url/")
+        user = _make_auth_user()
+        force_authenticate(request, user=user)
+
+        mock_doc = _make_mock_document(doc_id, owner_id=uuid.uuid4())
+
+        with patch("apps.documents.views.ApplicationDocument.objects") as mock_qs:
+            _mock_document_lookup(mock_qs, mock_doc)
+            view = DocumentSignedUrlView.as_view()
+            response = view(request, document_id=doc_id)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_signed_url_passes_object_key_not_full_url(self):
+        factory = APIRequestFactory()
+        doc_id = uuid.uuid4()
+        request = factory.get(f"/api/v1/documents/{doc_id}/signed-url/")
+        user = _make_auth_user()
+        force_authenticate(request, user=user)
+
+        mock_doc = _make_mock_document(
+            doc_id,
+            owner_id=user.id,
+            file_url="https://cdn.example.com/media/documents/app123/abc_transcript.pdf?signature=ignored",
+        )
+
+        with patch("apps.documents.views.ApplicationDocument.objects") as mock_qs, \
+             patch("apps.common.storage.generate_signed_url", return_value="https://r2.example.com/signed") as mock_signed:
+            _mock_document_lookup(mock_qs, mock_doc)
+            view = DocumentSignedUrlView.as_view()
+            response = view(request, document_id=doc_id)
+
+        self.assertEqual(response.status_code, 200)
+        mock_signed.assert_called_once_with("media/documents/app123/abc_transcript.pdf")
 
     def test_signed_url_requires_authentication(self):
         factory = APIRequestFactory()
@@ -123,11 +173,11 @@ class TestDocumentDownloadEndpoint(SimpleTestCase):
         user = _make_auth_user()
         force_authenticate(request, user=user)
 
-        mock_doc = _make_mock_document(doc_id)
+        mock_doc = _make_mock_document(doc_id, owner_id=user.id)
 
         with patch("apps.documents.views.ApplicationDocument.objects") as mock_qs, \
              patch("apps.common.storage.generate_signed_url", return_value="https://r2.example.com/download"):
-            mock_qs.get.return_value = mock_doc
+            _mock_document_lookup(mock_qs, mock_doc)
             view = DocumentDownloadView.as_view()
             response = view(request, document_id=doc_id)
 
@@ -144,7 +194,7 @@ class TestDocumentDownloadEndpoint(SimpleTestCase):
         from apps.documents.models import ApplicationDocument as RealModel
 
         with patch("apps.documents.views.ApplicationDocument.objects") as mock_qs:
-            mock_qs.get.side_effect = RealModel.DoesNotExist
+            _mock_document_lookup(mock_qs, side_effect=RealModel.DoesNotExist)
             view = DocumentDownloadView.as_view()
             response = view(request, document_id=doc_id)
 
@@ -174,10 +224,10 @@ class TestDocumentInfoEndpoint(SimpleTestCase):
         user = _make_auth_user()
         force_authenticate(request, user=user)
 
-        mock_doc = _make_mock_document(doc_id)
+        mock_doc = _make_mock_document(doc_id, owner_id=user.id)
 
         with patch("apps.documents.views.ApplicationDocument.objects") as mock_qs:
-            mock_qs.get.return_value = mock_doc
+            _mock_document_lookup(mock_qs, mock_doc)
             view = DocumentInfoView.as_view()
             response = view(request, document_id=doc_id)
 
@@ -200,7 +250,7 @@ class TestDocumentInfoEndpoint(SimpleTestCase):
         from apps.documents.models import ApplicationDocument as RealModel
 
         with patch("apps.documents.views.ApplicationDocument.objects") as mock_qs:
-            mock_qs.get.side_effect = RealModel.DoesNotExist
+            _mock_document_lookup(mock_qs, side_effect=RealModel.DoesNotExist)
             view = DocumentInfoView.as_view()
             response = view(request, document_id=doc_id)
 
@@ -230,10 +280,10 @@ class TestDocumentDeleteEndpoint(SimpleTestCase):
         user = _make_auth_user()
         force_authenticate(request, user=user)
 
-        mock_doc = _make_mock_document(doc_id)
+        mock_doc = _make_mock_document(doc_id, owner_id=user.id)
 
         with patch("apps.documents.views.ApplicationDocument.objects") as mock_qs:
-            mock_qs.get.return_value = mock_doc
+            _mock_document_lookup(mock_qs, mock_doc)
             view = DocumentDeleteView.as_view()
             response = view(request, document_id=doc_id)
 
@@ -251,11 +301,28 @@ class TestDocumentDeleteEndpoint(SimpleTestCase):
         from apps.documents.models import ApplicationDocument as RealModel
 
         with patch("apps.documents.views.ApplicationDocument.objects") as mock_qs:
-            mock_qs.get.side_effect = RealModel.DoesNotExist
+            _mock_document_lookup(mock_qs, side_effect=RealModel.DoesNotExist)
             view = DocumentDeleteView.as_view()
             response = view(request, document_id=doc_id)
 
         self.assertEqual(response.status_code, 404)
+
+    def test_delete_forbidden_for_other_student_document(self):
+        factory = APIRequestFactory()
+        doc_id = uuid.uuid4()
+        request = factory.delete(f"/api/v1/documents/{doc_id}/delete/")
+        user = _make_auth_user()
+        force_authenticate(request, user=user)
+
+        mock_doc = _make_mock_document(doc_id, owner_id=uuid.uuid4())
+
+        with patch("apps.documents.views.ApplicationDocument.objects") as mock_qs:
+            _mock_document_lookup(mock_qs, mock_doc)
+            view = DocumentDeleteView.as_view()
+            response = view(request, document_id=doc_id)
+
+        self.assertEqual(response.status_code, 403)
+        mock_doc.save.assert_not_called()
 
     def test_delete_requires_authentication(self):
         factory = APIRequestFactory()

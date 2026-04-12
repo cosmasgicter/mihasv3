@@ -243,7 +243,7 @@ export async function deleteFile(bucket: string, path: string): Promise<{ succes
   void bucket
   try {
     const encodedPath = encodeURIComponent(path)
-    await apiClient.request(`/documents/${encodedPath}/`, {
+    await apiClient.request(`/documents/${encodedPath}/delete/`, {
       method: 'DELETE',
     })
     return { success: true }

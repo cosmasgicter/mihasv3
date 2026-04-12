@@ -1,6 +1,9 @@
 # SMS legacy system (separate PHP project)
 sms/
 
+# E2E test with hardcoded dev credentials — never commit
+scripts/stagehand-full-flow.ts
+
 # Python cache/test artifacts
 **/__pycache__/
 *.pyc
