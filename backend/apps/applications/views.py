@@ -1671,7 +1671,9 @@ class EmailSlipView(APIView):
 
         email = serializer.validated_data["email"]
 
-        # Build HTML email body with slip details
+        # Build HTML email body with slip details (escape all user data to prevent XSS)
+        from django.utils.html import escape as html_escape
+
         submitted_at = ""
         if application.submitted_at:
             submitted_at = application.submitted_at.strftime("%d %B %Y")
@@ -1684,17 +1686,17 @@ class EmailSlipView(APIView):
             "<h2 style='color: #1a365d;'>MIHAS Application Slip</h2>"
             "<table style='width: 100%; border-collapse: collapse;'>"
             f"<tr><td style='padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;'>Application Number</td>"
-            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{application.application_number}</td></tr>"
+            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{html_escape(application.application_number or '')}</td></tr>"
             f"<tr><td style='padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;'>Applicant Name</td>"
-            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{application.full_name}</td></tr>"
+            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{html_escape(application.full_name or '')}</td></tr>"
             f"<tr><td style='padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;'>Program</td>"
-            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{application.program}</td></tr>"
+            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{html_escape(application.program or '')}</td></tr>"
             f"<tr><td style='padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;'>Status</td>"
-            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{application.status}</td></tr>"
+            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{html_escape(application.status or '')}</td></tr>"
             f"<tr><td style='padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;'>Submitted</td>"
-            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{submitted_at or 'Not yet submitted'}</td></tr>"
+            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{html_escape(submitted_at or 'Not yet submitted')}</td></tr>"
             f"<tr><td style='padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;'>Created</td>"
-            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{created_at or 'N/A'}</td></tr>"
+            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{html_escape(created_at or 'N/A')}</td></tr>"
             "</table>"
             "<p style='margin-top: 16px; color: #718096; font-size: 12px;'>"
             "This is an automated email from the MIHAS Application System. Please do not reply.</p>"

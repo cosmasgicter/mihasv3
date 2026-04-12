@@ -89,23 +89,23 @@ export const stats: StatItem[] = [
 export const features: FeatureItem[] = [
   {
     icon: Users,
-    title: 'Career-Ready Training',
+    title: 'Learn from Working Professionals',
     description:
-      'Learn from healthcare professionals actively working in Zambian hospitals and clinics. Get mentored by experts who understand the job market',
+      'Your lecturers are nurses, clinical officers, and health inspectors who still practice. They teach what actually happens on the ward, not just what is in the textbook.',
     gradient: 'from-primary to-primary/60',
   },
   {
     icon: Award,
-    title: 'Government Recognized Qualifications',
+    title: 'Qualifications Employers Trust',
     description:
-      'NMCZ, HPCZ & ECZ accredited programs accepted by employers across Zambia, SADC region, and internationally',
+      'NMCZ, HPCZ, and ECZ accredited. When you graduate, hospitals and clinics across Zambia and the SADC region already recognize your diploma.',
     gradient: 'from-secondary to-secondary/60',
   },
   {
     icon: BookOpen,
-    title: 'Proven Job Placement Support',
+    title: 'We Help You Find Work',
     description:
-      '92% employment rate with direct connections to hospitals, clinics, and health organizations seeking qualified graduates',
+      '92% of our graduates land jobs within a year. We connect you directly with hospitals, clinics, and health organizations that are hiring.',
     gradient: 'from-accent to-accent/60',
   },
 ];
@@ -119,25 +119,25 @@ export const accreditations: AccreditationItem[] = [
     logo: 'GNCLogo.webp',
     title: 'NMCZ Accredited',
     org: 'Nursing and Midwifery Council of Zambia',
-    desc: 'Graduates qualified for nursing jobs in all Zambian hospitals and clinics',
+    desc: 'Our nursing graduates can work in any hospital or clinic in Zambia.',
   },
   {
     logo: 'hpc_logobig.webp',
     title: 'HPCZ Accredited',
     org: 'Health Professions Council of Zambia',
-    desc: 'Graduates eligible for clinical officer positions nationwide',
+    desc: 'Clinical medicine graduates qualify for clinical officer positions nationwide.',
   },
   {
     logo: 'eczlogo.webp',
     title: 'ECZ Recognized',
     org: 'Examinations Council of Zambia',
-    desc: 'Environmental health graduates work in government and private sectors',
+    desc: 'Environmental health graduates work in both government and private sectors.',
   },
   {
     logo: 'unza.webp',
     title: 'UNZA Affiliated',
     org: 'University of Zambia',
-    desc: 'University-level qualifications recognized by international employers',
+    desc: 'University-level qualifications recognized by employers locally and abroad.',
   },
 ];
 

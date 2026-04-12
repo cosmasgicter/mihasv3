@@ -2,7 +2,7 @@
 
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiResponse, extend_schema
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -18,8 +18,7 @@ DAILY_DIGEST_RESPONSE = envelope_serializer("DailyDigestResponse", DailyDigestSe
 
 
 class FunnelAnalyticsView(APIView):
-    permission_classes = [AllowAny]
-    authentication_classes = []
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(operation_id="analytics_funnel", tags=["analytics"], responses={200: OpenApiResponse(response=FUNNEL_RESPONSE)})
     def get(self, request):
@@ -55,8 +54,7 @@ class FunnelAnalyticsView(APIView):
 
 
 class SourceAnalyticsView(APIView):
-    permission_classes = [AllowAny]
-    authentication_classes = []
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(operation_id="analytics_sources", tags=["analytics"], responses={200: OpenApiResponse(response=SOURCE_RESPONSE)})
     def get(self, request):
@@ -64,8 +62,7 @@ class SourceAnalyticsView(APIView):
 
 
 class OutreachAnalyticsView(APIView):
-    permission_classes = [AllowAny]
-    authentication_classes = []
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(operation_id="analytics_outreach", tags=["analytics"], responses={200: OpenApiResponse(response=OUTREACH_RESPONSE)})
     def get(self, request):
@@ -73,8 +70,7 @@ class OutreachAnalyticsView(APIView):
 
 
 class DailyDigestReportView(APIView):
-    permission_classes = [AllowAny]
-    authentication_classes = []
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(operation_id="reports_daily_digest", tags=["reports"], responses={200: OpenApiResponse(response=DAILY_DIGEST_RESPONSE)})
     def get(self, request):

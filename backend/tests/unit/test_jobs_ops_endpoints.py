@@ -71,28 +71,21 @@ class JobsOpsEndpointTests(SimpleTestCase):
         response = self.client.post(f"/api/v1/automation/runs/{uuid.uuid4()}/approve/")
         self.assertIn(response.status_code, (401, 403))
 
-    def test_email_threads_list_is_public(self):
+    def test_email_threads_list_requires_auth(self):
+        """After Bug 4 fix, email threads require authentication."""
         response = self.client.get("/api/v1/email/threads/")
-        self.assertEqual(response.status_code, 200)
-        payload = _unwrap(response)
-        self.assertGreaterEqual(payload["totalCount"], 2)
-        self.assertIn("thread_key", payload["results"][0])
+        self.assertIn(response.status_code, (401, 403))
 
-    def test_resume_assets_list_is_public(self):
+    def test_resume_assets_list_requires_auth(self):
+        """After Bug 4 fix, resume assets require authentication."""
         response = self.client.get("/api/v1/documents/resumes/")
-        self.assertEqual(response.status_code, 200)
-        payload = _unwrap(response)
-        self.assertGreaterEqual(len(payload), 3)
-        self.assertIn("asset_type", payload[0])
+        self.assertIn(response.status_code, (401, 403))
 
-    def test_analytics_and_digest_routes_are_public(self):
+    def test_analytics_and_digest_routes_require_auth(self):
+        """After Bug 4 fix, analytics funnel and daily digest require authentication."""
         funnel_response = self.client.get("/api/v1/analytics/funnel/")
         digest_response = self.client.get("/api/v1/reports/daily-digest/")
-        self.assertEqual(funnel_response.status_code, 200)
-        self.assertEqual(digest_response.status_code, 200)
-
-        funnel_payload = _unwrap(funnel_response)
-        digest_payload = _unwrap(digest_response)
-
-        self.assertIn("discovered", funnel_payload)
-        self.assertIn("headline", digest_payload)
+        # FunnelAnalyticsView was already IsAuthenticated; DailyDigestReportView
+        # was changed from AllowAny to IsAuthenticated in Bug 4 fix.
+        self.assertIn(funnel_response.status_code, (401, 403))
+        self.assertIn(digest_response.status_code, (401, 403))

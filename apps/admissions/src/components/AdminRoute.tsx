@@ -24,6 +24,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
   const location = useLocation()
   const [maxWaitReached, setMaxWaitReached] = useState(false)
   const [isRecoveringSession, setIsRecoveringSession] = useState(false)
+  const [recoveryAttempted, setRecoveryAttempted] = useState(false)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const loaderTelemetryRef = useRef<ReturnType<typeof startLoaderTelemetry> | null>(null)
 
@@ -33,6 +34,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
     try {
       await retrySessionCheck()
     } finally {
+      setRecoveryAttempted(true)
       setIsRecoveringSession(false)
     }
   }, [isRecoveringSession, retrySessionCheck])
@@ -55,6 +57,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
   useEffect(() => {
     if (!loading) {
       setMaxWaitReached(false)
+      setRecoveryAttempted(false)
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current)
         timeoutRef.current = null
@@ -78,26 +81,20 @@ export function AdminRoute({ children }: AdminRouteProps) {
     }
   }, [loading, location.pathname])
 
-  if (loading) {
-    if (maxWaitReached) {
-      return (
-        <div className="flex min-h-screen items-center justify-center">
-          <div className="text-center space-y-3">
-            <p className="text-gray-600">Taking longer than expected to verify your admin session...</p>
-            <button
-              type="button"
-              onClick={() => void runSessionRecovery()}
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-70"
-              disabled={isRecoveringSession}
-            >
-              {isRecoveringSession ? 'Retrying session…' : 'Retry session'}
-            </button>
-          </div>
-        </div>
-      )
+  useEffect(() => {
+    if (!loading || !maxWaitReached || recoveryAttempted || isRecoveringSession) {
+      return
     }
 
-    return <GuardInlineSkeleton label="Verifying admin access" />
+    void runSessionRecovery()
+  }, [isRecoveringSession, loading, maxWaitReached, recoveryAttempted, runSessionRecovery])
+
+  if (loading) {
+    return (
+      <GuardInlineSkeleton
+        label={maxWaitReached || isRecoveringSession ? 'Opening admin workspace' : 'Preparing admin workspace'}
+      />
+    )
   }
 
   if (!user) {

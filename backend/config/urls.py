@@ -9,25 +9,26 @@ from drf_spectacular.views import (
 )
 
 from apps.common.health import LivenessView, ReadinessView
+from apps.common.permissions import IsAuthenticatedOrDebug
 from apps.common.views import APIHomeView
 from apps.documents.urls import document_urlpatterns, payment_urlpatterns, program_fee_urlpatterns
 
 urlpatterns = [
     path("", APIHomeView.as_view(), name="api-root"),
-    path("admin/", admin.site.urls),
+    path("mihas-admin-panel/", admin.site.urls),
     # Health checks at root level (not under /api/v1/)
     path("health/live/", LivenessView.as_view(), name="health-live"),
     path("health/ready/", ReadinessView.as_view(), name="health-ready"),
     # OpenAPI schema and documentation
-    path("api/v1/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("api/v1/schema/", SpectacularAPIView.as_view(permission_classes=[IsAuthenticatedOrDebug]), name="schema"),
     path(
         "api/v1/docs/",
-        SpectacularSwaggerView.as_view(url_name="schema"),
+        SpectacularSwaggerView.as_view(url_name="schema", permission_classes=[IsAuthenticatedOrDebug]),
         name="swagger-ui",
     ),
     path(
         "api/v1/redoc/",
-        SpectacularRedocView.as_view(url_name="schema"),
+        SpectacularRedocView.as_view(url_name="schema", permission_classes=[IsAuthenticatedOrDebug]),
         name="redoc",
     ),
     # App endpoints under /api/v1/

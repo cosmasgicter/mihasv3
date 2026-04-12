@@ -306,6 +306,12 @@ input, textarea, select {
       background-position: 1000px 0;
     }
   }
+
+  @keyframes skeleton-shimmer {
+    100% {
+      transform: translateX(300%);
+    }
+  }
   
   .animate-shimmer {
     background: hsl(var(--muted));

@@ -19,13 +19,16 @@
  * |--------------------------------|--------------------|-------------|--------|------|
  * | Accreditation badge (text-xs)  | text-white (1.0)   | #ffffff     | ≥13:1  | ✅ AA |
  * | h1 headline (text-3xl–6xl)     | text-white (1.0)   | #ffffff     | ≥13:1  | ✅ AA |
- * | Rotating phrases (text-lg–2xl) | text-white/90      | rgba(…0.9)  | ≥10.8:1| ✅ AA (large) |
- * | Description (text-base–xl)     | text-white/95      | rgba(…0.95) | ≥11.8:1| ✅ AA |
+ * | Rotating phrases (text-lg–2xl) | text-white (1.0)   | #ffffff     | ≥13:1  | ✅ AA (large) |
+ * | Description (text-base–xl)     | text-white (1.0)   | #ffffff     | ≥13:1  | ✅ AA |
  * | ShinyText brand (text-sm)      | text-white (1.0)   | #ffffff     | ≥13:1  | ✅ AA |
  * | CTA primary button             | text-primary-fg    | per token   | ≥7:1   | ✅ AA |
  * | CTA secondary button           | text-white (1.0)   | #ffffff     | ≥13:1  | ✅ AA |
  * | Overlay title (text-sm)        | text-white (1.0)   | #ffffff     | ≥15:1  | ✅ AA |
  * | Overlay caption (text-xs)      | text-white (1.0)   | #ffffff     | ≥15:1  | ✅ AA |
+ * | Checklist items (text-sm)      | text-white (1.0)   | #ffffff     | ≥12:1  | ✅ AA |
+ * | Highlight labels (text-xs)     | text-white (1.0)   | #ffffff     | ≥13:1  | ✅ AA |
+ * | Stats labels (text-xs–sm)      | text-white (1.0)   | #ffffff     | ≥13:1  | ✅ AA |
  * ──────────────────────────────────────────────────────────────────────────
  */
 
@@ -37,6 +40,7 @@ import { TextRotate } from './text-rotate';
 import { ShinyText } from './shiny-text';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { CheckCircle } from '@/components/icons';
+import { preloadAuthRoutes } from '@/lib/routePreload';
 
 interface ShapeLandingHeroProps {
   /** Headline text */
@@ -74,6 +78,12 @@ export function ShapeLandingHero({
   secondaryCta,
   proofPanel,
 }: ShapeLandingHeroProps) {
+  const warmPrimaryRoute = primaryCta.href.startsWith('/auth')
+    ? () => {
+        void preloadAuthRoutes('hero-cta')
+      }
+    : undefined
+
   return (
     <section
       id="hero"
@@ -112,7 +122,7 @@ export function ShapeLandingHero({
                 </p>
                 <div
                   aria-hidden="true"
-                  className="mb-4 text-lg font-semibold text-white/90 sm:mb-6 sm:text-xl md:text-2xl"
+                  className="mb-4 text-lg font-semibold text-white sm:mb-6 sm:text-xl md:text-2xl"
                 >
                 <TextRotate
                   phrases={rotatingPhrases}
@@ -124,7 +134,7 @@ export function ShapeLandingHero({
               </>
             )}
 
-            <p className="mx-auto mb-6 max-w-2xl text-base font-medium leading-relaxed text-white/95 sm:mb-8 sm:text-lg md:text-xl lg:mx-0">
+            <p className="mx-auto mb-6 max-w-2xl text-base font-medium leading-relaxed text-white sm:mb-8 sm:text-lg md:text-xl lg:mx-0">
               {description}
             </p>
 
@@ -140,6 +150,9 @@ export function ShapeLandingHero({
             <div className="mx-auto flex max-w-md flex-col items-center justify-center gap-4 xs:max-w-none xs:flex-row lg:mx-0 lg:justify-start">
               <Link
                 to={primaryCta.href}
+                onPointerEnter={warmPrimaryRoute}
+                onFocus={warmPrimaryRoute}
+                onTouchStart={warmPrimaryRoute}
                 className={cn(
                   'inline-flex items-center justify-center gap-2 rounded-lg font-semibold',
                   'bg-gradient-to-r from-primary via-primary to-info text-primary-foreground',
@@ -190,18 +203,18 @@ export function ShapeLandingHero({
             </div>
 
             {/* Stats highlight strip */}
-            <div className="mt-10 flex flex-wrap justify-center gap-6 text-white/90 sm:mt-12 sm:gap-10 lg:justify-start">
+            <div className="mt-10 flex flex-wrap justify-center gap-6 text-white sm:mt-12 sm:gap-10 lg:justify-start">
               <div className="text-center">
                 <p className="text-2xl sm:text-3xl font-bold">92%</p>
-                <p className="text-xs sm:text-sm text-white/90">Job Placement</p>
+                <p className="text-xs sm:text-sm text-white">Job Placement</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl sm:text-3xl font-bold">300+</p>
-                <p className="text-xs sm:text-sm text-white/90">Graduates Employed</p>
+                <p className="text-xs sm:text-sm text-white">Graduates Employed</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl sm:text-3xl font-bold">25+</p>
-                <p className="text-xs sm:text-sm text-white/90">Employer Partners</p>
+                <p className="text-xs sm:text-sm text-white">Employer Partners</p>
               </div>
             </div>
           </div>
@@ -210,7 +223,7 @@ export function ShapeLandingHero({
             <div className="relative">
               <div className="absolute inset-6 rounded-full bg-white/15 blur-3xl" aria-hidden="true" />
 
-              <div className="relative rounded-[2rem] border border-white/15 bg-slate-950/20 p-3 shadow-[0_24px_80px_rgba(4,18,33,0.32)] backdrop-blur-xl">
+              <div className="relative rounded-[2rem] border border-white/25 bg-slate-950/30 p-3 shadow-[0_24px_80px_rgba(4,18,33,0.32)] backdrop-blur-xl">
                 <div className="relative overflow-hidden rounded-[1.5rem]">
                   <OptimizedImage
                     src={proofPanel.image.src}
@@ -230,7 +243,7 @@ export function ShapeLandingHero({
                     {proofPanel.badges.map((badge) => (
                       <span
                         key={badge}
-                        className="rounded-full border border-white/20 bg-slate-950/45 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-white/95 backdrop-blur-sm"
+                        className="rounded-full border border-white/30 bg-slate-950/60 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-white backdrop-blur-sm"
                       >
                         {badge}
                       </span>
@@ -238,13 +251,13 @@ export function ShapeLandingHero({
                   </div>
 
                   <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
-                    <p className="mb-2 text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-white/90">
+                    <p className="mb-2 text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-white">
                       {proofPanel.eyebrow}
                     </p>
                     <p className="text-xl font-semibold leading-tight text-white sm:text-2xl">
                       {proofPanel.title}
                     </p>
-                    <p className="mt-2 max-w-md text-sm leading-relaxed text-white/90">
+                    <p className="mt-2 max-w-md text-sm leading-relaxed text-white">
                       {proofPanel.description}
                     </p>
                   </div>
@@ -254,20 +267,20 @@ export function ShapeLandingHero({
                   {proofPanel.highlights.map((highlight) => (
                     <div
                       key={highlight.label}
-                      className="rounded-[1.25rem] border border-white/12 bg-white/10 px-4 py-3 text-center backdrop-blur-sm"
+                      className="rounded-[1.25rem] border border-white/25 bg-white/10 px-4 py-3 text-center backdrop-blur-sm"
                     >
                       <p className="text-xl font-bold text-white sm:text-2xl">{highlight.value}</p>
-                      <p className="mt-1 text-[0.72rem] font-medium uppercase tracking-[0.16em] text-white/90">
+                      <p className="mt-1 text-[0.72rem] font-medium uppercase tracking-[0.16em] text-white">
                         {highlight.label}
                       </p>
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-3 rounded-[1.25rem] border border-white/12 bg-slate-950/35 p-4 backdrop-blur-sm">
+                <div className="mt-3 rounded-[1.25rem] border border-white/25 bg-slate-950/50 p-4 backdrop-blur-sm">
                   <ul className="space-y-3">
                     {proofPanel.checklist.map((item) => (
-                      <li key={item} className="flex items-start gap-3 text-sm text-white/92">
+                      <li key={item} className="flex items-start gap-3 text-sm text-white">
                         <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-300" aria-hidden="true" />
                         <span>{item}</span>
                       </li>

@@ -603,23 +603,23 @@ class ApiClient {
     const { controller: timeoutController, clear: clearTimeout_ } =
       createTimeoutController(timeoutMs, externalSignal as AbortSignal | null);
 
-    try {
-      const isFormDataRequest =
-        typeof FormData !== 'undefined' && restOptions.body instanceof FormData;
-      const baseHeaders = isFormDataRequest ? {} : this.getBaseHeaders();
-      const requestHeaders = {
-        ...baseHeaders,
-        ...this.normalizeHeaders(headers),
-      };
+    const isFormDataRequest =
+      typeof FormData !== 'undefined' && restOptions.body instanceof FormData;
+    const baseHeaders = isFormDataRequest ? {} : this.getBaseHeaders();
+    const requestHeaders = {
+      ...baseHeaders,
+      ...this.normalizeHeaders(headers),
+    };
 
-      // Attach CSRF token for state-changing requests
-      if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-        const csrfToken = getCsrfToken();
-        if (csrfToken) {
-          requestHeaders['X-CSRF-Token'] = csrfToken;
-        }
+    // Attach CSRF token for state-changing requests
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+      const csrfToken = getCsrfToken();
+      if (csrfToken) {
+        requestHeaders['X-CSRF-Token'] = csrfToken;
       }
+    }
 
+    try {
       const requestInit: RequestInit = {
         ...restOptions,
         method,

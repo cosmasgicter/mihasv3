@@ -235,6 +235,10 @@ X_FRAME_OPTIONS = "DENY"
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
+# Request body size limits (prevent memory exhaustion attacks)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5MB for JSON/form data
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB for file uploads
+
 # ---------------------------------------------------------------------------
 # Auth cookie settings (subdomain strategy)
 # ---------------------------------------------------------------------------

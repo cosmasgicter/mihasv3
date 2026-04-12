@@ -105,7 +105,7 @@ def envelope_exception_handler(exc, context):
 
         envelope = {
             "success": False,
-            "error": error_msg[:500],
+            "error": "An unexpected error occurred. Please try again later.",
             "code": "INTERNAL_ERROR",
         }
         if request_id:

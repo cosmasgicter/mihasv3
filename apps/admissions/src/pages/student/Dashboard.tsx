@@ -41,6 +41,7 @@ import { applicationSessionManager } from '@/lib/applicationSession'
 import { requiresStudentPaymentAction } from '@/lib/paymentStatus'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { getDefaultSSEClient } from '@/lib/sseClient'
+import { DashboardSkeleton } from '@/components/ui/skeleton'
 
 /** Check if a rejected promise reason is a 403 Forbidden error */
 function is403Error(error: unknown): boolean {
@@ -531,70 +532,7 @@ export default function StudentDashboard() {
       }
     >
         {isInitialLoading ? (
-          <div className="space-y-6 sm:space-y-8" role="status" aria-label="Loading student dashboard">
-            {/* Skeleton: Status Overview */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="rounded-xl border border-border bg-card p-4 animate-pulse">
-                  <div className="h-3 w-16 rounded bg-muted mb-3" />
-                  <div className="h-8 w-12 rounded bg-muted" />
-                </div>
-              ))}
-            </div>
-
-            {/* Skeleton: Main grid */}
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
-              {/* Skeleton: Applications card */}
-              <div className="lg:col-span-2 rounded-xl border border-border bg-card animate-pulse">
-                <div className="p-6 border-b border-border">
-                  <div className="h-5 w-36 rounded bg-muted mb-2" />
-                  <div className="h-3 w-64 rounded bg-muted" />
-                </div>
-                <div className="divide-y divide-border">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className="p-6 flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-full bg-muted flex-shrink-0" />
-                      <div className="flex-1 space-y-2">
-                        <div className="h-4 w-48 rounded bg-muted" />
-                        <div className="h-3 w-32 rounded bg-muted" />
-                      </div>
-                      <div className="h-6 w-20 rounded-full bg-muted" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Skeleton: Sidebar */}
-              <div className="space-y-6">
-                {/* Profile summary skeleton */}
-                <div className="rounded-xl border border-border bg-card p-6 animate-pulse">
-                  <div className="h-5 w-32 rounded bg-muted mb-4" />
-                  <div className="space-y-3">
-                    {[...Array(4)].map((_, i) => (
-                      <div key={i} className="rounded-xl bg-muted px-4 py-3">
-                        <div className="h-2 w-16 rounded bg-muted/60 mb-2" />
-                        <div className="h-4 w-28 rounded bg-muted/60" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Deadlines skeleton */}
-                <div className="rounded-xl border border-border bg-card p-6 animate-pulse">
-                  <div className="h-5 w-40 rounded bg-muted mb-4" />
-                  <div className="space-y-3">
-                    {[...Array(2)].map((_, i) => (
-                      <div key={i} className="rounded-xl bg-muted/30 px-4 py-3">
-                        <div className="h-4 w-36 rounded bg-muted mb-2" />
-                        <div className="h-3 w-28 rounded bg-muted" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <span className="sr-only" aria-live="polite">Loading student dashboard</span>
-          </div>
+          <DashboardSkeleton />
         ) : (
           <div className="space-y-6 sm:space-y-8">
             {isRefreshing && (

@@ -67,8 +67,8 @@ export function LoadingFallback({
               <Skeleton className="mx-auto h-3 w-52" />
             </div>
           </div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">Taking longer than expected</h3>
-          <p className="text-muted-foreground mb-4">Please check your internet connection and try refreshing the page.</p>
+          <h3 className="text-lg font-semibold text-foreground mb-2">Still loading this page</h3>
+          <p className="text-muted-foreground mb-4">Keep this tab open, or refresh if your connection has changed.</p>
           <button
             onClick={() => window.location.assign(window.location.pathname)}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"

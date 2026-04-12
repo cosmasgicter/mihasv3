@@ -126,18 +126,19 @@ describe('route guards with normalized session-backed auth state', () => {
     mockUseDebouncedLoading.mockReturnValue(true)
   })
 
-  it('ProtectedRoute returns null while loading', () => {
+  it('ProtectedRoute renders a neutral skeleton while loading', () => {
     mockUseAuthCheck.mockReturnValue({
       isAuthenticated: false,
       isLoading: true,
       user: null,
     })
 
-    const element = ProtectedRoute({ children: React.createElement('div', null, 'OK') })
-    expect(element).toBeNull()
+    const element = ProtectedRoute({ children: React.createElement('div', null, 'OK') }) as React.ReactElement
+    expect(element).toBeTruthy()
+    expect(element.props.label).toBe('Preparing your account')
   })
 
-  it('AdminRoute returns null while loading', () => {
+  it('AdminRoute renders a neutral skeleton while loading', () => {
     mockUseAuth.mockReturnValue({
       user: null,
       isAdmin: false,
@@ -145,8 +146,9 @@ describe('route guards with normalized session-backed auth state', () => {
       profile: null,
     })
 
-    const element = AdminRoute({ children: React.createElement('div', null, 'Admin') })
-    expect(element).toBeNull()
+    const element = AdminRoute({ children: React.createElement('div', null, 'Admin') }) as React.ReactElement
+    expect(element).toBeTruthy()
+    expect(element.props.label).toBe('Preparing admin workspace')
   })
 
   it('ProtectedRoute does not redirect authenticated users back to /auth/signin', () => {

@@ -53,6 +53,8 @@ class SecurityHeadersMiddleware:
         response["Permissions-Policy"] = (
             "camera=(), microphone=(), geolocation=(), payment=()"
         )
+        if hasattr(request, "user") and request.user.is_authenticated:
+            response["Cache-Control"] = "no-store, private"
         return response
 
 

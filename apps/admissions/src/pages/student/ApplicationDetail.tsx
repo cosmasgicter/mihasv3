@@ -11,6 +11,7 @@ import { applicationService } from '@/services/applications'
 import type { ApplicationDetailResponse } from '@/services/applications'
 import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
+import { Skeleton, SkeletonCard } from '@/components/ui/skeleton'
 import { 
   ArrowLeft, 
   Calendar, 
@@ -102,13 +103,16 @@ export default function ApplicationDetail() {
         noindex
       />
       <PageShell title="Application Details" subtitle="Loading...">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-skeleton rounded w-1/3"></div>
-            <div className="bg-card rounded-2xl shadow-lg p-4 sm:p-8 space-y-4">
-              <div className="h-6 bg-skeleton rounded w-1/2"></div>
-              <div className="h-4 bg-skeleton rounded w-3/4"></div>
-              <div className="h-4 bg-skeleton rounded w-1/2"></div>
+          <div className="space-y-6" role="status" aria-label="Loading application details">
+            <Skeleton className="h-8 w-1/3 min-w-56" />
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
+              <div className="space-y-4">
+                <SkeletonCard />
+                <SkeletonCard />
+              </div>
+              <SkeletonCard />
             </div>
+            <span className="sr-only" aria-live="polite">Loading application details</span>
           </div>
       </PageShell>
       </>

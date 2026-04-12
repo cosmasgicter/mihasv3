@@ -73,4 +73,31 @@ describe('applicationSessionManager draft deletion', () => {
     expect(getByIdMock).toHaveBeenCalledWith('app-submitted')
     expect(localStorage.getItem('applicationWizardDraft')).toBeNull()
   })
+
+  it('preserves local wizard data but strips a deleted server application id', async () => {
+    const notFound = Object.assign(new Error('Resource not found. The requested item may have been deleted.'), {
+      status: 404,
+    })
+    getByIdMock.mockRejectedValue(notFound)
+
+    localStorage.setItem('applicationWizardDraft', JSON.stringify({
+      applicationId: 'deleted-app',
+      userId: 'user-1',
+      formData: { full_name: 'Test Applicant' },
+      selectedGrades: [{ subject_id: 'subject-1', grade: 2 }],
+      currentStep: 2,
+      savedAt: '2026-04-12T00:00:00.000Z',
+      version: 2,
+    }))
+
+    const { applicationSessionManager } = await import('@/lib/applicationSession')
+    const result = await applicationSessionManager.getLocalWizardDraft('user-1')
+    const storedDraft = JSON.parse(localStorage.getItem('applicationWizardDraft') || '{}')
+
+    expect(result?.formData?.full_name).toBe('Test Applicant')
+    expect(result?.selectedGrades).toEqual([{ subject_id: 'subject-1', grade: 2 }])
+    expect(result?.applicationId).toBeUndefined()
+    expect(storedDraft.applicationId).toBeUndefined()
+    expect(getByIdMock).toHaveBeenCalledWith('deleted-app')
+  })
 })

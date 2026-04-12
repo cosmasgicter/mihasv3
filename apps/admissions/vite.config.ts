@@ -29,12 +29,15 @@ function envValidationPlugin(): Plugin {
       const recommended: string[] = [
         'VITE_VAPID_PUBLIC_KEY',
       ]
-      const missing = required.filter(
-        (v) => !process.env[v] || process.env[v]!.trim().length === 0,
-      )
-      const missingRecommended = recommended.filter(
-        (v) => !process.env[v] || process.env[v]!.trim().length === 0,
-      )
+      const getEnvValue = (key: string) => config.env[key] ?? process.env[key]
+      const missing = required.filter((v) => {
+        const value = getEnvValue(v)
+        return !value || value.trim().length === 0
+      })
+      const missingRecommended = recommended.filter((v) => {
+        const value = getEnvValue(v)
+        return !value || value.trim().length === 0
+      })
 
       if (missing.length > 0) {
         const msg = `Missing required VITE_* environment variables: ${missing.join(', ')}`
@@ -83,7 +86,6 @@ export default defineConfig(({ mode, command }) => {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
           globIgnores: [
             '**/vendor-excel-*.js',
-            '**/vendor-location-data-*.js',
             '**/vendor-ocr-*.js',
             '**/vendor-pdf-*.js',
           ],
@@ -143,11 +145,6 @@ export default defineConfig(({ mode, command }) => {
               return 'vendor-ocr'
             }
 
-            // Large country/state/city dataset - lazy loaded for residency forms
-            if (id.includes('/country-state-city/')) {
-              return 'vendor-location-data'
-            }
-            
             // Charts - recharts (dynamically imported)
             if (id.includes('/recharts/') || id.includes('/d3-')) {
               return 'vendor-charts'

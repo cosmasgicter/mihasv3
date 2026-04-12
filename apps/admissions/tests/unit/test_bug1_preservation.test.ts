@@ -89,8 +89,9 @@ describe('Bug 1: Preservation — Vite Config Structure and Build Options', () =
     expect(viteConfig).toContain('vendor-excel');
     expect(viteConfig).toContain('vendor-pdf');
     expect(viteConfig).toContain('vendor-ocr');
-    expect(viteConfig).toContain('vendor-location-data');
     expect(viteConfig).toContain('vendor-charts');
+    expect(viteConfig).not.toContain('vendor-location-data');
+    expect(viteConfig).not.toContain('country-state-city');
   });
 });
 

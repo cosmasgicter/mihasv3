@@ -45,6 +45,77 @@ const SESSION_STORAGE_KEYS = [
   'applicationWizardDraft'
 ]
 
+export function isApplicationMissingError(error: unknown): boolean {
+  const status = (error as { status?: number })?.status
+  if (status === 404) {
+    return true
+  }
+
+  const message = error instanceof Error ? error.message.toLowerCase() : ''
+  return (
+    message.includes('resource not found') ||
+    message.includes('application not found') ||
+    message.includes('not found or access denied')
+  )
+}
+
+function clearStorageDraftApplicationId(storage: Storage, key: string, staleApplicationId?: string | null) {
+  const raw = storage.getItem(key)
+  if (!raw) {
+    return
+  }
+
+  const draft = safeJsonParse<Record<string, any> | null>(raw, null)
+  if (!draft) {
+    storage.removeItem(key)
+    return
+  }
+
+  const storedIds = [
+    typeof draft.applicationId === 'string' ? draft.applicationId : null,
+    typeof draft.application_id === 'string' ? draft.application_id : null,
+    typeof draft.id === 'string' ? draft.id : null,
+  ].filter(Boolean)
+
+  if (staleApplicationId && !storedIds.includes(staleApplicationId)) {
+    return
+  }
+
+  delete draft.applicationId
+  delete draft.application_id
+  if (!staleApplicationId || draft.id === staleApplicationId) {
+    delete draft.id
+  }
+
+  const timestamp = new Date().toISOString()
+  draft.savedAt = draft.savedAt || timestamp
+  draft.last_saved_at = timestamp
+
+  storage.setItem(key, JSON.stringify(draft))
+}
+
+export function clearStaleApplicationDraftReference(staleApplicationId?: string | null): void {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  const keys = new Set([...DRAFT_STORAGE_KEYS, ...SESSION_STORAGE_KEYS])
+
+  keys.forEach((key) => {
+    try {
+      clearStorageDraftApplicationId(localStorage, key, staleApplicationId)
+    } catch {
+      // best effort local cleanup
+    }
+
+    try {
+      clearStorageDraftApplicationId(sessionStorage, key, staleApplicationId)
+    } catch {
+      // best effort session cleanup
+    }
+  })
+}
+
 class ApplicationSessionManager {
   private sessionId: string
   private saveInterval: NodeJS.Timeout | null = null
@@ -70,6 +141,10 @@ class ApplicationSessionManager {
     }
 
     return draft
+  }
+
+  getStoredDraft(): Record<string, any> | null {
+    return this.getStoredWizardDraft()
   }
 
   private async resolveDraftApplicationId(userId: string): Promise<string | null> {
@@ -116,8 +191,6 @@ class ApplicationSessionManager {
 
     const message = error.message.toLowerCase()
     return (
-      message.includes('resource not found') ||
-      message.includes('not found') ||
       message.includes('access denied') ||
       message.includes('authentication required') ||
       message.includes('permission')
@@ -150,6 +223,13 @@ class ApplicationSessionManager {
           return null
         }
       } catch (error) {
+        if (isApplicationMissingError(error)) {
+          clearStaleApplicationDraftReference(String(draft.applicationId))
+          delete draft.applicationId
+          delete draft.application_id
+          return draft
+        }
+
         if (this.shouldDiscardLocalDraft(error)) {
           this.clearAllLocalStorage()
           return null
@@ -251,6 +331,15 @@ class ApplicationSessionManager {
             step_completed: currentStep
           } as any)
         } catch (dbError) {
+          if (isApplicationMissingError(dbError)) {
+            clearStaleApplicationDraftReference(draftApplicationId)
+            draft.application_id = null
+            try {
+              localStorage.setItem('applicationDraft', JSON.stringify(draft))
+            } catch {
+              // best effort local cleanup
+            }
+          }
         }
       }
 
@@ -287,9 +376,20 @@ class ApplicationSessionManager {
         }
 
         // Also update the real draft application via API when one exists.
-        await applicationService.update(draftApplicationId, {
-          updated_at: new Date().toISOString()
-        } as any)
+        try {
+          await applicationService.update(draftApplicationId, {
+            updated_at: new Date().toISOString()
+          } as any)
+        } catch (error) {
+          if (isApplicationMissingError(error)) {
+            clearStaleApplicationDraftReference(draftApplicationId)
+            delete draft.application_id
+            delete draft.applicationId
+            localStorage.setItem('applicationDraft', JSON.stringify(draft))
+            return
+          }
+          throw error
+        }
       }
     } catch (error) {
       console.error('Auto-save failed:', sanitizeForLog(error))

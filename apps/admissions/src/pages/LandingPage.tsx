@@ -15,6 +15,7 @@ import {
 import { Seo } from '@/components/seo/Seo';
 import { prefersReducedMotion } from '@/lib/animation-config';
 import { useDeferredHydration } from '@/hooks/useDeferredHydration';
+import { scheduleLikelyAuthRoutePreload } from '@/lib/routePreload';
 
 const LandingPageSections = lazy(() => import('@/components/landing/LandingPageSections').then((mod) => ({ default: mod.LandingPageSections })));
 
@@ -151,6 +152,10 @@ export default function LandingPage() {
   const showDeferredSections = useDeferredHydration(true, 450)
 
   useEffect(() => {
+    return scheduleLikelyAuthRoutePreload(900)
+  }, [])
+
+  useEffect(() => {
     if (!location.hash) return;
     const sectionId = location.hash.replace('#', '');
     requestAnimationFrame(() => smoothScrollToSection(sectionId));
@@ -165,17 +170,17 @@ export default function LandingPage() {
         structuredData={landingStructuredData}
       />
       <ShapeLandingHero
-        headline="Your Future Starts Here"
-        description="Launch your healthcare career with accredited training, transparent admissions, and 92% job placement across Zambia and beyond."
+        headline="Train for the Healthcare Jobs Zambia Needs"
+        description="MIHAS and Kalulushi Training Centre offer government-accredited nursing, clinical medicine, and environmental health diplomas. 92% of our graduates are working within a year."
         rotatingPhrases={heroRotatingPhrases}
         primaryCta={{
-          label: 'Start Your Application',
+          label: 'Apply Now',
           href: '/auth/signup',
           icon: <ArrowRight className="w-5 h-5" />,
         }}
         secondaryCta={{
-          label: 'Learn More',
-          href: '#features',
+          label: 'See Our Programs',
+          href: '#programs',
           icon: <Star className="w-5 h-5" />,
         }}
         proofPanel={{
@@ -185,9 +190,9 @@ export default function LandingPage() {
             width: 400,
             height: 300,
           },
-          eyebrow: 'Admissions Snapshot',
-          title: 'Real campuses. Accredited pathways. Clear admissions tracking.',
-          description: 'Move from first click to confirmed placement with government-recognized programs and live progress visibility.',
+          eyebrow: 'Two Campuses, One Portal',
+          title: 'Apply once. Track everything online.',
+          description: 'No more chasing paper forms or waiting for phone calls. See exactly where your application stands at every step.',
           badges: ['NMCZ', 'HPCZ', 'ECZ', 'UNZA'],
           highlights: [
             { value: '2', label: 'campuses' },
@@ -195,9 +200,9 @@ export default function LandingPage() {
             { value: 'Live', label: 'status updates' },
           ],
           checklist: [
-            'Study across Mukuba Institute and Kalulushi Training Centre facilities.',
-            'Apply for Nursing, Clinical Medicine, or Environmental Health from one admissions portal.',
-            'Track each admissions milestone online instead of relying on manual follow-up.',
+            'Mukuba Institute (Nursing) and Kalulushi Training Centre (Clinical Medicine, Environmental Health).',
+            'One application form covers all three programs — pick the one that fits you.',
+            'Check your admissions status anytime from your phone. No office visits needed.',
           ],
         }}
       />

@@ -4,7 +4,10 @@ import { cn } from '@/lib/utils'
 export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn('animate-pulse rounded-md bg-skeleton', className)}
+      className={cn(
+        'relative overflow-hidden rounded-md bg-skeleton before:absolute before:inset-y-0 before:left-0 before:w-1/2 before:-translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/45 before:to-transparent before:animate-[skeleton-shimmer_1.6s_ease-in-out_infinite] motion-reduce:before:animate-none',
+        className
+      )}
       {...props}
     />
   )
@@ -85,9 +88,9 @@ export function DashboardSkeleton() {
       {/* Status overview grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="rounded-xl border border-border bg-card p-4 animate-pulse">
-            <div className="h-3 w-16 rounded bg-muted mb-3" />
-            <div className="h-8 w-12 rounded bg-muted" />
+          <div key={i} className="rounded-xl border border-border bg-card p-4">
+            <Skeleton className="h-3 w-16 mb-3" />
+            <Skeleton className="h-8 w-12" />
           </div>
         ))}
       </div>
@@ -95,20 +98,20 @@ export function DashboardSkeleton() {
       {/* Main grid: applications + sidebar */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
         {/* Applications card */}
-        <div className="lg:col-span-2 rounded-xl border border-border bg-card animate-pulse">
+        <div className="lg:col-span-2 rounded-xl border border-border bg-card">
           <div className="p-6 border-b border-border">
-            <div className="h-5 w-36 rounded bg-muted mb-2" />
-            <div className="h-3 w-64 rounded bg-muted" />
+            <Skeleton className="h-5 w-36 mb-2" />
+            <Skeleton className="h-3 w-64" />
           </div>
           <div className="divide-y divide-border">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="p-6 flex items-center gap-4">
-                <div className="h-10 w-10 rounded-full bg-muted flex-shrink-0" />
+                <Skeleton className="h-10 w-10 rounded-full flex-shrink-0" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 w-48 rounded bg-muted" />
-                  <div className="h-3 w-32 rounded bg-muted" />
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-3 w-32" />
                 </div>
-                <div className="h-6 w-20 rounded-full bg-muted" />
+                <Skeleton className="h-6 w-20 rounded-full" />
               </div>
             ))}
           </div>
@@ -117,26 +120,26 @@ export function DashboardSkeleton() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Profile summary skeleton */}
-          <div className="rounded-xl border border-border bg-card p-6 animate-pulse">
-            <div className="h-5 w-32 rounded bg-muted mb-4" />
+          <div className="rounded-xl border border-border bg-card p-6">
+            <Skeleton className="h-5 w-32 mb-4" />
             <div className="space-y-3">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="rounded-xl bg-muted px-4 py-3">
-                  <div className="h-2 w-16 rounded bg-muted/60 mb-2" />
-                  <div className="h-4 w-28 rounded bg-muted/60" />
+                  <Skeleton className="h-2 w-16 mb-2 bg-muted/60" />
+                  <Skeleton className="h-4 w-28 bg-muted/60" />
                 </div>
               ))}
             </div>
           </div>
 
           {/* Deadlines skeleton */}
-          <div className="rounded-xl border border-border bg-card p-6 animate-pulse">
-            <div className="h-5 w-40 rounded bg-muted mb-4" />
+          <div className="rounded-xl border border-border bg-card p-6">
+            <Skeleton className="h-5 w-40 mb-4" />
             <div className="space-y-3">
               {[...Array(2)].map((_, i) => (
                 <div key={i} className="rounded-xl bg-muted/30 px-4 py-3">
-                  <div className="h-4 w-36 rounded bg-muted mb-2" />
-                  <div className="h-3 w-28 rounded bg-muted" />
+                  <Skeleton className="h-4 w-36 mb-2" />
+                  <Skeleton className="h-3 w-28" />
                 </div>
               ))}
             </div>
@@ -161,7 +164,7 @@ export function AuthSkeleton() {
         {/* Desktop branding panel placeholder */}
         <div className="hidden lg:flex lg:w-1/2 xl:w-[55%]">
           <div className="relative flex w-full flex-col justify-center px-12 xl:px-16">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-700 via-indigo-700 to-slate-900 animate-pulse" />
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-700 via-indigo-700 to-slate-900" />
             <div className="relative z-10 max-w-lg space-y-6">
               {/* Badge placeholder */}
               <Skeleton className="h-8 w-48 rounded-full bg-white/10" />
@@ -207,7 +210,7 @@ export function AuthSkeleton() {
           <div className="h-1.5 bg-gradient-to-r from-blue-700 via-indigo-600 to-slate-900 lg:hidden" />
 
           <div className="flex flex-1 flex-col justify-center px-4 py-8 sm:px-6 sm:py-12 lg:px-12 xl:px-16">
-            <div className="mx-auto w-full max-w-2xl animate-pulse">
+            <div className="mx-auto w-full max-w-2xl">
               {/* Back link */}
               <Skeleton className="h-4 w-28 mb-4" />
 
@@ -275,7 +278,7 @@ export function WizardSkeleton() {
     <div className="min-h-screen bg-background" role="status" aria-label="Loading application wizard">
       <div className="w-full">
         {/* Header area */}
-        <div className="mx-auto max-w-4xl py-4 px-4 sm:py-8 animate-pulse">
+        <div className="mx-auto max-w-4xl py-4 px-4 sm:py-8">
           {/* Page title */}
           <Skeleton className="h-8 w-64 mb-2" />
           <Skeleton className="h-4 w-80 mb-8" />
@@ -286,7 +289,7 @@ export function WizardSkeleton() {
         </div>
 
         {/* Progress bar + step info */}
-        <div className="mx-auto max-w-4xl px-4 mb-6 lg:mb-8 animate-pulse">
+        <div className="mx-auto max-w-4xl px-4 mb-6 lg:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div className="flex-1">
               {/* Step title */}
@@ -322,7 +325,7 @@ export function WizardSkeleton() {
         </div>
 
         {/* Main content grid */}
-        <div className="mx-auto max-w-4xl px-4 animate-pulse">
+        <div className="mx-auto max-w-4xl px-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Form area */}
             <div className="lg:col-span-2 space-y-6">

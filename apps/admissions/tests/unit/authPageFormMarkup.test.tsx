@@ -81,8 +81,11 @@ describe('auth page form markup', () => {
 
     expect(markup).toContain('<legend class="text-base font-semibold text-foreground">Portal access</legend>')
     expect(markup).toContain('<legend class="text-base font-semibold text-foreground">Profile basics</legend>')
-    expect(markup).toContain('<legend class="text-base font-semibold text-foreground">Residence and identity</legend>')
-    expect(markup).toContain('<legend class="text-base font-semibold text-foreground">Emergency contact</legend>')
+    expect(markup).toContain('>First name<')
+    expect(markup).toContain('>Last name<')
+    expect(markup).toContain('>Phone number<')
+    expect(markup).not.toContain('Residence and identity')
+    expect(markup).not.toContain('Emergency contact')
   })
 
   it('uses honest helper copy instead of fake email availability states', () => {

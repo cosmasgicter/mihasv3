@@ -21,6 +21,7 @@ import { FormErrorAnnouncer } from '@/components/ui/FormErrorAnnouncer';
 import { Seo } from '@/components/seo/Seo';
 import { CheckCircle } from 'lucide-react';
 import { logApiError } from '@/lib/apiErrorLogger';
+import { preloadStudentWorkspaceRoute } from '@/lib/routePreload';
 
 export const signUpSchema = z
   .object({
@@ -82,11 +83,12 @@ export default function SignUpPage() {
       return result;
     },
     onSuccess: () => {
-      setSuccess('Account created! Redirecting...');
+      setSuccess('Account created. Opening your dashboard...');
+      void preloadStudentWorkspaceRoute('signup-success');
 
       redirectTimerRef.current = window.setTimeout(() => {
         navigate('/student/dashboard');
-      }, 1500);
+      }, 350);
     },
     onError: (error: unknown) => {
       logApiError('sign-up', '/auth/register/', error);
@@ -140,10 +142,10 @@ export default function SignUpPage() {
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
               <CheckCircle className="h-8 w-8" />
             </div>
-            <p className="text-sm text-foreground/80">Redirecting to your dashboard...</p>
+            <p className="text-sm text-foreground/80">Opening your dashboard...</p>
             <Link to="/student/dashboard" className="block">
               <Button className="w-full min-h-[48px]" variant="gradient" size="lg">
-                Go to dashboard
+                Open dashboard
               </Button>
             </Link>
           </div>

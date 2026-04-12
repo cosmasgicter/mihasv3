@@ -86,6 +86,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     if (!isLoading) {
       setShowTimeoutMessage(false)
+      setRecoveryAttempted(false)
     }
   }, [isLoading])
 
@@ -128,30 +129,25 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     runSessionRecovery,
   ])
 
-  if (isLoading) {
-    if (showTimeoutMessage) {
-      return (
-        <div className="flex min-h-screen items-center justify-center">
-          <div className="text-center space-y-3">
-            <p className="text-gray-600">Taking longer than expected...</p>
-            <button
-              type="button"
-              onClick={() => void runSessionRecovery()}
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-70"
-              disabled={isRecoveringSession}
-            >
-              {isRecoveringSession ? 'Retrying session…' : 'Retry session'}
-            </button>
-          </div>
-        </div>
-      )
+  useEffect(() => {
+    if (!isLoading || !showTimeoutMessage || recoveryAttempted || isRecoveringSession) {
+      return
     }
-    return <GuardInlineSkeleton label="Verifying account access" />
+
+    void runSessionRecovery()
+  }, [isLoading, isRecoveringSession, recoveryAttempted, runSessionRecovery, showTimeoutMessage])
+
+  if (isLoading) {
+    return (
+      <GuardInlineSkeleton
+        label={showTimeoutMessage || isRecoveringSession ? 'Opening your account' : 'Preparing your account'}
+      />
+    )
   }
 
   if (!isAuthenticated) {
     if (!allowSigninRedirect || isRecoveringSession) {
-      return <GuardInlineSkeleton label="Verifying account access" />
+      return <GuardInlineSkeleton label="Preparing your account" />
     }
     return <Navigate to="/auth/signin" state={{ from: location }} replace />
   }

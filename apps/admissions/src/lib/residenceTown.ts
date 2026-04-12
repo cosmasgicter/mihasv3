@@ -28,5 +28,10 @@ export function getResidenceTownHelperText({
     return 'Loading town suggestions...'
   }
 
-  return `Suggestions are for ${selectedCountry || defaultCountry}. You can still type your town manually.`
+  const country = selectedCountry || defaultCountry
+  if (country !== defaultCountry) {
+    return 'Type your town.'
+  }
+
+  return 'Type or choose a town.'
 }

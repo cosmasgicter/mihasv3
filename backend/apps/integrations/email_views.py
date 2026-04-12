@@ -4,7 +4,7 @@ import uuid
 
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -46,8 +46,7 @@ class ZohoConnectView(APIView):
     get=extend_schema(operation_id="email_messages_list", tags=["email"], responses={200: OpenApiResponse(response=EMAIL_MESSAGE_LIST_RESPONSE)})
 )
 class EmailMessageListView(APIView):
-    permission_classes = [AllowAny]
-    authentication_classes = []
+    permission_classes = [IsAuthenticated]
     serializer_class = EmailMessageSerializer
 
     def get(self, request):
@@ -59,8 +58,7 @@ class EmailMessageListView(APIView):
     get=extend_schema(operation_id="email_threads_list", tags=["email"], responses={200: OpenApiResponse(response=EMAIL_THREAD_LIST_RESPONSE)})
 )
 class EmailThreadListView(APIView):
-    permission_classes = [AllowAny]
-    authentication_classes = []
+    permission_classes = [IsAuthenticated]
     serializer_class = EmailThreadSerializer
 
     def get(self, request):
