@@ -77,8 +77,8 @@ EXPECTED_FK_RELATIONSHIPS = [
     ("application_grades.subject_id", "subjects"),
     ("application_status_history.application_id", "applications"),
     ("application_status_history.changed_by", "profiles"),
-    ("application_drafts.application_id", "applications"),
-    ("application_drafts.user_id", "profiles"),
+    ("application_drafts.application_id", "applications"),  # DEPRECATED: Use applications.status='draft' instead
+    ("application_drafts.user_id", "profiles"),  # DEPRECATED: Use applications.status='draft' instead
     ("application_interviews.application_id", "applications"),
     ("application_interviews.created_by", "profiles"),
     ("application_interviews.updated_by", "profiles"),

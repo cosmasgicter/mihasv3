@@ -945,7 +945,9 @@ class ApplicationReviewView(APIView):
         # Send notification to student on approval/rejection
         if new_status in ("approved", "rejected"):
             try:
-                from apps.common.models import Notification
+                from apps.common.models import EmailQueue, Notification
+                from apps.common.tasks import send_email_task
+
                 title = "🎉 Application Approved!" if new_status == "approved" else "Application Status Update"
                 message = (
                     f"Your application for {app.program} ({app.intake}) has been {new_status}."
@@ -960,9 +962,36 @@ class ApplicationReviewView(APIView):
                     priority="high",
                     action_url=f"/student/application/{app.id}",
                 )
+
+                # Dispatch email notification to the student
+                if new_status == "approved":
+                    email_subject = "Your MIHAS Application Has Been Approved"
+                    email_body = (
+                        f"<p>Dear {app.full_name},</p>"
+                        f"<p>Congratulations! Your application for <strong>{app.program}</strong> "
+                        f"({app.intake}) has been <strong>approved</strong>.</p>"
+                        f"<p>Please log in to your account to view the details and next steps.</p>"
+                        f"<p>Best regards,<br>MIHAS Admissions</p>"
+                    )
+                else:
+                    email_subject = "Update on Your MIHAS Application"
+                    email_body = (
+                        f"<p>Dear {app.full_name},</p>"
+                        f"<p>Your application for <strong>{app.program}</strong> "
+                        f"({app.intake}) has been reviewed.</p>"
+                        f"<p>Please log in to your account to check for feedback and further details.</p>"
+                        f"<p>Best regards,<br>MIHAS Admissions</p>"
+                    )
+
+                email_record = EmailQueue.objects.create(
+                    recipient_email=app.email,
+                    subject=email_subject,
+                    body=email_body,
+                    status="pending",
+                )
+                send_email_task.delay(str(email_record.id))
             except Exception:
-                import logging
-                logging.getLogger(__name__).exception("Failed to create notification for application %s", app.id)
+                logger.exception("Failed to create notification/email for application %s", app.id)
 
         response_data = {
             "message": f"Status updated from {old_status} to {new_status}",
