@@ -941,7 +941,45 @@ class ApplicationReviewView(APIView):
             },
             entity_id=app.id,
         )
-        return Response({"message": f"Status updated from {old_status} to {new_status}", "application_id": str(app.id), "old_status": old_status, "new_status": new_status})
+
+        # Send notification to student on approval/rejection
+        if new_status in ("approved", "rejected"):
+            try:
+                from apps.common.models import Notification
+                title = "🎉 Application Approved!" if new_status == "approved" else "Application Status Update"
+                message = (
+                    f"Your application for {app.program} ({app.intake}) has been {new_status}."
+                    if new_status == "approved"
+                    else f"Your application for {app.program} ({app.intake}) has been reviewed. Please check for feedback."
+                )
+                Notification.objects.create(
+                    user_id=app.user_id,
+                    title=title,
+                    message=message,
+                    type="success" if new_status == "approved" else "info",
+                    priority="high",
+                    action_url=f"/student/application/{app.id}",
+                )
+            except Exception:
+                import logging
+                logging.getLogger(__name__).exception("Failed to create notification for application %s", app.id)
+
+        response_data = {
+            "message": f"Status updated from {old_status} to {new_status}",
+            "application_id": str(app.id),
+            "old_status": old_status,
+            "new_status": new_status,
+        }
+        # Add intake capacity info for admin UI
+        try:
+            from apps.catalog.models import Intake
+            intake = Intake.objects.filter(name=app.intake, is_active=True).first()
+            if intake:
+                response_data["intake_capacity"] = intake.max_capacity
+                response_data["intake_enrollment"] = intake.current_enrollment
+        except Exception:
+            pass
+        return Response(response_data)
 
     def patch(self, request, application_id):
         return self.post(request, application_id)

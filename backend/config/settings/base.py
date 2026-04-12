@@ -174,6 +174,14 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.applications.notification_tasks.send_stale_draft_reminders",
         "schedule": 21600.0,  # Every 6 hours
     },
+    "keep-alive-ping": {
+        "task": "keep_alive_ping_task",
+        "schedule": 240.0,  # Every 4 minutes
+    },
+    "cleanup-csrf-tokens": {
+        "task": "cleanup_csrf_tokens_task",
+        "schedule": crontab(hour=4, minute=0),
+    },
 }
 
 # Enable TLS for rediss:// connections (Upstash, Redis Cloud, etc.)
