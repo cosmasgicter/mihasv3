@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/Dialog'
-import { DashboardSkeleton } from '@/components/ui/skeleton'
+import { DashboardSkeleton } from '@/components/ui'
 import { ResponsiveTable } from '@/components/ui/ResponsiveTable'
 import { Badge } from '@/components/ui'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui'

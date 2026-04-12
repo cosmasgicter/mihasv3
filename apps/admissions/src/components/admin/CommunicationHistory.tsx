@@ -9,7 +9,7 @@ import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import { Badge } from '@/components/ui'
 import { Alert } from '@/components/ui/Alert'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from '@/components/ui'
 import { Mail, MessageSquare, Phone, Clock, CheckCircle, XCircle, AlertCircle, User } from 'lucide-react'
 import { formatRelative } from '@/lib/dateFormat'
 

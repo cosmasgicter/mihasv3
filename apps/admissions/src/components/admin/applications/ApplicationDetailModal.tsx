@@ -5,7 +5,7 @@ import { XCircle, User, Clock, CheckCircle, FileText, CreditCard, Mail, Phone, C
 import { applicationService } from '@/services/applications'
 import { apiClient } from '@/services/client'
 import { logApiError } from '@/lib/apiErrorLogger'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from '@/components/ui'
 import type { ApplicationInterview } from '@/types/database'
 import { calculateBestFivePoints, sanitizeGradeValue } from '@/utils/grades'
 import { SendNotificationModal } from './SendNotificationModal'

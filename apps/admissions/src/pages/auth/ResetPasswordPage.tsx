@@ -14,7 +14,7 @@ import { useMutation } from '@tanstack/react-query';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Button } from '@/components/ui/Button';
-import { AuthSkeleton } from '@/components/ui/skeleton';
+import { AuthSkeleton } from '@/components/ui';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { animateClasses } from '@/lib/animations';
 import { Seo } from '@/components/seo/Seo';

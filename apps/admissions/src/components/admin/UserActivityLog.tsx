@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { Button } from '@/components/ui/Button'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from '@/components/ui'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog'
 import { adminAuditService, type AuditLogEntry } from '@/services/admin/audit'

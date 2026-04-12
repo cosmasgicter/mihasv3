@@ -40,6 +40,8 @@ EXPECTED_TABLE_MAPPING: dict[str, set[str]] = {
         "application_documents",
         "application_grades",
         "payments",
+        "program_fees",
+        "webhook_event_logs",
     },
     "catalog": {
         "institutions",
@@ -56,6 +58,8 @@ EXPECTED_TABLE_MAPPING: dict[str, set[str]] = {
         "notifications",
         "user_notification_preferences",
         "email_queue",
+        "error_logs",
+        "sse_events",
         "migration_history",
     },
 }
@@ -72,7 +76,7 @@ for app_label, table_names in EXPECTED_TABLE_MAPPING.items():
 class TestSchemaCompatibility(SimpleTestCase):
     """Property 36: Schema compatibility — managed=False and column mapping.
 
-    For any Django model mapping to one of the 26 existing Neon tables, the
+    For any Django model mapping to one of the expected Neon tables, the
     model should have ``managed = False`` in its Meta class and its db_table
     should match the expected table name.
 
@@ -83,7 +87,7 @@ class TestSchemaCompatibility(SimpleTestCase):
     # Structural assertions (no randomness needed — exhaustive over models)
     # ------------------------------------------------------------------
 
-    def test_all_26_tables_are_covered(self):
+    def test_all_expected_tables_are_covered(self):
         """Every expected table has a corresponding Django model."""
         expected_tables = set()
         for tables in EXPECTED_TABLE_MAPPING.values():
@@ -98,8 +102,8 @@ class TestSchemaCompatibility(SimpleTestCase):
             f"Expected tables without a Django model: {sorted(missing)}",
         )
 
-    def test_total_model_count_is_26(self):
-        """There should be exactly 26 models across the 5 apps."""
+    def test_total_model_count_matches_expected_schema(self):
+        """There should be exactly one model for each expected schema table."""
         expected_count = sum(len(t) for t in EXPECTED_TABLE_MAPPING.values())
         self.assertEqual(
             len(ALL_MODELS),

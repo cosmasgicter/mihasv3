@@ -142,6 +142,15 @@ class ProgramListCreateView(APIView):
         else:
             queryset = Program.objects.select_related("institution").filter(is_active=True)
 
+        # Filter by intake if provided (uses program_intakes junction table)
+        intake_id = request.query_params.get("intake")
+        if intake_id:
+            from apps.catalog.models import ProgramIntake
+            program_ids = ProgramIntake.objects.filter(
+                intake_id=intake_id
+            ).values_list("program_id", flat=True)
+            queryset = queryset.filter(id__in=program_ids)
+
         queryset = queryset.order_by("name")
 
         paginator = StandardPagination()
@@ -307,7 +316,19 @@ class IntakeListCreateView(APIView):
         if _is_admin(request):
             queryset = Intake.objects.all()
         else:
+            from datetime import date
+            today = date.today()
             queryset = Intake.objects.filter(is_active=True)
+            # Only show intakes that are currently accepting applications
+            # (application_start_date <= today <= application_deadline)
+            # Allow null dates to pass through (no restriction)
+            queryset = queryset.exclude(
+                application_deadline__lt=today,
+            )
+
+        # Support ?include_closed=true for admin/wizard to see all intakes
+        if request.query_params.get("include_closed") == "true" and _is_admin(request):
+            queryset = Intake.objects.all()
 
         queryset = queryset.order_by("-year", "name")
         serializer = IntakeSerializer(queryset, many=True)

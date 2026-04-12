@@ -11,7 +11,7 @@ import { applicationService } from '@/services/applications'
 import type { ApplicationDetailResponse } from '@/services/applications'
 import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
-import { Skeleton, SkeletonCard } from '@/components/ui/skeleton'
+import { Skeleton, SkeletonCard } from '@/components/ui'
 import { 
   ArrowLeft, 
   Calendar, 

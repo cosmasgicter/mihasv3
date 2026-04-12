@@ -16,8 +16,7 @@ import { programService } from '@/services/catalog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
 import { CanonicalSelect } from '@/components/ui/CanonicalSelect'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui'
 import { ResponsiveTable } from '@/components/ui/ResponsiveTable'
 import {
   Dialog,
@@ -27,7 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/Dialog'
-import { DashboardSkeleton } from '@/components/ui/skeleton'
+import { DashboardSkeleton } from '@/components/ui'
 import { PageShell } from '@/components/ui/PageShell'
 import { Seo } from '@/components/seo/Seo'
 import { ArrowLeft, DollarSign, Pencil, Plus, Trash2 } from 'lucide-react'

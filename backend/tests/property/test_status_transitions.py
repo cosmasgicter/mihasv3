@@ -11,6 +11,7 @@ be a no-op.
 """
 
 import os
+from contextlib import contextmanager
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
@@ -91,6 +92,12 @@ def _make_payment(payment_id, application_id, amount, status):
     return payment
 
 
+@contextmanager
+def _noop_atomic():
+    """A no-op context manager that replaces transaction.atomic()."""
+    yield
+
+
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
@@ -122,28 +129,32 @@ class TestForwardOnlyStatusTransitions(SimpleTestCase):
         allowed. Attempting pending → pending is a no-op."""
         service = PaymentService()
         payment = _make_payment(payment_id, application_id, amount, "pending")
+        locked_payment = _make_payment(payment_id, application_id, amount, "pending")
 
-        with patch(
-            "apps.documents.payment_service.Application.objects"
-        ) as mock_app_qs:
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_payment_qs,
+            patch("apps.documents.payment_service.Application.objects") as mock_app_qs,
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_payment_qs.select_for_update.return_value.get.return_value = locked_payment
             mock_app_qs.filter.return_value.update.return_value = 1
             service._update_payment_status(payment, target, lenco_data)
 
         if target in ("successful", "failed"):
             self.assertEqual(
-                payment.status,
+                locked_payment.status,
                 target,
                 f"pending → {target} should be allowed",
             )
-            payment.save.assert_called_once()
+            locked_payment.save.assert_called_once()
         else:
             # pending → pending is not in _ALLOWED_TRANSITIONS targets
             self.assertEqual(
-                payment.status,
+                locked_payment.status,
                 "pending",
                 f"pending → {target} should be a no-op",
             )
-            payment.save.assert_not_called()
+            locked_payment.save.assert_not_called()
 
     @given(
         payment_id=uuids,
@@ -167,15 +178,23 @@ class TestForwardOnlyStatusTransitions(SimpleTestCase):
         payment = _make_payment(
             payment_id, application_id, amount, "successful"
         )
+        locked_payment = _make_payment(
+            payment_id, application_id, amount, "successful"
+        )
 
-        service._update_payment_status(payment, target, lenco_data)
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_payment_qs,
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_payment_qs.select_for_update.return_value.get.return_value = locked_payment
+            service._update_payment_status(payment, target, lenco_data)
 
         self.assertEqual(
-            payment.status,
+            locked_payment.status,
             "successful",
             f"successful → {target} should be a no-op, status must stay 'successful'",
         )
-        payment.save.assert_not_called()
+        locked_payment.save.assert_not_called()
 
     @given(
         payment_id=uuids,
@@ -197,15 +216,21 @@ class TestForwardOnlyStatusTransitions(SimpleTestCase):
         The status must remain failed and save must not be called."""
         service = PaymentService()
         payment = _make_payment(payment_id, application_id, amount, "failed")
+        locked_payment = _make_payment(payment_id, application_id, amount, "failed")
 
-        service._update_payment_status(payment, target, lenco_data)
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_payment_qs,
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_payment_qs.select_for_update.return_value.get.return_value = locked_payment
+            service._update_payment_status(payment, target, lenco_data)
 
         self.assertEqual(
-            payment.status,
+            locked_payment.status,
             "failed",
             f"failed → {target} should be a no-op, status must stay 'failed'",
         )
-        payment.save.assert_not_called()
+        locked_payment.save.assert_not_called()
 
 
 class TestTransitionSequenceInvariant(SimpleTestCase):
@@ -234,35 +259,39 @@ class TestTransitionSequenceInvariant(SimpleTestCase):
         regardless of further attempts."""
         service = PaymentService()
         payment = _make_payment(payment_id, application_id, amount, "pending")
+        locked_payment = _make_payment(payment_id, application_id, amount, "pending")
 
-        with patch(
-            "apps.documents.payment_service.Application.objects"
-        ) as mock_app_qs:
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_payment_qs,
+            patch("apps.documents.payment_service.Application.objects") as mock_app_qs,
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_payment_qs.select_for_update.return_value.get.return_value = locked_payment
             mock_app_qs.filter.return_value.update.return_value = 1
 
             first_terminal = None
             for target in transitions:
                 service._update_payment_status(payment, target, {})
 
-                if first_terminal is None and payment.status in (
+                if first_terminal is None and locked_payment.status in (
                     "successful",
                     "failed",
                 ):
-                    first_terminal = payment.status
+                    first_terminal = locked_payment.status
 
             # After all transitions, the payment should be either:
             # - still pending (if no valid transition was attempted)
             # - locked in the first terminal state reached
             if first_terminal is not None:
                 self.assertEqual(
-                    payment.status,
+                    locked_payment.status,
                     first_terminal,
                     f"After reaching '{first_terminal}', status should not change. "
-                    f"Got '{payment.status}' after transitions: {transitions}",
+                    f"Got '{locked_payment.status}' after transitions: {transitions}",
                 )
             else:
                 self.assertEqual(
-                    payment.status,
+                    locked_payment.status,
                     "pending",
                     "If no valid forward transition was attempted, "
                     "status should remain 'pending'",

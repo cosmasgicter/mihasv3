@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardTitle, Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { OptimizedImage } from '@/components/ui/OptimizedImage'
 import {

@@ -9,6 +9,7 @@ produce the same Payment record state as processing it exactly once.
 """
 
 import os
+from contextlib import contextmanager
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
@@ -105,6 +106,12 @@ def _snapshot_payment(payment):
     }
 
 
+@contextmanager
+def _noop_atomic():
+    """A no-op context manager that replaces transaction.atomic()."""
+    yield
+
+
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
@@ -150,12 +157,12 @@ class TestWebhookProcessingIdempotency(SimpleTestCase):
             payment_id, application_id, amount, reference
         )
 
-        with patch(
-            "apps.documents.payment_service.Payment.objects"
-        ) as mock_pay, patch(
-            "apps.documents.payment_service.Application.objects"
-        ) as mock_app:
-            mock_pay.get.return_value = payment_once
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_pay,
+            patch("apps.documents.payment_service.Application.objects") as mock_app,
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_pay.select_for_update.return_value.get.return_value = payment_once
             mock_app.filter.return_value.update.return_value = 1
 
             service_once.process_webhook_event(
@@ -172,12 +179,12 @@ class TestWebhookProcessingIdempotency(SimpleTestCase):
             payment_id, application_id, amount, reference
         )
 
-        with patch(
-            "apps.documents.payment_service.Payment.objects"
-        ) as mock_pay, patch(
-            "apps.documents.payment_service.Application.objects"
-        ) as mock_app:
-            mock_pay.get.return_value = payment_n
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_pay,
+            patch("apps.documents.payment_service.Application.objects") as mock_app,
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_pay.select_for_update.return_value.get.return_value = payment_n
             mock_app.filter.return_value.update.return_value = 1
 
             for _ in range(n):
@@ -234,10 +241,11 @@ class TestWebhookProcessingIdempotency(SimpleTestCase):
             payment_id, application_id, amount, reference
         )
 
-        with patch(
-            "apps.documents.payment_service.Payment.objects"
-        ) as mock_pay:
-            mock_pay.get.return_value = payment_once
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_pay,
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_pay.select_for_update.return_value.get.return_value = payment_once
 
             service_once.process_webhook_event(
                 event_type="collection.settled",
@@ -253,10 +261,11 @@ class TestWebhookProcessingIdempotency(SimpleTestCase):
             payment_id, application_id, amount, reference
         )
 
-        with patch(
-            "apps.documents.payment_service.Payment.objects"
-        ) as mock_pay:
-            mock_pay.get.return_value = payment_n
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_pay,
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_pay.select_for_update.return_value.get.return_value = payment_n
 
             for _ in range(n):
                 service_n.process_webhook_event(

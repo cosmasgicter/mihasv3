@@ -4,6 +4,8 @@ Domain: api.mihas.edu.zm (Koyeb)
 Frontend: apply.mihas.edu.zm (Vercel)
 """
 
+from django.core.exceptions import ImproperlyConfigured
+
 from .base import *  # noqa: F401,F403
 
 DEBUG = False
@@ -27,6 +29,15 @@ AUTH_COOKIE_DOMAIN = ".mihas.edu.zm"
 AUTH_COOKIE_SAMESITE = "None"
 AUTH_COOKIE_SECURE = True
 AUTH_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = "None"
+
+# Production Lenco integration must not silently use sandbox defaults.
+LENCO_API_BASE_URL = os.environ.get("LENCO_API_BASE_URL", "https://api.lenco.co/access/v2/")  # noqa: F405
+if not LENCO_API_SECRET_KEY or not LENCO_PUBLIC_KEY:  # noqa: F405
+    raise ImproperlyConfigured("LENCO_API_SECRET_KEY and LENCO_PUBLIC_KEY are required in production.")
 
 # CORS — production frontend only
 CORS_ALLOWED_ORIGINS = split_csv_env(  # noqa: F405
