@@ -337,7 +337,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const currentStepConfig = (wizardSteps[currentStepIndex] ?? wizardSteps[0])!
   const isLastStep = currentStepConfig.key === 'submit'
 
-  const { data: programsData } = catalogData.usePrograms()
+  const { data: programsData } = catalogData.useProgramsForIntake(watch('intake') || null)
   const { data: intakesData } = catalogData.useIntakes()
   const { data: subjectsData } = catalogData.useSubjects()
   const subjects = useMemo(
