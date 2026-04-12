@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { logger } from '@/lib/logger'
-import { AuthSkeleton } from '@/components/ui/skeleton'
+import { AuthSkeleton } from '@/components/ui'
 
 export default function AuthCallbackPage() {
   const navigate = useNavigate()

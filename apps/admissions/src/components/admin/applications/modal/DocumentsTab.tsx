@@ -1,5 +1,5 @@
 import { FileText, Download, CheckCircle, Clock } from 'lucide-react'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from '@/components/ui'
 
 interface DocumentItem {
   id: string

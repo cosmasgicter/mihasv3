@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { format, formatDistanceToNow } from 'date-fns'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
-import { DashboardSkeleton } from '@/components/ui/skeleton'
+import { DashboardSkeleton } from '@/components/ui'
 import {
   DropdownMenu,
   DropdownMenuContent,

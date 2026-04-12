@@ -492,6 +492,20 @@ export const catalogService = {
     }
   },
 
+  /** Get programs available for a specific intake (uses program_intakes junction). */
+  getProgramsForIntake: async (intakeId: string): Promise<ProgramCollectionResponse> => {
+    try {
+      return normalizeProgramsResponse(
+        await apiClient.request<RawProgram[] | ProgramCollectionResponse | RawPaginatedCollection<RawProgram>>(
+          `/catalog/programs/?intake=${encodeURIComponent(intakeId)}`
+        )
+      )
+    } catch (error) {
+      logApiError('catalog', `/catalog/programs/?intake=${intakeId}`, error)
+      throw error
+    }
+  },
+
   getIntakes: async (): Promise<IntakeCollectionResponse> => {
     try {
       return normalizeIntakesResponse(

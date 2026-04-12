@@ -14,7 +14,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/Dialog'
-import { DashboardSkeleton } from '@/components/ui/skeleton'
+import { DashboardSkeleton } from '@/components/ui'
 import { ResponsiveTable } from '@/components/ui/ResponsiveTable'
 import { Pencil, Trash2, Plus, ArrowLeft, Calendar } from 'lucide-react'
 import { useForm, type Resolver } from 'react-hook-form'

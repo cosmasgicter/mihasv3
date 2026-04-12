@@ -1,7 +1,7 @@
 import React from 'react'
 import { useEmailNotifications } from '@/hooks/useEmailNotifications'
 import { Button } from '@/components/ui/Button'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from '@/components/ui'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import { formatTimestamp } from '@/lib/dateFormat'
 import { Mail, CheckCircle, XCircle, Clock } from 'lucide-react'

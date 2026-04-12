@@ -1,5 +1,5 @@
 import { History, CheckCircle, XCircle, Eye, Clock } from 'lucide-react'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from '@/components/ui'
 import { formatDate } from '@/lib/utils'
 
 interface StatusHistoryItem {

@@ -25,7 +25,7 @@ import {
   GraduationCap
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from '@/components/ui'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { formatDate } from '@/lib/dateFormat'
 import { formatApplicationStatus, type ApplicationStatus } from '@/types/applicationStatus'

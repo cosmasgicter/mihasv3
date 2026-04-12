@@ -239,6 +239,8 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
 
         middleware = RateLimitMiddleware(mock_get_response)
         prefix, rate = RateLimitMiddleware.SCOPE_LIMITS[scope_idx]
+        if rate is None:
+            return
         expected_seconds = RateLimitMiddleware._retry_after_seconds(rate)
 
         request = _make_request(method="GET", path=prefix + "something/")
@@ -266,6 +268,7 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
     def test_scope_limits_match_rate_limit_config(self):
         """Verify the configured scopes match the rate limit middleware configuration."""
         expected_scopes = [
+            ("/api/v1/events/stream/", None),
             ("/api/v1/auth/login/", "10/5m"),
             ("/api/v1/auth/register/", "5/5m"),
             ("/api/v1/auth/password-reset/", "5/5m"),
@@ -278,6 +281,7 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
             ("/api/v1/outreach/", "30/10m"),
             ("/api/v1/email/", "30/10m"),
             ("/api/v1/integrations/", "20/10m"),
+            ("/api/v1/payments/webhook/", "30/10m"),
             ("/api/v1/payments/", "20/10m"),
             ("/api/v1/", "120/10m"),
         ]

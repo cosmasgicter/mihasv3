@@ -10,6 +10,7 @@ should not mark the payment as successful.
 """
 
 import os
+from contextlib import contextmanager
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
@@ -84,6 +85,12 @@ def _build_webhook_payload(lenco_amount, lenco_ref, payment_type):
     }
 
 
+@contextmanager
+def _noop_atomic():
+    """A no-op context manager that replaces transaction.atomic()."""
+    yield
+
+
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
@@ -126,10 +133,11 @@ class TestAmountMismatchDetection(SimpleTestCase):
         )
         payload = _build_webhook_payload(lenco_amount, lenco_ref, payment_type)
 
-        with patch(
-            "apps.documents.payment_service.Payment.objects"
-        ) as mock_payment_qs:
-            mock_payment_qs.get.return_value = payment
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_payment_qs,
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_payment_qs.select_for_update.return_value.get.return_value = payment
 
             service.process_webhook_event(
                 event_type="collection.successful",
@@ -172,12 +180,12 @@ class TestAmountMismatchDetection(SimpleTestCase):
         # Use the exact same amount in the webhook payload
         payload = _build_webhook_payload(amount, lenco_ref, payment_type)
 
-        with patch(
-            "apps.documents.payment_service.Payment.objects"
-        ) as mock_payment_qs, patch(
-            "apps.documents.payment_service.Application.objects"
-        ) as mock_app_qs:
-            mock_payment_qs.get.return_value = payment
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_payment_qs,
+            patch("apps.documents.payment_service.Application.objects") as mock_app_qs,
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_payment_qs.select_for_update.return_value.get.return_value = payment
             mock_app_qs.filter.return_value.update.return_value = 1
 
             service.process_webhook_event(

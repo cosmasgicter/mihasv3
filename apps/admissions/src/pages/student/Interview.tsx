@@ -30,7 +30,7 @@ import { Badge } from '@/components/ui'
 import { PageShell } from '@/components/ui/PageShell'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from '@/components/ui'
 import { interviewsService } from '@/services/interviews'
 import { useAuth } from '@/contexts/AuthContext'
 

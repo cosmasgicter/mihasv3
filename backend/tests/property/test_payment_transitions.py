@@ -309,7 +309,7 @@ class TestWebhookSyncsApplicationStatus(SimpleTestCase):
     """# Feature: production-payment-hardening, Property 13: Successful webhook syncs application payment_status
 
     For any successful payment webhook event where the amount matches, after
-    processing, the associated application SHALL have payment_status='paid'.
+    processing, the associated application SHALL have payment_status='verified'.
 
     **Validates: Requirements 12.2**
     """
@@ -320,11 +320,11 @@ class TestWebhookSyncsApplicationStatus(SimpleTestCase):
         amount=amounts,
     )
     @settings(max_examples=100)
-    def test_successful_webhook_sets_application_paid(
+    def test_successful_webhook_sets_application_verified(
         self, payment_id, application_id, amount
     ):
         """After a successful webhook event with matching amount, the
-        application payment_status is set to 'paid'."""
+        application payment_status is set to 'verified'."""
         service = PaymentService()
         ref = f"MIHAS-TEST-{payment_id.hex[:8]}"
 
@@ -355,12 +355,12 @@ class TestWebhookSyncsApplicationStatus(SimpleTestCase):
                 payload=payload,
             )
 
-            # Verify application was updated to 'paid'
+            # Verify application was updated to 'verified'
             mock_app_qs.filter.assert_called_with(id=application_id)
             update_call = mock_app_qs.filter.return_value.update
             update_call.assert_called_once()
             call_kwargs = update_call.call_args[1]
-            self.assertEqual(call_kwargs["payment_status"], "paid")
+            self.assertEqual(call_kwargs["payment_status"], "verified")
 
 
 # ---------------------------------------------------------------------------

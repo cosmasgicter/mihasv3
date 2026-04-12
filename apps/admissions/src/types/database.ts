@@ -84,7 +84,13 @@ export interface Program {
   code?: string;
   description?: string;
   duration_months?: number;
+  application_fee?: number;
+  tuition_fee?: number;
   institution_id?: string;
+  institutions?: Institution | null;
+  requirements?: Record<string, unknown> | null;
+  regulatory_body?: string;
+  accreditation_status?: string;
   is_active?: boolean;
   created_at?: string;
   updated_at?: string;
@@ -93,9 +99,14 @@ export interface Program {
 export interface Intake {
   id: string;
   name: string;
+  year?: number;
+  semester?: string;
   start_date?: string;
   end_date?: string;
+  application_start_date?: string;
   application_deadline?: string;
+  max_capacity?: number;
+  current_enrollment?: number;
   is_active?: boolean;
   created_at?: string;
   updated_at?: string;

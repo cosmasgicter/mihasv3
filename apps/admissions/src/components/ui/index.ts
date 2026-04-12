@@ -71,7 +71,16 @@ export { Accordion } from './accordion'
 export { Separator } from './separator'
 export { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from './tooltip'
 export { Progress } from './progress'
-export { Skeleton, SkeletonText, SkeletonCard, SkeletonTable, SkeletonAvatar } from './skeleton'
+export {
+  Skeleton,
+  SkeletonText,
+  SkeletonCard,
+  SkeletonTable,
+  SkeletonAvatar,
+  DashboardSkeleton,
+  AuthSkeleton,
+  WizardSkeleton,
+} from './skeleton'
 export { SkeletonDashboard } from './skeletons'
 
 // Loading Components (canonical)
@@ -117,5 +126,4 @@ export {
   HeadingCardTitle, 
   VisuallyHidden 
 } from './HeadingHierarchy'
-
 
