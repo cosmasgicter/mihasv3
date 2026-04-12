@@ -262,9 +262,11 @@ class ApplicationListCreateView(APIView):
         role = getattr(user, "role", "student")
         if role in ("admin", "super_admin"):
             queryset = Application.objects.select_related('user').prefetch_related('applicationdocument_set').all()
+            # Payment summary annotations only for admin views (expensive subqueries)
+            queryset = _with_payment_summary(queryset)
         else:
             queryset = Application.objects.select_related('user').prefetch_related('applicationdocument_set').filter(user_id=str(user.id))
-        queryset = _with_payment_summary(queryset)
+            # Skip payment summary for student views — frontend uses separate payment endpoint
         filterset = ApplicationFilter(request.query_params, queryset=queryset)
         queryset = filterset.qs
 

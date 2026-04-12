@@ -53,7 +53,8 @@ export function usePaymentStatus(applicationId: string) {
 
     try {
       const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>(
-        `/payments/?application_id=${encodeURIComponent(applicationId)}`
+        `/payments/?application_id=${encodeURIComponent(applicationId)}`,
+        { skipCache: true }
       )
 
       if (!data) return
@@ -102,7 +103,7 @@ export function usePaymentStatus(applicationId: string) {
     // Reset backoff to initial interval on manual refetch
     intervalRef.current = INITIAL_INTERVAL
     clearPending()
-    fetchStatus().then(() => {
+    return fetchStatus().then(() => {
       scheduleNext()
     })
   }, [fetchStatus, clearPending, scheduleNext])
@@ -119,7 +120,6 @@ export function usePaymentStatus(applicationId: string) {
     return () => {
       clearPending()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applicationId])
 
   // Stop polling when status becomes terminal

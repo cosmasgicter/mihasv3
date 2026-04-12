@@ -46,7 +46,7 @@ from django.db import connection  # noqa: E402
 CHECKPOINT_FILE = PROJECT_DIR / ".migration_checkpoint.json"
 LOG_DIR = PROJECT_DIR / "migration_logs"
 
-# All 26 tables in the Neon schema
+# Core admissions tables in the Neon schema.
 TABLES = [
     "profiles",
     "applications",
@@ -74,6 +74,10 @@ TABLES = [
     "settings",
     "user_permission_overrides",
     "migration_history",
+    "program_fees",
+    "webhook_event_logs",
+    "error_logs",
+    "sse_events",
 ]
 
 

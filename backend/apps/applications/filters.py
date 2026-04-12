@@ -4,8 +4,11 @@ Implements task 13.2.
 Requirements: 4.3
 """
 
+from datetime import datetime, time
+
 import django_filters
 from django.db.models import Q
+from django.utils import timezone
 
 from apps.applications.models import Application
 
@@ -26,8 +29,8 @@ class ApplicationFilter(django_filters.FilterSet):
     sortBy = django_filters.CharFilter(method="filter_sort_by")
     sortOrder = django_filters.CharFilter(method="filter_sort_by")
     excludeStatus = django_filters.CharFilter(method="filter_exclude_status")
-    startDate = django_filters.DateFilter(field_name="created_at", lookup_expr="gte")
-    endDate = django_filters.DateFilter(field_name="created_at", lookup_expr="lte")
+    startDate = django_filters.DateFilter(method="filter_start_date")
+    endDate = django_filters.DateFilter(method="filter_end_date")
     paymentStatus = django_filters.CharFilter(field_name="payment_status", lookup_expr="iexact")
 
     class Meta:
@@ -92,3 +95,21 @@ class ApplicationFilter(django_filters.FilterSet):
         if not value:
             return queryset
         return queryset.exclude(status__iexact=value)
+
+    def _as_aware_datetime(self, value, boundary_time):
+        dt = datetime.combine(value, boundary_time)
+        if timezone.is_naive(dt):
+            return timezone.make_aware(dt, timezone.get_current_timezone())
+        return dt
+
+    def filter_start_date(self, queryset, name, value):
+        """Filter created_at from the start of the provided local date."""
+        if not value:
+            return queryset
+        return queryset.filter(created_at__gte=self._as_aware_datetime(value, time.min))
+
+    def filter_end_date(self, queryset, name, value):
+        """Filter created_at through the end of the provided local date."""
+        if not value:
+            return queryset
+        return queryset.filter(created_at__lte=self._as_aware_datetime(value, time.max))

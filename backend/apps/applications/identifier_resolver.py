@@ -29,7 +29,7 @@ class IdentifierResolver:
 
     @staticmethod
     def resolve_program(value: str) -> ResolvedIdentifier:
-        """Try UUID id first when applicable, then name, then code."""
+        """Try UUID id first when applicable, then name (case-insensitive), then code."""
         if IdentifierResolver._looks_like_uuid(value):
             try:
                 prog = Program.objects.filter(id=value, is_active=True).first()
@@ -37,31 +37,39 @@ class IdentifierResolver:
                     return ResolvedIdentifier(str(prog.id), prog.code, prog.name, "id")
             except (ValidationError, ValueError):
                 pass
-        prog = Program.objects.filter(name=value, is_active=True).first()
+        prog = Program.objects.filter(name__iexact=value, is_active=True).first()
         if prog:
             return ResolvedIdentifier(str(prog.id), prog.code, prog.name, "name")
-        prog = Program.objects.filter(code=value, is_active=True).first()
+        prog = Program.objects.filter(code__iexact=value, is_active=True).first()
         if prog:
             return ResolvedIdentifier(str(prog.id), prog.code, prog.name, "code")
+        # Fallback: contains match for partial names
+        prog = Program.objects.filter(name__icontains=value, is_active=True).first()
+        if prog:
+            return ResolvedIdentifier(str(prog.id), prog.code, prog.name, "name_partial")
         return ResolvedIdentifier("", "", value, "not_found")
 
     @staticmethod
     def resolve_institution(value: str) -> ResolvedIdentifier:
-        """Try code first, then name, then full_name."""
-        inst = Institution.objects.filter(code=value, is_active=True).first()
+        """Try code first, then name (case-insensitive), then full_name."""
+        inst = Institution.objects.filter(code__iexact=value, is_active=True).first()
         if inst:
             return ResolvedIdentifier(str(inst.id), inst.code, inst.name, "code")
-        inst = Institution.objects.filter(name=value, is_active=True).first()
+        inst = Institution.objects.filter(name__iexact=value, is_active=True).first()
         if inst:
             return ResolvedIdentifier(str(inst.id), inst.code, inst.name, "name")
-        inst = Institution.objects.filter(full_name=value, is_active=True).first()
+        inst = Institution.objects.filter(full_name__iexact=value, is_active=True).first()
         if inst:
             return ResolvedIdentifier(str(inst.id), inst.code, inst.name, "full_name")
+        # Fallback: contains match
+        inst = Institution.objects.filter(name__icontains=value, is_active=True).first()
+        if inst:
+            return ResolvedIdentifier(str(inst.id), inst.code, inst.name, "name_partial")
         return ResolvedIdentifier("", "", value, "not_found")
 
     @staticmethod
     def resolve_intake(value: str) -> ResolvedIdentifier:
-        """Try UUID id first when applicable, then name against active Intake records."""
+        """Try UUID id first when applicable, then name (case-insensitive) against active Intake records."""
         if IdentifierResolver._looks_like_uuid(value):
             try:
                 intake = Intake.objects.filter(id=value, is_active=True).first()
@@ -69,7 +77,11 @@ class IdentifierResolver:
                     return ResolvedIdentifier(str(intake.id), "", intake.name, "id")
             except (ValidationError, ValueError):
                 pass
-        intake = Intake.objects.filter(name=value, is_active=True).first()
+        intake = Intake.objects.filter(name__iexact=value, is_active=True).first()
         if intake:
             return ResolvedIdentifier(str(intake.id), "", intake.name, "name")
+        # Fallback: contains match
+        intake = Intake.objects.filter(name__icontains=value, is_active=True).first()
+        if intake:
+            return ResolvedIdentifier(str(intake.id), "", intake.name, "name_partial")
         return ResolvedIdentifier("", "", value, "not_found")

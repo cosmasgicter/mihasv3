@@ -8,6 +8,7 @@ import hashlib
 import json
 import logging
 import uuid
+from urllib.parse import unquote, urlparse
 
 from django.conf import settings
 from django.utils import timezone
@@ -39,6 +40,55 @@ from apps.common.openapi_helpers import (
 from django.http import HttpResponseRedirect
 
 logger = logging.getLogger(__name__)
+
+
+def _document_not_found_response():
+    return Response(
+        {"success": False, "error": "Document not found", "code": "NOT_FOUND"},
+        status=status.HTTP_404_NOT_FOUND,
+    )
+
+
+def _document_permission_denied_response():
+    return Response(
+        {"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"},
+        status=status.HTTP_403_FORBIDDEN,
+    )
+
+
+def _get_authorized_document(request, view, document_id):
+    """Load a document and enforce ownership through its parent application."""
+    try:
+        document = ApplicationDocument.objects.select_related("application").get(id=document_id)
+    except ApplicationDocument.DoesNotExist:
+        return None, _document_not_found_response()
+
+    application = getattr(document, "application", None)
+    if application is None:
+        return None, _document_not_found_response()
+
+    if not IsOwnerOrAdmin().has_object_permission(request, view, application):
+        return None, _document_permission_denied_response()
+
+    return document, None
+
+
+def _get_document_storage_key(document):
+    """Convert persisted file URLs/keys into the S3/R2 object key used for signing."""
+    raw_file_url = (getattr(document, "file_url", None) or "").strip()
+    if not raw_file_url:
+        return ""
+
+    if raw_file_url.startswith(("http://", "https://")):
+        key = unquote(urlparse(raw_file_url).path.lstrip("/"))
+    else:
+        key = raw_file_url.lstrip("/")
+
+    bucket_name = getattr(settings, "AWS_STORAGE_BUCKET_NAME", "")
+    if bucket_name and key.startswith(f"{bucket_name}/"):
+        key = key[len(bucket_name) + 1:]
+
+    return key
 
 
 DocumentResponseSerializer = envelope_serializer(
@@ -682,15 +732,11 @@ class DocumentSignedUrlView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, document_id):
-        try:
-            document = ApplicationDocument.objects.get(id=document_id)
-        except ApplicationDocument.DoesNotExist:
-            return Response(
-                {"success": False, "error": "Document not found", "code": "NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        document, error_response = _get_authorized_document(request, self, document_id)
+        if error_response is not None:
+            return error_response
 
-        file_key = document.file_url
+        file_key = _get_document_storage_key(document)
         if not file_key:
             return Response(
                 {"success": False, "error": "Document has no file", "code": "NO_FILE"},
@@ -721,15 +767,11 @@ class DocumentDownloadView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, document_id):
-        try:
-            document = ApplicationDocument.objects.get(id=document_id)
-        except ApplicationDocument.DoesNotExist:
-            return Response(
-                {"success": False, "error": "Document not found", "code": "NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        document, error_response = _get_authorized_document(request, self, document_id)
+        if error_response is not None:
+            return error_response
 
-        file_key = document.file_url
+        file_key = _get_document_storage_key(document)
         if not file_key:
             return Response(
                 {"success": False, "error": "Document has no file", "code": "NO_FILE"},
@@ -761,13 +803,9 @@ class DocumentInfoView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, document_id):
-        try:
-            document = ApplicationDocument.objects.get(id=document_id)
-        except ApplicationDocument.DoesNotExist:
-            return Response(
-                {"success": False, "error": "Document not found", "code": "NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        document, error_response = _get_authorized_document(request, self, document_id)
+        if error_response is not None:
+            return error_response
 
         data = {
             "id": str(document.id),
@@ -783,7 +821,7 @@ class DocumentInfoView(APIView):
 
 
 class DocumentDeleteView(APIView):
-    """DELETE /api/v1/documents/{id}/ — soft-delete a document record.
+    """DELETE /api/v1/documents/{id}/delete/ — soft-delete a document record.
 
     Sets verification_status to 'deleted' as a soft-delete marker.
     Requires authentication.
@@ -792,13 +830,9 @@ class DocumentDeleteView(APIView):
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, document_id):
-        try:
-            document = ApplicationDocument.objects.get(id=document_id)
-        except ApplicationDocument.DoesNotExist:
-            return Response(
-                {"success": False, "error": "Document not found", "code": "NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        document, error_response = _get_authorized_document(request, self, document_id)
+        if error_response is not None:
+            return error_response
 
         document.verification_status = "deleted"
         document.updated_at = timezone.now()

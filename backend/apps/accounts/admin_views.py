@@ -9,6 +9,7 @@ import hashlib
 import logging
 from datetime import timedelta
 
+from django.db import transaction
 from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.utils import timezone
@@ -91,6 +92,52 @@ class SettingUpdateSerializer(serializers.Serializer):
     category = serializers.CharField(max_length=50, required=False)
     description = serializers.CharField(required=False)
     is_public = serializers.BooleanField(required=False)
+
+
+DEFAULT_GUIDED_SETTINGS = [
+    {
+        "key": "site_name",
+        "value": "MIHAS Application System",
+        "description": "Primary platform title shown across public and authenticated screens.",
+        "category": "general",
+        "is_public": True,
+    },
+    {
+        "key": "enable_online_applications",
+        "value": "true",
+        "description": "Controls whether students can start or continue applications online.",
+        "category": "general",
+        "is_public": True,
+    },
+    {
+        "key": "contact_email",
+        "value": "***REMOVED***",
+        "description": "Primary email used for admissions contact, slip delivery, and public support messaging.",
+        "category": "contact",
+        "is_public": True,
+    },
+    {
+        "key": "contact_phone",
+        "value": "+260-000-000-000",
+        "description": "Primary phone number shown to applicants and used by support surfaces.",
+        "category": "contact",
+        "is_public": True,
+    },
+    {
+        "key": "application_fee",
+        "value": "153.00",
+        "description": "Default admissions application fee used in payment guidance and review.",
+        "category": "finance",
+        "is_public": True,
+    },
+    {
+        "key": "max_applications_per_user",
+        "value": "3",
+        "description": "Maximum number of application records a single student can submit.",
+        "category": "limits",
+        "is_public": False,
+    },
+]
 
 
 class AuditLogSerializer(serializers.Serializer):
@@ -728,7 +775,7 @@ class AdminSettingsImportView(APIView):
     returns ``{imported: [...keys], errors: [...]}``.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdmin]
 
     def post(self, request):
         settings_list = request.data.get("settings")
@@ -765,16 +812,26 @@ class AdminSettingsImportView(APIView):
 class AdminSettingsResetView(APIView):
     """POST /api/v1/admin/settings/reset/
 
-    Deletes all custom settings, restoring the system to a clean state.
+    Replaces settings with the guided operational defaults used by the admin UI.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdmin]
 
     def post(self, request):
-        deleted_count, _ = Setting.objects.all().delete()
+        with transaction.atomic():
+            deleted_count, _ = Setting.objects.all().delete()
+            created_settings = [Setting(**setting) for setting in DEFAULT_GUIDED_SETTINGS]
+            Setting.objects.bulk_create(created_settings)
+
         return Response({
             "success": True,
-            "data": {"message": f"All settings reset. {deleted_count} setting(s) removed."},
+            "data": {
+                "message": (
+                    f"Settings reset to guided defaults. "
+                    f"{deleted_count} setting(s) removed, {len(created_settings)} default setting(s) restored."
+                ),
+                "restored": len(created_settings),
+            },
         })
 
 

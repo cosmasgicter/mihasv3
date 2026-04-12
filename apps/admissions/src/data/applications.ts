@@ -352,16 +352,15 @@ export const applicationsData = {
     const queryClient = useQueryClient()
     
     return useMutation({
-      mutationFn: ({ applicationIds, status }: { applicationIds: string[]; status: string }) => {
-        const { apiClient } = require('@/services/client')
-        return apiClient.request('/applications/bulk-status/', {
-          method: 'POST',
-          body: JSON.stringify({
-            action: 'update_status',
-            applicationIds,
-            status
-          })
+      mutationFn: async ({ applicationIds, status }: { applicationIds: string[]; status: string }) => {
+        const result = await applicationService.bulkStatus({
+          applicationIds,
+          status,
         })
+        const updated = typeof (result as { updated?: unknown })?.updated === 'number'
+          ? (result as { updated: number }).updated
+          : applicationIds.length
+        return { successCount: updated, updated }
       },
       onSuccess: async () => {
         await queryClient.invalidateQueries({ 
@@ -385,16 +384,8 @@ export const applicationsData = {
     const queryClient = useQueryClient()
     
     return useMutation({
-      mutationFn: ({ applicationIds, paymentStatus }: { applicationIds: string[]; paymentStatus: string }) => {
-        const { apiClient } = require('@/services/client')
-        return apiClient.request('/applications/bulk-status/', {
-          method: 'POST',
-          body: JSON.stringify({
-            action: 'update_payment_status',
-            applicationIds,
-            paymentStatus
-          })
-        })
+      mutationFn: async (_payload: { applicationIds: string[]; paymentStatus: string }) => {
+        throw new Error('Bulk payment status updates must use the payment review flow.')
       },
       onSuccess: async () => {
         await queryClient.invalidateQueries({ 
@@ -418,15 +409,25 @@ export const applicationsData = {
     const queryClient = useQueryClient()
     
     return useMutation({
-      mutationFn: (applicationIds: string[]) => {
-        const { apiClient } = require('@/services/client')
-        return apiClient.request('/applications/bulk-status/', {
-          method: 'POST',
-          body: JSON.stringify({
-            action: 'delete',
-            applicationIds
-          })
-        })
+      mutationFn: async (applicationIds: string[]) => {
+        const results = await Promise.allSettled(applicationIds.map(id => applicationService.delete(id)))
+        const errors = results
+          .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+          .map(result => result.reason instanceof Error ? result.reason.message : 'Delete failed')
+
+        if (errors.length > 0) {
+          return {
+            successCount: applicationIds.length - errors.length,
+            errorCount: errors.length,
+            errors,
+          }
+        }
+
+        return {
+          successCount: applicationIds.length,
+          errorCount: 0,
+          errors: [],
+        }
       },
       onSuccess: async () => {
         await queryClient.invalidateQueries({ 
