@@ -1,5 +1,6 @@
 {
   "specId": "go-live-polish",
   "workflowType": "requirements-first",
-  "specType": "bugfix"
+  "specType": "bugfix",
+  "status": "completed"
 }
