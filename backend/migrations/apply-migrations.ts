@@ -14,6 +14,7 @@ import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 
 const MIGRATIONS_DIR = './migrations';
+const SCRIPTS_DIR = '../scripts';
 const REQUIRED_MIGRATIONS = [
   '001_extensions.sql',
   '002_core_schema.sql',
@@ -47,7 +48,10 @@ const MIGRATION_HISTORY_TABLE_SQL = `
 `;
 
 async function getMigrationFiles(): Promise<MigrationFile[]> {
-  const files = readdirSync(MIGRATIONS_DIR)
+  const files: MigrationFile[] = [];
+
+  // Scan primary migrations directory
+  const migrationFiles = readdirSync(MIGRATIONS_DIR)
     .filter(f => f.endsWith('.sql'))
     .map(name => {
       const match = name.match(/^(\d+)_/);
@@ -56,10 +60,29 @@ async function getMigrationFiles(): Promise<MigrationFile[]> {
         path: join(MIGRATIONS_DIR, name),
         order: match ? parseInt(match[1], 10) : 999,
       };
-    })
-    .sort((a, b) => a.order - b.order);
+    });
+  files.push(...migrationFiles);
 
-  return files;
+  // Scan scripts directory for additional SQL files
+  try {
+    const scriptFiles = readdirSync(SCRIPTS_DIR)
+      .filter(f => f.endsWith('.sql'))
+      .map(name => {
+        const match = name.match(/^(\d+)_/);
+        return {
+          name,
+          path: join(SCRIPTS_DIR, name),
+          order: match ? parseInt(match[1], 10) : 1000,
+        };
+      })
+      // Avoid duplicates if a file exists in both directories
+      .filter(sf => !files.some(f => f.name === sf.name));
+    files.push(...scriptFiles);
+  } catch {
+    // scripts directory may not exist in all environments
+  }
+
+  return files.sort((a, b) => a.order - b.order);
 }
 
 function assertMigrationChainComplete(files: MigrationFile[]): void {

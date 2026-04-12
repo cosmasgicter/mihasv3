@@ -140,12 +140,18 @@ export interface ApplicationDocument {
   id: string;
   application_id: string;
   document_type: string;
+  /** @deprecated Use document_name instead */
   file_path?: string;
   file_url?: string;
+  /** @deprecated Use document_name instead */
   file_name?: string;
   file_size?: number;
   mime_type?: string;
   status?: string;
+  document_name?: string;
+  verification_status?: string;
+  uploaded_at?: string;
+  system_generated?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -154,7 +160,7 @@ export interface ApplicationGrade {
   id: string;
   application_id: string;
   subject_id: string;
-  grade: string;
+  grade: number;
   points?: number;
   created_at?: string;
   updated_at?: string;

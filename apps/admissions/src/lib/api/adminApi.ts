@@ -137,7 +137,7 @@ export async function updateSetting(
   const payload = toSystemSettingPayload(updates);
   try {
     await apiClient.request(`/admin/settings/${id}/`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify({
         value: payload.value,
         description: payload.description,

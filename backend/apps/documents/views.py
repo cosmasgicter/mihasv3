@@ -36,6 +36,8 @@ from apps.common.openapi_helpers import (
     envelope_serializer,
 )
 
+from django.http import HttpResponseRedirect
+
 logger = logging.getLogger(__name__)
 
 
@@ -663,3 +665,146 @@ class ProgramFeeViewSet(ModelViewSet):
         instance.updated_at = timezone.now()
         instance.save(update_fields=["is_active", "updated_at"])
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# ---------------------------------------------------------------------------
+# Bug 3 fix: Missing document endpoints (signed-url, download, info, delete)
+# ---------------------------------------------------------------------------
+
+
+class DocumentSignedUrlView(APIView):
+    """GET /api/v1/documents/{id}/signed-url/ — generate a time-limited signed URL.
+
+    Returns {"url": "https://..."} for the document's file in R2/S3.
+    Requires authentication.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, document_id):
+        try:
+            document = ApplicationDocument.objects.get(id=document_id)
+        except ApplicationDocument.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Document not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        file_key = document.file_url
+        if not file_key:
+            return Response(
+                {"success": False, "error": "Document has no file", "code": "NO_FILE"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        try:
+            from apps.common.storage import generate_signed_url
+
+            signed_url = generate_signed_url(file_key)
+        except Exception:
+            logger.exception("Failed to generate signed URL for document %s", document_id)
+            return Response(
+                {"success": False, "error": "Failed to generate signed URL", "code": "STORAGE_ERROR"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response({"url": signed_url})
+
+
+class DocumentDownloadView(APIView):
+    """GET /api/v1/documents/{id}/download/ — redirect to signed download URL.
+
+    Generates a signed URL and returns HTTP 302 redirect.
+    Requires authentication.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, document_id):
+        try:
+            document = ApplicationDocument.objects.get(id=document_id)
+        except ApplicationDocument.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Document not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        file_key = document.file_url
+        if not file_key:
+            return Response(
+                {"success": False, "error": "Document has no file", "code": "NO_FILE"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        try:
+            from apps.common.storage import generate_signed_url
+
+            signed_url = generate_signed_url(file_key)
+        except Exception:
+            logger.exception("Failed to generate download URL for document %s", document_id)
+            return Response(
+                {"success": False, "error": "Failed to generate download URL", "code": "STORAGE_ERROR"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return HttpResponseRedirect(signed_url)
+
+
+class DocumentInfoView(APIView):
+    """GET /api/v1/documents/{id}/info/ — return document metadata.
+
+    Returns document_name, document_type, verification_status,
+    uploaded_at, file_size, and mime_type.
+    Requires authentication.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, document_id):
+        try:
+            document = ApplicationDocument.objects.get(id=document_id)
+        except ApplicationDocument.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Document not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        data = {
+            "id": str(document.id),
+            "document_name": document.document_name,
+            "document_type": document.document_type,
+            "verification_status": document.verification_status,
+            "uploaded_at": document.uploaded_at.isoformat() if document.uploaded_at else None,
+            "file_size": document.file_size,
+            "mime_type": document.mime_type,
+        }
+
+        return Response({"success": True, "data": data})
+
+
+class DocumentDeleteView(APIView):
+    """DELETE /api/v1/documents/{id}/ — soft-delete a document record.
+
+    Sets verification_status to 'deleted' as a soft-delete marker.
+    Requires authentication.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, document_id):
+        try:
+            document = ApplicationDocument.objects.get(id=document_id)
+        except ApplicationDocument.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Document not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        document.verification_status = "deleted"
+        document.updated_at = timezone.now()
+        document.save(update_fields=["verification_status", "updated_at"])
+
+        return Response(
+            {"success": True, "message": "Document deleted"},
+            status=status.HTTP_200_OK,
+        )

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Static schema verification script.
 
-Verifies that all 26 expected Neon database tables have corresponding Django
+Verifies that all 30 expected Neon database tables have corresponding Django
 model definitions, checks foreign key relationships, and reports on index
 coverage — all without requiring a live database connection.
 
@@ -62,6 +62,10 @@ EXPECTED_TABLES = [
     "settings",
     "user_permission_overrides",
     "migration_history",
+    "program_fees",
+    "webhook_event_logs",
+    "error_logs",
+    "sse_events",
 ]
 
 # Expected foreign key relationships: (child_table.column -> parent_table)
@@ -95,6 +99,7 @@ EXPECTED_FK_RELATIONSHIPS = [
     ("notifications.user_id", "profiles"),
     ("user_notification_preferences.user_id", "profiles"),
     ("user_permission_overrides.user_id", "profiles"),
+    ("program_fees.program_id", "programs"),
 ]
 
 # Expected indexes for commonly filtered columns
@@ -248,7 +253,7 @@ def verify_indexes() -> tuple[list[str], list[str]]:
 def main() -> int:
     print("=" * 70)
     print("STATIC SCHEMA VERIFICATION REPORT")
-    print("Django Models vs Expected Neon Database Schema (26 tables)")
+    print("Django Models vs Expected Neon Database Schema")
     print("=" * 70)
     print()
 
@@ -273,7 +278,7 @@ def main() -> int:
     if missing_tables:
         print(f"  ⚠ MISSING: {', '.join(missing_tables)}")
     else:
-        print("  ✓ All 26 tables accounted for")
+        print("  ✓ All tables accounted for")
     print()
 
     # --- Step 2: Foreign key relationships ---
