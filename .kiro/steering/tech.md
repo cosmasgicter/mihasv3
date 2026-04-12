@@ -52,7 +52,7 @@ inclusion: always
 | Email | Resend live, Zoho planned placeholders | Resend is wired for alerting; Zoho env placeholders exist for jobs-ops |
 | HTTP client | `requests` | Used by `check_uptime_task` for internal health checks |
 | AI + messaging | OpenAI and Telegram planned placeholders | Env scaffolding now exists; integration wiring remains to be completed |
-| Browser automation | Playwright worker service planned | Placeholder envs now exist |
+| Browser automation | Stagehand (AI) + Playwright (low-level) | Stagehand installed at monorepo root for AI-driven browser tasks; Playwright for deterministic automation |
 | Error monitoring | Self-hosted via `ErrorLog` model + throttled alert emails | No Sentry — see Error Monitoring section below |
 | API docs | drf-spectacular | Schema and docs under `/api/v1/` |
 | Testing | pytest + hypothesis | Backend tests live under `backend/tests/` |
@@ -204,6 +204,34 @@ The platform uses self-hosted error monitoring — there is no Sentry or third-p
 - Throttle: one alert per unique error message per 15 minutes, backed by Redis `cache.add`. If Redis is unavailable, alerts fail-open (dispatch anyway).
 - Frontend error reporting is unauthenticated (`AllowAny`) and CSRF-exempt, rate-limited to 10 requests per IP per 5 minutes.
 - Frontend reporter respects `VITE_ERROR_REPORT_ENABLED` env var — does nothing when disabled.
+
+## Stagehand (AI Browser Automation)
+
+Stagehand (`@browserbasehq/stagehand`) is installed at the monorepo root for AI-driven browser automation. It wraps Playwright with an LLM layer that can interpret natural-language instructions to interact with web pages.
+
+### Use Cases in MIHAS
+
+| Use Case | Surface | Notes |
+|----------|---------|-------|
+| E2E smoke tests with natural language | Admissions, Jobs-Ops | Write resilient tests that survive UI refactors — Stagehand finds elements by intent, not selectors |
+| Outreach automation | Jobs-Ops | Browser-based job application submission, form filling on external career portals |
+| Scraping job boards | Jobs-Ops | AI-guided extraction from dynamic job listing pages that resist traditional scraping |
+| Admissions document verification | Admissions | Automated cross-referencing of uploaded documents against external registries |
+| Competitive intelligence | Jobs-Ops | Monitor competitor job postings and salary data from public sources |
+
+### Integration Pattern
+
+- Stagehand runs in Node.js — use it from the frontend test suite or a dedicated worker script
+- For backend-triggered browser tasks, create a Node.js worker service that the Django backend calls via HTTP or a task queue
+- Requires a `BROWSERBASE_API_KEY` and `BROWSERBASE_PROJECT_ID` for cloud execution, or runs locally with a local Chromium instance
+- Environment variables: `BROWSERBASE_API_KEY`, `BROWSERBASE_PROJECT_ID` (add to `.env.example` when wiring up)
+
+### Commands
+
+| Command | Purpose |
+|---------|---------|
+| `bun add @browserbasehq/stagehand` | Already installed at monorepo root |
+| `npx @browserbasehq/stagehand init` | Scaffold a Stagehand project (if needed) |
 
 ## Celery Beat Periodic Tasks
 
