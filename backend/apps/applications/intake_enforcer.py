@@ -98,6 +98,19 @@ class IntakeEnforcer:
 
         Intake.objects.filter(id=resolved.id).update(current_enrollment=live_count)
 
+        # Also sync program_intakes for this intake
+        from apps.catalog.models import ProgramIntake
+        for pi in ProgramIntake.objects.filter(intake_id=resolved.id):
+            from apps.catalog.models import Program
+            program = Program.objects.filter(id=pi.program_id).first()
+            if program:
+                pi_count = Application.objects.filter(
+                    intake=intake_name,
+                    program=program.name,
+                    status__in=("submitted", "under_review", "approved", "waitlisted"),
+                ).count()
+                ProgramIntake.objects.filter(id=pi.id).update(current_enrollment=pi_count)
+
     @staticmethod
     def increment_enrollment(intake_name: str) -> None:
         """Atomically increment current_enrollment using F() expression."""

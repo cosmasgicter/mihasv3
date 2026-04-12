@@ -21,7 +21,7 @@ import django  # noqa: E402
 
 django.setup()
 
-from django.test import SimpleTestCase  # noqa: E402
+from django.test import TransactionTestCase  # noqa: E402
 from hypothesis import given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 
@@ -44,7 +44,8 @@ admin_notes = st.text(
 # ---------------------------------------------------------------------------
 
 
-class TestAdminPaymentStatusOverride(SimpleTestCase):
+class TestAdminPaymentStatusOverride(TransactionTestCase):
+    databases = ['default']
     """# Feature: production-payment-hardening, Property 10: Admin payment status override records audit trail
 
     **Validates: Requirements 4.2, 4.4, 4.5**

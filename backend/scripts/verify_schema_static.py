@@ -41,7 +41,7 @@ EXPECTED_TABLES = [
     "application_documents",
     "application_grades",
     "application_status_history",
-    "application_drafts",
+    "application_drafts",  # DEPRECATED: not used by current flow; kept for backward compatibility
     "application_interviews",
     "programs",
     "intakes",
