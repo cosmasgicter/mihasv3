@@ -21,6 +21,16 @@ export const catalogData = {
     })
   },
 
+  // Get programs filtered by intake (uses program_intakes junction)
+  useProgramsForIntake: (intakeId: string | null) => {
+    return useQuery({
+      queryKey: [...QUERY_KEYS.programs, 'intake', intakeId],
+      queryFn: () => intakeId ? catalogService.getProgramsForIntake(intakeId) : catalogService.getPrograms(),
+      ...QUERY_CACHE_CONFIG.static,
+      enabled: true,
+    })
+  },
+
   // Get all intakes
   useIntakes: () => {
     return useQuery({
