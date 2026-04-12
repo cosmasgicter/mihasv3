@@ -9,7 +9,6 @@ import { animateClasses } from '@/lib/animations'
 import { apiClient } from '@/services/client'
 import { useFeeResolver } from '@/hooks/useFeeResolver'
 import { useLencoWidget } from '@/hooks/useLencoWidget'
-import { usePaymentStatus } from '@/hooks/usePaymentStatus'
 import type { WizardFormData } from '../types'
 
 // ---------------------------------------------------------------------------
@@ -21,6 +20,8 @@ interface PaymentStepProps {
   form: UseFormReturn<WizardFormData>
   applicationId: string | null
   applicationNumber: string | null
+  polledStatus?: 'pending' | 'successful' | 'failed' | null
+  onPaymentStatusChange?: (status: 'pending' | 'successful' | 'failed' | null) => void
   onPaymentStatusRefresh?: () => Promise<void>
 }
 
@@ -52,7 +53,14 @@ function formatCurrency(amount: number, currency: string): string {
 // Component
 // ---------------------------------------------------------------------------
 
-const PaymentStep = ({ title, form, applicationId, onPaymentStatusRefresh }: PaymentStepProps) => {
+const PaymentStep = ({
+  title,
+  form,
+  applicationId,
+  polledStatus = null,
+  onPaymentStatusChange,
+  onPaymentStatusRefresh,
+}: PaymentStepProps) => {
   const { watch } = form
   const programCode = watch('program') || ''
   const nationality = watch('nationality') || ''
@@ -60,7 +68,6 @@ const PaymentStep = ({ title, form, applicationId, onPaymentStatusRefresh }: Pay
 
   const { fee, isLoading: feeLoading, error: feeError } = useFeeResolver(programCode, nationality, country)
   const { openWidget, isLoading: widgetLoading, isScriptLoaded } = useLencoWidget()
-  const { status: polledStatus, refetch: refetchStatus } = usePaymentStatus(applicationId || '')
 
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('idle')
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
@@ -131,21 +138,26 @@ const PaymentStep = ({ title, form, applicationId, onPaymentStatusRefresh }: Pay
             const v = await apiClient.request<VerifyResponse>(verifyPath, { method: 'POST' })
             if (v?.status === 'successful') {
               updatePaymentStatus('successful', 'Payment confirmed.')
+              onPaymentStatusChange?.('successful')
               await onPaymentStatusRefresh?.()
             } else if (v?.status === 'failed') {
               updatePaymentStatus('failed', 'Payment could not be verified. You can retry.')
+              onPaymentStatusChange?.('failed')
               await onPaymentStatusRefresh?.()
             } else {
               updatePaymentStatus('pending', 'Payment is being confirmed. Stay on this step until the confirmation finishes.')
+              onPaymentStatusChange?.('pending')
               void onPaymentStatusRefresh?.()
             }
           } catch {
             updatePaymentStatus('pending', 'Payment is being confirmed. Stay on this step until the confirmation finishes.')
+            onPaymentStatusChange?.('pending')
             void onPaymentStatusRefresh?.()
           }
         },
         onConfirmationPending: () => {
           updatePaymentStatus('pending', 'Payment is being confirmed. Stay on this step until the confirmation finishes.')
+          onPaymentStatusChange?.('pending')
           void onPaymentStatusRefresh?.()
         },
         onClose: () => {
@@ -160,7 +172,7 @@ const PaymentStep = ({ title, form, applicationId, onPaymentStatusRefresh }: Pay
       setInitiateError(message)
       updatePaymentStatus('idle')
     }
-  }, [applicationId, onPaymentStatusRefresh, openWidget, watch, updatePaymentStatus])
+  }, [applicationId, onPaymentStatusChange, onPaymentStatusRefresh, openWidget, watch, updatePaymentStatus])
 
   const canPay =
     isScriptLoaded &&
@@ -255,7 +267,6 @@ const PaymentStep = ({ title, form, applicationId, onPaymentStatusRefresh }: Pay
               variant="outline"
               size="sm"
               onClick={async () => {
-                await refetchStatus()
                 await onPaymentStatusRefresh?.()
               }}
             >

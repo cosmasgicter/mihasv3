@@ -7,7 +7,6 @@ import type { WizardFormData } from '@/pages/student/applicationWizard/types'
 
 const useFeeResolverMock = vi.fn()
 const useLencoWidgetMock = vi.fn()
-const usePaymentStatusMock = vi.fn()
 
 vi.mock('@/hooks/useFeeResolver', () => ({
   useFeeResolver: (...args: unknown[]) => useFeeResolverMock(...args),
@@ -15,10 +14,6 @@ vi.mock('@/hooks/useFeeResolver', () => ({
 
 vi.mock('@/hooks/useLencoWidget', () => ({
   useLencoWidget: (...args: unknown[]) => useLencoWidgetMock(...args),
-}))
-
-vi.mock('@/hooks/usePaymentStatus', () => ({
-  usePaymentStatus: (...args: unknown[]) => usePaymentStatusMock(...args),
 }))
 
 function renderPaymentStep() {
@@ -66,10 +61,6 @@ describe('PaymentStep', () => {
       openWidget: vi.fn(),
       isLoading: false,
       isScriptLoaded: true,
-    })
-    usePaymentStatusMock.mockReturnValue({
-      status: 'idle',
-      refetch: vi.fn(),
     })
   })
 

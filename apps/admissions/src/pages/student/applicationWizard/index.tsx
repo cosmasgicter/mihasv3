@@ -93,7 +93,8 @@ const ApplicationWizardContent = () => {
     saveDraft,
     watchValues,
     goToStep,
-    refetchPaymentStatus
+    refetchPaymentStatus,
+    setPaymentStatus
   } = useWizardController()
 
   const stepValidation = useStepValidation(form, currentStepIndex, {
@@ -250,10 +251,22 @@ const ApplicationWizardContent = () => {
   }, [success, goToStep])
 
   // Track step direction for transitions
-  const originalHandleNextStep = handleNextStep
-  const originalHandlePrevStep = handlePrevStep
-  const wrappedHandleNextStep = () => { setStepDirection('forward'); originalHandleNextStep() }
-  const wrappedHandlePrevStep = () => { setStepDirection('backward'); originalHandlePrevStep() }
+  const wrappedHandleNextStep = useCallback(() => {
+    setStepDirection('forward')
+    void handleNextStep()
+  }, [handleNextStep])
+
+  const wrappedHandlePrevStep = useCallback(() => {
+    setStepDirection('backward')
+    handlePrevStep()
+  }, [handlePrevStep])
+
+  const handleProgressStepClick = useCallback((stepIndex: number) => {
+    if (stepIndex >= currentStepIndex) return
+    setStepDirection('backward')
+    void saveWizardDraft()
+    goToStep(stepIndex)
+  }, [currentStepIndex, goToStep, saveWizardDraft])
 
   // Populate validation errors and focus first errored field on validation error (Req 5.2, 5.3)
   useEffect(() => {
@@ -557,14 +570,7 @@ const ApplicationWizardContent = () => {
             <EnhancedProgressIndicator
               steps={wizardSteps}
               currentStepIndex={currentStepIndex}
-              onStepClick={(stepIndex) => {
-                // Navigate back to the clicked step
-                setStepDirection('backward');
-                const stepsToGoBack = currentStepIndex - stepIndex;
-                for (let i = 0; i < stepsToGoBack; i++) {
-                  handlePrevStep();
-                }
-              }}
+              onStepClick={handleProgressStepClick}
             />
           </div>
         </Container>
@@ -660,6 +666,8 @@ const ApplicationWizardContent = () => {
                 form={form}
                 applicationId={applicationId}
                 applicationNumber={submittedApplication?.applicationNumber ?? null}
+                polledStatus={paymentStatus}
+                onPaymentStatusChange={setPaymentStatus}
                 onPaymentStatusRefresh={refetchPaymentStatus}
               />
             )}

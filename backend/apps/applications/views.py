@@ -322,6 +322,15 @@ class ApplicationListCreateView(APIView):
             return Response({"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         data = serializer.validated_data
 
+        # Intake deadline and open-date enforcement at draft creation
+        from apps.applications.intake_enforcer import IntakeEnforcer
+        intake_check = IntakeEnforcer.check_draft_creation(data["intake"])
+        if not intake_check.allowed:
+            return Response(
+                {"success": False, "error": intake_check.message, "code": intake_check.code},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         # Duplicate check before creating (Req 4.1, 4.2, 4.6)
         dup_result = DuplicateChecker.check_at_create(
             user_id=str(request.user.id),
@@ -916,6 +925,11 @@ class ApplicationReviewView(APIView):
             if history:
                 history.changes = bypass_changes
                 history.save(update_fields=['changes'])
+
+        # Sync intake enrollment on status changes that affect capacity
+        if new_status in ("approved", "rejected"):
+            from apps.applications.intake_enforcer import IntakeEnforcer
+            IntakeEnforcer.sync_enrollment(app.intake)
 
         dispatch_event(
             user_id=app.user_id,

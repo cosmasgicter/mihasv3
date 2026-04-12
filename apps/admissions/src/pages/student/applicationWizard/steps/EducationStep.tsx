@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { X } from 'lucide-react'
 
@@ -33,6 +33,34 @@ function getUploadStatus(file: File | null, isUploaded?: boolean) {
     label: 'Not added',
     className: 'border-border bg-muted text-muted-foreground',
   }
+}
+
+function getPreviewType(file: File): 'image' | 'pdf' | 'other' {
+  if (file.type.startsWith('image/')) return 'image'
+  if (file.type === 'application/pdf') return 'pdf'
+  return 'other'
+}
+
+function useFilePreview(file: File | null, enabled?: boolean) {
+  const [preview, setPreview] = useState<{ url: string; type: 'image' | 'pdf' | 'other' }>()
+
+  useEffect(() => {
+    if (!enabled || !file || typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
+      setPreview(undefined)
+      return undefined
+    }
+
+    const url = URL.createObjectURL(file)
+    setPreview({ url, type: getPreviewType(file) })
+
+    return () => {
+      if (typeof URL !== 'undefined' && typeof URL.revokeObjectURL === 'function') {
+        URL.revokeObjectURL(url)
+      }
+    }
+  }, [enabled, file])
+
+  return preview
 }
 
 interface EducationStepProps {
@@ -84,6 +112,8 @@ const EducationStep = ({
 
   const resultSlipStatus = getUploadStatus(resultSlipFile, uploadedFiles.result_slip)
   const identityStatus = getUploadStatus(extraKycFile, uploadedFiles.extra_kyc)
+  const resultSlipPreview = useFilePreview(resultSlipFile, uploadedFiles.result_slip)
+  const identityPreview = useFilePreview(extraKycFile, uploadedFiles.extra_kyc)
 
   // Subject options for CanonicalSelect
   const getSubjectOptions = (currentSubjectId: string) => {
@@ -283,10 +313,7 @@ const EducationStep = ({
                 value={resultSlipFile}
                 uploading={uploadProgress.result_slip !== undefined && uploadProgress.result_slip < 100}
                 progress={uploadProgress.result_slip}
-                preview={uploadedFiles.result_slip && resultSlipFile ? {
-                  url: URL.createObjectURL(resultSlipFile),
-                  type: resultSlipFile.type.startsWith('image/') ? 'image' : 'pdf'
-                } : undefined}
+                preview={resultSlipPreview}
               />
             </div>
 
@@ -308,10 +335,7 @@ const EducationStep = ({
                 value={extraKycFile}
                 uploading={uploadProgress.extra_kyc !== undefined && uploadProgress.extra_kyc < 100}
                 progress={uploadProgress.extra_kyc}
-                preview={uploadedFiles.extra_kyc && extraKycFile ? {
-                  url: URL.createObjectURL(extraKycFile),
-                  type: extraKycFile.type.startsWith('image/') ? 'image' : 'pdf'
-                } : undefined}
+                preview={identityPreview}
               />
             </div>
           </div>
