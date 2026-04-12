@@ -22,6 +22,14 @@ class ApplicationFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method="filter_search")
     sort = django_filters.CharFilter(method="filter_sort")
 
+    # camelCase aliases for frontend compatibility (Bug 4 fix)
+    sortBy = django_filters.CharFilter(method="filter_sort_by")
+    sortOrder = django_filters.CharFilter(method="filter_sort_by")
+    excludeStatus = django_filters.CharFilter(method="filter_exclude_status")
+    startDate = django_filters.DateFilter(field_name="created_at", lookup_expr="gte")
+    endDate = django_filters.DateFilter(field_name="created_at", lookup_expr="lte")
+    paymentStatus = django_filters.CharFilter(field_name="payment_status", lookup_expr="iexact")
+
     class Meta:
         model = Application
         fields = ["status", "payment", "payment_status", "program", "intake", "institution"]
@@ -51,3 +59,36 @@ class ApplicationFilter(django_filters.FilterSet):
 
         order = f"-{field}" if desc else field
         return queryset.order_by(order)
+
+    def filter_sort_by(self, queryset, name, value):
+        """Handle camelCase sortBy/sortOrder params from the frontend.
+
+        Maps sortBy values (date, name, status) to model fields and combines
+        with sortOrder (asc/desc) to produce the correct ordering.
+        """
+        sort_by = self.data.get("sortBy", "")
+        sort_order = self.data.get("sortOrder", "desc")
+
+        if not sort_by:
+            return queryset
+
+        field_map = {
+            "date": "created_at",
+            "name": "full_name",
+            "status": "status",
+            "created_at": "created_at",
+            "full_name": "full_name",
+        }
+
+        field = field_map.get(sort_by)
+        if not field:
+            return queryset
+
+        prefix = "-" if sort_order.lower() == "desc" else ""
+        return queryset.order_by(f"{prefix}{field}")
+
+    def filter_exclude_status(self, queryset, name, value):
+        """Exclude applications with the given status."""
+        if not value:
+            return queryset
+        return queryset.exclude(status__iexact=value)

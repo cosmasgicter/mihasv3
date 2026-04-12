@@ -7,7 +7,11 @@ Requirements: 2.1, 4.1, 6.1, 10.1, 13.1
 from django.urls import path
 
 from apps.documents.views import (
+    DocumentDeleteView,
+    DocumentDownloadView,
     DocumentExtractView,
+    DocumentInfoView,
+    DocumentSignedUrlView,
     DocumentUploadView,
     FeeResolveView,
     LencoWebhookView,
@@ -38,6 +42,26 @@ document_urlpatterns = [
         "<uuid:document_id>/extract/",
         DocumentExtractView.as_view(),
         name="document-extract",
+    ),
+    path(
+        "<uuid:document_id>/signed-url/",
+        DocumentSignedUrlView.as_view(),
+        name="document-signed-url",
+    ),
+    path(
+        "<uuid:document_id>/download/",
+        DocumentDownloadView.as_view(),
+        name="document-download",
+    ),
+    path(
+        "<uuid:document_id>/info/",
+        DocumentInfoView.as_view(),
+        name="document-info",
+    ),
+    path(
+        "<uuid:document_id>/delete/",
+        DocumentDeleteView.as_view(),
+        name="document-delete",
     ),
     path(
         "<uuid:document_id>/versions/",

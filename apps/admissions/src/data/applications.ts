@@ -354,7 +354,7 @@ export const applicationsData = {
     return useMutation({
       mutationFn: ({ applicationIds, status }: { applicationIds: string[]; status: string }) => {
         const { apiClient } = require('@/services/client')
-        return apiClient.request('/applications/bulk', {
+        return apiClient.request('/applications/bulk-status/', {
           method: 'POST',
           body: JSON.stringify({
             action: 'update_status',
@@ -387,7 +387,7 @@ export const applicationsData = {
     return useMutation({
       mutationFn: ({ applicationIds, paymentStatus }: { applicationIds: string[]; paymentStatus: string }) => {
         const { apiClient } = require('@/services/client')
-        return apiClient.request('/applications/bulk', {
+        return apiClient.request('/applications/bulk-status/', {
           method: 'POST',
           body: JSON.stringify({
             action: 'update_payment_status',
@@ -420,7 +420,7 @@ export const applicationsData = {
     return useMutation({
       mutationFn: (applicationIds: string[]) => {
         const { apiClient } = require('@/services/client')
-        return apiClient.request('/applications/bulk', {
+        return apiClient.request('/applications/bulk-status/', {
           method: 'POST',
           body: JSON.stringify({
             action: 'delete',

@@ -10,7 +10,9 @@ from apps.accounts.admin_views import (
     AdminAuditLogView,
     AdminDashboardView,
     AdminSettingDetailView,
+    AdminSettingsImportView,
     AdminSettingsListView,
+    AdminSettingsResetView,
     AdminUserDetailView,
     AdminUserExportView,
     AdminUserListView,
@@ -23,6 +25,8 @@ urlpatterns = [
     path("users/export/", AdminUserExportView.as_view(), name="admin-user-export"),
     path("users/<uuid:pk>/", AdminUserDetailView.as_view(), name="admin-user-detail"),
     path("settings/", AdminSettingsListView.as_view(), name="admin-settings-list"),
+    path("settings/import/", AdminSettingsImportView.as_view(), name="admin-settings-import"),
+    path("settings/reset/", AdminSettingsResetView.as_view(), name="admin-settings-reset"),
     path("settings/<uuid:pk>/", AdminSettingDetailView.as_view(), name="admin-setting-detail"),
     path("audit-logs/", AdminAuditLogView.as_view(), name="admin-audit-logs"),
 ]

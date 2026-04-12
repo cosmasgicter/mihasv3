@@ -340,6 +340,7 @@ class PaymentService:
 
         if new_status:
             self._update_payment_status(payment, new_status, data)
+            payment.refresh_from_db()
 
         return PaymentVerificationResult(
             status=payment.status,

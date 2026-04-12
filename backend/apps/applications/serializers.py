@@ -347,6 +347,7 @@ class ApplicationCreateSerializer(serializers.Serializer):
     program = serializers.CharField(max_length=255)
     intake = serializers.CharField(max_length=100)
     institution = serializers.CharField(max_length=255)
+    draft_name = serializers.CharField(max_length=255, required=False, allow_blank=True, default="")
 
     def validate_phone(self, value):
         if value:

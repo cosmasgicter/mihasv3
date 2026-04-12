@@ -717,6 +717,68 @@ class AdminSettingDetailView(APIView):
 
 
 # ---------------------------------------------------------------------------
+# Bug 2 Fix — Settings Import & Reset
+# ---------------------------------------------------------------------------
+
+
+class AdminSettingsImportView(APIView):
+    """POST /api/v1/admin/settings/import/
+
+    Accepts ``{settings: [...]}``, upserts each setting by key,
+    returns ``{imported: [...keys], errors: [...]}``.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        settings_list = request.data.get("settings")
+        if not isinstance(settings_list, list):
+            return Response(
+                {"success": False, "error": "Expected 'settings' array", "code": "VALIDATION_ERROR"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        imported = []
+        errors = []
+
+        for entry in settings_list:
+            key = entry.get("key")
+            if not key:
+                errors.append("Missing key in entry")
+                continue
+
+            try:
+                defaults = {
+                    "value": entry.get("value", ""),
+                    "description": entry.get("description", ""),
+                    "category": entry.get("category", ""),
+                    "is_public": entry.get("is_public", False),
+                }
+                Setting.objects.update_or_create(key=key, defaults=defaults)
+                imported.append(key)
+            except Exception as exc:
+                errors.append(f"{key}: {exc}")
+
+        return Response({"success": True, "data": {"imported": imported, "errors": errors}})
+
+
+class AdminSettingsResetView(APIView):
+    """POST /api/v1/admin/settings/reset/
+
+    Deletes all custom settings, restoring the system to a clean state.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        deleted_count, _ = Setting.objects.all().delete()
+        return Response({
+            "success": True,
+            "data": {"message": f"All settings reset. {deleted_count} setting(s) removed."},
+        })
+
+
+# ---------------------------------------------------------------------------
 # 19.3 — Audit Log Query
 # ---------------------------------------------------------------------------
 
