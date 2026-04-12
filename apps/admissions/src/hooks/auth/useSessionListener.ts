@@ -158,7 +158,20 @@ export function useSessionListener() {
       try {
         const result = await authService.session() as User | { user?: User } | null
         const normalizedUser = extractAuthUser(result)
-        return normalizedUser ? { user: normalizedUser } : null
+        if (normalizedUser) return { user: normalizedUser }
+
+        // Session returned no user — the access token may have expired.
+        // Attempt a silent refresh and retry the session check once.
+        try {
+          await authService.refresh()
+          const retryResult = await authService.session() as User | { user?: User } | null
+          const retryUser = extractAuthUser(retryResult)
+          if (retryUser) return { user: retryUser }
+        } catch {
+          // Refresh failed — user is genuinely unauthenticated.
+        }
+
+        return null
       } catch {
         // Session check failed (401/403 for unauthenticated visitors).
         // Return null silently — this is expected on public pages.
@@ -175,11 +188,25 @@ export function useSessionListener() {
   const sessionPendingValidation = sessionData?.pendingValidation === true
   const user = sessionPendingValidation ? null : sessionData?.user ?? null
 
-  // Profile query (moved from useOptimizedAuthState)
+  // Profile query — fetches the full profile from the API so that downstream
+  // consumers (e.g. profile completion badge) see all fields, not just the
+  // minimal session payload.  Falls back to session-derived data on error.
   const { data: fetchedProfile, isLoading: profileLoading } = useQuery({
     queryKey: ['user-profile', user?.id],
     enabled: Boolean(user?.id),
     queryFn: async () => {
+      if (!user?.id) return buildProfileFromUser(user)
+      try {
+        // Try fetching the full profile from the dedicated endpoint
+        const profileData = await import('@/services/client').then(
+          ({ apiClient }) => apiClient.request<Record<string, unknown>>('/auth/profile/', { method: 'GET' })
+        )
+        if (profileData && typeof profileData === 'object' && 'id' in profileData) {
+          return profileData as unknown as UserProfile
+        }
+      } catch {
+        // Fall back to minimal profile from session user
+      }
       return buildProfileFromUser(user)
     },
     staleTime: 5 * 60 * 1000,
