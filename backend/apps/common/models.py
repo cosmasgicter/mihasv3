@@ -17,7 +17,7 @@ class AuditLog(models.Model):
     ip_address = models.CharField(max_length=64, null=True, blank=True)  # SHA-256 hash of IP
     user_agent = models.TextField(null=True, blank=True)
     retention_category = models.CharField(max_length=20, default='standard')
-    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False

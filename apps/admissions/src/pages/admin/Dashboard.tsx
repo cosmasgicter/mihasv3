@@ -312,32 +312,6 @@ export default function AdminDashboard() {
         </Button>
       }
     >
-        <div className="mb-6 rounded-2xl border border-border bg-card p-4 shadow-sm">
-          <h2 className="text-sm font-semibold text-foreground">Admin Diagnostics</h2>
-          <div className="mt-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2 lg:grid-cols-4">
-            <div><strong className="text-foreground">Auth:</strong> {apiStatus.authState}</div>
-            <div><strong className="text-foreground">User ID:</strong> {apiStatus.userId ?? 'none'}</div>
-            <div><strong className="text-foreground">Profile loaded:</strong> {apiStatus.hasProfile ? 'yes' : profileLoading ? 'loading...' : 'no'}</div>
-            <div><strong className="text-foreground">Admin role:</strong> {apiStatus.isAdmin ? 'yes' : 'no'}</div>
-            <div><strong className="text-foreground">Endpoint:</strong> {apiStatus.endpoint}</div>
-            <div><strong className="text-foreground">API phase:</strong> {apiStatus.phase}</div>
-            <div><strong className="text-foreground">Response shape:</strong> {apiStatus.responseShape}</div>
-            <div><strong className="text-foreground">Last status:</strong> {apiStatus.lastErrorStatus ?? 'n/a'}</div>
-            <div className="sm:col-span-2"><strong className="text-foreground">Last attempt:</strong> {apiStatus.lastAttemptAt ?? 'n/a'}</div>
-            <div className="sm:col-span-2"><strong className="text-foreground">Last success:</strong> {apiStatus.lastSuccessAt ?? 'n/a'}</div>
-          </div>
-          {apiStatus.lastErrorMessage && (
-            <p className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 p-2 text-xs text-error">
-              Last API error: {apiStatus.lastErrorMessage}
-            </p>
-          )}
-          {pollingError && (
-            <p className="mt-2 rounded-lg border border-warning/40 bg-warning/10 p-2 text-xs text-warning-strong">
-              Polling retry status: {pollingError.message}
-            </p>
-          )}
-        </div>
-
         {/* System Status Bar */}
         <div className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}>
           <div className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm border border-border">
