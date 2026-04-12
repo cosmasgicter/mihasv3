@@ -1,0 +1,5 @@
+{
+  "specId": "platform-drift-remediation",
+  "workflowType": "requirements-first",
+  "specType": "bugfix"
+}
