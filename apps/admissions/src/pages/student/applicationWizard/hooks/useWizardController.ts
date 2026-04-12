@@ -337,6 +337,24 @@ const useWizardController = (): UseWizardControllerResult => {
   const currentStepConfig = (wizardSteps[currentStepIndex] ?? wizardSteps[0])!
   const isLastStep = currentStepConfig.key === 'submit'
 
+  const programIds = useMemo(() => programs.map(program => program.id).filter(Boolean), [programs])
+  const intakeIds = useMemo(
+    () => intakes.map(intake => intake.id).filter(Boolean),
+    [intakes]
+  )
+  const schema = useMemo(() => createWizardSchema(programIds, intakeIds), [programIds, intakeIds])
+  const resolver = useMemo(() => zodResolver(schema), [schema])
+
+  const form = useForm<WizardFormData>({
+    resolver: resolver as unknown as Resolver<WizardFormData>,
+    defaultValues: async () => {
+      return {
+        country: DEFAULT_RESIDENCE_COUNTRY,
+      } as WizardFormData
+    }
+  })
+  const { watch, setValue, getValues } = form
+
   const { data: programsData } = catalogData.useProgramsForIntake(watch('intake') || null)
   const { data: intakesData } = catalogData.useIntakes()
   const { data: subjectsData } = catalogData.useSubjects()
@@ -371,23 +389,6 @@ const useWizardController = (): UseWizardControllerResult => {
     setIntakes([])
   }, [intakesData])
 
-  const programIds = useMemo(() => programs.map(program => program.id).filter(Boolean), [programs])
-  const intakeIds = useMemo(
-    () => intakes.map(intake => intake.id).filter(Boolean),
-    [intakes]
-  )
-  const schema = useMemo(() => createWizardSchema(programIds, intakeIds), [programIds, intakeIds])
-  const resolver = useMemo(() => zodResolver(schema), [schema])
-
-  const form = useForm<WizardFormData>({
-    resolver: resolver as unknown as Resolver<WizardFormData>,
-    defaultValues: async () => {
-      return {
-        country: DEFAULT_RESIDENCE_COUNTRY,
-      } as WizardFormData
-    }
-  })
-  const { watch, setValue, getValues } = form
   const selectedProgram = watch('program')
   const selectedProgramDetails = useMemo(
     () => programs.find(program => program.id === selectedProgram),
