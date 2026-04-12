@@ -11,5 +11,8 @@
     "lint:admissions": "cd apps/admissions && bun run lint",
     "lint:jobs-ops": "cd apps/jobs-ops && bun run lint",
     "type-check:jobs-ops": "cd apps/jobs-ops && bun run type-check"
+  },
+  "dependencies": {
+    "@browserbasehq/stagehand": "^3.2.1"
   }
 }
