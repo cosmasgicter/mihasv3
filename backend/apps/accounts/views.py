@@ -545,9 +545,16 @@ class SessionView(APIView):
     Public pages call this endpoint during bootstrap. Treat the absence of an
     access token as a valid "not signed in" state so the browser does not log a
     failed 403 request before the frontend can render the public page.
+
+    IMPORTANT: authentication_classes = [] disables DRF's JWTCookieAuthentication
+    on this view. Without this, an expired JWT causes JWTCookieAuthentication to
+    raise AuthenticationFailed (403) BEFORE the AllowAny permission check runs.
+    The JWTAuthenticationMiddleware (middleware layer) already sets request.user
+    silently — it never raises — so the view still sees authenticated users.
     """
 
     permission_classes = [AllowAny]
+    authentication_classes = []
     serializer_class = SessionSerializer
 
     def get(self, request):
