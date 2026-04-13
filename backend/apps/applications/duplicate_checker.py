@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Optional
 from apps.applications.models import Application
 
-NON_TERMINAL_STATUSES = {"draft", "submitted", "under_review", "approved", "waitlisted"}
+NON_TERMINAL_STATUSES = {"draft", "submitted", "under_review", "waitlisted"}
 SUBMITTED_STATUSES = {"submitted", "under_review", "approved", "waitlisted"}
 
 

@@ -142,7 +142,13 @@ async function loadApplicationDetails(
   const shouldLoadStatusHistory = include.has('statusHistory')
 
   const [detailsResponse, documents, grades, summary, interviews] = await Promise.all([
-    apiClient.request<unknown>(`/applications/${encodedId}/details/`),
+    apiClient.request<unknown>(`/applications/${encodedId}/details/`).catch((err) => {
+      // 404 means application was deleted — return null instead of throwing
+      if (err && typeof err === 'object' && 'status' in err && (err as { status: number }).status === 404) {
+        return null
+      }
+      throw err
+    }),
     shouldLoadDocuments
       ? apiClient.request<unknown[]>(`/applications/${encodedId}/documents/`)
       : Promise.resolve(null),
@@ -222,9 +228,17 @@ export const applicationService = {
 
   /** DELETE /applications/{id}/ */
   delete: async (id: string) => {
-    await apiClient.request<void>(`/applications/${encodeURIComponent(id)}/`, {
-      method: 'DELETE'
-    })
+    try {
+      await apiClient.request<void>(`/applications/${encodeURIComponent(id)}/`, {
+        method: 'DELETE'
+      })
+    } catch (error) {
+      // 404 means already deleted — treat as success (idempotent delete)
+      if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 404) {
+        return { success: true }
+      }
+      throw error
+    }
     return { success: true }
   },
 

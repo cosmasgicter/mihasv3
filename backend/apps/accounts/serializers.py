@@ -71,6 +71,8 @@ class ProfileReadSerializer(serializers.ModelSerializer):
             "id",
             "email",
             "role",
+            "first_name",
+            "last_name",
             "full_name",
             "phone",
             "date_of_birth",

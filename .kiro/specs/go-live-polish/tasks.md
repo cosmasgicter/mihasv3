@@ -53,3 +53,50 @@
   - Run `cd backend && python3 -m pytest tests/unit/ -q`
   - Run Stagehand E2E: `bun run scripts/stagehand-e2e.ts`
   - Verify OpenAPI schema: `cd backend && python3 manage.py spectacular --file /tmp/schema.yaml`
+
+---
+
+## New Issues (13 Apr 2026)
+
+## P1 — Must Fix (Production Blockers)
+
+- [x] 11. Allow slip uploads for non-draft applications
+  - [x] 11.1 In `DocumentUploadView.post()` in `backend/apps/documents/views.py`, modify the draft-only guard to allow `application_slip` document type uploads regardless of application status
+  - [x] 11.2 Verify slip generation and email still works for approved applications
+  - _Requirements: 2.10_
+
+- [x] 12. Remove `approved` from DuplicateChecker create-time non-terminal statuses
+  - [x] 12.1 In `backend/apps/applications/duplicate_checker.py`, change `NON_TERMINAL_STATUSES` from `{"draft", "submitted", "under_review", "approved", "waitlisted"}` to `{"draft", "submitted", "under_review", "waitlisted"}`
+  - [x] 12.2 In `apps/admissions/src/lib/duplicateApplicationCheck.ts`, update the frontend `nonTerminalStatuses` set to match (remove `approved`)
+  - [x] 12.3 Verify `SUBMITTED_STATUSES` in `check_at_submit()` still includes `approved` (no change needed there)
+  - [x] 12.4 Run existing duplicate checker property tests to confirm no regressions
+  - _Requirements: 2.11_
+
+- [x] 13. Add `first_name` and `last_name` to ProfileReadSerializer
+  - [x] 13.1 In `backend/apps/accounts/serializers.py`, add `first_name` and `last_name` to `ProfileReadSerializer.Meta.fields`
+  - [x] 13.2 Verify the profile endpoint returns the new fields
+  - _Requirements: 2.13_
+
+## P2 — Production Quality
+
+- [x] 14. Map admin activity feed to human-readable messages
+  - [x] 14.1 In `apps/admissions/src/services/admin/dashboard.ts`, add an `ACTIVITY_MESSAGE_MAP` that maps `action + entity_type` to human-readable descriptions
+  - [x] 14.2 Update the `normalizeRecentActivity()` message fallback to use the map instead of raw `${action} ${entityType}`
+  - _Requirements: 2.12_
+
+- [x] 15. Handle 404 gracefully in draft deletion and stale application references
+  - [x] 15.1 In `apps/admissions/src/services/applications.ts`, update `applicationService.delete()` to catch 404 errors and return `{ success: true }` (idempotent delete semantics)
+  - [x] 15.2 In `apps/admissions/src/services/applications.ts`, wrap the `/details/` call in `loadApplicationDetails()` with a 404 catch that returns null instead of throwing
+  - _Requirements: 2.14_
+
+- [x] 16. Add rapid-failure detection to SSE client
+  - [x] 16.1 In `apps/admissions/src/lib/sseClient.ts`, add rapid-failure tracking: if connection dies within 5s of opening, increment counter; after 3 rapid failures in 60s, stop SSE and dispatch `rapid_failure_fallback` event to trigger polling-only mode
+  - _Requirements: 2.15_
+
+## Final (New)
+
+- [x] 17. Run all backend tests and verify no regressions from new fixes
+  - Run `cd backend && python3 -m pytest tests/unit/ -q`
+  - Verify OpenAPI schema: `cd backend && python3 manage.py spectacular --file /tmp/schema.yaml`
+  - Run admissions lint: `bun run lint:admissions`
+  - Run admissions build: `bun run build:admissions`
