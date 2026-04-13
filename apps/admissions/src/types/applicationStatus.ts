@@ -4,6 +4,7 @@ export const APPLICATION_STATUSES = [
   'under_review',
   'approved',
   'rejected',
+  'waitlisted',
   'pending_documents'
 ] as const
 
@@ -15,6 +16,7 @@ export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
   under_review: 'Under Review',
   approved: 'Approved',
   rejected: 'Rejected',
+  waitlisted: 'Waitlisted',
   pending_documents: 'Pending Documents'
 }
 

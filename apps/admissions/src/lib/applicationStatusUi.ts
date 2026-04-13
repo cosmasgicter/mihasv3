@@ -20,6 +20,7 @@ export const getApplicationStatusBadgeClass = (status: ApplicationStatus): strin
     under_review: 'bg-accent/10 text-accent-foreground',
     approved: 'bg-accent/10 text-accent-foreground',
     rejected: 'bg-destructive/10 text-destructive-foreground',
+    waitlisted: 'bg-amber-100 text-amber-800',
     pending_documents: 'bg-accent/10 text-accent-foreground'
   }
 

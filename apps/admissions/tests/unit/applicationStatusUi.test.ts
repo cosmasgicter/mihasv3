@@ -14,6 +14,7 @@ describe('application status canonical values', () => {
       'under_review',
       'approved',
       'rejected',
+      'waitlisted',
       'pending_documents'
     ])
   })
