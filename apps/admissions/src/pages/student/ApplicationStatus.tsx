@@ -151,12 +151,21 @@ export default function ApplicationStatus() {
       })
     }
 
-    if (application.status === 'under_review' || application.status === 'approved' || application.status === 'rejected') {
+    if (application.status === 'under_review' || application.status === 'approved' || application.status === 'rejected' || application.status === 'waitlisted') {
       timeline.push({
         status: 'under_review',
         date: application.review_started_at || application.updated_at,
         description: 'Application currently under review by admissions',
         completed: application.status !== 'under_review'
+      })
+    }
+
+    if (application.status === 'waitlisted') {
+      timeline.push({
+        status: 'waitlisted',
+        date: application.updated_at,
+        description: 'Application has been waitlisted — you will be notified if a spot opens',
+        completed: true
       })
     }
 
