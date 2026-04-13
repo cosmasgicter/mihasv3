@@ -261,6 +261,40 @@ const normalizeActivityType = (type: unknown): AdminDashboardActivityType => {
   return 'application'
 }
 
+const ACTIVITY_MESSAGE_MAP: Record<string, Record<string, string>> = {
+  POST: {
+    auth: 'User logged in',
+    applications: 'Application submitted',
+    errors: 'Error reported',
+    documents: 'Document uploaded',
+    payments: 'Payment initiated',
+    notifications: 'Notification sent',
+    sessions: 'Session created',
+  },
+  PATCH: {
+    applications: 'Application updated',
+    auth: 'Profile updated',
+    profiles: 'User profile updated',
+  },
+  PUT: {
+    applications: 'Application reviewed',
+    notifications: 'Notification read',
+  },
+  DELETE: {
+    applications: 'Draft deleted',
+    sessions: 'Session ended',
+  },
+}
+
+const resolveActivityMessage = (action: string, entityType: string): string => {
+  const mapped = ACTIVITY_MESSAGE_MAP[action]?.[entityType]
+  if (mapped) return mapped
+  // Fallback: humanize the action + entity_type
+  const verb = action === 'POST' ? 'Created' : action === 'PATCH' ? 'Updated' : action === 'PUT' ? 'Modified' : action === 'DELETE' ? 'Removed' : action
+  const entity = entityType.replace(/_/g, ' ')
+  return `${verb} ${entity}`
+}
+
 const normalizeRecentActivity = (items: unknown): AdminDashboardActivity[] => {
   if (!Array.isArray(items)) {
     return []
@@ -278,7 +312,7 @@ const normalizeRecentActivity = (items: unknown): AdminDashboardActivity[] => {
       const message = 'message' in item && typeof item.message === 'string'
         ? item.message
         : action
-          ? `${action.replace(/_/g, ' ')}${entityType ? ` ${entityType}` : ''}`
+          ? resolveActivityMessage(action, entityType)
           : ''
       const rawTimestamp = 'timestamp' in item && typeof item.timestamp === 'string'
         ? item.timestamp

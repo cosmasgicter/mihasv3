@@ -42,7 +42,7 @@ export async function checkDuplicateApplication(
 ): Promise<DuplicateCheckResult> {
   void userId
   try {
-    const nonTerminalStatuses = new Set(['draft', 'submitted', 'under_review', 'approved', 'waitlisted'])
+    const nonTerminalStatuses = new Set(['draft', 'submitted', 'under_review', 'waitlisted'])
     const programIdentity = normalizeIdentity(program)
     const intakeIdentity = normalizeIdentity(intake)
     const normalizedPrograms = new Set([

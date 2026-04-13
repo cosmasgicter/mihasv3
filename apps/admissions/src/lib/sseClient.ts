@@ -191,6 +191,14 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
   let authFailed = false;
   let retriesExhausted = false;
 
+  // Rapid-failure detection: if connection dies within RAPID_FAILURE_THRESHOLD_MS
+  // of opening, it's likely a transport-level issue (e.g. QUIC). After
+  // MAX_RAPID_FAILURES in a row, stop SSE and fall back to polling.
+  let rapidFailureCount = 0;
+  let lastConnectTime = 0;
+  const RAPID_FAILURE_THRESHOLD_MS = 5000;
+  const MAX_RAPID_FAILURES = 3;
+
   // Event handlers map: event type -> Set of handlers
   const handlers = new Map<string, Set<EventHandler>>();
 
@@ -359,6 +367,7 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
       eventSource.onopen = () => {
         console.log('[SSEClient] Connected');
         connected = true;
+        lastConnectTime = Date.now();
         if (hasLoggedError) {
           console.log('[SSEClient] Connection recovered');
           hasLoggedError = false;
@@ -389,6 +398,24 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
 
         if (wasConnected) {
           onDisconnect?.();
+        }
+
+        // Rapid-failure detection: if connection died very quickly after opening,
+        // it's likely a transport issue (QUIC, HTTP/3) not a normal timeout.
+        if (lastConnectTime > 0) {
+          const connectionDuration = Date.now() - lastConnectTime;
+          if (connectionDuration < RAPID_FAILURE_THRESHOLD_MS) {
+            rapidFailureCount++;
+            if (rapidFailureCount >= MAX_RAPID_FAILURES) {
+              console.warn(`[SSEClient] Rapid failure detected (${rapidFailureCount} failures, likely QUIC issue), falling back to polling`);
+              retriesExhausted = true;
+              dispatchEvent('error', { type: 'rapid_failure_fallback' });
+              return;
+            }
+          } else {
+            // Connection lasted long enough — reset rapid failure counter
+            rapidFailureCount = 0;
+          }
         }
 
         // Only report error and schedule reconnect if not intentional
