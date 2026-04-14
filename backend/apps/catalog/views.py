@@ -324,6 +324,8 @@ class IntakeListCreateView(APIView):
             # Allow null dates to pass through (no restriction)
             queryset = queryset.exclude(
                 application_deadline__lt=today,
+            ).exclude(
+                application_start_date__gt=today,
             )
 
         # Support ?include_closed=true for admin/wizard to see all intakes
