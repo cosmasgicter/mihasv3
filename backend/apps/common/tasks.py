@@ -170,6 +170,35 @@ def send_bulk_notifications_task(self, notification_ids):
                     logger.exception("Failed to dispatch retry-exhaustion alert")
 
 
+# ---------------------------------------------------------------------------
+# Keep-alive ping — prevents Koyeb cold starts
+# ---------------------------------------------------------------------------
+
+@shared_task(bind=True, max_retries=0)
+def keep_alive_task(self):
+    """Lightweight keep-alive ping to prevent Koyeb cold starts.
+
+    Hits /health/live/ (no DB or Redis check) every 4 minutes to keep
+    the Koyeb web service instance warm. Uses the liveness endpoint
+    instead of /health/ready/ to avoid unnecessary DB/Redis load.
+    """
+    import requests as http_requests
+
+    health_url = getattr(
+        settings,
+        "HEALTH_CHECK_URL",
+        "https://api.mihas.edu.zm/health/ready/",
+    )
+    # Use /health/live/ for keep-alive — lighter than /health/ready/
+    live_url = health_url.replace("/health/ready/", "/health/live/")
+
+    try:
+        resp = http_requests.get(live_url, timeout=10)
+        logger.debug("Keep-alive ping: %s → %s", live_url, resp.status_code)
+    except Exception:
+        logger.warning("Keep-alive ping failed for %s", live_url)
+
+
 UPTIME_REDIS_KEY = "uptime:last_status"
 UPTIME_STATUS_OK = "ok"
 UPTIME_STATUS_DOWN = "down"
