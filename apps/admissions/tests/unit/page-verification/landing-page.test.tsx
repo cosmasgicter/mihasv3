@@ -151,7 +151,7 @@ describe('Landing page verification', () => {
     vi.clearAllMocks()
   })
 
-  async function renderAndWait(ms = 700) {
+  async function renderAndWait(ms = 1500) {
     await act(async () => {
       root.render(<LandingPage />)
       await new Promise((r) => setTimeout(r, ms))
@@ -163,14 +163,14 @@ describe('Landing page verification', () => {
   it('renders without errors and shows the hero heading', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Your Future Starts Here')
+    expect(text).toContain('Train for the Healthcare Jobs Zambia Needs')
   })
 
   it('renders the hero CTA buttons with correct links', async () => {
     await renderAndWait()
     const html = container.innerHTML || ''
     expect(html).toContain('/auth/signup')
-    expect(html).toContain('#features')
+    expect(html).toContain('#programs')
   })
 
   // ── Stats section ───────────────────────────────────────────────────
@@ -189,10 +189,10 @@ describe('Landing page verification', () => {
   it('renders the features section with all feature cards', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Why Choose MIHAS-KATC')
-    expect(text).toContain('Career-Ready Training')
-    expect(text).toContain('Government Recognized Qualifications')
-    expect(text).toContain('Proven Job Placement Support')
+    expect(text).toContain('Why Students Pick MIHAS-KATC')
+    expect(text).toContain('Learn from Working Professionals')
+    expect(text).toContain('Qualifications Employers Trust')
+    expect(text).toContain('We Help You Find Work')
   })
 
   // ── Accreditation section ───────────────────────────────────────────
@@ -200,7 +200,7 @@ describe('Landing page verification', () => {
   it('renders the accreditation section with all accreditation cards', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Qualifications Recognized by Employers')
+    expect(text).toContain('Recognized Qualifications That Get You Hired')
     expect(text).toContain('NMCZ Accredited')
     expect(text).toContain('HPCZ Accredited')
     expect(text).toContain('ECZ Recognized')
@@ -212,7 +212,7 @@ describe('Landing page verification', () => {
   it('renders the programs section with program cards', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('High-Demand Healthcare Jobs Training Programs')
+    expect(text).toContain('Three Programs. Real Jobs.')
     expect(text).toContain('Kalulushi Training Centre')
     expect(text).toContain('Mukuba Institute of Health and Applied Sciences')
     expect(text).toContain('Diploma in Clinical Medicine')
@@ -224,7 +224,7 @@ describe('Landing page verification', () => {
   it('renders the CTA section with apply link', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Ready to Secure Your Healthcare Job')
+    expect(text).toContain('January 2026 Intake Is Open')
     expect(text).toContain('Apply Now')
     const html = container.innerHTML || ''
     // CTA links to signup
@@ -238,7 +238,7 @@ describe('Landing page verification', () => {
     await renderAndWait()
     const text = container.textContent || ''
     // Page should still render all sections
-    expect(text).toContain('Your Future Starts Here')
-    expect(text).toContain('High-Demand Healthcare Jobs Training Programs')
+    expect(text).toContain('Train for the Healthcare Jobs Zambia Needs')
+    expect(text).toContain('Three Programs. Real Jobs.')
   })
 })

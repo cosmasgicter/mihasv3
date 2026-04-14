@@ -10,6 +10,8 @@ Requirements: 3.4, 3.5, 3.6, 3.11
 import hashlib
 import logging
 
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
@@ -39,6 +41,7 @@ class ErrorReportView(APIView):
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'error_report'
 
+    @extend_schema(request=OpenApiTypes.OBJECT, responses={200: OpenApiTypes.OBJECT})
     def post(self, request):
         # Reject payloads larger than 16 KB before any processing.
         if len(request.body) > 16_384:

@@ -109,7 +109,7 @@ export default defineConfig(({ mode, command }) => {
       target: 'es2022', // Modern browsers - Bun native support
       minify: 'terser',
       sourcemap: false, // Disable for production builds
-      chunkSizeWarningLimit: 500,
+      chunkSizeWarningLimit: 650,
       modulePreload: { polyfill: false }, // No polyfills for modern browsers
       cssCodeSplit: true,
       assetsInlineLimit: 0, // Emit all assets as separate files — eliminates data: URIs in CSP

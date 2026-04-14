@@ -201,8 +201,8 @@ def submit_application(
         locked_app.updated_at = now
         locked_app.save(update_fields=["submitted_at", "updated_at"])
 
-        # Atomically increment intake enrollment (Req 6.5)
-        IntakeEnforcer.increment_enrollment(locked_app.intake)
+        # Atomically increment intake enrollment (Req 6.5, AUDIT-1.6-002)
+        IntakeEnforcer.increment_enrollment(locked_app.intake, locked_app.program)
 
     # Advisory eligibility evaluation — non-blocking (Req 5.7)
     try:

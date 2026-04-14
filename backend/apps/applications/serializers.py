@@ -8,6 +8,7 @@ import logging
 from datetime import date
 
 from dateutil.relativedelta import relativedelta
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.applications.models import (
@@ -177,21 +178,27 @@ class ApplicationPaymentSummaryMixin(serializers.Serializer):
         cache[cache_key] = summary
         return summary
 
+    @extend_schema_field(serializers.CharField(allow_null=True))
     def get_payment_method(self, obj):
         return self._get_payment_summary(obj)["payment_method"]
 
+    @extend_schema_field(serializers.CharField(allow_null=True))
     def get_paid_amount(self, obj):
         return self._get_payment_summary(obj)["paid_amount"]
 
+    @extend_schema_field(serializers.CharField(allow_null=True))
     def get_paid_at(self, obj):
         return self._get_payment_summary(obj)["paid_at"]
 
+    @extend_schema_field(serializers.CharField(allow_null=True))
     def get_receipt_number(self, obj):
         return self._get_payment_summary(obj)["receipt_number"]
 
+    @extend_schema_field(serializers.CharField(allow_null=True))
     def get_payment_reference(self, obj):
         return self._get_payment_summary(obj)["payment_reference"]
 
+    @extend_schema_field(serializers.CharField(allow_null=True))
     def get_last_payment_reference(self, obj):
         return self._get_payment_summary(obj)["last_payment_reference"]
 

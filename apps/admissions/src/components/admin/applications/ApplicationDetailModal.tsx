@@ -14,6 +14,7 @@ import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus'
 import { ApplicationApprovalActions } from './ApplicationApprovalActions'
+import { CapacityWarning } from './CapacityWarning'
 
 /** Payment record from the `payments` table */
 interface PaymentRecord {
@@ -86,6 +87,8 @@ interface ApplicationWithDetails {
  points?: number
  grades_summary?: string
  interview?: ApplicationInterview | null
+ intake_capacity?: number | null
+ intake_enrollment?: number | null
 }
 
 interface StatusHistoryItem {
@@ -915,6 +918,11 @@ export function ApplicationDetailModal({
  <div className="space-y-6">
  {activeTab === 'overview' && (
  <div className="space-y-6">
+ {/* Capacity Warning (Req 18.1, 18.2, 18.3) */}
+ <CapacityWarning
+   intake_capacity={applicationData?.application?.intake_capacity ?? application.intake_capacity}
+   intake_enrollment={applicationData?.application?.intake_enrollment ?? application.intake_enrollment}
+ />
  {/* Quick Stats */}
  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
  <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl">

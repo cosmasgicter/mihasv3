@@ -429,7 +429,19 @@ class ApplicationDetailView(APIView):
         app = self._get_application(request, application_id)
         if app is None:
             return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
-        return Response(ApplicationSerializer(app).data)
+        data = ApplicationSerializer(app).data
+        # Include intake capacity info for admin users (Req 18.1)
+        role = getattr(request.user, 'role', 'student')
+        if role in ('admin', 'super_admin', 'admissions_officer'):
+            try:
+                from apps.catalog.models import Intake
+                intake = Intake.objects.filter(name=app.intake, is_active=True).first()
+                if intake:
+                    data["intake_capacity"] = intake.max_capacity
+                    data["intake_enrollment"] = intake.current_enrollment
+            except Exception:
+                pass
+        return Response(data)
 
     def patch(self, request, application_id):
         return self._update_application(request, application_id)
@@ -1684,13 +1696,13 @@ class EmailSlipSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
 
-class EmailSlipResponseSerializer(serializers.Serializer):
+class EmailSlipQueuedSerializer(serializers.Serializer):
     queued_id = serializers.UUIDField()
 
 
 EmailSlipEnvelopeResponseSerializer = envelope_serializer(
-    "EmailSlipResponse",
-    EmailSlipResponseSerializer(),
+    "EmailSlipEnvelopeResponse",
+    EmailSlipQueuedSerializer(),
 )
 
 

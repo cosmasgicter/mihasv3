@@ -18,7 +18,7 @@ class Profile(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(max_length=255, unique=True)
-    role = models.CharField(max_length=50, choices=ROLE_CHOICES, null=True, blank=True)
+    role = models.CharField(max_length=50, choices=ROLE_CHOICES, default='student', blank=True)
     first_name = models.CharField(max_length=255, null=True, blank=True)
     last_name = models.CharField(max_length=255, null=True, blank=True)
     phone = models.CharField(max_length=20, null=True, blank=True)

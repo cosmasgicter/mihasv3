@@ -777,6 +777,7 @@ class AdminSettingsImportView(APIView):
 
     permission_classes = [IsAuthenticated, IsAdmin]
 
+    @extend_schema(request=OpenApiTypes.OBJECT, responses={200: OpenApiTypes.OBJECT})
     def post(self, request):
         settings_list = request.data.get("settings")
         if not isinstance(settings_list, list):
@@ -817,6 +818,7 @@ class AdminSettingsResetView(APIView):
 
     permission_classes = [IsAuthenticated, IsAdmin]
 
+    @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT})
     def post(self, request):
         with transaction.atomic():
             deleted_count, _ = Setting.objects.all().delete()

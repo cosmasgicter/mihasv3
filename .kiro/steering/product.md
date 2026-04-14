@@ -22,7 +22,7 @@ Both are backed by the Django API in `backend/`. Treat changes as production-sen
 
 ### Error Monitoring
 
-The platform uses self-hosted error monitoring with no third-party tracker (no Sentry). Backend 500 errors are caught by `envelope_exception_handler`, which creates an `ErrorLog` row and dispatches a throttled alert email via Redis + Resend. Frontend errors are captured by `errorReporter.ts` and POSTed to `POST /api/v1/errors/report/`, which follows the same pipeline. Alert emails default to `ops@mihas.edu.zm` (configurable via `ERROR_ALERT_EMAIL` env var). Throttling is one alert per unique error message per 15 minutes.
+The platform uses self-hosted error monitoring with no third-party tracker (no Sentry). Backend 500 errors are caught by `envelope_exception_handler`, which creates an `ErrorLog` row and dispatches a throttled alert email via Redis + Resend. Frontend errors are captured by `errorReporter.ts` and POSTed to `POST /api/v1/errors/report/`, which follows the same pipeline. Alert emails default to `***REMOVED***` (configurable via `ERROR_ALERT_EMAIL` env var). Throttling is one alert per unique error message per 15 minutes.
 
 ## Hard Constraints
 
@@ -120,7 +120,7 @@ Jobs-ops expectations:
 | Password reset | Token-based, time-bound, single-use, and rate-limited |
 | Auth | Cookie-based auth remains the intended browser model |
 | Outreach safety | Jobs-ops must avoid duplicate spammy outreach and must not bypass approval controls for risky sends |
-| Error alerting | Error notifications default to `ops@mihas.edu.zm` (via `ERROR_ALERT_EMAIL` env var) unless explicitly overridden |
+| Error alerting | Error notifications default to `***REMOVED***` (via `ERROR_ALERT_EMAIL` env var) unless explicitly overridden |
 
 ## Security Posture
 

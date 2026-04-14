@@ -4,8 +4,7 @@ export const APPLICATION_STATUSES = [
   'under_review',
   'approved',
   'rejected',
-  'waitlisted',
-  'pending_documents'
+  'waitlisted'
 ] as const
 
 export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number]
@@ -16,8 +15,7 @@ export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
   under_review: 'Under Review',
   approved: 'Approved',
   rejected: 'Rejected',
-  waitlisted: 'Waitlisted',
-  pending_documents: 'Pending Documents'
+  waitlisted: 'Waitlisted'
 }
 
 export const formatApplicationStatus = (status: ApplicationStatus): string => {

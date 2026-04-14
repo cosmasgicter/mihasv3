@@ -477,6 +477,7 @@ class PaymentInitiateView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(request=OpenApiTypes.OBJECT, responses={201: OpenApiTypes.OBJECT})
     def post(self, request):
         application_id = request.data.get("application_id")
         if not application_id:
@@ -549,6 +550,7 @@ class LencoWebhookView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
 
+    @extend_schema(request=OpenApiTypes.OBJECT, responses={200: OpenApiTypes.OBJECT})
     def post(self, request):
         raw_body = request.body
         signature = request.META.get("HTTP_X_LENCO_SIGNATURE", "")
@@ -598,6 +600,15 @@ class FeeResolveView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        request=None,
+        responses={200: OpenApiTypes.OBJECT},
+        parameters=[
+            OpenApiParameter("program_code", OpenApiTypes.STR, OpenApiParameter.QUERY),
+            OpenApiParameter("nationality", OpenApiTypes.STR, OpenApiParameter.QUERY, required=False),
+            OpenApiParameter("country", OpenApiTypes.STR, OpenApiParameter.QUERY, required=False),
+        ],
+    )
     def get(self, request):
         program_code = request.query_params.get("program_code")
         if not program_code:
@@ -733,6 +744,7 @@ class DocumentSignedUrlView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT})
     def get(self, request, document_id):
         document, error_response = _get_authorized_document(request, self, document_id)
         if error_response is not None:
@@ -768,6 +780,7 @@ class DocumentDownloadView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(request=None, responses={302: None})
     def get(self, request, document_id):
         document, error_response = _get_authorized_document(request, self, document_id)
         if error_response is not None:
@@ -804,6 +817,7 @@ class DocumentInfoView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT})
     def get(self, request, document_id):
         document, error_response = _get_authorized_document(request, self, document_id)
         if error_response is not None:
@@ -831,6 +845,7 @@ class DocumentDeleteView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT})
     def delete(self, request, document_id):
         document, error_response = _get_authorized_document(request, self, document_id)
         if error_response is not None:

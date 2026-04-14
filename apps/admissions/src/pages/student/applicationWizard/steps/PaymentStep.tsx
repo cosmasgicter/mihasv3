@@ -101,7 +101,7 @@ const PaymentStep = ({
 
   const handlePayNow = useCallback(async () => {
     if (!applicationId) {
-      setInitiateError('Application not found. Please go back to step 1.')
+      setInitiateError('Please save your application before proceeding to payment. Go back to Step 1 and ensure your details are saved.')
       return
     }
     setInitiateError(null)
@@ -239,7 +239,7 @@ const PaymentStep = ({
               {statusMessage || 'Your payment could not be processed.'}
             </p>
             <p className="text-sm">
-              You can retry the payment or contact support at ops@mihas.edu.zm if the issue persists.
+              You can retry the payment or contact support at ***REMOVED*** if the issue persists.
             </p>
             <Button
               ref={retryRef}
@@ -294,24 +294,39 @@ const PaymentStep = ({
 
       {/* Pay Now / Retry button */}
       {paymentStatus !== 'successful' && (
-        <Button
-          type="button"
-          variant="primary"
-          size="lg"
-          className="w-full"
-          disabled={!canPay}
-          loading={paymentStatus === 'initiating' || widgetLoading}
-          onClick={handlePayNow}
-          data-testid="pay-now-button"
-        >
-          {paymentStatus === 'initiating'
-            ? 'Preparing payment\u2026'
-            : paymentStatus === 'pending'
-              ? 'Waiting for confirmation\u2026'
-              : paymentStatus === 'failed'
-                ? 'Retry payment'
-                : 'Pay now'}
-        </Button>
+        <>
+          <Button
+            type="button"
+            variant="primary"
+            size="lg"
+            className="w-full"
+            disabled={!canPay}
+            loading={paymentStatus === 'initiating' || widgetLoading}
+            onClick={handlePayNow}
+            data-testid="pay-now-button"
+          >
+            {paymentStatus === 'initiating'
+              ? 'Preparing payment\u2026'
+              : paymentStatus === 'pending'
+                ? 'Waiting for confirmation\u2026'
+                : paymentStatus === 'failed'
+                  ? 'Retry payment'
+                  : 'Pay now'}
+          </Button>
+          {!canPay && paymentStatus !== 'initiating' && !widgetLoading && (
+            <p className="text-center text-sm text-muted-foreground" data-testid="pay-disabled-hint">
+              {feeLoading
+                ? 'Please wait — your application fee is being calculated.'
+                : !isScriptLoaded
+                  ? 'The payment widget is unavailable. Please refresh the page and try again.'
+                  : fee == null
+                    ? 'Select a program to calculate your application fee before paying.'
+                    : paymentStatus === 'pending'
+                      ? 'Your payment is being confirmed. Please wait for the result.'
+                      : 'Payment is not available right now. Please try again shortly.'}
+            </p>
+          )}
+        </>
       )}
 
       <p className="text-center text-xs text-muted-foreground">

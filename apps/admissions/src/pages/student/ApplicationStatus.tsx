@@ -108,6 +108,8 @@ export default function ApplicationStatus() {
         return <Clock className="h-5 w-5 text-primary" />
       case 'submitted':
         return <AlertCircle className="h-5 w-5 text-warning" />
+      case 'waitlisted':
+        return <Clock className="h-5 w-5 text-amber-600" />
       case 'interview_scheduled':
         return <Calendar className="h-5 w-5 text-primary" />
       default:
@@ -570,6 +572,14 @@ export default function ApplicationStatus() {
                   title="Congratulations!"
                   description="Your application has been approved. Look out for enrollment instructions via email."
                   icon={<CheckCircle className="h-5 w-5 text-success" />}
+                />
+              )}
+
+              {application.status === 'waitlisted' && (
+                <SectionCard
+                  title="You're on the waitlist"
+                  description="Your application is on the waitlist. We'll notify you by email if a spot becomes available."
+                  icon={<Clock className="h-5 w-5 text-amber-600" />}
                 />
               )}
 
