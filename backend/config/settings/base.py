@@ -150,6 +150,10 @@ CELERY_TIMEZONE = "UTC"
 from celery.schedules import crontab  # noqa: E402
 
 CELERY_BEAT_SCHEDULE = {
+    "keep-alive": {
+        "task": "apps.common.tasks.keep_alive_task",
+        "schedule": 240.0,  # Every 4 minutes — prevents Koyeb cold starts (free tier sleeps after ~5m inactivity)
+    },
     "check-uptime": {
         "task": "apps.common.tasks.check_uptime_task",
         "schedule": 900.0,  # Every 15 minutes (was 5m — reduced to conserve Upstash free-tier Redis requests)
