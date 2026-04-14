@@ -83,7 +83,7 @@ Set these in both Koyeb services unless noted otherwise. The same list is captur
 | `S3_SECRET_KEY` | yes | R2 secret key |
 | `PORT` | optional | `8000` |
 | `WEB_CONCURRENCY` | optional | `3` — recommended starting value |
-| `ERROR_ALERT_EMAIL` | optional | `ops@mihas.edu.zm` — recipient for error alert emails |
+| `ERROR_ALERT_EMAIL` | optional | `admin@mihas.edu.zm` — recipient for error alert emails |
 | `READ_ONLY_MODE` | optional | `false` |
 
 `CSRF_TRUSTED_ORIGINS` is not used by the current settings module, so do not add it unless the backend is changed to read it.
@@ -141,7 +141,7 @@ Use [UptimeRobot](https://uptimerobot.com/) (free tier) as the primary external 
 | URL | `https://api.mihas.edu.zm/health/ready/` |
 | Monitoring interval | 5 minutes |
 
-3. Under "Alert Contacts", add the operations team email (e.g. `ops@mihas.edu.zm`).
+3. Under "Alert Contacts", add the operations team email (e.g. `admin@mihas.edu.zm`).
 4. Save the monitor.
 
 UptimeRobot will send an email alert when `/health/ready/` returns a non-200 status or becomes unreachable, and a recovery email when it comes back up.

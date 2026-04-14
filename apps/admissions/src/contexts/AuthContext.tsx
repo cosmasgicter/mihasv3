@@ -96,9 +96,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Re-validate session when the page becomes visible again (tab refocus).
   // This catches expired tokens after the user has been away, ensuring the
   // UI reflects the current auth state without waiting for a data fetch to 401.
+  // Skip the first visibility event to avoid a duplicate request on initial load.
   useEffect(() => {
+    let hasHiddenOnce = false
+
     function handleVisibilityChange() {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'hidden') {
+        hasHiddenOnce = true
+      } else if (document.visibilityState === 'visible' && hasHiddenOnce) {
         queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
       }
     }

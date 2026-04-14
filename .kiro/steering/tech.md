@@ -146,7 +146,7 @@ The frontend and backend share a single, unified API contract. There is no compa
 - Keep routes resource-oriented under `/api/v1/`.
 - Preserve explicit jobs-ops domain naming such as `JobApplication`.
 - Shared jobs-ops scaffold data currently lives in `backend/apps/common/jobs_ops_seed.py`; do not re-duplicate that seed state across views.
-- Current default error-alert recipient is `ops@mihas.edu.zm` (configurable via `ERROR_ALERT_EMAIL` env var; code fallback is `admin@mihas.edu.zm`).
+- Current default error-alert recipient is `admin@mihas.edu.zm` (configurable via `ERROR_ALERT_EMAIL` env var).
 - Payment records live in the `payments` table (managed by `backend/apps/documents/`). Application-level payment summaries should be derived from canonical payment records, not from retired inline compatibility columns.
 
 ## Lenco Payment Integration
@@ -200,7 +200,7 @@ The platform uses self-hosted error monitoring — there is no Sentry or third-p
 ### Key details
 
 - `ErrorLog` model lives in `backend/apps/common/models.py` with `managed = False`. The `error_logs` table was created via the SQL migration script `backend/scripts/create_error_logs_table.sql`, not Django migrations.
-- Default alert recipient: `ops@mihas.edu.zm` (configurable via `ERROR_ALERT_EMAIL` env var; code fallback is `admin@mihas.edu.zm`).
+- Default alert recipient: `admin@mihas.edu.zm` (configurable via `ERROR_ALERT_EMAIL` env var).
 - Throttle: one alert per unique error message per 15 minutes, backed by Redis `cache.add`. If Redis is unavailable, alerts fail-open (dispatch anyway).
 - Frontend error reporting is unauthenticated (`AllowAny`) and CSRF-exempt, rate-limited to 10 requests per IP per 5 minutes.
 - Frontend reporter respects `VITE_ERROR_REPORT_ENABLED` env var — does nothing when disabled.
@@ -269,7 +269,7 @@ The first two tasks live in `backend/apps/common/tasks.py`. The payment polling 
 Two layers of uptime monitoring are in place:
 
 1. **Internal**: `check_uptime_task` (Celery Beat, every 5 minutes) sends `GET` to the configured `HEALTH_CHECK_URL` (default: `https://api.mihas.edu.zm/health/ready/`) with a 10-second timeout. Tracks previous status in Redis key `uptime:last_status`. On healthy→unhealthy transition: dispatches alert email. On unhealthy→healthy: dispatches recovery email. Repeated failures without recovery do not produce duplicate alerts. Uses the `requests` library.
-2. **External**: [UptimeRobot](https://uptimerobot.com/) (free tier) monitors `https://api.mihas.edu.zm/health/ready/` every 5 minutes from outside the network. Sends email alerts to `ops@mihas.edu.zm` on failure and recovery.
+2. **External**: [UptimeRobot](https://uptimerobot.com/) (free tier) monitors `https://api.mihas.edu.zm/health/ready/` every 5 minutes from outside the network. Sends email alerts to `admin@mihas.edu.zm` on failure and recovery.
 
 ## Secrets Rotation
 

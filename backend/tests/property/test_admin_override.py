@@ -11,6 +11,7 @@ admin's user ID, and dispatch a payment_update SSE event.
 """
 
 import os
+import socket
 import uuid
 from unittest.mock import MagicMock, patch
 
@@ -21,9 +22,18 @@ import django  # noqa: E402
 
 django.setup()
 
+import pytest  # noqa: E402
 from django.test import TransactionTestCase  # noqa: E402
 from hypothesis import given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
+
+
+def _pg_available(host="localhost", port=5432):
+    try:
+        with socket.create_connection((host, port), timeout=1):
+            return True
+    except OSError:
+        return False
 
 # ---------------------------------------------------------------------------
 # Strategies
@@ -44,6 +54,7 @@ admin_notes = st.text(
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.skipif(not _pg_available(), reason="Local Postgres not available")
 class TestAdminPaymentStatusOverride(TransactionTestCase):
     databases = ['default']
     """# Feature: production-payment-hardening, Property 10: Admin payment status override records audit trail

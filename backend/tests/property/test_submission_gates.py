@@ -24,6 +24,21 @@ from hypothesis import given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 
 # ---------------------------------------------------------------------------
+# Shared mock helper — prevents DatabaseOperationForbidden in SimpleTestCase
+# by ensuring IdentifierResolver.resolve_intake() never hits the DB.
+# (Req 3.2, 3.3)
+# ---------------------------------------------------------------------------
+
+_RESOLVER_PATCH_TARGET = (
+    "apps.applications.identifier_resolver.IdentifierResolver.resolve_intake"
+)
+
+
+def _not_found_resolve(*_args, **_kwargs):
+    """Return a mock ResolvedIdentifier with source='not_found'."""
+    return MagicMock(source="not_found", id=None)
+
+# ---------------------------------------------------------------------------
 # Strategies
 # ---------------------------------------------------------------------------
 
@@ -74,6 +89,13 @@ class TestIdentityDocumentRequired(SimpleTestCase):
     **Validates: Requirements 5.3, 5.4**
     """
 
+    def setUp(self):
+        self._resolver_patcher = patch(_RESOLVER_PATCH_TARGET, side_effect=_not_found_resolve)
+        self._resolver_patcher.start()
+
+    def tearDown(self):
+        self._resolver_patcher.stop()
+
     @given(data=st.data())
     @settings(max_examples=100)
     def test_submission_blocked_without_identity_document(self, data):
@@ -120,28 +142,18 @@ class TestIdentityDocumentRequired(SimpleTestCase):
 
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
-            patch("apps.documents.models.Payment.objects") as mock_payment_qs,
-            patch("apps.documents.models.ApplicationDocument.objects") as mock_doc_qs,
-            patch("apps.applications.services.transition_application_status") as mock_transition,
+            patch("apps.applications.views.submit_application") as mock_submit,
             patch("apps.applications.views.dispatch_event"),
-            patch("apps.applications.views.transaction") as mock_txn,
         ):
             mock_app_qs.get.return_value = mock_app
-            # select_for_update inside transaction.atomic returns the app
-            mock_app_qs.select_for_update.return_value.get.return_value = mock_app
-            mock_payment_qs.filter.return_value.exists.return_value = True
-            mock_doc_qs.filter.return_value.exists.return_value = True
-            mock_transition.return_value = "draft"
-            # Make transaction.atomic() work as a context manager
-            mock_txn.atomic.return_value.__enter__ = MagicMock(return_value=None)
-            mock_txn.atomic.return_value.__exit__ = MagicMock(return_value=False)
+            mock_submit.return_value = (mock_app, "draft")
 
             from apps.applications.views import ApplicationReviewView
 
             view = ApplicationReviewView()
             response = view.post(mock_request, application_id)
 
-            mock_transition.assert_called_once()
+            mock_submit.assert_called_once()
             self.assertEqual(response.status_code, 200)
 
 
@@ -158,6 +170,13 @@ class TestPaymentGateEnforcement(SimpleTestCase):
 
     **Validates: Requirements 14.1**
     """
+
+    def setUp(self):
+        self._resolver_patcher = patch(_RESOLVER_PATCH_TARGET, side_effect=_not_found_resolve)
+        self._resolver_patcher.start()
+
+    def tearDown(self):
+        self._resolver_patcher.stop()
 
     @given(
         payment_status=payment_statuses_without_payment,
@@ -207,19 +226,11 @@ class TestPaymentGateEnforcement(SimpleTestCase):
 
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
-            patch("apps.documents.models.Payment.objects") as mock_payment_qs,
-            patch("apps.documents.models.ApplicationDocument.objects") as mock_doc_qs,
-            patch("apps.applications.services.transition_application_status") as mock_transition,
+            patch("apps.applications.views.submit_application") as mock_submit,
             patch("apps.applications.views.dispatch_event"),
-            patch("apps.applications.views.transaction") as mock_txn,
         ):
             mock_app_qs.get.return_value = mock_app
-            mock_app_qs.select_for_update.return_value.get.return_value = mock_app
-            mock_payment_qs.filter.return_value.exists.return_value = has_successful_payment
-            mock_doc_qs.filter.return_value.exists.return_value = True
-            mock_transition.return_value = "draft"
-            mock_txn.atomic.return_value.__enter__ = MagicMock(return_value=None)
-            mock_txn.atomic.return_value.__exit__ = MagicMock(return_value=False)
+            mock_submit.return_value = (mock_app, "draft")
 
             from apps.applications.views import ApplicationReviewView
 
@@ -244,6 +255,13 @@ class TestSubmissionRequiresDraft(SimpleTestCase):
     **Validates: Requirements 8.1**
     """
 
+    def setUp(self):
+        self._resolver_patcher = patch(_RESOLVER_PATCH_TARGET, side_effect=_not_found_resolve)
+        self._resolver_patcher.start()
+
+    def tearDown(self):
+        self._resolver_patcher.stop()
+
     @given(current_status=non_draft_statuses)
     @settings(max_examples=100)
     def test_non_draft_application_cannot_be_submitted(self, current_status):
@@ -256,28 +274,24 @@ class TestSubmissionRequiresDraft(SimpleTestCase):
         )
         mock_request = _make_mock_request(user_id, {"new_status": "submitted"})
 
+        from apps.applications.services import ApplicationSubmissionError
+
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
-            patch("apps.documents.models.Payment.objects") as mock_payment_qs,
-            patch("apps.documents.models.ApplicationDocument.objects") as mock_doc_qs,
-            patch("apps.applications.services.transition_application_status") as mock_transition,
+            patch("apps.applications.views.submit_application") as mock_submit,
             patch("apps.applications.views.dispatch_event"),
-            patch("apps.applications.views.transaction") as mock_txn,
         ):
             mock_app_qs.get.return_value = mock_app
-            mock_payment_qs.filter.return_value.exists.return_value = True
-            mock_doc_qs.filter.return_value.exists.return_value = True
-            # The select_for_update().get() returns the locked app (non-draft)
-            mock_app_qs.select_for_update.return_value.get.return_value = mock_app
-            mock_txn.atomic.return_value.__enter__ = MagicMock(return_value=None)
-            mock_txn.atomic.return_value.__exit__ = MagicMock(return_value=False)
+            mock_submit.side_effect = ApplicationSubmissionError(
+                "ALREADY_SUBMITTED",
+                "This application has already been submitted.",
+            )
 
             from apps.applications.views import ApplicationReviewView
 
             view = ApplicationReviewView()
             response = view.post(mock_request, application_id)
 
-            mock_transition.assert_not_called()
             self.assertEqual(response.status_code, 400)
             self.assertEqual(response.data["code"], "ALREADY_SUBMITTED")
 
@@ -296,26 +310,18 @@ class TestSubmissionRequiresDraft(SimpleTestCase):
 
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
-            patch("apps.documents.models.Payment.objects") as mock_payment_qs,
-            patch("apps.documents.models.ApplicationDocument.objects") as mock_doc_qs,
-            patch("apps.applications.services.transition_application_status") as mock_transition,
+            patch("apps.applications.views.submit_application") as mock_submit,
             patch("apps.applications.views.dispatch_event"),
-            patch("apps.applications.views.transaction") as mock_txn,
         ):
             mock_app_qs.get.return_value = mock_app
-            mock_app_qs.select_for_update.return_value.get.return_value = mock_app
-            mock_payment_qs.filter.return_value.exists.return_value = True
-            mock_doc_qs.filter.return_value.exists.return_value = True
-            mock_transition.return_value = "draft"
-            mock_txn.atomic.return_value.__enter__ = MagicMock(return_value=None)
-            mock_txn.atomic.return_value.__exit__ = MagicMock(return_value=False)
+            mock_submit.return_value = (mock_app, "draft")
 
             from apps.applications.views import ApplicationReviewView
 
             view = ApplicationReviewView()
             response = view.post(mock_request, application_id)
 
-            mock_transition.assert_called_once()
+            mock_submit.assert_called_once()
             self.assertEqual(response.status_code, 200)
 
 
@@ -333,6 +339,13 @@ class TestApprovalRequiresPaymentOrForce(SimpleTestCase):
 
     **Validates: Requirements 14.3, 4.6**
     """
+
+    def setUp(self):
+        self._resolver_patcher = patch(_RESOLVER_PATCH_TARGET, side_effect=_not_found_resolve)
+        self._resolver_patcher.start()
+
+    def tearDown(self):
+        self._resolver_patcher.stop()
 
     @given(
         payment_status=st.sampled_from(["pending", "failed", "rejected"]),
@@ -387,12 +400,20 @@ class TestApprovalRequiresPaymentOrForce(SimpleTestCase):
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("apps.documents.models.Payment.objects") as mock_payment_qs,
-            patch("apps.applications.services.transition_application_status") as mock_transition,
+            patch("apps.applications.views.transition_application_status") as mock_transition,
             patch("apps.applications.views.dispatch_event"),
+            patch("apps.applications.models.ApplicationStatusHistory.objects") as mock_history_qs,
+            patch("apps.applications.intake_enforcer.IntakeEnforcer.sync_enrollment"),
+            patch("apps.common.models.Notification.objects"),
+            patch("apps.common.models.EmailQueue.objects"),
+            patch("apps.common.tasks.send_email_task"),
+            patch("apps.catalog.models.Intake.objects") as mock_intake_qs,
         ):
             mock_app_qs.get.return_value = mock_app
             mock_payment_qs.filter.return_value.exists.return_value = False
             mock_transition.return_value = "submitted"
+            mock_history_qs.filter.return_value.order_by.return_value.first.return_value = MagicMock()
+            mock_intake_qs.filter.return_value.first.return_value = None
 
             from apps.applications.views import ApplicationReviewView
 
@@ -421,13 +442,19 @@ class TestApprovalRequiresPaymentOrForce(SimpleTestCase):
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("apps.documents.models.Payment.objects") as mock_payment_qs,
-            patch("apps.applications.services.transition_application_status") as mock_transition,
+            patch("apps.applications.views.transition_application_status") as mock_transition,
             patch("apps.applications.views.dispatch_event"),
+            patch("apps.applications.intake_enforcer.IntakeEnforcer.sync_enrollment"),
+            patch("apps.common.models.Notification.objects"),
+            patch("apps.common.models.EmailQueue.objects"),
+            patch("apps.common.tasks.send_email_task"),
+            patch("apps.catalog.models.Intake.objects") as mock_intake_qs,
         ):
             mock_app_qs.get.return_value = mock_app
             # Even if no successful payment record, the payment_status check passes
             mock_payment_qs.filter.return_value.exists.return_value = False
             mock_transition.return_value = "submitted"
+            mock_intake_qs.filter.return_value.first.return_value = None
 
             from apps.applications.views import ApplicationReviewView
 

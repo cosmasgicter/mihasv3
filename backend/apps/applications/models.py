@@ -6,7 +6,23 @@ from django.db import models
 
 
 class Application(models.Model):
-    """Maps to 'applications' table."""
+    """Maps to 'applications' table.
+
+    Legacy unmapped columns (AUDIT-1.3-003):
+    The database ``applications`` table contains 7 payment columns from the
+    pre-Lenco manual/mobile-money payment flow that are intentionally NOT
+    mapped in this Django model: ``payment_method``, ``payer_name``,
+    ``payer_phone``, ``amount``, ``paid_at``, ``momo_ref``, ``pop_url``.
+    These columns are deprecated since the Lenco payment integration.
+    All payment data now lives in the ``payments`` table (see
+    ``backend/apps/documents/models.py``).
+
+    Legacy payment-status orphans (AUDIT-2.3-001):
+    Approximately 20 legacy applications have a ``payment_status`` value
+    (e.g. 'verified') but no corresponding record in the ``payments`` table.
+    These predate the Lenco integration and used the manual proof-of-payment
+    flow.  No remediation is needed for their payment records.
+    """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     application_number = models.CharField(max_length=50, unique=True)

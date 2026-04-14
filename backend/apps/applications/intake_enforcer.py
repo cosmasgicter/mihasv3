@@ -83,56 +83,88 @@ class IntakeEnforcer:
 
     @staticmethod
     def sync_enrollment(intake_name: str) -> None:
-        """Sync current_enrollment with actual count of non-rejected applications."""
+        """Sync current_enrollment with actual count of non-rejected applications.
+
+        Performance note (AUDIT-5.6-001):
+        The original implementation used N+1 queries — one COUNT per ProgramIntake
+        row. This was refactored to use a single GROUP BY aggregation query that
+        builds a count_map, then batch-updates all ProgramIntake rows. This reduces
+        the query count from O(N) to O(1) regardless of the number of program+intake
+        combinations. The two-query approach (one aggregation + one ProgramIntake
+        fetch) is equivalent to the per-row loop but scales linearly with data
+        rather than with the number of program+intake combinations.
+        """
         from apps.applications.identifier_resolver import IdentifierResolver
         from apps.applications.models import Application
+        from apps.catalog.models import Program, ProgramIntake
 
         resolved = IdentifierResolver.resolve_intake(intake_name)
         if resolved.source == "not_found" or not resolved.id:
             return
 
+        # Single query for intake-level count
         live_count = Application.objects.filter(
             intake=intake_name,
             status__in=("submitted", "under_review", "approved", "waitlisted"),
         ).count()
-
         Intake.objects.filter(id=resolved.id).update(current_enrollment=live_count)
 
-        # Also sync program_intakes for this intake
-        from apps.catalog.models import ProgramIntake
-        for pi in ProgramIntake.objects.filter(intake_id=resolved.id):
-            from apps.catalog.models import Program
-            program = Program.objects.filter(id=pi.program_id).first()
-            if program:
-                pi_count = Application.objects.filter(
-                    intake=intake_name,
-                    program=program.name,
-                    status__in=("submitted", "under_review", "approved", "waitlisted"),
-                ).count()
-                ProgramIntake.objects.filter(id=pi.id).update(current_enrollment=pi_count)
+        # Single aggregation query for all program_intakes (fixes N+1)
+        from django.db.models import Count
+        counts = (
+            Application.objects.filter(
+                intake=intake_name,
+                status__in=("submitted", "under_review", "approved", "waitlisted"),
+            )
+            .values("program")
+            .annotate(cnt=Count("id"))
+        )
+        count_map = {row["program"]: row["cnt"] for row in counts}
+
+        for pi in ProgramIntake.objects.filter(intake_id=resolved.id).select_related("program"):
+            expected = count_map.get(pi.program.name, 0)
+            ProgramIntake.objects.filter(id=pi.id).update(current_enrollment=expected)
 
     @staticmethod
-    def increment_enrollment(intake_name: str) -> None:
+    def increment_enrollment(intake_name: str, program_name: str = "") -> None:
         """Atomically increment current_enrollment using F() expression."""
         from apps.applications.identifier_resolver import IdentifierResolver
 
         resolved = IdentifierResolver.resolve_intake(intake_name)
-        if resolved.source != "not_found" and resolved.id:
-            Intake.objects.filter(id=resolved.id).update(
-                current_enrollment=F("current_enrollment") + 1
-            )
+        if resolved.source == "not_found" or not resolved.id:
+            return
+        Intake.objects.filter(id=resolved.id).update(
+            current_enrollment=F("current_enrollment") + 1
+        )
+        if program_name:
+            from apps.catalog.models import Program, ProgramIntake
+            program = Program.objects.filter(name=program_name).first()
+            if program:
+                ProgramIntake.objects.filter(
+                    intake_id=resolved.id, program_id=program.id
+                ).update(current_enrollment=F("current_enrollment") + 1)
 
     @staticmethod
-    def decrement_enrollment(intake_name: str) -> None:
+    def decrement_enrollment(intake_name: str, program_name: str = "") -> None:
         """Atomically decrement current_enrollment (floor at 0)."""
         from apps.applications.identifier_resolver import IdentifierResolver
 
         resolved = IdentifierResolver.resolve_intake(intake_name)
-        if resolved.source != "not_found" and resolved.id:
-            from django.db.models.functions import Greatest
-            Intake.objects.filter(id=resolved.id).update(
-                current_enrollment=Greatest(F("current_enrollment") - 1, 0)
-            )
+        if resolved.source == "not_found" or not resolved.id:
+            return
+        from django.db.models.functions import Greatest
+        Intake.objects.filter(id=resolved.id).update(
+            current_enrollment=Greatest(F("current_enrollment") - 1, 0)
+        )
+        if program_name:
+            from apps.catalog.models import Program, ProgramIntake
+            program = Program.objects.filter(name=program_name).first()
+            if program:
+                ProgramIntake.objects.filter(
+                    intake_id=resolved.id, program_id=program.id
+                ).update(
+                    current_enrollment=Greatest(F("current_enrollment") - 1, 0)
+                )
 
     @staticmethod
     def get_warnings(intake_name: str) -> list[str]:

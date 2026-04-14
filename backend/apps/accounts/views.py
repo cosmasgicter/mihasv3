@@ -11,7 +11,7 @@ import secrets
 from datetime import timedelta
 
 from django.conf import settings
-from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiResponse, OpenApiTypes, extend_schema, extend_schema_view
 from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -588,11 +588,13 @@ class ProfileView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT})
     def get(self, request):
         profile = Profile.objects.get(id=request.user.id)
         serializer = ProfileReadSerializer(profile)
         return Response({"success": True, "data": serializer.data})
 
+    @extend_schema(request=ProfileUpdateSerializer, responses={200: OpenApiTypes.OBJECT})
     def patch(self, request):
         profile = Profile.objects.get(id=request.user.id)
         serializer = ProfileUpdateSerializer(data=request.data, partial=True)

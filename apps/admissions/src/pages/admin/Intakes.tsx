@@ -31,8 +31,18 @@ interface Intake {
   end_date: string
   application_deadline: string
   total_capacity: number
+  current_enrollment?: number
   available_spots?: number
   is_active?: boolean
+}
+
+/** Returns Tailwind classes for the utilization indicator based on enrollment/capacity ratio */
+export function getUtilizationColor(enrollment: number, capacity: number): { bg: string; text: string; label: string } {
+  if (capacity <= 0) return { bg: 'bg-muted', text: 'text-muted-foreground', label: 'N/A' }
+  const ratio = enrollment / capacity
+  if (ratio >= 1) return { bg: 'bg-red-100', text: 'text-red-700', label: 'Over capacity' }
+  if (ratio >= 0.8) return { bg: 'bg-amber-100', text: 'text-amber-700', label: 'Near capacity' }
+  return { bg: 'bg-green-100', text: 'text-green-700', label: 'Available' }
 }
 
 const intakeSchema = z.object({
@@ -338,6 +348,23 @@ export default function AdminIntakes() {
                         {row.total_capacity}
                       </span>
                     ),
+                  },
+                  {
+                    key: 'current_enrollment' as keyof Intake,
+                    header: 'Enrollment',
+                    priority: 'always',
+                    render: (_value, row) => {
+                      const enrollment = row.current_enrollment ?? 0
+                      const { bg, text, label } = getUtilizationColor(enrollment, row.total_capacity)
+                      return (
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${bg} ${text}`}
+                          title={label}
+                        >
+                          {enrollment}/{row.total_capacity}
+                        </span>
+                      )
+                    },
                   },
                   {
                     key: 'available_spots',

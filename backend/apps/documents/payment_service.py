@@ -244,6 +244,20 @@ class PaymentService:
         """Call the Lenco API to verify payment status and update records.
 
         Raises ``Payment.DoesNotExist`` when the payment is not found.
+
+        Threading note (AUDIT-5.2-001, AUDIT-5.6-002 — resolved):
+        This method uses a synchronous ``requests.get()`` call.  Both call
+        sites are safe from event-loop blocking:
+
+        1. ``PaymentVerifyView.post()`` is a **sync** DRF view.  Uvicorn's
+           ASGI adapter automatically runs sync views in a thread-pool
+           worker, so the blocking HTTP call never touches the event loop.
+        2. ``poll_pending_payments_task`` runs inside a **Celery worker**
+           process, which is entirely synchronous — no event loop involved.
+
+        No migration to ``httpx`` or ``asyncio.to_thread`` is required
+        unless a call site is converted to an ``async def`` view in the
+        future.
         """
         payment = Payment.objects.get(id=payment_id)
 

@@ -1,558 +1,645 @@
-# Design Document: Audit Remediation
+# Design — Audit Remediation
 
 ## Overview
 
-This design addresses all 26 requirements from the MIHAS Full-Stack Audit Report remediation spec. The audit identified 8 critical, 28 warning, and 25 note findings across security, database, backend/API, frontend, performance, accessibility, and code quality.
+This design describes the systematic remediation of all 37 findings from the MIHAS pre-launch audit (`.kiro/specs/pre-launch-audit/audit-report.md`). The remediation spans three layers — database schema (Neon MCP SQL), backend (Django 5 + DRF), and frontend (React + TypeScript) — and is organized into four work streams:
 
-The design is organized by sprint priority:
-- **Sprint 1 (R1–R6):** Detailed implementation — data integrity and security vulnerabilities
-- **Sprint 2 (R7–R15):** Moderate detail — validation gaps, performance, hardening
-- **Sprint 3 (R16–R26):** Light design — documentation, accessibility, polish
+1. **Database migrations** (Neon MCP SQL): One-time data fixes and schema alterations executed directly against Neon Postgres (`wild-bar-37055823`), since all Django models use `managed=False`.
+2. **Backend code changes**: Model field fixes, middleware hardening, pagination, retry logic, N+1 elimination, test environment fixes, and code documentation.
+3. **Frontend code changes**: Status constant cleanup, UX improvements, admin capacity warnings, and enrollment display.
+4. **Optional improvements**: Tracked but not blocking launch.
 
-All changes must be backward-compatible, production-safe, and preserve existing functionality for the live portal at apply.mihas.edu.zm.
+The remediation does not introduce new tables, new API endpoints, or new Django apps. All changes are modifications to existing components.
 
 ## Architecture
 
-### Affected Components
+The remediation touches existing components across all three layers. No new architectural patterns are introduced.
 
 ```mermaid
 graph TD
-    subgraph "Sprint 1 — Critical"
-        DB["lib/db.ts"] -->|R1: Transaction API| NEON["@neondatabase/serverless"]
-        AR["src/components/AdminRoute.tsx"] -->|R2: Remove bypass| RBAC["lib/auth/permissions.ts"]
-        AUTH["api-src/auth.ts"] -->|R3: Parameterize SQL| DB
-        HEALTH["api-src/health.ts"] -->|R4: Auth gate| MW["lib/auth/middleware.ts"]
-        ARCJET["lib/arcjet.ts"] -->|R5: Fail-closed| ENV["process.env"]
-        DB -->|R6: Delete dead code| QUERIES["lib/queries.ts"]
+    subgraph "Database Layer (Neon MCP SQL)"
+        DB1[One-time enrollment sync]
+        DB2[ALTER permissions text[] → jsonb]
+        DB3[ALTER ip_address varchar 45 → 64]
+        DB4[ADD UNIQUE constraints x3]
+        DB5[DELETE invalid status history]
     end
 
-    subgraph "Sprint 2 — High"
-        DOCS["api-src/documents.ts"] -->|R7: Zod schema| VAL["lib/validation/"]
-        APPS["api-src/applications.ts"] -->|R8,R11: Method + action guard| MW
-        DB -->|R9: Cache connection| NEON
-        MIG["migrations/"] -->|R10: Add indexes| NEON
-        ARCJET -->|R12: Documents rate limit| DOCS
-        ADMIN["api-src/admin.ts"] -->|R13: Column allowlist| DB
-        AUTH -->|R14: Fixed SET clauses| DB
-        VITE["vite.config.ts"] -->|R15: Bundle split| SW["service-worker"]
+    subgraph "Backend Layer (Django)"
+        BE1[IntakeEnforcer.increment_enrollment fix]
+        BE2[IntakeEnforcer.sync_enrollment N+1 fix]
+        BE3[Profile.role + Payment.status nullability]
+        BE4[SecurityHeadersMiddleware + CSP]
+        BE5[NotificationListView pagination]
+        BE6[send_bulk_notifications_task retry]
+        BE7[Test fixes: admin_override + submission_gates]
+        BE8[Code comments: legacy columns + patterns]
     end
 
-    subgraph "Sprint 3 — Medium"
-        STEERING["steering docs"] -->|R16: Rate limit docs| ARCJET
-        AUTH -->|R17: CSRF on refresh| CSRF["lib/csrf.ts"]
-        COOKIES["lib/auth/cookies.ts"] -->|R18: JSDoc fix| COOKIES
-        VERCEL["vercel.json"] -->|R19: CSP + headers| VERCEL
-        HEALTH -->|R20: Single query| DB
-        ADMIN -->|R21: Migrate audit| DB
-        VITE -->|R22: Console strip verify| VITE
-        ACTX["src/contexts/AuthContext.tsx"] -->|R23: useMemo deps| ACTX
-        FORMS["src/components/forms/"] -->|R24: ARIA live| FORMS
-        ROUTER["src/routes/"] -->|R25: Focus mgmt| ROUTER
-        HEALTH -->|R26: TS errors| HEALTH
+    subgraph "Frontend Layer (React)"
+        FE1[Verify waitlisted status fix]
+        FE2[Remove pending_documents status]
+        FE3[PaymentStep UX improvements]
+        FE4[Admin capacity warning on approval]
+        FE5[Admin intakes enrollment display]
     end
+
+    DB1 --> BE1
+    BE1 --> BE2
+    DB2 --> BE3
+    FE1 --> FE2
 ```
 
-### Design Principles
+### Execution Order
 
-1. **Minimal blast radius** — each fix is scoped to the smallest possible change surface
-2. **No behavioral regressions** — all existing API contracts and response shapes preserved
-3. **Rollback-safe** — database migrations use `IF NOT EXISTS`, code changes are independently revertable
-4. **Production-first** — changes tested against the Neon serverless HTTP driver's actual behavior
+Database migrations must run first since backend code changes depend on schema alignment. The recommended order:
+
+1. **Phase 1 — Database**: Run all SQL migrations (Req 1, 5, 7, 8, 10)
+2. **Phase 2 — Backend**: Apply code changes (Req 1, 3, 4, 6, 9, 11, 12, 13, 15, 16)
+3. **Phase 3 — Frontend**: Apply UI changes (Req 2, 14, 17, 18, 19)
+4. **Phase 4 — Verification**: Run test suite, verify fixes
 
 ## Components and Interfaces
 
-### Sprint 1 — Detailed Implementation
+### Database Migrations (Neon MCP)
 
-#### R1: Neon Transaction API (`lib/db.ts`)
+All SQL is executed via Neon MCP against project `wild-bar-37055823`. No Django migrations are generated.
 
-**Problem:** The current `transaction()` function issues `BEGIN`/`COMMIT`/`ROLLBACK` as separate HTTP calls via the Neon serverless driver. Each `sql.query()` call may hit a different connection, so the transaction is not actually atomic.
+#### Migration 1: One-Time Enrollment Sync (Req 1, AUDIT-1.6-001)
 
-**Solution:** Replace the manual `BEGIN`/`COMMIT`/`ROLLBACK` pattern with Neon's `neon().transaction()` callback API, which guarantees all statements run on a single connection.
-
-```typescript
-// BEFORE (broken — each query may use different connection)
-export async function transaction<T>(operations: QueryConfig[]): Promise<QueryResult<T>[]> {
-  await query('BEGIN');
-  for (const op of operations) { await query<T>(op.text, op.values); }
-  await query('COMMIT');
-}
-
-// AFTER (correct — single connection via callback API)
-import { neon } from '@neondatabase/serverless';
-
-export async function transaction<T>(operations: QueryConfig[]): Promise<QueryResult<T>[]> {
-  const sql = getNeonInstance();
-  const results: QueryResult<T>[] = [];
-  
-  await sql.transaction(async (tx) => {
-    for (const op of operations) {
-      const rows = await tx(op.text, op.values || []);
-      results.push({
-        rows: rows as T[],
-        rowCount: rows.length,
-        command: extractCommand(op.text),
-      });
-    }
-  });
-  
-  return results;
-}
-```
-
-The `neon().transaction()` API automatically commits on success and rolls back on thrown errors. The `tx` function passed to the callback is bound to a single HTTP transaction context.
-
-**Interface change:** None — the `transaction(operations: QueryConfig[])` signature and return type remain identical. Callers like `handleReview` in `api-src/applications.ts` and `handleResetSettings` in `api-src/admin.ts` are unaffected.
-
-#### R2: Remove Hardcoded Admin Email Bypass (`src/components/AdminRoute.tsx`)
-
-**Problem:** Line 88 has `if (user.email === 'cosmas@beanola.com')` which bypasses RBAC role checks entirely.
-
-**Solution:** Delete the 3-line block (the email check and its `return` statement). The existing `isAdmin` check from `useAuth()` already handles admin access correctly via the RBAC system.
-
-```typescript
-// BEFORE
-if (user.email === 'cosmas@beanola.com') {
-  return <AdminErrorBoundary>{children}</AdminErrorBoundary>
-}
-if (!isAdmin) { return <Navigate to="/student/dashboard" replace /> }
-
-// AFTER
-if (!isAdmin) { return <Navigate to="/student/dashboard" replace /> }
-```
-
-#### R3: Parameterized SQL in Auth Handler (`api-src/auth.ts`)
-
-**Problem:** Four SQL queries interpolate JS constants into SQL strings via template literals:
-- Line ~283: `INTERVAL '${LOGIN_COOLDOWN_MINUTES} minutes'`
-- Line ~758: `INTERVAL '${REGISTRATION_RATE_WINDOW_MINUTES} minutes'` (appears twice)
-- Password reset queries use hardcoded `'15 minutes'` string literals (already safe, but should be consistent)
-
-**Solution:** Replace template literal interpolation with parameterized `INTERVAL '1 minute' * $N` pattern:
-
-```typescript
-// BEFORE
-`AND attempted_at > NOW() - INTERVAL '${LOGIN_COOLDOWN_MINUTES} minutes'`
-
-// AFTER  
-`AND attempted_at > NOW() - INTERVAL '1 minute' * $2`
-// with params: [emailHash, LOGIN_COOLDOWN_MINUTES]
-```
-
-Apply the same pattern to all four locations. The password reset queries already use hardcoded `'15 minutes'` string literals which are safe, but should be parameterized for consistency.
-
-#### R4: Authenticated Health Endpoint Diagnostics (`api-src/health.ts`)
-
-**Problem:** `?action=db`, `?action=env`, and `?action=errors` expose database schema details, environment variable status, and raw audit logs without authentication.
-
-**Solution:** Add `requireRole` check for protected actions while keeping `ping` and default health check public:
-
-```typescript
-// Public actions (no auth)
-if (action === 'ping') { return sendSuccess(res, { message: 'pong', ... }); }
-if (!action) { return sendSuccess(res, { status: 'ok', ... }); }
-
-// Protected actions require admin auth
-const protectedActions = ['db', 'env', 'errors'];
-if (protectedActions.includes(action)) {
-  try {
-    await requireRole(req, ['admin', 'super_admin']);
-  } catch (error) {
-    if (error instanceof AuthenticationError) {
-      return sendError(res, error.message, error.statusCode, error.code);
-    }
-    if (error instanceof AuthorizationError) {
-      return sendError(res, error.message, error.statusCode, error.code);
-    }
-    return sendError(res, 'Authentication required', HttpStatus.UNAUTHORIZED);
-  }
-}
-```
-
-Import `requireRole` from `../lib/auth/middleware` and the error classes.
-
-#### R5: Arcjet Fail-Closed in Production (`lib/arcjet.ts`)
-
-**Problem:** When `ARCJET_KEY` is missing, `withArcjetProtection` logs a warning and passes requests through unprotected. In production, this silently disables the entire security perimeter.
-
-**Solution:** Add a production check in the `withArcjetProtection` wrapper:
-
-```typescript
-if (!ARCJET_KEY) {
-  const isProduction = process.env.NODE_ENV === 'production';
-  if (isProduction) {
-    console.error("[ARCJET] FATAL: ARCJET_KEY not set in production — rejecting request");
-    res.status(503).json({
-      success: false,
-      error: "Security service unavailable",
-      code: "SECURITY_SERVICE_ERROR",
-    });
-    return;
-  }
-  console.warn("[ARCJET] WARNING: Running without Arcjet protection (dev mode)");
-  return handler(req, res);
-}
-```
-
-#### R6: Delete Dead Code (`lib/db.ts`)
-
-**Problem:** `lib/db.ts` contains:
-1. `interpolateParams` — a dangerous manual SQL parameter interpolation function that is never called
-2. `userQueries`, `sessionQueries`, `auditQueries` — duplicate query builders that shadow the canonical ones in `lib/queries.ts`
-
-**Solution:** Delete the `interpolateParams` function (lines ~120-155) and the three query builder objects at the bottom of the file. Verify no imports reference them from `lib/db.ts` (all callers should use `lib/queries.ts`).
-
-### Sprint 2 — Moderate Detail
-
-#### R7: Zod Validation for Document Reference Resolution
-
-Add a Zod schema in `lib/validation/documents.ts`:
-```typescript
-export const resolveReferenceSchema = z.object({
-  reference: z.string().min(1, 'reference is required'),
-  applicationId: z.string().uuid().optional(),
-});
-```
-Apply `validateBody(resolveReferenceSchema, req, res)` in `handleResolveReference` before accessing `req.body`.
-
-#### R8: HTTP Method Enforcement on Applications Handler
-
-Add a top-level method guard at the start of the `handler` function in `api-src/applications.ts`:
-```typescript
-const ALLOWED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'];
-if (!ALLOWED_METHODS.includes(req.method || '')) {
-  res.setHeader('Allow', ALLOWED_METHODS.join(', '));
-  return sendError(res, 'Method not allowed', HttpStatus.METHOD_NOT_ALLOWED);
-}
-```
-
-#### R9: Cache Neon Connection at Module Level
-
-Replace per-query `neon(connectionString)` calls in `executeNeonQuery` with a module-level cached instance:
-```typescript
-let cachedSql: NeonSqlFunction | null = null;
-
-function getNeonInstance(): NeonSqlFunction {
-  if (!cachedSql) {
-    const { url } = getDatabaseConfig();
-    const { neon } = require('@neondatabase/serverless');
-    cachedSql = neon(url) as NeonSqlFunction;
-  }
-  return cachedSql;
-}
-```
-
-#### R10: Missing Database Indexes
-
-Create `migrations/add_audit_remediation_indexes.sql` with:
 ```sql
-CREATE INDEX IF NOT EXISTS idx_login_attempts_email_hash_attempted_at 
-  ON login_attempts(email_hash, attempted_at);
-CREATE INDEX IF NOT EXISTS idx_csrf_tokens_user_id_expires_at 
-  ON csrf_tokens(user_id, expires_at);
-CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user_id_created_at 
-  ON password_reset_tokens(user_id, created_at);
-CREATE INDEX IF NOT EXISTS idx_audit_logs_action_created_at 
-  ON audit_logs(action, created_at);
-CREATE INDEX IF NOT EXISTS idx_applications_public_tracking_code 
-  ON applications(public_tracking_code);
-CREATE INDEX IF NOT EXISTS idx_application_documents_app_id_doc_type 
-  ON application_documents(application_id, document_type);
+UPDATE program_intakes pi
+SET current_enrollment = (
+  SELECT COUNT(*)
+  FROM applications a
+  JOIN programs p ON a.program = p.name
+  JOIN intakes i ON a.intake = i.name
+  WHERE p.id = pi.program_id
+    AND i.id = pi.intake_id
+    AND a.status IN ('submitted', 'under_review', 'approved', 'waitlisted')
+);
 ```
 
-#### R11: Fix Action Validation Timing
-
-In `api-src/applications.ts`, remove the `!id` condition from the action allowlist check:
-```typescript
-// BEFORE
-if (action && !id && !VALID_ACTIONS.includes(action)) { ... }
-
-// AFTER
-if (action && !VALID_ACTIONS.includes(action)) { ... }
-```
-
-#### R12: Documents Rate Limit Type
-
-Add `documents` to `rateLimitConfigs` in `lib/arcjet.ts`:
-```typescript
-documents: { window: "10m", max: 20 },
-```
-Update `RouteType` union and change `api-src/documents.ts` export to use `'documents'` route type.
-
-#### R13: SQL Column Allowlist in Admin Handler
-
-The `handleUsers` function in `api-src/admin.ts` already uses a hardcoded `safeColumns` string. Formalize this as a constant allowlist and validate any dynamic column references against it. The `whereClause` construction already uses parameterized values for data — the column names come from code logic, not user input, but should be validated against the allowlist for defense-in-depth.
-
-#### R14: Fixed SQL SET Clauses
-
-Replace dynamic `SET` clause construction in `handleProfile` (`api-src/auth.ts`) with a fixed COALESCE query:
+Verification query (run after):
 ```sql
-UPDATE profiles SET
-  full_name = COALESCE($1, full_name),
-  first_name = COALESCE($2, first_name),
-  last_name = COALESCE($3, last_name),
-  phone = COALESCE($4, phone),
-  -- ... all allowed fields
-  updated_at = NOW()
-WHERE id = $N
-RETURNING ...
+SELECT pi.id, p.name AS program, i.name AS intake,
+       pi.current_enrollment AS stored,
+       COALESCE(actual.cnt, 0) AS actual
+FROM program_intakes pi
+JOIN programs p ON pi.program_id = p.id
+JOIN intakes i ON pi.intake_id = i.id
+LEFT JOIN (
+  SELECT program, intake, COUNT(*) AS cnt
+  FROM applications
+  WHERE status IN ('submitted','under_review','approved','waitlisted')
+  GROUP BY program, intake
+) actual ON p.name = actual.program AND i.name = actual.intake;
 ```
-Pass `null` for fields not provided in the request body. This eliminates dynamic `join(', ')` construction entirely.
 
-#### R15: Split Large Bundle Chunk
+#### Migration 2: Permissions Column Type (Req 5, AUDIT-1.3-002)
 
-1. Verify `tesseract.js` is already in a separate `vendor-ocr` chunk (it is, per `vite.config.ts` manualChunks)
-2. Reduce `maximumFileSizeToCacheInBytes` from `10 * 1024 * 1024` to `3 * 1024 * 1024` in the VitePWA config
-3. Investigate the 8.2MB chunk — likely the main app bundle needs further lazy-loading of heavy page components
-
-### Sprint 3 — Light Design
-
-#### R16: Rate Limit Documentation Alignment
-Update `.kiro/steering/tech.md` Arcjet Rate Limits table to match actual code values: auth=60/5min, admin=60/10min.
-
-#### R17: CSRF on Refresh Token Endpoint
-Add an inline comment in `api-src/auth.ts` documenting the risk acceptance: refresh uses HTTP-only cookies with SameSite=Lax, making CSRF-forced rotation low-risk since the attacker cannot read the new tokens.
-
-#### R18: Cookie SameSite Documentation Fix
-Change JSDoc in `setAuthCookies` from "SameSite=Strict" to "SameSite=Lax" (line ~97 of `lib/auth/cookies.ts`).
-
-#### R19: CSP Font-Src and Cross-Domain Headers
-Add `font-src 'self'` to the CSP header and add `X-Permitted-Cross-Domain-Policies: none` header in `vercel.json`.
-
-#### R20: Fix N+1 Query in Health Check
-Replace the per-table `COUNT(*)` loop with a single `information_schema` query:
 ```sql
-SELECT table_name, 
-       (xpath('/row/cnt/text()', xml_count))[1]::text::int AS approximate_count
-FROM information_schema.tables ...
+-- Convert text[] to jsonb, preserving existing array values as JSON arrays
+ALTER TABLE user_permission_overrides
+  ALTER COLUMN permissions TYPE jsonb
+  USING COALESCE(to_jsonb(permissions), '[]'::jsonb);
+
+ALTER TABLE user_permission_overrides
+  ALTER COLUMN permissions SET DEFAULT '[]'::jsonb;
 ```
-Or use `pg_stat_user_tables` for approximate row counts.
 
-#### R21: Secure Migrate Action
-Add audit logging to the `handleMigrate` function regardless of auth method (secret or JWT).
+#### Migration 3: IP Address Column Width (Req 7, AUDIT-1.3-005)
 
-#### R22: Audit Console.log Statements
-Verify terser config in `vite.config.ts` already strips `console.log`, `console.info`, `console.debug`. The config is already correct — `pure_funcs: ['console.log', 'console.info', 'console.debug']` plus `drop_console: true`.
+```sql
+ALTER TABLE application_status_history
+  ALTER COLUMN ip_address TYPE varchar(64);
+```
 
-#### R23: Fix AuthContext useMemo Dependencies
-Destructure individual values from `auth` and list them as explicit `useMemo` dependencies:
+#### Migration 4: Unique Constraints (Req 8, AUDIT-1.4-001/002/003)
+
+Pre-check for duplicates before each constraint:
+```sql
+-- Check for duplicate public_tracking_codes (excluding NULLs)
+SELECT public_tracking_code, COUNT(*)
+FROM applications
+WHERE public_tracking_code IS NOT NULL
+GROUP BY public_tracking_code HAVING COUNT(*) > 1;
+
+-- Check for duplicate subject codes (excluding NULLs)
+SELECT code, COUNT(*) FROM subjects
+WHERE code IS NOT NULL
+GROUP BY code HAVING COUNT(*) > 1;
+
+-- Check for duplicate idempotency_keys (excluding NULLs)
+SELECT idempotency_key, COUNT(*) FROM notifications
+WHERE idempotency_key IS NOT NULL
+GROUP BY idempotency_key HAVING COUNT(*) > 1;
+```
+
+If no duplicates exist, apply constraints:
+```sql
+ALTER TABLE applications
+  ADD CONSTRAINT applications_public_tracking_code_key
+  UNIQUE (public_tracking_code);
+
+ALTER TABLE subjects
+  ADD CONSTRAINT subjects_code_key
+  UNIQUE (code);
+
+ALTER TABLE notifications
+  ADD CONSTRAINT notifications_idempotency_key_key
+  UNIQUE (idempotency_key);
+```
+
+#### Migration 5: Invalid Status History Cleanup (Req 10, AUDIT-2.4-001)
+
+```sql
+DELETE FROM application_status_history
+WHERE application_id = 'a94bffb1-01bb-4a7f-969f-b8fa7ed2d1e8'
+  AND (
+    (old_status = 'draft' AND new_status = 'approved')
+    OR (old_status = 'approved' AND new_status = 'approved')
+  );
+```
+
+
+### Backend Code Changes
+
+#### IntakeEnforcer.increment_enrollment() Fix (Req 1, AUDIT-1.6-002)
+
+**File**: `backend/apps/applications/intake_enforcer.py`
+
+The current `increment_enrollment()` only updates `intakes.current_enrollment`. It must also update `program_intakes.current_enrollment` for the specific program+intake combination.
+
+**Change**: After the existing `Intake` update, resolve the program from the application context and atomically increment the matching `ProgramIntake` row using `F()` expression. The method signature changes to accept both `intake_name` and `program_name`:
+
+```python
+@staticmethod
+def increment_enrollment(intake_name: str, program_name: str = "") -> None:
+    from apps.applications.identifier_resolver import IdentifierResolver
+    resolved = IdentifierResolver.resolve_intake(intake_name)
+    if resolved.source == "not_found" or not resolved.id:
+        return
+    Intake.objects.filter(id=resolved.id).update(
+        current_enrollment=F("current_enrollment") + 1
+    )
+    if program_name:
+        from apps.catalog.models import Program, ProgramIntake
+        program = Program.objects.filter(name=program_name).first()
+        if program:
+            ProgramIntake.objects.filter(
+                intake_id=resolved.id, program_id=program.id
+            ).update(current_enrollment=F("current_enrollment") + 1)
+```
+
+Similarly update `decrement_enrollment()` to accept `program_name` and decrement `ProgramIntake`.
+
+Update the call site in `backend/apps/applications/services.py` (`submit_application()`) to pass `program_name`.
+
+#### IntakeEnforcer.sync_enrollment() N+1 Fix (Req 16, AUDIT-5.6-001)
+
+**File**: `backend/apps/applications/intake_enforcer.py`
+
+The current `sync_enrollment()` loops over each `ProgramIntake` and issues a separate count query per row (N+1 pattern). Replace with a single aggregation query:
+
+```python
+@staticmethod
+def sync_enrollment(intake_name: str) -> None:
+    from apps.applications.identifier_resolver import IdentifierResolver
+    from apps.applications.models import Application
+    from apps.catalog.models import Program, ProgramIntake
+
+    resolved = IdentifierResolver.resolve_intake(intake_name)
+    if resolved.source == "not_found" or not resolved.id:
+        return
+
+    # Single query for intake-level count
+    live_count = Application.objects.filter(
+        intake=intake_name,
+        status__in=("submitted", "under_review", "approved", "waitlisted"),
+    ).count()
+    Intake.objects.filter(id=resolved.id).update(current_enrollment=live_count)
+
+    # Single aggregation query for all program_intakes
+    from django.db.models import Count, Q
+    counts = (
+        Application.objects.filter(
+            intake=intake_name,
+            status__in=("submitted", "under_review", "approved", "waitlisted"),
+        )
+        .values("program")
+        .annotate(cnt=Count("id"))
+    )
+    count_map = {row["program"]: row["cnt"] for row in counts}
+
+    for pi in ProgramIntake.objects.filter(intake_id=resolved.id).select_related("program"):
+        expected = count_map.get(pi.program.name, 0)
+        ProgramIntake.objects.filter(id=pi.id).update(current_enrollment=expected)
+```
+
+This reduces N+1 queries to 2 queries (one count aggregation + one ProgramIntake fetch) regardless of the number of program+intake combinations.
+
+#### Profile.role and Payment.status Nullability (Req 4, AUDIT-1.3-001/004)
+
+**File**: `backend/apps/accounts/models.py`
+
+Change `Profile.role`:
+```python
+# Before
+role = models.CharField(max_length=50, choices=ROLE_CHOICES, null=True, blank=True)
+# After
+role = models.CharField(max_length=50, choices=ROLE_CHOICES, default='student', blank=True)
+```
+
+**File**: `backend/apps/documents/models.py`
+
+Change `Payment.status`:
+```python
+# Before
+status = models.CharField(max_length=20, null=True, blank=True, default='pending')
+# After
+status = models.CharField(max_length=20, default='pending', blank=True)
+```
+
+#### SecurityHeadersMiddleware Hardening (Req 12, AUDIT-5.1-001)
+
+**File**: `backend/apps/common/middleware.py`
+
+Add two headers to `SecurityHeadersMiddleware.__call__()`:
+
+```python
+response["X-XSS-Protection"] = "1; mode=block"
+response["Content-Security-Policy"] = (
+    "default-src 'self'; "
+    "script-src 'self' https://pay.lenco.co; "
+    "style-src 'self' 'unsafe-inline'; "
+    "img-src 'self' data: https:; "
+    "connect-src 'self' https://api.lenco.co; "
+    "frame-src https://pay.lenco.co; "
+    "font-src 'self'; "
+    "object-src 'none'; "
+    "base-uri 'self'"
+)
+```
+
+The CSP policy allows the Lenco payment widget scripts and frames while restricting everything else. `'unsafe-inline'` for styles is needed for Tailwind CSS utility classes.
+
+#### NotificationListView Pagination (Req 11, AUDIT-4.4-001)
+
+**File**: `backend/apps/common/notification_views.py`
+
+Replace the unbounded queryset in `NotificationListView.get()` with `StandardPagination`:
+
+```python
+class NotificationListView(APIView):
+    permission_classes = [IsAuthenticated]
+    pagination_class = StandardPagination
+
+    def get(self, request):
+        notifications = (
+            Notification.objects.filter(user_id=request.user.pk)
+            .order_by("-created_at")
+        )
+        paginator = StandardPagination()
+        page = paginator.paginate_queryset(notifications, request)
+        data = NotificationItemSerializer(page, many=True).data
+        return paginator.get_paginated_response(data)
+```
+
+This uses the same `StandardPagination` (page_size=20) used by other list endpoints.
+
+#### send_bulk_notifications_task Retry Logic (Req 15, AUDIT-5.5-001)
+
+**File**: `backend/apps/common/tasks.py`
+
+The task has `max_retries=3` configured but never calls `self.retry()`. Add retry logic in the exception handler:
+
+```python
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+def send_bulk_notifications_task(self, notification_ids):
+    # ... existing code ...
+    try:
+        # ... existing per-notification processing ...
+    except Exception as exc:
+        logger.exception("Failed to process notification %s", notification.id)
+        # Retry on transient errors with exponential backoff
+        try:
+            self.retry(exc=exc, countdown=60 * (2 ** self.request.retries))
+        except self.MaxRetriesExceededError:
+            logger.error(
+                "All retries exhausted for bulk notification task. "
+                "IDs: %s, last error: %s",
+                notification_ids, exc,
+            )
+```
+
+#### Test Fixes (Req 3, AUDIT-1.1-001/002)
+
+**File**: `backend/tests/property/test_admin_override.py`
+
+Add a conditional skip when local Postgres is unavailable:
+
+```python
+import socket
+
+def _pg_available(host="localhost", port=5432):
+    try:
+        with socket.create_connection((host, port), timeout=1):
+            return True
+    except OSError:
+        return False
+
+@pytest.mark.skipif(not _pg_available(), reason="Local Postgres not available")
+class TestAdminPaymentStatusOverride(TransactionTestCase):
+    # ... existing tests unchanged ...
+```
+
+**File**: `backend/tests/property/test_submission_gates.py`
+
+Mock `IdentifierResolver.resolve_intake()` in the test setup so `SimpleTestCase` tests don't trigger `DatabaseOperationForbidden`:
+
+```python
+from unittest.mock import patch, MagicMock
+from apps.applications.intake_enforcer import IntakeCheckResult
+
+# Add to each test class or as a module-level fixture
+@patch("apps.applications.intake_enforcer.IdentifierResolver.resolve_intake")
+def test_...(self, mock_resolve, ...):
+    mock_resolve.return_value = MagicMock(source="not_found", id=None)
+    # ... existing test logic ...
+```
+
+Alternatively, add a class-level `setUp` that patches the resolver for all tests in the affected classes.
+
+#### Code Comments (Req 6, 9, 13)
+
+**Req 6** — `backend/apps/applications/models.py`: Add comment above `Application` class documenting the 7 legacy unmapped columns.
+
+**Req 9** — `backend/apps/applications/models.py` or `backend/apps/documents/payment_service.py`: Add comment documenting the 20 legacy applications with `payment_status` but no `payments` record.
+
+**Req 13** — `backend/apps/documents/payment_service.py`: Add comment on `verify_payment()` documenting the synchronous `requests.post()` call as a known ASGI limitation.
+
+### Frontend Code Changes
+
+#### Waitlisted Status Verification (Req 2, AUDIT-5.3-001/7.4-001)
+
+**Files**: `apps/admissions/src/types/applicationStatus.ts`, `apps/admissions/src/pages/student/ApplicationStatus.tsx`
+
+The `waitlisted` status is already present in `APPLICATION_STATUSES` and `APPLICATION_STATUS_LABELS`. Verify:
+- `applicationStatusUi.ts` has badge styles for `waitlisted` (confirmed: `bg-amber-100 text-amber-800`)
+- `ApplicationStatus.tsx` timeline renders `waitlisted` entries via `formatStatusLabel()`
+
+If the timeline component has hardcoded status checks that skip `waitlisted`, add it to the timeline rendering logic.
+
+#### Remove pending_documents Status (Req 14, AUDIT-5.3-002)
+
+**Files**: `apps/admissions/src/types/applicationStatus.ts`, `apps/admissions/src/lib/applicationStatusUi.ts`
+
+`pending_documents` is not a valid backend status — it does not appear in `ALLOWED_TRANSITIONS` or anywhere in the backend code. Remove it:
+
 ```typescript
-const { user, profile, loading, profileLoading, isAdmin, signIn, signUp, signOut, requestPasswordReset, updatePassword } = auth;
-const value = useMemo(() => ({ user, profile, loading, ... }), [user, profile, loading, ...]);
+// applicationStatus.ts — remove 'pending_documents' from the array
+export const APPLICATION_STATUSES = [
+  'draft', 'submitted', 'under_review', 'approved', 'rejected', 'waitlisted'
+] as const
+
+// Remove from APPLICATION_STATUS_LABELS
+// Remove from applicationStatusUi.ts badge styles
 ```
 
-#### R24: ARIA Live Regions for Form Validation Errors
-Add `aria-live="polite"` regions to the application wizard steps and auth forms. Associate error messages with inputs via `aria-describedby`.
+Update the unit test in `apps/admissions/tests/unit/applicationStatusUi.test.ts` to remove `pending_documents` from expected values.
 
-#### R25: Focus Management on Route Transitions
-Add a `useEffect` in the router layout that moves focus to the main content heading after route changes.
+#### PaymentStep UX Improvements (Req 17, AUDIT-7.2-001/7.3-002)
 
-#### R26: Fix Health.ts TypeScript Errors
-Fix return type annotations (use `void` instead of `VercelResponse` for return types) and correct Neon driver typing (use tagged template literals instead of `.query()` method).
+**File**: `apps/admissions/src/pages/student/applicationWizard/steps/PaymentStep.tsx`
+
+1. **Disabled button tooltip** (AUDIT-7.2-001): When `canPay` is false, wrap the "Pay now" button in a tooltip explaining why it's disabled (e.g., "Complete previous steps first", "Fee is loading", "Payment widget unavailable").
+
+2. **Null applicationId error** (AUDIT-7.3-002): The current code shows `'Application not found. Please go back to step 1.'` when `applicationId` is null. Improve to a more descriptive message: `'Please save your application before proceeding to payment. Go back to Step 1 and ensure your details are saved.'`
+
+#### Admin Capacity Warning (Req 18, AUDIT-7.5-001)
+
+**File**: Admin review page component (the component consuming the review endpoint response)
+
+The review endpoint already returns `intake_capacity` and `intake_enrollment` in the response. Add UI logic:
+
+```typescript
+// When intake_enrollment >= 0.8 * intake_capacity
+<Alert variant="warning">
+  Intake is {Math.round(enrollment/capacity * 100)}% full ({enrollment}/{capacity})
+</Alert>
+
+// When intake_enrollment >= intake_capacity
+<Alert variant="destructive">
+  Intake is at or over capacity ({enrollment}/{capacity}). Approving will exceed the limit.
+</Alert>
+```
+
+#### Admin Intakes Enrollment Display (Req 19, AUDIT-7.6-001)
+
+**File**: `apps/admissions/src/pages/admin/Intakes.tsx`
+
+1. Add `current_enrollment` to the `Intake` interface
+2. Display enrollment alongside capacity in the table/card view
+3. Add visual utilization indicator (progress bar or color coding):
+   - Green: < 80% capacity
+   - Amber: 80-99% capacity
+   - Red: >= 100% capacity
 
 ## Data Models
 
-### Database Changes
+No new database tables or models are introduced. All changes modify existing columns, constraints, or model field definitions.
 
-#### New Migration: `migrations/add_audit_remediation_indexes.sql` (R10)
+### Schema Changes Summary
 
-Six composite indexes on existing tables — no schema changes, no new tables.
+| Table | Column | Change | Migration # |
+|-------|--------|--------|-------------|
+| `program_intakes` | `current_enrollment` | Data update (one-time sync) | 1 |
+| `user_permission_overrides` | `permissions` | `text[]` → `jsonb` | 2 |
+| `application_status_history` | `ip_address` | `varchar(45)` → `varchar(64)` | 3 |
+| `applications` | `public_tracking_code` | Add UNIQUE constraint | 4 |
+| `subjects` | `code` | Add UNIQUE constraint | 4 |
+| `notifications` | `idempotency_key` | Add UNIQUE constraint | 4 |
+| `application_status_history` | — | Delete 3 invalid rows | 5 |
 
-#### Modified Module: `lib/db.ts` (R1, R6, R9)
+### Django Model Field Changes
 
-| Change | Type | Description |
-|--------|------|-------------|
-| `transaction()` | Modified | Uses `neon().transaction()` callback API instead of manual BEGIN/COMMIT |
-| `getNeonInstance()` | New | Module-level cached Neon connection factory |
-| `interpolateParams()` | Deleted | Dead code — dangerous manual SQL interpolation |
-| `userQueries` | Deleted | Duplicate of `lib/queries.ts` UserQueries |
-| `sessionQueries` | Deleted | Duplicate of `lib/queries.ts` SessionQueries |
-| `auditQueries` | Deleted | Duplicate of `lib/queries.ts` AuditQueries |
+| Model | Field | Change |
+|-------|-------|--------|
+| `Profile` | `role` | Remove `null=True`, add `default='student'` |
+| `Payment` | `status` | Remove `null=True` |
 
-#### Modified Module: `lib/arcjet.ts` (R5, R12)
-
-| Change | Type | Description |
-|--------|------|-------------|
-| `RouteType` | Modified | Add `'documents'` to union type |
-| `rateLimitConfigs` | Modified | Add `documents: { window: "10m", max: 20 }` |
-| `withArcjetProtection` | Modified | Fail-closed when `ARCJET_KEY` missing in production |
-
-#### New Zod Schema: `lib/validation/documents.ts` (R7)
-
-```typescript
-export const resolveReferenceSchema = z.object({
-  reference: z.string().min(1),
-  applicationId: z.string().uuid().optional(),
-});
-```
 
 ## Correctness Properties
 
 *A property is a characteristic or behavior that should hold true across all valid executions of a system — essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
 
-### Property 1: Transaction atomicity (all-or-nothing)
+### Property 1: Enrollment increment updates both tables
 
-*For any* list of valid SQL operations passed to `transaction()`, if any operation in the list throws an error, then none of the operations should have observable side effects (all rolled back). If all operations succeed, then all should be committed and observable.
+*For any* valid intake name and program name, calling `IntakeEnforcer.increment_enrollment(intake_name, program_name)` should increase both `intakes.current_enrollment` and `program_intakes.current_enrollment` by exactly 1 for the matching rows.
 
-**Validates: Requirements 1.1, 1.2, 1.3**
+**Validates: Requirements 1.2**
 
-### Property 2: Admin route access determined exclusively by role
+### Property 2: Enrollment sync produces correct counts
 
-*For any* user object with any email address, the `AdminRoute` component should grant access if and only if `isAdmin` is `true` — the user's email address should have zero influence on the access decision.
+*For any* set of applications across program+intake combinations, after calling `sync_enrollment()`, the `program_intakes.current_enrollment` value for each program+intake pair should equal the count of applications with status in `('submitted', 'under_review', 'approved', 'waitlisted')` for that combination.
 
-**Validates: Requirements 2.1, 2.2**
+**Validates: Requirements 1.4**
 
-### Property 3: Health endpoint protected actions require admin authentication
+### Property 3: Model fields with NOT NULL DB constraints reject None
 
-*For any* request targeting `?action=db`, `?action=env`, or `?action=errors` without a valid admin/super_admin JWT, the health endpoint should return a 401 status code. Requests to `?action=ping` or no action should succeed without authentication.
+*For any* Django model field that maps to a database column with a `NOT NULL` constraint and a default value, the model field should not accept `None` and should produce the correct default. Specifically: `Profile.role` defaults to `'student'` and `Payment.status` defaults to `'pending'`.
 
-**Validates: Requirements 4.1, 4.2, 4.3**
+**Validates: Requirements 4.1, 4.2, 4.3, 4.4**
 
-### Property 4: Arcjet fail-closed in production, fail-open in development
+### Property 4: Permissions JSONField round-trip
 
-*For any* incoming request, when `NODE_ENV` equals `'production'` and `ARCJET_KEY` is not set, the Arcjet perimeter should reject the request with a 503 status. When `NODE_ENV` does not equal `'production'` and `ARCJET_KEY` is not set, the request should pass through to the handler.
+*For any* valid permissions list (a JSON array of permission strings), writing it to `UserPermissionOverride.permissions` and reading it back should produce an equivalent value.
 
-**Validates: Requirements 5.1, 5.2**
+**Validates: Requirements 5.2, 5.3**
 
-### Property 5: Document reference validation rejects invalid input
+### Property 5: IP address column accepts SHA-256 hashes
 
-*For any* request body that does not conform to the `resolveReferenceSchema` (missing `reference`, non-string `reference`, invalid UUID for `applicationId`), the `handleResolveReference` function should return a 400 error with field-level error details without processing the request.
+*For any* string of length up to 64 characters, the `application_status_history.ip_address` column should accept the value without truncation or error.
 
-**Validates: Requirements 7.2, 7.3**
+**Validates: Requirements 7.2**
 
-### Property 6: Applications handler rejects disallowed HTTP methods
+### Property 6: Unique constraints reject duplicates
 
-*For any* HTTP method not in the allowlist `['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD']`, the applications handler should return a 405 status code with an `Allow` header listing the permitted methods.
+*For any* column with a UNIQUE constraint (`applications.public_tracking_code`, `subjects.code`, `notifications.idempotency_key`), inserting two records with the same non-null value should result in the second insert being rejected by the database.
 
-**Validates: Requirements 8.1, 8.2**
+**Validates: Requirements 8.4**
 
-### Property 7: Action validation is independent of id parameter presence
+### Property 7: Notification list is paginated
 
-*For any* request to the applications handler with an `action` query parameter not in the valid actions allowlist, the handler should return a 400 error regardless of whether an `id` query parameter is also present.
+*For any* user with N notifications where N exceeds the page size, `GET /api/v1/notifications/` should return at most `pageSize` results and include `page`, `pageSize`, `totalCount`, and `results` in the response envelope.
 
 **Validates: Requirements 11.1, 11.2**
 
-### Property 8: Column allowlist rejects unknown columns in admin handler
+### Property 8: Security headers present on all responses
 
-*For any* column name not present in the defined allowlist constant, the admin handler's dynamic SQL operations should reject the request with a 400 error rather than including the column in the query.
+*For any* HTTP response from the backend, the response should include `X-XSS-Protection: 1; mode=block` and a `Content-Security-Policy` header with a non-empty directive.
 
-**Validates: Requirements 13.1, 13.2**
+**Validates: Requirements 12.1, 12.2, 12.3**
 
-### Property 9: Fixed COALESCE queries preserve unmodified fields
+### Property 9: Frontend status set matches backend status set
 
-*For any* profile update request that provides a subset of allowed fields, the resulting database row should have the provided fields updated to their new values and all omitted fields unchanged from their previous values.
+*For any* status in the frontend `APPLICATION_STATUSES` constant, that status should either appear as a key or value in the backend `ALLOWED_TRANSITIONS` map, or be explicitly documented as a future status with a code comment.
 
-**Validates: Requirements 14.1, 14.2**
+**Validates: Requirements 14.3**
 
-### Property 10: ARIA live regions announce form validation errors
+### Property 10: Bulk notification task retries on transient errors
 
-*For any* form validation error in the application wizard or auth forms, the error message should be present in an `aria-live="polite"` region and the corresponding input field should have an `aria-describedby` attribute referencing the error message element.
+*For any* transient error during `send_bulk_notifications_task` execution, the task should call `self.retry()` with an exponential backoff delay of `60 * 2^attempt` seconds, up to `max_retries=3`.
 
-**Validates: Requirements 24.1, 24.2**
+**Validates: Requirements 15.1, 15.2**
 
-### Property 11: Focus moves to main content after route transitions
+### Property 11: Sync enrollment metamorphic equivalence
 
-*For any* route transition in the application, after the transition completes, the document's active element should be the main content heading or a designated focus target element.
+*For any* valid set of applications and intakes, the refactored single-query `sync_enrollment()` should produce the same `current_enrollment` values as computing individual counts per program+intake in a loop.
 
-**Validates: Requirement 25.1**
+**Validates: Requirements 16.2, 16.3**
 
-### Property 12: Migration action always produces an audit log entry
+### Property 12: Disabled payment button shows explanation
 
-*For any* successful migration request (whether authenticated via JWT or MIGRATE_SECRET), the system should create an audit log entry that includes the authentication method used and the request IP address.
+*For any* state where the PaymentStep "Pay now" button is disabled (fee loading, widget unavailable, or payment in progress), the component should render visible helper text or a tooltip explaining why the button is disabled.
 
-**Validates: Requirements 21.1, 21.2**
+**Validates: Requirements 17.1**
 
-### Property 13: Health endpoint database check returns equivalent information in a single query
+### Property 13: Capacity warning at enrollment threshold
 
-*For any* set of required tables, the `?action=db` health check should return table names and approximate row counts using at most one database query (not N+1 sequential queries).
+*For any* intake where `current_enrollment / max_capacity >= 0.8`, the admin review page should display a capacity warning. When `current_enrollment >= max_capacity`, the warning should escalate to an over-capacity alert.
 
-**Validates: Requirements 20.1, 20.2**
+**Validates: Requirements 18.2, 18.3**
+
+### Property 14: Intake utilization visual indicator
+
+*For any* intake displayed on the admin Intakes page, the visual utilization indicator should reflect the ratio of `current_enrollment` to `capacity` — green below 80%, amber at 80-99%, red at 100%+.
+
+**Validates: Requirements 19.3**
 
 ## Error Handling
 
-### Sprint 1 Error Handling
+### Database Migration Errors
 
-| Requirement | Error Scenario | Response |
-|-------------|---------------|----------|
-| R1 | Transaction callback throws | Automatic rollback via Neon `transaction()` API; `DatabaseError` with `TRANSACTION_ERROR` code thrown to caller |
-| R1 | Neon `transaction()` API unavailable | Fall back to existing manual BEGIN/COMMIT with logged warning (rollback plan) |
-| R2 | Non-admin user accesses admin route | `<Navigate to="/student/dashboard">` redirect (existing behavior, now without bypass) |
-| R3 | Parameterized interval query fails | Existing error handling in `checkLoginCooldown` fails open (doesn't block legitimate users) |
-| R4 | Auth check fails on protected health action | 401 `AUTHENTICATION_REQUIRED` or 403 `INSUFFICIENT_PERMISSIONS` via `requireRole` |
-| R5 | Missing ARCJET_KEY in production | 503 `SECURITY_SERVICE_ERROR` — all requests blocked |
-| R5 | Missing ARCJET_KEY in development | Warning logged, requests pass through (existing dev behavior) |
-| R6 | Caller imports deleted query builder from `lib/db.ts` | TypeScript compile error — caught at build time |
+- **Duplicate values before UNIQUE constraint**: The migration script checks for duplicates before adding constraints. If duplicates exist, they must be resolved manually before re-running the constraint DDL.
+- **Type conversion failure (text[] → jsonb)**: If any `permissions` value cannot be converted to JSON, the `COALESCE(to_jsonb(permissions), '[]'::jsonb)` fallback ensures a safe default. Log any rows that hit the fallback.
+- **Concurrent writes during migration**: Run migrations during a maintenance window or low-traffic period. The `ALTER TABLE` statements acquire brief locks but should complete quickly given the small table sizes (< 100 rows each).
 
-### Sprint 2 Error Handling
+### Backend Error Handling
 
-| Requirement | Error Scenario | Response |
-|-------------|---------------|----------|
-| R7 | Invalid `resolveReference` body | 400 with Zod field-level errors via `validateBody` |
-| R8 | Disallowed HTTP method on applications | 405 with `Allow` header |
-| R9 | `DATABASE_URL` not set at module load | `DatabaseError` with `CONFIG_ERROR` on first query (lazy init) |
-| R10 | Index creation fails | Migration uses `IF NOT EXISTS` — idempotent, no error on re-run |
-| R11 | Invalid action with id present | 400 `Invalid action` (no longer bypassed) |
-| R12 | Document upload rate limit exceeded | 403 `SECURITY_VIOLATION` via Arcjet |
-| R13 | Column not in allowlist | 400 `Invalid column name` |
-| R14 | COALESCE query with all null optionals | No-op update (all fields retain current values), returns current row |
+- **IntakeEnforcer.increment_enrollment()**: If the program lookup fails (program not found), the method silently skips the `ProgramIntake` update but still updates the `Intake` row. This matches the existing fail-soft pattern.
+- **send_bulk_notifications_task**: After `max_retries=3` exhaustion, the task logs the failure with notification IDs and the last exception. No silent swallowing of errors.
+- **SecurityHeadersMiddleware**: The CSP header is set unconditionally. If the Lenco widget URL changes, the CSP `script-src` and `frame-src` directives must be updated.
+- **NotificationListView pagination**: If the requested page exceeds available pages, DRF's `PageNumberPagination` returns a 404 with `{"detail": "Invalid page."}`.
 
-### Sprint 3 Error Handling
+### Frontend Error Handling
 
-Sprint 3 changes are primarily documentation, configuration, and UI polish. Error handling follows existing patterns — no new error paths introduced.
+- **PaymentStep null applicationId**: Displays a user-friendly error message guiding the student to save their application first, instead of a generic error.
+- **Capacity warning data missing**: If `intake_capacity` or `intake_enrollment` is null/undefined in the review response, the capacity warning is not rendered (fail-safe).
 
 ## Testing Strategy
 
 ### Dual Testing Approach
 
-This remediation uses both unit tests and property-based tests:
+The remediation uses both unit tests and property-based tests:
 
-- **Unit tests**: Verify specific examples, edge cases, and code structure requirements (e.g., "no template literal interpolation in SQL strings", "hardcoded email removed")
-- **Property tests**: Verify universal behavioral properties across randomized inputs (e.g., "transaction atomicity", "role-based access", "validation rejection")
+- **Unit tests**: Verify specific examples, edge cases, and integration points (e.g., specific SQL migration outcomes, specific UI states)
+- **Property tests**: Verify universal properties across randomized inputs (e.g., enrollment sync correctness for any application set, security headers on any response)
 
-### Property-Based Testing Configuration
+### Backend Testing
 
-- **Library**: `fast-check` (already in project dependencies, used in `tests/property/`)
-- **Minimum iterations**: 100 per property test (override project default of `numRuns: 10` for these security-critical properties)
-- **Tag format**: Each test tagged with `// Feature: audit-remediation, Property N: <property_text>`
-- **Each correctness property is implemented by a single property-based test**
+**Framework**: `pytest` + `hypothesis`
 
-### Test Organization
+**Property-based tests** (minimum 100 iterations each):
 
-| Test Type | Directory | Files |
-|-----------|-----------|-------|
-| Property tests | `tests/property/` | `audit-remediation-transactions.test.ts`, `audit-remediation-security.test.ts`, `audit-remediation-validation.test.ts`, `audit-remediation-ui.test.ts` |
-| Unit tests | `tests/unit/` | `audit-remediation-code-structure.test.ts`, `audit-remediation-config.test.ts` |
-| Integration tests | `tests/integration/` | `audit-remediation-health-auth.test.ts` |
+| Property | Test File | Description |
+|----------|-----------|-------------|
+| P1 | `tests/property/test_enrollment_sync.py` | Increment updates both tables |
+| P2 | `tests/property/test_enrollment_sync.py` | Sync produces correct counts |
+| P3 | `tests/property/test_model_nullability.py` | Model fields reject None |
+| P4 | `tests/property/test_permissions_roundtrip.py` | JSONField round-trip |
+| P7 | `tests/property/test_notification_pagination.py` | Pagination limits results |
+| P8 | `tests/property/test_security_headers.py` | Headers present on all responses |
+| P10 | `tests/property/test_bulk_notification_retry.py` | Retry with exponential backoff |
+| P11 | `tests/property/test_enrollment_sync.py` | Metamorphic equivalence |
 
-### Property Test Mapping
+Each property test must be tagged with a comment:
+```python
+# Feature: audit-remediation, Property {N}: {property_text}
+```
 
-| Property | Test File | What It Generates |
-|----------|-----------|-------------------|
-| P1: Transaction atomicity | `audit-remediation-transactions.test.ts` | Random lists of SQL operations with deliberate failures |
-| P2: Admin route role-only access | `audit-remediation-ui.test.ts` | Random user objects with various emails and roles |
-| P3: Health endpoint auth gate | `audit-remediation-security.test.ts` | Random combinations of actions and auth states |
-| P4: Arcjet fail-closed/open | `audit-remediation-security.test.ts` | Random requests with mocked NODE_ENV and ARCJET_KEY |
-| P5: Document reference validation | `audit-remediation-validation.test.ts` | Random invalid request bodies |
-| P6: Applications method rejection | `audit-remediation-validation.test.ts` | Random HTTP methods |
-| P7: Action validation independent of id | `audit-remediation-validation.test.ts` | Random id/action combinations |
-| P8: Column allowlist rejection | `audit-remediation-validation.test.ts` | Random column names |
-| P9: COALESCE preserves unmodified fields | `audit-remediation-transactions.test.ts` | Random subsets of profile fields |
-| P10: ARIA live regions | `audit-remediation-ui.test.ts` | Random form validation error states |
-| P11: Focus after route transition | `audit-remediation-ui.test.ts` | Random route paths |
-| P12: Migration audit logging | `audit-remediation-security.test.ts` | Random migration requests with JWT/secret auth |
-| P13: Health DB check single query | `audit-remediation-security.test.ts` | Random table sets |
+**Unit tests**:
+- Verify `test_admin_override.py` skips gracefully without Postgres
+- Verify `test_submission_gates.py` passes without Postgres
+- Verify one-time SQL migration outcomes (post-migration verification queries)
 
-### Unit Test Coverage (Examples and Edge Cases)
+### Frontend Testing
 
-- R1: Verify `lib/db.ts` does not contain `BEGIN`/`COMMIT`/`ROLLBACK` query strings
-- R2: Verify `AdminRoute.tsx` does not contain hardcoded email string
-- R3: Verify `api-src/auth.ts` contains zero `${...}` interpolation inside SQL strings
-- R6: Verify `interpolateParams`, `userQueries`, `sessionQueries`, `auditQueries` are not exported from `lib/db.ts`
-- R10: Verify migration file contains all six `CREATE INDEX IF NOT EXISTS` statements
-- R12: Verify `documents.ts` export uses `'documents'` route type
-- R15: Verify `maximumFileSizeToCacheInBytes` is ≤ 3MB in `vite.config.ts`
-- R18: Verify `cookies.ts` JSDoc says "SameSite=Lax" not "SameSite=Strict"
-- R19: Verify `vercel.json` CSP includes `font-src 'self'` and headers include `X-Permitted-Cross-Domain-Policies`
-- R22: Verify terser config includes `drop_console: true` and `pure_funcs` list
-- R23: Verify `AuthContext.tsx` `useMemo` dependencies are individual values, not `[auth]`
-- R26: Verify `health.ts` has zero TypeScript diagnostic errors
+**Framework**: `vitest` + `fast-check`
 
+**Property-based tests**:
+
+| Property | Test File | Description |
+|----------|-----------|-------------|
+| P9 | `tests/unit/applicationStatus.test.ts` | Frontend statuses match backend |
+| P12 | `tests/unit/paymentStep.test.ts` | Disabled button shows explanation |
+| P13 | `tests/unit/capacityWarning.test.ts` | Capacity warning at threshold |
+| P14 | `tests/unit/intakeUtilization.test.ts` | Utilization visual indicator |
+
+Each property test must be tagged:
+```typescript
+// Feature: audit-remediation, Property {N}: {property_text}
+```
+
+**Unit tests**:
+- Verify `pending_documents` is removed from `APPLICATION_STATUSES`
+- Verify `waitlisted` renders correctly in timeline
+- Verify PaymentStep shows improved error for null applicationId
+
+### Test Configuration
+
+- Backend property tests: `@settings(max_examples=100)` minimum
+- Frontend property tests: `fc.assert(property, { numRuns: 100 })` minimum
+- Each correctness property is implemented by a single property-based test
+- Property tests reference their design document property number in comments

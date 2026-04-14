@@ -73,7 +73,7 @@ class Payment(models.Model):
     currency = models.CharField(max_length=3, null=True, blank=True, default='ZMW')
     payment_method = models.CharField(max_length=50, null=True, blank=True)
     transaction_reference = models.CharField(max_length=100, null=True, blank=True)
-    status = models.CharField(max_length=20, null=True, blank=True, default='pending')
+    status = models.CharField(max_length=20, default='pending', blank=True)
     verified_by = models.ForeignKey(
         'accounts.Profile',
         on_delete=models.SET_NULL,

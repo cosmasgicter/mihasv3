@@ -14,14 +14,13 @@ describe('application status canonical values', () => {
       'under_review',
       'approved',
       'rejected',
-      'waitlisted',
-      'pending_documents'
+      'waitlisted'
     ])
   })
 
   it('formats display labels without changing stored values', () => {
     expect(formatApplicationStatus('under_review')).toBe('Under Review')
-    expect(formatApplicationStatus('pending_documents')).toBe('Pending Documents')
+    expect(formatApplicationStatus('waitlisted')).toBe('Waitlisted')
   })
 })
 

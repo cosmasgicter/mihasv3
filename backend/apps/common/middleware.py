@@ -36,7 +36,8 @@ class SecurityHeadersMiddleware:
     """Set security headers on every response.
 
     Headers: HSTS, X-Content-Type-Options, X-Frame-Options,
-    Referrer-Policy, Permissions-Policy.
+    Referrer-Policy, Permissions-Policy, X-XSS-Protection,
+    Content-Security-Policy.
     """
 
     def __init__(self, get_response):
@@ -52,6 +53,18 @@ class SecurityHeadersMiddleware:
         response["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response["Permissions-Policy"] = (
             "camera=(), microphone=(), geolocation=(), payment=()"
+        )
+        response["X-XSS-Protection"] = "1; mode=block"
+        response["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' https://pay.lenco.co; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self' https://api.lenco.co; "
+            "frame-src https://pay.lenco.co; "
+            "font-src 'self'; "
+            "object-src 'none'; "
+            "base-uri 'self'"
         )
         if hasattr(request, "user") and request.user.is_authenticated:
             response["Cache-Control"] = "no-store, private"

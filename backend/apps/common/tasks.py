@@ -80,7 +80,7 @@ def send_email_task(self, email_queue_id):
         raise self.retry(exc=exc, countdown=backoff)
 
 
-@shared_task(bind=True, max_retries=3)
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
 def send_bulk_notifications_task(self, notification_ids):
     """Process bulk notification delivery.
 
@@ -127,8 +127,47 @@ def send_bulk_notifications_task(self, notification_ids):
             # Dispatch email task.
             send_email_task.delay(str(email_record.id))
 
-        except Exception:
+        except Exception as exc:
             logger.exception("Failed to process notification %s", notification.id)
+            # Retry on transient errors with exponential backoff
+            try:
+                self.retry(exc=exc, countdown=60 * (2 ** self.request.retries))
+            except self.MaxRetriesExceededError:
+                error_msg = (
+                    f"All retries exhausted for bulk notification task. "
+                    f"IDs: {notification_ids}, last error: {exc}"
+                )
+                logger.error(error_msg)
+                # Dispatch throttled alert email
+                try:
+                    import hashlib
+
+                    msg_hash = hashlib.sha256(error_msg.encode("utf-8")).hexdigest()[:16]
+                    cache_key = f"error_alert:{msg_hash}"
+                    should_alert = True
+                    try:
+                        if not cache.add(cache_key, "1", timeout=900):
+                            should_alert = False
+                    except Exception:
+                        pass
+                    if should_alert:
+                        from apps.common.models import ErrorLog, EmailQueue
+
+                        ErrorLog.objects.create(
+                            source="celery",
+                            level="error",
+                            message=error_msg[:2000],
+                        )
+                        alert_email = settings.ERROR_ALERT_EMAIL
+                        email_record = EmailQueue.objects.create(
+                            recipient_email=alert_email,
+                            subject="[ALERT] Bulk notification retries exhausted",
+                            body=error_msg,
+                            status="pending",
+                        )
+                        send_email_task.delay(str(email_record.id))
+                except Exception:
+                    logger.exception("Failed to dispatch retry-exhaustion alert")
 
 
 UPTIME_REDIS_KEY = "uptime:last_status"

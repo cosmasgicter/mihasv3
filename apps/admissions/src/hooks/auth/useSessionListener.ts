@@ -181,7 +181,7 @@ export function useSessionListener() {
     staleTime: CACHE_CONFIG.auth.staleTime,   // 10 minutes
     gcTime: CACHE_CONFIG.auth.gcTime,          // 30 minutes
     retry: false,
-    refetchOnMount: 'always',
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
   })
 
