@@ -1,6 +1,5 @@
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 
 /**
@@ -26,9 +25,7 @@ function envValidationPlugin(): Plugin {
         : []
 
       // Variables that SHOULD be set — warn if missing
-      const recommended: string[] = [
-        'VITE_VAPID_PUBLIC_KEY',
-      ]
+      const recommended: string[] = []
       const getEnvValue = (key: string) => config.env[key] ?? process.env[key]
       const missing = required.filter((v) => {
         const value = getEnvValue(v)
@@ -61,13 +58,13 @@ function envValidationPlugin(): Plugin {
  * 
  * Simplified configuration optimized for:
  * - Bun runtime compatibility (Requirement 2.4)
- * - PWA offline support for Zambian connections (Requirement 9.7)
  * - Code splitting for vendor libraries (Requirement 12.4, 12.5)
  * - Performance targets: FCP <1.5s, LCP <2.5s, bundle <500KB (Requirement 12.1-12.3)
  * 
  * Removed:
  * - Cloudflare-specific settings
  * - Complex chunk splitting that caused createContext errors
+ * - PWA / service worker (caused auto-logout and stale cache issues)
  */
 export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, process.cwd(), '')
@@ -76,25 +73,6 @@ export default defineConfig(({ mode, command }) => {
     plugins: [
       envValidationPlugin(),
       react(),
-      VitePWA({
-        registerType: 'prompt',
-        strategies: 'injectManifest',
-        srcDir: 'src',
-        filename: 'service-worker.ts',
-        injectRegister: false,
-        injectManifest: {
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
-          globIgnores: [
-            '**/vendor-excel-*.js',
-            '**/vendor-ocr-*.js',
-            '**/vendor-pdf-*.js',
-          ],
-          // Keep precaching focused on the core shell so first visits on slow
-          // networks do not immediately background-download very large lazy
-          // chunks such as document/PDF or OCR tooling.
-          maximumFileSizeToCacheInBytes: 600 * 1024,
-        },
-      })
     ],
     resolve: {
       alias: {

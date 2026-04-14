@@ -25,9 +25,6 @@ import { SafeAreaProvider } from '@/components/ui/SafeAreaProvider'
 import { queryClient } from '@/lib/queryClient'
 
 const AppLayout = lazy(() => import('@/components/navigation/AppLayout').then((mod) => ({ default: mod.AppLayout })))
-const InstallBanner = lazy(() => import('@/components/ui/InstallBanner').then((mod) => ({ default: mod.InstallBanner })))
-const OfflineIndicator = lazy(() => import('@/components/pwa/OfflineIndicator').then((mod) => ({ default: mod.OfflineIndicator })))
-const ServiceWorkerUpdatePrompt = lazy(() => import('@/components/ServiceWorkerUpdatePrompt').then((mod) => ({ default: mod.ServiceWorkerUpdatePrompt })))
 const SessionMonitor = lazy(() => import('@/components/auth/SessionMonitor').then((mod) => ({ default: mod.SessionMonitor })))
 
 function getSkeletonFallback(route: RouteConfig): React.ReactNode {
@@ -116,10 +113,7 @@ function RoutedAuthenticatedApp() {
   const isPublicRoute = (matchedRoute?.guard ?? 'public') === 'public'
   const canLoadHeavyGlobalUi = !isLightweightRoute && (!isPublicRoute || Boolean(user))
   const canLoadSessionMonitor = canLoadHeavyGlobalUi && (Boolean(user) || isAdmin)
-  const canLoadSwAndInstallEffects = canLoadHeavyGlobalUi && !isPublicRoute
-  const deferredGlobalUiHydrated = useDeferredHydration(canLoadHeavyGlobalUi, 1500)
   const deferredSessionHydrated = useDeferredHydration(canLoadSessionMonitor, 1800)
-  const deferredAppEffectsHydrated = useDeferredHydration(canLoadSwAndInstallEffects, 2200)
 
   useEffect(() => {
     const telemetry = startLoaderTelemetry(`route-render:${location.pathname}`)
@@ -153,17 +147,6 @@ function RoutedAuthenticatedApp() {
 
   return (
     <>
-      {deferredAppEffectsHydrated && (
-        <Suspense fallback={null}>
-          <InstallBanner />
-          <ServiceWorkerUpdatePrompt />
-        </Suspense>
-      )}
-      {deferredGlobalUiHydrated && (
-        <Suspense fallback={null}>
-          <OfflineIndicator />
-        </Suspense>
-      )}
       {deferredSessionHydrated && (
         <Suspense fallback={null}>
           <SessionMonitor />

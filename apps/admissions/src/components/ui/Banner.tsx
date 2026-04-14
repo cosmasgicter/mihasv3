@@ -3,13 +3,13 @@ import { X } from 'lucide-react'
 /**
  * Banner Component
  * Full-width, fixed-top notification banner with severity variants.
- * Consolidates OfflineBanner, InsecureStorageBanner, and InstallBanner patterns.
+ * Consolidates OfflineBanner and InsecureStorageBanner patterns.
  *
  * Requirements: 19.4, 19.5
  */
 
 interface BannerProps {
-  variant: 'info' | 'warning' | 'error' | 'offline' | 'pwa'
+  variant: 'info' | 'warning' | 'error' | 'offline'
   children: React.ReactNode
   dismissible?: boolean
   onDismiss?: () => void
@@ -21,7 +21,6 @@ const variantStyles: Record<BannerProps['variant'], string> = {
   warning: 'bg-warning/10 text-warning-foreground border-warning/20',
   error: 'bg-destructive/10 text-destructive border-destructive/20',
   offline: 'bg-muted text-muted-foreground border-border',
-  pwa: 'bg-primary/10 text-primary border-primary/20',
 }
 
 const alertVariants = new Set<BannerProps['variant']>(['error', 'warning', 'offline'])

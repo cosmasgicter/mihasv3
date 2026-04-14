@@ -9,7 +9,6 @@ import {
   logReloadEvent,
   incrementReloadReasonCounter,
 } from '@/lib/reloadControl'
-import { registerSW } from 'virtual:pwa-register'
 import { evaluateChunkAutoReloadPolicy } from '@/lib/chunkAutoReloadPolicy'
 import { initErrorReporter } from '@/lib/errorReporter'
 
@@ -161,29 +160,6 @@ if (typeof window !== 'undefined') {
 // Suppress browser extension errors that interfere with the application
 if (typeof window !== 'undefined') {
   connectionManager.suppressExtensionErrors()
-
-  const loadPwaStyles = () => import('./styles/pwa.css')
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-    (window.navigator as Navigator & { standalone?: boolean }).standalone === true
-
-  if (isStandalone) {
-    void loadPwaStyles()
-  } else {
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => {
-        if ('requestIdleCallback' in window) {
-          window.requestIdleCallback(() => {
-            void loadPwaStyles()
-          }, { timeout: 3000 })
-          return
-        }
-
-        setTimeout(() => {
-          void loadPwaStyles()
-        }, 1200)
-      })
-    })
-  }
   
   // Force light mode - prevent any dark mode
   document.documentElement.classList.remove('dark')
@@ -193,75 +169,15 @@ if (typeof window !== 'undefined') {
   document.body.classList.remove('dark')
   document.body.classList.add('light')
   document.body.style.colorScheme = 'light'
-  
-  // Register vite-plugin-pwa service worker and retire legacy /sw.js registrations
-  if ('serviceWorker' in navigator && import.meta.env.PROD) {
-    // Listen for cache-updated messages from the service worker.
-    // Auto-reload on Dashboard or Landing Page so the user sees fresh assets/data.
-    navigator.serviceWorker.addEventListener('message', (event) => {
-      if (event.data && event.data.type === 'cache-updated') {
-        const pathname = window.location.pathname
-        const isReloadTarget =
-          pathname === '/' ||
-          pathname === '/dashboard' ||
-          pathname.startsWith('/student/dashboard') ||
-          pathname.startsWith('/admin')
 
-        if (isReloadTarget) {
-          console.log('[PWA] Cache updated — reloading page for fresh assets')
-          window.location.reload()
-        }
+  // Unregister any leftover service workers from the removed PWA setup.
+  // This ensures existing users don't keep serving stale cached data.
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (const registration of registrations) {
+        registration.unregister()
       }
-    })
-
-    // 30-second activation timeout: if the SW hasn't activated by then,
-    // proceed without SW support and log a warning (Requirement 11.6).
-    const swActivationTimeout = setTimeout(() => {
-      if (!navigator.serviceWorker.controller) {
-        console.warn('[PWA] Service worker failed to activate within 30 seconds — proceeding without SW support')
-      }
-    }, 30_000)
-
-    // Clear the timeout once a controller is available (SW activated successfully)
-    if (navigator.serviceWorker.controller) {
-      clearTimeout(swActivationTimeout)
-    } else {
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        clearTimeout(swActivationTimeout)
-      }, { once: true })
-    }
-
-    const registerServiceWorker = () => {
-      registerSW({
-        immediate: true,
-        onRegisterError(error) {
-          console.error('[PWA] Service worker registration failed:', error)
-        }
-      })
-
-      navigator.serviceWorker.getRegistrations()
-        .then((registrations) => Promise.all(
-          registrations
-            .filter((registration) => registration.active?.scriptURL.endsWith('/sw.js'))
-            .map((registration) => registration.unregister())
-        ))
-        .catch(() => {})
-    }
-
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => {
-        if ('requestIdleCallback' in window) {
-          window.requestIdleCallback(() => {
-            registerServiceWorker()
-          }, { timeout: 5000 })
-          return
-        }
-
-        setTimeout(() => {
-          registerServiceWorker()
-        }, 3500)
-      })
-    })
+    }).catch(() => {})
   }
 }
 
