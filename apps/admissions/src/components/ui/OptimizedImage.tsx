@@ -98,27 +98,33 @@ export function OptimizedImage({
     )
   }
 
+  const imgElement = (
+    <img
+      src={src}
+      alt={decorative ? '' : alt}
+      width={width}
+      height={height}
+      loading={lazy ? 'lazy' : 'eager'}
+      decoding="async"
+      className={`max-w-full ${className}`}
+      srcSet={buildSrcSet(src)}
+      onError={() => setHasError(true)}
+      {...(decorative ? { role: 'presentation' } : {})}
+      {...rest}
+    />
+  )
+
+  if (!hasWebp) {
+    return imgElement
+  }
+
   return (
     <picture className="block w-full h-full">
-      {hasWebp && (
-        <source
-          type="image/webp"
-          srcSet={buildSrcSet(derivedWebpSrc) || derivedWebpSrc}
-        />
-      )}
-      <img
-        src={src}
-        alt={decorative ? '' : alt}
-        width={width}
-        height={height}
-        loading={lazy ? 'lazy' : 'eager'}
-        decoding="async"
-        className={`max-w-full ${className}`}
-        srcSet={buildSrcSet(src)}
-        onError={() => setHasError(true)}
-        {...(decorative ? { role: 'presentation' } : {})}
-        {...rest}
+      <source
+        type="image/webp"
+        srcSet={buildSrcSet(derivedWebpSrc) || derivedWebpSrc}
       />
+      {imgElement}
     </picture>
   )
 }

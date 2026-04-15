@@ -234,6 +234,8 @@ export default function ResetPasswordPage() {
       <form
         className={`space-y-6 ${animateClasses.slideUp}`}
         onSubmit={handleSubmit((values) => resetPasswordMutation.mutate(values))}
+        method="post"
+        noValidate
       >
         {/* Password icon */}
         <div className="flex justify-center mb-2">

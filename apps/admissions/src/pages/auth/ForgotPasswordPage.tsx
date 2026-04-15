@@ -132,6 +132,8 @@ export default function ForgotPasswordPage() {
       <form
         className={`space-y-6 ${animateClasses.slideUp}`}
         onSubmit={handleSubmit((data) => resetRequestMutation.mutate(data))}
+        method="post"
+        noValidate
       >
         <Input
           {...register('email')}

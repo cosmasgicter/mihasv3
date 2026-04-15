@@ -308,7 +308,7 @@ function FormPanel({
           </div>
         </div>
 
-        <div className="mt-6 rounded-[28px] border border-border/70 bg-background/90 p-5 shadow-xl backdrop-blur sm:p-8 lg:p-9">
+        <div className="mt-6 overflow-hidden rounded-[28px] border border-border/70 bg-background/90 p-5 shadow-xl backdrop-blur sm:p-8 lg:p-9">
           <div className="space-y-5">
             {resolvedPanelBadge && (
               <div>
@@ -368,7 +368,7 @@ export function AuthLayout({
 
           <div
             className={cn(
-              'flex flex-1 flex-col overflow-y-auto',
+              'flex flex-1 flex-col overflow-y-auto min-w-0',
               showBranding ? 'lg:w-1/2 xl:w-[45%]' : 'w-full',
             )}
           >
