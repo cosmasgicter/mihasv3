@@ -10,6 +10,7 @@ import logging
 import secrets
 from datetime import timedelta
 
+import jwt
 from django.conf import settings
 from drf_spectacular.utils import OpenApiResponse, OpenApiTypes, extend_schema, extend_schema_view
 from rest_framework import serializers, status
@@ -402,9 +403,27 @@ class RefreshView(APIView):
                 except Profile.DoesNotExist:
                     pass
 
+            if user is None:
+                return Response(
+                    {"success": False, "error": "Invalid or expired refresh token", "code": "TOKEN_EXPIRED"},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
+
             new_access, new_refresh = rotate_tokens(refresh_token, user=user)
-        except Exception:
+        except jwt.ExpiredSignatureError:
+            logger.warning("Refresh token expired", exc_info=True)
+            return Response(
+                {"success": False, "error": "Invalid or expired refresh token", "code": "TOKEN_EXPIRED"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        except (jwt.InvalidTokenError, ValueError):
             logger.warning("Token rotation failed during refresh", exc_info=True)
+            return Response(
+                {"success": False, "error": "Invalid or expired refresh token", "code": "TOKEN_EXPIRED"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        except Exception:
+            logger.warning("Unexpected error during token refresh", exc_info=True)
             return Response(
                 {"success": False, "error": "Invalid or expired refresh token", "code": "TOKEN_EXPIRED"},
                 status=status.HTTP_401_UNAUTHORIZED,

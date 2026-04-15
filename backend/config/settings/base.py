@@ -186,6 +186,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "cleanup_csrf_tokens_task",
         "schedule": crontab(hour=4, minute=0),
     },
+    "manage-intakes": {
+        "task": "apps.catalog.tasks.intake_manager_task",
+        "schedule": crontab(hour=4, minute=0),
+    },
 }
 
 # Enable TLS for rediss:// connections (Upstash, Redis Cloud, etc.)

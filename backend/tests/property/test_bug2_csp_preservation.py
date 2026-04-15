@@ -238,18 +238,16 @@ class TestNonCSPHeadersPreservation:
                 f"Actual:   {actual_value}"
             )
 
-    def test_service_worker_cache_control_preserved(self):
-        """The /service-worker.js headers block must be preserved."""
+    def test_service_worker_cache_control_removed(self):
+        """The /service-worker.js headers block must NOT exist after PWA removal."""
         data = _load_vercel_json()
         sw_block = None
         for block in data.get("headers", []):
             if block.get("source") == "/service-worker.js":
                 sw_block = block
                 break
-        assert sw_block is not None, "service-worker.js headers block not found"
-        cc = _find_header_value(sw_block["headers"], "Cache-Control")
-        assert cc == "no-cache, no-store, must-revalidate", (
-            f"service-worker.js Cache-Control mismatch: {cc}"
+        assert sw_block is None, (
+            "service-worker.js headers block should have been removed during PWA cleanup"
         )
 
     def test_assets_cache_control_preserved(self):

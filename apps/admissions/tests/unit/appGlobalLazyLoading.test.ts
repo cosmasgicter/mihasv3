@@ -9,10 +9,6 @@ describe('App global utility bundle splitting', () => {
     const lazySpecifiers = [
       "import('@vercel/analytics/react')",
       "import('@vercel/speed-insights/react')",
-      "import('@/components/ui/InstallBanner')",
-      "import('@/components/pwa/OfflineIndicator')",
-      "import('@/components/ServiceWorkerUpdatePrompt')",
-      "import('@/components/auth/SessionMonitor')",
     ]
 
     for (const specifier of lazySpecifiers) {
@@ -24,10 +20,6 @@ describe('App global utility bundle splitting', () => {
     const eagerImports = [
       "from '@vercel/analytics/react'",
       "from '@vercel/speed-insights/react'",
-      "from '@/components/ui/InstallBanner'",
-      "from '@/components/pwa/OfflineIndicator'",
-      "from '@/components/ServiceWorkerUpdatePrompt'",
-      "from '@/components/auth/SessionMonitor'",
     ]
 
     for (const importFragment of eagerImports) {
