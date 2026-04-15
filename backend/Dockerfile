@@ -41,6 +41,8 @@ RUN SECRET_KEY=build-time-placeholder \
     S3_BUCKET=build-placeholder \
     S3_ACCESS_KEY=build-placeholder \
     S3_SECRET_KEY=build-placeholder \
+    LENCO_API_SECRET_KEY=build-time-placeholder \
+    LENCO_PUBLIC_KEY=build-time-placeholder \
     python manage.py collectstatic --noinput
 
 # Expose the application port expected by Koyeb and local container runs.

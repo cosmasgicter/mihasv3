@@ -393,7 +393,7 @@ function FileUpload({
         />
         <Upload
           className={cn(
-            'h-10 w-10 mx-auto mb-3 transition-colors duration-fast',
+            'h-10 w-10 mx-auto mb-3 transition-colors duration-fast pointer-events-none',
             isDragActive ? 'text-primary' : 'text-muted-foreground'
           )}
           aria-hidden="true"

@@ -594,7 +594,7 @@ class TestAuthCookieAttributes(SimpleTestCase):
 
         access_call = next(c for c in cookie_calls if c["key"] == "access_token")
         self.assertEqual(access_call["value"], access)
-        self.assertEqual(access_call["max_age"], 15 * 60)
+        self.assertEqual(access_call["max_age"], int(django_settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds()))
 
         refresh_call = next(c for c in cookie_calls if c["key"] == "refresh_token")
         self.assertEqual(refresh_call["value"], refresh)
@@ -694,3 +694,209 @@ class TestSharedJWTSigningKey(SimpleTestCase):
     def test_signing_key_configured(self):
         """SIGNING_KEY must be configured in settings."""
         self.assertIn("SIGNING_KEY", django_settings.SIMPLE_JWT)
+
+
+# =========================================================================
+# Bug Condition Exploration: Session Auto-Logout Fix
+# =========================================================================
+
+
+class TestBugConditionCookieMaxAgeMismatch(SimpleTestCase):
+    """Bug condition exploration — Cookie max_age mismatch.
+
+    Surfaces the root cause of premature auto-logout: _set_auth_cookies
+    hardcodes access token cookie max_age to 15*60 (900s) instead of
+    reading settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds()
+    (1800s).
+
+    This test MUST FAIL on unfixed code — failure confirms the bug exists.
+
+    **Validates: Requirements 1.1, 1.2, 1.3, 1.4**
+    """
+
+    @given(role=_roles)
+    @_default_settings
+    @override_settings(**_PROD_COOKIE_SETTINGS)
+    def test_bug_condition_access_cookie_max_age_matches_settings(self, role):
+        """access_token cookie max_age must equal
+        int(SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds()).
+
+        On UNFIXED code this will fail because max_age is hardcoded to 900
+        while ACCESS_TOKEN_LIFETIME.total_seconds() is 1800.
+        """
+        from apps.accounts.views import _set_auth_cookies
+
+        user = _make_mock_user(role=role)
+        access = generate_access_token(user)
+        refresh = generate_refresh_token(user)
+
+        response = MagicMock()
+        cookie_calls = []
+        response.set_cookie.side_effect = lambda **kwargs: cookie_calls.append(kwargs)
+
+        _set_auth_cookies(response, access, refresh)
+
+        access_call = next(c for c in cookie_calls if c["key"] == "access_token")
+        expected_max_age = int(
+            django_settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds()
+        )
+        self.assertEqual(
+            access_call["max_age"],
+            expected_max_age,
+            f"Bug B confirmed: access_token cookie max_age is {access_call['max_age']} "
+            f"but SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds() is {expected_max_age}",
+        )
+
+    def test_bug_condition_dockerfile_contains_lenco_placeholders(self):
+        """Dockerfile must contain LENCO_API_SECRET_KEY and LENCO_PUBLIC_KEY
+        build-time placeholders.
+
+        On UNFIXED code this will fail because the placeholders are missing.
+        """
+        import pathlib
+
+        dockerfile_path = pathlib.Path(__file__).resolve().parents[2] / "Dockerfile"
+        dockerfile_content = dockerfile_path.read_text()
+
+        self.assertIn(
+            "LENCO_API_SECRET_KEY=build-time-placeholder",
+            dockerfile_content,
+            "Bug A confirmed: Dockerfile is missing LENCO_API_SECRET_KEY placeholder",
+        )
+        self.assertIn(
+            "LENCO_PUBLIC_KEY=build-time-placeholder",
+            dockerfile_content,
+            "Bug A confirmed: Dockerfile is missing LENCO_PUBLIC_KEY placeholder",
+        )
+
+
+# =========================================================================
+# Preservation: Session Auto-Logout Fix — Baseline Behavior
+# =========================================================================
+
+
+class TestPreservationCookieAndDockerfile(SimpleTestCase):
+    """Preservation property tests — baseline behavior on UNFIXED code.
+
+    These tests capture behavior that MUST remain unchanged after the fix:
+    - Refresh token max_age stays 604800 (7 days)
+    - Cookie attributes (domain, samesite, secure, httponly, path) match settings
+    - Dockerfile contains all 11 original placeholder env vars
+    - prod.py contains the ImproperlyConfigured Lenco guard
+
+    **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6**
+    """
+
+    @given(role=_roles)
+    @_default_settings
+    @override_settings(**_PROD_COOKIE_SETTINGS)
+    def test_preservation_refresh_token_max_age_is_604800(self, role):
+        """Refresh token cookie max_age must be 604800 (7 days) for all roles."""
+        from apps.accounts.views import _set_auth_cookies
+
+        user = _make_mock_user(role=role)
+        access = generate_access_token(user)
+        refresh = generate_refresh_token(user)
+
+        response = MagicMock()
+        cookie_calls = []
+        response.set_cookie.side_effect = lambda **kwargs: cookie_calls.append(kwargs)
+
+        _set_auth_cookies(response, access, refresh)
+
+        refresh_call = next(c for c in cookie_calls if c["key"] == "refresh_token")
+        self.assertEqual(
+            refresh_call["max_age"],
+            7 * 24 * 60 * 60,
+            f"Refresh token max_age must be 604800 but got {refresh_call['max_age']}",
+        )
+
+    @given(role=_roles)
+    @_default_settings
+    @override_settings(**_PROD_COOKIE_SETTINGS)
+    def test_preservation_cookie_attributes_match_settings(self, role):
+        """Both cookies must have domain, samesite, secure, httponly, path
+        matching the settings-derived values for all roles."""
+        from apps.accounts.views import _set_auth_cookies
+
+        user = _make_mock_user(role=role)
+        access = generate_access_token(user)
+        refresh = generate_refresh_token(user)
+
+        response = MagicMock()
+        cookie_calls = []
+        response.set_cookie.side_effect = lambda **kwargs: cookie_calls.append(kwargs)
+
+        _set_auth_cookies(response, access, refresh)
+
+        self.assertEqual(len(cookie_calls), 2)
+
+        for call in cookie_calls:
+            self.assertEqual(call["domain"], ".mihas.edu.zm")
+            self.assertEqual(call["samesite"], "Lax")
+            self.assertTrue(call["secure"])
+            self.assertTrue(call["httponly"])
+            self.assertEqual(call["path"], "/")
+
+    def test_preservation_dockerfile_contains_all_11_original_placeholders(self):
+        """Dockerfile must contain all 11 original build-time placeholder
+        env vars unchanged."""
+        import pathlib
+
+        dockerfile_path = pathlib.Path(__file__).resolve().parents[2] / "Dockerfile"
+        dockerfile_content = dockerfile_path.read_text()
+
+        expected_placeholders = [
+            "SECRET_KEY=build-time-placeholder",
+            "DATABASE_URL=postgres://build:build@localhost/build",
+            "REDIS_URL=redis://localhost:6379/0",
+            "JWT_SIGNING_KEY=build-time-placeholder",
+            "ALLOWED_HOSTS=*",
+            "CORS_ALLOWED_ORIGINS=https://build-placeholder.example.com",
+            "RESEND_API_KEY=build-time-placeholder",
+            "S3_ENDPOINT_URL=https://build-placeholder.example.com",
+            "S3_BUCKET=build-placeholder",
+            "S3_ACCESS_KEY=build-placeholder",
+            "S3_SECRET_KEY=build-placeholder",
+        ]
+
+        for placeholder in expected_placeholders:
+            self.assertIn(
+                placeholder,
+                dockerfile_content,
+                f"Dockerfile missing original placeholder: {placeholder}",
+            )
+
+    def test_preservation_prod_py_lenco_guard_present(self):
+        """prod.py must contain the ImproperlyConfigured Lenco guard."""
+        import pathlib
+
+        prod_path = (
+            pathlib.Path(__file__).resolve().parents[2]
+            / "config"
+            / "settings"
+            / "prod.py"
+        )
+        prod_content = prod_path.read_text()
+
+        self.assertIn(
+            "ImproperlyConfigured",
+            prod_content,
+            "prod.py must import or reference ImproperlyConfigured",
+        )
+        self.assertIn(
+            "LENCO_API_SECRET_KEY",
+            prod_content,
+            "prod.py must check LENCO_API_SECRET_KEY",
+        )
+        self.assertIn(
+            "LENCO_PUBLIC_KEY",
+            prod_content,
+            "prod.py must check LENCO_PUBLIC_KEY",
+        )
+        # Verify the actual guard pattern exists
+        self.assertIn(
+            "raise ImproperlyConfigured",
+            prod_content,
+            "prod.py must raise ImproperlyConfigured for missing Lenco keys",
+        )

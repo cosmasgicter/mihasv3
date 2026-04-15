@@ -614,6 +614,7 @@ class ApplicationSessionManager {
         // Determine step based on what's filled
         if (app.result_slip_url) currentStep = 3
         else if (app.program && app.full_name) currentStep = 2
+        else if (app.full_name) currentStep = 2
         
         const createdTime = new Date(app.created_at || Date.now()).getTime()
         const expiresAt = new Date(createdTime + 24 * 60 * 60 * 1000).toISOString()
