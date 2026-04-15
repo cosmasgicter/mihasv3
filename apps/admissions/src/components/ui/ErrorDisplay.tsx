@@ -27,6 +27,8 @@ export function ErrorDisplay({
   variant = 'section',
   className,
 }: ErrorDisplayProps) {
+  if (!message || !message.trim()) return null
+
   if (variant === 'inline') {
     return (
       <div

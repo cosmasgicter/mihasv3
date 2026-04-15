@@ -387,7 +387,7 @@ class RefreshView(APIView):
         refresh_token = request.COOKIES.get("refresh_token")
         if not refresh_token:
             return Response(
-                {"success": False, "error": "No refresh token provided", "code": "INVALID_TOKEN"},
+                {"success": False, "error": "No refresh token provided", "code": "NO_REFRESH_TOKEN"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 

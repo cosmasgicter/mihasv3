@@ -162,12 +162,19 @@ export default function StudentSettings() {
         message: 'Profile changes saved successfully.',
       })
       toast.success('Profile updated', 'Your changes have been saved.')
-      // Reset form dirty state with the server-returned data
+      // Reset form dirty state with explicit field-by-field merge to prevent null/undefined gaps
       reset({
-        ...formValues,
-        ...updatedProfile,
-        date_of_birth: updatedProfile.date_of_birth ?? formValues.date_of_birth,
+        full_name: updatedProfile.full_name ?? formValues.full_name,
+        phone: updatedProfile.phone ?? formValues.phone ?? '',
+        date_of_birth: normalizeDateInputValue(updatedProfile.date_of_birth ?? formValues.date_of_birth ?? ''),
         sex: (updatedProfile.sex as 'Male' | 'Female') ?? formValues.sex,
+        residence_town: updatedProfile.residence_town ?? formValues.residence_town ?? '',
+        country: updatedProfile.country ?? formValues.country ?? '',
+        nrc_number: (updatedProfile.nrc_number as string | undefined) ?? formValues.nrc_number ?? '',
+        address: updatedProfile.address ?? formValues.address ?? '',
+        nationality: updatedProfile.nationality ?? formValues.nationality ?? 'Zambian',
+        next_of_kin_name: updatedProfile.next_of_kin_name ?? formValues.next_of_kin_name ?? '',
+        next_of_kin_phone: updatedProfile.next_of_kin_phone ?? formValues.next_of_kin_phone ?? '',
       })
     } catch (error: unknown) {
       const err = error as Error & { fieldErrors?: Record<string, string> }

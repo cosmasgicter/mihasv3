@@ -28,6 +28,7 @@ import { isAdminRole } from '@/lib/auth/roles'
 import { clearCsrfToken } from '@/lib/csrfToken'
 import { secureStorage } from '@/lib/secureStorage'
 import { broadcastLogin, broadcastLogout } from '@/lib/authBroadcast'
+import { getDefaultSSEClient } from '@/lib/sseClient'
 
 export type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth'
 export type AuthUser = User
@@ -362,6 +363,15 @@ export function useSessionListener() {
       queryClient.setQueryData(['user-profile', undefined], null)
 
       queryClient.clear()
+
+      // Clean up SSE connection state across login boundaries
+      try {
+        const sseClient = getDefaultSSEClient()
+        sseClient.disconnect()
+        sseClient.resetAuthFailure()
+      } catch {
+        // SSE cleanup is best-effort
+      }
     }
 
     // 2. Clear secure storage

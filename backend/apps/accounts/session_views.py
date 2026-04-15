@@ -52,6 +52,12 @@ class SessionListView(APIView):
 
     def get(self, request):
         user_id = str(getattr(request.user, "id", ""))
+        if not user_id:
+            return Response(
+                {"success": False, "error": "Authentication required", "code": "AUTHENTICATION_REQUIRED"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
         sessions = DeviceSession.objects.filter(
             user_id=user_id, is_active=True
         ).order_by("-last_active")
@@ -65,7 +71,7 @@ class SessionListView(APIView):
             }
             for s in sessions
         ]
-        return Response(data)
+        return Response({"success": True, "data": data})
 
 
 @extend_schema_view(

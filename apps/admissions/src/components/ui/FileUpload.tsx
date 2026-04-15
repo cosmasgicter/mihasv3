@@ -234,6 +234,10 @@ function FileUpload({
                 src={preview.url}
                 alt={primaryFile?.name ?? 'Uploaded file preview'}
                 className="h-12 w-12 rounded-md object-cover flex-shrink-0"
+                onError={(e) => {
+                  // Hide broken preview and show file icon fallback
+                  e.currentTarget.style.display = 'none'
+                }}
               />
             ) : (
               <div className="flex-shrink-0">

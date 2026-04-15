@@ -176,7 +176,7 @@ export default function SignUpPage() {
           </>
         }
       >
-        <form className="space-y-6" onSubmit={handleSubmit((data) => signUpMutation.mutate(data))} noValidate>
+        <form className="space-y-6" onSubmit={handleSubmit((data) => signUpMutation.mutate(data))} method="post" noValidate>
           <FormErrorAnnouncer
             errors={errors}
             fieldLabels={{

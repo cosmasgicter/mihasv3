@@ -361,6 +361,10 @@ export function ImagePreview({ file, className }: { file: File, className?: stri
         alt={`Preview of uploaded document: ${file.name}`}
         className="w-full h-full object-cover"
         loading="lazy"
+        onError={(e) => {
+          // Hide broken preview gracefully
+          e.currentTarget.style.display = 'none'
+        }}
       />
     </div>
   )

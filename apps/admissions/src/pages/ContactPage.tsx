@@ -71,7 +71,7 @@ export default function ContactPage() {
               <ArrowLeft className="h-4 w-4" />
               Back to Home
             </Link>
-            <h1 className="text-3xl font-bold sm:text-4xl">Contact Admissions</h1>
+            <h1 className="text-3xl font-bold text-foreground sm:text-4xl">Contact Admissions</h1>
             <p className="mt-3 max-w-2xl text-muted-foreground">
               Reach our admissions team for application help, program guidance, and enrollment support.
             </p>

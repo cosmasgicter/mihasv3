@@ -237,7 +237,7 @@ export default function SignInPage() {
           </div>
         }
       >
-        <form className="space-y-6" onSubmit={handleSubmit((data) => signInMutation.mutate(data))} noValidate>
+        <form className="space-y-6" onSubmit={handleSubmit((data) => signInMutation.mutate(data))} method="post" noValidate>
           <FormErrorAnnouncer errors={errors} fieldLabels={{ email: 'Email', password: 'Password' }} />
           {activeBannerMessage ? (
             <Banner variant="error" dismissible onDismiss={dismissBanner}>

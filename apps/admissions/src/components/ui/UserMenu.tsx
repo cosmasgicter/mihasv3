@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 
 export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false)
+  const [avatarError, setAvatarError] = useState(false)
   const { user } = useAuth()
   const { profile } = useProfileQuery()
   const { signOut, isSigningOut } = useSignOutAction()
@@ -53,11 +54,12 @@ export function UserMenu() {
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        {profile?.avatar_url || user?.user_metadata?.avatar_url ? (
+        {(profile?.avatar_url || user?.user_metadata?.avatar_url) && !avatarError ? (
           <img
             src={profile?.avatar_url || (user?.user_metadata?.avatar_url as string)}
             alt={`Profile photo for ${fullName}`}
             className="w-8 h-8 rounded-full border border-border"
+            onError={() => setAvatarError(true)}
           />
         ) : (
           <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">

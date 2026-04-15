@@ -1,0 +1,126 @@
+# Implementation Plan — ScoutQA Landing Page Fixes
+
+- [x] 1. Write bug condition exploration tests (BEFORE implementing fix)
+  - **Property 1: Bug Condition** — WebP-Native Source Broken Rendering & Contact Header Missing Contrast
+  - **CRITICAL**: These tests MUST FAIL on unfixed code — failure confirms the bugs exist
+  - **DO NOT attempt to fix the tests or the code when they fail**
+  - **NOTE**: These tests encode the expected behavior — they will validate the fixes when they pass after implementation
+  - **GOAL**: Surface counterexamples that demonstrate both bugs exist on the current codebase
+  - **Bug 1 — OptimizedImage WebP-native sources (Scoped PBT)**:
+    - Use fast-check to generate image source paths ending in `.webp` (e.g. `fc.constantFrom('/images/accreditation/GNCLogo.webp', '/images/accreditation/hpc_logobig.webp', '/images/accreditation/eczlogo.webp', '/images/accreditation/unza.webp')`)
+    - For each `.webp` source, render `OptimizedImage` with `width={64} height={64}`
+    - Assert the rendered output does NOT contain a `<picture>` wrapper (expected: plain `<img>` when source is already WebP)
+    - Assert the `<img>` element has `width=64` and `height=64` attributes
+    - Assert no `<source type="image/webp">` element exists (redundant for native WebP)
+    - On UNFIXED code this will FAIL because `OptimizedImage` always wraps in `<picture>` even when `hasWebp` is false and no `<source>` is emitted — confirming the bug
+    - `isBugCondition_WebP(input) := input.src MATCHES /\.webp$/i`
+  - **Bug 2 — Contact page H1 missing text color (Scoped PBT)**:
+    - Render the contact page header section and locate the H1 element
+    - Assert the H1 element has `text-foreground` in its className
+    - On UNFIXED code this will FAIL because the H1 only has `text-3xl font-bold sm:text-4xl` with no explicit color class — confirming the bug
+    - `isBugCondition_Contrast(input) := input.element == "h1" AND NOT input.classList.contains("text-foreground") AND parentHasGradientBackground`
+  - **Expected counterexamples**:
+    - `OptimizedImage` with `.webp` src renders inside `<picture>` with no `<source>`, causing dimension propagation issues
+    - Contact H1 has no `text-foreground` class, only sizing classes `text-3xl font-bold sm:text-4xl`
+  - Run tests on UNFIXED code — expect FAILURE
+  - Document counterexamples found to confirm root cause analysis
+  - Mark task complete when tests are written, run, and failures are documented
+  - Place tests in `apps/admissions/tests/property/scoutqaLandingPageBugCondition.property.test.ts`
+  - _Requirements: 1.1, 1.2, 1.3_
+
+- [x] 2. Write preservation property tests (BEFORE implementing fix)
+  - **Property 2: Preservation** — Non-WebP Image Derivation & Contact Form Styling
+  - **IMPORTANT**: Follow observation-first methodology
+  - **Bug 1 Preservation — Non-WebP source derivation unchanged**:
+    - Observe: render `OptimizedImage` with `src="/images/hero.jpg"` → `<picture>` wraps `<source type="image/webp">` with derived `.webp` path + fallback `<img>` (current correct behavior)
+    - Observe: render `OptimizedImage` with `src="/images/banner.png"` → same `<picture>` + `<source>` + `<img>` structure
+    - Observe: render `OptimizedImage` with error trigger → fallback div renders with broken-image icon and alt text
+    - Use fast-check to generate random image source paths ending in `.jpg`, `.jpeg`, or `.png`
+    - Assert `<picture>` wrapper is present with `<source type="image/webp">` containing the derived WebP path
+    - Assert fallback `<img>` has correct `src`, `width`, `height`, `loading`, and `decoding` attributes
+    - Assert error fallback UI renders correctly when `onError` fires
+  - **Bug 1 Preservation — srcSet generation unchanged**:
+    - Use fast-check to generate random `srcSetWidths` arrays (e.g. `fc.array(fc.integer({min: 100, max: 2048}), {minLength: 1, maxLength: 5})`)
+    - Render `OptimizedImage` with non-WebP source and generated widths
+    - Assert `<source>` srcSet contains width descriptors matching the generated widths
+    - Assert `<img>` srcSet contains width descriptors for the original format
+  - **Bug 2 Preservation — Contact form and accreditation styling unchanged**:
+    - Observe: contact form labels have `text-foreground` class
+    - Observe: contact form inputs have `text-foreground` class
+    - Observe: contact form error messages have `text-destructive` class
+    - Observe: contact page paragraph has `text-muted-foreground` class
+    - Assert all observed color classes remain present after fix
+  - Run tests on UNFIXED code
+  - **EXPECTED OUTCOME**: All preservation tests PASS (confirms baseline behavior to preserve)
+  - Mark task complete when tests are written, run, and passing on unfixed code
+  - Place tests in `apps/admissions/tests/property/scoutqaLandingPagePreservation.property.test.ts`
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
+
+- [x] 3. Fix for WebP-native source rendering and contact header contrast
+
+  - [x] 3.1 Skip `<picture>` wrapper for WebP-native sources in `apps/admissions/src/components/ui/OptimizedImage.tsx`
+    - When `hasWebp` is `false` (source is already `.webp` or has unrecognised extension), render a plain `<img>` element directly instead of wrapping in `<picture>`
+    - The plain `<img>` must use the same `src`, `alt`, `width`, `height`, `loading`, `decoding`, `className`, `onError`, `srcSet`, and spread props as the `<picture>`-wrapped path
+    - When `hasWebp` is `true` (non-WebP source with derived WebP), continue rendering the existing `<picture>` + `<source>` + `<img>` structure unchanged
+    - This eliminates the dimension propagation issue caused by the `<picture>` wrapper when it has no `<source>` children
+    - _Bug_Condition: isBugCondition_WebP(input) where input.src MATCHES /\.webp$/i — derivation regex is no-op, hasWebp=false, no `<source>` emitted_
+    - _Expected_Behavior: WebP-native sources render plain `<img>` with correct width/height attributes, no redundant `<source>` or empty `<picture>` wrapper_
+    - _Preservation: Non-WebP sources (.jpg, .jpeg, .png) continue to render `<picture>` + `<source>` + `<img>` with derived WebP path; error fallback unchanged; srcSet generation unchanged_
+    - _Requirements: 1.1, 1.2, 2.1, 2.2, 3.1, 3.2, 3.5_
+
+  - [x] 3.2 Add `text-foreground` to contact page H1 in `apps/admissions/src/pages/ContactPage.tsx`
+    - Change `className="text-3xl font-bold sm:text-4xl"` to `className="text-3xl font-bold text-foreground sm:text-4xl"` on the H1 element
+    - This ensures explicit high-contrast color on the gradient background (`bg-gradient-to-br from-primary/10 via-background to-secondary/10`)
+    - No changes to the paragraph (already has `text-muted-foreground`) or any other elements
+    - _Bug_Condition: isBugCondition_Contrast(input) where element="h1" AND hasExplicitColor=false AND parentHasGradientBackground=true_
+    - _Expected_Behavior: H1 has explicit `text-foreground` class ensuring ≥4.5:1 contrast against all gradient positions_
+    - _Preservation: Contact form inputs, labels, error messages retain their current text-foreground, text-muted-foreground, text-destructive classes; AccreditationSection card text styling unchanged_
+    - _Requirements: 1.3, 1.4, 2.3, 2.4, 3.3, 3.4_
+
+  - [x] 3.3 Verify bug condition exploration tests now pass
+    - **Property 1: Expected Behavior** — WebP-Native Plain `<img>` & Contact H1 Contrast
+    - **IMPORTANT**: Re-run the SAME tests from task 1 — do NOT write new tests
+    - The tests from task 1 encode the expected behavior for both bugs
+    - When these tests pass, it confirms:
+      - `OptimizedImage` with `.webp` source renders plain `<img>` without `<picture>` wrapper
+      - `<img>` has correct `width` and `height` attributes
+      - No redundant `<source type="image/webp">` element exists
+      - Contact H1 has `text-foreground` class
+    - Run bug condition exploration tests from step 1
+    - **EXPECTED OUTCOME**: Tests PASS (confirms both bugs are fixed)
+    - _Requirements: 2.1, 2.2, 2.3, 2.4_
+
+  - [x] 3.4 Verify preservation tests still pass
+    - **Property 2: Preservation** — Non-WebP Image Derivation & Contact Form Styling
+    - **IMPORTANT**: Re-run the SAME tests from task 2 — do NOT write new tests
+    - Run preservation property tests from step 2
+    - **EXPECTED OUTCOME**: Tests PASS (confirms no regressions)
+    - Confirm non-WebP sources still render `<picture>` + `<source>` + `<img>` with derived WebP path
+    - Confirm srcSet generation is unchanged for non-WebP sources
+    - Confirm error fallback UI is unchanged
+    - Confirm contact form and accreditation text styling is unchanged
+
+- [x] 4. Write unit tests for both fixes
+  - **OptimizedImage WebP-native unit tests** in `apps/admissions/tests/unit/optimizedImageWebpNative.test.ts`:
+    - Test `OptimizedImage` with `.webp` src renders plain `<img>` (no `<picture>` wrapper)
+    - Test `OptimizedImage` with `.webp` src has correct `width` and `height` attributes
+    - Test `OptimizedImage` with `.webp` src has no `<source type="image/webp">` element
+    - Test `OptimizedImage` with `.webp` src preserves `loading="lazy"` and `decoding="async"`
+    - Test `OptimizedImage` with `.webp` src and `lazy={false}` renders `loading="eager"`
+    - Test `OptimizedImage` with `.jpg` src still renders `<picture>` + `<source>` + `<img>`
+    - Test `OptimizedImage` with `.png` src still renders `<picture>` + `<source>` + `<img>`
+    - Test `OptimizedImage` with explicit `webpSrc` prop still renders `<picture>` + `<source>` + `<img>`
+    - Test `OptimizedImage` error fallback renders correctly for `.webp` sources
+  - **Contact page contrast unit tests** in `apps/admissions/tests/unit/contactPageContrast.test.ts`:
+    - Test contact page H1 has `text-foreground` class
+    - Test contact page H1 still has `text-3xl font-bold sm:text-4xl` sizing classes
+    - Test contact page paragraph retains `text-muted-foreground` class
+    - Test contact form labels retain `text-foreground` class
+    - Test contact form error messages retain `text-destructive` class
+  - _Requirements: 2.1, 2.2, 2.3, 2.4, 3.1, 3.3, 3.4_
+
+- [x] 5. Checkpoint — Ensure all tests pass
+  - Run `cd apps/admissions && bun run test` to verify all new and existing tests pass
+  - Run `cd apps/admissions && bun run lint` to verify no lint regressions
+  - Run `cd apps/admissions && bun run build` to verify production build succeeds
+  - Ensure all tests pass, ask the user if questions arise

@@ -8,6 +8,7 @@ import csv
 import hashlib
 import io
 import logging
+import re
 import uuid
 
 from django.db import transaction
@@ -1087,14 +1088,32 @@ class ApplicationTrackView(APIView):
     authentication_classes = []
     serializer_class = ApplicationTrackingSerializer
 
+    TRACKING_CODE_PATTERN = re.compile(r"^(APP-\d{8}-[A-Z0-9]{8}|TRK-[A-Z0-9]{12})$")
+
     def get(self, request):
         code = request.query_params.get("code", "").strip()
         if not code:
             return Response({"success": False, "error": "Tracking code or application number required", "code": "VALIDATION_ERROR"}, status=status.HTTP_400_BAD_REQUEST)
+        if not self.TRACKING_CODE_PATTERN.match(code):
+            return Response(
+                {
+                    "success": False,
+                    "error": "Invalid tracking code format. Expected formats: APP-YYYYMMDD-XXXXXXXX or TRK-XXXXXXXXXXXX.",
+                    "code": "INVALID_FORMAT",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         try:
             app = Application.objects.get(Q(application_number=code) | Q(public_tracking_code=code))
         except Application.DoesNotExist:
-            return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {
+                    "success": False,
+                    "error": "No application found for the provided tracking code. Please verify the code and try again.",
+                    "code": "NOT_FOUND",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
         return Response(ApplicationTrackingSerializer(app).data)
 
 
