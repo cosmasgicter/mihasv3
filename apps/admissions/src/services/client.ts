@@ -717,7 +717,7 @@ class ApiClient {
         // 401 intercept-refresh-retry: attempt a single token refresh and retry
         // Exclude auth endpoints that would cause infinite loops
         if (response.status === 401 && !this.isAuthExcludedEndpoint(normalizedEndpoint)) {
-          logger.warn('[API Client] 401 Unauthorized - attempting token refresh');
+          console.debug('[API Client] 401 Unauthorized - attempting token refresh');
           const refreshed = await this.attemptRefresh();
 
           if (refreshed) {
@@ -770,7 +770,7 @@ class ApiClient {
 
         // Handle 401 on excluded auth endpoints (no refresh attempt)
         if (response.status === 401) {
-          logger.warn('[API Client] 401 on auth endpoint - no refresh attempt');
+          console.debug('[API Client] 401 on auth endpoint - no refresh attempt');
         }
 
         // 403 CSRF intercept-retry: re-fetch CSRF token and retry once
@@ -842,7 +842,7 @@ class ApiClient {
             (method === 'GET' && errorCode !== 'CSRF_INVALID' && errorCode !== 'CSRF_MISSING' && errorCode !== 'CSRF_VALIDATION_FAILED')
           )
         ) {
-          logger.warn('[API Client] 403 auth-related error - attempting token refresh');
+          console.debug('[API Client] 403 auth-related error - attempting token refresh');
           const refreshed = await this.attemptRefresh();
 
           if (refreshed) {
@@ -968,7 +968,7 @@ class ApiClient {
         method === 'GET' &&
         !this.isAuthExcludedEndpoint(normalizedEndpoint)
       ) {
-        logger.warn('[API Client] 403 on GET (via cache layer) - attempting token refresh');
+        console.debug('[API Client] 403 on GET (via cache layer) - attempting token refresh');
         const refreshed = await this.attemptRefresh();
 
         if (refreshed) {

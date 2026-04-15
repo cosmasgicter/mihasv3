@@ -233,8 +233,20 @@ export const applicationService = {
         method: 'DELETE'
       })
     } catch (error) {
-      // 404 means already deleted — treat as success (idempotent delete)
-      if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 404) {
+      // 404 means already deleted — treat as success (idempotent delete).
+      // Primary check: .status === 404 (preserved by ApiErrorHandler.enhanceError).
+      // Fallback: match error message for "not found" in case a future refactor
+      // strips .status from the enhanced error object.
+      const status = (error as { status?: number })?.status
+      if (status === 404) {
+        return { success: true }
+      }
+      const message = error instanceof Error ? error.message.toLowerCase() : ''
+      if (
+        message.includes('resource not found') ||
+        message.includes('application not found') ||
+        message.includes('not found or access denied')
+      ) {
         return { success: true }
       }
       throw error
