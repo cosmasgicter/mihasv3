@@ -30,13 +30,20 @@ class DocumentIntelligence:
     REQUIRED_DOC_TYPES = {"nrc", "passport", "result_slip"}
 
     def compute_completeness(self, application) -> CompletenessResult:
-        from apps.documents.models import ApplicationDocument, ApplicationGrade
+        """Compute completeness score. Uses prefetched sets if available to avoid N+1."""
+        # Use prefetched sets if available, otherwise fallback to queryset
+        if hasattr(application, '_prefetched_objects_cache') and 'applicationdocument_set' in application._prefetched_objects_cache:
+            docs = list(application.applicationdocument_set.all())
+        else:
+            docs = list(application.applicationdocument_set.all())
 
-        docs = ApplicationDocument.objects.filter(application_id=application.id)
-        grades = ApplicationGrade.objects.filter(application_id=application.id)
+        if hasattr(application, '_prefetched_objects_cache') and 'applicationgrade_set' in application._prefetched_objects_cache:
+            grades = list(application.applicationgrade_set.all())
+        else:
+            grades = list(application.applicationgrade_set.all())
 
         # Document score (40% weight)
-        uploaded_types = set(docs.values_list("document_type", flat=True))
+        uploaded_types = {doc.document_type for doc in docs}
         doc_ratio = len(uploaded_types & self.REQUIRED_DOC_TYPES) / len(self.REQUIRED_DOC_TYPES)
         document_score = round(doc_ratio * 100)
 
@@ -57,7 +64,7 @@ class DocumentIntelligence:
             consistency_score = round(avg_match * 100)
 
         # Grade score (30% weight)
-        grade_count = grades.count()
+        grade_count = len(grades)
         grade_score = min(100, round((grade_count / 5) * 100))  # 5 subjects = 100%
 
         total = round(document_score * 0.4 + consistency_score * 0.3 + grade_score * 0.3)

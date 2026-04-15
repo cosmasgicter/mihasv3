@@ -67,7 +67,9 @@ class SecurityHeadersMiddleware:
             "base-uri 'self'"
         )
         if hasattr(request, "user") and request.user.is_authenticated:
-            response["Cache-Control"] = "no-store, private"
+            response["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
+            response["Pragma"] = "no-cache"
+            response["Expires"] = "0"
         return response
 
 
