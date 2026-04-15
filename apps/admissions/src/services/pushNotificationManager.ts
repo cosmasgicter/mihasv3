@@ -2,6 +2,15 @@ import { apiClient } from '@/services/client'
 import { logApiError } from '@/lib/apiErrorLogger'
 
 /**
+ * @deprecated This module is dead code. Push notifications depend on a service worker
+ * registration that was removed as part of the PWA cleanup (vite-plugin-pwa removal).
+ * Without an active service worker, `initialize()` will always return `false` and
+ * `PushManager` subscriptions cannot be created.
+ *
+ * TODO: Remove this file entirely once all references are confirmed unused.
+ * See: production-stability-hardening spec, Requirement 6.2.
+ *
+ * Original description:
  * Push Notification Manager
  * Handles push notifications for mobile devices with scheduling and delivery tracking
  * Requirements: 9.4 - Enable push notifications, add scheduling and delivery tracking, implement preferences

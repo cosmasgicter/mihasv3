@@ -207,8 +207,8 @@ class TestInstitutionIdentifierCanonicalization(SimpleTestCase):
         with patch(
             "apps.applications.identifier_resolver.Institution.objects"
         ) as mock_qs:
-            # All lookups miss
-            mock_qs.filter.return_value.first.side_effect = [None, None, None]
+            # All lookups miss (code, name, full_name, name_icontains)
+            mock_qs.filter.return_value.first.side_effect = [None, None, None, None]
 
             result = IdentifierResolver.resolve_institution(value)
 
@@ -344,7 +344,8 @@ class TestProgramIdentifierResolution(SimpleTestCase):
         with patch(
             "apps.applications.identifier_resolver.Program.objects"
         ) as mock_qs:
-            mock_qs.filter.return_value.first.side_effect = [None, None]
+            # All lookups miss (name, code, name_icontains)
+            mock_qs.filter.return_value.first.side_effect = [None, None, None]
 
             result = IdentifierResolver.resolve_program(value)
 
