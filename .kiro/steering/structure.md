@@ -45,6 +45,9 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `apps/admissions/src/services/` | API-facing and domain services |
 | `apps/admissions/src/lib/` | Canonical frontend helpers and infrastructure |
 | `apps/admissions/src/lib/api/` | API-specific helpers still used by some flows |
+| `apps/admissions/src/lib/speculativePrefetch.ts` | Instagram-style predictive data loading (login, dashboard, wizard) |
+| `apps/admissions/src/lib/sseClient.ts` | Robust SSE client with rapid-failure detection and polling fallback |
+| `apps/admissions/src/lib/routePreload.ts` | Route chunk preloading (auth, student, admin workspaces) |
 | `apps/admissions/tests/` | Unit, integration, and property tests |
 
 ### Admissions High-Risk Flow Paths
@@ -119,7 +122,7 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 |------|---------|
 | `backend/apps/accounts/` | Auth, sessions, admin user management |
 | `backend/apps/applications/` | Admissions application domain |
-| `backend/apps/catalog/` | Programs, intakes, subjects, institutions |
+| `backend/apps/catalog/` | Programs, intakes, subjects, institutions, intake automation |
 | `backend/apps/documents/` | Documents, OCR, payment-related endpoints |
 | `backend/apps/common/` | Shared middleware, renderers, health, notifications, error monitoring, shared jobs-ops seed data |
 | `backend/apps/jobs/` | Jobs and job-application APIs |
@@ -167,6 +170,15 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `apps/admissions/src/lib/errorReporter.ts` | Frontend error reporter — captures `window.onerror` and unhandled rejections, batches and POSTs to `/api/v1/errors/report/` |
 | `backend/scripts/create_error_logs_table.sql` | SQL migration script to create the `error_logs` table (used instead of Django migrations because `managed = False`) |
 | `docs/runbooks/secrets-rotation.md` | Runbook for rotating production secrets (JWT key, DB credentials, API keys) |
+
+### Files Added During Production Stability Hardening
+
+| Path | Purpose |
+|------|---------|
+| `backend/apps/catalog/intake_date_computer.py` | Pure functions for computing intake dates (11-month lead, 2-month deadline) |
+| `backend/apps/catalog/tasks.py` | `intake_manager_task` Celery task — ensures ≥2 open intakes exist |
+| `backend/apps/catalog/management/commands/manage_intakes.py` | Management command wrapper for `intake_manager_task` |
+| `apps/admissions/src/lib/speculativePrefetch.ts` | Speculative prefetch triggers (email blur, login success, dashboard mount) |
 
 ## Testing Layout
 
