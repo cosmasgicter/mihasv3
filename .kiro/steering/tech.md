@@ -121,11 +121,13 @@ The frontend and backend share a single, unified API contract. There is no compa
 
 ## Response And Auth Conventions
 
-- The platform uses the `{"success": true, "data": ...}` envelope for API responses handled through DRF renderers.
+- The platform uses the `{"success": true, "data": ...}` envelope for API responses handled through DRF renderers. All authenticated list endpoints (including `GET /api/v1/sessions/`) must use this envelope format.
 - Paginated responses use `{page, pageSize, totalCount, results}` inside the `data` envelope.
 - Auth remains cookie-based for the main backend auth stack.
 - Access tokens have a 30-minute lifetime; refresh tokens last 7 days with JTI blacklisting via Redis.
+- Token refresh (`POST /api/v1/auth/refresh/`) uses distinct error codes: `NO_REFRESH_TOKEN` when the cookie is missing, `TOKEN_EXPIRED` for expired/blacklisted/invalid tokens. Frontend can differentiate between configuration issues and token expiry.
 - CSRF is required for state-changing requests in authenticated flows.
+- Application tracking (`GET /api/v1/applications/track/`) validates code format against `APP-YYYYMMDD-XXXXXXXX` or `TRK-XXXXXXXXXXXX` patterns, returning 400 with `INVALID_FORMAT` for bad formats and descriptive 404 messages for valid-format codes not found.
 - Jobs-ops currently exposes public read-oriented scaffold routes for some surfaces while keeping risky write actions authenticated and policy-gated.
 
 ## Conventions For New Code
@@ -141,7 +143,11 @@ The frontend and backend share a single, unified API contract. There is no compa
 - Student authenticated pages should prefer the canonical UI primitives already in the repo: `PageShell`, `SectionCard`, `ErrorDisplay`, `EmptyState`, and `Button asChild` for semantic links.
 - Student forms that can lose work, especially settings and wizard-related screens, should protect dirty state on navigation and `beforeunload`.
 - Use speculative prefetching (`src/lib/speculativePrefetch.ts`) for predictive data loading — prefetch catalog data on login success, wizard chunks on dashboard mount.
-- SSE connections use `src/lib/sseClient.ts` with rapid-failure detection and automatic polling fallback. Do not add new SSE reconnection logic outside this client.
+- SSE connections use `src/lib/sseClient.ts` with rapid-failure detection and automatic polling fallback. Do not add new SSE reconnection logic outside this client. The `signOut` flow in `useSessionListener.ts` calls `disconnect()` and `resetAuthFailure()` on the SSE singleton to prevent stale auth state across login boundaries.
+- `ErrorDisplay` returns `null` for empty or whitespace-only `message` props. Do not render `role="alert"` elements without meaningful content.
+- All content images (campus photos, badges, logos) must use `OptimizedImage` or have an `onError` handler with a visible fallback. Raw `<img>` tags without error handling are not acceptable for content images.
+- Font fallback chain in `tailwind.config.js` uses the full Tailwind default sans-serif stack with Inter prepended: `['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', '"Noto Sans"', 'sans-serif']`. Do not reduce this chain.
+- Auth form pages (`SignInPage`, `SignUpPage`, `ForgotPasswordPage`, `ResetPasswordPage`) must use proper `autocomplete`, `inputMode`, and `type` attributes on all form fields for browser autofill and mobile keyboard support.
 - PWA dependencies (`vite-plugin-pwa`, `workbox-*`) have been fully removed. The one-time SW unregistration block in `main.tsx` must be retained for 90 days (until July 2026).
 
 ### Backend
@@ -295,3 +301,5 @@ A runbook for rotating production secrets lives at `docs/runbooks/secrets-rotati
 - Run jobs-ops type-check, lint, and build when you change `apps/jobs-ops`.
 - Regenerate the schema after backend API changes.
 - Keep steering files aligned with the actual repo state.
+- When modifying `ErrorDisplay`, `Settings.tsx`, `sseClient.ts`, `useSessionListener.ts`, `session_views.py`, `RefreshView`, or `ApplicationTrackView`, re-run the corresponding audit production fix tests to verify no regressions.
+- Backend endpoints that return lists must use the `{"success": true, "data": [...]}` envelope format. Do not return raw lists from authenticated endpoints.

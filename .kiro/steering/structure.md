@@ -180,14 +180,34 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `backend/apps/catalog/management/commands/manage_intakes.py` | Management command wrapper for `intake_manager_task` |
 | `apps/admissions/src/lib/speculativePrefetch.ts` | Speculative prefetch triggers (email blur, login success, dashboard mount) |
 
+### Files Added During Production Audit Fixes
+
+| Path | Purpose |
+|------|---------|
+| `apps/admissions/tests/property/auditProductionBugCondition.property.test.ts` | Bug condition exploration tests — Settings isDirty, ErrorDisplay empty alert, SSE logout, font chain |
+| `apps/admissions/tests/property/auditProductionPreservation.property.test.ts` | Preservation tests — dirty detection, validation errors, real errors, SSE reconnection, image fallback |
+| `apps/admissions/tests/property/auditProductionFixValidation.property.test.ts` | Property-based fix validation — Settings reset merge, ErrorDisplay rendering (fast-check) |
+| `apps/admissions/tests/property/authFormsAuditBugCondition.property.test.ts` | Auth forms bug condition tests — autocomplete, inputmode, form attributes |
+| `apps/admissions/tests/property/authFormsAuditPreservation.property.test.ts` | Auth forms preservation tests — existing form behavior |
+| `apps/admissions/tests/property/scoutqaLandingPageBugCondition.property.test.ts` | ScoutQA landing page bug condition tests |
+| `apps/admissions/tests/property/scoutqaLandingPagePreservation.property.test.ts` | ScoutQA landing page preservation tests |
+| `apps/admissions/tests/unit/authFormAttributes.test.ts` | Auth form HTML attribute validation tests |
+| `apps/admissions/tests/unit/authLayoutMobileOverflow.test.ts` | Auth layout mobile overflow tests |
+| `apps/admissions/tests/unit/contactPageContrast.test.ts` | Contact page color contrast tests |
+| `apps/admissions/tests/unit/optimizedImageWebpNative.test.ts` | OptimizedImage WebP native support tests |
+| `backend/tests/unit/test_audit_production_bug_conditions.py` | Backend bug condition tests — sessions envelope, refresh error code, tracking format |
+| `backend/tests/unit/test_audit_production_preservation.py` | Backend preservation tests — sessions data shape, revoke, refresh, tracking |
+| `backend/tests/property/test_audit_production_properties.py` | Backend property-based tests — tracking format validation, sessions envelope (hypothesis) |
+
 ## Testing Layout
 
 | Area | Location | Notes |
 |------|----------|-------|
-| Admissions frontend tests | `apps/admissions/tests/` | Existing unit/integration/property coverage |
+| Admissions frontend tests | `apps/admissions/tests/` | Unit, integration, and property coverage including audit fix validation |
+| Admissions property tests | `apps/admissions/tests/property/` | fast-check property-based tests for bug conditions, preservation, and fix validation |
 | Jobs Ops frontend validation | `apps/jobs-ops` commands | Type-check, lint, and build are current quality gates |
-| Backend unit tests | `backend/tests/unit/` | Includes admissions and jobs-ops endpoint coverage |
-| Backend property tests | `backend/tests/property/` | Schema, middleware, validation, migration invariants |
+| Backend unit tests | `backend/tests/unit/` | Includes admissions, jobs-ops, and audit production fix coverage |
+| Backend property tests | `backend/tests/property/` | Schema, middleware, validation, migration invariants, audit fix validation (hypothesis) |
 | Browser automation tests | Monorepo root or app-local | Stagehand for AI-driven E2E; Playwright for deterministic flows |
 
 ## Current Migration-Sensitive Facts

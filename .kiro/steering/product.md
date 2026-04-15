@@ -51,7 +51,10 @@ The platform uses self-hosted error monitoring with no third-party tracker (no S
 - Student payment outside the wizard is read-only. `/student/payment` is a history and guidance surface, not a payment entry form.
 - Student interview lists should be loaded through the single-query endpoint `GET /api/v1/applications/interviews/?mine=true` rather than one request per application.
 - Student-facing payment reads must normalize legacy `verified` and newer `paid` / `successful` states consistently.
-- Profile and settings forms must protect unsaved edits before navigation and provide accessible inline save feedback in addition to toast notifications.
+- Profile and settings forms must protect unsaved edits before navigation and provide accessible inline save feedback in addition to toast notifications. The Settings `onSubmit` handler uses explicit field-by-field merge with null-safe fallbacks in `reset()` to prevent isDirty persistence after save.
+- Application tracking (`GET /api/v1/applications/track/`) validates code format (`APP-YYYYMMDD-XXXXXXXX` or `TRK-XXXXXXXXXXXX`) and returns actionable error messages — 400 with format guidance for invalid formats, descriptive 404 for valid-format codes not found.
+- Sessions list (`GET /api/v1/sessions/`) uses the standard `{"success": true, "data": [...]}` envelope and validates user_id before querying.
+- Token refresh (`POST /api/v1/auth/refresh/`) returns `NO_REFRESH_TOKEN` error code when the cookie is missing, distinct from `TOKEN_EXPIRED` for expired/blacklisted tokens.
 
 ### Jobs Ops
 
