@@ -2,28 +2,40 @@
   "mcpServers": {
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "./"
+      ],
       "env": {},
       "disabled": false,
       "autoApprove": []
     },
     "fetch": {
       "command": "C:\\Users\\Cosma\\AppData\\Roaming\\Python\\Python314\\Scripts\\uvx.exe",
-      "args": ["mcp-server-fetch"],
+      "args": [
+        "mcp-server-fetch"
+      ],
       "env": {},
       "disabled": false,
       "autoApprove": []
     },
     "memory": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
       "env": {},
       "disabled": false,
       "autoApprove": []
     },
     "chrome-devtools": {
       "command": "npx",
-      "args": ["-y", "chrome-devtools-mcp@latest"],
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest"
+      ],
       "env": {
         "CHROME_REMOTE_DEBUGGING_PORT": "9222"
       },
@@ -32,21 +44,32 @@
     },
     "playwright": {
       "command": "npx",
-      "args": ["-y", "@playwright/mcp"],
+      "args": [
+        "-y",
+        "@playwright/mcp"
+      ],
       "env": {},
       "disabled": false,
       "autoApprove": []
     },
     "sqlite": {
       "command": "C:\\Users\\Cosma\\AppData\\Roaming\\Python\\Python314\\Scripts\\uvx.exe",
-      "args": ["mcp-server-sqlite", "--db-path", "./database.db"],
+      "args": [
+        "mcp-server-sqlite",
+        "--db-path",
+        "./database.db"
+      ],
       "env": {},
       "disabled": false,
       "autoApprove": []
     },
     "shadcn": {
       "command": "npx",
-      "args": ["-y", "shadcn@latest", "mcp"],
+      "args": [
+        "-y",
+        "shadcn@latest",
+        "mcp"
+      ],
       "env": {},
       "disabled": false,
       "autoApprove": []
@@ -61,7 +84,10 @@
     },
     "github": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": ""
       },
@@ -70,7 +96,9 @@
     },
     "brave-search": {
       "command": "C:\\Users\\Cosma\\AppData\\Roaming\\Python\\Python314\\Scripts\\uvx.exe",
-      "args": ["mcp-server-brave-search"],
+      "args": [
+        "mcp-server-brave-search"
+      ],
       "env": {
         "BRAVE_API_KEY": ""
       },
@@ -79,27 +107,28 @@
     },
     "neon": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.neon.tech/sse"],
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://mcp.neon.tech/sse"
+      ],
       "env": {},
       "disabled": false,
-      "autoApprove": ["list_projects", "list_branches", "list_databases", "run_sql"]
-    },
-    "supabase": {
-      "url": "https://mcp.supabase.com/mcp",
-      "disabled": true,
-      "autoApprove": []
+      "autoApprove": [
+        "list_projects",
+        "list_branches",
+        "list_databases",
+        "run_sql"
+      ]
     }
   },
   "powers": {
     "mcpServers": {
-      "power-supabase-hosted-supabase": {
-        "url": "https://mcp.supabase.com/mcp",
-        "disabled": true,
-        "autoApprove": ["apply_migration", "list_tables", "list_projects", "execute_sql"]
-      },
       "power-strands-strands-agents": {
         "command": "uvx",
-        "args": ["strands-agents-mcp-server"],
+        "args": [
+          "strands-agents-mcp-server"
+        ],
         "env": {
           "FASTMCP_LOG_LEVEL": "INFO"
         },
@@ -107,12 +136,18 @@
       },
       "power-aws-agentcore-agentcore-mcp-server": {
         "command": "uvx",
-        "args": ["awslabs.amazon-bedrock-agentcore-mcp-server@latest"],
+        "args": [
+          "awslabs.amazon-bedrock-agentcore-mcp-server@latest"
+        ],
         "disabled": true
       },
       "power-neon-Neon": {
         "command": "npx",
-        "args": ["-y", "mcp-remote", "https://mcp.neon.tech/sse"],
+        "args": [
+          "-y",
+          "mcp-remote",
+          "https://mcp.neon.tech/sse"
+        ],
         "disabled": false,
         "autoApprove": []
       }
