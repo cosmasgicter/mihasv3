@@ -20,6 +20,7 @@ import { Seo } from '@/components/seo/Seo';
 import { isAdminRole } from '@/lib/auth/roles';
 import { logApiError } from '@/lib/apiErrorLogger';
 import { preloadPostAuthWorkspace } from '@/lib/routePreload';
+import { onSignInEmailBlur, onLoginSuccess } from '@/lib/speculativePrefetch';
 
 const ADMIN_REDIRECT_ALLOWLIST = [
   '/admin/dashboard',
@@ -109,6 +110,12 @@ export default function SignInPage() {
     resolver: zodResolver(signInSchema),
   });
 
+  const emailRegistration = register('email');
+  const emailOnBlur: React.FocusEventHandler<HTMLInputElement> = (e) => {
+    onSignInEmailBlur();
+    emailRegistration.onBlur(e);
+  };
+
   const signInMutation = useMutation({
     mutationFn: async (data: SignInForm) => {
       const result = await signIn(data.email, data.password);
@@ -131,6 +138,7 @@ export default function SignInPage() {
       const role = result?.user?.role;
       const requestedRedirect = fromState || redirectFromQuery || storedRedirect;
       const redirectTo = getRoleSafeRedirectPath({ requestedRedirect, role });
+      onLoginSuccess(result, role ?? undefined);
       void preloadPostAuthWorkspace(isAdminRole(role));
 
       if (typeof window !== 'undefined') {
@@ -241,7 +249,8 @@ export default function SignInPage() {
             <legend className="text-sm font-semibold text-foreground">Applicant sign-in details</legend>
 
             <Input
-              {...register('email')}
+              {...emailRegistration}
+              onBlur={emailOnBlur}
               type="email"
               label="Account email"
               error={errors.email?.message || serverFieldErrors.email}

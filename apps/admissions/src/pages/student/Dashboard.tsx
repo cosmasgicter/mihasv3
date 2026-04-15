@@ -42,6 +42,7 @@ import { requiresStudentPaymentAction } from '@/lib/paymentStatus'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { getDefaultSSEClient } from '@/lib/sseClient'
 import { DashboardSkeleton } from '@/components/ui'
+import { onDashboardMount } from '@/lib/speculativePrefetch'
 
 /** Check if a rejected promise reason is a 403 Forbidden error */
 function is403Error(error: unknown): boolean {
@@ -58,6 +59,12 @@ export default function StudentDashboard() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { profile } = useProfileQuery()
+
+  // Speculative prefetch: preload catalog data + wizard chunk during idle time
+  useEffect(() => {
+    onDashboardMount()
+  }, [])
+
   const [applications, setApplications] = useState<Application[]>([])
   const [intakes, setIntakes] = useState<Intake[]>([])
   const [isInitialLoading, setIsInitialLoading] = useState(true)

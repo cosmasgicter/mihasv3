@@ -27,6 +27,7 @@ import { configureApiClientAuthFailure } from '@/services/client'
 import { clearCsrfToken } from '@/lib/csrfToken'
 import { secureStorage } from '@/lib/secureStorage'
 import { useAuthBroadcast } from '@/lib/authBroadcast'
+import { resetPrefetchState } from '@/lib/speculativePrefetch'
 
 interface AuthContextType {
   user: User | null
@@ -64,6 +65,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       queryClient.clear()
       // Clear CSRF token
       clearCsrfToken()
+      // Clear speculative prefetch state so it re-runs on next login
+      resetPrefetchState()
       // Clear secure storage (best-effort, fire-and-forget)
       secureStorage.clearSession().catch(() => {})
       // Redirect to sign-in
