@@ -23,6 +23,7 @@
     <meta name="twitter:image" content="https://apply.mihas.edu.zm/images/og-image.png" />
 
     <!-- Performance: Preconnect to critical origins -->
+    <link rel="preconnect" href="https://api.mihas.edu.zm" crossorigin />
     <!-- Supabase preconnect removed - fully migrated to Neon Postgres -->
 
     <!-- 
@@ -48,7 +49,7 @@
 
     <title>MIHAS Application System</title>
 
-    <!-- Preloader styles (inline so they render before any JS) -->
+    <!-- Preloader styles — dark 3-dots floating loader (inline, renders before JS) -->
     <style>
       .preloader {
         position: fixed;
@@ -58,8 +59,8 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background: #fff;
-        transition: opacity 0.18s ease;
+        background: #0a0a0a;
+        transition: opacity 0.3s ease;
       }
       .preloader.fade-out {
         opacity: 0;
@@ -67,41 +68,36 @@
       }
       .preloader-dots {
         display: flex;
-        gap: 8px;
+        align-items: center;
+        gap: 12px;
       }
       .preloader-dots span {
-        width: 12px;
-        height: 12px;
+        width: 14px;
+        height: 14px;
         border-radius: 50%;
-        background: #2563eb;
-        animation: preloader-bounce 1.4s ease-in-out infinite both;
+        background: #e5e5e5;
+        animation: preloader-float 1.4s ease-in-out infinite;
       }
-      .preloader-dots span:nth-child(1) { animation-delay: -0.32s; }
-      .preloader-dots span:nth-child(2) { animation-delay: -0.16s; }
-      .preloader-dots span:nth-child(3) { animation-delay: 0s; }
-      @keyframes preloader-bounce {
-        0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
-        40% { transform: scale(1); opacity: 1; }
+      .preloader-dots span:nth-child(1) { animation-delay: 0s; }
+      .preloader-dots span:nth-child(2) { animation-delay: 0.16s; }
+      .preloader-dots span:nth-child(3) { animation-delay: 0.32s; }
+      @keyframes preloader-float {
+        0%, 100% { transform: translateY(0); opacity: 0.4; }
+        50% { transform: translateY(-12px); opacity: 1; }
       }
       .preloader-slow {
-        margin-top: 24px;
+        margin-top: 32px;
         font-family: system-ui, -apple-system, sans-serif;
         font-size: 14px;
-        color: #64748b;
+        color: #737373;
         text-align: center;
       }
       .preloader-slow a {
-        color: #2563eb;
+        color: #a3a3a3;
         text-decoration: underline;
       }
       @media (prefers-reduced-motion: reduce) {
-        .preloader-dots { display: none; }
-        .preloader::before {
-          content: "Loading\2026";
-          font-family: system-ui, -apple-system, sans-serif;
-          font-size: 16px;
-          color: #64748b;
-        }
+        .preloader-dots span { animation: none; opacity: 0.7; }
       }
     </style>
 
@@ -126,7 +122,7 @@
         var t = setTimeout(function() {
           var el = document.getElementById('preloader-slow');
           if (el) el.hidden = false;
-        }, 10000);
+        }, 5000);
         window.__preloaderTimeout = t;
       })();
     </script>

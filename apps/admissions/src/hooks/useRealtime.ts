@@ -345,6 +345,13 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
           setIsReconnecting(false)
           sseFailedRef.current = true
           startPolling()
+        } else if (err.message.includes('rapid_failure_fallback')) {
+          console.log('[useRealtime] Rapid SSE failures detected (likely QUIC issue), falling back to polling')
+          setStatus('polling')
+          setError(null)
+          setIsReconnecting(false)
+          sseFailedRef.current = true
+          startPolling()
         } else {
           // Only set error state for non-fallback failures
           setError(err.message)
@@ -394,6 +401,21 @@ export function useRealtime(options: UseRealtimeOptions = {}): UseRealtimeReturn
       dispatchEvent(sseEvent)
     })
     unsubscribersRef.current.push(messageUnsub)
+
+    // Subscribe to SSE client 'error' events for rapid_failure_fallback
+    const errorUnsub = client.subscribe('error', (data: unknown) => {
+      if (!mountedRef.current) return
+      const errorData = data as { type?: string } | null
+      if (errorData?.type === 'rapid_failure_fallback') {
+        console.log('[useRealtime] SSE error event: rapid_failure_fallback, starting polling')
+        setStatus('polling')
+        setError(null)
+        setIsReconnecting(false)
+        sseFailedRef.current = true
+        startPolling()
+      }
+    })
+    unsubscribersRef.current.push(errorUnsub)
 
     // Connect
     client.connect()
