@@ -460,6 +460,9 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
           if (rapidFailureCount >= 2) {
             scheduleReconnect();
           } else {
+            // Guard: a concurrent probe callback may have set authFailed
+            // between the outer check and this point — bail out early.
+            if (authFailed) return;
             // Probe the endpoint with a HEAD request to detect auth failures
             // EventSource.onerror does not expose HTTP status codes
             probeEndpointForAuth().then((probeStatus) => {
