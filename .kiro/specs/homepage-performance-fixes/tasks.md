@@ -1,0 +1,125 @@
+# Implementation Plan — Homepage Performance Fixes
+
+- [x] 1. Write bug condition exploration tests (BEFORE implementing fix)
+  - **Property 1: Bug Condition** — Eager Dashboard Prefetch on Marketing Routes & Logo 0×0 Rendering
+  - **CRITICAL**: These tests MUST FAIL on unfixed code — failure confirms the bugs exist
+  - **DO NOT attempt to fix the tests or the code when they fail**
+  - **NOTE**: These tests encode the expected behavior — they will validate the fixes when they pass after implementation
+  - **GOAL**: Surface counterexamples that demonstrate both bugs exist on the current codebase
+  - **Bug 1 — RoutePrefetcher (Scoped PBT)**:
+    - Use fast-check to generate marketing route pathnames from the known set (`/`, `/404`, `/contact`, `/privacy`, `/terms`, `/track-application`)
+    - For each pathname, render `RoutePrefetcher` with `isMarketingRoute={true}`, advance fake timers by 4000ms
+    - Assert `import('@/pages/student/Dashboard')` is NOT called (expected behavior)
+    - On UNFIXED code this will FAIL because `RoutePrefetcher` ignores the prop / doesn't accept it yet — confirming the bug
+    - `isBugCondition_Prefetch(input) := isMarketingPublicRoute(input.pathname)`
+  - **Bug 2 — OptimizedImage (Scoped PBT)**:
+    - Use fast-check to generate random `OptimizedImage` props (src, alt, width, height) with `className` always containing `h-full w-full`
+    - Render `OptimizedImage` and inspect the `<picture>` element
+    - Assert `<picture>` has classes `block`, `w-full`, `h-full`
+    - Assert `<img>` does NOT have `h-auto` in its className
+    - On UNFIXED code this will FAIL because `<picture>` has no classes and `<img>` has `h-auto` — confirming the bug
+    - `isBugCondition_Logo(input) := input.parentHasSizing AND input.callerPassesFullSize`
+  - **Expected counterexamples**:
+    - `RoutePrefetcher` calls `import('@/pages/student/Dashboard')` regardless of route
+    - `<picture>` renders as inline with no sizing classes
+    - `<img>` className contains conflicting `h-auto` and `h-full`
+  - Run tests on UNFIXED code — expect FAILURE
+  - Document counterexamples found to confirm root cause analysis
+  - Mark task complete when tests are written, run, and failures are documented
+  - Place tests in `apps/admissions/tests/property/homepagePerformanceBugCondition.property.test.ts`
+  - _Requirements: 1.1, 1.2, 1.3, 1.4_
+
+- [x] 2. Write preservation property tests (BEFORE implementing fix)
+  - **Property 2: Preservation** — Auth Route Prefetch & OptimizedImage Default Rendering
+  - **IMPORTANT**: Follow observation-first methodology
+  - **Bug 1 Preservation — Dashboard prefetch on auth routes**:
+    - Observe: render `RoutePrefetcher` on `/student/dashboard`, advance timers 4s → Dashboard import IS called (current correct behavior)
+    - Observe: render `RoutePrefetcher` on `/admin/dashboard`, advance timers 4s → Dashboard import IS called
+    - Observe: auth shell prefetch via `requestIdleCallback` fires regardless of route
+    - Use fast-check to generate random authenticated route pathnames (`/student/*`, `/admin/*`, `/dashboard`, `/apply`, `/application/*`)
+    - Assert Dashboard prefetch still fires after 4s for all non-marketing routes
+    - Assert auth shell prefetch via `requestIdleCallback` is unaffected
+  - **Bug 2 Preservation — OptimizedImage without full-size classes**:
+    - Observe: render `OptimizedImage` with no className → `<img>` has `max-w-full` in classes (current correct behavior)
+    - Observe: render `OptimizedImage` with `className="rounded-lg"` → `<img>` has `max-w-full rounded-lg`
+    - Observe: render `OptimizedImage` with error → fallback div renders with broken-image icon and alt text
+    - Use fast-check to generate random className strings that do NOT contain `h-full w-full`
+    - Assert `<img>` className always contains `max-w-full` and the caller's classes
+    - Assert `<img>` className does NOT contain `h-auto` (this will be the post-fix expectation)
+    - Assert error fallback UI renders correctly with broken-image icon
+  - Run tests on UNFIXED code
+  - **EXPECTED OUTCOME**: Prefetch preservation tests PASS; OptimizedImage preservation tests PASS (except the h-auto assertion which reflects post-fix behavior — scope this carefully)
+  - Mark task complete when tests are written, run, and passing on unfixed code
+  - Place tests in `apps/admissions/tests/property/homepagePerformancePreservation.property.test.ts`
+  - _Requirements: 3.1, 3.2, 3.3, 3.5, 3.6_
+
+- [x] 3. Fix for eager Dashboard prefetch on marketing routes and accreditation logo 0×0 rendering
+
+  - [x] 3.1 Make RoutePrefetcher route-aware in `apps/admissions/src/App.tsx`
+    - Accept `isMarketingRoute` boolean prop on `RoutePrefetcher`
+    - Guard the 4-second `setTimeout` Dashboard prefetch: only schedule when `isMarketingRoute` is `false`
+    - Keep the `requestIdleCallback` auth shell prefetch unconditional (it's lightweight)
+    - Ensure `clearTimeout` cleanup still works correctly when prefetch is conditionally skipped
+    - Pass `marketingRoute` from `RouteAwareApp` into `<RoutePrefetcher isMarketingRoute={marketingRoute} />`
+    - _Bug_Condition: isBugCondition_Prefetch(input) where isMarketingPublicRoute(input.pathname) = true_
+    - _Expected_Behavior: No Dashboard chunk import on marketing routes; prefetch only on auth routes_
+    - _Preservation: Auth shell prefetch via requestIdleCallback remains unconditional; Dashboard prefetch on auth routes unchanged_
+    - _Requirements: 1.1, 1.2, 2.1, 2.2, 3.1, 3.2_
+
+  - [x] 3.2 Fix OptimizedImage picture element sizing in `apps/admissions/src/components/ui/OptimizedImage.tsx`
+    - Add `className="block w-full h-full"` to the `<picture>` element
+    - Change `<img>` className from `` `max-w-full h-auto ${className}` `` to `` `max-w-full ${className}` `` (remove `h-auto`)
+    - This makes `<picture>` block-level so it inherits parent container dimensions
+    - Removing `h-auto` prevents conflict with caller-provided `h-full`
+    - _Bug_Condition: isBugCondition_Logo(input) where parentHasSizing AND callerPassesFullSize_
+    - _Expected_Behavior: `<picture>` renders as block with w-full h-full; `<img>` has no conflicting h-auto_
+    - _Preservation: OptimizedImage without h-full w-full still renders with max-w-full responsive behavior; error fallback unchanged_
+    - _Requirements: 1.3, 1.4, 2.3, 2.4, 3.3, 3.6_
+
+  - [x] 3.3 Verify bug condition exploration tests now pass
+    - **Property 1: Expected Behavior** — No Dashboard Prefetch on Marketing Routes & Picture Block Sizing
+    - **IMPORTANT**: Re-run the SAME tests from task 1 — do NOT write new tests
+    - The tests from task 1 encode the expected behavior for both bugs
+    - When these tests pass, it confirms:
+      - RoutePrefetcher skips Dashboard prefetch on all marketing routes
+      - OptimizedImage `<picture>` has `block w-full h-full` classes
+      - OptimizedImage `<img>` has no `h-auto` default
+    - Run bug condition exploration tests from step 1
+    - **EXPECTED OUTCOME**: Tests PASS (confirms both bugs are fixed)
+    - _Requirements: 2.1, 2.2, 2.3, 2.4_
+
+  - [x] 3.4 Verify preservation tests still pass
+    - **Property 2: Preservation** — Auth Route Prefetch & OptimizedImage Default Rendering
+    - **IMPORTANT**: Re-run the SAME tests from task 2 — do NOT write new tests
+    - Run preservation property tests from step 2
+    - **EXPECTED OUTCOME**: Tests PASS (confirms no regressions)
+    - Confirm Dashboard prefetch still works on auth routes
+    - Confirm OptimizedImage renders correctly without h-full w-full classes
+    - Confirm error fallback UI is unchanged
+
+- [x] 4. Write unit tests for both fixes
+  - **RoutePrefetcher unit tests** in `apps/admissions/tests/unit/routePrefetcherRouteAware.test.ts`:
+    - Test RoutePrefetcher with `isMarketingRoute={true}` skips Dashboard import on `/`
+    - Test RoutePrefetcher with `isMarketingRoute={true}` skips Dashboard import on `/404`
+    - Test RoutePrefetcher with `isMarketingRoute={true}` skips Dashboard import on `/contact`
+    - Test RoutePrefetcher with `isMarketingRoute={true}` skips Dashboard import on `/privacy`
+    - Test RoutePrefetcher with `isMarketingRoute={true}` skips Dashboard import on `/terms`
+    - Test RoutePrefetcher with `isMarketingRoute={true}` skips Dashboard import on `/track-application`
+    - Test RoutePrefetcher with `isMarketingRoute={false}` fires Dashboard import on `/student/dashboard`
+    - Test RoutePrefetcher with `isMarketingRoute={false}` fires Dashboard import on `/admin/dashboard`
+    - Test RoutePrefetcher with `isMarketingRoute={false}` fires Dashboard import on `/dashboard`
+    - Test auth shell prefetch via requestIdleCallback fires regardless of isMarketingRoute
+  - **OptimizedImage unit tests** in `apps/admissions/tests/unit/optimizedImageSizing.test.ts`:
+    - Test `<picture>` element has `block w-full h-full` classes
+    - Test `<img>` element does NOT have `h-auto` in default classes
+    - Test `<img>` with caller `className="h-full w-full object-contain"` has no conflicting h-auto
+    - Test `<img>` with no caller className still has `max-w-full`
+    - Test error fallback renders correctly with broken-image icon and alt text
+    - Test `<picture>` block sizing does not break hero/program card usage (no h-full w-full passed)
+  - _Requirements: 2.1, 2.2, 2.3, 2.4, 3.1, 3.3, 3.6_
+
+- [x] 5. Checkpoint — Ensure all tests pass
+  - Run `cd apps/admissions && bun run test` to verify all new and existing tests pass
+  - Run `cd apps/admissions && bun run lint` to verify no lint regressions
+  - Run `cd apps/admissions && bun run build` to verify production build succeeds
+  - Ensure all tests pass, ask the user if questions arise
