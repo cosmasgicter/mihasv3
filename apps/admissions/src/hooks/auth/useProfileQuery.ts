@@ -53,7 +53,13 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
           method: 'GET',
         })
         return sanitizeProfile(data as Record<string, unknown> | null)
-      } catch {
+      } catch (err) {
+        // If this is an auth error (401 after failed refresh), don't mask it
+        // with minimal data — let the auth cascade handle logout properly.
+        // Only fall back to session data for non-auth errors (network, 500, etc.)
+        if (err && typeof err === 'object' && 'name' in err && (err as Error).name === 'AuthenticationError') {
+          throw err
+        }
         return sanitizeProfile({
           id: user.id,
           user_id: user.id,
