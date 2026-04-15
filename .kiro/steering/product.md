@@ -127,7 +127,7 @@ Jobs-ops expectations:
 | Layer | Current Expectation |
 |-------|---------------------|
 | Transport | TLS only, strict transport headers in production |
-| Auth | HTTP-only cookies, refresh rotation, Django-managed signing, JWT middleware fully implemented |
+| Auth | HTTP-only cookies, refresh rotation, Django-managed signing, JWT middleware fully implemented. Access tokens: 30 min, refresh tokens: 7 days with Redis JTI blacklisting. |
 | CSRF | Required on state-changing requests; custom `CSRFEnforcementMiddleware` with exempt patterns for unauthenticated endpoints |
 | Validation | Validate every input at the API boundary |
 | File uploads | Validate content type and file shape defensively |
@@ -155,3 +155,12 @@ When modifying code, always verify:
 - If a task spans frontend and backend, check both sides before assuming parity.
 - Keep steering files aligned with the real repo state, not with earlier planning assumptions.
 - Leave unrelated existing worktree changes untouched unless the task explicitly requires them.
+
+## Performance Conventions
+
+- The app uses a dark-themed 3-dots preloader in `index.html` (renders before any JS loads). Slow-load message appears after 5 seconds.
+- `<link rel="preconnect" href="***REMOVED***" crossorigin />` is in `index.html` for early TLS handshake.
+- Speculative prefetching (`src/lib/speculativePrefetch.ts`) preloads data during dead time: email blur → workspace chunks, login success → catalog + profile, dashboard mount → wizard chunk.
+- Route chunk prefetching uses `requestIdleCallback` with `setTimeout` fallback. Network-aware: skips on `saveData` or 2G.
+- SSE connections fall back to polling after 3 rapid QUIC failures. HEAD auth probes have a 10-second cooldown and 5-second abort timeout.
+- Intake records are auto-created by `intake_manager_task` (daily 04:00 UTC) following the Jan/Jul pattern with 11-month lead time.

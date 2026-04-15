@@ -124,6 +124,7 @@ The frontend and backend share a single, unified API contract. There is no compa
 - The platform uses the `{"success": true, "data": ...}` envelope for API responses handled through DRF renderers.
 - Paginated responses use `{page, pageSize, totalCount, results}` inside the `data` envelope.
 - Auth remains cookie-based for the main backend auth stack.
+- Access tokens have a 30-minute lifetime; refresh tokens last 7 days with JTI blacklisting via Redis.
 - CSRF is required for state-changing requests in authenticated flows.
 - Jobs-ops currently exposes public read-oriented scaffold routes for some surfaces while keeping risky write actions authenticated and policy-gated.
 
@@ -139,6 +140,9 @@ The frontend and backend share a single, unified API contract. There is no compa
 - Payment in the admissions wizard is handled exclusively by the Lenco inline widget (`LencoPay.getPaid`). Do not reintroduce the retired pre-Lenco payment UX.
 - Student authenticated pages should prefer the canonical UI primitives already in the repo: `PageShell`, `SectionCard`, `ErrorDisplay`, `EmptyState`, and `Button asChild` for semantic links.
 - Student forms that can lose work, especially settings and wizard-related screens, should protect dirty state on navigation and `beforeunload`.
+- Use speculative prefetching (`src/lib/speculativePrefetch.ts`) for predictive data loading — prefetch catalog data on login success, wizard chunks on dashboard mount.
+- SSE connections use `src/lib/sseClient.ts` with rapid-failure detection and automatic polling fallback. Do not add new SSE reconnection logic outside this client.
+- PWA dependencies (`vite-plugin-pwa`, `workbox-*`) have been fully removed. The one-time SW unregistration block in `main.tsx` must be retained for 90 days (until July 2026).
 
 ### Backend
 
@@ -261,8 +265,9 @@ Celery Beat runs as a dedicated Koyeb worker service (exactly 1 instance to avoi
 | `check_uptime_task` | Every 300 seconds (5 minutes) | Internal health check — pings `/health/ready/`, alerts on failure/recovery transitions |
 | `cleanup_audit_logs_task` | Daily at 03:00 UTC (`crontab(hour=3, minute=0)`) | Purge expired audit log records: standard retention 90 days, security retention 365 days |
 | `poll_pending_payments_task` | Every 600 seconds (10 minutes) | Polls Lenco API for pending payments older than 5 min and younger than 24 hr, max 50 per run |
+| `intake_manager_task` | Daily at 04:00 UTC (`crontab(hour=4, minute=0)`) | Ensures at least 2 open intakes exist following the Jan/Jul pattern. Idempotent. |
 
-The first two tasks live in `backend/apps/common/tasks.py`. The payment polling task lives in `backend/apps/documents/tasks.py`.
+The first two tasks live in `backend/apps/common/tasks.py`. The payment polling task lives in `backend/apps/documents/tasks.py`. The intake manager task lives in `backend/apps/catalog/tasks.py` and is also callable as `python3 manage.py manage_intakes`.
 
 ## Uptime Monitoring
 
