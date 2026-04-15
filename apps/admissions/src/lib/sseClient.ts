@@ -199,6 +199,9 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
   const RAPID_FAILURE_THRESHOLD_MS = 5000;
   const MAX_RAPID_FAILURES = 3;
 
+  // Track rapid failure timestamps for windowed detection
+  const rapidFailureTimestamps: number[] = [];
+
   // Event handlers map: event type -> Set of handlers
   const handlers = new Map<string, Set<EventHandler>>();
 
@@ -316,20 +319,42 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
     }
   }
 
+  // Probe cooldown: don't fire HEAD probes more than once every 10 seconds
+  let lastProbeTime = 0;
+  const PROBE_COOLDOWN_MS = 10_000;
+  const PROBE_TIMEOUT_MS = 5_000;
+
   /**
    * Probe the SSE endpoint with a HEAD request to detect auth failures.
    * EventSource.onerror does not expose HTTP status codes, so we use
    * a lightweight fetch probe to distinguish 401/403 from network errors.
    * Transport errors (ERR_QUIC_PROTOCOL_ERROR, etc.) are treated as network errors.
    *
-   * @returns The HTTP status code, or -1 if the probe fails due to a network/transport error
+   * Debounced: skips if called within PROBE_COOLDOWN_MS of the last probe.
+   * Aborts after PROBE_TIMEOUT_MS to prevent hanging requests.
+   *
+   * @returns The HTTP status code, or -1 if the probe is skipped/fails
    */
   async function probeEndpointForAuth(): Promise<number> {
-    const response = await fetch(endpoint, {
-      method: 'HEAD',
-      credentials: withCredentials ? 'include' : 'same-origin',
-    });
-    return response.status;
+    const now = Date.now();
+    if (now - lastProbeTime < PROBE_COOLDOWN_MS) {
+      return -1; // Cooldown active, skip probe
+    }
+    lastProbeTime = now;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), PROBE_TIMEOUT_MS);
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'HEAD',
+        credentials: withCredentials ? 'include' : 'same-origin',
+        signal: controller.signal,
+      });
+      return response.status;
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 
   /**
@@ -402,19 +427,28 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
 
         // Rapid-failure detection: if connection died very quickly after opening,
         // it's likely a transport issue (QUIC, HTTP/3) not a normal timeout.
+        const now = Date.now();
         if (lastConnectTime > 0) {
-          const connectionDuration = Date.now() - lastConnectTime;
+          const connectionDuration = now - lastConnectTime;
           if (connectionDuration < RAPID_FAILURE_THRESHOLD_MS) {
             rapidFailureCount++;
-            if (rapidFailureCount >= MAX_RAPID_FAILURES) {
-              console.warn(`[SSEClient] Rapid failure detected (${rapidFailureCount} failures, likely QUIC issue), falling back to polling`);
+            rapidFailureTimestamps.push(now);
+
+            // Windowed check: 3 failures within 5 seconds → skip probe, go straight to polling
+            const recentFailures = rapidFailureTimestamps.filter(t => now - t < RAPID_FAILURE_THRESHOLD_MS);
+            if (recentFailures.length >= MAX_RAPID_FAILURES) {
+              console.warn(`[SSEClient] Rapid failure detected (${rapidFailureCount} failures in ${RAPID_FAILURE_THRESHOLD_MS}ms window, likely QUIC issue), skipping probe and falling back to polling`);
               retriesExhausted = true;
+              onError?.(new Error('rapid_failure_fallback'));
               dispatchEvent('error', { type: 'rapid_failure_fallback' });
+              // Trim timestamps array to prevent unbounded growth
+              rapidFailureTimestamps.length = 0;
               return;
             }
           } else {
             // Connection lasted long enough — reset rapid failure counter
             rapidFailureCount = 0;
+            rapidFailureTimestamps.length = 0;
           }
         }
 
@@ -422,23 +456,31 @@ export function createSSEClient(config: SSEClientConfig): SSEClient {
         if (!intentionalDisconnect && !authFailed) {
           onError?.(new Error('SSE connection error'));
 
-          // Probe the endpoint with a HEAD request to detect auth failures
-          // EventSource.onerror does not expose HTTP status codes
-          probeEndpointForAuth().then((probeStatus) => {
-            if (probeStatus === 401 || probeStatus === 403) {
-              // Auth failure detected — stop reconnecting
-              authFailed = true;
-              clearReconnectTimeout();
-              console.warn(`[SSEClient] Auth failure (${probeStatus}), stopping reconnect`);
-              dispatchEvent('auth_failure', { status: probeStatus });
-            } else {
-              // Network or other error — apply normal backoff
-              scheduleReconnect();
-            }
-          }).catch(() => {
-            // Probe itself failed (network error, QUIC error, etc.) — treat as network error
+          // Skip the HEAD probe if we're in rapid-failure territory (avoids request spam)
+          if (rapidFailureCount >= 2) {
             scheduleReconnect();
-          });
+          } else {
+            // Probe the endpoint with a HEAD request to detect auth failures
+            // EventSource.onerror does not expose HTTP status codes
+            probeEndpointForAuth().then((probeStatus) => {
+              if (probeStatus === -1) {
+                // Probe was skipped (cooldown) or timed out — just reconnect
+                scheduleReconnect();
+              } else if (probeStatus === 401 || probeStatus === 403) {
+                // Auth failure detected — stop reconnecting
+                authFailed = true;
+                clearReconnectTimeout();
+                console.warn(`[SSEClient] Auth failure (${probeStatus}), stopping reconnect`);
+                dispatchEvent('auth_failure', { status: probeStatus });
+              } else {
+                // Network or other error — apply normal backoff
+                scheduleReconnect();
+              }
+            }).catch(() => {
+              // Probe itself failed (network error, QUIC error, etc.) — treat as network error
+              scheduleReconnect();
+            });
+          }
         }
       };
 

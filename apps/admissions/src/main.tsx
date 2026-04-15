@@ -199,6 +199,6 @@ if (typeof window !== 'undefined') {
     preloader.classList.add('fade-out')
     setTimeout(() => {
       preloader.remove()
-    }, 180)
+    }, 300)
   }
 }

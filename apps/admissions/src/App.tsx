@@ -87,6 +87,28 @@ function getShellFallback(pathname: string): React.ReactNode {
   return <AuthSkeleton />
 }
 
+function RoutePrefetcher() {
+  useEffect(() => {
+    const idle = typeof requestIdleCallback === 'function'
+      ? requestIdleCallback
+      : (cb: () => void) => setTimeout(cb, 2000)
+
+    idle(() => {
+      // Prefetch the most common next-page chunk (auth shell)
+      import('@/components/AuthenticatedRouteShell').catch(() => {})
+    })
+
+    // After a longer delay, prefetch deeper pages
+    const timer = setTimeout(() => {
+      import('@/pages/student/Dashboard').catch(() => {})
+    }, 4000)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  return null
+}
+
 function RouteAwareApp() {
   const location = useLocation()
   const marketingRoute = isMarketingPublicRoute(location.pathname)
@@ -105,6 +127,7 @@ function RouteAwareApp() {
       )}
       <DeferredGlobalUi delayMs={globalUiDelayMs} />
       <DeferredTelemetry delayMs={telemetryDelayMs} />
+      <RoutePrefetcher />
     </>
   )
 }
