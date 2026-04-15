@@ -123,6 +123,9 @@ export function useAutoSave(
       // Always save to localStorage first (works offline) — PII stripped
       cachedSetItem(storageKey, JSON.stringify(savePayload))
 
+      // Track whether cloud save succeeded (or was skipped)
+      let cloudSaveFailed = false
+
       // If online, attempt cloud save with retry logic
       if (navigator.onLine && onSave) {
         try {
@@ -137,6 +140,7 @@ export function useAutoSave(
           // If aborted (unmount), don't update state
           if (abortController.signal.aborted) return
           
+          cloudSaveFailed = true
           console.warn('Cloud save failed, data saved locally:', cloudError)
           const nextAttempts = saveAttemptsRef.current + 1
           saveAttemptsRef.current = nextAttempts
@@ -167,10 +171,22 @@ export function useAutoSave(
 
       previousDataRef.current = dataString
       if (mountedRef.current) {
-        setLastSaved(new Date())
-        setIsDirty(false)
-        setHasUnsavedChanges(false)
-        setSaveStatus(navigator.onLine ? 'saved' : 'offline')
+        // Only update lastSaved and show success when cloud save didn't fail.
+        // When cloud save fails, keep the previous lastSaved timestamp so the
+        // UI doesn't show contradictory "Save failed" + "Last saved: Just now".
+        if (!cloudSaveFailed) {
+          setLastSaved(new Date())
+          setIsDirty(false)
+          setHasUnsavedChanges(false)
+          setSaveStatus(navigator.onLine ? 'saved' : 'offline')
+        } else if (mountedRef.current) {
+          // Cloud failed but local succeeded — show offline status, not error,
+          // unless max retries were already exhausted (handled above).
+          if (saveAttemptsRef.current < 5) {
+            setSaveStatus('offline')
+            setSaveError('Saved locally — waiting to sync')
+          }
+        }
         
         // Schedule next save
         const nextSave = new Date(Date.now() + interval)

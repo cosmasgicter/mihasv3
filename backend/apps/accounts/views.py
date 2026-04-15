@@ -99,11 +99,11 @@ def _set_auth_cookies(response: Response, access_token: str, refresh_token: str)
     secure = getattr(settings, "AUTH_COOKIE_SECURE", True)
     httponly = getattr(settings, "AUTH_COOKIE_HTTPONLY", True)
 
-    # Access token cookie (15 min)
+    # Access token cookie — lifetime from settings
     response.set_cookie(
         key="access_token",
         value=access_token,
-        max_age=15 * 60,
+        max_age=int(settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds()),
         httponly=httponly,
         secure=secure,
         samesite=samesite,
@@ -609,13 +609,25 @@ class ProfileView(APIView):
 
     @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT})
     def get(self, request):
-        profile = Profile.objects.get(id=request.user.id)
+        try:
+            profile = Profile.objects.get(id=request.user.id)
+        except Profile.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Profile not found"},
+                status=404,
+            )
         serializer = ProfileReadSerializer(profile)
         return Response({"success": True, "data": serializer.data})
 
     @extend_schema(request=ProfileUpdateSerializer, responses={200: OpenApiTypes.OBJECT})
     def patch(self, request):
-        profile = Profile.objects.get(id=request.user.id)
+        try:
+            profile = Profile.objects.get(id=request.user.id)
+        except Profile.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Profile not found"},
+                status=404,
+            )
         serializer = ProfileUpdateSerializer(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
 
