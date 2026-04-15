@@ -87,7 +87,7 @@ function getShellFallback(pathname: string): React.ReactNode {
   return <AuthSkeleton />
 }
 
-function RoutePrefetcher() {
+function RoutePrefetcher({ isMarketingRoute }: { isMarketingRoute: boolean }) {
   useEffect(() => {
     const idle = typeof requestIdleCallback === 'function'
       ? requestIdleCallback
@@ -98,13 +98,18 @@ function RoutePrefetcher() {
       import('@/components/AuthenticatedRouteShell').catch(() => {})
     })
 
+    // Only prefetch Dashboard on non-marketing routes
+    if (isMarketingRoute) {
+      return
+    }
+
     // After a longer delay, prefetch deeper pages
     const timer = setTimeout(() => {
       import('@/pages/student/Dashboard').catch(() => {})
     }, 4000)
 
     return () => clearTimeout(timer)
-  }, [])
+  }, [isMarketingRoute])
 
   return null
 }
@@ -127,7 +132,7 @@ function RouteAwareApp() {
       )}
       <DeferredGlobalUi delayMs={globalUiDelayMs} />
       <DeferredTelemetry delayMs={telemetryDelayMs} />
-      <RoutePrefetcher />
+      <RoutePrefetcher isMarketingRoute={marketingRoute} />
     </>
   )
 }

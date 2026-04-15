@@ -99,7 +99,7 @@ export function OptimizedImage({
   }
 
   return (
-    <picture>
+    <picture className="block w-full h-full">
       {hasWebp && (
         <source
           type="image/webp"
@@ -113,7 +113,7 @@ export function OptimizedImage({
         height={height}
         loading={lazy ? 'lazy' : 'eager'}
         decoding="async"
-        className={`max-w-full h-auto ${className}`}
+        className={`max-w-full ${className}`}
         srcSet={buildSrcSet(src)}
         onError={() => setHasError(true)}
         {...(decorative ? { role: 'presentation' } : {})}
