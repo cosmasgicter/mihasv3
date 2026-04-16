@@ -252,6 +252,7 @@ export default function SignInPage() {
               {...emailRegistration}
               onBlur={emailOnBlur}
               type="email"
+              inputMode="email"
               label="Account email"
               aria-label="Account email"
               error={errors.email?.message || serverFieldErrors.email}
