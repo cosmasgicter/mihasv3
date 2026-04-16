@@ -32,7 +32,6 @@ from unittest.mock import MagicMock, patch  # noqa: E402
 
 from apps.accounts.authentication import JWTUser  # noqa: E402
 from apps.common.middleware import CSRFEnforcementMiddleware  # noqa: E402
-from apps.common.sse import sse_stream_view  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -59,42 +58,8 @@ def _auth_request(factory, method, path, user, **kwargs):
 
 
 # =========================================================================
-# Bug 1 (SSE): Content negotiation rejects text/event-stream
+# Bug 1 (SSE): REMOVED — SSE infrastructure deleted (sse-removal-simplification)
 # =========================================================================
-
-
-class TestSSEContentNegotiation:
-    """Bug 1: SSE stream endpoint has content negotiation issues.
-
-    RESOLVED: SSEStreamView has been replaced with a standalone async function
-    `sse_stream_view` that bypasses DRF entirely. Content negotiation is no
-    longer relevant since the async function returns StreamingHttpResponse
-    directly without going through DRF's dispatch pipeline.
-
-    **Validates: Requirements 1.1**
-    """
-
-    @given(
-        accept_header=st.sampled_from([
-            "text/event-stream",
-            "text/event-stream, application/json",
-            "*/*",
-            "application/json",
-        ]),
-    )
-    @settings(max_examples=10, deadline=None)
-    def test_sse_view_is_async_function(self, accept_header):
-        """sse_stream_view should be a standalone async function, not a DRF class.
-
-        This confirms the SSE endpoint no longer uses DRF content negotiation,
-        resolving the original Bug 1 by design.
-        """
-        import asyncio
-
-        assert asyncio.iscoroutinefunction(sse_stream_view), (
-            "sse_stream_view should be an async function (coroutine function). "
-            "The SSE endpoint must bypass DRF to avoid content negotiation issues."
-        )
 
 
 # =========================================================================

@@ -46,7 +46,6 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `apps/admissions/src/lib/` | Canonical frontend helpers and infrastructure |
 | `apps/admissions/src/lib/api/` | API-specific helpers still used by some flows |
 | `apps/admissions/src/lib/speculativePrefetch.ts` | Instagram-style predictive data loading (login, dashboard, wizard) |
-| `apps/admissions/src/lib/sseClient.ts` | Robust SSE client with rapid-failure detection and polling fallback |
 | `apps/admissions/src/lib/routePreload.ts` | Route chunk preloading (auth, student, admin workspaces) |
 | `apps/admissions/tests/` | Unit, integration, and property tests |
 
@@ -184,8 +183,8 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 
 | Path | Purpose |
 |------|---------|
-| `apps/admissions/tests/property/auditProductionBugCondition.property.test.ts` | Bug condition exploration tests — Settings isDirty, ErrorDisplay empty alert, SSE logout, font chain |
-| `apps/admissions/tests/property/auditProductionPreservation.property.test.ts` | Preservation tests — dirty detection, validation errors, real errors, SSE reconnection, image fallback |
+| `apps/admissions/tests/property/auditProductionBugCondition.property.test.ts` | Bug condition exploration tests — Settings isDirty, ErrorDisplay empty alert, font chain |
+| `apps/admissions/tests/property/auditProductionPreservation.property.test.ts` | Preservation tests — dirty detection, validation errors, real errors, image fallback |
 | `apps/admissions/tests/property/auditProductionFixValidation.property.test.ts` | Property-based fix validation — Settings reset merge, ErrorDisplay rendering (fast-check) |
 | `apps/admissions/tests/property/authFormsAuditBugCondition.property.test.ts` | Auth forms bug condition tests — autocomplete, inputmode, form attributes |
 | `apps/admissions/tests/property/authFormsAuditPreservation.property.test.ts` | Auth forms preservation tests — existing form behavior |

@@ -143,7 +143,7 @@ The frontend and backend share a single, unified API contract. There is no compa
 - Student authenticated pages should prefer the canonical UI primitives already in the repo: `PageShell`, `SectionCard`, `ErrorDisplay`, `EmptyState`, and `Button asChild` for semantic links.
 - Student forms that can lose work, especially settings and wizard-related screens, should protect dirty state on navigation and `beforeunload`.
 - Use speculative prefetching (`src/lib/speculativePrefetch.ts`) for predictive data loading — prefetch catalog data on login success, wizard chunks on dashboard mount.
-- SSE connections use `src/lib/sseClient.ts` with rapid-failure detection and automatic polling fallback. Do not add new SSE reconnection logic outside this client. The `signOut` flow in `useSessionListener.ts` calls `disconnect()` and `resetAuthFailure()` on the SSE singleton to prevent stale auth state across login boundaries.
+- Dashboard data freshness is handled by `useStudentDashboardPolling` (React Query with fingerprint deduplication). NotificationBell uses `useNotificationPolling` (React Query with 60-second interval and tab-visibility pause). Do not introduce SSE or WebSocket connections for these surfaces.
 - `ErrorDisplay` returns `null` for empty or whitespace-only `message` props. Do not render `role="alert"` elements without meaningful content.
 - All content images (campus photos, badges, logos) must use `OptimizedImage` or have an `onError` handler with a visible fallback. Raw `<img>` tags without error handling are not acceptable for content images.
 - Font fallback chain in `tailwind.config.js` uses the full Tailwind default sans-serif stack with Inter prepended: `['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', '"Noto Sans"', 'sans-serif']`. Do not reduce this chain.
@@ -301,5 +301,5 @@ A runbook for rotating production secrets lives at `docs/runbooks/secrets-rotati
 - Run jobs-ops type-check, lint, and build when you change `apps/jobs-ops`.
 - Regenerate the schema after backend API changes.
 - Keep steering files aligned with the actual repo state.
-- When modifying `ErrorDisplay`, `Settings.tsx`, `sseClient.ts`, `useSessionListener.ts`, `session_views.py`, `RefreshView`, or `ApplicationTrackView`, re-run the corresponding audit production fix tests to verify no regressions.
+- When modifying `ErrorDisplay`, `Settings.tsx`, `useSessionListener.ts`, `session_views.py`, `RefreshView`, or `ApplicationTrackView`, re-run the corresponding audit production fix tests to verify no regressions.
 - Backend endpoints that return lists must use the `{"success": true, "data": [...]}` envelope format. Do not return raw lists from authenticated endpoints.

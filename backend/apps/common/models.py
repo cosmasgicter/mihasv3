@@ -164,27 +164,6 @@ class ErrorLog(models.Model):
         return f"[{self.source}/{self.level}] {self.message[:80]}"
 
 
-class SSEEvent(models.Model):
-    """Maps to 'sse_events' table. Database-backed SSE event queue."""
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('accounts.Profile', on_delete=models.CASCADE)
-    event_type = models.CharField(max_length=50)
-    payload = models.JSONField(default=dict)
-    entity_id = models.UUIDField(null=True, blank=True)
-    delivered = models.BooleanField(default=False)
-    delivered_at = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        managed = False
-        db_table = 'sse_events'
-        indexes = []  # Indexes managed via SQL script
-
-    def __str__(self):
-        return f"{self.event_type} for {self.user_id} ({'delivered' if self.delivered else 'pending'})"
-
-
 class MigrationHistory(models.Model):
     """Maps to 'migration_history' table."""
 

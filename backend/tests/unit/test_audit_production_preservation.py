@@ -66,7 +66,7 @@ class TestPreservationSessionsDataShape:
         mock_session = MagicMock()
         mock_session.id = uuid.uuid4()
         mock_session.device_info = '{"user_agent": "Mozilla/5.0"}'
-        mock_session.last_active = now
+        mock_session.last_activity = now
         mock_session.created_at = now - timedelta(hours=1)
 
         mock_qs.filter.return_value.order_by.return_value = [mock_session]

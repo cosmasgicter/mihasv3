@@ -51,8 +51,6 @@ urlpatterns = [
     path("api/v1/admin/", include("apps.accounts.admin_urls")),
     # Notification endpoints
     path("api/v1/notifications/", include("apps.common.notification_urls")),
-    # SSE / event endpoints
-    path("api/v1/events/", include("apps.common.event_urls")),
     # Email endpoints
     path("api/v1/email/", include("apps.common.email_urls")),
     # Error monitoring endpoints

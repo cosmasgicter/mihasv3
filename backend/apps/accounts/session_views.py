@@ -60,13 +60,13 @@ class SessionListView(APIView):
 
         sessions = DeviceSession.objects.filter(
             user_id=user_id, is_active=True
-        ).order_by("-last_active")
+        ).order_by("-last_activity")
 
         data = [
             {
                 "id": str(s.id),
                 "device_info": s.device_info,
-                "last_active": s.last_active.isoformat() if s.last_active else None,
+                "last_active": s.last_activity.isoformat() if s.last_activity else None,
                 "created_at": s.created_at.isoformat() if s.created_at else None,
             }
             for s in sessions

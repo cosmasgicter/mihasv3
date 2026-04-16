@@ -162,21 +162,9 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.common.tasks.cleanup_audit_logs_task",
         "schedule": crontab(hour=3, minute=0),
     },
-    "cleanup-sse-events": {
-        "task": "apps.common.tasks.cleanup_sse_events_task",
-        "schedule": crontab(hour=4, minute=0),
-    },
     "poll-pending-payments": {
         "task": "apps.documents.tasks.poll_pending_payments_task",
         "schedule": 600.0,
-    },
-    "send-deadline-reminders": {
-        "task": "apps.applications.notification_tasks.send_deadline_reminders",
-        "schedule": 21600.0,  # Every 6 hours
-    },
-    "send-stale-draft-reminders": {
-        "task": "apps.applications.notification_tasks.send_stale_draft_reminders",
-        "schedule": 21600.0,  # Every 6 hours
     },
     "keep-alive-ping": {
         "task": "keep_alive_ping_task",

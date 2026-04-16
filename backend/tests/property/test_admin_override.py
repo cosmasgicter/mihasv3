@@ -4,8 +4,8 @@
 
 For any admin payment status override request with notes, the
 ApplicationReviewView SHALL update the application's payment_status field,
-set admin_feedback to the provided notes, set admin_feedback_by to the
-admin's user ID, and dispatch a payment_update SSE event.
+set admin_feedback to the provided notes, and set admin_feedback_by to the
+admin's user ID.
 
 **Validates: Requirements 4.2, 4.4, 4.5**
 """
@@ -71,7 +71,7 @@ class TestAdminPaymentStatusOverride(TransactionTestCase):
         self, new_payment_status, notes
     ):
         """Admin payment status override sets payment_status, admin_feedback,
-        admin_feedback_by, and dispatches a payment_update SSE event."""
+        and admin_feedback_by."""
         application_id = uuid.uuid4()
         admin_id = str(uuid.uuid4())
         student_user_id = str(uuid.uuid4())
@@ -97,7 +97,6 @@ class TestAdminPaymentStatusOverride(TransactionTestCase):
 
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
-            patch("apps.applications.views.dispatch_event") as mock_dispatch,
         ):
             mock_app_qs.get.return_value = mock_app
 
@@ -122,15 +121,6 @@ class TestAdminPaymentStatusOverride(TransactionTestCase):
             self.assertIn("admin_feedback", save_kwargs["update_fields"])
             self.assertIn("admin_feedback_by", save_kwargs["update_fields"])
 
-            # Verify SSE event was dispatched
-            mock_dispatch.assert_called_once()
-            dispatch_kwargs = mock_dispatch.call_args[1]
-            self.assertEqual(dispatch_kwargs["event_type"], "payment_update")
-            self.assertEqual(dispatch_kwargs["user_id"], student_user_id)
-            self.assertEqual(
-                dispatch_kwargs["payload"]["status"], new_payment_status
-            )
-
             # Verify response
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.data["payment_status"], new_payment_status)
@@ -140,8 +130,7 @@ class TestAdminPaymentStatusOverride(TransactionTestCase):
     )
     @settings(max_examples=100)
     def test_override_without_notes_still_updates_status(self, new_payment_status):
-        """Admin override without notes still updates payment_status and
-        dispatches the SSE event."""
+        """Admin override without notes still updates payment_status."""
         application_id = uuid.uuid4()
         admin_id = str(uuid.uuid4())
         student_user_id = str(uuid.uuid4())
@@ -167,7 +156,6 @@ class TestAdminPaymentStatusOverride(TransactionTestCase):
 
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
-            patch("apps.applications.views.dispatch_event") as mock_dispatch,
         ):
             mock_app_qs.get.return_value = mock_app
 
@@ -178,5 +166,4 @@ class TestAdminPaymentStatusOverride(TransactionTestCase):
 
             self.assertEqual(mock_app.payment_status, new_payment_status)
             mock_app.save.assert_called_once()
-            mock_dispatch.assert_called_once()
             self.assertEqual(response.status_code, 200)

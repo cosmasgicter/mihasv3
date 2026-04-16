@@ -32,15 +32,14 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { PageShell } from '@/components/ui/PageShell'
 import { useStudentDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useStudentDashboardPolling, type StudentDashboardData } from '@/hooks/useStudentDashboardPolling'
-import { useApplicationUpdates } from '@/hooks/useRealtime'
-import { useQueryClient } from '@tanstack/react-query'
+
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { getDisplayName } from '@/utils/userDisplayName'
 import { Seo } from '@/components/seo/Seo'
 import { applicationSessionManager } from '@/lib/applicationSession'
 import { requiresStudentPaymentAction } from '@/lib/paymentStatus'
 import { logApiError } from '@/lib/apiErrorLogger'
-import { getDefaultSSEClient } from '@/lib/sseClient'
+
 import { DashboardSkeleton } from '@/components/ui'
 import { onDashboardMount } from '@/lib/speculativePrefetch'
 
@@ -110,15 +109,7 @@ export default function StudentDashboard() {
     setApplicationsError('')
   }, [])
 
-  // Requirements: 8.2 - Check if SSE client is in auth-failed state to skip SSE connection
-  const sseAuthFailed = useMemo(() => {
-    try {
-      return getDefaultSSEClient().isAuthFailed()
-    } catch {
-      return false
-    }
-  }, [])
-  
+
   // Manual refresh hook for React Query cache invalidation
   const { forceRefresh, isRefreshing: isManualRefreshing } = useStudentDashboardRefresh({
     onSuccess: () => {
@@ -135,20 +126,6 @@ export default function StudentDashboard() {
     onDataChange: syncApplicationsFromPolling,
   })
 
-  // Requirements: 8.1, 8.2, 8.4 - Subscribe to application_update events and refresh dashboard
-  // Skip SSE when auth-failed (Req 8.2) or during initial data load (Req 8.4)
-  const queryClient = useQueryClient()
-  useApplicationUpdates(
-    useCallback((data: Record<string, unknown>) => {
-      // Don't process SSE events during initial load to avoid triggering reconnection
-      if (!initialLoadCompleteRef.current) return
-      // Invalidate React Query cache to trigger refetch of dashboard data
-      queryClient.invalidateQueries({ queryKey: ['applications'] })
-      queryClient.invalidateQueries({ queryKey: ['student-dashboard'] })
-      queryClient.invalidateQueries({ queryKey: ['student-dashboard-polling'] })
-      scheduleDashboardReload(250)
-    }, [queryClient, scheduleDashboardReload])
-  )
 
   useEffect(() => {
     if (user) {

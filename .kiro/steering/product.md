@@ -165,5 +165,5 @@ When modifying code, always verify:
 - `<link rel="preconnect" href="***REMOVED***" crossorigin />` is in `index.html` for early TLS handshake.
 - Speculative prefetching (`src/lib/speculativePrefetch.ts`) preloads data during dead time: email blur → workspace chunks, login success → catalog + profile, dashboard mount → wizard chunk.
 - Route chunk prefetching uses `requestIdleCallback` with `setTimeout` fallback. Network-aware: skips on `saveData` or 2G.
-- SSE connections fall back to polling after 3 rapid QUIC failures. HEAD auth probes have a 10-second cooldown and 5-second abort timeout.
+- Data freshness is handled by React Query polling: Dashboard uses `useStudentDashboardPolling` (fingerprint deduplication), NotificationBell uses `useNotificationPolling` (60-second interval with tab-visibility pause).
 - Intake records are auto-created by `intake_manager_task` (daily 04:00 UTC) following the Jan/Jul pattern with 11-month lead time.

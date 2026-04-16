@@ -60,14 +60,12 @@ class TestApplicationSubmitView:
         self.view = ApplicationSubmitView.as_view()
 
     @patch("apps.applications.views.ApplicationSerializer")
-    @patch("apps.applications.views.dispatch_event")
     @patch("apps.applications.views.submit_application")
     @patch("apps.applications.views.Application.objects")
     def test_student_owner_can_submit_application(
         self,
         mock_app_objects,
         mock_submit_application,
-        mock_dispatch_event,
         mock_application_serializer,
     ):
         user_id = uuid.uuid4()
@@ -96,7 +94,6 @@ class TestApplicationSubmitView:
             application=application,
             changed_by=str(student.id),
         )
-        mock_dispatch_event.assert_called_once()
 
     @patch("apps.applications.views.submit_application")
     @patch("apps.applications.views.Application.objects")

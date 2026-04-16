@@ -1,7 +1,7 @@
 /**
  * Preservation Property Tests — Audit Production Fixes
  *
- * **Validates: Requirements 3.1, 3.2, 3.5, 3.9, 3.13**
+ * **Validates: Requirements 3.1, 3.2, 3.5, 3.13**
  *
  * These tests verify EXISTING correct behavior that must be preserved
  * through the bugfix. They MUST ALL PASS on unfixed code.
@@ -9,8 +9,7 @@
  * 1. Settings dirty detection: modifying a field sets isDirty to true
  * 2. Settings validation errors: server field errors via setError() display inline
  * 3. ErrorDisplay real errors: non-empty messages render role="alert" with text
- * 4. SSE reconnection: scheduleReconnect is called on network errors when authFailed is false
- * 5. OptimizedImage fallback: renders fallback placeholder when onError fires
+ * 4. OptimizedImage fallback: renders fallback placeholder when onError fires
  */
 import React, { act } from 'react'
 import { describe, it, expect, vi } from 'vitest'
@@ -192,72 +191,6 @@ describe('[PBT] Preservation — ErrorDisplay renders real errors with role="ale
     expect(alertEl!.textContent).toContain('Network error')
 
     teardown()
-  })
-})
-
-// ---------------------------------------------------------------------------
-// 4. SSE reconnection — Requirement 3.9
-// ---------------------------------------------------------------------------
-
-describe('[PBT] Preservation — SSE scheduleReconnect on network errors', () => {
-  /**
-   * **Validates: Requirements 3.9**
-   *
-   * When the SSE client encounters a network error and authFailed is false,
-   * scheduleReconnect must be called to attempt reconnection with backoff.
-   *
-   * We verify this by reading the sseClient.ts source and confirming the
-   * reconnection logic is present and correctly gated.
-   */
-  it('scheduleReconnect returns early when authFailed is true', () => {
-    const filePath = path.resolve(__dirname, '../../src/lib/sseClient.ts')
-    const fileContent = fs.readFileSync(filePath, 'utf-8')
-
-    // scheduleReconnect must check authFailed and return early
-    const scheduleReconnectBody = fileContent.match(
-      /function scheduleReconnect\(\)[\s\S]*?(?=function\s+\w+|const\s+\w+\s*=)/,
-    )
-    expect(scheduleReconnectBody).not.toBeNull()
-
-    const body = scheduleReconnectBody![0]
-    // Must check intentionalDisconnect || authFailed and return
-    expect(body).toContain('intentionalDisconnect')
-    expect(body).toContain('authFailed')
-    expect(body).toMatch(/if\s*\(\s*intentionalDisconnect\s*\|\|\s*authFailed\s*\)/)
-  })
-
-  it('scheduleReconnect uses exponential backoff via calculateBackoff', () => {
-    const filePath = path.resolve(__dirname, '../../src/lib/sseClient.ts')
-    const fileContent = fs.readFileSync(filePath, 'utf-8')
-
-    // Extract the scheduleReconnect function body up to the next JSDoc comment block
-    const scheduleReconnectBody = fileContent.match(
-      /function scheduleReconnect\(\)[\s\S]*?(?=\/\*\*\s*\n\s*\*\s*Clear)/,
-    )
-    expect(scheduleReconnectBody).not.toBeNull()
-
-    const body = scheduleReconnectBody![0]
-    // Must call calculateBackoff for delay computation
-    expect(body).toContain('calculateBackoff')
-    // Must use setTimeout for scheduling
-    expect(body).toContain('setTimeout')
-    // Must increment retryCount and call connect()
-    expect(body).toContain('retryCount++')
-    expect(body).toContain('connect()')
-  })
-
-  it('onerror handler calls scheduleReconnect for non-auth network errors', () => {
-    const filePath = path.resolve(__dirname, '../../src/lib/sseClient.ts')
-    const fileContent = fs.readFileSync(filePath, 'utf-8')
-
-    // The onerror handler must call scheduleReconnect when probe returns non-auth status
-    // Pattern: after probeEndpointForAuth, on non-401/403 status → scheduleReconnect()
-    expect(fileContent).toContain('scheduleReconnect()')
-
-    // The onerror handler must also call scheduleReconnect on probe failure (catch)
-    // Pattern: .catch(() => { scheduleReconnect() })
-    const catchReconnectPattern = /\.catch\(\(\)\s*=>\s*\{[\s\S]*?scheduleReconnect\(\)/
-    expect(fileContent).toMatch(catchReconnectPattern)
   })
 })
 

@@ -73,9 +73,8 @@ describe('useAdminDashboardPolling', () => {
     });
   });
 
-  describe('SSE awareness', () => {
-    it('documents SSE infrastructure', () => {
-      expect(hookContent).toContain('SSE');
+  describe('polling awareness', () => {
+    it('documents polling infrastructure', () => {
       expect(hookContent).toContain('polling');
     });
   });

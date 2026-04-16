@@ -25,7 +25,6 @@ from apps.applications.views import ApplicationReviewView
 
 _APP = "apps.applications.views.Application.objects"
 _TRANSITION = "apps.applications.views.transition_application_status"
-_DISPATCH_EVENT = "apps.applications.views.dispatch_event"
 _INTAKE_ENFORCER = "apps.applications.intake_enforcer.IntakeEnforcer"
 _NOTIFICATION_CREATE = "apps.common.models.Notification.objects.create"
 _EMAIL_CREATE = "apps.common.models.EmailQueue.objects.create"
@@ -89,11 +88,10 @@ class TestApprovalCreatesNotificationAndEmail:
     @patch(_EMAIL_CREATE)
     @patch(_NOTIFICATION_CREATE)
     @patch(_INTAKE_ENFORCER)
-    @patch(_DISPATCH_EVENT)
     @patch(_TRANSITION)
     @patch(_APP)
     def test_approval_creates_notification(
-        self, mock_app_qs, mock_transition, mock_dispatch,
+        self, mock_app_qs, mock_transition,
         mock_enforcer, mock_notif_create, mock_email_create,
         mock_send_email, mock_payment, mock_history,
     ):
@@ -130,11 +128,10 @@ class TestApprovalCreatesNotificationAndEmail:
     @patch(_EMAIL_CREATE)
     @patch(_NOTIFICATION_CREATE)
     @patch(_INTAKE_ENFORCER)
-    @patch(_DISPATCH_EVENT)
     @patch(_TRANSITION)
     @patch(_APP)
     def test_approval_creates_email_queue_record(
-        self, mock_app_qs, mock_transition, mock_dispatch,
+        self, mock_app_qs, mock_transition,
         mock_enforcer, mock_notif_create, mock_email_create,
         mock_send_email, mock_payment, mock_history,
     ):
@@ -170,11 +167,10 @@ class TestApprovalCreatesNotificationAndEmail:
     @patch(_EMAIL_CREATE)
     @patch(_NOTIFICATION_CREATE)
     @patch(_INTAKE_ENFORCER)
-    @patch(_DISPATCH_EVENT)
     @patch(_TRANSITION)
     @patch(_APP)
     def test_approval_calls_send_email_task_delay(
-        self, mock_app_qs, mock_transition, mock_dispatch,
+        self, mock_app_qs, mock_transition,
         mock_enforcer, mock_notif_create, mock_email_create,
         mock_send_email, mock_payment, mock_history,
     ):
@@ -219,11 +215,10 @@ class TestRejectionCreatesNotificationAndEmail:
     @patch(_EMAIL_CREATE)
     @patch(_NOTIFICATION_CREATE)
     @patch(_INTAKE_ENFORCER)
-    @patch(_DISPATCH_EVENT)
     @patch(_TRANSITION)
     @patch(_APP)
     def test_rejection_creates_notification(
-        self, mock_app_qs, mock_transition, mock_dispatch,
+        self, mock_app_qs, mock_transition,
         mock_enforcer, mock_notif_create, mock_email_create,
         mock_send_email, mock_history,
     ):
@@ -257,11 +252,10 @@ class TestRejectionCreatesNotificationAndEmail:
     @patch(_EMAIL_CREATE)
     @patch(_NOTIFICATION_CREATE)
     @patch(_INTAKE_ENFORCER)
-    @patch(_DISPATCH_EVENT)
     @patch(_TRANSITION)
     @patch(_APP)
     def test_rejection_creates_email_queue_record(
-        self, mock_app_qs, mock_transition, mock_dispatch,
+        self, mock_app_qs, mock_transition,
         mock_enforcer, mock_notif_create, mock_email_create,
         mock_send_email, mock_history,
     ):
@@ -295,11 +289,10 @@ class TestRejectionCreatesNotificationAndEmail:
     @patch(_EMAIL_CREATE)
     @patch(_NOTIFICATION_CREATE)
     @patch(_INTAKE_ENFORCER)
-    @patch(_DISPATCH_EVENT)
     @patch(_TRANSITION)
     @patch(_APP)
     def test_rejection_calls_send_email_task_delay(
-        self, mock_app_qs, mock_transition, mock_dispatch,
+        self, mock_app_qs, mock_transition,
         mock_enforcer, mock_notif_create, mock_email_create,
         mock_send_email, mock_history,
     ):

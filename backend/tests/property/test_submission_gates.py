@@ -111,7 +111,6 @@ class TestIdentityDocumentRequired(SimpleTestCase):
             patch("apps.documents.models.Payment.objects") as mock_payment_qs,
             patch("apps.documents.models.ApplicationDocument.objects") as mock_doc_qs,
             patch("apps.applications.services.transition_application_status") as mock_transition,
-            patch("apps.applications.views.dispatch_event"),
         ):
             mock_app_qs.get.return_value = mock_app
             # Payment gate passes
@@ -143,7 +142,6 @@ class TestIdentityDocumentRequired(SimpleTestCase):
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("apps.applications.views.submit_application") as mock_submit,
-            patch("apps.applications.views.dispatch_event"),
         ):
             mock_app_qs.get.return_value = mock_app
             mock_submit.return_value = (mock_app, "draft")
@@ -197,7 +195,6 @@ class TestPaymentGateEnforcement(SimpleTestCase):
             patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("apps.documents.models.Payment.objects") as mock_payment_qs,
             patch("apps.applications.services.transition_application_status") as mock_transition,
-            patch("apps.applications.views.dispatch_event"),
         ):
             mock_app_qs.get.return_value = mock_app
             mock_payment_qs.filter.return_value.exists.return_value = False
@@ -227,7 +224,6 @@ class TestPaymentGateEnforcement(SimpleTestCase):
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("apps.applications.views.submit_application") as mock_submit,
-            patch("apps.applications.views.dispatch_event"),
         ):
             mock_app_qs.get.return_value = mock_app
             mock_submit.return_value = (mock_app, "draft")
@@ -279,7 +275,6 @@ class TestSubmissionRequiresDraft(SimpleTestCase):
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("apps.applications.views.submit_application") as mock_submit,
-            patch("apps.applications.views.dispatch_event"),
         ):
             mock_app_qs.get.return_value = mock_app
             mock_submit.side_effect = ApplicationSubmissionError(
@@ -311,7 +306,6 @@ class TestSubmissionRequiresDraft(SimpleTestCase):
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("apps.applications.views.submit_application") as mock_submit,
-            patch("apps.applications.views.dispatch_event"),
         ):
             mock_app_qs.get.return_value = mock_app
             mock_submit.return_value = (mock_app, "draft")
@@ -367,7 +361,6 @@ class TestApprovalRequiresPaymentOrForce(SimpleTestCase):
             patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("apps.documents.models.Payment.objects") as mock_payment_qs,
             patch("apps.applications.services.transition_application_status") as mock_transition,
-            patch("apps.applications.views.dispatch_event"),
         ):
             mock_app_qs.get.return_value = mock_app
             mock_payment_qs.filter.return_value.exists.return_value = False
@@ -401,7 +394,6 @@ class TestApprovalRequiresPaymentOrForce(SimpleTestCase):
             patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("apps.documents.models.Payment.objects") as mock_payment_qs,
             patch("apps.applications.views.transition_application_status") as mock_transition,
-            patch("apps.applications.views.dispatch_event"),
             patch("apps.applications.models.ApplicationStatusHistory.objects") as mock_history_qs,
             patch("apps.applications.intake_enforcer.IntakeEnforcer.sync_enrollment"),
             patch("apps.common.models.Notification.objects"),
@@ -443,7 +435,6 @@ class TestApprovalRequiresPaymentOrForce(SimpleTestCase):
             patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("apps.documents.models.Payment.objects") as mock_payment_qs,
             patch("apps.applications.views.transition_application_status") as mock_transition,
-            patch("apps.applications.views.dispatch_event"),
             patch("apps.applications.intake_enforcer.IntakeEnforcer.sync_enrollment"),
             patch("apps.common.models.Notification.objects"),
             patch("apps.common.models.EmailQueue.objects"),
