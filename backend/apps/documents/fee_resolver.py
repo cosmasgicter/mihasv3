@@ -18,7 +18,7 @@ from apps.documents.models import ProgramFee
 _DEFAULT_CURRENCY = 'ZMW'
 
 # Default fallback fee when the program has no application_fee set.
-_DEFAULT_APPLICATION_FEE = Decimal('153.00')
+_DEFAULT_APPLICATION_FEE = Decimal('150.00')
 
 
 @dataclass(frozen=True)

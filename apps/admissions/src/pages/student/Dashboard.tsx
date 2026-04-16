@@ -266,17 +266,10 @@ export default function StudentDashboard() {
       setIntakesError('')
       setInterviewsError('')
 
-      const localDraft = await applicationSessionManager.getLocalWizardDraft(user.id)
-
-      if (!isLatestRequest() || signal.aborted) return
-      if (localDraft) {
-        setHasDraft(true)
-      } else {
-        setHasDraft(false)
-      }
-
       // --- Load all sections in parallel for faster dashboard render ---
-      const [applicationsResult, intakesResult, interviewsResult] = await Promise.allSettled([
+      const [localDraftResult, applicationsResult, intakesResult, interviewsResult] = await Promise.allSettled([
+        // Local draft check (runs in parallel instead of blocking)
+        applicationSessionManager.getLocalWizardDraft(user.id),
         // Applications: single call for all (draft check merged into full list)
         applicationService.list({
           page: 1,
@@ -292,6 +285,14 @@ export default function StudentDashboard() {
       ])
 
       if (!isLatestRequest() || signal.aborted) return
+
+      // Process local draft result
+      const localDraft = localDraftResult.status === 'fulfilled' ? localDraftResult.value : null
+      if (localDraft) {
+        setHasDraft(true)
+      } else {
+        setHasDraft(false)
+      }
 
       // --- Process applications result ---
       if (applicationsResult.status === 'fulfilled') {
