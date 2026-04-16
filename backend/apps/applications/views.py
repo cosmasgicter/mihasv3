@@ -1059,17 +1059,31 @@ class ApplicationTrackView(APIView):
     authentication_classes = []
     serializer_class = ApplicationTrackingSerializer
 
-    TRACKING_CODE_PATTERN = re.compile(r"^(APP-\d{8}-[A-Z0-9]{8}|TRK-[A-Z0-9]{12})$")
+    # Accepted formats:
+    #   APP-YYYYMMDD-XXXXXXXX  (new application numbers)
+    #   MIHAS + 9 digits       (legacy MIHAS application numbers)
+    #   KATC + 9 digits        (legacy KATC application numbers)
+    #   TRK-XXXXXXXXXXXX       (new tracking codes, 12 alphanum after dash)
+    #   TRK + 5-6 alphanum     (legacy tracking codes, no dash)
+    TRACKING_CODE_PATTERN = re.compile(
+        r"^("
+        r"APP-\d{8}-[A-Z0-9]{8}"       # APP-20260416-ABCD1234
+        r"|MIHAS\d{9}"                   # MIHAS202641411
+        r"|KATC\d{9}"                    # KATC202512345
+        r"|TRK-[A-Z0-9]{12}"            # TRK-ABCDEF123456
+        r"|TRK[A-Z0-9]{5,6}"            # TRK370990 or TRKSFVAGC
+        r")$"
+    )
 
     def get(self, request):
-        code = request.query_params.get("code", "").strip()
+        code = request.query_params.get("code", "").strip().upper()
         if not code:
             return Response({"success": False, "error": "Tracking code or application number required", "code": "VALIDATION_ERROR"}, status=status.HTTP_400_BAD_REQUEST)
         if not self.TRACKING_CODE_PATTERN.match(code):
             return Response(
                 {
                     "success": False,
-                    "error": "Invalid tracking code format. Expected formats: APP-YYYYMMDD-XXXXXXXX or TRK-XXXXXXXXXXXX.",
+                    "error": "Invalid tracking code format. Accepted formats: MIHAS + 9 digits, KATC + 9 digits, APP-YYYYMMDD-XXXXXXXX, or TRK tracking codes.",
                     "code": "INVALID_FORMAT",
                 },
                 status=status.HTTP_400_BAD_REQUEST,

@@ -118,7 +118,7 @@ import { PasswordInput } from '@/components/ui/PasswordInput'
  */
 function getTrackerErrorMessage(status: number | undefined): string {
   if (status === 400) {
-    return 'Invalid tracking code format. Expected formats: APP-YYYYMMDD-XXXXXXXX or TRK-XXXXXXXXXXXX.'
+    return 'Invalid tracking code format. Try your application number (e.g. MIHAS202641411) or tracking code (e.g. TRK370990).'
   } else if (status === 404) {
     return 'No application found with this tracking code. Please check the code and try again.'
   } else {
@@ -137,16 +137,16 @@ describe('[PBT] Property 1: Tracker error differentiation by HTTP status code', 
    * from each other and from the generic message.
    */
 
-  const MESSAGE_400 = 'Invalid tracking code format. Expected formats: APP-YYYYMMDD-XXXXXXXX or TRK-XXXXXXXXXXXX.'
+  const MESSAGE_400 = 'Invalid tracking code format. Try your application number (e.g. MIHAS202641411) or tracking code (e.g. TRK370990).'
   const MESSAGE_404 = 'No application found with this tracking code. Please check the code and try again.'
   const MESSAGE_GENERIC = 'An error occurred while searching. Please try again.'
 
-  it('status 400 produces format guidance with APP-YYYYMMDD-XXXXXXXX and TRK-XXXXXXXXXXXX', () => {
+  it('status 400 produces format guidance with real examples', () => {
     fc.assert(
       fc.property(fc.constant(400), (status) => {
         const message = getTrackerErrorMessage(status)
-        expect(message).toContain('APP-YYYYMMDD-XXXXXXXX')
-        expect(message).toContain('TRK-XXXXXXXXXXXX')
+        expect(message).toContain('MIHAS202641411')
+        expect(message).toContain('TRK370990')
         expect(message).toBe(MESSAGE_400)
       }),
       { numRuns: 100 },
