@@ -143,13 +143,30 @@ class ProgramListCreateView(APIView):
             queryset = Program.objects.select_related("institution").filter(is_active=True)
 
         # Filter by intake if provided (uses program_intakes junction table)
+        # Accepts either an intake UUID or an intake name string.
         intake_id = request.query_params.get("intake")
         if intake_id:
-            from apps.catalog.models import ProgramIntake
-            program_ids = ProgramIntake.objects.filter(
-                intake_id=intake_id
-            ).values_list("program_id", flat=True)
-            queryset = queryset.filter(id__in=program_ids)
+            from apps.catalog.models import ProgramIntake, Intake
+            import uuid as _uuid
+
+            # Determine if the value is a UUID or a name
+            resolved_intake_id = None
+            try:
+                resolved_intake_id = str(_uuid.UUID(intake_id))
+            except (ValueError, AttributeError):
+                # Not a UUID — try to resolve by name
+                intake_obj = Intake.objects.filter(name=intake_id, is_active=True).first()
+                if intake_obj:
+                    resolved_intake_id = str(intake_obj.id)
+
+            if resolved_intake_id:
+                program_ids = ProgramIntake.objects.filter(
+                    intake_id=resolved_intake_id
+                ).values_list("program_id", flat=True)
+                queryset = queryset.filter(id__in=program_ids)
+            else:
+                # No matching intake found — return empty set
+                queryset = queryset.none()
 
         queryset = queryset.order_by("name")
 
