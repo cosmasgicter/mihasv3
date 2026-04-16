@@ -757,10 +757,54 @@ class ApiClient {
               return this.unwrapApiResponse<TResponse>(retryPayload, retryContentType);
             }
 
-            // Second 401 after retry — same as refresh failure
-            const authFailure = getOnAuthFailure();
-            if (authFailure) authFailure();
-            throw new AuthenticationError();
+            // Only treat a second 401 as an auth failure. Other status codes
+            // (e.g. 400 validation errors) should be handled normally — they
+            // are not authentication failures and must not trigger logout.
+            if (retryResponse.status === 401) {
+              const authFailure = getOnAuthFailure();
+              if (authFailure) authFailure();
+              throw new AuthenticationError();
+            }
+
+            // Non-401 error after successful refresh — parse and throw as a
+            // normal API error so the caller can handle it (e.g. show validation
+            // messages for 400 responses).
+            let retryErrorMessage = `API Error: ${retryResponse.statusText}`;
+            let retryFieldErrors: Record<string, string> | undefined;
+            try {
+              const retryErrorData = await retryResponse.text();
+              if (retryErrorData) {
+                const parsed = JSON.parse(retryErrorData);
+                retryErrorMessage = parsed.error || parsed.message || retryErrorMessage;
+                if (parsed.details && typeof parsed.details === 'object') {
+                  const mapped: Record<string, string> = {};
+                  for (const [field, messages] of Object.entries(parsed.details)) {
+                    mapped[field] = Array.isArray(messages) ? messages.join(', ') : String(messages);
+                  }
+                  if (Object.keys(mapped).length > 0) {
+                    retryFieldErrors = mapped;
+                  }
+                }
+              }
+            } catch { /* use default */ }
+
+            if (retryFieldErrors && Object.keys(retryFieldErrors).length > 0) {
+              const formatted = Object.entries(retryFieldErrors)
+                .map(([f, m]) => `${f.replace(/_/g, ' ').trim()}: ${m}`)
+                .join('; ');
+              retryErrorMessage = formatted || retryErrorMessage;
+            }
+
+            const retryStatusError = new Error(retryErrorMessage) as Error & { status: number; fieldErrors?: Record<string, string> };
+            retryStatusError.status = retryResponse.status;
+            if (retryFieldErrors) retryStatusError.fieldErrors = retryFieldErrors;
+            const retryEnhanced = ApiErrorHandler.enhanceError({
+              endpoint: normalizedEndpoint,
+              method,
+              statusCode: retryResponse.status,
+              originalError: retryStatusError,
+            });
+            throw retryEnhanced;
           }
 
           // Refresh failed — invoke onAuthFailure and throw
@@ -873,10 +917,31 @@ class ApiClient {
               return this.unwrapApiResponse<TResponse>(retryPayload, retryContentType);
             }
 
-            // Second failure after refresh — treat as auth failure
-            const authFailure = getOnAuthFailure();
-            if (authFailure) authFailure();
-            throw new AuthenticationError();
+            // Only treat a second 401/403 as an auth failure. Other status
+            // codes (e.g. 400 validation errors) are not auth failures.
+            if (retryResponse.status === 401 || retryResponse.status === 403) {
+              const authFailure = getOnAuthFailure();
+              if (authFailure) authFailure();
+              throw new AuthenticationError();
+            }
+
+            // Non-auth error after successful refresh — handle normally
+            let retryErrMsg = `API Error: ${retryResponse.statusText}`;
+            try {
+              const retryErrData = await retryResponse.text();
+              if (retryErrData) {
+                const parsed = JSON.parse(retryErrData);
+                retryErrMsg = parsed.error || parsed.message || retryErrMsg;
+              }
+            } catch { /* use default */ }
+            const retryErr = new Error(retryErrMsg) as Error & { status: number };
+            retryErr.status = retryResponse.status;
+            throw ApiErrorHandler.enhanceError({
+              endpoint: normalizedEndpoint,
+              method,
+              statusCode: retryResponse.status,
+              originalError: retryErr,
+            });
           }
 
           // Refresh failed — invoke onAuthFailure and throw
@@ -996,10 +1061,30 @@ class ApiClient {
             return this.unwrapApiResponse<TResponse>(retryPayload, retryContentType);
           }
 
-          // Second failure after refresh — treat as auth failure
-          const authFailure = getOnAuthFailure();
-          if (authFailure) authFailure();
-          throw new AuthenticationError();
+          // Only treat a second 401/403 as an auth failure
+          if (retryResponse.status === 401 || retryResponse.status === 403) {
+            const authFailure = getOnAuthFailure();
+            if (authFailure) authFailure();
+            throw new AuthenticationError();
+          }
+
+          // Non-auth error after successful refresh — handle normally
+          let retryGetErrMsg = `API Error: ${retryResponse.statusText}`;
+          try {
+            const retryGetErrData = await retryResponse.text();
+            if (retryGetErrData) {
+              const parsed = JSON.parse(retryGetErrData);
+              retryGetErrMsg = parsed.error || parsed.message || retryGetErrMsg;
+            }
+          } catch { /* use default */ }
+          const retryGetErr = new Error(retryGetErrMsg) as Error & { status: number };
+          retryGetErr.status = retryResponse.status;
+          throw ApiErrorHandler.enhanceError({
+            endpoint: normalizedEndpoint,
+            method,
+            statusCode: retryResponse.status,
+            originalError: retryGetErr,
+          });
         }
 
         // Refresh failed — invoke onAuthFailure and throw

@@ -22,6 +22,7 @@ interface BasicKycStepProps {
   missingFields?: { key: string; label: string }[]
   selectedProgram?: WizardFormData['program']
   programs: WizardProgram[]
+  programsLoading?: boolean
   intakes: WizardIntake[]
   title: string
   /** Returns an aria-describedby value linking a field to its wizard-level error message (Req 17.2) */
@@ -35,6 +36,7 @@ const BasicKycStep = ({
   missingFields,
   selectedProgram,
   programs,
+  programsLoading,
   intakes,
   title,
   getFieldAriaDescribedBy
@@ -222,7 +224,7 @@ const BasicKycStep = ({
               placeholder="Select programme"
               error={errors.program?.message}
               disabled={programs.length === 0}
-              helperText={programs.length === 0 ? 'No programmes available for the current intake' : undefined}
+              helperText={programs.length === 0 && !programsLoading ? 'No programmes available for the current intake' : undefined}
               triggerClassName="min-h-[56px] py-3 [&>span]:max-w-[calc(100%-1.75rem)] [&>span]:line-clamp-2 [&>span]:whitespace-normal [&>span]:leading-snug"
               required
               extraDescribedBy={getFieldAriaDescribedBy?.('program')}

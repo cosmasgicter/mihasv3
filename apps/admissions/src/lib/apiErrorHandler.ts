@@ -26,6 +26,7 @@ export class ApiErrorHandler {
         status?: number
         endpoint?: string
         method?: string
+        fieldErrors?: Record<string, string>
       }
 
       if (statusCode) {
@@ -34,6 +35,14 @@ export class ApiErrorHandler {
 
       error.endpoint = endpoint
       error.method = method
+
+      // Preserve field-level validation errors from the original error so that
+      // upstream callers (e.g. the application wizard) can map them to form fields.
+      const orig = originalError as { fieldErrors?: Record<string, string> } | null
+      if (orig?.fieldErrors && typeof orig.fieldErrors === 'object') {
+        error.fieldErrors = orig.fieldErrors
+      }
+
       return error
     }
     
