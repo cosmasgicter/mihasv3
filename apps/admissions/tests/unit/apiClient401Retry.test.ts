@@ -30,6 +30,11 @@ vi.mock('@/utils/api-cache', () => ({
     if (options.onResponse) {
       options.onResponse(response.clone(), 0);
     }
+    if (!response.ok) {
+      const error = new Error(`HTTP ${response.status}: ${response.statusText}`) as Error & { status?: number };
+      error.status = response.status;
+      throw error;
+    }
     if (options.transformResponse) {
       return options.transformResponse(response);
     }
@@ -112,6 +117,45 @@ describe('ApiClient 401 Retry Unit Tests', () => {
     expect(result).toEqual({ result: 'ok' });
 
     // Verify the call sequence: original (401) → refresh (200) → retry (200)
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+
+    const urls = mockFetch.mock.calls.map((c: any[]) =>
+      typeof c[0] === 'string' ? c[0] : ''
+    );
+    expect(urls[0]).toBe(APPLICATIONS_URL);
+    expect(urls[1]).toBe(REFRESH_URL);
+    expect(urls[2]).toBe(APPLICATIONS_URL);
+  });
+
+  it('GET 401 through cache layer refreshes and retries the original request', async () => {
+    let callCount = 0;
+
+    const mockFetch = vi.fn(async (url: string | URL | Request, _init?: RequestInit) => {
+      const urlStr = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url;
+      callCount++;
+
+      if (callCount === 1) {
+        return makeJsonResponse(401, { success: false, error: 'Unauthorized' });
+      }
+
+      if (urlStr === REFRESH_URL) {
+        return makeJsonResponse(200, { success: true, data: { refreshed: true } }, 'fresh-csrf');
+      }
+
+      return makeJsonResponse(200, { success: true, data: { result: 'ok' } });
+    });
+
+    vi.stubGlobal('fetch', mockFetch);
+
+    const { apiClient } = await import('@/services/client');
+
+    const result = await apiClient.request('/applications/', {
+      method: 'GET',
+      retries: 0,
+      skipCache: true,
+    });
+
+    expect(result).toEqual({ result: 'ok' });
     expect(mockFetch).toHaveBeenCalledTimes(3);
 
     const urls = mockFetch.mock.calls.map((c: any[]) =>

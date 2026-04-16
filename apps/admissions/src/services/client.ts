@@ -1025,16 +1025,16 @@ class ApiClient {
         throw error;
       }
 
-      // Defense-in-depth: handle 403 auth failures from GET requests (via fetchWithCache).
+      // Defense-in-depth: handle auth failures from GET requests (via fetchWithCache).
       // fetchWithCache throws errors with status property for non-ok responses.
-      // If a GET request got a 403 without a CSRF error code, attempt refresh.
+      // If a GET request got a 401/403, attempt refresh.
       const errorStatus = (error as { status?: number })?.status;
       if (
-        errorStatus === 403 &&
+        (errorStatus === 401 || errorStatus === 403) &&
         method === 'GET' &&
         !this.isAuthExcludedEndpoint(normalizedEndpoint)
       ) {
-        console.debug('[API Client] 403 on GET (via cache layer) - attempting token refresh');
+        console.debug('[API Client] auth error on GET (via cache layer) - attempting token refresh');
         const refreshed = await this.attemptRefresh();
 
         if (refreshed) {

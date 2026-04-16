@@ -13,7 +13,7 @@ import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useProfileAutoPopulation, getBestValue, getUserMetadata } from '@/hooks/useProfileAutoPopulation'
 import { useEligibilityChecker } from '@/hooks/useEligibilityChecker'
-import { usePaymentStatus } from '@/hooks/usePaymentStatus'
+import { normalizePaymentStatusValue, usePaymentStatus } from '@/hooks/usePaymentStatus'
 import { draftManager } from '@/lib/draftManager'
 // eslint-disable-next-line no-restricted-imports -- eligibilityEngine is still used until API-backed replacement is ready
 import { checkEligibility, getRecommendedSubjects } from '@/lib/eligibilityEngine'
@@ -372,7 +372,14 @@ const useWizardController = (): UseWizardControllerResult => {
     status: paymentStatus,
     refetch: refetchPaymentStatus,
     setStatus: setPaymentStatus,
-  } = usePaymentStatus(applicationId || '')
+  } = usePaymentStatus(applicationId || '', submittedApplication?.paymentStatus ?? null)
+
+  const restorePaymentStatus = useCallback((status?: string | null) => {
+    const normalized = normalizePaymentStatusValue(status)
+    if (normalized) {
+      setPaymentStatus(normalized)
+    }
+  }, [setPaymentStatus])
 
   useEffect(() => {
     if (intakesData?.intakes) {
@@ -424,7 +431,7 @@ const useWizardController = (): UseWizardControllerResult => {
     handleResultSlipUpload: baseHandleResultSlipUpload,
     handleExtraKycUpload: baseHandleExtraKycUpload,
     handleResultSlipFile: baseHandleResultSlipFile,
-    handleExtraKycFile,
+    handleExtraKycFile: baseHandleExtraKycFile,
     markUploadedFile,
     startUpload,
     trackUploadTask
@@ -578,6 +585,38 @@ const useWizardController = (): UseWizardControllerResult => {
       }
     })
   }, [applicationId, baseHandleResultSlipFile, baseHandleResultSlipUpload, clearStaleApplicationReference, normalizeSelectedGrades, persistLocalDraftSnapshot, queryClient, showInfo, showSuccess, showWarning, subjects, syncGrades, updateApplication])
+
+  const handleExtraKycUpload = useCallback((file: File | null) => {
+    if (!file) {
+      baseHandleExtraKycFile(null)
+      return
+    }
+
+    baseHandleExtraKycUpload(
+      { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>,
+      async (_uploadedFile, url) => {
+        if (!applicationId) return
+
+        persistLocalDraftSnapshot()
+
+        try {
+          await updateApplication.mutateAsync({ id: applicationId, data: { extra_kyc_url: url } })
+          queryClient.invalidateQueries({ queryKey: ['applications'] })
+        } catch (error) {
+          if (isApplicationMissingError(error)) {
+            clearStaleApplicationReference(
+              applicationId,
+              'Your online draft was no longer available. The selected file is still on this device; continue from Basic Information to refresh the draft.'
+            )
+            return
+          }
+
+          logApiError('application-wizard', `PATCH /applications/${applicationId}/`, error)
+          showWarning('Identity document uploaded. Refresh the application if it does not appear immediately.')
+        }
+      }
+    )
+  }, [applicationId, baseHandleExtraKycFile, baseHandleExtraKycUpload, clearStaleApplicationReference, persistLocalDraftSnapshot, queryClient, showWarning, updateApplication])
 
   const preserveDraftBeforeAuthRedirect = useCallback(() => {
     persistLocalDraftSnapshot()
@@ -994,6 +1033,7 @@ const useWizardController = (): UseWizardControllerResult => {
             }
             markUploadedFile('result_slip', mergedLocalUploads.result_slip)
             markUploadedFile('extra_kyc', mergedLocalUploads.extra_kyc)
+            restorePaymentStatus(serverApp?.payment_status ?? localDraft.paymentStatus ?? null)
             
             // 3.1: ALWAYS restore step - removed currentStepIndex === 0 condition
             // Use currentStepKey for reliable step matching
@@ -1025,6 +1065,7 @@ const useWizardController = (): UseWizardControllerResult => {
           
           // CRITICAL: Set application ID FIRST
           setApplicationId(app.id)
+          restorePaymentStatus(app.payment_status ?? null)
           
           // 3.2: Set form values with shouldValidate: false
           setValue('full_name', app.full_name || '', { shouldValidate: false })
@@ -1124,6 +1165,7 @@ const useWizardController = (): UseWizardControllerResult => {
     programsData,
     hydrateServerGrades,
     markUploadedFile,
+    restorePaymentStatus,
     showSuccess
   ])
 
@@ -1903,7 +1945,7 @@ const useWizardController = (): UseWizardControllerResult => {
     handleEmailSlip,
     dismissSlipProgress,
     handleResultSlipUpload,
-    handleExtraKycUpload: handleExtraKycFile,
+    handleExtraKycUpload,
     getPaymentTarget,
     handleNextStep,
     handlePrevStep,

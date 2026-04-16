@@ -114,3 +114,19 @@ class JWTCookieAuthentication(BaseAuthentication):
             )
 
         return payload
+
+
+class OptionalJWTCookieAuthentication(JWTCookieAuthentication):
+    """Best-effort JWT auth for public endpoints.
+
+    Public catalog endpoints can use this authenticator to identify admins when
+    a valid cookie is present without failing the request for anonymous users
+    who happen to have an expired or invalid cookie.
+    """
+
+    def authenticate(self, request):
+        try:
+            return super().authenticate(request)
+        except AuthenticationFailed as exc:
+            logger.debug("Ignoring invalid optional JWT on public endpoint: %s", exc)
+            return None

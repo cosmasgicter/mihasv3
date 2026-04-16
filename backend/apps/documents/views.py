@@ -261,6 +261,17 @@ class DocumentUploadView(APIView):
             uploaded_at=timezone.now(),
         )
 
+        application_url_field = None
+        if document_type == "result_slip":
+            application_url_field = "result_slip_url"
+        elif document_type in ("extra_kyc", "nrc", "passport"):
+            application_url_field = "extra_kyc_url"
+
+        if application_url_field:
+            setattr(application, application_url_field, file_url)
+            application.updated_at = timezone.now()
+            application.save(update_fields=[application_url_field, "updated_at"])
+
         return Response(
             DocumentSerializer(doc).data,
             status=status.HTTP_201_CREATED,
