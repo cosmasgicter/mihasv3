@@ -267,7 +267,8 @@ export default function ResetPasswordPage() {
 
         {/* Error message */}
         {resetPasswordMutation.error ? (
-          <div className={`overflow-hidden ${animateClasses.fadeIn}`}>
+          <div className={`overflow-hidden ${animateClasses.fadeIn}`}
+               role="alert" aria-live="assertive" aria-atomic="true">
             <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
               <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
               <div className="text-sm font-medium text-destructive">

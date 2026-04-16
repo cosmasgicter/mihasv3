@@ -2,8 +2,7 @@ import React, { useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Bell, X, Lightbulb } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { useStudentNotifications } from '@/hooks/useStudentNotifications'
-import { formatDate } from '@/lib/utils'
+import { useNotificationPolling } from '@/hooks/useNotificationPolling'
 import { isSafeNavigationUrl } from '@/lib/urlSafety'
 import type { StudentNotification } from '@/types/notifications'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
@@ -16,15 +15,13 @@ export function NotificationBell() {
   useEscapeKey(showPanel, () => setShowPanel(false))
   const { 
     notifications, 
-    loading, 
+    isLoading: loading, 
     unreadCount, 
-    markAsRead, 
-    markAllAsRead, 
+    markRead: markAsRead, 
+    markAllRead: markAllAsRead, 
     deleteNotification,
     refresh,
-    isPolling,
-    lastLoadedAt,
-  } = useStudentNotifications()
+  } = useNotificationPolling()
 
   const handleNotificationClick = useCallback(async (notification: StudentNotification) => {
     try {
@@ -108,7 +105,6 @@ export function NotificationBell() {
                     <h3 className="font-bold text-foreground flex items-center gap-2"><Bell className="w-5 h-5" /> Notifications</h3>
                     <p className="text-xs text-muted-foreground">
                       {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up!'}
-                      {isPolling && ' · auto-refresh on'}
                     </p>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -181,9 +177,6 @@ export function NotificationBell() {
                       <Lightbulb className="w-5 h-5" /> Click notifications to mark as read
                     </p>
                     <div className="flex items-center justify-center gap-3 sm:justify-end">
-                      {lastLoadedAt && (
-                        <span>Synced {formatDate(lastLoadedAt)}</span>
-                      )}
                       <Link to="/student/notifications" className="font-medium text-primary hover:underline" onClick={() => setShowPanel(false)}>
                         Open inbox
                       </Link>

@@ -3,7 +3,6 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { matchPath, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import '@/styles/legibility.css'
 import { AuthProvider } from '@/contexts/AuthContext'
-import { RealtimeStatusProvider } from '@/contexts/RealtimeStatusContext'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { StudentRoute } from '@/components/StudentRoute'
 import { AdminRoute } from '@/components/AdminRoute'
@@ -172,9 +171,7 @@ export function AuthenticatedRouteShell() {
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
         <AuthProvider>
-          <RealtimeStatusProvider>
-            <RoutedAuthenticatedApp />
-          </RealtimeStatusProvider>
+          <RoutedAuthenticatedApp />
         </AuthProvider>
       </SafeAreaProvider>
     </QueryClientProvider>

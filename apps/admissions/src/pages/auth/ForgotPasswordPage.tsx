@@ -138,6 +138,7 @@ export default function ForgotPasswordPage() {
         <Input
           {...register('email')}
           type="email"
+          inputMode="email"
           label="Email address"
           required
           autoComplete="email"

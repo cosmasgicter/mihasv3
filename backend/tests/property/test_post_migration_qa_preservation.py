@@ -32,7 +32,6 @@ from rest_framework.test import APIRequestFactory, force_authenticate  # noqa: E
 
 from apps.accounts.authentication import JWTUser  # noqa: E402
 from apps.common.middleware import CSRFEnforcementMiddleware  # noqa: E402
-from apps.common.sse import SSEPollView  # noqa: E402
 from apps.applications.views import (  # noqa: E402
     ApplicationDetailView,
     ApplicationReviewView,
@@ -240,108 +239,8 @@ class TestCSRFEnforcementPreservation:
 
 
 # =========================================================================
-# Preservation Req 3.1: SSE polling fallback continues working
+# Preservation Req 3.1: SSE polling fallback — REMOVED (SSE infrastructure deleted)
 # =========================================================================
-
-
-class TestSSEPollingFallbackPreservation:
-    """Preservation: GET /api/v1/events/poll/ returns valid JSON with notifications.
-
-    The SSE polling fallback endpoint must continue returning a JSON response
-    with a notifications array for authenticated users. This endpoint is the
-    fallback when SSE streaming is unavailable.
-
-    **Validates: Requirements 3.1**
-    """
-
-    @given(
-        notification_count=st.integers(min_value=0, max_value=5),
-    )
-    @_default_settings
-    def test_poll_endpoint_returns_json_with_notifications(self, notification_count):
-        """GET /api/v1/events/poll/ returns JSON with notifications array.
-
-        The polling fallback must return a response with success=True and
-        a data array containing notification objects.
-        """
-        factory = APIRequestFactory()
-        view = SSEPollView.as_view()
-        user = _make_user()
-
-        # Create mock notifications
-        mock_notifications = []
-        for i in range(notification_count):
-            n = MagicMock()
-            n.id = uuid.uuid4()
-            n.title = f"Notification {i}"
-            n.message = f"Message {i}"
-            n.type = "info"
-            n.is_read = False
-            n.created_at = timezone.now()
-            mock_notifications.append(n)
-
-        with patch("apps.common.sse.Notification.objects") as mock_qs:
-            mock_qs.filter.return_value.order_by.return_value.__getitem__ = (
-                lambda self, key: mock_notifications[:20]
-            )
-            # Make the slicing work
-            mock_filter = MagicMock()
-            mock_filter.order_by.return_value = mock_filter
-            mock_filter.__getitem__ = lambda self, key: mock_notifications[:20]
-            mock_qs.filter.return_value = mock_filter
-
-            request = _auth_request(factory, "get", "/api/v1/events/poll/", user)
-            response = view(request)
-
-        assert response.status_code == 200, (
-            f"Expected 200 from poll endpoint, got {response.status_code}"
-        )
-        assert response.data["success"] is True, (
-            "Poll endpoint should return success=True"
-        )
-        assert "data" in response.data, (
-            "Poll endpoint should return a 'data' field"
-        )
-        assert isinstance(response.data["data"], list), (
-            f"Poll endpoint 'data' should be a list, got {type(response.data['data'])}"
-        )
-        assert len(response.data["data"]) == notification_count, (
-            f"Expected {notification_count} notifications, got {len(response.data['data'])}"
-        )
-
-    def test_poll_endpoint_notification_shape(self):
-        """Each notification in the poll response has the expected fields."""
-        factory = APIRequestFactory()
-        view = SSEPollView.as_view()
-        user = _make_user()
-
-        mock_notif = MagicMock()
-        mock_notif.id = uuid.uuid4()
-        mock_notif.title = "Test Title"
-        mock_notif.message = "Test Message"
-        mock_notif.type = "info"
-        mock_notif.is_read = False
-        mock_notif.created_at = timezone.now()
-
-        with patch("apps.common.sse.Notification.objects") as mock_qs:
-            mock_filter = MagicMock()
-            mock_filter.order_by.return_value = mock_filter
-            mock_filter.__getitem__ = lambda self, key: [mock_notif]
-            mock_qs.filter.return_value = mock_filter
-
-            request = _auth_request(factory, "get", "/api/v1/events/poll/", user)
-            response = view(request)
-
-        assert response.status_code == 200
-        data = response.data["data"]
-        assert len(data) == 1
-
-        notif = data[0]
-        assert "id" in notif, "Notification should have 'id' field"
-        assert "title" in notif, "Notification should have 'title' field"
-        assert "message" in notif, "Notification should have 'message' field"
-        assert "type" in notif, "Notification should have 'type' field"
-        assert "created_at" in notif, "Notification should have 'created_at' field"
 
 
 # =========================================================================

@@ -253,7 +253,6 @@ class TestIdempotencyKeyReturnsCachedResponse(SimpleTestCase):
              patch("apps.common.models.IdempotencyKey.objects") as mock_ik_objects, \
              patch("apps.applications.views.submit_application") as mock_submit, \
              patch("apps.applications.views.ApplicationSerializer") as mock_serializer, \
-             patch("apps.applications.views.dispatch_event"), \
              patch("apps.applications.views.timezone"):
 
             mock_ps.return_value.get.return_value = mock_app
@@ -332,8 +331,7 @@ class TestForceBypassCreatesAuditTrail(SimpleTestCase):
 
         with patch("apps.applications.views.Application.objects") as mock_app_objects, \
              patch("apps.applications.views.transition_application_status") as mock_transition, \
-             patch("apps.applications.views.ApplicationStatusHistory.objects") as mock_history_objects, \
-             patch("apps.applications.views.dispatch_event"):
+             patch("apps.applications.views.ApplicationStatusHistory.objects") as mock_history_objects:
 
             mock_app_objects.get.return_value = mock_app
             mock_transition.return_value = "submitted"  # old_status
@@ -399,7 +397,6 @@ class TestForceBypassCreatesAuditTrail(SimpleTestCase):
         with patch("apps.applications.views.Application.objects") as mock_app_objects, \
              patch("apps.applications.views.transition_application_status") as mock_transition, \
              patch("apps.applications.views.ApplicationStatusHistory.objects") as mock_history_objects, \
-             patch("apps.applications.views.dispatch_event"), \
              patch("apps.applications.views.Payment.objects") as mock_payment:
 
             mock_app_objects.get.return_value = mock_app

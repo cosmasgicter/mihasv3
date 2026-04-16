@@ -199,7 +199,9 @@ export default function SignUpPage() {
             <Input
               {...register('email')}
               type="email"
+              inputMode="email"
               label="Account email"
+              aria-label="Account email"
               error={errors.email?.message || serverFieldErrors.email}
               helperText="We verify this email when you submit the form. If you already have an account, use sign in instead."
               autoComplete="email"
@@ -212,6 +214,7 @@ export default function SignUpPage() {
               <PasswordInput
                 {...register('password')}
                 label="Create password"
+                aria-label="Create password"
                 error={errors.password?.message || serverFieldErrors.password}
                 autoComplete="new-password"
                 disabled={signUpMutation.isPending}
@@ -221,6 +224,7 @@ export default function SignUpPage() {
               <PasswordInput
                 {...register('confirmPassword')}
                 label="Confirm password"
+                aria-label="Confirm password"
                 error={errors.confirmPassword?.message}
                 autoComplete="new-password"
                 disabled={signUpMutation.isPending}
@@ -237,7 +241,9 @@ export default function SignUpPage() {
               <Input
                 {...register('first_name')}
                 type="text"
+                inputMode="text"
                 label="First name"
+                aria-label="First name"
                 error={errors.first_name?.message || serverFieldErrors.first_name}
                 autoComplete="given-name"
                 disabled={signUpMutation.isPending}
@@ -247,7 +253,9 @@ export default function SignUpPage() {
               <Input
                 {...register('last_name')}
                 type="text"
+                inputMode="text"
                 label="Last name"
+                aria-label="Last name"
                 error={errors.last_name?.message || serverFieldErrors.last_name}
                 autoComplete="family-name"
                 disabled={signUpMutation.isPending}
@@ -259,7 +267,9 @@ export default function SignUpPage() {
             <Input
               {...register('phone')}
               type="tel"
+              inputMode="tel"
               label="Phone number"
+              aria-label="Phone number"
               error={errors.phone?.message || serverFieldErrors.phone}
               autoComplete="tel"
               disabled={signUpMutation.isPending}

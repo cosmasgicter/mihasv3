@@ -4,9 +4,8 @@
  * Provides polling-based data fetching for student dashboard.
  * Polls GET /api/v1/applications/ via the application service at 30-second intervals.
  *
- * SSE/Polling Hybrid Strategy:
- * - Primary transport: React Query polling against Django REST API
- * - SSE infrastructure exists (lib/sseClient.ts) for future real-time upgrades
+ * Polling Strategy:
+ * - React Query polling against Django REST API
  * - Polling doubles interval when page is hidden (battery-friendly)
  * - Fingerprint-based deduplication prevents onDataChange firing on identical data
  * - onApplicationChange only fires when a specific application's status changes

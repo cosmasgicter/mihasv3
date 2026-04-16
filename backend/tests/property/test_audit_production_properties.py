@@ -65,7 +65,7 @@ _session_data = st.lists(
     st.fixed_dictionaries({
         "id": st.builds(lambda: str(uuid.uuid4())),
         "device_info": st.text(min_size=0, max_size=100),
-        "last_active": st.one_of(st.none(), st.text(min_size=5, max_size=30)),
+        "last_activity": st.one_of(st.none(), st.text(min_size=5, max_size=30)),
         "created_at": st.one_of(st.none(), st.text(min_size=5, max_size=30)),
     }),
     min_size=0,
@@ -189,11 +189,11 @@ class TestSessionsEnvelopeWrapping:
             mock_s = MagicMock()
             mock_s.id = s["id"]
             mock_s.device_info = s["device_info"]
-            if s["last_active"] is not None:
-                mock_s.last_active = MagicMock()
-                mock_s.last_active.isoformat.return_value = s["last_active"]
+            if s["last_activity"] is not None:
+                mock_s.last_activity = MagicMock()
+                mock_s.last_activity.isoformat.return_value = s["last_activity"]
             else:
-                mock_s.last_active = None
+                mock_s.last_activity = None
             if s["created_at"] is not None:
                 mock_s.created_at = MagicMock()
                 mock_s.created_at.isoformat.return_value = s["created_at"]

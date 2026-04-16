@@ -2,7 +2,7 @@
 
 Tests:
 - 6.1: ApplicationReviewView.post() does not contain debug wrapper (Req 7.1, 7.2, 7.3)
-- 6.2: SSEStreamView.get() returns text/event-stream content type (Req 1.1, 1.4)
+- 6.2: SSE stream view — REMOVED (SSE infrastructure deleted)
 - 6.3: AdminDashboardView returns JSON with expected keys (Req 2.1, 2.2)
 """
 
@@ -22,7 +22,6 @@ from django.test import SimpleTestCase
 from rest_framework.test import APIRequestFactory
 
 from apps.applications.views import ApplicationReviewView
-from apps.common.sse import sse_stream_view
 
 factory = APIRequestFactory()
 
@@ -56,32 +55,8 @@ class TestReviewViewNoDebugWrapper(SimpleTestCase):
 
 
 # =========================================================================
-# 6.2: sse_stream_view returns correct response for authenticated users
-# Requirements: 1.1, 1.4
+# 6.2: SSE stream view — REMOVED (SSE infrastructure deleted)
 # =========================================================================
-
-
-class TestSSEStreamContentType(SimpleTestCase):
-    """Verify SSE stream endpoint is an async function with correct behavior."""
-
-    def test_sse_stream_view_is_async(self):
-        """sse_stream_view must be an async function (coroutine function)."""
-        import asyncio
-
-        self.assertTrue(
-            asyncio.iscoroutinefunction(sse_stream_view),
-            "sse_stream_view should be an async function",
-        )
-
-    def test_returns_401_without_auth_cookie(self):
-        """sse_stream_view must return 401 when no access_token cookie is present."""
-        import asyncio
-
-        request = factory.get("/api/v1/events/stream/")
-        request.COOKIES = {}
-
-        response = asyncio.get_event_loop().run_until_complete(sse_stream_view(request))
-        self.assertEqual(response.status_code, 401)
 
 
 # =========================================================================

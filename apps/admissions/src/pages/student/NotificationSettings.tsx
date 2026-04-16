@@ -14,7 +14,7 @@ import { ArrowLeft, Bell, ExternalLink, MessageCircle, MessageSquare, RefreshCw,
 import PushNotificationSettings from '@/components/notifications/PushNotificationSettings'
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
-import { useStudentNotifications } from '@/hooks/useStudentNotifications'
+import { useNotificationPolling } from '@/hooks/useNotificationPolling'
 import { isSafeNavigationUrl } from '@/lib/urlSafety'
 import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
 import { useAuth } from '@/contexts/AuthContext'
@@ -96,16 +96,12 @@ export default function NotificationSettings() {
   const {
     notifications,
     unreadCount,
-    loading: notificationsLoading,
+    isLoading: notificationsLoading,
     refresh: refreshNotifications,
-    markAsRead,
-    markAllAsRead,
+    markRead: markAsRead,
+    markAllRead: markAllAsRead,
     deleteNotification,
-    isSSEConnected,
-    isPolling,
-    connectionError,
-    lastLoadedAt,
-  } = useStudentNotifications()
+  } = useNotificationPolling()
   const [savingChannel, setSavingChannel] = useState<ChannelKey | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -132,11 +128,7 @@ export default function NotificationSettings() {
   const contactSourceLabel = profile?.phone?.trim()
     ? 'Using your profile phone number'
     : 'No phone number connected yet'
-  const inboxRefreshLabel = isSSEConnected
-    ? 'Live push connection active'
-    : isPolling
-      ? 'Auto-refreshing every 30 seconds and when you return to the tab'
-      : 'Manual refresh only'
+  const inboxRefreshLabel = 'Auto-refreshing every 60 seconds and when you return to the tab'
 
   const handleConsentChange = async (channel: ChannelKey, enable: boolean) => {
     setSavingChannel(channel)
@@ -347,14 +339,6 @@ export default function NotificationSettings() {
                 <div className="rounded-2xl border border-border bg-muted/40 px-4 py-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Portal inbox refresh</p>
                   <p className="mt-2 text-sm font-semibold text-foreground">{inboxRefreshLabel}</p>
-                  {lastLoadedAt && (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Last synced {formatTimestamp(lastLoadedAt)}
-                    </p>
-                  )}
-                  {connectionError && (
-                    <p className="mt-1 text-xs text-amber-700">{connectionError}</p>
-                  )}
                 </div>
                 <div className="rounded-2xl border border-border bg-muted/40 px-4 py-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Always enabled</p>
@@ -412,12 +396,6 @@ export default function NotificationSettings() {
                     <p className="mt-1 text-sm font-semibold text-foreground break-words">{contactSourceLabel}</p>
                   </div>
                 </div>
-
-                {lastLoadedAt && (
-                  <p className="text-xs text-muted-foreground">
-                    Last inbox sync: {formatTimestamp(lastLoadedAt)}
-                  </p>
-                )}
 
                 {notificationsLoading ? (
                   <div className="space-y-3 py-4" role="status" aria-label="Loading notifications">

@@ -48,7 +48,6 @@ from apps.common.openapi_helpers import (
     envelope_serializer,
     paginated_serializer,
 )
-from apps.common.event_dispatcher import dispatch_event
 from apps.common.pagination import StandardPagination
 from apps.documents.models import ApplicationDocument, ApplicationGrade, Payment
 from apps.documents.serializers import DocumentSerializer
@@ -734,19 +733,6 @@ class ApplicationSubmitView(APIView):
                     idempotency_key, application_id,
                 )
 
-        dispatch_event(
-            user_id=submitted_app.user_id,
-            event_type="application_update",
-            payload={
-                "application_id": str(submitted_app.id),
-                "status": submitted_app.status,
-                "updated_at": timezone.now().isoformat(),
-                "submitted_at": submitted_app.submitted_at.isoformat() if submitted_app.submitted_at else None,
-                "payment_status": submitted_app.payment_status,
-            },
-            entity_id=submitted_app.id,
-        )
-
         return Response(response_data)
 
 
@@ -846,17 +832,6 @@ class ApplicationReviewView(APIView):
                     )
                 raise
 
-            dispatch_event(
-                user_id=app.user_id,
-                event_type='payment_update',
-                payload={
-                    'payment_id': str(app.id),
-                    'status': payment_status,
-                    'updated_at': timezone.now().isoformat(),
-                },
-                entity_id=app.id,
-            )
-
             return Response({
                 "message": f"Payment status updated to {payment_status}",
                 "application_id": str(app.id),
@@ -910,16 +885,6 @@ class ApplicationReviewView(APIView):
                     {"success": False, "error": exc.message, "code": exc.code},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            dispatch_event(
-                user_id=locked_app.user_id,
-                event_type='application_update',
-                payload={
-                    'application_id': str(locked_app.id),
-                    'status': new_status,
-                    'updated_at': timezone.now().isoformat(),
-                },
-                entity_id=locked_app.id,
-            )
             return Response({"message": f"Status updated from {old_status} to {new_status}", "application_id": str(locked_app.id), "old_status": old_status, "new_status": new_status})
         old_status = transition_application_status(
             application=app,
@@ -943,17 +908,6 @@ class ApplicationReviewView(APIView):
         if new_status in ("approved", "rejected"):
             from apps.applications.intake_enforcer import IntakeEnforcer
             IntakeEnforcer.sync_enrollment(app.intake)
-
-        dispatch_event(
-            user_id=app.user_id,
-            event_type='application_update',
-            payload={
-                'application_id': str(app.id),
-                'status': new_status,
-                'updated_at': timezone.now().isoformat(),
-            },
-            entity_id=app.id,
-        )
 
         # Send notification to student on approval/rejection
         if new_status in ("approved", "rejected"):

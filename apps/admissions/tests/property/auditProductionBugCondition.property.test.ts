@@ -13,9 +13,6 @@
  * Bug 2: ErrorDisplay renders role="alert" even for empty/whitespace messages.
  *   On UNFIXED code the alert div is always rendered → test FAILS.
  *
- * Bug 3: signOut does not call SSE client disconnect() or resetAuthFailure().
- *   On UNFIXED code authFailed persists across login boundaries → test FAILS.
- *
  * Bug 5: Font fallback chain in tailwind.config.js is incomplete — missing
  *   intermediate fallbacks like ui-sans-serif, -apple-system, BlinkMacSystemFont.
  *   On UNFIXED code only Inter, system-ui, sans-serif are present → test FAILS.
@@ -147,39 +144,6 @@ describe('[PBT] Bug 2 — ErrorDisplay returns null for empty messages', () => {
     expect(alertElement).toBeNull()
 
     teardown()
-  })
-})
-
-// ---------------------------------------------------------------------------
-// Bug 3 — SSE auth state not cleaned on logout
-// ---------------------------------------------------------------------------
-
-describe('[PBT] Bug 3 — SSE state resets on logout', () => {
-  it('signOut function includes SSE disconnect() and resetAuthFailure() calls', () => {
-    const filePath = path.resolve(__dirname, '../../src/hooks/auth/useSessionListener.ts')
-    const fileContent = fs.readFileSync(filePath, 'utf-8')
-
-    // Extract the signOut callback body
-    const signOutMatch = fileContent.match(/const signOut = useCallback\(async \(\) => \{([\s\S]*?)\}, \[/)
-    expect(signOutMatch).not.toBeNull()
-    const signOutBody = signOutMatch![1]
-
-    // EXPECTED (fixed): signOut should call disconnect() on the SSE client
-    // On UNFIXED code: signOut does NOT touch the SSE client → FAILS
-    expect(signOutBody).toMatch(/disconnect\(\)/)
-  })
-
-  it('signOut function calls resetAuthFailure() to clear stale auth state', () => {
-    const filePath = path.resolve(__dirname, '../../src/hooks/auth/useSessionListener.ts')
-    const fileContent = fs.readFileSync(filePath, 'utf-8')
-
-    const signOutMatch = fileContent.match(/const signOut = useCallback\(async \(\) => \{([\s\S]*?)\}, \[/)
-    expect(signOutMatch).not.toBeNull()
-    const signOutBody = signOutMatch![1]
-
-    // EXPECTED (fixed): signOut should call resetAuthFailure() on the SSE client
-    // On UNFIXED code: signOut does NOT call resetAuthFailure() → FAILS
-    expect(signOutBody).toMatch(/resetAuthFailure\(\)/)
   })
 })
 

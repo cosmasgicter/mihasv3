@@ -17,7 +17,7 @@
  *
  * | Element                        | Class              | Effective FG | Ratio  | Pass |
  * |--------------------------------|--------------------|-------------|--------|------|
- * | Accreditation badge (text-xs)  | text-white (1.0)   | #ffffff     | ≥13:1  | ✅ AA |
+ * | Accreditation badge (text-xs)  | text-white (1.0)   | #ffffff     | ≥15:1  | ✅ AA |
  * | h1 headline (text-3xl–6xl)     | text-white (1.0)   | #ffffff     | ≥13:1  | ✅ AA |
  * | Rotating phrases (text-lg–2xl) | text-white (1.0)   | #ffffff     | ≥13:1  | ✅ AA (large) |
  * | Description (text-base–xl)     | text-white (1.0)   | #ffffff     | ≥13:1  | ✅ AA |
@@ -243,7 +243,7 @@ export function ShapeLandingHero({
                     {proofPanel.badges.map((badge) => (
                       <span
                         key={badge}
-                        className="rounded-full border border-white/30 bg-slate-950/60 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-white backdrop-blur-sm"
+                        className="rounded-full border border-white/30 bg-slate-950/75 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-white backdrop-blur-sm"
                       >
                         {badge}
                       </span>

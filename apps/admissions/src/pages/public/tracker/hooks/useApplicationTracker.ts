@@ -98,7 +98,14 @@ export const useApplicationTracker = () => {
       setSearched(true)
     } catch (error: any) {
       logger.error('Error searching application:', error)
-      setError('An error occurred while searching. Please try again.')
+      const status = error?.status
+      if (status === 400) {
+        setError('Invalid tracking code format. Expected formats: APP-YYYYMMDD-XXXXXXXX or TRK-XXXXXXXXXXXX.')
+      } else if (status === 404) {
+        setError('No application found with this tracking code. Please check the code and try again.')
+      } else {
+        setError('An error occurred while searching. Please try again.')
+      }
     } finally {
       setLoading(false)
     }

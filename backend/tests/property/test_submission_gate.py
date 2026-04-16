@@ -79,7 +79,6 @@ class TestSubmissionBlockedWithoutPayment(SimpleTestCase):
             patch("apps.applications.duplicate_checker.DuplicateChecker.check_at_submit") as mock_duplicate_check,
             patch("apps.applications.eligibility_engine.EligibilityEngine.evaluate") as mock_eligibility,
             patch("apps.applications.models.ApplicationDraft.objects") as mock_draft_objects,
-            patch("apps.applications.views.dispatch_event"),
         ):
             mock_app_qs.get.return_value = mock_app
             mock_app_qs.select_for_update.return_value.get.return_value = mock_app
@@ -144,7 +143,6 @@ class TestSubmissionAllowedWithPayment(SimpleTestCase):
             patch("apps.applications.duplicate_checker.DuplicateChecker.check_at_submit") as mock_duplicate_check,
             patch("apps.applications.eligibility_engine.EligibilityEngine.evaluate") as mock_eligibility,
             patch("apps.applications.models.ApplicationDraft.objects") as mock_draft_objects,
-            patch("apps.applications.views.dispatch_event"),
         ):
             mock_app_qs.get.return_value = mock_app
             mock_app_qs.select_for_update.return_value.get.return_value = mock_app
@@ -208,7 +206,6 @@ class TestPaymentGateOnlyChecksSuccessfulStatus(SimpleTestCase):
             patch("apps.applications.duplicate_checker.DuplicateChecker.check_at_submit") as mock_duplicate_check,
             patch("apps.applications.eligibility_engine.EligibilityEngine.evaluate") as mock_eligibility,
             patch("apps.applications.models.ApplicationDraft.objects") as mock_draft_objects,
-            patch("apps.applications.views.dispatch_event"),
         ):
             mock_app_qs.get.return_value = mock_app
             mock_app_qs.select_for_update.return_value.get.return_value = mock_app
@@ -278,7 +275,6 @@ class TestPaymentGateIntegrationWithView(SimpleTestCase):
             patch("apps.applications.duplicate_checker.DuplicateChecker.check_at_submit") as mock_duplicate_check,
             patch("apps.applications.eligibility_engine.EligibilityEngine.evaluate") as mock_eligibility,
             patch("apps.applications.models.ApplicationDraft.objects") as mock_draft_objects,
-            patch("apps.applications.views.dispatch_event"),
         ):
             mock_app_qs.get.return_value = mock_app
             mock_app_qs.select_for_update.return_value.get.return_value = mock_app

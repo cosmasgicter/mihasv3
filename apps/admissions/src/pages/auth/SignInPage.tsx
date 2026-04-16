@@ -253,6 +253,7 @@ export default function SignInPage() {
               onBlur={emailOnBlur}
               type="email"
               label="Account email"
+              aria-label="Account email"
               error={errors.email?.message || serverFieldErrors.email}
               autoComplete="email"
               disabled={signInMutation.isPending}
@@ -263,6 +264,7 @@ export default function SignInPage() {
             <PasswordInput
               {...register('password')}
               label="Account password"
+              aria-label="Account password"
               error={errors.password?.message || serverFieldErrors.password}
               autoComplete="current-password"
               disabled={signInMutation.isPending}

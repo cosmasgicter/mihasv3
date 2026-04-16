@@ -435,9 +435,8 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
                 mock_history.create.return_value = MagicMock()
                 mock_history.filter.return_value.order_by.return_value.first.return_value = MagicMock()
 
-                with patch("apps.applications.views.dispatch_event"):
-                    view = ApplicationReviewView()
-                    response = view.post(request, application_id=app.id)
+                view = ApplicationReviewView()
+                response = view.post(request, application_id=app.id)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["new_status"], "approved")
@@ -461,10 +460,9 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
             with patch("apps.applications.views.ApplicationStatusHistory.objects") as mock_history:
                 mock_history.create.return_value = MagicMock()
 
-                with patch("apps.applications.views.dispatch_event"):
-                    with patch("apps.applications.views.submit_application", return_value=(app, "submitted")):
-                        view = ApplicationReviewView()
-                        response = view.post(request, application_id=app.id)
+                with patch("apps.applications.views.submit_application", return_value=(app, "submitted")):
+                    view = ApplicationReviewView()
+                    response = view.post(request, application_id=app.id)
 
         self.assertEqual(response.status_code, 200)
 
