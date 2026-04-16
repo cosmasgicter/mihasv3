@@ -56,6 +56,7 @@ const ApplicationWizardContent = () => {
     eligibilityCheck,
     recommendedSubjects,
     programs,
+    programsLoading,
     intakes,
     subjects,
     hasAutoPopulatedData,
@@ -633,6 +634,7 @@ const ApplicationWizardContent = () => {
                 missingFields={missingFields}
                 selectedProgram={selectedProgram}
                 programs={programs}
+                programsLoading={programsLoading}
                 intakes={intakes}
                 title={currentStepConfig.title}
                 getFieldAriaDescribedBy={getFieldAriaDescribedBy}

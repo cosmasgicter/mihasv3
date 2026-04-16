@@ -83,6 +83,7 @@ interface UseWizardControllerResult {
   eligibilityCheck: ReturnType<typeof checkEligibility> | null
   recommendedSubjects: string[]
   programs: WizardProgram[]
+  programsLoading: boolean
   intakes: WizardIntake[]
   subjects: Array<{ id: string; name: string; code: string }>
   hasAutoPopulatedData: boolean
@@ -355,7 +356,7 @@ const useWizardController = (): UseWizardControllerResult => {
   })
   const { watch, setValue, getValues } = form
 
-  const { data: programsData } = catalogData.useProgramsForIntake(watch('intake') || null)
+  const { data: programsData, isLoading: programsLoading } = catalogData.useProgramsForIntake(watch('intake') || null)
   const { data: intakesData } = catalogData.useIntakes()
   const { data: subjectsData } = catalogData.useSubjects()
   const subjects = useMemo(
@@ -1573,12 +1574,13 @@ const useWizardController = (): UseWizardControllerResult => {
         }
         
         // Map Django field-level validation errors to wizard display (Req 6.3)
-        const fieldErrors = (error as { fieldErrors?: Record<string, string> })?.fieldErrors
-        if (fieldErrors && Object.keys(fieldErrors).length > 0) {
+        const fieldErrors = (error as { fieldErrors?: Record<string, unknown> })?.fieldErrors
+        if (fieldErrors && typeof fieldErrors === 'object' && Object.keys(fieldErrors).length > 0) {
           errorMessage = Object.entries(fieldErrors)
             .map(([field, msg]) => {
               const label = field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-              return `${label}: ${msg}`
+              const message = Array.isArray(msg) ? msg.join(', ') : String(msg ?? '')
+              return `${label}: ${message}`
             })
             .join('; ')
         }
@@ -1836,12 +1838,13 @@ const useWizardController = (): UseWizardControllerResult => {
       }
       
       // Map Django field-level validation errors (Req 6.3)
-      const fieldErrors = (error as { fieldErrors?: Record<string, string> })?.fieldErrors
-      if (fieldErrors && Object.keys(fieldErrors).length > 0) {
+      const fieldErrors = (error as { fieldErrors?: Record<string, unknown> })?.fieldErrors
+      if (fieldErrors && typeof fieldErrors === 'object' && Object.keys(fieldErrors).length > 0) {
         message = Object.entries(fieldErrors)
           .map(([field, msg]) => {
             const label = field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-            return `${label}: ${msg}`
+            const text = Array.isArray(msg) ? msg.join(', ') : String(msg ?? '')
+            return `${label}: ${text}`
           })
           .join('; ')
       }
@@ -1874,6 +1877,7 @@ const useWizardController = (): UseWizardControllerResult => {
     eligibilityCheck,
     recommendedSubjects,
     programs,
+    programsLoading,
     intakes,
     subjects,
     hasAutoPopulatedData,
