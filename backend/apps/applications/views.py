@@ -416,6 +416,12 @@ class ApplicationListCreateView(APIView):
         responses={204: OpenApiResponse(description="Application deleted.")},
     ),
 )
+@extend_schema_view(
+    get=extend_schema(operation_id="application_retrieve", tags=["applications"]),
+    put=extend_schema(operation_id="application_update", tags=["applications"]),
+    patch=extend_schema(operation_id="application_partial_update", tags=["applications"]),
+    delete=extend_schema(operation_id="application_delete", tags=["applications"]),
+)
 class ApplicationDetailView(APIView):
     permission_classes = [IsOwnerOrAdmin]
     serializer_class = ApplicationSerializer
@@ -489,6 +495,17 @@ class ApplicationDetailView(APIView):
         if not IsOwnerOrAdmin().has_object_permission(request, self, app):
             return None
         return app
+
+
+@extend_schema_view(
+    get=extend_schema(operation_id="application_details_retrieve", tags=["applications"]),
+    put=extend_schema(operation_id="application_details_update", tags=["applications"]),
+    patch=extend_schema(operation_id="application_details_partial_update", tags=["applications"]),
+    delete=extend_schema(operation_id="application_details_delete", tags=["applications"]),
+)
+class ApplicationDetailsView(ApplicationDetailView):
+    """Alias for ApplicationDetailView at /<id>/details/ with distinct operation IDs."""
+    pass
 
 
 @extend_schema_view(
