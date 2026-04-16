@@ -31,6 +31,24 @@ export const MAX_POLL_COUNT = 30
 // Hook
 // ---------------------------------------------------------------------------
 
+export function normalizePaymentStatusValue(status?: string | null): PaymentStatusValue {
+  switch (status?.toLowerCase()) {
+    case 'pending':
+    case 'pending_review':
+      return 'pending'
+    case 'successful':
+    case 'verified':
+    case 'paid':
+    case 'force_approved':
+      return 'successful'
+    case 'failed':
+    case 'rejected':
+      return 'failed'
+    default:
+      return null
+  }
+}
+
 /**
  * Polls the backend for the latest payment status of an application.
  *
@@ -38,7 +56,7 @@ export const MAX_POLL_COUNT = 30
  * caps at 30 s. Polling stops on `'successful'` or `'failed'`. A manual
  * `refetch()` resets the interval back to 2 s.
  */
-export function usePaymentStatus(applicationId: string) {
+export function usePaymentStatus(applicationId: string, applicationPaymentStatus?: string | null) {
   const [status, setStatus] = useState<PaymentStatusValue>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const intervalRef = useRef(INITIAL_INTERVAL)
@@ -49,6 +67,13 @@ export function usePaymentStatus(applicationId: string) {
     statusRef.current = nextStatus
     setStatus(nextStatus)
   }, [])
+
+  useEffect(() => {
+    const normalized = normalizePaymentStatusValue(applicationPaymentStatus)
+    if (normalized === 'successful') {
+      updateStatus('successful')
+    }
+  }, [applicationPaymentStatus, updateStatus])
 
   // Keep statusRef in sync so the scheduling closure always sees the latest value
   useEffect(() => {
@@ -66,26 +91,32 @@ export function usePaymentStatus(applicationId: string) {
 
       if (!data) return
 
+      const applicationStatus = normalizePaymentStatusValue(applicationPaymentStatus)
+      if (applicationStatus === 'successful') {
+        updateStatus('successful')
+        return
+      }
+
       // The response may be a paginated envelope or a plain array
       const records: PaymentRecord[] = Array.isArray(data)
         ? data
         : (data as PaymentListResponse).results ?? []
 
       if (records.length === 0) {
-        updateStatus(null)
+        updateStatus(applicationStatus)
         return
       }
 
       // Pick the most recent payment (backend sorts by created_at desc)
       const latest = records[0]
-      const normalized = latest?.status?.toLowerCase() as PaymentStatusValue
-      if (normalized === 'successful' || normalized === 'failed' || normalized === 'pending') {
+      const normalized = normalizePaymentStatusValue(latest?.status)
+      if (normalized) {
         updateStatus(normalized)
       }
     } catch {
       // Swallow — polling is best-effort
     }
-  }, [applicationId, updateStatus])
+  }, [applicationId, applicationPaymentStatus, updateStatus])
 
   const clearPending = useCallback(() => {
     if (timeoutRef.current) {

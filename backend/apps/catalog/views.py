@@ -131,10 +131,10 @@ class ProgramListCreateView(APIView):
     def get_authenticators(self):
         method = _request_method(self)
         # For GET, try auth but don't require it
-        from apps.accounts.authentication import JWTCookieAuthentication
+        from apps.accounts.authentication import JWTCookieAuthentication, OptionalJWTCookieAuthentication
         if method == "POST":
             return [JWTCookieAuthentication()]
-        return [JWTCookieAuthentication()]
+        return [OptionalJWTCookieAuthentication()]
 
     def get(self, request):
         if _is_admin(request):
@@ -326,8 +326,11 @@ class IntakeListCreateView(APIView):
         return [AllowAny()]
 
     def get_authenticators(self):
-        from apps.accounts.authentication import JWTCookieAuthentication
-        return [JWTCookieAuthentication()]
+        method = _request_method(self)
+        from apps.accounts.authentication import JWTCookieAuthentication, OptionalJWTCookieAuthentication
+        if method == "POST":
+            return [JWTCookieAuthentication()]
+        return [OptionalJWTCookieAuthentication()]
 
     def get(self, request):
         if _is_admin(request):
@@ -521,8 +524,11 @@ class InstitutionListCreateView(APIView):
         return [AllowAny()]
 
     def get_authenticators(self):
-        from apps.accounts.authentication import JWTCookieAuthentication
-        return [JWTCookieAuthentication()]
+        method = _request_method(self)
+        from apps.accounts.authentication import JWTCookieAuthentication, OptionalJWTCookieAuthentication
+        if method == "POST":
+            return [JWTCookieAuthentication()]
+        return [OptionalJWTCookieAuthentication()]
 
     def get(self, request):
         if _is_admin(request):

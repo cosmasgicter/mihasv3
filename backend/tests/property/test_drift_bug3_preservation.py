@@ -102,6 +102,69 @@ class TestUploadEndpointPreservation(SimpleTestCase):
 
         self.assertEqual(response.status_code, 201)
 
+    def test_upload_persists_application_document_url_fields(self):
+        """Result slip and identity uploads update the application draft URLs."""
+        factory = APIRequestFactory()
+        user_id = uuid.uuid4()
+        app_id = uuid.uuid4()
+
+        for document_type, expected_field in (
+            ("result_slip", "result_slip_url"),
+            ("extra_kyc", "extra_kyc_url"),
+        ):
+            upload_file = SimpleUploadedFile(
+                f"{document_type}.pdf",
+                b"%PDF-1.4 fake pdf content",
+                content_type="application/pdf",
+            )
+            request = factory.post(
+                "/api/v1/documents/upload/",
+                data={
+                    "file": upload_file,
+                    "document_type": document_type,
+                    "application_id": str(app_id),
+                },
+                format="multipart",
+            )
+            force_authenticate(request, user=_make_auth_user(user_id=user_id))
+
+            mock_app = MagicMock()
+            mock_app.id = app_id
+            mock_app.user_id = user_id
+            mock_app.status = "draft"
+
+            mock_doc = MagicMock()
+            mock_doc.id = uuid.uuid4()
+            mock_doc.application_id = app_id
+            mock_doc.document_type = document_type
+            mock_doc.document_name = f"{document_type}.pdf"
+            mock_doc.file_url = f"https://r2.example.com/{document_type}.pdf"
+            mock_doc.file_size = len(b"%PDF-1.4 fake pdf content")
+            mock_doc.mime_type = "application/pdf"
+            mock_doc.verification_status = "pending"
+            mock_doc.system_generated = False
+            mock_doc.uploaded_at = "2025-01-15T10:00:00Z"
+            mock_doc.created_at = "2025-01-15T10:00:00Z"
+            mock_doc.updated_at = "2025-01-15T10:00:00Z"
+
+            with patch("apps.applications.models.Application.objects") as mock_app_qs, \
+                 patch("apps.documents.views.validate_file_magic_bytes"), \
+                 patch("apps.common.storage.MediaStorage") as mock_storage_cls, \
+                 patch("apps.documents.views.ApplicationDocument.objects") as mock_doc_qs:
+                mock_app_qs.filter.return_value.exists.return_value = True
+                mock_app_qs.get.return_value = mock_app
+                mock_storage = MagicMock()
+                mock_storage.save.return_value = f"documents/{document_type}.pdf"
+                mock_storage.url.return_value = mock_doc.file_url
+                mock_storage_cls.return_value = mock_storage
+                mock_doc_qs.create.return_value = mock_doc
+
+                response = DocumentUploadView.as_view()(request)
+
+            self.assertEqual(response.status_code, 201)
+            self.assertEqual(getattr(mock_app, expected_field), mock_doc.file_url)
+            mock_app.save.assert_called_once_with(update_fields=[expected_field, "updated_at"])
+
     def test_upload_rejects_missing_file(self):
         """Upload endpoint still returns 400 for missing file."""
         factory = APIRequestFactory()
