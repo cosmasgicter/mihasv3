@@ -100,7 +100,7 @@ export const useApplicationTracker = () => {
       logger.error('Error searching application:', error)
       const status = error?.status
       if (status === 400) {
-        setError('Invalid tracking code format. Expected formats: APP-YYYYMMDD-XXXXXXXX or TRK-XXXXXXXXXXXX.')
+        setError('Invalid tracking code format. Try your application number (e.g. MIHAS202641411) or tracking code (e.g. TRK370990).')
       } else if (status === 404) {
         setError('No application found with this tracking code. Please check the code and try again.')
       } else {

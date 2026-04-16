@@ -104,7 +104,7 @@ import { ShapeLandingHero } from '@/components/smoothui/shape-landing-hero'
 
 function getTrackerErrorMessage(status: number | undefined): string {
   if (status === 400) {
-    return 'Invalid tracking code format. Expected formats: APP-YYYYMMDD-XXXXXXXX or TRK-XXXXXXXXXXXX.'
+    return 'Invalid tracking code format. Try your application number (e.g. MIHAS202641411) or tracking code (e.g. TRK370990).'
   } else if (status === 404) {
     return 'No application found with this tracking code. Please check the code and try again.'
   } else {

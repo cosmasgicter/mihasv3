@@ -47,14 +47,20 @@ _programs = st.sampled_from(["Nursing", "Pharmacy", "Clinical Medicine", "Lab Te
 _intakes = st.sampled_from(["January 2025", "September 2025", "January 2026"])
 _institutions = st.sampled_from(["MIHAS Main Campus", "MIHAS Satellite"])
 # Tracking codes: printable non-whitespace strings
-_tracking_codes = st.text(
-    alphabet=st.characters(
-        whitelist_categories=("L", "N"),
-        min_codepoint=48,
-        max_codepoint=122,
+# Tracking codes: generate valid-format codes that won't exist in the DB
+_tracking_codes = st.one_of(
+    # APP-YYYYMMDD-XXXXXXXX format
+    st.builds(
+        lambda d, s: f"APP-{d}-{s}",
+        st.from_regex(r"\d{8}", fullmatch=True),
+        st.from_regex(r"[A-Z0-9]{8}", fullmatch=True),
     ),
-    min_size=1,
-    max_size=50,
+    # MIHAS + 9 digits format
+    st.builds(lambda d: f"MIHAS{d}", st.from_regex(r"\d{9}", fullmatch=True)),
+    # TRK + 5-6 alphanum format (no dash)
+    st.builds(lambda s: f"TRK{s}", st.from_regex(r"[A-Z0-9]{5,6}", fullmatch=True)),
+    # TRK-XXXXXXXXXXXX format (with dash)
+    st.builds(lambda s: f"TRK-{s}", st.from_regex(r"[A-Z0-9]{12}", fullmatch=True)),
 )
 
 
