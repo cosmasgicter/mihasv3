@@ -225,9 +225,9 @@ class ApplicationSessionManager {
       } catch (error) {
         if (isApplicationMissingError(error)) {
           clearStaleApplicationDraftReference(String(draft.applicationId))
-          delete draft.applicationId
-          delete draft.application_id
-          return draft
+          // Server draft is gone — clear the orphaned local draft entirely
+          this.clearAllLocalStorage()
+          return null
         }
 
         if (this.shouldDiscardLocalDraft(error)) {

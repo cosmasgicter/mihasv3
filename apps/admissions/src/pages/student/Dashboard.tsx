@@ -463,19 +463,24 @@ export default function StudentDashboard() {
       }
 
       const deleteResult = await draftManager.clearAllDrafts(user.id)
-      await loadDashboardDataRef.current()
 
       if (!deleteResult.success) {
         const errorMessage = deleteResult.error || 'Failed to clear all drafts from the server'
         setApplicationsError(errorMessage)
         useToastStore.getState().addToast('error', errorMessage)
+        // Still reload to reflect partial cleanup
+        await loadDashboardDataRef.current()
         return
       }
 
+      // Clear local state BEFORE reloading so the reload doesn't re-set hasDraft from stale storage
       setApplications(prev => prev.filter(app => app.status !== 'draft'))
       setHasDraft(false)
       setApplicationsError('')
       useToastStore.getState().addToast('success', 'All drafts cleared successfully')
+
+      // Reload dashboard data to get fresh server state
+      await loadDashboardDataRef.current()
     } catch (error) {
       logApiError('student-dashboard', '/api/v1/applications/ (clear drafts)', error)
       const errorMsg = error instanceof Error ? error.message : 'Failed to clear drafts'

@@ -74,7 +74,7 @@ describe('applicationSessionManager draft deletion', () => {
     expect(localStorage.getItem('applicationWizardDraft')).toBeNull()
   })
 
-  it('preserves local wizard data but strips a deleted server application id', async () => {
+  it('clears orphaned local draft when server application returns 404', async () => {
     const notFound = Object.assign(new Error('Resource not found. The requested item may have been deleted.'), {
       status: 404,
     })
@@ -92,12 +92,10 @@ describe('applicationSessionManager draft deletion', () => {
 
     const { applicationSessionManager } = await import('@/lib/applicationSession')
     const result = await applicationSessionManager.getLocalWizardDraft('user-1')
-    const storedDraft = JSON.parse(localStorage.getItem('applicationWizardDraft') || '{}')
 
-    expect(result?.formData?.full_name).toBe('Test Applicant')
-    expect(result?.selectedGrades).toEqual([{ subject_id: 'subject-1', grade: 2 }])
-    expect(result?.applicationId).toBeUndefined()
-    expect(storedDraft.applicationId).toBeUndefined()
+    // Draft should be fully cleared when server application is gone
+    expect(result).toBeNull()
+    expect(localStorage.getItem('applicationWizardDraft')).toBeNull()
     expect(getByIdMock).toHaveBeenCalledWith('deleted-app')
   })
 })
