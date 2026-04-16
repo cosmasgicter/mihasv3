@@ -116,8 +116,9 @@ ASGI_APPLICATION = "config.asgi.application"
 # Connection pooling strategy:
 #   - Use Neon's built-in pooler endpoint (append ?pgbouncer=true or use the
 #     pooled connection string from the Neon dashboard) in DATABASE_URL.
-#   - CONN_MAX_AGE=600 reuses connections within each Uvicorn worker process
-#     for up to 10 minutes, reducing connection churn against the Neon pooler.
+#   - CONN_MAX_AGE=300 reuses connections within each Uvicorn worker process
+#     for up to 5 minutes, reducing connection churn against the Neon pooler.
+#     Kept conservative for 0.25 CU Neon instances with limited connection slots.
 #   - conn_health_checks=True validates connections before use (avoids stale
 #     connections after Neon cold starts or pooler restarts).
 #   - For Celery workers, set a separate DATABASE_URL with lower pool limits
@@ -129,7 +130,7 @@ ASGI_APPLICATION = "config.asgi.application"
 DATABASES = {
     "default": dj_database_url.config(
         default=os.environ.get("DATABASE_URL", ""),
-        conn_max_age=600,
+        conn_max_age=300,
         conn_health_checks=True,
         ssl_require=True,
     )

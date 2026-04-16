@@ -22,9 +22,10 @@ interface PaymentListResponse {
 // Constants (exported for testing)
 // ---------------------------------------------------------------------------
 
-export const INITIAL_INTERVAL = 2_000
+export const INITIAL_INTERVAL = 5_000
 export const BACKOFF_FACTOR = 1.5
-export const MAX_INTERVAL = 30_000
+export const MAX_INTERVAL = 60_000
+export const MAX_POLL_COUNT = 30
 
 // ---------------------------------------------------------------------------
 // Hook
@@ -42,6 +43,7 @@ export function usePaymentStatus(applicationId: string) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const intervalRef = useRef(INITIAL_INTERVAL)
   const statusRef = useRef<PaymentStatusValue>(null)
+  const pollCountRef = useRef(0)
 
   const updateStatus = useCallback((nextStatus: PaymentStatusValue) => {
     statusRef.current = nextStatus
@@ -93,10 +95,12 @@ export function usePaymentStatus(applicationId: string) {
   }, [])
 
   const scheduleNext = useCallback(() => {
-    // Stop polling on terminal statuses
+    // Stop polling on terminal statuses or after max attempts
     if (statusRef.current === 'successful' || statusRef.current === 'failed') return
+    if (pollCountRef.current >= MAX_POLL_COUNT) return
 
     timeoutRef.current = setTimeout(async () => {
+      pollCountRef.current += 1
       await fetchStatus()
       // Grow the interval with backoff, capped at MAX_INTERVAL
       intervalRef.current = Math.min(intervalRef.current * BACKOFF_FACTOR, MAX_INTERVAL)
@@ -105,8 +109,9 @@ export function usePaymentStatus(applicationId: string) {
   }, [fetchStatus])
 
   const refetch = useCallback(() => {
-    // Reset backoff to initial interval on manual refetch
+    // Reset backoff and poll count on manual refetch
     intervalRef.current = INITIAL_INTERVAL
+    pollCountRef.current = 0
     clearPending()
     return fetchStatus().then(() => {
       scheduleNext()
