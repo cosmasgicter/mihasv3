@@ -148,7 +148,7 @@ The frontend and backend share a single, unified API contract. There is no compa
 - All content images (campus photos, badges, logos) must use `OptimizedImage` or have an `onError` handler with a visible fallback. Raw `<img>` tags without error handling are not acceptable for content images.
 - Font fallback chain in `tailwind.config.js` uses the full Tailwind default sans-serif stack with Inter prepended: `['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', '"Noto Sans"', 'sans-serif']`. Do not reduce this chain.
 - Auth form pages (`SignInPage`, `SignUpPage`, `ForgotPasswordPage`, `ResetPasswordPage`) must use proper `autocomplete`, `inputMode`, and `type` attributes on all form fields for browser autofill and mobile keyboard support.
-- PWA dependencies (`vite-plugin-pwa`, `workbox-*`) have been fully removed. The one-time SW unregistration block in `main.tsx` must be retained for 90 days (until July 2026).
+- PWA dependencies (`vite-plugin-pwa`, `workbox-*`) have been fully removed. Service worker unregistration and cache cleanup code has also been removed (no real users had the PWA installed).
 
 ### Backend
 
