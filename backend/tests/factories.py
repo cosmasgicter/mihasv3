@@ -377,7 +377,6 @@ class UserNotificationPreferenceFactory(factory.django.DjangoModelFactory):
     id = factory.LazyFunction(uuid.uuid4)
     user = factory.SubFactory(ProfileFactory)
     email_enabled = True
-    push_enabled = False
     sms_enabled = False
 
 

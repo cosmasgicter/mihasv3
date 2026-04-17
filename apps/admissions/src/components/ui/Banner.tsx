@@ -3,13 +3,10 @@ import { X } from 'lucide-react'
 /**
  * Banner Component
  * Full-width, fixed-top notification banner with severity variants.
- * Consolidates OfflineBanner and InsecureStorageBanner patterns.
- *
- * Requirements: 19.4, 19.5
  */
 
 interface BannerProps {
-  variant: 'info' | 'warning' | 'error' | 'offline'
+  variant: 'info' | 'warning' | 'error'
   children: React.ReactNode
   dismissible?: boolean
   onDismiss?: () => void
@@ -20,10 +17,9 @@ const variantStyles: Record<BannerProps['variant'], string> = {
   info: 'bg-info/10 text-info-foreground border-info/20',
   warning: 'bg-warning/10 text-warning-foreground border-warning/20',
   error: 'bg-destructive/10 text-destructive border-destructive/20',
-  offline: 'bg-muted text-muted-foreground border-border',
 }
 
-const alertVariants = new Set<BannerProps['variant']>(['error', 'warning', 'offline'])
+const alertVariants = new Set<BannerProps['variant']>(['error', 'warning'])
 
 function getRole(variant: BannerProps['variant']): 'alert' | 'status' {
   return alertVariants.has(variant) ? 'alert' : 'status'

@@ -45,7 +45,6 @@ const EXTERNAL_PACKAGES = [
   'arcjet',
   'jose',
   'bcryptjs',
-  'web-push',
   'resend',
 ] as const;
 
@@ -95,7 +94,7 @@ const API_EXTERNAL_USAGE: Record<string, string[]> = {
   'catalog.ts': ['@vercel/node', '@arcjet/node'],
   'documents.ts': ['@vercel/node', '@arcjet/node'],
   'health.ts': ['@vercel/node', '@neondatabase/serverless'],
-  'notifications.ts': ['@vercel/node', '@arcjet/node', 'web-push'],
+  'notifications.ts': ['@vercel/node', '@arcjet/node'],
   'payments.ts': ['@vercel/node', '@arcjet/node'],
   'sessions.ts': ['@vercel/node'],
   'ping.ts': ['@vercel/node'],
@@ -618,11 +617,6 @@ describe('Property 2: Import Resolution Correctness', () => {
     it('PROPERTY: bcryptjs is recognized as external (Req 3.6)', () => {
       expect(isExternalPackage('bcryptjs')).toBe(true);
       expect(isLibImport('bcryptjs')).toBe(false);
-    });
-
-    it('PROPERTY: web-push is recognized as external (Req 3.7)', () => {
-      expect(isExternalPackage('web-push')).toBe(true);
-      expect(isLibImport('web-push')).toBe(false);
     });
 
     it('PROPERTY: resend is recognized as external (Req 3.8)', () => {

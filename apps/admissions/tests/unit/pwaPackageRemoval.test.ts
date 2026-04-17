@@ -43,18 +43,16 @@ describe('PWA package removal verification', () => {
     ).toBe(false)
   })
 
-  it('pushNotificationManager.ts has @deprecated annotation', () => {
-    const content = fs.readFileSync(
-      resolve('src', 'services', 'pushNotificationManager.ts'),
-      'utf-8',
-    )
-    expect(content).toContain('@deprecated')
+  it('push notification service-worker modules do not exist', () => {
+    expect(fs.existsSync(resolve('src', 'services', 'pushNotificationManager.ts'))).toBe(false)
+    expect(fs.existsSync(resolve('src', 'hooks', 'usePushNotifications.ts'))).toBe(false)
+    expect(fs.existsSync(resolve('src', 'components', 'notifications', 'PushNotificationSettings.tsx'))).toBe(false)
   })
 
-  it('main.tsx still contains SW unregistration block', () => {
+  it('main.tsx has no service worker runtime code', () => {
     const content = fs.readFileSync(resolve('src', 'main.tsx'), 'utf-8')
-    expect(content).toContain('serviceWorker')
-    expect(content).toContain('getRegistrations')
-    expect(content).toContain('unregister')
+    expect(content).not.toContain('serviceWorker')
+    expect(content).not.toContain('getRegistrations')
+    expect(content).not.toContain('unregister')
   })
 })

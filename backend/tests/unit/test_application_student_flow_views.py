@@ -8,6 +8,7 @@ from django.utils import timezone
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from apps.accounts.authentication import JWTUser
+from apps.applications.models import Application
 from apps.applications.services import ApplicationSubmissionError
 from apps.applications.views import ApplicationDetailView, ApplicationGradesView, ApplicationInterviewListView, ApplicationSubmitView
 from apps.documents.views import DocumentUploadView
@@ -185,6 +186,23 @@ class TestApplicationInterviewListView:
 class TestStudentPostSubmissionMutationGuards:
     def setup_method(self):
         self.factory = APIRequestFactory()
+
+    @patch("apps.applications.views._with_payment_summary")
+    def test_delete_missing_application_is_idempotent(self, mock_with_payment_summary):
+        app_id = uuid.uuid4()
+        student = _student_user()
+
+        mock_with_payment_summary.return_value.get.side_effect = Application.DoesNotExist
+
+        request = _auth_request(
+            self.factory,
+            "delete",
+            f"/api/v1/applications/{app_id}/",
+            student,
+        )
+        response = ApplicationDetailView.as_view()(request, application_id=app_id)
+
+        assert response.status_code == 204
 
     @patch("apps.applications.views.IsOwnerOrAdmin")
     @patch("apps.applications.views._with_payment_summary")

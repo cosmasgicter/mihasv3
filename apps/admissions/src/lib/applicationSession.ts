@@ -121,6 +121,7 @@ class ApplicationSessionManager {
   private saveInterval: NodeJS.Timeout | null = null
   private warningTimeout: NodeJS.Timeout | null = null
   private expiryTimeout: NodeJS.Timeout | null = null
+  private deleteDraftPromises = new Map<string, Promise<{ success: boolean; error?: string }>>()
   private onWarning?: (warning: SessionWarning) => void
   private onExpiry?: () => void
 
@@ -176,7 +177,10 @@ class ApplicationSessionManager {
     }
 
     try {
-      const result = await applicationService.list({ mine: true, status: 'draft', pageSize: 1 })
+      const result = await applicationService.list(
+        { mine: true, status: 'draft', pageSize: 1 },
+        { skipCache: true }
+      )
       const applications = result?.applications ?? []
       return applications[0]?.id ?? null
     } catch {
@@ -401,7 +405,10 @@ class ApplicationSessionManager {
     try {
       // First try database via API
       try {
-        const result = await applicationService.list({ mine: true, status: 'draft', pageSize: 1 })
+        const result = await applicationService.list(
+          { mine: true, status: 'draft', pageSize: 1 },
+          { skipCache: true }
+        )
         const apps = result?.applications ?? []
 
         if (apps.length > 0) {
@@ -441,6 +448,22 @@ class ApplicationSessionManager {
 
   // Delete draft with comprehensive cleanup
   async deleteDraft(userId: string): Promise<{ success: boolean; error?: string }> {
+    const existingDelete = this.deleteDraftPromises.get(userId)
+    if (existingDelete) {
+      return existingDelete
+    }
+
+    const deletePromise = this.performDeleteDraft(userId)
+    this.deleteDraftPromises.set(userId, deletePromise)
+
+    try {
+      return await deletePromise
+    } finally {
+      this.deleteDraftPromises.delete(userId)
+    }
+  }
+
+  private async performDeleteDraft(userId: string): Promise<{ success: boolean; error?: string }> {
     try {
       // Step 1: Clear intervals to stop auto-save before server deletion.
       this.cleanup()
@@ -451,7 +474,7 @@ class ApplicationSessionManager {
           mine: true,
           status: 'draft',
           pageSize: 50
-        })
+        }, { skipCache: true })
         const draftIds = (draftList?.applications ?? [])
           .map(application => application?.id)
           .filter((id): id is string => typeof id === 'string' && id.length > 0)
@@ -546,7 +569,10 @@ class ApplicationSessionManager {
   // Get next version number
   private async getNextVersion(userId: string): Promise<number> {
     try {
-      const result = await applicationService.list({ mine: true, status: 'draft', pageSize: 1 })
+      const result = await applicationService.list(
+        { mine: true, status: 'draft', pageSize: 1 },
+        { skipCache: true }
+      )
       const apps = result?.applications ?? []
       return apps.length > 0 ? ((apps[0] as any).version || 0) + 1 : 1
     } catch {
@@ -603,7 +629,10 @@ class ApplicationSessionManager {
       }
 
       // Check database for draft applications via API
-      const result = await applicationService.list({ mine: true, status: 'draft', pageSize: 1 })
+      const result = await applicationService.list(
+        { mine: true, status: 'draft', pageSize: 1 },
+        { skipCache: true }
+      )
       const draftApps = result?.applications ?? []
 
       if (draftApps.length > 0) {

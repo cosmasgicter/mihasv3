@@ -86,7 +86,7 @@ const AUTHENTICATED_PAGES: PageConfig[] = [
   {
     name: 'NotificationSettings',
     title: 'Notification Settings | MIHAS-KATC Admissions',
-    description: 'Manage your notification preferences, SMS alerts, and browser push settings for your MIHAS-KATC admissions portal.',
+    description: 'Manage your notification preferences and SMS alerts for your MIHAS-KATC admissions portal.',
     path: '/student/notifications',
     role: 'student',
   },

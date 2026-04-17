@@ -102,12 +102,19 @@ export default function StudentDashboard() {
       })) as Application[]
     })
 
-    if (data.applications.some((application) => application.status === 'draft')) {
+    const hasServerDraft = data.applications.some((application) => application.status === 'draft')
+    if (hasServerDraft) {
       setHasDraft(true)
+    } else if (user?.id) {
+      void applicationSessionManager.getLocalWizardDraft(user.id).then((localDraft) => {
+        setHasDraft(Boolean(localDraft))
+      })
+    } else {
+      setHasDraft(false)
     }
 
     setApplicationsError('')
-  }, [])
+  }, [user?.id])
 
 
   // Manual refresh hook for React Query cache invalidation
@@ -277,7 +284,7 @@ export default function StudentDashboard() {
           sortBy: 'date',
           sortOrder: 'desc',
           mine: true
-        }),
+        }, { skipCache: true }),
         // Intakes
         catalogService.getIntakes() as Promise<{ intakes: Intake[] }>,
         // Interviews

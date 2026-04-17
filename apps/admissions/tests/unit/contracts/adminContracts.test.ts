@@ -78,7 +78,7 @@ describe('API Contract Tests', () => {
   })
 
   it('validates NotificationPreferencesResponse shape', () => {
-    const sample = { user_id: '1', email_enabled: true, push_enabled: false }
+    const sample = { user_id: '1', email_enabled: true, sms_enabled: false }
     expect(NotificationPreferencesResponseSchema.safeParse(sample).success).toBe(true)
   })
 

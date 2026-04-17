@@ -164,10 +164,6 @@ vi.mock('@/components/ui/ButtonSpinner', () => ({
   ),
 }))
 
-vi.mock('@/components/admin/OfflineAdminDashboard', () => ({
-  default: () => <div data-testid="offline-dashboard">Offline</div>,
-}))
-
 vi.mock('@/components/admin/RealtimeMetricsDisplay', () => ({
   RealtimeMetricsDisplay: ({
     todayApplications,

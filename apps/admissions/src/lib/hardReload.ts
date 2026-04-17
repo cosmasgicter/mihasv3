@@ -10,28 +10,6 @@ export async function hardReload(): Promise<void> {
     details: { stage: 'start' }
   })
 
-  try {
-    // Unregister service workers so a stale worker doesn't keep serving an old bundle
-    if ('serviceWorker' in navigator) {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map((r) => r.unregister()));
-    }
-  } catch (e) {
-    // ignore
-    console.warn('hardReload: failed to unregister service workers', e);
-  }
-
-  try {
-    // Clear caches (if any) to avoid stale cached assets
-    if ('caches' in window) {
-      const keys = await caches.keys();
-      await Promise.all(keys.map((k) => caches.delete(k)));
-    }
-  } catch (e) {
-    // ignore
-    console.warn('hardReload: failed to clear caches', e);
-  }
-
   // Force a navigation with a cache-busting query parameter
   try {
     const url = new URL(window.location.href);

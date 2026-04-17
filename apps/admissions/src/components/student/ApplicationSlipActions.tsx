@@ -150,12 +150,12 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
   const emailDisabled = isEmailing || emailSent
 
   return (
-    <div className="flex flex-col sm:flex-row gap-3">
+    <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap">
       <Button
         onClick={handleDownload}
         disabled={isDownloading}
         variant="secondary"
-        className="flex items-center justify-center space-x-2 border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400 disabled:bg-slate-100 disabled:border-slate-200 disabled:text-slate-400 disabled:shadow-none"
+        className="min-h-11 w-full justify-center gap-2 border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400 disabled:bg-slate-100 disabled:border-slate-200 disabled:text-slate-400 disabled:shadow-none sm:w-auto"
         loading={isDownloading}
       >
         {!isDownloading && <Download className="h-4 w-4" />}
@@ -166,7 +166,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
         onClick={handleEmailRequest}
         disabled={emailDisabled}
         variant="primary"
-        className="flex items-center justify-center space-x-2 bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-primary/50 disabled:text-primary-foreground disabled:opacity-100 disabled:cursor-not-allowed"
+        className="min-h-11 w-full justify-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-primary/50 disabled:text-primary-foreground disabled:opacity-100 disabled:cursor-not-allowed sm:w-auto"
         loading={isEmailing}
       >
         {!isEmailing && <Mail className="h-4 w-4" />}

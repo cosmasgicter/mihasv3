@@ -178,7 +178,6 @@ Set these in the Vercel project. The example file lives at [apps/admissions/.env
 | `VITE_APP_BASE_URL` | recommended | `***REMOVED***` |
 | `VITE_SITE_URL` | recommended | `***REMOVED***` |
 | `VITE_APP_VERSION` | recommended | release tag or commit SHA |
-| `VITE_VAPID_PUBLIC_KEY` | optional | Required only for push notifications |
 | `VITE_ENABLE_AUTO_RELOAD` | optional | `false` in production |
 | `VITE_ENABLE_LOADER_TELEMETRY` | optional | `false` in production |
 | `VITE_ERROR_REPORT_ENABLED` | optional | `true` — enables frontend error reporter |

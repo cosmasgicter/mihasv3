@@ -25,10 +25,8 @@ describe('NotificationSettings preference helpers', () => {
     const preferences: NotificationPreferencesResponse = {
       ...DEFAULT_NOTIFICATION_PREFERENCES,
       sms_enabled: true,
-      push_enabled: false,
     }
 
     expect(isNotificationChannelEnabled(preferences, 'sms')).toBe(true)
-    expect(isNotificationChannelEnabled(preferences, 'push')).toBe(false)
   })
 })

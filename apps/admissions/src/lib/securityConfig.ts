@@ -17,6 +17,10 @@ export const CSP_CONFIG = {
     "https://pay.lenco.co",
     "https://pay.sandbox.lenco.co"
   ],
+  'worker-src': [
+    "'self'",
+    "blob:"
+  ],
   'style-src': [
     "'self'",
     "'unsafe-inline'", // Required for Tailwind CSS

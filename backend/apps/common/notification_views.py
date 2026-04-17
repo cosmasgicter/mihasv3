@@ -35,7 +35,6 @@ logger = logging.getLogger(__name__)
 
 class NotificationPreferenceSerializer(serializers.Serializer):
     email_enabled = serializers.BooleanField(required=False, default=True)
-    push_enabled = serializers.BooleanField(required=False, default=False)
     sms_enabled = serializers.BooleanField(required=False, default=False)
     application_updates = serializers.BooleanField(required=False, allow_null=True)
     payment_reminders = serializers.BooleanField(required=False, allow_null=True)
@@ -137,7 +136,6 @@ class NotificationPreferenceView(APIView):
                 "success": True,
                 "data": {
                     "email_enabled": True,
-                    "push_enabled": False,
                     "sms_enabled": False,
                     "application_updates": None,
                     "payment_reminders": None,

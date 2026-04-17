@@ -4,7 +4,6 @@ import type { NotificationData } from '@/types/notifications'
 
 type UpdatePreferencesPayload = {
   email_enabled?: boolean
-  push_enabled?: boolean
   sms_enabled?: boolean
   whatsapp_enabled?: boolean
   in_app_enabled?: boolean
@@ -88,16 +87,12 @@ export const notificationService = {
       method: 'GET'
     }),
 
-  /** Update notification preferences. Django currently supports email/push + quiet hours only. */
+  /** Update notification preferences. */
   updatePreferences: (payload: UpdatePreferencesPayload) =>
     apiClient.request('/notifications/preferences/', {
       method: 'PUT',
       body: JSON.stringify({
         ...('email_enabled' in payload ? { email_enabled: payload.email_enabled } : {}),
-        ...('push_enabled' in payload ? { push_enabled: payload.push_enabled } : {}),
-        ...(!('push_enabled' in payload) && 'whatsapp_enabled' in payload
-          ? { push_enabled: payload.whatsapp_enabled }
-          : {}),
         ...('sms_enabled' in payload ? { sms_enabled: payload.sms_enabled } : {}),
         ...('application_updates' in payload ? { application_updates: payload.application_updates } : {}),
         ...('payment_reminders' in payload ? { payment_reminders: payload.payment_reminders } : {}),

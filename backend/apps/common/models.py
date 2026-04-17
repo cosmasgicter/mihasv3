@@ -95,7 +95,6 @@ class UserNotificationPreference(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField('accounts.Profile', on_delete=models.CASCADE)
     email_enabled = models.BooleanField(null=True, blank=True, default=True)
-    push_enabled = models.BooleanField(null=True, blank=True, default=False)
     sms_enabled = models.BooleanField(null=True, blank=True, default=False)
     application_updates = models.BooleanField(null=True, blank=True)
     payment_reminders = models.BooleanField(null=True, blank=True)

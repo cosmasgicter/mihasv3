@@ -124,7 +124,6 @@ const CORE_ENTITIES: TableSchema[] = [
       { name: 'id', dataType: 'UUID', nullable: false },
       { name: 'user_id', dataType: 'UUID', nullable: false },
       { name: 'email_enabled', dataType: 'BOOLEAN', nullable: true },
-      { name: 'push_enabled', dataType: 'BOOLEAN', nullable: true },
       { name: 'sms_enabled', dataType: 'BOOLEAN', nullable: true },
       { name: 'created_at', dataType: 'TIMESTAMPTZ', nullable: true },
       { name: 'updated_at', dataType: 'TIMESTAMPTZ', nullable: true },

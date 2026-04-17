@@ -22,7 +22,10 @@ export const useMultiDraft = (userId: string | undefined) => {
     setError(null)
     
     try {
-      const result = await applicationService.list({ mine: true, status: 'draft' })
+      const result = await applicationService.list(
+        { mine: true, status: 'draft' },
+        { skipCache: true }
+      )
       const apps = result?.applications ?? []
       // Map applications to draft shape
       const mappedDrafts: Draft[] = apps.map((app: any) => ({
