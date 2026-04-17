@@ -39,7 +39,13 @@ export const getUserMetadata = (user: User | null | undefined): UserMetadata => 
     result.email = user.email
   }
   
-  if (!user.user_metadata) return result
+  if (!user.user_metadata) {
+    // Extract top-level User fields as fallback when user_metadata is absent
+    if (user.full_name) result.full_name = user.full_name
+    if (user.first_name) result.first_name = user.first_name
+    if (user.last_name) result.last_name = user.last_name
+    return result
+  }
   
   try {
     const metadata = user.user_metadata as Record<string, unknown>
@@ -52,9 +58,9 @@ export const getUserMetadata = (user: User | null | undefined): UserMetadata => 
     }
     
     return {
-      full_name: (metadata.full_name as string | undefined) || (signupData.full_name as string | undefined),
-      first_name: (metadata.first_name as string | undefined) || (signupData.first_name as string | undefined),
-      last_name: (metadata.last_name as string | undefined) || (signupData.last_name as string | undefined),
+      full_name: (metadata.full_name as string | undefined) || (signupData.full_name as string | undefined) || user.full_name,
+      first_name: (metadata.first_name as string | undefined) || (signupData.first_name as string | undefined) || user.first_name,
+      last_name: (metadata.last_name as string | undefined) || (signupData.last_name as string | undefined) || user.last_name,
       email: (metadata.email as string | undefined) || (signupData.email as string | undefined),
       phone: (metadata.phone as string | undefined) || (signupData.phone as string | undefined),
       residence_town: (metadata.residence_town as string | undefined) || (signupData.residence_town as string | undefined),

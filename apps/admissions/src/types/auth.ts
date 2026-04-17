@@ -28,6 +28,8 @@ export interface User {
   email: string;
   role: string; // Keep as string for flexibility with API responses
   full_name?: string;
+  first_name?: string;
+  last_name?: string;
   email_confirmed_at?: string;
   created_at?: string;
   updated_at?: string;

@@ -3,8 +3,6 @@ import type { User, UserProfile } from '@/types/auth'
 interface NameUserLike extends Partial<User> {
   firstName?: string | null
   lastName?: string | null
-  first_name?: string | null
-  last_name?: string | null
 }
 
 function toNonEmptyString(value: unknown): string | null {

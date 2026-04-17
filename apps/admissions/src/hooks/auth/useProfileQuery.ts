@@ -57,7 +57,10 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
         // If this is an auth error (401 after failed refresh), don't mask it
         // with minimal data — let the auth cascade handle logout properly.
         // Only fall back to session data for non-auth errors (network, 500, etc.)
-        if (err && typeof err === 'object' && 'name' in err && (err as Error).name === 'AuthenticationError') {
+        if (err && typeof err === 'object' && (
+          ('name' in err && (err as Error).name === 'AuthenticationError') ||
+          ('status' in err && (err as Record<string, unknown>).status === 401)
+        )) {
           throw err
         }
         return sanitizeProfile({
@@ -66,6 +69,8 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
           email: user.email,
           role: user.role || 'student',
           full_name: user.full_name,
+          first_name: user.first_name ?? user.full_name?.split(/\s+/)[0],
+          last_name: user.last_name ?? user.full_name?.split(/\s+/).slice(1).join(' '),
         })
       }
     }
