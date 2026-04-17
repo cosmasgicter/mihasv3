@@ -23,6 +23,8 @@ const StudentSettings = React.lazy(() => import('@/pages/student/Settings'))
 const StudentNotificationSettings = React.lazy(() => import('@/pages/student/NotificationSettings'))
 const StudentPayment = React.lazy(() => import('@/pages/student/Payment'))
 const StudentInterview = React.lazy(() => import('@/pages/student/Interview'))
+const StudentCommunications = React.lazy(() => import('@/pages/student/Communications'))
+const StudentHistory = React.lazy(() => import('@/pages/student/History'))
 const AdminDashboard = React.lazy(() => import('@/pages/admin/Dashboard'))
 const AdminApplications = React.lazy(() => import('@/pages/admin/Applications'))
 const AdminPrograms = React.lazy(() => import('@/pages/admin/Programs'))
@@ -88,6 +90,8 @@ export const routes: RouteConfig[] = [
   { path: '/student/payments', element: <Navigate to="/student/payment" replace />, guard: 'student' },
   { path: '/student/interview', element: StudentInterview, guard: 'student', lazy: true, skeletonType: 'detail' },
   { path: '/student/interviews', element: <Navigate to="/student/interview" replace />, guard: 'student' },
+  { path: '/student/communications', element: StudentCommunications, guard: 'student', lazy: true, skeletonType: 'detail' },
+  { path: '/student/history', element: StudentHistory, guard: 'student', lazy: true, skeletonType: 'detail' },
   
   // Admin routes
   { path: '/admin', element: AdminDashboard, guard: 'admin', lazy: true, skeletonType: 'dashboard' },

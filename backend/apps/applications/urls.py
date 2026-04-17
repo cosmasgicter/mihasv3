@@ -6,6 +6,7 @@ Requirements: 10.1
 
 from django.urls import path
 
+from apps.applications.history_views import TimelineHistoryView
 from apps.applications.views import (
     AcceptanceLetterView,
     ApplicationBulkStatusView,
@@ -36,6 +37,7 @@ urlpatterns = [
     path("bulk-status/", ApplicationBulkStatusView.as_view(), name="application-bulk-status"),
     path("draft/", ApplicationDraftView.as_view(), name="application-draft"),
     path("interviews/", ApplicationInterviewListView.as_view(), name="application-interview-list"),
+    path("history/", TimelineHistoryView.as_view(), name="application-history"),
     path("<uuid:application_id>/", ApplicationDetailView.as_view(), name="application-detail"),
     path("<uuid:application_id>/details/", ApplicationDetailsView.as_view(), name="application-details"),
     path("<uuid:application_id>/documents/", ApplicationDocumentsView.as_view(), name="application-documents"),

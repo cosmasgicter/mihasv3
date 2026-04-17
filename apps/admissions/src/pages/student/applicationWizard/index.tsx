@@ -67,7 +67,9 @@ const ApplicationWizardContent = () => {
     resultSlipFile,
     extraKycFile,
     uploadProgress,
+    uploadStates,
     uploadedFiles,
+    wizardReadiness,
     isDraftSaving,
     draftSaved,
     draftLoaded,
@@ -84,6 +86,7 @@ const ApplicationWizardContent = () => {
     handleResultSlipUpload,
     handleExtraKycUpload,
     getPaymentTarget,
+    handleLoadDraft,
     handleNextStep,
     handlePrevStep,
     handleSubmitApplication,
@@ -106,7 +109,14 @@ const ApplicationWizardContent = () => {
     hasIdentityDocument: Boolean(extraKycFile || uploadedFiles.extra_kyc),
     uploading,
   })
-  const overallProgress = useOverallProgress(form, selectedGrades)
+  const overallProgress = useOverallProgress(form, {
+    selectedGrades,
+    uploadedFiles,
+    hasResultSlipFile: Boolean(resultSlipFile),
+    hasIdentityFile: Boolean(extraKycFile),
+    paymentStatus,
+    confirmSubmission,
+  })
   const { formattedTime } = useEstimatedTime(currentStepIndex, totalSteps)
   const { shouldAnimate } = useOptimizedAnimation()
 
@@ -115,6 +125,12 @@ const ApplicationWizardContent = () => {
   // - Submission processing (loading flag)
   const isPaymentStepActive = currentStepConfig.key === 'payment'
   const isPaymentInProgress = isPaymentStepActive && (paymentStatus === 'pending')
+  const isUploadBlocking = currentStepConfig.key === 'education' && uploading
+  const nextButtonLabel = loading
+    ? 'Saving step...'
+    : isUploadBlocking
+      ? 'Finishing uploads...'
+      : 'Next Step'
   const saveWizardDraft = useCallback(
     () => saveDraft({ syncServer: true }),
     [saveDraft]
@@ -125,7 +141,8 @@ const ApplicationWizardContent = () => {
     enabled: draftLoaded && !loading && !uploading && !restoringDraft && !success && !isPaymentInProgress
   })
 
-  const progressPercent = Math.round(((currentStepIndex + 1) / totalSteps) * 100)
+  const progressPercent = overallProgress.percentage
+  const currentStepReadiness = wizardReadiness.stepProgressByKey[currentStepConfig.key]
 
   // Structured validation errors for the error summary (Req 5.2, 5.3)
   const [validationErrors, setValidationErrors] = useState<WizardValidationError[]>([])
@@ -513,21 +530,21 @@ const ApplicationWizardContent = () => {
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <div className="flex items-center gap-1.5">
-                    {stepValidation.isValid ? (
+                    {currentStepReadiness.isComplete ? (
                       <CheckCircle className="h-3.5 w-3.5 text-success" />
                     ) : (
                       <div className="h-3.5 w-3.5 rounded-full border-2 border-muted-foreground" />
                     )}
                     <span className={`font-medium ${
-                      stepValidation.isValid ? 'text-success' : 'text-foreground/80'
+                      currentStepReadiness.isComplete ? 'text-success' : 'text-foreground/80'
                     }`}>
-                      {stepValidation.completedFields}/{stepValidation.totalFields} fields completed
+                      {currentStepReadiness.completed}/{currentStepReadiness.total} requirements complete
                     </span>
                   </div>
-                  {!stepValidation.isValid && stepValidation.missingFields.length > 0 && (
+                  {!currentStepReadiness.isComplete && currentStepReadiness.missingItems.length > 0 && (
                     <span className="text-foreground/75">
-                      {WIZARD_COPY.missingFieldsPrefix} {stepValidation.missingFields.slice(0, 2).join(', ')}
-                      {stepValidation.missingFields.length > 2 && ` +${stepValidation.missingFields.length - 2} more`}
+                      {WIZARD_COPY.missingFieldsPrefix} {currentStepReadiness.missingItems.slice(0, 2).map(item => item.label).join(', ')}
+                      {currentStepReadiness.missingItems.length > 2 && ` +${currentStepReadiness.missingItems.length - 2} more`}
                     </span>
                   )}
                 </div>
@@ -561,7 +578,9 @@ const ApplicationWizardContent = () => {
                 aria-label={saveNowLabel}
               >
                 <Send className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">{saveNowLabel}</span>
+                <span className={smartAutoSave.changedFields.length > 0 || smartAutoSave.saveStatus === 'error' ? 'inline' : 'hidden sm:inline'}>
+                  {saveNowLabel}
+                </span>
               </Button>
             </div>
             {smartAutoSave.saveStatus === 'error' && smartAutoSave.saveError && (
@@ -577,6 +596,7 @@ const ApplicationWizardContent = () => {
               steps={wizardSteps}
               currentStepIndex={currentStepIndex}
               onStepClick={handleProgressStepClick}
+              progressPercentage={progressPercent}
             />
           </div>
         </Container>
@@ -657,6 +677,7 @@ const ApplicationWizardContent = () => {
                 resultSlipFile={resultSlipFile}
                 extraKycFile={extraKycFile}
                 uploadProgress={uploadProgress}
+                uploadStates={uploadStates}
                 uploadedFiles={uploadedFiles}
                 addGrade={handleAddGrade}
                 removeGrade={handleRemoveGrade}
@@ -698,11 +719,12 @@ const ApplicationWizardContent = () => {
                   undefined
                 }
                 paymentStatus={paymentStatus}
+                wizardReadiness={wizardReadiness}
               />
             )}
             </div>
 
-              <div className="sticky bottom-0 z-10 -mx-4 px-4 py-3 bg-background/95 backdrop-blur-sm border-t border-border sm:static sm:mx-0 sm:px-0 sm:py-0 sm:bg-transparent sm:backdrop-blur-none sm:border-t-0">
+              <div className="sticky bottom-0 z-10 -mx-4 border-t border-border bg-background/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] pt-3 backdrop-blur-sm sm:static sm:mx-0 sm:border-t-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
               <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:pt-6 sm:border-t sm:border-border">
             <div className="order-2 sm:order-1">
               {currentStepIndex > 0 && (
@@ -718,13 +740,13 @@ const ApplicationWizardContent = () => {
             <div className="order-1 sm:order-2">
               {!isLastStep ? (
                 <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
-                  <Button type="button" variant="primary" onClick={wrappedHandleNextStep} loading={loading || uploading} disabled={loading || uploading || (currentStepConfig.key === 'payment' && paymentStatus !== 'successful')} className="w-full sm:w-auto min-h-[48px]" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
-                    {loading || uploading ? 'Processing...' : (<><span>Next Step</span><ArrowRight className="h-4 w-4 ml-2" /></>)}
+                  <Button type="button" variant="primary" onClick={wrappedHandleNextStep} loading={loading} disabled={loading || uploading || (currentStepConfig.key === 'payment' && paymentStatus !== 'successful')} className="w-full sm:w-auto min-h-[48px]" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
+                    {loading || isUploadBlocking ? nextButtonLabel : (<><span>{nextButtonLabel}</span><ArrowRight className="h-4 w-4 ml-2" /></>)}
                   </Button>
                 </div>
               ) : (
                 <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
-                  <Button type="submit" variant="success" loading={loading} disabled={loading || !confirmSubmission || paymentStatus !== 'successful'} className="w-full sm:w-auto min-h-[48px]">
+                  <Button type="submit" variant="success" loading={loading} disabled={loading || !wizardReadiness.canSubmit} className="w-full sm:w-auto min-h-[48px]">
                     {loading ? 'Submitting...' : (<><Send className="h-4 w-4 mr-2" />Submit Application</>)}
                   </Button>
                 </div>
@@ -811,16 +833,8 @@ const ApplicationWizardContent = () => {
       
       <DraftManager
         userId={user?.id}
-        currentDraftId={undefined}
-        onLoadDraft={(draftData) => {
-          Object.keys(draftData).forEach(key => {
-            if (draftData[key] !== undefined && draftData[key] !== null) {
-              // form is typed via useWizardController (@ts-nocheck); key is a runtime
-              // string from draft data so we cast to the expected path type here.
-              form.setValue(key as Parameters<typeof form.setValue>[0], draftData[key])
-            }
-          })
-        }}
+        currentDraftId={applicationId ?? undefined}
+        onLoadDraft={handleLoadDraft}
         onCreateNew={() => {
           form.reset()
           setError('')

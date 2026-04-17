@@ -9,6 +9,7 @@ import { animateClasses } from '@/lib/animations'
 import { apiClient } from '@/services/client'
 import { useFeeResolver } from '@/hooks/useFeeResolver'
 import { useLencoWidget } from '@/hooks/useLencoWidget'
+import { normalizePaymentStatusValue } from '@/hooks/usePaymentStatus'
 import type { WizardFormData } from '../types'
 
 // ---------------------------------------------------------------------------
@@ -81,6 +82,7 @@ const PaymentStep = ({
   const [initiateError, setInitiateError] = useState<string | null>(null)
   const retryRef = useRef<HTMLButtonElement>(null)
   const paymentStatusRef = useRef<PaymentStatus>('idle')
+  const initiatingRef = useRef(false)
 
   const updatePaymentStatus = useCallback((status: PaymentStatus, message: string | null = null) => {
     paymentStatusRef.current = status
@@ -107,10 +109,14 @@ const PaymentStep = ({
   }, [polledStatus, updatePaymentStatus])
 
   const handlePayNow = useCallback(async () => {
+    if (initiatingRef.current || paymentStatusRef.current === 'initiating') {
+      return
+    }
     if (!applicationId) {
       setInitiateError('Please save your application before proceeding to payment. Go back to Step 1 and ensure your details are saved.')
       return
     }
+    initiatingRef.current = true
     setInitiateError(null)
     updatePaymentStatus('initiating')
 
@@ -140,14 +146,16 @@ const PaymentStep = ({
         customerPhone: phone || undefined,
         onSuccess: async () => {
           updatePaymentStatus('pending', 'Verifying payment\u2026')
+          initiatingRef.current = false
           try {
             const verifyPath = `/payments/${encodeURIComponent(payment_id)}/verify/`
             const v = await apiClient.request<VerifyResponse>(verifyPath, { method: 'POST' })
-            if (v?.status === 'successful') {
+            const normalizedStatus = normalizePaymentStatusValue(v?.status)
+            if (normalizedStatus === 'successful') {
               updatePaymentStatus('successful', 'Payment confirmed.')
               onPaymentStatusChange?.('successful')
               await onPaymentStatusRefresh?.()
-            } else if (v?.status === 'failed') {
+            } else if (normalizedStatus === 'failed') {
               updatePaymentStatus('failed', 'Payment could not be verified. You can retry.')
               onPaymentStatusChange?.('failed')
               await onPaymentStatusRefresh?.()
@@ -163,11 +171,13 @@ const PaymentStep = ({
           }
         },
         onConfirmationPending: () => {
+          initiatingRef.current = false
           updatePaymentStatus('pending', 'Payment is being confirmed. Stay on this step until the confirmation finishes.')
           onPaymentStatusChange?.('pending')
           void onPaymentStatusRefresh?.()
         },
         onClose: () => {
+          initiatingRef.current = false
           const latestStatus = paymentStatusRef.current
           if (latestStatus !== 'successful' && latestStatus !== 'pending') {
             updatePaymentStatus('idle', 'Payment not completed. You can retry when ready.')
@@ -178,6 +188,7 @@ const PaymentStep = ({
       const message = err instanceof Error ? err.message : 'Failed to initiate payment'
       setInitiateError(message)
       updatePaymentStatus('idle')
+      initiatingRef.current = false
     }
   }, [applicationId, onPaymentStatusChange, onPaymentStatusRefresh, openWidget, watch, updatePaymentStatus])
 

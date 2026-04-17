@@ -23,7 +23,7 @@ export const useMultiDraft = (userId: string | undefined) => {
     
     try {
       const result = await applicationService.list(
-        { mine: true, status: 'draft' },
+        { mine: true, status: 'draft', page: 1, pageSize: 100, sortBy: 'date', sortOrder: 'desc' },
         { skipCache: true }
       )
       const apps = result?.applications ?? []

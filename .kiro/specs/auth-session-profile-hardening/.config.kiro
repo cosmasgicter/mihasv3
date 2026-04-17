@@ -1,6 +1,6 @@
 {
   "type": "bugfix",
-  "status": "open",
+  "status": "completed",
   "created": "2026-04-17",
   "area": "admissions-auth-session-profile",
   "priority": "high"

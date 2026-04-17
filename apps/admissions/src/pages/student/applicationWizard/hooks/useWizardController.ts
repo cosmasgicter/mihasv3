@@ -14,7 +14,6 @@ import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useProfileAutoPopulation, getBestValue, getUserMetadata } from '@/hooks/useProfileAutoPopulation'
 import { useEligibilityChecker } from '@/hooks/useEligibilityChecker'
 import { normalizePaymentStatusValue, usePaymentStatus } from '@/hooks/usePaymentStatus'
-import { draftManager } from '@/lib/draftManager'
 // eslint-disable-next-line no-restricted-imports -- eligibilityEngine is still used until API-backed replacement is ready
 import { checkEligibility, getRecommendedSubjects } from '@/lib/eligibilityEngine'
 import { createApplicationSlip } from '@/lib/slipService'
@@ -52,9 +51,10 @@ import {
   buildServerDraftPayload,
   canCreateServerDraft,
 } from '../lib/draftAutosave'
+import { buildWizardReadiness, type WizardReadiness } from '../lib/wizardReadiness'
 
 import useApplicationSlip, { SubmittedApplicationSummary } from './useApplicationSlip'
-import useApplicationFileUploads from './useApplicationFileUploads'
+import useApplicationFileUploads, { type ApplicationUploadState } from './useApplicationFileUploads'
 import {
   createWizardSchema,
   normalizePhoneNumberInput,
@@ -96,7 +96,9 @@ interface UseWizardControllerResult {
   resultSlipFile: File | null
   extraKycFile: File | null
   uploadProgress: Record<string, number>
+  uploadStates: Record<string, ApplicationUploadState>
   uploadedFiles: Record<string, boolean>
+  wizardReadiness: WizardReadiness
   isDraftSaving: boolean
   draftSaved: boolean
   draftLoaded: boolean
@@ -113,6 +115,7 @@ interface UseWizardControllerResult {
   handleResultSlipUpload: (file: File | null) => void
   handleExtraKycUpload: (file: File | null) => void
   getPaymentTarget: () => Promise<string>
+  handleLoadDraft: (draftData: unknown, draftId?: string) => Promise<void>
   handleNextStep: () => Promise<void>
   handlePrevStep: () => void
   handleSubmitApplication: (data: WizardFormData) => Promise<void>
@@ -378,7 +381,14 @@ const useWizardController = (): UseWizardControllerResult => {
   const updateApplication = applicationsData.useUpdate()
   const submitApplicationMutation = applicationsData.useSubmit()
   const syncGrades = applicationsData.useSyncGrades()
-  const { data: draftApplications } = applicationsData.useList({ status: 'draft', mine: true, pageSize: 1 })
+  const { data: draftApplications } = applicationsData.useList({
+    status: 'draft',
+    mine: true,
+    page: 1,
+    pageSize: 100,
+    sortBy: 'date',
+    sortOrder: 'desc',
+  })
   const {
     status: paymentStatus,
     refetch: refetchPaymentStatus,
@@ -438,6 +448,7 @@ const useWizardController = (): UseWizardControllerResult => {
     extraKycFile,
     uploading,
     uploadProgress,
+    uploadStates,
     uploadedFiles,
     handleResultSlipUpload: baseHandleResultSlipUpload,
     handleExtraKycUpload: baseHandleExtraKycUpload,
@@ -824,6 +835,15 @@ const useWizardController = (): UseWizardControllerResult => {
   }, [preserveDraftBeforeAuthRedirect])
 
   const { completionPercentage, missingFields, hasAutoPopulatedData } = useProfileAutoPopulation(setValue as (field: string, value: string) => void)
+  const wizardReadiness = buildWizardReadiness({
+    values: watch(),
+    selectedGrades,
+    uploadedFiles,
+    hasResultSlipFile: Boolean(resultSlipFile),
+    hasIdentityFile: Boolean(extraKycFile),
+    paymentStatus,
+    confirmSubmission,
+  })
 
   useEffect(() => {
     const currentIntake = watch('intake')
@@ -1178,6 +1198,117 @@ const useWizardController = (): UseWizardControllerResult => {
     markUploadedFile,
     restorePaymentStatus,
     showSuccess
+  ])
+
+  const handleLoadDraft = useCallback(async (draftData: unknown, draftId?: string) => {
+    const app = (
+      draftData &&
+      typeof draftData === 'object' &&
+      'application' in (draftData as Record<string, unknown>)
+    )
+      ? (draftData as { application?: unknown }).application
+      : draftData
+
+    if (!app || typeof app !== 'object') {
+      setError('This draft could not be loaded. Please refresh and try again.')
+      return
+    }
+
+    const draft = app as Record<string, unknown>
+    const resolvedDraftId = String(draft.id || draftId || '')
+    if (!resolvedDraftId) {
+      setError('This draft is missing its application ID. Please choose another draft.')
+      return
+    }
+
+    setRestoringDraft(true)
+    try {
+      setApplicationId(resolvedDraftId)
+      restorePaymentStatus(typeof draft.payment_status === 'string' ? draft.payment_status : null)
+
+      setValue('full_name', String(draft.full_name || ''), { shouldValidate: false })
+      setValue('nrc_number', String(draft.nrc_number || ''), { shouldValidate: false })
+      setValue('passport_number', String(draft.passport_number || ''), { shouldValidate: false })
+      setValue('date_of_birth', normalizeDateInputValue(draft.date_of_birth || ''), { shouldValidate: false })
+      setValue('sex', String(draft.sex || '') as WizardFormData['sex'], { shouldValidate: false })
+      setValue('phone', String(draft.phone || ''), { shouldValidate: false })
+      setValue('email', String(draft.email || user?.email || ''), { shouldValidate: false })
+      setValue('residence_town', normalizeResidenceTown(String(draft.residence_town || '')), { shouldValidate: false })
+      setValue('country', String(draft.country || DEFAULT_RESIDENCE_COUNTRY), { shouldValidate: false })
+      setValue('nationality', String(draft.nationality || 'Zambian'), { shouldValidate: false })
+      setValue('next_of_kin_name', String(draft.next_of_kin_name || ''), { shouldValidate: false })
+      setValue('next_of_kin_phone', String(draft.next_of_kin_phone || ''), { shouldValidate: false })
+
+      const programValue = typeof draft.program === 'string' ? draft.program : ''
+      if (programValue) {
+        const resolvedProgramId = findProgramId(
+          programValue,
+          typeof draft.institution === 'string' ? draft.institution : undefined,
+          programsData?.programs as WizardProgram[] | undefined
+        )
+        setValue('program', resolvedProgramId || programValue, { shouldValidate: false })
+      } else {
+        setValue('program', '', { shouldValidate: false })
+      }
+      setValue('intake', String(draft.intake || ''), { shouldValidate: false })
+
+      const restoredUploads = deriveDraftResumeUploads(draft)
+      markUploadedFile('result_slip', restoredUploads.result_slip)
+      markUploadedFile('extra_kyc', restoredUploads.extra_kyc)
+
+      setGradesHydrating(true)
+      let restoredGrades: SubjectGrade[] = []
+      try {
+        restoredGrades = await hydrateServerGrades(resolvedDraftId)
+      } finally {
+        setGradesHydrating(false)
+      }
+
+      const stepId = resolveDraftResumeStepId(draft, restoredGrades)
+      const index = getStepIndexById(stepId)
+      setCurrentStepIndex(index >= 0 ? index : Math.min(Math.max(stepId - 1, 0), totalSteps - 1))
+
+      const syncDraft = {
+        formData: getValues(),
+        selectedGrades: restoredGrades,
+        uploadedFiles: restoredUploads,
+        currentStep: stepId,
+        currentStepKey: wizardSteps[Math.min(stepId - 1, wizardSteps.length - 1)]?.key,
+        applicationId: resolvedDraftId,
+        savedAt: String(draft.updated_at || draft.created_at || new Date().toISOString()),
+        userId: user?.id,
+        version: 2,
+        paymentStatus: typeof draft.payment_status === 'string' ? draft.payment_status : null,
+      }
+
+      try {
+        localStorage.setItem('applicationWizardDraft', JSON.stringify(syncDraft))
+        window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: syncDraft }))
+      } catch {
+        // Local recovery cache is best effort.
+      }
+
+      setDraftLoaded(true)
+      setError('')
+      showSuccess('Draft loaded successfully')
+    } catch (error) {
+      logApiError('application-wizard', `load draft ${resolvedDraftId}`, error)
+      setError(toError(error).message || 'Failed to load draft')
+    } finally {
+      setRestoringDraft(false)
+    }
+  }, [
+    findProgramId,
+    getValues,
+    hydrateServerGrades,
+    markUploadedFile,
+    programsData?.programs,
+    restorePaymentStatus,
+    setValue,
+    showSuccess,
+    totalSteps,
+    user?.email,
+    user?.id,
   ])
 
   const saveDraft = useCallback(async (options: SaveDraftOptions = {}) => {
@@ -1776,20 +1907,26 @@ const useWizardController = (): UseWizardControllerResult => {
     if (isSubmittingRef.current) return
     isSubmittingRef.current = true
 
-    if (!confirmSubmission) {
-      const errorMessage = 'Please confirm that all information is accurate before submitting'
+    const finalReadiness = buildWizardReadiness({
+      values: data,
+      selectedGrades,
+      uploadedFiles,
+      hasResultSlipFile: Boolean(resultSlipFile),
+      hasIdentityFile: Boolean(extraKycFile),
+      paymentStatus,
+      confirmSubmission,
+    })
+
+    if (!finalReadiness.canSubmit) {
+      const errorMessage = `Complete the remaining requirements before submitting: ${finalReadiness.missingItems
+        .map(item => item.label)
+        .join(', ')}`
       setError(errorMessage)
       isSubmittingRef.current = false
       return
     }
     if (!applicationId) {
       const errorMessage = 'Application ID not found. Please try refreshing the page.'
-      setError(errorMessage)
-      isSubmittingRef.current = false
-      return
-    }
-    if (paymentStatus !== 'successful') {
-      const errorMessage = 'Payment must be confirmed before you can submit your application.'
       setError(errorMessage)
       isSubmittingRef.current = false
       return
@@ -1854,13 +1991,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
       // Notification is automatically sent by database trigger on status change
 
-      try {
-        clearAllDraftData()
-        const deleteResult = await draftManager.clearAllDrafts(user.id)
-        if (!deleteResult.success) {
-        }
-      } catch (cleanupError) {
-      }
+      clearAllDraftData()
 
       // Invalidate all application queries to refresh dashboard
       await queryClient.invalidateQueries({ queryKey: ['applications'] })
@@ -1914,7 +2045,7 @@ const useWizardController = (): UseWizardControllerResult => {
       setLoading(false)
       isSubmittingRef.current = false
     }
-  }, [confirmSubmission, applicationId, paymentStatus, submitApplicationMutation, user?.id, showError, showSuccess, queryClient, clearStaleApplicationReference, goToStep])
+  }, [confirmSubmission, selectedGrades, uploadedFiles, resultSlipFile, extraKycFile, paymentStatus, applicationId, submitApplicationMutation, user?.id, showError, showSuccess, queryClient, clearStaleApplicationReference, goToStep])
 
   return {
     authLoading,
@@ -1947,7 +2078,9 @@ const useWizardController = (): UseWizardControllerResult => {
     resultSlipFile,
     extraKycFile,
     uploadProgress,
+    uploadStates,
     uploadedFiles,
+    wizardReadiness,
     isDraftSaving,
     draftSaved,
     draftLoaded,
@@ -1964,6 +2097,7 @@ const useWizardController = (): UseWizardControllerResult => {
     handleResultSlipUpload,
     handleExtraKycUpload,
     getPaymentTarget,
+    handleLoadDraft,
     handleNextStep,
     handlePrevStep,
     handleSubmitApplication,

@@ -153,6 +153,10 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
   useEffect(() => {
     if (!applicationId) return
 
+    clearPending()
+    intervalRef.current = INITIAL_INTERVAL
+    pollCountRef.current = 0
+
     // Initial fetch, then start the backoff chain
     fetchStatus().then(() => {
       scheduleNext()

@@ -33,6 +33,12 @@ describe('auth session/profile hardening source invariants', () => {
     expect(offenders).toEqual([])
   })
 
+  it('session bootstrap does not explicitly refresh after a no-user session response', () => {
+    const authQueries = read('src/hooks/auth/authQueries.ts')
+
+    expect(authQueries).not.toContain('authService.refresh()')
+  })
+
   it('session listener and profile hook use the shared profile query helpers', () => {
     const sessionListener = read('src/hooks/auth/useSessionListener.ts')
     const profileHook = read('src/hooks/auth/useProfileQuery.ts')

@@ -58,6 +58,7 @@ export const skipLinkClasses = cn(
   // Hidden by default using transform (more reliable than sr-only)
   '-translate-y-full opacity-0 pointer-events-none',
   // Visible on focus - reset transform and opacity
+  'focus:translate-y-0 focus:opacity-100 focus:pointer-events-auto',
   'focus-visible:translate-y-0 focus-visible:opacity-100 focus-visible:pointer-events-auto',
   // Smooth transition for focus state
   'transition-all duration-150',

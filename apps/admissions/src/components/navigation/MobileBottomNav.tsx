@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Home, FileText, Bell, LayoutDashboard, Users, MoreHorizontal, GraduationCap, Calendar, Settings, FileSearch, CreditCard } from 'lucide-react'
+import { Home, FileText, Bell, LayoutDashboard, Users, MoreHorizontal, GraduationCap, Calendar, Settings, FileSearch, CreditCard, MessageSquare, Clock } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
@@ -20,6 +20,8 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
   ]
 
   const studentMoreLinks = [
+    { to: '/student/communications', icon: MessageSquare, label: 'Communications' },
+    { to: '/student/history', icon: Clock, label: 'Activity History' },
     { to: '/student/payment', icon: CreditCard, label: 'Payments' },
     { to: '/student/interview', icon: Calendar, label: 'Interviews' },
     { to: '/student/settings', icon: Settings, label: 'Settings' },

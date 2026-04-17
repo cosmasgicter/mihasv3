@@ -1,4 +1,4 @@
-import { Download, Award } from 'lucide-react'
+import { Award, ChevronDown, Download, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useDocumentGeneration } from '@/hooks/useDocumentGeneration'
 import { useToastStore } from '@/hooks/useToast'
@@ -28,17 +28,24 @@ export function DocumentButtons({ applicationId, applicationNumber, status, paym
     }
   }
 
-  return (
-    <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-      {status !== 'draft' && (
+  const hasAcceptanceLetter = status === 'approved'
+  const hasReceipt = isPaymentVerified(paymentStatus)
+  const hasSlip = status !== 'draft'
+
+  if (!hasSlip && !hasAcceptanceLetter && !hasReceipt) {
+    return null
+  }
+
+  const actions = (
+    <>
+      {hasSlip && (
         <ApplicationSlipActions
           applicationId={applicationId}
           applicationNumber={applicationNumber}
         />
       )}
 
-      {/* Acceptance Letter - Only for approved */}
-      {status === 'approved' && (
+      {hasAcceptanceLetter && (
         <Button
           onClick={() => handleDownload('acceptance')}
           disabled={loading}
@@ -51,8 +58,7 @@ export function DocumentButtons({ applicationId, applicationNumber, status, paym
         </Button>
       )}
 
-      {/* Payment Receipt - Only for verified payments */}
-      {isPaymentVerified(paymentStatus) && (
+      {hasReceipt && (
         <Button
           onClick={() => handleDownload('receipt')}
           disabled={loading}
@@ -64,6 +70,56 @@ export function DocumentButtons({ applicationId, applicationNumber, status, paym
           Payment Receipt
         </Button>
       )}
-    </div>
+    </>
+  )
+
+  return (
+    <>
+      <details className="group w-full rounded-xl border border-border bg-muted/30 sm:hidden">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 text-sm font-semibold text-foreground marker:hidden">
+          <span className="inline-flex items-center gap-2">
+            <FileText className="h-4 w-4 text-primary" aria-hidden="true" />
+            Documents
+          </span>
+          <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden="true" />
+        </summary>
+        <div className="space-y-2 border-t border-border px-3 py-3">
+          {hasSlip && (
+            <ApplicationSlipActions
+              applicationId={applicationId}
+              applicationNumber={applicationNumber}
+              compact
+            />
+          )}
+          {hasAcceptanceLetter && (
+            <Button
+              onClick={() => handleDownload('acceptance')}
+              disabled={loading}
+              variant="outline"
+              size="sm"
+              className="min-h-11 w-full justify-center gap-2 border-green-500 text-green-700 hover:bg-green-50"
+            >
+              <Award className="w-4 h-4" />
+              Acceptance Letter
+            </Button>
+          )}
+          {hasReceipt && (
+            <Button
+              onClick={() => handleDownload('receipt')}
+              disabled={loading}
+              variant="outline"
+              size="sm"
+              className="min-h-11 w-full justify-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Payment Receipt
+            </Button>
+          )}
+        </div>
+      </details>
+      <div className="hidden w-full flex-col gap-2 sm:flex sm:flex-row sm:flex-wrap sm:items-center">
+        {actions}
+      </div>
+    </>
   )
 }
