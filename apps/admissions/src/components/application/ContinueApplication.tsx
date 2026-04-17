@@ -6,11 +6,14 @@ import { SectionCard } from '@/components/ui/SectionCard'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { applicationSessionManager } from '@/lib/applicationSession'
+import { clearAllDraftData } from '@/lib/draftManager'
 import { cn, formatDate } from '@/lib/utils'
 import { FileText, AlertTriangle, Trash2, RefreshCw } from 'lucide-react'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { toast } from '@/hooks/useToast'
+import { useApplicationDrafts } from '@/hooks/queries/useApplicationQueries'
+import { applicationService } from '@/services/applications'
 
 interface DraftInfo {
   exists: boolean
@@ -28,6 +31,14 @@ export function ContinueApplication() {
   const [deleting, setDeleting] = useState(false)
   const [currentTime, setCurrentTime] = useState(Date.now())
   const confirmDialog = useConfirmDialog()
+  const draftOwnerId = profile?.user_id || user?.id
+  const {
+    data: serverDrafts = [],
+    isLoading: serverDraftsLoading,
+    refetch: refetchServerDrafts,
+  } = useApplicationDrafts(draftOwnerId)
+  const latestServerDraft = serverDrafts[0]
+  const serverDraftCount = serverDrafts.length
 
   useEffect(() => {
     if (user) {
@@ -94,11 +105,14 @@ export function ContinueApplication() {
 
     try {
       setDeleting(true)
-      const result = await applicationSessionManager.deleteDraft(profile?.user_id || user.id)
-      
-      if (result.success) {
+      if (draftInfo.exists) {
+        clearAllDraftData()
         setDraftInfo({ exists: false })
-        // Dispatch event to notify other components
+        await refetchServerDrafts()
+      } else if (latestServerDraft?.id) {
+        await applicationService.delete(latestServerDraft.id)
+        await refetchServerDrafts()
+        setDraftInfo({ exists: false })
         window.dispatchEvent(new CustomEvent('draftCleared'))
       } else {
         toast.error('Delete Failed', 'We could not remove your saved draft. Please try again.')
@@ -133,7 +147,7 @@ export function ContinueApplication() {
     return `${minutes}m`
   }
 
-  if (loading) {
+  if (loading || serverDraftsLoading) {
     return (
       <SectionCard className="border-border/80 bg-card/90 text-foreground shadow-md" padding="sm">
         <div className="space-y-3" role="status" aria-label="Checking for saved applications">
@@ -150,9 +164,15 @@ export function ContinueApplication() {
     )
   }
 
-  if (!draftInfo.exists) {
+  if (!draftInfo.exists && serverDraftCount === 0) {
     return null
   }
+
+  const hasMultipleDrafts = serverDraftCount > 1
+  const displayProgress = draftInfo.exists ? draftInfo.progress : 'Online draft'
+  const displayLastSaved = draftInfo.exists
+    ? draftInfo.lastSaved
+    : latestServerDraft?.updated_at || latestServerDraft?.created_at
 
   return (
     <SectionCard
@@ -171,7 +191,11 @@ export function ContinueApplication() {
             </div>
             <div>
               <h2 className="text-lg font-semibold text-foreground">Continue your application</h2>
-              <p className="text-sm text-foreground">Jump back in where you left off—your progress is saved securely.</p>
+              <p className="text-sm text-foreground">
+                {hasMultipleDrafts
+                  ? `${serverDraftCount} drafts are available. Continue the latest one or manage drafts in the wizard.`
+                  : 'Jump back in where you left off. Your progress is saved securely.'}
+              </p>
             </div>
           </div>
 
@@ -185,11 +209,11 @@ export function ContinueApplication() {
           <dl className="mt-4 grid gap-3 text-sm text-foreground sm:max-w-md">
             <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-foreground shadow-sm">
               <dt className="text-foreground">Progress</dt>
-              <dd>{draftInfo.progress}</dd>
+              <dd>{displayProgress}</dd>
             </div>
             <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-foreground shadow-sm">
               <dt className="text-foreground">Last saved</dt>
-              <dd>{draftInfo.lastSaved ? formatDate(draftInfo.lastSaved) : 'Unknown'}</dd>
+              <dd>{displayLastSaved ? formatDate(displayLastSaved) : 'Unknown'}</dd>
             </div>
             {draftInfo.expiresAt && (
               <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-foreground shadow-sm">
@@ -222,7 +246,10 @@ export function ContinueApplication() {
             <Button
               variant="outline"
               size="sm"
-              onClick={loadDraftInfo}
+              onClick={() => {
+                void loadDraftInfo()
+                void refetchServerDrafts()
+              }}
               className="flex-1 text-primary hover:bg-primary/10"
             >
               <RefreshCw className="mr-2 h-4 w-4" />

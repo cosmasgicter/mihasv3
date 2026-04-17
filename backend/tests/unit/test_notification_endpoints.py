@@ -318,9 +318,13 @@ class TestNotificationList:
 
     @patch("apps.common.notification_views.Notification.objects")
     def test_list_success_empty(self, mock_qs):
-        """Returns empty list when user has no notifications."""
+        """Returns empty results when user has no notifications (paginated envelope)."""
         mock_filter = MagicMock()
-        mock_filter.order_by.return_value = []
+        mock_ordered = MagicMock()
+        mock_ordered.count.return_value = 0
+        mock_ordered.__iter__ = lambda self: iter([])
+        mock_ordered.__len__ = lambda self: 0
+        mock_filter.order_by.return_value = mock_ordered
         mock_qs.filter.return_value = mock_filter
 
         request = _auth_request(self.factory, "get", "/api/v1/notifications/", self.user)
@@ -329,13 +333,18 @@ class TestNotificationList:
         assert response.status_code == 200
         body = response.data
         assert body["success"] is True
-        assert body["data"] == []
+        assert body["data"]["totalCount"] == 0
+        assert body["data"]["results"] == []
 
     @patch("apps.common.notification_views.Notification.objects")
     def test_list_filters_by_user(self, mock_qs):
         """Queryset filters by the authenticated user's ID."""
         mock_filter = MagicMock()
-        mock_filter.order_by.return_value = []
+        mock_ordered = MagicMock()
+        mock_ordered.count.return_value = 0
+        mock_ordered.__iter__ = lambda self: iter([])
+        mock_ordered.__len__ = lambda self: 0
+        mock_filter.order_by.return_value = mock_ordered
         mock_qs.filter.return_value = mock_filter
 
         request = _auth_request(self.factory, "get", "/api/v1/notifications/", self.user)
@@ -345,9 +354,13 @@ class TestNotificationList:
 
     @patch("apps.common.notification_views.Notification.objects")
     def test_list_response_envelope(self, mock_qs):
-        """Response uses {success: true, data: [...]} envelope."""
+        """Response uses {success: true, data: {page, pageSize, totalCount, results}} envelope."""
         mock_filter = MagicMock()
-        mock_filter.order_by.return_value = []
+        mock_ordered = MagicMock()
+        mock_ordered.count.return_value = 0
+        mock_ordered.__iter__ = lambda self: iter([])
+        mock_ordered.__len__ = lambda self: 0
+        mock_filter.order_by.return_value = mock_ordered
         mock_qs.filter.return_value = mock_filter
 
         request = _auth_request(self.factory, "get", "/api/v1/notifications/", self.user)
@@ -356,4 +369,9 @@ class TestNotificationList:
         body = response.data
         assert "success" in body
         assert "data" in body
-        assert isinstance(body["data"], list)
+        data = body["data"]
+        assert "page" in data
+        assert "pageSize" in data
+        assert "totalCount" in data
+        assert "results" in data
+        assert isinstance(data["results"], list)

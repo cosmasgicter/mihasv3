@@ -19,6 +19,7 @@ import { DashboardStatusOverview } from '@/components/student/DashboardStatusOve
 import { ApplicationTimeline } from '@/components/student/ApplicationTimeline'
 import { QuickActions } from '@/components/student/QuickActions'
 import { ApplicationListItem } from '@/components/student/ApplicationListItem'
+import { StudentNextActionCard } from '@/components/student/StudentNextActionCard'
 import { User, FileText, Clock, CheckCircle, XCircle, X, RefreshCw, Calendar } from 'lucide-react'
 
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -512,19 +513,21 @@ export default function StudentDashboard() {
       subtitle="Track your applications, manage drafts, and keep your profile information up to date."
       maxWidth="7xl"
       actions={
-        <div className="flex items-center gap-3">
+        <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-end sm:gap-3">
           <Button
             variant="outline"
             size="sm"
             onClick={() => forceRefresh()}
             disabled={isRefreshing || isManualRefreshing}
-            className="flex items-center gap-2"
+            className="min-h-11 flex-1 gap-2 sm:flex-none"
             loading={isRefreshing || isManualRefreshing}
           >
             {!(isRefreshing || isManualRefreshing) && <RefreshCw className="h-4 w-4" />}
             {(isRefreshing || isManualRefreshing) ? 'Refreshing...' : 'Refresh'}
           </Button>
-          <ProfileCompletionBadge completionPercentage={profileCompletion} missingFields={profileMissingFields} />
+          <div className="hidden sm:block">
+            <ProfileCompletionBadge completionPercentage={profileCompletion} missingFields={profileMissingFields} />
+          </div>
         </div>
       }
     >
@@ -541,12 +544,20 @@ export default function StudentDashboard() {
               </div>
             )}
 
-            {/* Status Overview with 8starlabs StatusIndicator */}
-            <DashboardStatusOverview 
+            <StudentNextActionCard
               applications={applications}
+              draftCount={totalDraftCount}
+              hasPendingPayment={hasPendingPayment}
+              hasScheduledInterview={hasScheduledInterview}
+              profileCompletion={profileCompletion}
             />
 
             <ContinueApplication />
+
+            {/* Status Overview with 8starlabs StatusIndicator */}
+            <DashboardStatusOverview
+              applications={applications}
+            />
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
               <SectionCard

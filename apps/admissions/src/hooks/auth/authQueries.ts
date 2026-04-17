@@ -87,17 +87,9 @@ export async function fetchSessionData(): Promise<SessionQueryData> {
     return { user: normalizedUser }
   }
 
-  try {
-    await authService.refresh()
-    const retryResult = await authService.session() as User | { user?: User } | null
-    const retryUser = extractAuthUser(retryResult)
-    if (retryUser) {
-      return { user: retryUser }
-    }
-  } catch {
-    // User is genuinely unauthenticated or refresh is unavailable.
-  }
-
+  // The API client owns refresh-on-401/403 for /auth/session/. A successful
+  // session response with no user means the visitor is unauthenticated; do not
+  // POST /auth/refresh/ from public pages such as /auth/signin.
   return null
 }
 

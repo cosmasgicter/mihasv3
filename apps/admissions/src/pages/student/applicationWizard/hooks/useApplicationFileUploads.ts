@@ -13,6 +13,7 @@ const MAX_UPLOAD_RETRIES = 1
 const RETRY_DELAY_MS = 1200
 
 export type ApplicationFileType = 'result_slip' | 'extra_kyc'
+export type ApplicationUploadState = 'idle' | 'uploading' | 'uploaded' | 'failed'
 
 export interface UseApplicationFileUploadsOptions {
   userId?: string | null
@@ -26,6 +27,7 @@ export interface UseApplicationFileUploadsResult {
   extraKycFile: File | null
   uploading: boolean
   uploadProgress: Record<string, number>
+  uploadStates: Record<string, ApplicationUploadState>
   uploadedFiles: Record<string, boolean>
   handleResultSlipUpload: (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string) => void) => void
   handleExtraKycUpload: (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string) => void) => void
@@ -122,6 +124,7 @@ export function useApplicationFileUploads({
   const [resultSlipFile, setResultSlipFile] = useState<File | null>(null)
   const [extraKycFile, setExtraKycFile] = useState<File | null>(null)
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
+  const [uploadStates, setUploadStates] = useState<Record<string, ApplicationUploadState>>({})
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, boolean>>({})
   const [activeTasks, setActiveTasks] = useState(0)
   const progressCleanupTimeouts = useRef<Record<string, NodeJS.Timeout | undefined>>({})
@@ -155,19 +158,6 @@ export function useApplicationFileUploads({
     })
   }, [])
 
-  const scheduleProgressClear = useCallback((fileType: ApplicationFileType) => {
-    const existingTimeout = progressCleanupTimeouts.current[fileType]
-    if (existingTimeout) {
-      clearTimeout(existingTimeout)
-    }
-
-    const timeoutId = setTimeout(() => {
-      clearProgressEntry(fileType)
-    }, 3000)
-
-    progressCleanupTimeouts.current[fileType] = timeoutId
-  }, [clearProgressEntry])
-
   const resetUploadedState = useCallback((fileType: ApplicationFileType) => {
     setUploadedFiles(prev => {
       if (prev[fileType] === false) {
@@ -176,11 +166,13 @@ export function useApplicationFileUploads({
 
       return { ...prev, [fileType]: false }
     })
+    setUploadStates(prev => ({ ...prev, [fileType]: 'idle' }))
     clearProgressEntry(fileType)
   }, [clearProgressEntry])
 
   const markUploadedFile = useCallback((fileType: ApplicationFileType, uploaded: boolean) => {
     setUploadedFiles(prev => ({ ...prev, [fileType]: uploaded }))
+    setUploadStates(prev => ({ ...prev, [fileType]: uploaded ? 'uploaded' : 'idle' }))
     if (!uploaded) {
       clearProgressEntry(fileType)
     }
@@ -208,6 +200,7 @@ export function useApplicationFileUploads({
           delete next[fileType]
           return next
         })
+        setUploadStates(prev => ({ ...prev, [fileType]: 'idle' }))
         clearProgressEntry(fileType)
         switch (fileType) {
           case 'result_slip':
@@ -273,6 +266,7 @@ export function useApplicationFileUploads({
 
       onValidationClear?.()
       setUploadedFiles(prev => ({ ...prev, [fileType]: false }))
+      setUploadStates(prev => ({ ...prev, [fileType]: 'idle' }))
 
       switch (fileType) {
         case 'result_slip':
@@ -316,22 +310,11 @@ export function useApplicationFileUploads({
         // Verify session with retry-once logic for auth errors
         await verifySessionWithRetry()
 
-        setUploadProgress(prev => ({ ...prev, [fileType]: 0 }))
+        clearProgressEntry(fileType)
+        setUploadStates(prev => ({ ...prev, [fileType]: 'uploading' }))
         setUploadedFiles(prev => ({ ...prev, [fileType]: false }))
 
-        let progressInterval: NodeJS.Timeout | null = null
-
         try {
-          progressInterval = setInterval(() => {
-            setUploadProgress(prev => {
-              const currentValue = prev[fileType] ?? 0
-              if (currentValue < 85) {
-                return { ...prev, [fileType]: currentValue + 15 }
-              }
-              return prev
-            })
-          }, 300)
-
           const { uploadApplicationFile } = await importWithChunkRecovery(() => import('@/lib/storage'), {
             guardKey: 'wizard-storage',
             recoveryMessage: 'A newer version of the upload tools is loading. Please wait a moment and try again.',
@@ -348,7 +331,8 @@ export function useApplicationFileUploads({
             throw uploadError
           }
 
-          setUploadProgress(prev => ({ ...prev, [fileType]: 100 }))
+          clearProgressEntry(fileType)
+          setUploadStates(prev => ({ ...prev, [fileType]: 'uploaded' }))
           setUploadedFiles(prev => ({ ...prev, [fileType]: true }))
 
           return result.url!
@@ -366,6 +350,7 @@ export function useApplicationFileUploads({
           }
 
           setUploadedFiles(prev => ({ ...prev, [fileType]: false }))
+          setUploadStates(prev => ({ ...prev, [fileType]: 'failed' }))
           clearProgressEntry(fileType)
 
           if (error instanceof Error) {
@@ -380,10 +365,6 @@ export function useApplicationFileUploads({
 
           throw new Error('Upload failed')
         } finally {
-          if (progressInterval) {
-            clearInterval(progressInterval)
-          }
-          scheduleProgressClear(fileType)
           uploadPromises.current[fileType] = null
         }
       })
@@ -391,7 +372,7 @@ export function useApplicationFileUploads({
       uploadPromises.current[fileType] = uploadPromise
       return uploadPromise
     },
-    [applicationId, clearProgressEntry, scheduleProgressClear, trackUploadTask, userId]
+    [applicationId, clearProgressEntry, trackUploadTask, userId]
   )
 
   const createFileHandler = useCallback(
@@ -478,6 +459,7 @@ export function useApplicationFileUploads({
     extraKycFile,
     uploading,
     uploadProgress,
+    uploadStates,
     uploadedFiles,
     handleResultSlipUpload,
     handleExtraKycUpload,

@@ -131,6 +131,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
   const showBack = backRoutes.has(location.pathname) || location.pathname.includes('/application/')
   const handleBack = () => navigate(-1)
   const isStudentRoute = location.pathname.startsWith('/student')
+  const isWizardRoute = location.pathname === '/apply' || location.pathname.startsWith('/student/application-wizard')
   const handleSignOut = async () => {
     try {
       await signOut()
@@ -216,7 +217,10 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
 
         <main
           id={APP_MAIN_CONTENT_ID}
-          className="pb-20 md:pb-6 pt-14 md:pt-0 min-h-screen overflow-x-hidden transition-all duration-300 ease-in-out"
+          className={cn(
+            'pt-14 md:pt-0 min-h-screen overflow-x-hidden transition-all duration-300 ease-in-out',
+            isWizardRoute ? 'pb-6 md:pb-6' : 'pb-20 md:pb-6'
+          )}
           style={{
             paddingTop: isMobile ? '3.5rem' : 'var(--header-height)',
             marginLeft: isMobile ? 0 : (collapsed ? collapsedWidth : expandedWidth),
@@ -230,11 +234,13 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
       </div>
 
       {/* Canonical bottom navigation — mobile only */}
-      <BottomNavigation
-        items={navItems}
-        isAuthenticated
-        overflowMode
-      />
+      {!isWizardRoute && (
+        <BottomNavigation
+          items={navItems}
+          isAuthenticated
+          overflowMode
+        />
+      )}
     </div>
   )
 })

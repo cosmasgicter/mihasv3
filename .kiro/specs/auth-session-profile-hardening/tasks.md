@@ -7,7 +7,7 @@
   - Use `authService.session()` or a shared session helper for session rechecks.
   - Ensure session rechecks bypass API cache.
 
-- [ ] Add a regression test for wizard refresh dedupe.
+- [x] Add a regression test for wizard refresh dedupe.
   - Simulate wizard recovery and a concurrent protected API 401.
   - Assert only one `/auth/refresh/` network call occurs.
   - Assert session cache is updated after successful refresh.
@@ -50,13 +50,13 @@
   - Merge overlapping fields into `['auth', 'session']`.
   - Preserve session-only fields not returned by profile endpoint.
 
-- [ ] Add tests for cache synchronization.
+- [x] Add tests for cache synchronization.
   - Patch profile full name and phone.
   - Assert `useProfileQuery()` cache updates.
   - Assert `useAuth().user` cache updates.
   - Assert rollback restores profile cache on mutation failure.
 
-- [ ] Verify dependent screens.
+- [x] Verify dependent screens.
   - Student dashboard.
   - Settings page.
   - Application wizard auto-population.
@@ -72,7 +72,7 @@
   - Keep redirect/event behavior unchanged.
   - Ensure cleanup remains best-effort and does not throw.
 
-- [ ] Add race regression tests.
+- [x] Add race regression tests.
   - Start a slow profile query.
   - Trigger sign-out.
   - Resolve the slow profile query.

@@ -7,12 +7,10 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Plus, 
-  User, 
-  CreditCard, 
+import {
+  Plus,
+  CreditCard,
   Calendar,
-  X,
   Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -118,14 +116,19 @@ function ActionCard({
 }
 
 export function QuickActions({
-  hasDrafts,
+  hasDrafts: _hasDrafts,
   hasPendingPayment,
   hasScheduledInterview,
-  onClearAllDrafts,
-  isClearingDrafts = false,
+  onClearAllDrafts: _onClearAllDrafts,
+  isClearingDrafts: _isClearingDrafts = false,
   className,
 }: QuickActionsProps) {
   let itemIndex = 0;
+  const hasContextualActions = hasPendingPayment || hasScheduledInterview
+
+  if (!hasContextualActions) {
+    return null
+  }
 
   return (
     <Card className={cn('border-border/50', className)}>
@@ -135,24 +138,11 @@ export function QuickActions({
           Quick Actions
         </CardTitle>
         <p className="text-sm text-foreground/80">
-          Access common tasks quickly
+          Resolve time-sensitive tasks quickly
         </p>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {/* Primary action - only show when no dedicated continue-draft card is present */}
-          {!hasDrafts && (
-            <div className={`${animateClasses.fadeIn} opacity-0`} style={staggerChild(itemIndex++)}>
-              <ActionCard
-                icon={<Plus className="h-5 w-5" />}
-                title="Start New Application"
-                description="Begin your application journey"
-                href="/student/application-wizard"
-                variant="primary"
-              />
-            </div>
-          )}
-
           {/* Pending payment action */}
           {hasPendingPayment && (
             <div className={`${animateClasses.fadeIn} opacity-0`} style={staggerChild(itemIndex++)}>
@@ -179,31 +169,6 @@ export function QuickActions({
             </div>
           )}
 
-          {/* Profile settings */}
-          <div className={`${animateClasses.fadeIn} opacity-0`} style={staggerChild(itemIndex++)}>
-            <ActionCard
-              icon={<User className="h-5 w-5" />}
-              title="Profile Settings"
-              description="Update your personal information"
-              href="/student/settings"
-              variant="neutral"
-            />
-          </div>
-
-          {/* Clear drafts action */}
-          {hasDrafts && onClearAllDrafts && (
-            <div className={`${animateClasses.fadeIn} opacity-0`} style={staggerChild(itemIndex++)}>
-              <ActionCard
-                icon={<X className="h-5 w-5" />}
-                title="Clear All Drafts"
-                description="Remove all draft applications"
-                onClick={onClearAllDrafts}
-                variant="danger"
-                loading={isClearingDrafts}
-                disabled={isClearingDrafts}
-              />
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>

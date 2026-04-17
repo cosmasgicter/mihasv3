@@ -18,6 +18,7 @@ interface EnhancedProgressIndicatorProps {
   currentStepIndex: number;
   onStepClick?: (stepIndex: number) => void;
   completedSteps?: Set<number>;
+  progressPercentage?: number;
   className?: string;
 }
 
@@ -212,6 +213,7 @@ export const EnhancedProgressIndicator = ({
   currentStepIndex,
   onStepClick,
   completedSteps = new Set(),
+  progressPercentage,
   className,
 }: EnhancedProgressIndicatorProps) => {
   const { shouldAnimate } = useOptimizedAnimation();
@@ -253,7 +255,7 @@ export const EnhancedProgressIndicator = ({
     [steps.length]
   );
 
-  const progressPercentage = ((currentStepIndex + 1) / steps.length) * 100;
+  const displayProgressPercentage = progressPercentage ?? ((currentStepIndex + 1) / steps.length) * 100;
 
   return (
     <div className={cn('relative', className)}>
@@ -265,7 +267,7 @@ export const EnhancedProgressIndicator = ({
         {/* Animated progress line */}
         <div
           className="absolute top-[22px] left-0 h-0.5 bg-gradient-to-r from-primary via-success to-primary rounded-full transition-all duration-500 ease-out"
-          style={{ width: `${progressPercentage}%` }}
+          style={{ width: `${displayProgressPercentage}%` }}
         />
 
         {/* Steps */}
@@ -337,12 +339,12 @@ export const EnhancedProgressIndicator = ({
       <div className="md:hidden mt-4">
         <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
           <span>Overall Progress</span>
-          <span className="font-medium text-primary">{Math.round(progressPercentage)}%</span>
+          <span className="font-medium text-primary">{Math.round(displayProgressPercentage)}%</span>
         </div>
         <div className="h-2 bg-border rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-primary to-success rounded-full transition-all duration-500 ease-out"
-            style={{ width: `${progressPercentage}%` }}
+            style={{ width: `${displayProgressPercentage}%` }}
           />
         </div>
       </div>

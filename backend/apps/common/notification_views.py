@@ -1,17 +1,18 @@
-"""Notification views — preferences, admin send, list, mark-read, delete.
+"""Notification views — preferences, admin send, list, mark-read, delete, admin history.
 
-Implements tasks 20.1, 20.3, 11.1 (admissions-frontend-overhaul).
-Requirements: 6.1, 6.2, 6.3, 8.1, 8.2, 8.3, 8.5, 8.6
+Implements tasks 20.1, 20.3, 11.1 (admissions-frontend-overhaul), 3.1 (communications-history).
+Requirements: 6.1, 6.2, 6.3, 8.1, 8.2, 8.3, 8.5, 8.6, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7
 """
 
 import logging
 
-from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.accounts.models import Profile
 from apps.accounts.permissions import IsAdmin
 from apps.common.models import (
     EmailQueue,
@@ -23,6 +24,7 @@ from apps.common.openapi_helpers import (
     IdMessageSerializer,
     MessageSerializer,
     envelope_serializer,
+    paginated_serializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -65,6 +67,7 @@ class NotificationItemSerializer(serializers.Serializer):
     message = serializers.CharField()
     type = serializers.CharField()
     is_read = serializers.BooleanField()
+    action_url = serializers.CharField(allow_null=True, required=False)
     created_at = serializers.DateTimeField()
 
 
@@ -82,7 +85,7 @@ EmailSendResponseSerializer = envelope_serializer(
 )
 NotificationListResponseSerializer = envelope_serializer(
     "NotificationListResponse",
-    NotificationItemSerializer(many=True),
+    paginated_serializer("NotificationPage", NotificationItemSerializer),
 )
 NotificationMarkReadResponseSerializer = envelope_serializer(
     "NotificationMarkReadResponse",
@@ -340,19 +343,79 @@ class EmailSendView(APIView):
 class NotificationListView(APIView):
     """GET /api/v1/notifications/ — list notifications for current user.
     POST /api/v1/notifications/ — admin send notification (delegates to NotificationSendView).
+
+    Supports pagination (?page=1&pageSize=20) and filtering (?type=info&is_read=true).
+    Without params, returns all notifications in the paginated envelope for backward compatibility.
     """
 
     permission_classes = [IsAuthenticated]
+
+    VALID_TYPES = {"info", "success", "warning", "error"}
 
     def get(self, request):
         notifications = (
             Notification.objects.filter(user_id=request.user.pk)
             .order_by("-created_at")
         )
-        data = NotificationItemSerializer(notifications, many=True).data
+
+        # --- Filtering ---
+        type_filter = request.query_params.get("type")
+        if type_filter and type_filter in self.VALID_TYPES:
+            notifications = notifications.filter(type=type_filter)
+
+        is_read_param = request.query_params.get("is_read")
+        if is_read_param is not None:
+            is_read_lower = is_read_param.lower()
+            if is_read_lower in ("true", "1"):
+                notifications = notifications.filter(is_read=True)
+            elif is_read_lower in ("false", "0"):
+                notifications = notifications.filter(is_read=False)
+
+        # --- Pagination ---
+        total_count = notifications.count()
+
+        # Parse page and pageSize with safe defaults
+        try:
+            page = max(1, int(request.query_params.get("page", 1)))
+        except (ValueError, TypeError):
+            page = 1
+
+        try:
+            page_size = int(request.query_params.get("pageSize", 20))
+        except (ValueError, TypeError):
+            page_size = 20
+
+        # Clamp pageSize between 1 and 100
+        page_size = max(1, min(page_size, 100))
+
+        # Backward compatible: without explicit params, return all results
+        has_pagination_params = "page" in request.query_params or "pageSize" in request.query_params
+        if not has_pagination_params:
+            # Return all results but in the paginated envelope
+            data = NotificationItemSerializer(notifications, many=True).data
+            return Response({
+                "success": True,
+                "data": {
+                    "page": 1,
+                    "pageSize": max(total_count, 20),
+                    "totalCount": total_count,
+                    "results": data,
+                },
+            })
+
+        # Apply pagination offset
+        offset = (page - 1) * page_size
+        page_qs = notifications[offset:offset + page_size]
+
+        data = NotificationItemSerializer(page_qs, many=True).data
         return Response({
             "success": True,
-            "data": data,
+            "data": {
+                "page": page,
+                "pageSize": page_size,
+                "totalCount": total_count,
+                "results": data,
+            },
         })
 
     def post(self, request):
@@ -491,4 +554,84 @@ class NotificationDeleteView(APIView):
         return Response({
             "success": True,
             "data": {"message": "Notification deleted"},
+        })
+
+
+# ---------------------------------------------------------------------------
+# 3.1 — Admin Notification History for a Specific User
+# ---------------------------------------------------------------------------
+
+
+AdminNotificationHistoryResponseSerializer = envelope_serializer(
+    "AdminNotificationHistoryResponse",
+    paginated_serializer("AdminNotificationHistoryPage", NotificationItemSerializer),
+)
+
+
+@extend_schema(
+    operation_id="admin_notification_history",
+    tags=["notifications"],
+    parameters=[
+        OpenApiParameter(name="page", type=int, required=False, description="Page number (default 1)"),
+        OpenApiParameter(name="pageSize", type=int, required=False, description="Page size (default 20, max 100)"),
+    ],
+    responses={
+        200: OpenApiResponse(response=AdminNotificationHistoryResponseSerializer),
+        403: OpenApiResponse(response=ErrorResponseSerializer),
+        404: OpenApiResponse(response=ErrorResponseSerializer),
+    },
+)
+class AdminNotificationHistoryView(APIView):
+    """GET /api/v1/notifications/user/<uuid:user_id>/
+
+    Admin-only endpoint to view all notifications for a specific user.
+    Returns 404 if the user_id does not exist, 403 for non-admin users.
+    """
+
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def get(self, request, user_id):
+        # Check that the target user exists
+        if not Profile.objects.filter(pk=user_id).exists():
+            return Response(
+                {
+                    "success": False,
+                    "error": "User not found",
+                    "code": "NOT_FOUND",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        notifications = (
+            Notification.objects.filter(user_id=user_id)
+            .order_by("-created_at")
+        )
+
+        # --- Pagination ---
+        total_count = notifications.count()
+
+        try:
+            page = max(1, int(request.query_params.get("page", 1)))
+        except (ValueError, TypeError):
+            page = 1
+
+        try:
+            page_size = int(request.query_params.get("pageSize", 20))
+        except (ValueError, TypeError):
+            page_size = 20
+
+        page_size = max(1, min(page_size, 100))
+
+        offset = (page - 1) * page_size
+        page_qs = notifications[offset:offset + page_size]
+
+        data = NotificationItemSerializer(page_qs, many=True).data
+        return Response({
+            "success": True,
+            "data": {
+                "page": page,
+                "pageSize": page_size,
+                "totalCount": total_count,
+                "results": data,
+            },
         })

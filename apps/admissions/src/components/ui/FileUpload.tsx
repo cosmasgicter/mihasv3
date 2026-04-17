@@ -146,6 +146,8 @@ function FileUpload({
   const fileCount = Array.isArray(value) ? value.length : value ? 1 : 0
   const hasFile = fileCount > 0
   const hasPreview = !!preview
+  const hasUploadProgress = typeof progress === 'number' && Number.isFinite(progress) && progress >= 0
+  const normalizedProgress = hasUploadProgress ? Math.min(100, Math.max(0, progress)) : 0
 
   const handleRemove = useCallback(
     (e: React.MouseEvent) => {
@@ -203,18 +205,24 @@ function FileUpload({
           </div>
           <div className="w-full">
             <div className="flex justify-between text-xs text-muted-foreground mb-1">
-              <span>Uploading...</span>
-              <span className="font-medium text-primary">{Math.round(progress)}%</span>
+              <span>{hasUploadProgress ? 'Uploading...' : 'Uploading securely...'}</span>
+              {hasUploadProgress && (
+                <span className="font-medium text-primary">{Math.round(normalizedProgress)}%</span>
+              )}
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
               <div
-                className="h-full bg-primary rounded-full transition-all duration-normal ease-out"
-                style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+                className={cn(
+                  'h-full rounded-full bg-primary transition-all duration-normal ease-out',
+                  !hasUploadProgress && 'w-1/2 animate-pulse'
+                )}
+                style={hasUploadProgress ? { width: `${normalizedProgress}%` } : undefined}
                 role="progressbar"
-                aria-valuenow={Math.round(progress)}
+                {...(hasUploadProgress ? { 'aria-valuenow': Math.round(normalizedProgress) } : {})}
                 aria-valuemin={0}
                 aria-valuemax={100}
-                aria-label={`Upload progress: ${Math.round(progress)}%`}
+                aria-label={hasUploadProgress ? `Upload progress: ${Math.round(normalizedProgress)}%` : 'Upload in progress'}
+                aria-valuetext={hasUploadProgress ? undefined : 'Uploading'}
               />
             </div>
           </div>

@@ -10,6 +10,7 @@ import type { EligibilityResult } from '@/lib/eligibilityEngine'
 import { cn } from '@/lib/utils'
 
 import type { Grade12Subject, SubjectGrade, WizardFormData } from '../types'
+import type { WizardReadiness } from '../lib/wizardReadiness'
 
 interface SubmitStepProps {
   title: string
@@ -25,6 +26,7 @@ interface SubmitStepProps {
   selectedProgramName?: string
   selectedInstitutionLabel?: string
   paymentStatus?: 'pending' | 'successful' | 'failed' | null
+  wizardReadiness?: WizardReadiness
 }
 
 const gradeLabelMap: Record<number, string> = {
@@ -52,40 +54,46 @@ const SubmitStep = ({
   onConfirmChange,
   selectedProgramName,
   selectedInstitutionLabel,
-  paymentStatus
+  paymentStatus,
+  wizardReadiness
 }: SubmitStepProps) => {
   const formValues = form.watch()
   const programLabel = selectedProgramName?.trim() || formValues.program
   const institutionLabel = selectedInstitutionLabel?.trim() || ''
   const hasResultSlip = Boolean(resultSlipFile || uploadedFiles.result_slip)
   const hasIdentityDocument = Boolean(extraKycFile || uploadedFiles.extra_kyc)
+  const readinessItemsByField = new Map(
+    wizardReadiness?.stepProgress.flatMap(step => step.missingItems.map(item => [item.field, item])) ?? []
+  )
+  const isRequirementComplete = (field: string, fallback: boolean) =>
+    wizardReadiness ? !readinessItemsByField.has(field) : fallback
   const readinessChecks = [
     {
       label: 'Personal information completed',
       detail: formValues.full_name ? formValues.full_name : 'Full name is still missing',
-      completed: Boolean(formValues.full_name),
+      completed: isRequirementComplete('full_name', Boolean(formValues.full_name)),
     },
     {
       label: 'Minimum Grade 12 subjects added',
       detail: `${selectedGrades.length}/5 subjects recorded`,
-      completed: selectedGrades.length >= 5,
+      completed: isRequirementComplete('grades', selectedGrades.length >= 5),
     },
     {
       label: 'Result slip attached',
       detail: resultSlipFile ? resultSlipFile.name : hasResultSlip ? 'Already uploaded' : 'Upload your result slip to complete this step',
-      completed: hasResultSlip,
+      completed: isRequirementComplete('result_slip', hasResultSlip),
     },
     {
       label: 'Identity document attached (NRC or Passport)',
       detail: extraKycFile ? extraKycFile.name : hasIdentityDocument ? 'Already uploaded' : 'Upload your NRC or passport to complete this step',
-      completed: hasIdentityDocument,
+      completed: isRequirementComplete('extra_kyc', hasIdentityDocument),
     },
     {
       label: 'Payment completed via Lenco',
       detail: paymentStatus === 'successful'
         ? 'Payment confirmed through the secure Lenco gateway.'
         : 'Please complete payment in the payment step before submitting.',
-      completed: paymentStatus === 'successful',
+      completed: isRequirementComplete('payment', paymentStatus === 'successful'),
     },
   ]
 

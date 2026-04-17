@@ -13,8 +13,9 @@ import type { EligibilityResult } from '@/lib/eligibilityEngine'
 
 import type { Grade12Subject, SubjectGrade } from '../types'
 import { EDUCATION_UPLOAD_COPY } from '../lib/educationCatalog'
+import type { ApplicationUploadState } from '../hooks/useApplicationFileUploads'
 
-function getUploadStatus(file: File | null, isUploaded?: boolean) {
+function getUploadStatus(file: File | null, uploadState: ApplicationUploadState | undefined, isUploaded?: boolean) {
   if (isUploaded) {
     return {
       label: 'Uploaded',
@@ -22,9 +23,23 @@ function getUploadStatus(file: File | null, isUploaded?: boolean) {
     }
   }
 
+  if (uploadState === 'uploading') {
+    return {
+      label: 'Uploading',
+      className: 'border-primary/30 bg-primary/5 text-primary',
+    }
+  }
+
+  if (uploadState === 'failed') {
+    return {
+      label: 'Needs retry',
+      className: 'border-destructive/30 bg-destructive/5 text-destructive',
+    }
+  }
+
   if (file) {
     return {
-      label: 'Ready to upload',
+      label: 'Selected',
       className: 'border-blue-200 bg-blue-50 text-blue-700',
     }
   }
@@ -73,6 +88,7 @@ interface EducationStepProps {
   resultSlipFile: File | null
   extraKycFile: File | null
   uploadProgress: Record<string, number>
+  uploadStates: Record<string, ApplicationUploadState>
   uploadedFiles: Record<string, boolean>
   addGrade: () => void
   removeGrade: (index: number) => void
@@ -92,6 +108,7 @@ const EducationStep = ({
   resultSlipFile,
   extraKycFile,
   uploadProgress,
+  uploadStates,
   uploadedFiles,
   addGrade,
   removeGrade,
@@ -110,8 +127,8 @@ const EducationStep = ({
     prevGradeCountRef.current = selectedGrades.length
   }, [selectedGrades.length])
 
-  const resultSlipStatus = getUploadStatus(resultSlipFile, uploadedFiles.result_slip)
-  const identityStatus = getUploadStatus(extraKycFile, uploadedFiles.extra_kyc)
+  const resultSlipStatus = getUploadStatus(resultSlipFile, uploadStates.result_slip, uploadedFiles.result_slip)
+  const identityStatus = getUploadStatus(extraKycFile, uploadStates.extra_kyc, uploadedFiles.extra_kyc)
   const resultSlipPreview = useFilePreview(resultSlipFile, uploadedFiles.result_slip)
   const identityPreview = useFilePreview(extraKycFile, uploadedFiles.extra_kyc)
 
@@ -311,7 +328,7 @@ const EducationStep = ({
                 maxSize={10 * 1024 * 1024}
                 onChange={(files) => handleResultSlipUpload(files as File | null)}
                 value={resultSlipFile}
-                uploading={uploadProgress.result_slip !== undefined && uploadProgress.result_slip < 100}
+                uploading={uploadStates.result_slip === 'uploading'}
                 progress={uploadProgress.result_slip}
                 preview={resultSlipPreview}
               />
@@ -333,7 +350,7 @@ const EducationStep = ({
                 maxSize={10 * 1024 * 1024}
                 onChange={(files) => handleExtraKycUpload(files as File | null)}
                 value={extraKycFile}
-                uploading={uploadProgress.extra_kyc !== undefined && uploadProgress.extra_kyc < 100}
+                uploading={uploadStates.extra_kyc === 'uploading'}
                 progress={uploadProgress.extra_kyc}
                 preview={identityPreview}
               />

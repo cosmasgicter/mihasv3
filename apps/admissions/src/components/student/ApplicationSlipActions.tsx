@@ -11,6 +11,7 @@ import { toast } from '@/hooks/useToast'
 interface ApplicationSlipActionsProps {
   applicationId: string
   applicationNumber?: string
+  compact?: boolean
 }
 
 function buildSlipPayload(
@@ -48,7 +49,7 @@ function buildSlipPayload(
   }
 }
 
-export function ApplicationSlipActions({ applicationId, applicationNumber }: ApplicationSlipActionsProps) {
+export function ApplicationSlipActions({ applicationId, applicationNumber, compact = false }: ApplicationSlipActionsProps) {
   const { user } = useAuth()
   const [isDownloading, setIsDownloading] = useState(false)
   const [isEmailing, setIsEmailing] = useState(false)
@@ -150,12 +151,15 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
   const emailDisabled = isEmailing || emailSent
 
   return (
-    <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap">
+    <div className={compact ? 'flex w-full flex-col gap-2' : 'flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap'}>
       <Button
         onClick={handleDownload}
         disabled={isDownloading}
         variant="secondary"
-        className="min-h-11 w-full justify-center gap-2 border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400 disabled:bg-slate-100 disabled:border-slate-200 disabled:text-slate-400 disabled:shadow-none sm:w-auto"
+        className={compact
+          ? 'min-h-11 w-full justify-center gap-2 border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400 disabled:bg-slate-100 disabled:border-slate-200 disabled:text-slate-400 disabled:shadow-none'
+          : 'min-h-11 w-full justify-center gap-2 border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400 disabled:bg-slate-100 disabled:border-slate-200 disabled:text-slate-400 disabled:shadow-none sm:w-auto'
+        }
         loading={isDownloading}
       >
         {!isDownloading && <Download className="h-4 w-4" />}
@@ -166,7 +170,10 @@ export function ApplicationSlipActions({ applicationId, applicationNumber }: App
         onClick={handleEmailRequest}
         disabled={emailDisabled}
         variant="primary"
-        className="min-h-11 w-full justify-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-primary/50 disabled:text-primary-foreground disabled:opacity-100 disabled:cursor-not-allowed sm:w-auto"
+        className={compact
+          ? 'min-h-11 w-full justify-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-primary/50 disabled:text-primary-foreground disabled:opacity-100 disabled:cursor-not-allowed'
+          : 'min-h-11 w-full justify-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-primary/50 disabled:text-primary-foreground disabled:opacity-100 disabled:cursor-not-allowed sm:w-auto'
+        }
         loading={isEmailing}
       >
         {!isEmailing && <Mail className="h-4 w-4" />}
