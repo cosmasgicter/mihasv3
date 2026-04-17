@@ -20,7 +20,7 @@ import * as fc from 'fast-check';
 // Channel definitions (mirrors the real system)
 // ---------------------------------------------------------------------------
 
-const CHANNELS = ['email', 'sms', 'whatsapp', 'push', 'in_app'] as const;
+const CHANNELS = ['email', 'sms', 'whatsapp', 'in_app'] as const;
 type Channel = (typeof CHANNELS)[number];
 
 // ---------------------------------------------------------------------------
@@ -31,7 +31,6 @@ interface NotificationPreferences {
   email_enabled: boolean;
   sms_enabled: boolean;
   whatsapp_enabled: boolean;
-  push_enabled: boolean;
   in_app_enabled: boolean;
   quiet_hours_start: string; // "HH:MM" format
   quiet_hours_end: string;   // "HH:MM" format
@@ -118,7 +117,6 @@ const preferencesArb: fc.Arbitrary<NotificationPreferences> = fc.record({
   email_enabled: fc.boolean(),
   sms_enabled: fc.boolean(),
   whatsapp_enabled: fc.boolean(),
-  push_enabled: fc.boolean(),
   in_app_enabled: fc.boolean(),
   quiet_hours_start: timeArb,
   quiet_hours_end: timeArb,
@@ -278,7 +276,6 @@ describe('Property 11: Notification Preference Respect', () => {
             email_enabled: false,
             sms_enabled: false,
             whatsapp_enabled: false,
-            push_enabled: false,
             in_app_enabled: false,
             quiet_hours_start: '00:00',
             quiet_hours_end: '00:00',

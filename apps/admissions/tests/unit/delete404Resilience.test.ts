@@ -112,6 +112,23 @@ describe('deleteDraft — 404 resilience', () => {
     expect(result.success).toBe(true)
   })
 
+  it('reuses an in-flight deleteDraft request for the same user', async () => {
+    listMock.mockResolvedValue({
+      applications: [{ id: 'draft-a' }],
+    })
+    deleteMock.mockResolvedValue({ success: true })
+
+    const { applicationSessionManager } = await import('@/lib/applicationSession')
+    const firstDelete = applicationSessionManager.deleteDraft('user-1')
+    const secondDelete = applicationSessionManager.deleteDraft('user-1')
+    const [firstResult, secondResult] = await Promise.all([firstDelete, secondDelete])
+
+    expect(firstResult.success).toBe(true)
+    expect(secondResult.success).toBe(true)
+    expect(listMock).toHaveBeenCalledTimes(1)
+    expect(deleteMock).toHaveBeenCalledTimes(1)
+  })
+
   it('returns { success: true } with mixed 200/404 responses (all resolve)', async () => {
     listMock.mockResolvedValue({
       applications: [{ id: 'draft-1' }, { id: 'draft-2' }, { id: 'draft-3' }],

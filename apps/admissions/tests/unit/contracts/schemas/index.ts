@@ -98,7 +98,7 @@ export const AuthSessionResponseSchema = z.object({
 export const NotificationPreferencesResponseSchema = z.object({
   user_id: z.string(),
   email_enabled: z.boolean(),
-  push_enabled: z.boolean(),
+  sms_enabled: z.boolean().optional(),
 })
 
 export const AdminUsersResponseSchema = z.object({

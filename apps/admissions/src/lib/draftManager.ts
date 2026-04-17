@@ -1,6 +1,21 @@
 import { applicationSessionManager } from './applicationSession'
-import { isDraftStorageKey, KNOWN_DRAFT_STORAGE_KEYS, removeDraftStorageEntries } from './draftStorageKeys'
+import { KNOWN_DRAFT_STORAGE_KEYS, removeDraftStorageEntries } from './draftStorageKeys'
 import { sanitizeForLog } from './sanitize'
+
+const DRAFT_CONTENT_KEYS = [
+  'applicationDraft',
+  'applicationWizardDraft',
+  'applicationDraftOffline',
+  'draftFormData',
+  'wizardFormData',
+  'applicationFormData',
+  'wizardState',
+  'applicationState',
+] as const
+
+function isDraftContentKey(key: string): boolean {
+  return DRAFT_CONTENT_KEYS.includes(key as (typeof DRAFT_CONTENT_KEYS)[number])
+}
 
 export class DraftManager {
   private static instance: DraftManager
@@ -72,7 +87,7 @@ export class DraftManager {
 
   // Helper to check if key is draft-related
   private isDraftKey(key: string): boolean {
-    return isDraftStorageKey(key)
+    return isDraftContentKey(key)
   }
 
   // Helper to get draft keys from storage with caching
@@ -163,12 +178,13 @@ export const clearDraftDeletedFlag = (): void => {
 
 export const hasDraftData = (): boolean => {
   try {
-    for (const key of DRAFT_KEYS) {
+    for (const key of DRAFT_CONTENT_KEYS) {
       if (localStorage.getItem(key)) return true;
     }
     // Only check localStorage — sessionStorage removed (Req 7.6)
     for (const key of Object.keys(localStorage)) {
-      if (isDraftStorageKey(key)) return true;
+      if (isDraftContentKey(key)) return true;
+      if (key.toLowerCase().includes('draft') && key !== 'draftDeleted') return true;
     }
     return false;
   } catch { return false; }

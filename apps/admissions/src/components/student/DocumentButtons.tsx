@@ -29,7 +29,7 @@ export function DocumentButtons({ applicationId, applicationNumber, status, paym
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
       {status !== 'draft' && (
         <ApplicationSlipActions
           applicationId={applicationId}
@@ -44,7 +44,7 @@ export function DocumentButtons({ applicationId, applicationNumber, status, paym
           disabled={loading}
           variant="outline"
           size="sm"
-          className="gap-2 border-green-500 text-green-700 hover:bg-green-50"
+          className="min-h-11 w-full justify-center gap-2 border-green-500 text-green-700 hover:bg-green-50 sm:w-auto"
         >
           <Award className="w-4 h-4" />
           Acceptance Letter
@@ -58,7 +58,7 @@ export function DocumentButtons({ applicationId, applicationNumber, status, paym
           disabled={loading}
           variant="outline"
           size="sm"
-          className="gap-2"
+          className="min-h-11 w-full justify-center gap-2 sm:w-auto"
         >
           <Download className="w-4 h-4" />
           Payment Receipt

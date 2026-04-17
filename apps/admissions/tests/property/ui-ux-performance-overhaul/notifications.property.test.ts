@@ -130,22 +130,22 @@ describe('Property 18: Notification Variant ARIA Roles', () => {
 
   // --- Banner ARIA Roles ---
 
-  it('PROPERTY: Banner assigns role="alert" for error/warning/offline and role="status" for info/pwa', () => {
-    const bannerVariantArb = fc.constantFrom('info', 'warning', 'error', 'offline', 'pwa')
+  it('PROPERTY: Banner assigns role="alert" for error/warning and role="status" for info', () => {
+    const bannerVariantArb = fc.constantFrom('info', 'warning', 'error')
 
     fc.assert(
       fc.property(bannerVariantArb, (variant) => {
         // Banner uses getRole(variant) which checks alertVariants set
         expect(bannerSource).toContain('role={getRole(variant)}')
 
-        // Verify the alertVariants set contains error, warning, offline
-        expect(bannerSource).toMatch(/alertVariants.*Set.*\[.*'error'.*'warning'.*'offline'/)
+        // Verify the alertVariants set contains error and warning.
+        expect(bannerSource).toMatch(/alertVariants.*Set.*\[.*'error'.*'warning'/)
 
-        if (variant === 'error' || variant === 'warning' || variant === 'offline') {
+        if (variant === 'error' || variant === 'warning') {
           // These should produce role="alert"
           expect(bannerSource).toContain("'alert'")
         } else {
-          // info/pwa should produce role="status"
+          // info should produce role="status"
           expect(bannerSource).toContain("'status'")
         }
       }),
@@ -194,12 +194,12 @@ describe('Property 19: Notification Variant Color Consistency', () => {
   })
 
   it('PROPERTY: Banner variant styles use semantic design tokens', () => {
-    const bannerVariantArb = fc.constantFrom('info', 'warning', 'error', 'offline', 'pwa')
+    const bannerVariantArb = fc.constantFrom('info', 'warning', 'error')
 
     fc.assert(
       fc.property(bannerVariantArb, (variant) => {
         // Each variant should use semantic token classes (not raw Tailwind colors)
-        // Banner uses: bg-info/10, bg-warning/10, bg-destructive/10, bg-muted, bg-primary/10
+        // Banner uses semantic design tokens for info, warning, and error.
         const variantStylesMatch = bannerSource.match(
           new RegExp(`${variant}:\\s*'([^']+)'`)
         )

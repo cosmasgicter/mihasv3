@@ -462,7 +462,7 @@ export default function StudentSettings() {
               </div>
               <div className="rounded-2xl border border-border bg-muted/40 px-4 py-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Channel controls</p>
-                <p className="mt-2 text-sm font-semibold text-foreground">SMS and browser push settings</p>
+                <p className="mt-2 text-sm font-semibold text-foreground">SMS delivery settings</p>
               </div>
             </div>
           </SectionCard>

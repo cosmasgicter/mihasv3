@@ -41,12 +41,10 @@ export interface NotificationPreferences {
   email_enabled: boolean
   sms_enabled: boolean
   whatsapp_enabled: boolean
-  push_enabled: boolean
   in_app_enabled: boolean
   email_consent_at?: string
   sms_consent_at?: string
   whatsapp_consent_at?: string
-  push_consent_at?: string
   quiet_hours_start: string
   quiet_hours_end: string
   timezone: string

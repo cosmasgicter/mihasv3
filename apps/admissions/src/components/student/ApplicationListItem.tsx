@@ -82,8 +82,8 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
         </div>
 
         {/* Actions */}
-        <div className="flex flex-col gap-3 border-t border-border pt-2 sm:flex-row">
-          <div className="flex-1">
+        <div className="flex flex-col gap-3 border-t border-border pt-3 sm:flex-row sm:items-start">
+          <div className="min-w-0 flex-1">
             <DocumentButtons 
               applicationId={application.id}
               applicationNumber={application.application_number}
@@ -91,8 +91,8 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
               paymentStatus={application.payment_status ?? null}
             />
           </div>
-          <Link to={`/student/application/${application.id}`} className="sm:w-auto">
-            <Button variant="outline" size="sm" className="w-full sm:w-auto">
+          <Link to={`/student/application/${application.id}`} className="w-full sm:w-auto">
+            <Button variant="outline" size="sm" className="min-h-11 w-full sm:w-auto">
               View Details
             </Button>
           </Link>

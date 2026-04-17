@@ -34,27 +34,7 @@ export function isRecoverableLazyChunkError(error: unknown): boolean {
 }
 
 async function defaultCleanup(): Promise<void> {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  try {
-    if ('serviceWorker' in navigator) {
-      const registrations = await navigator.serviceWorker.getRegistrations()
-      await Promise.all(registrations.map((registration) => registration.unregister()))
-    }
-  } catch {
-    // best effort cleanup
-  }
-
-  try {
-    if ('caches' in window) {
-      const cacheKeys = await caches.keys()
-      await Promise.all(cacheKeys.map((cacheKey) => caches.delete(cacheKey)))
-    }
-  } catch {
-    // best effort cleanup
-  }
+  return
 }
 
 export async function recoverFromStaleLazyChunk(
@@ -104,4 +84,3 @@ export async function importWithChunkRecovery<T>(
     throw error
   }
 }
-

@@ -413,7 +413,7 @@ class ApplicationListCreateView(APIView):
             OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Application UUID."),
         ],
         request=None,
-        responses={204: OpenApiResponse(description="Application deleted.")},
+        responses={204: OpenApiResponse(description="Application deleted or already absent.")},
     ),
 )
 @extend_schema_view(
@@ -474,7 +474,7 @@ class ApplicationDetailView(APIView):
     def delete(self, request, application_id):
         app = self._get_application(request, application_id)
         if app is None:
-            return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(status=status.HTTP_204_NO_CONTENT)
         if not self._student_can_mutate_application(request, app):
             return Response(
                 {"success": False, "error": "Only draft applications can be deleted by students", "code": "APPLICATION_NOT_EDITABLE"},

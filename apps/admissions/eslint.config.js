@@ -10,7 +10,6 @@ const migratedModuleFiles = [
   'src/pages/student/Dashboard.tsx',
   'src/hooks/queries/**/*.{ts,tsx}',
   'src/services/**/*.{ts,tsx}',
-  'src/components/student/NotificationPreferences.tsx',
   'src/pages/admin/Dashboard.tsx',
   'src/pages/admin/Applications.tsx',
   'src/pages/admin/ApplicationsAdmin.tsx',

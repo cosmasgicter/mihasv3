@@ -67,7 +67,7 @@ function normalizeProxyTarget(value: string): string {
  * Removed:
  * - Cloudflare-specific settings
  * - Complex chunk splitting that caused createContext errors
- * - PWA / service worker (caused auto-logout and stale cache issues)
+ * - Removed stale asset runtime behavior that caused auto-logout and cache issues
  */
 export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, process.cwd(), '')

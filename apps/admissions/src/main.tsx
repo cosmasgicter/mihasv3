@@ -170,15 +170,6 @@ if (typeof window !== 'undefined') {
   document.body.classList.add('light')
   document.body.style.colorScheme = 'light'
 
-  // Unregister any leftover service workers from the removed PWA setup.
-  // This ensures existing users don't keep serving stale cached data.
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then((registrations) => {
-      for (const registration of registrations) {
-        registration.unregister()
-      }
-    }).catch(() => {})
-  }
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

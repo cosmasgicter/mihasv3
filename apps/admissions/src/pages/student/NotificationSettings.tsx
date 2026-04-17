@@ -2,16 +2,13 @@ import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
 import { Seo } from '@/components/seo/Seo'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { Skeleton, SkeletonCard } from '@/components/ui'
-import { Container } from '@/components/ui/Container'
-import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { PageShell } from '@/components/ui/PageShell'
 import { notificationService } from '@/services/notifications'
-import { ArrowLeft, Bell, ExternalLink, MessageCircle, MessageSquare, RefreshCw, Trash2 } from 'lucide-react'
-import PushNotificationSettings from '@/components/notifications/PushNotificationSettings'
+import { ArrowLeft, Bell, ExternalLink, MessageSquare, RefreshCw, Trash2 } from 'lucide-react'
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useNotificationPolling } from '@/hooks/useNotificationPolling'
@@ -19,11 +16,10 @@ import { isSafeNavigationUrl } from '@/lib/urlSafety'
 import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
 import { useAuth } from '@/contexts/AuthContext'
 
-type ChannelKey = 'sms' | 'push'
+type ChannelKey = 'sms'
 
 export interface NotificationPreferencesResponse {
   email_enabled: boolean
-  push_enabled: boolean
   sms_enabled: boolean
   application_updates: boolean | null
   payment_reminders: boolean | null
@@ -36,7 +32,6 @@ export interface NotificationPreferencesResponse {
 
 export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferencesResponse = {
   email_enabled: true,
-  push_enabled: false,
   sms_enabled: false,
   application_updates: null,
   payment_reminders: null,
@@ -58,9 +53,9 @@ export function normalizeNotificationPreferences(
 
 export function isNotificationChannelEnabled(
   preferences: NotificationPreferencesResponse,
-  channel: ChannelKey
+  _channel: ChannelKey
 ) {
-  return channel === 'sms' ? preferences.sms_enabled : preferences.push_enabled
+  return preferences.sms_enabled
 }
 
 const CHANNEL_DETAILS: Record<ChannelKey, { title: string; description: string; Icon: React.ComponentType<{ className?: string }> }> = {
@@ -68,11 +63,6 @@ const CHANNEL_DETAILS: Record<ChannelKey, { title: string; description: string; 
     title: 'SMS Alerts',
     description: 'Receive important application updates as text messages directly to your phone.',
     Icon: MessageSquare
-  },
-  push: {
-    title: 'Browser Push Alerts',
-    description: 'Receive browser push notifications on this device when you grant notification permission.',
-    Icon: MessageCircle
   }
 }
 
@@ -192,20 +182,15 @@ export default function NotificationSettings() {
   const renderChannelCard = (channel: ChannelKey) => {
     const details = CHANNEL_DETAILS[channel]
     const optedIn = isNotificationChannelEnabled(preferences, channel)
-    const disableGrant = channel === 'sms' && !hasPhoneNumber && !optedIn
+    const disableGrant = !hasPhoneNumber && !optedIn
     const buttonLabel = optedIn ? 'Opt Out' : 'Opt In'
-    const contactDetail = channel === 'sms'
-      ? (contactPhone || 'No phone number on file')
-      : 'Uses this browser or device after permission is granted'
-    const channelSupportText = channel === 'sms'
-      ? 'SMS uses the phone number on your profile.'
-      : 'Push notifications also depend on your browser permission settings below.'
+    const contactDetail = contactPhone || 'No phone number on file'
 
     return (
       <div
         key={channel}
         className={`bg-card rounded-2xl shadow-lg border border-border p-6 space-y-4 ${animateClasses.slideUp}`}
-        style={staggerChild(channel === 'sms' ? 0 : 1, 100)}
+        style={staggerChild(0, 100)}
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -227,7 +212,7 @@ export default function NotificationSettings() {
         </div>
 
         <div className="space-y-2 text-sm text-foreground">
-          <p className="text-foreground">{channelSupportText}</p>
+          <p className="text-foreground">SMS uses the phone number on your profile.</p>
 
           {disableGrant && (
             <div className="rounded-xl bg-accent/5 border border-yellow-200 px-4 py-3 text-xs text-yellow-700">
@@ -242,12 +227,10 @@ export default function NotificationSettings() {
 
           <div className="flex flex-col gap-2 text-xs text-foreground">
             <span className="uppercase tracking-wide text-foreground font-semibold">
-              {channel === 'sms' ? 'Current contact' : 'Current delivery target'}
+              Current contact
             </span>
             <span className="text-sm text-foreground">{contactDetail}</span>
-            {channel === 'sms' && (
-              <span className="text-xs text-muted-foreground">{contactSourceLabel}</span>
-            )}
+            <span className="text-xs text-muted-foreground">{contactSourceLabel}</span>
           </div>
         </div>
 
@@ -270,13 +253,13 @@ export default function NotificationSettings() {
     <>
       <Seo
         title="Notification Settings | MIHAS-KATC Admissions"
-        description="Manage your notification preferences, SMS alerts, and browser push settings for your MIHAS-KATC admissions portal."
+        description="Manage your notification preferences and SMS alerts for your MIHAS-KATC admissions portal."
         path="/student/notifications"
         noindex
       />
     <PageShell
       title="Notification preferences and portal inbox"
-      subtitle="In-app notifications stay available inside the portal. You can manage SMS and browser push delivery below."
+      subtitle="In-app notifications stay available inside the portal. You can manage SMS delivery below."
     >
       <div className="space-y-6 sm:space-y-8">
         <div className="mb-6 sm:mb-8">
@@ -344,20 +327,20 @@ export default function NotificationSettings() {
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Always enabled</p>
                   <p className="mt-2 text-sm font-semibold text-foreground">Portal inbox notifications</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    SMS and browser push preferences can be changed below.
+                    SMS delivery preferences can be changed below.
                   </p>
                 </div>
               </div>
             </SectionCard>
 
             <section className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              {(['sms', 'push'] as ChannelKey[]).map(channel => renderChannelCard(channel))}
+              {(['sms'] as ChannelKey[]).map(channel => renderChannelCard(channel))}
             </section>
 
-            <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+            <section>
               <SectionCard
                 title="Portal inbox"
-                description="Important application, payment, and interview updates appear here even if you opt out of SMS or browser push delivery."
+                description="Important application, payment, and interview updates appear here even if you opt out of SMS delivery."
                 icon={<Bell className="h-5 w-5" />}
                 className={animateClasses.slideUp}
                 actions={
@@ -471,7 +454,6 @@ export default function NotificationSettings() {
                 )}
               </SectionCard>
 
-              <PushNotificationSettings />
             </section>
           </div>
         )}
