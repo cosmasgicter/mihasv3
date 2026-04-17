@@ -51,6 +51,7 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
       try {
         const data = await apiClient.request<UserProfile>('/auth/profile/', {
           method: 'GET',
+          skipCache: true,
         })
         return sanitizeProfile(data as Record<string, unknown> | null)
       } catch (err) {
