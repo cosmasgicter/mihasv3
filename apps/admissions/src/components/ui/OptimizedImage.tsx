@@ -25,7 +25,9 @@ function buildVariantAssetPath(assetPath: string, width: number) {
   return `${parts.base}-${width}w${parts.ext}${parts.search}`
 }
 
-interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'loading'> {
+type FetchPriority = 'high' | 'low' | 'auto'
+
+interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'loading' | 'fetchPriority'> {
   /** Image source URL */
   src: string
   /** Descriptive alt text (empty string for decorative images) */
@@ -44,6 +46,8 @@ interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 
   className?: string
   /** Whether image is decorative (sets role="presentation") */
   decorative?: boolean
+  /** Browser loading priority hint */
+  fetchPriority?: FetchPriority
 }
 
 /**
@@ -60,6 +64,7 @@ export function OptimizedImage({
   lazy = true,
   className = '',
   decorative = false,
+  fetchPriority,
   ...rest
 }: OptimizedImageProps) {
   const [hasError, setHasError] = useState(false)
@@ -110,6 +115,7 @@ export function OptimizedImage({
       srcSet={buildSrcSet(src)}
       onError={() => setHasError(true)}
       {...(decorative ? { role: 'presentation' } : {})}
+      {...(fetchPriority ? { fetchpriority: fetchPriority } as { fetchpriority: FetchPriority } : {})}
       {...rest}
     />
   )

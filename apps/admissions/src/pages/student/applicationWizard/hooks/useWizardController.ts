@@ -23,7 +23,7 @@ import { sanitizeForLog } from '@/lib/security'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { toError } from '@/lib/toError'
 import { findBestSubjectId } from '@/lib/subjectMatcher'
-import { apiClient } from '@/services/client'
+import { apiClient, AuthenticationError } from '@/services/client'
 import { applicationService } from '@/services/applications'
 import type { Application, Intake } from '@/types/database'
 import { logger } from '@/lib/logger'
@@ -56,6 +56,7 @@ import useApplicationSlip, { SubmittedApplicationSummary } from './useApplicatio
 import useApplicationFileUploads from './useApplicationFileUploads'
 import {
   createWizardSchema,
+  normalizePhoneNumberInput,
   type SubjectGrade,
   type WizardFormData,
   type WizardProgram,
@@ -208,6 +209,15 @@ function sanitizeInput(value: string | undefined | null): string {
     return value.trim().replace(/<script[^>]*>.*?<\/script>/gi, '').replace(/<[^>]+>/g, '')
   }
   return ''
+}
+
+function sanitizePhoneInput(value: string | undefined | null): string {
+  return sanitizeInput(normalizePhoneNumberInput(value || ''))
+}
+
+function isAuthSaveError(error: unknown): error is AuthenticationError {
+  return error instanceof AuthenticationError ||
+    (error instanceof Error && error.name === 'AuthenticationError')
 }
 
 const useWizardController = (): UseWizardControllerResult => {
@@ -1253,7 +1263,7 @@ const useWizardController = (): UseWizardControllerResult => {
               intake: resolvedIntake.label,
               fullName: formData.full_name,
               email: formData.email,
-              phone: formData.phone,
+              phone: sanitizePhoneInput(formData.phone),
               status: app.status || 'draft',
               paymentStatus: app.payment_status ?? prev?.paymentStatus ?? null,
             }))
@@ -1262,6 +1272,9 @@ const useWizardController = (): UseWizardControllerResult => {
             window.dispatchEvent(new CustomEvent('applicationCreated', { detail: { applicationId: app.id, source: 'autosave' } }))
           }
         } catch (serverError) {
+          if (isAuthSaveError(serverError)) {
+            throw serverError
+          }
           logApiError('application-wizard', 'POST /applications/', serverError)
           console.warn('Server draft create failed, local draft retained:', sanitizeForLog(toError(serverError).message))
         }
@@ -1277,15 +1290,18 @@ const useWizardController = (): UseWizardControllerResult => {
             passport_number: formData.passport_number || undefined,
             date_of_birth: formData.date_of_birth || undefined,
             sex: formData.sex?.toLowerCase() || undefined,
-            phone: formData.phone || undefined,
+            phone: sanitizePhoneInput(formData.phone) || undefined,
             email: formData.email || undefined,
             residence_town: normalizeResidenceTown(formData.residence_town) || undefined,
             country: formData.country || DEFAULT_RESIDENCE_COUNTRY,
             nationality: formData.nationality || undefined,
             next_of_kin_name: formData.next_of_kin_name || undefined,
-            next_of_kin_phone: formData.next_of_kin_phone || undefined,
+            next_of_kin_phone: sanitizePhoneInput(formData.next_of_kin_phone) || undefined,
           } as Partial<Application>)
         } catch (serverError) {
+          if (isAuthSaveError(serverError)) {
+            throw serverError
+          }
           if (isApplicationMissingError(serverError)) {
             clearStaleApplicationReference(applicationId)
             return
@@ -1462,12 +1478,12 @@ const useWizardController = (): UseWizardControllerResult => {
               passport_number: formData.passport_number || null,
               date_of_birth: formData.date_of_birth,
               sex: formData.sex?.toLowerCase(),
-              phone: formData.phone,
+              phone: sanitizePhoneInput(formData.phone),
               email: formData.email,
               residence_town: normalizeResidenceTown(formData.residence_town),
               country: formData.country || country,
               next_of_kin_name: formData.next_of_kin_name || null,
-              next_of_kin_phone: formData.next_of_kin_phone || null,
+              next_of_kin_phone: sanitizePhoneInput(formData.next_of_kin_phone) || null,
               program: resolvedProgram.label,
               intake: resolvedIntake.name,
               institution: institutionLabel,
@@ -1483,7 +1499,7 @@ const useWizardController = (): UseWizardControllerResult => {
             intake: resolvedIntake.label,
             fullName: formData.full_name,
             email: formData.email,
-            phone: formData.phone,
+            phone: sanitizePhoneInput(formData.phone),
             status: updatedApp?.status || 'draft',
             paymentStatus: updatedApp?.payment_status ?? prev?.paymentStatus ?? null
           }))
@@ -1503,12 +1519,12 @@ const useWizardController = (): UseWizardControllerResult => {
             passport_number: sanitizeInput(formData.passport_number) || null,
             date_of_birth: formData.date_of_birth,
             sex: formData.sex?.toLowerCase(),
-            phone: sanitizeInput(formData.phone),
+            phone: sanitizePhoneInput(formData.phone),
             email: sanitizeInput(formData.email),
             residence_town: normalizeResidenceTown(formData.residence_town),
             country: sanitizeInput(formData.country) || country,
             next_of_kin_name: sanitizeInput(formData.next_of_kin_name) || null,
-            next_of_kin_phone: sanitizeInput(formData.next_of_kin_phone) || null,
+            next_of_kin_phone: sanitizePhoneInput(formData.next_of_kin_phone) || null,
             program: resolvedProgram.label,
             intake: resolvedIntake.name,
             institution: institutionLabel,
@@ -1528,7 +1544,7 @@ const useWizardController = (): UseWizardControllerResult => {
             intake: resolvedIntake.label,
             fullName: formData.full_name,
             email: formData.email,
-            phone: formData.phone,
+            phone: sanitizePhoneInput(formData.phone),
             status: app.status || 'draft',
             paymentStatus: app.payment_status ?? null,
             nationality,
@@ -1566,12 +1582,12 @@ const useWizardController = (): UseWizardControllerResult => {
               passport_number: sanitizeInput(formData.passport_number) || null,
               date_of_birth: formData.date_of_birth,
               sex: formData.sex?.toLowerCase(),
-              phone: sanitizeInput(formData.phone),
+              phone: sanitizePhoneInput(formData.phone),
               email: sanitizeInput(formData.email),
               residence_town: normalizeResidenceTown(formData.residence_town),
               country: sanitizeInput(formData.country) || country,
               next_of_kin_name: sanitizeInput(formData.next_of_kin_name) || null,
-              next_of_kin_phone: sanitizeInput(formData.next_of_kin_phone) || null,
+              next_of_kin_phone: sanitizePhoneInput(formData.next_of_kin_phone) || null,
               program: resolvedProgram.label,
               intake: resolvedIntake.name,
               institution: institutionLabel,
@@ -1591,7 +1607,7 @@ const useWizardController = (): UseWizardControllerResult => {
               intake: resolvedIntake.label,
               fullName: formData.full_name,
               email: formData.email,
-              phone: formData.phone,
+              phone: sanitizePhoneInput(formData.phone),
               status: app.status || 'draft',
               paymentStatus: app.payment_status ?? null,
               nationality,

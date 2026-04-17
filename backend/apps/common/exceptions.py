@@ -19,6 +19,7 @@ import hashlib
 import logging
 
 from rest_framework.views import exception_handler
+from rest_framework.exceptions import AuthenticationFailed, NotAuthenticated
 
 logger = logging.getLogger(__name__)
 
@@ -126,6 +127,10 @@ def envelope_exception_handler(exc, context):
     }
 
     code = error_code_map.get(response.status_code, "INTERNAL_ERROR")
+    if isinstance(exc, (AuthenticationFailed, NotAuthenticated)):
+        exc_code = exc.get_codes() if hasattr(exc, "get_codes") else None
+        if isinstance(exc_code, str) and exc_code:
+            code = exc_code.upper()
 
     # Handle validation errors with field details
     if response.status_code == 400 and isinstance(response.data, dict):

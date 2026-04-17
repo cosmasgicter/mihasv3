@@ -15,6 +15,7 @@ from apps.documents.views import (
     DocumentUploadView,
     FeeResolveView,
     LencoWebhookView,
+    PaymentDevBypassView,
     PaymentInitiateView,
     PaymentListView,
     PaymentReceiptView,
@@ -81,6 +82,11 @@ payment_urlpatterns = [
         "initiate/",
         PaymentInitiateView.as_view(),
         name="payment-initiate",
+    ),
+    path(
+        "dev-bypass/",
+        PaymentDevBypassView.as_view(),
+        name="payment-dev-bypass",
     ),
     path(
         "resolve-fee/",

@@ -41,6 +41,8 @@ const createIntakeValidator = (validIntakeIds: string[]) =>
       }
     )
 
+export const normalizePhoneNumberInput = (value: string): string => value.replace(/\s+/g, '')
+
 const createSchema = (validProgramIds: string[], validIntakeIds: string[]) =>
   z
     .object({
@@ -58,7 +60,9 @@ const createSchema = (validProgramIds: string[], validIntakeIds: string[]) =>
           message: 'Please enter a valid date of birth (must be at least 16 years old)'
         }),
       sex: z.enum(['Male', 'Female'], { error: 'Please select sex' }),
-      phone: z.string().regex(/^\+?[0-9]{7,15}$/, 'Phone must be 7–15 digits, optionally prefixed with +'),
+      phone: z.string()
+        .transform(normalizePhoneNumberInput)
+        .pipe(z.string().regex(/^\+?[0-9]{7,15}$/, 'Phone must be 7–15 digits, optionally prefixed with +')),
       email: z.string().email('Valid email is required'),
       residence_town: z
         .string()

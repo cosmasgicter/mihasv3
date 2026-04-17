@@ -18,7 +18,6 @@ from apps.common.models import (
     Notification,
     UserNotificationPreference,
 )
-from apps.common.pagination import StandardPagination
 from apps.common.openapi_helpers import (
     ErrorResponseSerializer,
     IdMessageSerializer,
@@ -346,17 +345,17 @@ class NotificationListView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
-    pagination_class = StandardPagination
 
     def get(self, request):
         notifications = (
             Notification.objects.filter(user_id=request.user.pk)
             .order_by("-created_at")
         )
-        paginator = StandardPagination()
-        page = paginator.paginate_queryset(notifications, request)
-        data = NotificationItemSerializer(page, many=True).data
-        return paginator.get_paginated_response(data)
+        data = NotificationItemSerializer(notifications, many=True).data
+        return Response({
+            "success": True,
+            "data": data,
+        })
 
     def post(self, request):
         """Delegate to NotificationSendView for admin send."""

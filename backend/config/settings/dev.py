@@ -33,3 +33,10 @@ DATABASES = {
 
 # Skip env var validation in development
 REQUIRED_ENV_VARS = []
+
+# Local/test payment simulation is still gated by DEBUG in the endpoint.
+PAYMENT_DEV_BYPASS = os.environ.get("PAYMENT_DEV_BYPASS", "true").lower() in (  # noqa: F405
+    "1",
+    "true",
+    "yes",
+)

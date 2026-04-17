@@ -52,6 +52,10 @@ function envValidationPlugin(): Plugin {
   }
 }
 
+function normalizeProxyTarget(value: string): string {
+  return value.replace(/\/$/, '').replace(/\/api\/v1$/, '')
+}
+
 /**
  * Vite Configuration for Bun + Vercel
  * 
@@ -67,6 +71,11 @@ function envValidationPlugin(): Plugin {
  */
 export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, process.cwd(), '')
+  const devApiProxyTarget = normalizeProxyTarget(
+    env.VITE_DEV_API_PROXY_TARGET ||
+    env.VITE_API_BASE_URL ||
+    `http://127.0.0.1:${env.VITE_DEV_API_PORT || '3001'}`
+  )
 
   return {
     plugins: [
@@ -166,9 +175,10 @@ export default defineConfig(({ mode, command }) => {
       cors: true,
       proxy: command === 'serve' ? {
         '/api': {
-          target: env.VITE_DEV_API_PROXY_TARGET || `http://127.0.0.1:${env.VITE_DEV_API_PORT || '3001'}`,
+          target: devApiProxyTarget,
           changeOrigin: true,
           secure: false,
+          cookieDomainRewrite: '',
         }
       } : undefined,
       hmr: {

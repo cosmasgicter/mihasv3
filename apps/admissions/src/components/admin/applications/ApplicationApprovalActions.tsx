@@ -17,10 +17,28 @@ import {
 interface ApplicationApprovalActionsProps {
   applicationId: string
   currentStatus: string
-  currentPaymentStatus: string
+  currentPaymentStatus?: string | null
   onStatusUpdate: (id: string, status: string) => Promise<void>
   onPaymentStatusUpdate: (id: string, status: string, verificationNotes?: string) => Promise<void>
   disabled?: boolean
+}
+
+const normalizePaymentStatusForActions = (status?: string | null) => {
+  switch (status) {
+    case 'pending':
+    case 'pending_review':
+      return 'pending_review'
+    case 'verified':
+    case 'paid':
+    case 'successful':
+    case 'force_approved':
+      return 'verified'
+    case 'failed':
+    case 'rejected':
+      return 'rejected'
+    default:
+      return 'not_paid'
+  }
 }
 
 export function ApplicationApprovalActions({
@@ -38,12 +56,14 @@ export function ApplicationApprovalActions({
   const [paymentReviewNotes, setPaymentReviewNotes] = useState('')
   const [paymentReviewError, setPaymentReviewError] = useState<string | null>(null)
   const confirmDialog = useConfirmDialog()
+  const normalizedPaymentStatus = normalizePaymentStatusForActions(currentPaymentStatus)
+  const isPaymentVerified = normalizedPaymentStatus === 'verified'
 
   const paymentReviewCopy = useMemo(() => {
     if (pendingPaymentStatus === 'verified') {
       return {
         title: 'Verify Payment',
-        description: 'Confirm that the uploaded proof is valid and the application fee has been received.',
+        description: 'Confirm that the application fee has been received before marking this payment as verified.',
         confirmText: 'Verify payment',
         notesLabel: 'Verification note',
         notesPlaceholder: 'Optional context for this verification decision.',
@@ -75,8 +95,8 @@ export function ApplicationApprovalActions({
   const handleStatusUpdate = useCallback(async (newStatus: string) => {
     if (updatingStatus || disabled) return
     
-    // Prevent approval without verified payment (accept both 'verified' and 'paid')
-    if (newStatus === 'approved' && currentPaymentStatus !== 'verified' && currentPaymentStatus !== 'paid') {
+    // Prevent approval without verified payment.
+    if (newStatus === 'approved' && !isPaymentVerified) {
       await confirmDialog.confirm({
         title: 'Payment Not Verified',
         message: 'This application cannot be approved because payment has not been verified. Please verify payment first.',
@@ -123,7 +143,7 @@ export function ApplicationApprovalActions({
     } finally {
       setUpdatingStatus(false)
     }
-  }, [applicationId, currentPaymentStatus, disabled, updatingStatus, onStatusUpdate, confirmDialog])
+  }, [applicationId, disabled, isPaymentVerified, updatingStatus, onStatusUpdate, confirmDialog])
 
   const openPaymentReviewDialog = useCallback((newStatus: string) => {
     if (updatingPayment || disabled) return
@@ -158,12 +178,17 @@ export function ApplicationApprovalActions({
       handlePaymentDialogOpenChange(false)
     } catch (error) {
       logApiError('admin-approval-actions', `/applications/${applicationId}/review/`, error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      const isNoPaymentRecord = errorMessage.includes('PAYMENT_RECORD_REQUIRED') || errorMessage.toLowerCase().includes('no payment record')
       await confirmDialog.confirm({
-        title: 'Update Failed',
-        message: error instanceof Error ? error.message : 'Failed to update payment status. Please try again.',
+        title: isNoPaymentRecord ? 'No Payment Record' : 'Update Failed',
+        message: isNoPaymentRecord
+          ? 'No payment record found — the student must initiate payment first.'
+          : errorMessage || 'Failed to update payment status. Please try again.',
         confirmText: 'OK',
         variant: 'danger'
       })
+      handlePaymentDialogOpenChange(false)
     } finally {
       setUpdatingPayment(false)
     }
@@ -187,6 +212,23 @@ export function ApplicationApprovalActions({
           Application Status
         </label>
         <div className="flex gap-1">
+          {currentStatus === 'draft' && (
+            <>
+              <div className="flex-1 text-center py-2">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-300">
+                  Draft — not yet submitted
+                </span>
+              </div>
+              <button
+                onClick={() => handleStatusUpdate('submitted')}
+                disabled={updatingStatus || disabled}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+              >
+                {updatingStatus ? 'Updating...' : 'Force Submit'}
+              </button>
+            </>
+          )}
+
           {currentStatus === 'submitted' && (
             <button
               onClick={() => handleStatusUpdate('under_review')}
@@ -206,9 +248,9 @@ export function ApplicationApprovalActions({
             <>
               <button
                 onClick={() => handleStatusUpdate('approved')}
-                disabled={updatingStatus || disabled || (currentPaymentStatus !== 'verified' && currentPaymentStatus !== 'paid')}
+                disabled={updatingStatus || disabled || !isPaymentVerified}
                 className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
-                title={(currentPaymentStatus !== 'verified' && currentPaymentStatus !== 'paid') ? 'Payment must be verified first' : 'Approve application'}
+                title={!isPaymentVerified ? 'Payment must be verified first' : 'Approve application'}
               >
                 {updatingStatus ? 'Updating...' : (
                   <>
@@ -262,7 +304,27 @@ export function ApplicationApprovalActions({
           Payment Status
         </label>
         <div className="flex gap-1">
-          {currentPaymentStatus === 'pending_review' && (
+          {normalizedPaymentStatus === 'not_paid' && (
+            <div className="flex-1 text-center py-2 space-y-1">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-300">
+                Awaiting Payment
+              </span>
+              <button
+                onClick={() => openPaymentReviewDialog('verified')}
+                disabled={updatingPayment || disabled}
+                className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+              >
+                {updatingPayment ? 'Updating...' : (
+                  <>
+                    <CheckCircle className="h-3 w-3" />
+                    Mark as Paid
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
+          {normalizedPaymentStatus === 'pending_review' && (
             <>
               <button
                 onClick={() => openPaymentReviewDialog('verified')}
@@ -291,7 +353,7 @@ export function ApplicationApprovalActions({
             </>
           )}
 
-          {currentPaymentStatus === 'rejected' && (
+          {normalizedPaymentStatus === 'rejected' && (
             <button
               onClick={() => openPaymentReviewDialog('pending_review')}
               disabled={updatingPayment || disabled}
@@ -306,14 +368,14 @@ export function ApplicationApprovalActions({
             </button>
           )}
           
-          {(currentPaymentStatus === 'verified' || currentPaymentStatus === 'rejected') && (
+          {(normalizedPaymentStatus === 'verified' || normalizedPaymentStatus === 'rejected') && (
             <div className="flex-1 text-center py-2">
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                currentPaymentStatus === 'verified' 
+                normalizedPaymentStatus === 'verified'
                   ? 'bg-green-100 text-green-800 border border-green-300' 
                   : 'bg-red-100 text-red-800 border border-red-300'
               }`}>
-                {currentPaymentStatus === 'verified' ? (
+                {normalizedPaymentStatus === 'verified' ? (
                   <>
                     <CheckCircle className="h-3 w-3 mr-1" />
                     Verified

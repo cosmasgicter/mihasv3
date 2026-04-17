@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useAutoSave } from '@/hooks/useAutoSave'
+import { AuthenticationError } from '@/services/client'
 
 interface UseSmartAutoSaveProps {
-  onSave: () => Promise<void>
+  onSave: (context?: { isManual: boolean }) => Promise<void>
   watchValues: () => any
   enabled?: boolean
   interval?: number
@@ -21,6 +22,7 @@ export const useSmartAutoSave = ({
 }: UseSmartAutoSaveProps) => {
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const [changedFields, setChangedFields] = useState<string[]>([])
+  const [isAuthExpired, setIsAuthExpired] = useState(false)
   const previousValues = useRef<any>(null)
   const currentValues = watchValues()
   const debouncedValues = useDebounce(currentValues, 2000)
@@ -30,14 +32,29 @@ export const useSmartAutoSave = ({
     interval,
     key: 'wizard_autosave',
     enabled,
-    onSave: async (data) => {
-      await onSave()
+    onSave: async (_data, context) => {
+      await onSave(context)
       setLastSaved(new Date())
     },
     onError: (error) => {
+      if (error instanceof AuthenticationError) {
+        setIsAuthExpired(true)
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('mihas:auth-expired'))
+        }
+        console.error('Auto-save auth expired:', error.message)
+        return
+      }
       console.error('Auto-save error:', error)
     }
   })
+
+  // Propagate session-expired state from useAutoSave's saveError
+  useEffect(() => {
+    if (autoSave.saveError?.includes('Session expired')) {
+      setIsAuthExpired(true)
+    }
+  }, [autoSave.saveError])
 
   // Track changed fields for user feedback
   useEffect(() => {
@@ -95,6 +112,7 @@ export const useSmartAutoSave = ({
     nextSaveTime: autoSave.nextSaveTime,
     saveQueue: autoSave.saveQueue,
     timeUntilNextSave: autoSave.timeUntilNextSave,
+    isAuthExpired,
     
     // Actions
     forceSave: autoSave.saveData,
