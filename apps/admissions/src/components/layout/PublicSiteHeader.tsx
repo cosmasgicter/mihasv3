@@ -101,6 +101,7 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
               aria-label={open ? 'Close menu' : 'Open menu'}
               aria-expanded={open}
               aria-controls="public-mobile-menu"
+              aria-haspopup="true"
               onClick={() => setOpen(prev => !prev)}
             >
               {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -116,6 +117,8 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
           )}
           role="region"
           aria-label="Mobile navigation"
+          aria-hidden={!open}
+          hidden={!open}
         >
           <nav className="container-responsive space-y-1 px-4 py-3" aria-label="Mobile primary">
             {items.map(({ href, label, icon: Icon }) => {

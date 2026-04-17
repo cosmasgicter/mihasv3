@@ -116,8 +116,8 @@ const ApplicationWizardContent = () => {
   const isPaymentStepActive = currentStepConfig.key === 'payment'
   const isPaymentInProgress = isPaymentStepActive && (paymentStatus === 'pending')
   const saveWizardDraft = useCallback(
-    () => saveDraft({ syncServer: Boolean(applicationId) }),
-    [applicationId, saveDraft]
+    () => saveDraft({ syncServer: true }),
+    [saveDraft]
   )
   const smartAutoSave = useSmartAutoSave({
     onSave: saveWizardDraft,
@@ -564,6 +564,11 @@ const ApplicationWizardContent = () => {
                 <span className="hidden sm:inline">{saveNowLabel}</span>
               </Button>
             </div>
+            {smartAutoSave.saveStatus === 'error' && smartAutoSave.saveError && (
+              <p className="text-xs font-medium text-destructive sm:text-right">
+                {smartAutoSave.saveError}
+              </p>
+            )}
           </div>
 
           <div className="relative">

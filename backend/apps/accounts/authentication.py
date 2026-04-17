@@ -47,6 +47,10 @@ class JWTCookieAuthentication(BaseAuthentication):
 
     COOKIE_NAME = "access_token"
 
+    def authenticate_header(self, request) -> str:
+        """Force DRF authentication failures to return 401 instead of 403."""
+        return 'Bearer realm="api"'
+
     def authenticate(self, request):
         token = self._extract_token(request)
         if token is None:

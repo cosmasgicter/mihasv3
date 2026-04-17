@@ -37,6 +37,11 @@ interface VerifyResponse {
   status: string
 }
 
+interface DevBypassResponse {
+  status?: string
+  payment_status?: string
+}
+
 type PaymentStatus = 'idle' | 'initiating' | 'pending' | 'successful' | 'failed'
 
 // ---------------------------------------------------------------------------
@@ -61,6 +66,8 @@ const PaymentStep = ({
   onPaymentStatusChange,
   onPaymentStatusRefresh,
 }: PaymentStepProps) => {
+  const isDevBypass = import.meta.env.DEV && import.meta.env.VITE_PAYMENT_DEV_BYPASS === 'true'
+
   const { watch } = form
   const programCode = watch('program') || ''
   const nationality = watch('nationality') || ''
@@ -173,6 +180,34 @@ const PaymentStep = ({
       updatePaymentStatus('idle')
     }
   }, [applicationId, onPaymentStatusChange, onPaymentStatusRefresh, openWidget, watch, updatePaymentStatus])
+
+  const handleSimulatePayment = useCallback(async () => {
+    if (!applicationId) {
+      setInitiateError('Please save your application before simulating payment.')
+      return
+    }
+
+    setInitiateError(null)
+    updatePaymentStatus('initiating', 'Simulating payment in development mode...')
+
+    try {
+      const result = await apiClient.request<DevBypassResponse>('/payments/dev-bypass/', {
+        method: 'POST',
+        body: JSON.stringify({ application_id: applicationId }),
+      })
+      if (result?.status && result.status !== 'successful') {
+        throw new Error('The development payment simulation did not complete.')
+      }
+
+      updatePaymentStatus('successful', 'Development payment simulation completed.')
+      onPaymentStatusChange?.('successful')
+      await onPaymentStatusRefresh?.()
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to simulate payment'
+      setInitiateError(message)
+      updatePaymentStatus('idle')
+    }
+  }, [applicationId, onPaymentStatusChange, onPaymentStatusRefresh, updatePaymentStatus])
 
   const canPay =
     isScriptLoaded &&
@@ -288,6 +323,28 @@ const PaymentStep = ({
           <AlertTitle className="text-foreground">Payment widget unavailable</AlertTitle>
           <AlertDescription className="text-muted-foreground">
             The payment widget could not be loaded. Please check your connection and refresh the page.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Dev bypass button — only visible in development with VITE_PAYMENT_DEV_BYPASS=true */}
+      {isDevBypass && paymentStatus !== 'successful' && (
+        <Alert variant="warning">
+          <AlertTitle className="text-foreground">Development payment simulation</AlertTitle>
+          <AlertDescription className="space-y-3 text-muted-foreground">
+            <p>
+              This action marks the current application payment as verified through a development-only backend endpoint.
+            </p>
+            <Button
+              type="button"
+              variant="warning"
+              size="sm"
+              loading={paymentStatus === 'initiating'}
+              onClick={handleSimulatePayment}
+              data-testid="dev-bypass-payment-button"
+            >
+              Simulate Payment (Dev)
+            </Button>
           </AlertDescription>
         </Alert>
       )}

@@ -294,10 +294,10 @@ export async function updateUserRole(userId: string, role: string): Promise<bool
 // ---------------------------------------------------------------------------
 
 export async function fetchNotifications(): Promise<StudentNotification[]> {
-  const result = await apiClient.request<{ results?: StudentNotification[] }>(
+  const result = await apiClient.request<StudentNotification[] | { results?: StudentNotification[] }>(
     '/notifications/'
   );
-  return result?.results ?? [];
+  return Array.isArray(result) ? result : result?.results ?? [];
 }
 
 export async function markNotificationRead(notificationId: string): Promise<boolean> {

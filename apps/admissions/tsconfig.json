@@ -32,6 +32,7 @@
   },
   "include": [
     "src/**/*",
+    "tests/**/*",
     "vite.config.ts",
     "tailwind.config.js",
     "vite.config.*.ts"

@@ -1,4 +1,4 @@
-import type { WizardFormData, WizardProgram } from '../types'
+import { normalizePhoneNumberInput, type WizardFormData, type WizardProgram } from '../types'
 import { normalizeResidenceTown } from '@/lib/residenceTown'
 
 type DraftApplicationPayload = {
@@ -54,12 +54,12 @@ export function buildServerDraftPayload({
     passport_number: formData.passport_number?.trim() || null,
     date_of_birth: formData.date_of_birth,
     sex: formData.sex?.toLowerCase() || formData.sex,
-    phone: formData.phone.trim(),
+    phone: normalizePhoneNumberInput(formData.phone).trim(),
     email: formData.email.trim(),
     residence_town: normalizeResidenceTown(formData.residence_town),
     country: formData.country?.trim() || 'Zambia',
     next_of_kin_name: formData.next_of_kin_name?.trim() || null,
-    next_of_kin_phone: formData.next_of_kin_phone?.trim() || null,
+    next_of_kin_phone: formData.next_of_kin_phone ? normalizePhoneNumberInput(formData.next_of_kin_phone).trim() : null,
     program: programName,
     intake: formData.intake,
     institution: institutionCode,

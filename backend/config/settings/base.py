@@ -424,6 +424,11 @@ LENCO_API_BASE_URL = os.environ.get(
     "LENCO_API_BASE_URL", "https://sandbox.lenco.co/access/v2/"
 )
 LENCO_PUBLIC_KEY = os.environ.get("LENCO_PUBLIC_KEY", "")
+PAYMENT_DEV_BYPASS = os.environ.get("PAYMENT_DEV_BYPASS", "").lower() in (
+    "1",
+    "true",
+    "yes",
+)
 
 # ---------------------------------------------------------------------------
 # Required environment variables — validated at startup (task 1.3)

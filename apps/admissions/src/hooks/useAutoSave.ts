@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { stripPiiFields } from '@/lib/secureStorage'
 import { cachedGetItem, cachedSetItem, cachedRemoveItem } from '@/lib/localStorageCache'
+import { AuthenticationError } from '@/services/client'
 
 export interface AutoSaveData {
   [key: string]: any
@@ -10,11 +11,18 @@ export interface AutoSaveData {
 export interface AutoSaveOptions {
   interval?: number // Auto-save interval in milliseconds (default: 8000 = 8 seconds)
   key?: string // Storage key prefix (default: 'autosave')
-  onSave?: (data: AutoSaveData) => void // Callback when data is saved
+  onSave?: (data: AutoSaveData, context: { isManual: boolean }) => void | Promise<void> // Callback when data is saved
   onRestore?: (data: AutoSaveData) => void // Callback when data is restored
   onError?: (error: Error) => void // Callback when error occurs
   enabled?: boolean // Enable/disable auto-save (default: true)
   clearOnSubmit?: boolean // Clear saved data on explicit form submission (default: false)
+}
+
+const SESSION_EXPIRED_SAVE_MESSAGE = 'Session expired — please sign in again to save your work.'
+
+function isAuthenticationFailure(error: unknown): error is AuthenticationError {
+  return error instanceof AuthenticationError ||
+    (error instanceof Error && error.name === 'AuthenticationError')
 }
 
 /**
@@ -58,6 +66,7 @@ export function useAutoSave(
   const versionRef = useRef(0)
   const pendingManualSaveRef = useRef(false)
   const mountedRef = useRef(true)
+  const authExpiredRef = useRef(false)
 
   useEffect(() => {
     latestDataRef.current = data
@@ -70,6 +79,10 @@ export function useAutoSave(
   const saveData = useCallback(async (isManual = false) => {
     const currentData = latestDataRef.current
     if (!enabled || !currentData || Object.keys(currentData).length === 0) return
+
+    // If auth has expired, skip cloud saves entirely (localStorage saves still work below)
+    // but only block the cloud portion — we still want local persistence
+    const skipCloudSave = authExpiredRef.current
     
     // If a save is already in-flight, queue manual saves for later
     if (inFlightSaveRef.current) {
@@ -102,7 +115,13 @@ export function useAutoSave(
       if (!isManual && dataString === previousDataRef.current) {
         if (mountedRef.current) {
           setIsSaving(false)
-          setSaveStatus('saved')
+          if (authExpiredRef.current) {
+            setSaveStatus('error')
+            setSaveError(SESSION_EXPIRED_SAVE_MESSAGE)
+            setHasUnsavedChanges(true)
+          } else {
+            setSaveStatus('saved')
+          }
         }
         return
       }
@@ -127,10 +146,10 @@ export function useAutoSave(
       let cloudSaveFailed = false
 
       // If online, attempt cloud save with retry logic
-      if (navigator.onLine && onSave) {
+      if (navigator.onLine && onSave && !skipCloudSave) {
         try {
           if (abortController.signal.aborted) return
-          await onSave(currentData)
+          await onSave(currentData, { isManual })
           if (mountedRef.current) {
             setSaveQueue([])
             setSaveAttempts(0)
@@ -139,6 +158,21 @@ export function useAutoSave(
         } catch (cloudError) {
           // If aborted (unmount), don't update state
           if (abortController.signal.aborted) return
+
+          // Auth failure is unrecoverable — stop retries immediately
+          if (isAuthenticationFailure(cloudError)) {
+            authExpiredRef.current = true
+            saveAttemptsRef.current = 0
+            if (mountedRef.current) {
+              setSaveQueue([])
+              setSaveAttempts(0)
+              setSaveStatus('error')
+              setSaveError(SESSION_EXPIRED_SAVE_MESSAGE)
+              setHasUnsavedChanges(true)
+            }
+            onError?.(cloudError as Error)
+            return
+          }
           
           cloudSaveFailed = true
           console.warn('Cloud save failed, data saved locally:', cloudError)
@@ -174,11 +208,17 @@ export function useAutoSave(
         // Only update lastSaved and show success when cloud save didn't fail.
         // When cloud save fails, keep the previous lastSaved timestamp so the
         // UI doesn't show contradictory "Save failed" + "Last saved: Just now".
-        if (!cloudSaveFailed) {
+        if (!cloudSaveFailed && !skipCloudSave) {
           setLastSaved(new Date())
           setIsDirty(false)
           setHasUnsavedChanges(false)
           setSaveStatus(navigator.onLine ? 'saved' : 'offline')
+        } else if (skipCloudSave) {
+          // Auth expired — data saved locally but cloud is blocked
+          // Keep the error status set when AuthenticationError was caught
+          setSaveStatus('error')
+          setSaveError(SESSION_EXPIRED_SAVE_MESSAGE)
+          setHasUnsavedChanges(true)
         } else if (mountedRef.current) {
           // Cloud failed but local succeeded — show offline status, not error,
           // unless max retries were already exhausted (handled above).
@@ -234,8 +274,18 @@ export function useAutoSave(
       for (let index = 0; index < saveQueue.length; index += 1) {
         const queuedData = saveQueue[index]!
         try {
-          await onSave(queuedData)
+          await onSave(queuedData, { isManual: false })
         } catch (error) {
+          if (isAuthenticationFailure(error)) {
+            authExpiredRef.current = true
+            setSaveQueue([])
+            setSaveAttempts(0)
+            saveAttemptsRef.current = 0
+            setSaveStatus('error')
+            setSaveError(SESSION_EXPIRED_SAVE_MESSAGE)
+            onError?.(error as Error)
+            return
+          }
           setSaveQueue(saveQueue.slice(index))
           setSaveStatus('error')
           setSaveError('Failed to sync queued changes')
@@ -255,7 +305,7 @@ export function useAutoSave(
     } finally {
       inFlightSaveRef.current = false
     }
-  }, [saveQueue, onSave])
+  }, [saveQueue, onSave, onError])
 
   // Countdown timer for next save
   const updateSaveCountdown = useCallback(() => {
@@ -383,7 +433,9 @@ export function useAutoSave(
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true)
-      setSaveStatus('saved')
+      if (!authExpiredRef.current) {
+        setSaveStatus('saved')
+      }
       // Process queued saves when coming back online
       void processSaveQueue()
     }
@@ -393,12 +445,23 @@ export function useAutoSave(
       setSaveStatus('offline')
     }
 
+    const handleAuthExpired = () => {
+      authExpiredRef.current = true
+      if (mountedRef.current) {
+        setSaveStatus('error')
+        setSaveError(SESSION_EXPIRED_SAVE_MESSAGE)
+        setHasUnsavedChanges(true)
+      }
+    }
+
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
+    window.addEventListener('mihas:auth-expired', handleAuthExpired)
 
     return () => {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
+      window.removeEventListener('mihas:auth-expired', handleAuthExpired)
     }
   }, [processSaveQueue])
 

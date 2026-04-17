@@ -177,6 +177,7 @@ def _get_permissions_for_role(role: str) -> list[str]:
             "programs:read", "programs:write",
             "payments:read", "payments:write", "payments:verify",
             "documents:read", "documents:write", "documents:verify",
+            "notifications:read", "notifications:write",
             "analytics:read",
             "settings:read", "settings:write",
             "audit:read",
@@ -187,16 +188,19 @@ def _get_permissions_for_role(role: str) -> list[str]:
             "programs:read",
             "payments:read", "payments:verify",
             "documents:read", "documents:verify",
+            "notifications:read", "notifications:write",
             "analytics:read",
         ],
         "reviewer": [
             "applications:read", "applications:review",
             "documents:read",
+            "notifications:read",
         ],
         "student": [
             "applications:read", "applications:write",
             "documents:read", "documents:write",
             "payments:read",
+            "notifications:read",
         ],
     }
     return role_permissions.get(role, role_permissions["student"])

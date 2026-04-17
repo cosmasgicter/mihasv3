@@ -152,7 +152,8 @@ const BasicKycStep = ({
             <AnimatedInput
               {...register('phone')}
               label="Phone Number *"
-              placeholder="e.g., +260 97 123 4567"
+              placeholder="e.g., +260971234567"
+              helperText="Use digits only after +260; spaces are removed automatically."
               error={errors.phone?.message}
               extraDescribedBy={getFieldAriaDescribedBy?.('phone')}
             />

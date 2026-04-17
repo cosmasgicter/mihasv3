@@ -8,6 +8,7 @@ import hashlib
 import json
 import logging
 import uuid
+from decimal import Decimal
 from urllib.parse import unquote, urlparse
 
 from django.conf import settings
@@ -547,6 +548,123 @@ class PaymentInitiateView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
+
+class PaymentDevBypassView(APIView):
+    """POST /api/v1/payments/dev-bypass/ — simulate payment in local development.
+
+    This endpoint is intentionally unavailable unless DEBUG is true and
+    PAYMENT_DEV_BYPASS is enabled. It exists only to unblock end-to-end
+    application-flow testing without real Lenco credentials.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(request=OpenApiTypes.OBJECT, responses={200: OpenApiTypes.OBJECT})
+    def post(self, request):
+        if not settings.DEBUG or not getattr(settings, "PAYMENT_DEV_BYPASS", False):
+            return Response(
+                {"success": False, "error": "Not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        application_id = request.data.get("application_id")
+        if not application_id:
+            return Response(
+                {"success": False, "error": "application_id is required", "code": "VALIDATION_ERROR"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        from apps.applications.models import Application
+
+        try:
+            application = Application.objects.get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        user = request.user
+        role = getattr(user, "role", "student")
+        if role not in ("admin", "super_admin") and str(application.user_id) != str(user.id):
+            return Response(
+                {"success": False, "error": "Not authorized", "code": "INSUFFICIENT_PERMISSIONS"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        now = timezone.now()
+        amount = application.application_fee if application.application_fee is not None else Decimal("0.00")
+        payment = (
+            Payment.objects.filter(application_id=application.id)
+            .order_by("-created_at")
+            .first()
+        )
+
+        metadata = {
+            "dev_bypass": True,
+            "simulated_by": str(user.id),
+            "simulated_at": now.isoformat(),
+        }
+
+        if payment is None:
+            payment = Payment.objects.create(
+                application_id=application.id,
+                user_id=user.id,
+                amount=amount,
+                currency="ZMW",
+                status="successful",
+                payment_method="development_bypass",
+                transaction_reference=f"DEV-{application.application_number}-{uuid.uuid4().hex[:8]}",
+                lenco_reference=f"DEV-{uuid.uuid4().hex[:12]}",
+                verified_by_id=user.id,
+                verified_at=now,
+                notes="Development payment simulation.",
+                metadata=metadata,
+                created_at=now,
+                updated_at=now,
+            )
+        else:
+            merged_metadata = payment.metadata or {}
+            merged_metadata.update(metadata)
+            payment.status = "successful"
+            payment.payment_method = payment.payment_method or "development_bypass"
+            payment.lenco_reference = payment.lenco_reference or f"DEV-{uuid.uuid4().hex[:12]}"
+            payment.verified_by_id = user.id
+            payment.verified_at = now
+            payment.notes = payment.notes or "Development payment simulation."
+            payment.metadata = merged_metadata
+            payment.updated_at = now
+            payment.save(update_fields=[
+                "status",
+                "payment_method",
+                "lenco_reference",
+                "verified_by",
+                "verified_at",
+                "notes",
+                "metadata",
+                "updated_at",
+            ])
+
+        application.payment_status = "verified"
+        application.payment_verified_by_id = user.id
+        application.payment_verified_at = now
+        application.updated_at = now
+        application.save(update_fields=[
+            "payment_status",
+            "payment_verified_by",
+            "payment_verified_at",
+            "updated_at",
+        ])
+
+        return Response({
+            "success": True,
+            "data": {
+                "payment_id": str(payment.id),
+                "status": "successful",
+                "payment_status": "verified",
+            },
+        })
 
 
 class LencoWebhookView(APIView):
