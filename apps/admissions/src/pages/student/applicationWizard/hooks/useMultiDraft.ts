@@ -79,10 +79,15 @@ export const useMultiDraft = (userId: string | undefined) => {
   const deleteDraft = async (draftId: string) => {
     try {
       await applicationService.delete(draftId)
-      await fetchDrafts()
     } catch (err: any) {
-      setError(err.message)
+      // 404 means the draft is already gone — treat as success
+      const is404 = err?.status === 404 || err?.message?.includes('404') || err?.message?.includes('Not Found')
+      if (!is404) {
+        setError(err.message)
+        return
+      }
     }
+    await fetchDrafts()
   }
 
   const loadDraft = async (draftId: string) => {
