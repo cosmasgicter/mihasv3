@@ -4,12 +4,15 @@ import path from 'path'
 
 describe('Settings profile update field coverage', () => {
   it('sends profile updates via PATCH to /auth/profile/', () => {
-    const filePath = path.resolve(__dirname, '../../src/hooks/auth/useProfileQuery.ts')
-    const source = fs.readFileSync(filePath, 'utf8')
+    const hookPath = path.resolve(__dirname, '../../src/hooks/auth/useProfileQuery.ts')
+    const servicePath = path.resolve(__dirname, '../../src/services/auth.ts')
+    const hookSource = fs.readFileSync(hookPath, 'utf8')
+    const serviceSource = fs.readFileSync(servicePath, 'utf8')
 
-    // The mutation should call PATCH /auth/profile/ via apiClient
-    expect(source).toContain("'/auth/profile/'")
-    expect(source).toContain("method: 'PATCH'")
+    // The mutation should go through authService, and only the service owns the endpoint details.
+    expect(hookSource).toContain('authService.updateProfile')
+    expect(serviceSource).toContain("'/auth/profile/'")
+    expect(serviceSource).toContain("method: 'PATCH'")
   })
 
   it('includes country and next-of-kin fields in the profile form schema', () => {

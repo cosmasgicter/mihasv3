@@ -1,9 +1,19 @@
 import { useCallback, useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
-import { apiClient } from '@/services/client'
+import { authService } from '@/services/auth'
 import type { User, UserProfile } from '@/types/auth'
-import { sanitizeForDisplay } from '@/lib/sanitize'
+import {
+  fetchCurrentProfile,
+  isAuthProfileError,
+  mergeProfileIntoSessionUser,
+  ProfilePayloadError,
+  profileQueryKey,
+  PROFILE_STALE_TIME_MS,
+  sanitizeProfile,
+  SESSION_QUERY_KEY,
+  type SessionQueryData,
+} from './authQueries'
 
 export interface UseProfileQueryOptions {
   user?: User | null
@@ -23,18 +33,6 @@ type ProfileQueryResult = {
   updateError: unknown
 }
 
-const PROFILE_QUERY_KEY = (userId?: string | null) => ['user-profile', userId]
-
-function sanitizeProfile(data: Record<string, unknown> | null): UserProfile | null {
-  if (!data) return null
-  return Object.entries(data).reduce((acc, [key, value]) => {
-    (acc as Record<string, unknown>)[key] = typeof value === 'string'
-      ? sanitizeForDisplay(value)
-      : value
-    return acc
-  }, {} as UserProfile)
-}
-
 export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQueryResult {
   const { user: contextUser } = useAuth()
   const queryClient = useQueryClient()
@@ -43,36 +41,21 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
 
 
   const profileQuery = useQuery({
-    queryKey: PROFILE_QUERY_KEY(user?.id),
+    queryKey: profileQueryKey(user?.id),
     enabled: enabled && Boolean(user?.id),
-    staleTime: 5 * 60 * 1000,
+    staleTime: PROFILE_STALE_TIME_MS,
     queryFn: async () => {
       if (!user?.id) return null
       try {
-        const data = await apiClient.request<UserProfile>('/auth/profile/', {
-          method: 'GET',
-          skipCache: true,
-        })
-        return sanitizeProfile(data as Record<string, unknown> | null)
+        return await fetchCurrentProfile(user)
       } catch (err) {
         // If this is an auth error (401 after failed refresh), don't mask it
         // with minimal data — let the auth cascade handle logout properly.
         // Only fall back to session data for non-auth errors (network, 500, etc.)
-        if (err && typeof err === 'object' && (
-          ('name' in err && (err as Error).name === 'AuthenticationError') ||
-          ('status' in err && (err as Record<string, unknown>).status === 401)
-        )) {
+        if (isAuthProfileError(err)) {
           throw err
         }
-        return sanitizeProfile({
-          id: user.id,
-          user_id: user.id,
-          email: user.email,
-          role: user.role || 'student',
-          full_name: user.full_name,
-          first_name: user.first_name ?? user.full_name?.split(/\s+/)[0],
-          last_name: user.last_name ?? user.full_name?.split(/\s+/).slice(1).join(' '),
-        })
+        throw err
       }
     }
   })
@@ -80,35 +63,57 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
 
   const updateProfileMutation = useMutation<
     UserProfile, Error, ProfileUpdate,
-    { previousProfile: UserProfile | null }
+    { previousProfile: UserProfile | null; previousSession: SessionQueryData }
   >({
     mutationFn: async (updates: ProfileUpdate): Promise<UserProfile> => {
-      const data = await apiClient.request<UserProfile>('/auth/profile/', {
-        method: 'PATCH',
-        body: JSON.stringify(updates),
-      })
-      return sanitizeProfile(data as Record<string, unknown> | null) as UserProfile
+      const data = await authService.updateProfile(updates)
+      const sanitized = sanitizeProfile(data as Record<string, unknown> | null)
+      if (!sanitized?.id) {
+        throw new ProfilePayloadError()
+      }
+      return sanitized
     },
     onMutate: async (updates) => {
-      await queryClient.cancelQueries({ queryKey: PROFILE_QUERY_KEY(user?.id) })
+      await queryClient.cancelQueries({ queryKey: profileQueryKey(user?.id) })
       const previousProfile = queryClient.getQueryData<UserProfile | null>(
-        PROFILE_QUERY_KEY(user?.id)
+        profileQueryKey(user?.id)
       ) ?? null
+      const previousSession = queryClient.getQueryData<SessionQueryData>(SESSION_QUERY_KEY) ?? null
       if (previousProfile) {
-        queryClient.setQueryData<UserProfile>(PROFILE_QUERY_KEY(user?.id), {
+        queryClient.setQueryData<UserProfile>(profileQueryKey(user?.id), {
           ...previousProfile,
           ...updates,
         })
       }
-      return { previousProfile }
+      if (previousSession?.user) {
+        queryClient.setQueryData<SessionQueryData>(SESSION_QUERY_KEY, {
+          ...previousSession,
+          user: mergeProfileIntoSessionUser(previousSession.user, updates as UserProfile),
+        })
+      }
+      return { previousProfile, previousSession }
     },
     onError: (_error, _updates, context) => {
       if (context?.previousProfile !== undefined) {
-        queryClient.setQueryData(PROFILE_QUERY_KEY(user?.id), context.previousProfile)
+        queryClient.setQueryData(profileQueryKey(user?.id), context.previousProfile)
+      }
+      if (context?.previousSession !== undefined) {
+        queryClient.setQueryData(SESSION_QUERY_KEY, context.previousSession)
       }
     },
+    onSuccess: (updatedProfile) => {
+      if (!user?.id || !updatedProfile) return
+      queryClient.setQueryData<UserProfile>(profileQueryKey(user.id), updatedProfile)
+      queryClient.setQueryData<SessionQueryData>(SESSION_QUERY_KEY, current => {
+        if (!current?.user) return current
+        return {
+          ...current,
+          user: mergeProfileIntoSessionUser(current.user, updatedProfile),
+        }
+      })
+    },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY(user?.id) })
+      queryClient.invalidateQueries({ queryKey: profileQueryKey(user?.id) })
     },
   })
 

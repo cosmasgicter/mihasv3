@@ -7,8 +7,9 @@
  * This is the single source of truth for auth state — no competing hooks.
  *
  * Authentication relies on HTTP-only cookies (`access_token`, `refresh_token`)
- * set by the Django backend with `Domain=.mihas.edu.zm`, `SameSite=Lax`,
- * `Secure=true`. The frontend never reads or writes these cookies directly.
+ * set by the Django backend with cross-subdomain cookie attributes
+ * (`Domain=.mihas.edu.zm`; production uses `SameSite=None; Secure`).
+ * The frontend never reads or writes these cookies directly.
  *
  * Session validation:
  *   - On mount: GET /api/v1/auth/session/ validates the current cookie
@@ -25,17 +26,22 @@ import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
 import { getDisplayName } from '@/utils/userDisplayName'
 import { authService } from '@/services/auth'
 import { isAdminRole } from '@/lib/auth/roles'
+import { extractAuthUser as extractAuthUserFromResult } from '@/lib/authSession'
 import { clearCsrfToken } from '@/lib/csrfToken'
 import { secureStorage } from '@/lib/secureStorage'
 import { broadcastLogin, broadcastLogout } from '@/lib/authBroadcast'
+import {
+  buildProfileFromUser,
+  fetchCurrentProfile,
+  fetchSessionData,
+  profileQueryKey,
+  PROFILE_STALE_TIME_MS,
+  SESSION_QUERY_KEY,
+  type SessionQueryData,
+} from './authQueries'
 
 export type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth'
 export type AuthUser = User
-
-type SessionQueryData = {
-  user?: User
-  pendingValidation?: true
-} | null
 
 /**
  * Check if user has admin role (deterministic, no DB lookup)
@@ -53,54 +59,8 @@ export function normalizeSessionResult<T>(result: { success: boolean; data: T } 
   return result?.success ? result.data : null
 }
 
-function normalizeAuthUser(
-  payload: (Partial<User> & { first_name?: string; last_name?: string }) | null | undefined
-): User | null {
-  if (!payload?.id || !payload.email) {
-    return null
-  }
-
-  const firstName = typeof payload.first_name === 'string' ? payload.first_name.trim() : ''
-  const lastName = typeof payload.last_name === 'string' ? payload.last_name.trim() : ''
-  const fullName = typeof payload.full_name === 'string' && payload.full_name.trim()
-    ? payload.full_name.trim()
-    : [firstName, lastName].filter(Boolean).join(' ').trim()
-
-  // Resolve role from top-level, then user_metadata, then app_metadata.
-  // Django login responses may nest the role differently than expected.
-  const resolvedRole =
-    payload.role ||
-    (typeof payload.user_metadata?.role === 'string' ? payload.user_metadata.role : undefined) ||
-    (typeof payload.app_metadata?.role === 'string' ? payload.app_metadata.role : undefined) ||
-    'student'
-
-  return {
-    ...payload,
-    id: String(payload.id),
-    email: payload.email,
-    role: resolvedRole,
-    full_name: fullName || undefined,
-  }
-}
-
-type AuthUserEnvelope = {
-  user?: (Partial<User> & { first_name?: string; last_name?: string }) | null
-}
-
-function hasUserEnvelope(result: unknown): result is AuthUserEnvelope {
-  return Boolean(result && typeof result === 'object' && 'user' in result)
-}
-
 export function extractAuthUser(result: unknown): User | null {
-  if (!result) {
-    return null
-  }
-
-  if (hasUserEnvelope(result)) {
-    return normalizeAuthUser(result.user ?? null)
-  }
-
-  const direct = normalizeAuthUser(result)
+  const direct = extractAuthUserFromResult(result)
   if (!direct) {
     console.warn(
       '[auth] Unexpected auth response shape — could not extract user:',
@@ -108,20 +68,6 @@ export function extractAuthUser(result: unknown): User | null {
     )
   }
   return direct
-}
-
-function buildProfileFromUser(user: User | null): UserProfile | null {
-  if (!user) {
-    return null
-  }
-
-  return {
-    id: user.id,
-    user_id: user.id,
-    email: user.email,
-    role: user.role,
-    full_name: user.full_name,
-  }
 }
 
 export function resolveAuthLoadingState({
@@ -153,28 +99,14 @@ export function useSessionListener() {
   // Visibility-change revalidation is handled by AuthContext invalidating
   // this query key when the tab regains focus.
   const { data: sessionData, isLoading: sessionLoading } = useQuery<SessionQueryData>({
-    queryKey: ['auth', 'session'],
+    queryKey: SESSION_QUERY_KEY,
     queryFn: async () => {
       try {
-        const result = await authService.session() as User | { user?: User } | null
-        const normalizedUser = extractAuthUser(result)
-        if (normalizedUser) return { user: normalizedUser }
-
-        // Session returned no user — the access token may have expired.
-        // Attempt a silent refresh and retry the session check once.
-        try {
-          await authService.refresh()
-          const retryResult = await authService.session() as User | { user?: User } | null
-          const retryUser = extractAuthUser(retryResult)
-          if (retryUser) return { user: retryUser }
-        } catch {
-          // Refresh failed — user is genuinely unauthenticated.
-        }
-
-        return null
+        return await fetchSessionData()
       } catch {
-        // Session check failed (401/403 for unauthenticated visitors).
-        // Return null silently — this is expected on public pages.
+        // Session check failed for an unauthenticated visitor or unrecoverable
+        // auth state. The API client already attempted refresh for expired
+        // access cookies before this point.
         return null
       }
     },
@@ -192,24 +124,13 @@ export function useSessionListener() {
   // consumers (e.g. profile completion badge) see all fields, not just the
   // minimal session payload.  Falls back to session-derived data on error.
   const { data: fetchedProfile, isLoading: profileLoading } = useQuery({
-    queryKey: ['user-profile', user?.id],
+    queryKey: profileQueryKey(user?.id),
     enabled: Boolean(user?.id),
     queryFn: async () => {
       if (!user?.id) return buildProfileFromUser(user)
-      try {
-        // Try fetching the full profile from the dedicated endpoint
-        const profileData = await import('@/services/client').then(
-          ({ apiClient }) => apiClient.request<Record<string, unknown>>('/auth/profile/', { method: 'GET' })
-        )
-        if (profileData && typeof profileData === 'object' && 'id' in profileData) {
-          return profileData as unknown as UserProfile
-        }
-      } catch {
-        // Fall back to minimal profile from session user
-      }
-      return buildProfileFromUser(user)
+      return fetchCurrentProfile(user)
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: PROFILE_STALE_TIME_MS,
     gcTime: 30 * 60 * 1000,
     retry: false,
   })
@@ -244,10 +165,10 @@ export function useSessionListener() {
 
       // Seed auth session cache FIRST — this makes isAuthenticated=true immediately
       // and resolveAuthLoadingState returns false (no loading) since user data exists.
-      queryClient.setQueryData(['auth', 'session'], { user: authUser })
+      queryClient.setQueryData(SESSION_QUERY_KEY, { user: authUser })
 
       const normalizedProfile = buildProfileFromUser(authUser)
-      queryClient.setQueryData(['user-profile', authUser.id], normalizedProfile)
+      queryClient.setQueryData(profileQueryKey(authUser.id), normalizedProfile, { updatedAt: 0 })
 
       // Clear stale non-auth queries (e.g., previous user's data) WITHOUT touching auth cache.
       // This replaces the old queryClient.clear() that caused the skeleton hang.
@@ -312,9 +233,9 @@ export function useSessionListener() {
       const userPayload = extractAuthUser(loginResult) ?? extractAuthUser(registerResult)
       if (userPayload) {
         // Seed auth cache FIRST, then clear stale data (same pattern as signIn)
-        queryClient.setQueryData(['auth', 'session'], { user: userPayload })
+        queryClient.setQueryData(SESSION_QUERY_KEY, { user: userPayload })
         const normalizedProfile = buildProfileFromUser(userPayload)
-        queryClient.setQueryData(['user-profile', userPayload.id], normalizedProfile)
+        queryClient.setQueryData(profileQueryKey(userPayload.id), normalizedProfile, { updatedAt: 0 })
 
         // Clear stale non-auth queries without touching the caches we just seeded
         queryClient.removeQueries({
@@ -342,6 +263,9 @@ export function useSessionListener() {
   const signOut = useCallback(async () => {
     const currentUserId = user?.id
 
+    await queryClient.cancelQueries({ queryKey: ['auth'] })
+    await queryClient.cancelQueries({ queryKey: ['user-profile'] })
+
     // 1. POST logout while cookies and CSRF token are still available
     try {
       await authService.logout()
@@ -355,11 +279,11 @@ export function useSessionListener() {
       // that are still mounted may not re-render with null state. Setting
       // the data to null first ensures observers see the unauthenticated
       // state immediately, preventing stale role routing on re-login.
-      queryClient.setQueryData(['auth', 'session'], null)
+      queryClient.setQueryData(SESSION_QUERY_KEY, null)
       if (currentUserId) {
-        queryClient.setQueryData(['user-profile', currentUserId], null)
+        queryClient.setQueryData(profileQueryKey(currentUserId), null)
       }
-      queryClient.setQueryData(['user-profile', undefined], null)
+      queryClient.setQueryData(profileQueryKey(undefined), null)
 
       queryClient.clear()
     }
@@ -455,9 +379,7 @@ export function useAuthCheck(): {
     queryKey: ['auth', 'session'],
     queryFn: async () => {
       try {
-        const result = await authService.session() as User | { user?: User } | null
-        const normalizedUser = extractAuthUser(result)
-        return normalizedUser ? { user: normalizedUser } : null
+        return await fetchSessionData()
       } catch {
         return null
       }

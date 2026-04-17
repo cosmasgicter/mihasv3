@@ -2,8 +2,9 @@
  * Auth Context — Django JWT Cookie Authentication
  *
  * Authentication relies on HTTP-only cookies (`access_token`, `refresh_token`)
- * set by the Django backend with `Domain=.mihas.edu.zm`, `SameSite=Lax`,
- * `Secure=true`. The frontend never reads or writes these cookies directly;
+ * set by the Django backend with cross-subdomain cookie attributes
+ * (`Domain=.mihas.edu.zm`; production uses `SameSite=None; Secure`).
+ * The frontend never reads or writes these cookies directly;
  * they are transmitted automatically via `credentials: 'include'` on every
  * cross-origin request to `api.mihas.edu.zm`.
  *
@@ -59,40 +60,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   //   5. Redirect to login page
   useEffect(() => {
     configureApiClientAuthFailure(() => {
-      // Clear auth state in React Query cache
-      queryClient.setQueryData(['auth', 'session'], null)
-      // Clear all caches
-      queryClient.clear()
-      // Clear CSRF token
-      clearCsrfToken()
-      // Clear speculative prefetch state so it re-runs on next login
-      resetPrefetchState()
-      // Clear secure storage (best-effort, fire-and-forget)
-      secureStorage.clearSession().catch(() => {})
-      // Redirect to sign-in
-      const from = typeof window !== 'undefined'
-        ? `${window.location.pathname}${window.location.search}`
-        : ''
-      if (typeof window !== 'undefined') {
-        try {
-          sessionStorage.setItem('mihas:post-auth-redirect', from || '/')
-          window.dispatchEvent(new CustomEvent('mihas:before-auth-redirect', {
-            detail: { from },
-          }))
-        } catch {
-          // best-effort state preservation
+      void (async () => {
+        await queryClient.cancelQueries({ queryKey: ['auth'] })
+        await queryClient.cancelQueries({ queryKey: ['user-profile'] })
+        // Clear auth state in React Query cache
+        queryClient.setQueryData(['auth', 'session'], null)
+        queryClient.removeQueries({ queryKey: ['user-profile'] })
+        // Clear all caches
+        queryClient.clear()
+        // Clear CSRF token
+        clearCsrfToken()
+        // Clear speculative prefetch state so it re-runs on next login
+        resetPrefetchState()
+        // Clear secure storage (best-effort, fire-and-forget)
+        secureStorage.clearSession().catch(() => {})
+
+        // Redirect to sign-in
+        const from = typeof window !== 'undefined'
+          ? `${window.location.pathname}${window.location.search}`
+          : ''
+        if (typeof window !== 'undefined') {
+          try {
+            sessionStorage.setItem('mihas:post-auth-redirect', from || '/')
+            window.dispatchEvent(new CustomEvent('mihas:before-auth-redirect', {
+              detail: { from },
+            }))
+          } catch {
+            // best-effort state preservation
+          }
         }
-      }
-      const signInPath = from && from !== '/'
-        ? `/auth/signin?redirect=${encodeURIComponent(from)}`
-        : '/auth/signin'
-      // Do not force a hard redirect here. Route guards and explicit user actions
-      // should drive navigation so unsaved form state can be preserved.
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('mihas:auth-expired', {
-          detail: { from, signInPath },
-        }))
-      }
+        const signInPath = from && from !== '/'
+          ? `/auth/signin?redirect=${encodeURIComponent(from)}`
+          : '/auth/signin'
+        // Do not force a hard redirect here. Route guards and explicit user actions
+        // should drive navigation so unsaved form state can be preserved.
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('mihas:auth-expired', {
+            detail: { from, signInPath },
+          }))
+        }
+      })()
     })
   }, [queryClient])
 
