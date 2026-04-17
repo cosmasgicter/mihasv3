@@ -13,9 +13,9 @@ import { Seo } from '@/components/seo/Seo'
 import { useAdminDashboardPolling } from '@/hooks/useAdminDashboardPolling'
 import { RealtimeMetricsDisplay } from '@/components/admin/RealtimeMetricsDisplay'
 import { sanitizeForDisplay } from '@/lib/sanitize'
-import OfflineAdminDashboard from '@/components/admin/OfflineAdminDashboard'
 import { getAdminDisplayName, shouldLoadAdminDashboard } from '@/pages/admin/lib/dashboardBootstrap'
 import { PageShell } from '@/components/ui/PageShell'
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { DashboardMetricsCards, type DashboardMetricsSummary } from '@/components/admin/dashboard/DashboardMetricsCards'
 import { DashboardActivityFeed } from '@/components/admin/dashboard/DashboardActivityFeed'
 import { DashboardQuickActions } from '@/components/admin/dashboard/DashboardQuickActions'
@@ -256,12 +256,22 @@ export default function AdminDashboard() {
     return (
       <>
         <Seo
-          title="Admin Dashboard Offline | MIHAS-KATC Admissions"
-          description="The MIHAS-KATC admin dashboard is currently offline. Reconnect to continue admissions administration."
+          title="Admin Dashboard Unavailable | MIHAS-KATC Admissions"
+          description="The MIHAS-KATC admin dashboard could not load. Reconnect and retry to continue admissions administration."
           path="/admin/dashboard"
           noindex
         />
-        <OfflineAdminDashboard />
+        <PageShell
+          title="Admin dashboard unavailable"
+          subtitle="Live admissions data could not be loaded. Reconnect and retry to continue."
+        >
+          <ErrorDisplay
+            title="Dashboard failed to load"
+            message={error || 'A network error prevented the dashboard from loading. Please check your connection and try again.'}
+            onRetry={() => loadDashboardStats('initial')}
+            variant="section"
+          />
+        </PageShell>
       </>
     )
   }
