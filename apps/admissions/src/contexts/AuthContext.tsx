@@ -20,7 +20,7 @@
  *
  * Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6
  */
-import React, { createContext, useContext, useMemo, useEffect } from 'react'
+import React, { createContext, useContext, useMemo, useEffect, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth'
 import { useSessionListener } from '@/hooks/auth/useSessionListener'
@@ -45,10 +45,13 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+const VISIBILITY_DEBOUNCE_MS = 3000
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient()
   const auth = useSessionListener()
   useAuthBroadcast()
+  const lastSessionInvalidationRef = useRef<number>(0)
 
   // Configure the API client's auth failure callback.
   // When a 401 triggers a refresh attempt that also fails, the API client
@@ -114,14 +117,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (document.visibilityState === 'hidden') {
         hasHiddenOnce = true
       } else if (document.visibilityState === 'visible' && hasHiddenOnce) {
-        queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
+        const now = Date.now()
+        if (now - lastSessionInvalidationRef.current >= VISIBILITY_DEBOUNCE_MS) {
+          lastSessionInvalidationRef.current = now
+          queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
+        }
       }
     }
 
     function handlePageShow(event: PageTransitionEvent) {
       if (event.persisted) {
-        queryClient.setQueryData(['auth', 'session'], { pendingValidation: true })
-        queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
+        const now = Date.now()
+        if (now - lastSessionInvalidationRef.current >= VISIBILITY_DEBOUNCE_MS) {
+          lastSessionInvalidationRef.current = now
+          queryClient.setQueryData(['auth', 'session'], { pendingValidation: true })
+          queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
+        }
       }
     }
 

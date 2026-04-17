@@ -7,7 +7,7 @@ Incremental bug-fix and UX-improvement pass across the admin surface. Priority o
 ## Tasks
 
 - [ ] 1. Fix auth refresh flood in ApiClient
-  - [ ] 1.1 Add failure cooldown to `attemptRefresh()` in `apps/admissions/src/services/client.ts`
+  - [x] 1.1 Add failure cooldown to `attemptRefresh()` in `apps/admissions/src/services/client.ts`
     - Add `lastRefreshFailureTime: number = 0` instance field
     - Add `REFRESH_FAILURE_COOLDOWN_MS = 2000` static constant
     - Before starting a new refresh, check if within failure cooldown window — if so, return `false` immediately
@@ -28,7 +28,7 @@ Incremental bug-fix and UX-improvement pass across the admin surface. Priority o
     - After a failed refresh, generate calls within 2s window, assert all return `false` without invoking `performRefresh()`
 
 - [ ] 2. Add visibility debounce to AuthContext
-  - [ ] 2.1 Debounce session invalidation in `apps/admissions/src/contexts/AuthContext.tsx`
+  - [-] 2.1 Debounce session invalidation in `apps/admissions/src/contexts/AuthContext.tsx`
     - Add `lastSessionInvalidationRef = useRef<number>(0)` and `VISIBILITY_DEBOUNCE_MS = 3000`
     - In `handleVisibilityChange`, skip `queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })` if less than 3 seconds since last invalidation
     - Update `lastSessionInvalidationRef.current` on each actual invalidation
