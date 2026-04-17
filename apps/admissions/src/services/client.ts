@@ -168,8 +168,10 @@ class ApiClient {
    */
   private refreshPromise: Promise<boolean> | null = null;
   private lastRefreshSuccessTime: number = 0;
+  private lastRefreshFailureTime: number = 0;
   private lastRefreshResult: boolean = false;
   private static readonly REFRESH_COOLDOWN_MS = 5000;
+  private static readonly REFRESH_FAILURE_COOLDOWN_MS = 2000;
 
   /**
    * Perform the actual token refresh call to the server.
@@ -214,10 +216,15 @@ class ApiClient {
    * ported into ApiClient as the single refresh mechanism.
    */
   private async attemptRefresh(): Promise<boolean> {
-    // Cooldown: if a refresh succeeded recently, return cached success
     const now = Date.now();
+    // Cooldown: if a refresh succeeded recently, return cached success
     if (this.lastRefreshResult && (now - this.lastRefreshSuccessTime) < ApiClient.REFRESH_COOLDOWN_MS) {
       return true;
+    }
+    // Failure cooldown: if a refresh failed recently, return false immediately
+    if (!this.lastRefreshResult && this.lastRefreshFailureTime > 0
+        && (now - this.lastRefreshFailureTime) < ApiClient.REFRESH_FAILURE_COOLDOWN_MS) {
+      return false;
     }
 
     if (this.refreshPromise) return this.refreshPromise;
@@ -227,8 +234,15 @@ class ApiClient {
       if (result) {
         this.lastRefreshSuccessTime = Date.now();
         this.lastRefreshResult = true;
+      } else {
+        this.lastRefreshFailureTime = Date.now();
+        this.lastRefreshResult = false;
       }
       return result;
+    } catch {
+      this.lastRefreshFailureTime = Date.now();
+      this.lastRefreshResult = false;
+      return false;
     } finally {
       this.refreshPromise = null;
     }
