@@ -16,7 +16,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as fc from 'fast-check';
-import { clearCsrfToken } from '@/lib/csrfToken';
 
 // ── Mocks ───────────────────────────────────────────────────────────────
 
@@ -89,7 +88,9 @@ const nonCsrfErrorCodes = [
 // ── Property 1: 403 on GET to auth-related endpoint triggers refresh ────
 
 describe('Property 1: Bug Condition — 403 on GET triggers refresh for auth-related endpoints', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    vi.resetModules();
+    const { clearCsrfToken } = await import('@/lib/csrfToken');
     clearCsrfToken();
     capturedRequests = [];
   });
@@ -117,6 +118,8 @@ describe('Property 1: Bug Condition — 403 on GET triggers refresh for auth-rel
         fc.constantFrom(...authRelatedGetEndpoints),
         fc.constantFrom(...nonCsrfErrorCodes),
         async (endpoint, errorCode) => {
+          vi.resetModules();
+          const { clearCsrfToken } = await import('@/lib/csrfToken');
           capturedRequests = [];
           clearCsrfToken();
 

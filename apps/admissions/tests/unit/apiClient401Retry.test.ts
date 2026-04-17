@@ -11,7 +11,6 @@
  */
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { clearCsrfToken } from '@/lib/csrfToken';
 
 // ── Mocks ───────────────────────────────────────────────────────────────
 
@@ -74,7 +73,9 @@ function makeJsonResponse(status: number, body: any, csrfToken?: string): Respon
 // ── Tests ───────────────────────────────────────────────────────────────
 
 describe('ApiClient 401 Retry Unit Tests', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    vi.resetModules();
+    const { clearCsrfToken } = await import('@/lib/csrfToken');
     clearCsrfToken();
   });
 

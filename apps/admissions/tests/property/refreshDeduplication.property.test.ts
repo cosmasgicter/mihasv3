@@ -9,7 +9,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as fc from 'fast-check';
-import { clearCsrfToken } from '@/lib/csrfToken';
 
 // ── Mocks ───────────────────────────────────────────────────────────────
 
@@ -117,7 +116,9 @@ function setupConcurrentFetchMock() {
 // ── Tests ───────────────────────────────────────────────────────────────
 
 describe('ApiClient Refresh Deduplication Property Tests', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    vi.resetModules();
+    const { clearCsrfToken } = await import('@/lib/csrfToken');
     clearCsrfToken();
   });
 
@@ -132,6 +133,8 @@ describe('ApiClient Refresh Deduplication Property Tests', () => {
       await fc.assert(
         fc.asyncProperty(concurrentCountArb, async (n) => {
           // Reset state
+          vi.resetModules();
+          const { clearCsrfToken } = await import('@/lib/csrfToken');
           clearCsrfToken();
 
           const { mockFetch, getRefreshCallCount } = setupConcurrentFetchMock();

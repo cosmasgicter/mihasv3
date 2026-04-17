@@ -24,6 +24,7 @@ import { logApiError } from '@/lib/apiErrorLogger'
 import { toError } from '@/lib/toError'
 import { findBestSubjectId } from '@/lib/subjectMatcher'
 import { apiClient, AuthenticationError } from '@/services/client'
+import { authService } from '@/services/auth'
 import { applicationService } from '@/services/applications'
 import type { Application, Intake } from '@/types/database'
 import { logger } from '@/lib/logger'
@@ -682,7 +683,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
       let sessionRecheckFailed = true
       try {
-        const sessionResult = await apiClient.request<{ user?: { id?: string } }>('/auth/session/')
+        const sessionResult = await authService.session() as { user?: { id?: string } } | null
         const sessionUser = sessionResult?.user ?? null
         if (sessionUser) {
           queryClient.setQueryData(['auth', 'session'], { user: sessionUser })
@@ -697,8 +698,8 @@ const useWizardController = (): UseWizardControllerResult => {
       let tokenRefreshFailed = true
       if (sessionRecheckFailed) {
         try {
-          await apiClient.request('/auth/refresh/', { method: 'POST' })
-          const refreshedSession = await apiClient.request<{ user?: { id?: string } }>('/auth/session/')
+          await authService.refresh()
+          const refreshedSession = await authService.session() as { user?: { id?: string } } | null
           const refreshedUser = refreshedSession?.user ?? null
           if (refreshedUser) {
             queryClient.setQueryData(['auth', 'session'], { user: refreshedUser })

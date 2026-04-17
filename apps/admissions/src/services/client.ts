@@ -167,6 +167,9 @@ class ApiClient {
    * instead of initiating parallel refresh requests.
    */
   private refreshPromise: Promise<boolean> | null = null;
+  private lastRefreshSuccessTime: number = 0;
+  private lastRefreshResult: boolean = false;
+  private static readonly REFRESH_COOLDOWN_MS = 5000;
 
   /**
    * Perform the actual token refresh call to the server.
@@ -211,13 +214,33 @@ class ApiClient {
    * ported into ApiClient as the single refresh mechanism.
    */
   private async attemptRefresh(): Promise<boolean> {
+    // Cooldown: if a refresh succeeded recently, return cached success
+    const now = Date.now();
+    if (this.lastRefreshResult && (now - this.lastRefreshSuccessTime) < ApiClient.REFRESH_COOLDOWN_MS) {
+      return true;
+    }
+
     if (this.refreshPromise) return this.refreshPromise;
     this.refreshPromise = this.performRefresh();
     try {
-      return await this.refreshPromise;
+      const result = await this.refreshPromise;
+      if (result) {
+        this.lastRefreshSuccessTime = Date.now();
+        this.lastRefreshResult = true;
+      }
+      return result;
     } finally {
       this.refreshPromise = null;
     }
+  }
+
+  /**
+   * Public refresh entrypoint for auth bootstrap code. It uses the same
+   * promise-lock as the 401 interceptor so explicit session recovery cannot
+   * race with data-request recovery and invalidate a rotating refresh token.
+   */
+  async refreshAuthSession(): Promise<boolean> {
+    return this.attemptRefresh();
   }
 
   /**
@@ -230,9 +253,12 @@ class ApiClient {
       '/api/v1/auth/refresh/',
       '/api/v1/auth/login/',
       '/api/v1/auth/register/',
-      '/api/v1/auth/session/',
     ];
     return excludedPatterns.some(pattern => endpoint.includes(pattern));
+  }
+
+  private isSessionEndpoint(endpoint: string): boolean {
+    return endpoint.includes('/api/v1/auth/session/');
   }
 
   /**
@@ -1063,6 +1089,9 @@ class ApiClient {
 
           // Only treat a second 401/403 as an auth failure
           if (retryResponse.status === 401 || retryResponse.status === 403) {
+            if (this.isSessionEndpoint(normalizedEndpoint)) {
+              throw new AuthenticationError();
+            }
             const authFailure = getOnAuthFailure();
             if (authFailure) authFailure();
             throw new AuthenticationError();
@@ -1088,6 +1117,9 @@ class ApiClient {
         }
 
         // Refresh failed — invoke onAuthFailure and throw
+        if (this.isSessionEndpoint(normalizedEndpoint)) {
+          throw error;
+        }
         const authFailure = getOnAuthFailure();
         if (authFailure) authFailure();
         throw new AuthenticationError();

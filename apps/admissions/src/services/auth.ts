@@ -1,4 +1,4 @@
-import { apiClient } from './client'
+import { apiClient, AuthenticationError } from './client'
 import { logApiError } from '@/lib/apiErrorLogger'
 
 interface RegisterData {
@@ -22,6 +22,8 @@ interface PasswordResetConfirmData {
   token: string
   newPassword: string
 }
+
+type ProfileUpdatePayload = Record<string, unknown>
 
 export const authService = {
   register: async (data: RegisterData) => {
@@ -71,6 +73,7 @@ export const authService = {
     try {
       return await apiClient.request('/auth/session/', {
         method: 'GET',
+        skipCache: true,
       })
     } catch (error) {
       logApiError('auth', '/api/v1/auth/session/', error)
@@ -80,11 +83,46 @@ export const authService = {
 
   refresh: async () => {
     try {
-      return await apiClient.request('/auth/refresh/', {
-        method: 'POST',
-      })
+      const refreshWithLock = (apiClient as typeof apiClient & {
+        refreshAuthSession?: () => Promise<boolean>
+      }).refreshAuthSession
+      if (!refreshWithLock) {
+        return await apiClient.request('/auth/refresh/', {
+          method: 'POST',
+        })
+      }
+
+      const refreshed = await refreshWithLock.call(apiClient)
+      if (!refreshed) {
+        throw new AuthenticationError()
+      }
+      return refreshed
     } catch (error) {
       logApiError('auth', '/api/v1/auth/refresh/', error)
+      throw error
+    }
+  },
+
+  profile: async () => {
+    try {
+      return await apiClient.request('/auth/profile/', {
+        method: 'GET',
+        skipCache: true,
+      })
+    } catch (error) {
+      logApiError('auth', '/api/v1/auth/profile/', error)
+      throw error
+    }
+  },
+
+  updateProfile: async (updates: ProfileUpdatePayload) => {
+    try {
+      return await apiClient.request('/auth/profile/', {
+        method: 'PATCH',
+        body: JSON.stringify(updates),
+      })
+    } catch (error) {
+      logApiError('auth', '/api/v1/auth/profile/', error)
       throw error
     }
   },
