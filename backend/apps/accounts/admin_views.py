@@ -243,12 +243,60 @@ class AdminDashboardView(APIView):
             week_count = Application.objects.filter(created_at__gte=week_start).count()
             month_count = Application.objects.filter(created_at__gte=month_start).count()
 
-            # Recent activity (last 10 audit log entries)
+            # Recent activity (status changes + payment completions)
             try:
-                recent_logs = AuditLog.objects.order_by("-created_at")[:10]
-                recent_activity = AuditLogSerializer(recent_logs, many=True).data
+                from apps.applications.models import ApplicationStatusHistory
+                from apps.documents.models import Payment
+
+                status_entries = (
+                    ApplicationStatusHistory.objects
+                    .select_related('application', 'changed_by')
+                    .order_by('-created_at')[:10]
+                )
+
+                recent_activity = []
+                for entry in status_entries:
+                    app_number = getattr(entry.application, 'application_number', '') or ''
+                    actor_name = ''
+                    if entry.changed_by:
+                        actor_name = f"{entry.changed_by.first_name} {entry.changed_by.last_name}".strip()
+
+                    recent_activity.append({
+                        'id': str(entry.id),
+                        'type': 'status_change',
+                        'application_number': app_number,
+                        'old_status': entry.old_status or '',
+                        'new_status': entry.new_status or '',
+                        'timestamp': entry.created_at.isoformat() if entry.created_at else '',
+                        'actor_name': actor_name,
+                        'message': f"{app_number}: {entry.old_status or 'new'} → {entry.new_status or 'unknown'}",
+                    })
+
+                recent_payments = (
+                    Payment.objects
+                    .filter(status__in=['paid', 'successful', 'verified'])
+                    .select_related('application')
+                    .order_by('-updated_at')[:5]
+                )
+
+                for payment in recent_payments:
+                    app_number = getattr(payment.application, 'application_number', '') or ''
+                    recent_activity.append({
+                        'id': str(payment.id),
+                        'type': 'payment',
+                        'application_number': app_number,
+                        'old_status': '',
+                        'new_status': payment.status,
+                        'timestamp': payment.updated_at.isoformat() if payment.updated_at else '',
+                        'actor_name': '',
+                        'message': f"{app_number}: Payment {payment.status}",
+                    })
+
+                # Merge and sort by timestamp descending, limit to 10
+                recent_activity.sort(key=lambda x: x['timestamp'], reverse=True)
+                recent_activity = recent_activity[:10]
             except Exception:
-                logger.warning("Failed to load audit logs for admin dashboard", exc_info=True)
+                logger.warning("Failed to load recent activity for admin dashboard", exc_info=True)
                 recent_activity = []
 
             # Total users

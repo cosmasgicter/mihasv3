@@ -13,9 +13,9 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { notificationService } from '@/services/notifications'
+import { notificationService, normalizeNotificationsResponse } from '@/services/notifications'
 import type { StudentNotification } from '@/types/notifications'
 
 /** Threshold in ms after which polling stops entirely when tab is hidden */
@@ -36,7 +36,7 @@ export interface UseNotificationPollingReturn {
   markRead: (id: string) => Promise<void>
   markAllRead: () => Promise<void>
   deleteNotification: (id: string) => Promise<void>
-  refresh: () => void
+  refresh: () => Promise<void>
 }
 
 /**
@@ -78,7 +78,7 @@ export function useNotificationPolling(
   const queryClient = useQueryClient()
   const hiddenSinceRef = useRef<number | null>(null)
 
-  const queryKey = ['student-notifications', user?.id]
+  const queryKey = useMemo(() => ['student-notifications', user?.id] as const, [user?.id])
 
   // Track page visibility to pause polling when hidden > 5 minutes
   useEffect(() => {
@@ -89,7 +89,7 @@ export function useNotificationPolling(
         hiddenSinceRef.current = null
         // Invalidate to get fresh data when tab becomes visible again
         if (user?.id) {
-          queryClient.invalidateQueries({ queryKey })
+          void queryClient.invalidateQueries({ queryKey })
         }
       }
     }
@@ -98,16 +98,14 @@ export function useNotificationPolling(
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [queryClient, user?.id])
+  }, [queryClient, queryKey, user?.id])
 
   const fetchNotifications = useCallback(async (): Promise<StudentNotification[]> => {
     if (!user?.id) {
       return []
     }
     const result = await notificationService.list()
-    // The API returns { success: true, data: [...] } envelope
-    const notifications: StudentNotification[] = (result as any)?.data ?? (result as any) ?? []
-    return Array.isArray(notifications) ? notifications : []
+    return normalizeNotificationsResponse(result)
   }, [user?.id])
 
   const query = useQuery({
@@ -127,22 +125,66 @@ export function useNotificationPolling(
   // Mutations
   const markReadMutation = useMutation({
     mutationFn: (id: string) => notificationService.markRead(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey })
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey })
+      const previous = queryClient.getQueryData<StudentNotification[]>(queryKey)
+      queryClient.setQueryData<StudentNotification[]>(queryKey, (current = []) =>
+        current.map(notification =>
+          notification.id === id
+            ? { ...notification, read: true, read_at: notification.read_at ?? new Date().toISOString() }
+            : notification
+        )
+      )
+      return { previous }
+    },
+    onError: (_error, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous)
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey })
     },
   })
 
   const markAllReadMutation = useMutation({
     mutationFn: () => notificationService.markAllRead(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey })
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey })
+      const previous = queryClient.getQueryData<StudentNotification[]>(queryKey)
+      const readAt = new Date().toISOString()
+      queryClient.setQueryData<StudentNotification[]>(queryKey, (current = []) =>
+        current.map(notification => ({ ...notification, read: true, read_at: notification.read_at ?? readAt }))
+      )
+      return { previous }
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous)
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey })
     },
   })
 
   const deleteNotificationMutation = useMutation({
     mutationFn: (id: string) => notificationService.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey })
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey })
+      const previous = queryClient.getQueryData<StudentNotification[]>(queryKey)
+      queryClient.setQueryData<StudentNotification[]>(queryKey, (current = []) =>
+        current.filter(notification => notification.id !== id)
+      )
+      return { previous }
+    },
+    onError: (_error, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous)
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey })
     },
   })
 
@@ -165,8 +207,8 @@ export function useNotificationPolling(
   )
 
   const refresh = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey })
-  }, [queryClient, user?.id])
+    return queryClient.invalidateQueries({ queryKey })
+  }, [queryClient, queryKey])
 
   return {
     notifications,

@@ -4,8 +4,12 @@ export interface DashboardActivityItem {
   id: string
   message: string
   timestamp: string
-  type: 'application' | 'approval' | 'rejection' | 'system' | 'review'
+  type: 'status_change' | 'payment' | 'application' | 'approval' | 'rejection' | 'system' | 'review'
   user?: string
+  application_number?: string
+  old_status?: string
+  new_status?: string
+  actor_name?: string
 }
 
 interface DashboardActivityFeedProps {
@@ -20,14 +24,19 @@ export function DashboardActivityFeed({ items }: DashboardActivityFeedProps) {
       </div>
       <div className="p-6 space-y-4">
         {items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No recent activity yet.</p>
+          <p className="text-sm text-muted-foreground">No recent activity</p>
         ) : (
           items.slice(0, 8).map((activity) => (
             <div key={activity.id} className="border-b border-border/60 pb-3 last:border-b-0 last:pb-0">
+              {activity.application_number && (
+                <div className="text-xs font-medium text-primary mb-0.5">
+                  {activity.application_number}
+                </div>
+              )}
               <div className="text-sm text-foreground">{activity.message}</div>
               <div className="text-xs text-muted-foreground mt-1">
                 {formatTimestamp(activity.timestamp)}
-                {activity.user ? ` · ${activity.user}` : ''}
+                {activity.actor_name ? ` · ${activity.actor_name}` : activity.user ? ` · ${activity.user}` : ''}
               </div>
             </div>
           ))

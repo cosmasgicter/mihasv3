@@ -16,7 +16,7 @@ import { sanitizeForDisplay } from '@/lib/sanitize'
 import { getAdminDisplayName, shouldLoadAdminDashboard } from '@/pages/admin/lib/dashboardBootstrap'
 import { PageShell } from '@/components/ui/PageShell'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
-import { DashboardMetricsCards, type DashboardMetricsSummary } from '@/components/admin/dashboard/DashboardMetricsCards'
+
 import { DashboardActivityFeed } from '@/components/admin/dashboard/DashboardActivityFeed'
 import { DashboardQuickActions } from '@/components/admin/dashboard/DashboardQuickActions'
 
@@ -224,14 +224,10 @@ export default function AdminDashboard() {
     void loadDashboardStats('initial')
   }, [loadDashboardStats, user])
 
-  const dashboardMetrics: DashboardMetricsSummary = useMemo(() => ({
-    todayApplications: stats.todayApplications,
-    pendingApplications: stats.pendingApplications,
-    approvalRate: stats.approvedApplications + stats.rejectedApplications > 0
-      ? Math.round((stats.approvedApplications / (stats.approvedApplications + stats.rejectedApplications)) * 100)
-      : 0,
-    avgProcessingTime: stats.avgProcessingTime
-  }), [stats.todayApplications, stats.pendingApplications, stats.approvedApplications, stats.rejectedApplications, stats.avgProcessingTime])
+  const approvalRate = useMemo(() => {
+    const total = stats.approvedApplications + stats.rejectedApplications
+    return total > 0 ? Math.round((stats.approvedApplications / total) * 100) : 0
+  }, [stats.approvedApplications, stats.rejectedApplications])
 
   const { adminFirstName } = useMemo(() => {
     const name = sanitizeForDisplay(getAdminDisplayName(profile, user))
@@ -422,10 +418,6 @@ export default function AdminDashboard() {
           />
         </div>
 
-        <div className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}>
-          <DashboardMetricsCards metrics={dashboardMetrics} />
-        </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           <div className="lg:col-span-2">
             <DashboardActivityFeed items={recentActivity} />
@@ -463,7 +455,7 @@ export default function AdminDashboard() {
               </div>
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-success">
-                  {dashboardMetrics.approvalRate}%
+                  {approvalRate}%
                 </div>
                 <div className="text-sm font-semibold text-foreground">Success Rate</div>
                 <div className="text-xs font-medium text-primary mt-1">Stable performance</div>

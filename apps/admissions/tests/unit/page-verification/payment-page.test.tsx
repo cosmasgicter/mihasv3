@@ -38,6 +38,7 @@ vi.mock('react-router-dom', () => ({
     <a href={to}>{children}</a>
   ),
   useNavigate: () => mockNavigate,
+  useSearchParams: () => [new URLSearchParams(), vi.fn()],
 }))
 
 // ── Mock AuthContext ───────────────────────────────────────────────────
@@ -133,6 +134,10 @@ const djangoApplicationsWithPayment = {
       last_payment_audit_notes: null,
       created_at: '2025-01-15T10:00:00Z',
       program: 'Bachelor of Nursing',
+      full_name: 'Jane Doe',
+      email: 'student@example.com',
+      phone: '+260970000001',
+      application_fee: 153,
     },
     {
       id: 'app-002',
@@ -148,6 +153,10 @@ const djangoApplicationsWithPayment = {
       last_payment_audit_notes: null,
       created_at: '2025-02-01T08:00:00Z',
       program: 'Diploma in Pharmacy',
+      full_name: 'Jane Doe',
+      email: 'student@example.com',
+      phone: '+260970000001',
+      application_fee: 153,
     },
     {
       id: 'app-003',
@@ -163,6 +172,10 @@ const djangoApplicationsWithPayment = {
       last_payment_audit_notes: null,
       created_at: '2024-12-10T08:00:00Z',
       program: 'Certificate in Community Health',
+      full_name: 'Jane Doe',
+      email: 'student@example.com',
+      phone: '+260970000001',
+      application_fee: 153,
     },
     {
       id: 'app-004',
@@ -178,6 +191,10 @@ const djangoApplicationsWithPayment = {
       last_payment_audit_notes: 'The last payment attempt could not be verified. Please review the latest instructions and try again.',
       created_at: '2025-03-01T08:00:00Z',
       program: 'Bachelor of Nursing',
+      full_name: 'Jane Doe',
+      email: 'student@example.com',
+      phone: '+260970000001',
+      application_fee: 153,
     },
   ],
   totalCount: 4,
@@ -195,6 +212,10 @@ function buildPaymentApplications(apps: typeof djangoApplicationsWithPayment.app
     last_payment_audit_notes: typeof app.last_payment_audit_notes === 'string' ? app.last_payment_audit_notes : null,
     created_at: typeof app.created_at === 'string' ? app.created_at : new Date().toISOString(),
     program: typeof app.program === 'string' ? app.program : null,
+    full_name: typeof app.full_name === 'string' ? app.full_name : null,
+    email: typeof app.email === 'string' ? app.email : null,
+    phone: typeof app.phone === 'string' ? app.phone : null,
+    application_fee: typeof app.application_fee === 'number' ? app.application_fee : null,
   }))
 }
 
@@ -326,18 +347,11 @@ describe('Payment page verification', () => {
     expect(text).toContain('The last payment attempt could not be verified')
   })
 
-  it('links payment review actions to the canonical application status route', async () => {
+  it('renders retry buttons for payment actions on the dedicated payment page', async () => {
     await renderAndWait()
 
-    const reviewLinks = Array.from(container.querySelectorAll<HTMLAnchorElement>('a'))
-      .filter((link) => link.textContent?.includes('Review payment status') || link.textContent?.includes('Review rejected payment'))
-
-    expect(reviewLinks.map((link) => link.getAttribute('href'))).toEqual(
-      expect.arrayContaining([
-        '/student/application/app-001/status',
-        '/student/application/app-004/status',
-      ])
-    )
+    expect(container.querySelector('[data-testid="payment-page-retry-app-001"]')).toBeTruthy()
+    expect(container.querySelector('[data-testid="payment-page-retry-app-004"]')).toBeTruthy()
   })
 
   // ── Summary cards ───────────────────────────────────────────────────
@@ -408,19 +422,19 @@ describe('Payment page verification', () => {
     expect(text).toContain('Application Fee')
   })
 
-  it('explains that payment happens in the wizard', async () => {
+  it('explains that submitted payments can be retried outside the wizard', async () => {
     await renderAndWait()
 
     const text = container.textContent || ''
-    expect(text).toContain('Payment is handled securely in the Application Wizard')
-    expect(text).toContain('The exact fee is calculated in the wizard')
+    expect(text).toContain('Failed or unpaid submitted applications can be retried from this page')
+    expect(text).toContain('without returning to the wizard')
   })
 
   it('displays the continue to wizard button', async () => {
     await renderAndWait()
 
     const text = container.textContent || ''
-    expect(text).toContain('Continue to Application Wizard')
+    expect(text).toContain('Start or Continue Draft Application')
   })
 
   it('displays the help/support contact', async () => {
@@ -453,6 +467,7 @@ describe('Payment page verification', () => {
     expect(apps[1].id).toBe('app-002')
     expect(apps[1].payment_status).toBe('pending_review')
     expect(apps[1].program).toBe('Diploma in Pharmacy')
+    expect(apps[1].application_fee).toBe(153)
 
     // app-003: verified
     expect(apps[2].payment_status).toBe('verified')

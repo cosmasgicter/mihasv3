@@ -16,6 +16,7 @@ export interface CanonicalProfileFields {
   address?: StringLike
   nationality?: StringLike
   nrc_number?: StringLike
+  passport_number?: StringLike
   next_of_kin_name?: StringLike
   next_of_kin_phone?: StringLike
 }
@@ -99,10 +100,8 @@ export function getCanonicalResidenceTown(
   return pickFirstText(
     profile?.residence_town,
     profile?.city,
-    profile?.address,
     metadata?.residence_town,
     metadata?.city,
-    metadata?.address,
   )
 }
 

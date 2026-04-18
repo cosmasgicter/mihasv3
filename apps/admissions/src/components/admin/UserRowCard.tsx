@@ -136,17 +136,17 @@ export const UserMobileCard = React.memo<UserRowProps>(function UserMobileCard({
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-4">
-        <Button variant="outline" size="sm" className="min-h-[44px]" onClick={() => onEdit(user)}>
+        <Button variant="outline" size="sm" className="min-h-[44px] min-w-[44px]" onClick={() => onEdit(user)}>
           Edit
         </Button>
-        <Button variant="outline" size="sm" className="min-h-[44px]" onClick={() => onPermissions(user)}>
+        <Button variant="outline" size="sm" className="min-h-[44px] min-w-[44px]" onClick={() => onPermissions(user)}>
           Permissions
         </Button>
-        <Button variant="outline" size="sm" className="min-h-[44px]" onClick={() => onActivity(userId)}>
+        <Button variant="outline" size="sm" className="min-h-[44px] min-w-[44px]" onClick={() => onActivity(userId)}>
           Activity
         </Button>
         {user.role !== 'super_admin' && (
-          <Button variant="outline" size="sm" className="min-h-[44px] border-destructive/30 text-destructive hover:bg-destructive/5" onClick={() => onDeactivate(user)}>
+          <Button variant="outline" size="sm" className="min-h-[44px] min-w-[44px] border-destructive/30 text-destructive hover:bg-destructive/5" onClick={() => onDeactivate(user)}>
             Deactivate
           </Button>
         )}

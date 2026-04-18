@@ -9,7 +9,7 @@
 
 import { useCallback, useEffect, useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { formatDate, formatTimestamp } from '@/lib/dateFormat'
+import { formatDate } from '@/lib/dateFormat'
 import { Seo } from '@/components/seo/Seo'
 import { 
   Calendar, 
@@ -157,9 +157,21 @@ function extractMeetingLink(...sources: Array<string | null | undefined>): strin
  * @requirements 4.1 - Display scheduled_at date and time
  */
 function formatDateTime(dateString: string): { date: string; time: string } {
+  const parsed = new Date(dateString)
+
+  if (Number.isNaN(parsed.getTime())) {
+    return {
+      date: dateString,
+      time: dateString,
+    }
+  }
+
   return {
     date: formatDate(dateString),
-    time: formatTimestamp(dateString),
+    time: parsed.toLocaleTimeString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
   }
 }
 
@@ -225,7 +237,8 @@ export default function InterviewPage() {
 
     state.interviews.forEach(interview => {
       const interviewDate = new Date(interview.scheduled_at)
-      if (interviewDate >= now) {
+      const activeUpcomingStatus = interview.status === 'scheduled' || interview.status === 'rescheduled'
+      if (activeUpcomingStatus && interviewDate >= now) {
         upcoming.push(interview)
       } else {
         past.push(interview)
@@ -246,7 +259,7 @@ export default function InterviewPage() {
       <Seo
         title="My Interview | MIHAS-KATC Admissions"
         description="View your scheduled interviews and prepare for your MIHAS-KATC admission process."
-        path="/student/interviews"
+        path="/student/interview"
         noindex
       />
       <PageShell title="Interview Schedule" subtitle="Loading interview information...">
@@ -285,7 +298,7 @@ export default function InterviewPage() {
       <Seo
         title="My Interview | MIHAS-KATC Admissions"
         description="View your scheduled interviews and prepare for your MIHAS-KATC admission process."
-        path="/student/interviews"
+        path="/student/interview"
         noindex
       />
     <PageShell
@@ -414,6 +427,25 @@ function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpco
   const meetingLink = interview.mode === 'virtual'
     ? extractMeetingLink(interview.location, interview.notes)
     : null
+  const modeDetail = (() => {
+    if (interview.mode === 'in_person' && interview.location) {
+      return { icon: <MapPin className="h-4 w-4 flex-shrink-0" />, text: interview.location }
+    }
+
+    if (interview.mode === 'phone' && interview.location) {
+      return { icon: <Phone className="h-4 w-4 flex-shrink-0" />, text: interview.location }
+    }
+
+    if (interview.mode === 'virtual' && meetingLink) {
+      return { icon: <Video className="h-4 w-4 flex-shrink-0" />, text: 'Meeting link available' }
+    }
+
+    if (interview.mode === 'virtual') {
+      return { icon: <Video className="h-4 w-4 flex-shrink-0" />, text: 'Meeting details will be shared before the interview' }
+    }
+
+    return null
+  })()
 
   return (
     <div 
@@ -449,11 +481,10 @@ function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpco
               <span>{getModeLabel(interview.mode)}</span>
             </div>
             
-            {/* @requirements 4.4 - Display location for in_person interviews */}
-            {interview.mode === 'in_person' && interview.location && (
+            {modeDetail && (
               <div className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4 flex-shrink-0" />
-                <span>{interview.location}</span>
+                {modeDetail.icon}
+                <span>{modeDetail.text}</span>
               </div>
             )}
           </div>

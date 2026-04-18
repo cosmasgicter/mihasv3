@@ -230,8 +230,9 @@ export default function ProgramFees() {
       setError('Please select a program')
       return
     }
-    if (!feeForm.amount || Number(feeForm.amount) <= 0) {
-      setError('Amount must be greater than 0')
+    const parsedAmount = Number(feeForm.amount)
+    if (!feeForm.amount || isNaN(parsedAmount) || parsedAmount <= 0) {
+      setError('Amount must be a valid positive number')
       return
     }
 
@@ -246,8 +247,9 @@ export default function ProgramFees() {
 
   const handleUpdate = () => {
     if (!currentFee) return
-    if (!feeForm.amount || Number(feeForm.amount) <= 0) {
-      setError('Amount must be greater than 0')
+    const parsedAmount = Number(feeForm.amount)
+    if (!feeForm.amount || isNaN(parsedAmount) || parsedAmount <= 0) {
+      setError('Amount must be a valid positive number')
       return
     }
 

@@ -21,6 +21,10 @@ export const CSP_CONFIG = {
     "'self'",
     "blob:"
   ],
+  'child-src': [
+    "'self'",
+    "blob:"
+  ],
   'style-src': [
     "'self'",
     "'unsafe-inline'", // Required for Tailwind CSS
@@ -49,7 +53,8 @@ export const CSP_CONFIG = {
     "https://api.mihas.edu.zm",
     "https://*.neon.tech",
     "https://pay.lenco.co",
-    "https://pay.sandbox.lenco.co"
+    "https://pay.sandbox.lenco.co",
+    "https://cdn.jsdelivr.net"
   ],
   'object-src': ["'none'"],
   'base-uri': ["'self'"],

@@ -50,6 +50,7 @@ function areNotificationItemPropsEqual(
     prev.notification.type === next.notification.type &&
     prev.notification.title === next.notification.title &&
     prev.notification.content === next.notification.content &&
+    prev.notification.action_url === next.notification.action_url &&
     prev.notification.created_at === next.notification.created_at &&
     prev.index === next.index &&
     prev.onClick === next.onClick &&

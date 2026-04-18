@@ -25,6 +25,7 @@ import {
   exportAuditEntriesToPdf,
   type AuditExportFormat,
 } from '@/lib/auditExports'
+import { sanitizeForDisplay } from '@/lib/sanitize'
 import {
   Activity,
   AlertTriangle,
@@ -161,9 +162,9 @@ function AuditEntryCard({ entry }: { entry: AuditLogEntry }) {
     }
   }, [entry.createdAt])
 
-  const actorDisplay = entry.actorName || entry.actorEmail || 'System'
+  const actorDisplay = sanitizeForDisplay(entry.actorName || entry.actorEmail) || 'System'
   const actorRole = entry.actorRoles?.[0]
-    ? entry.actorRoles[0].replace(/_/g, ' ')
+    ? sanitizeForDisplay(entry.actorRoles[0].replace(/_/g, ' '))
     : 'system'
   const payloadText = stringifyPayload(entry.changes || entry.metadata)
 
@@ -173,14 +174,14 @@ function AuditEntryCard({ entry }: { entry: AuditLogEntry }) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${formatCategoryStyles(entry.category)}`}>
-              {entry.category}
+              {sanitizeForDisplay(entry.category)}
             </span>
             <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-              {formatEntityLabel(entry.targetTable)}
+              {sanitizeForDisplay(formatEntityLabel(entry.targetTable))}
             </span>
           </div>
 
-          <h3 className="mt-3 text-lg font-semibold text-foreground">{entry.action}</h3>
+          <h3 className="mt-3 text-lg font-semibold text-foreground">{sanitizeForDisplay(entry.action)}</h3>
 
           <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-xl border border-border bg-muted/20 p-3">
@@ -197,8 +198,8 @@ function AuditEntryCard({ entry }: { entry: AuditLogEntry }) {
                 <Database className="h-3.5 w-3.5" />
                 Target
               </div>
-              <p className="mt-1 text-sm font-medium text-foreground">{formatEntityLabel(entry.targetTable)}</p>
-              <p className="truncate text-xs text-muted-foreground">{entry.targetId || 'No target id'}</p>
+              <p className="mt-1 text-sm font-medium text-foreground">{sanitizeForDisplay(formatEntityLabel(entry.targetTable))}</p>
+              <p className="truncate text-xs text-muted-foreground">{sanitizeForDisplay(entry.targetId) || 'No target id'}</p>
             </div>
 
             <div className="rounded-xl border border-border bg-muted/20 p-3">
@@ -206,7 +207,7 @@ function AuditEntryCard({ entry }: { entry: AuditLogEntry }) {
                 <Globe className="h-3.5 w-3.5" />
                 Request IP
               </div>
-              <p className="mt-1 text-sm font-medium text-foreground">{entry.requestIp || 'Unavailable'}</p>
+              <p className="mt-1 text-sm font-medium text-foreground">{sanitizeForDisplay(entry.requestIp) || 'Unavailable'}</p>
               <p className="text-xs text-muted-foreground">Captured from request context</p>
             </div>
 
@@ -251,15 +252,15 @@ function AuditEntryCard({ entry }: { entry: AuditLogEntry }) {
               <dl className="mt-3 space-y-3 text-sm">
                 <div>
                   <dt className="font-medium text-muted-foreground">Actor email</dt>
-                  <dd className="text-foreground">{entry.actorEmail || 'Unavailable'}</dd>
+                  <dd className="text-foreground">{sanitizeForDisplay(entry.actorEmail) || 'Unavailable'}</dd>
                 </div>
                 <div>
                   <dt className="font-medium text-muted-foreground">Actor id</dt>
-                  <dd className="break-all font-mono text-foreground">{entry.actorId || 'System'}</dd>
+                  <dd className="break-all font-mono text-foreground">{sanitizeForDisplay(entry.actorId) || 'System'}</dd>
                 </div>
                 <div>
                   <dt className="font-medium text-muted-foreground">User agent</dt>
-                  <dd className="break-words text-foreground">{entry.userAgent || 'Unavailable'}</dd>
+                  <dd className="break-words text-foreground">{sanitizeForDisplay(entry.userAgent) || 'Unavailable'}</dd>
                 </div>
               </dl>
             </div>

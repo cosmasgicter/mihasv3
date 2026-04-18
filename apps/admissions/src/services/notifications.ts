@@ -1,6 +1,6 @@
 import { apiClient } from './client'
 import { logApiError } from '@/lib/apiErrorLogger'
-import type { NotificationData } from '@/types/notifications'
+import type { NotificationData, StudentNotification } from '@/types/notifications'
 
 type UpdatePreferencesPayload = {
   email_enabled?: boolean
@@ -28,6 +28,43 @@ type SendNotificationApiResponse = {
   mandatory?: boolean
   duplicate?: boolean
   id?: string
+}
+
+function firstArrayValue(...values: unknown[]): StudentNotification[] {
+  for (const value of values) {
+    if (Array.isArray(value)) {
+      return value as StudentNotification[]
+    }
+  }
+
+  return []
+}
+
+export function normalizeNotificationsResponse(response: unknown): StudentNotification[] {
+  if (Array.isArray(response)) {
+    return response as StudentNotification[]
+  }
+
+  if (!response || typeof response !== 'object') {
+    return []
+  }
+
+  const envelope = response as Record<string, unknown>
+  const data = envelope.data
+
+  if (Array.isArray(data)) {
+    return data as StudentNotification[]
+  }
+
+  if (data && typeof data === 'object') {
+    const nested = data as Record<string, unknown>
+    const nestedResults = firstArrayValue(nested.results, nested.notifications)
+    if (nestedResults.length > 0) {
+      return nestedResults
+    }
+  }
+
+  return firstArrayValue(envelope.results, envelope.notifications)
 }
 
 // ─── Template Constants (merged from NotificationService class) ───
@@ -94,6 +131,8 @@ export const notificationService = {
       body: JSON.stringify({
         ...('email_enabled' in payload ? { email_enabled: payload.email_enabled } : {}),
         ...('sms_enabled' in payload ? { sms_enabled: payload.sms_enabled } : {}),
+        ...('whatsapp_enabled' in payload ? { whatsapp_enabled: payload.whatsapp_enabled } : {}),
+        ...('in_app_enabled' in payload ? { in_app_enabled: payload.in_app_enabled } : {}),
         ...('application_updates' in payload ? { application_updates: payload.application_updates } : {}),
         ...('payment_reminders' in payload ? { payment_reminders: payload.payment_reminders } : {}),
         ...('interview_reminders' in payload ? { interview_reminders: payload.interview_reminders } : {}),

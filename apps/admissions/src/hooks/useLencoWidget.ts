@@ -52,7 +52,7 @@ const WIDGET_URL =
 // ---------------------------------------------------------------------------
 
 export function useLencoWidget() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [isScriptLoaded, setIsScriptLoaded] = useState(false)
   const scriptLoadedRef = useRef(false)
 
@@ -61,6 +61,7 @@ export function useLencoWidget() {
     // Already loaded in a previous render
     if (window.LencoPay) {
       setIsScriptLoaded(true)
+      setIsLoading(false)
       scriptLoadedRef.current = true
       return
     }
@@ -73,6 +74,7 @@ export function useLencoWidget() {
       // Script tag exists — wait for it to finish loading
       const onLoad = () => {
         setIsScriptLoaded(true)
+        setIsLoading(false)
         scriptLoadedRef.current = true
       }
       if (window.LencoPay) {
@@ -90,12 +92,14 @@ export function useLencoWidget() {
 
     script.onload = () => {
       setIsScriptLoaded(true)
+      setIsLoading(false)
       scriptLoadedRef.current = true
     }
 
     script.onerror = () => {
       console.error('[useLencoWidget] Failed to load Lenco widget script')
       setIsScriptLoaded(false)
+      setIsLoading(false)
       scriptLoadedRef.current = false
     }
 

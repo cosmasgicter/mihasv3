@@ -1,14 +1,15 @@
 /**
- * Payment Page — Read-only payment history
+ * Payment Page
  *
- * Displays payment status per application and links to the Application Wizard
- * for applications that still need payment. All payment mutations happen
- * exclusively through the Lenco widget inside the wizard.
+ * Displays payment history and owns post-submission payment recovery. Drafts
+ * still return to the wizard, but failed or unpaid submitted applications can
+ * be retried here without reopening the application wizard.
  *
  * @requirements 1.1, 1.2, 1.3, 1.4, 1.5
  */
 
-import { useNavigate, Link } from 'react-router-dom'
+import { useCallback } from 'react'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Seo } from '@/components/seo/Seo'
 import {
@@ -32,6 +33,7 @@ import { apiClient } from '@/services/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
+import { useApplicationPaymentAction } from '@/hooks/useApplicationPaymentAction'
 import {
   normalizePaymentStatus,
   requiresStudentPaymentAction,
@@ -45,14 +47,16 @@ interface PaymentRecord {
   id: string
   application_id: string
   status: string
-  amount: number | null
+  amount: number | string | null
   currency: string | null
   created_at: string
   transaction_reference?: string | null
 }
 
 interface PaymentListResponse {
+  data?: PaymentRecord[] | { results?: PaymentRecord[] }
   results?: PaymentRecord[]
+  payments?: PaymentRecord[]
   [key: string]: unknown
 }
 
@@ -61,6 +65,10 @@ interface ApplicationSummary {
   status: string
   payment_status: string | null
   program: string | null
+  full_name: string | null
+  email: string | null
+  phone: string | null
+  application_fee: number | null
   created_at: string
   last_payment_audit_notes?: string | null
 }
@@ -69,10 +77,11 @@ interface ApplicationSummary {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatCurrency(amount: number | null, currency: string | null): string {
-  if (amount == null) return '—'
+function formatCurrency(amount: number | string | null, currency: string | null): string {
+  const normalizedAmount = normalizeAmount(amount)
+  if (normalizedAmount == null) return '—'
   const symbol = currency === 'ZMW' ? 'K' : (currency ?? '')
-  return `${symbol}${amount.toFixed(2)}`
+  return `${symbol}${normalizedAmount.toFixed(2)}`
 }
 
 function formatTimestamp(iso: string): string {
@@ -100,6 +109,47 @@ function paymentStatusBadge(status: string) {
 
 function formatApplicationStatus(status: string) {
   return status.replace(/_/g, ' ').replace(/\b\w/g, (character) => character.toUpperCase())
+}
+
+function normalizeAmount(value: unknown): number | null {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : null
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+
+  return null
+}
+
+function normalizePaymentRecords(response: PaymentListResponse | PaymentRecord[] | null | undefined): PaymentRecord[] {
+  if (Array.isArray(response)) {
+    return response
+  }
+
+  if (!response || typeof response !== 'object') {
+    return []
+  }
+
+  if (Array.isArray(response.results)) {
+    return response.results
+  }
+
+  if (Array.isArray(response.payments)) {
+    return response.payments
+  }
+
+  if (Array.isArray(response.data)) {
+    return response.data
+  }
+
+  if (response.data && typeof response.data === 'object' && Array.isArray(response.data.results)) {
+    return response.data.results
+  }
+
+  return []
 }
 
 function getPaymentStatusBadge(status: string | null) {
@@ -135,10 +185,10 @@ function getPaymentGuidance(app: ApplicationSummary) {
   }
 
   if (normalizedPaymentStatus === 'rejected') {
-    return 'Your previous payment was rejected. Review the application status and follow the latest instructions before retrying.'
+    return 'Your previous payment was rejected. Review the note below, then retry payment from this page.'
   }
 
-  return 'This application still needs payment attention before it can move forward in review.'
+  return 'This application still needs payment. You can complete it here without returning to the application wizard.'
 }
 
 function getPaymentAction(app: ApplicationSummary) {
@@ -154,9 +204,166 @@ function getPaymentAction(app: ApplicationSummary) {
   }
 
   return {
-    href: `/student/application/${app.id}/status`,
-    label: app.payment_status === 'rejected' ? 'Review rejected payment' : 'Review payment status',
+    href: `/student/payment?applicationId=${encodeURIComponent(app.id)}`,
+    label: app.payment_status === 'rejected' ? 'Retry rejected payment' : 'Pay application fee',
   }
+}
+
+interface ApplicationPaymentCardProps {
+  app: ApplicationSummary
+  records: PaymentRecord[]
+  isSelected: boolean
+  onPaymentRefresh: () => Promise<void>
+}
+
+function ApplicationPaymentCard({
+  app,
+  records,
+  isSelected,
+  onPaymentRefresh,
+}: ApplicationPaymentCardProps) {
+  const paymentBadge = getPaymentStatusBadge(app.payment_status)
+  const paymentAction = getPaymentAction(app)
+  const canRetryOnPaymentPage = app.status !== 'draft' && requiresStudentPaymentAction(app.payment_status)
+
+  const getCustomerDetails = useCallback(() => ({
+    fullName: app.full_name,
+    email: app.email,
+    phone: app.phone,
+  }), [app.email, app.full_name, app.phone])
+
+  const {
+    paymentStatus,
+    statusMessage,
+    initiateError,
+    widgetLoading,
+    isScriptLoaded,
+    startPayment,
+  } = useApplicationPaymentAction({
+    applicationId: app.id,
+    getCustomerDetails,
+    onPaymentStatusRefresh: onPaymentRefresh,
+  })
+
+  const latestAmount = app.application_fee ?? normalizeAmount(records[0]?.amount) ?? null
+  const latestCurrency = records[0]?.currency ?? 'ZMW'
+  const paymentInProgress = paymentStatus === 'initiating' || paymentStatus === 'pending'
+  const retryDisabled = !isScriptLoaded || widgetLoading || paymentInProgress
+
+  return (
+    <div
+      className={`rounded-lg border p-4 space-y-3 ${
+        isSelected ? 'border-primary bg-primary/5' : 'border-border'
+      }`}
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 space-y-2">
+          <p className="font-medium text-foreground truncate">
+            {app.program || 'Application'}
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary">
+              Application: {formatApplicationStatus(app.status)}
+            </Badge>
+            <Badge variant={paymentBadge.variant}>
+              Payment: {paymentBadge.label}
+            </Badge>
+            {latestAmount != null && (
+              <Badge variant="outline">
+                Fee: {formatCurrency(latestAmount, latestCurrency)}
+              </Badge>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {getPaymentGuidance(app)}
+          </p>
+        </div>
+        {paymentAction && (
+          app.status === 'draft' ? (
+            <Button
+              asChild
+              size="sm"
+              className="min-h-[44px] flex-shrink-0"
+            >
+              <Link to={paymentAction.href}>
+                {paymentAction.label}
+                <ArrowRight className="h-3.5 w-3.5 ml-1" />
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              size="sm"
+              className="min-h-[44px] flex-shrink-0"
+              disabled={retryDisabled}
+              loading={paymentStatus === 'initiating' || widgetLoading}
+              onClick={() => void startPayment()}
+              data-testid={`payment-page-retry-${app.id}`}
+            >
+              {paymentStatus === 'pending' ? 'Checking payment...' : paymentAction.label}
+              <ArrowRight className="h-3.5 w-3.5 ml-1" />
+            </Button>
+          )
+        )}
+      </div>
+
+      {canRetryOnPaymentPage && !isScriptLoaded && !widgetLoading && (
+        <div className="rounded-md border border-warning/20 bg-warning/10 px-3 py-2 text-sm text-foreground">
+          Payment widget unavailable. Refresh the page and try again.
+        </div>
+      )}
+
+      {statusMessage && (
+        <div className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-foreground">
+          {statusMessage}
+        </div>
+      )}
+
+      {initiateError && (
+        <div className="rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+          {initiateError}
+        </div>
+      )}
+
+      {app.last_payment_audit_notes && normalizePaymentStatus(app.payment_status) === 'rejected' && (
+        <div className="rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-foreground">
+          <span className="font-semibold text-destructive">Review note:</span>{' '}
+          {app.last_payment_audit_notes}
+        </div>
+      )}
+
+      {records.length > 0 ? (
+        <div className="divide-y divide-border rounded-md border border-border overflow-hidden">
+          {records.map((rec) => {
+            const badge = paymentStatusBadge(rec.status)
+            return (
+              <div
+                key={rec.id}
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 text-sm"
+              >
+                <div className="flex items-center gap-2">
+                  <Badge variant={badge.variant} className="flex items-center gap-1">
+                    {badge.icon}
+                    {badge.label}
+                  </Badge>
+                  <span className="text-foreground font-medium">
+                    {formatCurrency(rec.amount, rec.currency)}
+                  </span>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {formatTimestamp(rec.created_at)}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        <p className="text-xs text-muted-foreground">
+          No payment records yet.
+        </p>
+      )}
+    </div>
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -165,7 +372,9 @@ function getPaymentAction(app: ApplicationSummary) {
 
 export default function PaymentPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { user } = useAuth()
+  const selectedApplicationId = searchParams.get('applicationId')
 
   // ---- Fetch student's applications ----
   const {
@@ -183,6 +392,10 @@ export default function PaymentPage() {
         status: app.status,
         payment_status: typeof app.payment_status === 'string' ? app.payment_status : null,
         program: typeof app.program === 'string' ? app.program : null,
+        full_name: typeof app.full_name === 'string' ? app.full_name : null,
+        email: typeof app.email === 'string' ? app.email : null,
+        phone: typeof app.phone === 'string' ? app.phone : null,
+        application_fee: normalizeAmount(app.application_fee),
         created_at: typeof app.created_at === 'string' ? app.created_at : new Date().toISOString(),
         last_payment_audit_notes:
           typeof app.last_payment_audit_notes === 'string' ? app.last_payment_audit_notes : null,
@@ -198,8 +411,9 @@ export default function PaymentPage() {
   const {
     data: paymentsByApp = {},
     isLoading: loadingPayments,
+    refetch: refetchPayments,
   } = useQuery<Record<string, PaymentRecord[]>>({
-    queryKey: ['payment-records', user?.id],
+    queryKey: ['payment-records', user?.id, applicationIds.join(',')],
     queryFn: async () => {
       const result: Record<string, PaymentRecord[]> = {}
 
@@ -208,16 +422,29 @@ export default function PaymentPage() {
       }
 
       try {
-        const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>('/payments/')
-        const records: PaymentRecord[] = Array.isArray(data)
-          ? data
-          : (data as PaymentListResponse).results ?? []
+        const settledPayments = await Promise.allSettled(
+          applicationIds.map(async (appId) => {
+            const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>(
+              `/payments/?application_id=${encodeURIComponent(appId)}`
+            )
+            return [appId, normalizePaymentRecords(data)] as const
+          })
+        )
 
-        applicationIds.forEach((appId) => {
-          result[appId] = records.filter(record => record.application_id === appId)
+        settledPayments.forEach((settled, index) => {
+          const fallbackAppId = applicationIds[index]
+          if (!fallbackAppId) return
+
+          if (settled.status === 'fulfilled') {
+            const [appId, records] = settled.value
+            result[appId] = records
+          } else {
+            logApiError('payment-page', `/payments/?application_id=${fallbackAppId}`, settled.reason)
+            result[fallbackAppId] = []
+          }
         })
       } catch (err) {
-        logApiError('payment-page', '/payments/', err)
+        logApiError('payment-page', '/payments/?application_id=<id>', err)
         applicationIds.forEach((appId) => {
           result[appId] = []
         })
@@ -234,6 +461,13 @@ export default function PaymentPage() {
   const handleContinueToWizard = () => {
     navigate('/student/application-wizard')
   }
+
+  const handlePaymentRefresh = useCallback(async () => {
+    await Promise.all([
+      refetchApps(),
+      refetchPayments(),
+    ])
+  }, [refetchApps, refetchPayments])
 
   // ---- Loading state ----
   if (loading) {
@@ -289,7 +523,7 @@ export default function PaymentPage() {
       />
     <PageShell
       title="Application Payment"
-      subtitle="View your payment history and continue to the Application Wizard to make a payment."
+      subtitle="View payment history and retry failed or unpaid application fees without returning to the wizard."
     >
       {/* Back to Dashboard */}
       <div className="mb-6">
@@ -324,7 +558,7 @@ export default function PaymentPage() {
               <div>
                 <CardTitle>Application Fee</CardTitle>
                 <CardDescription>
-                  Payment is handled securely in the Application Wizard via the Lenco payment gateway.
+                  Payment is handled securely via the Lenco payment gateway.
                 </CardDescription>
               </div>
             </div>
@@ -333,7 +567,7 @@ export default function PaymentPage() {
             <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
               <p className="text-sm font-medium text-foreground">Application fees are resolved per application</p>
               <p className="text-xs text-muted-foreground mt-1">
-                The exact fee is calculated in the wizard based on the selected programme and residency details before payment starts.
+                Draft applications continue in the wizard. Failed or unpaid submitted applications can be retried from this page.
               </p>
             </div>
 
@@ -342,7 +576,7 @@ export default function PaymentPage() {
               className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 min-h-[44px]"
             >
               <Link to="/student/application-wizard">
-                Continue to Application Wizard
+                Start or Continue Draft Application
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Link>
             </Button>
@@ -363,85 +597,15 @@ export default function PaymentPage() {
               <div className="space-y-4">
                 {applications.map((app) => {
                   const records = paymentsByApp[app.id] ?? []
-                  const paymentBadge = getPaymentStatusBadge(app.payment_status)
-                  const paymentAction = getPaymentAction(app)
 
                   return (
-                    <div
+                    <ApplicationPaymentCard
                       key={app.id}
-                      className="rounded-lg border border-border p-4 space-y-3"
-                    >
-                      {/* Application header */}
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="min-w-0 space-y-2">
-                          <p className="font-medium text-foreground truncate">
-                            {app.program || 'Application'}
-                          </p>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant="secondary">
-                              Application: {formatApplicationStatus(app.status)}
-                            </Badge>
-                            <Badge variant={paymentBadge.variant}>
-                              Payment: {paymentBadge.label}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {getPaymentGuidance(app)}
-                          </p>
-                        </div>
-                        {paymentAction && (
-                          <Button
-                            asChild
-                            size="sm"
-                            className="min-h-[44px] flex-shrink-0"
-                          >
-                            <Link to={paymentAction.href}>
-                              {paymentAction.label}
-                              <ArrowRight className="h-3.5 w-3.5 ml-1" />
-                            </Link>
-                          </Button>
-                        )}
-                      </div>
-
-                      {app.last_payment_audit_notes && normalizePaymentStatus(app.payment_status) === 'rejected' && (
-                        <div className="rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-foreground">
-                          <span className="font-semibold text-destructive">Review note:</span>{' '}
-                          {app.last_payment_audit_notes}
-                        </div>
-                      )}
-
-                      {/* Payment records list */}
-                      {records.length > 0 ? (
-                        <div className="divide-y divide-border rounded-md border border-border overflow-hidden">
-                          {records.map((rec) => {
-                            const badge = paymentStatusBadge(rec.status)
-                            return (
-                              <div
-                                key={rec.id}
-                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 text-sm"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <Badge variant={badge.variant} className="flex items-center gap-1">
-                                    {badge.icon}
-                                    {badge.label}
-                                  </Badge>
-                                  <span className="text-foreground font-medium">
-                                    {formatCurrency(rec.amount, rec.currency)}
-                                  </span>
-                                </div>
-                                <span className="text-xs text-muted-foreground">
-                                  {formatTimestamp(rec.created_at)}
-                                </span>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-muted-foreground">
-                          No payment records yet.
-                        </p>
-                      )}
-                    </div>
+                      app={app}
+                      records={records}
+                      isSelected={selectedApplicationId === app.id}
+                      onPaymentRefresh={handlePaymentRefresh}
+                    />
                   )
                 })}
               </div>

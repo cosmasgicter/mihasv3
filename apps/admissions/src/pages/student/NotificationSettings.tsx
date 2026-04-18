@@ -397,7 +397,7 @@ export default function NotificationSettings() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {notifications.slice(0, 5).map(notification => (
+                    {notifications.map(notification => (
                       <div
                         key={notification.id}
                         className={`rounded-xl border px-4 py-3 ${

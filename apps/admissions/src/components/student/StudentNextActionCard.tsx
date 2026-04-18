@@ -54,7 +54,9 @@ function buildNextAction({
       description: paymentApplication?.application_number
         ? `Application #${paymentApplication.application_number} is waiting for payment follow-up.`
         : 'One of your applications is waiting for payment follow-up.',
-      href: '/student/payment',
+      href: paymentApplication
+        ? `/student/payment?applicationId=${encodeURIComponent(paymentApplication.id)}`
+        : '/student/payment',
       cta: 'Go to payment',
       secondaryHref: latestApplication ? `/student/application/${latestApplication.id}` : undefined,
       secondaryCta: latestApplication ? 'View application' : undefined,

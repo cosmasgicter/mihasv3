@@ -11,7 +11,7 @@ import { applicationsData } from '@/data/applications'
 import { catalogData } from '@/data/catalog'
 import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
-import { useProfileAutoPopulation, getBestValue, getUserMetadata } from '@/hooks/useProfileAutoPopulation'
+import { useProfileAutoPopulation, getBestValue, getUserMetadata, normalizeSexForWizard } from '@/hooks/useProfileAutoPopulation'
 import { useEligibilityChecker } from '@/hooks/useEligibilityChecker'
 import { normalizePaymentStatusValue, usePaymentStatus } from '@/hooks/usePaymentStatus'
 // eslint-disable-next-line no-restricted-imports -- eligibilityEngine is still used until API-backed replacement is ready
@@ -834,7 +834,7 @@ const useWizardController = (): UseWizardControllerResult => {
     return () => window.removeEventListener('mihas:before-auth-redirect', handleAuthRedirect)
   }, [preserveDraftBeforeAuthRedirect])
 
-  const { completionPercentage, missingFields, hasAutoPopulatedData } = useProfileAutoPopulation(setValue as (field: string, value: string) => void)
+  const { completionPercentage, missingFields, hasAutoPopulatedData } = useProfileAutoPopulation()
   const wizardReadiness = buildWizardReadiness({
     values: watch(),
     selectedGrades,
@@ -863,31 +863,68 @@ const useWizardController = (): UseWizardControllerResult => {
     if (user && !authLoading && !restoringDraft && !draftLoaded) {
       const metadata = getUserMetadata(user)
       const email = user.email || ''
+      const setIfEmpty = (field: keyof WizardFormData, value: string) => {
+        const normalizedValue = value.trim()
+        if (!normalizedValue) return
+
+        const currentValue = getValues(field)
+        if (typeof currentValue === 'string' && currentValue.trim()) {
+          return
+        }
+
+        setValue(field, normalizedValue as WizardFormData[typeof field], {
+          shouldDirty: false,
+          shouldTouch: false,
+          shouldValidate: false,
+        })
+      }
       
       const fullName = getBestValue(profile?.full_name, metadata.full_name, email.split('@')[0] || '')
       const phone = getBestValue(profile?.phone, metadata.phone, '')
       const dateOfBirth = normalizeDateInputValue(
         getBestValue(profile?.date_of_birth, metadata.date_of_birth, '')
       )
-      const sex = getBestValue(profile?.sex, metadata.sex, '')
+      const sex = normalizeSexForWizard(getBestValue(profile?.sex, metadata.sex, ''))
       const residenceTown = getCanonicalResidenceTown(profile, metadata)
       const residenceCountry = getCanonicalResidenceCountry(profile, metadata)
       const nationality = getBestValue(profile?.nationality, metadata.nationality, 'Zambian')
+      const nrcNumber = getBestValue(profile?.nrc_number, metadata.nrc_number, '')
+      const passportNumber = getBestValue(profile?.passport_number, metadata.passport_number, '')
       const nextOfKinName = getBestValue(profile?.next_of_kin_name, metadata.next_of_kin_name, '')
       const nextOfKinPhone = getBestValue(profile?.next_of_kin_phone, metadata.next_of_kin_phone, '')
 
-      if (email) setValue('email', email)
-      if (fullName) setValue('full_name', fullName)
-      if (phone) setValue('phone', phone)
-      if (dateOfBirth) setValue('date_of_birth', dateOfBirth)
-      if (sex) setValue('sex', sex as 'Male' | 'Female')
-      if (residenceTown) setValue('residence_town', normalizeResidenceTown(residenceTown))
-      if (residenceCountry) setValue('country', residenceCountry)
-      if (nationality) setValue('nationality', nationality)
-      if (nextOfKinName) setValue('next_of_kin_name', nextOfKinName)
-      if (nextOfKinPhone) setValue('next_of_kin_phone', nextOfKinPhone)
+      setIfEmpty('email', email)
+      setIfEmpty('full_name', fullName)
+      setIfEmpty('phone', phone)
+      setIfEmpty('date_of_birth', dateOfBirth)
+      setIfEmpty('sex', sex)
+      setIfEmpty('residence_town', normalizeResidenceTown(residenceTown))
+      setIfEmpty('country', residenceCountry)
+      setIfEmpty('nationality', nationality)
+      setIfEmpty('nrc_number', nrcNumber)
+      setIfEmpty('passport_number', passportNumber)
+      setIfEmpty('next_of_kin_name', nextOfKinName)
+      setIfEmpty('next_of_kin_phone', nextOfKinPhone)
     }
-  }, [user, profile, authLoading, setValue, restoringDraft, draftLoaded])
+  }, [
+    user,
+    profile?.full_name,
+    profile?.phone,
+    profile?.date_of_birth,
+    profile?.sex,
+    profile?.residence_town,
+    profile?.country,
+    profile?.nationality,
+    profile?.nrc_number,
+    profile?.passport_number,
+    profile?.next_of_kin_name,
+    profile?.next_of_kin_phone,
+    authLoading,
+    draftLoaded,
+    getValues,
+    restoringDraft,
+    setValue,
+  ])
 
   useEffect(() => {
     const loadDraft = async () => {
