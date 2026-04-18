@@ -51,7 +51,7 @@ interface ProgramFee {
   updated_at: string
 }
 
-interface FeeFormData {
+export interface FeeFormData {
   fee_type: string
   residency_category: string
   amount: string
@@ -78,6 +78,20 @@ const initialFeeForm: FeeFormData = {
   residency_category: 'local',
   amount: '',
   currency: 'ZMW',
+}
+
+export function validateFeeAmount(amount: string): string | null {
+  const parsedAmount = Number(amount)
+  if (!amount || Number.isNaN(parsedAmount) || parsedAmount <= 0) {
+    return 'Amount must be a valid positive number'
+  }
+  return null
+}
+
+export function formatFeeAmount(currency: string, amount: string | number): string {
+  const parsedAmount = Number(amount)
+  const formattedAmount = Number.isFinite(parsedAmount) ? parsedAmount.toFixed(2) : '0.00'
+  return `${currency} ${formattedAmount}`
 }
 
 // --- API helpers ---
@@ -230,9 +244,9 @@ export default function ProgramFees() {
       setError('Please select a program')
       return
     }
-    const parsedAmount = Number(feeForm.amount)
-    if (!feeForm.amount || isNaN(parsedAmount) || parsedAmount <= 0) {
-      setError('Amount must be a valid positive number')
+    const amountError = validateFeeAmount(feeForm.amount)
+    if (amountError) {
+      setError(amountError)
       return
     }
 
@@ -247,9 +261,9 @@ export default function ProgramFees() {
 
   const handleUpdate = () => {
     if (!currentFee) return
-    const parsedAmount = Number(feeForm.amount)
-    if (!feeForm.amount || isNaN(parsedAmount) || parsedAmount <= 0) {
-      setError('Amount must be a valid positive number')
+    const amountError = validateFeeAmount(feeForm.amount)
+    if (amountError) {
+      setError(amountError)
       return
     }
 
@@ -427,7 +441,7 @@ export default function ProgramFees() {
                     priority: 'always',
                     render: (_value, row) => (
                       <span className="font-mono text-sm text-foreground">
-                        {row.currency} {Number(row.amount).toFixed(2)}
+                        {formatFeeAmount(row.currency, row.amount)}
                       </span>
                     ),
                   },

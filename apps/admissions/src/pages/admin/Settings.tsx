@@ -177,7 +177,7 @@ function getValueTypeClass(type: SettingValueType) {
   return 'bg-accent text-foreground'
 }
 
-function validateSetting(
+export function validateSetting(
   setting: Pick<NewSetting, 'key' | 'value'> | Partial<SystemSetting>,
   valueType: SettingValueType
 ) {

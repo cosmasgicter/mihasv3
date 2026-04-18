@@ -151,6 +151,17 @@ class AuditLogSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField(read_only=True)
 
 
+class AdminDashboardActivitySerializer(serializers.Serializer):
+    id = serializers.CharField(read_only=True)
+    type = serializers.CharField(read_only=True)
+    application_number = serializers.CharField(read_only=True, allow_blank=True)
+    old_status = serializers.CharField(read_only=True, allow_blank=True)
+    new_status = serializers.CharField(read_only=True, allow_blank=True)
+    timestamp = serializers.CharField(read_only=True, allow_blank=True)
+    actor_name = serializers.CharField(read_only=True, allow_blank=True)
+    message = serializers.CharField(read_only=True)
+
+
 class AdminDashboardApplicationStatsSerializer(serializers.Serializer):
     by_status = serializers.JSONField()
     today = serializers.IntegerField()
@@ -167,7 +178,7 @@ class AdminDashboardUserStatsSerializer(serializers.Serializer):
 class AdminDashboardSerializer(serializers.Serializer):
     applications = AdminDashboardApplicationStatsSerializer()
     users = AdminDashboardUserStatsSerializer()
-    recent_activity = AuditLogSerializer(many=True)
+    recent_activity = AdminDashboardActivitySerializer(many=True)
 
 
 AdminDashboardResponseSerializer = envelope_serializer(
@@ -222,6 +233,64 @@ class AdminDashboardView(APIView):
     permission_classes = [IsAuthenticated, IsAdmin]
     serializer_class = AdminDashboardSerializer
 
+    @staticmethod
+    def _timestamp(value):
+        if not value:
+            return ""
+        if hasattr(value, "isoformat"):
+            return value.isoformat()
+        return str(value)
+
+    @staticmethod
+    def _actor_name(actor):
+        if not actor:
+            return ""
+        first_name = getattr(actor, "first_name", "") or ""
+        last_name = getattr(actor, "last_name", "") or ""
+        return f"{first_name} {last_name}".strip()
+
+    @classmethod
+    def _format_recent_activity(cls, status_entries, recent_payments):
+        recent_activity = []
+
+        for entry in status_entries:
+            application = getattr(entry, "application", None)
+            app_number = getattr(application, "application_number", "") or ""
+            old_status = getattr(entry, "old_status", "") or ""
+            new_status = getattr(entry, "new_status", "") or ""
+            old_label = old_status or "new"
+            new_label = new_status or "unknown"
+
+            recent_activity.append({
+                "id": str(getattr(entry, "id", "")),
+                "type": "status_change",
+                "application_number": app_number,
+                "old_status": old_status,
+                "new_status": new_status,
+                "timestamp": cls._timestamp(getattr(entry, "created_at", None)),
+                "actor_name": cls._actor_name(getattr(entry, "changed_by", None)),
+                "message": f"{app_number}: {old_label} -> {new_label}",
+            })
+
+        for payment in recent_payments:
+            application = getattr(payment, "application", None)
+            app_number = getattr(application, "application_number", "") or ""
+            payment_status = getattr(payment, "status", "") or ""
+
+            recent_activity.append({
+                "id": str(getattr(payment, "id", "")),
+                "type": "payment",
+                "application_number": app_number,
+                "old_status": "",
+                "new_status": payment_status,
+                "timestamp": cls._timestamp(getattr(payment, "updated_at", None)),
+                "actor_name": "",
+                "message": f"{app_number}: Payment {payment_status}",
+            })
+
+        recent_activity.sort(key=lambda item: item["timestamp"], reverse=True)
+        return recent_activity[:10]
+
     def get(self, request):
         try:
             now = timezone.now()
@@ -254,24 +323,6 @@ class AdminDashboardView(APIView):
                     .order_by('-created_at')[:10]
                 )
 
-                recent_activity = []
-                for entry in status_entries:
-                    app_number = getattr(entry.application, 'application_number', '') or ''
-                    actor_name = ''
-                    if entry.changed_by:
-                        actor_name = f"{entry.changed_by.first_name} {entry.changed_by.last_name}".strip()
-
-                    recent_activity.append({
-                        'id': str(entry.id),
-                        'type': 'status_change',
-                        'application_number': app_number,
-                        'old_status': entry.old_status or '',
-                        'new_status': entry.new_status or '',
-                        'timestamp': entry.created_at.isoformat() if entry.created_at else '',
-                        'actor_name': actor_name,
-                        'message': f"{app_number}: {entry.old_status or 'new'} → {entry.new_status or 'unknown'}",
-                    })
-
                 recent_payments = (
                     Payment.objects
                     .filter(status__in=['paid', 'successful', 'verified'])
@@ -279,22 +330,7 @@ class AdminDashboardView(APIView):
                     .order_by('-updated_at')[:5]
                 )
 
-                for payment in recent_payments:
-                    app_number = getattr(payment.application, 'application_number', '') or ''
-                    recent_activity.append({
-                        'id': str(payment.id),
-                        'type': 'payment',
-                        'application_number': app_number,
-                        'old_status': '',
-                        'new_status': payment.status,
-                        'timestamp': payment.updated_at.isoformat() if payment.updated_at else '',
-                        'actor_name': '',
-                        'message': f"{app_number}: Payment {payment.status}",
-                    })
-
-                # Merge and sort by timestamp descending, limit to 10
-                recent_activity.sort(key=lambda x: x['timestamp'], reverse=True)
-                recent_activity = recent_activity[:10]
+                recent_activity = self._format_recent_activity(status_entries, recent_payments)
             except Exception:
                 logger.warning("Failed to load recent activity for admin dashboard", exc_info=True)
                 recent_activity = []

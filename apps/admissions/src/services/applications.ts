@@ -234,7 +234,8 @@ export const applicationService = {
   delete: async (id: string) => {
     try {
       await apiClient.request<void>(`/applications/${encodeURIComponent(id)}/`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        retries: 0
       })
     } catch (error) {
       // 404 means already deleted — treat as success (idempotent delete).
@@ -261,6 +262,8 @@ export const applicationService = {
       }
       throw error
     }
+    invalidateCache('/api/v1/applications')
+    invalidateCache('/applications')
     return { success: true }
   },
 
