@@ -84,7 +84,7 @@ describe('BottomNavigation mobile overflow', () => {
     const { container, unmount } = renderNav(390, '/student/profile/edit')
     expect(container.innerHTML).toMatchSnapshot()
     const moreButton = container.querySelector('button[aria-label="More navigation items"]')
-    expect(moreButton?.getAttribute('class')).toContain('text-primary')
+    expect(moreButton?.getAttribute('class')).toContain('bg-slate-950')
     unmount()
   })
 

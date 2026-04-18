@@ -199,7 +199,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
     ]
 
   return (
-    <div className="flex min-h-screen w-full overflow-x-hidden">
+    <div className="flex min-h-screen w-full overflow-x-hidden bg-muted/30">
       <SkipLink href={`#${APP_MAIN_CONTENT_ID}`}>Skip to main content</SkipLink>
       <DesktopSidebar />
 
@@ -218,11 +218,11 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
         <main
           id={APP_MAIN_CONTENT_ID}
           className={cn(
-            'pt-14 md:pt-0 min-h-screen overflow-x-hidden transition-all duration-300 ease-in-out',
+            'min-h-screen overflow-x-hidden transition-all duration-300 ease-in-out',
             isWizardRoute ? 'pb-6 md:pb-6' : 'pb-20 md:pb-6'
           )}
           style={{
-            paddingTop: isMobile ? '3.5rem' : 'var(--header-height)',
+            paddingTop: isMobile ? '4rem' : 'var(--header-height)',
             marginLeft: isMobile ? 0 : (collapsed ? collapsedWidth : expandedWidth),
             width: isMobile ? '100%' : `calc(100% - ${collapsed ? collapsedWidth : expandedWidth}px)`,
           }}

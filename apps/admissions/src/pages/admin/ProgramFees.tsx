@@ -51,6 +51,14 @@ interface ProgramFee {
   updated_at: string
 }
 
+type ProgramFeeListResponse =
+  | ProgramFee[]
+  | {
+      results?: ProgramFee[]
+      fees?: ProgramFee[]
+      data?: ProgramFee[] | { results?: ProgramFee[]; fees?: ProgramFee[] }
+    }
+
 export interface FeeFormData {
   fee_type: string
   residency_category: string
@@ -96,11 +104,24 @@ export function formatFeeAmount(currency: string, amount: string | number): stri
 
 // --- API helpers ---
 
+export function normalizeProgramFeeResponse(result: ProgramFeeListResponse | null | undefined): ProgramFee[] {
+  if (!result) return []
+  if (Array.isArray(result)) return result
+  if (Array.isArray(result.results)) return result.results
+  if (Array.isArray(result.fees)) return result.fees
+  if (Array.isArray(result.data)) return result.data
+  if (result.data && typeof result.data === 'object') {
+    if (Array.isArray(result.data.results)) return result.data.results
+    if (Array.isArray(result.data.fees)) return result.data.fees
+  }
+  return []
+}
+
 async function fetchFeesForProgram(programId: string): Promise<ProgramFee[]> {
-  const result = await apiClient.request<ProgramFee[]>(
+  const result = await apiClient.request<ProgramFeeListResponse>(
     `/programs/${encodeURIComponent(programId)}/fees/`
   )
-  return Array.isArray(result) ? result : []
+  return normalizeProgramFeeResponse(result)
 }
 
 async function createFee(programId: string, data: FeeFormData): Promise<ProgramFee | null> {
@@ -163,7 +184,7 @@ export default function ProgramFees() {
   const { data: programsData, isLoading: loadingPrograms } = useQuery({
     queryKey: ['admin', 'programs-for-fees'],
     queryFn: async () => {
-      const response = await programService.list()
+      const response = await programService.list({ pageSize: 500 })
       const programs = (response?.programs || []) as Program[]
       return programs.sort((a, b) => a.name.localeCompare(b.name))
     },

@@ -1,4 +1,4 @@
-import { apiClient } from './client'
+import { apiClient, buildQueryString, type QueryParams } from './client'
 import { logApiError } from '@/lib/apiErrorLogger'
 
 type RawInstitution = {
@@ -238,9 +238,10 @@ function normalizeIntake(record: RawIntake | Intake | null | undefined): Intake 
     return record as Intake
   }
 
-  const deadline = record.application_deadline
-  const startDate = record.start_date || record.application_start_date || deadline
-  const endDate = record.end_date || deadline
+  const rawRecord = record as RawIntake
+  const deadline = rawRecord.application_deadline
+  const startDate = rawRecord.start_date || rawRecord.application_start_date || deadline
+  const endDate = rawRecord.end_date || deadline
 
   return {
     id: record.id,
@@ -478,13 +479,15 @@ function buildInstitutionPayload(data: InstitutionFormData, existing?: RawInstit
 }
 
 export const catalogService = {
-  getPrograms: async (): Promise<ProgramCollectionResponse> => {
+  getPrograms: async (params?: QueryParams): Promise<ProgramCollectionResponse> => {
+    const query = buildQueryString(params ?? {})
+    const endpoint = `/catalog/programs/${query}`
     try {
       return normalizeProgramsResponse(
-        await apiClient.request<RawProgram[] | ProgramCollectionResponse | RawPaginatedCollection<RawProgram>>('/catalog/programs/')
+        await apiClient.request<RawProgram[] | ProgramCollectionResponse | RawPaginatedCollection<RawProgram>>(endpoint)
       )
     } catch (error) {
-      logApiError('catalog', '/catalog/programs/', error)
+      logApiError('catalog', endpoint, error)
       throw error
     }
   },
@@ -538,7 +541,7 @@ export const catalogService = {
 }
 
 export const programService = {
-  list: () => catalogService.getPrograms(),
+  list: (params?: QueryParams) => catalogService.getPrograms(params),
 
   create: async (data: ProgramFormData): Promise<ProgramMutationResponse> => {
     try {

@@ -106,14 +106,14 @@ function BottomNavLink({
   const prefetchProps = hasImport ? prefetch : {}
   const baseClassName = cn(
     'flex flex-col items-center justify-center',
-    'min-h-[48px] min-w-[48px] px-3 py-1.5',
-    'rounded-lg',
-    'transition-colors duration-200',
+    'min-h-[52px] min-w-[52px] px-3 py-2',
+    'rounded-2xl',
+    'transition-all duration-200',
     'touch-manipulation select-none',
     '[-webkit-tap-highlight-color:transparent]',
     isActive
-      ? 'text-primary bg-primary/10'
-      : 'text-muted-foreground hover:text-foreground hover:bg-accent/50',
+      ? 'bg-slate-950 text-white shadow-lg shadow-slate-950/20'
+      : 'text-muted-foreground hover:bg-accent/70 hover:text-foreground',
     'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
   )
 
@@ -129,7 +129,7 @@ function BottomNavLink({
         aria-current={isActive ? 'page' : undefined}
       >
         <div className="relative">
-          <Icon className={cn('h-5 w-5', isActive ? 'text-primary' : 'text-muted-foreground')} />
+          <Icon className={cn('h-5 w-5', isActive ? 'text-white' : 'text-muted-foreground')} />
           {item.badge !== undefined && item.badge > 0 && (
             <span
               className={cn(
@@ -147,7 +147,7 @@ function BottomNavLink({
           )}
         </div>
         {!iconOnly && (
-          <span className={cn('text-[10px] font-medium mt-0.5', isActive ? 'text-primary' : 'text-muted-foreground')}>
+          <span className={cn('mt-1 text-[10px] font-semibold', isActive ? 'text-white' : 'text-muted-foreground')}>
             {item.label}
           </span>
         )}
@@ -164,7 +164,7 @@ function BottomNavLink({
       {...prefetchProps}
     >
       <div className="relative">
-        <Icon className={cn('h-5 w-5', isActive ? 'text-primary' : 'text-muted-foreground')} />
+        <Icon className={cn('h-5 w-5', isActive ? 'text-white' : 'text-muted-foreground')} />
         {item.badge !== undefined && item.badge > 0 && (
           <span
             className={cn(
@@ -182,7 +182,7 @@ function BottomNavLink({
         )}
       </div>
       {!iconOnly && (
-        <span className={cn('text-[10px] font-medium mt-0.5', isActive ? 'text-primary' : 'text-muted-foreground')}>
+        <span className={cn('mt-1 text-[10px] font-semibold', isActive ? 'text-white' : 'text-muted-foreground')}>
           {item.label}
         </span>
       )}
@@ -235,8 +235,7 @@ export function BottomNavigation({
     <nav
       className={cn(
         'fixed bottom-0 left-0 right-0 z-50',
-        'bg-background/95 backdrop-blur-sm',
-        'border-t border-border',
+        'border-t border-border/70 bg-background/90 shadow-[0_-18px_50px_rgba(15,23,42,0.12)] backdrop-blur-xl',
         'md:hidden',
         className
       )}
@@ -247,7 +246,7 @@ export function BottomNavigation({
       {isMoreOpen && shouldOverflow && (
         <div
           id="bottom-navigation-overflow"
-          className="absolute bottom-full left-0 right-0 border-t border-border bg-background/95 px-3 pb-2 pt-3 shadow-lg backdrop-blur-sm"
+          className="absolute bottom-full left-3 right-3 mb-3 rounded-3xl border border-border/80 bg-background/95 px-3 pb-3 pt-3 shadow-2xl backdrop-blur-xl"
           role="menu"
           aria-label="More navigation items"
         >
@@ -266,7 +265,7 @@ export function BottomNavigation({
         </div>
       )}
 
-      <div className="flex items-center justify-around px-2 pt-2">
+      <div className="flex items-center justify-around gap-1 px-2 pt-2">
         {primaryItems.map((item) => (
           <BottomNavLink key={item.href} item={item} isActive={isItemActive(item)} iconOnly={isNarrowViewport} />
         ))}
@@ -276,20 +275,20 @@ export function BottomNavigation({
             onClick={() => setIsMoreOpen((prev) => !prev)}
             className={cn(
               'flex flex-col items-center justify-center rounded-lg',
-              'min-h-[48px] min-w-[48px] px-3 py-1.5',
+              'min-h-[52px] min-w-[52px] px-3 py-2',
               'touch-manipulation select-none [-webkit-tap-highlight-color:transparent]',
-              'transition-colors duration-200',
+              'transition-all duration-200',
               isMoreActive || isMoreOpen
-                ? 'text-primary bg-primary/10'
-                : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                ? 'bg-slate-950 text-white shadow-lg shadow-slate-950/20'
+                : 'text-muted-foreground hover:bg-accent/70 hover:text-foreground'
             )}
             aria-expanded={isMoreOpen}
             aria-controls="bottom-navigation-overflow"
             aria-label="More navigation items"
           >
-            <MoreHorizontal className={cn('h-5 w-5', isMoreActive || isMoreOpen ? 'text-primary' : 'text-muted-foreground')} />
+            <MoreHorizontal className={cn('h-5 w-5', isMoreActive || isMoreOpen ? 'text-white' : 'text-muted-foreground')} />
             {!isNarrowViewport && (
-              <span className={cn('text-[10px] font-medium mt-0.5', isMoreActive || isMoreOpen ? 'text-primary' : 'text-muted-foreground')}>
+              <span className={cn('mt-1 text-[10px] font-semibold', isMoreActive || isMoreOpen ? 'text-white' : 'text-muted-foreground')}>
                 More
               </span>
             )}

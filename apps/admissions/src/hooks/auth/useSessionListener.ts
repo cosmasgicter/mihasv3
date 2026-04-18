@@ -64,7 +64,7 @@ export function extractAuthUser(result: unknown): User | null {
   if (!direct) {
     console.warn(
       '[auth] Unexpected auth response shape — could not extract user:',
-      typeof result === 'object' ? Object.keys(result as object) : typeof result
+      typeof result === 'object' && result !== null ? Object.keys(result as object) : typeof result
     )
   }
   return direct

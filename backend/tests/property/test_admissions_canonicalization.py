@@ -1406,8 +1406,11 @@ class TestIntakeDeadlineEnforcement(SimpleTestCase):
             return_value=resolved,
         ), patch(
             "apps.applications.intake_enforcer.Intake.objects"
-        ) as mock_intake_qs:
+        ) as mock_intake_qs, patch(
+            "apps.applications.models.Application.objects"
+        ) as mock_app_qs:
             mock_intake_qs.filter.return_value.first.return_value = mock_intake
+            mock_app_qs.filter.return_value.count.return_value = 10
 
             result = IntakeEnforcer.check_submission("Test Intake", "Test Program")
 

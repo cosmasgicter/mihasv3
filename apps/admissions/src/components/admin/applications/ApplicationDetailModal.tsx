@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui'
 import type { ApplicationInterview } from '@/types/database'
 import { calculateBestFivePoints, sanitizeGradeValue } from '@/utils/grades'
 import { SendNotificationModal } from './SendNotificationModal'
-import { CommunicationHistory } from '@/components/admin/CommunicationHistory'
+import AdminCommunicationsPanel from '@/components/admin/AdminCommunicationsPanel'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus'
@@ -49,6 +49,7 @@ const getInstitutionName = (code?: string) => {
 
 interface ApplicationWithDetails {
  id: string
+ user_id?: string
  application_number: string
  full_name: string
  email: string
@@ -92,9 +93,12 @@ interface ApplicationWithDetails {
 }
 
 interface StatusHistoryItem {
- id: string
- status: string
- changed_by: string
+ id?: string
+ status?: string
+ old_status?: string | null
+ new_status?: string | null
+ changed_by?: string | null
+ changed_by_name?: string | null
  notes?: string
  created_at: string
  changed_by_profile?: {
@@ -259,32 +263,38 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
  
  return (
  <div className="space-y-3">
- {history.map((item) => (
- <div key={item.id} className="flex gap-4 p-4 bg-card border border-border rounded-lg">
+ {history.map((item, index) => {
+ const status = item.status || item.new_status || 'unknown'
+ const actor = item.changed_by_profile?.full_name || item.changed_by_profile?.email || item.changed_by_name || item.changed_by || 'System'
+ const transition = item.old_status && item.new_status
+ ? `${item.old_status.replace('_', ' ')} → ${item.new_status.replace('_', ' ')}`
+ : status.replace('_', ' ')
+ return (
+ <div key={item.id || `${status}-${item.created_at}-${index}`} className="flex gap-4 p-4 bg-card border border-border rounded-lg">
  <div className="flex-shrink-0">
  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
- item.status === 'approved' ? 'bg-green-100' :
- item.status === 'rejected' ? 'bg-red-100' :
- item.status === 'under_review' ? 'bg-green-100' :
+ status === 'approved' ? 'bg-green-100' :
+ status === 'rejected' ? 'bg-red-100' :
+ status === 'under_review' ? 'bg-green-100' :
  'bg-primary/10'
  }`}>
- {item.status === 'approved' ? <CheckCircle className="h-4 w-4 text-accent" /> :
- item.status === 'rejected' ? <XCircle className="h-4 w-4 text-destructive" /> :
- item.status === 'under_review' ? <Eye className="h-4 w-4 text-accent" /> :
+ {status === 'approved' ? <CheckCircle className="h-4 w-4 text-accent" /> :
+ status === 'rejected' ? <XCircle className="h-4 w-4 text-destructive" /> :
+ status === 'under_review' ? <Eye className="h-4 w-4 text-accent" /> :
  <Clock className="h-4 w-4 text-primary" />}
  </div>
  </div>
  <div className="flex-1">
  <div className="flex items-center justify-between mb-1">
  <p className="font-medium text-foreground capitalize">
- {item.status.replace('_', ' ')}
+ {transition}
  </p>
  <p className="text-xs text-foreground">
  {formatDate(item.created_at)}
  </p>
  </div>
  <p className="text-sm text-foreground mb-2">
- Changed by {item.changed_by_profile?.full_name || item.changed_by_profile?.email || 'System'}
+ Changed by {actor}
  </p>
  {item.notes && (
  <p className="text-sm text-foreground bg-muted p-2 rounded">
@@ -293,7 +303,7 @@ function StatusHistoryDisplay({ history, loading }: { history: StatusHistoryItem
  )}
  </div>
  </div>
- ))}
+ )})}
  </div>
  )
 }
@@ -1376,9 +1386,16 @@ export function ApplicationDetailModal({
  )}
 
  {activeTab === 'communications' && (
- <CommunicationHistory 
- applicantId={application.id}
+ application.user_id ? (
+ <AdminCommunicationsPanel
+ userId={application.user_id}
+ studentName={application.full_name}
  />
+ ) : (
+ <div className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-sm text-foreground">
+ This application does not include a linked student user id, so communication history cannot be loaded.
+ </div>
+ )
  )}
 
  {activeTab === 'history' && (
