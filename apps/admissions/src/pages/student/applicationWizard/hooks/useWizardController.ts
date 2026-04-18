@@ -3,13 +3,10 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useForm, type UseFormReturn, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
-import { connectionManager } from '@/lib/connectionFix'
-
 import { useToastStore } from '@/hooks/useToast'
 import { useAuth } from '@/contexts/AuthContext'
 import { applicationsData } from '@/data/applications'
 import { catalogData } from '@/data/catalog'
-import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useProfileAutoPopulation, getBestValue, getUserMetadata, normalizeSexForWizard } from '@/hooks/useProfileAutoPopulation'
 import { useEligibilityChecker } from '@/hooks/useEligibilityChecker'
@@ -562,37 +559,8 @@ const useWizardController = (): UseWizardControllerResult => {
       }
       
       try {
-        const { autoFillService } = await importWithChunkRecovery(() => import('@/utils/smart-features'), {
-          guardKey: 'wizard-smart-features',
-          recoveryMessage: 'A newer version of the document tools is loading. Please wait a moment and try again.',
-        })
-        const parsed = await autoFillService.extractDataFromFile(uploadedFile, 'grade12')
-        
-        if (!parsed || !parsed.grades || parsed.grades.length === 0) {
-          showWarning('No grades detected. Please enter them manually.')
-          await persistResultSlipUrl()
-          return
-        }
-        
-        const gradesToSync = normalizeSelectedGrades(parsed.grades
-          .map((g: { subject?: unknown; grade?: unknown }) => ({
-            subject_id: findBestSubjectId(g.subject?.toString() || '', subjects) || '',
-            grade: Number(g.grade) || 0
-          }))
-        )
-          
-        if (gradesToSync.length === 0) {
-          showWarning('Could not match subjects. Please enter grades manually.')
-          await persistResultSlipUrl()
-          return
-        }
-        
-        await syncGrades.mutateAsync({ id: applicationId, grades: gradesToSync })
-        if (!(await persistResultSlipUrl())) {
-          return
-        }
-        setSelectedGrades(gradesToSync)
-        showSuccess(`Auto-filled ${gradesToSync.length} grades successfully!`)
+        // Result slip uploaded — persist URL and let user enter grades manually
+        await persistResultSlipUrl()
       } catch (e) {
         if (isApplicationMissingError(e)) {
           clearStaleApplicationReference(
@@ -1613,25 +1581,7 @@ const useWizardController = (): UseWizardControllerResult => {
         const institutionLabel =
           resolvedProgram.institutionLabel || deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'MIHAS'
         
-        // Check for duplicate applications (only for new applications)
-        if (!applicationId) {
-          const { checkDuplicateApplication } = await importWithChunkRecovery(() => import('@/lib/duplicateApplicationCheck'), {
-            guardKey: 'wizard-duplicate-check',
-            recoveryMessage: 'A newer version of the application checks is loading. Please wait a moment and try again.',
-          })
-          const duplicateCheck = await checkDuplicateApplication(
-            user!.id,
-            { id: resolvedProgram.id, label: resolvedProgram.label },
-            { id: resolvedIntake.id, label: resolvedIntake.name }
-          )
-          
-          if (duplicateCheck.hasDuplicate) {
-            setError(duplicateCheck.message || 'Duplicate application found')
-            showError(duplicateCheck.message || 'You already have an application for this program and intake')
-            setLoading(false)
-            return
-          }
-        }
+        // Duplicate check handled by backend on create/submit
 
         if (applicationId) {
           // Update existing application

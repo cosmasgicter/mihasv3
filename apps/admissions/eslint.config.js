@@ -108,8 +108,8 @@ export default [
               message: 'Use @/lib/securityConfig or @/lib/sanitize instead.',
             },
             {
-              group: ['@/hooks/useErrorHandling'],
-              message: 'Use @/hooks/useErrorHandler or @/hooks/useAsyncOperation instead.',
+              group: ['@/hooks/useErrorHandling', '@/hooks/useErrorHandler', '@/hooks/useAsyncOperation'],
+              message: 'These hooks have been removed. Use React Query error handling or @/lib/errorReporter instead.',
             },
             {
               group: ['@/hooks/useNotificationPreferences'],

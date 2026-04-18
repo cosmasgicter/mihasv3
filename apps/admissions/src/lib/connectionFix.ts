@@ -31,41 +31,6 @@ export class ConnectionManager {
   }
 
   /**
-   * Suppress browser extension errors that interfere with the application
-   */
-  suppressExtensionErrors(): void {
-    // Override console.error to filter out extension-related errors
-    const originalError = console.error
-    console.error = (...args: any[]) => {
-      const message = args.join(' ')
-      
-      // Filter out known extension errors
-      if (
-        message.includes('Could not establish connection') ||
-        message.includes('Receiving end does not exist') ||
-        message.includes('Extension context invalidated') ||
-        message.includes('chrome-extension://') ||
-        message.includes('moz-extension://')
-      ) {
-        return // Suppress these errors
-      }
-      
-      originalError.apply(console, args)
-    }
-
-    // Handle unhandled promise rejections from extensions
-    window.addEventListener('unhandledrejection', (event) => {
-      const message = event.reason?.message || event.reason || ''
-      if (
-        message.includes('Could not establish connection') ||
-        message.includes('Receiving end does not exist')
-      ) {
-        event.preventDefault() // Prevent the error from showing
-      }
-    })
-  }
-
-  /**
    * Enhanced API request with connection recovery
    */
   async makeRequest<T>(

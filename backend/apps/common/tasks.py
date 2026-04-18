@@ -354,29 +354,3 @@ def cleanup_audit_logs_task(self):
     except Exception as exc:
         logger.error("Audit log cleanup failed: %s", exc)
         raise self.retry(exc=exc)
-
-
-import os  # noqa: E402
-
-
-@shared_task(name="keep_alive_ping_task", ignore_result=True)
-def keep_alive_ping_task():
-    """Ping health endpoint to prevent Koyeb cold starts."""
-    import requests as http_requests
-    try:
-        url = os.environ.get("HEALTH_CHECK_URL", "https://api.mihas.edu.zm/health/live/")
-        http_requests.get(url, timeout=5)
-    except Exception:
-        pass  # Non-critical — just keeping the instance warm
-
-
-@shared_task(name="cleanup_csrf_tokens_task", ignore_result=True)
-def cleanup_csrf_tokens_task():
-    """Delete expired CSRF tokens older than 48 hours."""
-    from django.utils import timezone as tz
-    from datetime import timedelta
-    from apps.accounts.models import CSRFToken
-    cutoff = tz.now() - timedelta(hours=48)
-    deleted, _ = CSRFToken.objects.filter(expires_at__lt=cutoff).delete()
-    if deleted:
-        logger.info("Cleaned up %d expired CSRF tokens", deleted)

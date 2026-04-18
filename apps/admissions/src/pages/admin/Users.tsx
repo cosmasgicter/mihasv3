@@ -19,14 +19,7 @@ import { UserActivityLog } from '@/components/admin/UserActivityLog'
 import { UserExport } from '@/components/admin/UserExport'
 import { UserImport } from '@/components/admin/UserImport'
 import { UserPermissions } from '@/components/admin/UserPermissions'
-import {
-  useUsers,
-  useCreateUser,
-  useUpdateUser,
-  useDeleteUser,
-  useUserPermissions,
-  useUpdateUserPermissions,
-} from '@/hooks/useApiServices'
+import { usersData as userQueries } from '@/data/users'
 import {
   ArrowLeft,
   BarChart3,
@@ -131,11 +124,11 @@ const getSessionSummary = (count?: number) => {
 }
 
 export default function AdminUsers() {
-  const { data: usersData, isLoading: loading, error: queryError, refetch } = useUsers()
-  const createUserMutation = useCreateUser()
-  const updateUserMutation = useUpdateUser()
-  const deleteUserMutation = useDeleteUser()
-  const updatePermissionsMutation = useUpdateUserPermissions()
+  const { data: usersData, isLoading: loading, error: queryError, refetch } = userQueries.useList()
+  const createUserMutation = userQueries.useCreate()
+  const updateUserMutation = userQueries.useUpdate()
+  const deleteUserMutation = userQueries.useRemove()
+  const updatePermissionsMutation = userQueries.useUpdatePermissions()
   const { success: showSuccess, info: showInfo } = useToastStore()
 
   const users = (usersData?.users || []) as UserProfile[]
@@ -171,7 +164,7 @@ export default function AdminUsers() {
   const [showImportDialog, setShowImportDialog] = useState(false)
 
   const selectedUserId = selectedUser?.user_id || selectedUser?.id
-  const permissionsQuery = useUserPermissions(showPermissionsDialog ? selectedUserId : undefined)
+  const permissionsQuery = userQueries.usePermissions(showPermissionsDialog ? selectedUserId : undefined)
 
   useEffect(() => {
     if (queryError) {

@@ -44,7 +44,6 @@ describe('RoutePrefetcher — skips Dashboard import on marketing routes', () =>
       AuthenticatedRouteShell: () => null,
       default: () => null,
     }))
-    vi.doMock('@/components/MarketingRoutes', () => ({ MarketingRoutes: () => null }))
     vi.doMock('@/hooks/useDeferredHydration', () => ({ useDeferredHydration: () => false }))
     vi.doMock('@/pages/student/Dashboard', () => {
       dashboardImportCalled = true
@@ -142,7 +141,6 @@ describe('RoutePrefetcher — fires Dashboard import on authenticated routes', (
       AuthenticatedRouteShell: () => null,
       default: () => null,
     }))
-    vi.doMock('@/components/MarketingRoutes', () => ({ MarketingRoutes: () => null }))
     vi.doMock('@/hooks/useDeferredHydration', () => ({ useDeferredHydration: () => false }))
     vi.doMock('@/pages/student/Dashboard', () => ({ default: () => null }))
     vi.doMock('react-router-dom', async () => {
@@ -217,7 +215,6 @@ describe('RoutePrefetcher — auth shell prefetch via requestIdleCallback', () =
       authShellImportCalled = true
       return { AuthenticatedRouteShell: () => null, default: () => null }
     })
-    vi.doMock('@/components/MarketingRoutes', () => ({ MarketingRoutes: () => null }))
     vi.doMock('@/hooks/useDeferredHydration', () => ({ useDeferredHydration: () => false }))
     vi.doMock('@/pages/student/Dashboard', () => ({ default: () => null }))
     vi.doMock('react-router-dom', async () => {
@@ -259,7 +256,6 @@ describe('RoutePrefetcher — auth shell prefetch via requestIdleCallback', () =
       authShellImportCalled = true
       return { AuthenticatedRouteShell: () => null, default: () => null }
     })
-    vi.doMock('@/components/MarketingRoutes', () => ({ MarketingRoutes: () => null }))
     vi.doMock('@/hooks/useDeferredHydration', () => ({ useDeferredHydration: () => false }))
     vi.doMock('@/pages/student/Dashboard', () => ({ default: () => null }))
     vi.doMock('react-router-dom', async () => {

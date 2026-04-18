@@ -8,13 +8,10 @@
  */
 
 import { getApiBaseUrl } from '@/lib/apiConfig';
-import { fetchWithCache, invalidateCache } from '@/utils/api-cache';
 import { ApiErrorHandler } from '@/lib/apiErrorHandler';
 import { logger } from '@/lib/logger';
 import { getCsrfToken, setCsrfToken } from '@/lib/csrfToken';
 import { TIMEOUT_ERROR_MESSAGE } from '@/lib/errorMessages';
-
-import type { FetchWithCacheOptions } from '@/utils/api-cache';
 
 /**
  * Error thrown when the ApiClient encounters an unrecoverable 401
@@ -553,11 +550,10 @@ class ApiClient {
     return [];
   }
   private invalidateRelatedCaches(
-    endpoint: string,
-    customTargets?: string | string[] | false
+    _endpoint: string,
+    _customTargets?: string | string[] | false
   ) {
-    const patterns = this.getInvalidationPatterns(endpoint, customTargets);
-    patterns.forEach(pattern => invalidateCache(pattern));
+    // Cache invalidation handled by React Query
   }
 
   async request<TResponse = unknown>(
@@ -628,15 +624,14 @@ class ApiClient {
     options: ApiRequestOptions
   ): Promise<TResponse | null> {
     const {
-      cacheTTL,
-      skipCache,
-      useCache,
-      cacheKey,
-      invalidateCache: invalidateTargets,
       headers,
       timeout: _timeout,
       retries: _retries,
       signal: externalSignal,
+      cacheTTL: _cacheTTL,
+      skipCache: _skipCache,
+      useCache: _useCache,
+      cacheKey: _cacheKey,
       ...restOptions
     } = options;
 
@@ -670,33 +665,31 @@ class ApiClient {
       };
 
       if (method === 'GET') {
-        const shouldUseCache = (useCache ?? true) && !(skipCache ?? false);
         const url = `${API_BASE}${normalizedEndpoint}`;
 
         let responseContentType = '';
 
-        // Build fetch options for cached GET requests
-        const fetchOptions = {
-          method,
+        const fetchResponse = await fetch(url, {
+          method: 'GET',
           headers: requestHeaders,
           credentials: 'include' as RequestCredentials,
           signal: timeoutController.signal,
-          useLocalCache: shouldUseCache,
-          ...(cacheTTL !== undefined ? { cacheTTL } : {}),
-          ...(cacheKey ? { cacheKey } : {}),
-          transformResponse: (response: Response) =>
-            this.parseJsonSafely<TResponse>(response, service, normalizedEndpoint),
-          onResponse: (response: Response, _duration: number) => {
-            responseContentType = response.headers.get('content-type') ?? '';
-            // Capture CSRF token from GET responses (e.g. session check after page refresh)
-            const csrfHeader = response.headers.get('X-CSRF-Token');
-            if (csrfHeader) {
-              setCsrfToken(csrfHeader);
-            }
-          },
-        } as RequestInit & FetchWithCacheOptions;
+        });
 
-        const data = await fetchWithCache<TResponse | null>(url, fetchOptions);
+        // Capture CSRF token and content-type
+        responseContentType = fetchResponse.headers.get('content-type') ?? '';
+        const csrfHeader = fetchResponse.headers.get('X-CSRF-Token');
+        if (csrfHeader) {
+          setCsrfToken(csrfHeader);
+        }
+
+        if (!fetchResponse.ok) {
+          const error = new Error(`API Error: ${fetchResponse.statusText}`) as any;
+          error.status = fetchResponse.status;
+          throw error;
+        }
+
+        const data = await this.parseJsonSafely<TResponse>(fetchResponse, service, normalizedEndpoint);
 
         // Unwrap { success, data } envelope from API responses
         // Pass content-type so non-JSON responses skip unwrapping (Req 8.4)
@@ -789,11 +782,11 @@ class ApiClient {
               const retryContentType = retryResponse.headers.get('content-type') ?? '';
               if (retryContentType && !retryContentType.includes('application/json')) {
                 const rawBody = await retryResponse.text();
-                this.invalidateRelatedCaches(normalizedEndpoint, invalidateTargets);
+                this.invalidateRelatedCaches(normalizedEndpoint);
                 return (rawBody || null) as TResponse | null;
               }
               const retryPayload = await this.parseJsonSafely<TResponse>(retryResponse, service, normalizedEndpoint);
-              this.invalidateRelatedCaches(normalizedEndpoint, invalidateTargets);
+              this.invalidateRelatedCaches(normalizedEndpoint);
               return this.unwrapApiResponse<TResponse>(retryPayload, retryContentType);
             }
 
@@ -884,11 +877,11 @@ class ApiClient {
             const retryContentType = csrfRetryResponse.headers.get('content-type') ?? '';
             if (retryContentType && !retryContentType.includes('application/json')) {
               const rawBody = await csrfRetryResponse.text();
-              this.invalidateRelatedCaches(normalizedEndpoint, invalidateTargets);
+              this.invalidateRelatedCaches(normalizedEndpoint);
               return (rawBody || null) as TResponse | null;
             }
             const retryPayload = await this.parseJsonSafely<TResponse>(csrfRetryResponse, service, normalizedEndpoint);
-            this.invalidateRelatedCaches(normalizedEndpoint, invalidateTargets);
+            this.invalidateRelatedCaches(normalizedEndpoint);
             return this.unwrapApiResponse<TResponse>(retryPayload, retryContentType);
           }
 
@@ -949,11 +942,11 @@ class ApiClient {
               const retryContentType = retryResponse.headers.get('content-type') ?? '';
               if (retryContentType && !retryContentType.includes('application/json')) {
                 const rawBody = await retryResponse.text();
-                this.invalidateRelatedCaches(normalizedEndpoint, invalidateTargets);
+                this.invalidateRelatedCaches(normalizedEndpoint);
                 return (rawBody || null) as TResponse | null;
               }
               const retryPayload = await this.parseJsonSafely<TResponse>(retryResponse, service, normalizedEndpoint);
-              this.invalidateRelatedCaches(normalizedEndpoint, invalidateTargets);
+              this.invalidateRelatedCaches(normalizedEndpoint);
               return this.unwrapApiResponse<TResponse>(retryPayload, retryContentType);
             }
 
@@ -1017,13 +1010,13 @@ class ApiClient {
       if (contentType && !contentType.includes('application/json')) {
         // Non-JSON response — return raw body without envelope unwrapping
         const rawBody = await response.text();
-        this.invalidateRelatedCaches(normalizedEndpoint, invalidateTargets);
+        this.invalidateRelatedCaches(normalizedEndpoint);
         return (rawBody || null) as TResponse | null;
       }
 
       const payload = await this.parseJsonSafely<TResponse>(response, service, normalizedEndpoint);
 
-      this.invalidateRelatedCaches(normalizedEndpoint, invalidateTargets);
+      this.invalidateRelatedCaches(normalizedEndpoint);
 
       // Unwrap { success, data } envelope from API responses
       // Pass content-type so non-JSON responses skip unwrapping (Req 8.4)
@@ -1065,8 +1058,8 @@ class ApiClient {
         throw error;
       }
 
-      // Defense-in-depth: handle auth failures from GET requests (via fetchWithCache).
-      // fetchWithCache throws errors with status property for non-ok responses.
+      // Defense-in-depth: handle auth failures from GET requests.
+      // fetch throws errors with status property for non-ok responses.
       // If a GET request got a 401/403, attempt refresh.
       const errorStatus = (error as { status?: number })?.status;
       if (
@@ -1241,7 +1234,6 @@ export interface ApiRequestOptions extends Omit<RequestInit, 'cache'> {
   skipCache?: boolean;
   useCache?: boolean;
   cacheKey?: string;
-  invalidateCache?: string | string[] | false;
   /** Request timeout in milliseconds. Defaults to 30s (10s for health/session). */
   timeout?: number;
   /** Max retry attempts for network/5xx errors. Defaults to 2. Set 0 to disable. */

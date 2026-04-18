@@ -268,7 +268,6 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
     def test_scope_limits_match_rate_limit_config(self):
         """Verify the configured scopes match the rate limit middleware configuration."""
         expected_scopes = [
-            ("/api/v1/events/stream/", None),
             ("/api/v1/auth/login/", "10/5m"),
             ("/api/v1/auth/register/", "5/5m"),
             ("/api/v1/auth/password-reset/", "5/5m"),

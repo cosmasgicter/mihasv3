@@ -28,7 +28,7 @@ class TestCORSDefaultHeadersPreservation:
     """Verify all default_headers items remain in CORS_ALLOW_HEADERS.
 
     On unfixed code, CORS_ALLOW_HEADERS is:
-        list(dict.fromkeys([*default_headers, "cache-control", "last-event-id"]))
+        list(dict.fromkeys([*default_headers, "cache-control"]))
 
     All items from corsheaders.defaults.default_headers must be present.
     This ensures the fix (adding x-csrf-token) does not remove existing headers.
@@ -58,18 +58,19 @@ class TestCORSDefaultHeadersPreservation:
 
 
 class TestCORSExtraHeadersPreservation:
-    """Verify cache-control and last-event-id remain in CORS_ALLOW_HEADERS.
+    """Verify cache-control and x-csrf-token remain in CORS_ALLOW_HEADERS.
 
     These headers were explicitly added alongside default_headers in the
     original configuration and must be preserved after the fix.
+    last-event-id was removed as part of SSE cleanup.
 
     **Validates: Requirements 3.2, 3.4**
     """
 
-    @given(header=st.sampled_from(["cache-control", "last-event-id"]))
+    @given(header=st.sampled_from(["cache-control", "x-csrf-token"]))
     @settings(max_examples=10)
     def test_extra_headers_in_cors_allow_headers(self, header: str) -> None:
-        """Assert cache-control and last-event-id are in CORS_ALLOW_HEADERS."""
+        """Assert cache-control and x-csrf-token are in CORS_ALLOW_HEADERS."""
         from config.settings.base import CORS_ALLOW_HEADERS
 
         assert header in CORS_ALLOW_HEADERS, (

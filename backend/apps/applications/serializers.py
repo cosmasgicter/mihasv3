@@ -455,7 +455,8 @@ class ApplicationTrackingSerializer(serializers.ModelSerializer):
         model = Application
         fields = [
             "application_number", "public_tracking_code", "status",
-            "payment_status", "program", "intake", "created_at", "submitted_at",
+            "payment_status", "program", "intake", "institution",
+            "created_at", "submitted_at",
         ]
 
 

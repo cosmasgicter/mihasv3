@@ -101,8 +101,8 @@ const MOCK_DJANGO_INTAKES_RESPONSE = {
       start_date: '2025-01-15',
       end_date: '2025-06-30',
       application_deadline: '2025-01-10',
-      total_capacity: 120,
-      available_spots: 45,
+      max_capacity: 120,
+      current_enrollment: 75,
       is_active: true,
     },
     {
@@ -112,8 +112,8 @@ const MOCK_DJANGO_INTAKES_RESPONSE = {
       start_date: '2024-09-01',
       end_date: '2025-03-31',
       application_deadline: '2024-08-15',
-      total_capacity: 80,
-      available_spots: 0,
+      max_capacity: 80,
+      current_enrollment: 80,
       is_active: true,
     },
   ],
@@ -203,7 +203,7 @@ describe('Admin intakes page verification', () => {
   it('renders capacity and available spots in the intakes table', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('45/120')
+    expect(text).toContain('75/120')
     expect(text).toContain('0/80')
   })
 

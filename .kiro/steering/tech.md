@@ -268,10 +268,11 @@ Celery Beat runs as a dedicated Koyeb worker service (exactly 1 instance to avoi
 
 | Task | Schedule | Purpose |
 |------|----------|---------|
-| `check_uptime_task` | Every 300 seconds (5 minutes) | Internal health check — pings `/health/ready/`, alerts on failure/recovery transitions |
-| `cleanup_audit_logs_task` | Daily at 03:00 UTC (`crontab(hour=3, minute=0)`) | Purge expired audit log records: standard retention 90 days, security retention 365 days |
+| `check_uptime_task` | Every 900 seconds (15 minutes) | Internal health check — pings `/health/ready/`, alerts on failure/recovery transitions |
+| `cleanup_audit_logs_task` | Daily at 03:00 UTC (`crontab(hour=3, minute=0)`) | Purge expired audit log records and CSRF tokens: standard retention 90 days, security retention 365 days |
 | `poll_pending_payments_task` | Every 600 seconds (10 minutes) | Polls Lenco API for pending payments older than 5 min and younger than 24 hr, max 50 per run |
 | `intake_manager_task` | Daily at 04:00 UTC (`crontab(hour=4, minute=0)`) | Ensures at least 2 open intakes exist following the Jan/Jul pattern. Idempotent. |
+| `keep_alive_task` | Every 240 seconds (4 minutes) | Lightweight ping to /health/live/ to prevent Koyeb cold starts |
 
 The first two tasks live in `backend/apps/common/tasks.py`. The payment polling task lives in `backend/apps/documents/tasks.py`. The intake manager task lives in `backend/apps/catalog/tasks.py` and is also callable as `python3 manage.py manage_intakes`.
 
@@ -279,7 +280,7 @@ The first two tasks live in `backend/apps/common/tasks.py`. The payment polling 
 
 Two layers of uptime monitoring are in place:
 
-1. **Internal**: `check_uptime_task` (Celery Beat, every 5 minutes) sends `GET` to the configured `HEALTH_CHECK_URL` (default: `https://api.mihas.edu.zm/health/ready/`) with a 10-second timeout. Tracks previous status in Redis key `uptime:last_status`. On healthy→unhealthy transition: dispatches alert email. On unhealthy→healthy: dispatches recovery email. Repeated failures without recovery do not produce duplicate alerts. Uses the `requests` library.
+1. **Internal**: `check_uptime_task` (Celery Beat, every 15 minutes) sends `GET` to the configured `HEALTH_CHECK_URL` (default: `https://api.mihas.edu.zm/health/ready/`) with a 10-second timeout. Tracks previous status in Redis key `uptime:last_status`. On healthy→unhealthy transition: dispatches alert email. On unhealthy→healthy: dispatches recovery email. Repeated failures without recovery do not produce duplicate alerts. Uses the `requests` library.
 2. **External**: [UptimeRobot](https://uptimerobot.com/) (free tier) monitors `https://api.mihas.edu.zm/health/ready/` every 5 minutes from outside the network. Sends email alerts to `admin@mihas.edu.zm` on failure and recovery.
 
 ## Secrets Rotation

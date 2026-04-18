@@ -1,56 +1,51 @@
-// Secure application number generator with institution prefixes
+// Canonical application number format: {INSTITUTION_CODE}{YEAR}{5-DIGIT-SEQUENCE}
+// Examples: MIHAS202500001, KATC202500002
+// Backend is the sole generator — this file provides validation and parsing only.
 
 export interface ApplicationNumberConfig {
-  institution: 'MIHAS' | 'KATC'
+  institution: string
   year?: number
 }
 
-export const generateApplicationNumber = (config: ApplicationNumberConfig): string => {
-  const { institution, year = new Date().getFullYear() } = config
-  
-  // Validate institution
-  if (!['MIHAS', 'KATC'].includes(institution)) {
-    throw new Error('Invalid institution. Must be MIHAS or KATC')
-  }
-  
-  // Generate cryptographically secure random number
-  const randomBytes = new Uint8Array(3)
-  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-    crypto.getRandomValues(randomBytes)
-  } else {
-    // Fallback for environments without crypto
-    for (let i = 0; i < randomBytes.length; i++) {
-      randomBytes[i] = Math.floor(Math.random() * 256)
-    }
-  }
-  
-  // Convert to 5-digit number (10000-99999 range)
-  const randomNumber = (randomBytes[0]! << 16 | randomBytes[1]! << 8 | randomBytes[2]!) % 90000 + 10000
-  
-  return `${institution}${year}${randomNumber}`
-}
-
+/**
+ * Validate an application number matches the canonical format.
+ * Accepts: MIHAS202500001, KATC202500002, or legacy APP-YYYYMMDD-XXXXXXXX
+ */
 export const validateApplicationNumber = (applicationNumber: string): boolean => {
-  const pattern = /^(MIHAS|KATC)\d{9}$/
-  return pattern.test(applicationNumber)
+  const canonical = /^[A-Z]{2,10}\d{9,14}$/
+  const legacy = /^APP-\d{8}-[A-Z0-9]{8}$/
+  return canonical.test(applicationNumber) || legacy.test(applicationNumber)
 }
 
+/**
+ * Validate a tracking code matches accepted formats.
+ * Accepts: TRK-MIHAS2025ABCDEF, TRK-ABCDEF123456, or legacy TRK + 5-6 chars
+ */
+export const validateTrackingCode = (code: string): boolean => {
+  const patterns = [
+    /^TRK-[A-Z]{2,10}\d{4}[A-Z0-9]{6}$/,  // TRK-MIHAS2025ABCDEF
+    /^TRK-[A-Z0-9]{12}$/,                    // Legacy TRK-ABCDEF123456
+    /^TRK[A-Z0-9]{5,6}$/,                    // Legacy TRK370990
+  ]
+  return patterns.some(p => p.test(code))
+}
+
+/**
+ * Parse an application number into its components.
+ */
 export const parseApplicationNumber = (applicationNumber: string): {
   institution: string
   year: number
   sequence: number
 } | null => {
-  if (!validateApplicationNumber(applicationNumber)) {
-    return null
+  // Canonical format: MIHAS202500001
+  const match = applicationNumber.match(/^([A-Z]{2,10})(\d{4})(\d{5,})$/)
+  if (match) {
+    return {
+      institution: match[1]!,
+      year: parseInt(match[2]!),
+      sequence: parseInt(match[3]!),
+    }
   }
-  
-  const institution = applicationNumber.substring(0, applicationNumber.match(/\d/)?.index || 0)
-  const yearStr = applicationNumber.substring(institution.length, institution.length + 4)
-  const sequenceStr = applicationNumber.substring(institution.length + 4)
-  
-  return {
-    institution,
-    year: parseInt(yearStr),
-    sequence: parseInt(sequenceStr)
-  }
+  return null
 }

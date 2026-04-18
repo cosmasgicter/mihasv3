@@ -56,5 +56,27 @@ export const usersData = {
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.users })
       }
     })
-  }
+  },
+
+  // Get user permissions
+  usePermissions: (userId?: string) => {
+    return useQuery({
+      queryKey: ['user-permissions', userId],
+      queryFn: () => userId ? userService.getPermissions(userId) : Promise.resolve(null),
+      enabled: Boolean(userId),
+    })
+  },
+
+  // Update user permissions
+  useUpdatePermissions: () => {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+      mutationFn: ({ id, permissions }: { id: string; permissions: string[] }) =>
+        userService.updatePermissions(id, permissions),
+      onSuccess: (_, { id }) => {
+        queryClient.invalidateQueries({ queryKey: ['user-permissions', id] })
+      }
+    })
+  },
 }

@@ -30,9 +30,8 @@ interface Intake {
   start_date: string
   end_date: string
   application_deadline: string
-  total_capacity: number
+  max_capacity: number
   current_enrollment?: number
-  available_spots?: number
   is_active?: boolean
 }
 
@@ -51,8 +50,7 @@ export const intakeSchema = z.object({
   start_date: z.string().min(1, 'Start date is required'),
   end_date: z.string().min(1, 'End date is required'),
   application_deadline: z.string().min(1, 'Application deadline is required'),
-  total_capacity: z.coerce.number().int().min(1, 'Capacity must be at least 1'),
-  available_spots: z.coerce.number().int().min(0, 'Available spots must be 0 or more'),
+  max_capacity: z.coerce.number().int().min(1, 'Capacity must be at least 1'),
 })
   .refine((data) => new Date(data.start_date) <= new Date(data.end_date), {
     message: 'Start date must be before end date',
@@ -65,10 +63,6 @@ export const intakeSchema = z.object({
       path: ['application_deadline'],
     },
   )
-  .refine((data) => data.available_spots <= data.total_capacity, {
-    message: 'Available spots cannot exceed total capacity',
-    path: ['available_spots'],
-  })
 
 export interface IntakeForm {
   name: string
@@ -76,8 +70,7 @@ export interface IntakeForm {
   start_date: string
   end_date: string
   application_deadline: string
-  total_capacity: number
-  available_spots: number
+  max_capacity: number
 }
 
 // formatDate imported from @/lib/dateFormat handles null/invalid dates
@@ -89,8 +82,7 @@ const IntakeFormFields = ({ register, errors }: { register: any; errors: any }) 
     <Input label="Start Date" type="date" {...register('start_date')} error={errors.start_date?.message} required />
     <Input label="End Date" type="date" {...register('end_date')} error={errors.end_date?.message} required />
     <Input label="Application Deadline" type="date" {...register('application_deadline')} error={errors.application_deadline?.message} required />
-    <Input label="Total Capacity" type="number" {...register('total_capacity')} error={errors.total_capacity?.message} required />
-    <Input label="Available Spots" type="number" {...register('available_spots')} error={errors.available_spots?.message} required />
+    <Input label="Max Capacity" type="number" {...register('max_capacity')} error={errors.max_capacity?.message} required />
   </div>
 )
 
@@ -122,8 +114,7 @@ export default function AdminIntakes() {
       start_date: '',
       end_date: '',
       application_deadline: '',
-      total_capacity: 0,
-      available_spots: 0,
+      max_capacity: 0,
     },
   })
 
@@ -146,8 +137,7 @@ export default function AdminIntakes() {
       start_date: '',
       end_date: '',
       application_deadline: '',
-      total_capacity: 0,
-      available_spots: 0,
+      max_capacity: 0,
     })
     setShowCreate(true)
   }
@@ -161,8 +151,7 @@ export default function AdminIntakes() {
       start_date: normalizeDateInputValue(intake.start_date),
       end_date: normalizeDateInputValue(intake.end_date),
       application_deadline: normalizeDateInputValue(intake.application_deadline),
-      total_capacity: intake.total_capacity,
-      available_spots: intake.available_spots,
+      max_capacity: intake.max_capacity,
     })
     setShowEdit(true)
   }
@@ -187,8 +176,7 @@ export default function AdminIntakes() {
         start_date: data.start_date,
         end_date: data.end_date,
         application_deadline: data.application_deadline,
-        total_capacity: data.total_capacity,
-        available_spots: data.available_spots,
+        max_capacity: data.max_capacity,
       })
     },
     ...mutationOptions,
@@ -212,8 +200,7 @@ export default function AdminIntakes() {
         start_date: data.start_date,
         end_date: data.end_date,
         application_deadline: data.application_deadline,
-        total_capacity: data.total_capacity,
-        available_spots: data.available_spots,
+        max_capacity: data.max_capacity,
       })
     },
     ...mutationOptions,
@@ -368,12 +355,12 @@ export default function AdminIntakes() {
                     ),
                   },
                   {
-                    key: 'total_capacity',
+                    key: 'max_capacity',
                     header: 'Capacity',
                     priority: 'desktop',
                     render: (_value, row) => (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-primary/10 text-primary">
-                        {row.total_capacity}
+                        {row.max_capacity}
                       </span>
                     ),
                   },
@@ -383,28 +370,31 @@ export default function AdminIntakes() {
                     priority: 'always',
                     render: (_value, row) => {
                       const enrollment = row.current_enrollment ?? 0
-                      const { bg, text, label } = getUtilizationColor(enrollment, row.total_capacity)
+                      const { bg, text, label } = getUtilizationColor(enrollment, row.max_capacity)
                       return (
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${bg} ${text}`}
                           title={label}
                         >
-                          {enrollment}/{row.total_capacity}
+                          {enrollment}/{row.max_capacity}
                         </span>
                       )
                     },
                   },
                   {
-                    key: 'available_spots',
+                    key: 'max_capacity' as keyof Intake,
                     header: 'Available',
                     priority: 'always',
-                    render: (_value, row) => (
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${
-                        (row.available_spots ?? 0) > 0 ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
-                      }`}>
-                        {row.available_spots}/{row.total_capacity}
-                      </span>
-                    ),
+                    render: (_value, row) => {
+                      const available = Math.max(row.max_capacity - (row.current_enrollment ?? 0), 0)
+                      return (
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${
+                          available > 0 ? 'bg-accent/10 text-accent-foreground' : 'bg-destructive/10 text-destructive-foreground'
+                        }`}>
+                          {available}/{row.max_capacity}
+                        </span>
+                      )
+                    },
                   },
                   {
                     key: 'id',

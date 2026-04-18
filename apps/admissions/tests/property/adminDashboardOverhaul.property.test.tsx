@@ -130,8 +130,7 @@ describe('admin dashboard overhaul property coverage', () => {
             start_date: fc.constant('2026-07-01'),
             end_date: fc.constant('2026-08-01'),
             application_deadline: fc.constant('2026-06-01'),
-            total_capacity: fc.integer({ min: 1, max: 1000 }),
-            available_spots: fc.integer({ min: 0, max: 1000 }),
+            max_capacity: fc.integer({ min: 1, max: 1000 }),
           }),
           fc.record({
             name: nonBlankText,
@@ -139,8 +138,7 @@ describe('admin dashboard overhaul property coverage', () => {
             start_date: fc.constant('2026-09-01'),
             end_date: fc.constant('2026-08-01'),
             application_deadline: fc.constant('2026-06-01'),
-            total_capacity: fc.integer({ min: 1, max: 1000 }),
-            available_spots: fc.integer({ min: 0, max: 1000 }),
+            max_capacity: fc.integer({ min: 1, max: 1000 }),
           }),
           fc.record({
             name: nonBlankText,
@@ -148,8 +146,7 @@ describe('admin dashboard overhaul property coverage', () => {
             start_date: fc.constant('2026-07-01'),
             end_date: fc.constant('2026-08-01'),
             application_deadline: fc.constant('2026-06-01'),
-            total_capacity: fc.integer({ max: 0 }),
-            available_spots: fc.integer({ min: 0, max: 1000 }),
+            max_capacity: fc.integer({ max: 0 }),
           })
         ),
         formData => {

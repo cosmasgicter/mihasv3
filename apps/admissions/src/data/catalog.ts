@@ -90,7 +90,7 @@ export const catalogData = {
     const queryClient = useQueryClient()
     
     return useMutation({
-      mutationFn: (data: { name: string; year: number; start_date: string; end_date: string; application_deadline: string; total_capacity: number; available_spots?: number }) =>
+      mutationFn: (data: { name: string; year: number; start_date: string; end_date: string; application_deadline: string; max_capacity: number }) =>
         intakeService.create(data),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.intakes })
@@ -102,7 +102,7 @@ export const catalogData = {
     const queryClient = useQueryClient()
     
     return useMutation({
-      mutationFn: (data: { id: string; name: string; year: number; start_date: string; end_date: string; application_deadline: string; total_capacity: number; available_spots?: number }) =>
+      mutationFn: (data: { id: string; name: string; year: number; start_date: string; end_date: string; application_deadline: string; max_capacity: number }) =>
         intakeService.update(data),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.intakes })

@@ -128,9 +128,6 @@ class RateLimitMiddleware:
     # A rate of None means the path is exempt from rate limiting entirely
     # (no Redis counter increment).
     SCOPE_LIMITS = [
-        # SSE stream is exempt — long-lived connections must not consume
-        # rate-limit quota or generate Redis requests.
-        ("/api/v1/events/stream/", None),
         # Stricter auth sub-scopes (before general /api/v1/auth/)
         ("/api/v1/auth/login/", "10/5m"),
         ("/api/v1/auth/register/", "5/5m"),

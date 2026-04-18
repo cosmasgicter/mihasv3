@@ -195,27 +195,27 @@ describe('Wizard Step 1 — catalog service normalization', () => {
       expect(result!.application_deadline).toBe('2025-12-15T23:59:59Z')
       expect(result!.start_date).toBe('2026-01-10T00:00:00Z')
       expect(result!.end_date).toBe('2026-06-30T00:00:00Z')
-      expect(result!.total_capacity).toBe(120)
-      expect(result!.available_spots).toBe(75) // 120 - 45
+      expect(result!.max_capacity).toBe(120)
+      expect(result!.current_enrollment).toBe(45)
       expect(result!.is_active).toBe(true)
     })
 
-    it('calculates available_spots as max_capacity minus current_enrollment', () => {
+    it('returns current_enrollment from the raw intake data', () => {
       const raw = djangoIntakesResponse[1]
       const result = normalizeIntake(raw)
 
       expect(result).not.toBeNull()
-      expect(result!.total_capacity).toBe(80)
-      expect(result!.available_spots).toBe(0) // 80 - 80 = 0
+      expect(result!.max_capacity).toBe(80)
+      expect(result!.current_enrollment).toBe(80)
     })
 
-    it('handles missing current_enrollment (defaults to 0)', () => {
+    it('handles missing current_enrollment (defaults to undefined)', () => {
       const raw = djangoIntakesResponse[2]
       const result = normalizeIntake(raw)
 
       expect(result).not.toBeNull()
-      expect(result!.total_capacity).toBe(60)
-      expect(result!.available_spots).toBe(60) // 60 - 0
+      expect(result!.max_capacity).toBe(60)
+      expect(result!.current_enrollment).toBeUndefined()
     })
 
     it('returns null for null/undefined input', () => {
@@ -267,8 +267,8 @@ describe('Wizard Step 1 — catalog service normalization', () => {
 
       expect(result.intakes).toHaveLength(3)
       expect(result.intakes[0].id).toBe('intake-001')
-      expect(result.intakes[0].total_capacity).toBe(120)
-      expect(result.intakes[0].available_spots).toBe(75)
+      expect(result.intakes[0].max_capacity).toBe(120)
+      expect(result.intakes[0].current_enrollment).toBe(45)
     })
 
     it('normalizes a paginated {results: [...]} shape', () => {
@@ -331,10 +331,10 @@ describe('Wizard Step 1 — catalog service normalization', () => {
       expect(mockRequest).toHaveBeenCalledWith('/catalog/intakes/')
       expect(result.intakes).toHaveLength(3)
       expect(result.intakes[0].name).toBe('January 2026 Intake')
-      expect(result.intakes[0].total_capacity).toBe(120)
-      expect(result.intakes[0].available_spots).toBe(75)
-      expect(result.intakes[1].available_spots).toBe(0)
-      expect(result.intakes[2].total_capacity).toBe(60)
+      expect(result.intakes[0].max_capacity).toBe(120)
+      expect(result.intakes[0].current_enrollment).toBe(45)
+      expect(result.intakes[1].current_enrollment).toBe(80)
+      expect(result.intakes[2].max_capacity).toBe(60)
     })
 
     it('returns normalized intakes from paginated response', async () => {
@@ -394,10 +394,10 @@ describe('Wizard Step 1 — catalog service normalization', () => {
       }
 
       for (const i of intakes) {
-        expect(Number.isFinite(i.total_capacity)).toBe(true)
+        expect(Number.isFinite(i.max_capacity)).toBe(true)
         expect(Number.isFinite(i.year)).toBe(true)
-        if (i.available_spots !== undefined) {
-          expect(Number.isFinite(i.available_spots)).toBe(true)
+        if (i.current_enrollment !== undefined) {
+          expect(Number.isFinite(i.current_enrollment)).toBe(true)
         }
       }
     })

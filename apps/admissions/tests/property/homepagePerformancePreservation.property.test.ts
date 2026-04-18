@@ -98,9 +98,6 @@ describe('[PBT] Preservation — Dashboard prefetch fires on authenticated route
             AuthenticatedRouteShell: () => null,
             default: () => null,
           }))
-          vi.doMock('@/components/MarketingRoutes', () => ({
-            MarketingRoutes: () => null,
-          }))
           vi.doMock('@/hooks/useDeferredHydration', () => ({
             useDeferredHydration: () => false,
           }))
@@ -165,9 +162,6 @@ describe('[PBT] Preservation — Dashboard prefetch fires on authenticated route
         default: () => null,
       }
     })
-    vi.doMock('@/components/MarketingRoutes', () => ({
-      MarketingRoutes: () => null,
-    }))
     vi.doMock('@/hooks/useDeferredHydration', () => ({
       useDeferredHydration: () => false,
     }))
@@ -226,9 +220,6 @@ describe('[PBT] Preservation — Dashboard prefetch fires on authenticated route
         default: () => null,
       }
     })
-    vi.doMock('@/components/MarketingRoutes', () => ({
-      MarketingRoutes: () => null,
-    }))
     vi.doMock('@/hooks/useDeferredHydration', () => ({
       useDeferredHydration: () => false,
     }))

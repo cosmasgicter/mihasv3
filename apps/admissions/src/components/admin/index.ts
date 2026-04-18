@@ -14,8 +14,5 @@ export { RealtimeMetricsDisplay } from './RealtimeMetricsDisplay';
 export { EnhancedDataTable } from './EnhancedDataTable';
 export type { Column, EnhancedDataTableProps, SortDirection } from './EnhancedDataTable';
 
-// Monitoring components
-export { RealtimeStatus } from './RealtimeStatus';
-
 // Error handling
 export { AdminErrorBoundary } from './AdminErrorBoundary';
