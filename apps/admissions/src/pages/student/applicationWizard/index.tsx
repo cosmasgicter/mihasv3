@@ -18,7 +18,6 @@ import { StepChecklist } from './components/StepChecklist'
 import { ApplicationPreview } from './components/ApplicationPreview'
 import { KeyboardShortcutsHelp } from './components/KeyboardShortcutsHelp'
 import { DraftManager } from './components/DraftManager'
-import { ReminderSettings } from './components/ReminderSettings'
 import { AnalyticsDashboard } from './components/AnalyticsDashboard'
 import { EnhancedProgressIndicator } from './components/EnhancedProgressIndicator'
 import { WizardErrorSummary, type WizardValidationError } from './components/WizardErrorSummary'
@@ -766,12 +765,6 @@ const ApplicationWizardContent = () => {
               />
               
               <StepChecklist items={getChecklistItems()} />
-              
-              <ReminderSettings
-                email={form.watch('email') || user?.email || ''}
-                fullName={form.watch('full_name') || ''}
-                draftName="Current Application"
-              />
               
               <AnalyticsDashboard
                 userId={user?.id}

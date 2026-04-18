@@ -2,7 +2,6 @@ import type { Application, ApplicationInterview } from '@/types/database'
 
 import { logApiError } from '@/lib/apiErrorLogger'
 import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
-import { invalidateCache } from '@/utils/api-cache'
 import { apiClient, buildQueryString, type ApiRequestOptions, type QueryParams } from './client'
 import { notificationService } from './notifications'
 
@@ -239,15 +238,8 @@ export const applicationService = {
       })
     } catch (error) {
       // 404 means already deleted — treat as success (idempotent delete).
-      // The API client only invalidates cached GETs after successful HTTP
-      // responses, so clear application list caches here as well.
-      // Primary check: .status === 404 (preserved by ApiErrorHandler.enhanceError).
-      // Fallback: match error message for "not found" in case a future refactor
-      // strips .status from the enhanced error object.
       const status = (error as { status?: number })?.status
       if (status === 404) {
-        invalidateCache('/api/v1/applications')
-        invalidateCache('/applications')
         return { success: true }
       }
       const message = error instanceof Error ? error.message.toLowerCase() : ''
@@ -256,14 +248,10 @@ export const applicationService = {
         message.includes('application not found') ||
         message.includes('not found or access denied')
       ) {
-        invalidateCache('/api/v1/applications')
-        invalidateCache('/applications')
         return { success: true }
       }
       throw error
     }
-    invalidateCache('/api/v1/applications')
-    invalidateCache('/applications')
     return { success: true }
   },
 

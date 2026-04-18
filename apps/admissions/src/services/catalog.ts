@@ -77,8 +77,8 @@ export interface Intake {
   start_date: string
   end_date: string
   application_deadline: string
-  total_capacity: number
-  available_spots?: number
+  max_capacity: number
+  current_enrollment?: number
   is_active?: boolean
 }
 
@@ -234,15 +234,13 @@ function normalizeIntake(record: RawIntake | Intake | null | undefined): Intake 
     if (!record.id) return null
   }
 
-  if ('total_capacity' in record) {
-    return record
+  if ('max_capacity' in record && typeof record.max_capacity === 'number') {
+    return record as Intake
   }
 
   const deadline = record.application_deadline
   const startDate = record.start_date || record.application_start_date || deadline
   const endDate = record.end_date || deadline
-  const totalCapacity = toNumber(record.max_capacity, 0)
-  const currentEnrollment = toNumber(record.current_enrollment, 0)
 
   return {
     id: record.id,
@@ -251,8 +249,8 @@ function normalizeIntake(record: RawIntake | Intake | null | undefined): Intake 
     start_date: startDate,
     end_date: endDate,
     application_deadline: deadline,
-    total_capacity: totalCapacity,
-    available_spots: Math.max(totalCapacity - currentEnrollment, 0),
+    max_capacity: toNumber(record.max_capacity, 0),
+    current_enrollment: toNumber(record.current_enrollment, 0),
     is_active: record.is_active,
   }
 }
@@ -408,15 +406,14 @@ type ProgramFormData = {
   institution_id: string
 }
 
-type IntakeFormData = {
+export type IntakeFormData = {
   id?: string
   name: string
   year: number
   start_date: string
   end_date: string
   application_deadline: string
-  total_capacity: number
-  available_spots?: number
+  max_capacity: number
 }
 
 type InstitutionFormData = {
@@ -463,7 +460,7 @@ function buildIntakePayload(data: IntakeFormData, existing?: RawIntake | null) {
     end_date: data.end_date,
     application_start_date: data.start_date,
     application_deadline: data.application_deadline,
-    max_capacity: data.total_capacity,
+    max_capacity: data.max_capacity,
     is_active: existing?.is_active ?? true,
   }
 }
@@ -695,4 +692,5 @@ export {
   normalizeIntakesResponse,
   normalizeSubjectsResponse,
   normalizeInstitutionsResponse,
+  buildIntakePayload,
 }

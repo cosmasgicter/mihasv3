@@ -134,9 +134,6 @@ describe('[PBT] Bug 1 — RoutePrefetcher skips Dashboard prefetch on marketing 
             AuthenticatedRouteShell: () => null,
             default: () => null,
           }))
-          vi.doMock('@/components/MarketingRoutes', () => ({
-            MarketingRoutes: () => null,
-          }))
           vi.doMock('@/hooks/useDeferredHydration', () => ({
             useDeferredHydration: () => false,
           }))

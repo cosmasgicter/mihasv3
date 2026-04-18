@@ -2,8 +2,7 @@
  * Error Code → User-Friendly Message Map
  *
  * Maps API error codes to clear, actionable messages for students.
- * Used by showApiErrorToast() to translate raw error codes into
- * human-readable text.
+ * Translates raw error codes into human-readable text.
  *
  * Requirements: 16.1, 16.2, 16.3
  */

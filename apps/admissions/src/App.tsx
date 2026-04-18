@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useEffect } from 'react'
-import { BrowserRouter as Router, useLocation } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom'
 import {
   DashboardSkeleton,
   AuthSkeleton,
@@ -7,14 +7,20 @@ import {
 } from '@/components/ui/skeletons'
 
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
+import { LazyLoadErrorBoundary } from '@/components/LazyLoadErrorBoundary'
 import { isMarketingPublicRoute } from '@/lib/publicRouteMode'
 import { useDeferredHydration } from '@/hooks/useDeferredHydration'
-import { MarketingRoutes } from '@/components/MarketingRoutes'
+import LandingPage from '@/pages/LandingPage'
 
 const Analytics = lazy(() => import('@vercel/analytics/react').then((mod) => ({ default: mod.Analytics })))
 const SpeedInsights = lazy(() => import('@vercel/speed-insights/react').then((mod) => ({ default: mod.SpeedInsights })))
 const DeferredGlobalFeedback = lazy(() => import('@/components/DeferredGlobalFeedback').then((mod) => ({ default: mod.DeferredGlobalFeedback })))
 const AuthenticatedRouteShell = lazy(() => import('@/components/AuthenticatedRouteShell').then((mod) => ({ default: mod.AuthenticatedRouteShell })))
+const PublicApplicationTracker = lazy(() => import('@/pages/public/tracker/index'))
+const ContactPage = lazy(() => import('@/pages/ContactPage'))
+const TermsPage = lazy(() => import('@/pages/TermsPage'))
+const PrivacyPage = lazy(() => import('@/pages/PrivacyPage'))
+const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
 
 function App() {
   useEffect(() => {
@@ -124,7 +130,19 @@ function RouteAwareApp() {
   return (
     <>
       {marketingRoute ? (
-        <MarketingRoutes />
+        <LazyLoadErrorBoundary>
+          <Suspense fallback={location.pathname === '/track-application' ? <DetailSkeleton /> : null}>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/track-application" element={<PublicApplicationTracker />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/404" element={<NotFoundPage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </Suspense>
+        </LazyLoadErrorBoundary>
       ) : (
         <Suspense fallback={getShellFallback(location.pathname)}>
           <AuthenticatedRouteShell />

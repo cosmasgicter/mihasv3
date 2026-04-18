@@ -222,12 +222,47 @@ ApplicationMessageResponseSerializer = envelope_serializer(
 )
 
 
-def _generate_application_number():
-    return f"APP-{timezone.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:8].upper()}"
+def _resolve_institution_code(institution_name: str) -> str:
+    """Resolve institution name to its short code (e.g., MIHAS, KATC)."""
+    from apps.catalog.models import Institution
+    inst = Institution.objects.filter(name__iexact=institution_name, is_active=True).first()
+    if inst:
+        return inst.code.upper()
+    inst = Institution.objects.filter(name__icontains=institution_name, is_active=True).first()
+    if inst:
+        return inst.code.upper()
+    return 'MIHAS'  # Default fallback
 
 
-def _generate_tracking_code():
-    return f"TRK-{uuid.uuid4().hex[:12].upper()}"
+def _generate_application_number(institution_name: str = '') -> str:
+    """Generate application number: {CODE}{YEAR}{SEQUENCE}.
+    
+    Format: MIHAS202500001, KATC202500002, etc.
+    Uses DB count + random offset to avoid collisions without sequences.
+    """
+    code = _resolve_institution_code(institution_name)
+    year = timezone.now().year
+    prefix = f"{code}{year}"
+    
+    for attempt in range(5):
+        count = Application.objects.filter(
+            application_number__startswith=prefix
+        ).count()
+        seq = str(count + 1 + attempt).zfill(5)
+        candidate = f"{prefix}{seq}"
+        if not Application.objects.filter(application_number=candidate).exists():
+            return candidate
+    
+    # Ultimate fallback: append random hex
+    return f"{prefix}{uuid.uuid4().hex[:5].upper()}"
+
+
+def _generate_tracking_code(institution_name: str = '') -> str:
+    """Generate tracking code: TRK-{CODE}{YEAR}{RANDOM}."""
+    code = _resolve_institution_code(institution_name)
+    year = timezone.now().year
+    random_part = uuid.uuid4().hex[:6].upper()
+    return f"TRK-{code}{year}{random_part}"
 
 
 @extend_schema_view(
@@ -366,8 +401,8 @@ class ApplicationListCreateView(APIView):
             logger.exception("Failed to resolve application fee during application create")
 
         application = Application.objects.create(
-            user_id=str(request.user.id), application_number=_generate_application_number(),
-            public_tracking_code=_generate_tracking_code(), full_name=data["full_name"],
+            user_id=str(request.user.id), application_number=_generate_application_number(data.get('institution', '')),
+            public_tracking_code=_generate_tracking_code(data.get('institution', '')), full_name=data["full_name"],
             nrc_number=data.get("nrc_number") or "", passport_number=data.get("passport_number") or "",
             date_of_birth=data["date_of_birth"], sex=data["sex"], phone=data["phone"],
             email=data["email"], residence_town=data["residence_town"],
@@ -1095,18 +1130,18 @@ class ApplicationTrackView(APIView):
     serializer_class = ApplicationTrackingSerializer
 
     # Accepted formats:
-    #   APP-YYYYMMDD-XXXXXXXX  (new application numbers)
-    #   MIHAS + 9 digits       (legacy MIHAS application numbers)
-    #   KATC + 9 digits        (legacy KATC application numbers)
-    #   TRK-XXXXXXXXXXXX       (new tracking codes, 12 alphanum after dash)
+    #   APP-YYYYMMDD-XXXXXXXX  (legacy application numbers)
+    #   {CODE}{YEAR}{SEQ}      (new application numbers, e.g. MIHAS202500001)
+    #   TRK-{CODE}{YEAR}{HEX}  (new tracking codes, e.g. TRK-MIHAS2025ABCDEF)
+    #   TRK-XXXXXXXXXXXX       (legacy tracking codes, 12 alphanum after dash)
     #   TRK + 5-6 alphanum     (legacy tracking codes, no dash)
     TRACKING_CODE_PATTERN = re.compile(
         r"^("
-        r"APP-\d{8}-[A-Z0-9]{8}"       # APP-20260416-ABCD1234
-        r"|MIHAS\d{9}"                   # MIHAS202641411
-        r"|KATC\d{9}"                    # KATC202512345
-        r"|TRK-[A-Z0-9]{12}"            # TRK-ABCDEF123456
-        r"|TRK[A-Z0-9]{5,6}"            # TRK370990 or TRKSFVAGC
+        r"APP-\d{8}-[A-Z0-9]{8}"           # Legacy: APP-20260416-ABCD1234
+        r"|[A-Z]{2,10}\d{9,14}"             # MIHAS202500001, KATC202500002
+        r"|TRK-[A-Z]{2,10}\d{4}[A-Z0-9]{6}" # TRK-MIHAS2025ABCDEF
+        r"|TRK-[A-Z0-9]{12}"                # Legacy: TRK-ABCDEF123456
+        r"|TRK[A-Z0-9]{5,6}"                # Legacy: TRK370990
         r")$"
     )
 
@@ -1118,7 +1153,7 @@ class ApplicationTrackView(APIView):
             return Response(
                 {
                     "success": False,
-                    "error": "Invalid tracking code format. Accepted formats: MIHAS + 9 digits, KATC + 9 digits, APP-YYYYMMDD-XXXXXXXX, or TRK tracking codes.",
+                    "error": "Invalid tracking code format. Use your application number (e.g., MIHAS202500001) or tracking code (e.g., TRK-MIHAS2025ABCDEF).",
                     "code": "INVALID_FORMAT",
                 },
                 status=status.HTTP_400_BAD_REQUEST,

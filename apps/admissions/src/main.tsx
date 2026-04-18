@@ -12,9 +12,6 @@ import {
 import { evaluateChunkAutoReloadPolicy } from '@/lib/chunkAutoReloadPolicy'
 import { initErrorReporter } from '@/lib/errorReporter'
 
-// Initialize connection manager to suppress extension errors
-import { connectionManager } from '@/lib/connectionFix'
-
 // Activate the global error reporter (respects VITE_ERROR_REPORT_ENABLED)
 initErrorReporter()
 
@@ -157,11 +154,8 @@ if (typeof window !== 'undefined') {
   })
 }
 
-// Suppress browser extension errors that interfere with the application
+// Force light mode - prevent any dark mode
 if (typeof window !== 'undefined') {
-  connectionManager.suppressExtensionErrors()
-  
-  // Force light mode - prevent any dark mode
   document.documentElement.classList.remove('dark')
   document.documentElement.classList.add('light')
   document.documentElement.style.colorScheme = 'light'

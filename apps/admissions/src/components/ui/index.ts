@@ -115,15 +115,3 @@ export { InfoCallout } from './InfoCallout'
 export { PageHeader } from './PageHeader'
 export { StatusIcon } from './StatusIcon'
 
-// Accessibility Components
-export { 
-  HeadingLevelProvider, 
-  useHeadingLevel, 
-  Heading, 
-  Section as HeadingSection, 
-  PageTitle, 
-  SectionTitle, 
-  HeadingCardTitle, 
-  VisuallyHidden 
-} from './HeadingHierarchy'
-

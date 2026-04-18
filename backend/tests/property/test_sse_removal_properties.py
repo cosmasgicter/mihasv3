@@ -35,8 +35,6 @@ EXPECTED_NON_SSE_ENTRIES = {
     "poll-pending-payments": "apps.documents.tasks.poll_pending_payments_task",
     "manage-intakes": "apps.catalog.tasks.intake_manager_task",
     "keep-alive": "apps.common.tasks.keep_alive_task",
-    "keep-alive-ping": "keep_alive_ping_task",
-    "cleanup-csrf-tokens": "cleanup_csrf_tokens_task",
 }
 
 # SSE-related entry keys that must NOT be present

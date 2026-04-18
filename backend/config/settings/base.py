@@ -167,14 +167,6 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.documents.tasks.poll_pending_payments_task",
         "schedule": 600.0,
     },
-    "keep-alive-ping": {
-        "task": "keep_alive_ping_task",
-        "schedule": 240.0,  # Every 4 minutes
-    },
-    "cleanup-csrf-tokens": {
-        "task": "cleanup_csrf_tokens_task",
-        "schedule": crontab(hour=4, minute=0),
-    },
     "manage-intakes": {
         "task": "apps.catalog.tasks.intake_manager_task",
         "schedule": crontab(hour=4, minute=0),
@@ -225,7 +217,7 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = split_csv_env("CORS_ALLOWED_ORIGINS")
 CORS_ALLOWED_ORIGIN_REGEXES = split_csv_env("CORS_ALLOWED_ORIGIN_REGEXES")
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_HEADERS = list(dict.fromkeys([*default_headers, "cache-control", "last-event-id", "x-csrf-token"]))
+CORS_ALLOW_HEADERS = list(dict.fromkeys([*default_headers, "cache-control", "x-csrf-token"]))
 CORS_EXPOSE_HEADERS = ["X-CSRF-Token", "X-Request-ID"]
 CORS_PREFLIGHT_MAX_AGE = 86400
 
