@@ -384,8 +384,8 @@ describe('Payment page verification', () => {
     await renderAndWait()
 
     const text = container.textContent || ''
-    expect(text).toContain('No Applications Yet')
-    expect(text).toContain('Start your application')
+    expect(text).toContain('No Submitted Fees Yet')
+    expect(text).toContain('Submitted applications with payment records or outstanding fees will appear here')
   })
 
   // ── Error handling ──────────────────────────────────────────────────
@@ -427,14 +427,32 @@ describe('Payment page verification', () => {
 
     const text = container.textContent || ''
     expect(text).toContain('Failed or unpaid submitted applications can be retried from this page')
-    expect(text).toContain('without returning to the wizard')
+    expect(text).toContain('retry failed or unpaid submitted application fees')
   })
 
-  it('displays the continue to wizard button', async () => {
+  it('does not route draft work through the payment page', async () => {
+    currentMockApplicationsData = [
+      ...buildPaymentApplications(djangoApplicationsWithPayment.applications),
+      {
+        id: 'draft-001',
+        status: 'draft',
+        payment_status: null,
+        last_payment_audit_notes: null,
+        created_at: '2026-04-01T08:00:00Z',
+        program: 'Draft Programme',
+        full_name: 'Jane Doe',
+        email: 'student@example.com',
+        phone: '+260970000001',
+        application_fee: 153,
+      },
+    ]
+
     await renderAndWait()
 
     const text = container.textContent || ''
-    expect(text).toContain('Start or Continue Draft Application')
+    expect(text).not.toContain('Draft Programme')
+    expect(text).not.toContain('Continue draft in wizard')
+    expect(container.querySelector('a[href="/student/application-wizard"]')).toBeNull()
   })
 
   it('displays the help/support contact', async () => {

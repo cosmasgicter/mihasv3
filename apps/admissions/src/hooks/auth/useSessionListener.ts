@@ -103,7 +103,25 @@ export function useSessionListener() {
     queryFn: async () => {
       try {
         return await fetchSessionData()
-      } catch {
+      } catch (error) {
+        const cachedSession = queryClient.getQueryData<SessionQueryData>(SESSION_QUERY_KEY)
+        const message = error instanceof Error ? error.message.toLowerCase() : ''
+        const isTransientSessionError =
+          error instanceof TypeError ||
+          (error instanceof Error && (
+            error.name === 'TimeoutError' ||
+            error.name === 'AbortError' ||
+            message.includes('failed to fetch') ||
+            message.includes('network') ||
+            message.includes('timeout') ||
+            message.includes('load failed') ||
+            message.includes('aborted')
+          ))
+
+        if (isTransientSessionError && cachedSession?.user) {
+          return cachedSession
+        }
+
         // Session check failed for an unauthenticated visitor or unrecoverable
         // auth state. The API client already attempted refresh for expired
         // access cookies before this point.
@@ -118,7 +136,7 @@ export function useSessionListener() {
   })
 
   const sessionPendingValidation = sessionData?.pendingValidation === true
-  const user = sessionPendingValidation ? null : sessionData?.user ?? null
+  const user = sessionData?.user ?? null
 
   // Profile query — fetches the full profile from the API so that downstream
   // consumers (e.g. profile completion badge) see all fields, not just the
@@ -396,9 +414,9 @@ export function useAuthCheck(): {
   const sessionPendingValidation = sessionData?.pendingValidation === true
 
   return {
-    isAuthenticated: !sessionPendingValidation && Boolean(sessionData?.user),
+    isAuthenticated: Boolean(sessionData?.user),
     isLoading: isLoading || sessionPendingValidation,
-    user: sessionPendingValidation ? null : sessionData?.user || null,
+    user: sessionData?.user || null,
     retrySessionCheck: async () => {
       await queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
       return queryClient.refetchQueries({ queryKey: ['auth', 'session'] })

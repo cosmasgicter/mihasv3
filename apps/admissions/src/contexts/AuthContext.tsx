@@ -52,6 +52,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const auth = useSessionListener()
   useAuthBroadcast()
   const lastSessionInvalidationRef = useRef<number>(0)
+  const latestSessionUserRef = useRef(auth.user)
+
+  useEffect(() => {
+    if (auth.user) {
+      latestSessionUserRef.current = auth.user
+    }
+  }, [auth.user])
 
   // Configure the API client's auth failure callback.
   // When a 401 triggers a refresh attempt that also fails, the API client
@@ -130,7 +137,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const now = Date.now()
         if (now - lastSessionInvalidationRef.current >= VISIBILITY_DEBOUNCE_MS) {
           lastSessionInvalidationRef.current = now
-          queryClient.setQueryData(['auth', 'session'], { pendingValidation: true })
+          const cachedSession = queryClient.getQueryData<{ user?: typeof auth.user }>(['auth', 'session'])
+          const pendingUser = cachedSession?.user ?? latestSessionUserRef.current
+          queryClient.setQueryData(
+            ['auth', 'session'],
+            pendingUser ? { user: pendingUser, pendingValidation: true } : { pendingValidation: true },
+          )
           queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
         }
       }

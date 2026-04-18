@@ -118,7 +118,13 @@ export function useApplicationPaymentAction({
   onPaymentStatusChange,
   onPaymentStatusRefresh,
 }: UseApplicationPaymentActionOptions) {
-  const { openWidget, isLoading: widgetLoading, isScriptLoaded } = useLencoWidget()
+  const {
+    openWidget,
+    isLoading: widgetLoading,
+    isScriptLoaded,
+    loadError: widgetLoadError,
+    retryLoad: retryWidgetLoad,
+  } = useLencoWidget()
   const [paymentStatus, setPaymentStatus] = useState<PaymentActionStatus>('idle')
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [initiateError, setInitiateErrorState] = useState<string | null>(() => readPersistedPaymentError(applicationId))
@@ -268,6 +274,8 @@ export function useApplicationPaymentAction({
     initiateError,
     widgetLoading,
     isScriptLoaded,
+    widgetLoadError,
+    retryWidgetLoad,
     startPayment,
     updatePaymentStatus,
     setInitiateError,

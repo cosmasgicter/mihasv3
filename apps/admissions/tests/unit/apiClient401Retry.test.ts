@@ -274,4 +274,37 @@ describe('ApiClient 401 Retry Unit Tests', () => {
     // No call to the refresh endpoint
     expect(urls.filter((u: string) => u === REFRESH_URL)).toHaveLength(0);
   });
+
+  it('generic GET 403 is treated as authorization failure, not logout', async () => {
+    const mockFetch = vi.fn(async () => {
+      return makeJsonResponse(403, {
+        success: false,
+        error: 'Permission denied',
+        code: 'INSUFFICIENT_PERMISSIONS',
+      });
+    });
+
+    vi.stubGlobal('fetch', mockFetch);
+
+    const { apiClient, configureApiClientAuthFailure } = await import('@/services/client');
+    const authFailureSpy = vi.fn();
+    configureApiClientAuthFailure(authFailureSpy);
+
+    await expect(
+      apiClient.request('/applications/not-owned/details/', {
+        method: 'GET',
+        retries: 0,
+      })
+    ).rejects.toThrow();
+
+    expect(authFailureSpy).not.toHaveBeenCalled();
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+
+    const urls = mockFetch.mock.calls.map((c: any[]) =>
+      typeof c[0] === 'string' ? c[0] : ''
+    );
+    expect(urls.filter((u: string) => u === REFRESH_URL)).toHaveLength(0);
+
+    configureApiClientAuthFailure(() => {});
+  });
 });
