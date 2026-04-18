@@ -10,6 +10,8 @@
  * Requirements: 1.1, 1.2, 1.6
  */
 
+import { logger } from '@/lib/logger'
+
 /**
  * Web Vitals metrics interface
  */
@@ -253,39 +255,35 @@ export function formatBytes(bytes: number): string {
 }
 
 /**
- * Log performance metrics to console (development only)
+ * Log performance metrics via canonical logger (development only)
  */
 export function logPerformanceMetrics(metrics: Partial<WebVitalsMetrics>): void {
-  if (process.env.NODE_ENV !== 'development') return
-  
-  console.group('🚀 Performance Metrics')
+  logger.debug('🚀 Performance Metrics')
   
   if (metrics.fcp !== null && metrics.fcp !== undefined) {
     const fcpStatus = metrics.fcp <= PERFORMANCE_THRESHOLDS.fcp ? '✅' : '❌'
-    console.log(`${fcpStatus} FCP: ${metrics.fcp.toFixed(0)}ms (target: ${PERFORMANCE_THRESHOLDS.fcp}ms)`)
+    logger.debug(`${fcpStatus} FCP: ${metrics.fcp.toFixed(0)}ms (target: ${PERFORMANCE_THRESHOLDS.fcp}ms)`)
   }
   
   if (metrics.lcp !== null && metrics.lcp !== undefined) {
     const lcpStatus = metrics.lcp <= PERFORMANCE_THRESHOLDS.lcp ? '✅' : '❌'
-    console.log(`${lcpStatus} LCP: ${metrics.lcp.toFixed(0)}ms (target: ${PERFORMANCE_THRESHOLDS.lcp}ms)`)
+    logger.debug(`${lcpStatus} LCP: ${metrics.lcp.toFixed(0)}ms (target: ${PERFORMANCE_THRESHOLDS.lcp}ms)`)
   }
   
   if (metrics.fid !== null && metrics.fid !== undefined) {
     const fidStatus = metrics.fid <= PERFORMANCE_THRESHOLDS.fid ? '✅' : '❌'
-    console.log(`${fidStatus} FID: ${metrics.fid.toFixed(0)}ms (target: ${PERFORMANCE_THRESHOLDS.fid}ms)`)
+    logger.debug(`${fidStatus} FID: ${metrics.fid.toFixed(0)}ms (target: ${PERFORMANCE_THRESHOLDS.fid}ms)`)
   }
   
   if (metrics.cls !== null && metrics.cls !== undefined) {
     const clsStatus = metrics.cls <= PERFORMANCE_THRESHOLDS.cls ? '✅' : '❌'
-    console.log(`${clsStatus} CLS: ${metrics.cls.toFixed(3)} (target: ${PERFORMANCE_THRESHOLDS.cls})`)
+    logger.debug(`${clsStatus} CLS: ${metrics.cls.toFixed(3)} (target: ${PERFORMANCE_THRESHOLDS.cls})`)
   }
   
   if (metrics.ttfb !== null && metrics.ttfb !== undefined) {
     const ttfbStatus = metrics.ttfb <= PERFORMANCE_THRESHOLDS.ttfb ? '✅' : '❌'
-    console.log(`${ttfbStatus} TTFB: ${metrics.ttfb.toFixed(0)}ms (target: ${PERFORMANCE_THRESHOLDS.ttfb}ms)`)
+    logger.debug(`${ttfbStatus} TTFB: ${metrics.ttfb.toFixed(0)}ms (target: ${PERFORMANCE_THRESHOLDS.ttfb}ms)`)
   }
-  
-  console.groupEnd()
 }
 
 /**

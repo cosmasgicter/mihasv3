@@ -968,6 +968,14 @@ class AdminAuditLogView(APIView):
         if actor_id:
             queryset = queryset.filter(actor_id=actor_id)
 
+        actor_email = request.query_params.get("actor_email")
+        if actor_email:
+            matching_users = Profile.objects.filter(email__icontains=actor_email).values_list('id', flat=True)[:50]
+            if matching_users:
+                queryset = queryset.filter(actor_id__in=list(matching_users))
+            else:
+                queryset = queryset.none()
+
         date_from = request.query_params.get("date_from") or request.query_params.get("filter_from")
         if date_from:
             queryset = queryset.filter(created_at__gte=date_from)
