@@ -1,6 +1,6 @@
 """Unit tests for Redis-backed JTI blacklist failure modes and correctness.
 
-Tests: fail-open write, fail-closed read, TTL correctness, key prefix.
+Tests: fail-on-write (raises), fail-closed read, TTL correctness, key prefix.
 Requirements: 1.4, 1.5
 """
 
@@ -27,17 +27,17 @@ from apps.accounts.tokens import (  # noqa: E402
 )
 
 
-class TestJTIBlacklistFailOpenWrite(SimpleTestCase):
-    """Test that blacklist_jti does not raise when Redis write fails."""
+class TestJTIBlacklistFailOnWrite(SimpleTestCase):
+    """Test that blacklist_jti raises when Redis write fails."""
 
-    def test_blacklist_jti_does_not_raise_on_redis_error(self):
-        """When Redis raises RedisError on setex, blacklist_jti must not propagate it."""
+    def test_blacklist_jti_raises_on_redis_error(self):
+        """When Redis raises RedisError on setex, blacklist_jti must propagate it."""
         mock_redis = MagicMock()
         mock_redis.setex.side_effect = redis.RedisError("connection refused")
 
         with patch("apps.accounts.tokens._get_redis", return_value=mock_redis):
-            # Should not raise
-            blacklist_jti(str(uuid.uuid4()))
+            with self.assertRaises(redis.RedisError):
+                blacklist_jti(str(uuid.uuid4()))
 
 
 class TestJTIBlacklistFailClosedRead(SimpleTestCase):
