@@ -854,17 +854,12 @@ class ApiClient {
         }
 
         // 403 auth-failure intercept (defense-in-depth for expired JWT → 403):
-        // When the backend returns 403 with TOKEN_EXPIRED code, or a non-CSRF 403
-        // on a GET request to a non-auth-excluded endpoint, attempt a token refresh
-        // before treating it as a permanent failure. This handles edge cases where
-        // the backend middleware hasn't converted 403→401 yet.
+        // Only explicit token-expiry 403s are authentication failures. Generic
+        // 403 permission denials must not clear the user's session.
         if (
           response.status === 403 &&
           !this.isAuthExcludedEndpoint(normalizedEndpoint) &&
-          (
-            errorCode === 'TOKEN_EXPIRED' ||
-            (method === 'GET' && errorCode !== 'CSRF_INVALID' && errorCode !== 'CSRF_MISSING' && errorCode !== 'CSRF_VALIDATION_FAILED')
-          )
+          errorCode === 'TOKEN_EXPIRED'
         ) {
           console.debug('[API Client] 403 auth-related error - attempting token refresh');
           const refreshed = await this.attemptRefresh();
@@ -1001,10 +996,11 @@ class ApiClient {
 
       // Defense-in-depth: handle auth failures from GET requests.
       // fetch throws errors with status property for non-ok responses.
-      // If a GET request got a 401/403, attempt refresh.
+      // If a GET request got a 401, attempt refresh. Generic 403s are
+      // authorization failures and must not log the user out.
       const errorStatus = (error as { status?: number })?.status;
       if (
-        (errorStatus === 401 || errorStatus === 403) &&
+        errorStatus === 401 &&
         method === 'GET' &&
         !this.isAuthExcludedEndpoint(normalizedEndpoint)
       ) {

@@ -75,6 +75,8 @@ const PaymentStep = ({
     initiateError,
     widgetLoading,
     isScriptLoaded,
+    widgetLoadError,
+    retryWidgetLoad,
     startPayment,
     updatePaymentStatus,
     setInitiateError,
@@ -251,8 +253,20 @@ const PaymentStep = ({
       {!isScriptLoaded && !widgetLoading && (
         <Alert variant="warning">
           <AlertTitle className="text-foreground">Payment widget unavailable</AlertTitle>
-          <AlertDescription className="text-muted-foreground">
-            The payment widget could not be loaded. Please check your connection and refresh the page.
+          <AlertDescription className="space-y-3 text-muted-foreground">
+            <p>
+              {widgetLoadError || 'The payment widget could not be loaded. Please check your connection and try again.'}
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="min-h-11 w-full sm:w-auto"
+              onClick={retryWidgetLoad}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Retry payment widget
+            </Button>
           </AlertDescription>
         </Alert>
       )}
@@ -305,7 +319,7 @@ const PaymentStep = ({
               {feeLoading
                 ? 'Please wait — your application fee is being calculated.'
                 : !isScriptLoaded
-                  ? 'The payment widget is unavailable. Please refresh the page and try again.'
+                  ? 'The payment widget is unavailable. Use the retry button above, then try again.'
                   : fee == null
                     ? 'Select a program to calculate your application fee before paying.'
                     : paymentStatus === 'pending'

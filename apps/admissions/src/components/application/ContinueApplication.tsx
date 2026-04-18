@@ -6,14 +6,13 @@ import { SectionCard } from '@/components/ui/SectionCard'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { applicationSessionManager } from '@/lib/applicationSession'
-import { clearAllDraftData } from '@/lib/draftManager'
+import { draftManager } from '@/lib/draftManager'
 import { cn, formatDate } from '@/lib/utils'
 import { FileText, AlertTriangle, Trash2, RefreshCw } from 'lucide-react'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { toast } from '@/hooks/useToast'
 import { useApplicationDrafts } from '@/hooks/queries/useApplicationQueries'
-import { applicationService } from '@/services/applications'
 
 interface DraftInfo {
   exists: boolean
@@ -93,30 +92,36 @@ export function ContinueApplication() {
   }
 
   const handleDeleteDraft = async () => {
-    if (!user) return
+    const ownerId = draftOwnerId || user?.id
+    if (!ownerId) return
     
     const confirmed = await confirmDialog.confirm({
-      title: 'Delete Draft',
-      message: 'Your saved draft will be permanently deleted.',
-      confirmText: 'Delete',
+      title: serverDraftCount > 1 ? 'Delete Drafts' : 'Delete Draft',
+      message: serverDraftCount > 1
+        ? 'All saved draft applications will be permanently deleted.'
+        : 'Your saved draft will be permanently deleted.',
+      confirmText: serverDraftCount > 1 ? 'Delete All' : 'Delete',
       variant: 'danger'
     })
     if (!confirmed) return
 
     try {
       setDeleting(true)
-      if (draftInfo.exists) {
-        clearAllDraftData()
-        setDraftInfo({ exists: false })
-        await refetchServerDrafts()
-      } else if (latestServerDraft?.id) {
-        await applicationService.delete(latestServerDraft.id)
-        await refetchServerDrafts()
-        setDraftInfo({ exists: false })
-        window.dispatchEvent(new CustomEvent('draftCleared'))
-      } else {
+      if (!draftInfo.exists && serverDraftCount === 0) {
         toast.error('Delete Failed', 'We could not remove your saved draft. Please try again.')
+        return
       }
+
+      const result = await draftManager.clearAllDrafts(ownerId)
+      if (!result.success) {
+        toast.error('Delete Failed', result.error || 'We could not remove your saved draft. Please try again.')
+        return
+      }
+
+      setDraftInfo({ exists: false })
+      await refetchServerDrafts()
+      window.dispatchEvent(new CustomEvent('draftCleared'))
+      toast.success('Draft Deleted', 'Your saved draft was removed.')
     } catch {
       toast.error('Delete Failed', 'We could not remove your saved draft. Please try again.')
     } finally {

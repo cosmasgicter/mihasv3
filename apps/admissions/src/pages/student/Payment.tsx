@@ -168,10 +168,6 @@ function getPaymentStatusBadge(status: string | null) {
 function getPaymentGuidance(app: ApplicationSummary) {
   const normalizedPaymentStatus = normalizePaymentStatus(app.payment_status)
 
-  if (app.status === 'draft') {
-    return 'Complete this draft in the wizard. Payment is collected as part of the guided submission flow.'
-  }
-
   if (normalizedPaymentStatus === 'verified') {
     return 'Your application fee has been verified. Payment history remains available below for reference.'
   }
@@ -194,13 +190,6 @@ function getPaymentGuidance(app: ApplicationSummary) {
 function getPaymentAction(app: ApplicationSummary) {
   if (!requiresStudentPaymentAction(app.payment_status)) {
     return null
-  }
-
-  if (app.status === 'draft') {
-    return {
-      href: '/student/application-wizard',
-      label: 'Continue draft in wizard',
-    }
   }
 
   return {
@@ -279,31 +268,18 @@ function ApplicationPaymentCard({
           </p>
         </div>
         {paymentAction && (
-          app.status === 'draft' ? (
-            <Button
-              asChild
-              size="sm"
-              className="min-h-[44px] flex-shrink-0"
-            >
-              <Link to={paymentAction.href}>
-                {paymentAction.label}
-                <ArrowRight className="h-3.5 w-3.5 ml-1" />
-              </Link>
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              size="sm"
-              className="min-h-[44px] flex-shrink-0"
-              disabled={retryDisabled}
-              loading={paymentStatus === 'initiating' || widgetLoading}
-              onClick={() => void startPayment()}
-              data-testid={`payment-page-retry-${app.id}`}
-            >
-              {paymentStatus === 'pending' ? 'Checking payment...' : paymentAction.label}
-              <ArrowRight className="h-3.5 w-3.5 ml-1" />
-            </Button>
-          )
+          <Button
+            type="button"
+            size="sm"
+            className="min-h-[44px] flex-shrink-0"
+            disabled={retryDisabled}
+            loading={paymentStatus === 'initiating' || widgetLoading}
+            onClick={() => void startPayment()}
+            data-testid={`payment-page-retry-${app.id}`}
+          >
+            {paymentStatus === 'pending' ? 'Checking payment...' : paymentAction.label}
+            <ArrowRight className="h-3.5 w-3.5 ml-1" />
+          </Button>
         )}
       </div>
 
@@ -405,8 +381,10 @@ export default function PaymentPage() {
     ...CACHE_CONFIG.applications,
   })
 
-  // ---- Fetch payment records for all applications ----
-  const applicationIds = applications.map((a) => a.id)
+  const paymentApplications = applications.filter((app) => app.status !== 'draft')
+
+  // ---- Fetch payment records for submitted applications ----
+  const applicationIds = paymentApplications.map((a) => a.id)
 
   const {
     data: paymentsByApp = {},
@@ -458,8 +436,8 @@ export default function PaymentPage() {
 
   const loading = loadingApps || loadingPayments
 
-  const handleContinueToWizard = () => {
-    navigate('/student/application-wizard')
+  const handleBackToDashboard = () => {
+    navigate('/student/dashboard')
   }
 
   const handlePaymentRefresh = useCallback(async () => {
@@ -523,7 +501,7 @@ export default function PaymentPage() {
       />
     <PageShell
       title="Application Payment"
-      subtitle="View payment history and retry failed or unpaid application fees without returning to the wizard."
+      subtitle="View payment history and retry failed or unpaid submitted application fees."
     >
       {/* Back to Dashboard */}
       <div className="mb-6">
@@ -567,24 +545,14 @@ export default function PaymentPage() {
             <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
               <p className="text-sm font-medium text-foreground">Application fees are resolved per application</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Draft applications continue in the wizard. Failed or unpaid submitted applications can be retried from this page.
+                Failed or unpaid submitted applications can be retried from this page.
               </p>
             </div>
-
-            <Button
-              asChild
-              className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 min-h-[44px]"
-            >
-              <Link to="/student/application-wizard">
-                Start or Continue Draft Application
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Link>
-            </Button>
           </CardContent>
         </Card>
 
         {/* Per-application payment history */}
-        {applications.length > 0 && (
+        {paymentApplications.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -595,7 +563,7 @@ export default function PaymentPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {applications.map((app) => {
+                {paymentApplications.map((app) => {
                   const records = paymentsByApp[app.id] ?? []
 
                   return (
@@ -614,14 +582,14 @@ export default function PaymentPage() {
         )}
 
         {/* Empty state */}
-        {applications.length === 0 && !appsError && (
+        {paymentApplications.length === 0 && !appsError && (
           <EmptyState
             icon={<FileText className="h-12 w-12" />}
-            heading="No Applications Yet"
-            description="Start your application to see payment information here."
+            heading="No Submitted Fees Yet"
+            description="Submitted applications with payment records or outstanding fees will appear here."
             action={{
-              label: 'Start Application',
-              onClick: handleContinueToWizard,
+              label: 'Back to dashboard',
+              onClick: handleBackToDashboard,
             }}
           />
         )}

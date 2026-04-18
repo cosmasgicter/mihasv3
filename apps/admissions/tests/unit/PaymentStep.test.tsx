@@ -83,6 +83,7 @@ describe('PaymentStep', () => {
     const markup = renderPaymentStep()
 
     expect(markup).toContain('Payment widget unavailable')
-    expect(markup).toContain('Please check your connection and refresh the page')
+    expect(markup).toContain('Please check your connection and try again')
+    expect(markup).toContain('Retry payment widget')
   })
 })

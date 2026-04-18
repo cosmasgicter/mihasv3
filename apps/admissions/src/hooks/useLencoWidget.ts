@@ -43,77 +43,137 @@ declare global {
 // Constants
 // ---------------------------------------------------------------------------
 
+const PRODUCTION_WIDGET_URL = 'https://pay.lenco.co/js/v1/inline.js'
+const SANDBOX_WIDGET_URL = 'https://pay.sandbox.lenco.co/js/v1/inline.js'
 const WIDGET_URL =
   import.meta.env.VITE_LENCO_WIDGET_URL ||
-  'https://pay.sandbox.lenco.co/js/v1/inline.js'
+  (import.meta.env.PROD ? PRODUCTION_WIDGET_URL : SANDBOX_WIDGET_URL)
+const WIDGET_SCRIPT_ID = 'mihas-lenco-inline-widget'
+const SCRIPT_LOAD_TIMEOUT_MS = 15_000
+
+let scriptLoadPromise: Promise<void> | null = null
+
+function loadLencoScript(): Promise<void> {
+  if (typeof window === 'undefined') {
+    return Promise.reject(new Error('Payment widget is not available during server rendering.'))
+  }
+
+  if (window.LencoPay) {
+    return Promise.resolve()
+  }
+
+  if (scriptLoadPromise) {
+    return scriptLoadPromise
+  }
+
+  scriptLoadPromise = new Promise<void>((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>(
+      `script#${WIDGET_SCRIPT_ID}, script[src="${WIDGET_URL}"]`
+    )
+    const script = existing ?? document.createElement('script')
+    let timeoutId: number | null = null
+
+    const cleanup = () => {
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId)
+        timeoutId = null
+      }
+      script.removeEventListener('load', handleLoad)
+      script.removeEventListener('error', handleError)
+    }
+
+    const handleLoad = () => {
+      cleanup()
+      if (window.LencoPay) {
+        resolve()
+        return
+      }
+      scriptLoadPromise = null
+      reject(new Error('Payment widget loaded but did not initialize.'))
+    }
+
+    const handleError = () => {
+      cleanup()
+      scriptLoadPromise = null
+      if (script.parentNode) {
+        script.parentNode.removeChild(script)
+      }
+      reject(new Error('Payment widget could not be loaded. Check your connection and try again.'))
+    }
+
+    timeoutId = window.setTimeout(handleError, SCRIPT_LOAD_TIMEOUT_MS)
+
+    script.addEventListener('load', handleLoad)
+    script.addEventListener('error', handleError)
+
+    if (!existing) {
+      script.id = WIDGET_SCRIPT_ID
+      script.src = WIDGET_URL
+      script.async = true
+      script.defer = true
+      document.head.appendChild(script)
+    }
+  })
+
+  return scriptLoadPromise
+}
 
 // ---------------------------------------------------------------------------
 // Hook
 // ---------------------------------------------------------------------------
 
 export function useLencoWidget() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [isScriptLoaded, setIsScriptLoaded] = useState(false)
-  const scriptLoadedRef = useRef(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const mountedRef = useRef(false)
+  const loadAttemptRef = useRef(0)
 
-  // Load the Lenco widget script once on mount
-  useEffect(() => {
-    // Already loaded in a previous render
-    if (window.LencoPay) {
-      setIsScriptLoaded(true)
-      setIsLoading(false)
-      scriptLoadedRef.current = true
-      return
-    }
+  const loadWidget = useCallback(() => {
+    const attempt = loadAttemptRef.current + 1
+    loadAttemptRef.current = attempt
+    setIsLoading(true)
+    setLoadError(null)
 
-    // Check if script tag already exists (e.g. from HMR)
-    const existing = document.querySelector<HTMLScriptElement>(
-      `script[src="${WIDGET_URL}"]`
-    )
-    if (existing) {
-      // Script tag exists — wait for it to finish loading
-      const onLoad = () => {
+    void loadLencoScript()
+      .then(() => {
+        if (!mountedRef.current || loadAttemptRef.current !== attempt) return
         setIsScriptLoaded(true)
+        setLoadError(null)
+      })
+      .catch((error) => {
+        if (!mountedRef.current || loadAttemptRef.current !== attempt) return
+        setIsScriptLoaded(false)
+        setLoadError(error instanceof Error ? error.message : 'Payment widget could not be loaded.')
+      })
+      .finally(() => {
+        if (!mountedRef.current || loadAttemptRef.current !== attempt) return
         setIsLoading(false)
-        scriptLoadedRef.current = true
-      }
-      if (window.LencoPay) {
-        onLoad()
-      } else {
-        existing.addEventListener('load', onLoad)
-        return () => existing.removeEventListener('load', onLoad)
-      }
-      return
-    }
-
-    const script = document.createElement('script')
-    script.src = WIDGET_URL
-    script.async = true
-
-    script.onload = () => {
-      setIsScriptLoaded(true)
-      setIsLoading(false)
-      scriptLoadedRef.current = true
-    }
-
-    script.onerror = () => {
-      console.error('[useLencoWidget] Failed to load Lenco widget script')
-      setIsScriptLoaded(false)
-      setIsLoading(false)
-      scriptLoadedRef.current = false
-    }
-
-    document.head.appendChild(script)
-
-    return () => {
-      // Don't remove the script on unmount — it's a global singleton
-    }
+      })
   }, [])
+
+  // Load the Lenco widget script once on mount. The module-level promise
+  // deduplicates concurrent payment surfaces.
+  useEffect(() => {
+    mountedRef.current = true
+    loadWidget()
+    return () => {
+      mountedRef.current = false
+    }
+  }, [loadWidget])
+
+  const retryLoad = useCallback(() => {
+    if (!window.LencoPay) {
+      scriptLoadPromise = null
+    }
+    loadWidget()
+  }, [loadWidget])
 
   const openWidget = useCallback(
     (config: LencoWidgetConfig) => {
       if (!window.LencoPay) {
         console.error('[useLencoWidget] LencoPay not available')
+        setLoadError('Payment widget is not ready. Please try again.')
         config.onClose()
         return
       }
@@ -162,6 +222,7 @@ export function useLencoWidget() {
         })
       } catch (err) {
         console.error('[useLencoWidget] Error opening widget:', err)
+        setLoadError(err instanceof Error ? err.message : 'Payment widget could not be opened.')
         setIsLoading(false)
         config.onClose()
       }
@@ -169,5 +230,5 @@ export function useLencoWidget() {
     []
   )
 
-  return { openWidget, isLoading, isScriptLoaded }
+  return { openWidget, isLoading, isScriptLoaded, loadError, retryLoad }
 }
