@@ -4,6 +4,11 @@ import { compressImage } from '@/lib/utils'
 import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
 import { sanitizeForLog } from '../lib/security'
 
+const TESSERACT_ASSET_BASE = '/ocr/tesseract'
+const TESSERACT_LANG_PATH =
+  import.meta.env.VITE_TESSERACT_LANG_PATH ||
+  'https://cdn.jsdelivr.net/npm/@tesseract.js-data/eng/4.0.0_best_int'
+
 // OCR Service for extracting text from documents
 export class OCRService {
   private worker: any = null
@@ -19,10 +24,11 @@ export class OCRService {
         recoveryMessage: 'A newer version of the OCR tools is loading. Please wait a moment and try again.',
       })
       
-      this.worker = await Tesseract.createWorker()
-      
-      await this.worker.loadLanguage('eng')
-      await this.worker.initialize('eng')
+      this.worker = await Tesseract.createWorker('eng', 1, {
+        workerPath: `${TESSERACT_ASSET_BASE}/worker.min.js`,
+        corePath: `${TESSERACT_ASSET_BASE}/core`,
+        langPath: TESSERACT_LANG_PATH,
+      })
       
       this.isInitialized = true
     } catch (error) {
@@ -32,6 +38,10 @@ export class OCRService {
   }
 
   async extractText(file: File): Promise<string> {
+    if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+      throw new Error('OCR auto-fill currently supports image files only. Please enter PDF document details manually.')
+    }
+
     if (!this.isInitialized) {
       await this.initialize()
     }

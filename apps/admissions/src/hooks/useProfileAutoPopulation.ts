@@ -23,6 +23,7 @@ interface UserMetadata {
   sex?: string
   date_of_birth?: string
   nrc_number?: string
+  passport_number?: string
   next_of_kin_name?: string
   next_of_kin_phone?: string
   address?: string
@@ -78,6 +79,7 @@ export const getUserMetadata = (user: User | null | undefined): UserMetadata => 
       sex: (metadata.sex as string | undefined) || (signupData.sex as string | undefined),
       date_of_birth: (metadata.date_of_birth as string | undefined) || (signupData.date_of_birth as string | undefined),
       nrc_number: (metadata.nrc_number as string | undefined) || (signupData.nrc_number as string | undefined),
+      passport_number: (metadata.passport_number as string | undefined) || (signupData.passport_number as string | undefined),
       next_of_kin_name: (metadata.next_of_kin_name as string | undefined) || (signupData.next_of_kin_name as string | undefined),
       next_of_kin_phone: (metadata.next_of_kin_phone as string | undefined) || (signupData.next_of_kin_phone as string | undefined),
       address: (metadata.address as string | undefined) || (signupData.address as string | undefined),
@@ -98,6 +100,23 @@ export const getBestValue = (profileValue: unknown, metadataValue: unknown, fall
     return metadataValue.trim()
   }
   return fallback
+}
+
+export const normalizeSexForWizard = (value: unknown): 'Male' | 'Female' | '' => {
+  if (typeof value !== 'string') {
+    return ''
+  }
+
+  const normalized = value.trim().toLowerCase()
+  if (normalized === 'male' || normalized === 'm') {
+    return 'Male'
+  }
+
+  if (normalized === 'female' || normalized === 'f') {
+    return 'Female'
+  }
+
+  return ''
 }
 
 // Calculate profile completion percentage
@@ -129,9 +148,11 @@ export const useProfileAutoPopulation = (setValue?: SetValueFn) => {
         const dateOfBirth = normalizeDateInputValue(
           getBestValue(profile?.date_of_birth, metadata.date_of_birth, '')
         )
-        const sex = getBestValue(profile?.sex, metadata.sex, '')
+        const sex = normalizeSexForWizard(getBestValue(profile?.sex, metadata.sex, ''))
         const residenceTown = getCanonicalResidenceTown(profile, metadata)
         const residenceCountry = getCanonicalResidenceCountry(profile, metadata)
+        const nrcNumber = getBestValue(profile?.nrc_number, metadata.nrc_number, '')
+        const passportNumber = getBestValue(profile?.passport_number, metadata.passport_number, '')
         const nextOfKinName = getBestValue(profile?.next_of_kin_name, metadata.next_of_kin_name, '')
         const nextOfKinPhone = getBestValue(profile?.next_of_kin_phone, metadata.next_of_kin_phone, '')
         
@@ -140,9 +161,11 @@ export const useProfileAutoPopulation = (setValue?: SetValueFn) => {
         if (fullName) setValue('full_name', fullName)
         if (phone) setValue('phone', phone)
         if (dateOfBirth) setValue('date_of_birth', dateOfBirth)
-        if (sex && (sex === 'Male' || sex === 'Female')) setValue('sex', sex)
+        if (sex) setValue('sex', sex)
         if (residenceTown) setValue('residence_town', residenceTown)
         if (residenceCountry) setValue('country', residenceCountry)
+        if (nrcNumber) setValue('nrc_number', nrcNumber)
+        if (passportNumber) setValue('passport_number', passportNumber)
         if (nextOfKinName) setValue('next_of_kin_name', nextOfKinName)
         if (nextOfKinPhone) setValue('next_of_kin_phone', nextOfKinPhone)
         
@@ -156,7 +179,24 @@ export const useProfileAutoPopulation = (setValue?: SetValueFn) => {
         console.error('Error in profile auto-population:', error)
       }
     }
-  }, [user?.id, profile?.id, profile?.country, setValue])
+  }, [
+    user,
+    profile?.id,
+    profile?.full_name,
+    profile?.email,
+    profile?.phone,
+    profile?.date_of_birth,
+    profile?.sex,
+    profile?.residence_town,
+    profile?.country,
+    profile?.nationality,
+    profile?.next_of_kin_name,
+    profile?.next_of_kin_phone,
+    profile?.nrc_number,
+    profile?.passport_number,
+    profile?.address,
+    setValue,
+  ])
   
   const metadata = getUserMetadata(user)
   const completionPercentage = calculateProfileCompletion(profile, metadata)

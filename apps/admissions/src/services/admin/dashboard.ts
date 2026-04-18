@@ -58,6 +58,10 @@ export interface AdminDashboardActivity {
   createdAt?: string | null
   program?: string | null
   intake?: string | null
+  application_number?: string
+  old_status?: string
+  new_status?: string
+  actor_name?: string
 }
 
 export interface AdminDashboardResponse {
@@ -363,7 +367,19 @@ const normalizeRecentActivity = (items: unknown): AdminDashboardActivity[] => {
             ? item.created_at
             : undefined,
         program: 'program' in item && typeof item.program === 'string' ? item.program : undefined,
-        intake: 'intake' in item && typeof item.intake === 'string' ? item.intake : undefined
+        intake: 'intake' in item && typeof item.intake === 'string' ? item.intake : undefined,
+        application_number: 'application_number' in item && typeof item.application_number === 'string'
+          ? item.application_number
+          : undefined,
+        old_status: 'old_status' in item && typeof item.old_status === 'string'
+          ? item.old_status
+          : undefined,
+        new_status: 'new_status' in item && typeof item.new_status === 'string'
+          ? item.new_status
+          : undefined,
+        actor_name: 'actor_name' in item && typeof item.actor_name === 'string'
+          ? item.actor_name
+          : undefined
       }
 
       return normalized

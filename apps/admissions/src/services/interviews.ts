@@ -40,6 +40,49 @@ export interface ListInterviewsResponse {
   interviews: Interview[]
 }
 
+function firstInterviewArray(...values: unknown[]): Interview[] {
+  for (const value of values) {
+    if (Array.isArray(value)) {
+      return value as Interview[]
+    }
+  }
+
+  return []
+}
+
+export function normalizeInterviewsResponse(response: unknown): Interview[] {
+  if (Array.isArray(response)) {
+    return response as Interview[]
+  }
+
+  if (!response || typeof response !== 'object') {
+    return []
+  }
+
+  const envelope = response as Record<string, unknown>
+  const data = envelope.data
+
+  if (Array.isArray(data)) {
+    return data as Interview[]
+  }
+
+  if (data && typeof data === 'object') {
+    const nested = data as Record<string, unknown>
+    const nestedInterviews = firstInterviewArray(nested.interviews, nested.results)
+    if (nestedInterviews.length > 0) {
+      return nestedInterviews
+    }
+  }
+
+  return firstInterviewArray(envelope.interviews, envelope.results)
+}
+
+function sortInterviewsBySchedule(interviews: Interview[]): Interview[] {
+  return [...interviews].sort(
+    (a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
+  )
+}
+
 export const interviewsService = {
   schedule: async (data: ScheduleInterviewData) => {
     const { applicationId } = data
@@ -69,17 +112,16 @@ export const interviewsService = {
 
   list: async (applicationId?: string): Promise<ListInterviewsResponse> => {
     if (applicationId) {
-      const interviews = await apiClient.request<Interview[]>(
+      const interviews = await apiClient.request<unknown>(
         `/applications/${encodeURIComponent(applicationId)}/interviews/`
       )
-      return { interviews: interviews ?? [] }
+      return { interviews: sortInterviewsBySchedule(normalizeInterviewsResponse(interviews)) }
     }
 
-    const interviews = await apiClient.request<Interview[]>(`/applications/interviews/?mine=true`)
+    const interviews = await apiClient.request<unknown>(`/applications/interviews/?mine=true`)
 
     return {
-      interviews: (interviews ?? [])
-      .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())
+      interviews: sortInterviewsBySchedule(normalizeInterviewsResponse(interviews))
     }
   }
 }

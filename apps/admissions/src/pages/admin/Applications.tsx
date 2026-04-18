@@ -16,6 +16,7 @@ import { Container } from '@/components/ui/Container'
 import { useToastStore } from '@/hooks/useToast'
 import { applicationService } from '@/services/applications'
 import { logApiError } from '@/lib/apiErrorLogger'
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { PageShell } from '@/components/ui/PageShell'
 import { Seo } from '@/components/seo/Seo'
 import { VirtualizedApplicationsGrid } from '@/components/admin/applications/VirtualizedApplicationsGrid'
@@ -720,23 +721,13 @@ export default function Applications() {
         </div>
 
         {error && (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 mb-6">
-            <div className="flex items-center gap-3">
-              <XCircle className="h-5 w-5 text-error flex-shrink-0" />
-              <div>
-                <h3 className="text-sm font-medium text-destructive-foreground">Error Loading Applications</h3>
-                <p className="text-sm text-error mt-1">{error}</p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefresh}
-                className="ml-auto text-destructive border-destructive/30 hover:bg-destructive/5"
-              >
-                <RefreshCw className="h-4 w-4 mr-1" />
-                Retry
-              </Button>
-            </div>
+          <div className="mb-6">
+            <ErrorDisplay
+              title="Error Loading Applications"
+              message={error}
+              onRetry={handleRefresh}
+              variant="inline"
+            />
           </div>
         )}
 

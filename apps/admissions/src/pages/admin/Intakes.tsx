@@ -94,12 +94,20 @@ const IntakeFormFields = ({ register, errors }: { register: any; errors: any }) 
   </div>
 )
 
+/** Extract a user-friendly message from a mutation error */
+function getMutationErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message
+  if (typeof err === 'string') return err
+  return 'An unexpected error occurred. Please try again.'
+}
+
 export default function AdminIntakes() {
   const queryClient = useQueryClient()
   const [showCreate, setShowCreate] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [currentIntake, setCurrentIntake] = useState<Intake | null>(null)
+  const [mutationError, setMutationError] = useState<string | null>(null)
 
   const {
     register,
@@ -131,6 +139,7 @@ export default function AdminIntakes() {
   const error = queryError?.message || ''
 
   const openCreate = () => {
+    setMutationError(null)
     reset({
       name: '',
       year: new Date().getFullYear(),
@@ -144,6 +153,7 @@ export default function AdminIntakes() {
   }
 
   const openEdit = (intake: Intake) => {
+    setMutationError(null)
     setCurrentIntake(intake)
     reset({
       name: intake.name,
@@ -158,6 +168,7 @@ export default function AdminIntakes() {
   }
 
   const openDelete = (intake: Intake) => {
+    setMutationError(null)
     setCurrentIntake(intake)
     setShowDelete(true)
   }
@@ -183,7 +194,11 @@ export default function AdminIntakes() {
     ...mutationOptions,
     onSuccess: () => {
       mutationOptions.onSuccess()
+      setMutationError(null)
       setShowCreate(false)
+    },
+    onError: (err: unknown) => {
+      setMutationError(getMutationErrorMessage(err))
     },
   })
 
@@ -204,8 +219,12 @@ export default function AdminIntakes() {
     ...mutationOptions,
     onSuccess: () => {
       mutationOptions.onSuccess()
+      setMutationError(null)
       setShowEdit(false)
       setCurrentIntake(null)
+    },
+    onError: (err: unknown) => {
+      setMutationError(getMutationErrorMessage(err))
     },
   })
 
@@ -217,22 +236,31 @@ export default function AdminIntakes() {
     ...mutationOptions,
     onSuccess: () => {
       mutationOptions.onSuccess()
+      setMutationError(null)
       setShowDelete(false)
       setCurrentIntake(null)
+    },
+    onError: (err: unknown) => {
+      setMutationError(getMutationErrorMessage(err))
     },
   })
 
   const saving = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending
 
-  const createIntake = (data: IntakeForm) => createMutation.mutate(data)
+  const createIntake = (data: IntakeForm) => {
+    setMutationError(null)
+    createMutation.mutate(data)
+  }
 
   const updateIntake = (data: IntakeForm) => {
     if (!currentIntake) return
+    setMutationError(null)
     updateMutation.mutate(data)
   }
 
   const deleteIntake = () => {
     if (!currentIntake) return
+    setMutationError(null)
     deleteMutation.mutate()
   }
 
@@ -424,6 +452,11 @@ export default function AdminIntakes() {
           </DialogHeader>
           <form onSubmit={handleSubmit(createIntake)}>
             <IntakeFormFields register={register} errors={errors} />
+            {mutationError && showCreate && (
+              <p className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4" role="alert">
+                {mutationError}
+              </p>
+            )}
             <DialogFooter>
               <Button
                 type="button"
@@ -450,6 +483,11 @@ export default function AdminIntakes() {
           </DialogHeader>
           <form onSubmit={handleSubmit(updateIntake)}>
             <IntakeFormFields register={register} errors={errors} />
+            {mutationError && showEdit && (
+              <p className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 mb-4" role="alert">
+                {mutationError}
+              </p>
+            )}
             <DialogFooter>
               <Button
                 type="button"
@@ -476,6 +514,11 @@ export default function AdminIntakes() {
               Are you sure you want to delete "{currentIntake?.name}"? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
+          {mutationError && showDelete && (
+            <p className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2" role="alert">
+              {mutationError}
+            </p>
+          )}
           <DialogFooter>
             <Button
               variant="outline"

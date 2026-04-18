@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { CheckCircle, CreditCard, RefreshCw, XCircle, Clock } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
@@ -8,8 +8,7 @@ import { Skeleton } from '@/components/ui'
 import { animateClasses } from '@/lib/animations'
 import { apiClient } from '@/services/client'
 import { useFeeResolver } from '@/hooks/useFeeResolver'
-import { useLencoWidget } from '@/hooks/useLencoWidget'
-import { normalizePaymentStatusValue } from '@/hooks/usePaymentStatus'
+import { useApplicationPaymentAction } from '@/hooks/useApplicationPaymentAction'
 import type { WizardFormData } from '../types'
 
 // ---------------------------------------------------------------------------
@@ -26,24 +25,10 @@ interface PaymentStepProps {
   onPaymentStatusRefresh?: () => Promise<void>
 }
 
-interface InitiateResponse {
-  payment_id: string
-  reference: string
-  amount: string
-  currency: string
-  lenco_public_key: string
-}
-
-interface VerifyResponse {
-  status: string
-}
-
 interface DevBypassResponse {
   status?: string
   payment_status?: string
 }
-
-type PaymentStatus = 'idle' | 'initiating' | 'pending' | 'successful' | 'failed'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -75,20 +60,30 @@ const PaymentStep = ({
   const country = watch('country') || ''
 
   const { fee, isLoading: feeLoading, error: feeError } = useFeeResolver(programCode, nationality, country)
-  const { openWidget, isLoading: widgetLoading, isScriptLoaded } = useLencoWidget()
 
-  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('idle')
-  const [statusMessage, setStatusMessage] = useState<string | null>(null)
-  const [initiateError, setInitiateError] = useState<string | null>(null)
   const retryRef = useRef<HTMLButtonElement>(null)
-  const paymentStatusRef = useRef<PaymentStatus>('idle')
-  const initiatingRef = useRef(false)
 
-  const updatePaymentStatus = useCallback((status: PaymentStatus, message: string | null = null) => {
-    paymentStatusRef.current = status
-    setPaymentStatus(status)
-    setStatusMessage(message)
-  }, [])
+  const getCustomerDetails = useCallback(() => ({
+    fullName: watch('full_name') || '',
+    email: watch('email') || '',
+    phone: watch('phone') || '',
+  }), [watch])
+
+  const {
+    paymentStatus,
+    statusMessage,
+    initiateError,
+    widgetLoading,
+    isScriptLoaded,
+    startPayment,
+    updatePaymentStatus,
+    setInitiateError,
+  } = useApplicationPaymentAction({
+    applicationId,
+    getCustomerDetails,
+    onPaymentStatusChange,
+    onPaymentStatusRefresh,
+  })
 
   // Focus retry button when payment fails (Req 15.2)
   useEffect(() => {
@@ -103,94 +98,18 @@ const PaymentStep = ({
       updatePaymentStatus('successful', 'Payment confirmed.')
     } else if (polledStatus === 'failed') {
       updatePaymentStatus('failed', 'Payment failed. You can retry.')
-    } else if (polledStatus === 'pending' && paymentStatusRef.current === 'idle') {
+    } else if (polledStatus === 'pending' && paymentStatus === 'idle') {
       updatePaymentStatus('pending', 'Payment is being confirmed\u2026')
     }
-  }, [polledStatus, updatePaymentStatus])
+  }, [paymentStatus, polledStatus, updatePaymentStatus])
 
   const handlePayNow = useCallback(async () => {
-    if (initiatingRef.current || paymentStatusRef.current === 'initiating') {
-      return
-    }
     if (!applicationId) {
       setInitiateError('Please save your application before proceeding to payment. Go back to Step 1 and ensure your details are saved.')
       return
     }
-    initiatingRef.current = true
-    setInitiateError(null)
-    updatePaymentStatus('initiating')
-
-    try {
-      const data = await apiClient.request<InitiateResponse>(
-        '/payments/initiate/',
-        { method: 'POST', body: JSON.stringify({ application_id: applicationId }) },
-      )
-      if (!data) throw new Error('No response from payment service')
-
-      const { payment_id, reference, amount, currency, lenco_public_key } = data
-      const fullName = watch('full_name') || ''
-      const nameParts = fullName.trim().split(/\s+/)
-      const firstName = nameParts[0] || ''
-      const lastName = nameParts.slice(1).join(' ') || firstName
-      const email = watch('email') || ''
-      const phone = watch('phone') || ''
-
-      openWidget({
-        publicKey: lenco_public_key,
-        reference,
-        amount: parseFloat(amount),
-        currency,
-        customerEmail: email,
-        customerFirstName: firstName,
-        customerLastName: lastName,
-        customerPhone: phone || undefined,
-        onSuccess: async () => {
-          updatePaymentStatus('pending', 'Verifying payment\u2026')
-          initiatingRef.current = false
-          try {
-            const verifyPath = `/payments/${encodeURIComponent(payment_id)}/verify/`
-            const v = await apiClient.request<VerifyResponse>(verifyPath, { method: 'POST' })
-            const normalizedStatus = normalizePaymentStatusValue(v?.status)
-            if (normalizedStatus === 'successful') {
-              updatePaymentStatus('successful', 'Payment confirmed.')
-              onPaymentStatusChange?.('successful')
-              await onPaymentStatusRefresh?.()
-            } else if (normalizedStatus === 'failed') {
-              updatePaymentStatus('failed', 'Payment could not be verified. You can retry.')
-              onPaymentStatusChange?.('failed')
-              await onPaymentStatusRefresh?.()
-            } else {
-              updatePaymentStatus('pending', 'Payment is being confirmed. Stay on this step until the confirmation finishes.')
-              onPaymentStatusChange?.('pending')
-              void onPaymentStatusRefresh?.()
-            }
-          } catch {
-            updatePaymentStatus('pending', 'Payment is being confirmed. Stay on this step until the confirmation finishes.')
-            onPaymentStatusChange?.('pending')
-            void onPaymentStatusRefresh?.()
-          }
-        },
-        onConfirmationPending: () => {
-          initiatingRef.current = false
-          updatePaymentStatus('pending', 'Payment is being confirmed. Stay on this step until the confirmation finishes.')
-          onPaymentStatusChange?.('pending')
-          void onPaymentStatusRefresh?.()
-        },
-        onClose: () => {
-          initiatingRef.current = false
-          const latestStatus = paymentStatusRef.current
-          if (latestStatus !== 'successful' && latestStatus !== 'pending') {
-            updatePaymentStatus('idle', 'Payment not completed. You can retry when ready.')
-          }
-        },
-      })
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to initiate payment'
-      setInitiateError(message)
-      updatePaymentStatus('idle')
-      initiatingRef.current = false
-    }
-  }, [applicationId, onPaymentStatusChange, onPaymentStatusRefresh, openWidget, watch, updatePaymentStatus])
+    await startPayment()
+  }, [applicationId, setInitiateError, startPayment])
 
   const handleSimulatePayment = useCallback(async () => {
     if (!applicationId) {

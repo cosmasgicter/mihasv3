@@ -264,13 +264,15 @@ export default function ApplicationStatus() {
   const paymentAction =
     needsPaymentAttention
       ? {
-          href: application.status === 'draft' ? '/student/application-wizard' : '/student/payment',
+          href: application.status === 'draft'
+            ? '/student/application-wizard'
+            : `/student/payment?applicationId=${encodeURIComponent(application.id)}`,
           label:
             application.status === 'draft'
               ? 'Continue draft in wizard'
               : normalizedPaymentStatus === 'rejected'
-                ? 'Review rejected payment'
-                : 'Open payments',
+                ? 'Retry rejected payment'
+                : 'Pay application fee',
         }
       : null
 

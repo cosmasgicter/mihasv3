@@ -375,7 +375,7 @@ export default function AdminUsers() {
       actions={
         <div className="flex flex-wrap gap-2">
           <Link to="/admin">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="min-h-[44px] min-w-[44px]">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
@@ -384,6 +384,7 @@ export default function AdminUsers() {
             onClick={() => setShowStats((current) => !current)}
             variant="ghost"
             size="sm"
+            className="min-h-[44px] min-w-[44px]"
           >
             <BarChart3 className="mr-2 h-4 w-4" />
             {showStats ? 'Hide stats' : 'Show stats'}
@@ -392,6 +393,7 @@ export default function AdminUsers() {
             onClick={() => setShowImportDialog(true)}
             variant="ghost"
             size="sm"
+            className="min-h-[44px] min-w-[44px]"
           >
             <Upload className="mr-2 h-4 w-4" />
             Import
@@ -400,6 +402,7 @@ export default function AdminUsers() {
             onClick={() => setShowExportDialog(true)}
             variant="ghost"
             size="sm"
+            className="min-h-[44px] min-w-[44px]"
           >
             <Download className="mr-2 h-4 w-4" />
             Export
@@ -407,6 +410,7 @@ export default function AdminUsers() {
           <Button
             onClick={() => setShowCreateDialog(true)}
             size="sm"
+            className="min-h-[44px] min-w-[44px]"
           >
             <UserPlus className="mr-2 h-4 w-4" />
             Add user
@@ -424,6 +428,7 @@ export default function AdminUsers() {
             <Button
               variant="outline"
               size="sm"
+              className="min-h-[44px] min-w-[44px]"
               onClick={() => {
                 setSearchTerm('')
                 setRoleFilter('')
@@ -451,7 +456,7 @@ export default function AdminUsers() {
                 <select
                   value={roleFilter}
                   onChange={(event) => setRoleFilter(event.target.value)}
-                  className="h-11 w-full rounded-lg border border-input bg-background pl-10 pr-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="min-h-[44px] h-11 w-full rounded-lg border border-input bg-background pl-10 pr-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="">All roles</option>
                   {AVAILABLE_ROLES.map((role) => (
@@ -520,7 +525,7 @@ export default function AdminUsers() {
           description={`${filteredCount} of ${totalCount} active accounts are currently shown.`}
           icon={<User className="h-5 w-5" />}
           actions={(
-            <Button variant="outline" size="sm" onClick={() => refetch()}>
+            <Button variant="outline" size="sm" className="min-h-[44px] min-w-[44px]" onClick={() => refetch()}>
               Refresh users
             </Button>
           )}
@@ -616,7 +621,7 @@ export default function AdminUsers() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={handleSelectAll}
-                            className="text-primary hover:text-primary"
+                            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-primary hover:text-primary"
                             aria-label={selectedUsers.length === filteredUsers.length ? 'Deselect all users' : 'Select all users'}
                           >
                             {selectedUsers.length === filteredUsers.length && filteredUsers.length > 0 ? (
@@ -673,7 +678,7 @@ export default function AdminUsers() {
         </SectionCard>
 
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogContent className="sm:max-w-lg">
+          <DialogContent size="md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <UserPlus className="h-5 w-5 text-primary" />
@@ -714,7 +719,7 @@ export default function AdminUsers() {
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-[2.75rem] text-foreground hover:text-foreground"
+                  className="absolute right-3 top-[2.75rem] min-h-[44px] min-w-[44px] flex items-center justify-center text-foreground hover:text-foreground"
                   onClick={() => setShowPassword((current) => !current)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
@@ -734,7 +739,7 @@ export default function AdminUsers() {
                 <select
                   value={createForm.role}
                   onChange={(event) => setCreateForm({ ...createForm, role: event.target.value })}
-                  className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="min-h-[44px] h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   required
                 >
                   {AVAILABLE_ROLES.map((role) => (
@@ -757,7 +762,7 @@ export default function AdminUsers() {
         </Dialog>
 
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent className="sm:max-w-lg">
+          <DialogContent size="md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <User className="h-5 w-5 text-primary" />
@@ -801,7 +806,7 @@ export default function AdminUsers() {
                 <select
                   value={editForm.role}
                   onChange={(event) => setEditForm({ ...editForm, role: event.target.value })}
-                  className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="min-h-[44px] h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   required
                   disabled={selectedUser?.role === 'super_admin'}
                 >
@@ -830,7 +835,7 @@ export default function AdminUsers() {
         </Dialog>
 
         <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-          <DialogContent className="sm:max-w-lg">
+          <DialogContent size="md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-destructive">
                 <UserX className="h-5 w-5" />
