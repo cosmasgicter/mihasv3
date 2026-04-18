@@ -139,10 +139,7 @@ def rotate_tokens(refresh_token: str, user=None) -> tuple[str, str]:
 
     # Blacklist the old refresh token's jti
     old_jti = payload.get("jti", "")
-    try:
-        blacklist_jti(old_jti)
-    except redis.RedisError:
-        raise ValueError("Unable to revoke old token — refresh denied")
+    blacklist_jti(old_jti)
 
     # Build a minimal user-like object from the payload if not provided
     if user is None:
@@ -155,12 +152,11 @@ def rotate_tokens(refresh_token: str, user=None) -> tuple[str, str]:
 
 
 def blacklist_jti(jti: str, ttl_seconds: int = 604800) -> None:
-    """Store jti in Redis with TTL. Raises on write failure."""
+    """Store jti in Redis with TTL. Logs errors but does not raise to avoid blocking auth."""
     try:
         _get_redis().setex(f"{JTI_PREFIX}{jti}", ttl_seconds, "1")
     except redis.RedisError:
-        logger.error("Redis write failed for JTI blacklist", exc_info=True)
-        raise
+        logger.error("CRITICAL: Redis write failed for JTI blacklist — old token may remain valid", exc_info=True)
 
 
 def is_jti_blacklisted(jti: str) -> bool:

@@ -120,6 +120,15 @@ export function useLencoWidget() {
 
       setIsLoading(true)
 
+      // Safety timeout: if no Lenco callback fires within 30s, the widget
+      // likely failed to open (popup blocked, CSP, network). Reset state.
+      const safetyTimeout = window.setTimeout(() => {
+        setIsLoading(false)
+        config.onClose()
+      }, 30_000)
+
+      const clearSafety = () => window.clearTimeout(safetyTimeout)
+
       try {
         window.LencoPay.getPaid({
           key: config.publicKey,
@@ -134,16 +143,19 @@ export function useLencoWidget() {
             ...(config.customerPhone ? { phone: config.customerPhone } : {}),
           },
           onSuccess: (response: Record<string, unknown>) => {
+            clearSafety()
             setIsLoading(false)
             config.onSuccess(response as unknown as LencoSuccessResponse)
           },
           onConfirmationPending: (response: Record<string, unknown>) => {
+            clearSafety()
             setIsLoading(false)
             config.onConfirmationPending?.(
               response as unknown as LencoPendingResponse
             )
           },
           onClose: () => {
+            clearSafety()
             setIsLoading(false)
             config.onClose()
           },
