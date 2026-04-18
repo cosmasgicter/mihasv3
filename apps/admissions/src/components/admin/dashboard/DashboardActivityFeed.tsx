@@ -26,7 +26,7 @@ export function DashboardActivityFeed({ items }: DashboardActivityFeedProps) {
         {items.length === 0 ? (
           <p className="text-sm text-muted-foreground">No recent activity</p>
         ) : (
-          items.slice(0, 8).map((activity) => (
+          items.slice(0, 10).map((activity) => (
             <div key={activity.id} className="border-b border-border/60 pb-3 last:border-b-0 last:pb-0">
               {activity.application_number && (
                 <div className="text-xs font-medium text-primary mb-0.5">

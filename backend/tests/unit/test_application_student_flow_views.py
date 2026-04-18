@@ -4,6 +4,7 @@ import uuid
 from unittest.mock import MagicMock, patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import DatabaseError
 from django.utils import timezone
 from rest_framework.test import APIRequestFactory, force_authenticate
 
@@ -225,6 +226,85 @@ class TestStudentPostSubmissionMutationGuards:
 
         assert response.status_code == 403
         assert response.data["code"] == "APPLICATION_NOT_EDITABLE"
+
+    @patch("apps.applications.views.transaction.atomic")
+    @patch("apps.applications.views.connection")
+    @patch("apps.applications.views.IsOwnerOrAdmin")
+    @patch("apps.applications.views._with_payment_summary")
+    def test_student_can_delete_draft_application_with_explicit_child_cleanup(
+        self,
+        mock_with_payment_summary,
+        mock_permission,
+        mock_connection,
+        mock_atomic,
+    ):
+        user_id = uuid.uuid4()
+        app_id = uuid.uuid4()
+        student = _student_user(user_id=user_id)
+        application = _make_application(app_id=app_id, status="draft", user_id=user_id)
+
+        mock_with_payment_summary.return_value.get.return_value = application
+        mock_permission.return_value.has_object_permission.return_value = True
+        mock_atomic.return_value.__enter__.return_value = None
+        mock_cursor = MagicMock()
+        mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+
+        request = _auth_request(
+            self.factory,
+            "delete",
+            f"/api/v1/applications/{app_id}/",
+            student,
+        )
+        response = ApplicationDetailView.as_view()(request, application_id=app_id)
+
+        assert response.status_code == 204
+        executed_sql = [call.args[0] for call in mock_cursor.execute.call_args_list]
+        assert executed_sql == [
+            "DELETE FROM application_documents WHERE application_id = %s",
+            "DELETE FROM application_grades WHERE application_id = %s",
+            "DELETE FROM payments WHERE application_id = %s",
+            "DELETE FROM application_status_history WHERE application_id = %s",
+            "DELETE FROM application_drafts WHERE application_id = %s",
+            "DELETE FROM application_interviews WHERE application_id = %s",
+            "DELETE FROM applications WHERE id = %s",
+        ]
+        for call in mock_cursor.execute.call_args_list:
+            assert call.args[1] == [str(app_id)]
+        application.delete.assert_not_called()
+
+    @patch("apps.applications.views.transaction.atomic")
+    @patch("apps.applications.views.connection")
+    @patch("apps.applications.views.IsOwnerOrAdmin")
+    @patch("apps.applications.views._with_payment_summary")
+    def test_delete_draft_database_failure_returns_json_error(
+        self,
+        mock_with_payment_summary,
+        mock_permission,
+        mock_connection,
+        mock_atomic,
+    ):
+        user_id = uuid.uuid4()
+        app_id = uuid.uuid4()
+        student = _student_user(user_id=user_id)
+        application = _make_application(app_id=app_id, status="draft", user_id=user_id)
+
+        mock_with_payment_summary.return_value.get.return_value = application
+        mock_permission.return_value.has_object_permission.return_value = True
+        mock_atomic.return_value.__enter__.return_value = None
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = DatabaseError("delete failed")
+        mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+
+        request = _auth_request(
+            self.factory,
+            "delete",
+            f"/api/v1/applications/{app_id}/",
+            student,
+        )
+        response = ApplicationDetailView.as_view()(request, application_id=app_id)
+
+        assert response.status_code == 500
+        assert response.data["code"] == "APPLICATION_DELETE_FAILED"
 
     @patch("apps.applications.views.IsOwnerOrAdmin")
     @patch("apps.applications.views.Application.objects")

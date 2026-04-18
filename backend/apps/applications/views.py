@@ -11,7 +11,7 @@ import logging
 import re
 import uuid
 
-from django.db import transaction
+from django.db import DatabaseError, connection, transaction
 from django.db.models import CharField, DateTimeField, DecimalField, OuterRef, Q, QuerySet, Subquery
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse
@@ -425,6 +425,15 @@ class ApplicationListCreateView(APIView):
 class ApplicationDetailView(APIView):
     permission_classes = [IsOwnerOrAdmin]
     serializer_class = ApplicationSerializer
+    _application_delete_statements = (
+        "DELETE FROM application_documents WHERE application_id = %s",
+        "DELETE FROM application_grades WHERE application_id = %s",
+        "DELETE FROM payments WHERE application_id = %s",
+        "DELETE FROM application_status_history WHERE application_id = %s",
+        "DELETE FROM application_drafts WHERE application_id = %s",
+        "DELETE FROM application_interviews WHERE application_id = %s",
+        "DELETE FROM applications WHERE id = %s",
+    )
 
     @staticmethod
     def _student_can_mutate_application(request, app) -> bool:
@@ -480,8 +489,34 @@ class ApplicationDetailView(APIView):
                 {"success": False, "error": "Only draft applications can be deleted by students", "code": "APPLICATION_NOT_EDITABLE"},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        app.delete()
+
+        try:
+            self._delete_application_graph(application_id)
+        except DatabaseError:
+            logger.exception("Failed to delete application %s", application_id)
+            return Response(
+                {
+                    "success": False,
+                    "error": "Application could not be deleted. Please try again.",
+                    "code": "APPLICATION_DELETE_FAILED",
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @classmethod
+    def _delete_application_graph(cls, application_id):
+        """Delete an application and known dependents without relying on ORM cascade.
+
+        These models map to an existing production schema with unmanaged tables.
+        Explicit child cleanup avoids brittle collector behavior when schema-level
+        constraints differ from Django's model metadata.
+        """
+        application_id_value = str(application_id)
+        with transaction.atomic():
+            with connection.cursor() as cursor:
+                for statement in cls._application_delete_statements:
+                    cursor.execute(statement, [application_id_value])
 
     def _get_application(self, request, application_id):
         try:

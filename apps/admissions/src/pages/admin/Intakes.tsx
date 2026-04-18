@@ -45,7 +45,7 @@ export function getUtilizationColor(enrollment: number, capacity: number): { bg:
   return { bg: 'bg-green-100', text: 'text-green-700', label: 'Available' }
 }
 
-const intakeSchema = z.object({
+export const intakeSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   year: z.coerce.number().int().min(2000, 'Year is required'),
   start_date: z.string().min(1, 'Start date is required'),

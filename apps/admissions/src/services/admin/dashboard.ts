@@ -39,6 +39,8 @@ export interface AdminDashboardStats {
 }
 
 export type AdminDashboardActivityType =
+  | 'status_change'
+  | 'payment'
   | 'application'
   | 'approval'
   | 'rejection'
@@ -127,6 +129,8 @@ const VALID_SYSTEM_HEALTH: Array<AdminDashboardStats['systemHealth']> = [
 ]
 
 const VALID_ACTIVITY_TYPES: AdminDashboardActivityType[] = [
+  'status_change',
+  'payment',
   'application',
   'approval',
   'rejection',
