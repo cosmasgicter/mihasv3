@@ -15,10 +15,14 @@ let _writeScheduled = false;
 
 function flushPendingWrites() {
   _pendingWrites.forEach((value, key) => {
-    if (value === null) {
-      localStorage.removeItem(key);
-    } else {
-      localStorage.setItem(key, value);
+    try {
+      if (value === null) {
+        localStorage.removeItem(key);
+      } else {
+        localStorage.setItem(key, value);
+      }
+    } catch {
+      // QuotaExceededError or SecurityError — skip this key, continue batch
     }
   });
   _pendingWrites.clear();

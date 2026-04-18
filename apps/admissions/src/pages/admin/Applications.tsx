@@ -740,6 +740,12 @@ export default function Applications() {
 
         {isInitialLoading ? (
           <ApplicationsSkeleton />
+        ) : !isInitialLoading && applications.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="text-4xl mb-3">📋</div>
+            <h3 className="text-lg font-semibold text-foreground mb-1">No applications found</h3>
+            <p className="text-sm text-muted-foreground max-w-md">No applications match your current filters. Try adjusting your search criteria or clearing filters.</p>
+          </div>
         ) : viewMode === 'table' ? (
           <ApplicationsTableView
             applications={applications}

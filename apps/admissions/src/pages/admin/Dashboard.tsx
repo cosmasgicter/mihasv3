@@ -451,14 +451,14 @@ export default function AdminDashboard() {
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-foreground">{stats.avgProcessingTime}</div>
                 <div className="text-sm font-semibold text-foreground">Avg Processing Days</div>
-                <div className="text-xs font-medium text-success mt-1">-12% improvement</div>
+                <div className="text-xs font-medium text-muted-foreground mt-1">Current period</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-success">
                   {approvalRate}%
                 </div>
                 <div className="text-sm font-semibold text-foreground">Success Rate</div>
-                <div className="text-xs font-medium text-primary mt-1">Stable performance</div>
+                <div className="text-xs font-medium text-muted-foreground mt-1">Current period</div>
               </div>
             </div>
           </div>

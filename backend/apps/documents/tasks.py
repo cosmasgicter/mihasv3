@@ -14,7 +14,7 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 
-@shared_task(bind=True, max_retries=0)
+@shared_task(bind=True, max_retries=0, soft_time_limit=300, time_limit=360)
 def poll_pending_payments_task(self):
     """Every 10 minutes: query pending payments 5min–24hr old, verify via Lenco API, max 50 per run.
 
@@ -41,6 +41,7 @@ def poll_pending_payments_task(self):
 
     service = PaymentService()
 
+    failures = 0
     for payment in pending_payments:
         try:
             logger.info(
@@ -60,9 +61,28 @@ def poll_pending_payments_task(self):
             logger.exception(
                 "Failed to verify payment %s during polling", payment.id
             )
+            failures += 1
+
+    if failures > 0 and failures == count:
+        # All verifications failed — likely Lenco API outage
+        from django.conf import settings
+        from django.core.cache import cache
+        cache_key = "alert:payment_poll_all_failed"
+        if cache.add(cache_key, "1", timeout=900):  # 15-min throttle
+            from apps.common.models import ErrorLog, EmailQueue
+            from apps.common.tasks import send_email_task
+            msg = f"Payment polling: all {failures} verifications failed. Possible Lenco API outage."
+            ErrorLog.objects.create(source="celery", level="error", message=msg)
+            email = EmailQueue.objects.create(
+                recipient_email=settings.ERROR_ALERT_EMAIL,
+                subject="[ALERT] Payment verification failures",
+                body=f"<p>{msg}</p>",
+                status="pending",
+            )
+            send_email_task.delay(str(email.id))
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+@shared_task(bind=True, max_retries=3, default_retry_delay=60, soft_time_limit=120, time_limit=180)
 def extract_document_text_task(self, document_id):
     """Run pytesseract OCR on an uploaded document and store extracted text.
 

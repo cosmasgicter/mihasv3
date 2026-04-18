@@ -66,6 +66,7 @@ _ALLOWED_TRANSITIONS: dict[str, set[str]] = {
 # Lenco API status → internal status mapping
 _LENCO_STATUS_MAP: dict[str, str] = {
     'successful': 'successful',
+    'paid': 'successful',
     'failed': 'failed',
 }
 
@@ -99,69 +100,79 @@ class PaymentService:
 
         Raises ``Application.DoesNotExist`` when the application is not found.
         """
-        # Double-payment prevention: return existing pending payment if one exists.
-        existing = Payment.objects.filter(
-            application_id=application_id, status='pending'
-        ).first()
-        if existing:
+        from django.db import transaction
+
+        # Double-payment prevention: atomic + select_for_update to close TOCTOU race.
+        with transaction.atomic():
+            existing = (
+                Payment.objects.select_for_update()
+                .filter(application_id=application_id, status='pending')
+                .first()
+            )
+            if existing:
+                logger.info(
+                    "Returning existing pending payment %s for application %s",
+                    existing.id,
+                    application_id,
+                )
+                return PaymentInitiationResult(
+                    payment_id=existing.id,
+                    reference=existing.transaction_reference,
+                    amount=existing.amount,
+                    currency=existing.currency,
+                )
+
+            application = Application.objects.get(id=application_id)
+
+            resolved_program = IdentifierResolver.resolve_program(application.program)
+            if resolved_program.source == "not_found":
+                logger.error(
+                    "Payment initiation failed: program '%s' not found for application %s",
+                    application.program, application_id,
+                )
+                raise ValueError(
+                    f"Cannot resolve program '{application.program}'. "
+                    f"Please verify the program exists and is active."
+                )
+
+            resolved = self._fee_resolver.resolve_fee(
+                program_code=resolved_program.code,
+                nationality=application.nationality,
+                country=getattr(application, 'country', None),
+            )
+
+            reference = _generate_reference(application.application_number)
+
+            payment = Payment.objects.create(
+                application_id=application_id,
+                user_id=user_id,
+                amount=resolved.amount,
+                currency=resolved.currency,
+                status='pending',
+                transaction_reference=reference,
+                payment_method=None,
+                metadata={
+                    'residency_category': resolved.residency_category,
+                    'fee_source': resolved.source,
+                },
+                created_at=timezone.now(),
+                updated_at=timezone.now(),
+            )
+
             logger.info(
-                "Returning existing pending payment %s for application %s",
-                existing.id,
-                application_id,
+                "Payment initiated: payment=%s reference=%s amount=%s %s",
+                payment.id,
+                reference,
+                resolved.amount,
+                resolved.currency,
             )
+
             return PaymentInitiationResult(
-                payment_id=existing.id,
-                reference=existing.transaction_reference,
-                amount=existing.amount,
-                currency=existing.currency,
+                payment_id=payment.id,
+                reference=reference,
+                amount=resolved.amount,
+                currency=resolved.currency,
             )
-
-        application = Application.objects.get(id=application_id)
-
-        resolved_program = IdentifierResolver.resolve_program(application.program)
-        if resolved_program.source == "not_found":
-            raise ValueError(
-                f"Cannot resolve program '{application.program}' to a valid program code."
-            )
-
-        resolved = self._fee_resolver.resolve_fee(
-            program_code=resolved_program.code,
-            nationality=application.nationality,
-            country=getattr(application, 'country', None),
-        )
-
-        reference = _generate_reference(application.application_number)
-
-        payment = Payment.objects.create(
-            application_id=application_id,
-            user_id=user_id,
-            amount=resolved.amount,
-            currency=resolved.currency,
-            status='pending',
-            transaction_reference=reference,
-            payment_method=None,
-            metadata={
-                'residency_category': resolved.residency_category,
-                'fee_source': resolved.source,
-            },
-            created_at=timezone.now(),
-            updated_at=timezone.now(),
-        )
-
-        logger.info(
-            "Payment initiated: payment=%s reference=%s amount=%s %s",
-            payment.id,
-            reference,
-            resolved.amount,
-            resolved.currency,
-        )
-
-        return PaymentInitiationResult(
-            payment_id=payment.id,
-            reference=reference,
-            amount=resolved.amount,
-            currency=resolved.currency,
-        )
 
     def review_application_payment(
         self,
@@ -556,6 +567,6 @@ def _parse_amount(value) -> Decimal | None:
     if value is None:
         return None
     try:
-        return Decimal(str(value))
+        return Decimal(str(value)).quantize(Decimal('0.01'))
     except Exception:
         return None

@@ -43,12 +43,12 @@ class AutomationRuleListCreateView(PublicReadWriteProtectedMixin, APIView):
 
     def get(self, request):
         rules = sample_automation_rules()
-        return Response({"page": 1, "pageSize": 20, "totalCount": len(rules), "results": rules})
+        return Response({"success": True, "data": {"page": 1, "pageSize": 20, "totalCount": len(rules), "results": rules}})
 
     def post(self, request):
         rule = sample_automation_rules()[0].copy()
         rule["id"] = uuid.uuid4()
-        return Response(rule, status=status.HTTP_201_CREATED)
+        return Response({"success": True, "data": rule}, status=status.HTTP_201_CREATED)
 
 
 @extend_schema_view(
@@ -61,12 +61,12 @@ class AutomationRunListCreateView(PublicReadWriteProtectedMixin, APIView):
 
     def get(self, request):
         runs = sample_automation_runs()
-        return Response({"page": 1, "pageSize": 20, "totalCount": len(runs), "results": runs})
+        return Response({"success": True, "data": {"page": 1, "pageSize": 20, "totalCount": len(runs), "results": runs}})
 
     def post(self, request):
         run = sample_automation_runs()[0].copy()
         run["id"] = uuid.uuid4()
-        return Response(run, status=status.HTTP_202_ACCEPTED)
+        return Response({"success": True, "data": run}, status=status.HTTP_202_ACCEPTED)
 
 
 class AutomationRunDetailView(PublicReadWriteProtectedMixin, APIView):
@@ -77,10 +77,10 @@ class AutomationRunDetailView(PublicReadWriteProtectedMixin, APIView):
     def get(self, request, run_id):
         for run in sample_automation_runs():
             if str(run["id"]) == str(run_id):
-                return Response(run)
+                return Response({"success": True, "data": run})
         fallback = sample_automation_runs()[0].copy()
         fallback["id"] = run_id
-        return Response(fallback)
+        return Response({"success": True, "data": fallback})
 
 
 class AutomationRunApproveView(APIView):
@@ -89,7 +89,7 @@ class AutomationRunApproveView(APIView):
 
     @extend_schema(operation_id="automation_runs_approve", tags=["automation"], responses={200: OpenApiResponse(response=ACTION_RESPONSE)})
     def post(self, request, run_id):
-        return Response(build_action_payload(run_id, "Automation run approved in scaffold state.", "approved"))
+        return Response({"success": True, "data": build_action_payload(run_id, "Automation run approved in scaffold state.", "approved")})
 
 
 class AutomationRunCancelView(APIView):
@@ -98,4 +98,4 @@ class AutomationRunCancelView(APIView):
 
     @extend_schema(operation_id="automation_runs_cancel", tags=["automation"], responses={200: OpenApiResponse(response=ACTION_RESPONSE)})
     def post(self, request, run_id):
-        return Response(build_action_payload(run_id, "Automation run cancelled in scaffold state.", "cancelled"))
+        return Response({"success": True, "data": build_action_payload(run_id, "Automation run cancelled in scaffold state.", "cancelled")})

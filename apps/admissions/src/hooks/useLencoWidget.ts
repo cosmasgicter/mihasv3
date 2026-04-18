@@ -52,7 +52,7 @@ const WIDGET_URL =
 // ---------------------------------------------------------------------------
 
 export function useLencoWidget() {
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [isScriptLoaded, setIsScriptLoaded] = useState(false)
   const scriptLoadedRef = useRef(false)
 
@@ -124,10 +124,11 @@ export function useLencoWidget() {
         window.LencoPay.getPaid({
           key: config.publicKey,
           reference: config.reference,
+          email: config.customerEmail,
           amount: config.amount,
           currency: config.currency,
+          channels: ['card', 'mobile-money'],
           customer: {
-            email: config.customerEmail,
             firstName: config.customerFirstName,
             lastName: config.customerLastName,
             ...(config.customerPhone ? { phone: config.customerPhone } : {}),

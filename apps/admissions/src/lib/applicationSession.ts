@@ -14,8 +14,8 @@ export interface ApplicationDraft {
   user_id: string
   form_data: Partial<ApplicationFormData>
   current_step: number
-  uploaded_files: any[]
-  selected_subjects?: any[]
+  uploaded_files: Array<{ name: string; url: string; type?: string }>
+  selected_subjects?: Array<{ subject_id: string; grade: number }>
   version: number
   expires_at: string
   last_saved_at: string
@@ -301,8 +301,8 @@ class ApplicationSessionManager {
     userId: string,
     formData: Partial<ApplicationFormData>,
     currentStep: number,
-    uploadedFiles: any[] = [],
-    selectedSubjects: any[] = []
+    uploadedFiles: Array<{ name: string; url: string; type?: string }> = [],
+    selectedSubjects: Array<{ subject_id: string; grade: number }> = []
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const draftApplicationId = await this.resolveDraftApplicationId(userId)

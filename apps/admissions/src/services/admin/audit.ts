@@ -20,7 +20,7 @@ export interface AuditLogEntry {
   category: AuditCategory
   entityType: string
   entityId: string
-  changes: Record<string, any> | null
+  changes: Record<string, unknown> | null
   ipAddress: string | null
   userAgent: string | null
   createdAt: string
@@ -29,7 +29,7 @@ export interface AuditLogEntry {
   targetLabel?: string
   requestId?: string
   requestIp?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 export interface AuditLogFilters {
@@ -75,7 +75,7 @@ interface BackendAuditEntry {
   category?: string | null
   entity_type: string
   entity_id: string
-  changes: Record<string, any> | null
+  changes: Record<string, unknown> | null
   ip_address?: string | null
   user_agent?: string | null
   created_at: string
