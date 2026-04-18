@@ -64,14 +64,15 @@ class JobListView(APIView):
         recommendation = request.query_params.get("recommendation")
         if recommendation:
             jobs = [job for job in jobs if job["recommendation"] == recommendation]
-        return Response(
-            {
+        return Response({
+            "success": True,
+            "data": {
                 "page": int(request.query_params.get("page", 1)),
                 "pageSize": int(request.query_params.get("pageSize", 20)),
                 "totalCount": len(jobs),
                 "results": jobs,
-            }
-        )
+            },
+        })
 
 
 @extend_schema_view(
@@ -89,17 +90,14 @@ class DiscoveryRunCreateView(APIView):
     serializer_class = DiscoveryRunSerializer
 
     def post(self, request):
-        return Response(
-            {
-                "id": uuid.uuid4(),
-                "source": "multi-source-scaffold",
-                "status": "queued",
-                "jobs_discovered": 0,
-                "started_at": timezone.now(),
-                "completed_at": None,
-            },
-            status=status.HTTP_202_ACCEPTED,
-        )
+        return Response({"success": True, "data": {
+            "id": uuid.uuid4(),
+            "source": "multi-source-scaffold",
+            "status": "queued",
+            "jobs_discovered": 0,
+            "started_at": timezone.now(),
+            "completed_at": None,
+        }}, status=status.HTTP_202_ACCEPTED)
 
 
 @extend_schema_view(
@@ -114,16 +112,14 @@ class DiscoveryRunDetailView(APIView):
     serializer_class = DiscoveryRunSerializer
 
     def get(self, request, run_id):
-        return Response(
-            {
-                "id": run_id,
-                "source": "impact-finance-africa",
-                "status": "completed",
-                "jobs_discovered": 12,
-                "started_at": timezone.now(),
-                "completed_at": timezone.now(),
-            }
-        )
+        return Response({"success": True, "data": {
+            "id": run_id,
+            "source": "impact-finance-africa",
+            "status": "completed",
+            "jobs_discovered": 12,
+            "started_at": timezone.now(),
+            "completed_at": timezone.now(),
+        }})
 
 
 @extend_schema_view(
@@ -140,7 +136,7 @@ class JobDetailView(APIView):
     serializer_class = JobDetailSerializer
 
     def get(self, request, job_id):
-        return Response(sample_job_detail(str(job_id)))
+        return Response({"success": True, "data": sample_job_detail(str(job_id))})
 
 
 class JobActionBaseView(APIView):
@@ -148,7 +144,7 @@ class JobActionBaseView(APIView):
     serializer_class = JobActionSerializer
 
     def build_response(self, reference_id, message, action_status="queued", http_status=status.HTTP_202_ACCEPTED):
-        return Response(build_action_payload(reference_id, message, action_status), status=http_status)
+        return Response({"success": True, "data": build_action_payload(reference_id, message, action_status)}, status=http_status)
 
 
 class JobScoreView(JobActionBaseView):
@@ -212,22 +208,20 @@ class JobApplicationListCreateView(PublicReadWriteProtectedMixin, APIView):
         status_filter = request.query_params.get("status")
         if status_filter:
             applications = [item for item in applications if item["status"] == status_filter]
-        return Response(
-            {
+        return Response({
+            "success": True,
+            "data": {
                 "page": int(request.query_params.get("page", 1)),
                 "pageSize": int(request.query_params.get("pageSize", 20)),
                 "totalCount": len(applications),
                 "results": applications,
-            }
-        )
+            },
+        })
 
     def post(self, request):
         template = sample_job_applications()[0].copy()
         template["id"] = uuid.uuid4()
-        return Response(
-            template,
-            status=status.HTTP_201_CREATED,
-        )
+        return Response({"success": True, "data": template}, status=status.HTTP_201_CREATED)
 
 
 @extend_schema_view(
@@ -245,10 +239,10 @@ class JobApplicationDetailView(PublicReadWriteProtectedMixin, APIView):
         applications = sample_job_applications()
         for item in applications:
             if str(item["id"]) == str(application_id):
-                return Response(item)
+                return Response({"success": True, "data": item})
         fallback = applications[0].copy()
         fallback["id"] = application_id
-        return Response(fallback)
+        return Response({"success": True, "data": fallback})
 
 
 class JobApplicationActionBaseView(JobActionBaseView):

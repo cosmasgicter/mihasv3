@@ -10,7 +10,7 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { LazyLoadErrorBoundary } from '@/components/LazyLoadErrorBoundary'
 import { isMarketingPublicRoute } from '@/lib/publicRouteMode'
 import { useDeferredHydration } from '@/hooks/useDeferredHydration'
-import LandingPage from '@/pages/LandingPage'
+const LandingPage = lazy(() => import('@/pages/LandingPage'))
 
 const Analytics = lazy(() => import('@vercel/analytics/react').then((mod) => ({ default: mod.Analytics })))
 const SpeedInsights = lazy(() => import('@vercel/speed-insights/react').then((mod) => ({ default: mod.SpeedInsights })))

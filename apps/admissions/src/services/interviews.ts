@@ -40,10 +40,14 @@ export interface ListInterviewsResponse {
   interviews: Interview[]
 }
 
+function isInterview(item: unknown): item is Interview {
+  return item != null && typeof item === 'object' && 'id' in item
+}
+
 function firstInterviewArray(...values: unknown[]): Interview[] {
   for (const value of values) {
     if (Array.isArray(value)) {
-      return value as Interview[]
+      return (value as unknown[]).filter(isInterview)
     }
   }
 
@@ -52,7 +56,7 @@ function firstInterviewArray(...values: unknown[]): Interview[] {
 
 export function normalizeInterviewsResponse(response: unknown): Interview[] {
   if (Array.isArray(response)) {
-    return response as Interview[]
+    return (response as unknown[]).filter(isInterview)
   }
 
   if (!response || typeof response !== 'object') {
@@ -63,7 +67,7 @@ export function normalizeInterviewsResponse(response: unknown): Interview[] {
   const data = envelope.data
 
   if (Array.isArray(data)) {
-    return data as Interview[]
+    return (data as unknown[]).filter(isInterview)
   }
 
   if (data && typeof data === 'object') {

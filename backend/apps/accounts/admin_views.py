@@ -7,6 +7,7 @@ Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6
 import csv
 import hashlib
 import logging
+import re
 from datetime import timedelta
 
 from django.db import transaction
@@ -45,6 +46,89 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
+SETTING_KEY_RE = re.compile(r"^[a-z][a-z0-9_]{1,99}$")
+SETTING_CATEGORY_RE = re.compile(r"^[a-z][a-z0-9_-]{0,49}$")
+KNOWN_SETTING_KEYS = {
+    "site_name",
+    "enable_online_applications",
+    "contact_email",
+    "contact_phone",
+    "application_fee",
+    "max_applications_per_user",
+}
+
+
+def _validate_setting_json_value(value, *, depth=0):
+    if depth > 4:
+        raise serializers.ValidationError("Setting value is too deeply nested.")
+
+    if value is None or isinstance(value, (bool, int, float)):
+        return
+
+    if isinstance(value, str):
+        if len(value) > 2000:
+            raise serializers.ValidationError("Setting string values must be 2000 characters or fewer.")
+        return
+
+    if isinstance(value, list):
+        if len(value) > 50:
+            raise serializers.ValidationError("Setting arrays must contain 50 items or fewer.")
+        for item in value:
+            _validate_setting_json_value(item, depth=depth + 1)
+        return
+
+    if isinstance(value, dict):
+        if len(value) > 50:
+            raise serializers.ValidationError("Setting objects must contain 50 keys or fewer.")
+        for key, item in value.items():
+            if not isinstance(key, str) or len(key) > 100:
+                raise serializers.ValidationError("Setting object keys must be strings of 100 characters or fewer.")
+            _validate_setting_json_value(item, depth=depth + 1)
+        return
+
+    raise serializers.ValidationError("Setting value must be valid JSON.")
+
+
+def _validate_known_setting_value(key, value):
+    if key not in KNOWN_SETTING_KEYS:
+        return
+
+    if key in {"site_name", "contact_phone"}:
+        if not isinstance(value, str) or not value.strip():
+            raise serializers.ValidationError(f"{key} must be a non-empty string.")
+        return
+
+    if key == "enable_online_applications":
+        if isinstance(value, bool):
+            return
+        if isinstance(value, str) and value.lower() in {"true", "false"}:
+            return
+        raise serializers.ValidationError("enable_online_applications must be a boolean or 'true'/'false'.")
+
+    if key == "contact_email":
+        serializers.EmailField().run_validation(value)
+        return
+
+    if key == "application_fee":
+        try:
+            amount = float(value)
+        except (TypeError, ValueError):
+            raise serializers.ValidationError("application_fee must be a numeric value.") from None
+        if amount < 0:
+            raise serializers.ValidationError("application_fee must be zero or greater.")
+        return
+
+    if key == "max_applications_per_user":
+        try:
+            count = int(value)
+        except (TypeError, ValueError):
+            raise serializers.ValidationError("max_applications_per_user must be an integer.") from None
+        if str(value).strip() != str(count) and not isinstance(value, int):
+            raise serializers.ValidationError("max_applications_per_user must be an integer.")
+        if count < 1 or count > 50:
+            raise serializers.ValidationError("max_applications_per_user must be between 1 and 50.")
+
+
 class AdminUserSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
     email = serializers.EmailField(read_only=True)
@@ -64,6 +148,21 @@ class AdminUserCreateSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=20, required=False, default="")
     nationality = serializers.CharField(max_length=100, required=False, default="Zambian")
 
+    def validate_password(self, value):
+        """Enforce password complexity: min 8 chars, 1 uppercase, 1 digit, 1 special char."""
+        if len(value) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters.")
+        if not any(c.isupper() for c in value):
+            raise serializers.ValidationError("Password must contain at least one uppercase letter.")
+        if not any(c.isdigit() for c in value):
+            raise serializers.ValidationError("Password must contain at least one digit.")
+        if not any(c in '!@#$%^&*()_+-=[]{}|;:,.<>?/' for c in value):
+            raise serializers.ValidationError("Password must contain at least one special character.")
+        common = {'password', 'password1', '12345678', 'qwerty12', 'admin123', 'letmein1'}
+        if value.lower() in common:
+            raise serializers.ValidationError("This password is too common.")
+        return value
+
 
 class AdminUserUpdateSerializer(serializers.Serializer):
     role = serializers.ChoiceField(
@@ -79,19 +178,65 @@ class SettingSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
     key = serializers.CharField(max_length=100)
     value = serializers.JSONField()
-    category = serializers.CharField(max_length=50, required=False, default="")
-    description = serializers.CharField(required=False, default="")
+    category = serializers.CharField(max_length=50, required=False, allow_blank=True, default="")
+    description = serializers.CharField(required=False, allow_blank=True, default="")
     is_public = serializers.BooleanField(required=False, default=False)
     updated_by = serializers.UUIDField(read_only=True, allow_null=True)
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
 
+    def validate_key(self, value):
+        if not SETTING_KEY_RE.match(value):
+            raise serializers.ValidationError(
+                "Setting key must use lowercase letters, numbers, and underscores, and start with a letter."
+            )
+        return value
+
+    def validate_category(self, value):
+        if value and not SETTING_CATEGORY_RE.match(value):
+            raise serializers.ValidationError(
+                "Setting category must use lowercase letters, numbers, dashes, or underscores."
+            )
+        return value
+
+    def validate_description(self, value):
+        if value and len(value) > 1000:
+            raise serializers.ValidationError("Description must be 1000 characters or fewer.")
+        return value
+
+    def validate(self, attrs):
+        key = attrs.get("key")
+        value = attrs.get("value")
+        _validate_setting_json_value(value)
+        _validate_known_setting_value(key, value)
+        return attrs
+
 
 class SettingUpdateSerializer(serializers.Serializer):
     value = serializers.JSONField(required=False)
-    category = serializers.CharField(max_length=50, required=False)
-    description = serializers.CharField(required=False)
+    category = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    description = serializers.CharField(required=False, allow_blank=True)
     is_public = serializers.BooleanField(required=False)
+
+    def validate_category(self, value):
+        if value and not SETTING_CATEGORY_RE.match(value):
+            raise serializers.ValidationError(
+                "Setting category must use lowercase letters, numbers, dashes, or underscores."
+            )
+        return value
+
+    def validate_description(self, value):
+        if value and len(value) > 1000:
+            raise serializers.ValidationError("Description must be 1000 characters or fewer.")
+        return value
+
+    def validate(self, attrs):
+        if "value" in attrs:
+            key = self.context.get("setting_key")
+            value = attrs["value"]
+            _validate_setting_json_value(value)
+            _validate_known_setting_value(key, value)
+        return attrs
 
 
 DEFAULT_GUIDED_SETTINGS = [
@@ -815,7 +960,7 @@ class AdminSettingDetailView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = SettingUpdateSerializer(data=request.data)
+        serializer = SettingUpdateSerializer(data=request.data, context={"setting_key": setting.key})
         if not serializer.is_valid():
             return Response(
                 {
@@ -876,20 +1021,36 @@ class AdminSettingsImportView(APIView):
         errors = []
 
         for entry in settings_list:
+            if not isinstance(entry, dict):
+                errors.append("Entry must be an object")
+                continue
+
             key = entry.get("key")
             if not key:
                 errors.append("Missing key in entry")
                 continue
 
             try:
-                defaults = {
+                serializer = SettingSerializer(data={
+                    "key": key,
                     "value": entry.get("value", ""),
                     "description": entry.get("description", ""),
                     "category": entry.get("category", ""),
                     "is_public": entry.get("is_public", False),
+                })
+                if not serializer.is_valid():
+                    errors.append(f"{key}: {serializer.errors}")
+                    continue
+
+                validated = serializer.validated_data
+                defaults = {
+                    "value": validated.get("value", ""),
+                    "description": validated.get("description", ""),
+                    "category": validated.get("category", ""),
+                    "is_public": validated.get("is_public", False),
                 }
-                Setting.objects.update_or_create(key=key, defaults=defaults)
-                imported.append(key)
+                Setting.objects.update_or_create(key=validated["key"], defaults=defaults)
+                imported.append(validated["key"])
             except Exception as exc:
                 errors.append(f"{key}: {exc}")
 

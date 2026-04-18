@@ -62,8 +62,13 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
   const intervalRef = useRef(INITIAL_INTERVAL)
   const statusRef = useRef<PaymentStatusValue>(null)
   const pollCountRef = useRef(0)
+  const mountedRef = useRef(true)
+  const failCountRef = useRef(0)
+
+  useEffect(() => () => { mountedRef.current = false }, [])
 
   const updateStatus = useCallback((nextStatus: PaymentStatusValue) => {
+    if (!mountedRef.current) return
     statusRef.current = nextStatus
     setStatus(nextStatus)
   }, [])
@@ -113,8 +118,9 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
       if (normalized) {
         updateStatus(normalized)
       }
+      failCountRef.current = 0
     } catch {
-      // Swallow — polling is best-effort
+      failCountRef.current += 1
     }
   }, [applicationId, applicationPaymentStatus, updateStatus])
 
@@ -129,10 +135,13 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
     // Stop polling on terminal statuses or after max attempts
     if (statusRef.current === 'successful' || statusRef.current === 'failed') return
     if (pollCountRef.current >= MAX_POLL_COUNT) return
+    if (failCountRef.current >= 5) return  // Stop polling after 5 consecutive failures
 
     timeoutRef.current = setTimeout(async () => {
+      if (!mountedRef.current) return
       pollCountRef.current += 1
       await fetchStatus()
+      if (!mountedRef.current) return
       // Grow the interval with backoff, capped at MAX_INTERVAL
       intervalRef.current = Math.min(intervalRef.current * BACKOFF_FACTOR, MAX_INTERVAL)
       scheduleNext()

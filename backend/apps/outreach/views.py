@@ -48,19 +48,20 @@ class OutreachContactListCreateView(PublicReadWriteProtectedMixin, APIView):
 
     def get(self, request):
         contacts = sample_outreach_contacts()
-        return Response(
-            {
+        return Response({
+            "success": True,
+            "data": {
                 "page": 1,
                 "pageSize": 20,
                 "totalCount": len(contacts),
                 "results": contacts,
-            }
-        )
+            },
+        })
 
     def post(self, request):
         contact = sample_outreach_contacts()[0].copy()
         contact["id"] = uuid.uuid4()
-        return Response(contact, status=status.HTTP_201_CREATED)
+        return Response({"success": True, "data": contact}, status=status.HTTP_201_CREATED)
 
 
 class OutreachContactEnrichView(APIView):
@@ -69,7 +70,7 @@ class OutreachContactEnrichView(APIView):
 
     @extend_schema(operation_id="outreach_contacts_enrich", tags=["outreach"], responses={202: OpenApiResponse(response=ACTION_RESPONSE)})
     def post(self, request):
-        return Response(build_action_payload(uuid.uuid4(), "Contact enrichment scaffold queued."), status=status.HTTP_202_ACCEPTED)
+        return Response({"success": True, "data": build_action_payload(uuid.uuid4(), "Contact enrichment scaffold queued.")}, status=status.HTTP_202_ACCEPTED)
 
 
 @extend_schema_view(
@@ -82,19 +83,20 @@ class OutreachCampaignListCreateView(PublicReadWriteProtectedMixin, APIView):
 
     def get(self, request):
         campaigns = sample_outreach_campaigns()
-        return Response(
-            {
+        return Response({
+            "success": True,
+            "data": {
                 "page": 1,
                 "pageSize": 20,
                 "totalCount": len(campaigns),
                 "results": campaigns,
-            }
-        )
+            },
+        })
 
     def post(self, request):
         campaign = sample_outreach_campaigns()[0].copy()
         campaign["id"] = uuid.uuid4()
-        return Response(campaign, status=status.HTTP_201_CREATED)
+        return Response({"success": True, "data": campaign}, status=status.HTTP_201_CREATED)
 
 
 class OutreachMessageGenerateView(APIView):
@@ -103,15 +105,13 @@ class OutreachMessageGenerateView(APIView):
 
     @extend_schema(operation_id="outreach_messages_generate", tags=["outreach"], responses={200: OpenApiResponse(response=MESSAGE_RESPONSE)})
     def post(self, request):
-        return Response(
-            {
-                "id": uuid.uuid4(),
-                "subject": "Exploring relevant opportunities",
-                "body": "This is a scaffold outreach draft. Replace it with approved AI generation and guardrails.",
-                "status": "draft",
-                "message_type": "introduction",
-            }
-        )
+        return Response({"success": True, "data": {
+            "id": uuid.uuid4(),
+            "subject": "Exploring relevant opportunities",
+            "body": "This is a scaffold outreach draft. Replace it with approved AI generation and guardrails.",
+            "status": "draft",
+            "message_type": "introduction",
+        }})
 
 
 class OutreachMessageSendView(APIView):
@@ -120,4 +120,4 @@ class OutreachMessageSendView(APIView):
 
     @extend_schema(operation_id="outreach_messages_send", tags=["outreach"], responses={202: OpenApiResponse(response=ACTION_RESPONSE)})
     def post(self, request):
-        return Response(build_action_payload(uuid.uuid4(), "Outreach send scaffold queued."), status=status.HTTP_202_ACCEPTED)
+        return Response({"success": True, "data": build_action_payload(uuid.uuid4(), "Outreach send scaffold queued.")}, status=status.HTTP_202_ACCEPTED)

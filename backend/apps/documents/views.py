@@ -14,8 +14,8 @@ from urllib.parse import unquote, urlparse
 from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
-from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, OpenApiTypes, extend_schema, extend_schema_view
-from rest_framework import status
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, OpenApiTypes, extend_schema, extend_schema_view, inline_serializer
+from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -182,6 +182,14 @@ class DocumentUploadView(APIView):
     serializer_class = DocumentUploadSerializer
 
     def post(self, request):
+        # Enforce 10MB file size limit
+        uploaded_file = request.FILES.get('file')
+        if uploaded_file and uploaded_file.size > 10 * 1024 * 1024:
+            return Response(
+                {"success": False, "error": "File size exceeds 10MB limit", "code": "FILE_TOO_LARGE"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         serializer = DocumentUploadSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(
@@ -275,7 +283,7 @@ class DocumentUploadView(APIView):
             application.save(update_fields=[application_url_field, "updated_at"])
 
         return Response(
-            DocumentSerializer(doc).data,
+            {"success": True, "data": DocumentSerializer(doc).data},
             status=status.HTTP_201_CREATED,
         )
 
@@ -490,7 +498,17 @@ class PaymentInitiateView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(request=OpenApiTypes.OBJECT, responses={201: OpenApiTypes.OBJECT})
+    @extend_schema(
+        request=inline_serializer('PaymentInitiateRequest', fields={
+            'application_id': serializers.UUIDField(),
+        }),
+        responses={201: inline_serializer('PaymentInitiateResponse', fields={
+            'payment_id': serializers.UUIDField(),
+            'reference': serializers.CharField(),
+            'amount': serializers.DecimalField(max_digits=10, decimal_places=2),
+            'currency': serializers.CharField(),
+        })},
+    )
     def post(self, request):
         application_id = request.data.get("application_id")
         if not application_id:
@@ -561,7 +579,7 @@ class PaymentDevBypassView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(request=OpenApiTypes.OBJECT, responses={200: OpenApiTypes.OBJECT})
+    @extend_schema(request=OpenApiTypes.ANY, responses={200: OpenApiTypes.ANY})
     def post(self, request):
         if not settings.DEBUG or not getattr(settings, "PAYMENT_DEV_BYPASS", False):
             return Response(
@@ -680,7 +698,7 @@ class LencoWebhookView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
 
-    @extend_schema(request=OpenApiTypes.OBJECT, responses={200: OpenApiTypes.OBJECT})
+    @extend_schema(request=OpenApiTypes.ANY, responses={200: OpenApiTypes.ANY})
     def post(self, request):
         raw_body = request.body
         signature = request.META.get("HTTP_X_LENCO_SIGNATURE", "")
@@ -732,7 +750,7 @@ class FeeResolveView(APIView):
 
     @extend_schema(
         request=None,
-        responses={200: OpenApiTypes.OBJECT},
+        responses={200: OpenApiTypes.ANY},
         parameters=[
             OpenApiParameter("program_code", OpenApiTypes.STR, OpenApiParameter.QUERY),
             OpenApiParameter("nationality", OpenApiTypes.STR, OpenApiParameter.QUERY, required=False),
@@ -874,7 +892,7 @@ class DocumentSignedUrlView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT})
+    @extend_schema(request=None, responses={200: OpenApiTypes.ANY})
     def get(self, request, document_id):
         document, error_response = _get_authorized_document(request, self, document_id)
         if error_response is not None:
@@ -947,7 +965,7 @@ class DocumentInfoView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT})
+    @extend_schema(request=None, responses={200: OpenApiTypes.ANY})
     def get(self, request, document_id):
         document, error_response = _get_authorized_document(request, self, document_id)
         if error_response is not None:
@@ -975,7 +993,7 @@ class DocumentDeleteView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT})
+    @extend_schema(request=None, responses={200: OpenApiTypes.ANY})
     def delete(self, request, document_id):
         document, error_response = _get_authorized_document(request, self, document_id)
         if error_response is not None:

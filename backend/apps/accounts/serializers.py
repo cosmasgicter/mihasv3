@@ -27,6 +27,21 @@ class RegisterSerializer(serializers.Serializer):
     phone = serializers.CharField(required=False, allow_blank=True, default="")
     nationality = serializers.CharField(required=False, allow_blank=True, default="")
 
+    def validate_password(self, value):
+        """Enforce password complexity: min 8 chars, 1 uppercase, 1 digit, 1 special char."""
+        if len(value) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters.")
+        if not any(c.isupper() for c in value):
+            raise serializers.ValidationError("Password must contain at least one uppercase letter.")
+        if not any(c.isdigit() for c in value):
+            raise serializers.ValidationError("Password must contain at least one digit.")
+        if not any(c in '!@#$%^&*()_+-=[]{}|;:,.<>?/' for c in value):
+            raise serializers.ValidationError("Password must contain at least one special character.")
+        common = {'password', 'password1', '12345678', 'qwerty12', 'admin123', 'letmein1'}
+        if value.lower() in common:
+            raise serializers.ValidationError("This password is too common.")
+        return value
+
     def validate_phone(self, value):
         if value:
             return validate_zambian_phone(value)

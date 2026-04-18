@@ -25,6 +25,8 @@ from rest_framework.test import APIRequestFactory, force_authenticate  # noqa: E
 from apps.accounts.admin_views import (  # noqa: E402
     AdminSettingDetailView,
     AdminSettingsListView,
+    SettingSerializer,
+    SettingUpdateSerializer,
 )
 
 
@@ -173,3 +175,58 @@ class TestSettingsDeletePreservation(SimpleTestCase):
             response = view(request, pk=setting_id)
 
         self.assertEqual(response.status_code, 404)
+
+
+class TestSettingsValidation(SimpleTestCase):
+    """Admin settings accept guided operational values and reject unsafe drift."""
+
+    def test_create_rejects_invalid_key_shape(self):
+        serializer = SettingSerializer(
+            data={
+                "key": "__proto__",
+                "value": "x",
+                "category": "general",
+                "description": "",
+                "is_public": False,
+            }
+        )
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("key", serializer.errors)
+
+    def test_create_rejects_known_setting_wrong_type(self):
+        serializer = SettingSerializer(
+            data={
+                "key": "max_applications_per_user",
+                "value": "not-an-integer",
+                "category": "limits",
+                "description": "",
+                "is_public": False,
+            }
+        )
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("non_field_errors", serializer.errors)
+
+    def test_create_rejects_deep_json_payload(self):
+        serializer = SettingSerializer(
+            data={
+                "key": "custom_setting",
+                "value": {"a": {"b": {"c": {"d": {"e": "too deep"}}}}},
+                "category": "general",
+                "description": "",
+                "is_public": False,
+            }
+        )
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("non_field_errors", serializer.errors)
+
+    def test_patch_validates_known_setting_against_existing_key(self):
+        serializer = SettingUpdateSerializer(
+            data={"value": "1000"},
+            context={"setting_key": "max_applications_per_user"},
+        )
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("non_field_errors", serializer.errors)

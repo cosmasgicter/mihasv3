@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { apiClient } from '@/services/client'
 import { useLencoWidget } from '@/hooks/useLencoWidget'
@@ -31,12 +31,85 @@ interface VerifyResponse {
   status: string
 }
 
+const PAYMENT_ERROR_STORAGE_PREFIX = 'mihas:payment-initiation-error:'
+const PAYMENT_INITIATE_RETRY_DELAYS_MS = [500, 1_500]
+
 function splitFullName(fullName?: string | null) {
   const nameParts = (fullName ?? '').trim().split(/\s+/).filter(Boolean)
   const firstName = nameParts[0] || ''
   const lastName = nameParts.slice(1).join(' ') || firstName
 
   return { firstName, lastName }
+}
+
+function paymentErrorStorageKey(applicationId: string | null) {
+  return applicationId ? `${PAYMENT_ERROR_STORAGE_PREFIX}${applicationId}` : null
+}
+
+function readPersistedPaymentError(applicationId: string | null) {
+  const key = paymentErrorStorageKey(applicationId)
+  if (!key || typeof window === 'undefined') return null
+
+  try {
+    return window.sessionStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+function persistPaymentError(applicationId: string | null, message: string | null) {
+  const key = paymentErrorStorageKey(applicationId)
+  if (!key || typeof window === 'undefined') return
+
+  try {
+    if (message) {
+      window.sessionStorage.setItem(key, message)
+    } else {
+      window.sessionStorage.removeItem(key)
+    }
+  } catch {
+    // Storage failures should not block payment recovery UI.
+  }
+}
+
+function isOffline() {
+  return typeof navigator !== 'undefined' && navigator.onLine === false
+}
+
+function isRetryablePaymentInitiationError(error: unknown) {
+  if (isOffline()) return false
+  if (error instanceof TypeError) return true
+  if (!(error instanceof Error)) return false
+
+  const message = error.message.toLowerCase()
+  return (
+    message.includes('network') ||
+    message.includes('failed to fetch') ||
+    message.includes('timeout') ||
+    message.includes('temporarily unavailable') ||
+    message.includes('api error: internal server error') ||
+    message.includes('api error: bad gateway') ||
+    message.includes('api error: service unavailable') ||
+    message.includes('api error: gateway timeout')
+  )
+}
+
+async function withPaymentInitiationRetry<T>(operation: () => Promise<T>): Promise<T> {
+  let lastError: unknown
+
+  for (let attempt = 0; attempt <= PAYMENT_INITIATE_RETRY_DELAYS_MS.length; attempt += 1) {
+    try {
+      return await operation()
+    } catch (error) {
+      lastError = error
+      if (attempt >= PAYMENT_INITIATE_RETRY_DELAYS_MS.length || !isRetryablePaymentInitiationError(error)) {
+        throw error
+      }
+      await new Promise((resolve) => window.setTimeout(resolve, PAYMENT_INITIATE_RETRY_DELAYS_MS[attempt]))
+    }
+  }
+
+  throw lastError
 }
 
 export function useApplicationPaymentAction({
@@ -48,9 +121,18 @@ export function useApplicationPaymentAction({
   const { openWidget, isLoading: widgetLoading, isScriptLoaded } = useLencoWidget()
   const [paymentStatus, setPaymentStatus] = useState<PaymentActionStatus>('idle')
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
-  const [initiateError, setInitiateError] = useState<string | null>(null)
+  const [initiateError, setInitiateErrorState] = useState<string | null>(() => readPersistedPaymentError(applicationId))
   const paymentStatusRef = useRef<PaymentActionStatus>('idle')
   const initiatingRef = useRef(false)
+
+  useEffect(() => {
+    setInitiateErrorState(readPersistedPaymentError(applicationId))
+  }, [applicationId])
+
+  const setInitiateError = useCallback((message: string | null) => {
+    setInitiateErrorState(message)
+    persistPaymentError(applicationId, message)
+  }, [applicationId])
 
   const updatePaymentStatus = useCallback((status: PaymentActionStatus, message: string | null = null) => {
     paymentStatusRef.current = status
@@ -72,6 +154,11 @@ export function useApplicationPaymentAction({
       return
     }
 
+    if (isOffline()) {
+      setInitiateError('You appear to be offline. Check your connection and retry payment.')
+      return
+    }
+
     if (!isScriptLoaded) {
       setInitiateError('Payment widget is still loading. Please wait a moment and try again.')
       return
@@ -82,9 +169,11 @@ export function useApplicationPaymentAction({
     updatePaymentStatus('initiating')
 
     try {
-      const data = await apiClient.request<InitiateResponse>(
-        '/payments/initiate/',
-        { method: 'POST', body: JSON.stringify({ application_id: applicationId }) },
+      const data = await withPaymentInitiationRetry(() =>
+        apiClient.request<InitiateResponse>(
+          '/payments/initiate/',
+          { method: 'POST', body: JSON.stringify({ application_id: applicationId }) },
+        ),
       )
 
       if (!data) {
@@ -119,6 +208,7 @@ export function useApplicationPaymentAction({
             const normalizedStatus = normalizePaymentStatusValue(result?.status)
 
             if (normalizedStatus === 'successful') {
+              setInitiateError(null)
               updatePaymentStatus('successful', 'Payment confirmed.')
               onPaymentStatusChange?.('successful')
               await refreshStatus()
@@ -168,6 +258,7 @@ export function useApplicationPaymentAction({
     onPaymentStatusChange,
     openWidget,
     refreshStatus,
+    setInitiateError,
     updatePaymentStatus,
   ])
 

@@ -174,3 +174,25 @@ Despite the dead code, the core architecture is solid:
 13. ~~Consolidate error handling~~ ✅ (4 dead modules removed, 4 live modules kept)
 14. ~~Consolidate animation systems~~ Accepted (all 3 actively used, minimal overlap)
 15. ~~Remove api-cache.ts duplication~~ ✅
+
+---
+
+## Lenco Payment Integration Fixes (2026-04-18 Session 5)
+
+### Root Cause: Payment spinner + logout
+
+The payment step showed an infinite spinner and eventually logged users out. Five bugs were found:
+
+| # | Bug | Severity | File | Fix |
+|---|---|---|---|---|
+| 1 | `email` param inside `customer` object instead of top-level | 🔴 CRITICAL | `useLencoWidget.ts` | Moved `email` to top-level per Lenco docs, added `channels` |
+| 2 | Lenco status `paid` not mapped to `successful` | 🔴 CRITICAL | `payment_service.py` | Added `'paid': 'successful'` to `_LENCO_STATUS_MAP` |
+| 3 | `isLoading` initialized to `true` causing permanent spinner | 🟡 MEDIUM | `useLencoWidget.ts` | Changed initial state to `false` |
+| 4 | `.env.production` missing `VITE_LENCO_WIDGET_URL` | 🔴 CRITICAL | `.env.production` | Added production widget URL |
+| 5 | Backend `LENCO_API_BASE_URL` defaults to sandbox | ⚠️ CONFIG | `settings/base.py` | Must set `LENCO_API_BASE_URL=https://api.lenco.co/access/v2/` in Koyeb env |
+
+### Deployment checklist
+1. Set `LENCO_API_BASE_URL=https://api.lenco.co/access/v2/` in Koyeb backend env vars
+2. Set `VITE_LENCO_WIDGET_URL=https://pay.lenco.co/js/v1/inline.js` in Vercel env vars
+3. Verify `LENCO_API_SECRET_KEY` and `LENCO_PUBLIC_KEY` are set in Koyeb
+4. Deploy backend first (status map fix), then frontend (widget fix)

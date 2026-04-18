@@ -101,6 +101,7 @@ function TableView<T>({
             onClick={onRowClick ? () => onRowClick(row) : undefined}
             tabIndex={onRowClick ? 0 : undefined}
             role={onRowClick ? 'button' : undefined}
+            aria-label={onRowClick ? `View details for row ${rowIndex + 1}` : undefined}
             onKeyDown={
               onRowClick
                 ? (e: React.KeyboardEvent) => {

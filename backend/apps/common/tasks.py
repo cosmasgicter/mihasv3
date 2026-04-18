@@ -15,7 +15,7 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+@shared_task(bind=True, max_retries=3, default_retry_delay=60, soft_time_limit=60, time_limit=90)
 def send_email_task(self, email_queue_id):
     """Send email via Resend API with exponential backoff.
 
@@ -36,10 +36,18 @@ def send_email_task(self, email_queue_id):
         logger.info("Email %s already sent, skipping", email_queue_id)
         return
 
+    api_key = getattr(settings, "RESEND_API_KEY", "")
+    if not api_key:
+        email_record.status = "failed"
+        email_record.error_message = "RESEND_API_KEY not configured"
+        email_record.save()
+        logger.error("Cannot send email %s: RESEND_API_KEY is empty", email_queue_id)
+        return
+
     try:
         import resend
 
-        resend.api_key = getattr(settings, "RESEND_API_KEY", "")
+        resend.api_key = api_key
         email_from = getattr(settings, "EMAIL_FROM", "noreply@mihas.edu.zm")
 
         resend.Emails.send(
@@ -80,7 +88,7 @@ def send_email_task(self, email_queue_id):
         raise self.retry(exc=exc, countdown=backoff)
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+@shared_task(bind=True, max_retries=3, default_retry_delay=60, soft_time_limit=300, time_limit=360)
 def send_bulk_notifications_task(self, notification_ids):
     """Process bulk notification delivery.
 
@@ -174,7 +182,7 @@ def send_bulk_notifications_task(self, notification_ids):
 # Keep-alive ping — prevents Koyeb cold starts
 # ---------------------------------------------------------------------------
 
-@shared_task(bind=True, max_retries=0)
+@shared_task(bind=True, max_retries=0, soft_time_limit=30, time_limit=45)
 def keep_alive_task(self):
     """Lightweight keep-alive ping to prevent Koyeb cold starts.
 
@@ -204,7 +212,7 @@ UPTIME_STATUS_OK = "ok"
 UPTIME_STATUS_DOWN = "down"
 
 
-@shared_task(bind=True, max_retries=0)
+@shared_task(bind=True, max_retries=0, soft_time_limit=30, time_limit=45)
 def check_uptime_task(self):
     """Internal health check — pings /health/ready/ and alerts on failure.
 
@@ -297,7 +305,7 @@ SECURITY_RETENTION_DAYS = 365
 BATCH_SIZE = 1000
 
 
-@shared_task(bind=True, max_retries=1, default_retry_delay=300)
+@shared_task(bind=True, max_retries=1, default_retry_delay=300, soft_time_limit=300, time_limit=360)
 def cleanup_audit_logs_task(self):
     """Purge expired audit log records in batches of 1000.
 

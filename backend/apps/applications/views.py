@@ -296,11 +296,19 @@ class ApplicationListCreateView(APIView):
         user = request.user
         role = getattr(user, "role", "student")
         if role in ("admin", "super_admin"):
-            queryset = Application.objects.select_related('user').prefetch_related('applicationdocument_set', 'applicationgrade_set').all()
+            queryset = Application.objects.select_related(
+                'user', 'payment_verified_by', 'reviewed_by', 'admin_feedback_by'
+            ).prefetch_related(
+                'applicationdocument_set', 'applicationgrade_set', 'payment_set'
+            ).all()
             # Payment summary annotations only for admin views (expensive subqueries)
             queryset = _with_payment_summary(queryset)
         else:
-            queryset = Application.objects.select_related('user').prefetch_related('applicationdocument_set', 'applicationgrade_set').filter(user_id=str(user.id))
+            queryset = Application.objects.select_related(
+                'user', 'payment_verified_by', 'reviewed_by', 'admin_feedback_by'
+            ).prefetch_related(
+                'applicationdocument_set', 'applicationgrade_set', 'payment_set'
+            ).filter(user_id=str(user.id))
             # Skip payment summary for student views — frontend uses separate payment endpoint
         filterset = ApplicationFilter(request.query_params, queryset=queryset)
         queryset = filterset.qs
@@ -413,7 +421,7 @@ class ApplicationListCreateView(APIView):
             intake=data["intake"], institution=data["institution"], application_fee=application_fee,
             status="draft", version=1,
         )
-        return Response(ApplicationSerializer(application).data, status=status.HTTP_201_CREATED)
+        return Response({"success": True, "data": ApplicationSerializer(application).data}, status=status.HTTP_201_CREATED)
 
 
 @extend_schema_view(
@@ -663,7 +671,7 @@ class ApplicationGradesView(APIView):
             }
             for g in grades
         ]
-        return Response(data)
+        return Response({"success": True, "data": data})
 
     def post(self, request, application_id):
         try:
@@ -691,7 +699,7 @@ class ApplicationGradesView(APIView):
                     defaults={"grade": serializer.validated_data["grade"]},
                 )
                 created.append({"id": str(grade.id), "subject_id": str(grade.subject_id), "grade": grade.grade})
-            return Response({"grades": created}, status=status.HTTP_200_OK)
+            return Response({"success": True, "data": {"grades": created}}, status=status.HTTP_200_OK)
 
         serializer = ApplicationGradeSerializer(data=request.data)
         if not serializer.is_valid():
@@ -701,7 +709,7 @@ class ApplicationGradesView(APIView):
             subject_id=serializer.validated_data["subject_id"],
             defaults={"grade": serializer.validated_data["grade"]},
         )
-        return Response({"id": str(grade.id), "subject_id": str(grade.subject_id), "grade": grade.grade}, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+        return Response({"success": True, "data": {"id": str(grade.id), "subject_id": str(grade.subject_id), "grade": grade.grade}}, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
 @extend_schema_view(
@@ -946,11 +954,11 @@ class ApplicationReviewView(APIView):
                     )
                 raise
 
-            return Response({
+            return Response({"success": True, "data": {
                 "message": f"Payment status updated to {payment_status}",
                 "application_id": str(app.id),
                 "payment_status": payment_status,
-            })
+            }})
 
         serializer = ApplicationReviewSerializer(data=self._normalize_legacy_review_payload(request.data))
         if not serializer.is_valid():
@@ -999,7 +1007,7 @@ class ApplicationReviewView(APIView):
                     {"success": False, "error": exc.message, "code": exc.code},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            return Response({"message": f"Status updated from {old_status} to {new_status}", "application_id": str(locked_app.id), "old_status": old_status, "new_status": new_status})
+            return Response({"success": True, "data": {"message": f"Status updated from {old_status} to {new_status}", "application_id": str(locked_app.id), "old_status": old_status, "new_status": new_status}})
         old_status = transition_application_status(
             application=app,
             new_status=new_status,
@@ -1089,7 +1097,7 @@ class ApplicationReviewView(APIView):
                 response_data["intake_enrollment"] = intake.current_enrollment
         except Exception:
             pass
-        return Response(response_data)
+        return Response({"success": True, "data": response_data})
 
     def patch(self, request, application_id):
         return self.post(request, application_id)
@@ -1120,6 +1128,7 @@ class ApplicationExportView(APIView):
         queryset = _with_payment_summary(Application.objects.all()).order_by("-created_at")
         filterset = ApplicationFilter(request.query_params, queryset=queryset)
         queryset = filterset.qs
+        queryset = queryset[:10000]  # Cap export at 10,000 rows
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow(["Application Number", "Full Name", "Email", "Phone", "Program", "Intake", "Institution", "Status", "Created At"])

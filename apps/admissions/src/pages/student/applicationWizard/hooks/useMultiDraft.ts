@@ -4,7 +4,7 @@ import { applicationService } from '@/services/applications'
 interface Draft {
   id: string
   draft_name: string
-  draft_data: any
+  draft_data: Record<string, unknown>
   updated_at: string
   last_accessed_at: string
   is_active: boolean
@@ -28,23 +28,24 @@ export const useMultiDraft = (userId: string | undefined) => {
       )
       const apps = result?.applications ?? []
       // Map applications to draft shape
-      const mappedDrafts: Draft[] = apps.map((app: any) => ({
-        id: app.id,
-        draft_name: app.draft_name || `Draft - ${app.program || 'Untitled'}`,
+      const mappedDrafts: Draft[] = apps.map((app: Record<string, unknown>) => ({
+        id: String(app.id ?? ''),
+        draft_name: String(app.draft_name || `Draft - ${app.program || 'Untitled'}`),
         draft_data: app,
-        updated_at: app.updated_at || app.created_at,
-        last_accessed_at: app.updated_at || app.created_at,
+        updated_at: String(app.updated_at || app.created_at || ''),
+        last_accessed_at: String(app.updated_at || app.created_at || ''),
         is_active: true
       }))
       setDrafts(mappedDrafts)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An error occurred'
+      setError(message)
     } finally {
       setLoading(false)
     }
   }
 
-  const createDraft = async (draftName: string, draftData: any) => {
+  const createDraft = async (draftName: string, draftData: Record<string, unknown>) => {
     if (!userId) return null
 
     try {
@@ -55,18 +56,20 @@ export const useMultiDraft = (userId: string | undefined) => {
       })
       await fetchDrafts()
       return result
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An error occurred'
+      setError(message)
       return null
     }
   }
 
-  const updateDraft = async (draftId: string, draftData: any) => {
+  const updateDraft = async (draftId: string, draftData: Record<string, unknown>) => {
     try {
       await applicationService.update(draftId, draftData)
       await fetchDrafts()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An error occurred'
+      setError(message)
     }
   }
 
@@ -82,11 +85,13 @@ export const useMultiDraft = (userId: string | undefined) => {
   const deleteDraft = async (draftId: string) => {
     try {
       await applicationService.delete(draftId)
-    } catch (err: any) {
+    } catch (err: unknown) {
       // 404 means the draft is already gone — treat as success
-      const is404 = err?.status === 404 || err?.message?.includes('404') || err?.message?.includes('Not Found')
+      const status = (err as { status?: number })?.status
+      const message = err instanceof Error ? err.message : ''
+      const is404 = status === 404 || message.includes('404') || message.includes('Not Found')
       if (!is404) {
-        setError(err.message)
+        setError(err instanceof Error ? err.message : 'An error occurred')
         return
       }
     }
@@ -97,8 +102,9 @@ export const useMultiDraft = (userId: string | undefined) => {
     try {
       const result = await applicationService.getById(draftId)
       return result?.application ?? null
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An error occurred'
+      setError(message)
       return null
     }
   }

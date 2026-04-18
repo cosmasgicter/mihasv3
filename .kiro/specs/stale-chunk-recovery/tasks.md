@@ -144,7 +144,7 @@
     - Place tests in `apps/admissions/tests/unit/accessibilityUtilsLogger.test.ts`
     - _Requirements: 2.5, 3.6_
 
-- [-] 5. Checkpoint - Ensure all tests pass
+- [x] 5. Checkpoint - Ensure all tests pass
   - Run `cd apps/admissions && bun run test` to verify all frontend tests pass (property + unit)
   - Run `cd backend && python3 -m pytest tests/unit/test_schema_decorator_fixes.py` to verify backend tests pass
   - Run `cd backend && python3 manage.py spectacular --file /tmp/schema.yaml` to verify no schema warnings
