@@ -13,6 +13,7 @@
 
 import React from 'react'
 import { cn } from '@/lib/utils'
+import { logger } from '@/lib/logger'
 
 /**
  * Skip link configuration
@@ -478,14 +479,13 @@ export function logContrastValidation(
   background: string,
   isLargeText: boolean = false
 ): void {
-  if (process.env.NODE_ENV !== 'development') return
   const ratio = getContrastRatio(foreground, background)
   const level = getAccessibilityLevel(foreground, background, isLargeText)
   const status = level !== 'FAIL' ? '✅' : '❌'
   const textSize = isLargeText ? 'Large' : 'Normal'
-  console.log(`${status} ${name} (${textSize}): ${ratio.toFixed(2)}:1 (${level})`)
+  logger.debug(`${status} ${name} (${textSize}): ${ratio.toFixed(2)}:1 (${level})`)
   if (level === 'FAIL') {
-    console.log(`   💡 Suggested: ${suggestAccessibleColor(foreground, background)}`)
+    logger.debug(`   💡 Suggested: ${suggestAccessibleColor(foreground, background)}`)
   }
 }
 

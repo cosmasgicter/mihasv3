@@ -49,19 +49,6 @@ TimelineListResponseSerializer = envelope_serializer(
 # ---------------------------------------------------------------------------
 
 
-@extend_schema(
-    operation_id="timeline_history_list",
-    tags=["applications"],
-    parameters=[
-        OpenApiParameter(name="page", type=int, required=False, description="Page number (default 1)"),
-        OpenApiParameter(name="pageSize", type=int, required=False, description="Page size (default 20, max 100)"),
-        OpenApiParameter(name="user_id", type=str, required=False, description="Filter by user ID (admin only)"),
-    ],
-    responses={
-        200: OpenApiResponse(response=TimelineListResponseSerializer),
-        401: OpenApiResponse(response=ErrorResponseSerializer),
-    },
-)
 class TimelineHistoryView(APIView):
     """GET /api/v1/applications/history/
 
@@ -72,6 +59,19 @@ class TimelineHistoryView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        operation_id="timeline_history_list",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter(name="page", type=int, required=False, description="Page number (default 1)"),
+            OpenApiParameter(name="pageSize", type=int, required=False, description="Page size (default 20, max 100)"),
+            OpenApiParameter(name="user_id", type=str, required=False, description="Filter by user ID (admin only)"),
+        ],
+        responses={
+            200: OpenApiResponse(response=TimelineListResponseSerializer),
+            401: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
     def get(self, request):
         user = request.user
         role = getattr(user, "role", "student")

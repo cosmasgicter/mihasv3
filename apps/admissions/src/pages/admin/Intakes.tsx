@@ -47,6 +47,7 @@ export function getUtilizationColor(enrollment: number, capacity: number): { bg:
 export const intakeSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   year: z.coerce.number().int().min(2000, 'Year is required'),
+  semester: z.string().optional().default(''),
   start_date: z.string().min(1, 'Start date is required'),
   end_date: z.string().min(1, 'End date is required'),
   application_deadline: z.string().min(1, 'Application deadline is required'),
@@ -67,6 +68,7 @@ export const intakeSchema = z.object({
 export interface IntakeForm {
   name: string
   year: number
+  semester: string
   start_date: string
   end_date: string
   application_deadline: string
@@ -79,6 +81,14 @@ const IntakeFormFields = ({ register, errors }: { register: any; errors: any }) 
   <div className="space-y-4 py-4">
     <Input label="Name" {...register('name')} error={errors.name?.message} required />
     <Input label="Year" type="number" {...register('year')} error={errors.year?.message} required />
+    <div>
+      <label htmlFor="semester" className="block text-sm font-medium text-foreground mb-1">Semester</label>
+      <select id="semester" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" {...register('semester')}>
+        <option value="">Select semester</option>
+        <option value="1">Semester 1 (January)</option>
+        <option value="2">Semester 2 (July)</option>
+      </select>
+    </div>
     <Input label="Start Date" type="date" {...register('start_date')} error={errors.start_date?.message} required />
     <Input label="End Date" type="date" {...register('end_date')} error={errors.end_date?.message} required />
     <Input label="Application Deadline" type="date" {...register('application_deadline')} error={errors.application_deadline?.message} required />
@@ -111,6 +121,7 @@ export default function AdminIntakes() {
     defaultValues: {
       name: '',
       year: new Date().getFullYear(),
+      semester: '',
       start_date: '',
       end_date: '',
       application_deadline: '',
@@ -134,6 +145,7 @@ export default function AdminIntakes() {
     reset({
       name: '',
       year: new Date().getFullYear(),
+      semester: '',
       start_date: '',
       end_date: '',
       application_deadline: '',
@@ -148,6 +160,7 @@ export default function AdminIntakes() {
     reset({
       name: intake.name,
       year: intake.year,
+      semester: (intake as any).semester || '',
       start_date: normalizeDateInputValue(intake.start_date),
       end_date: normalizeDateInputValue(intake.end_date),
       application_deadline: normalizeDateInputValue(intake.application_deadline),
@@ -173,6 +186,7 @@ export default function AdminIntakes() {
       await intakeService.create({
         name: data.name,
         year: data.year,
+        semester: data.semester,
         start_date: data.start_date,
         end_date: data.end_date,
         application_deadline: data.application_deadline,
@@ -197,6 +211,7 @@ export default function AdminIntakes() {
         id: currentIntake.id,
         name: data.name,
         year: data.year,
+        semester: data.semester,
         start_date: data.start_date,
         end_date: data.end_date,
         application_deadline: data.application_deadline,

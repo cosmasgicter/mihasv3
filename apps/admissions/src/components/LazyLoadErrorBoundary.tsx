@@ -1,4 +1,15 @@
 import React, { Component, type ReactNode } from 'react'
+import { evaluateChunkAutoReloadPolicy } from '@/lib/chunkAutoReloadPolicy'
+import { logger } from '@/lib/logger'
+
+// Session storage keys for chunk auto-reload state
+const SS_RELOAD_GUARD = 'mihas_chunk_reload'
+const SS_RELOAD_TS = 'mihas_chunk_reload_ts'
+const SS_RELOAD_COUNT = 'mihas_chunk_reload_count'
+
+// Policy defaults
+const MAX_PER_SESSION = 3
+const COOLDOWN_MS = 30_000
 
 interface Props {
   children: ReactNode
@@ -12,7 +23,8 @@ interface State {
 
 /**
  * Error boundary that catches chunk load failures (e.g. from React.lazy)
- * and shows a retry button so users can recover without a full page reload.
+ * and automatically reloads the page when the chunk auto-reload policy allows,
+ * falling back to manual retry/reload buttons when the policy denies.
  */
 export class LazyLoadErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false, isChunkError: false }
@@ -25,6 +37,55 @@ export class LazyLoadErrorBoundary extends Component<Props, State> {
       error.message.includes('Importing a module script failed')
 
     return { hasError: true, isChunkError }
+  }
+
+  componentDidCatch(_error: Error): void {
+    if (!this.state.isChunkError) {
+      return
+    }
+
+    // Read reload state from session storage
+    let reloadCount = 0
+    let lastReloadAt = 0
+    try {
+      const storedCount = window.sessionStorage.getItem(SS_RELOAD_COUNT)
+      const storedTs = window.sessionStorage.getItem(SS_RELOAD_TS)
+      if (storedCount !== null) reloadCount = Number(storedCount) || 0
+      if (storedTs !== null) lastReloadAt = Number(storedTs) || 0
+    } catch {
+      // sessionStorage may be unavailable — fall through to manual UI
+    }
+
+    const now = Date.now()
+    const route = window.location.pathname
+    // Use lastReloadAt as a proxy for last activity; if no prior reload, default
+    // to 0 so idle-protected routes are conservatively denied.
+    const lastActivityAt = lastReloadAt > 0 ? lastReloadAt : 0
+
+    const decision = evaluateChunkAutoReloadPolicy({
+      now,
+      lastReloadAt,
+      reloadCount,
+      maxPerSession: MAX_PER_SESSION,
+      cooldownMs: COOLDOWN_MS,
+      route,
+      lastActivityAt,
+    })
+
+    if (decision.allow) {
+      // Persist updated reload state before reloading
+      try {
+        window.sessionStorage.setItem(SS_RELOAD_COUNT, String(reloadCount + 1))
+        window.sessionStorage.setItem(SS_RELOAD_TS, String(now))
+        window.sessionStorage.setItem(SS_RELOAD_GUARD, '1')
+      } catch {
+        // best effort persistence
+      }
+      logger.warn('Auto-reloading due to stale chunk...', { route, reloadCount: reloadCount + 1 })
+      window.location.reload()
+    } else {
+      logger.warn('Chunk auto-reload denied by policy', { cause: decision.cause, context: decision.context })
+    }
   }
 
   handleRetry = () => {

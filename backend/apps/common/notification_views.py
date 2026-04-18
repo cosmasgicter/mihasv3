@@ -568,18 +568,20 @@ AdminNotificationHistoryResponseSerializer = envelope_serializer(
 )
 
 
-@extend_schema(
-    operation_id="admin_notification_history",
-    tags=["notifications"],
-    parameters=[
-        OpenApiParameter(name="page", type=int, required=False, description="Page number (default 1)"),
-        OpenApiParameter(name="pageSize", type=int, required=False, description="Page size (default 20, max 100)"),
-    ],
-    responses={
-        200: OpenApiResponse(response=AdminNotificationHistoryResponseSerializer),
-        403: OpenApiResponse(response=ErrorResponseSerializer),
-        404: OpenApiResponse(response=ErrorResponseSerializer),
-    },
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="admin_notification_history",
+        tags=["notifications"],
+        parameters=[
+            OpenApiParameter(name="page", type=int, required=False, description="Page number (default 1)"),
+            OpenApiParameter(name="pageSize", type=int, required=False, description="Page size (default 20, max 100)"),
+        ],
+        responses={
+            200: OpenApiResponse(response=AdminNotificationHistoryResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
 )
 class AdminNotificationHistoryView(APIView):
     """GET /api/v1/notifications/user/<uuid:user_id>/

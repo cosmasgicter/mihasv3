@@ -59,6 +59,9 @@ const initialProgramForm = {
   description: '',
   duration_years: 1,
   institution_id: '',
+  tuition_fee: '',
+  regulatory_body: '',
+  accreditation_status: 'active',
 }
 
 const initialInstitutionForm = {
@@ -67,6 +70,10 @@ const initialInstitutionForm = {
   code: '',
   description: '',
   status: 'active' as InstitutionStatus,
+  address: '',
+  phone: '',
+  email: '',
+  website: '',
 }
 
 function isInstitutionActive(institution: Institution) {
@@ -188,6 +195,9 @@ export default function AdminPrograms() {
       description: program.description || '',
       duration_years: program.duration_years,
       institution_id: program.institution_id,
+      tuition_fee: (program as any).tuition_fee || '',
+      regulatory_body: (program as any).regulatory_body || '',
+      accreditation_status: (program as any).accreditation_status || 'active',
     })
     setShowProgramEdit(true)
   }, [])
@@ -215,6 +225,10 @@ export default function AdminPrograms() {
       code: institution.code || '',
       description: institution.description || '',
       status: isInstitutionActive(institution) ? 'active' : 'archived',
+      address: (institution as any).address || '',
+      phone: (institution as any).phone || '',
+      email: (institution as any).email || '',
+      website: (institution as any).website || '',
     })
     setShowInstitutionEdit(true)
   }, [])
@@ -273,6 +287,9 @@ export default function AdminPrograms() {
           description: programForm.description.trim(),
           duration_years: programForm.duration_years,
           institution_id: programForm.institution_id,
+          tuition_fee: programForm.tuition_fee,
+          regulatory_body: programForm.regulatory_body,
+          accreditation_status: programForm.accreditation_status,
         })
       },
       () => {
@@ -307,6 +324,9 @@ export default function AdminPrograms() {
           description: programForm.description.trim(),
           duration_years: programForm.duration_years,
           institution_id: programForm.institution_id,
+          tuition_fee: programForm.tuition_fee,
+          regulatory_body: programForm.regulatory_body,
+          accreditation_status: programForm.accreditation_status,
         })
       },
       () => {
@@ -348,6 +368,10 @@ export default function AdminPrograms() {
           full_name: institutionForm.full_name.trim() || name,
           code: institutionForm.code.trim() || undefined,
           description: institutionForm.description.trim() || undefined,
+          address: institutionForm.address.trim() || undefined,
+          phone: institutionForm.phone.trim() || undefined,
+          email: institutionForm.email.trim() || undefined,
+          website: institutionForm.website.trim() || undefined,
         })
 
         const createdInstitution = response?.institution
@@ -393,6 +417,10 @@ export default function AdminPrograms() {
           code: institutionForm.code.trim() || undefined,
           description: institutionForm.description.trim() || undefined,
           is_active: institutionForm.status === 'active',
+          address: institutionForm.address.trim() || undefined,
+          phone: institutionForm.phone.trim() || undefined,
+          email: institutionForm.email.trim() || undefined,
+          website: institutionForm.website.trim() || undefined,
         })
       },
       () => {
@@ -832,6 +860,23 @@ export default function AdminPrograms() {
               value={programForm.duration_years}
               onChange={handleProgramFieldChange}
             />
+                  <div>
+                    <label htmlFor="tuition_fee" className="block text-sm font-medium text-foreground mb-1">Tuition fee (ZMW)</label>
+                    <input id="tuition_fee" type="number" min="0" step="0.01" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={programForm.tuition_fee} onChange={e => setProgramForm(f => ({ ...f, tuition_fee: e.target.value }))} placeholder="e.g. 15000" />
+                  </div>
+                  <div>
+                    <label htmlFor="regulatory_body" className="block text-sm font-medium text-foreground mb-1">Regulatory body</label>
+                    <input id="regulatory_body" type="text" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={programForm.regulatory_body} onChange={e => setProgramForm(f => ({ ...f, regulatory_body: e.target.value }))} placeholder="e.g. HPCZ, NMCZ, ECZ" />
+                  </div>
+                  <div>
+                    <label htmlFor="accreditation_status" className="block text-sm font-medium text-foreground mb-1">Accreditation status</label>
+                    <select id="accreditation_status" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={programForm.accreditation_status} onChange={e => setProgramForm(f => ({ ...f, accreditation_status: e.target.value }))}>
+                      <option value="active">Active</option>
+                      <option value="provisional">Provisional</option>
+                      <option value="suspended">Suspended</option>
+                      <option value="expired">Expired</option>
+                    </select>
+                  </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowProgramCreate(false)} disabled={saving}>Cancel</Button>
@@ -882,6 +927,23 @@ export default function AdminPrograms() {
               value={programForm.duration_years}
               onChange={handleProgramFieldChange}
             />
+                  <div>
+                    <label htmlFor="edit_tuition_fee" className="block text-sm font-medium text-foreground mb-1">Tuition fee (ZMW)</label>
+                    <input id="edit_tuition_fee" type="number" min="0" step="0.01" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={programForm.tuition_fee} onChange={e => setProgramForm(f => ({ ...f, tuition_fee: e.target.value }))} placeholder="e.g. 15000" />
+                  </div>
+                  <div>
+                    <label htmlFor="edit_regulatory_body" className="block text-sm font-medium text-foreground mb-1">Regulatory body</label>
+                    <input id="edit_regulatory_body" type="text" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={programForm.regulatory_body} onChange={e => setProgramForm(f => ({ ...f, regulatory_body: e.target.value }))} placeholder="e.g. HPCZ, NMCZ, ECZ" />
+                  </div>
+                  <div>
+                    <label htmlFor="edit_accreditation_status" className="block text-sm font-medium text-foreground mb-1">Accreditation status</label>
+                    <select id="edit_accreditation_status" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={programForm.accreditation_status} onChange={e => setProgramForm(f => ({ ...f, accreditation_status: e.target.value }))}>
+                      <option value="active">Active</option>
+                      <option value="provisional">Provisional</option>
+                      <option value="suspended">Suspended</option>
+                      <option value="expired">Expired</option>
+                    </select>
+                  </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowProgramEdit(false)} disabled={saving}>Cancel</Button>
@@ -946,6 +1008,24 @@ export default function AdminPrograms() {
               onChange={handleInstitutionFieldChange}
               helperText="Briefly describe the institution for admins managing programs and applications."
             />
+                  <div>
+                    <label htmlFor="inst_address" className="block text-sm font-medium text-foreground mb-1">Address</label>
+                    <input id="inst_address" type="text" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={institutionForm.address} onChange={e => setInstitutionForm(f => ({ ...f, address: e.target.value }))} placeholder="Physical address" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label htmlFor="inst_phone" className="block text-sm font-medium text-foreground mb-1">Phone</label>
+                      <input id="inst_phone" type="tel" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={institutionForm.phone} onChange={e => setInstitutionForm(f => ({ ...f, phone: e.target.value }))} placeholder="+260..." />
+                    </div>
+                    <div>
+                      <label htmlFor="inst_email" className="block text-sm font-medium text-foreground mb-1">Email</label>
+                      <input id="inst_email" type="email" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={institutionForm.email} onChange={e => setInstitutionForm(f => ({ ...f, email: e.target.value }))} placeholder="info@institution.edu.zm" />
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="inst_website" className="block text-sm font-medium text-foreground mb-1">Website</label>
+                    <input id="inst_website" type="url" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={institutionForm.website} onChange={e => setInstitutionForm(f => ({ ...f, website: e.target.value }))} placeholder="https://..." />
+                  </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowInstitutionCreate(false)} disabled={saving}>Cancel</Button>
@@ -990,6 +1070,24 @@ export default function AdminPrograms() {
               onChange={handleInstitutionFieldChange}
               helperText="Briefly describe the institution for admins managing programs and applications."
             />
+                  <div>
+                    <label htmlFor="edit_inst_address" className="block text-sm font-medium text-foreground mb-1">Address</label>
+                    <input id="edit_inst_address" type="text" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={institutionForm.address} onChange={e => setInstitutionForm(f => ({ ...f, address: e.target.value }))} placeholder="Physical address" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label htmlFor="edit_inst_phone" className="block text-sm font-medium text-foreground mb-1">Phone</label>
+                      <input id="edit_inst_phone" type="tel" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={institutionForm.phone} onChange={e => setInstitutionForm(f => ({ ...f, phone: e.target.value }))} placeholder="+260..." />
+                    </div>
+                    <div>
+                      <label htmlFor="edit_inst_email" className="block text-sm font-medium text-foreground mb-1">Email</label>
+                      <input id="edit_inst_email" type="email" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={institutionForm.email} onChange={e => setInstitutionForm(f => ({ ...f, email: e.target.value }))} placeholder="info@institution.edu.zm" />
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="edit_inst_website" className="block text-sm font-medium text-foreground mb-1">Website</label>
+                    <input id="edit_inst_website" type="url" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={institutionForm.website} onChange={e => setInstitutionForm(f => ({ ...f, website: e.target.value }))} placeholder="https://..." />
+                  </div>
             <CanonicalSelect
               label="Status"
               value={institutionForm.status}

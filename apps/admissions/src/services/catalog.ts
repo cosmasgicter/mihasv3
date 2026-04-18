@@ -405,12 +405,16 @@ type ProgramFormData = {
   description?: string
   duration_years: number
   institution_id: string
+  tuition_fee?: string | number
+  regulatory_body?: string
+  accreditation_status?: string
 }
 
 export type IntakeFormData = {
   id?: string
   name: string
   year: number
+  semester?: string
   start_date: string
   end_date: string
   application_deadline: string
@@ -424,6 +428,10 @@ type InstitutionFormData = {
   code?: string
   description?: string
   is_active?: boolean
+  address?: string
+  phone?: string
+  email?: string
+  website?: string
 }
 
 async function getCurrentProgram(id: string): Promise<RawProgram | null> {
@@ -450,6 +458,9 @@ function buildProgramPayload(data: ProgramFormData, existing?: RawProgram | null
       ? { ...existingRequirements, summary: data.description }
       : existingRequirements,
     is_active: existing?.is_active ?? true,
+    ...(data.tuition_fee ? { tuition_fee: Number(data.tuition_fee) } : {}),
+    ...(data.regulatory_body ? { regulatory_body: data.regulatory_body } : {}),
+    ...(data.accreditation_status ? { accreditation_status: data.accreditation_status } : {}),
   }
 }
 
@@ -457,6 +468,7 @@ function buildIntakePayload(data: IntakeFormData, existing?: RawIntake | null) {
   return {
     name: data.name,
     year: data.year,
+    ...(data.semester ? { semester: data.semester } : {}),
     start_date: data.start_date,
     end_date: data.end_date,
     application_start_date: data.start_date,
@@ -475,6 +487,10 @@ function buildInstitutionPayload(data: InstitutionFormData, existing?: RawInstit
     accreditation_status: existing?.accreditation_status || 'active',
     is_active: data.is_active ?? existing?.is_active ?? true,
     description: data.description ?? '',
+    ...(data.address ? { address: data.address } : {}),
+    ...(data.phone ? { phone: data.phone } : {}),
+    ...(data.email ? { email: data.email } : {}),
+    ...(data.website ? { website: data.website } : {}),
   }
 }
 
