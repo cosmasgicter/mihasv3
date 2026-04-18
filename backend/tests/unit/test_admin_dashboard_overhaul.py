@@ -4,6 +4,7 @@ import os
 import uuid
 from datetime import datetime, timezone
 from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 os.environ["TESTING"] = "1"
@@ -17,7 +18,9 @@ from django.test import SimpleTestCase  # noqa: E402
 from apps.accounts.admin_views import (  # noqa: E402
     AdminDashboardActivitySerializer,
     AdminDashboardView,
+    AuditLogSerializer,
 )
+from apps.documents.views import ProgramFeeViewSet  # noqa: E402
 
 
 class AdminDashboardOverhaulUnitTests(SimpleTestCase):
@@ -62,3 +65,38 @@ class AdminDashboardOverhaulUnitTests(SimpleTestCase):
         self.assertEqual([item["type"] for item in activity], ["payment", "status_change"])
         self.assertEqual(activity[0]["application_number"], "APP-001")
         self.assertEqual(activity[1]["actor_name"], "Admin User")
+
+    def test_audit_log_serializer_exposes_network_context_for_admin_trail(self):
+        serializer = AuditLogSerializer(
+            SimpleNamespace(
+                id=uuid.uuid4(),
+                actor_id=uuid.uuid4(),
+                action="user_update",
+                entity_type="profiles",
+                entity_id=uuid.uuid4(),
+                changes={"role": {"old": "student", "new": "admin"}},
+                ip_address="hashed-ip",
+                user_agent="hashed-agent",
+                retention_category="security",
+                created_at=datetime(2026, 4, 18, 10, 0, tzinfo=timezone.utc),
+            )
+        )
+
+        self.assertEqual(serializer.data["ip_address"], "hashed-ip")
+        self.assertEqual(serializer.data["user_agent"], "hashed-agent")
+
+    def test_program_fee_queryset_includes_legacy_null_active_rows(self):
+        viewset = ProgramFeeViewSet()
+        viewset.kwargs = {"program_id": uuid.uuid4()}
+
+        with patch("apps.documents.views.ProgramFee.objects") as manager:
+            queryset = MagicMock()
+            ordered = MagicMock()
+            manager.filter.return_value = queryset
+            queryset.order_by.return_value = ordered
+
+            result = viewset.get_queryset()
+
+        self.assertIs(result, ordered)
+        manager.filter.assert_called_once()
+        self.assertEqual(manager.filter.call_args.kwargs["program_id"], viewset.kwargs["program_id"])

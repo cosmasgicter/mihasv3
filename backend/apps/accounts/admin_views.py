@@ -147,6 +147,8 @@ class AuditLogSerializer(serializers.Serializer):
     entity_type = serializers.CharField(read_only=True)
     entity_id = serializers.UUIDField(read_only=True, allow_null=True)
     changes = serializers.JSONField(read_only=True)
+    ip_address = serializers.CharField(read_only=True, allow_blank=True, allow_null=True)
+    user_agent = serializers.CharField(read_only=True, allow_blank=True, allow_null=True)
     retention_category = serializers.CharField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
 
@@ -954,23 +956,23 @@ class AdminAuditLogView(APIView):
     def get(self, request):
         queryset = AuditLog.objects.all().order_by("-created_at")
 
-        entity_type = request.query_params.get("entity_type")
+        entity_type = request.query_params.get("entity_type") or request.query_params.get("filter_entity_type")
         if entity_type:
             queryset = queryset.filter(entity_type=entity_type)
 
-        action = request.query_params.get("action")
+        action = request.query_params.get("action") or request.query_params.get("filter_action")
         if action:
             queryset = queryset.filter(action=action)
 
-        actor_id = request.query_params.get("actor_id")
+        actor_id = request.query_params.get("actor_id") or request.query_params.get("filter_user_id")
         if actor_id:
             queryset = queryset.filter(actor_id=actor_id)
 
-        date_from = request.query_params.get("date_from")
+        date_from = request.query_params.get("date_from") or request.query_params.get("filter_from")
         if date_from:
             queryset = queryset.filter(created_at__gte=date_from)
 
-        date_to = request.query_params.get("date_to")
+        date_to = request.query_params.get("date_to") or request.query_params.get("filter_to")
         if date_to:
             queryset = queryset.filter(created_at__lte=date_to)
 

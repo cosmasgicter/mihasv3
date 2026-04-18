@@ -731,8 +731,35 @@ class ApplicationSummaryView(APIView):
             return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
         docs_count = ApplicationDocument.objects.filter(application_id=application_id).count()
         grades_count = ApplicationGrade.objects.filter(application_id=application_id).count()
-        history = ApplicationStatusHistory.objects.filter(application_id=application_id).order_by("-created_at").values("old_status", "new_status", "notes", "created_at")[:10]
-        return Response({"application": ApplicationSerializer(app).data, "documents_count": docs_count, "grades_count": grades_count, "status_history": list(history)})
+        history_rows = (
+            ApplicationStatusHistory.objects.filter(application_id=application_id)
+            .select_related("changed_by")
+            .order_by("-created_at")[:10]
+        )
+        history = []
+        for row in history_rows:
+            changed_by_name = ""
+            if row.changed_by:
+                changed_by_name = f"{row.changed_by.first_name} {row.changed_by.last_name}".strip() or row.changed_by.email
+            history.append(
+                {
+                    "id": str(row.id),
+                    "status": row.new_status,
+                    "old_status": row.old_status,
+                    "new_status": row.new_status,
+                    "notes": row.notes,
+                    "created_at": row.created_at,
+                    "changed_by": str(row.changed_by_id) if row.changed_by_id else None,
+                    "changed_by_name": changed_by_name,
+                    "changed_by_profile": {
+                        "email": row.changed_by.email,
+                        "full_name": changed_by_name,
+                    }
+                    if row.changed_by
+                    else None,
+                }
+            )
+        return Response({"application": ApplicationSerializer(app).data, "documents_count": docs_count, "grades_count": grades_count, "status_history": history})
 
 
 @extend_schema_view(

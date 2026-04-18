@@ -1,5 +1,5 @@
 import React from 'react'
-import { User, Menu } from 'lucide-react'
+import { ShieldCheck, User } from 'lucide-react'
 import { UserMenu } from '@/components/ui/UserMenu'
 import { NotificationBell } from '@/components/student/NotificationBell'
 import { useAuth } from '@/contexts/AuthContext'
@@ -13,7 +13,7 @@ import { getDisplayName } from '@/utils/userDisplayName'
 export const Header = React.memo(function Header() {
   const { user, isAdmin } = useAuth()
   const { profile } = useProfileQuery()
-  const { collapsed, setMobileOpen } = useSidebar()
+  const { collapsed } = useSidebar()
   const { isMobile } = useResponsive()
   const scrollDirection = useScrollDirection()
 
@@ -33,27 +33,25 @@ export const Header = React.memo(function Header() {
 
   return (
     <header
-      className="fixed top-0 z-40 bg-card/80 backdrop-blur-xl border-b border-border shadow-sm transition-transform duration-300 app-safe-area"
+      className="fixed top-0 z-40 hidden bg-background/80 backdrop-blur-xl transition-transform duration-300 app-safe-area md:block"
       style={{
         ...headerStyle,
         transform: transformValue
       }}
     >
-      <div className="flex items-center justify-between h-16 px-3 sm:px-4 md:px-6">
+      <div className="mx-auto flex h-16 max-w-[1500px] items-center justify-between px-6">
         <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1 overflow-hidden">
-          {/* Hamburger menu — mobile only */}
-          <button
-            onClick={() => setMobileOpen(true)}
-            aria-label="Open navigation menu"
-            className="md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 flex-shrink-0"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-
-          <h2 className="font-semibold text-foreground flex items-center gap-2 min-w-0 max-w-full animate-fade-in" style={{ fontSize: 'var(--type-sm)' }}>
-            <User className="flex-shrink-0" style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }} />
-            <span className="truncate">{fullName}</span>
-          </h2>
+          <div className="flex min-w-0 items-center gap-3 rounded-full border border-border/70 bg-card/80 px-3 py-2 shadow-sm">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              {isAdmin ? <ShieldCheck className="h-4 w-4" /> : <User className="h-4 w-4" />}
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                {isAdmin ? 'Admin workspace' : 'Student workspace'}
+              </p>
+              <h2 className="truncate text-sm font-semibold text-foreground">{fullName}</h2>
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">

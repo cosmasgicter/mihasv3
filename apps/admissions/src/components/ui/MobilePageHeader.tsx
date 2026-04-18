@@ -20,18 +20,18 @@ export function MobilePageHeader({
   return (
     <header
       className={cn(
-        'fixed top-0 left-0 right-0 z-40 flex h-14 items-center md:hidden',
-        'bg-background/95 backdrop-blur-sm border-b border-border',
+        'fixed left-0 right-0 top-0 z-40 flex h-16 items-center md:hidden',
+        'border-b border-border/70 bg-background/90 shadow-sm backdrop-blur-xl',
         className
       )}
     >
       {/* Left: back button or spacer */}
-      <div className="flex-shrink-0 w-14 flex items-center justify-center">
+      <div className="flex w-14 flex-shrink-0 items-center justify-center">
         {showBack ? (
           <button
             type="button"
             onClick={onBack}
-            className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-md text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-2xl text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             aria-label="Go back"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -40,7 +40,7 @@ export function MobilePageHeader({
       </div>
 
       {/* Center: page title */}
-      <h2 className="flex-1 text-center text-lg font-semibold truncate px-2">
+      <h2 className="flex-1 truncate px-2 text-center text-base font-bold tracking-tight text-foreground">
         {title}
       </h2>
 

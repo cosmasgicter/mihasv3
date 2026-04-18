@@ -12,6 +12,7 @@ from decimal import Decimal
 from urllib.parse import unquote, urlparse
 
 from django.conf import settings
+from django.db.models import Q
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, OpenApiTypes, extend_schema, extend_schema_view
 from rest_framework import status
@@ -797,8 +798,8 @@ class ProgramFeeViewSet(ModelViewSet):
     def get_queryset(self):
         program_id = self.kwargs.get("program_id")
         return ProgramFee.objects.filter(
+            Q(is_active=True) | Q(is_active__isnull=True),
             program_id=program_id,
-            is_active=True,
         ).order_by("-created_at")
 
     def perform_create(self, serializer):

@@ -4,8 +4,9 @@ import type { Application } from '@/types/database'
 import { Button } from '@/components/ui/Button'
 import { DocumentButtons } from '@/components/student/DocumentButtons'
 import { formatDate, getStatusColor } from '@/lib/utils'
-import { Clock, CheckCircle, XCircle, Calendar } from 'lucide-react'
+import { Clock, CheckCircle, XCircle, Calendar, CreditCard } from 'lucide-react'
 import { staggerChild, animateClasses } from '@/lib/animations'
+import { requiresStudentPaymentAction } from '@/lib/paymentStatus'
 
 interface ApplicationListItemProps {
   application: Application
@@ -43,6 +44,9 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
   application,
   index,
 }) {
+  const needsPayment = application.status !== 'draft' && requiresStudentPaymentAction(application.payment_status)
+  const paymentHref = `/student/payment?applicationId=${encodeURIComponent(application.id)}`
+
   return (
     <div
       className={`border-l-4 border-l-transparent px-4 py-4 transition-colors hover:border-l-primary hover:bg-muted/30 sm:px-6 sm:py-6 ${animateClasses.slideUp}`}
@@ -91,6 +95,14 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
               paymentStatus={application.payment_status ?? null}
             />
           </div>
+          {needsPayment && (
+            <Link to={paymentHref} className="w-full sm:order-1 sm:w-auto">
+              <Button variant="warning" size="sm" className="min-h-11 w-full sm:w-auto">
+                <CreditCard className="mr-2 h-4 w-4" />
+                Complete Payment
+              </Button>
+            </Link>
+          )}
           <Link to={`/student/application/${application.id}`} className="w-full sm:order-1 sm:w-auto">
             <Button variant="primary" size="sm" className="min-h-11 w-full sm:w-auto">
               View Details

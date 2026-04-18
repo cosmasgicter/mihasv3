@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react'
-import { Home, FileText, Bell, LayoutDashboard, Users, ChevronLeft, ChevronRight, ChevronDown, GraduationCap, Calendar, Settings, FileSearch, CreditCard, DollarSign, MessageSquare, Clock } from 'lucide-react'
+import { Home, FileText, Bell, LayoutDashboard, Users, ChevronLeft, ChevronRight, ChevronDown, GraduationCap, Calendar, Settings, FileSearch, CreditCard, DollarSign, MessageSquare, Clock, Sparkles } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSidebar } from '@/contexts/SidebarContext'
@@ -64,7 +64,7 @@ const isRouteActive = (currentPath: string, itemPath: string) => {
     return currentPath === '/student/application-wizard' || currentPath === '/apply'
   }
 
-  return currentPath === itemPath
+  return currentPath === itemPath || currentPath.startsWith(`${itemPath}/`)
 }
 
 export const DesktopSidebar = React.memo(function DesktopSidebar() {
@@ -95,26 +95,27 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
   return (
     <aside
       aria-label="Main navigation"
-      className="hidden md:flex flex-col fixed left-0 top-0 h-screen bg-gradient-to-b from-card via-card to-muted/70 backdrop-blur-xl border-r border-border/80 shadow-xl z-40 transition-all duration-300 ease-in-out"
+      className="fixed left-0 top-0 z-40 hidden h-screen flex-col border-r border-white/10 bg-slate-950 text-white shadow-2xl transition-all duration-300 ease-in-out md:flex"
       style={{ width: collapsed ? 'var(--sidebar-collapsed)' : 'var(--sidebar-expanded)' }}
     >
       {/* Header / Logo area */}
       <div className={cn(
-        'border-b border-border/80 py-4 transition-all duration-300',
-        collapsed ? 'px-2' : 'px-3'
+        'relative overflow-hidden border-b border-white/10 py-4 transition-all duration-300',
+        collapsed ? 'px-2' : 'px-4'
       )}>
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(14,165,233,0.28),transparent_32%),radial-gradient(circle_at_80%_0%,rgba(34,197,94,0.16),transparent_28%)]" aria-hidden="true" />
         <div className={cn(
-          'flex items-center rounded-2xl bg-white/70 shadow-sm ring-1 ring-border/60 transition-all duration-300',
+          'relative flex items-center rounded-3xl border border-white/10 bg-white/10 shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-300',
           collapsed ? 'justify-center px-2 py-3' : 'gap-3 px-3 py-3'
         )} role="img" aria-label="Mukuba Institute of Health and Allied Sciences logo">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shrink-0 shadow-md" aria-hidden="true">
-            <span className="text-white font-bold text-sm">MI</span>
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400 via-cyan-400 to-emerald-300 text-slate-950 shadow-lg shadow-sky-950/40" aria-hidden="true">
+            <span className="text-sm font-black tracking-tight">MI</span>
           </div>
 
           {!collapsed && (
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-primary/80">Portal</p>
-              <span className="block text-base font-bold text-foreground truncate transition-opacity duration-200 motion-reduce:transition-none">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-sky-200/80">Admissions</p>
+              <span className="block truncate text-base font-bold text-white transition-opacity duration-200 motion-reduce:transition-none">
                 {isAdmin ? 'MIHAS Admin' : 'MIHAS Student'}
               </span>
             </div>
@@ -130,8 +131,8 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
             onClick={() => setCollapsed(!collapsed)}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             className={cn(
-              'h-8 w-8 rounded-full border border-border/70 bg-card shadow-sm',
-              'flex items-center justify-center hover:bg-accent transition-colors',
+              'flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white shadow-sm',
+              'transition-colors hover:bg-white/20',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
             )}
           >
@@ -146,8 +147,8 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
 
       {/* Navigation */}
       <nav className={cn(
-        'flex-1 overflow-y-auto py-4 space-y-2',
-        collapsed ? 'px-1.5' : 'px-2'
+        'flex-1 overflow-y-auto py-5 space-y-2 [scrollbar-width:thin]',
+        collapsed ? 'px-2' : 'px-3'
       )}>
         {isAdmin ? (
           visibleAdminSections.map((section) => (
@@ -163,7 +164,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         ) : (
           <div className="space-y-1">
             {!collapsed && (
-              <div className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              <div className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
                 Student Workspace
               </div>
             )}
@@ -181,24 +182,26 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
 
       {/* Footer with system status */}
       <div className={cn(
-        'border-t border-border/80',
+        'border-t border-white/10',
         collapsed ? 'p-2' : 'p-4'
       )}>
         {!collapsed ? (
-          <div className="flex items-center gap-3 rounded-2xl bg-white/70 px-3 py-3 text-xs text-muted-foreground shadow-sm ring-1 ring-border/60 transition-opacity duration-200 motion-reduce:transition-none">
-            <div className="w-2.5 h-2.5 rounded-full bg-success animate-pulse motion-reduce:animate-none" />
+          <div className="flex items-center gap-3 rounded-3xl border border-white/10 bg-white/10 px-3 py-3 text-xs text-slate-300 shadow-sm transition-opacity duration-200 motion-reduce:transition-none">
+            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-400/15 text-emerald-200">
+              <Sparkles className="h-4 w-4" />
+            </div>
             <div>
-              <p className="font-semibold text-foreground">System online</p>
-              <p className="text-[11px] text-muted-foreground">Admissions workspace ready</p>
+              <p className="font-semibold text-white">Workspace ready</p>
+              <p className="text-[11px] text-slate-400">Navigation synced</p>
             </div>
           </div>
         ) : (
-          <Tooltip content="System Online" side="right">
+          <Tooltip content="Workspace ready" side="right">
             <div className="flex justify-center transition-opacity duration-200 motion-reduce:transition-none" role="status">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow-sm ring-1 ring-border/60">
-                <div className="w-2.5 h-2.5 rounded-full bg-success animate-pulse motion-reduce:animate-none" aria-hidden="true" />
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-emerald-200 shadow-sm">
+                <Sparkles className="h-4 w-4" aria-hidden="true" />
               </div>
-              <span className="sr-only">System Online</span>
+              <span className="sr-only">Workspace ready</span>
             </div>
           </Tooltip>
         )}
@@ -224,7 +227,7 @@ function SidebarSection({
   currentPath,
 }: SidebarSectionProps) {
   // Check if any item in this section is active
-  const hasActiveItem = section.items.some(item => currentPath === item.to)
+  const hasActiveItem = section.items.some(item => isRouteActive(currentPath, item.to))
 
   return (
     <div className="mb-2">
@@ -233,10 +236,10 @@ function SidebarSection({
         <button
           onClick={onToggle}
           className={cn(
-            'w-full flex items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em]',
-            'text-muted-foreground hover:text-foreground transition-colors',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg',
-            hasActiveItem && 'text-primary'
+            'flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-[0.22em]',
+            'text-slate-400 transition-colors hover:text-white',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950',
+            hasActiveItem && 'text-sky-200'
           )}
         >
           <span>{section.title}</span>
@@ -253,7 +256,7 @@ function SidebarSection({
 
       {/* When collapsed, show a thin divider between sections instead of header */}
       {collapsed && (
-        <div className="mx-3 my-1 border-t border-border/40" />
+        <div className="mx-4 my-2 border-t border-white/10" />
       )}
 
       {/* Section items */}
@@ -261,7 +264,7 @@ function SidebarSection({
         <div
           className={cn(
             'overflow-hidden transition-all duration-200 ease-out motion-reduce:transition-none',
-            !collapsed && 'pl-2'
+            !collapsed && 'pl-1'
           )}
         >
           <div className="space-y-1">
@@ -298,20 +301,24 @@ function SidebarNavItem({
       to={item.to}
       aria-current={isActive ? 'page' : undefined}
       className={cn(
-        'relative flex items-center rounded-2xl group overflow-hidden',
+        'group relative flex min-h-11 items-center overflow-hidden rounded-2xl',
         'transition-all duration-200',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950',
         collapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5',
         isActive
-          ? 'bg-primary text-primary-foreground shadow-md'
-          : 'text-muted-foreground hover:bg-white/80 hover:text-foreground'
+          ? 'bg-white text-slate-950 shadow-lg shadow-black/20'
+          : 'text-slate-300 hover:bg-white/10 hover:text-white'
       )}
     >
       {/* Active indicator — only show when expanded */}
       {isActive && !collapsed && (
         <div
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full transition-opacity duration-200 motion-reduce:transition-none"
+          className="absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-sky-400 transition-opacity duration-200 motion-reduce:transition-none"
         />
+      )}
+
+      {isActive && collapsed && (
+        <div className="absolute inset-y-2 left-1 w-1 rounded-full bg-sky-400" aria-hidden="true" />
       )}
 
       {/* Icon */}
@@ -319,7 +326,7 @@ function SidebarNavItem({
         style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }}
         className={cn(
           'shrink-0 transition-colors duration-200',
-          isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground'
+          isActive ? 'text-slate-950' : 'text-slate-400 group-hover:text-white'
         )}
       />
 
@@ -328,7 +335,7 @@ function SidebarNavItem({
         <span
           className={cn(
             'font-medium truncate transition-opacity duration-150 motion-reduce:transition-none',
-            isActive ? 'text-primary-foreground' : 'text-foreground'
+            isActive ? 'text-slate-950' : 'text-slate-100'
           )}
           style={{ fontSize: 'var(--type-sm)' }}
         >
@@ -338,7 +345,7 @@ function SidebarNavItem({
 
       {/* Hover effect */}
       {!isActive && (
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-2xl" />
+        <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r from-sky-400/10 to-emerald-300/10 opacity-0 transition-opacity duration-200 group-hover:opacity-100" aria-hidden="true" />
       )}
     </Link>
   )

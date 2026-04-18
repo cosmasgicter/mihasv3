@@ -145,6 +145,12 @@ export function DashboardStatusOverview({
   const paymentActionRequiredCount = applications.filter(app =>
     app.status !== 'draft' && requiresStudentPaymentAction(app.payment_status)
   ).length;
+  const paymentActionApplication = applications.find(app =>
+    app.status !== 'draft' && requiresStudentPaymentAction(app.payment_status)
+  );
+  const paymentActionHref = paymentActionApplication
+    ? `/student/payment?applicationId=${encodeURIComponent(paymentActionApplication.id)}`
+    : '/student/payment';
 
   // Latest non-draft application for the status card
   const submittedApplications = applications.filter(app => app.status !== 'draft');
@@ -161,8 +167,14 @@ export function DashboardStatusOverview({
         })[0]
     : null;
   
+  const latestApplicationRequiresPayment = latestApplication
+    ? latestApplication.status !== 'draft' && requiresStudentPaymentAction(latestApplication.payment_status)
+    : false
+
   const latestApplicationLink = latestApplication
-    ? `/student/application/${latestApplication.id}`
+    ? latestApplicationRequiresPayment
+      ? `/student/payment?applicationId=${encodeURIComponent(latestApplication.id)}`
+      : `/student/application/${latestApplication.id}`
     : '/student/dashboard';
 
   const metrics = [
@@ -195,7 +207,7 @@ export function DashboardStatusOverview({
           ? 'Finish payment or resubmit proof'
           : 'No payment follow-up needed',
       accent: paymentActionRequiredCount > 0 ? 'warning' as const : 'neutral' as const,
-      href: paymentActionRequiredCount > 0 ? '/student/payment' : undefined,
+      href: paymentActionRequiredCount > 0 ? paymentActionHref : undefined,
     },
     {
       title: 'Total Applications',
@@ -283,7 +295,7 @@ export function DashboardStatusOverview({
                   to={latestApplicationLink}
                   className="text-sm font-medium text-primary hover:underline"
                 >
-                  {latestApplication.status === 'draft' ? 'Continue Application →' : 'View Details →'}
+                  {latestApplication.status === 'draft' ? 'Continue Application →' : latestApplicationRequiresPayment ? 'Complete Payment →' : 'View Details →'}
                 </Link>
               </div>
             </CardContent>
@@ -308,7 +320,7 @@ export function DashboardStatusOverview({
                 Finish payment or resubmit corrected proof to keep processing moving.
               </p>
               <Link 
-                to="/student/payment"
+                to={paymentActionHref}
                 className="inline-flex items-center gap-1 text-sm font-medium text-warning hover:text-warning/80 mt-2"
               >
                 Complete Payment →

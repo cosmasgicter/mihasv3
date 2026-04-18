@@ -76,8 +76,8 @@ interface BackendAuditEntry {
   entity_type: string
   entity_id: string
   changes: Record<string, any> | null
-  ip_address: string | null
-  user_agent: string | null
+  ip_address?: string | null
+  user_agent?: string | null
   created_at: string
 }
 
@@ -88,8 +88,10 @@ interface BackendAuditBreakdownItem {
 
 interface BackendAuditResponse {
   entries?: BackendAuditEntry[]
+  results?: BackendAuditEntry[]
   page?: number
   pageSize?: number
+  count?: number
   totalPages?: number
   totalCount?: number
   summary?: {
@@ -184,6 +186,10 @@ function mapBreakdownItems(items?: BackendAuditBreakdownItem[]): AuditBreakdownI
 }
 
 function mapSummary(summary?: BackendAuditResponse['summary']): AuditLogSummary {
+  if (!summary) {
+    return EMPTY_SUMMARY
+  }
+
   const categoryBreakdown = mapBreakdownItems(summary?.categoryBreakdown).reduce<Record<string, number>>(
     (accumulator, item) => {
       accumulator[item.label] = item.count
@@ -197,6 +203,34 @@ function mapSummary(summary?: BackendAuditResponse['summary']): AuditLogSummary 
     categoryBreakdown,
     entityBreakdown: mapBreakdownItems(summary?.entityBreakdown),
     actionBreakdown: mapBreakdownItems(summary?.actionBreakdown),
+  }
+}
+
+function buildSummaryFromEntries(entries: AuditLogEntry[]): AuditLogSummary {
+  const uniqueActors = new Set(entries.map(entry => entry.actorId).filter(Boolean)).size
+  const categoryBreakdown = entries.reduce<Record<string, number>>((accumulator, entry) => {
+    accumulator[entry.category] = (accumulator[entry.category] ?? 0) + 1
+    return accumulator
+  }, {})
+  const entityCounts = entries.reduce<Record<string, number>>((accumulator, entry) => {
+    accumulator[entry.entityType] = (accumulator[entry.entityType] ?? 0) + 1
+    return accumulator
+  }, {})
+  const actionCounts = entries.reduce<Record<string, number>>((accumulator, entry) => {
+    accumulator[entry.action] = (accumulator[entry.action] ?? 0) + 1
+    return accumulator
+  }, {})
+
+  const toBreakdown = (counts: Record<string, number>) =>
+    Object.entries(counts)
+      .map(([label, count]) => ({ label, count }))
+      .sort((a, b) => b.count - a.count)
+
+  return {
+    uniqueActors,
+    categoryBreakdown,
+    entityBreakdown: toBreakdown(entityCounts),
+    actionBreakdown: toBreakdown(actionCounts),
   }
 }
 
@@ -215,8 +249,8 @@ function mapAuditEntry(log: BackendAuditEntry): AuditLogEntry {
     entityType: log.entity_type,
     entityId: log.entity_id,
     changes: log.changes,
-    ipAddress: log.ip_address,
-    userAgent: log.user_agent,
+    ipAddress: log.ip_address ?? null,
+    userAgent: log.user_agent ?? null,
     createdAt: log.created_at,
     targetTable: log.entity_type,
     targetId: log.entity_id,
@@ -235,13 +269,13 @@ class AdminAuditService {
       pageSize: String(pageSize),
     }
 
-    if (filters.action) params.filter_action = filters.action
-    if (filters.actorEmail) params.filter_actor_email = filters.actorEmail
-    if (filters.userId) params.filter_user_id = filters.userId
-    if (filters.targetTable) params.filter_entity_type = filters.targetTable
-    if (filters.category) params.filter_category = filters.category
-    if (filters.from) params.filter_from = filters.from
-    if (filters.to) params.filter_to = filters.to
+    if (filters.action) params.action = filters.action
+    if (filters.actorEmail) params.actor_email = filters.actorEmail
+    if (filters.userId) params.actor_id = filters.userId
+    if (filters.targetTable) params.entity_type = filters.targetTable
+    if (filters.category) params.category = filters.category
+    if (filters.from) params.date_from = filters.from
+    if (filters.to) params.date_to = filters.to
 
     const endpoint = `/admin/audit-logs/${buildQueryString(params)}`
 
@@ -252,16 +286,18 @@ class AdminAuditService {
         return { entries: [], page, pageSize, totalPages: 1, totalCount: 0, summary: EMPTY_SUMMARY }
       }
 
-      const totalCount = result.totalCount || 0
+      const rawEntries = result.entries ?? result.results ?? []
+      const entries = rawEntries.map(mapAuditEntry)
+      const totalCount = result.totalCount ?? result.count ?? entries.length
       const totalPages = result.totalPages || Math.ceil(totalCount / pageSize) || 1
 
       return {
-        entries: (result.entries || []).map(mapAuditEntry),
+        entries,
         page: result.page || page,
         pageSize: result.pageSize || pageSize,
         totalPages,
         totalCount,
-        summary: mapSummary(result.summary),
+        summary: result.summary ? mapSummary(result.summary) : buildSummaryFromEntries(entries),
       }
     } catch (error) {
       logApiError('admin-audit', endpoint, error)

@@ -70,6 +70,32 @@ type ApplicationSummaryResponse = {
   status_history?: unknown[]
 }
 
+function normalizeStatusHistory(history?: unknown[]): unknown[] {
+  if (!Array.isArray(history)) {
+    return []
+  }
+
+  return history.map((item, index) => {
+    if (!item || typeof item !== 'object') {
+      return item
+    }
+
+    const row = item as Record<string, unknown>
+    const status = row.status ?? row.new_status ?? 'unknown'
+    return {
+      id: row.id ?? `${String(status)}-${String(row.created_at ?? index)}`,
+      ...row,
+      status,
+      changed_by: row.changed_by ?? row.changed_by_name ?? null,
+      changed_by_profile: row.changed_by_profile ?? (
+        row.changed_by_name
+          ? { full_name: row.changed_by_name, email: '' }
+          : undefined
+      ),
+    }
+  })
+}
+
 function isApplicationRecord(value: unknown): value is Application {
   return Boolean(value && typeof value === 'object' && 'id' in (value as Record<string, unknown>))
 }
@@ -180,7 +206,7 @@ async function loadApplicationDetails(
     application: mergedApplication,
     ...(Array.isArray(documents) ? { documents } : {}),
     ...(Array.isArray(grades) ? { grades } : {}),
-    ...(Array.isArray(summary?.status_history) ? { statusHistory: summary.status_history } : {}),
+    ...(Array.isArray(summary?.status_history) ? { statusHistory: normalizeStatusHistory(summary.status_history) } : {}),
     interview: latestInterview,
   }
 }
