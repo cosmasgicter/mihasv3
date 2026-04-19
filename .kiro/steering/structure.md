@@ -165,8 +165,8 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | Path | Purpose |
 |------|---------|
 | `backend/apps/common/error_urls.py` | URL patterns for `/api/v1/errors/` (error report endpoint) |
-| `backend/apps/common/error_views.py` | `ErrorReportView` — accepts frontend error reports, creates `ErrorLog` rows, dispatches throttled alerts |
-| `apps/admissions/src/lib/errorReporter.ts` | Frontend error reporter — captures `window.onerror` and unhandled rejections, batches and POSTs to `/api/v1/errors/report/` |
+| `backend/apps/common/error_views.py` | `ErrorReportView` — accepts frontend error reports, forwards to GlitchTip via `sentry_sdk.capture_message()` |
+| `apps/admissions/src/lib/errorReporter.ts` | Frontend error reporter — initializes `@sentry/react` for GlitchTip error capture |
 | `backend/scripts/create_error_logs_table.sql` | SQL migration script to create the `error_logs` table (used instead of Django migrations because `managed = False`) |
 | `docs/runbooks/secrets-rotation.md` | Runbook for rotating production secrets (JWT key, DB credentials, API keys) |
 

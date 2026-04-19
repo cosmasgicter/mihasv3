@@ -38,22 +38,22 @@ type NotificationType = 'info' | 'success' | 'warning' | 'error'
 
 const TYPE_CONFIG: Record<NotificationType, { icon: React.ReactNode; color: string; label: string }> = {
   info: {
-    icon: <Info className="h-4 w-4" />,
+    icon: <Info className="h-4 w-4" aria-hidden="true" />,
     color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
     label: 'Info',
   },
   success: {
-    icon: <CheckCircle className="h-4 w-4" />,
+    icon: <CheckCircle className="h-4 w-4" aria-hidden="true" />,
     color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
     label: 'Success',
   },
   warning: {
-    icon: <AlertTriangle className="h-4 w-4" />,
+    icon: <AlertTriangle className="h-4 w-4" aria-hidden="true" />,
     color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
     label: 'Warning',
   },
   error: {
-    icon: <XCircle className="h-4 w-4" />,
+    icon: <XCircle className="h-4 w-4" aria-hidden="true" />,
     color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
     label: 'Error',
   },
@@ -269,6 +269,7 @@ export default function AdminCommunicationsPanel({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
+                maxLength={100}
                 placeholder="Notification title"
                 className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
@@ -295,6 +296,7 @@ export default function AdminCommunicationsPanel({
               onChange={(e) => setMessage(e.target.value)}
               required
               rows={3}
+              maxLength={1000}
               placeholder="Write your message here..."
               className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
@@ -367,6 +369,7 @@ export default function AdminCommunicationsPanel({
               <ul className="divide-y divide-border/50" role="list">
                 {notifications.map((notification) => {
                   const id = notification.id as string
+                  const isOptimistic = typeof id === 'string' && id.startsWith('optimistic-')
                   const nType = notification.type as string | null
                   const nTitle = notification.title as string
                   const nMessage = notification.message as string
@@ -374,7 +377,7 @@ export default function AdminCommunicationsPanel({
                   const config = getTypeConfig(nType)
 
                   return (
-                    <li key={id} className="flex items-start gap-3 px-2 py-3">
+                    <li key={id} className={`flex items-start gap-3 px-2 py-3${isOptimistic ? ' opacity-70' : ''}`}>
                       <div
                         className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${config.color}`}
                         title={config.label}
@@ -455,7 +458,8 @@ export default function AdminCommunicationsPanel({
                       >
                         {formatStatus(entry.old_status)}
                       </span>
-                      <ArrowRight className="h-3 w-3 text-muted-foreground" aria-label="to" />
+                      <ArrowRight className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
+                      <span className="sr-only">changed to</span>
                       <span
                         className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${getStatusColor(entry.new_status)}`}
                       >

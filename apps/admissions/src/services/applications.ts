@@ -501,4 +501,43 @@ export const applicationService = {
   applyFeeWaiver: async (id: string, data: { waiver_type: string; reason_code: string; discount_percentage: number }) => {
     return apiClient.request(`/applications/${encodeURIComponent(id)}/fee-waiver/`, { method: 'POST', body: JSON.stringify(data) })
   },
+
+  /** POST /applications/{id}/withdraw/ */
+  withdraw: async (id: string, reason: string) => {
+    return apiClient.request(`/applications/${id}/withdraw/`, {
+      method: 'POST',
+      body: JSON.stringify({ withdrawal_reason: reason }),
+    })
+  },
+
+  /** GET /applications/{id}/waitlist-position/ */
+  getWaitlistPosition: async (id: string) => {
+    return apiClient.request<{ position: number; total: number }>(`/applications/${id}/waitlist-position/`)
+  },
+
+  /** GET /applications/{id}/conditions/ */
+  getConditions: async (id: string) => {
+    return apiClient.request<Array<{ id: string; description: string; condition_type: string; deadline: string; status: string }>>(`/applications/${id}/conditions/`)
+  },
+
+  /** POST /applications/{id}/amendments/ */
+  submitAmendment: async (id: string, data: { field_name: string; new_value: string; reason: string }) => {
+    return apiClient.request(`/applications/${id}/amendments/`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+
+  /** POST /applications/{id}/assign/ */
+  assignReviewer: async (id: string, reviewerId: string) => {
+    return apiClient.request(`/applications/${id}/assign/`, {
+      method: 'POST',
+      body: JSON.stringify({ reviewer_id: reviewerId }),
+    })
+  },
+
+  /** POST /applications/auto-assign/ */
+  autoAssign: async () => {
+    return apiClient.request('/applications/auto-assign/', { method: 'POST' })
+  },
 }

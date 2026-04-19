@@ -1,7 +1,8 @@
 """Error report endpoint for frontend error monitoring.
 
-Accepts error payloads from the frontend, stores them in the ErrorLog table,
-and dispatches throttled alert emails for error-level reports.
+Accepts error payloads from the frontend and forwards them to GlitchTip
+via sentry_sdk.capture_message(). Kept for backwards compatibility during
+the transition from self-hosted ErrorLog to GlitchTip.
 
 Implements task 3.3 (cto-assessment-remediation).
 Requirements: 3.4, 3.5, 3.6, 3.11
@@ -10,6 +11,7 @@ Requirements: 3.4, 3.5, 3.6, 3.11
 import hashlib
 import logging
 
+import sentry_sdk
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import AllowAny
@@ -76,26 +78,19 @@ class ErrorReportView(APIView):
         for report in reports:
             message = str(report["message"])[:2000]
             try:
-                from apps.common.models import ErrorLog
-
-                ErrorLog.objects.create(
-                    source="frontend",
+                sentry_sdk.capture_message(
+                    message,
                     level="error",
-                    message=message,
-                    stack_trace=report.get("stack_trace"),
-                    context=report.get("context"),
-                    request_path=report.get("url"),
-                    ip_hash=ip_hash,
+                    extras={
+                        "source": "frontend",
+                        "stack_trace": report.get("stack_trace"),
+                        "url": report.get("url"),
+                        "ip_hash": ip_hash,
+                        "context": report.get("context"),
+                    },
                 )
             except Exception:
-                logger.exception("Failed to create ErrorLog for frontend error report")
-
-            # Dispatch throttled alert email (reuse the same logic as exceptions.py).
-            try:
-                self._dispatch_throttled_alert(message)
-            except Exception:
-                # Alert dispatch must never break the response.
-                logger.exception("Failed to dispatch alert for frontend error report")
+                logger.exception("Failed to forward frontend error report to GlitchTip")
 
         return Response(
             {
@@ -127,34 +122,3 @@ class ErrorReportView(APIView):
         if not message:
             raise ValueError("Field 'message' is required")
         return [data]
-
-    @staticmethod
-    def _dispatch_throttled_alert(error_msg: str):
-        """Send a throttled alert email for a frontend error report."""
-        from django.conf import settings
-        from django.core.cache import cache
-
-        from apps.common.models import EmailQueue
-        from apps.common.tasks import send_email_task
-
-        msg_hash = hashlib.sha256(error_msg.encode("utf-8")).hexdigest()[:16]
-        cache_key = f"error_alert:{msg_hash}"
-
-        should_alert = True
-        try:
-            should_alert = cache.add(cache_key, 1, 900)  # 15-min TTL
-        except Exception:
-            logger.warning("Redis unavailable for error alert throttle check, dispatching alert")
-
-        if should_alert:
-            alert_email = settings.ERROR_ALERT_EMAIL
-            email_record = EmailQueue.objects.create(
-                recipient_email=alert_email,
-                subject=f"[ALERT] Frontend error: {error_msg[:100]}",
-                body=(
-                    f"<p>A frontend error was reported:</p>"
-                    f"<pre>{error_msg[:2000]}</pre>"
-                ),
-                status="pending",
-            )
-            send_email_task.delay(str(email_record.id))

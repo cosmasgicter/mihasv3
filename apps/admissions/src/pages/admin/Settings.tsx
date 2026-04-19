@@ -127,6 +127,15 @@ const SETTING_BLUEPRINTS: SettingBlueprint[] = [
     placeholder: '3',
     is_public: false,
   },
+  {
+    key: 'multi_intake_policy',
+    label: 'Multi-intake policy',
+    description: 'Controls how students may apply across multiple intakes.',
+    category: 'limits',
+    valueType: 'string',
+    placeholder: 'unrestricted',
+    is_public: false,
+  },
 ]
 
 const GUIDED_SECTIONS: GuidedSection[] = [
@@ -149,7 +158,7 @@ const GUIDED_SECTIONS: GuidedSection[] = [
     title: 'Admissions Operations',
     description: 'Fee and intake guardrails that affect application processing.',
     icon: <Users className="h-5 w-5" />,
-    settingKeys: ['application_fee', 'max_applications_per_user'],
+    settingKeys: ['application_fee', 'max_applications_per_user', 'multi_intake_policy'],
   },
 ]
 
@@ -579,13 +588,13 @@ export default function AdminSettings() {
     >
         <div className="space-y-6">
             {error ? (
-              <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-destructive">
+              <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-destructive" role="alert" aria-live="assertive">
                 {error}
               </div>
             ) : null}
 
             {success ? (
-              <div className="rounded-xl border border-accent/30 bg-accent/10 p-4 text-accent">
+              <div className="rounded-xl border border-accent/30 bg-accent/10 p-4 text-accent" role="status" aria-live="polite">
                 {success}
               </div>
             ) : null}
@@ -628,6 +637,7 @@ export default function AdminSettings() {
                         placeholder="Search guided controls or advanced keys..."
                         value={searchTerm}
                         onChange={(event) => setSearchTerm(event.target.value)}
+                        aria-label="Search settings"
                       />
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -730,6 +740,17 @@ export default function AdminSettings() {
                                           { value: 'false', label: 'Disabled' },
                                         ]}
                                       />
+                                    ) : blueprint.key === 'multi_intake_policy' ? (
+                                      <CanonicalSelect
+                                        label="Value"
+                                        value={draft.value || 'unrestricted'}
+                                        onChange={(value) => handleGuidedDraftChange(blueprint.key, 'value', value)}
+                                        options={[
+                                          { value: 'unrestricted', label: 'Unrestricted' },
+                                          { value: 'single_active', label: 'Single Active' },
+                                          { value: 'waitlist_cascade', label: 'Waitlist Cascade' },
+                                        ]}
+                                      />
                                     ) : (
                                       <Input
                                         label="Value"
@@ -801,6 +822,7 @@ export default function AdminSettings() {
                     type="button"
                     onClick={() => setShowAdvancedSettings((current) => !current)}
                     className="flex w-full items-center justify-between gap-4 p-5 text-left"
+                    aria-expanded={showAdvancedSettings}
                   >
                     <div>
                       <h2 className="text-lg font-semibold text-foreground">Advanced Keys</h2>

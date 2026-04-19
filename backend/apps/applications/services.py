@@ -256,6 +256,13 @@ def submit_application(
         # Atomically increment intake enrollment (Req 6.5, AUDIT-1.6-002)
         IntakeEnforcer.increment_enrollment(locked_app.intake, locked_app.program)
 
+    # Send submission confirmation notification
+    try:
+        from apps.common.communication_service import CommunicationService
+        CommunicationService.send('application_submitted', application)
+    except Exception:
+        pass
+
     # Advisory eligibility evaluation — non-blocking (Req 5.7)
     try:
         from apps.applications.eligibility_engine import EligibilityEngine

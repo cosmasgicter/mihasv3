@@ -68,18 +68,19 @@ class TestDuplicateCheckerStatusSets(SimpleTestCase):
     **Validates: Requirements 7.2**
     """
 
-    def test_approved_not_in_non_terminal_statuses(self):
-        """'approved' must NOT be in NON_TERMINAL_STATUSES (go-live-polish Fix 11).
-        This ensures students can create a new application after being approved."""
-        self.assertNotIn("approved", NON_TERMINAL_STATUSES)
+    def test_approved_in_non_terminal_statuses(self):
+        """'approved' IS in NON_TERMINAL_STATUSES — prevents duplicate applications
+        while an approved application exists. Students must withdraw or wait for
+        enrollment expiry before reapplying."""
+        self.assertIn("approved", NON_TERMINAL_STATUSES)
 
     def test_rejected_not_in_non_terminal_statuses(self):
         """'rejected' must NOT be in NON_TERMINAL_STATUSES."""
         self.assertNotIn("rejected", NON_TERMINAL_STATUSES)
 
     def test_non_terminal_contains_expected_statuses(self):
-        """NON_TERMINAL_STATUSES should contain draft, submitted, under_review, waitlisted."""
-        expected = {"draft", "submitted", "under_review", "waitlisted"}
+        """NON_TERMINAL_STATUSES should contain all active application statuses."""
+        expected = {"draft", "submitted", "under_review", "waitlisted", "conditionally_approved", "approved"}
         self.assertEqual(NON_TERMINAL_STATUSES, expected)
 
     def test_submitted_statuses_contains_expected(self):

@@ -1103,14 +1103,16 @@ class ApplicationReviewView(APIView):
                     app.id,
                 )
 
-        # Send notification to student on approval/rejection
-        if new_status in ("approved", "rejected"):
+        # Send notification to student on approval/rejection/conditional approval
+        if new_status in ("approved", "rejected", "conditionally_approved"):
             try:
                 from apps.common.communication_service import CommunicationService
 
                 extra_ctx = {"admin_feedback": notes or ""}
                 if new_status == "approved":
                     CommunicationService.send("application_approved", app, extra_ctx)
+                elif new_status == "conditionally_approved":
+                    CommunicationService.send("condition_assigned", app, extra_ctx)
                 else:
                     CommunicationService.send("application_rejected", app, extra_ctx)
             except Exception:
@@ -1826,6 +1828,15 @@ class ApplicationVerifyDocumentView(APIView):
             ).hexdigest(),
             retention_category="standard",
         )
+
+        try:
+            from apps.common.communication_service import CommunicationService
+            app = Application.objects.filter(id=document.application_id).first()
+            if app:
+                template = 'document_verified' if verification_status == 'verified' else 'document_rejected'
+                CommunicationService.send(template, app, {'document_name': document.document_type or 'Document'})
+        except Exception:
+            pass
 
         return Response({"success": True, "data": DocumentSerializer(document).data})
 
@@ -2623,6 +2634,12 @@ class ApplicationAssignView(APIView):
         except Exception:
             logger.exception("Failed to notify reviewer for app=%s", app.id)
 
+        try:
+            from apps.common.communication_service import CommunicationService
+            CommunicationService.send('reviewer_assigned', app)
+        except Exception:
+            pass
+
         return Response({
             "success": True,
             "data": {
@@ -2705,6 +2722,18 @@ class ApplicationAutoAssignView(APIView):
                         changed_by_id=str(request.user.id),
                         notes=f"Auto-assigned to reviewer: {reviewer.email}",
                     )
+
+                    try:
+                        from apps.common.models import Notification
+                        Notification.objects.create(
+                            user_id=reviewer.id,
+                            title="Application Assigned",
+                            message=f"Application {app.application_number} has been assigned to you for review.",
+                            type="assignment",
+                            action_url=f"/admin/applications/{app.id}",
+                        )
+                    except Exception:
+                        pass
 
                     assignments.append({
                         "application_id": str(app.id),

@@ -61,6 +61,7 @@ export function FiltersPanel({
               value={localSearch}
               onChange={handleSearchChange}
               className="pl-10"
+              aria-label="Search applications"
             />
           </div>
         </div>

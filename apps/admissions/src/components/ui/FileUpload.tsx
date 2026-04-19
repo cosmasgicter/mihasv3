@@ -139,7 +139,7 @@ function FileUpload({
     multiple,
     disabled: disabled || uploading,
     noClick: uploading,
-    noKeyboard: uploading,
+    noKeyboard: false,
   })
 
   const primaryFile = getPrimaryFile(value)
@@ -204,7 +204,7 @@ function FileUpload({
             )}
           </div>
           <div className="w-full">
-            <div className="flex justify-between text-xs text-muted-foreground mb-1">
+            <div className="flex justify-between text-xs text-muted-foreground mb-1" aria-live="polite">
               <span>{hasUploadProgress ? 'Uploading...' : 'Uploading securely...'}</span>
               {hasUploadProgress && (
                 <span className="font-medium text-primary">{Math.round(normalizedProgress)}%</span>
@@ -397,6 +397,7 @@ function FileUpload({
             !isDragActive && !error && !disabled && 'border-border hover:border-primary/50'
           ),
         })}
+        aria-disabled={uploading}
       >
         <input
           {...getInputProps()}

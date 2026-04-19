@@ -5,10 +5,12 @@ import type { Application } from '@/types/database'
 import { Button } from '@/components/ui/Button'
 import { DocumentButtons } from '@/components/student/DocumentButtons'
 import { formatDate, getStatusColor } from '@/lib/utils'
-import { Clock, CheckCircle, XCircle, Calendar, CreditCard, ListOrdered, ShieldCheck, AlertTriangle } from 'lucide-react'
+import { Clock, CheckCircle, XCircle, Calendar, CreditCard, ListOrdered, ShieldCheck, AlertTriangle, Video } from 'lucide-react'
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { requiresStudentPaymentAction } from '@/lib/paymentStatus'
-import { apiClient } from '@/services/client'
+import { applicationService } from '@/services/applications'
+import type { ApplicationInterview } from '@/types/database'
+import { interviewsService } from '@/services/interviews'
 
 interface ApplicationListItemProps {
   application: Application
@@ -54,9 +56,7 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
   const { data: waitlistData } = useQuery<{ position: number; total: number }>({
     queryKey: ['waitlist-position', application.id],
     queryFn: async () => {
-      const res = await apiClient.request<{ position: number; total: number }>(
-        `/applications/${application.id}/waitlist-position/`
-      )
+      const res = await applicationService.getWaitlistPosition(application.id)
       return res ?? { position: 0, total: 0 }
     },
     enabled: application.status === 'waitlisted',
@@ -67,10 +67,8 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
   const { data: conditionsData } = useQuery<Array<{ id: string; description: string; deadline: string; status: string }>>({
     queryKey: ['application-conditions', application.id],
     queryFn: async () => {
-      const res = await apiClient.request<Array<{ id: string; description: string; deadline: string; status: string }>>(
-        `/applications/${application.id}/conditions/`
-      )
-      return res ?? []
+      const res = await applicationService.getConditions(application.id)
+      return (res ?? []) as Array<{ id: string; description: string; deadline: string; status: string }>
     },
     enabled: application.status === 'conditionally_approved',
     staleTime: 60_000,
@@ -78,6 +76,18 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
 
   const enrollmentDeadline = application.enrollment_confirmation_deadline as string | undefined
   const showEnrollment = application.status === 'approved' && !!enrollmentDeadline
+
+  // Interview query
+  const { data: interviewData } = useQuery({
+    queryKey: ['application-interview', application.id],
+    queryFn: async () => {
+      const res = await interviewsService.list(application.id)
+      const active = (res?.interviews ?? []).find(i => i.status === 'scheduled' || i.status === 'rescheduled')
+      return active ?? null
+    },
+    enabled: application.status !== 'draft' && application.status !== 'rejected',
+    staleTime: 60_000,
+  })
 
   return (
     <div
@@ -99,7 +109,7 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
             </div>
           </div>
           <span className={`w-fit rounded-full px-3 py-1.5 text-xs font-bold sm:px-4 sm:py-2 sm:text-sm ${getStatusColor(application.status)}`}>
-            {application.status.replace('_', ' ').toUpperCase()}
+            {application.status.replace(/_/g, ' ').toUpperCase()}
           </span>
         </div>
 
@@ -159,6 +169,17 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {/* Interview details */}
+        {interviewData && (
+          <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
+            <Video className="h-4 w-4 text-primary flex-shrink-0" />
+            <span className="font-medium text-primary">
+              Interview {interviewData.status === 'rescheduled' ? '(rescheduled)' : 'scheduled'}: {interviewData.scheduled_at ? new Date(interviewData.scheduled_at).toLocaleDateString(undefined, { dateStyle: 'medium' }) : 'TBC'}
+              {interviewData.mode && <> — {interviewData.mode.replace('_', ' ')}</>}
+            </span>
           </div>
         )}
 

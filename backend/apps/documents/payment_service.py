@@ -300,6 +300,14 @@ class PaymentService:
                 'admin_feedback_by',
                 'updated_at',
             ])
+
+            try:
+                from apps.common.communication_service import CommunicationService
+                template = 'payment_verified' if target_payment_status == 'successful' else 'payment_rejected'
+                CommunicationService.send(template, application)
+            except Exception:
+                pass
+
             return application
 
     def verify_payment(self, payment_id: UUID) -> PaymentVerificationResult:

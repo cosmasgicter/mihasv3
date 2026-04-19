@@ -55,8 +55,14 @@ export class ApiErrorHandler {
           }
           return buildError('Invalid request. Please check your input and try again.')
         case 401:
+          if (hasActionableValidationMessage) {
+            return buildError(originalMessage)
+          }
           return buildError('Authentication required. Please sign in again.')
         case 403:
+          if (hasActionableValidationMessage) {
+            return buildError(originalMessage)
+          }
           return buildError('Access denied. You do not have permission for this action.')
         case 404:
           return buildError('Resource not found. The requested item may have been deleted.')
@@ -68,6 +74,9 @@ export class ApiErrorHandler {
           }
           return buildError('Validation failed. Please check your input data.')
         case 429:
+          if (hasActionableValidationMessage) {
+            return buildError(originalMessage)
+          }
           return buildError('Too many requests. Please wait a moment and try again.')
         case 500:
           return buildError('Server error. Please try again later.')

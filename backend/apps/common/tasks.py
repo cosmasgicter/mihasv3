@@ -146,36 +146,12 @@ def send_bulk_notifications_task(self, notification_ids):
                     f"IDs: {notification_ids}, last error: {exc}"
                 )
                 logger.error(error_msg)
-                # Dispatch throttled alert email
+                # Forward to GlitchTip
                 try:
-                    import hashlib
-
-                    msg_hash = hashlib.sha256(error_msg.encode("utf-8")).hexdigest()[:16]
-                    cache_key = f"error_alert:{msg_hash}"
-                    should_alert = True
-                    try:
-                        if not cache.add(cache_key, "1", timeout=900):
-                            should_alert = False
-                    except Exception:
-                        pass
-                    if should_alert:
-                        from apps.common.models import ErrorLog, EmailQueue
-
-                        ErrorLog.objects.create(
-                            source="celery",
-                            level="error",
-                            message=error_msg[:2000],
-                        )
-                        alert_email = settings.ERROR_ALERT_EMAIL
-                        email_record = EmailQueue.objects.create(
-                            recipient_email=alert_email,
-                            subject="[ALERT] Bulk notification retries exhausted",
-                            body=error_msg,
-                            status="pending",
-                        )
-                        send_email_task.delay(str(email_record.id))
+                    import sentry_sdk
+                    sentry_sdk.capture_message(error_msg, level="error")
                 except Exception:
-                    logger.exception("Failed to dispatch retry-exhaustion alert")
+                    logger.exception("Failed to forward retry-exhaustion alert to GlitchTip")
 
 
 # ---------------------------------------------------------------------------
@@ -362,3 +338,14 @@ def cleanup_audit_logs_task(self):
     except Exception as exc:
         logger.error("Audit log cleanup failed: %s", exc)
         raise self.retry(exc=exc)
+
+
+@shared_task(name="cleanup_idempotency_keys")
+def cleanup_idempotency_keys_task():
+    """Delete idempotency keys older than 24 hours."""
+    from apps.common.models import IdempotencyKey
+
+    cutoff = timezone.now() - timedelta(hours=24)
+    deleted, _ = IdempotencyKey.objects.filter(created_at__lt=cutoff).delete()
+    if deleted:
+        logger.info("Cleaned up %d expired idempotency keys", deleted)

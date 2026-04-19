@@ -552,6 +552,7 @@ export default function Applications() {
           {/* View Toggle */}
           <div className="hidden sm:flex items-center bg-muted rounded-lg p-1">
             <button
+              type="button"
               onClick={() => setViewMode('cards')}
               className={`p-1.5 rounded-md transition-colors ${
                 viewMode === 'cards'
@@ -564,6 +565,7 @@ export default function Applications() {
               <LayoutGrid className="h-4 w-4" aria-hidden="true" />
             </button>
             <button
+              type="button"
               onClick={() => setViewMode('table')}
               className={`p-1.5 rounded-md transition-colors ${
                 viewMode === 'table'

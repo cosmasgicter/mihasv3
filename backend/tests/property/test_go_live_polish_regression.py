@@ -30,7 +30,7 @@ GO_LIVE_POLISH_FIXES = {
     8: "Dynamic imports for PDF libs in admissions bundle",
     9: "cleanup_audit_logs_task handles CSRF cleanup",
     10: "DocumentUploadView allows application_slip for non-draft",
-    11: "approved not in NON_TERMINAL_STATUSES",
+    11: "approved in NON_TERMINAL_STATUSES (prevents duplicate while active)",
     12: "normalizeRecentActivity() human-readable messages",
     13: "ProfileReadSerializer includes first_name/last_name",
     14: "applicationService.delete() handles 404",

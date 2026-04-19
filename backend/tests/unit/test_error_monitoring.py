@@ -1,9 +1,10 @@
-"""Unit tests for error monitoring — ErrorReportView endpoint.
+"""Unit tests for error monitoring — ErrorReportView endpoint (GlitchTip migration).
 
 Tests:
-- POST /api/v1/errors/report/ returns 200 for valid payload (Requirement 3.4)
-- POST /api/v1/errors/report/ returns 400 for missing `message` field (Requirement 3.4)
-- Error report endpoint works for unauthenticated requests (Requirement 3.5)
+- POST /api/v1/errors/report/ returns 200 for valid payload and calls sentry_sdk.capture_message
+- POST /api/v1/errors/report/ returns 400 for missing `message` field
+- Error report endpoint works for unauthenticated requests
+- Batch payloads call sentry_sdk.capture_message per item
 """
 
 import os
@@ -26,18 +27,12 @@ from apps.common.error_views import ErrorReportView
 factory = APIRequestFactory()
 
 
-# =========================================================================
-# Test: POST /api/v1/errors/report/ returns 200 for valid payload
-# Requirement 3.4
-# =========================================================================
-
-
 class TestErrorReportValidPayload(SimpleTestCase):
-    """A valid error report with a `message` field should return 200."""
+    """A valid error report with a `message` field should return 200
+    and forward to GlitchTip via sentry_sdk.capture_message."""
 
-    @patch.object(ErrorReportView, "_dispatch_throttled_alert")
-    @patch("apps.common.models.ErrorLog.objects.create")
-    def test_returns_200_for_valid_payload(self, mock_create, mock_alert):
+    @patch("apps.common.error_views.sentry_sdk.capture_message")
+    def test_returns_200_and_calls_sentry(self, mock_capture):
         request = factory.post(
             "/api/v1/errors/report/",
             {
@@ -55,26 +50,18 @@ class TestErrorReportValidPayload(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.data["success"])
 
-        # ErrorLog.objects.create was called with correct source and level
-        mock_create.assert_called_once()
-        call_kwargs = mock_create.call_args.kwargs
-        self.assertEqual(call_kwargs["source"], "frontend")
-        self.assertEqual(call_kwargs["level"], "error")
-        self.assertIn("TypeError", call_kwargs["message"])
-
-
-# =========================================================================
-# Test: POST /api/v1/errors/report/ returns 400 for missing `message`
-# Requirement 3.4
-# =========================================================================
+        # sentry_sdk.capture_message was called with the error message
+        mock_capture.assert_called_once()
+        call_args = mock_capture.call_args
+        self.assertIn("TypeError", call_args[0][0])
+        self.assertEqual(call_args[1]["level"], "error")
 
 
 class TestErrorReportMissingMessage(SimpleTestCase):
     """A payload without a `message` field should return 400."""
 
-    @patch.object(ErrorReportView, "_dispatch_throttled_alert")
-    @patch("apps.common.models.ErrorLog.objects.create")
-    def test_returns_400_for_missing_message(self, mock_create, mock_alert):
+    @patch("apps.common.error_views.sentry_sdk.capture_message")
+    def test_returns_400_for_missing_message(self, mock_capture):
         request = factory.post(
             "/api/v1/errors/report/",
             {
@@ -91,25 +78,15 @@ class TestErrorReportMissingMessage(SimpleTestCase):
         self.assertFalse(response.data["success"])
         self.assertEqual(response.data["code"], "VALIDATION_ERROR")
 
-        # ErrorLog should NOT have been created
-        mock_create.assert_not_called()
-        mock_alert.assert_not_called()
-
-
-# =========================================================================
-# Test: Error report endpoint works for unauthenticated requests
-# Requirement 3.5
-# =========================================================================
+        # sentry_sdk should NOT have been called
+        mock_capture.assert_not_called()
 
 
 class TestErrorReportUnauthenticated(SimpleTestCase):
     """The endpoint should accept requests without any authentication."""
 
-    @patch.object(ErrorReportView, "_dispatch_throttled_alert")
-    @patch("apps.common.models.ErrorLog.objects.create")
-    def test_unauthenticated_request_returns_200(self, mock_create, mock_alert):
-        # APIRequestFactory creates unauthenticated requests by default —
-        # no cookies, no Authorization header.
+    @patch("apps.common.error_views.sentry_sdk.capture_message")
+    def test_unauthenticated_request_returns_200(self, mock_capture):
         request = factory.post(
             "/api/v1/errors/report/",
             {"message": "Script error from anonymous visitor"},
@@ -121,15 +98,14 @@ class TestErrorReportUnauthenticated(SimpleTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.data["success"])
-        mock_create.assert_called_once()
+        mock_capture.assert_called_once()
 
 
 class TestErrorReportBatchPayload(SimpleTestCase):
-    """A batch payload should be accepted and stored item-by-item."""
+    """A batch payload should call sentry_sdk.capture_message per item."""
 
-    @patch.object(ErrorReportView, "_dispatch_throttled_alert")
-    @patch("apps.common.models.ErrorLog.objects.create")
-    def test_batch_payload_creates_error_log_per_item(self, mock_create, mock_alert):
+    @patch("apps.common.error_views.sentry_sdk.capture_message")
+    def test_batch_payload_calls_sentry_per_item(self, mock_capture):
         request = factory.post(
             "/api/v1/errors/report/",
             {
@@ -155,5 +131,4 @@ class TestErrorReportBatchPayload(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.data["success"])
         self.assertEqual(response.data["data"]["received"], 2)
-        self.assertEqual(mock_create.call_count, 2)
-        self.assertEqual(mock_alert.call_count, 2)
+        self.assertEqual(mock_capture.call_count, 2)

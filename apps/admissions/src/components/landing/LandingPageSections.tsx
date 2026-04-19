@@ -59,13 +59,14 @@ function FeaturesSection() {
   return (
     <section
       id="features"
+      aria-labelledby="features-heading"
       className="scroll-mt-24 bg-muted py-12 sm:scroll-mt-28 sm:py-16 lg:py-20"
       style={deferredSectionStyle}
     >
       <div className="container-responsive px-4 sm:px-6 lg:px-8">
         <ScrollReveal className="mb-12 text-center sm:mb-16">
           <TextEffect effect="fadeUp">
-            <h2 className="mb-4 text-2xl font-semibold gradient-text-primary sm:mb-6 sm:text-3xl md:text-4xl lg:text-5xl">
+            <h2 id="features-heading" className="mb-4 text-2xl font-semibold gradient-text-primary sm:mb-6 sm:text-3xl md:text-4xl lg:text-5xl">
               Why Students Pick <ShinyText text="MIHAS-KATC" className="font-semibold" />
             </h2>
           </TextEffect>
@@ -159,13 +160,14 @@ function ProgramsSection() {
   return (
     <section
       id="programs"
+      aria-labelledby="programs-heading"
       className="scroll-mt-24 bg-card py-12 sm:scroll-mt-28 sm:py-16 lg:py-20"
       style={deferredSectionStyle}
     >
       <div className="container-responsive px-4 sm:px-6 lg:px-8">
         <ScrollReveal className="mb-12 text-center sm:mb-16">
           <TextEffect effect="fadeUp">
-            <h2 className="mb-6 px-4 text-2xl font-bold gradient-text-primary sm:text-3xl md:text-4xl lg:text-5xl">
+            <h2 id="programs-heading" className="mb-6 px-4 text-2xl font-bold gradient-text-primary sm:text-3xl md:text-4xl lg:text-5xl">
               Three Programs. Real Jobs.
             </h2>
           </TextEffect>
@@ -214,7 +216,7 @@ function ProgramsSection() {
                   <div className="mt-6">
                     <Button asChild variant="outline" className="w-full sm:w-auto">
                       <Link
-                        to="/auth/signup"
+                        to={`/auth/signup?program=${encodeURIComponent(program.institution)}`}
                         onPointerEnter={warmAuthRoutes}
                         onFocus={warmAuthRoutes}
                         onTouchStart={warmAuthRoutes}
@@ -248,7 +250,7 @@ function CTASection() {
       <ScrollReveal className="relative z-10 container-responsive px-4 text-center text-white sm:px-6 lg:px-8">
         <TextEffect effect="fadeUp">
           <h2 className="mb-6 px-4 text-2xl font-bold sm:text-3xl md:text-4xl lg:text-5xl">
-            January 2026 Intake Is Open
+            Current Intake Is Open — Apply Today
           </h2>
         </TextEffect>
         <p className="mx-auto mb-8 max-w-3xl px-4 text-base sm:text-lg md:text-xl lg:text-2xl">

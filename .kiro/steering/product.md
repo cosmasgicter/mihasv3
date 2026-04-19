@@ -22,7 +22,7 @@ Both are backed by the Django API in `backend/`. Treat changes as production-sen
 
 ### Error Monitoring
 
-The platform uses self-hosted error monitoring with no third-party tracker (no Sentry). Backend 500 errors are caught by `envelope_exception_handler`, which creates an `ErrorLog` row and dispatches a throttled alert email via Redis + Resend. Frontend errors are captured by `errorReporter.ts` and POSTed to `POST /api/v1/errors/report/`, which follows the same pipeline. Alert emails default to `admin@mihas.edu.zm` (configurable via `ERROR_ALERT_EMAIL` env var). Throttling is one alert per unique error message per 15 minutes.
+The platform uses GlitchTip (Sentry-compatible, free tier) for error tracking. Backend errors are captured automatically by `sentry-sdk` with Django and Celery integrations. Frontend errors are captured by `@sentry/react`. Both are configured via DSN environment variables (`GLITCHTIP_DSN` for backend, `VITE_GLITCHTIP_DSN` for frontend). The legacy `ErrorLog` model and `error_logs` table are preserved but no longer written to. The `POST /api/v1/errors/report/` endpoint still accepts reports for backwards compatibility, forwarding them to GlitchTip. `ERROR_ALERT_EMAIL` remains in use for non-error-monitoring alerts (uptime, payment failures, SLA breaches).
 
 ## Hard Constraints
 
@@ -158,7 +158,7 @@ Jobs-ops expectations:
 | Audit | Keep audit trails while avoiding PII in logs |
 | URL safety | Prevent open redirects and unsafe external URL handling |
 | Automation safety | Respect approval thresholds, domain policies, and send caps |
-| Error monitoring | Self-hosted via `ErrorLog` model + throttled alert emails (no Sentry) |
+| Error monitoring | GlitchTip (Sentry-compatible) via `sentry-sdk` and `@sentry/react` |
 
 ## Working Assumptions For Changes
 
