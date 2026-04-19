@@ -168,8 +168,10 @@ class TestRejectionLeavesApplicationUnchanged:
             patch("apps.applications.amendment_service.ApplicationAmendment.objects") as amq,
             patch("apps.applications.amendment_service.Application.objects") as mq,
             patch("apps.applications.amendment_service.timezone"),
+            patch("apps.common.communication_service.CommunicationService"),
         ):
             amq.get.return_value = amendment
+            mq.get.return_value = MagicMock()
 
             result = AmendmentService.review_amendment(
                 amendment_id=str(amendment.id),
@@ -178,7 +180,9 @@ class TestRejectionLeavesApplicationUnchanged:
             )
 
             assert result.status == "rejected"
-            mq.get.assert_not_called()  # Application not fetched for rejection
+            # Application is fetched for notification but NOT modified
+            amendment.save.assert_called()  # amendment status saved
+            mq.get.return_value.save.assert_not_called()  # application not saved
 
 
 class TestOnlyValidStatusesAllowAmendments:
