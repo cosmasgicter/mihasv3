@@ -48,41 +48,52 @@ def _req(factory, user, aid):
 class TestAssignPosition:
     """Position assignment is sequential per program+intake (Req 3.1)."""
 
+    @patch("apps.applications.waitlist_manager.transaction")
     @patch(_APP_OBJECTS)
-    def test_first_waitlisted_gets_position_1(self, mock_qs):
+    def test_first_waitlisted_gets_position_1(self, mock_qs, mock_tx):
         """First waitlisted app for a program+intake gets position 1."""
+        mock_tx.atomic.return_value.__enter__ = MagicMock(return_value=None)
+        mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
         app = _app(waitlist_position=None)
-        mock_qs.filter.return_value.exclude.return_value.count.return_value = 0
+        mock_qs.select_for_update.return_value.filter.return_value.exclude.return_value.count.return_value = 0
+        mock_qs.filter.return_value.update.return_value = 1
 
         pos = WaitlistManager.assign_position(app, "CS", "Jan 2026")
 
         assert pos == 1
         assert app.waitlist_position == 1
-        app.save.assert_called_once_with(update_fields=["waitlist_position"])
 
+    @patch("apps.applications.waitlist_manager.transaction")
     @patch(_APP_OBJECTS)
-    def test_subsequent_gets_next_position(self, mock_qs):
+    def test_subsequent_gets_next_position(self, mock_qs, mock_tx):
         """Second waitlisted app gets position 2."""
+        mock_tx.atomic.return_value.__enter__ = MagicMock(return_value=None)
+        mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
         app = _app(waitlist_position=None)
-        mock_qs.filter.return_value.exclude.return_value.count.return_value = 3
+        mock_qs.select_for_update.return_value.filter.return_value.exclude.return_value.count.return_value = 3
+        mock_qs.filter.return_value.update.return_value = 1
 
         pos = WaitlistManager.assign_position(app, "CS", "Jan 2026")
 
         assert pos == 4
         assert app.waitlist_position == 4
 
+    @patch("apps.applications.waitlist_manager.transaction")
     @patch(_APP_OBJECTS)
-    def test_position_scoped_to_program_and_intake(self, mock_qs):
+    def test_position_scoped_to_program_and_intake(self, mock_qs, mock_tx):
         """Position count filters by program AND intake."""
+        mock_tx.atomic.return_value.__enter__ = MagicMock(return_value=None)
+        mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
         app = _app(waitlist_position=None)
-        mock_qs.filter.return_value.exclude.return_value.count.return_value = 0
+        mock_qs.select_for_update.return_value.filter.return_value.exclude.return_value.count.return_value = 0
+        mock_qs.filter.return_value.update.return_value = 1
 
         WaitlistManager.assign_position(app, "BBA", "Jul 2026")
 
-        mock_qs.filter.assert_called_once_with(
+        mock_qs.select_for_update.return_value.filter.assert_called_once_with(
             program="BBA", intake="Jul 2026", status="waitlisted",
         )
-        mock_qs.filter.return_value.exclude.assert_called_once_with(id=app.id)
+        mock_qs.select_for_update.return_value.filter.return_value.exclude.assert_called_once_with(id=app.id)
 
 
 # ---------------------------------------------------------------------------

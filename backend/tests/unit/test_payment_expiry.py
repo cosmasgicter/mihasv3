@@ -27,11 +27,15 @@ def _mock_payment(status="pending", age_hours=0, app_id=None):
 class TestPaymentExpiry24Hours:
     """1. 24-hour expiry transition (Req 8.1, 8.2)."""
 
+    @patch("apps.documents.tasks.transaction")
     @patch("apps.common.communication_service.CommunicationService.send")
     @patch("apps.applications.models.Application.objects")
     @patch("apps.documents.models.Payment.objects")
-    def test_payments_older_than_24h_expired(self, mock_pay_qs, mock_app_qs, mock_comm):
+    def test_payments_older_than_24h_expired(self, mock_pay_qs, mock_app_qs, mock_comm, mock_tx):
         """Payments pending > 24 hours are transitioned to expired."""
+        mock_tx.atomic.return_value.__enter__ = MagicMock(return_value=None)
+        mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
+
         old_payment = _mock_payment(status="pending", age_hours=30)
 
         # First filter call: expired payments (pending, older than 24h)
@@ -43,6 +47,9 @@ class TestPaymentExpiry24Hours:
         verify_qs.__getitem__ = MagicMock(return_value=[])
 
         mock_pay_qs.filter.side_effect = [expired_qs, verify_qs]
+
+        # select_for_update chain for the locked re-fetch
+        mock_pay_qs.select_for_update.return_value.filter.return_value.first.return_value = old_payment
 
         mock_app = MagicMock()
         mock_app.id = old_payment.application_id
