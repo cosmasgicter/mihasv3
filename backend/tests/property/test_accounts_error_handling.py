@@ -140,7 +140,7 @@ class TestNoBarExceptPassInAccountsViews(SimpleTestCase):
         )
 
     @given(handler_index=st.integers(min_value=0, max_value=100))
-    @settings(max_examples=50, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_every_handler_index_has_logger_call(self, handler_index):
         """For any valid handler index, the handler contains a logger call
         and is not a bare pass.

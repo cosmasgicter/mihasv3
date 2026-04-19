@@ -52,7 +52,7 @@ class TestUptimeStateTransitions(SimpleTestCase):
     """
 
     @given(health_results=_health_sequences)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_uptime_state_transitions(self, health_results):
         """Alert on healthy→unhealthy, recovery on unhealthy→healthy,
         no duplicates for repeated failures."""

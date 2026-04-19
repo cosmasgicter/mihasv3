@@ -18,7 +18,7 @@ type ApplicationIncludeOptions = {
 }
 
 type ApplicationPayload = Partial<Application>
-type ApplicationListRequestOptions = Pick<ApiRequestOptions, 'skipCache' | 'useCache' | 'cacheTTL' | 'cacheKey'>
+type ApplicationListRequestOptions = Pick<ApiRequestOptions, 'timeout' | 'retries'>
 
 export interface ApplicationDetailResponse {
   application: Application & { interview?: ApplicationInterview | null }
@@ -221,15 +221,6 @@ export const applicationService = {
     return normalizePaginatedApplications(response)
   },
 
-  /** GET /applications/ — alias for list */
-  getAll: async (params?: QueryParams, options: ApplicationListRequestOptions = {}) => {
-    const response = await apiClient.request<BackendPaginatedApplications>(
-      `/applications/${buildQueryString(params ?? {})}`,
-      options
-    )
-    return normalizePaginatedApplications(response)
-  },
-
   /** GET /applications/{id}/details/ with optional sub-resource loading */
   getById: (id: string, options?: ApplicationIncludeOptions) =>
     loadApplicationDetails(id, options),
@@ -295,7 +286,7 @@ export const applicationService = {
   updateStatus: async (id: string, status: Application['status'], notes?: string, force?: boolean) => {
     const encodedId = encodeURIComponent(id)
     await apiClient.request(`/applications/${encodedId}/review/`, {
-      method: 'PATCH',
+      method: 'POST',
       body: JSON.stringify({ new_status: status, notes, ...(force ? { force: true } : {}) }),
     })
 
@@ -311,10 +302,10 @@ export const applicationService = {
   ) => {
     const encodedId = encodeURIComponent(id)
     await apiClient.request(`/applications/${encodedId}/review/`, {
-      method: 'PATCH',
+      method: 'POST',
       body: JSON.stringify({
-        paymentStatus,
-        verificationNotes,
+        payment_status: paymentStatus,
+        notes: verificationNotes,
         ...(force ? { force: true } : {}),
       }),
     })
@@ -499,5 +490,15 @@ export const applicationService = {
   /** GET /applications/{id}/summary/ */
   getSummary: async (id: string) => {
     return apiClient.request<ApplicationSummaryResponse>(`/applications/${encodeURIComponent(id)}/summary/`)
+  },
+
+  /** POST /applications/{id}/confirm-enrollment/ */
+  confirmEnrollment: async (id: string) => {
+    return apiClient.request(`/applications/${encodeURIComponent(id)}/confirm-enrollment/`, { method: 'POST' })
+  },
+
+  /** POST /applications/{id}/fee-waiver/ */
+  applyFeeWaiver: async (id: string, data: { waiver_type: string; reason_code: string; discount_percentage: number }) => {
+    return apiClient.request(`/applications/${encodeURIComponent(id)}/fee-waiver/`, { method: 'POST', body: JSON.stringify(data) })
   },
 }

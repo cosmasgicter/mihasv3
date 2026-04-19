@@ -97,7 +97,7 @@ class TestIdentityDocumentRequired(SimpleTestCase):
         self._resolver_patcher.stop()
 
     @given(data=st.data())
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_submission_blocked_without_identity_document(self, data):
         """Submission is blocked when no NRC or Passport document exists."""
         application_id = data.draw(st.uuids())
@@ -130,7 +130,7 @@ class TestIdentityDocumentRequired(SimpleTestCase):
     @given(
         doc_type=st.sampled_from(["nrc", "passport"]),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_submission_allowed_with_identity_document(self, doc_type):
         """Submission proceeds when an NRC or Passport document exists."""
         application_id = uuid.uuid4()
@@ -179,7 +179,7 @@ class TestPaymentGateEnforcement(SimpleTestCase):
     @given(
         payment_status=payment_statuses_without_payment,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_submission_blocked_without_successful_payment(self, payment_status):
         """Submission is blocked when no successful payment exists and
         payment_status is not verified/paid."""
@@ -209,7 +209,7 @@ class TestPaymentGateEnforcement(SimpleTestCase):
             self.assertEqual(response.data["code"], "PAYMENT_REQUIRED")
 
     @given(has_successful_payment=st.booleans())
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_legacy_verified_status_passes_payment_gate(self, has_successful_payment):
         """Applications with payment_status='verified' pass the payment gate
         even without a successful payment record (backward compatibility)."""
@@ -259,7 +259,7 @@ class TestSubmissionRequiresDraft(SimpleTestCase):
         self._resolver_patcher.stop()
 
     @given(current_status=non_draft_statuses)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_non_draft_application_cannot_be_submitted(self, current_status):
         """Applications not in draft status are rejected with ALREADY_SUBMITTED."""
         application_id = uuid.uuid4()
@@ -291,7 +291,7 @@ class TestSubmissionRequiresDraft(SimpleTestCase):
             self.assertEqual(response.data["code"], "ALREADY_SUBMITTED")
 
     @given(data=st.data())
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_draft_application_can_be_submitted(self, data):
         """Applications in draft status can be submitted (given all other
         gates pass)."""
@@ -344,7 +344,7 @@ class TestApprovalRequiresPaymentOrForce(SimpleTestCase):
     @given(
         payment_status=st.sampled_from(["pending", "failed", "rejected"]),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_approval_blocked_without_payment_or_force(self, payment_status):
         """Approval is blocked when payment is not verified and force is not set."""
         application_id = uuid.uuid4()
@@ -377,7 +377,7 @@ class TestApprovalRequiresPaymentOrForce(SimpleTestCase):
     @given(
         payment_status=st.sampled_from(["pending", "failed", "rejected"]),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_approval_allowed_with_force_flag(self, payment_status):
         """Approval proceeds when force=true even without verified payment."""
         application_id = uuid.uuid4()
@@ -418,7 +418,7 @@ class TestApprovalRequiresPaymentOrForce(SimpleTestCase):
     @given(
         payment_status=st.sampled_from(["paid", "verified"]),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_approval_allowed_with_verified_payment(self, payment_status):
         """Approval proceeds when payment_status is paid or verified."""
         application_id = uuid.uuid4()

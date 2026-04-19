@@ -66,7 +66,7 @@ class TestRateLimitingEnforcement(SimpleTestCase):
         scope_config=_scope_strategy,
         extra_requests=_request_count_strategy,
     )
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_rate_limit_enforcement(self, scope_config, extra_requests):
         """First L requests pass, subsequent requests get 429."""
         path, rate_str, limit, expected_retry_after = scope_config

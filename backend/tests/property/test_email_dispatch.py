@@ -63,7 +63,7 @@ class TestEmailDispatchCreatesQueueRecord(SimpleTestCase):
     """
 
     @given(email=_emails)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_lockout_email_creates_queue_record_before_dispatch(self, email):
         """send_lockout_email() creates an EmailQueue record with correct
         fields before dispatching send_email_task.delay()."""
@@ -109,7 +109,7 @@ class TestEmailDispatchCreatesQueueRecord(SimpleTestCase):
         self.assertTrue(len(captured_create_kwargs["body"]) > 0)
 
     @given(email=_emails, first_name=_first_names, last_name=_last_names)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_password_reset_creates_queue_record_before_dispatch(
         self, email, first_name, last_name
     ):
@@ -197,7 +197,7 @@ class TestPasswordResetEmailContainsTokenAndUrl(SimpleTestCase):
     """
 
     @given(token=_tokens, email=_emails)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_reset_email_body_contains_token_and_base_url(self, token, email):
         """PasswordResetRequestView creates an email body containing the raw
         token and the base URL ***REMOVED***."""

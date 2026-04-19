@@ -172,18 +172,20 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   </React.StrictMode>,
 )
 
-// Remove the preloader after React mounts (Requirement 2.2)
+// Expose a global function for the app to dismiss the preloader when visually ready.
+// This prevents the white flash between preloader removal and first meaningful paint.
 if (typeof window !== 'undefined') {
-  // Clear the slow-load timeout so the message never appears after mount
-  if ((window as unknown as Record<string, unknown>).__preloaderTimeout) {
-    clearTimeout((window as unknown as Record<string, unknown>).__preloaderTimeout as number)
-  }
-
-  const preloader = document.getElementById('preloader')
-  if (preloader) {
-    preloader.classList.add('fade-out')
-    setTimeout(() => {
-      preloader.remove()
-    }, 300)
+  ;(window as any).__dismissPreloader = () => {
+    if ((window as any).__preloaderTimeout) {
+      clearTimeout((window as any).__preloaderTimeout)
+    }
+    if ((window as any).__preloaderMaxTimeout) {
+      clearTimeout((window as any).__preloaderMaxTimeout)
+    }
+    const preloader = document.getElementById('preloader')
+    if (preloader) {
+      preloader.classList.add('fade-out')
+      setTimeout(() => preloader.remove(), 250)
+    }
   }
 }

@@ -49,7 +49,6 @@ export async function listActiveSessions(): Promise<ListSessionsResult> {
   try {
     const result = await apiClient.request<DeviceSession[] | { sessions?: DeviceSession[]; count?: number }>('/sessions/', {
       method: 'GET',
-      useCache: false,
     })
 
     const sessions = (Array.isArray(result)

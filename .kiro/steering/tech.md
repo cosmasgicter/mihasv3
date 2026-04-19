@@ -262,19 +262,79 @@ await page.goto("***REMOVED***");
 | `bun add @browserbasehq/stagehand` | Already installed at monorepo root |
 | `npx playwright install chromium` | Install local Chromium for Stagehand |
 
+## Admissions Business Logic Services
+
+The admissions domain uses thin service modules for each business logic domain. Each service follows the same pattern: static methods, custom error class with `code`/`message`, `select_for_update()` locking, and notification helpers.
+
+| Service | Location | Purpose |
+|---------|----------|---------|
+| `WithdrawalService` | `backend/apps/applications/withdrawal_service.py` | Student-initiated withdrawal with enrollment decrement and waitlist promotion |
+| `InterviewService` | `backend/apps/applications/interview_service.py` | Interview scheduling with 48h notice, conflict detection, mode validation |
+| `WaitlistManager` | `backend/apps/applications/waitlist_manager.py` | Position assignment, auto-promotion, reindexing, override logging |
+| `ConditionManager` | `backend/apps/applications/condition_manager.py` | Conditional admission lifecycle: assign, verify, auto-promote/reject |
+| `EnrollmentService` | `backend/apps/applications/enrollment_service.py` | Enrollment confirmation and deadline computation from academic calendar |
+| `AmendmentService` | `backend/apps/applications/amendment_service.py` | Student amendment requests with admin approval workflow |
+| `CommunicationService` | `backend/apps/common/communication_service.py` | Template-based notifications and emails with `{{variable}}` substitution |
+| `FeeWaiverService` | `backend/apps/documents/fee_waiver_service.py` | Fee waiver granting and effective fee computation |
+
+### Extended State Machine
+
+Application statuses now include: `draft`, `submitted`, `under_review`, `waitlisted`, `conditionally_approved`, `approved`, `enrolled`, `rejected`, `withdrawn`, `expired`, `enrollment_expired`. The `ALLOWED_TRANSITIONS` map in `services.py` is the single source of truth. Terminal statuses (no outbound transitions): `rejected`, `withdrawn`, `expired`, `enrolled`, `enrollment_expired`.
+
+### Admissions Business Logic Endpoints
+
+| Method | Path | Permission | Domain |
+|--------|------|------------|--------|
+| POST | `/api/v1/applications/{id}/withdraw/` | Owner | Withdrawal |
+| GET | `/api/v1/applications/{id}/waitlist-position/` | Owner/Admin | Waitlist |
+| GET | `/api/v1/applications/{id}/conditions/` | Owner/Admin | Conditions |
+| POST | `/api/v1/applications/{id}/conditions/{cid}/verify/` | Admin | Conditions |
+| POST | `/api/v1/applications/{id}/confirm-enrollment/` | Owner | Enrollment |
+| POST | `/api/v1/applications/{id}/assign/` | SuperAdmin | Reviewer assignment |
+| POST | `/api/v1/applications/auto-assign/` | SuperAdmin | Reviewer auto-assign |
+| POST | `/api/v1/applications/{id}/fee-waiver/` | SuperAdmin | Fee waivers |
+| POST | `/api/v1/applications/{id}/amendments/` | Owner | Amendments |
+| POST | `/api/v1/applications/{id}/amendments/{aid}/review/` | Admin | Amendment review |
+| GET | `/api/v1/admin/templates/` | Admin | Communication templates |
+| PUT | `/api/v1/admin/templates/{key}/` | Admin | Communication templates |
+
+### DuplicateChecker Terminal Statuses
+
+`TERMINAL_STATUSES = {"rejected", "withdrawn", "expired", "enrolled", "enrollment_expired"}` — applications in these statuses do not block new applications for the same program+intake.
+
+### IntakeEnforcer Grace Period
+
+When the intake deadline has passed, `IntakeEnforcer.check_submission()` checks `grace_period_days` on the intake. If within the grace period, returns `IntakeCheckResult(allowed=True, is_late=True)`. The `submit_application()` service then sets `is_late_submission=True` and enforces late fee payment if configured.
+
+### Payment Retry Limits
+
+`PaymentService.initiate_payment()` enforces a maximum of 5 payment attempts per application (excluding expired payments older than 7 days). The `poll_pending_payments_task` expires payments pending > 24 hours. Forward-only transitions include `pending → expired`.
+
+### Batch Operation Safety
+
+`ApplicationBulkStatusView` enforces: max 25 applications per batch, all-or-nothing validation, SHA-256 confirmation token, single transaction, and waitlist promotion on batch rejections.
+
 ## Celery Beat Periodic Tasks
 
 Celery Beat runs as a dedicated Koyeb worker service (exactly 1 instance to avoid duplicate dispatches). The schedule is defined in `CELERY_BEAT_SCHEDULE` in `backend/config/settings/base.py`:
 
 | Task | Schedule | Purpose |
 |------|----------|---------|
-| `check_uptime_task` | Every 900 seconds (15 minutes) | Internal health check — pings `/health/ready/`, alerts on failure/recovery transitions |
-| `cleanup_audit_logs_task` | Daily at 03:00 UTC (`crontab(hour=3, minute=0)`) | Purge expired audit log records and CSRF tokens: standard retention 90 days, security retention 365 days |
-| `poll_pending_payments_task` | Every 600 seconds (10 minutes) | Polls Lenco API for pending payments older than 5 min and younger than 24 hr, max 50 per run |
-| `intake_manager_task` | Daily at 04:00 UTC (`crontab(hour=4, minute=0)`) | Ensures at least 2 open intakes exist following the Jan/Jul pattern. Idempotent. |
 | `keep_alive_task` | Every 240 seconds (4 minutes) | Lightweight ping to /health/live/ to prevent Koyeb cold starts |
+| `check_uptime_task` | Every 900 seconds (15 minutes) | Internal health check — pings `/health/ready/`, alerts on failure/recovery transitions |
+| `cleanup_audit_logs_task` | Daily at 03:00 UTC | Purge expired audit log records and CSRF tokens: standard retention 90 days, security retention 365 days |
+| `poll_pending_payments_task` | Every 600 seconds (10 minutes) | Polls Lenco API for pending payments, expires payments > 24h, max 50 per run |
+| `intake_manager_task` | Daily at 04:00 UTC | Ensures at least 2 open intakes exist following the Jan/Jul pattern |
+| `condition_expiry_task` | Daily at 05:00 UTC | Expires overdue admission conditions, triggers auto-rejection |
+| `draft_expiry_reminder_task` | Daily at 06:00 UTC | Reminds students about stale drafts (7+ days), expires drafts at 30 days |
+| `review_sla_reminder_task` | Daily at 07:00 UTC | Notifies admins about applications exceeding review SLA threshold |
+| `document_verification_sla_task` | Daily at 08:00 UTC | Notifies admins about documents pending verification beyond SLA, escalates at 2x |
+| `enrollment_confirmation_expiry_task` | Daily at 09:00 UTC | Expires unconfirmed enrollments, decrements capacity, triggers waitlist promotion |
+| `waitlist_cascade_task` | Daily at 10:00 UTC | Cascades waitlisted applications to next intake when current intake closes |
+| `interview_auto_complete_task` | Every 7200 seconds (2 hours) | Auto-completes interviews whose scheduled time has passed |
+| `interview_reminder_task` | Every 3600 seconds (1 hour) | Sends reminder notifications for interviews within next 24 hours |
 
-The first two tasks live in `backend/apps/common/tasks.py`. The payment polling task lives in `backend/apps/documents/tasks.py`. The intake manager task lives in `backend/apps/catalog/tasks.py` and is also callable as `python3 manage.py manage_intakes`.
+Infrastructure tasks live in `backend/apps/common/tasks.py`. Payment/document tasks in `backend/apps/documents/tasks.py`. Application tasks in `backend/apps/applications/tasks.py`. Intake tasks in `backend/apps/catalog/tasks.py`.
 
 ## Uptime Monitoring
 

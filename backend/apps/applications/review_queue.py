@@ -32,6 +32,10 @@ class ReviewQueueScorer:
 
         total = c_score + d_score + p_score + doc_score + t_score
 
+        # Assignment bonus: 5% for assigned-but-not-reviewed apps (Req 11.9)
+        if getattr(application, 'assigned_reviewer_id_id', None) and application.status in ("submitted", "under_review"):
+            total = total * 1.05
+
         # Classification
         if completeness_score >= 90 and application.payment_status in ("verified", "paid", "force_approved"):
             classification = "ready_for_decision"

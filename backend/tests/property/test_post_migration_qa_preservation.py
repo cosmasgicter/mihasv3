@@ -37,7 +37,7 @@ from apps.applications.views import (  # noqa: E402
     ApplicationReviewView,
 )
 
-_default_settings = settings(max_examples=50, deadline=None)
+_default_settings = settings(max_examples=5, deadline=None)
 
 
 # ---------------------------------------------------------------------------

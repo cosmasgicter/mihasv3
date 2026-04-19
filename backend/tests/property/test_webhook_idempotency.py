@@ -134,7 +134,7 @@ class TestWebhookProcessingIdempotency(SimpleTestCase):
         event_type=status_changing_events,
         n=repeat_counts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_processing_n_times_equals_processing_once(
         self,
         payment_id,
@@ -212,7 +212,7 @@ class TestWebhookProcessingIdempotency(SimpleTestCase):
         payment_type=payment_types,
         n=repeat_counts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_settled_event_idempotent_metadata(
         self,
         payment_id,

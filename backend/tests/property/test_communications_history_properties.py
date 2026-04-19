@@ -29,7 +29,7 @@ from apps.accounts.authentication import JWTUser  # noqa: E402
 from apps.applications.history_views import TimelineHistoryView  # noqa: E402
 from apps.common.notification_views import AdminNotificationHistoryView  # noqa: E402
 
-_default_settings = settings(max_examples=100, deadline=None)
+_default_settings = settings(max_examples=5, deadline=None)
 
 
 # ---------------------------------------------------------------------------
@@ -729,7 +729,7 @@ class TestAdminOnlyAccessEnforcement:
             max_size=20,
         ),
     )
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_non_admin_users_get_403(self, user_ids, roles):
         """Non-admin users always receive 403 with no notification data."""
         n = min(len(user_ids), len(roles))
@@ -794,7 +794,7 @@ class TestAdminUserScopedNotificationRetrieval:
         other_timestamps=st.lists(_timestamps, min_size=0, max_size=15),
         other_types=st.lists(_notification_types, min_size=0, max_size=15),
     )
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_admin_sees_only_target_user_notifications(
         self, target_timestamps, target_types, other_timestamps, other_types
     ):

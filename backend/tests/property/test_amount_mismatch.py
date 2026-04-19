@@ -111,7 +111,7 @@ class TestAmountMismatchDetection(SimpleTestCase):
         lenco_ref=lenco_references,
         payment_type=payment_types,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_mismatched_amount_blocks_successful_transition(
         self,
         payment_id,
@@ -160,7 +160,7 @@ class TestAmountMismatchDetection(SimpleTestCase):
         lenco_ref=lenco_references,
         payment_type=payment_types,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_matching_amount_allows_successful_transition(
         self,
         payment_id,

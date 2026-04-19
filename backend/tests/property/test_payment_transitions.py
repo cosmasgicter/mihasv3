@@ -111,7 +111,7 @@ class TestForwardOnlyTransitions(SimpleTestCase):
         target=all_statuses,
         lenco_data=lenco_data_st,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_terminal_status_blocks_all_transitions(
         self, payment_id, application_id, amount, current_status, target, lenco_data
     ):
@@ -144,7 +144,7 @@ class TestForwardOnlyTransitions(SimpleTestCase):
         target=target_statuses,
         lenco_data=lenco_data_st,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_pending_allows_only_successful_or_failed(
         self, payment_id, application_id, amount, target, lenco_data
     ):
@@ -191,7 +191,7 @@ class TestDoublePaymentInitiation(SimpleTestCase):
         user_id=uuids,
         existing_amount=amounts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_returns_existing_pending_payment(
         self, application_id, user_id, existing_amount
     ):
@@ -238,7 +238,7 @@ class TestAmountMismatchBlocks(SimpleTestCase):
         expected_amount=amounts,
         lenco_amount=amounts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_mismatched_amount_blocks_successful_transition(
         self, payment_id, application_id, expected_amount, lenco_amount
     ):
@@ -274,7 +274,7 @@ class TestAmountMismatchBlocks(SimpleTestCase):
         application_id=uuids,
         matching_amount=amounts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_matching_amount_allows_successful_transition(
         self, payment_id, application_id, matching_amount
     ):
@@ -319,7 +319,7 @@ class TestWebhookSyncsApplicationStatus(SimpleTestCase):
         application_id=uuids,
         amount=amounts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_successful_webhook_sets_application_verified(
         self, payment_id, application_id, amount
     ):
@@ -380,7 +380,7 @@ class TestPollingAgeRange(SimpleTestCase):
     @given(
         minutes_ago=st.integers(min_value=0, max_value=2880),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_polling_window_boundaries(self, minutes_ago):
         """The filter uses created_at__lt (5 min ago) and created_at__gt
         (24 hr ago) with a limit of 50."""

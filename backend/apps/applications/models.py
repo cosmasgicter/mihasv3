@@ -89,6 +89,19 @@ class Application(models.Model):
     version = models.IntegerField(default=1)
     country = models.CharField(max_length=100, null=True, blank=True)
 
+    # Business logic densification columns
+    waitlist_position = models.IntegerField(null=True, blank=True)
+    is_late_submission = models.BooleanField(default=False)
+    assigned_reviewer_id = models.ForeignKey(
+        'accounts.Profile',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_applications',
+        db_column='assigned_reviewer_id',
+    )
+    enrollment_confirmation_deadline = models.DateTimeField(null=True, blank=True)
+
     class Meta:
         managed = False
         db_table = 'applications'
@@ -184,3 +197,62 @@ class ApplicationInterview(models.Model):
 
     def __str__(self):
         return f"Interview {self.id} for {self.application_id} ({self.status})"
+
+
+class ApplicationCondition(models.Model):
+    """Maps to 'application_conditions' table."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    application = models.ForeignKey(Application, on_delete=models.CASCADE)
+    description = models.TextField()
+    condition_type = models.CharField(max_length=20, default='other')
+    deadline = models.DateField()
+    status = models.CharField(max_length=20, default='pending')
+    met_at = models.DateTimeField(null=True, blank=True)
+    verified_by = models.ForeignKey(
+        'accounts.Profile',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='verified_conditions',
+        db_column='verified_by',
+    )
+    notes = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'application_conditions'
+
+    def __str__(self):
+        return f"Condition {self.id} for {self.application_id} ({self.status})"
+
+
+class ApplicationAmendment(models.Model):
+    """Maps to 'application_amendments' table."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    application = models.ForeignKey(Application, on_delete=models.CASCADE)
+    field_name = models.CharField(max_length=50)
+    old_value = models.TextField(null=True, blank=True)
+    new_value = models.TextField()
+    reason = models.TextField()
+    status = models.CharField(max_length=20, default='pending')
+    reviewed_by = models.ForeignKey(
+        'accounts.Profile',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_amendments',
+        db_column='reviewed_by',
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = 'application_amendments'
+
+    def __str__(self):
+        return f"Amendment {self.id} on {self.field_name} for {self.application_id} ({self.status})"

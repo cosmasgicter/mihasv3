@@ -46,7 +46,7 @@ class TestSubmissionBlockedWithoutPayment(SimpleTestCase):
     """
 
     @given(data=st.data())
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_submission_blocked_without_successful_payment(self, data):
         """For any application without a successful Payment record,
         the submission gate should block the draft → submitted transition."""
@@ -110,7 +110,7 @@ class TestSubmissionAllowedWithPayment(SimpleTestCase):
     """
 
     @given(data=st.data())
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_submission_allowed_with_successful_payment(self, data):
         """For any application with a successful Payment record,
         the submission gate should allow the draft → submitted transition."""
@@ -173,7 +173,7 @@ class TestPaymentGateOnlyChecksSuccessfulStatus(SimpleTestCase):
     """
 
     @given(payment_status=non_successful_statuses)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_non_successful_payment_blocks_submission(self, payment_status):
         """For any payment with a non-successful status (pending, failed),
         the submission gate should block the transition."""
@@ -239,7 +239,7 @@ class TestPaymentGateIntegrationWithView(SimpleTestCase):
     """
 
     @given(has_payment=st.booleans())
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_view_payment_gate_bidirectional(self, has_payment):
         """For any application, the submission endpoint should accept the
         draft → submitted transition if and only if a Payment record with

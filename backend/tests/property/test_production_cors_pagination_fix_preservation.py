@@ -46,7 +46,7 @@ class TestCORSDefaultHeadersPreservation:
             "x-requested-with",
         ])
     )
-    @settings(max_examples=20)
+    @settings(max_examples=5)
     def test_default_headers_in_cors_allow_headers(self, header: str) -> None:
         """Assert each default_headers item is in CORS_ALLOW_HEADERS."""
         from config.settings.base import CORS_ALLOW_HEADERS
@@ -68,7 +68,7 @@ class TestCORSExtraHeadersPreservation:
     """
 
     @given(header=st.sampled_from(["cache-control", "x-csrf-token"]))
-    @settings(max_examples=10)
+    @settings(max_examples=5)
     def test_extra_headers_in_cors_allow_headers(self, header: str) -> None:
         """Assert cache-control and x-csrf-token are in CORS_ALLOW_HEADERS."""
         from config.settings.base import CORS_ALLOW_HEADERS

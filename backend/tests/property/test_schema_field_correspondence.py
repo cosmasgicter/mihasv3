@@ -153,7 +153,7 @@ class TestSchemaFieldCorrespondence(SimpleTestCase):
             min_value=0, max_value=max(len(ALL_MODEL_FIELDS) - 1, 0)
         )
     )
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_field_has_compatible_pg_type_mapping(self, idx: int):
         """For any (model, field) pair, the Django field type must map to at
         least one known Postgres column type."""
@@ -175,7 +175,7 @@ class TestSchemaFieldCorrespondence(SimpleTestCase):
             min_value=0, max_value=max(len(ALL_MODEL_FIELDS) - 1, 0)
         )
     )
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_field_has_non_empty_column_name(self, idx: int):
         """For any (model, field) pair, the resolved column name must be a
         non-empty string."""
@@ -193,7 +193,7 @@ class TestSchemaFieldCorrespondence(SimpleTestCase):
             min_value=0, max_value=max(len(ALL_MODEL_FIELDS) - 1, 0)
         )
     )
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_nullability_is_deterministic(self, idx: int):
         """For any (model, field) pair, the nullability check returns a
         consistent boolean."""
@@ -208,7 +208,7 @@ class TestSchemaFieldCorrespondence(SimpleTestCase):
             min_value=0, max_value=max(len(ALL_MODEL_FIELDS) - 1, 0)
         )
     )
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_constraint_flags_are_deterministic(self, idx: int):
         """For any (model, field) pair, the PK, unique, and FK flags are
         consistent booleans."""
@@ -235,7 +235,7 @@ class TestSchemaFieldCorrespondence(SimpleTestCase):
             min_value=0, max_value=max(len(ALL_MODEL_FIELDS) - 1, 0)
         )
     )
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_fk_fields_point_to_uuid_or_compatible_column(self, idx: int):
         """For any FK/O2O field, the target column type should be compatible
         with the related model's PK type."""

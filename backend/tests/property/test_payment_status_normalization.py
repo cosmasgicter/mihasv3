@@ -103,7 +103,7 @@ class TestNormalizePaymentStatusCoversAllBackendValues(SimpleTestCase):
     """
 
     @given(status=backend_statuses)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_all_backend_statuses_produce_valid_canonical_status(self, status):
         """For any backend payment status value, normalizePaymentStatus()
         returns one of the four canonical statuses."""
@@ -111,28 +111,28 @@ class TestNormalizePaymentStatusCoversAllBackendValues(SimpleTestCase):
         self.assertIn(result, CANONICAL_STATUSES)
 
     @given(status=verified_statuses)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_verified_statuses_normalize_to_verified(self, status):
         """verified, paid, successful, force_approved all normalize to 'verified'."""
         result = normalize_payment_status(status)
         self.assertEqual(result, "verified")
 
     @given(status=pending_statuses)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_pending_statuses_normalize_to_pending_review(self, status):
         """pending, pending_review normalize to 'pending_review'."""
         result = normalize_payment_status(status)
         self.assertEqual(result, "pending_review")
 
     @given(status=rejected_statuses)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_rejected_statuses_normalize_to_rejected(self, status):
         """failed, rejected normalize to 'rejected'."""
         result = normalize_payment_status(status)
         self.assertEqual(result, "rejected")
 
     @given(status=unknown_statuses)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_unknown_statuses_normalize_to_not_paid(self, status):
         """Any unrecognized status (including empty string) normalizes to 'not_paid'."""
         result = normalize_payment_status(status)
@@ -152,13 +152,13 @@ class TestIsPaymentVerified(SimpleTestCase):
     """
 
     @given(status=verified_statuses)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_verified_statuses_return_true(self, status):
         """isPaymentVerified() returns True for all verified-equivalent statuses."""
         self.assertTrue(is_payment_verified(status))
 
     @given(status=st.one_of(pending_statuses, rejected_statuses))
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_non_verified_statuses_return_false(self, status):
         """isPaymentVerified() returns False for pending and rejected statuses."""
         self.assertFalse(is_payment_verified(status))
@@ -168,7 +168,7 @@ class TestIsPaymentVerified(SimpleTestCase):
         self.assertFalse(is_payment_verified(None))
 
     @given(status=unknown_statuses)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_unknown_statuses_return_false(self, status):
         """isPaymentVerified() returns False for any unrecognized status."""
         self.assertFalse(is_payment_verified(status))

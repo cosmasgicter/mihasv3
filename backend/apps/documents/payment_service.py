@@ -14,6 +14,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass
+from datetime import timedelta
 from decimal import Decimal
 from uuid import UUID
 
@@ -60,8 +61,14 @@ class PaymentVerificationResult:
 # ---------------------------------------------------------------------------
 
 _ALLOWED_TRANSITIONS: dict[str, set[str]] = {
-    'pending': {'successful', 'failed'},
+    'pending': {'successful', 'failed', 'expired'},
 }
+
+# Maximum payment attempts per application (Req 8.4)
+MAX_PAYMENT_ATTEMPTS = 5
+
+# Expired payments older than this are excluded from attempt count (Req 8.5)
+EXPIRED_EXCLUSION_DAYS = 7
 
 # Lenco API status → internal status mapping
 _LENCO_STATUS_MAP: dict[str, str] = {
@@ -98,7 +105,9 @@ class PaymentService:
         existing record is returned instead of creating a duplicate.  This
         prevents double-payment initiation from rapid clicks or retries.
 
+        Enforces a maximum of MAX_PAYMENT_ATTEMPTS per application (Req 8.4).
         Raises ``Application.DoesNotExist`` when the application is not found.
+        Raises ``ValueError`` with code MAX_PAYMENT_ATTEMPTS_EXCEEDED when limit reached.
         """
         from django.db import transaction
 
@@ -122,7 +131,33 @@ class PaymentService:
                     currency=existing.currency,
                 )
 
+            # Retry limit enforcement (Req 8.4, 8.5)
+            expired_cutoff = timezone.now() - timedelta(days=EXPIRED_EXCLUSION_DAYS)
+            attempt_count = Payment.objects.filter(
+                application_id=application_id,
+            ).exclude(
+                status='expired', created_at__lt=expired_cutoff,
+            ).count()
+
+            if attempt_count >= MAX_PAYMENT_ATTEMPTS:
+                remaining = 0
+                logger.warning(
+                    "Payment attempt limit reached for application %s (%d attempts)",
+                    application_id, attempt_count,
+                )
+                raise ValueError(
+                    f"MAX_PAYMENT_ATTEMPTS_EXCEEDED|{remaining}"
+                )
+
             application = Application.objects.get(id=application_id)
+
+            if application.payment_status in ('verified', 'force_approved'):
+                return PaymentInitiationResult(
+                    payment_id=None,
+                    reference='',
+                    amount=Decimal('0'),
+                    currency='',
+                )
 
             resolved_program = IdentifierResolver.resolve_program(application.program)
             if resolved_program.source == "not_found":
@@ -141,12 +176,26 @@ class PaymentService:
                 country=getattr(application, 'country', None),
             )
 
+            # Apply partial fee waiver if active (Req 12.4, 12.5)
+            effective_amount = resolved.amount
+            try:
+                from apps.documents.fee_waiver_service import FeeWaiverService
+                effective_amount = FeeWaiverService.get_effective_fee(
+                    str(application_id), resolved.amount,
+                )
+            except Exception:
+                logger.warning(
+                    "Fee waiver check failed for application %s, using full fee",
+                    application_id,
+                    exc_info=True,
+                )
+
             reference = _generate_reference(application.application_number)
 
             payment = Payment.objects.create(
                 application_id=application_id,
                 user_id=user_id,
-                amount=resolved.amount,
+                amount=effective_amount,
                 currency=resolved.currency,
                 status='pending',
                 transaction_reference=reference,
@@ -154,6 +203,8 @@ class PaymentService:
                 metadata={
                     'residency_category': resolved.residency_category,
                     'fee_source': resolved.source,
+                    'original_amount': str(resolved.amount),
+                    'waiver_applied': str(effective_amount) != str(resolved.amount),
                 },
                 created_at=timezone.now(),
                 updated_at=timezone.now(),
@@ -163,14 +214,14 @@ class PaymentService:
                 "Payment initiated: payment=%s reference=%s amount=%s %s",
                 payment.id,
                 reference,
-                resolved.amount,
+                effective_amount,
                 resolved.currency,
             )
 
             return PaymentInitiationResult(
                 payment_id=payment.id,
                 reference=reference,
-                amount=resolved.amount,
+                amount=effective_amount,
                 currency=resolved.currency,
             )
 
@@ -416,6 +467,12 @@ class PaymentService:
                     lenco_amount,
                 )
                 return
+
+            # Currency validation
+            lenco_currency = str(data.get('currency', '')).upper()
+            if lenco_currency and hasattr(payment, 'currency') and payment.currency and lenco_currency != payment.currency.upper():
+                logger.warning('Currency mismatch: expected %s, got %s', payment.currency, lenco_currency)
+
             self._update_payment_status(payment, 'successful', data)
 
         elif event_type == 'collection.failed':

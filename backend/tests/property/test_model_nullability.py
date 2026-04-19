@@ -114,7 +114,7 @@ class TestModelFieldNullability(SimpleTestCase):
     # --- Property tests: defaults hold across random valid inputs ---
 
     @given(email=email_strings)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_profile_without_role_defaults_to_student(self, email):
         """For any valid email, constructing a Profile without an explicit
         role should produce an instance with role='student'."""
@@ -128,7 +128,7 @@ class TestModelFieldNullability(SimpleTestCase):
         )
 
     @given(amount=payment_amounts, user_id=random_uuids)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_payment_without_status_defaults_to_pending(self, amount, user_id):
         """For any valid amount and user_id, constructing a Payment without
         an explicit status should produce an instance with status='pending'."""

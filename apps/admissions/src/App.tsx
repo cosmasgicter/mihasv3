@@ -127,6 +127,11 @@ function RouteAwareApp() {
   const globalUiDelayMs = isLandingRoute ? 2800 : marketingRoute ? 900 : 350
   const telemetryDelayMs = isLandingRoute ? 6000 : marketingRoute ? 2500 : 1200
 
+  // Dismiss preloader once the route shell renders
+  useEffect(() => {
+    (window as any).__dismissPreloader?.()
+  }, [])
+
   return (
     <>
       {marketingRoute ? (

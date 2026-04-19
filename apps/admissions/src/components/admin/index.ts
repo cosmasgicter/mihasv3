@@ -4,7 +4,6 @@
  */
 
 // Dashboard components — DashboardSkeleton is canonical at @/components/ui/skeletons/DashboardSkeleton
-export { DashboardMetricsCards } from './dashboard/DashboardMetricsCards';
 export { DashboardActivityFeed } from './dashboard/DashboardActivityFeed';
 export { DashboardQuickActions } from './dashboard/DashboardQuickActions';
 export { QuickActionsPanel } from './QuickActionsPanel';

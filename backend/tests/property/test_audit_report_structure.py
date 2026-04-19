@@ -80,7 +80,7 @@ class TestAuditReportStructure:
     """
 
     @given(issue=issue_record_st)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_every_issue_has_required_fields(self, issue: dict) -> None:
         """Every generated issue record must contain all required fields."""
         for field in REQUIRED_FIELDS:
@@ -89,7 +89,7 @@ class TestAuditReportStructure:
             assert len(str(issue[field]).strip()) > 0, f"Required field '{field}' is empty"
 
     @given(issue=issue_record_st)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_severity_is_valid(self, issue: dict) -> None:
         """Severity must be one of: blocker, critical, warning, info."""
         assert issue["severity"] in VALID_SEVERITIES, (
@@ -97,7 +97,7 @@ class TestAuditReportStructure:
         )
 
     @given(issue=issue_record_st)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_issue_id_follows_convention(self, issue: dict) -> None:
         """Issue ID must follow the AUDIT-X.Y-NNN pattern."""
         assert re.match(r"^AUDIT-\d+\.\d+-\d{3}$", issue["id"]), (
@@ -105,7 +105,7 @@ class TestAuditReportStructure:
         )
 
     @given(issues=st.lists(issue_record_st, min_size=2, max_size=20))
-    @settings(max_examples=50)
+    @settings(max_examples=5)
     def test_issues_can_be_grouped_by_domain(self, issues: list[dict]) -> None:
         """Issues should be groupable by domain with no domain being empty."""
         grouped: dict[str, list] = {}

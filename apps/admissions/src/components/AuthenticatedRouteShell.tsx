@@ -95,6 +95,11 @@ function RoutedAuthenticatedApp() {
   const isLightweightRoute = isLightweightPublicRoute(location.pathname)
   const prevPathRef = React.useRef(location.pathname)
 
+  // Dismiss preloader on first paint — app has real content now
+  useEffect(() => {
+    (window as any).__dismissPreloader?.()
+  }, [])
+
   useEffect(() => {
     if (prevPathRef.current !== location.pathname) {
       prevPathRef.current = location.pathname

@@ -12,6 +12,7 @@ class IntakeCheckResult:
     allowed: bool
     code: Optional[str] = None      # Error code if not allowed
     message: Optional[str] = None
+    is_late: bool = False            # True when within grace period
 
 
 class IntakeEnforcer:
@@ -30,8 +31,16 @@ class IntakeEnforcer:
         if not intake:
             return IntakeCheckResult(True)
 
-        # Deadline check
+        # Deadline check with grace period support (Req 6.1–6.4)
         if intake.application_deadline and date.today() > intake.application_deadline:
+            from datetime import timedelta
+
+            if intake.grace_period_days and intake.grace_period_days > 0:
+                grace_end = intake.application_deadline + timedelta(days=intake.grace_period_days)
+                if date.today() <= grace_end:
+                    # Within grace period — allow but flag as late
+                    return IntakeCheckResult(allowed=True, is_late=True)
+
             return IntakeCheckResult(
                 False, "INTAKE_DEADLINE_PASSED",
                 f"The application deadline ({intake.application_deadline.isoformat()}) has passed.",

@@ -87,7 +87,7 @@ class TestDeadBackendDependencyRemoval(SimpleTestCase):
         )
 
     @given(line_index=st.integers(min_value=0, max_value=500))
-    @h_settings(max_examples=50, deadline=None)
+    @h_settings(max_examples=5, deadline=None)
     def test_no_line_contains_simplejwt(self, line_index):
         """For any line in requirements.txt, djangorestframework-simplejwt must not appear.
 

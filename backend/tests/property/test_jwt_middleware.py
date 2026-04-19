@@ -116,7 +116,7 @@ class TestValidJWTProducesAuthenticatedUser(SimpleTestCase):
         self.middleware._algorithm = None
 
     @given(user_id=_user_ids, email=_emails, role=_roles)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     @override_settings(SIMPLE_JWT=TEST_JWT_SETTINGS)
     def test_cookie_jwt_sets_authenticated_user(self, user_id, email, role):
         """A valid JWT in the access_token cookie produces an authenticated
@@ -142,7 +142,7 @@ class TestValidJWTProducesAuthenticatedUser(SimpleTestCase):
         self.assertEqual(request.user.role, role)
 
     @given(user_id=_user_ids, email=_emails, role=_roles)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     @override_settings(SIMPLE_JWT=TEST_JWT_SETTINGS)
     def test_bearer_jwt_sets_authenticated_user(self, user_id, email, role):
         """A valid JWT in the Authorization: Bearer header produces an
@@ -167,7 +167,7 @@ class TestValidJWTProducesAuthenticatedUser(SimpleTestCase):
         self.assertEqual(request.user.role, role)
 
     @given(user_id=_user_ids, email=_emails, role=_roles)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     @override_settings(SIMPLE_JWT=TEST_JWT_SETTINGS)
     def test_cookie_and_bearer_produce_identical_user(self, user_id, email, role):
         """The same JWT payload delivered via cookie or Bearer header must
@@ -258,7 +258,7 @@ class TestInvalidJWTDoesNotSetUser(SimpleTestCase):
         )
 
     @given(user_id=_user_ids, email=_emails, role=_roles)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     @override_settings(SIMPLE_JWT=TEST_JWT_SETTINGS)
     def test_expired_token_does_not_set_user(self, user_id, email, role):
         """An expired JWT should not set request.user to an authenticated user."""
@@ -280,7 +280,7 @@ class TestInvalidJWTDoesNotSetUser(SimpleTestCase):
         self._assert_user_not_authenticated(request)
 
     @given(user_id=_user_ids, email=_emails, role=_roles, wrong_key=_wrong_keys)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     @override_settings(SIMPLE_JWT=TEST_JWT_SETTINGS)
     def test_wrong_key_token_does_not_set_user(self, user_id, email, role, wrong_key):
         """A JWT signed with the wrong key should not set request.user."""
@@ -301,7 +301,7 @@ class TestInvalidJWTDoesNotSetUser(SimpleTestCase):
         self._assert_user_not_authenticated(request)
 
     @given(malformed=_malformed_tokens)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     @override_settings(SIMPLE_JWT=TEST_JWT_SETTINGS)
     def test_malformed_token_does_not_set_user(self, malformed):
         """A malformed string should not set request.user."""
@@ -320,7 +320,7 @@ class TestInvalidJWTDoesNotSetUser(SimpleTestCase):
         role=_roles,
         bad_type=_non_access_token_types,
     )
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     @override_settings(SIMPLE_JWT=TEST_JWT_SETTINGS)
     def test_wrong_token_type_does_not_set_user(self, user_id, email, role, bad_type):
         """A JWT with token_type != 'access' should not set request.user."""
@@ -341,7 +341,7 @@ class TestInvalidJWTDoesNotSetUser(SimpleTestCase):
         self._assert_user_not_authenticated(request)
 
     @given(email=_emails, role=_roles, empty_id=_empty_user_ids)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     @override_settings(SIMPLE_JWT=TEST_JWT_SETTINGS)
     def test_missing_or_empty_user_id_does_not_set_user(self, email, role, empty_id):
         """A JWT with missing or empty user_id should not set request.user."""

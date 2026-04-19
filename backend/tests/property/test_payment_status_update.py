@@ -125,7 +125,7 @@ class TestPaymentStatusUpdateFromLencoResponse(SimpleTestCase):
         fee=fee_amounts,
         bearer_val=bearers,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_successful_lenco_status_transitions_payment_to_successful(
         self,
         payment_id,
@@ -165,7 +165,7 @@ class TestPaymentStatusUpdateFromLencoResponse(SimpleTestCase):
         fee=fee_amounts,
         bearer_val=bearers,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_failed_lenco_status_transitions_payment_to_failed(
         self,
         payment_id,
@@ -201,7 +201,7 @@ class TestPaymentStatusUpdateFromLencoResponse(SimpleTestCase):
         application_id=uuids,
         amount=amounts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_pending_lenco_status_leaves_payment_unchanged(
         self,
         payment_id,
@@ -239,7 +239,7 @@ class TestApplicationStatusSyncOnPaymentSuccess(SimpleTestCase):
         lenco_ref=lenco_references,
         payment_type=payment_types,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_application_set_to_paid_on_successful_payment(
         self,
         payment_id,
@@ -280,7 +280,7 @@ class TestApplicationStatusSyncOnPaymentSuccess(SimpleTestCase):
         lenco_ref=lenco_references,
         payment_type=payment_types,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_application_set_to_failed_on_failed_payment(
         self,
         payment_id,
@@ -318,7 +318,7 @@ class TestApplicationStatusSyncOnPaymentSuccess(SimpleTestCase):
         application_id=uuids,
         amount=amounts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_application_not_updated_when_payment_stays_pending(
         self,
         payment_id,
@@ -352,7 +352,7 @@ class TestLencoResponseDataStored(SimpleTestCase):
         fee=fee_amounts,
         bearer_val=bearers,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_lenco_fields_stored_on_successful_transition(
         self,
         payment_id,

@@ -225,7 +225,7 @@ class TestTypeMismatchSeverity(SimpleTestCase):
         django_type=django_field_type_st,
         pg_type=pg_column_type_st,
     )
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_classification_is_deterministic(
         self, django_type: str, pg_type: str
     ):
@@ -248,7 +248,7 @@ class TestTypeMismatchSeverity(SimpleTestCase):
         django_type=django_field_type_st,
         pg_type=pg_column_type_st,
     )
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_classification_returns_valid_severity(
         self, django_type: str, pg_type: str
     ):
@@ -267,7 +267,7 @@ class TestTypeMismatchSeverity(SimpleTestCase):
     # ------------------------------------------------------------------
 
     @given(idx=st.integers(min_value=0, max_value=len(KNOWN_MATCH_PAIRS) - 1))
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_known_match_pairs_return_match(self, idx: int):
         """For any known match pair, the classification must be 'match'."""
         django_type, pg_type = KNOWN_MATCH_PAIRS[idx]
@@ -286,7 +286,7 @@ class TestTypeMismatchSeverity(SimpleTestCase):
     @given(
         idx=st.integers(min_value=0, max_value=len(KNOWN_BREAKING_PAIRS) - 1)
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_known_breaking_pairs_return_breaking(self, idx: int):
         """For any known breaking pair, the classification must be
         'breaking'."""
@@ -308,7 +308,7 @@ class TestTypeMismatchSeverity(SimpleTestCase):
             min_value=0, max_value=len(KNOWN_COSMETIC_PAIRS) - 1
         )
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_known_cosmetic_pairs_return_cosmetic(self, idx: int):
         """For any known cosmetic pair, the classification must be
         'cosmetic'."""

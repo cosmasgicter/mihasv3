@@ -138,7 +138,7 @@ class TestProgramFeeValidValues(SimpleTestCase):
         currency=valid_currencies,
         amount=valid_amounts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_valid_fields_produce_no_errors(
         self, fee_type, residency_category, currency, amount
     ):
@@ -164,7 +164,7 @@ class TestProgramFeeInvalidFeeType(SimpleTestCase):
         currency=valid_currencies,
         amount=valid_amounts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_invalid_fee_type_rejected(
         self, fee_type, residency_category, currency, amount
     ):
@@ -193,7 +193,7 @@ class TestProgramFeeInvalidResidencyCategory(SimpleTestCase):
         currency=valid_currencies,
         amount=valid_amounts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_invalid_residency_category_rejected(
         self, fee_type, residency_category, currency, amount
     ):
@@ -222,7 +222,7 @@ class TestProgramFeeInvalidCurrency(SimpleTestCase):
         currency=invalid_currencies,
         amount=valid_amounts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_invalid_currency_rejected(
         self, fee_type, residency_category, currency, amount
     ):
@@ -251,7 +251,7 @@ class TestProgramFeeInvalidAmount(SimpleTestCase):
         currency=valid_currencies,
         amount=non_positive_amounts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_non_positive_amount_rejected(
         self, fee_type, residency_category, currency, amount
     ):

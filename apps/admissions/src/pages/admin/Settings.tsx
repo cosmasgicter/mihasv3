@@ -394,7 +394,7 @@ export default function AdminSettings() {
     if (!confirmed) return
 
     await runReloadingMutation(
-      () => deleteSetting(id, key),
+      () => deleteSetting(id),
       'Advanced setting deleted successfully'
     )
   }

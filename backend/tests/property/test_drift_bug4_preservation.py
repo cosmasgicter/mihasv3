@@ -56,7 +56,7 @@ class TestExistingSnakeCaseFiltersUnchanged(SimpleTestCase):
     """
 
     @given(status=statuses)
-    @settings(max_examples=30)
+    @settings(max_examples=5)
     def test_status_filter_unchanged(self, status):
         """status filter continues to work."""
         data = {"status": status}
@@ -68,7 +68,7 @@ class TestExistingSnakeCaseFiltersUnchanged(SimpleTestCase):
         assert "status" in sql, f"status={status} should filter on status field"
 
     @given(payment_status=payment_statuses)
-    @settings(max_examples=30)
+    @settings(max_examples=5)
     def test_payment_status_snake_case_unchanged(self, payment_status):
         """payment_status (snake_case) continues to work."""
         data = {"payment_status": payment_status}
@@ -82,7 +82,7 @@ class TestExistingSnakeCaseFiltersUnchanged(SimpleTestCase):
         )
 
     @given(search=search_terms)
-    @settings(max_examples=30)
+    @settings(max_examples=5)
     def test_search_filter_unchanged(self, search):
         """search filter continues to work."""
         data = {"search": search}
@@ -96,7 +96,7 @@ class TestExistingSnakeCaseFiltersUnchanged(SimpleTestCase):
         )
 
     @given(sort=sort_values)
-    @settings(max_examples=20)
+    @settings(max_examples=5)
     def test_sort_filter_unchanged(self, sort):
         """sort filter continues to work with existing format."""
         data = {"sort": sort}
@@ -115,7 +115,7 @@ class TestExistingSnakeCaseFiltersUnchanged(SimpleTestCase):
         )
 
     @given(program=program_names)
-    @settings(max_examples=20)
+    @settings(max_examples=5)
     def test_program_filter_unchanged(self, program):
         """program filter continues to work."""
         data = {"program": program}

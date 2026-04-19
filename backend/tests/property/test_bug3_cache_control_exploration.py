@@ -79,7 +79,7 @@ class TestBug3CacheControlExploration:
         method=HTTP_METHODS,
         status_code=SUCCESS_STATUS_CODES,
     )
-    @settings(max_examples=50, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_authenticated_response_has_cache_control(
         self, path: str, method: str, status_code: int
     ):

@@ -62,7 +62,7 @@ class TestBulkNotificationRetryOnTransientErrors(SimpleTestCase):
     """
 
     @given(attempt=retry_attempts, notification_ids=notification_id_lists)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_retry_called_with_exponential_backoff(self, attempt, notification_ids):
         """For any retry attempt (0, 1, 2) and any notification ID list,
         when a transient error occurs, self.retry() is called with

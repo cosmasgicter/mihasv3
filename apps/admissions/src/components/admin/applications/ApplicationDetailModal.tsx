@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { formatDate, formatTimestamp } from '@/lib/dateFormat'
-import { XCircle, User, Clock, CheckCircle, FileText, CreditCard, Mail, Phone, Calendar, MapPin, Users, GraduationCap, Building, AlertCircle, Download, Send, History, Eye, MessageSquare } from 'lucide-react'
+import { XCircle, User, Clock, CheckCircle, FileText, CreditCard, Mail, Phone, Calendar, MapPin, Users, GraduationCap, Building, AlertCircle, Download, Send, History, Eye, MessageSquare, Shield, Tag, AlertTriangle, ClipboardList } from 'lucide-react'
 import { applicationService } from '@/services/applications'
 import { apiClient } from '@/services/client'
 import { logApiError } from '@/lib/apiErrorLogger'
@@ -90,6 +90,11 @@ interface ApplicationWithDetails {
  interview?: ApplicationInterview | null
  intake_capacity?: number | null
  intake_enrollment?: number | null
+ assigned_reviewer_id?: string | null
+ assigned_reviewer_name?: string | null
+ is_late_submission?: boolean
+ fee_waiver?: { waiver_type: string; reason_code: string; discount_percentage: number } | null
+ pending_amendments?: Array<{ id: string; field_name: string; new_value: string; reason: string; status: string; created_at: string }> | null
 }
 
 interface StatusHistoryItem {
@@ -365,10 +370,22 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
  </div>
  )
  }
+
+ const getDocAgeBadge = (doc: DocumentItem) => {
+ if (doc.verification_status !== 'pending') return null
+ const createdAt = (doc as any).created_at || (doc as any).uploaded_at
+ if (!createdAt) return null
+ const days = Math.floor((Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24))
+ if (days > 5) return { label: `${days}d pending`, className: 'bg-red-100 text-red-800' }
+ if (days >= 3) return { label: `${days}d pending`, className: 'bg-amber-100 text-amber-800' }
+ return { label: `${days}d`, className: 'bg-green-100 text-green-800' }
+ }
  
  return (
  <div className="space-y-3">
- {allDocuments.map((doc) => (
+ {allDocuments.map((doc) => {
+ const ageBadge = getDocAgeBadge(doc)
+ return (
  <div key={doc.id} className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
  <div className="flex items-center gap-3">
  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
@@ -392,6 +409,11 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
  }`}>
  {doc.verification_status.toUpperCase()}
  </span>
+ {ageBadge && (
+ <span className={`px-2 py-1 rounded-full ${ageBadge.className}`}>
+ {ageBadge.label}
+ </span>
+ )}
  {doc.system_generated && (
  <span className="bg-primary/10 text-foreground px-2 py-1 rounded-full">
  SYSTEM
@@ -416,7 +438,7 @@ function DocumentsDisplay({ documents, loading, application }: { documents: Docu
  View
  </a>
  </div>
- ))}
+ )})}
  </div>
  )
 }
@@ -455,6 +477,9 @@ export function ApplicationDetailModal({
  const [paymentWarning, setPaymentWarning] = useState<{ applicationId: string; status: string } | null>(null)
  const [paymentRecords, setPaymentRecords] = useState<PaymentRecord[]>([])
  const [loadingPayments, setLoadingPayments] = useState(false)
+ const [feeWaiverOpen, setFeeWaiverOpen] = useState(false)
+ const [feeWaiverForm, setFeeWaiverForm] = useState({ waiver_type: 'full', reason_code: 'staff_dependent', discount_percentage: 100 })
+ const [savingFeeWaiver, setSavingFeeWaiver] = useState(false)
  const focusTrapRef = useFocusTrap(show && !!application)
  useEscapeKey(show && !!application, onClose)
 
@@ -497,6 +522,23 @@ export function ApplicationDetailModal({
  } finally {
  setSavingFeedback(false)
  }
+ }
+
+ const handleApplyFeeWaiver = async () => {
+   if (!application?.id) return
+   try {
+     setSavingFeeWaiver(true)
+     await apiClient.request(`/applications/${application.id}/fee-waiver/`, {
+       method: 'POST',
+       body: JSON.stringify(feeWaiverForm),
+     })
+     setFeeWaiverOpen(false)
+     if (application?.id) { void loadApplicationDetails() }
+   } catch (error) {
+     logApiError('admin-fee-waiver', `/applications/${application.id}/fee-waiver/`, error)
+   } finally {
+     setSavingFeeWaiver(false)
+   }
  }
 
  useEffect(() => {
@@ -992,6 +1034,73 @@ export function ApplicationDetailModal({
  </div>
  )}
 
+ {/* Admin badges: reviewer, fee waiver, late submission */}
+ <div className="flex flex-wrap gap-2">
+ {(applicationData?.application?.assigned_reviewer_name || application.assigned_reviewer_name) && (
+ <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 border border-indigo-200 px-3 py-1.5 text-xs font-medium text-indigo-800">
+ <Shield className="h-3.5 w-3.5" />
+ Reviewer: {applicationData?.application?.assigned_reviewer_name || application.assigned_reviewer_name}
+ </span>
+ )}
+ {(applicationData?.application?.fee_waiver || application.fee_waiver) && (
+ <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-medium text-emerald-800">
+ <Tag className="h-3.5 w-3.5" />
+ Fee waiver: {(applicationData?.application?.fee_waiver || application.fee_waiver)?.reason_code?.replace(/_/g, ' ')}
+ {(applicationData?.application?.fee_waiver || application.fee_waiver)?.discount_percentage !== 100 && (
+ <> ({(applicationData?.application?.fee_waiver || application.fee_waiver)?.discount_percentage}%)</>
+ )}
+ </span>
+ )}
+ {(applicationData?.application?.is_late_submission || application.is_late_submission) && (
+ <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs font-medium text-amber-800">
+ <AlertTriangle className="h-3.5 w-3.5" />
+ Late submission
+ </span>
+ )}
+ {!(applicationData?.application?.fee_waiver || application.fee_waiver) && (
+ <button
+   onClick={() => setFeeWaiverOpen(true)}
+   className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200 px-3 py-1.5 text-xs font-medium text-blue-800 hover:bg-blue-100 transition-colors"
+ >
+   <Tag className="h-3.5 w-3.5" />
+   Apply Fee Waiver
+ </button>
+ )}
+ </div>
+
+ {/* Fee waiver dialog */}
+ {feeWaiverOpen && (
+ <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+   <h4 className="text-sm font-semibold text-foreground">Apply Fee Waiver</h4>
+   <div className="grid grid-cols-2 gap-3">
+     <div>
+       <label className="text-xs text-foreground block mb-1">Waiver Type</label>
+       <select value={feeWaiverForm.waiver_type} onChange={e => setFeeWaiverForm(f => ({ ...f, waiver_type: e.target.value }))} className="w-full rounded border border-border bg-background px-2 py-1.5 text-sm">
+         <option value="full">Full</option>
+         <option value="partial">Partial</option>
+       </select>
+     </div>
+     <div>
+       <label className="text-xs text-foreground block mb-1">Reason</label>
+       <select value={feeWaiverForm.reason_code} onChange={e => setFeeWaiverForm(f => ({ ...f, reason_code: e.target.value }))} className="w-full rounded border border-border bg-background px-2 py-1.5 text-sm">
+         <option value="staff_dependent">Staff Dependent</option>
+         <option value="scholarship">Scholarship</option>
+         <option value="financial_hardship">Financial Hardship</option>
+         <option value="other">Other</option>
+       </select>
+     </div>
+   </div>
+   <div>
+     <label className="text-xs text-foreground block mb-1">Discount %</label>
+     <input type="number" min={1} max={100} value={feeWaiverForm.discount_percentage} onChange={e => setFeeWaiverForm(f => ({ ...f, discount_percentage: Number(e.target.value) }))} className="w-24 rounded border border-border bg-background px-2 py-1.5 text-sm" />
+   </div>
+   <div className="flex gap-2">
+     <button onClick={() => { void handleApplyFeeWaiver() }} disabled={savingFeeWaiver} className="bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-lg disabled:opacity-50">{savingFeeWaiver ? 'Saving…' : 'Apply'}</button>
+     <button onClick={() => setFeeWaiverOpen(false)} className="text-xs px-3 py-1.5 rounded-lg border border-border">Cancel</button>
+   </div>
+ </div>
+ )}
+
  {/* Personal Information */}
  <div className="bg-card border border-border rounded-xl p-6">
  <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
@@ -1207,6 +1316,31 @@ export function ApplicationDetailModal({
  </div>
  </div>
  </div>
+
+ {/* Pending Amendment Requests */}
+ {((applicationData?.application?.pending_amendments && applicationData.application.pending_amendments.length > 0) || (application.pending_amendments && application.pending_amendments.length > 0)) && (
+ <div className="bg-card border border-amber-200 rounded-xl p-6">
+ <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+ <ClipboardList className="h-5 w-5 text-amber-600" />
+ Pending Amendment Requests
+ </h3>
+ <div className="space-y-3">
+ {(applicationData?.application?.pending_amendments || application.pending_amendments || []).map((amendment) => (
+ <div key={amendment.id} className="flex items-start justify-between p-3 bg-amber-50 border border-amber-100 rounded-lg">
+ <div className="flex-1 min-w-0">
+ <p className="text-sm font-medium text-foreground capitalize">{amendment.field_name.replace(/_/g, ' ')}</p>
+ <p className="text-xs text-muted-foreground mt-0.5">New value: <span className="font-medium text-foreground">{amendment.new_value}</span></p>
+ <p className="text-xs text-muted-foreground mt-0.5">Reason: {amendment.reason}</p>
+ <p className="text-xs text-muted-foreground mt-0.5">{formatDate(amendment.created_at)}</p>
+ </div>
+ <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">
+ {amendment.status}
+ </span>
+ </div>
+ ))}
+ </div>
+ </div>
+ )}
  </div>
  )}
 

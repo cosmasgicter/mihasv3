@@ -73,7 +73,8 @@ export const authService = {
     try {
       return await apiClient.request('/auth/session/', {
         method: 'GET',
-        skipCache: true,
+        retries: 0,
+        timeout: 5_000,
       })
     } catch (error) {
       logApiError('auth', '/api/v1/auth/session/', error)
@@ -107,7 +108,6 @@ export const authService = {
     try {
       return await apiClient.request('/auth/profile/', {
         method: 'GET',
-        skipCache: true,
       })
     } catch (error) {
       logApiError('auth', '/api/v1/auth/profile/', error)

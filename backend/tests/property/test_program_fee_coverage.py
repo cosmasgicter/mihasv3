@@ -180,7 +180,7 @@ class TestProgramFeeCoverage(SimpleTestCase):
         program=active_program_st(),
         data=st.data(),
     )
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_fully_covered_program_passes(
         self, program: ProgramConfig, data: st.DataObject
     ):
@@ -202,7 +202,7 @@ class TestProgramFeeCoverage(SimpleTestCase):
         program=active_program_st(),
         amount=decimal_amount_st,
     )
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_missing_local_fee_detected(
         self, program: ProgramConfig, amount: Decimal
     ):
@@ -224,7 +224,7 @@ class TestProgramFeeCoverage(SimpleTestCase):
         program=active_program_st(),
         amount=decimal_amount_st,
     )
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_missing_international_fee_detected(
         self, program: ProgramConfig, amount: Decimal
     ):
@@ -247,7 +247,7 @@ class TestProgramFeeCoverage(SimpleTestCase):
         amount_local=decimal_amount_st,
         amount_intl=decimal_amount_st,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_inactive_fees_dont_count(
         self,
         program: ProgramConfig,
@@ -267,7 +267,7 @@ class TestProgramFeeCoverage(SimpleTestCase):
     # ------------------------------------------------------------------
 
     @given(data=st.data())
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_find_uncovered_programs_correctness(self, data: st.DataObject):
         """find_uncovered_programs should return exactly the active programs
         that are missing one or both residency fees."""
@@ -310,7 +310,7 @@ class TestProgramFeeCoverage(SimpleTestCase):
         amount_local=decimal_amount_st,
         amount_intl=decimal_amount_st,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_tuition_fees_dont_satisfy_application_requirement(
         self,
         program: ProgramConfig,

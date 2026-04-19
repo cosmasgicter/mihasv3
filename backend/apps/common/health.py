@@ -54,16 +54,20 @@ class ReadinessView(APIView):
         db_ok = self._check_db()
         redis_ok = self._check_redis()
 
-        if db_ok and redis_ok:
+        # Return 200 as long as the database is healthy.
+        # Redis is non-critical — auth and API work without it (JTI blacklist
+        # and rate limiting fail-open). Returning 503 for Redis failures causes
+        # Koyeb to restart the instance, which makes the outage worse.
+        if db_ok:
             return Response(
-                {"status": "ok", "db": "ok", "redis": "ok"},
+                {"status": "ok", "db": "ok", "redis": "ok" if redis_ok else "degraded"},
                 status=200,
             )
 
         return Response(
             {
                 "status": "unhealthy",
-                "db": "ok" if db_ok else "error",
+                "db": "error",
                 "redis": "ok" if redis_ok else "error",
             },
             status=503,

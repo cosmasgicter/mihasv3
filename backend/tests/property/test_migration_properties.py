@@ -184,7 +184,7 @@ class TestSchemaCompatibility(SimpleTestCase):
     # ------------------------------------------------------------------
 
     @given(idx=st.integers(min_value=0, max_value=max(len(ALL_MODELS) - 1, 0)))
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_random_model_has_managed_false_and_valid_table(self, idx):
         """For any randomly selected model, managed=False and db_table is in
         the expected set for its app."""

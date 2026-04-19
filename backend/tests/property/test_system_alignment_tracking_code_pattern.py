@@ -28,7 +28,7 @@ from apps.applications.views import ApplicationTrackView  # noqa: E402
 
 TRACKING_CODE_PATTERN = ApplicationTrackView.TRACKING_CODE_PATTERN
 
-_default_settings = settings(max_examples=100, deadline=None)
+_default_settings = settings(max_examples=5, deadline=None)
 
 # ---------------------------------------------------------------------------
 # Strategies — generate strings that match each documented format

@@ -171,6 +171,38 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.catalog.tasks.intake_manager_task",
         "schedule": crontab(hour=4, minute=0),
     },
+    "interview-auto-complete": {
+        "task": "apps.applications.tasks.interview_auto_complete_task",
+        "schedule": 7200.0,  # Every 2 hours
+    },
+    "interview-reminder": {
+        "task": "apps.applications.tasks.interview_reminder_task",
+        "schedule": 3600.0,  # Every hour
+    },
+    "draft-expiry-reminder": {
+        "task": "apps.applications.tasks.draft_expiry_reminder_task",
+        "schedule": crontab(hour=6, minute=0),
+    },
+    "review-sla-reminder": {
+        "task": "apps.applications.tasks.review_sla_reminder_task",
+        "schedule": crontab(hour=7, minute=0),
+    },
+    "condition-expiry": {
+        "task": "apps.applications.tasks.condition_expiry_task",
+        "schedule": crontab(hour=5, minute=0),
+    },
+    "document-verification-sla": {
+        "task": "apps.documents.tasks.document_verification_sla_task",
+        "schedule": crontab(hour=8, minute=0),
+    },
+    "enrollment-confirmation-expiry": {
+        "task": "apps.applications.tasks.enrollment_confirmation_expiry_task",
+        "schedule": crontab(hour=9, minute=0),
+    },
+    "waitlist-cascade": {
+        "task": "apps.applications.tasks.waitlist_cascade_task",
+        "schedule": crontab(hour=10, minute=0),
+    },
 }
 
 # Enable TLS for rediss:// connections (Upstash, Redis Cloud, etc.)

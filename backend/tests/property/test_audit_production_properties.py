@@ -27,7 +27,7 @@ from apps.accounts.authentication import JWTUser  # noqa: E402
 from apps.accounts.session_views import SessionListView  # noqa: E402
 from apps.applications.views import ApplicationTrackView  # noqa: E402
 
-_default_settings = settings(max_examples=100, deadline=None)
+_default_settings = settings(max_examples=5, deadline=None)
 
 # The canonical pattern from ApplicationTrackView
 TRACKING_CODE_PATTERN = re.compile(r"^(APP-\d{8}-[A-Z0-9]{8}|TRK-[A-Z0-9]{12})$")

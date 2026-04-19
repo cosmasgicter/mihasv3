@@ -90,8 +90,7 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
 
     try {
       const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>(
-        `/payments/?application_id=${encodeURIComponent(applicationId)}`,
-        { skipCache: true }
+        `/payments/?application_id=${encodeURIComponent(applicationId)}`
       )
 
       if (!data) return

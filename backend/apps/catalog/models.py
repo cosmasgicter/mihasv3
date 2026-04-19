@@ -73,6 +73,7 @@ class Intake(models.Model):
     is_active = models.BooleanField(null=True, blank=True, default=True)
     created_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(null=True, blank=True)
+    grace_period_days = models.IntegerField(null=True, blank=True)
 
     class Meta:
         managed = False
@@ -137,3 +138,21 @@ class CourseRequirement(models.Model):
 
     def __str__(self):
         return f"{self.program_id} requires {self.subject_id} ≤ grade {self.minimum_grade}"
+
+
+class AcademicCalendarEvent(models.Model):
+    """Maps to 'academic_calendar_events' table."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    intake = models.ForeignKey(Intake, on_delete=models.CASCADE)
+    event_type = models.CharField(max_length=50)
+    event_date = models.DateField()
+    description = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = 'academic_calendar_events'
+
+    def __str__(self):
+        return f"{self.event_type} for intake {self.intake_id} on {self.event_date}"

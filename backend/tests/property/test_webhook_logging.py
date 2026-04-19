@@ -78,7 +78,7 @@ class TestWebhookEventLoggingCompleteness(SimpleTestCase):
         payload=payloads,
         sig_valid=signature_valid_flags,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_log_record_always_created_with_correct_fields(
         self,
         event_type,

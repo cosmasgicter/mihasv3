@@ -28,10 +28,10 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin
+from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin
 from apps.applications.filters import ApplicationFilter
 from apps.applications.models import (
-    Application, ApplicationDraft, ApplicationInterview, ApplicationStatusHistory,
+    Application, ApplicationCondition, ApplicationDraft, ApplicationInterview, ApplicationStatusHistory,
 )
 from apps.applications.serializers import (
     ApplicationBulkStatusSerializer, ApplicationCreateSerializer,
@@ -54,11 +54,16 @@ from apps.documents.serializers import DocumentSerializer
 from apps.applications.document_intelligence import DocumentIntelligence
 from apps.applications.duplicate_checker import DuplicateChecker
 from apps.applications.review_queue import ReviewQueueScorer
+from apps.applications.interview_service import (
+    InterviewSchedulingError,
+    InterviewService,
+)
 from apps.applications.services import (
     ApplicationSubmissionError,
     submit_application,
     transition_application_status,
 )
+from apps.common.communication_service import CommunicationService
 
 logger = logging.getLogger(__name__)
 
@@ -499,7 +504,7 @@ class ApplicationDetailView(APIView):
                     data["intake_enrollment"] = intake.current_enrollment
             except Exception:
                 pass
-        return Response(data)
+        return Response({"success": True, "data": data})
 
     def patch(self, request, application_id):
         return self._update_application(request, application_id)
@@ -913,6 +918,9 @@ class ApplicationReviewView(APIView):
         addr = request.META.get("REMOTE_ADDR", "")
         return addr if isinstance(addr, str) else ""
 
+    def patch(self, request, application_id):
+        return self.post(request, application_id)
+
     def post(self, request, application_id):
         try:
             app = Application.objects.get(id=application_id)
@@ -1008,14 +1016,34 @@ class ApplicationReviewView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             return Response({"success": True, "data": {"message": f"Status updated from {old_status} to {new_status}", "application_id": str(locked_app.id), "old_status": old_status, "new_status": new_status}})
-        old_status = transition_application_status(
-            application=app,
-            new_status=new_status,
-            changed_by=str(request.user.id),
-            notes=bypass_notes,
-            ip_address=ip_hash,
-            user_agent=user_agent,
-        )
+
+        # Conditional approval with conditions (Req 5.9, 5.10)
+        conditions_payload = request.data.get("conditions") if isinstance(request.data, dict) else None
+        if new_status == "conditionally_approved" and conditions_payload:
+            from apps.applications.condition_manager import ConditionError, ConditionManager
+
+            try:
+                old_status = app.status
+                ConditionManager.assign_conditions(
+                    application_id=str(application_id),
+                    conditions=conditions_payload,
+                    admin_id=str(request.user.id),
+                )
+                app.refresh_from_db()
+            except ConditionError as exc:
+                return Response(
+                    {"success": False, "error": exc.message, "code": exc.code},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        else:
+            old_status = transition_application_status(
+                application=app,
+                new_status=new_status,
+                changed_by=str(request.user.id),
+                notes=bypass_notes,
+                ip_address=ip_hash,
+                user_agent=user_agent,
+            )
 
         # Store force-bypass details in history changes JSONB (Req 5.4)
         if bypass_changes:
@@ -1026,59 +1054,65 @@ class ApplicationReviewView(APIView):
                 history.changes = bypass_changes
                 history.save(update_fields=['changes'])
 
+        # Assign waitlist position when application is waitlisted (Req 3.1)
+        if new_status == "waitlisted":
+            try:
+                from apps.applications.waitlist_manager import WaitlistManager
+                position = WaitlistManager.assign_position(app, app.program, app.intake)
+                CommunicationService.send('waitlist_position_assigned', app, {'position': str(position)})
+            except Exception:
+                logger.exception(
+                    "Failed to assign waitlist position for app=%s", app.id,
+                )
+
+        # Log override when admin manually approves a waitlisted app
+        # bypassing position order (Req 3.8)
+        if old_status == "waitlisted" and new_status == "approved":
+            if app.waitlist_position is not None and app.waitlist_position != 1:
+                try:
+                    from apps.applications.waitlist_manager import WaitlistManager
+                    WaitlistManager.log_override(app, str(request.user.id))
+                except Exception:
+                    logger.exception(
+                        "Failed to log waitlist override for app=%s", app.id,
+                    )
+
         # Sync intake enrollment on status changes that affect capacity
         if new_status in ("approved", "rejected"):
             from apps.applications.intake_enforcer import IntakeEnforcer
             IntakeEnforcer.sync_enrollment(app.intake)
 
+        # Set enrollment deadline on approval (Req 10.3, 10.4)
+        if new_status == "approved":
+            try:
+                from apps.applications.enrollment_service import EnrollmentService
+                deadline = EnrollmentService.compute_deadline(app)
+                app.enrollment_confirmation_deadline = deadline
+                app.save(update_fields=["enrollment_confirmation_deadline"])
+            except Exception:
+                logger.exception("Failed to set enrollment deadline for app=%s", app.id)
+
+        # Trigger waitlist promotion when a rejection frees a spot (Req 3.7)
+        if new_status == "rejected":
+            try:
+                from apps.applications.waitlist_manager import WaitlistManager
+                WaitlistManager.promote_next(app.program, app.intake)
+            except Exception:
+                logger.exception(
+                    "Failed to trigger waitlist promotion after rejection for app=%s",
+                    app.id,
+                )
+
         # Send notification to student on approval/rejection
         if new_status in ("approved", "rejected"):
             try:
-                from apps.common.models import EmailQueue, Notification
-                from apps.common.tasks import send_email_task
+                from apps.common.communication_service import CommunicationService
 
-                title = "🎉 Application Approved!" if new_status == "approved" else "Application Status Update"
-                message = (
-                    f"Your application for {app.program} ({app.intake}) has been {new_status}."
-                    if new_status == "approved"
-                    else f"Your application for {app.program} ({app.intake}) has been reviewed. Please check for feedback."
-                )
-                Notification.objects.create(
-                    user_id=app.user_id,
-                    title=title,
-                    message=message,
-                    type="success" if new_status == "approved" else "info",
-                    priority="high",
-                    action_url=f"/student/application/{app.id}",
-                )
-
-                # Dispatch email notification to the student
+                extra_ctx = {"admin_feedback": notes or ""}
                 if new_status == "approved":
-                    email_subject = "Your MIHAS Application Has Been Approved"
-                    email_body = (
-                        f"<p>Dear {app.full_name},</p>"
-                        f"<p>Congratulations! Your application for <strong>{app.program}</strong> "
-                        f"({app.intake}) has been <strong>approved</strong>.</p>"
-                        f"<p>Please log in to your account to view the details and next steps.</p>"
-                        f"<p>Best regards,<br>MIHAS Admissions</p>"
-                    )
+                    CommunicationService.send("application_approved", app, extra_ctx)
                 else:
-                    email_subject = "Update on Your MIHAS Application"
-                    email_body = (
-                        f"<p>Dear {app.full_name},</p>"
-                        f"<p>Your application for <strong>{app.program}</strong> "
-                        f"({app.intake}) has been reviewed.</p>"
-                        f"<p>Please log in to your account to check for feedback and further details.</p>"
-                        f"<p>Best regards,<br>MIHAS Admissions</p>"
-                    )
-
-                email_record = EmailQueue.objects.create(
-                    recipient_email=app.email,
-                    subject=email_subject,
-                    body=email_body,
-                    status="pending",
-                )
-                send_email_task.delay(str(email_record.id))
+                    CommunicationService.send("application_rejected", app, extra_ctx)
             except Exception:
                 logger.exception("Failed to create notification/email for application %s", app.id)
 
@@ -1220,11 +1254,20 @@ class ApplicationTrackView(APIView):
     )
 )
 class ApplicationBulkStatusView(APIView):
+    """Batch status transitions with safety guardrails.
+
+    Requirements: 13.1–13.9
+    """
+
     permission_classes = [IsAdmin]
     serializer_class = ApplicationBulkStatusSerializer
 
+    MAX_BATCH_SIZE = 25
+
     def post(self, request):
-        from apps.applications.services import transition_application_status
+        import hashlib as _hashlib
+
+        from apps.applications.services import ALLOWED_TRANSITIONS, transition_application_status
 
         serializer = ApplicationBulkStatusSerializer(data=request.data)
         if not serializer.is_valid():
@@ -1232,10 +1275,62 @@ class ApplicationBulkStatusView(APIView):
         app_ids = serializer.validated_data["application_ids"]
         new_status = serializer.validated_data["new_status"]
         notes = serializer.validated_data.get("notes", "")
+        confirmation_token = (request.data or {}).get("confirmation_token", "")
+
+        # Batch size limit (Req 13.1, 13.2)
+        if len(app_ids) > self.MAX_BATCH_SIZE:
+            return Response(
+                {
+                    "success": False,
+                    "error": f"Batch size exceeds maximum of {self.MAX_BATCH_SIZE}.",
+                    "code": "BATCH_SIZE_EXCEEDED",
+                    "limit": self.MAX_BATCH_SIZE,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Confirmation token validation (Req 13.5)
+        sorted_ids = sorted(str(aid) for aid in app_ids)
+        expected_token = _hashlib.sha256(
+            ("".join(sorted_ids) + new_status).encode("utf-8")
+        ).hexdigest()
+
+        if confirmation_token != expected_token:
+            return Response(
+                {
+                    "success": False,
+                    "error": "Invalid confirmation_token. Compute SHA-256 of sorted application IDs + target status.",
+                    "code": "INVALID_CONFIRMATION_TOKEN",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # All-or-nothing validation (Req 13.3, 13.4)
+        failures = []
         try:
             with transaction.atomic():
-                applications = Application.objects.filter(id__in=app_ids).select_for_update()
-                updated = 0
+                applications = list(Application.objects.filter(id__in=app_ids).select_for_update())
+
+                # Check all found
+                found_ids = {str(a.id) for a in applications}
+                for aid in app_ids:
+                    if str(aid) not in found_ids:
+                        failures.append({"application_id": str(aid), "code": "NOT_FOUND"})
+
+                # Validate transitions
+                for app in applications:
+                    allowed = ALLOWED_TRANSITIONS.get(app.status, set())
+                    if new_status not in allowed:
+                        failures.append({
+                            "application_id": str(app.id),
+                            "code": "INVALID_STATUS_TRANSITION",
+                            "current_status": app.status,
+                        })
+
+                if failures:
+                    raise ValueError("Validation failed")
+
+                # Apply transitions (Req 13.6, 13.7)
                 for app in applications:
                     transition_application_status(
                         application=app,
@@ -1243,11 +1338,58 @@ class ApplicationBulkStatusView(APIView):
                         changed_by=str(request.user.id),
                         notes=notes,
                     )
-                    updated += 1
+
+        except ValueError:
+            return Response(
+                {
+                    "success": False,
+                    "error": "Batch validation failed. No applications were updated.",
+                    "code": "BATCH_VALIDATION_FAILED",
+                    "failures": failures,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Exception:
             logger.exception("Bulk status update failed for applications %s", app_ids)
             return Response({"success": False, "error": "Bulk status update failed", "code": "BULK_UPDATE_ERROR"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response({"message": f"{updated} application(s) updated", "updated": updated})
+
+        # Send notifications for bulk status changes
+        for app in applications:
+            try:
+                if new_status == 'approved':
+                    CommunicationService.send('application_approved', app)
+                elif new_status == 'rejected':
+                    CommunicationService.send('application_rejected', app)
+                elif new_status == 'waitlisted':
+                    position = getattr(app, 'waitlist_position', None)
+                    CommunicationService.send('waitlist_position_assigned', app, {'position': str(position)})
+            except Exception:
+                logger.exception("Failed to send bulk status notification for app=%s", app.id)
+
+        # Trigger waitlist promotion on batch rejections (Req 13.8)
+        if new_status == "rejected":
+            affected_intakes = set()
+            for app in applications:
+                affected_intakes.add((app.program, app.intake))
+            for program, intake in affected_intakes:
+                try:
+                    from apps.applications.waitlist_manager import WaitlistManager
+                    WaitlistManager.promote_next(program, intake)
+                except Exception:
+                    logger.exception(
+                        "Failed to trigger waitlist promotion after batch rejection for program=%s intake=%s",
+                        program, intake,
+                    )
+
+        # Summary response (Req 13.9)
+        return Response({
+            "success": True,
+            "data": {
+                "processed": len(applications),
+                "status": new_status,
+                "application_ids": [str(a.id) for a in applications],
+            },
+        })
 
 
 @extend_schema_view(
@@ -1418,25 +1560,42 @@ class ApplicationInterviewView(APIView):
             return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
 
         try:
-            Application.objects.get(id=application_id)
+            application = Application.objects.get(id=application_id)
         except Application.DoesNotExist:
             return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
-        data = request.data.copy()
-        data["application_id"] = str(application_id)
-        serializer = ApplicationInterviewSerializer(data=data)
+
+        serializer = ApplicationInterviewWriteSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        interview = ApplicationInterview.objects.create(
-            application_id=application_id,
-            scheduled_at=serializer.validated_data["scheduled_at"],
-            mode=serializer.validated_data.get("mode", "in_person"),
-            location=serializer.validated_data.get("location", ""),
-            status=serializer.validated_data.get("status", "scheduled"),
-            notes=serializer.validated_data.get("notes", ""),
-            created_by_id=str(request.user.id),
-            updated_by_id=str(request.user.id),
-        )
-        return Response(ApplicationInterviewSerializer(interview).data, status=status.HTTP_201_CREATED)
+
+        scheduled_at = serializer.validated_data.get("scheduled_at")
+        if not scheduled_at:
+            return Response({"success": False, "error": "scheduled_at is required", "code": "VALIDATION_ERROR"}, status=status.HTTP_400_BAD_REQUEST)
+
+        mode = serializer.validated_data.get("mode", "in_person")
+        location = serializer.validated_data.get("location", "")
+        notes = serializer.validated_data.get("notes", "")
+        admin_id = str(request.user.id)
+
+        try:
+            interview, validation = InterviewService.schedule_interview(
+                application=application,
+                scheduled_at=scheduled_at,
+                mode=mode,
+                location=location,
+                notes=notes,
+                admin_id=admin_id,
+            )
+        except InterviewSchedulingError as exc:
+            return Response(
+                {"success": False, "error": exc.message, "code": exc.code},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        response_data = ApplicationInterviewSerializer(interview).data
+        if validation.get("warnings"):
+            response_data["warnings"] = validation["warnings"]
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
     def patch(self, request, application_id):
         return self._update_latest_interview(request, application_id)
@@ -1457,12 +1616,89 @@ class ApplicationInterviewView(APIView):
         if interview is None:
             return Response({"success": False, "error": "Interview not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = ApplicationInterviewSerializer(interview, data=request.data, partial=True)
+        serializer = ApplicationInterviewWriteSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer.save(updated_by_id=str(request.user.id))
-        return Response(serializer.data)
+        new_status = serializer.validated_data.get("status", "").strip()
+        admin_id = str(request.user.id)
+
+        # Route to service methods for rescheduled/cancelled status changes
+        if new_status == "rescheduled":
+            new_scheduled_at = serializer.validated_data.get("scheduled_at")
+            if not new_scheduled_at:
+                return Response(
+                    {"success": False, "error": "scheduled_at is required when rescheduling", "code": "VALIDATION_ERROR"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            try:
+                updated_interview, validation = InterviewService.reschedule_interview(
+                    interview=interview,
+                    new_scheduled_at=new_scheduled_at,
+                    mode=serializer.validated_data.get("mode") or None,
+                    location=serializer.validated_data.get("location") if "location" in serializer.validated_data else None,
+                    notes=serializer.validated_data.get("notes") if "notes" in serializer.validated_data else None,
+                    admin_id=admin_id,
+                    reason=serializer.validated_data.get("notes", ""),
+                )
+            except InterviewSchedulingError as exc:
+                return Response(
+                    {"success": False, "error": exc.message, "code": exc.code},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            response_data = ApplicationInterviewSerializer(updated_interview).data
+            if validation.get("warnings"):
+                response_data["warnings"] = validation["warnings"]
+            return Response(response_data)
+
+        if new_status == "cancelled":
+            cancellation_reason = serializer.validated_data.get("notes", "").strip()
+            try:
+                updated_interview = InterviewService.cancel_interview(
+                    interview=interview,
+                    cancellation_reason=cancellation_reason,
+                    admin_id=admin_id,
+                )
+            except InterviewSchedulingError as exc:
+                return Response(
+                    {"success": False, "error": exc.message, "code": exc.code},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            return Response(ApplicationInterviewSerializer(updated_interview).data)
+
+        # For other status updates, validate mode if provided
+        mode = serializer.validated_data.get("mode", "").strip()
+        if mode:
+            from apps.applications.interview_service import VALID_MODES
+            if mode not in VALID_MODES:
+                return Response(
+                    {"success": False, "error": f"Interview mode must be one of: {', '.join(sorted(VALID_MODES))}. Got: '{mode}'.", "code": "INVALID_MODE"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        # Generic field update for non-service-routed changes
+        update_fields = ["updated_by_id", "updated_at"]
+        interview.updated_by_id = admin_id
+        interview.updated_at = timezone.now()
+
+        if "scheduled_at" in serializer.validated_data and serializer.validated_data["scheduled_at"]:
+            interview.scheduled_at = serializer.validated_data["scheduled_at"]
+            update_fields.append("scheduled_at")
+        if mode:
+            interview.mode = mode
+            update_fields.append("mode")
+        if "location" in serializer.validated_data:
+            interview.location = serializer.validated_data["location"]
+            update_fields.append("location")
+        if new_status:
+            interview.status = new_status
+            update_fields.append("status")
+        if "notes" in serializer.validated_data:
+            interview.notes = serializer.validated_data["notes"]
+            update_fields.append("notes")
+
+        interview.save(update_fields=update_fields)
+        return Response(ApplicationInterviewSerializer(interview).data)
 
     def delete(self, request, application_id):
         if not IsAdmin().has_permission(request, self):
@@ -1926,3 +2162,764 @@ class EmailSlipView(APIView):
             {"success": True, "data": {"queued_id": str(email_record.id)}},
             status=status.HTTP_200_OK,
         )
+
+
+# ---------------------------------------------------------------------------
+# Withdrawal endpoint (Req 1.9, 1.10)
+# ---------------------------------------------------------------------------
+
+
+class WithdrawalReasonSerializer(serializers.Serializer):
+    withdrawal_reason = serializers.CharField(required=True)
+
+
+WithdrawalResponseSerializer = envelope_serializer(
+    "WithdrawalResponse",
+    ApplicationSerializer(),
+)
+
+
+@extend_schema_view(
+    post=extend_schema(
+        operation_id="applications_withdraw",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter(
+                "application_id",
+                OpenApiTypes.UUID,
+                OpenApiParameter.PATH,
+                description="Application UUID.",
+            ),
+        ],
+        request=WithdrawalReasonSerializer,
+        responses={
+            200: OpenApiResponse(response=WithdrawalResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+            409: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+)
+class ApplicationWithdrawView(APIView):
+    """Student-initiated application withdrawal.
+
+    POST /api/v1/applications/{id}/withdraw/
+    Owner only — admins use the review endpoint for rejection.
+    Supports idempotency via ``Idempotency-Key`` header.
+
+    Requirements: 1.9, 1.10
+    """
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = WithdrawalReasonSerializer
+
+    def post(self, request, application_id):
+        from datetime import timedelta
+
+        from apps.applications.withdrawal_service import WithdrawalError, WithdrawalService
+        from apps.common.models import IdempotencyKey
+
+        # --- Fetch application ---
+        try:
+            app = Application.objects.select_related("user").get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # --- Owner-only check (Req 1.9: not admin) ---
+        user_id = str(getattr(request.user, "id", ""))
+        if str(app.user_id) != user_id:
+            return Response(
+                {
+                    "success": False,
+                    "error": "Only the application owner can withdraw.",
+                    "code": "INSUFFICIENT_PERMISSIONS",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # --- Idempotency check (Req 1.10) ---
+        idempotency_key = request.META.get("HTTP_IDEMPOTENCY_KEY")
+        if idempotency_key:
+            try:
+                existing = IdempotencyKey.objects.get(key=idempotency_key)
+                return Response(existing.response_json)
+            except IdempotencyKey.DoesNotExist:
+                pass
+            except Exception:
+                logger.warning(
+                    "Idempotency key lookup failed: key=%s app=%s",
+                    idempotency_key,
+                    application_id,
+                )
+
+        # --- Validate request body ---
+        withdrawal_reason = (request.data or {}).get("withdrawal_reason", "")
+
+        # --- Extract client metadata for audit ---
+        ip_address = request.META.get("REMOTE_ADDR", "")
+        user_agent = request.META.get("HTTP_USER_AGENT", "")
+
+        # --- Perform withdrawal ---
+        try:
+            withdrawn_app = WithdrawalService.withdraw(
+                application_id=str(application_id),
+                user_id=user_id,
+                reason=withdrawal_reason,
+                ip_address=ip_address,
+                user_agent=user_agent,
+            )
+        except WithdrawalError as exc:
+            return Response(
+                {"success": False, "error": exc.message, "code": exc.code},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        response_data = {"success": True, "data": ApplicationSerializer(withdrawn_app).data}
+
+        # --- Store idempotency key (Req 1.10) ---
+        if idempotency_key:
+            try:
+                IdempotencyKey.objects.create(
+                    key=idempotency_key,
+                    endpoint=f"/api/v1/applications/{application_id}/withdraw/",
+                    response_json=response_data,
+                )
+                # Inline cleanup: remove keys older than 1 hour
+                IdempotencyKey.objects.filter(
+                    created_at__lt=timezone.now() - timedelta(hours=1),
+                ).delete()
+            except Exception:
+                logger.warning(
+                    "Idempotency key store/cleanup failed: key=%s app=%s",
+                    idempotency_key,
+                    application_id,
+                )
+
+        return Response(response_data)
+
+
+class ApplicationWaitlistPositionView(APIView):
+    """Return waitlist position and total for an application.
+
+    GET /api/v1/applications/{id}/waitlist-position/
+    Owner or admin.
+
+    Requirements: 3.9
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, application_id):
+        from apps.applications.waitlist_manager import WaitlistError, WaitlistManager
+
+        # --- Fetch application ---
+        try:
+            app = Application.objects.select_related("user").get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # --- Owner or admin check ---
+        user_id = str(getattr(request.user, "id", ""))
+        role = getattr(request.user, "role", "")
+        is_admin = role in ("admin", "super_admin")
+        is_owner = str(app.user_id) == user_id
+
+        if not is_owner and not is_admin:
+            return Response(
+                {
+                    "success": False,
+                    "error": "You do not have permission to view this.",
+                    "code": "INSUFFICIENT_PERMISSIONS",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # --- Get waitlist position ---
+        try:
+            position_data = WaitlistManager.get_position(str(application_id))
+        except WaitlistError as exc:
+            return Response(
+                {"success": False, "error": exc.message, "code": exc.code},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response({"success": True, "data": position_data})
+
+
+class ApplicationConditionSerializer(serializers.Serializer):
+    """Read serializer for ApplicationCondition."""
+
+    id = serializers.UUIDField()
+    application_id = serializers.UUIDField()
+    description = serializers.CharField()
+    condition_type = serializers.CharField()
+    deadline = serializers.DateField()
+    status = serializers.CharField()
+    met_at = serializers.DateTimeField(allow_null=True)
+    verified_by = serializers.UUIDField(allow_null=True, source="verified_by_id")
+    notes = serializers.CharField(allow_null=True)
+    created_at = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+
+
+class ConditionVerifyRequestSerializer(serializers.Serializer):
+    """Request body for verifying a condition."""
+
+    status = serializers.ChoiceField(choices=["met", "waived"])
+
+
+class ApplicationConditionsView(APIView):
+    """List conditions for an application.
+
+    GET /api/v1/applications/{id}/conditions/
+    Owner or admin.
+
+    Requirements: 5.9
+    """
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = ApplicationConditionSerializer
+
+    def get(self, request, application_id):
+        # --- Fetch application ---
+        try:
+            app = Application.objects.select_related("user").get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # --- Owner or admin check ---
+        user_id = str(getattr(request.user, "id", ""))
+        role = getattr(request.user, "role", "")
+        is_admin = role in ("admin", "super_admin")
+        is_owner = str(app.user_id) == user_id
+
+        if not is_owner and not is_admin:
+            return Response(
+                {
+                    "success": False,
+                    "error": "You do not have permission to view this.",
+                    "code": "INSUFFICIENT_PERMISSIONS",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        conditions = ApplicationCondition.objects.filter(
+            application_id=application_id,
+        ).order_by("deadline", "created_at")
+
+        data = ApplicationConditionSerializer(conditions, many=True).data
+        return Response({"success": True, "data": data})
+
+
+class ApplicationConditionVerifyView(APIView):
+    """Verify a condition as met or waived.
+
+    POST /api/v1/applications/{id}/conditions/{cid}/verify/
+    Admin only.
+
+    Requirements: 5.10
+    """
+
+    permission_classes = [IsAdmin]
+    serializer_class = ConditionVerifyRequestSerializer
+
+    def post(self, request, application_id, condition_id):
+        from apps.applications.condition_manager import ConditionError, ConditionManager
+
+        # --- Validate application exists ---
+        try:
+            Application.objects.get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # --- Validate condition belongs to this application ---
+        try:
+            condition = ApplicationCondition.objects.get(
+                id=condition_id, application_id=application_id,
+            )
+        except ApplicationCondition.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Condition not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # --- Validate request body ---
+        serializer = ConditionVerifyRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                {
+                    "success": False,
+                    "error": "Validation failed",
+                    "code": "VALIDATION_ERROR",
+                    "details": serializer.errors,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        target_status = serializer.validated_data["status"]
+
+        # --- Verify condition ---
+        try:
+            updated_condition = ConditionManager.verify_condition(
+                condition_id=str(condition_id),
+                status=target_status,
+                admin_id=str(request.user.id),
+            )
+        except ConditionError as exc:
+            return Response(
+                {"success": False, "error": exc.message, "code": exc.code},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        data = ApplicationConditionSerializer(updated_condition).data
+        return Response({"success": True, "data": data})
+
+
+# ---------------------------------------------------------------------------
+# Task 14.2: Enrollment Confirmation Endpoint (Req 10.5)
+# ---------------------------------------------------------------------------
+
+
+class ApplicationConfirmEnrollmentView(APIView):
+    """Student enrollment confirmation.
+
+    POST /api/v1/applications/{id}/confirm-enrollment/
+    Owner only.
+
+    Requirements: 10.5
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, application_id):
+        from apps.applications.enrollment_service import EnrollmentError, EnrollmentService
+
+        try:
+            app = Application.objects.select_related("user").get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Owner-only check
+        user_id = str(getattr(request.user, "id", ""))
+        if str(app.user_id) != user_id:
+            return Response(
+                {
+                    "success": False,
+                    "error": "Only the application owner can confirm enrollment.",
+                    "code": "INSUFFICIENT_PERMISSIONS",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            enrolled_app = EnrollmentService.confirm_enrollment(
+                application_id=str(application_id),
+                user_id=user_id,
+            )
+        except EnrollmentError as exc:
+            return Response(
+                {"success": False, "error": exc.message, "code": exc.code},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response({"success": True, "data": ApplicationSerializer(enrolled_app).data})
+
+
+# ---------------------------------------------------------------------------
+# Task 15.1: Reviewer Assignment Endpoints (Req 11)
+# ---------------------------------------------------------------------------
+
+
+class ApplicationAssignView(APIView):
+    """Assign an application to a specific reviewer.
+
+    POST /api/v1/applications/{id}/assign/
+    Super admin only.
+
+    Requirements: 11.1–11.4, 11.10
+    """
+
+    permission_classes = [IsSuperAdmin]
+
+    def post(self, request, application_id):
+        from apps.accounts.models import Profile
+
+        try:
+            app = Application.objects.get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        reviewer_id = (request.data or {}).get("reviewer_id")
+        if not reviewer_id:
+            return Response(
+                {"success": False, "error": "reviewer_id is required.", "code": "VALIDATION_ERROR"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Validate reviewer exists and has admin/reviewer role
+        try:
+            reviewer = Profile.objects.get(id=reviewer_id)
+        except Profile.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Reviewer not found.", "code": "REVIEWER_NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if reviewer.role not in ("admin", "reviewer", "super_admin"):
+            return Response(
+                {
+                    "success": False,
+                    "error": "Target user must have admin or reviewer role.",
+                    "code": "INVALID_REVIEWER_ROLE",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        old_reviewer_id = str(app.assigned_reviewer_id_id) if app.assigned_reviewer_id_id else None
+        app.assigned_reviewer_id = reviewer
+        app.save(update_fields=["assigned_reviewer_id"])
+
+        # Record in history (Req 11.10)
+        ApplicationStatusHistory.objects.create(
+            application=app,
+            status=app.status,
+            old_status=app.status,
+            new_status=app.status,
+            changed_by_id=str(request.user.id),
+            notes=f"Reviewer assigned: {reviewer.email} (was: {old_reviewer_id or 'unassigned'})",
+        )
+
+        # Notify assigned reviewer (Req 11.3)
+        try:
+            from apps.common.models import Notification
+
+            Notification.objects.create(
+                user_id=reviewer.id,
+                title="Application Assigned to You",
+                message=f"Application {app.application_number} for {app.program} ({app.intake}) has been assigned to you for review.",
+                type="info",
+                priority="normal",
+                action_url=f"/admin/applications/{app.id}",
+            )
+        except Exception:
+            logger.exception("Failed to notify reviewer for app=%s", app.id)
+
+        return Response({
+            "success": True,
+            "data": {
+                "application_id": str(app.id),
+                "assigned_reviewer_id": str(reviewer.id),
+                "assigned_reviewer_email": reviewer.email,
+            },
+        })
+
+
+class ApplicationAutoAssignView(APIView):
+    """Auto-assign unassigned submitted applications using round-robin.
+
+    POST /api/v1/applications/auto-assign/
+    Super admin only.
+
+    Requirements: 11.5–11.7
+    """
+
+    permission_classes = [IsSuperAdmin]
+
+    def post(self, request):
+        from apps.accounts.models import Profile
+        from apps.common.models import Setting
+
+        # Get max workload from SystemSetting
+        max_workload = 20
+        try:
+            setting = Setting.objects.filter(key="max_reviewer_workload").first()
+            if setting and setting.value:
+                max_workload = int(setting.value)
+        except Exception:
+            pass
+
+        # Get active reviewers (admin or reviewer role)
+        reviewers = list(
+            Profile.objects.filter(
+                role__in=["admin", "reviewer", "super_admin"],
+                is_active=True,
+            ).order_by("created_at")
+        )
+
+        if not reviewers:
+            return Response(
+                {"success": False, "error": "No active reviewers available.", "code": "NO_REVIEWERS"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Get unassigned submitted applications
+        unassigned = Application.objects.filter(
+            status__in=["submitted", "under_review"],
+            assigned_reviewer_id__isnull=True,
+        ).order_by("created_at")
+
+        assigned_count = 0
+        assignments = []
+        reviewer_idx = 0
+
+        for app in unassigned:
+            # Find next reviewer under workload cap (round-robin)
+            assigned = False
+            for _ in range(len(reviewers)):
+                reviewer = reviewers[reviewer_idx % len(reviewers)]
+                reviewer_idx += 1
+
+                current_workload = Application.objects.filter(
+                    assigned_reviewer_id=reviewer.id,
+                    status__in=["submitted", "under_review", "waitlisted"],
+                ).count()
+
+                if current_workload < max_workload:
+                    app.assigned_reviewer_id = reviewer
+                    app.save(update_fields=["assigned_reviewer_id"])
+
+                    ApplicationStatusHistory.objects.create(
+                        application=app,
+                        status=app.status,
+                        old_status=app.status,
+                        new_status=app.status,
+                        changed_by_id=str(request.user.id),
+                        notes=f"Auto-assigned to reviewer: {reviewer.email}",
+                    )
+
+                    assignments.append({
+                        "application_id": str(app.id),
+                        "reviewer_id": str(reviewer.id),
+                    })
+                    assigned_count += 1
+                    assigned = True
+                    break
+
+            if not assigned:
+                break  # All reviewers at capacity
+
+        return Response({
+            "success": True,
+            "data": {
+                "assigned_count": assigned_count,
+                "assignments": assignments,
+            },
+        })
+
+
+# ---------------------------------------------------------------------------
+# Task 16.2: Fee Waiver Endpoint (Req 12)
+# ---------------------------------------------------------------------------
+
+
+class ApplicationFeeWaiverView(APIView):
+    """Grant a fee waiver for an application.
+
+    POST /api/v1/applications/{id}/fee-waiver/
+    Super admin only.
+
+    Requirements: 12.2, 12.7
+    """
+
+    permission_classes = [IsSuperAdmin]
+
+    def post(self, request, application_id):
+        from apps.documents.fee_waiver_service import FeeWaiverError, FeeWaiverService
+
+        try:
+            app = Application.objects.get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        data = request.data or {}
+        waiver_type = data.get("waiver_type")
+        reason_code = data.get("reason_code")
+        discount_percentage = data.get("discount_percentage", 100)
+        notes = data.get("notes", "")
+
+        if not waiver_type or not reason_code:
+            return Response(
+                {
+                    "success": False,
+                    "error": "waiver_type and reason_code are required.",
+                    "code": "VALIDATION_ERROR",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            waiver = FeeWaiverService.grant_waiver(
+                application_id=str(application_id),
+                waiver_type=waiver_type,
+                reason_code=reason_code,
+                discount_percentage=int(discount_percentage),
+                admin_id=str(request.user.id),
+                notes=notes,
+            )
+        except FeeWaiverError as exc:
+            return Response(
+                {"success": False, "error": exc.message, "code": exc.code},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response({
+            "success": True,
+            "data": {
+                "waiver_id": str(waiver.id),
+                "application_id": str(app.id),
+                "waiver_type": waiver.waiver_type,
+                "reason_code": waiver.reason_code,
+                "discount_percentage": waiver.discount_percentage,
+            },
+        })
+
+
+# ---------------------------------------------------------------------------
+# Task 18.2: Amendment Endpoints (Req 14)
+# ---------------------------------------------------------------------------
+
+
+class ApplicationAmendmentView(APIView):
+    """Request an amendment to a submitted application.
+
+    POST /api/v1/applications/{id}/amendments/
+    Owner only.
+
+    Requirements: 14.2
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, application_id):
+        from apps.applications.amendment_service import AmendmentError, AmendmentService
+
+        try:
+            app = Application.objects.select_related("user").get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Owner-only check
+        user_id = str(getattr(request.user, "id", ""))
+        if str(app.user_id) != user_id:
+            return Response(
+                {
+                    "success": False,
+                    "error": "Only the application owner can request amendments.",
+                    "code": "INSUFFICIENT_PERMISSIONS",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        data = request.data or {}
+        field_name = data.get("field_name")
+        new_value = data.get("new_value")
+        reason = data.get("reason")
+
+        if not field_name or not new_value or not reason:
+            return Response(
+                {
+                    "success": False,
+                    "error": "field_name, new_value, and reason are required.",
+                    "code": "VALIDATION_ERROR",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            amendment = AmendmentService.request_amendment(
+                application_id=str(application_id),
+                field_name=field_name,
+                new_value=new_value,
+                reason=reason,
+                user_id=user_id,
+            )
+        except AmendmentError as exc:
+            return Response(
+                {"success": False, "error": exc.message, "code": exc.code},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response({
+            "success": True,
+            "data": {
+                "amendment_id": str(amendment.id),
+                "application_id": str(app.id),
+                "field_name": amendment.field_name,
+                "new_value": amendment.new_value,
+                "status": amendment.status,
+            },
+        })
+
+
+class ApplicationAmendmentReviewView(APIView):
+    """Review (approve/reject) an amendment.
+
+    POST /api/v1/applications/{id}/amendments/{aid}/review/
+    Admin only.
+
+    Requirements: 14.7
+    """
+
+    permission_classes = [IsAdmin]
+
+    def post(self, request, application_id, amendment_id):
+        from apps.applications.amendment_service import AmendmentError, AmendmentService
+
+        data = request.data or {}
+        target_status = data.get("status")
+
+        if target_status not in ("approved", "rejected"):
+            return Response(
+                {
+                    "success": False,
+                    "error": "status must be 'approved' or 'rejected'.",
+                    "code": "VALIDATION_ERROR",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            amendment = AmendmentService.review_amendment(
+                amendment_id=str(amendment_id),
+                status=target_status,
+                admin_id=str(request.user.id),
+            )
+        except AmendmentError as exc:
+            return Response(
+                {"success": False, "error": exc.message, "code": exc.code},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response({
+            "success": True,
+            "data": {
+                "amendment_id": str(amendment.id),
+                "field_name": amendment.field_name,
+                "status": amendment.status,
+            },
+        })

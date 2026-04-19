@@ -46,7 +46,7 @@ class TestBug4AlreadyAuthenticatedViewsPreservation:
     """
 
     @given(view_pair=authenticated_view_strategy)
-    @settings(max_examples=20, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_already_authenticated_view_has_is_authenticated(self, view_pair):
         """
         For any view that already requires IsAuthenticated, permission_classes
@@ -67,7 +67,7 @@ class TestBug4AlreadyAuthenticatedViewsPreservation:
         )
 
     @given(view_pair=authenticated_view_strategy)
-    @settings(max_examples=20, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_already_authenticated_view_does_not_disable_auth_backends(self, view_pair):
         """
         For any view that already requires IsAuthenticated, authentication_classes

@@ -15,11 +15,15 @@ logger = logging.getLogger(__name__)
 
 # Valid status transitions enforced by transition_application_status().
 # Any (old_status, new_status) pair not represented here is rejected.
+# Terminal statuses (no outbound transitions): rejected, withdrawn, expired,
+# enrolled, enrollment_expired.
 ALLOWED_TRANSITIONS: dict[str, set[str]] = {
-    "draft": {"submitted"},
-    "submitted": {"under_review", "approved", "rejected"},
-    "under_review": {"approved", "rejected", "waitlisted"},
-    "waitlisted": {"approved", "rejected"},
+    "draft": {"submitted", "expired"},
+    "submitted": {"under_review", "approved", "rejected", "withdrawn"},
+    "under_review": {"approved", "rejected", "waitlisted", "conditionally_approved", "withdrawn"},
+    "waitlisted": {"approved", "rejected", "conditionally_approved", "withdrawn"},
+    "conditionally_approved": {"approved", "rejected", "enrolled", "enrollment_expired", "withdrawn"},
+    "approved": {"enrolled", "enrollment_expired"},
 }
 
 # Error code raised when a disallowed transition is attempted.
@@ -36,6 +40,8 @@ _STATUS_TRANSITION_UPDATE_FIELDS = [
     "admin_feedback_by",
     "decision_date",
     "updated_at",
+    "waitlist_position",
+    "enrollment_confirmation_deadline",
 ]
 
 
@@ -100,7 +106,7 @@ def transition_application_status(
         application.admin_feedback_date = timezone.now()
         application.admin_feedback_by_id = changed_by
 
-    if new_status in ("approved", "rejected"):
+    if new_status in ("approved", "rejected", "conditionally_approved", "withdrawn", "expired", "enrolled", "enrollment_expired"):
         application.decision_date = timezone.now()
 
     application.save(update_fields=_STATUS_TRANSITION_UPDATE_FIELDS)
@@ -164,6 +170,45 @@ def submit_application(
     if not intake_check.allowed:
         raise ApplicationSubmissionError(intake_check.code, intake_check.message)
 
+    # Late application fee enforcement (Req 6.3, 6.5, 6.6, 6.7)
+    late_fee_amount = None
+    if intake_check.is_late:
+        from apps.documents.fee_resolver import FeeResolver
+        from apps.documents.models import ProgramFee
+
+        try:
+            from apps.catalog.models import Program
+            program_obj = Program.objects.filter(name=application.program, is_active=True).first()
+            if program_obj:
+                late_fee = ProgramFee.objects.filter(
+                    program=program_obj,
+                    fee_type="late_application",
+                    is_active=True,
+                ).first()
+                if late_fee:
+                    late_fee_amount = late_fee.amount
+                    # Check if late fee has been paid
+                    late_fee_paid = Payment.objects.filter(
+                        application_id=application.id,
+                        status="successful",
+                        metadata__fee_type="late_application",
+                    ).exists()
+                    # Also allow if payment_status is force_approved (admin bypass)
+                    if not late_fee_paid and application.payment_status != "force_approved":
+                        raise ApplicationSubmissionError(
+                            "LATE_FEE_REQUIRED",
+                            f"A late application fee of {late_fee.amount} {late_fee.currency} "
+                            "must be paid before submitting a late application.",
+                        )
+        except ApplicationSubmissionError:
+            raise
+        except Exception:
+            logger.warning(
+                "Late fee check failed for application %s, allowing submission",
+                application.id,
+                exc_info=True,
+            )
+
     with transaction.atomic():
         locked_app = Application.objects.select_for_update().get(id=application.id)
         if locked_app.status != "draft":
@@ -199,7 +244,14 @@ def submit_application(
         now = timezone.now()
         locked_app.submitted_at = locked_app.submitted_at or now
         locked_app.updated_at = now
-        locked_app.save(update_fields=["submitted_at", "updated_at"])
+        update_fields = ["submitted_at", "updated_at"]
+
+        # Flag late submissions (Req 6.3)
+        if intake_check.is_late:
+            locked_app.is_late_submission = True
+            update_fields.append("is_late_submission")
+
+        locked_app.save(update_fields=update_fields)
 
         # Atomically increment intake enrollment (Req 6.5, AUDIT-1.6-002)
         IntakeEnforcer.increment_enrollment(locked_app.intake, locked_app.program)

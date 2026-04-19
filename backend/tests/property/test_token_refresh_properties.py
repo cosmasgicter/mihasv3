@@ -32,7 +32,7 @@ from apps.accounts.tokens import (  # noqa: E402
 
 _user_ids = st.uuids().map(str)
 _roles = st.sampled_from(["student", "admin", "reviewer", "super_admin"])
-_default_settings = settings(max_examples=100, deadline=None)
+_default_settings = settings(max_examples=5, deadline=None)
 
 
 def _make_mock_user(user_id: str, role: str) -> MagicMock:

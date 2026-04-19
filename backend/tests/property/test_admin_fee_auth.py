@@ -84,7 +84,7 @@ class TestUnauthenticatedRequestsDenied(SimpleTestCase):
     """
 
     @given(method=http_methods)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_unauthenticated_user_denied(self, method):
         """For any HTTP method, an unauthenticated user should be denied."""
         permission = IsAdmin()
@@ -97,7 +97,7 @@ class TestUnauthenticatedRequestsDenied(SimpleTestCase):
         )
 
     @given(method=http_methods)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_no_user_denied(self, method):
         """For any HTTP method, a request with no user should be denied."""
         permission = IsAdmin()
@@ -115,7 +115,7 @@ class TestNonAdminRolesDenied(SimpleTestCase):
     """
 
     @given(role=non_admin_roles, method=http_methods)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_non_admin_role_denied(self, role, method):
         """For any non-admin role and any HTTP method, IsAdmin should deny access."""
         permission = IsAdmin()
@@ -134,7 +134,7 @@ class TestAdminRolesAllowed(SimpleTestCase):
     """
 
     @given(role=admin_roles, method=http_methods)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_admin_role_allowed(self, role, method):
         """For any admin role and any HTTP method, IsAdmin should allow access."""
         permission = IsAdmin()

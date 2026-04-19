@@ -12,6 +12,9 @@ interface FiltersPanelProps {
   programFilter: string
   institutionFilter: string
   draftFilter: string
+  assignedReviewerFilter?: string
+  lateSubmissionFilter?: string
+  pendingAmendmentsFilter?: string
   onFilterChange: (key: keyof ApplicationFilters, value: string) => void
 }
 
@@ -22,6 +25,9 @@ export function FiltersPanel({
   programFilter,
   institutionFilter,
   draftFilter,
+  assignedReviewerFilter = '',
+  lateSubmissionFilter = '',
+  pendingAmendmentsFilter = '',
   onFilterChange
 }: FiltersPanelProps) {
   // Local state keeps the input responsive on every keystroke
@@ -124,7 +130,7 @@ export function FiltersPanel({
         </div>
       </div>
       
-      {/* Second row for institution filter */}
+      {/* Second row for institution filter and new filters */}
       <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mt-4">
         <div className="md:col-span-2">
           <label htmlFor="institution-filter" className="sr-only">Institution filter</label>
@@ -137,6 +143,45 @@ export function FiltersPanel({
             <option value="">All Institutions</option>
             <option value="Kalulushi Training Centre">Kalulushi Training Centre</option>
             <option value="Mukuba Institute of Health and Allied Sciences">Mukuba Institute of Health and Allied Sciences</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="late-submission-filter" className="sr-only">Late submission filter</label>
+          <select
+            id="late-submission-filter"
+            value={lateSubmissionFilter}
+            onChange={(e) => onFilterChange('lateSubmissionFilter', e.target.value)}
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            <option value="">Late Submission</option>
+            <option value="true">Late Only</option>
+            <option value="false">On-time Only</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="pending-amendments-filter" className="sr-only">Pending amendments filter</label>
+          <select
+            id="pending-amendments-filter"
+            value={pendingAmendmentsFilter}
+            onChange={(e) => onFilterChange('pendingAmendmentsFilter', e.target.value)}
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            <option value="">Amendments</option>
+            <option value="true">Has Pending Amendments</option>
+            <option value="false">No Pending Amendments</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="assigned-reviewer-filter" className="sr-only">Assigned reviewer filter</label>
+          <select
+            id="assigned-reviewer-filter"
+            value={assignedReviewerFilter}
+            onChange={(e) => onFilterChange('assignedReviewerFilter', e.target.value)}
+            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            <option value="">All Reviewers</option>
+            <option value="assigned">Has Reviewer</option>
+            <option value="unassigned">No Reviewer</option>
           </select>
         </div>
       </div>

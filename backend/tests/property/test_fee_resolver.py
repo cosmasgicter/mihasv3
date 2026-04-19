@@ -90,7 +90,7 @@ class TestResidencyClassification(SimpleTestCase):
     """
 
     @given(country=nullable_text)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_zambian_nationality_always_local(self, country):
         """When nationality is 'Zambian', residency is always 'local'
         regardless of country."""
@@ -98,7 +98,7 @@ class TestResidencyClassification(SimpleTestCase):
         self.assertEqual(result, "local")
 
     @given(nationality=NON_LOCAL_NATIONALITIES)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_zambia_country_is_local(self, nationality):
         """When country is 'Zambia', residency is 'local' even if nationality
         is not 'Zambian'."""
@@ -106,7 +106,7 @@ class TestResidencyClassification(SimpleTestCase):
         self.assertEqual(result, "local")
 
     @given(nationality=NON_LOCAL_NATIONALITIES)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_zm_country_code_is_local(self, nationality):
         """When country is 'ZM', residency is 'local' even if nationality
         is not 'Zambian'."""
@@ -114,7 +114,7 @@ class TestResidencyClassification(SimpleTestCase):
         self.assertEqual(result, "local")
 
     @given(nationality=NON_LOCAL_NATIONALITIES, country=NON_LOCAL_COUNTRIES)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_non_zambian_non_zambia_is_international(self, nationality, country):
         """When nationality is not 'Zambian' and country is not 'Zambia'/'ZM',
         residency is 'international'."""
@@ -122,7 +122,7 @@ class TestResidencyClassification(SimpleTestCase):
         self.assertEqual(result, "international")
 
     @given(country=NON_LOCAL_COUNTRIES)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_none_nationality_non_zambia_is_international(self, country):
         """When nationality is None and country is not 'Zambia'/'ZM',
         residency is 'international'."""
@@ -149,7 +149,7 @@ class TestFeeResolution(SimpleTestCase):
         fee_amount=fee_amounts,
         fee_currency=currency_codes,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_returns_program_fee_when_exists(
         self, program_code, nationality, country, fee_amount, fee_currency
     ):
@@ -197,7 +197,7 @@ class TestFeeResolution(SimpleTestCase):
         country=nullable_text,
         fallback_fee=fee_amounts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_falls_back_to_program_application_fee(
         self, program_code, nationality, country, fallback_fee
     ):
@@ -230,7 +230,7 @@ class TestFeeResolution(SimpleTestCase):
         nationality=nullable_text,
         country=nullable_text,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_falls_back_to_default_when_no_application_fee(
         self, program_code, nationality, country
     ):

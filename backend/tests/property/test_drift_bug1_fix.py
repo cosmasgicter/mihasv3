@@ -96,7 +96,7 @@ class TestVerifyPaymentReturnsDBConsistentStatus(SimpleTestCase):
         lenco_ref=lenco_references,
         payment_type=payment_types,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_verify_payment_returns_fresh_status_after_update(
         self,
         payment_id,

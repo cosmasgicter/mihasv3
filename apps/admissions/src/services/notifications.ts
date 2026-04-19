@@ -147,7 +147,6 @@ export const notificationService = {
   list: () =>
     apiClient.request('/notifications/', {
       method: 'GET',
-      useCache: false,
     }),
 
   /** Mark a single notification as read. Maps to PUT /notifications/{id}/read/ */

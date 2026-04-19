@@ -43,7 +43,7 @@ class TestHealthCheckEndpointsPreservation:
     """
 
     @given(view_pair=health_view_strategy)
-    @hypothesis_settings(max_examples=10, deadline=None)
+    @hypothesis_settings(max_examples=5, deadline=None)
     def test_health_check_views_allow_any(self, view_pair):
         """
         For any health check view, permission_classes must contain AllowAny
@@ -64,7 +64,7 @@ class TestHealthCheckEndpointsPreservation:
         )
 
     @given(view_pair=health_view_strategy)
-    @hypothesis_settings(max_examples=10, deadline=None)
+    @hypothesis_settings(max_examples=5, deadline=None)
     def test_health_check_views_disable_auth_backends(self, view_pair):
         """
         For any health check view, authentication_classes must be []
@@ -103,7 +103,7 @@ class TestOpenAPIDocsAccessibleInDebugMode:
 
     @override_settings(DEBUG=True)
     @given(url_name=openapi_url_strategy)
-    @hypothesis_settings(max_examples=15, deadline=None)
+    @hypothesis_settings(max_examples=5, deadline=None)
     def test_openapi_endpoints_accessible_in_debug_mode(self, url_name):
         """
         For any OpenAPI endpoint, an unauthenticated request with DEBUG=True

@@ -50,7 +50,7 @@ export const communicationsService = {
   listNotifications: (params: PaginationParams & NotificationFilters) =>
     apiClient.request<PaginatedResponse<Record<string, unknown>>>(
       `/notifications/${buildQueryString({ ...params })}`,
-      { method: 'GET', useCache: false }
+      { method: 'GET' }
     ),
 
   /** Fetch paginated application status history. Maps to GET /applications/history/ */
@@ -62,7 +62,7 @@ export const communicationsService = {
     }
     return apiClient.request<PaginatedResponse<TimelineEntry>>(
       `/applications/history/${buildQueryString(queryParams)}`,
-      { method: 'GET', useCache: false }
+      { method: 'GET' }
     )
   },
 
@@ -70,6 +70,6 @@ export const communicationsService = {
   listUserNotifications: (userId: string, params: PaginationParams) =>
     apiClient.request<PaginatedResponse<Record<string, unknown>>>(
       `/notifications/user/${encodeURIComponent(userId)}/${buildQueryString({ ...params })}`,
-      { method: 'GET', useCache: false }
+      { method: 'GET' }
     ),
 }

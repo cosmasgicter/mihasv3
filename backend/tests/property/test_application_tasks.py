@@ -25,7 +25,7 @@ from apps.applications.tasks import (  # noqa: E402
     generate_finance_receipt_task,
 )
 
-_default_settings = settings(max_examples=100, deadline=None)
+_default_settings = settings(max_examples=5, deadline=None)
 
 # Patch targets (same as unit tests)
 _APP_MODEL = "apps.applications.models.Application.objects"

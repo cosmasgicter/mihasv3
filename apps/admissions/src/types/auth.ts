@@ -33,8 +33,6 @@ export interface User {
   email_confirmed_at?: string;
   created_at?: string;
   updated_at?: string;
-  user_metadata?: Record<string, unknown>;
-  app_metadata?: Record<string, unknown>;
 }
 
 /**

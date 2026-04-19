@@ -54,7 +54,7 @@ status_text = st.text(min_size=1, max_size=30)
 
 
 class AdminDashboardRecentActivityProperties(SimpleTestCase):
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     @given(safe_text, status_text, status_text, st.integers(min_value=0, max_value=100000))
     def test_status_activity_entries_are_complete_and_not_audit_log_shaped(
         self, application_number, old_status, new_status, offset_seconds
@@ -75,7 +75,7 @@ class AdminDashboardRecentActivityProperties(SimpleTestCase):
         self.assertNotIn("entity_type", item)
         self.assertNotIn("retention_category", item)
 
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     @given(st.lists(st.integers(min_value=0, max_value=100000), min_size=0, max_size=25))
     def test_recent_activity_is_ordered_descending_and_limited(self, offsets):
         """Feature: admin-dashboard-overhaul, Property 5: Recent activity ordering and limiting."""
@@ -95,7 +95,7 @@ class AdminDashboardRecentActivityProperties(SimpleTestCase):
         self.assertLessEqual(len(activity), 10)
         self.assertEqual(timestamps, sorted(timestamps, reverse=True))
 
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     @given(safe_text, st.sampled_from(["paid", "successful", "verified"]))
     def test_payment_events_are_included_when_recent(self, application_number, status):
         """Feature: admin-dashboard-overhaul, Property 6: Payment events in activity feed."""

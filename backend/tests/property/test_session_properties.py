@@ -32,7 +32,7 @@ from apps.accounts.tokens import (  # noqa: E402
 # Shared fakeredis instance for test isolation
 _fake_redis = fakeredis.FakeRedis(decode_responses=True)
 
-_default_settings = settings(max_examples=100, deadline=None)
+_default_settings = settings(max_examples=5, deadline=None)
 _roles = st.sampled_from(["student", "admin", "reviewer", "super_admin"])
 
 

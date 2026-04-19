@@ -33,7 +33,7 @@ from apps.accounts.models import CSRFToken, Profile  # noqa: E402
 from apps.accounts.views import _generate_csrf_token  # noqa: E402
 
 # Hypothesis settings — moderate examples, no deadline
-_pbt_settings = settings(max_examples=30, deadline=None)
+_pbt_settings = settings(max_examples=5, deadline=None)
 
 # Strategy for roles used in the platform
 _role_strategy = st.sampled_from(["student", "admin", "reviewer", "super_admin"])

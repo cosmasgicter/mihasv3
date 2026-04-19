@@ -30,64 +30,16 @@ interface UserMetadata {
   nationality?: string
 }
 
-// Helper function to safely get user metadata
+// Extract user fields into a UserMetadata shape (Django sends top-level fields only)
 export const getUserMetadata = (user: User | null | undefined): UserMetadata => {
   if (!user) return {}
   
-  // Start with the user's direct email as a baseline
   const result: UserMetadata = {}
-  if (user.email) {
-    result.email = user.email
-  }
-  
-  if (!user.user_metadata) {
-    // Extract top-level User fields as fallback when user_metadata is absent
-    if (user.full_name) result.full_name = user.full_name
-    if (user.first_name) result.first_name = user.first_name
-    if (user.last_name) result.last_name = user.last_name
-    return result
-  }
-  
-  try {
-    const metadata = user.user_metadata as Record<string, unknown>
-    let signupData: Record<string, unknown> = {}
-    
-    if (metadata.signup_data) {
-      signupData = typeof metadata.signup_data === 'string' 
-        ? JSON.parse(metadata.signup_data) as Record<string, unknown>
-        : metadata.signup_data as Record<string, unknown>
-    }
-    
-    return {
-      full_name: (metadata.full_name as string | undefined) || (signupData.full_name as string | undefined) || user.full_name,
-      first_name: (metadata.first_name as string | undefined) || (signupData.first_name as string | undefined) || user.first_name,
-      last_name: (metadata.last_name as string | undefined) || (signupData.last_name as string | undefined) || user.last_name,
-      email: (metadata.email as string | undefined) || (signupData.email as string | undefined),
-      phone: (metadata.phone as string | undefined) || (signupData.phone as string | undefined),
-      residence_town: (metadata.residence_town as string | undefined) || (signupData.residence_town as string | undefined),
-      residence_country:
-        (metadata.residence_country as string | undefined) ||
-        (metadata.country as string | undefined) ||
-        (signupData.residence_country as string | undefined) ||
-        (signupData.country as string | undefined),
-      country:
-        (metadata.country as string | undefined) ||
-        (metadata.residence_country as string | undefined) ||
-        (signupData.country as string | undefined) ||
-        (signupData.residence_country as string | undefined),
-      city: (metadata.city as string | undefined) || (signupData.city as string | undefined),
-      sex: (metadata.sex as string | undefined) || (signupData.sex as string | undefined),
-      date_of_birth: (metadata.date_of_birth as string | undefined) || (signupData.date_of_birth as string | undefined),
-      nrc_number: (metadata.nrc_number as string | undefined) || (signupData.nrc_number as string | undefined),
-      passport_number: (metadata.passport_number as string | undefined) || (signupData.passport_number as string | undefined),
-      next_of_kin_name: (metadata.next_of_kin_name as string | undefined) || (signupData.next_of_kin_name as string | undefined),
-      next_of_kin_phone: (metadata.next_of_kin_phone as string | undefined) || (signupData.next_of_kin_phone as string | undefined),
-      address: (metadata.address as string | undefined) || (signupData.address as string | undefined),
-      nationality: (metadata.nationality as string | undefined) || (signupData.nationality as string | undefined)
-    }
-  } catch {
-    return {}
-  }
+  if (user.email) result.email = user.email
+  if (user.full_name) result.full_name = user.full_name
+  if (user.first_name) result.first_name = user.first_name
+  if (user.last_name) result.last_name = user.last_name
+  return result
 }
 
 // Get the best available value from profile and metadata

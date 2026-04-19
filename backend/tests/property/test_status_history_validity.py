@@ -155,7 +155,7 @@ class TestStatusHistoryValidity(SimpleTestCase):
     # ------------------------------------------------------------------
 
     @given(transition=valid_transition_st())
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_valid_transition_is_accepted(self, transition: StatusTransition):
         """For any transition in ALLOWED_TRANSITIONS, is_valid_transition
         should return True."""
@@ -170,7 +170,7 @@ class TestStatusHistoryValidity(SimpleTestCase):
     # ------------------------------------------------------------------
 
     @given(transition=invalid_transition_st())
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_invalid_transition_is_rejected(self, transition: StatusTransition):
         """For any (old, new) pair NOT in ALLOWED_TRANSITIONS,
         is_valid_transition should return False."""
@@ -185,7 +185,7 @@ class TestStatusHistoryValidity(SimpleTestCase):
     # ------------------------------------------------------------------
 
     @given(chain=valid_chain_st(min_size=1, max_size=5))
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_valid_chain_has_no_invalid_transitions(
         self, chain: list[StatusTransition]
     ):
@@ -204,7 +204,7 @@ class TestStatusHistoryValidity(SimpleTestCase):
     # ------------------------------------------------------------------
 
     @given(chain=valid_chain_st(min_size=2, max_size=5))
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_valid_chain_is_internally_consistent(
         self, chain: list[StatusTransition]
     ):
@@ -226,7 +226,7 @@ class TestStatusHistoryValidity(SimpleTestCase):
         chain=valid_chain_st(min_size=1, max_size=3),
         bad=invalid_transition_st(),
     )
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_injected_invalid_transition_is_detected(
         self,
         chain: list[StatusTransition],

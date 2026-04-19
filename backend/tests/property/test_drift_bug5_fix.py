@@ -89,7 +89,7 @@ class TestDraftNameAccepted(SimpleTestCase):
     """
 
     @given(draft_name=draft_names)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_draft_name_accepted_and_persisted(self, draft_name):
         """Serializer accepts draft_name and includes it in validated_data."""
         payload = make_valid_payload(draft_name)

@@ -222,6 +222,30 @@ const PaymentStep = ({
         </Alert>
       )}
 
+      {/* MAX_PAYMENT_ATTEMPTS_EXCEEDED error */}
+      {initiateError && initiateError.includes('maximum number of payment attempts') && (
+        <Alert variant="destructive" className={animateClasses.scaleIn}>
+          <AlertTitle className="flex items-center gap-2 text-foreground">
+            <XCircle className="h-4 w-4" />Payment attempts exhausted
+          </AlertTitle>
+          <AlertDescription className="text-muted-foreground">
+            <p>You've reached the maximum number of payment attempts. Please contact support at ***REMOVED*** for assistance.</p>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Remaining attempts warning */}
+      {initiateError && /(\d+)\s*attempt/.test(initiateError) && !initiateError.includes('maximum number of payment attempts') && (
+        <Alert variant="warning" className={animateClasses.scaleIn}>
+          <AlertTitle className="flex items-center gap-2 text-foreground">
+            <Clock className="h-4 w-4" />Limited payment attempts remaining
+          </AlertTitle>
+          <AlertDescription className="text-muted-foreground">
+            <p>{initiateError}</p>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {paymentStatus === 'pending' && (
         <Alert variant="info" className={animateClasses.scaleIn}>
           <AlertTitle className="flex items-center gap-2 text-foreground">
@@ -243,7 +267,7 @@ const PaymentStep = ({
         </Alert>
       )}
 
-      {initiateError && (
+      {initiateError && !initiateError.includes('maximum number of payment attempts') && (
         <Alert variant="destructive">
           <AlertTitle className="text-foreground">Payment error</AlertTitle>
           <AlertDescription className="text-muted-foreground">{initiateError}</AlertDescription>

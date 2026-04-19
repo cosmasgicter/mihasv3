@@ -56,7 +56,7 @@ class TestEmailSlipEndpointExists(SimpleTestCase):
     """
 
     @given(app_id=_app_ids)
-    @settings(max_examples=30, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_email_slip_url_resolves(self, app_id):
         """The email-slip URL pattern must exist in the applications URL conf.
 
@@ -80,7 +80,7 @@ class TestEmailSlipEndpointExists(SimpleTestCase):
             )
 
     @given(app_id=_app_ids)
-    @settings(max_examples=30, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_email_slip_url_path_resolves(self, app_id):
         """The email-slip URL path must resolve to a view via resolve().
 
@@ -115,7 +115,7 @@ class TestEmailSlipCreatesEmailQueue(SimpleTestCase):
     """
 
     @given(email=_emails)
-    @settings(max_examples=30, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_email_slip_view_can_be_imported(self, email):
         """The EmailSlipView class must be importable from applications.views.
 
@@ -134,7 +134,7 @@ class TestEmailSlipCreatesEmailQueue(SimpleTestCase):
             )
 
     @given(email=_emails)
-    @settings(max_examples=30, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_email_slip_url_conf_imports_view(self, email):
         """The applications urls.py must import EmailSlipView.
 

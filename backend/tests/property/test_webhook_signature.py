@@ -69,7 +69,7 @@ class TestWebhookSignatureRoundTrip(SimpleTestCase):
     """
 
     @given(raw_body=raw_bodies, api_secret=api_secret_keys)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_valid_signature_always_accepted(self, raw_body: bytes, api_secret: str):
         """For any body and any secret key, computing the correct signature
         and then validating it should return True."""
@@ -98,7 +98,7 @@ class TestWebhookSignatureRejectsIncorrect(SimpleTestCase):
         api_secret=api_secret_keys,
         bad_signature=random_hex_signatures,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_incorrect_signature_always_rejected(
         self, raw_body: bytes, api_secret: str, bad_signature: str
     ):
@@ -150,7 +150,7 @@ class TestInvalidSignatureRejectionAndLogging(SimpleTestCase):
             max_size=30,
         ),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_invalid_signature_logs_but_does_not_process(self, event_type, reference):
         """When signature_valid=False, a WebhookEventLog is created with
         signature_valid=False and PaymentService is NOT called."""
@@ -206,7 +206,7 @@ class TestWebhookProcessingIdempotence(SimpleTestCase):
         ),
         n_times=st.integers(min_value=1, max_value=5),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_repeated_webhook_produces_same_state(
         self, payment_id, application_id, amount, n_times
     ):

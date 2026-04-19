@@ -545,6 +545,25 @@ class PaymentInitiateView(APIView):
                 application_id=application.id,
                 user_id=user.id,
             )
+        except ValueError as exc:
+            error_msg = str(exc)
+            if error_msg.startswith("MAX_PAYMENT_ATTEMPTS_EXCEEDED"):
+                parts = error_msg.split("|")
+                remaining = int(parts[1]) if len(parts) > 1 else 0
+                return Response(
+                    {
+                        "success": False,
+                        "error": "Maximum payment attempts exceeded. Please contact support.",
+                        "code": "MAX_PAYMENT_ATTEMPTS_EXCEEDED",
+                        "remaining_attempts": remaining,
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            logger.exception("Failed to initiate payment for application %s", application_id)
+            return Response(
+                {"success": False, "error": str(exc), "code": "PAYMENT_ERROR"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Exception:
             logger.exception("Failed to initiate payment for application %s", application_id)
             return Response(

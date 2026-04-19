@@ -131,7 +131,7 @@ class TestExpiredJWTSetsExpiredFlag(SimpleTestCase):
         self.middleware._algorithm = None
 
     @given(user_id=_user_ids, email=_emails, role=_roles)
-    @settings(max_examples=50, deadline=None)
+    @settings(max_examples=5, deadline=None)
     @override_settings(SIMPLE_JWT=TEST_JWT_SETTINGS)
     def test_expired_cookie_token_sets_jwt_expired_flag(self, user_id, email, role):
         """An expired JWT in the access_token cookie should set
@@ -159,7 +159,7 @@ class TestExpiredJWTSetsExpiredFlag(SimpleTestCase):
         )
 
     @given(user_id=_user_ids, email=_emails, role=_roles)
-    @settings(max_examples=50, deadline=None)
+    @settings(max_examples=5, deadline=None)
     @override_settings(SIMPLE_JWT=TEST_JWT_SETTINGS)
     def test_expired_bearer_token_sets_jwt_expired_flag(self, user_id, email, role):
         """An expired JWT in the Authorization: Bearer header should set

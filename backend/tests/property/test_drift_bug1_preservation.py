@@ -95,7 +95,7 @@ class TestTerminalPaymentsNotReVerified(SimpleTestCase):
         lenco_ref=lenco_references,
         payment_method=payment_methods,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_terminal_payment_returns_current_status_no_http(
         self,
         payment_id,

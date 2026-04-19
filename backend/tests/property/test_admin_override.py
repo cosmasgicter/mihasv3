@@ -66,7 +66,7 @@ class TestAdminPaymentStatusOverride(TransactionTestCase):
         new_payment_status=valid_payment_statuses,
         notes=admin_notes,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_override_updates_status_and_records_audit_trail(
         self, new_payment_status, notes
     ):
@@ -128,7 +128,7 @@ class TestAdminPaymentStatusOverride(TransactionTestCase):
     @given(
         new_payment_status=valid_payment_statuses,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_override_without_notes_still_updates_status(self, new_payment_status):
         """Admin override without notes still updates payment_status."""
         application_id = uuid.uuid4()

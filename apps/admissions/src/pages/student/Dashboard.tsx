@@ -285,7 +285,7 @@ export default function StudentDashboard() {
           sortBy: 'date',
           sortOrder: 'desc',
           mine: true
-        }, { skipCache: true }),
+        }),
         // Intakes
         catalogService.getIntakes() as Promise<{ intakes: Intake[] }>,
         // Interviews
