@@ -235,6 +235,7 @@ function SidebarSection({
       {!collapsed && (
         <button
           onClick={onToggle}
+          aria-expanded={expanded}
           className={cn(
             'flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-[0.22em]',
             'text-slate-400 transition-colors hover:text-white',
@@ -256,7 +257,7 @@ function SidebarSection({
 
       {/* When collapsed, show a thin divider between sections instead of header */}
       {collapsed && (
-        <div className="mx-4 my-2 border-t border-white/10" />
+        <div className="mx-4 my-2 border-t border-white/10" role="separator" aria-hidden="true" />
       )}
 
       {/* Section items */}
@@ -314,6 +315,7 @@ function SidebarNavItem({
       {isActive && !collapsed && (
         <div
           className="absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-sky-400 transition-opacity duration-200 motion-reduce:transition-none"
+          aria-hidden="true"
         />
       )}
 

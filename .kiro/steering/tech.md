@@ -53,7 +53,7 @@ inclusion: always
 | HTTP client | `requests` | Used by `check_uptime_task` for internal health checks |
 | AI + messaging | OpenAI and Telegram planned placeholders | Env scaffolding now exists; integration wiring remains to be completed |
 | Browser automation | Stagehand (AI) + Playwright (low-level) | Stagehand installed at monorepo root for AI-driven browser tasks; Playwright for deterministic automation |
-| Error monitoring | Self-hosted via `ErrorLog` model + throttled alert emails | No Sentry — see Error Monitoring section below |
+| Error monitoring | GlitchTip (Sentry-compatible) via `sentry-sdk` | DSN-based — see Error Monitoring section below |
 | API docs | drf-spectacular | Schema and docs under `/api/v1/` |
 | Testing | pytest + hypothesis | Backend tests live under `backend/tests/` |
 
@@ -156,7 +156,7 @@ The frontend and backend share a single, unified API contract. There is no compa
 - Keep routes resource-oriented under `/api/v1/`.
 - Preserve explicit jobs-ops domain naming such as `JobApplication`.
 - Shared jobs-ops scaffold data currently lives in `backend/apps/common/jobs_ops_seed.py`; do not re-duplicate that seed state across views.
-- Current default error-alert recipient is `***REMOVED***` (configurable via `ERROR_ALERT_EMAIL` env var).
+- Current default error-alert recipient is `***REMOVED***` (configurable via `ERROR_ALERT_EMAIL` env var). Used for uptime, payment failures, and SLA breach alerts. Error monitoring uses GlitchTip.
 - Payment records live in the `payments` table (managed by `backend/apps/documents/`). Application-level payment summaries should be derived from canonical payment records, not from retired inline compatibility columns.
 
 ## Lenco Payment Integration
@@ -199,21 +199,21 @@ Webhook URL registered with Lenco: `***REMOVED***/api/v1/payments/webhook/lenco/
 
 ## Error Monitoring
 
-The platform uses self-hosted error monitoring — there is no Sentry or third-party error tracker.
+The platform uses GlitchTip (Sentry-compatible, free tier at app.glitchtip.com) for error tracking. The standard Sentry SDK (`sentry-sdk` for Python, `@sentry/react` for React) is used with DSN URLs pointing to GlitchTip.
 
 ### Pipeline
 
-1. Backend 500 errors: `envelope_exception_handler` in `backend/apps/common/exceptions.py` catches DRF exceptions, creates an `ErrorLog` row (source=`backend`), and dispatches a throttled alert email via Redis `cache.add` (15-minute TTL per unique message hash).
-2. Frontend errors: `apps/admissions/src/lib/errorReporter.ts` captures `window.onerror` and `unhandledrejection` events, batches them with a 5-second debounce, and POSTs to `POST /api/v1/errors/report/`. The backend `ErrorReportView` in `backend/apps/common/error_views.py` creates an `ErrorLog` row (source=`frontend`) and dispatches a throttled alert email using the same logic.
-3. Alert emails are enqueued in `EmailQueue` and dispatched via `send_email_task` through Celery + Resend.
+1. Backend errors: `sentry-sdk` with `DjangoIntegration` and `CeleryIntegration` automatically captures unhandled exceptions. The `envelope_exception_handler` in `backend/apps/common/exceptions.py` also calls `sentry_sdk.capture_exception()` for 500 responses to ensure all errors reach GlitchTip.
+2. Frontend errors: `@sentry/react` captures `window.onerror` and unhandled rejections automatically once initialized via `initErrorReporter()` in `apps/admissions/src/lib/errorReporter.ts`.
+3. The legacy `POST /api/v1/errors/report/` endpoint still accepts frontend error reports for backwards compatibility, forwarding them to GlitchTip via `sentry_sdk.capture_message()`.
 
 ### Key details
 
-- `ErrorLog` model lives in `backend/apps/common/models.py` with `managed = False`. The `error_logs` table was created via the SQL migration script `backend/scripts/create_error_logs_table.sql`, not Django migrations.
-- Default alert recipient: `***REMOVED***` (configurable via `ERROR_ALERT_EMAIL` env var).
-- Throttle: one alert per unique error message per 15 minutes, backed by Redis `cache.add`. If Redis is unavailable, alerts fail-open (dispatch anyway).
-- Frontend error reporting is unauthenticated (`AllowAny`) and CSRF-exempt, rate-limited to 10 requests per IP per 5 minutes.
-- Frontend reporter respects `VITE_ERROR_REPORT_ENABLED` env var — does nothing when disabled.
+- Backend DSN: configured via `GLITCHTIP_DSN` env var. SDK initializes in `backend/config/settings/base.py`.
+- Frontend DSN: configured via `VITE_GLITCHTIP_DSN` env var. SDK initializes in `apps/admissions/src/lib/errorReporter.ts`.
+- The `ErrorLog` model in `backend/apps/common/models.py` is deprecated. The `error_logs` table is preserved for historical records but no longer written to.
+- `ERROR_ALERT_EMAIL` is still used for non-error-monitoring alerts (uptime, payment failures, SLA breaches).
+- Frontend error reporting endpoint (`/api/v1/errors/report/`) remains unauthenticated (`AllowAny`), CSRF-exempt, and rate-limited.
 
 ## Stagehand (AI Browser Automation)
 

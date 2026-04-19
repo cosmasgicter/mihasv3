@@ -142,7 +142,13 @@ class EmailQueue(models.Model):
 
 
 class ErrorLog(models.Model):
-    """Maps to 'error_logs' table. Self-hosted error monitoring."""
+    """DEPRECATED: Maps to 'error_logs' table.
+
+    This model is no longer actively written to. Error monitoring has been
+    migrated to GlitchTip (Sentry-compatible). The table and existing records
+    are preserved for historical reference. Do not create new ErrorLog rows —
+    use sentry_sdk.capture_exception() or sentry_sdk.capture_message() instead.
+    """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     source = models.CharField(max_length=20)  # 'backend' or 'frontend'

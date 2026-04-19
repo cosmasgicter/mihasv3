@@ -43,15 +43,17 @@ class TestJTIBlacklistFailOnWrite(SimpleTestCase):
 class TestJTIBlacklistFailOpenRead(SimpleTestCase):
     """Test that is_jti_blacklisted returns False when Redis read fails (fail-open)."""
 
-    def test_is_jti_blacklisted_returns_false_on_redis_error(self):
-        """When Redis raises RedisError on exists, is_jti_blacklisted must return False (fail-open)."""
+    def test_is_jti_blacklisted_returns_true_on_redis_error(self):
+        """When Redis raises RedisError on both attempts, is_jti_blacklisted must return True (fail-closed)."""
         mock_redis = MagicMock()
         mock_redis.exists.side_effect = redis.RedisError("connection refused")
 
         with patch("apps.accounts.tokens._get_redis", return_value=mock_redis):
             result = is_jti_blacklisted(str(uuid.uuid4()))
 
-        self.assertFalse(result)
+        self.assertTrue(result)
+        # Verify it retried once (2 total calls)
+        self.assertEqual(mock_redis.exists.call_count, 2)
 
 
 class TestJTIBlacklistTTL(SimpleTestCase):

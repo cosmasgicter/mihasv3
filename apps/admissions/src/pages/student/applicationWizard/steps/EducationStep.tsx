@@ -170,7 +170,7 @@ const EducationStep = ({
         <fieldset className="border-none p-0 m-0">
           <legend className="sr-only">Education Details</legend>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-            <h3 className="text-md font-medium text-foreground">Grade 12 Subjects (Minimum 5 required)</h3>
+            <h3 className="text-md font-medium text-foreground">Grade 12 Subjects (<span className={selectedGrades.length < 5 ? 'text-red-500' : 'text-green-600'}>{selectedGrades.length}/5 minimum</span>)</h3>
             {selectedGrades.length === 0 && (
               <Button
                 type="button"

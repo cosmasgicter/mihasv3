@@ -169,7 +169,7 @@ const SubmitStep = ({
               )}
               <div className="rounded-xl border border-border/70 bg-muted/50 px-4 py-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Intake</dt>
-                <dd className="mt-1 text-sm font-medium text-foreground">{formValues.intake || 'Not selected'}</dd>
+                <dd className="mt-1 text-sm font-medium text-foreground">{(formValues as Record<string, unknown>).intake_name as string || formValues.intake || 'Not selected'}</dd>
               </div>
               <div className="rounded-xl border border-border/70 bg-muted/50 px-4 py-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Documents</dt>

@@ -180,10 +180,17 @@ export default function SignInPage() {
     return {};
   };
 
+  const ERROR_MESSAGES: Record<string, string> = {
+    session_expired: 'Your session has expired. Please sign in again.',
+    unauthorized: 'Please sign in to access this page.',
+    default: 'An error occurred. Please try again.',
+  }
+  const displayError = authErrorFromQuery ? (ERROR_MESSAGES[authErrorFromQuery] || ERROR_MESSAGES.default) : ''
+
   const serverFieldErrors = getFieldErrors(signInMutation.error as Error | null);
   const activeBannerMessage = signInMutation.error
     ? getErrorMessage(signInMutation.error as Error)
-    : authErrorFromQuery || '';
+    : displayError;
 
   const dismissBanner = () => {
     if (signInMutation.error) {
@@ -283,6 +290,8 @@ export default function SignInPage() {
           >
             {signInMutation.isPending ? 'Signing in...' : 'Sign in'}
           </Button>
+
+          <p className="text-xs text-muted-foreground text-center mt-4">You'll stay signed in for 7 days</p>
         </form>
       </AuthLayout>
     </>

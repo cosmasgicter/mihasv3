@@ -59,7 +59,7 @@ docs/                  Project documentation, runbooks, and reports
 | Email | Resend |
 | Payments | Lenco gateway |
 | API Docs | drf-spectacular (Swagger + ReDoc) |
-| Error Monitoring | Self-hosted ErrorLog + throttled alert emails |
+| Error Monitoring | GlitchTip (Sentry-compatible) via `sentry-sdk` |
 | Testing | pytest + hypothesis |
 
 ## Quick Start

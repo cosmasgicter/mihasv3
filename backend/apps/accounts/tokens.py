@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 import jwt
 import redis
 from django.conf import settings
+from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 
@@ -138,8 +139,19 @@ def rotate_tokens(refresh_token: str, user=None) -> tuple[str, str]:
     """
     payload = verify_token(refresh_token, token_type="refresh")
 
-    # Blacklist the old refresh token's jti
+    # Atomically claim the JTI to prevent concurrent rotation of the same token
     old_jti = payload.get("jti", "")
+    rotation_lock_key = f"token_rotation:{old_jti}"
+    try:
+        if not cache.add(rotation_lock_key, "1", timeout=30):
+            raise ValueError("Token already consumed")
+    except ValueError:
+        raise  # Re-raise "Token already consumed"
+    except Exception:
+        # Redis unavailable — proceed without lock (better than logging user out)
+        logger.warning("Redis unavailable for rotation lock — proceeding without dedup")
+
+    # Blacklist the old refresh token's jti
     blacklist_jti(old_jti)
 
     # Build a minimal user-like object from the payload if not provided
@@ -161,14 +173,20 @@ def blacklist_jti(jti: str, ttl_seconds: int = 604800) -> None:
 
 
 def is_jti_blacklisted(jti: str) -> bool:
-    """Check Redis for jti. Fail-OPEN on read errors to avoid blocking auth."""
+    """Check Redis for jti. Retries once on transient failure, then fails closed."""
     if not jti:
         return False
-    try:
-        return _get_redis().exists(f"{JTI_PREFIX}{jti}") > 0
-    except redis.RedisError:
-        logger.error("Redis read failed for JTI blacklist — failing open to avoid logout", exc_info=True)
-        return False  # Fail-open: allow refresh to proceed when Redis is unavailable
+    for attempt in range(2):
+        try:
+            return _get_redis().exists(f"{JTI_PREFIX}{jti}") > 0
+        except redis.RedisError:
+            if attempt == 0:
+                logger.warning("Redis read failed for JTI blacklist — retrying once")
+                continue
+            # Second failure: fail-closed for security
+            logger.error("Redis read failed for JTI blacklist after retry — failing closed", exc_info=True)
+            return True
+    return True
 
 
 def _get_permissions_for_role(role: str) -> list[str]:

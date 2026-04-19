@@ -91,7 +91,7 @@ export const NotificationItem = React.memo<NotificationItemProps>(function Notif
                   {formatDate(notification.created_at)}
                 </span>
                 {!notification.read && (
-                  <span className="inline-flex h-2 w-2 rounded-full bg-primary"></span>
+                  <span className="inline-flex h-2 w-2 rounded-full bg-primary" aria-label="Unread"></span>
                 )}
               </div>
             </div>
@@ -107,7 +107,7 @@ export const NotificationItem = React.memo<NotificationItemProps>(function Notif
                 }
               }}
               aria-label={`Delete notification: ${sanitizeText(notification.title)}`}
-              className="p-1 h-auto opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-error"
+              className="p-1 h-auto opacity-60 hover:opacity-100 focus:opacity-100 hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-error"
             >
               <Trash2 className="h-3 w-3" aria-hidden="true" />
             </Button>

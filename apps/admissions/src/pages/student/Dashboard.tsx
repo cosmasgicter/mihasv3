@@ -536,7 +536,7 @@ export default function StudentDashboard() {
         ) : (
           <div className="space-y-6 sm:space-y-8">
             {isRefreshing && (
-              <div className="rounded-full bg-white px-6 py-3 shadow-lg animate-fade-in">
+              <div className="rounded-full bg-white px-6 py-3 shadow-lg animate-fade-in" role="status" aria-live="polite">
                 <div className="h-1 w-full overflow-hidden rounded-full bg-primary/10">
                   <div className="h-full w-1/3 rounded-full bg-gradient-vibrant animate-pulse" />
                 </div>

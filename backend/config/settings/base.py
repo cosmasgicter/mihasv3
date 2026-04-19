@@ -203,6 +203,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.applications.tasks.waitlist_cascade_task",
         "schedule": crontab(hour=10, minute=0),
     },
+    "cleanup-idempotency-keys": {
+        "task": "cleanup_idempotency_keys",
+        "schedule": crontab(hour=3, minute=0),
+    },
 }
 
 # Enable TLS for rediss:// connections (Upstash, Redis Cloud, etc.)
@@ -496,6 +500,25 @@ if REQUIRED_ENV_VARS and not _is_testing:
     from apps.common.env_validator import validate_required_env_vars
 
     validate_required_env_vars()
+
+# ---------------------------------------------------------------------------
+# GlitchTip / Sentry-compatible error tracking
+# ---------------------------------------------------------------------------
+
+GLITCHTIP_DSN = os.environ.get("GLITCHTIP_DSN", "")
+
+if GLITCHTIP_DSN and not _is_testing:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.celery import CeleryIntegration
+
+    sentry_sdk.init(
+        dsn=GLITCHTIP_DSN,
+        integrations=[DjangoIntegration(), CeleryIntegration()],
+        traces_sample_rate=0.01,
+        send_default_pii=False,
+        environment=os.environ.get("ENVIRONMENT", "production"),
+    )
 
 # Warn if Lenco payment gateway is not configured
 if not _is_testing and not LENCO_API_SECRET_KEY:

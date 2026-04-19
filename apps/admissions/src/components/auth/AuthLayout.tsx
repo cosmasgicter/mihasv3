@@ -372,7 +372,7 @@ export function AuthLayout({
               showBranding ? 'lg:w-1/2 xl:w-[45%]' : 'w-full',
             )}
           >
-            <div className={cn('h-1.5 bg-gradient-to-r lg:hidden', config.mobileGradientClass)} />
+            <div className={cn('h-1.5 bg-gradient-to-r lg:hidden', config.mobileGradientClass)} aria-hidden="true" />
 
             <FormPanel
               title={title}

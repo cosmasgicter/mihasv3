@@ -37,6 +37,13 @@ TARGET_FILES = [
     BACKEND_ROOT / "apps" / "common" / "tasks.py",
 ]
 
+# Files that still use settings.ERROR_ALERT_EMAIL for non-error-monitoring alerts
+# (uptime, payment failures, SLA breaches). exceptions.py and error_views.py
+# now use sentry_sdk instead of alert emails.
+FILES_USING_ALERT_EMAIL = [
+    BACKEND_ROOT / "apps" / "common" / "tasks.py",
+]
+
 HARDCODED_EMAIL = "***REMOVED***"
 SETTINGS_REFERENCE = "settings.ERROR_ALERT_EMAIL"
 
@@ -119,20 +126,18 @@ class TestFallbackEmailFromSettings(SimpleTestCase):
         )
 
     def test_exceptions_uses_settings_reference(self):
-        """exceptions.py must reference settings.ERROR_ALERT_EMAIL."""
+        """exceptions.py now uses sentry_sdk — no longer needs settings.ERROR_ALERT_EMAIL."""
         source = _read_source(TARGET_FILES[0])
-        self.assertTrue(
-            _contains_settings_reference(source),
-            f"exceptions.py does not reference {SETTINGS_REFERENCE}",
-        )
+        # After GlitchTip migration, exceptions.py uses sentry_sdk.capture_exception
+        self.assertIn("sentry_sdk", source,
+            "exceptions.py should reference sentry_sdk after GlitchTip migration")
 
     def test_error_views_uses_settings_reference(self):
-        """error_views.py must reference settings.ERROR_ALERT_EMAIL."""
+        """error_views.py now uses sentry_sdk — no longer needs settings.ERROR_ALERT_EMAIL."""
         source = _read_source(TARGET_FILES[1])
-        self.assertTrue(
-            _contains_settings_reference(source),
-            f"error_views.py does not reference {SETTINGS_REFERENCE}",
-        )
+        # After GlitchTip migration, error_views.py uses sentry_sdk.capture_message
+        self.assertIn("sentry_sdk", source,
+            "error_views.py should reference sentry_sdk after GlitchTip migration")
 
     def test_tasks_uses_settings_reference(self):
         """tasks.py must reference settings.ERROR_ALERT_EMAIL."""
@@ -166,15 +171,13 @@ class TestFallbackEmailFromSettings(SimpleTestCase):
     @given(file_index=st.integers(min_value=0, max_value=100))
     @h_settings(max_examples=5, deadline=None)
     def test_settings_reference_present_in_any_target_file(self, file_index):
-        """For any target file, settings.ERROR_ALERT_EMAIL must be referenced.
-
-        Uses hypothesis to parameterise over file indices, ensuring the
-        property holds regardless of which file is inspected.
+        """For files that still send alert emails, settings.ERROR_ALERT_EMAIL
+        must be referenced. Files migrated to GlitchTip use sentry_sdk instead.
 
         **Validates: Requirements 12.1, 12.2**
         """
-        idx = file_index % len(TARGET_FILES)
-        path = TARGET_FILES[idx]
+        idx = file_index % len(FILES_USING_ALERT_EMAIL)
+        path = FILES_USING_ALERT_EMAIL[idx]
         source = _read_source(path)
 
         self.assertTrue(

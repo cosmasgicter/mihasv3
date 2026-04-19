@@ -336,7 +336,7 @@ export default function AdminDashboard() {
               </div>
               {/* Polling status indicator */}
               <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${isPolling ? 'bg-success animate-pulse' : 'bg-muted-foreground/50'}`}></div>
+                <div className={`w-2 h-2 rounded-full ${isPolling ? 'bg-success animate-pulse' : 'bg-muted-foreground/50'}`} aria-hidden="true"></div>
                 <span className="text-xs text-muted-foreground">{isPolling ? 'Live' : 'Paused'}</span>
               </div>
               <div className="ml-auto text-foreground">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Seo } from '@/components/seo/Seo'
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Skeleton, SkeletonCard } from '@/components/ui'
 import { formatDate, formatTimestamp } from '@/lib/dateFormat'
 import { applicationService } from '@/services/applications'
-import { AuthenticationError, apiClient } from '@/services/client'
+import { AuthenticationError } from '@/services/client'
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { DocumentButtons } from '@/components/student/DocumentButtons'
 import {
@@ -39,6 +39,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { PageShell } from '@/components/ui/PageShell'
 import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
+import { useToastStore } from '@/hooks/useToast'
 
 interface ApplicationTimeline {
   status: string
@@ -108,6 +109,18 @@ export default function ApplicationStatus() {
   const [amendError, setAmendError] = useState('')
   const [amendSuccess, setAmendSuccess] = useState('')
 
+  // Dialog refs for auto-focus
+  const withdrawDialogRef = useRef<HTMLDivElement>(null)
+  const enrollDialogRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (showWithdrawDialog) withdrawDialogRef.current?.focus()
+  }, [showWithdrawDialog])
+
+  useEffect(() => {
+    if (showEnrollDialog) enrollDialogRef.current?.focus()
+  }, [showEnrollDialog])
+
   const {
     data: application = null,
     isLoading: loading,
@@ -141,15 +154,13 @@ export default function ApplicationStatus() {
   // Withdrawal mutation
   const withdrawMutation = useMutation({
     mutationFn: async (reason: string) => {
-      await apiClient.request(`/applications/${id}/withdraw/`, {
-        method: 'POST',
-        body: JSON.stringify({ withdrawal_reason: reason }),
-      })
+      await applicationService.withdraw(id!, reason)
     },
     onSuccess: () => {
       setShowWithdrawDialog(false)
       setWithdrawalReason('')
       queryClient.invalidateQueries({ queryKey: ['application-status', id] })
+      useToastStore.getState().addToast('success', 'Application withdrawn successfully')
     },
   })
 
@@ -157,32 +168,39 @@ export default function ApplicationStatus() {
   const { data: conditions = [] } = useQuery<ApplicationCondition[]>({
     queryKey: ['application-conditions', id],
     queryFn: async () => {
-      const res = await apiClient.request<ApplicationCondition[]>(
-        `/applications/${id}/conditions/`
-      )
-      return res ?? []
+      const res = await applicationService.getConditions(id!)
+      return (res ?? []) as ApplicationCondition[]
     },
     enabled: !!id && application?.status === 'conditionally_approved',
+    staleTime: 60_000,
+  })
+
+  // Waitlist position query
+  const { data: waitlistPosition } = useQuery<{ position: number; total: number }>({
+    queryKey: ['waitlist-position', id],
+    queryFn: async () => {
+      const res = await applicationService.getWaitlistPosition(id!)
+      return res ?? { position: 0, total: 0 }
+    },
+    enabled: !!id && application?.status === 'waitlisted',
     staleTime: 60_000,
   })
 
   // Confirm enrollment mutation
   const confirmEnrollmentMutation = useMutation({
     mutationFn: async () => {
-      await apiClient.request(`/applications/${id}/confirm-enrollment/`, { method: 'POST' })
+      await applicationService.confirmEnrollment(id!)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['application-status', id] })
+      useToastStore.getState().addToast('success', 'Enrollment confirmed successfully')
     },
   })
 
   // Amendment mutation
   const amendMutation = useMutation({
     mutationFn: async (data: { field_name: string; new_value: string; reason: string }) => {
-      await apiClient.request(`/applications/${id}/amendments/`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-      })
+      await applicationService.submitAmendment(id!, data)
     },
     onSuccess: () => {
       setAmendField('')
@@ -706,10 +724,10 @@ export default function ApplicationStatus() {
                       />
                     </div>
                     {amendError && (
-                      <p className="text-sm text-destructive">{amendError}</p>
+                      <p className="text-sm text-destructive" role="alert" aria-live="assertive">{amendError}</p>
                     )}
                     {amendSuccess && (
-                      <p className="text-sm text-success">{amendSuccess}</p>
+                      <p className="text-sm text-success" role="status" aria-live="polite">{amendSuccess}</p>
                     )}
                     <Button
                       type="submit"
@@ -836,7 +854,13 @@ export default function ApplicationStatus() {
                   title="You're on the waitlist"
                   description="Your application is on the waitlist. We'll notify you by email if a spot becomes available."
                   icon={<Clock className="h-5 w-5 text-amber-600" />}
-                />
+                >
+                  {waitlistPosition && waitlistPosition.position > 0 && (
+                    <p className="text-sm font-medium text-amber-800">
+                      Position {waitlistPosition.position} of {waitlistPosition.total}
+                    </p>
+                  )}
+                </SectionCard>
               )}
 
               {application.status === 'conditionally_approved' && (
@@ -877,13 +901,13 @@ export default function ApplicationStatus() {
 
     {/* Withdrawal confirmation dialog */}
     {showWithdrawDialog && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-        <div className="w-full max-w-md rounded-xl bg-card p-6 shadow-xl">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onKeyDown={(e) => { if (e.key === 'Escape') setShowWithdrawDialog(false) }}>
+        <div ref={withdrawDialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="withdraw-dialog-title" className="w-full max-w-md rounded-xl bg-card p-6 shadow-xl">
           <div className="flex items-center gap-3 mb-4">
             <div className="rounded-lg bg-destructive/10 p-2">
               <LogOut className="h-5 w-5 text-destructive" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground">Withdraw application</h3>
+            <h3 id="withdraw-dialog-title" className="text-lg font-semibold text-foreground">Withdraw application</h3>
           </div>
           <p className="text-sm text-muted-foreground mb-4">
             This action cannot be undone. Your application will be permanently withdrawn.
@@ -897,9 +921,12 @@ export default function ApplicationStatus() {
               value={withdrawalReason}
               onChange={(e) => setWithdrawalReason(e.target.value)}
               rows={3}
+              minLength={10}
+              maxLength={500}
               className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               placeholder="Please explain why you are withdrawing this application..."
             />
+            <p className="text-xs text-muted-foreground mt-1">{withdrawalReason.length}/10 characters minimum</p>
           </div>
           {withdrawMutation.isError && (
             <p className="text-sm text-destructive mb-3">
@@ -931,13 +958,13 @@ export default function ApplicationStatus() {
 
     {/* Enrollment confirmation dialog */}
     {showEnrollDialog && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-        <div className="w-full max-w-md rounded-xl bg-card p-6 shadow-xl">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onKeyDown={(e) => { if (e.key === 'Escape') setShowEnrollDialog(false) }}>
+        <div ref={enrollDialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="enroll-dialog-title" className="w-full max-w-md rounded-xl bg-card p-6 shadow-xl">
           <div className="flex items-center gap-3 mb-4">
             <div className="rounded-lg bg-success/10 p-2">
               <CheckCircle className="h-5 w-5 text-success" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground">Confirm enrollment</h3>
+            <h3 id="enroll-dialog-title" className="text-lg font-semibold text-foreground">Confirm enrollment</h3>
           </div>
           <p className="text-sm text-muted-foreground mb-4">
             Are you sure you want to confirm your enrollment? This action cannot be undone.

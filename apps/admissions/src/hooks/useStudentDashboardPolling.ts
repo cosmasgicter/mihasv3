@@ -158,7 +158,7 @@ export function useStudentDashboardPolling(
           return pollingInterval * 2
         }
       : false,
-    staleTime: pollingInterval / 2,
+    staleTime: 0,
   })
 
   // Track changes — use ref to avoid infinite loop, fingerprint to skip identical data
@@ -236,7 +236,7 @@ export function useStudentApplicationCount(options: { enabled?: boolean } = {}) 
     },
     enabled: enabled && !!user?.id,
     select: (data) => data.applications.length,
-    staleTime: POLLING_INTERVAL / 2,
+    staleTime: 0,
   })
 }
 
@@ -276,6 +276,6 @@ export function useHasApplicationWithStatus(
     },
     enabled: enabled && !!user?.id,
     select: (data) => data.applications.some((app) => app.status === targetStatus),
-    staleTime: POLLING_INTERVAL / 2,
+    staleTime: 0,
   })
 }

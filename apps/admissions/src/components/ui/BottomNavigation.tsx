@@ -94,11 +94,13 @@ function BottomNavLink({
   isActive,
   iconOnly = false,
   onNavigate,
+  role,
 }: {
   item: BottomNavItem
   isActive: boolean
   iconOnly?: boolean
   onNavigate?: () => void
+  role?: string
 }) {
   const Icon = item.icon
   const hasImport = item.href in routeImports
@@ -127,6 +129,7 @@ function BottomNavLink({
         }}
         className={baseClassName}
         aria-current={isActive ? 'page' : undefined}
+        role={role}
       >
         <div className="relative">
           <Icon className={cn('h-5 w-5', isActive ? 'text-white' : 'text-muted-foreground')} />
@@ -140,7 +143,7 @@ function BottomNavLink({
                 'bg-destructive text-destructive-foreground',
                 'rounded-full'
               )}
-              aria-label={`${item.badge} notifications`}
+              aria-label={`${item.badge} ${item.label} updates`}
             >
               {item.badge > 99 ? '99+' : item.badge}
             </span>
@@ -161,6 +164,7 @@ function BottomNavLink({
       className={baseClassName}
       aria-current={isActive ? 'page' : undefined}
       onClick={onNavigate}
+      role={role}
       {...prefetchProps}
     >
       <div className="relative">
@@ -175,7 +179,7 @@ function BottomNavLink({
               'bg-destructive text-destructive-foreground',
               'rounded-full'
             )}
-            aria-label={`${item.badge} notifications`}
+            aria-label={`${item.badge} ${item.label} updates`}
           >
             {item.badge > 99 ? '99+' : item.badge}
           </span>
@@ -203,6 +207,7 @@ export function BottomNavigation({
   const { insets } = useSafeArea()
   const [isMoreOpen, setIsMoreOpen] = React.useState(false)
   const [viewportWidth, setViewportWidth] = React.useState(() => window.innerWidth)
+  const moreButtonRef = React.useRef<HTMLButtonElement>(null)
 
   const navItems = items || (isAuthenticated ? defaultStudentNavItems : defaultPublicNavItems)
   const visibleItems = navItems.filter(item => !item.requiresAuth || isAuthenticated)
@@ -244,25 +249,35 @@ export function BottomNavigation({
       aria-label="Bottom navigation"
     >
       {isMoreOpen && shouldOverflow && (
-        <div
-          id="bottom-navigation-overflow"
-          className="absolute bottom-full left-3 right-3 mb-3 rounded-3xl border border-border/80 bg-background/95 px-3 pb-3 pt-3 shadow-2xl backdrop-blur-xl"
-          role="menu"
-          aria-label="More navigation items"
-        >
-          <div className="mx-auto mb-2 h-1 w-12 rounded-full bg-muted" aria-hidden="true" />
-          <div className="grid grid-cols-2 gap-2">
-            {overflowItems.map((item) => (
-              <BottomNavLink
-                key={item.href}
-                item={item}
-                isActive={isItemActive(item)}
-                iconOnly={false}
-                onNavigate={() => setIsMoreOpen(false)}
-              />
-            ))}
+        <>
+          <div className="fixed inset-0 z-[-1]" onClick={() => setIsMoreOpen(false)} aria-hidden="true" />
+          <div
+            id="bottom-navigation-overflow"
+            className="absolute bottom-full left-3 right-3 mb-3 rounded-3xl border border-border/80 bg-background/95 px-3 pb-3 pt-3 shadow-2xl backdrop-blur-xl"
+            role="menu"
+            aria-label="More navigation items"
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                setIsMoreOpen(false)
+                moreButtonRef.current?.focus()
+              }
+            }}
+          >
+            <div className="mx-auto mb-2 h-1 w-12 rounded-full bg-muted" aria-hidden="true" />
+            <div className="grid grid-cols-2 gap-2">
+              {overflowItems.map((item) => (
+                <BottomNavLink
+                  key={item.href}
+                  item={item}
+                  isActive={isItemActive(item)}
+                  iconOnly={false}
+                  onNavigate={() => setIsMoreOpen(false)}
+                  role="menuitem"
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       <div className="flex items-center justify-around gap-1 px-2 pt-2">
@@ -272,6 +287,7 @@ export function BottomNavigation({
         {shouldOverflow && (
           <button
             type="button"
+            ref={moreButtonRef}
             onClick={() => setIsMoreOpen((prev) => !prev)}
             className={cn(
               'flex flex-col items-center justify-center rounded-lg',
