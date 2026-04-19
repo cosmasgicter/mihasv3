@@ -51,10 +51,8 @@ export const CSP_CONFIG = {
   'connect-src': [
     "'self'",
     "https://api.mihas.edu.zm",
-    "https://*.neon.tech",
     "https://pay.lenco.co",
-    "https://pay.sandbox.lenco.co",
-    "https://cdn.jsdelivr.net"
+    "https://pay.sandbox.lenco.co"
   ],
   'object-src': ["'none'"],
   'base-uri': ["'self'"],

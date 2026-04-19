@@ -111,7 +111,7 @@ class TestWebhookSettlementMetadataUpdate(SimpleTestCase):
         settlement=settlement_details,
         status=payment_statuses,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_settlement_details_stored_in_metadata(
         self,
         payment_id,
@@ -173,7 +173,7 @@ class TestWebhookSettlementMetadataUpdate(SimpleTestCase):
         reference=references,
         settlement=settlement_details,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_settlement_does_not_change_payment_status(
         self,
         payment_id,

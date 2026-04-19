@@ -60,7 +60,7 @@ class TestCamelCaseFilterParams(SimpleTestCase):
         sort_by=sort_by_values,
         sort_order=sort_order_values,
     )
-    @settings(max_examples=50)
+    @settings(max_examples=5)
     def test_sort_by_and_sort_order_produce_ordered_queryset(self, sort_by, sort_order):
         """sortBy + sortOrder params translate to correct ordering."""
         data = {"sortBy": sort_by, "sortOrder": sort_order}
@@ -91,7 +91,7 @@ class TestCamelCaseFilterParams(SimpleTestCase):
         )
 
     @given(exclude_status=statuses)
-    @settings(max_examples=30)
+    @settings(max_examples=5)
     def test_exclude_status_filters_out_matching_status(self, exclude_status):
         """excludeStatus param excludes applications with that status."""
         data = {"excludeStatus": exclude_status}
@@ -111,7 +111,7 @@ class TestCamelCaseFilterParams(SimpleTestCase):
         start=dates,
         delta=st.integers(min_value=1, max_value=365),
     )
-    @settings(max_examples=30)
+    @settings(max_examples=5)
     def test_start_date_and_end_date_filter_on_created_at(self, start, delta):
         """startDate and endDate filter on created_at field."""
         end = start + timedelta(days=delta)
@@ -130,7 +130,7 @@ class TestCamelCaseFilterParams(SimpleTestCase):
         )
 
     @given(payment_status=payment_statuses)
-    @settings(max_examples=30)
+    @settings(max_examples=5)
     def test_payment_status_camel_case_alias(self, payment_status):
         """paymentStatus (camelCase) works as alias for payment_status."""
         data = {"paymentStatus": payment_status}

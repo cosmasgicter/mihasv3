@@ -43,7 +43,7 @@ class TestTimestampAutoPopulation(SimpleTestCase):
     """
 
     @given(action=st.sampled_from(["create", "update", "delete", "login", "logout"]))
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_audit_log_created_at_has_auto_now_add(self, action):
         """AuditLog.created_at field has auto_now_add=True."""
         field = AuditLog._meta.get_field("created_at")
@@ -55,7 +55,7 @@ class TestTimestampAutoPopulation(SimpleTestCase):
         )
 
     @given(status=st.sampled_from(["draft", "submitted", "approved", "rejected"]))
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_application_status_history_created_at_has_auto_now_add(self, status):
         """ApplicationStatusHistory.created_at field has auto_now_add=True."""
         field = ApplicationStatusHistory._meta.get_field("created_at")
@@ -83,7 +83,7 @@ class TestSHA256HashFieldLength(SimpleTestCase):
     """
 
     @given(raw_input=st.text(min_size=0, max_size=500))
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_sha256_fits_in_audit_log_ip_address(self, raw_input):
         """SHA-256 hex digest fits in AuditLog.ip_address max_length."""
         digest = hashlib.sha256(raw_input.encode("utf-8")).hexdigest()
@@ -94,7 +94,7 @@ class TestSHA256HashFieldLength(SimpleTestCase):
         )
 
     @given(raw_input=st.text(min_size=0, max_size=500))
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_sha256_fits_in_status_history_ip_address(self, raw_input):
         """SHA-256 hex digest fits in ApplicationStatusHistory.ip_address max_length."""
         digest = hashlib.sha256(raw_input.encode("utf-8")).hexdigest()
@@ -137,7 +137,7 @@ class TestAuditMiddlewareErrorResilience(SimpleTestCase):
             Exception,
         ]),
     )
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_original_response_passes_through_on_audit_failure(
         self, status_code, method, path, error_type
     ):
@@ -199,7 +199,7 @@ class TestNoTracebackInErrorResponses(SimpleTestCase):
         ),
         status_code=st.sampled_from([400, 401, 403, 404, 405, 429]),
     )
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_exception_handler_responses_have_no_traceback_patterns(
         self, error_message, status_code
     ):

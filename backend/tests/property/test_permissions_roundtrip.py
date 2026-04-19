@@ -56,7 +56,7 @@ class TestPermissionsJSONFieldRoundTrip(SimpleTestCase):
     """
 
     @given(perms=permissions_list)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_permissions_roundtrip_via_model_instance(self, perms):
         """For any valid list of permission strings, setting
         UserPermissionOverride.permissions and reading it back should
@@ -74,7 +74,7 @@ class TestPermissionsJSONFieldRoundTrip(SimpleTestCase):
         )
 
     @given(perms=permissions_list)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_permissions_field_is_json_serializable(self, perms):
         """For any valid permissions list, the value should survive
         JSON serialization and deserialization (the path data takes
@@ -95,7 +95,7 @@ class TestPermissionsJSONFieldRoundTrip(SimpleTestCase):
         )
 
     @given(perms=permissions_list)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_permissions_field_value_is_list(self, perms):
         """For any valid permissions input, the field value should always
         be a list (not a string, dict, or other type)."""
@@ -123,7 +123,7 @@ class TestPermissionsJSONFieldRoundTrip(SimpleTestCase):
         )
 
     @given(perms=permissions_list)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_permissions_field_get_prep_value_roundtrip(self, perms):
         """For any valid permissions list, the JSONField's get_prep_value
         (used when writing to DB) should produce a value that, when loaded

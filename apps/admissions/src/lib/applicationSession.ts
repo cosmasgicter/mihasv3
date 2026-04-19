@@ -179,7 +179,7 @@ class ApplicationSessionManager {
     try {
       const result = await applicationService.list(
         { mine: true, status: 'draft', pageSize: 1 },
-        { skipCache: true }
+        {}
       )
       const applications = result?.applications ?? []
       return applications[0]?.id ?? null
@@ -407,7 +407,7 @@ class ApplicationSessionManager {
       try {
         const result = await applicationService.list(
           { mine: true, status: 'draft', pageSize: 1 },
-          { skipCache: true }
+          {}
         )
         const apps = result?.applications ?? []
 
@@ -474,7 +474,7 @@ class ApplicationSessionManager {
           mine: true,
           status: 'draft',
           pageSize: 50
-        }, { skipCache: true })
+        }, {})
         const draftIds = (draftList?.applications ?? [])
           .map(application => application?.id)
           .filter((id): id is string => typeof id === 'string' && id.length > 0)
@@ -571,7 +571,7 @@ class ApplicationSessionManager {
     try {
       const result = await applicationService.list(
         { mine: true, status: 'draft', pageSize: 1 },
-        { skipCache: true }
+        {}
       )
       const apps = result?.applications ?? []
       return apps.length > 0 ? ((apps[0] as any).version || 0) + 1 : 1
@@ -631,7 +631,7 @@ class ApplicationSessionManager {
       // Check database for draft applications via API
       const result = await applicationService.list(
         { mine: true, status: 'draft', pageSize: 1 },
-        { skipCache: true }
+        {}
       )
       const draftApps = result?.applications ?? []
 

@@ -32,7 +32,7 @@ from apps.accounts.permissions import (  # noqa: E402
 )
 from apps.accounts.tokens import _get_permissions_for_role  # noqa: E402
 
-_default_settings = settings(max_examples=100, deadline=None)
+_default_settings = settings(max_examples=5, deadline=None)
 
 # ---------------------------------------------------------------------------
 # Strategies

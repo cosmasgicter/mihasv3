@@ -140,3 +140,30 @@ class WebhookEventLog(models.Model):
 
     def __str__(self):
         return f"{self.event_type} — {self.reference}"
+
+
+class FeeWaiver(models.Model):
+    """Maps to 'fee_waivers' table."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    application = models.ForeignKey(
+        'applications.Application', on_delete=models.CASCADE
+    )
+    waiver_type = models.CharField(max_length=20)
+    reason_code = models.CharField(max_length=30)
+    discount_percentage = models.IntegerField(default=100)
+    approved_by = models.ForeignKey(
+        'accounts.Profile',
+        on_delete=models.CASCADE,
+        related_name='approved_waivers',
+        db_column='approved_by',
+    )
+    notes = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = 'fee_waivers'
+
+    def __str__(self):
+        return f"Waiver {self.id} for {self.application_id} ({self.waiver_type})"

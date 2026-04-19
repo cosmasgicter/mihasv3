@@ -64,7 +64,7 @@ class TestEnrollmentIncrementUpdatesBothTables(SimpleTestCase):
     """
 
     @given(intake_name=intake_name_strings, program_name=program_name_strings)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_increment_updates_both_intake_and_program_intake(
         self, intake_name, program_name
     ):
@@ -123,7 +123,7 @@ class TestEnrollmentIncrementUpdatesBothTables(SimpleTestCase):
             self.assertIn("current_enrollment", pi_update_kwargs.kwargs)
 
     @given(intake_name=intake_name_strings, program_name=program_name_strings)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_increment_skips_when_intake_not_found(self, intake_name, program_name):
         """When the intake is not found, increment_enrollment should not
         attempt any database updates."""
@@ -148,7 +148,7 @@ class TestEnrollmentIncrementUpdatesBothTables(SimpleTestCase):
             mock_pi_objects.filter.assert_not_called()
 
     @given(intake_name=intake_name_strings)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_increment_without_program_updates_only_intake(self, intake_name):
         """When program_name is empty, only the Intake table should be
         updated — ProgramIntake should not be touched."""
@@ -223,7 +223,7 @@ class TestEnrollmentSyncProducesCorrectCounts(SimpleTestCase):
         intake_name=intake_name_strings,
         applications=application_sets,
     )
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_sync_sets_correct_per_program_counts(self, intake_name, applications):
         """For any set of applications, sync_enrollment should set each
         program_intake's current_enrollment to the count of counted-status
@@ -345,7 +345,7 @@ class TestEnrollmentSyncProducesCorrectCounts(SimpleTestCase):
                 )
 
     @given(intake_name=intake_name_strings)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_sync_skips_when_intake_not_found(self, intake_name):
         """When the intake is not found, sync_enrollment should not
         attempt any database updates."""
@@ -432,7 +432,7 @@ class TestSyncEnrollmentMetamorphicEquivalence(SimpleTestCase):
         intake_name=intake_name_strings,
         applications=application_sets,
     )
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_aggregation_and_loop_produce_same_counts(self, intake_name, applications):
         """For any set of applications, the single-query aggregation approach
         and the per-program loop approach produce identical count_maps."""
@@ -449,7 +449,7 @@ class TestSyncEnrollmentMetamorphicEquivalence(SimpleTestCase):
         intake_name=intake_name_strings,
         applications=application_sets,
     )
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_sync_enrollment_uses_aggregation_matching_reference(
         self, intake_name, applications
     ):

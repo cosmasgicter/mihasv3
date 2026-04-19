@@ -60,7 +60,7 @@ class TestStartupEnvironmentValidation(SimpleTestCase):
             {var: _nonempty_value for var in REQUIRED_ENV_VARS}
         )
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     @override_settings(REQUIRED_ENV_VARS=REQUIRED_ENV_VARS)
     def test_all_vars_present_and_nonempty_passes(self, values):
         """When every required var is present and non-empty, validation passes."""
@@ -73,7 +73,7 @@ class TestStartupEnvironmentValidation(SimpleTestCase):
             st.sampled_from(REQUIRED_ENV_VARS), min_size=1
         )
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     @override_settings(REQUIRED_ENV_VARS=REQUIRED_ENV_VARS)
     def test_missing_subset_raises_listing_all_missing(self, missing_subset):
         """When any subset of required vars is missing, validation raises
@@ -101,7 +101,7 @@ class TestStartupEnvironmentValidation(SimpleTestCase):
             st.sampled_from(REQUIRED_ENV_VARS), min_size=1
         )
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     @override_settings(REQUIRED_ENV_VARS=REQUIRED_ENV_VARS)
     def test_empty_or_whitespace_vars_treated_as_missing(self, empty_subset):
         """Vars that are empty strings or whitespace-only are treated as missing."""

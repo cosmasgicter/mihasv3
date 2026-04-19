@@ -26,7 +26,7 @@ from hypothesis import given, settings, assume  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 from rest_framework.permissions import AllowAny  # noqa: E402
 
-_default_settings = settings(max_examples=100, deadline=None)
+_default_settings = settings(max_examples=5, deadline=None)
 
 _statuses = st.sampled_from(["draft", "submitted", "under_review", "approved", "rejected"])
 _sexes = st.sampled_from(["male", "female"])

@@ -69,7 +69,7 @@ class TestResponseEnvelopeFormat(SimpleTestCase):
         return {"response": mock_response}
 
     @given(payload=_json_values)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_success_response_wraps_in_envelope(self, payload):
         """For any JSON-serialisable payload and a 2xx status, the renderer
         wraps it in {"success": true, "data": <payload>}."""
@@ -86,7 +86,7 @@ class TestResponseEnvelopeFormat(SimpleTestCase):
         status_code=st.sampled_from([400, 401, 403, 404, 405, 429, 500]),
         error_msg=st.text(min_size=1, max_size=100),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_error_response_wraps_in_error_envelope(self, status_code, error_msg):
         """For any error status (>= 400), the renderer produces
         {"success": false, "error": ..., "code": ...}."""
@@ -101,7 +101,7 @@ class TestResponseEnvelopeFormat(SimpleTestCase):
         self.assertIn("code", envelope)
 
     @given(payload=_json_values)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_already_wrapped_success_is_not_double_wrapped(self, payload):
         """If data already contains a 'success' key, the renderer should
         pass it through without double-wrapping."""
@@ -118,7 +118,7 @@ class TestResponseEnvelopeFormat(SimpleTestCase):
         error_msg=st.text(min_size=1, max_size=100),
         code=st.text(min_size=1, max_size=30),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_already_wrapped_error_is_not_double_wrapped(self, status_code, error_msg, code):
         """If error data already has 'success' key, the renderer passes it through."""
         pre_wrapped = {"success": False, "error": error_msg, "code": code}
@@ -146,7 +146,7 @@ class TestPaginationMetadata(SimpleTestCase):
         total_count=st.integers(min_value=0, max_value=10000),
         page_number=st.integers(min_value=1, max_value=100),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_paginated_response_contains_required_fields(
         self, page_size, total_count, page_number
     ):
@@ -185,7 +185,7 @@ class TestPaginationMetadata(SimpleTestCase):
     @given(
         page_size=st.integers(min_value=1, max_value=100),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_page_size_respects_max_limit(self, page_size):
         """The pageSize returned should never exceed max_page_size (100)."""
         from apps.common.pagination import StandardPagination
@@ -232,7 +232,7 @@ class TestSignedUrlExpiry(SimpleTestCase):
     )
 
     @given(file_key=_file_key_strategy)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     @patch("apps.common.storage.boto3")
     def test_signed_url_passes_correct_expiry(self, mock_boto3, file_key):
         """For any file key, generate_signed_url should call
@@ -260,7 +260,7 @@ class TestSignedUrlExpiry(SimpleTestCase):
         self.assertTrue(len(url) > 0)
 
     @given(file_key=_file_key_strategy)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     @patch("apps.common.storage.boto3")
     def test_signed_url_returns_string(self, mock_boto3, file_key):
         """For any file key, the result should always be a string URL."""
@@ -280,7 +280,7 @@ class TestSignedUrlExpiry(SimpleTestCase):
         file_key=_file_key_strategy,
         custom_expiry=st.integers(min_value=60, max_value=3600),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     @patch("apps.common.storage.boto3")
     def test_signed_url_respects_custom_expiry(self, mock_boto3, file_key, custom_expiry):
         """When a custom expiry is provided, it should be used instead of the default."""

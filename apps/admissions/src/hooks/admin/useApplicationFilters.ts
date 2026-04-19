@@ -9,6 +9,9 @@ export interface ApplicationFilters {
   programFilter: string
   institutionFilter: string
   draftFilter: string // 'all' | 'drafts' | 'completed'
+  assignedReviewerFilter: string
+  lateSubmissionFilter: string
+  pendingAmendmentsFilter: string
 }
 
 export const DEFAULT_APPLICATION_FILTERS: ApplicationFilters = {
@@ -17,7 +20,10 @@ export const DEFAULT_APPLICATION_FILTERS: ApplicationFilters = {
   paymentFilter: '',
   programFilter: '',
   institutionFilter: '',
-  draftFilter: 'all'
+  draftFilter: 'all',
+  assignedReviewerFilter: '',
+  lateSubmissionFilter: '',
+  pendingAmendmentsFilter: '',
 }
 
 export const DRAFT_FILTER_OPTIONS = [
@@ -32,7 +38,10 @@ export const APPLICATION_FILTER_KEYS = [
   'paymentFilter',
   'programFilter',
   'institutionFilter',
-  'draftFilter'
+  'draftFilter',
+  'assignedReviewerFilter',
+  'lateSubmissionFilter',
+  'pendingAmendmentsFilter'
 ] as const satisfies ReadonlyArray<keyof ApplicationFilters>
 
 type ApplicationFilterKey = typeof APPLICATION_FILTER_KEYS[number]

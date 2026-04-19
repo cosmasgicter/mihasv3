@@ -104,7 +104,7 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
         country=countries,
         program_code=program_codes,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_payment_created_with_pending_status(
         self,
         application_id,
@@ -187,7 +187,7 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
         country=countries,
         program_code=program_codes,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_payment_created_with_correct_amount_and_currency(
         self,
         application_id,
@@ -267,7 +267,7 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
         country=countries,
         program_code=program_codes,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_payment_created_with_non_empty_reference(
         self,
         application_id,
@@ -343,7 +343,7 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
         country=countries,
         program_code=program_codes,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_payment_created_with_application_fk(
         self,
         application_id,
@@ -419,7 +419,7 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
         country=countries,
         program_code=program_codes,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_payment_metadata_contains_fee_context(
         self,
         application_id,

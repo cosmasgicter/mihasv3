@@ -190,9 +190,18 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
+            # Return field-specific validation errors (e.g. missing email/password)
+            details = {}
+            for field, messages in serializer.errors.items():
+                details[field] = messages[0] if messages else "This field is required."
             return Response(
-                {"success": False, "error": "Invalid credentials", "code": "INVALID_CREDENTIALS"},
-                status=status.HTTP_401_UNAUTHORIZED,
+                {
+                    "success": False,
+                    "error": "Please provide both email and password.",
+                    "code": "VALIDATION_ERROR",
+                    "details": details,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         email = serializer.validated_data["email"].lower().strip()
@@ -205,13 +214,21 @@ class LoginView(APIView):
         attempt_status = check_login_attempts(email_hash)
         if attempt_status == LoginStatus.LOCKED:
             return Response(
-                {"success": False, "error": "Account temporarily locked", "code": "ACCOUNT_LOCKED"},
+                {
+                    "success": False,
+                    "error": "Your account has been temporarily locked due to too many failed attempts. Please try again in 30 minutes or reset your password.",
+                    "code": "ACCOUNT_LOCKED",
+                },
                 status=status.HTTP_429_TOO_MANY_REQUESTS,
                 headers={"Retry-After": "1800"},
             )
         if attempt_status == LoginStatus.BLOCKED:
             return Response(
-                {"success": False, "error": "Too many login attempts", "code": "TOO_MANY_ATTEMPTS"},
+                {
+                    "success": False,
+                    "error": "Too many login attempts. Please wait 15 minutes before trying again.",
+                    "code": "TOO_MANY_ATTEMPTS",
+                },
                 status=status.HTTP_429_TOO_MANY_REQUESTS,
                 headers={"Retry-After": "900"},
             )
@@ -222,7 +239,11 @@ class LoginView(APIView):
         except Profile.DoesNotExist:
             record_login_attempt(email_hash, ip_hash, success=False)
             return Response(
-                {"success": False, "error": "Invalid credentials", "code": "INVALID_CREDENTIALS"},
+                {
+                    "success": False,
+                    "error": "The email or password you entered is incorrect. Please check your credentials and try again.",
+                    "code": "INVALID_CREDENTIALS",
+                },
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
@@ -236,7 +257,11 @@ class LoginView(APIView):
                 send_lockout_email(user)
 
             return Response(
-                {"success": False, "error": "Invalid credentials", "code": "INVALID_CREDENTIALS"},
+                {
+                    "success": False,
+                    "error": "The email or password you entered is incorrect. Please check your credentials and try again.",
+                    "code": "INVALID_CREDENTIALS",
+                },
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
@@ -490,10 +515,19 @@ class RegisterView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if not serializer.is_valid():
+            # Build a human-readable summary from field errors
+            first_error = ""
+            for field, messages in serializer.errors.items():
+                msg = messages[0] if isinstance(messages, list) and messages else str(messages)
+                if isinstance(msg, dict):
+                    msg = str(list(msg.values())[0][0]) if msg else "Invalid value."
+                first_error = f"{msg}" if field == "non_field_errors" else f"{field.replace('_', ' ').title()}: {msg}"
+                break
+
             return Response(
                 {
                     "success": False,
-                    "error": "Validation failed",
+                    "error": first_error or "Please fix the errors below and try again.",
                     "code": "VALIDATION_ERROR",
                     "details": serializer.errors,
                 },
@@ -677,10 +711,15 @@ class PasswordResetRequestView(APIView):
     def post(self, request):
         serializer = PasswordResetRequestSerializer(data=request.data)
         if not serializer.is_valid():
+            first_error = ""
+            for field, messages in serializer.errors.items():
+                msg = messages[0] if isinstance(messages, list) and messages else str(messages)
+                first_error = f"{msg}" if field == "non_field_errors" else f"Please enter a valid email address."
+                break
             return Response(
                 {
                     "success": False,
-                    "error": "Validation failed",
+                    "error": first_error or "Please enter a valid email address.",
                     "code": "VALIDATION_ERROR",
                     "details": serializer.errors,
                 },
@@ -794,10 +833,20 @@ class PasswordResetConfirmView(APIView):
     def post(self, request):
         serializer = PasswordResetConfirmSerializer(data=request.data)
         if not serializer.is_valid():
+            first_error = ""
+            for field, messages in serializer.errors.items():
+                msg = messages[0] if isinstance(messages, list) and messages else str(messages)
+                if field == "new_password":
+                    first_error = f"{msg}"
+                elif field == "token":
+                    first_error = "Reset token is missing."
+                else:
+                    first_error = f"{msg}"
+                break
             return Response(
                 {
                     "success": False,
-                    "error": "Validation failed",
+                    "error": first_error or "Please fix the errors below.",
                     "code": "VALIDATION_ERROR",
                     "details": serializer.errors,
                 },
@@ -807,10 +856,48 @@ class PasswordResetConfirmView(APIView):
         token = serializer.validated_data["token"]
         new_password = serializer.validated_data["new_password"]
 
+        # Check if token exists but is already used
+        from apps.accounts.models import PasswordResetToken
+
+        token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+        try:
+            reset_token = PasswordResetToken.objects.get(token_hash=token_hash)
+            if reset_token.used_at is not None:
+                return Response(
+                    {
+                        "success": False,
+                        "error": "This reset link has already been used. Please request a new password reset.",
+                        "code": "TOKEN_ALREADY_USED",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if reset_token.expires_at < timezone.now():
+                return Response(
+                    {
+                        "success": False,
+                        "error": "This reset link has expired. Password reset links are valid for 1 hour. Please request a new one.",
+                        "code": "TOKEN_EXPIRED",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        except PasswordResetToken.DoesNotExist:
+            return Response(
+                {
+                    "success": False,
+                    "error": "This reset link is invalid. Please request a new password reset.",
+                    "code": "INVALID_TOKEN",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         user = verify_password_reset_token(token)
         if user is None:
             return Response(
-                {"success": False, "error": "Invalid or expired reset token", "code": "INVALID_TOKEN"},
+                {
+                    "success": False,
+                    "error": "This reset link is invalid or has expired. Please request a new password reset.",
+                    "code": "INVALID_TOKEN",
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -819,6 +906,6 @@ class PasswordResetConfirmView(APIView):
         user.save(update_fields=["password_hash"])
 
         return Response(
-            {"success": True, "data": {"message": "Password reset successful"}},
+            {"success": True, "data": {"message": "Password reset successful. You can now sign in with your new password."}},
             status=status.HTTP_200_OK,
         )

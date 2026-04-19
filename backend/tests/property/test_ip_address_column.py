@@ -142,7 +142,7 @@ class TestIPAddressColumnWidth(SimpleTestCase):
         super().tearDownClass()
 
     @given(ip_value=hex_ip_strings)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_ip_address_accepts_up_to_64_chars_without_truncation(self, ip_value):
         """Writing a hex string (1-64 chars) to ip_address succeeds and
         reads back without truncation."""

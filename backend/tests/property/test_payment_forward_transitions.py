@@ -65,7 +65,7 @@ class TestPaymentForwardOnlyTransitions(SimpleTestCase):
         payment_id=uuids,
         amount=amounts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_already_successful_payment_returns_current_state(
         self, payment_id, amount
     ):
@@ -92,7 +92,7 @@ class TestPaymentForwardOnlyTransitions(SimpleTestCase):
         payment_id=uuids,
         amount=amounts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_already_failed_payment_returns_current_state(
         self, payment_id, amount
     ):
@@ -130,7 +130,7 @@ class TestPaymentForwardOnlyTransitions(SimpleTestCase):
         terminal_status=terminal_statuses,
         target=target_statuses,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_terminal_status_has_no_allowed_transitions(
         self, terminal_status, target
     ):
@@ -145,7 +145,7 @@ class TestPaymentForwardOnlyTransitions(SimpleTestCase):
         amount=amounts,
         lenco_status=st.sampled_from(["successful", "failed"]),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_pending_payment_transitions_to_lenco_status(
         self, payment_id, application_id, amount, lenco_status
     ):

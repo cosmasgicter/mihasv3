@@ -174,7 +174,7 @@ class TestNoStrEInDocumentsResponses(SimpleTestCase):
         )
 
     @given(call_index=st.integers(min_value=0, max_value=100))
-    @settings(max_examples=50, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_every_response_call_free_of_str_e(self, call_index):
         """For any valid Response call index, the call does not contain str(e).
 

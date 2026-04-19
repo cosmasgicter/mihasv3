@@ -17,7 +17,7 @@ export function UserMenu() {
   const toast = useToastStore()
   const menuRef = useRef<HTMLDivElement>(null)
   
-  const fullName = profile?.full_name || (user?.user_metadata?.full_name as string) || 'User'
+  const fullName = profile?.full_name || user?.full_name || 'User'
   const firstName = fullName.split(' ')[0] || 'User'
 
   useEffect(() => {
@@ -54,9 +54,9 @@ export function UserMenu() {
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        {(profile?.avatar_url || user?.user_metadata?.avatar_url) && !avatarError ? (
+        {profile?.avatar_url && !avatarError ? (
           <img
-            src={profile?.avatar_url || (user?.user_metadata?.avatar_url as string)}
+            src={profile.avatar_url}
             alt={`Profile photo for ${fullName}`}
             className="w-8 h-8 rounded-full border border-border"
             onError={() => setAvatarError(true)}

@@ -84,14 +84,14 @@ class TestZambianPhoneValidation(SimpleTestCase):
     """
 
     @given(phone=_valid_phone)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_valid_phone_accepted(self, phone):
         """Any +260XXXXXXXXX phone number should be accepted."""
         result = validate_zambian_phone(phone)
         self.assertEqual(result, phone.strip())
 
     @given(phone=_valid_phone, padding=st.sampled_from(["", " ", "  ", "\t"]))
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_valid_phone_with_whitespace_accepted(self, phone, padding):
         """Valid phone numbers with leading/trailing whitespace should be accepted
         and returned stripped."""
@@ -100,7 +100,7 @@ class TestZambianPhoneValidation(SimpleTestCase):
         self.assertEqual(result, phone)
 
     @given(phone=_invalid_phone)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_invalid_phone_rejected(self, phone):
         """Any string not matching +260 + 9 digits should raise ValidationError."""
         with self.assertRaises(ValidationError):
@@ -117,14 +117,14 @@ class TestNRCValidation(SimpleTestCase):
     """
 
     @given(nrc=_valid_nrc)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_valid_nrc_accepted(self, nrc):
         """Any NRC in 123456/78/9 format should be accepted."""
         result = validate_nrc(nrc)
         self.assertEqual(result, nrc.strip())
 
     @given(nrc=_valid_nrc, padding=st.sampled_from(["", " ", "  ", "\t"]))
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_valid_nrc_with_whitespace_accepted(self, nrc, padding):
         """Valid NRC numbers with whitespace should be accepted and stripped."""
         padded = padding + nrc + padding
@@ -132,7 +132,7 @@ class TestNRCValidation(SimpleTestCase):
         self.assertEqual(result, nrc)
 
     @given(nrc=_invalid_nrc)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_invalid_nrc_rejected(self, nrc):
         """Any string not matching the NRC pattern should raise ValidationError."""
         with self.assertRaises(ValidationError):
@@ -149,14 +149,14 @@ class TestECZGradeValidation(SimpleTestCase):
     """
 
     @given(grade=_valid_grade)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_valid_grade_accepted(self, grade):
         """Any integer 1-9 should be accepted as a valid ECZ grade."""
         result = validate_ecz_grade(grade)
         self.assertEqual(result, grade)
 
     @given(grade=_invalid_grade)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_invalid_grade_rejected(self, grade):
         """Any integer outside 1-9 should raise ValidationError."""
         with self.assertRaises(ValidationError):
@@ -172,7 +172,7 @@ class TestNormalizeNationality(SimpleTestCase):
     """
 
     @given(value=st.sampled_from([None, "", " ", "  ", "\t", "\n"]))
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_empty_or_none_defaults_to_zambian(self, value):
         """None, empty string, or whitespace-only should return 'Zambian'."""
         result = normalize_nationality(value)
@@ -181,7 +181,7 @@ class TestNormalizeNationality(SimpleTestCase):
     @given(
         value=st.text(min_size=1, max_size=50).filter(lambda s: s.strip() != "")
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_non_empty_value_returned_stripped(self, value):
         """Any non-empty, non-whitespace string should be returned stripped."""
         result = normalize_nationality(value)

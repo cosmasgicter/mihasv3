@@ -18,11 +18,7 @@ function normalizeAuthUser(
     ? payload.full_name.trim()
     : [firstName, lastName].filter(Boolean).join(' ').trim()
 
-  const resolvedRole =
-    payload.role ||
-    (typeof payload.user_metadata?.role === 'string' ? payload.user_metadata.role : undefined) ||
-    (typeof payload.app_metadata?.role === 'string' ? payload.app_metadata.role : undefined) ||
-    'student'
+  const resolvedRole = payload.role || 'student'
 
   return {
     ...payload,

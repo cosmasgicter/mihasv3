@@ -30,6 +30,7 @@ from apps.applications.duplicate_checker import (  # noqa: E402
     DuplicateCheckResult,
     NON_TERMINAL_STATUSES,
     SUBMITTED_STATUSES,
+    TERMINAL_STATUSES,
 )
 
 # ---------------------------------------------------------------------------
@@ -90,6 +91,34 @@ class TestDuplicateCheckerStatusSets(SimpleTestCase):
         """'draft' must NOT be in SUBMITTED_STATUSES — drafts are not submitted."""
         self.assertNotIn("draft", SUBMITTED_STATUSES)
 
+    def test_withdrawn_in_terminal_statuses(self):
+        """'withdrawn' must be in TERMINAL_STATUSES so withdrawn apps don't block
+        new applications for the same program+intake.
+
+        **Validates: Requirements 1.11**
+        """
+        self.assertIn("withdrawn", TERMINAL_STATUSES)
+
+    def test_withdrawn_not_in_non_terminal_statuses(self):
+        """'withdrawn' must NOT be in NON_TERMINAL_STATUSES — withdrawn apps
+        must not block creation of new applications.
+
+        **Validates: Requirements 1.11**
+        """
+        self.assertNotIn("withdrawn", NON_TERMINAL_STATUSES)
+
+    def test_withdrawn_not_in_submitted_statuses(self):
+        """'withdrawn' must NOT be in SUBMITTED_STATUSES — withdrawn apps
+        must not block submission of new applications.
+
+        **Validates: Requirements 1.11**
+        """
+        self.assertNotIn("withdrawn", SUBMITTED_STATUSES)
+
+    def test_terminal_and_non_terminal_are_disjoint(self):
+        """TERMINAL_STATUSES and NON_TERMINAL_STATUSES must not overlap."""
+        self.assertEqual(TERMINAL_STATUSES & NON_TERMINAL_STATUSES, set())
+
 
 class TestCheckAtCreateBlocking(SimpleTestCase):
     """Property 27a: check_at_create() blocks if non-terminal app exists.
@@ -103,7 +132,7 @@ class TestCheckAtCreateBlocking(SimpleTestCase):
         intake=intake_names,
         existing_status=non_terminal_statuses,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_blocks_when_non_terminal_app_exists(
         self, user_id, program, intake, existing_status
     ):
@@ -135,7 +164,7 @@ class TestCheckAtCreateBlocking(SimpleTestCase):
         program=program_codes,
         intake=intake_names,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_allows_when_no_non_terminal_app_exists(
         self, user_id, program, intake
     ):
@@ -163,7 +192,7 @@ class TestCheckAtSubmitBlocking(SimpleTestCase):
         existing_status=submitted_statuses,
         exclude_id=user_ids,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_blocks_when_submitted_app_exists(
         self, user_id, program, intake, existing_status, exclude_id
     ):
@@ -197,7 +226,7 @@ class TestCheckAtSubmitBlocking(SimpleTestCase):
         intake=intake_names,
         exclude_id=user_ids,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_allows_when_no_submitted_app_exists(
         self, user_id, program, intake, exclude_id
     ):

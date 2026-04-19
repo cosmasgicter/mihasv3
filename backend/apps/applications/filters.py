@@ -33,6 +33,9 @@ class ApplicationFilter(django_filters.FilterSet):
     endDate = django_filters.DateFilter(method="filter_end_date")
     paymentStatus = django_filters.CharFilter(field_name="payment_status", lookup_expr="iexact")
 
+    # Reviewer assignment filter (Req 11.8)
+    assigned_reviewer_id = django_filters.UUIDFilter(field_name="assigned_reviewer_id")
+
     class Meta:
         model = Application
         fields = ["status", "payment", "payment_status", "program", "intake", "institution"]

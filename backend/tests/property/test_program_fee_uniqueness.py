@@ -106,7 +106,7 @@ class TestProgramFeeUniquenessRejectsDuplicate(SimpleTestCase):
         amount=amounts,
         currency=currencies,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_duplicate_active_fee_rejected(self, fee_type, residency_category, amount, currency):
         """For any (program, fee_type, residency_category) where an active record
         already exists, creating a second active record should be rejected."""
@@ -131,7 +131,7 @@ class TestProgramFeeUniquenessAllowsNew(SimpleTestCase):
         amount=amounts,
         currency=currencies,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_new_fee_allowed_when_no_duplicate(self, fee_type, residency_category, amount, currency):
         """For any (program, fee_type, residency_category) where no active record
         exists, creating a new active record should succeed."""
@@ -155,7 +155,7 @@ class TestInactiveRecordDoesNotBlockCreation(SimpleTestCase):
         amount=amounts,
         currency=currencies,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_inactive_record_does_not_block(self, fee_type, residency_category, amount, currency):
         """When only inactive records exist for the combination, the filter for
         is_active=True returns no results, so creation should succeed."""

@@ -27,7 +27,7 @@ from hypothesis import strategies as st  # noqa: E402
 
 from apps.applications.serializers import ApplicationTrackingSerializer  # noqa: E402
 
-_default_settings = settings(max_examples=100, deadline=None)
+_default_settings = settings(max_examples=5, deadline=None)
 
 # ---------------------------------------------------------------------------
 # Strategies

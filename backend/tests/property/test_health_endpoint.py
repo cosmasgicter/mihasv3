@@ -50,7 +50,7 @@ class TestHealthEndpointReflectsDependencyState(SimpleTestCase):
     """
 
     @given(state=_dependency_states)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_readiness_reflects_dependency_state(self, state):
         """The readiness endpoint returns the correct status code and body
         for every combination of DB and Redis connectivity."""

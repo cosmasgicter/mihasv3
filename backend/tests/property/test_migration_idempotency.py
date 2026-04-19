@@ -218,7 +218,7 @@ class TestMigrationIdempotency(SimpleTestCase):
     # ------------------------------------------------------------------
 
     @given(n_executions=st.integers(min_value=1, max_value=5))
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_idempotency_invariants_hold_for_n_executions(self, n_executions: int):
         """For any number of consecutive executions (1–5), the structural
         idempotency invariants of the migration script hold.

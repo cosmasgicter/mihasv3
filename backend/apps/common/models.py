@@ -176,3 +176,23 @@ class MigrationHistory(models.Model):
 
     def __str__(self):
         return f"{self.migration_name} applied at {self.applied_at}"
+
+
+class CommunicationTemplate(models.Model):
+    """Maps to 'communication_templates' table."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    template_key = models.CharField(max_length=100, unique=True)
+    subject_template = models.TextField(default='')
+    body_template = models.TextField(default='')
+    channel = models.CharField(max_length=20, default='both')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'communication_templates'
+
+    def __str__(self):
+        return f"Template: {self.template_key} ({self.channel})"

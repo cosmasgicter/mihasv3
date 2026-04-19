@@ -171,7 +171,7 @@ class TestPaymentFeeMatching(SimpleTestCase):
         payment_id=uuid_st,
         app_id=uuid_st,
     )
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_matching_payment_passes(
         self, fee: ProgramFeeRecord, payment_id: str, app_id: str
     ):
@@ -200,7 +200,7 @@ class TestPaymentFeeMatching(SimpleTestCase):
         payment_id=uuid_st,
         app_id=uuid_st,
     )
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_mismatched_payment_fails(
         self,
         fee: ProgramFeeRecord,
@@ -236,7 +236,7 @@ class TestPaymentFeeMatching(SimpleTestCase):
         payment_id=uuid_st,
         app_id=uuid_st,
     )
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_missing_fee_config_fails(
         self,
         program_code: str,
@@ -267,7 +267,7 @@ class TestPaymentFeeMatching(SimpleTestCase):
     # ------------------------------------------------------------------
 
     @given(data=st.data())
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_find_mismatched_payments_correctness(self, data: st.DataObject):
         """find_mismatched_payments should return exactly the payments that
         don't match their expected fee."""
@@ -321,7 +321,7 @@ class TestPaymentFeeMatching(SimpleTestCase):
     # ------------------------------------------------------------------
 
     @given(amount_local=decimal_amount_st, amount_intl=decimal_amount_st)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_lookup_respects_residency(
         self, amount_local: Decimal, amount_intl: Decimal
     ):

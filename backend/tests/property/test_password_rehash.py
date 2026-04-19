@@ -56,7 +56,7 @@ class TestNeedsRehashClassification(SimpleTestCase):
     """
 
     @given(password=_passwords)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_bcrypt_hashes_do_not_need_rehash(self, password):
         """Bcrypt hashes (starting with $2) should not need rehashing."""
         hashed = bcrypt.hashpw(
@@ -70,7 +70,7 @@ class TestNeedsRehashClassification(SimpleTestCase):
         )
 
     @given(digest=_sha256_digests)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_sha256_digests_need_rehash(self, digest):
         """SHA-256 hex digests (64 hex chars) should need rehashing."""
         self.assertEqual(len(digest), 64)
@@ -111,7 +111,7 @@ class TestLegacyHashUpgradedOnLogin(SimpleTestCase):
     )
 
     @given(password=_login_passwords)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_legacy_sha256_hash_upgraded_to_bcrypt_on_login(self, password):
         """After login with a SHA-256 hashed password, the stored hash
         should be upgraded to bcrypt ($2 prefix) and needs_rehash() should

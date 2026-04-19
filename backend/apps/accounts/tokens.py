@@ -27,8 +27,9 @@ def _get_redis() -> redis.Redis:
         _redis_client = redis.from_url(
             settings.CELERY_BROKER_URL,
             decode_responses=True,
-            socket_connect_timeout=5,
-            socket_timeout=5,
+            socket_connect_timeout=2,
+            socket_timeout=2,
+            retry_on_timeout=True,
         )
     return _redis_client
 
@@ -160,12 +161,14 @@ def blacklist_jti(jti: str, ttl_seconds: int = 604800) -> None:
 
 
 def is_jti_blacklisted(jti: str) -> bool:
-    """Check Redis for jti. Fail-closed on read errors."""
+    """Check Redis for jti. Fail-OPEN on read errors to avoid blocking auth."""
+    if not jti:
+        return False
     try:
         return _get_redis().exists(f"{JTI_PREFIX}{jti}") > 0
     except redis.RedisError:
-        logger.error("Redis read failed for JTI blacklist", exc_info=True)
-        return True  # Fail-closed: treat as blacklisted
+        logger.error("Redis read failed for JTI blacklist — failing open to avoid logout", exc_info=True)
+        return False  # Fail-open: allow refresh to proceed when Redis is unavailable
 
 
 def _get_permissions_for_role(role: str) -> list[str]:

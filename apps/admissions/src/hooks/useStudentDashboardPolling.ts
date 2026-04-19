@@ -119,8 +119,6 @@ export function useStudentDashboardPolling(
       sortBy: 'date',
       sortOrder: 'desc',
       mine: true,
-    }, {
-      skipCache: true,
     })
 
     const applications = (result?.applications || []).map((app) => ({
@@ -224,8 +222,6 @@ export function useStudentApplicationCount(options: { enabled?: boolean } = {}) 
         sortBy: 'date',
         sortOrder: 'desc',
         mine: true,
-      }, {
-        skipCache: true,
       })
       const applications = (result?.applications || []).map((app) => ({
         id: app.id ?? '',
@@ -266,8 +262,6 @@ export function useHasApplicationWithStatus(
         sortBy: 'date',
         sortOrder: 'desc',
         mine: true,
-      }, {
-        skipCache: true,
       })
       const applications = (result?.applications || []).map((app) => ({
         id: app.id ?? '',

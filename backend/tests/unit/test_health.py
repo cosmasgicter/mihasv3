@@ -72,13 +72,14 @@ class TestReadinessView(SimpleTestCase):
 
     @patch.object(ReadinessView, "_check_db", return_value=True)
     @patch.object(ReadinessView, "_check_redis", return_value=False)
-    def test_returns_503_when_redis_unhealthy(self, mock_redis, mock_db):
+    def test_returns_200_when_redis_unhealthy(self, mock_redis, mock_db):
+        """Redis failure is non-critical — returns 200 with degraded status."""
         request = self.factory.get("/health/ready/")
         response = self.view(request)
-        self.assertEqual(response.status_code, 503)
-        self.assertEqual(response.data["status"], "unhealthy")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], "ok")
         self.assertEqual(response.data["db"], "ok")
-        self.assertEqual(response.data["redis"], "error")
+        self.assertEqual(response.data["redis"], "degraded")
 
     @patch.object(ReadinessView, "_check_db", return_value=False)
     @patch.object(ReadinessView, "_check_redis", return_value=False)

@@ -66,6 +66,11 @@ EXPECTED_TABLES = [
     "webhook_event_logs",
     "error_logs",
     "sse_events",
+    "application_conditions",
+    "application_amendments",
+    "fee_waivers",
+    "academic_calendar_events",
+    "communication_templates",
 ]
 
 # Expected foreign key relationships: (child_table.column -> parent_table)

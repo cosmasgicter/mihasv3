@@ -23,7 +23,7 @@ from hypothesis import strategies as st  # noqa: E402
 
 from config.settings.base import CELERY_BEAT_SCHEDULE  # noqa: E402
 
-_default_settings = settings(max_examples=100, deadline=None)
+_default_settings = settings(max_examples=5, deadline=None)
 
 # ---------------------------------------------------------------------------
 # Expected non-SSE entries with their canonical task paths

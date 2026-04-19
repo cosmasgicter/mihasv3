@@ -1,12 +1,14 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import type { Application } from '@/types/database'
 import { Button } from '@/components/ui/Button'
 import { DocumentButtons } from '@/components/student/DocumentButtons'
 import { formatDate, getStatusColor } from '@/lib/utils'
-import { Clock, CheckCircle, XCircle, Calendar, CreditCard } from 'lucide-react'
+import { Clock, CheckCircle, XCircle, Calendar, CreditCard, ListOrdered, ShieldCheck, AlertTriangle } from 'lucide-react'
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { requiresStudentPaymentAction } from '@/lib/paymentStatus'
+import { apiClient } from '@/services/client'
 
 interface ApplicationListItemProps {
   application: Application
@@ -36,6 +38,7 @@ function areApplicationListItemPropsEqual(
     prev.application.payment_status === next.application.payment_status &&
     prev.application.submitted_at === next.application.submitted_at &&
     prev.application.application_number === next.application.application_number &&
+    prev.application.enrollment_confirmation_deadline === next.application.enrollment_confirmation_deadline &&
     prev.index === next.index
   )
 }
@@ -46,6 +49,35 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
 }) {
   const needsPayment = application.status !== 'draft' && requiresStudentPaymentAction(application.payment_status)
   const paymentHref = `/student/payment?applicationId=${encodeURIComponent(application.id)}`
+
+  // Waitlist position query (Req 3.10)
+  const { data: waitlistData } = useQuery<{ position: number; total: number }>({
+    queryKey: ['waitlist-position', application.id],
+    queryFn: async () => {
+      const res = await apiClient.request<{ position: number; total: number }>(
+        `/applications/${application.id}/waitlist-position/`
+      )
+      return res ?? { position: 0, total: 0 }
+    },
+    enabled: application.status === 'waitlisted',
+    staleTime: 60_000,
+  })
+
+  // Conditions query (Req 5.9)
+  const { data: conditionsData } = useQuery<Array<{ id: string; description: string; deadline: string; status: string }>>({
+    queryKey: ['application-conditions', application.id],
+    queryFn: async () => {
+      const res = await apiClient.request<Array<{ id: string; description: string; deadline: string; status: string }>>(
+        `/applications/${application.id}/conditions/`
+      )
+      return res ?? []
+    },
+    enabled: application.status === 'conditionally_approved',
+    staleTime: 60_000,
+  })
+
+  const enrollmentDeadline = application.enrollment_confirmation_deadline as string | undefined
+  const showEnrollment = application.status === 'approved' && !!enrollmentDeadline
 
   return (
     <div
@@ -84,6 +116,51 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
             <span className="text-foreground">{formatDate(application.submitted_at)}</span>
           </div>
         </div>
+
+        {/* Waitlist position badge (Req 3.10) */}
+        {application.status === 'waitlisted' && waitlistData && (
+          <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm">
+            <ListOrdered className="h-4 w-4 text-amber-600 flex-shrink-0" />
+            <span className="font-medium text-amber-800">
+              Waitlist position: {waitlistData.position} of {waitlistData.total}
+            </span>
+          </div>
+        )}
+
+        {/* Enrollment confirmation (Req 10.9) */}
+        {showEnrollment && (
+          <div className="flex flex-col gap-2 rounded-lg border border-success/30 bg-success/5 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 text-sm">
+              <ShieldCheck className="h-4 w-4 text-success flex-shrink-0" />
+              <span className="font-medium text-success">
+                Confirm enrollment by {formatDate(enrollmentDeadline)}
+              </span>
+            </div>
+            <Link to={`/student/application/${application.id}/status`}>
+              <Button variant="primary" size="sm" className="min-h-9 w-full sm:w-auto">
+                Confirm Enrollment
+              </Button>
+            </Link>
+          </div>
+        )}
+
+        {/* Pending conditions list (Req 5.9) */}
+        {application.status === 'conditionally_approved' && conditionsData && conditionsData.length > 0 && (
+          <div className="rounded-lg border border-warning/30 bg-warning/5 px-3 py-3">
+            <div className="flex items-center gap-2 mb-2 text-sm font-medium text-warning-foreground">
+              <AlertTriangle className="h-4 w-4 text-warning flex-shrink-0" />
+              <span>Pending conditions</span>
+            </div>
+            <ul className="space-y-1 pl-6 text-sm text-foreground">
+              {conditionsData.filter(c => c.status === 'pending').map(condition => (
+                <li key={condition.id} className="list-disc">
+                  {condition.description}
+                  <span className="ml-1 text-muted-foreground">— due {formatDate(condition.deadline)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex flex-col gap-3 border-t border-border pt-3 sm:flex-row sm:items-start">

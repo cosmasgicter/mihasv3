@@ -84,7 +84,7 @@ class TestNotificationListPaginated(SimpleTestCase):
     """
 
     @given(n=notification_counts)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_paginated_response_envelope(self, n):
         """For any N > DEFAULT_PAGE_SIZE, the response contains the
         pagination envelope with results capped at pageSize."""

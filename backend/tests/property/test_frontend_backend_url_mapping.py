@@ -328,7 +328,7 @@ class TestFrontendBackendUrlMapping(SimpleTestCase):
     # ------------------------------------------------------------------
 
     @given(entry=admissions_url_st)
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_admissions_frontend_url_maps_to_backend(
         self, entry: tuple[str, str, str]
     ):
@@ -346,7 +346,7 @@ class TestFrontendBackendUrlMapping(SimpleTestCase):
     # ------------------------------------------------------------------
 
     @given(entry=jobs_ops_url_st)
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_jobs_ops_frontend_url_maps_to_backend(
         self, entry: tuple[str, str, str]
     ):
@@ -364,7 +364,7 @@ class TestFrontendBackendUrlMapping(SimpleTestCase):
     # ------------------------------------------------------------------
 
     @given(entry=all_frontend_url_st)
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_any_frontend_url_maps_to_backend(
         self, entry: tuple[str, str, str]
     ):

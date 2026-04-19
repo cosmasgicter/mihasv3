@@ -55,6 +55,14 @@ The platform uses self-hosted error monitoring with no third-party tracker (no S
 - Application tracking (`GET /api/v1/applications/track/`) validates code format (`APP-YYYYMMDD-XXXXXXXX` or `TRK-XXXXXXXXXXXX`) and returns actionable error messages — 400 with format guidance for invalid formats, descriptive 404 for valid-format codes not found.
 - Sessions list (`GET /api/v1/sessions/`) uses the standard `{"success": true, "data": [...]}` envelope and validates user_id before querying.
 - Token refresh (`POST /api/v1/auth/refresh/`) returns `NO_REFRESH_TOKEN` error code when the cookie is missing, distinct from `TOKEN_EXPIRED` for expired/blacklisted tokens.
+- Students can withdraw applications from `submitted`, `under_review`, or `waitlisted` statuses via `POST /api/v1/applications/{id}/withdraw/` with a reason (10–500 chars). Withdrawal is terminal and frees the intake spot.
+- Waitlisted students see their position and are auto-promoted when spots open (withdrawal, rejection, enrollment expiry).
+- Conditionally approved applications have attached conditions with deadlines. All conditions must be met/waived before enrollment. Expired conditions trigger auto-rejection.
+- Late applications are accepted within a configurable grace period after the intake deadline, flagged with `is_late_submission=True`, and may require a late fee.
+- Approved students must confirm enrollment by a deadline (from academic calendar or default 14 days). Unconfirmed enrollments expire and trigger waitlist promotion.
+- Students can request amendments to personal fields (phone, email, address, next of kin) on submitted applications, subject to admin approval (max 3 pending).
+- Payment attempts are limited to 5 per application. Pending payments expire after 24 hours.
+- Communication templates in the `communication_templates` table drive all notification and email content with `{{variable}}` substitution.
 
 ### Jobs Ops
 
@@ -117,9 +125,21 @@ Jobs-ops expectations:
 |------|---------|
 | Payment timing | Application fee is collected via Lenco gateway before submission. Admin can override payment status for offline payments. |
 | Payment state compatibility | Treat legacy `verified` and current paid/successful payment outcomes as equivalent verified states in student-facing reads and review tools. |
+| Payment retry limits | Maximum 5 payment attempts per application. Pending payments expire after 24 hours. Expired payments older than 7 days are excluded from the attempt count. |
 | Documents | NRC or Passport upload is mandatory. Requirements vary by program and must be validated defensively |
+| Document verification SLA | Documents pending verification beyond the configurable SLA threshold (default 5 days) trigger admin notifications. Escalation at 2x threshold. |
 | Grading | Zambian ECZ grading semantics must remain correct in admissions |
 | Audit | Administrative and automation state changes require audit coverage |
+| Withdrawal | Students can withdraw from submitted/under_review/waitlisted. Withdrawal is terminal, decrements enrollment, and triggers waitlist promotion. |
+| Waitlist | Auto-promotion by position order when spots open. Admin can override order (logged as WAITLIST_ORDER_OVERRIDE). |
+| Conditional admission | Conditions have deadlines. All must be met/waived for enrollment. Expired conditions trigger auto-rejection. |
+| Late applications | Accepted within grace period after deadline. Flagged as late. May require late fee payment. |
+| Enrollment confirmation | Approved students must confirm by deadline (academic calendar or default 14 days). Unconfirmed spots released to waitlist. |
+| Fee waivers | Super admin can grant full/partial waivers. Full waivers set payment to force_approved. |
+| Batch operations | Max 25 per batch, all-or-nothing validation, SHA-256 confirmation token required. |
+| Amendments | Students can request changes to personal fields (max 3 pending). Admin approval required. |
+| Multi-intake policy | Configurable: unrestricted (default), single_active (one active app per program), waitlist_cascade (auto-carry to next intake). |
+| Communication templates | All notifications and emails use configurable templates with `{{variable}}` substitution. Fallback to defaults if template missing. |
 | Password reset | Token-based, time-bound, single-use, and rate-limited |
 | Auth | Cookie-based auth remains the intended browser model |
 | Outreach safety | Jobs-ops must avoid duplicate spammy outreach and must not bypass approval controls for risky sends |

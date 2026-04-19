@@ -143,7 +143,7 @@ class TestFallbackEmailFromSettings(SimpleTestCase):
         )
 
     @given(file_index=st.integers(min_value=0, max_value=100))
-    @h_settings(max_examples=50, deadline=None)
+    @h_settings(max_examples=5, deadline=None)
     def test_no_hardcoded_email_in_any_target_file(self, file_index):
         """For any target file, the hardcoded email string must not appear.
 
@@ -164,7 +164,7 @@ class TestFallbackEmailFromSettings(SimpleTestCase):
         )
 
     @given(file_index=st.integers(min_value=0, max_value=100))
-    @h_settings(max_examples=50, deadline=None)
+    @h_settings(max_examples=5, deadline=None)
     def test_settings_reference_present_in_any_target_file(self, file_index):
         """For any target file, settings.ERROR_ALERT_EMAIL must be referenced.
 

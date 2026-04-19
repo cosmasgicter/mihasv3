@@ -49,6 +49,7 @@ urlpatterns = [
     path("api/v1/programs/<uuid:program_id>/fees/", include((program_fee_urlpatterns, "program-fees"))),
     # Admin endpoints
     path("api/v1/admin/", include("apps.accounts.admin_urls")),
+    path("api/v1/admin/", include("apps.common.template_urls")),
     # Notification endpoints
     path("api/v1/notifications/", include("apps.common.notification_urls")),
     # Email endpoints

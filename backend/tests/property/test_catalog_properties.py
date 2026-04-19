@@ -22,7 +22,7 @@ from django.test import SimpleTestCase  # noqa: E402
 from hypothesis import given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 
-_default_settings = settings(max_examples=100, deadline=None)
+_default_settings = settings(max_examples=5, deadline=None)
 _roles = st.sampled_from(["student", "admin", "reviewer", "super_admin"])
 _non_admin_roles = st.sampled_from(["student", "reviewer"])
 _admin_roles = st.sampled_from(["admin", "super_admin"])

@@ -18,7 +18,6 @@ interface AnalyticsDashboardProps {
 
 /**
  * Analytics Dashboard Component
- * MIGRATED: Uses API client instead of direct Supabase calls
  * Requirements: 4.1, 4.2, 4.3, 4.4
  */
 export const AnalyticsDashboard = ({

@@ -34,9 +34,9 @@ const DEFAULT_TIMEOUT = 30_000;
 /** Shorter timeout for health check and session validation requests (10s) */
 const SHORT_TIMEOUT = 10_000;
 /** Maximum retry attempts for network/5xx errors */
-const MAX_RETRIES = 2;
-/** Backoff delays in ms for each retry attempt (1s, 3s) */
-const RETRY_DELAYS = [1_000, 3_000];
+const MAX_RETRIES = 3;
+/** Backoff delays in ms for each retry attempt (2s, 5s, 10s) */
+const RETRY_DELAYS = [2_000, 5_000, 10_000];
 
 /** Endpoints that use the shorter timeout */
 const SHORT_TIMEOUT_PATTERNS = ['/api/v1/health/', '/api/v1/auth/session/'];
@@ -576,10 +576,6 @@ class ApiClient {
       timeout: _timeout,
       retries: _retries,
       signal: externalSignal,
-      cacheTTL: _cacheTTL,
-      skipCache: _skipCache,
-      useCache: _useCache,
-      cacheKey: _cacheKey,
       ...restOptions
     } = options;
 
@@ -1167,12 +1163,8 @@ export function buildQueryString(params: QueryParams = {}) {
 export type ApiClientRequest = ApiClient['request'];
 
 export interface ApiRequestOptions extends Omit<RequestInit, 'cache'> {
-  cacheTTL?: number;
-  skipCache?: boolean;
-  useCache?: boolean;
-  cacheKey?: string;
   /** Request timeout in milliseconds. Defaults to 30s (10s for health/session). */
   timeout?: number;
-  /** Max retry attempts for network/5xx errors. Defaults to 2. Set 0 to disable. */
+  /** Max retry attempts for network/5xx errors. Defaults to 3. Set 0 to disable. */
   retries?: number;
 }

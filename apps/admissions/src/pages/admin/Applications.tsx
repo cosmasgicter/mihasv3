@@ -702,6 +702,9 @@ export default function Applications() {
               programFilter={filters.programFilter}
               institutionFilter={filters.institutionFilter}
               draftFilter={filters.draftFilter}
+              assignedReviewerFilter={filters.assignedReviewerFilter}
+              lateSubmissionFilter={filters.lateSubmissionFilter}
+              pendingAmendmentsFilter={filters.pendingAmendmentsFilter}
               onFilterChange={updateFilter}
             />
           </div>
@@ -716,6 +719,9 @@ export default function Applications() {
             programFilter={filters.programFilter}
             institutionFilter={filters.institutionFilter}
             draftFilter={filters.draftFilter}
+            assignedReviewerFilter={filters.assignedReviewerFilter}
+            lateSubmissionFilter={filters.lateSubmissionFilter}
+            pendingAmendmentsFilter={filters.pendingAmendmentsFilter}
             onFilterChange={updateFilter}
           />
         </div>

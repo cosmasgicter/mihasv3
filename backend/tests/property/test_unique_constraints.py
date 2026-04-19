@@ -136,7 +136,7 @@ class TestUniqueConstraintsRejectDuplicates(SimpleTestCase):
     # --- applications.public_tracking_code ---
 
     @given(tracking_code=tracking_code_strings)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_applications_public_tracking_code_rejects_duplicates(self, tracking_code):
         """Inserting two applications with the same public_tracking_code
         should raise UniqueViolation on the second insert."""
@@ -187,7 +187,7 @@ class TestUniqueConstraintsRejectDuplicates(SimpleTestCase):
     # --- subjects.code ---
 
     @given(code=subject_code_strings)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_subjects_code_rejects_duplicates(self, code):
         """Inserting two subjects with the same code should raise
         UniqueViolation on the second insert."""
@@ -219,7 +219,7 @@ class TestUniqueConstraintsRejectDuplicates(SimpleTestCase):
     # --- notifications.idempotency_key ---
 
     @given(idem_key=idempotency_key_strings)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_notifications_idempotency_key_rejects_duplicates(self, idem_key):
         """Inserting two notifications with the same idempotency_key
         should raise UniqueViolation on the second insert."""

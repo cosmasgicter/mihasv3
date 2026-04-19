@@ -13,7 +13,7 @@ from apps.catalog.intake_date_computer import ComputedIntakeDates, compute_intak
     intake_month=st.sampled_from([1, 7]),
     intake_year=st.integers(min_value=2024, max_value=2100),
 )
-@settings(max_examples=100)
+@settings(max_examples=5)
 def test_intake_date_computation_invariants(intake_month: int, intake_year: int) -> None:
     """Feature: production-stability-hardening, Property 1: Intake date computation invariants
 

@@ -9,8 +9,7 @@ export const useApplicationDrafts = (userId?: string) => {
     queryKey: ['application_drafts', userId],
     queryFn: async () => {
       const result = await applicationService.list(
-        { mine: true, status: 'draft', page: 1, pageSize: 100, sortBy: 'date', sortOrder: 'desc' },
-        { skipCache: true }
+        { mine: true, status: 'draft', page: 1, pageSize: 100, sortBy: 'date', sortOrder: 'desc' }
       )
       return result?.applications ?? []
     },
@@ -29,8 +28,7 @@ export const useApplicationDraftCount = (userId?: string) => {
     queryKey: ['application_drafts', userId],
     queryFn: async () => {
       const result = await applicationService.list(
-        { mine: true, status: 'draft', page: 1, pageSize: 100, sortBy: 'date', sortOrder: 'desc' },
-        { skipCache: true }
+        { mine: true, status: 'draft', page: 1, pageSize: 100, sortBy: 'date', sortOrder: 'desc' }
       )
       return result?.applications ?? []
     },

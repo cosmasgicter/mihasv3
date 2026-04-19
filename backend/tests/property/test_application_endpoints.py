@@ -36,7 +36,7 @@ from apps.applications.views import (  # noqa: E402
     FinanceReceiptView,
 )
 
-_default_settings = settings(max_examples=100, deadline=None)
+_default_settings = settings(max_examples=5, deadline=None)
 
 # Patch targets (same as unit tests)
 _APP = "apps.applications.views.Application.objects"

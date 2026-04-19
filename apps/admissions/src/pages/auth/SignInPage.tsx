@@ -158,7 +158,7 @@ export default function SignInPage() {
   const getErrorMessage = (error: Error | null) => {
     if (!error) return '';
     const message = error.message || 'Failed to sign in. Please try again.';
-    return message.includes('Invalid') ? 'Invalid email or password.' : message;
+    return message;
   };
 
   // Extract field-level errors from Django validation responses

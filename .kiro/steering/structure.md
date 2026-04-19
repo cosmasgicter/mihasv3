@@ -179,6 +179,37 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `backend/apps/catalog/management/commands/manage_intakes.py` | Management command wrapper for `intake_manager_task` |
 | `apps/admissions/src/lib/speculativePrefetch.ts` | Speculative prefetch triggers (email blur, login success, dashboard mount) |
 
+### Files Added During Business Logic Densification
+
+| Path | Purpose |
+|------|---------|
+| `backend/scripts/business_logic_densification.sql` | SQL migration: new columns on `applications` and `intakes`, 5 new tables (`application_conditions`, `communication_templates`, `academic_calendar_events`, `fee_waivers`, `application_amendments`), indexes, and 20 seeded communication templates |
+| `backend/apps/applications/withdrawal_service.py` | `WithdrawalService` — student withdrawal with enrollment decrement and waitlist promotion |
+| `backend/apps/applications/interview_service.py` | `InterviewService` — interview scheduling with 48h notice, conflict detection, mode validation |
+| `backend/apps/applications/waitlist_manager.py` | `WaitlistManager` — position assignment, auto-promotion, reindexing |
+| `backend/apps/applications/condition_manager.py` | `ConditionManager` — conditional admission lifecycle |
+| `backend/apps/applications/enrollment_service.py` | `EnrollmentService` — enrollment confirmation and deadline computation |
+| `backend/apps/applications/amendment_service.py` | `AmendmentService` — student amendment requests with admin approval |
+| `backend/apps/common/communication_service.py` | `CommunicationService` — template-based notifications and emails |
+| `backend/apps/common/template_views.py` | Admin endpoints for communication template management |
+| `backend/apps/common/template_urls.py` | URL patterns for `/api/v1/admin/templates/` |
+| `backend/apps/documents/fee_waiver_service.py` | `FeeWaiverService` — fee waiver granting and effective fee computation |
+| `backend/tests/unit/test_withdrawal.py` | Unit tests for withdrawal service and endpoint |
+| `backend/tests/unit/test_interview_scheduling.py` | Unit tests for interview scheduling business rules |
+| `backend/tests/unit/test_waitlist.py` | Unit tests for waitlist position and auto-promotion |
+| `backend/tests/unit/test_expiry.py` | Unit tests for draft expiry and review SLA |
+| `backend/tests/unit/test_conditions.py` | Unit tests for conditional admission |
+| `backend/tests/unit/test_late_applications.py` | Unit tests for late application handling |
+| `backend/tests/unit/test_communication_service.py` | Unit tests for communication template service |
+| `backend/tests/unit/test_document_sla.py` | Unit tests for document verification SLA |
+| `backend/tests/unit/test_payment_expiry.py` | Unit tests for payment expiry and retry limits |
+| `backend/tests/unit/test_enrollment.py` | Unit tests for enrollment confirmation |
+| `backend/tests/unit/test_reviewer_assignment.py` | Unit tests for reviewer assignment |
+| `backend/tests/unit/test_fee_waivers.py` | Unit tests for fee waivers |
+| `backend/tests/unit/test_batch_operations.py` | Unit tests for batch operation safety |
+| `backend/tests/unit/test_amendments.py` | Unit tests for application amendments |
+| `backend/tests/unit/test_multi_intake.py` | Unit tests for multi-intake application rules |
+
 ### Files Added During Production Audit Fixes
 
 | Path | Purpose |

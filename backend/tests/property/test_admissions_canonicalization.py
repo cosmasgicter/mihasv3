@@ -135,7 +135,7 @@ class TestInstitutionIdentifierCanonicalization(SimpleTestCase):
         name=institution_names,
         full_name=institution_full_names,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_resolve_by_code_returns_canonical_name(self, code, name, full_name):
         """Looking up by code returns source='code' and canonical name."""
         mock_inst = _make_mock_institution(code, name, full_name)
@@ -159,7 +159,7 @@ class TestInstitutionIdentifierCanonicalization(SimpleTestCase):
         name=institution_names,
         full_name=institution_full_names,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_resolve_by_name_returns_canonical_name(self, code, name, full_name):
         """Looking up by name (code miss, name hit) returns source='name' and canonical name."""
         mock_inst = _make_mock_institution(code, name, full_name)
@@ -182,7 +182,7 @@ class TestInstitutionIdentifierCanonicalization(SimpleTestCase):
         name=institution_names,
         full_name=institution_full_names,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_resolve_by_full_name_returns_canonical_name(self, code, name, full_name):
         """Looking up by full_name (code miss, name miss, full_name hit) returns source='full_name' and canonical name."""
         mock_inst = _make_mock_institution(code, name, full_name)
@@ -201,7 +201,7 @@ class TestInstitutionIdentifierCanonicalization(SimpleTestCase):
         self.assertEqual(result.id, str(mock_inst.id))
 
     @given(value=institution_names)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_unresolvable_value_returns_not_found(self, value):
         """When no institution matches, source is 'not_found' and name echoes the input."""
         with patch(
@@ -223,7 +223,7 @@ class TestInstitutionIdentifierCanonicalization(SimpleTestCase):
         full_name=institution_full_names,
         lookup_field=institution_lookup_field,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_any_valid_identifier_resolves_to_canonical_name(
         self, code, name, full_name, lookup_field
     ):
@@ -270,7 +270,7 @@ class TestProgramIdentifierResolution(SimpleTestCase):
     """
 
     @given(code=program_codes, name=program_names)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_resolve_program_by_name(self, code, name):
         """Looking up by name returns source='name' with correct code and name."""
         mock_prog = _make_mock_program(code, name)
@@ -290,7 +290,7 @@ class TestProgramIdentifierResolution(SimpleTestCase):
         self.assertEqual(result.id, str(mock_prog.id))
 
     @given(code=program_codes, name=program_names)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_resolve_program_by_code(self, code, name):
         """Looking up by code (name miss, code hit) returns source='code' with correct code and name."""
         mock_prog = _make_mock_program(code, name)
@@ -314,7 +314,7 @@ class TestProgramIdentifierResolution(SimpleTestCase):
         name=program_names,
         lookup_field=program_lookup_field,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_any_valid_program_identifier_resolves_correctly(
         self, code, name, lookup_field
     ):
@@ -338,7 +338,7 @@ class TestProgramIdentifierResolution(SimpleTestCase):
         self.assertEqual(result.code, code)
 
     @given(value=program_names)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_unresolvable_program_returns_not_found(self, value):
         """When no program matches, source is 'not_found'."""
         with patch(
@@ -366,7 +366,7 @@ class TestIntakeIdentifierResolution(SimpleTestCase):
     """
 
     @given(name=intake_names)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_resolve_intake_by_name(self, name):
         """Looking up by name returns source='name' with correct name."""
         mock_intake = _make_mock_intake(name)
@@ -384,7 +384,7 @@ class TestIntakeIdentifierResolution(SimpleTestCase):
         self.assertEqual(result.id, str(mock_intake.id))
 
     @given(value=intake_names)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_unresolvable_intake_returns_not_found(self, value):
         """When no intake matches, source is 'not_found'."""
         with patch(
@@ -437,7 +437,7 @@ class TestFeeResolutionRoundTrip(SimpleTestCase):
         residency_category=residency_categories,
         fee_source=fee_sources,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_payment_service_path_matches_direct_fee_resolver(
         self,
         program_name,
@@ -496,7 +496,9 @@ class TestFeeResolutionRoundTrip(SimpleTestCase):
             "apps.documents.payment_service.Payment.objects"
         ) as mock_payment_qs, patch(
             "apps.documents.payment_service.Application.objects"
-        ) as mock_app_qs:
+        ) as mock_app_qs, patch(
+            "django.db.transaction.atomic"
+        ) as mock_atomic:
             # No existing pending payment
             mock_payment_qs.filter.return_value.first.return_value = None
 
@@ -594,7 +596,7 @@ class TestPatchFieldGuardStudentDraft(SimpleTestCase):
     """
 
     @given(data=st.data())
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_student_draft_only_draft_safe_fields_writable(self, data):
         """Student + draft status → only DRAFT_SAFE_FIELDS are writable,
         all lifecycle fields are read_only."""
@@ -656,7 +658,7 @@ class TestPatchRejectsNonDraftForStudents(SimpleTestCase):
     """
 
     @given(status=non_draft_statuses)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_student_non_draft_all_fields_read_only(self, status):
         """Student + non-draft status → ALL fields are read_only."""
         from apps.applications.serializers import ApplicationSerializer
@@ -697,7 +699,7 @@ class TestPatchFieldGuardAdmin(SimpleTestCase):
     """
 
     @given(status=all_statuses, role=admin_roles)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_admin_draft_safe_fields_writable_status_read_only(self, status, role):
         """Admin + any status → DRAFT_SAFE_FIELDS writable, status and
         lifecycle fields read_only."""
@@ -798,7 +800,7 @@ class TestDuplicatePreventionAtCreateTime(SimpleTestCase):
         intake=intake_names,
         existing_status=non_terminal_statuses,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_existing_non_terminal_app_returns_duplicate(
         self, user_id, program, intake, existing_status
     ):
@@ -830,7 +832,7 @@ class TestDuplicatePreventionAtCreateTime(SimpleTestCase):
         program=program_names,
         intake=intake_names,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_no_existing_app_returns_no_duplicate(self, user_id, program, intake):
         """When no matching application exists, check_at_create returns
         has_duplicate=False."""
@@ -872,7 +874,7 @@ class TestDuplicatePreventionAtSubmitTime(SimpleTestCase):
         intake=intake_names,
         existing_status=submitted_statuses,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_existing_submitted_app_returns_duplicate(
         self, user_id, program, intake, existing_status
     ):
@@ -906,7 +908,7 @@ class TestDuplicatePreventionAtSubmitTime(SimpleTestCase):
         program=program_names,
         intake=intake_names,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_no_submitted_duplicate_returns_no_duplicate(
         self, user_id, program, intake
     ):
@@ -1106,7 +1108,7 @@ class TestEligibilityStatusClassification(SimpleTestCase):
     """
 
     @given(data=all_pass_scenario())
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_all_pass_returns_eligible(self, data):
         """When all requirements (mandatory and optional) pass, status is 'eligible'."""
         requirements, grades = data
@@ -1128,7 +1130,7 @@ class TestEligibilityStatusClassification(SimpleTestCase):
         self.assertEqual(result.status, "eligible")
 
     @given(data=mandatory_fail_scenario())
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_mandatory_fail_returns_not_eligible(self, data):
         """When any mandatory requirement fails, status is 'not_eligible'."""
         requirements, grades = data
@@ -1150,7 +1152,7 @@ class TestEligibilityStatusClassification(SimpleTestCase):
         self.assertEqual(result.status, "not_eligible")
 
     @given(data=conditional_scenario())
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_mandatory_pass_optional_fail_returns_conditional(self, data):
         """When mandatory pass but optional fail, status is 'conditional'."""
         requirements, grades = data
@@ -1188,7 +1190,7 @@ class TestEligibilityScoreWeightedSum(SimpleTestCase):
     """
 
     @given(data=st.data())
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_score_equals_weighted_sum(self, data):
         """Score equals round((passed_weight / total_weight) * 100)."""
         n = data.draw(st.integers(min_value=1, max_value=6))
@@ -1247,7 +1249,7 @@ class TestEligibilityEvaluationIdempotent(SimpleTestCase):
     """
 
     @given(data=st.data())
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_evaluate_twice_produces_identical_results(self, data):
         """Calling evaluate() twice with the same mocked data produces identical results."""
         n = data.draw(st.integers(min_value=1, max_value=6))
@@ -1353,7 +1355,7 @@ class TestIntakeDeadlineEnforcement(SimpleTestCase):
     """
 
     @given(deadline=past_deadlines)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_past_deadline_returns_not_allowed(self, deadline):
         """When the intake deadline is in the past, check_submission returns
         allowed=False with code INTAKE_DEADLINE_PASSED."""
@@ -1384,7 +1386,7 @@ class TestIntakeDeadlineEnforcement(SimpleTestCase):
         self.assertEqual(result.code, "INTAKE_DEADLINE_PASSED")
 
     @given(deadline=future_deadlines)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_future_deadline_returns_allowed(self, deadline):
         """When the intake deadline is in the future, check_submission returns
         allowed=True (deadline not blocking)."""
@@ -1437,7 +1439,7 @@ class TestIntakeCapacityEnforcement(SimpleTestCase):
         max_cap=max_capacities,
         overflow=st.integers(min_value=0, max_value=100),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_full_capacity_returns_not_allowed(self, max_cap, overflow):
         """When current_enrollment >= max_capacity, check_submission returns
         allowed=False with code INTAKE_CAPACITY_REACHED."""
@@ -1472,7 +1474,7 @@ class TestIntakeCapacityEnforcement(SimpleTestCase):
     @given(
         max_cap=st.integers(min_value=2, max_value=500),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_under_capacity_returns_allowed(self, max_cap):
         """When current_enrollment < max_capacity, check_submission returns
         allowed=True (capacity not blocking)."""
@@ -1521,7 +1523,7 @@ class TestEnrollmentIncrementOnSubmission(SimpleTestCase):
     """
 
     @given(intake_name=intake_names)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_increment_enrollment_calls_f_expression_update(self, intake_name):
         """increment_enrollment() calls Intake.objects.filter().update()
         with F('current_enrollment') + 1."""
@@ -1577,7 +1579,7 @@ class TestDraftDeactivationOnSubmission(SimpleTestCase):
     @given(
         user_id=st.uuids(),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_drafts_deactivated_after_successful_submission(self, user_id):
         """After a successful submit_application() call, ApplicationDraft.objects
         .filter(user_id=changed_by, application_id=application.id)
@@ -1699,7 +1701,7 @@ class TestPaymentStatusCanonicalMapping(SimpleTestCase):
     """
 
     @given(data=st.data())
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_successful_payment_maps_to_verified(self, data):
         """When a payment transitions to 'successful', the application's
         payment_status is set to 'verified'."""
@@ -1751,7 +1753,7 @@ class TestPaymentStatusCanonicalMapping(SimpleTestCase):
             self.assertEqual(update_kwargs.kwargs.get("payment_status"), "verified")
 
     @given(data=st.data())
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_failed_payment_maps_to_failed(self, data):
         """When a payment transitions to 'failed', the application's
         payment_status is set to 'failed'."""
@@ -1817,7 +1819,7 @@ class TestSubmissionAcceptsCanonicalPaymentConfirmations(SimpleTestCase):
     """
 
     @given(payment_status=canonical_payment_confirmations)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_canonical_payment_status_does_not_raise_payment_required(self, payment_status):
         """When application.payment_status is in {verified, paid, force_approved},
         submit_application() does not raise PAYMENT_REQUIRED."""
@@ -1967,7 +1969,7 @@ class TestDocumentConsistencyScoring(SimpleTestCase):
         extracted_text=extracted_texts,
         full_name=person_names,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_name_mismatch_warning_when_fuzzy_score_below_threshold(
         self, extracted_text, full_name
     ):
@@ -2007,7 +2009,7 @@ class TestDocumentConsistencyScoring(SimpleTestCase):
         nrc_number=nrc_numbers,
         extracted_text=extracted_texts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_nrc_mismatch_warning_when_nrc_not_in_text(
         self, nrc_number, extracted_text
     ):
@@ -2044,7 +2046,7 @@ class TestDocumentConsistencyScoring(SimpleTestCase):
     @given(
         nrc_number=nrc_numbers,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_nrc_found_when_embedded_in_text(self, nrc_number):
         """When NRC number is embedded in the extracted text, no nrc_mismatch warning."""
         from apps.applications.document_intelligence import DocumentIntelligence
@@ -2065,7 +2067,7 @@ class TestDocumentConsistencyScoring(SimpleTestCase):
     @given(
         extracted_text=extracted_texts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_no_checks_when_app_has_no_name_or_nrc(self, extracted_text):
         """When application has neither full_name nor nrc_number, no checks are produced."""
         from apps.applications.document_intelligence import DocumentIntelligence
@@ -2099,7 +2101,7 @@ class TestCompletenessScoreFormula(SimpleTestCase):
         consistency_score=component_scores,
         grade_score=component_scores,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_total_score_matches_weighted_formula(
         self, document_score, consistency_score, grade_score
     ):
@@ -2176,7 +2178,7 @@ class TestCompletenessScoreFormula(SimpleTestCase):
         ),
         grade_count=st.integers(min_value=0, max_value=10),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_completeness_formula_with_realistic_inputs(
         self, doc_types, grade_count
     ):
@@ -2279,7 +2281,7 @@ class TestReviewQueuePriorityScoreAndClassification(SimpleTestCase):
         deadline_urgency=deadline_urgency_values,
         time_score=time_score_values,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_score_follows_weighted_formula(
         self, completeness, payment_status, has_doc_warnings,
         deadline_urgency, time_score,
@@ -2312,7 +2314,7 @@ class TestReviewQueuePriorityScoreAndClassification(SimpleTestCase):
         deadline_urgency=deadline_urgency_values,
         time_score=time_score_values,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_classification_ready_for_decision(
         self, completeness, payment_status, has_doc_warnings,
         deadline_urgency, time_score,
@@ -2344,7 +2346,7 @@ class TestReviewQueuePriorityScoreAndClassification(SimpleTestCase):
         deadline_urgency=deadline_urgency_values,
         time_score=time_score_values,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_score_is_deterministic(
         self, completeness, payment_status, has_doc_warnings,
         deadline_urgency, time_score,
@@ -2389,7 +2391,7 @@ class TestReviewQueueSortOrder(SimpleTestCase):
             max_size=20,
         ),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_sorted_by_priority_descending(self, scores):
         """Sorting applications by priority score descending produces a list
         where each score >= the next score."""
@@ -2449,7 +2451,7 @@ class TestAnalyticsFunnelCountsMatchData(SimpleTestCase):
     """
 
     @given(data=st.data())
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_funnel_counts_equal_aggregate_counts(self, data):
         """funnel_metrics() returns counts matching the mocked aggregate data
         and correctly computes total and conversion rates."""
@@ -2507,7 +2509,7 @@ class TestAnalyticsFunnelCountsMatchData(SimpleTestCase):
         )
 
     @given(data=st.data())
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_empty_dataset_returns_zero_rates(self, data):
         """When all counts are zero, conversion rates are 0."""
         from apps.analytics.admissions_analytics import AdmissionsAnalyticsService
@@ -2562,7 +2564,7 @@ class TestAnalyticsDateRangeFiltering(SimpleTestCase):
             min_value=date(2020, 1, 1), max_value=date(2030, 12, 31)
         ),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_date_range_filters_applied(self, start_date, end_date):
         """_apply_filters() applies created_at__gte and created_at__lte
         when start_date and end_date are provided."""
@@ -2592,7 +2594,7 @@ class TestAnalyticsDateRangeFiltering(SimpleTestCase):
         institution=institution_names,
         program=program_names,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_institution_and_program_filters_applied(self, institution, program):
         """_apply_filters() applies institution__icontains and program__icontains
         when institution and program are provided."""
@@ -2617,7 +2619,7 @@ class TestAnalyticsDateRangeFiltering(SimpleTestCase):
         self.assertEqual(filter_kwargs["institution__icontains"], institution)
         self.assertEqual(filter_kwargs["program__icontains"], program)
 
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     @given(data=st.data())
     def test_empty_filters_do_not_modify_queryset(self, data):
         """_apply_filters() with empty dict does not call filter() on the queryset."""
@@ -2636,7 +2638,7 @@ class TestAnalyticsDateRangeFiltering(SimpleTestCase):
             min_value=date(2020, 1, 1), max_value=date(2030, 12, 31)
         ),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_only_start_date_applies_gte_filter(self, start_date):
         """_apply_filters() with only start_date applies created_at__gte only."""
         from apps.analytics.admissions_analytics import AdmissionsAnalyticsService

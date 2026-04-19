@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Seo } from '@/components/seo/Seo'
 import { useAuth } from '@/contexts/AuthContext'
 import type { ApplicationWithDetails } from '@/types/database'
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Skeleton, SkeletonCard } from '@/components/ui'
 import { formatDate, formatTimestamp } from '@/lib/dateFormat'
 import { applicationService } from '@/services/applications'
-import { AuthenticationError } from '@/services/client'
+import { AuthenticationError, apiClient } from '@/services/client'
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { DocumentButtons } from '@/components/student/DocumentButtons'
 import {
@@ -28,7 +28,11 @@ import {
   Download,
   Eye,
   Phone,
-  CreditCard
+  CreditCard,
+  LogOut,
+  AlertTriangle,
+  Edit3,
+  Send
 } from 'lucide-react'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -42,6 +46,27 @@ interface ApplicationTimeline {
   description: string
   completed: boolean
 }
+
+interface ApplicationCondition {
+  id: string
+  description: string
+  deadline: string
+  status: string
+  condition_type: string
+  met_at: string | null
+}
+
+const AMENDABLE_FIELDS = [
+  { key: 'phone', label: 'Phone' },
+  { key: 'email', label: 'Email' },
+  { key: 'address_line_1', label: 'Address Line 1' },
+  { key: 'address_line_2', label: 'Address Line 2' },
+  { key: 'residence_town', label: 'Residence Town' },
+  { key: 'next_of_kin_name', label: 'Next of Kin Name' },
+  { key: 'next_of_kin_phone', label: 'Next of Kin Phone' },
+] as const
+
+const WITHDRAWAL_STATUSES = new Set(['submitted', 'under_review', 'waitlisted'])
 
 function formatStatusLabel(status: string) {
   return status.replace(/_/g, ' ').replace(/\b\w/g, (character) => character.toUpperCase())
@@ -67,6 +92,21 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 export default function ApplicationStatus() {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
+  const queryClient = useQueryClient()
+
+  // Withdrawal state
+  const [showWithdrawDialog, setShowWithdrawDialog] = useState(false)
+  const [withdrawalReason, setWithdrawalReason] = useState('')
+
+  // Enrollment confirmation state
+  const [showEnrollDialog, setShowEnrollDialog] = useState(false)
+
+  // Amendment state
+  const [amendField, setAmendField] = useState('')
+  const [amendValue, setAmendValue] = useState('')
+  const [amendReason, setAmendReason] = useState('')
+  const [amendError, setAmendError] = useState('')
+  const [amendSuccess, setAmendSuccess] = useState('')
 
   const {
     data: application = null,
@@ -97,6 +137,81 @@ export default function ApplicationStatus() {
   })
 
   const error = queryError ? (queryError instanceof Error ? queryError.message : 'Failed to load application') : ''
+
+  // Withdrawal mutation
+  const withdrawMutation = useMutation({
+    mutationFn: async (reason: string) => {
+      await apiClient.request(`/applications/${id}/withdraw/`, {
+        method: 'POST',
+        body: JSON.stringify({ withdrawal_reason: reason }),
+      })
+    },
+    onSuccess: () => {
+      setShowWithdrawDialog(false)
+      setWithdrawalReason('')
+      queryClient.invalidateQueries({ queryKey: ['application-status', id] })
+    },
+  })
+
+  // Conditions query for conditionally_approved status
+  const { data: conditions = [] } = useQuery<ApplicationCondition[]>({
+    queryKey: ['application-conditions', id],
+    queryFn: async () => {
+      const res = await apiClient.request<ApplicationCondition[]>(
+        `/applications/${id}/conditions/`
+      )
+      return res ?? []
+    },
+    enabled: !!id && application?.status === 'conditionally_approved',
+    staleTime: 60_000,
+  })
+
+  // Confirm enrollment mutation
+  const confirmEnrollmentMutation = useMutation({
+    mutationFn: async () => {
+      await apiClient.request(`/applications/${id}/confirm-enrollment/`, { method: 'POST' })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['application-status', id] })
+    },
+  })
+
+  // Amendment mutation
+  const amendMutation = useMutation({
+    mutationFn: async (data: { field_name: string; new_value: string; reason: string }) => {
+      await apiClient.request(`/applications/${id}/amendments/`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+    },
+    onSuccess: () => {
+      setAmendField('')
+      setAmendValue('')
+      setAmendReason('')
+      setAmendError('')
+      setAmendSuccess('Amendment request submitted successfully.')
+      setTimeout(() => setAmendSuccess(''), 5000)
+    },
+    onError: (err: Error) => {
+      setAmendError(err.message || 'Failed to submit amendment request.')
+    },
+  })
+
+  const handleWithdraw = () => {
+    if (withdrawalReason.trim().length < 10) return
+    withdrawMutation.mutate(withdrawalReason.trim())
+  }
+
+  const handleAmendSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setAmendError('')
+    setAmendSuccess('')
+    if (!amendField || !amendValue.trim() || !amendReason.trim()) {
+      setAmendError('All fields are required.')
+      return
+    }
+    amendMutation.mutate({ field_name: amendField, new_value: amendValue.trim(), reason: amendReason.trim() })
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -494,6 +609,121 @@ export default function ApplicationStatus() {
                   )}
                 </div>
               </SectionCard>
+
+              {/* Conditions timeline for conditionally_approved (Req 5.9) */}
+              {application.status === 'conditionally_approved' && conditions.length > 0 && (
+                <SectionCard
+                  title="Admission conditions"
+                  description="You must fulfill these conditions to complete your admission."
+                  icon={<AlertTriangle className="h-5 w-5" />}
+                >
+                  <div className="space-y-4">
+                    {conditions.map((condition, index) => (
+                      <div
+                        key={condition.id}
+                        className={`flex items-start gap-3 rounded-lg border p-3 ${
+                          condition.status === 'met' || condition.status === 'waived'
+                            ? 'border-success/30 bg-success/5'
+                            : condition.status === 'expired'
+                              ? 'border-destructive/30 bg-destructive/5'
+                              : 'border-warning/30 bg-warning/5'
+                        } ${animateClasses.slideUp}`}
+                        style={staggerChild(index, 50)}
+                      >
+                        <div className="flex-shrink-0 mt-0.5">
+                          {condition.status === 'met' || condition.status === 'waived' ? (
+                            <CheckCircle className="h-5 w-5 text-success" />
+                          ) : condition.status === 'expired' ? (
+                            <XCircle className="h-5 w-5 text-destructive" />
+                          ) : (
+                            <Clock className="h-5 w-5 text-warning" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground">{condition.description}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Deadline: {formatDate(condition.deadline)}
+                            {condition.met_at && ` • Fulfilled: ${formatDate(condition.met_at)}`}
+                          </p>
+                          <span className={`inline-block mt-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                            condition.status === 'met' || condition.status === 'waived'
+                              ? 'bg-success/10 text-success'
+                              : condition.status === 'expired'
+                                ? 'bg-destructive/10 text-destructive'
+                                : 'bg-warning/10 text-warning'
+                          }`}>
+                            {condition.status.toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </SectionCard>
+              )}
+
+              {/* Amendment request form (Req 14.10) */}
+              {application.status !== 'draft' && application.status !== 'rejected' && application.status !== 'withdrawn' && application.status !== 'expired' && (
+                <SectionCard
+                  title="Request an amendment"
+                  description="Request a change to your personal details. Amendments require admin approval."
+                  icon={<Edit3 className="h-5 w-5" />}
+                >
+                  <form onSubmit={handleAmendSubmit} className="space-y-4">
+                    <div>
+                      <label htmlFor="amend-field" className="block text-sm font-medium text-foreground mb-1">Field to amend</label>
+                      <select
+                        id="amend-field"
+                        value={amendField}
+                        onChange={(e) => setAmendField(e.target.value)}
+                        className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <option value="">Select a field</option>
+                        {AMENDABLE_FIELDS.map(f => (
+                          <option key={f.key} value={f.key}>{f.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="amend-value" className="block text-sm font-medium text-foreground mb-1">New value</label>
+                      <input
+                        id="amend-value"
+                        type="text"
+                        value={amendValue}
+                        onChange={(e) => setAmendValue(e.target.value)}
+                        className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        placeholder="Enter the corrected value"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="amend-reason" className="block text-sm font-medium text-foreground mb-1">Reason for change</label>
+                      <textarea
+                        id="amend-reason"
+                        value={amendReason}
+                        onChange={(e) => setAmendReason(e.target.value)}
+                        rows={2}
+                        className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        placeholder="Explain why this change is needed"
+                      />
+                    </div>
+                    {amendError && (
+                      <p className="text-sm text-destructive">{amendError}</p>
+                    )}
+                    {amendSuccess && (
+                      <p className="text-sm text-success">{amendSuccess}</p>
+                    )}
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      size="sm"
+                      loading={amendMutation.isPending}
+                      disabled={!amendField || !amendValue.trim() || !amendReason.trim()}
+                    >
+                      <Send className="mr-2 h-4 w-4" />
+                      Submit amendment request
+                    </Button>
+                  </form>
+                </SectionCard>
+              )}
             </div>
 
             <div className="space-y-6">
@@ -553,6 +783,17 @@ export default function ApplicationStatus() {
                       Start new application
                     </Link>
                   </Button>
+                  {/* Withdrawal button for eligible statuses */}
+                  {WITHDRAWAL_STATUSES.has(application.status) && (
+                    <Button
+                      variant="ghost"
+                      className="w-full text-destructive hover:bg-destructive/5"
+                      onClick={() => setShowWithdrawDialog(true)}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Withdraw application
+                    </Button>
+                  )}
                   <Button asChild variant="ghost" className="w-full">
                     <Link to="/student/dashboard">
                       Back to dashboard
@@ -570,11 +811,24 @@ export default function ApplicationStatus() {
               )}
 
               {application.status === 'approved' && (
-                <SectionCard
-                  title="Congratulations!"
-                  description="Your application has been approved. Look out for enrollment instructions via email."
-                  icon={<CheckCircle className="h-5 w-5 text-success" />}
-                />
+                <div className="space-y-3">
+                  <SectionCard
+                    title="Congratulations!"
+                    description="Your application has been approved. Confirm your enrollment to secure your place."
+                    icon={<CheckCircle className="h-5 w-5 text-success" />}
+                  />
+                  <Button
+                    variant="primary"
+                    onClick={() => setShowEnrollDialog(true)}
+                    disabled={confirmEnrollmentMutation.isPending}
+                    className="w-full sm:w-auto"
+                  >
+                    {confirmEnrollmentMutation.isPending ? 'Confirming…' : 'Confirm Enrollment'}
+                  </Button>
+                  {confirmEnrollmentMutation.isError && (
+                    <p className="text-sm text-error">{confirmEnrollmentMutation.error instanceof Error ? confirmEnrollmentMutation.error.message : 'Failed to confirm enrollment'}</p>
+                  )}
+                </div>
               )}
 
               {application.status === 'waitlisted' && (
@@ -582,6 +836,30 @@ export default function ApplicationStatus() {
                   title="You're on the waitlist"
                   description="Your application is on the waitlist. We'll notify you by email if a spot becomes available."
                   icon={<Clock className="h-5 w-5 text-amber-600" />}
+                />
+              )}
+
+              {application.status === 'conditionally_approved' && (
+                <SectionCard
+                  title="Conditionally approved"
+                  description="Your application has been conditionally approved. Please review and fulfill the pending conditions listed on your application."
+                  icon={<AlertCircle className="h-5 w-5 text-warning" />}
+                />
+              )}
+
+              {application.status === 'withdrawn' && (
+                <SectionCard
+                  title="Application withdrawn"
+                  description="This application has been withdrawn. You may submit a new application for future intakes."
+                  icon={<XCircle className="h-5 w-5 text-muted-foreground" />}
+                />
+              )}
+
+              {application.status === 'enrolled' && (
+                <SectionCard
+                  title="Enrollment confirmed"
+                  description="Your enrollment has been confirmed. Welcome to MIHAS!"
+                  icon={<CheckCircle className="h-5 w-5 text-success" />}
                 />
               )}
 
@@ -596,7 +874,99 @@ export default function ApplicationStatus() {
           </div>
         </div>
     </PageShell>
+
+    {/* Withdrawal confirmation dialog */}
+    {showWithdrawDialog && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="w-full max-w-md rounded-xl bg-card p-6 shadow-xl">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="rounded-lg bg-destructive/10 p-2">
+              <LogOut className="h-5 w-5 text-destructive" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground">Withdraw application</h3>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            This action cannot be undone. Your application will be permanently withdrawn.
+          </p>
+          <div className="mb-4">
+            <label htmlFor="withdrawal-reason" className="block text-sm font-medium text-foreground mb-1">
+              Reason for withdrawal (min 10 characters)
+            </label>
+            <textarea
+              id="withdrawal-reason"
+              value={withdrawalReason}
+              onChange={(e) => setWithdrawalReason(e.target.value)}
+              rows={3}
+              className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              placeholder="Please explain why you are withdrawing this application..."
+            />
+          </div>
+          {withdrawMutation.isError && (
+            <p className="text-sm text-destructive mb-3">
+              {withdrawMutation.error instanceof Error ? withdrawMutation.error.message : 'Failed to withdraw application.'}
+            </p>
+          )}
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => { setShowWithdrawDialog(false); setWithdrawalReason('') }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              className="bg-destructive hover:bg-destructive/90 text-white"
+              onClick={handleWithdraw}
+              loading={withdrawMutation.isPending}
+              disabled={withdrawalReason.trim().length < 10}
+            >
+              Confirm withdrawal
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Enrollment confirmation dialog */}
+    {showEnrollDialog && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="w-full max-w-md rounded-xl bg-card p-6 shadow-xl">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="rounded-lg bg-success/10 p-2">
+              <CheckCircle className="h-5 w-5 text-success" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground">Confirm enrollment</h3>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            Are you sure you want to confirm your enrollment? This action cannot be undone.
+          </p>
+          {confirmEnrollmentMutation.isError && (
+            <p className="text-sm text-destructive mb-3">
+              {confirmEnrollmentMutation.error instanceof Error ? confirmEnrollmentMutation.error.message : 'Failed to confirm enrollment.'}
+            </p>
+          )}
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowEnrollDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => confirmEnrollmentMutation.mutate(undefined, { onSuccess: () => setShowEnrollDialog(false) })}
+              loading={confirmEnrollmentMutation.isPending}
+            >
+              Confirm
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
     </>
-    
   )
 }

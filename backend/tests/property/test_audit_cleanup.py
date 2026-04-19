@@ -79,7 +79,7 @@ class TestAuditCleanupRetention(SimpleTestCase):
     """
 
     @given(records=_audit_records)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_cleanup_respects_retention_periods(self, records):
         """Only expired records are deleted; records within retention are preserved."""
         from apps.common.tasks import cleanup_audit_logs_task

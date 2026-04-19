@@ -97,7 +97,7 @@ export default function AdminDashboard() {
     }))
   }, [isAdmin, profile, user])
 
-  // Use polling hook for dashboard data updates (replaces Supabase Realtime)
+  // Poll for dashboard data updates
   const { isPolling, error: pollingError, refresh: refreshPolling } = useAdminDashboardPolling({
     enabled: Boolean(user?.id) && hasLoadedSuccessfully && !initialLoadFailed,
     pollingInterval: 30000, // 30 seconds

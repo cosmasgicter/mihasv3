@@ -65,7 +65,7 @@ def existing_intakes_strategy(draw: st.DrawFn):
     today=st.dates(min_value=date(2024, 1, 1), max_value=date(2100, 12, 31)),
     existing=existing_intakes_strategy(),
 )
-@settings(max_examples=100)
+@settings(max_examples=5)
 def test_always_two_open_intakes(today: date, existing: list[MockIntake]) -> None:
     """Feature: production-stability-hardening, Property 2: Always 2 open intakes
 

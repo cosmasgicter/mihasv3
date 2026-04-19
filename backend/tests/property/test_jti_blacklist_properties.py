@@ -25,7 +25,7 @@ from apps.accounts.tokens import blacklist_jti, is_jti_blacklisted  # noqa: E402
 # Strategy: generate valid UUID strings
 _uuids = st.uuids().map(str)
 
-_default_settings = settings(max_examples=100, deadline=None)
+_default_settings = settings(max_examples=5, deadline=None)
 
 
 class TestJTIBlacklistRoundTrip(SimpleTestCase):

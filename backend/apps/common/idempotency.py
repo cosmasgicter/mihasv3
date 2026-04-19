@@ -11,6 +11,7 @@ On first execution, stores the response for future replay.
 import json
 import logging
 
+from django.db import IntegrityError, transaction
 from django.http import JsonResponse
 
 from apps.common.models import IdempotencyKey
@@ -46,13 +47,14 @@ class IdempotencyMiddleware:
 
         # Check for existing cached response
         try:
-            existing = IdempotencyKey.objects.filter(key=idempotency_key).first()
-            if existing:
-                cached = existing.response_json
-                return JsonResponse(
-                    cached.get("body", {}),
-                    status=cached.get("status_code", 200),
-                )
+            with transaction.atomic():
+                existing = IdempotencyKey.objects.filter(key=idempotency_key).first()
+                if existing:
+                    cached = existing.response_json
+                    return JsonResponse(
+                        cached.get("body", {}),
+                        status=cached.get("status_code", 200),
+                    )
         except Exception:
             logger.exception("Error checking idempotency key %s", idempotency_key)
 
@@ -68,14 +70,17 @@ class IdempotencyMiddleware:
                 else:
                     body = {}
 
-                IdempotencyKey.objects.create(
-                    key=idempotency_key,
-                    endpoint=endpoint,
-                    response_json={
-                        "status_code": response.status_code,
-                        "body": body,
-                    },
-                )
+                with transaction.atomic():
+                    IdempotencyKey.objects.create(
+                        key=idempotency_key,
+                        endpoint=endpoint,
+                        response_json={
+                            "status_code": response.status_code,
+                            "body": body,
+                        },
+                    )
+            except IntegrityError:
+                logger.info("Idempotency key %s already stored by concurrent request", idempotency_key)
             except Exception:
                 logger.exception("Error storing idempotency key %s", idempotency_key)
 

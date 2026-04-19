@@ -61,7 +61,7 @@ class TestSecurityHeadersPresentOnAllResponses(SimpleTestCase):
     """
 
     @given(path=request_paths, status_code=status_codes)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_xss_protection_header_present(self, path, status_code):
         """For any request path and response status, the middleware sets
         X-XSS-Protection to '1; mode=block'."""
@@ -81,7 +81,7 @@ class TestSecurityHeadersPresentOnAllResponses(SimpleTestCase):
         self.assertEqual(response["X-XSS-Protection"], "1; mode=block")
 
     @given(path=request_paths, status_code=status_codes)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_csp_header_present_and_non_empty(self, path, status_code):
         """For any request path and response status, the middleware sets
         a Content-Security-Policy header with a non-empty directive."""

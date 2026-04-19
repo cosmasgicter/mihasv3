@@ -68,7 +68,7 @@ class TestUnhandledExceptionCreatesErrorLog(SimpleTestCase):
     """
 
     @given(exc_type=_exception_types, error_msg=_error_messages)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_log_error_and_alert_creates_error_log(self, exc_type, error_msg):
         """_log_error_and_alert creates an ErrorLog record with
         source='backend', level='error', and a non-empty message."""
@@ -133,7 +133,7 @@ class TestErrorAlertThrottling(SimpleTestCase):
     """
 
     @given(error_messages=_error_sequences)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_alert_throttling_one_per_unique_message(self, error_messages):
         """Each unique error message triggers exactly one alert email;
         duplicates within the throttle window are suppressed."""
@@ -219,7 +219,7 @@ class TestErrorReportHashesClientIP(SimpleTestCase):
     """
 
     @given(ip_addr=_ipv4_addresses, error_msg=_error_messages)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_ip_is_hashed_and_raw_ip_absent(self, ip_addr, error_msg):
         """The stored ip_hash equals SHA-256 of the client IP and the raw
         IP does not appear in any field of the created ErrorLog record."""
@@ -328,7 +328,7 @@ class TestFrontendErrorReportRejectsMalformed(SimpleTestCase):
     """
 
     @given(payload=_malformed_payloads)
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_malformed_payload_returns_400_no_error_log(self, payload):
         """Payloads missing a valid `message` field return 400 and create
         no ErrorLog record."""

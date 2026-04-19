@@ -1,12 +1,11 @@
 """Unit tests for review notification + email dispatch.
 
 When an admin approves or rejects an application, the system should:
-1. Create a Notification record for the student
-2. Create an EmailQueue record with status='pending'
-3. Call send_email_task.delay() with the email record ID
+1. Dispatch via CommunicationService.send() with the appropriate template key
+2. CommunicationService creates Notification + EmailQueue records internally
 
-Implements task 3.3 (go-live-polish).
-Requirements: 2.3
+Implements task 3.3 (go-live-polish), updated for task 10.3 (template migration).
+Requirements: 2.3, 9.8
 """
 
 import uuid
@@ -26,9 +25,7 @@ from apps.applications.views import ApplicationReviewView
 _APP = "apps.applications.views.Application.objects"
 _TRANSITION = "apps.applications.views.transition_application_status"
 _INTAKE_ENFORCER = "apps.applications.intake_enforcer.IntakeEnforcer"
-_NOTIFICATION_CREATE = "apps.common.models.Notification.objects.create"
-_EMAIL_CREATE = "apps.common.models.EmailQueue.objects.create"
-_SEND_EMAIL = "apps.common.tasks.send_email_task.delay"
+_COMM_SEND = "apps.common.communication_service.CommunicationService.send"
 _PAYMENT = "apps.documents.models.Payment.objects"
 _HISTORY = "apps.applications.views.ApplicationStatusHistory.objects"
 
@@ -84,27 +81,21 @@ class TestApprovalCreatesNotificationAndEmail:
 
     @patch(_HISTORY)
     @patch(_PAYMENT)
-    @patch(_SEND_EMAIL)
-    @patch(_EMAIL_CREATE)
-    @patch(_NOTIFICATION_CREATE)
+    @patch(_COMM_SEND)
     @patch(_INTAKE_ENFORCER)
     @patch(_TRANSITION)
     @patch(_APP)
     def test_approval_creates_notification(
         self, mock_app_qs, mock_transition,
-        mock_enforcer, mock_notif_create, mock_email_create,
-        mock_send_email, mock_payment, mock_history,
+        mock_enforcer, mock_comm_send,
+        mock_payment, mock_history,
     ):
-        """Approving an application creates a Notification for the student."""
+        """Approving an application calls CommunicationService.send with application_approved."""
         app = _make_application()
         mock_app_qs.get.return_value = app
         mock_transition.return_value = "submitted"
         mock_payment.filter.return_value.exists.return_value = True
         mock_history.filter.return_value.order_by.return_value.first.return_value = None
-
-        email_record = MagicMock()
-        email_record.id = uuid.uuid4()
-        mock_email_create.return_value = email_record
 
         request = _auth_request(
             self.factory,
@@ -115,36 +106,28 @@ class TestApprovalCreatesNotificationAndEmail:
         response = self.view(request, application_id=app.id)
 
         assert response.status_code == 200
-        mock_notif_create.assert_called_once()
-        call_kwargs = mock_notif_create.call_args[1]
-        assert call_kwargs["user_id"] == app.user_id
-        assert "approved" in call_kwargs["title"].lower() or "🎉" in call_kwargs["title"]
-        assert call_kwargs["type"] == "success"
-        assert call_kwargs["priority"] == "high"
+        mock_comm_send.assert_called_once()
+        call_args = mock_comm_send.call_args
+        assert call_args[0][0] == "application_approved"
+        assert call_args[0][1] == app
 
     @patch(_HISTORY)
     @patch(_PAYMENT)
-    @patch(_SEND_EMAIL)
-    @patch(_EMAIL_CREATE)
-    @patch(_NOTIFICATION_CREATE)
+    @patch(_COMM_SEND)
     @patch(_INTAKE_ENFORCER)
     @patch(_TRANSITION)
     @patch(_APP)
     def test_approval_creates_email_queue_record(
         self, mock_app_qs, mock_transition,
-        mock_enforcer, mock_notif_create, mock_email_create,
-        mock_send_email, mock_payment, mock_history,
+        mock_enforcer, mock_comm_send,
+        mock_payment, mock_history,
     ):
-        """Approving an application creates an EmailQueue record with status='pending'."""
+        """Approving an application dispatches via CommunicationService."""
         app = _make_application()
         mock_app_qs.get.return_value = app
         mock_transition.return_value = "submitted"
         mock_payment.filter.return_value.exists.return_value = True
         mock_history.filter.return_value.order_by.return_value.first.return_value = None
-
-        email_record = MagicMock()
-        email_record.id = uuid.uuid4()
-        mock_email_create.return_value = email_record
 
         request = _auth_request(
             self.factory,
@@ -155,35 +138,25 @@ class TestApprovalCreatesNotificationAndEmail:
         response = self.view(request, application_id=app.id)
 
         assert response.status_code == 200
-        mock_email_create.assert_called_once()
-        call_kwargs = mock_email_create.call_args[1]
-        assert call_kwargs["recipient_email"] == "jane@example.com"
-        assert call_kwargs["status"] == "pending"
-        assert "approved" in call_kwargs["subject"].lower()
+        mock_comm_send.assert_called_once_with("application_approved", app, {"admin_feedback": ""})
 
     @patch(_HISTORY)
     @patch(_PAYMENT)
-    @patch(_SEND_EMAIL)
-    @patch(_EMAIL_CREATE)
-    @patch(_NOTIFICATION_CREATE)
+    @patch(_COMM_SEND)
     @patch(_INTAKE_ENFORCER)
     @patch(_TRANSITION)
     @patch(_APP)
     def test_approval_calls_send_email_task_delay(
         self, mock_app_qs, mock_transition,
-        mock_enforcer, mock_notif_create, mock_email_create,
-        mock_send_email, mock_payment, mock_history,
+        mock_enforcer, mock_comm_send,
+        mock_payment, mock_history,
     ):
-        """Approving an application calls send_email_task.delay() with the email record ID."""
+        """Approving an application calls CommunicationService.send (which dispatches email)."""
         app = _make_application()
         mock_app_qs.get.return_value = app
         mock_transition.return_value = "submitted"
         mock_payment.filter.return_value.exists.return_value = True
         mock_history.filter.return_value.order_by.return_value.first.return_value = None
-
-        email_record = MagicMock()
-        email_record.id = uuid.uuid4()
-        mock_email_create.return_value = email_record
 
         request = _auth_request(
             self.factory,
@@ -194,7 +167,7 @@ class TestApprovalCreatesNotificationAndEmail:
         response = self.view(request, application_id=app.id)
 
         assert response.status_code == 200
-        mock_send_email.assert_called_once_with(str(email_record.id))
+        mock_comm_send.assert_called_once()
 
 
 # ---------------------------------------------------------------------------
@@ -211,26 +184,19 @@ class TestRejectionCreatesNotificationAndEmail:
         self.admin = _make_user()
 
     @patch(_HISTORY)
-    @patch(_SEND_EMAIL)
-    @patch(_EMAIL_CREATE)
-    @patch(_NOTIFICATION_CREATE)
+    @patch(_COMM_SEND)
     @patch(_INTAKE_ENFORCER)
     @patch(_TRANSITION)
     @patch(_APP)
     def test_rejection_creates_notification(
         self, mock_app_qs, mock_transition,
-        mock_enforcer, mock_notif_create, mock_email_create,
-        mock_send_email, mock_history,
+        mock_enforcer, mock_comm_send, mock_history,
     ):
-        """Rejecting an application creates a Notification for the student."""
+        """Rejecting an application calls CommunicationService.send with application_rejected."""
         app = _make_application()
         mock_app_qs.get.return_value = app
         mock_transition.return_value = "submitted"
         mock_history.filter.return_value.order_by.return_value.first.return_value = None
-
-        email_record = MagicMock()
-        email_record.id = uuid.uuid4()
-        mock_email_create.return_value = email_record
 
         request = _auth_request(
             self.factory,
@@ -241,70 +207,53 @@ class TestRejectionCreatesNotificationAndEmail:
         response = self.view(request, application_id=app.id)
 
         assert response.status_code == 200
-        mock_notif_create.assert_called_once()
-        call_kwargs = mock_notif_create.call_args[1]
-        assert call_kwargs["user_id"] == app.user_id
-        assert call_kwargs["type"] == "info"
-        assert call_kwargs["priority"] == "high"
+        mock_comm_send.assert_called_once()
+        call_args = mock_comm_send.call_args
+        assert call_args[0][0] == "application_rejected"
+        assert call_args[0][1] == app
 
     @patch(_HISTORY)
-    @patch(_SEND_EMAIL)
-    @patch(_EMAIL_CREATE)
-    @patch(_NOTIFICATION_CREATE)
+    @patch(_COMM_SEND)
     @patch(_INTAKE_ENFORCER)
     @patch(_TRANSITION)
     @patch(_APP)
     def test_rejection_creates_email_queue_record(
         self, mock_app_qs, mock_transition,
-        mock_enforcer, mock_notif_create, mock_email_create,
-        mock_send_email, mock_history,
+        mock_enforcer, mock_comm_send, mock_history,
     ):
-        """Rejecting an application creates an EmailQueue record."""
+        """Rejecting an application dispatches via CommunicationService."""
         app = _make_application()
         mock_app_qs.get.return_value = app
         mock_transition.return_value = "submitted"
         mock_history.filter.return_value.order_by.return_value.first.return_value = None
 
-        email_record = MagicMock()
-        email_record.id = uuid.uuid4()
-        mock_email_create.return_value = email_record
-
         request = _auth_request(
             self.factory,
             f"/api/v1/applications/{app.id}/review/",
             self.admin,
-            {"new_status": "rejected"},
+            {"new_status": "rejected", "notes": "Incomplete documents"},
         )
         response = self.view(request, application_id=app.id)
 
         assert response.status_code == 200
-        mock_email_create.assert_called_once()
-        call_kwargs = mock_email_create.call_args[1]
-        assert call_kwargs["recipient_email"] == "jane@example.com"
-        assert call_kwargs["status"] == "pending"
-        assert "update" in call_kwargs["subject"].lower()
+        mock_comm_send.assert_called_once_with(
+            "application_rejected", app, {"admin_feedback": "Incomplete documents"}
+        )
 
     @patch(_HISTORY)
-    @patch(_SEND_EMAIL)
-    @patch(_EMAIL_CREATE)
-    @patch(_NOTIFICATION_CREATE)
+    @patch(_COMM_SEND)
     @patch(_INTAKE_ENFORCER)
     @patch(_TRANSITION)
     @patch(_APP)
     def test_rejection_calls_send_email_task_delay(
         self, mock_app_qs, mock_transition,
-        mock_enforcer, mock_notif_create, mock_email_create,
-        mock_send_email, mock_history,
+        mock_enforcer, mock_comm_send, mock_history,
     ):
-        """Rejecting an application calls send_email_task.delay() with the email record ID."""
+        """Rejecting an application calls CommunicationService.send (which dispatches email)."""
         app = _make_application()
         mock_app_qs.get.return_value = app
         mock_transition.return_value = "submitted"
         mock_history.filter.return_value.order_by.return_value.first.return_value = None
-
-        email_record = MagicMock()
-        email_record.id = uuid.uuid4()
-        mock_email_create.return_value = email_record
 
         request = _auth_request(
             self.factory,
@@ -315,4 +264,4 @@ class TestRejectionCreatesNotificationAndEmail:
         response = self.view(request, application_id=app.id)
 
         assert response.status_code == 200
-        mock_send_email.assert_called_once_with(str(email_record.id))
+        mock_comm_send.assert_called_once()

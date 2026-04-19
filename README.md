@@ -105,7 +105,7 @@ All endpoints live under `/api/v1/`. Key route groups:
 | Route | Domain |
 |-------|--------|
 | `/api/v1/auth/` | Authentication, sessions, token refresh |
-| `/api/v1/applications/` | Admissions applications, submission, review |
+| `/api/v1/applications/` | Admissions applications, submission, review, withdrawal, waitlist, conditions, enrollment, assignments, amendments |
 | `/api/v1/catalog/` | Programs, intakes, subjects |
 | `/api/v1/payments/` | Lenco payment lifecycle, webhooks, fee resolution |
 | `/api/v1/documents/` | Document uploads, OCR |
@@ -120,7 +120,7 @@ All endpoints live under `/api/v1/`. Key route groups:
 | `/api/v1/notifications/` | Notification preferences |
 | `/api/v1/errors/` | Frontend error reporting |
 | `/api/v1/events/` | SSE event streams |
-| `/api/v1/admin/` | Admin user management |
+| `/api/v1/admin/` | Admin user management, communication templates |
 | `/api/v1/meta/` | Platform metadata |
 | `/api/v1/schema/` | OpenAPI schema |
 | `/api/v1/docs/` | Swagger UI |
@@ -203,9 +203,19 @@ Completed and in-progress spec-driven development workflows. Each spec directory
 
 | Task | Schedule | Purpose |
 |------|----------|---------|
-| `check_uptime_task` | Every 5 minutes | Internal health check with alert on failure/recovery |
+| `keep_alive_task` | Every 4 minutes | Lightweight ping to prevent Koyeb cold starts |
+| `check_uptime_task` | Every 15 minutes | Internal health check with alert on failure/recovery |
 | `cleanup_audit_logs_task` | Daily at 03:00 UTC | Purge expired audit logs (90d standard, 365d security) |
-| `poll_pending_payments_task` | Every 10 minutes | Poll Lenco API for pending payment status updates |
+| `poll_pending_payments_task` | Every 10 minutes | Poll Lenco API for pending payments, expire payments > 24h |
+| `intake_manager_task` | Daily at 04:00 UTC | Ensure ≥2 open intakes exist (Jan/Jul pattern) |
+| `condition_expiry_task` | Daily at 05:00 UTC | Expire overdue admission conditions, trigger auto-rejection |
+| `draft_expiry_reminder_task` | Daily at 06:00 UTC | Remind students about stale drafts, expire at 30 days |
+| `review_sla_reminder_task` | Daily at 07:00 UTC | Notify admins about applications exceeding review SLA |
+| `document_verification_sla_task` | Daily at 08:00 UTC | Notify admins about documents pending beyond SLA, escalate at 2x |
+| `enrollment_confirmation_expiry_task` | Daily at 09:00 UTC | Expire unconfirmed enrollments, release spots to waitlist |
+| `waitlist_cascade_task` | Daily at 10:00 UTC | Cascade waitlisted applications to next intake |
+| `interview_auto_complete_task` | Every 2 hours | Auto-complete past interviews |
+| `interview_reminder_task` | Every hour | Send reminders for interviews within 24 hours |
 
 ## Environment
 

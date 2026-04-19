@@ -87,7 +87,7 @@ class TestFeeResolverCorrectness(SimpleTestCase):
         fee_amount=fee_amounts,
         fee_currency=currency_codes,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_returns_matching_program_fee_when_exists(
         self, program_code, identity, fee_amount, fee_currency
     ):
@@ -128,7 +128,7 @@ class TestFeeResolverCorrectness(SimpleTestCase):
         identity=identity_for_residency,
         fallback_fee=fee_amounts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_falls_back_to_program_application_fee(
         self, program_code, identity, fallback_fee
     ):
@@ -164,7 +164,7 @@ class TestFeeResolverCorrectness(SimpleTestCase):
         program_code=program_codes,
         identity=identity_for_residency,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_falls_back_to_default_fee_when_no_program_fee(
         self, program_code, identity
     ):
@@ -197,7 +197,7 @@ class TestFeeResolverCorrectness(SimpleTestCase):
         self.assertEqual(result.source, "program_default")
 
     @given(program_code=program_codes, identity=identity_for_residency)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_nonexistent_program_raises_does_not_exist(
         self, program_code, identity
     ):

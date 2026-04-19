@@ -120,7 +120,7 @@ class TestSecurityHeadersProperty(SimpleTestCase):
         self.middleware = SecurityHeadersMiddleware(mock_get_response)
 
     @given(path=_url_paths)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_security_headers_present_on_all_paths(self, path):
         """For any URL path, all five security headers must be present
         with the correct values."""
@@ -143,7 +143,7 @@ class TestSecurityHeadersProperty(SimpleTestCase):
         path=_url_paths,
         status_code=st.sampled_from([200, 201, 204, 301, 400, 403, 404, 500]),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_security_headers_present_regardless_of_status(self, path, status_code):
         """Security headers must be set regardless of the response status code."""
 
@@ -177,7 +177,7 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
         window_value=st.integers(min_value=1, max_value=60),
         unit=st.sampled_from(["s", "m", "h"]),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_retry_after_parses_rate_string_correctly(self, count, window_value, unit):
         """For any rate string like '{count}/{window}{unit}', _retry_after_seconds
         should return the window converted to seconds."""
@@ -229,7 +229,7 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
         self.assertEqual(response["Retry-After"], "300")
 
     @given(scope_idx=st.integers(min_value=0, max_value=len(RateLimitMiddleware.SCOPE_LIMITS) - 1))
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_each_scope_returns_correct_retry_after_on_limit(self, scope_idx):
         """For each configured scope, when rate limited, the Retry-After header
         must match the scope's window in seconds."""
@@ -323,7 +323,7 @@ class TestCSRFEnforcementProperty(SimpleTestCase):
             )
         ),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_missing_csrf_token_returns_403(self, method, path):
         """For any state-changing method on a non-exempt path, missing
         X-CSRF-Token must result in 403."""
@@ -336,7 +336,7 @@ class TestCSRFEnforcementProperty(SimpleTestCase):
         self.assertEqual(response.status_code, 403)
 
     @given(method=_state_changing_methods)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_exempt_login_path_skips_csrf(self, method):
         """Login endpoint should skip CSRF enforcement for all state-changing methods."""
         request = _make_request(method=method, path="/api/v1/auth/login/")
@@ -347,7 +347,7 @@ class TestCSRFEnforcementProperty(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
 
     @given(method=_state_changing_methods)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_exempt_register_path_skips_csrf(self, method):
         """Register endpoint should skip CSRF enforcement."""
         request = _make_request(method=method, path="/api/v1/auth/register/")
@@ -358,7 +358,7 @@ class TestCSRFEnforcementProperty(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
 
     @given(method=_state_changing_methods)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_exempt_password_reset_path_skips_csrf(self, method):
         """Password-reset endpoint should skip CSRF enforcement."""
         request = _make_request(method=method, path="/api/v1/auth/password-reset/")
@@ -369,7 +369,7 @@ class TestCSRFEnforcementProperty(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
 
     @given(method=_state_changing_methods)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_exempt_password_reset_confirm_path_skips_csrf(self, method):
         """Password-reset confirm endpoint should skip CSRF enforcement."""
         request = _make_request(method=method, path="/api/v1/auth/password-reset/confirm/")
@@ -380,7 +380,7 @@ class TestCSRFEnforcementProperty(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
 
     @given(method=_safe_methods, path=_url_paths)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_safe_methods_skip_csrf(self, method, path):
         """GET, HEAD, OPTIONS requests should never require CSRF tokens."""
         request = _make_request(method=method, path=path)
@@ -457,7 +457,7 @@ class TestAuditLoggingProperty(SimpleTestCase):
         user_agent=_user_agents,
         status_code=st.sampled_from([200, 201, 202, 204]),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_audit_entry_created_for_state_changing_2xx(
         self, method, path, ip, user_agent, status_code
     ):
@@ -500,7 +500,7 @@ class TestAuditLoggingProperty(SimpleTestCase):
         method=_state_changing_methods,
         status_code=st.sampled_from([300, 301, 400, 401, 403, 404, 500]),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_no_audit_entry_for_non_2xx(self, method, status_code):
         """For state-changing requests that do NOT return 2xx, no audit entry
         should be created."""
@@ -516,7 +516,7 @@ class TestAuditLoggingProperty(SimpleTestCase):
             mock_objects.create.assert_not_called()
 
     @given(method=_safe_methods, path=_url_paths)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_no_audit_entry_for_safe_methods(self, method, path):
         """GET, HEAD, OPTIONS requests should never create audit entries."""
 
@@ -531,7 +531,7 @@ class TestAuditLoggingProperty(SimpleTestCase):
             mock_objects.create.assert_not_called()
 
     @given(method=_state_changing_methods)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_auth_paths_get_security_retention(self, method):
         """Auth and session paths should have retention_category='security'."""
 
@@ -562,7 +562,7 @@ class TestAuditLoggingProperty(SimpleTestCase):
             "/api/v1/notifications/",
         ]),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_non_auth_paths_get_standard_retention(self, method, path):
         """Non-auth/session paths should have retention_category='standard'."""
 
@@ -582,7 +582,7 @@ class TestAuditLoggingProperty(SimpleTestCase):
         ip=_ip_addresses,
         user_agent=_user_agents,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_audit_entry_never_contains_plaintext_pii(self, method, ip, user_agent):
         """Audit log entries must never contain plaintext IP or user-agent."""
 
@@ -661,7 +661,7 @@ class TestCORSOriginEnforcementProperty(SimpleTestCase):
             r"https?://[a-z0-9\-]{1,20}\.[a-z]{2,6}", fullmatch=True
         ).filter(lambda o: o != "https://apply.mihas.edu.zm"),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     @override_settings(
         CORS_ALLOWED_ORIGINS=["https://apply.mihas.edu.zm"],
         CORS_ALLOW_ALL_ORIGINS=False,

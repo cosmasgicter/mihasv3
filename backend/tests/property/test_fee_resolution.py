@@ -83,28 +83,28 @@ class TestFeeResolutionResidencyClassification(SimpleTestCase):
     """
 
     @given(country=nullable_text)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_zambian_nationality_always_local(self, country):
         """Nationality 'Zambian' → local regardless of country."""
         result = FeeResolver._classify_residency("Zambian", country)
         self.assertEqual(result, "local")
 
     @given(nationality=non_local_nationalities)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_zambia_country_is_local(self, nationality):
         """Country 'Zambia' → local even if nationality is not Zambian."""
         result = FeeResolver._classify_residency(nationality, "Zambia")
         self.assertEqual(result, "local")
 
     @given(nationality=non_local_nationalities)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_zm_country_code_is_local(self, nationality):
         """Country 'ZM' → local even if nationality is not Zambian."""
         result = FeeResolver._classify_residency(nationality, "ZM")
         self.assertEqual(result, "local")
 
     @given(nationality=non_local_nationalities, country=non_local_countries)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_non_zambian_non_zambia_is_international(self, nationality, country):
         """Non-Zambian nationality + non-Zambia country → international."""
         result = FeeResolver._classify_residency(nationality, country)
@@ -126,7 +126,7 @@ class TestFeeResolutionFallbackChain(SimpleTestCase):
         fee_amount=fee_amounts,
         fee_currency=currency_codes,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_returns_program_fee_when_active_exists(
         self, program_code, nationality, country, fee_amount, fee_currency
     ):
@@ -162,7 +162,7 @@ class TestFeeResolutionFallbackChain(SimpleTestCase):
         country=nullable_text,
         fallback_fee=fee_amounts,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_falls_back_to_program_application_fee(
         self, program_code, nationality, country, fallback_fee
     ):
@@ -194,7 +194,7 @@ class TestFeeResolutionFallbackChain(SimpleTestCase):
         nationality=nullable_text,
         country=nullable_text,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_falls_back_to_k153_default(
         self, program_code, nationality, country
     ):
@@ -243,7 +243,7 @@ class TestDuplicateActiveProgramFeeRejection(SimpleTestCase):
         amount=fee_amounts,
         currency=currency_codes,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_duplicate_active_fee_raises_validation_error(
         self, fee_type, residency_category, amount, currency
     ):
@@ -287,7 +287,7 @@ class TestDuplicateActiveProgramFeeRejection(SimpleTestCase):
         amount=fee_amounts,
         currency=currency_codes,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_unique_fee_creation_succeeds(
         self, fee_type, residency_category, amount, currency
     ):

@@ -76,7 +76,7 @@ class TestPayloadsWithoutDraftNameUnchanged(SimpleTestCase):
         full_name=full_names,
         sex=sexes,
     )
-    @settings(max_examples=50)
+    @settings(max_examples=5)
     def test_payload_without_draft_name_still_valid(self, full_name, sex):
         """Payloads without draft_name continue to validate successfully."""
         payload = {

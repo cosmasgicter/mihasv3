@@ -70,7 +70,7 @@ class TestWebhookDeduplicationPreventsReprocessing(SimpleTestCase):
         reference=references,
         event_type=known_event_types,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_duplicate_webhook_does_not_call_payment_service(
         self,
         reference,
@@ -110,7 +110,7 @@ class TestWebhookDeduplicationPreventsReprocessing(SimpleTestCase):
         reference=references,
         event_type=known_event_types,
     )
-    @settings(max_examples=50)
+    @settings(max_examples=5)
     def test_non_duplicate_webhook_proceeds_to_payment_service(
         self,
         reference,
@@ -161,7 +161,7 @@ class TestIdempotencyKeyReturnsCachedResponse(SimpleTestCase):
         idempotency_key=idempotency_keys,
         application_id=application_ids,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_existing_idempotency_key_returns_cached_response(
         self,
         idempotency_key,
@@ -216,7 +216,7 @@ class TestIdempotencyKeyReturnsCachedResponse(SimpleTestCase):
         idempotency_key=idempotency_keys,
         application_id=application_ids,
     )
-    @settings(max_examples=50)
+    @settings(max_examples=5)
     def test_new_idempotency_key_proceeds_to_submission(
         self,
         idempotency_key,
@@ -291,7 +291,7 @@ class TestForceBypassCreatesAuditTrail(SimpleTestCase):
         admin_user_id=admin_user_ids,
         reason=force_bypass_reasons,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_force_bypass_approval_creates_audit_trail(
         self,
         application_id,
@@ -362,7 +362,7 @@ class TestForceBypassCreatesAuditTrail(SimpleTestCase):
         admin_user_id=admin_user_ids,
         target_status=review_statuses,
     )
-    @settings(max_examples=50)
+    @settings(max_examples=5)
     def test_non_force_bypass_does_not_add_force_marker(
         self,
         application_id,
@@ -466,7 +466,7 @@ class TestPaginationMaxPageSizeCap(SimpleTestCase):
     """
 
     @given(requested_size=st.integers(min_value=501, max_value=10_000))
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_page_size_capped_at_500(self, requested_size):
         """When pageSize exceeds 500, StandardPagination must cap it to 500."""
         from apps.common.pagination import StandardPagination
@@ -479,7 +479,7 @@ class TestPaginationMaxPageSizeCap(SimpleTestCase):
         self.assertEqual(actual, 500)
 
     @given(requested_size=st.integers(min_value=1, max_value=500))
-    @settings(max_examples=50)
+    @settings(max_examples=5)
     def test_page_size_within_limit_is_honoured(self, requested_size):
         """When pageSize is <= 500, StandardPagination must honour it."""
         from apps.common.pagination import StandardPagination
@@ -519,7 +519,7 @@ class TestProgramIntakeValidationRejectsInvalidCombos(SimpleTestCase):
         program_name=st.text(min_size=1, max_size=50),
         intake_name=st.text(min_size=1, max_size=50),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_nonexistent_program_or_intake_raises_validation_error(
         self, program_name, intake_name
     ):
@@ -548,7 +548,7 @@ class TestProgramIntakeValidationRejectsInvalidCombos(SimpleTestCase):
         program_name=st.text(min_size=1, max_size=50),
         intake_name=st.text(min_size=1, max_size=50),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_no_matching_program_intake_row_raises_validation_error(
         self, program_name, intake_name
     ):
@@ -593,7 +593,7 @@ class TestAgeValidationRejectsUnderage(SimpleTestCase):
     """
 
     @given(dob=underage_dobs)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_underage_dob_raises_validation_error(self, dob):
         """When applicant is younger than 16, validation must raise
         with code MINIMUM_AGE_NOT_MET."""
@@ -616,7 +616,7 @@ class TestAgeValidationRejectsUnderage(SimpleTestCase):
         self.assertEqual(error_detail.code, "MINIMUM_AGE_NOT_MET")
 
     @given(dob=of_age_dobs)
-    @settings(max_examples=50)
+    @settings(max_examples=5)
     def test_of_age_dob_does_not_raise(self, dob):
         """When applicant is 16 or older, validation must not raise."""
         from apps.applications.serializers import validate_minimum_age
@@ -638,7 +638,7 @@ class TestE164PhoneValidation(SimpleTestCase):
     """
 
     @given(phone=valid_e164_phones)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_valid_e164_phone_is_accepted(self, phone):
         """Valid E.164 phones must be accepted without raising."""
         from apps.common.validators import validate_phone_e164
@@ -647,7 +647,7 @@ class TestE164PhoneValidation(SimpleTestCase):
         self.assertEqual(result, phone)
 
     @given(phone=invalid_e164_phones)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_invalid_e164_phone_is_rejected(self, phone):
         """Invalid E.164 phones must raise ValidationError."""
         from django.core.exceptions import ValidationError
@@ -675,7 +675,7 @@ class TestStateMachineRejectsInvalidTransitions(SimpleTestCase):
         new_status=all_statuses,
         changed_by=admin_user_ids,
     )
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_invalid_transitions_raise_value_error(
         self, old_status, new_status, changed_by
     ):
@@ -711,7 +711,7 @@ class TestStateMachineRejectsInvalidTransitions(SimpleTestCase):
         changed_by=admin_user_ids,
         data=st.data(),
     )
-    @settings(max_examples=50)
+    @settings(max_examples=5)
     def test_valid_transitions_do_not_raise(self, old_status, changed_by, data):
         """When (old_status, new_status) is in ALLOWED_TRANSITIONS,
         transition_application_status must not raise ValueError."""

@@ -48,7 +48,7 @@ export type AuthUser = User
  */
 export function checkIsAdmin(user: User | null): boolean {
   if (!user) return false
-  const role = (user.role || user.user_metadata?.role || user.app_metadata?.role) as string | undefined
+  const role = user.role as string | undefined
   return isAdminRole(role)
 }
 

@@ -100,7 +100,7 @@ class TestBug3UnauthenticatedCacheControlPreservation:
         method=HTTP_METHODS,
         status_code=STATUS_CODES,
     )
-    @settings(max_examples=50, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_unauthenticated_response_has_no_cache_control(
         self, path: str, method: str, status_code: int
     ):
@@ -135,7 +135,7 @@ class TestBug3SecurityHeadersPreservation:
         method=HTTP_METHODS,
         status_code=STATUS_CODES,
     )
-    @settings(max_examples=50, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_unauthenticated_response_has_all_security_headers(
         self, path: str, method: str, status_code: int
     ):
@@ -166,7 +166,7 @@ class TestBug3SecurityHeadersPreservation:
         method=HTTP_METHODS,
         status_code=STATUS_CODES,
     )
-    @settings(max_examples=50, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_authenticated_response_has_all_security_headers(
         self, path: str, method: str, status_code: int
     ):

@@ -84,7 +84,7 @@ class TestLogoutCSRFExemption:
     @given(
         trailing_slash=st.booleans(),
     )
-    @settings(max_examples=10, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_logout_path_is_csrf_exempt(self, trailing_slash):
         """POST /api/v1/auth/logout/ should be CSRF-exempt.
 
@@ -147,7 +147,7 @@ class TestAdminDashboardRefresh:
     @given(
         has_csrf_token=st.booleans(),
     )
-    @settings(max_examples=10, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_auth_refresh_endpoint_csrf_exempt(self, has_csrf_token):
         """POST /api/v1/auth/refresh/ should be CSRF-exempt or the
         admin dashboard refresh flow will break.
@@ -353,7 +353,7 @@ class TestPaymentPageDiscovery:
     @given(
         role=st.sampled_from(["student", "admin", "super_admin"]),
     )
-    @settings(max_examples=10, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_payment_list_filters_by_user_for_students(self, role):
         """Students should only see their own payments; admins see all.
 

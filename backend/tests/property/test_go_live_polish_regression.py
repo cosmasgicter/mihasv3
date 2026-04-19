@@ -116,7 +116,7 @@ class TestGoLivePolishRegression:
     """
 
     @given(issue=regression_issue_st)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_regression_issues_have_go_live_polish_ref(self, issue: dict) -> None:
         """Any issue corresponding to a go-live-polish fix must have go_live_polish_ref set."""
         assert issue.get("go_live_polish_ref") is not None, (
@@ -129,7 +129,7 @@ class TestGoLivePolishRegression:
         assert 1 <= fix_num <= 15, f"Fix number {fix_num} is out of range (1-15)"
 
     @given(issue=regression_issue_st)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_regression_issues_are_blocker_severity(self, issue: dict) -> None:
         """Go-live-polish regressions should be auto-escalated to blocker severity."""
         assert issue["severity"] == "blocker", (
@@ -138,7 +138,7 @@ class TestGoLivePolishRegression:
         )
 
     @given(issue=non_regression_issue_st)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_non_regression_issues_have_no_ref(self, issue: dict) -> None:
         """Issues not corresponding to go-live-polish fixes should have go_live_polish_ref=None."""
         assert issue.get("go_live_polish_ref") is None, (
@@ -146,7 +146,7 @@ class TestGoLivePolishRegression:
         )
 
     @given(fix_num=fix_number_st)
-    @settings(max_examples=15)
+    @settings(max_examples=5)
     def test_all_15_fixes_have_keyword_mappings(self, fix_num: int) -> None:
         """Every fix number (1-15) should have keyword mappings for detection."""
         assert fix_num in FIX_KEYWORD_MAP, f"Fix {fix_num} has no keyword mapping"

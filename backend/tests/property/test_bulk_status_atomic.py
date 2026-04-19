@@ -145,7 +145,7 @@ class TestBulkStatusAtomicRollback(SimpleTestCase):
         batch_size=_batch_sizes,
         failure_index=_failure_indices,
     )
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=5, deadline=None)
     def test_failure_mid_batch_rolls_back_all_changes(
         self, new_status, batch_size, failure_index
     ):

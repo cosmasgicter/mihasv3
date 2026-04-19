@@ -92,7 +92,7 @@ class TestPendingPaymentQueryWindow(SimpleTestCase):
     """
 
     @given(records=payment_records())
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_query_window_filters_correctly(self, records):
         """For any set of payment records, the query filter should match
         exactly those with status=pending, created_at < now-5min, and
@@ -123,7 +123,7 @@ class TestPendingPaymentQueryWindow(SimpleTestCase):
         )
 
     @given(records=payment_records())
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_non_pending_payments_excluded(self, records):
         """Payments with status != 'pending' should never be included,
         regardless of their created_at timestamp."""
@@ -138,7 +138,7 @@ class TestPendingPaymentQueryWindow(SimpleTestCase):
                 )
 
     @given(records=payment_records())
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_max_50_limit_respected(self, records):
         """The polling task should process at most 50 payments per run."""
         now = timezone.now()

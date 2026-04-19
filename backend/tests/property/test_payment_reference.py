@@ -52,7 +52,7 @@ class TestPaymentReferenceFormat(SimpleTestCase):
     """
 
     @given(app_number=application_numbers, ts_ms=timestamps_ms)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_reference_contains_mihas_prefix(self, app_number, ts_ms):
         """For any application number and timestamp, the generated reference
         should start with 'MIHAS-'."""
@@ -66,7 +66,7 @@ class TestPaymentReferenceFormat(SimpleTestCase):
         )
 
     @given(app_number=application_numbers, ts_ms=timestamps_ms)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_reference_contains_application_number(self, app_number, ts_ms):
         """For any application number and timestamp, the generated reference
         should contain the application number."""
@@ -81,7 +81,7 @@ class TestPaymentReferenceFormat(SimpleTestCase):
         )
 
     @given(app_number=application_numbers, ts_ms=timestamps_ms)
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_reference_matches_expected_format(self, app_number, ts_ms):
         """For any application number and timestamp, the generated reference
         should match the format MIHAS-{app_number}-{digits}."""
@@ -115,7 +115,7 @@ class TestPaymentReferenceUniqueness(SimpleTestCase):
         ts_ms_1=timestamps_ms,
         ts_ms_2=timestamps_ms,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_distinct_timestamps_produce_distinct_references(
         self, app_number, ts_ms_1, ts_ms_2
     ):

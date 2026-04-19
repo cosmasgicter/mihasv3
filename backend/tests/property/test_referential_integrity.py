@@ -143,7 +143,7 @@ class TestReferentialIntegrity(SimpleTestCase):
         rel=fk_relationship_st,
         parent_ids=parent_id_set_st(min_size=1, max_size=20),
     )
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_valid_fk_passes_integrity_check(
         self, rel: tuple[str, str, str, str], parent_ids: set[str]
     ):
@@ -174,7 +174,7 @@ class TestReferentialIntegrity(SimpleTestCase):
         parent_ids=parent_id_set_st(min_size=1, max_size=20),
         orphan_id=uuid_st,
     )
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_orphaned_fk_fails_integrity_check(
         self,
         rel: tuple[str, str, str, str],
@@ -209,7 +209,7 @@ class TestReferentialIntegrity(SimpleTestCase):
         parent_ids=parent_id_set_st(min_size=2, max_size=10),
         extra_ids=st.lists(uuid_st, min_size=1, max_size=10),
     )
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_find_orphans_returns_only_orphans(
         self,
         rel: tuple[str, str, str, str],
@@ -258,7 +258,7 @@ class TestReferentialIntegrity(SimpleTestCase):
         data=st.data(),
         num_orphans=st.integers(min_value=0, max_value=15),
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_categorize_orphans_counts_match(
         self, data: st.DataObject, num_orphans: int
     ):

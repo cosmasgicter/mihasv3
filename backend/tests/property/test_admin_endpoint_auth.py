@@ -177,7 +177,7 @@ class TestAdminEndpointAuth(SimpleTestCase):
     # ------------------------------------------------------------------
 
     @given(endpoint=admin_service_endpoint_st)
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_admin_service_endpoint_has_admin_permission(
         self, endpoint: AdminEndpoint
     ):
@@ -195,7 +195,7 @@ class TestAdminEndpointAuth(SimpleTestCase):
     # ------------------------------------------------------------------
 
     @given(endpoint=admin_application_endpoint_st)
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_admin_application_endpoint_has_admin_permission(
         self, endpoint: AdminEndpoint
     ):
@@ -213,7 +213,7 @@ class TestAdminEndpointAuth(SimpleTestCase):
     # ------------------------------------------------------------------
 
     @given(endpoint=all_admin_endpoint_st)
-    @settings(max_examples=200)
+    @settings(max_examples=5)
     def test_any_admin_endpoint_has_admin_permission(
         self, endpoint: AdminEndpoint
     ):

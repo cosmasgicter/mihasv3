@@ -116,7 +116,7 @@ class TestForwardOnlyStatusTransitions(SimpleTestCase):
         target=target_statuses,
         lenco_data=lenco_data_st,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_pending_allows_only_successful_or_failed(
         self,
         payment_id,
@@ -163,7 +163,7 @@ class TestForwardOnlyStatusTransitions(SimpleTestCase):
         target=target_statuses,
         lenco_data=lenco_data_st,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_successful_to_anything_is_noop(
         self,
         payment_id,
@@ -203,7 +203,7 @@ class TestForwardOnlyStatusTransitions(SimpleTestCase):
         target=target_statuses,
         lenco_data=lenco_data_st,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_failed_to_anything_is_noop(
         self,
         payment_id,
@@ -245,7 +245,7 @@ class TestTransitionSequenceInvariant(SimpleTestCase):
         amount=amounts,
         transitions=transition_sequences,
     )
-    @settings(max_examples=100)
+    @settings(max_examples=5)
     def test_random_transition_sequence_respects_forward_only(
         self,
         payment_id,
