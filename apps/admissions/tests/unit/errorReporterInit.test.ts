@@ -4,13 +4,17 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-describe('errorReporter init gating', () => {
-  let addEventListenerSpy: ReturnType<typeof vi.spyOn>
+const mockSentryInit = vi.fn()
 
+vi.mock('@sentry/react', () => ({
+  init: mockSentryInit,
+  captureException: vi.fn(),
+}))
+
+describe('errorReporter init gating', () => {
   beforeEach(() => {
     vi.resetModules()
-    window.onerror = null
-    addEventListenerSpy = vi.spyOn(window, 'addEventListener')
+    mockSentryInit.mockClear()
   })
 
   afterEach(() => {
@@ -18,29 +22,33 @@ describe('errorReporter init gating', () => {
     vi.unstubAllEnvs()
   })
 
-  it('enables reporting by default when VITE_ERROR_REPORT_ENABLED is unset', async () => {
-    vi.stubEnv('VITE_ERROR_REPORT_ENABLED', '')
+  it('enables reporting by default when VITE_GLITCHTIP_DSN is set', async () => {
+    vi.stubEnv('VITE_GLITCHTIP_DSN', 'https://key@glitchtip.example.com/1')
+
+    vi.doMock('@sentry/react', () => ({
+      init: mockSentryInit,
+      captureException: vi.fn(),
+    }))
 
     const { initErrorReporter } = await import('@/lib/errorReporter')
     initErrorReporter()
 
-    expect(typeof window.onerror).toBe('function')
-    expect(addEventListenerSpy).toHaveBeenCalledWith(
-      'unhandledrejection',
-      expect.any(Function),
+    expect(mockSentryInit).toHaveBeenCalledWith(
+      expect.objectContaining({ dsn: 'https://key@glitchtip.example.com/1' })
     )
   })
 
-  it('disables reporting only when VITE_ERROR_REPORT_ENABLED is false', async () => {
-    vi.stubEnv('VITE_ERROR_REPORT_ENABLED', 'false')
+  it('disables reporting when VITE_GLITCHTIP_DSN is absent', async () => {
+    vi.stubEnv('VITE_GLITCHTIP_DSN', '')
+
+    vi.doMock('@sentry/react', () => ({
+      init: mockSentryInit,
+      captureException: vi.fn(),
+    }))
 
     const { initErrorReporter } = await import('@/lib/errorReporter')
     initErrorReporter()
 
-    expect(window.onerror).toBeNull()
-    expect(addEventListenerSpy).not.toHaveBeenCalledWith(
-      'unhandledrejection',
-      expect.any(Function),
-    )
+    expect(mockSentryInit).not.toHaveBeenCalled()
   })
 })

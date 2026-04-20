@@ -13,7 +13,7 @@ import React from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createRoot } from 'react-dom/client'
 
-;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
+;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = false
 
 // ── Polyfill window.matchMedia for jsdom ──────────────────────────────
 Object.defineProperty(window, 'matchMedia', {
@@ -187,7 +187,7 @@ vi.mock('@/lib/apiErrorLogger', () => ({
   logApiError: vi.fn(),
 }))
 
-// ── Mock tanstack react-query ─────────────────────────────────────────
+// ── Mock tanstack react-query to prevent provider requirement ─────────
 vi.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({
     invalidateQueries: vi.fn(),
@@ -198,6 +198,8 @@ vi.mock('@tanstack/react-query', () => ({
     data: null,
     isLoading: false,
     error: null,
+    refetch: vi.fn(),
+    isFetching: false,
   }),
 }))
 
@@ -378,16 +380,14 @@ describe('Admin Dashboard page verification', () => {
     expect(mockGetOverviewWithDiagnostics).toHaveBeenCalled()
   })
 
-  it('renders metrics cards with Django response data', async () => {
-    await renderAndWaitForText('New Applications')
+  it('renders metrics with Django response data', async () => {
+    await renderAndWaitForText('Today:')
 
     const text = container.textContent || ''
-    // DashboardMetricsCards renders: New Applications (today), Decision Queue (pending),
-    // Approval Rate, Avg Processing
-    expect(text).toContain('New Applications')
-    expect(text).toContain('Decision Queue')
-    expect(text).toContain('Approval Rate')
-    expect(text).toContain('Avg Processing')
+    // RealtimeMetricsDisplay renders today, pending, total
+    expect(text).toContain('Today: 4')
+    expect(text).toContain('Pending: 12')
+    expect(text).toContain('Total: 73')
   })
 
   it('renders activity feed with normalized Django recent_activity', async () => {

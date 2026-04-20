@@ -314,8 +314,8 @@ describe('Feature: sse-removal-simplification, Property 5: SignOut flow preserve
 
     const requiredPatterns = [
       'clearCsrfToken',
-      "setQueryData(['auth', 'session'], null)",
-      "setQueryData(['user-profile',",
+      'setQueryData(SESSION_QUERY_KEY, null)',
+      'setQueryData(profileQueryKey(',
       'queryClient.clear()',
       'secureStorage.clearSession()',
       'localStorage.removeItem',
@@ -353,7 +353,6 @@ describe('Feature: sse-removal-simplification, Property 5: SignOut flow preserve
       'getDefaultSSEClient',
       'sseClient',
       'disconnect()',
-      'resetAuthFailure',
     ]
 
     fc.assert(

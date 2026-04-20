@@ -70,6 +70,7 @@ export default function AdminDashboard() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [initialLoadFailed, setInitialLoadFailed] = useState(false)
   const [hasLoadedSuccessfully, setHasLoadedSuccessfully] = useState(false)
+  const [authRecoveryFailed, setAuthRecoveryFailed] = useState(false)
   const [apiStatus, setApiStatus] = useState<DashboardApiStatus>({
     endpoint: '/admin/dashboard/',
     phase: 'idle',
@@ -234,6 +235,13 @@ export default function AdminDashboard() {
     return { adminFirstName: name.split(' ')[0] || 'Admin' }
   }, [profile, user])
 
+  useEffect(() => {
+    if (!user) {
+      const timer = setTimeout(() => setAuthRecoveryFailed(true), 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [user])
+
   if (isInitialLoading) {
     return (
       <>
@@ -273,6 +281,9 @@ export default function AdminDashboard() {
   }
 
   if (!user) {
+    if (!authRecoveryFailed) {
+      return <DashboardSkeleton />
+    }
     return (
       <>
         <Seo

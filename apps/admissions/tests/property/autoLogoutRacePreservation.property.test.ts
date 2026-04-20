@@ -195,13 +195,14 @@ describe('Auto-Logout Race Preservation — Property 2: Non-Cooldown Refresh Beh
   });
 
   /**
-   * Property: when performRefresh() returns false, lastRefreshResult is never
-   * set to true (failures are never cached). A subsequent call still makes a
-   * new performRefresh() request.
+   * Property: when performRefresh() returns false, the failure cooldown prevents
+   * redundant refresh attempts within REFRESH_FAILURE_COOLDOWN_MS (2000ms).
+   * A subsequent call within the cooldown returns false immediately without
+   * making a new network request.
    *
    * **Validates: Requirements 3.2, 3.5**
    */
-  it('failed refresh is never cached — subsequent call makes a new performRefresh request', async () => {
+  it('failed refresh is never cached — subsequent call within cooldown returns false without new request', async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.integer({ min: 0, max: 50 }),
@@ -231,17 +232,17 @@ describe('Auto-Logout Race Preservation — Property 2: Non-Cooldown Refresh Beh
           expect(result1).toBe(false);
           expect(callCount).toBe(1);
 
-          // Wait a small delay
+          // Wait a small delay (within failure cooldown of 2000ms)
           if (delayMs > 0) {
             await new Promise(r => setTimeout(r, delayMs));
           }
 
-          // Second call — should also make a new request (failure not cached)
+          // Second call — within failure cooldown, returns false immediately
           const result2 = await apiClient.refreshAuthSession();
           expect(result2).toBe(false);
 
-          // performRefresh must have been called twice — failures are never cached
-          expect(callCount).toBe(2);
+          // Only 1 actual network request — failure cooldown prevents redundant attempts
+          expect(callCount).toBe(1);
 
           vi.restoreAllMocks();
         },

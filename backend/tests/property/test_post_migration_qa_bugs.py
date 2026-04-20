@@ -104,18 +104,17 @@ class TestLogoutCSRFExemption:
         )
 
     def test_logout_csrf_403_response_code(self):
-        """Verify the CSRF middleware returns CSRF_VALIDATION_FAILED code.
+        """Verify the CSRF middleware returns CSRF_INVALID code.
 
         This confirms the error code that the frontend needs to handle.
-        The frontend currently checks for CSRF_INVALID/CSRF_MISSING but
-        the middleware returns CSRF_VALIDATION_FAILED.
+        The frontend checks for CSRF_INVALID to trigger CSRF token refresh.
         """
         response = CSRFEnforcementMiddleware._forbidden_response()
         import json
 
         body = json.loads(response.content)
-        assert body["code"] == "CSRF_VALIDATION_FAILED", (
-            f"Expected CSRF_VALIDATION_FAILED, got {body['code']}"
+        assert body["code"] == "CSRF_INVALID", (
+            f"Expected CSRF_INVALID, got {body['code']}"
         )
         assert response.status_code == 403
 

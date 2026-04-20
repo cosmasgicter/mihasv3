@@ -436,21 +436,26 @@ class RefreshView(APIView):
 
             new_access, new_refresh = rotate_tokens(refresh_token, user=user)
         except jwt.ExpiredSignatureError:
-            logger.warning("Refresh token expired", exc_info=True)
             return Response(
-                {"success": False, "error": "Invalid or expired refresh token", "code": "TOKEN_EXPIRED"},
+                {"success": False, "error": "Refresh token has expired", "code": "REFRESH_EXPIRED"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
-        except (jwt.InvalidTokenError, ValueError):
-            logger.warning("Token rotation failed during refresh", exc_info=True)
+        except ValueError as e:
+            # "Token has been revoked" or "Token already consumed" — blacklisted/reused
+            code = "TOKEN_BLACKLISTED" if "revoked" in str(e) else "TOKEN_BLACKLISTED"
             return Response(
-                {"success": False, "error": "Invalid or expired refresh token", "code": "TOKEN_EXPIRED"},
+                {"success": False, "error": "Refresh token has been revoked", "code": code},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        except jwt.InvalidTokenError:
+            return Response(
+                {"success": False, "error": "Invalid refresh token", "code": "REFRESH_EXPIRED"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
         except Exception:
             logger.warning("Unexpected error during token refresh", exc_info=True)
             return Response(
-                {"success": False, "error": "Invalid or expired refresh token", "code": "TOKEN_EXPIRED"},
+                {"success": False, "error": "Token refresh failed", "code": "REFRESH_EXPIRED"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 

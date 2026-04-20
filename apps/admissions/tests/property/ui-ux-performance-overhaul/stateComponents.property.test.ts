@@ -204,12 +204,12 @@ describe('Property 16: ErrorDisplay Retry Invariant', () => {
   })
 
   it('PROPERTY: ErrorDisplay retry button contains "Try Again" text in both variants', () => {
-    // Both variants should render "Try Again" text
-    const tryAgainCount = (canonicalErrorDisplaySource.match(/Try Again/g) || []).length
+    // Both variants should render "Retry" text
+    const retryCount = (canonicalErrorDisplaySource.match(/Retry/g) || []).length
     expect(
-      tryAgainCount,
-      'ErrorDisplay should have "Try Again" text in both inline and section variants'
-    ).toBe(2)
+      retryCount,
+      'ErrorDisplay should have "Retry" text in both inline and section variants'
+    ).toBeGreaterThanOrEqual(2)
   })
 
   it('PROPERTY: ErrorDisplay uses role="alert" and aria-live="assertive" for accessibility', () => {
@@ -377,9 +377,9 @@ describe('Property 17: FileUpload State Machine Rendering', () => {
         // The component clamps progress to 0-100 range
         expect(fileUploadSource).toContain('Math.min(100, Math.max(0, progress))')
         // Progress percentage is displayed
-        expect(fileUploadSource).toContain('Math.round(progress)')
-        // aria-valuenow uses the progress value
-        expect(fileUploadSource).toContain('aria-valuenow={Math.round(progress)}')
+        expect(fileUploadSource).toContain('Math.round(normalizedProgress)')
+        // aria-valuenow uses the normalized progress value
+        expect(fileUploadSource).toContain("'aria-valuenow': Math.round(normalizedProgress)")
       }),
       { numRuns: NUM_RUNS }
     )

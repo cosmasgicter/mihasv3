@@ -262,6 +262,7 @@ describe('Property 2b: Preservation — Successful 401 refresh retries exactly o
           });
 
           vi.stubGlobal('fetch', mockFetch);
+          vi.resetModules();
 
           const { apiClient } = await import('@/services/client');
 

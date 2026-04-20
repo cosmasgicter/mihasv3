@@ -118,7 +118,7 @@ class SessionRevokeView(APIView):
         # We blacklist via the refresh token if available in the request cookies.
         _try_blacklist_refresh_for_session(request, session)
 
-        return Response({"message": "Session revoked"})
+        return Response({"success": True, "data": {"message": "Session revoked"}})
 
 
 @extend_schema_view(
@@ -154,7 +154,7 @@ class SessionRevokeAllView(APIView):
             except Exception:
                 pass
 
-        return Response({"message": f"{updated} session(s) revoked"})
+        return Response({"success": True, "data": {"message": f"{updated} session(s) revoked"}})
 
 
 def _try_blacklist_refresh_for_session(request, session):

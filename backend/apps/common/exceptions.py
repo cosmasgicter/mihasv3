@@ -70,6 +70,8 @@ def envelope_exception_handler(exc, context):
         exc_code = exc.get_codes() if hasattr(exc, "get_codes") else None
         if isinstance(exc_code, str) and exc_code:
             code = exc_code.upper()
+        elif isinstance(exc, NotAuthenticated):
+            code = "AUTHENTICATION_REQUIRED"
 
     # Handle validation errors with field details
     if response.status_code == 400 and isinstance(response.data, dict):

@@ -62,8 +62,8 @@ describe('InfiniteGrid', () => {
   })
 
   it('injects a <style> block with @keyframes', () => {
-    const { container, unmount } = renderGrid()
-    const style = container.querySelector('style')
+    const { unmount } = renderGrid()
+    const style = document.querySelector('style[data-style-key]')
     expect(style).not.toBeNull()
     expect(style?.textContent).toContain('@keyframes infinite-grid-scroll')
     unmount()

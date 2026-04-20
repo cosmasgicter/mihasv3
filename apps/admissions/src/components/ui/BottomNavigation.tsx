@@ -114,7 +114,7 @@ function BottomNavLink({
     'touch-manipulation select-none',
     '[-webkit-tap-highlight-color:transparent]',
     isActive
-      ? 'bg-slate-950 text-white shadow-lg shadow-slate-950/20'
+      ? 'bg-foreground text-white shadow-lg shadow-foreground/20'
       : 'text-muted-foreground hover:bg-accent/70 hover:text-foreground',
     'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
   )
@@ -295,7 +295,7 @@ export function BottomNavigation({
               'touch-manipulation select-none [-webkit-tap-highlight-color:transparent]',
               'transition-all duration-200',
               isMoreActive || isMoreOpen
-                ? 'bg-slate-950 text-white shadow-lg shadow-slate-950/20'
+                ? 'bg-foreground text-white shadow-lg shadow-foreground/20'
                 : 'text-muted-foreground hover:bg-accent/70 hover:text-foreground'
             )}
             aria-expanded={isMoreOpen}

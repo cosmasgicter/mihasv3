@@ -64,10 +64,12 @@ vi.mock('@/hooks/queries/useQueryConfig', () => ({
 const clearSpy = vi.fn();
 const setQueryDataSpy = vi.fn();
 const removeQueriesSpy = vi.fn();
+const cancelQueriesSpy = vi.fn().mockResolvedValue(undefined);
 const mockQueryClient = {
   clear: clearSpy,
   setQueryData: setQueryDataSpy,
   removeQueries: removeQueriesSpy,
+  cancelQueries: cancelQueriesSpy,
 };
 
 vi.mock('@tanstack/react-query', () => ({
@@ -76,6 +78,34 @@ vi.mock('@tanstack/react-query', () => ({
     isLoading: false,
   })),
   useQueryClient: vi.fn(() => mockQueryClient),
+}));
+
+vi.mock('@/services/auth', () => ({
+  authService: {
+    logout: vi.fn().mockResolvedValue(undefined),
+    session: vi.fn().mockResolvedValue({ user: { id: '1', role: 'student' } }),
+  },
+}));
+
+vi.mock('@/lib/sessionHardening', () => ({
+  resetAuthFailureDebounce: vi.fn(),
+  SESSION_MESSAGES: {},
+  isPermissionDenial: vi.fn(() => false),
+  isNonAuthError: vi.fn(() => false),
+  shouldDispatchAuthFailure: vi.fn(() => true),
+}));
+
+vi.mock('@/hooks/auth/authQueries', () => ({
+  SESSION_QUERY_KEY: ['auth', 'session'],
+  PROFILE_STALE_TIME_MS: 300000,
+  profileQueryKey: (userId?: string | null) => ['user-profile', userId],
+  buildProfileFromUser: vi.fn(() => null),
+  fetchCurrentProfile: vi.fn().mockResolvedValue(null),
+  fetchSessionData: vi.fn().mockResolvedValue({ user: { id: '1', role: 'student' } }),
+}));
+
+vi.mock('@/lib/authSession', () => ({
+  extractAuthUser: vi.fn((data: any) => data?.user ?? null),
 }));
 
 // Mock React
@@ -159,16 +189,14 @@ describe('signOut cleanup', () => {
     expect(setQueryDataSpy).toHaveBeenCalledWith(['user-profile', undefined], null);
   });
 
-  it('signOut POSTs to /auth/logout/ via apiClient', async () => {
+  it('signOut POSTs to /auth/logout/ via authService', async () => {
+    const { authService } = await import('@/services/auth');
     const { useSessionListener } = await import('@/hooks/auth/useSessionListener');
     const { signOut } = useSessionListener();
 
     await signOut();
 
-    expect(apiRequestSpy).toHaveBeenCalledWith(
-      '/auth/logout/',
-      { method: 'POST' },
-    );
+    expect(authService.logout).toHaveBeenCalledTimes(1);
   });
 
   it('signOut calls secureStorage.clearSession()', async () => {
@@ -202,7 +230,8 @@ describe('signOut cleanup', () => {
   });
 
   it('signOut completes even if logout POST fails', async () => {
-    apiRequestSpy.mockRejectedValueOnce(new Error('Network error'));
+    const { authService } = await import('@/services/auth');
+    (authService.logout as any).mockRejectedValueOnce(new Error('Network error'));
 
     const { useSessionListener } = await import('@/hooks/auth/useSessionListener');
     const { signOut } = useSessionListener();

@@ -96,44 +96,30 @@ describe('[PBT] Preservation — getUserMetadata with populated user_metadata', 
   /**
    * **Validates: Requirements 3.6, 3.7**
    *
-   * When user_metadata IS populated, getUserMetadata extracts fields from
-   * user_metadata and signup_data. This behavior must remain unchanged.
-   *
-   * On UNFIXED code: getUserMetadata correctly handles populated user_metadata.
-   * This test captures that baseline so we can verify it's preserved after fix.
+   * getUserMetadata now extracts only top-level User fields (email, full_name,
+   * first_name, last_name) — it no longer reads from user_metadata sub-object.
    */
 
-  it('property: getUserMetadata output includes fields from user_metadata', () => {
+  it('property: getUserMetadata output includes fields from top-level user object', () => {
     fc.assert(
       fc.property(userWithPopulatedMetadataArb, (user) => {
         const result = getUserMetadata(user)
-        const metadata = user.user_metadata as Record<string, unknown>
 
-        // When user_metadata has full_name, the result should include it
-        if (typeof metadata.full_name === 'string' && metadata.full_name.trim() !== '') {
-          expect(result.full_name).toBe(metadata.full_name)
+        // When user has email, the result should include it
+        if (typeof user.email === 'string' && user.email.trim() !== '') {
+          expect(result.email).toBe(user.email)
         }
 
-        // When user_metadata has phone, the result should include it
-        if (typeof metadata.phone === 'string' && metadata.phone.trim() !== '') {
-          expect(result.phone).toBe(metadata.phone)
-        }
-
-        // When user_metadata has email, the result should include it
-        if (typeof metadata.email === 'string' && metadata.email.trim() !== '') {
-          expect(result.email).toBe(metadata.email)
-        }
-
-        // When user_metadata has sex, the result should include it
-        if (typeof metadata.sex === 'string' && metadata.sex.trim() !== '') {
-          expect(result.sex).toBe(metadata.sex)
+        // When user has full_name, the result should include it
+        if (typeof user.full_name === 'string' && user.full_name.trim() !== '') {
+          expect(result.full_name).toBe(user.full_name)
         }
       }),
       { numRuns: 100 },
     )
   })
 
-  it('property: getUserMetadata falls back to signup_data when metadata fields are absent', () => {
+  it('property: getUserMetadata returns only top-level user fields, not nested metadata', () => {
     const userWithSignupDataArb: fc.Arbitrary<User> = fc.record({
       id: fc.uuid(),
       email: fc.emailAddress(),
@@ -150,12 +136,15 @@ describe('[PBT] Preservation — getUserMetadata with populated user_metadata', 
     fc.assert(
       fc.property(userWithSignupDataArb, (user) => {
         const result = getUserMetadata(user)
-        const metadata = user.user_metadata as Record<string, unknown>
-        const signupData = metadata.signup_data as Record<string, unknown>
 
-        // When metadata fields are absent, signup_data values should be used
-        expect(result.full_name).toBe(signupData.full_name)
-        expect(result.phone).toBe(signupData.phone)
+        // getUserMetadata only returns top-level user fields now
+        // It does NOT dig into user_metadata.signup_data
+        if (user.full_name) {
+          expect(result.full_name).toBe(user.full_name)
+        }
+        expect(result.email).toBe(user.email)
+        // phone is not a top-level User field, so it should not appear
+        expect(result.phone).toBeUndefined()
       }),
       { numRuns: 50 },
     )
@@ -185,8 +174,8 @@ describe('[PBT] Preservation — calculateCanonicalProfileCompletion unchanged',
       .map((ms) => new Date(ms).toISOString().slice(0, 10)),
     sex: fc.constantFrom('Male', 'Female'),
     nrc_number: fc.stringMatching(/^\d{6}\/\d{2}\/\d$/),
-    address: fc.stringMatching(/^[A-Za-z ]{3,20}$/),
-    next_of_kin_name: fc.stringMatching(/^[A-Za-z ]{3,20}$/),
+    address: fc.stringMatching(/^[A-Za-z][A-Za-z ]{2,19}$/),
+    next_of_kin_name: fc.stringMatching(/^[A-Za-z][A-Za-z ]{2,19}$/),
   })
 
   it('property: full 9-field profile always returns 100%', () => {

@@ -54,8 +54,8 @@ describe('useStudentDashboardPolling', () => {
       expect(hookContent).toContain('document.visibilityState');
       expect(hookContent).toContain('pollingInterval * 2');
     });
-    it('sets staleTime to half polling interval', () => {
-      expect(hookContent).toContain('staleTime: pollingInterval / 2');
+    it('sets staleTime to 0 for always-fresh data', () => {
+      expect(hookContent).toContain('staleTime: 0');
     });
     it('defaults to 30s polling', () => {
       expect(hookContent).toContain('POLLING_INTERVAL = 30000');

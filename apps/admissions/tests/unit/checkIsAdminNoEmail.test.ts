@@ -62,15 +62,15 @@ describe('checkIsAdmin — role-only logic', () => {
     expect(checkIsAdmin({} as any)).toBe(false);
   });
 
-  it('reads role from user_metadata when top-level role is missing', () => {
+  it('returns false when role is only in user_metadata (not top-level)', () => {
     expect(
       checkIsAdmin({ user_metadata: { role: 'admin' } } as any),
-    ).toBe(true);
+    ).toBe(false);
   });
 
-  it('reads role from app_metadata when other role fields are missing', () => {
+  it('returns false when role is only in app_metadata (not top-level)', () => {
     expect(
       checkIsAdmin({ app_metadata: { role: 'super_admin' } } as any),
-    ).toBe(true);
+    ).toBe(false);
   });
 });

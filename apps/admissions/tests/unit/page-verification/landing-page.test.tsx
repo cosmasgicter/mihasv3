@@ -224,7 +224,7 @@ describe('Landing page verification', () => {
   it('renders the CTA section with apply link', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('January 2026 Intake Is Open')
+    expect(text).toContain('Current Intake Is Open')
     expect(text).toContain('Apply Now')
     const html = container.innerHTML || ''
     // CTA links to signup

@@ -27,7 +27,7 @@ describe('[PBT] Bug 1 — Auth failure immediately stops retries', () => {
   it('useAutoSave sets session-expired message', () => {
     const hookPath = path.resolve(__dirname, '../../src/hooks/useAutoSave.ts')
     const source = fs.readFileSync(hookPath, 'utf-8')
-    expect(/session\s+expired/i.test(source)).toBe(true)
+    expect(/SESSION_EXPIRED/i.test(source)).toBe(true)
   })
 
   it('property: instanceof AuthenticationError check exists', () => {

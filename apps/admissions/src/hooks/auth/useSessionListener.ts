@@ -30,6 +30,7 @@ import { extractAuthUser as extractAuthUserFromResult } from '@/lib/authSession'
 import { clearCsrfToken } from '@/lib/csrfToken'
 import { secureStorage } from '@/lib/secureStorage'
 import { broadcastLogin, broadcastLogout } from '@/lib/authBroadcast'
+import { resetAuthFailureDebounce } from '@/lib/sessionHardening'
 import {
   buildProfileFromUser,
   fetchCurrentProfile,
@@ -201,6 +202,7 @@ export function useSessionListener() {
       })
 
       broadcastLogin(authUser.id)
+      resetAuthFailureDebounce()
       window.dispatchEvent(new CustomEvent('userLoggedIn', {
         detail: { userId: authUser.id },
       }))

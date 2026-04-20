@@ -160,6 +160,8 @@ export function useAuthBroadcast(): void {
       switch (message.type) {
         case 'logout':
           // Req 4.2: Clear React Query auth cache, clear authStore, redirect
+          // Give wizard a chance to save drafts before cross-tab logout clears state
+          window.dispatchEvent(new CustomEvent('mihas:before-auth-redirect', { detail: { from: window.location.pathname } }))
           queryClient.setQueryData(['auth', 'session'], null)
           queryClient.removeQueries({ queryKey: ['user-profile'] })
           useAuthStore.getState().clearAuth()

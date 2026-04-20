@@ -50,7 +50,7 @@ const EXPECTED_MAPPING: Record<string, string> = {
 // Source file reading
 // ---------------------------------------------------------------------------
 
-const APP_TSX_PATH = join(process.cwd(), 'src', 'App.tsx')
+const APP_TSX_PATH = join(process.cwd(), 'src', 'components', 'AuthenticatedRouteShell.tsx')
 const SKELETONS_INDEX_PATH = join(process.cwd(), 'src', 'components', 'ui', 'skeletons', 'index.tsx')
 const ROUTES_CONFIG_PATH = join(process.cwd(), 'src', 'routes', 'config.tsx')
 

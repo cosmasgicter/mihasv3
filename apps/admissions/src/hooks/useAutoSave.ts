@@ -18,7 +18,7 @@ export interface AutoSaveOptions {
   clearOnSubmit?: boolean // Clear saved data on explicit form submission (default: false)
 }
 
-const SESSION_EXPIRED_SAVE_MESSAGE = 'Session expired — please sign in again to save your work.'
+const SESSION_EXPIRED_SAVE_MESSAGE = 'Your progress is saved on this device while we reconnect.'
 
 function isAuthenticationFailure(error: unknown): error is AuthenticationError {
   return error instanceof AuthenticationError ||
@@ -454,14 +454,28 @@ export function useAutoSave(
       }
     }
 
+    const handleAuthRecovered = () => {
+      if (authExpiredRef.current) {
+        authExpiredRef.current = false
+        if (mountedRef.current) {
+          setSaveError(null)
+          setSaveStatus('idle')
+          // Resume cloud saves by triggering a save cycle
+          void processSaveQueue()
+        }
+      }
+    }
+
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
     window.addEventListener('mihas:auth-expired', handleAuthExpired)
+    window.addEventListener('mihas:auth-recovered', handleAuthRecovered)
 
     return () => {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
       window.removeEventListener('mihas:auth-expired', handleAuthExpired)
+      window.removeEventListener('mihas:auth-recovered', handleAuthRecovered)
     }
   }, [processSaveQueue])
 

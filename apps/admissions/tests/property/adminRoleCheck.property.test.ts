@@ -49,10 +49,10 @@ describe('Admin Role Determination Property Tests', () => {
   // Feature: single-source-of-truth-consolidation, Property 8: Admin status determined solely by role
   // **Validates: Requirements 5.1, 5.5, 10.3**
   describe('Property 8: Admin status determined solely by role', () => {
-    it('checkIsAdmin(user) matches isAdminRole on the resolved role for any user object', () => {
+    it('checkIsAdmin(user) matches isAdminRole on the top-level role for any user object', () => {
       fc.assert(
         fc.property(userArb, (user) => {
-          const resolvedRole = (user.role || user.user_metadata?.role || user.app_metadata?.role) as string | undefined;
+          const resolvedRole = user.role as string | undefined;
           const expected = isAdminRole(resolvedRole);
           const actual = checkIsAdmin(user);
           expect(actual).toBe(expected);

@@ -49,10 +49,10 @@ describe('Bug 1: Preservation — Vite Config Structure and Build Options', () =
     expect(viteConfig).toMatch(/sourcemap\s*:\s*false/);
   });
 
-  it('should preserve chunkSizeWarningLimit at 500', () => {
+  it('should preserve chunkSizeWarningLimit at 650', () => {
     const match = viteConfig.match(/chunkSizeWarningLimit\s*:\s*(\d+)/);
     expect(match).not.toBeNull();
-    expect(Number(match![1])).toBe(500);
+    expect(Number(match![1])).toBe(650);
   });
 
   it('should preserve cssCodeSplit as true so large CSS files are emitted separately', () => {

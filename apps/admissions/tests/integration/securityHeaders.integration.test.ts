@@ -73,21 +73,20 @@ describe('Feature: website-quality-remediation, Security Headers (Req 5)', () =>
       expect(csp.value).toContain("frame-ancestors 'none'");
     });
 
-    it('should allow connect-src to the Django API and Neon', () => {
+    it('should allow connect-src to the Django API and Lenco', () => {
       const csp = globalHeaders.headers.find(
         (h) => h.key === 'Content-Security-Policy'
       )!;
       expect(csp.value).toContain("connect-src 'self' https://api.mihas.edu.zm");
-      expect(csp.value).toContain('https://*.neon.tech');
+      expect(csp.value).toContain('https://pay.lenco.co');
     });
 
-    it('should allow local blob workers and Tesseract language data fetches', () => {
+    it('should allow local blob workers', () => {
       const csp = globalHeaders.headers.find(
         (h) => h.key === 'Content-Security-Policy'
       )!;
       expect(csp.value).toContain("worker-src 'self' blob:");
       expect(csp.value).toContain("child-src 'self' blob:");
-      expect(csp.value).toContain('https://cdn.jsdelivr.net');
     });
   });
 
