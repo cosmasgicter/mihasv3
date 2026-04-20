@@ -23,7 +23,7 @@ export function initErrorReporter(): void {
     dsn,
     environment: import.meta.env.MODE,
     release: import.meta.env.VITE_APP_VERSION ?? 'unknown',
-    tracesSampleRate: 0.1,
+    tracesSampleRate: 0.01,
     sendDefaultPii: false,
   })
 }
