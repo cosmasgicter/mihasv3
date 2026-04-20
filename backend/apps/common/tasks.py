@@ -15,13 +15,69 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 
+def _send_via_smtp(email_record):
+    """Try sending via Zoho SMTP. Returns True on success."""
+    from django.core.mail import EmailMessage
+
+    if not getattr(settings, "EMAIL_HOST_USER", ""):
+        logger.debug("SMTP not configured, skipping")
+        return False
+
+    try:
+        msg = EmailMessage(
+            subject=email_record.subject,
+            body=email_record.body,
+            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "***REMOVED***"),
+            to=[email_record.recipient_email],
+        )
+        msg.content_subtype = "html"
+        msg.send()
+
+        email_record.status = "sent"
+        email_record.error_message = ""
+        email_record.save()
+        logger.info("Email %s sent via SMTP", email_record.id)
+        return True
+    except Exception as exc:
+        logger.warning("SMTP send failed for %s: %s", email_record.id, exc)
+        return False
+
+
+def _send_via_resend(email_record):
+    """Try sending via Resend API. Returns True on success."""
+    api_key = getattr(settings, "RESEND_API_KEY", "")
+    if not api_key:
+        logger.debug("Resend not configured, skipping")
+        return False
+
+    try:
+        import resend
+
+        resend.api_key = api_key
+        resend.Emails.send(
+            {
+                "from": getattr(settings, "EMAIL_FROM", "noreply@mihas.edu.zm"),
+                "to": [email_record.recipient_email],
+                "subject": email_record.subject,
+                "html": email_record.body,
+            }
+        )
+
+        email_record.status = "sent"
+        email_record.error_message = ""
+        email_record.save()
+        logger.info("Email %s sent via Resend", email_record.id)
+        return True
+    except Exception as exc:
+        logger.warning("Resend send failed for %s: %s", email_record.id, exc)
+        return False
+
+
 @shared_task(bind=True, max_retries=3, default_retry_delay=60, soft_time_limit=60, time_limit=90)
 def send_email_task(self, email_queue_id):
-    """Send email via Resend API with exponential backoff.
+    """Send email via SMTP (Zoho) first, falling back to Resend API.
 
-    Loads the email from EmailQueue, sends via resend.Emails.send(),
-    and updates the queue record status on success or failure.
-
+    SMTP is tried first to preserve the Resend free-tier quota.
     Retry delays: 60s, 120s, 240s (exponential backoff).
     """
     from apps.common.models import EmailQueue
@@ -33,59 +89,25 @@ def send_email_task(self, email_queue_id):
         return
 
     if email_record.status == "sent":
-        logger.info("Email %s already sent, skipping", email_queue_id)
         return
 
-    api_key = getattr(settings, "RESEND_API_KEY", "")
-    if not api_key:
-        email_record.status = "failed"
-        email_record.error_message = "RESEND_API_KEY not configured"
-        email_record.save()
-        logger.error("Cannot send email %s: RESEND_API_KEY is empty", email_queue_id)
+    # Try SMTP first (preserves Resend quota)
+    if _send_via_smtp(email_record):
         return
 
-    try:
-        import resend
+    # Fallback to Resend
+    if _send_via_resend(email_record):
+        return
 
-        resend.api_key = api_key
-        email_from = getattr(settings, "EMAIL_FROM", "noreply@mihas.edu.zm")
+    # Both failed
+    email_record.retry_count += 1
+    email_record.error_message = "Both SMTP and Resend failed"
+    email_record.status = "retrying" if email_record.retry_count < 3 else "failed"
+    email_record.save()
 
-        resend.Emails.send(
-            {
-                "from": email_from,
-                "to": [email_record.recipient_email],
-                "subject": email_record.subject,
-                "html": email_record.body,
-            }
-        )
-
-        email_record.status = "sent"
-        email_record.save()
-        logger.info("Email %s sent successfully", email_queue_id)
-
-    except Exception as exc:
-        email_record.retry_count += 1
-        email_record.error_message = str(exc)[:500]
-        email_record.status = "retrying"
-        email_record.save()
-
-        logger.warning(
-            "Email %s failed (attempt %d/%d): %s",
-            email_queue_id,
-            self.request.retries + 1,
-            self.max_retries + 1,
-            str(exc),
-        )
-
-        if self.request.retries >= self.max_retries:
-            email_record.status = "failed"
-            email_record.save()
-            logger.error("Email %s permanently failed after %d retries", email_queue_id, self.max_retries)
-            return
-
-        # Exponential backoff: 60s, 120s, 240s
+    if email_record.retry_count < 3:
         backoff = 60 * (2 ** self.request.retries)
-        raise self.retry(exc=exc, countdown=backoff)
+        raise self.retry(countdown=backoff)
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60, soft_time_limit=300, time_limit=360)

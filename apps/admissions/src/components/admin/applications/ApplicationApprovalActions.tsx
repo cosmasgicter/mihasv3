@@ -222,7 +222,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => handleStatusUpdate('submitted')}
                 disabled={updatingStatus || disabled}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
               >
                 {updatingStatus ? 'Updating...' : 'Force Submit'}
               </button>
@@ -233,7 +233,7 @@ export function ApplicationApprovalActions({
             <button
               onClick={() => handleStatusUpdate('under_review')}
               disabled={updatingStatus || disabled}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
             >
               {updatingStatus ? 'Updating...' : (
                 <>
@@ -249,7 +249,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => handleStatusUpdate('approved')}
                 disabled={updatingStatus || disabled || !isPaymentVerified}
-                className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
                 title={!isPaymentVerified ? 'Payment must be verified first' : 'Approve application'}
               >
                 {updatingStatus ? 'Updating...' : (
@@ -262,7 +262,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => handleStatusUpdate('rejected')}
                 disabled={updatingStatus || disabled}
-                className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-destructive hover:bg-destructive/90 disabled:opacity-50 text-white text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
               >
                 {updatingStatus ? 'Updating...' : (
                   <>
@@ -312,7 +312,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => openPaymentReviewDialog('verified')}
                 disabled={updatingPayment || disabled}
-                className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="w-full border-2 border-green-600 text-green-700 hover:bg-green-50 disabled:opacity-50 text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
               >
                 {updatingPayment ? 'Updating...' : (
                   <>
@@ -329,7 +329,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => openPaymentReviewDialog('verified')}
                 disabled={updatingPayment || disabled}
-                className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 border-2 border-green-600 text-green-700 hover:bg-green-50 disabled:opacity-50 text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
               >
                 {updatingPayment ? 'Updating...' : (
                   <>
@@ -341,7 +341,7 @@ export function ApplicationApprovalActions({
               <button
                 onClick={() => openPaymentReviewDialog('rejected')}
                 disabled={updatingPayment || disabled}
-                className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-destructive hover:bg-destructive/90 disabled:opacity-50 text-white text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
               >
                 {updatingPayment ? 'Updating...' : (
                   <>
@@ -357,7 +357,7 @@ export function ApplicationApprovalActions({
             <button
               onClick={() => openPaymentReviewDialog('pending_review')}
               disabled={updatingPayment || disabled}
-              className="flex-1 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+              className="flex-1 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
             >
               {updatingPayment ? 'Updating...' : (
                 <>

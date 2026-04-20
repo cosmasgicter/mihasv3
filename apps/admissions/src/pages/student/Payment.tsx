@@ -225,8 +225,6 @@ function ApplicationPaymentCard({
     paymentStatus,
     statusMessage,
     initiateError,
-    widgetLoading,
-    isScriptLoaded,
     startPayment,
   } = useApplicationPaymentAction({
     applicationId: app.id,
@@ -237,7 +235,7 @@ function ApplicationPaymentCard({
   const latestAmount = app.application_fee ?? normalizeAmount(records[0]?.amount) ?? null
   const latestCurrency = records[0]?.currency ?? 'ZMW'
   const paymentInProgress = paymentStatus === 'initiating' || paymentStatus === 'pending'
-  const retryDisabled = !isScriptLoaded || widgetLoading || paymentInProgress
+  const retryDisabled = paymentInProgress
 
   return (
     <div
@@ -273,7 +271,7 @@ function ApplicationPaymentCard({
             size="sm"
             className="min-h-[44px] flex-shrink-0"
             disabled={retryDisabled}
-            loading={paymentStatus === 'initiating' || widgetLoading}
+            loading={paymentStatus === 'initiating'}
             onClick={() => void startPayment()}
             data-testid={`payment-page-retry-${app.id}`}
           >
@@ -282,12 +280,6 @@ function ApplicationPaymentCard({
           </Button>
         )}
       </div>
-
-      {canRetryOnPaymentPage && !isScriptLoaded && !widgetLoading && (
-        <div className="rounded-md border border-warning/20 bg-warning/10 px-3 py-2 text-sm text-foreground">
-          Payment widget unavailable. Refresh the page and try again.
-        </div>
-      )}
 
       {statusMessage && (
         <div className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-foreground">

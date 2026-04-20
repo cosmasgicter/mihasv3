@@ -373,10 +373,10 @@ export default function ProgramFees() {
             )}
 
             <div className="grid gap-4 md:grid-cols-2">
-              <Card className="border-primary/10 bg-gradient-to-br from-primary/5 to-transparent">
+              <Card className="rounded-2xl border-border/60 shadow-sm">
                 <CardHeader className="pb-3">
                   <CardDescription>Active Fees</CardDescription>
-                  <CardTitle className="flex items-center gap-2 text-3xl">
+                  <CardTitle className="flex items-center gap-2 text-3xl tracking-tight">
                     <DollarSign className="h-6 w-6 text-primary" />
                     {totalFees}
                   </CardTitle>
@@ -388,10 +388,10 @@ export default function ProgramFees() {
                 </CardContent>
               </Card>
 
-              <Card className="border-primary/10 bg-gradient-to-br from-primary/5 to-transparent">
+              <Card className="rounded-2xl border-border/60 shadow-sm">
                 <CardHeader className="pb-3">
                   <CardDescription>Programs with Fees</CardDescription>
-                  <CardTitle className="flex items-center gap-2 text-3xl">
+                  <CardTitle className="flex items-center gap-2 text-3xl tracking-tight">
                     <DollarSign className="h-6 w-6 text-primary" />
                     {programsWithFees} / {programs.length}
                   </CardTitle>

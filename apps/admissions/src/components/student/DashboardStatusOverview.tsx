@@ -90,28 +90,28 @@ function MetricCard({
 
   const content = (
     <div className={cn(
-      'rounded-xl border border-border/50 p-4 transition-all duration-200',
+      'rounded-2xl border border-border/50 p-4 transition-all duration-200',
       'border-l-4',
       accentStyles[accent],
-      href && 'hover:shadow-md hover:border-border cursor-pointer',
+      href && 'hover:shadow-md hover:border-primary/20 cursor-pointer min-h-[44px]',
       className
     )}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wide text-foreground/70 mb-1">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
             {title}
           </p>
-          <p className="text-2xl font-bold text-foreground">
+          <p className="text-2xl font-bold tracking-tight text-foreground">
             {value}
           </p>
           {description && (
-            <p className="text-xs text-foreground/75 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {description}
             </p>
           )}
         </div>
         <div className={cn(
-          'flex h-10 w-10 items-center justify-center rounded-lg shrink-0',
+          'flex h-9 w-9 items-center justify-center rounded-xl shrink-0',
           iconStyles[accent]
         )}>
           {icon}
@@ -246,17 +246,17 @@ export function DashboardStatusOverview({
       {/* Requirement 19.4: Zero applications prompt */}
       {stats.total === 0 && (
         <div
-          className={`${animateClasses.slideUp} opacity-0 rounded-xl border border-primary/20 bg-primary/5 p-5 text-center`}
+          className={`${animateClasses.slideUp} opacity-0 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-6 text-center`}
           style={staggerChild(4)}
         >
-          <p className="font-medium text-foreground mb-2">
+          <p className="text-sm font-semibold text-foreground mb-1">
             You have no applications yet
           </p>
-          <p className="text-sm text-muted-foreground mb-4">
+          <p className="text-xs text-muted-foreground mb-4">
             Start your admissions journey by creating your first application.
           </p>
           <Link to="/student/application-wizard">
-            <Button variant="primary" size="sm">
+            <Button variant="primary" size="sm" className="min-h-[44px] transition-all duration-200 active:scale-[0.98]">
               <Plus className="mr-2 h-4 w-4" />
               New Application
             </Button>
@@ -267,15 +267,15 @@ export function DashboardStatusOverview({
       {/* Current Application Status */}
       {latestApplication && (
         <div className={`${animateClasses.slideUp} opacity-0`} style={staggerChild(5)}>
-          <Card className="border-border/50">
+          <Card className="border-border/50 overflow-hidden rounded-2xl">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-primary" />
                 Latest Application Status
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
                   <StatusIndicator 
                     status={statusMapping[latestApplication.status] || 'idle'}
@@ -284,7 +284,7 @@ export function DashboardStatusOverview({
                     size="lg"
                   />
                 </div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-xs text-muted-foreground">
                   <span className="font-medium text-foreground">
                     {latestApplication.program || 'Application'}
                   </span>
@@ -293,7 +293,7 @@ export function DashboardStatusOverview({
                 </div>
                 <Link 
                   to={latestApplicationLink}
-                  className="text-sm font-medium text-primary hover:underline"
+                  className="min-h-[44px] inline-flex items-center text-sm font-medium text-primary transition-colors duration-200 hover:text-primary/80"
                 >
                   {latestApplication.status === 'draft' ? 'Continue Application →' : latestApplicationRequiresPayment ? 'Complete Payment →' : 'View Details →'}
                 </Link>
@@ -306,22 +306,21 @@ export function DashboardStatusOverview({
       {/* Pending Payment Alert */}
       {paymentActionRequiredCount > 0 && (
         <div
-          className={`${animateClasses.scaleIn} opacity-0 rounded-xl border border-warning/30 bg-warning/10 p-4`}
+          className={`${animateClasses.scaleIn} opacity-0 rounded-2xl border border-warning/30 bg-gradient-to-br from-warning/10 to-transparent p-4`}
           style={staggerChild(6)}
         >
           <div className="flex items-start gap-3">
             <CreditCard className="h-5 w-5 text-warning shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="font-medium text-foreground">
+              <p className="text-sm font-semibold text-foreground">
                 Payment Required
               </p>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 You have {paymentActionRequiredCount} application{paymentActionRequiredCount > 1 ? 's' : ''} that still need payment follow-up.
-                Finish payment or resubmit corrected proof to keep processing moving.
               </p>
               <Link 
                 to={paymentActionHref}
-                className="inline-flex items-center gap-1 text-sm font-medium text-warning hover:text-warning/80 mt-2"
+                className="inline-flex min-h-[44px] items-center gap-1 text-sm font-medium text-warning transition-colors duration-200 hover:text-warning/80"
               >
                 Complete Payment →
               </Link>

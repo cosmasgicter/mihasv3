@@ -7,7 +7,7 @@
  * **Property 1: Design Token Consistency** — verify no hardcoded hex/rgb/hsl in component classNames
  * **Property 4: Interactive Element Focus Indicators** — verify `focus-visible:ring-2` on all interactive elements
  * **Property 5: Interactive Element Micro-Interactions** — verify transition + active:scale on buttons/cards
- * **Property 8: Form Input Token Consistency** — verify `border-input`, `ring-ring`, `rounded-md` on form inputs
+ * **Property 8: Form Input Token Consistency** — verify `border-input`, `ring-ring`, `rounded-xl` on form inputs
  *
  * **Validates: Requirements 1.1, 8.6, 9.1, 12.1, 12.2, 12.3, 15.3, 15.4, 16.2**
  */
@@ -439,7 +439,7 @@ describe('Property 8: Form Input Token Consistency', () => {
    *
    * For any form input rendered by a canonical UI primitive, the element should
    * use design token classes for border (border-input), focus ring (ring-ring),
-   * border radius (rounded-md), and placeholder color (placeholder:text-muted-foreground).
+   * border radius (rounded-xl), and placeholder color (placeholder:text-muted-foreground).
    */
 
   const loadedFormInputs = Array.from(formInputSources.entries()).map(
@@ -483,7 +483,7 @@ describe('Property 8: Form Input Token Consistency', () => {
     )
   })
 
-  it('PROPERTY: All form inputs use rounded-md border radius token', () => {
+  it('PROPERTY: All form inputs use rounded-xl border radius token', () => {
     expect(loadedFormInputs.length).toBeGreaterThan(0)
 
     const formInputArb = fc.constantFrom(...loadedFormInputs)
@@ -491,8 +491,8 @@ describe('Property 8: Form Input Token Consistency', () => {
     fc.assert(
       fc.property(formInputArb, (component) => {
         expect(
-          component.source.includes('rounded-md'),
-          `${component.name} is missing rounded-md border radius token`
+          component.source.includes('rounded-xl'),
+          `${component.name} is missing rounded-xl border radius token`
         ).toBe(true)
       }),
       { numRuns: NUM_RUNS }

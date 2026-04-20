@@ -35,7 +35,7 @@ export function SkeletonText({ lines = 3, className }: SkeletonTextProps) {
 
 export function SkeletonCard() {
   return (
-    <div className="p-4 border border-border rounded-lg space-y-3">
+    <div className="p-4 border border-border/60 rounded-2xl space-y-3">
       <Skeleton className="h-5 w-3/5" />
       <div className="space-y-2">
         <Skeleton className="h-4 w-full" />

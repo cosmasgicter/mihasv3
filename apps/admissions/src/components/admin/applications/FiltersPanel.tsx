@@ -50,17 +50,52 @@ export function FiltersPanel({
     debouncedSearchChange(value)
   }
 
+  const activeFilterCount = [statusFilter, paymentFilter, programFilter, institutionFilter, draftFilter !== 'all' ? draftFilter : '', assignedReviewerFilter, lateSubmissionFilter, pendingAmendmentsFilter].filter(Boolean).length
+
+  const handleClearAll = () => {
+    onFilterChange('searchTerm', '')
+    onFilterChange('statusFilter', '')
+    onFilterChange('paymentFilter', '')
+    onFilterChange('programFilter', '')
+    onFilterChange('institutionFilter', '')
+    onFilterChange('draftFilter', 'all')
+    onFilterChange('assignedReviewerFilter', '')
+    onFilterChange('lateSubmissionFilter', '')
+    onFilterChange('pendingAmendmentsFilter', '')
+  }
+
+  const selectClasses = "w-full h-11 rounded-xl border border-border/60 bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors hover:border-primary/20"
+
   return (
-    <div className="bg-card rounded-lg shadow p-6 mb-6">
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+    <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-5 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium text-foreground">Filters</span>
+          {activeFilterCount > 0 && (
+            <span className="inline-flex items-center justify-center h-5 min-w-[20px] rounded-full bg-primary text-primary-foreground text-[10px] font-bold px-1.5">
+              {activeFilterCount}
+            </span>
+          )}
+        </div>
+        {(activeFilterCount > 0 || localSearch) && (
+          <button
+            onClick={handleClearAll}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
+          >
+            Clear all
+          </button>
+        )}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
         <div className="md:col-span-2">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-foreground" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search applicant, email, application number, programme, or institution..."
+              placeholder="Search applicant, email, application number..."
               value={localSearch}
               onChange={handleSearchChange}
-              className="pl-10"
+              className="pl-10 h-11 rounded-xl border-border/60 hover:border-primary/20 transition-colors"
               aria-label="Search applications"
             />
           </div>
@@ -72,7 +107,7 @@ export function FiltersPanel({
             id="draft-filter"
             value={draftFilter}
             onChange={(e) => onFilterChange('draftFilter', e.target.value)}
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className={selectClasses}
           >
             {DRAFT_FILTER_OPTIONS.map(option => (
               <option key={option.value} value={option.value}>
@@ -88,7 +123,7 @@ export function FiltersPanel({
             id="status-filter"
             value={statusFilter}
             onChange={(e) => onFilterChange('statusFilter', e.target.value)}
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className={selectClasses}
           >
             <option value="">All Statuses</option>
             <option value="draft">Draft</option>
@@ -105,7 +140,7 @@ export function FiltersPanel({
             id="payment-filter"
             value={paymentFilter}
             onChange={(e) => onFilterChange('paymentFilter', e.target.value)}
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className={selectClasses}
           >
             <option value="">All Payment States</option>
             <option value="not_paid">Awaiting Payment</option>
@@ -121,7 +156,7 @@ export function FiltersPanel({
             id="program-filter"
             value={programFilter}
             onChange={(e) => onFilterChange('programFilter', e.target.value)}
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className={selectClasses}
           >
             <option value="">All Programs</option>
             <option value="Clinical Medicine">Clinical Medicine</option>
@@ -132,14 +167,14 @@ export function FiltersPanel({
       </div>
       
       {/* Second row for institution filter and new filters */}
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-3 mt-3">
         <div className="md:col-span-2">
           <label htmlFor="institution-filter" className="sr-only">Institution filter</label>
           <select
             id="institution-filter"
             value={institutionFilter}
             onChange={(e) => onFilterChange('institutionFilter', e.target.value)}
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className={selectClasses}
           >
             <option value="">All Institutions</option>
             <option value="Kalulushi Training Centre">Kalulushi Training Centre</option>
@@ -152,7 +187,7 @@ export function FiltersPanel({
             id="late-submission-filter"
             value={lateSubmissionFilter}
             onChange={(e) => onFilterChange('lateSubmissionFilter', e.target.value)}
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className={selectClasses}
           >
             <option value="">Late Submission</option>
             <option value="true">Late Only</option>
@@ -165,7 +200,7 @@ export function FiltersPanel({
             id="pending-amendments-filter"
             value={pendingAmendmentsFilter}
             onChange={(e) => onFilterChange('pendingAmendmentsFilter', e.target.value)}
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className={selectClasses}
           >
             <option value="">Amendments</option>
             <option value="true">Has Pending Amendments</option>
@@ -178,7 +213,7 @@ export function FiltersPanel({
             id="assigned-reviewer-filter"
             value={assignedReviewerFilter}
             onChange={(e) => onFilterChange('assignedReviewerFilter', e.target.value)}
-            className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className={selectClasses}
           >
             <option value="">All Reviewers</option>
             <option value="assigned">Has Reviewer</option>

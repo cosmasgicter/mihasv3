@@ -83,7 +83,7 @@ const IntakeFormFields = ({ register, errors }: { register: any; errors: any }) 
     <Input label="Year" type="number" {...register('year')} error={errors.year?.message} required />
     <div>
       <label htmlFor="semester" className="block text-sm font-medium text-foreground mb-1">Semester</label>
-      <select id="semester" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" {...register('semester')}>
+      <select id="semester" className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm h-12" {...register('semester')}>
         <option value="">Select semester</option>
         <option value="1">Semester 1 (January)</option>
         <option value="2">Semester 2 (July)</option>

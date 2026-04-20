@@ -66,7 +66,7 @@ const BasicKycStep = ({
   return (
     <div
       key="step1"
-      className={`overflow-visible bg-card rounded-lg shadow-lg p-4 sm:p-6 border border-border ${shouldAnimate ? animateClasses.fadeIn : ''}`}
+      className={`overflow-visible bg-card rounded-2xl shadow-sm ring-1 ring-border/50 p-5 sm:p-8 ${shouldAnimate ? animateClasses.fadeIn : ''}`}
       data-testid="basic-kyc-step"
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
@@ -169,6 +169,10 @@ const BasicKycStep = ({
             />
           </div>
 
+          <div className="md:col-span-2 my-1">
+            <div className="h-px bg-border/40" />
+          </div>
+
           <div className="md:col-span-2" style={shouldAnimate ? staggerChild(7) : undefined}>
             <ResidenceLocationFields form={form} getFieldAriaDescribedBy={getFieldAriaDescribedBy} />
           </div>
@@ -198,6 +202,10 @@ const BasicKycStep = ({
               label="Next of Kin Phone (Optional)"
               error={errors.next_of_kin_phone?.message}
             />
+          </div>
+
+          <div className="md:col-span-2 my-1">
+            <div className="h-px bg-border/40" />
           </div>
 
           <div className="md:col-span-2" style={shouldAnimate ? staggerChild(12) : undefined}>

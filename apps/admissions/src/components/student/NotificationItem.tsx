@@ -1,9 +1,9 @@
 import React from 'react'
 import { Button } from '@/components/ui/Button'
 import { CheckCircle, AlertTriangle, X, Info, Trash2 } from 'lucide-react'
-import { formatDate } from '@/lib/utils'
+import { formatRelative } from '@/lib/dateFormat'
 import { sanitizeText } from '@/lib/sanitize'
-import { staggerChild, animateClasses } from '@/lib/animations'
+import { staggerChild } from '@/lib/animations'
 import type { StudentNotification } from '@/types/notifications'
 
 interface NotificationItemProps {
@@ -13,31 +13,15 @@ interface NotificationItemProps {
   onDelete: (id: string) => Promise<void>
 }
 
-const getIcon = (type: string) => {
-  switch (type) {
-    case 'success':
-      return <CheckCircle className="h-4 w-4 text-success" />
-    case 'warning':
-      return <AlertTriangle className="h-4 w-4 text-warning" />
-    case 'error':
-      return <X className="h-4 w-4 text-error" />
-    default:
-      return <Info className="h-4 w-4 text-primary" />
-  }
+const TYPE_ICON_STYLES: Record<string, { icon: typeof Info; bg: string; text: string }> = {
+  info:    { icon: Info,          bg: 'bg-blue-100 dark:bg-blue-900/40',   text: 'text-blue-600 dark:text-blue-400' },
+  success: { icon: CheckCircle,   bg: 'bg-green-100 dark:bg-green-900/40', text: 'text-green-600 dark:text-green-400' },
+  warning: { icon: AlertTriangle, bg: 'bg-amber-100 dark:bg-amber-900/40', text: 'text-amber-600 dark:text-amber-400' },
+  error:   { icon: X,             bg: 'bg-red-100 dark:bg-red-900/40',     text: 'text-red-600 dark:text-red-400' },
 }
 
-const getBgColor = (type: string, read: boolean) => {
-  const opacity = read ? 'bg-opacity-30' : 'bg-opacity-60'
-  switch (type) {
-    case 'success':
-      return `bg-green-50 border-green-200 ${opacity}`
-    case 'warning':
-      return `bg-yellow-50 border-yellow-200 ${opacity}`
-    case 'error':
-      return `bg-red-50 border-red-200 ${opacity}`
-    default:
-      return `bg-blue-50 border-blue-200 ${opacity}`
-  }
+function getTypeStyle(type: string) {
+  return TYPE_ICON_STYLES[type] ?? TYPE_ICON_STYLES.info
 }
 
 function areNotificationItemPropsEqual(
@@ -64,55 +48,47 @@ export const NotificationItem = React.memo<NotificationItemProps>(function Notif
   onClick,
   onDelete,
 }) {
+  const style = getTypeStyle(notification.type)
+  const IconComponent = style.icon
+
   return (
     <div
-      className={`${animateClasses.fadeIn} opacity-0 group p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md ${getBgColor(notification.type, notification.read)} ${
-        !notification.read ? 'border-l-4 shadow-sm' : ''
-      }`}
+      className={`group min-h-[60px] py-3 px-4 cursor-pointer transition-colors duration-150 ${
+        !notification.read
+          ? 'bg-primary/5 border-l-2 border-primary'
+          : 'bg-transparent border-l-2 border-transparent'
+      } hover:bg-muted/50`}
       style={staggerChild(index)}
       onClick={() => onClick(notification)}
       data-testid="notification-item"
     >
-      <div className="flex items-start space-x-3">
-        <div className="flex-shrink-0 mt-0.5">
-          {getIcon(notification.type)}
+      <div className="flex items-start gap-3">
+        <div className={`flex-shrink-0 mt-0.5 h-8 w-8 rounded-full ${style.bg} flex items-center justify-center`}>
+          <IconComponent className={`h-4 w-4 ${style.text}`} />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <p className={`font-medium text-sm ${!notification.read ? 'text-foreground' : 'text-muted-foreground'}`}>
-                {sanitizeText(notification.title)}
-              </p>
-              <p className="text-xs mt-1 text-muted-foreground">
-                {sanitizeText(notification.content)}
-              </p>
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-xs text-muted-foreground">
-                  {formatDate(notification.created_at)}
-                </span>
-                {!notification.read && (
-                  <span className="inline-flex h-2 w-2 rounded-full bg-primary" aria-label="Unread"></span>
-                )}
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={async (e) => {
-                e.stopPropagation()
-                try {
-                  await onDelete(notification.id)
-                } catch (error) {
-                  console.error('Failed to delete notification')
-                }
-              }}
-              aria-label={`Delete notification: ${sanitizeText(notification.title)}`}
-              className="p-1 h-auto opacity-60 hover:opacity-100 focus:opacity-100 hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-error"
-            >
-              <Trash2 className="h-3 w-3" aria-hidden="true" />
-            </Button>
-          </div>
+          <p className="text-sm font-medium text-foreground truncate">
+            {sanitizeText(notification.title)}
+          </p>
+          <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+            {sanitizeText(notification.content)}
+          </p>
+          <span className="text-xs text-muted-foreground mt-1 block">
+            {formatRelative(notification.created_at)}
+          </span>
         </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={async (e) => {
+            e.stopPropagation()
+            try { await onDelete(notification.id) } catch { /* handled upstream */ }
+          }}
+          aria-label={`Delete notification: ${sanitizeText(notification.title)}`}
+          className="p-1 h-auto opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
+        >
+          <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+        </Button>
       </div>
     </div>
   )

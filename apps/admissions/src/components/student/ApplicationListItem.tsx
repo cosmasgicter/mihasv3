@@ -91,39 +91,37 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
 
   return (
     <div
-      className={`border-l-4 border-l-transparent px-4 py-4 transition-colors hover:border-l-primary hover:bg-muted/30 sm:px-6 sm:py-6 ${animateClasses.slideUp}`}
+      className={`border-l-4 border-l-transparent px-4 py-4 transition-all duration-200 hover:border-l-primary hover:bg-muted/30 sm:px-6 sm:py-5 ${animateClasses.slideUp}`}
       style={staggerChild(index, 50)}
     >
-      <div className="space-y-3 sm:space-y-4">
+      <div className="space-y-3">
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
           <div className="flex items-start gap-3 flex-1 min-w-0">
-            <div className="flex-shrink-0 mt-1">{getStatusIcon(application.status)}</div>
+            <div className="flex-shrink-0 mt-0.5">{getStatusIcon(application.status)}</div>
             <div className="flex-1 min-w-0">
-              <h4 className="text-base font-bold text-foreground break-words leading-tight sm:text-lg">
+              <h4 className="text-sm font-bold text-foreground break-words leading-tight sm:text-base">
                 {application.program || 'Unknown Program'}
               </h4>
-              <p className="text-sm font-medium text-muted-foreground mt-1">
-                Application #{application.application_number}
+              <p className="text-xs text-muted-foreground mt-0.5">
+                #{application.application_number}
               </p>
             </div>
           </div>
-          <span className={`w-fit rounded-full px-3 py-1.5 text-xs font-bold sm:px-4 sm:py-2 sm:text-sm ${getStatusColor(application.status)}`}>
+          <span className={`w-fit rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(application.status)}`}>
             {application.status.replace(/_/g, ' ').toUpperCase()}
           </span>
         </div>
 
         {/* Details Grid */}
-        <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2 sm:gap-3">
-          <div className="flex items-start gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            <span className="font-medium text-muted-foreground">Intake:</span>
-            <span className="text-foreground break-words">{application.intake || 'Unknown Intake'}</span>
+        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 sm:gap-2">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
+            <span>Intake: <span className="text-foreground">{application.intake || 'Unknown'}</span></span>
           </div>
-          <div className="flex items-start gap-2">
-            <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            <span className="font-medium text-muted-foreground">Submitted:</span>
-            <span className="text-foreground">{formatDate(application.submitted_at)}</span>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+            <span>Submitted: <span className="text-foreground">{formatDate(application.submitted_at)}</span></span>
           </div>
         </div>
 
@@ -184,7 +182,7 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
         )}
 
         {/* Actions */}
-        <div className="flex flex-col gap-3 border-t border-border pt-3 sm:flex-row sm:items-start">
+        <div className="flex flex-col gap-2 border-t border-border/50 pt-3 sm:flex-row sm:items-start">
           <div className="min-w-0 flex-1 sm:order-2">
             <DocumentButtons 
               applicationId={application.id}
@@ -195,14 +193,14 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
           </div>
           {needsPayment && (
             <Link to={paymentHref} className="w-full sm:order-1 sm:w-auto">
-              <Button variant="warning" size="sm" className="min-h-11 w-full sm:w-auto">
+              <Button variant="warning" size="sm" className="min-h-[44px] w-full transition-all duration-200 active:scale-[0.98] sm:w-auto">
                 <CreditCard className="mr-2 h-4 w-4" />
                 Complete Payment
               </Button>
             </Link>
           )}
           <Link to={`/student/application/${application.id}`} className="w-full sm:order-1 sm:w-auto">
-            <Button variant="primary" size="sm" className="min-h-11 w-full sm:w-auto">
+            <Button variant="primary" size="sm" className="min-h-[44px] w-full transition-all duration-200 active:scale-[0.98] sm:w-auto">
               View Details
             </Button>
           </Link>

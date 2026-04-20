@@ -404,9 +404,19 @@ Protected endpoints accept either:
 }
 
 # ---------------------------------------------------------------------------
-# Email — Resend
+# Email — Zoho SMTP (primary) + Resend (fallback)
 # ---------------------------------------------------------------------------
 
+# Zoho SMTP (primary outbound email)
+EMAIL_HOST = os.environ.get('ZOHO_SMTP_HOST', 'smtp.zoho.com')
+EMAIL_PORT = int(os.environ.get('ZOHO_SMTP_PORT', '465'))
+EMAIL_HOST_USER = os.environ.get('ZOHO_SMTP_USERNAME', '')
+EMAIL_HOST_PASSWORD = os.environ.get('ZOHO_SMTP_PASSWORD', '')
+EMAIL_USE_SSL = True  # Port 465 uses SSL
+EMAIL_USE_TLS = False
+DEFAULT_FROM_EMAIL = os.environ.get('ZOHO_FROM_EMAIL', os.environ.get('EMAIL_FROM', '***REMOVED***'))
+
+# Resend (fallback)
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 EMAIL_FROM = os.environ.get("EMAIL_FROM", "noreply@mihas.edu.zm")
 ERROR_ALERT_EMAIL = os.environ.get("ERROR_ALERT_EMAIL", "***REMOVED***")
@@ -452,6 +462,8 @@ LENCO_API_BASE_URL = os.environ.get(
     "LENCO_API_BASE_URL", "https://sandbox.lenco.co/access/v2/"
 )
 LENCO_PUBLIC_KEY = os.environ.get("LENCO_PUBLIC_KEY", "")
+LENCO_SANDBOX = os.environ.get("LENCO_SANDBOX", "").lower() in ("1", "true", "yes")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "***REMOVED***")
 PAYMENT_DEV_BYPASS = os.environ.get("PAYMENT_DEV_BYPASS", "").lower() in (
     "1",
     "true",
@@ -517,6 +529,7 @@ if GLITCHTIP_DSN and not _is_testing:
         integrations=[DjangoIntegration(), CeleryIntegration()],
         traces_sample_rate=0.01,
         send_default_pii=False,
+        auto_session_tracking=False,
         environment=os.environ.get("ENVIRONMENT", "production"),
     )
 

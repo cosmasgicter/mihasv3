@@ -69,22 +69,23 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
         aria-current={isActive ? 'page' : undefined}
         aria-label={label}
         className={cn(
-          "relative flex flex-col items-center justify-center flex-1 h-full group touch-target",
-          "min-h-[44px] min-w-[44px] px-2"
+          "relative flex flex-col items-center justify-center flex-1 h-full group",
+          "min-h-[44px] min-w-[44px] px-2 rounded-xl",
+          "transition-colors duration-150",
+          isActive && "bg-primary/10"
         )}
       >
-        {isActive && <div className="absolute inset-0 bg-primary/10 rounded-lg" />}
         <Icon
           className={cn(
-            "h-5 w-5 transition-all duration-300",
+            "h-5 w-5 transition-colors duration-150",
             isActive
-              ? "text-primary scale-110"
-              : "text-foreground group-hover:text-primary group-hover:scale-105"
+              ? "text-primary"
+              : "text-muted-foreground group-hover:text-primary"
           )}
         />
         <span className={cn(
-          "mt-1 text-xs transition-all duration-300 truncate max-w-[60px]",
-          isActive ? "text-primary font-medium" : "text-foreground group-hover:text-primary"
+          "mt-1 text-[10px] truncate max-w-[60px] transition-colors duration-150",
+          isActive ? "text-primary font-semibold" : "text-muted-foreground group-hover:text-primary"
         )}>
           {label}
         </span>
@@ -95,7 +96,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
   return (
     <>
       <nav 
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-xl border-t border-border shadow-lg safe-area-bottom animate-fade-in"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/40 bg-background/80 backdrop-blur-xl shadow-lg safe-area-bottom animate-fade-in"
         role="navigation"
         aria-label="Mobile bottom navigation"
       >
@@ -107,12 +108,13 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
             aria-expanded={isAdmin ? showMoreMenu : showStudentMore}
             aria-haspopup="menu"
             className={cn(
-              "relative flex flex-col items-center justify-center flex-1 h-full group touch-target",
-              "min-h-[44px] min-w-[44px] px-2"
+              "relative flex flex-col items-center justify-center flex-1 h-full group",
+              "min-h-[44px] min-w-[44px] px-2 rounded-xl",
+              "transition-colors duration-150 hover:bg-muted/50"
             )}
           >
-            <MoreHorizontal className="h-5 w-5 text-foreground group-hover:text-primary transition-all duration-300" />
-            <span className="text-xs mt-1 text-foreground group-hover:text-primary transition-all duration-300">More</span>
+            <MoreHorizontal className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors duration-150" />
+            <span className="text-[10px] mt-1 text-muted-foreground group-hover:text-primary transition-colors duration-150">More</span>
           </button>
         </div>
       </nav>
@@ -142,9 +144,9 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
                     onClick={() => setShowStudentMore(false)}
                     role="menuitem"
                     className={cn(
-                      "flex items-center gap-3 px-3 py-3 transition-colors touch-target",
+                      "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors duration-150",
                       "min-h-[44px]",
-                      isActive ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-accent"
+                      isActive ? "bg-primary/10 text-primary font-semibold" : "text-foreground hover:bg-muted/50"
                     )}
                   >
                     <Icon className="h-5 w-5 flex-shrink-0" />
@@ -187,9 +189,9 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
                         onClick={() => setShowMoreMenu(false)}
                         role="menuitem"
                         className={cn(
-                          "flex items-center gap-3 px-3 py-3 transition-colors touch-target",
+                          "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors duration-150",
                           "min-h-[44px]",
-                          isActive ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-accent"
+                          isActive ? "bg-primary/10 text-primary font-semibold" : "text-foreground hover:bg-muted/50"
                         )}
                       >
                         <Icon className="h-5 w-5 flex-shrink-0" />

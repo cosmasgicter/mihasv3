@@ -21,8 +21,8 @@ export function DashboardQuickActions({
   ]
 
   return (
-    <div className="bg-card rounded-xl shadow-lg border border-border">
-      <div className="px-6 py-4 border-b border-border">
+    <div className="rounded-2xl border border-border/60 bg-card shadow-sm">
+      <div className="px-6 py-4 border-b border-border/40">
         <h3 className="text-lg font-bold text-foreground">Quick Actions</h3>
       </div>
       <div className="p-4 space-y-2">
@@ -32,13 +32,13 @@ export function DashboardQuickActions({
             <Link
               key={action.label}
               to={action.to}
-              className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors"
+              className="flex items-center justify-between rounded-xl border border-border/40 p-3 hover:bg-muted/30 transition-colors min-h-[44px]"
             >
               <div className="flex items-center gap-2">
                 <Icon className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium text-foreground">{action.label}</span>
               </div>
-              <span className="text-xs text-foreground/75">{action.description}</span>
+              <span className="text-xs text-muted-foreground">{action.description}</span>
             </Link>
           )
         })}

@@ -33,21 +33,23 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center gap-3 py-12 text-center',
+        'flex flex-col items-center justify-center gap-4 py-16 text-center',
         className
       )}
     >
       {icon && (
-        <div className="text-muted-foreground [&>svg]:h-12 [&>svg]:w-12">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted text-muted-foreground [&>svg]:h-8 [&>svg]:w-8">
           {icon}
         </div>
       )}
-      <Heading className="text-lg font-semibold">{heading}</Heading>
-      {description && (
-        <p className="max-w-md text-sm text-muted-foreground">{description}</p>
-      )}
+      <div className="space-y-1.5">
+        <Heading className="text-lg font-semibold text-foreground">{heading}</Heading>
+        {description && (
+          <p className="mx-auto max-w-sm text-sm text-muted-foreground">{description}</p>
+        )}
+      </div>
       {(action || secondaryAction) && (
-        <div className="flex flex-wrap items-center justify-center gap-2">
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
           {action && (
             <Button
               variant={action.variant === 'outline' ? 'outline' : 'primary'}

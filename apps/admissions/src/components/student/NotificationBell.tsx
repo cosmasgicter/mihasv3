@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bell, X, Lightbulb } from 'lucide-react'
+import { Bell, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useNotificationPolling } from '@/hooks/useNotificationPolling'
 import { isSafeNavigationUrl } from '@/lib/urlSafety'
@@ -66,14 +66,14 @@ export function NotificationBell() {
         variant="ghost"
         size="sm"
         onClick={() => setShowPanel(!showPanel)}
-        className="relative hover:bg-primary/5 flex items-center justify-center"
+        className="relative min-h-[44px] min-w-[44px] hover:bg-muted/50 rounded-xl transition-colors duration-150 flex items-center justify-center"
         aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : 'Notifications'}
         data-testid="notification-bell"
       >
-        <Bell className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+        <Bell className={`h-5 w-5 text-muted-foreground${unreadCount > 0 ? ' motion-safe:animate-bounce' : ''}`} aria-hidden="true" style={unreadCount > 0 ? { animationIterationCount: 1 } : undefined} />
         {unreadCount > 0 && (
           <span
-            className="absolute -top-1 -right-1 bg-error text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold animate-scale-in"
+            className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white animate-scale-in"
             data-testid="unread-count"
           >
             {unreadCount > 99 ? '99+' : unreadCount}
@@ -95,16 +95,16 @@ export function NotificationBell() {
               role="dialog"
               aria-modal="true"
               aria-label="Notifications"
-              className="fixed md:absolute right-2 md:right-0 top-16 md:top-full md:mt-2 w-80 md:w-96 bg-card rounded-xl shadow-2xl border border-border z-[9999] max-h-[80vh] flex flex-col animate-scale-in"
+              className="fixed md:absolute right-2 md:right-0 top-16 md:top-full md:mt-2 w-80 md:w-96 bg-card rounded-2xl shadow-2xl border border-border/60 z-[9999] max-h-[70vh] flex flex-col motion-safe:animate-scale-in"
               data-testid="notifications-panel"
             >
               {/* Header */}
-              <div className="p-4 border-b border-border bg-gradient-to-r from-blue-50 to-purple-50">
+              <div className="p-4 border-b border-border/60">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-bold text-foreground flex items-center gap-2"><Bell className="w-5 h-5" /> Notifications</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up!'}
+                    <h3 className="font-semibold text-foreground text-sm">Notifications</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up'}
                     </p>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -155,7 +155,7 @@ export function NotificationBell() {
                     <p className="text-xs mt-1 text-muted-foreground">We'll notify you about important updates</p>
                   </div>
                 ) : (
-                  <div className="p-2 space-y-2">
+                  <div className="py-1">
                     {notifications.map((notification, index) => (
                       <NotificationItem
                         key={notification.id}
@@ -171,16 +171,11 @@ export function NotificationBell() {
 
               {/* Footer */}
               {notifications.length > 0 && (
-                <div className="p-3 border-t border-border bg-muted">
-                  <div className="flex flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-                    <p className="text-center flex items-center justify-center gap-1 sm:text-left">
-                      <Lightbulb className="w-5 h-5" /> Click notifications to mark as read
-                    </p>
-                    <div className="flex items-center justify-center gap-3 sm:justify-end">
-                      <Link to="/student/notifications" className="font-medium text-primary hover:underline" onClick={() => setShowPanel(false)}>
-                        Open inbox
-                      </Link>
-                    </div>
+                <div className="p-3 border-t border-border/60">
+                  <div className="flex items-center justify-center">
+                    <Link to="/student/notifications" className="text-xs font-medium text-primary hover:underline" onClick={() => setShowPanel(false)}>
+                      View all notifications
+                    </Link>
                   </div>
                 </div>
               )}

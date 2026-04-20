@@ -1,10 +1,10 @@
 import { FileText, User, GraduationCap, CreditCard } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 import { animateClasses } from '@/lib/animations'
-import type { ApplicationFormData } from '../types'
+import type { WizardFormData } from '../types'
 
 interface ApplicationPreviewProps {
-  form: UseFormReturn<ApplicationFormData>
+  form: UseFormReturn<WizardFormData>
   programName?: string
   intakeName?: string
 }

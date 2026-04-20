@@ -6,12 +6,12 @@ import { z } from '@/lib/zod'
 import { ScrollReveal } from '@/components/smoothui'
 import { PublicLayout } from '@/components/layout/PublicLayout'
 import { Card, CardContent, CardTitle } from '@/components/ui'
+import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/Button'
 import { ArrowLeft, Mail, Phone, MapPin } from '@/components/icons'
 import { Seo } from '@/components/seo/Seo'
 import { contactInfo } from '@/lib/constants/landing'
 
-// Zod schema for contact form validation (Requirement 3.1)
 export const contactFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
@@ -19,21 +19,37 @@ export const contactFormSchema = z.object({
 })
 
 export type ContactFormData = z.infer<typeof contactFormSchema>
-
 export type SubmitState = 'idle' | 'draft_ready'
 
 export function buildContactMailtoUrl(data: ContactFormData): string {
   const subject = encodeURIComponent(`Admissions inquiry from ${data.name}`)
   const body = encodeURIComponent(
-    [
-      `Name: ${data.name}`,
-      `Email: ${data.email}`,
-      '',
-      data.message,
-    ].join('\n')
+    [`Name: ${data.name}`, `Email: ${data.email}`, '', data.message].join('\n')
   )
-
   return `mailto:${contactInfo.email}?subject=${subject}&body=${body}`
+}
+
+interface ContactItemProps {
+  href?: string
+  icon: React.ReactNode
+  label?: string
+  children: React.ReactNode
+}
+
+function ContactItem({ href, icon, label, children }: ContactItemProps) {
+  const content = (
+    <div className="flex items-center gap-4 rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 transition-all hover:shadow-md hover:border-primary/30">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+        {icon}
+      </div>
+      <div className="min-w-0">
+        {label && <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>}
+        <p className="font-medium text-foreground truncate">{children}</p>
+      </div>
+    </div>
+  )
+  if (href) return <a href={href} className="block">{content}</a>
+  return content
 }
 
 export default function ContactPage() {
@@ -61,9 +77,10 @@ export default function ContactPage() {
         description="Reach the MIHAS-KATC admissions team for application help, program guidance, and enrollment support."
         path="/contact"
       />
-      <div className="container-responsive px-4 py-10 sm:px-6 lg:px-8">
-        <ScrollReveal className="mx-auto max-w-5xl space-y-8">
-          <div className="rounded-3xl border border-border bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-6 sm:p-10">
+      <div className="container-responsive px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+        <ScrollReveal className="mx-auto max-w-5xl space-y-10">
+          {/* Page Header */}
+          <div className="rounded-2xl border border-border/40 bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-8 shadow-sm sm:p-12">
             <Link
               to="/"
               className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
@@ -71,68 +88,58 @@ export default function ContactPage() {
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Back to Home
             </Link>
-            <h1 className="text-3xl font-bold text-foreground sm:text-4xl">Contact Admissions</h1>
-            <p className="mt-3 max-w-2xl text-muted-foreground">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+              Contact Admissions
+            </h1>
+            <p className="mt-3 max-w-2xl text-base text-muted-foreground sm:text-lg">
               Reach our admissions team for application help, program guidance, and enrollment support.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Contact info card — uses shared constants */}
-            <Card className="shadow-sm">
-              <CardContent className="space-y-4 p-6">
-                <CardTitle>Talk to our team</CardTitle>
-                <a
-                  href={`tel:${contactInfo.katcPhone.replace(/\s/g, '')}`}
-                  className="flex items-center gap-3 hover:text-primary"
-                >
-                  <Phone className="h-4 w-4" aria-hidden="true" />
-                  <span>KATC: {contactInfo.katcPhone}</span>
-                </a>
-                <a
-                  href={`tel:${contactInfo.mihasPhone.replace(/\s/g, '')}`}
-                  className="flex items-center gap-3 hover:text-primary"
-                >
-                  <Phone className="h-4 w-4" aria-hidden="true" />
-                  <span>MIHAS: {contactInfo.mihasPhone}</span>
-                </a>
-                <a
-                  href={`mailto:${contactInfo.email}`}
-                  className="flex items-center gap-3 hover:text-primary"
-                >
-                  <Mail className="h-4 w-4" aria-hidden="true" />
-                  <span>{contactInfo.email}</span>
-                </a>
-                <p className="flex items-start gap-3 text-muted-foreground">
-                  <MapPin className="mt-1 h-4 w-4" aria-hidden="true" />
-                  <span>{contactInfo.address}</span>
-                </p>
+          {/* Two-column layout */}
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            {/* Contact info */}
+            <Card className="rounded-2xl border border-border/40 shadow-sm">
+              <CardContent className="space-y-5 p-6 sm:p-8">
+                <CardTitle className="text-xl font-semibold">Talk to our team</CardTitle>
+                <div className="space-y-3">
+                  <ContactItem href={`tel:${contactInfo.katcPhone.replace(/\s/g, '')}`} icon={<Phone className="h-4 w-4 text-primary" aria-hidden="true" />} label="KATC">
+                    {contactInfo.katcPhone}
+                  </ContactItem>
+                  <ContactItem href={`tel:${contactInfo.mihasPhone.replace(/\s/g, '')}`} icon={<Phone className="h-4 w-4 text-primary" aria-hidden="true" />} label="MIHAS">
+                    {contactInfo.mihasPhone}
+                  </ContactItem>
+                  <ContactItem href={`mailto:${contactInfo.email}`} icon={<Mail className="h-4 w-4 text-primary" aria-hidden="true" />}>
+                    {contactInfo.email}
+                  </ContactItem>
+                  <ContactItem icon={<MapPin className="h-4 w-4 text-primary" aria-hidden="true" />} label="Address">
+                    {contactInfo.address}
+                  </ContactItem>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Contact form card — React Hook Form + Zod */}
-            <Card className="shadow-sm">
-              <CardContent className="p-6">
-                <CardTitle className="mb-4">Send a Message</CardTitle>
+            {/* Contact form */}
+            <Card className="rounded-2xl border border-border/40 shadow-sm">
+              <CardContent className="p-6 sm:p-8">
+                <CardTitle className="mb-6 text-xl font-semibold">Send a Message</CardTitle>
 
                 {submitState === 'draft_ready' && draftUrl && (
-                  <div className="mb-4 space-y-3 rounded-md border border-green-200 bg-green-50 p-4 text-sm text-green-800" role="status">
+                  <div className="mb-6 space-y-3 rounded-2xl border border-green-200 bg-green-50 p-5 text-sm text-green-800" role="status">
                     <p>
                       Your message draft is ready. Open it in your email app using the button below.
-                      If no email app is available on this device, use the admissions email and phone details shown on this page.
+                      If no email app is available, use the contact details shown on this page.
                     </p>
                     <div className="flex flex-col gap-3 sm:flex-row">
-                      <Button asChild className="w-full sm:w-auto">
+                      <Button asChild variant="gradient" size="lg" className="w-full sm:w-auto h-12 rounded-xl">
                         <a href={draftUrl}>Open Email App</a>
                       </Button>
                       <Button
                         type="button"
                         variant="outline"
-                        className="w-full sm:w-auto"
-                        onClick={() => {
-                          setSubmitState('idle')
-                          setDraftUrl('')
-                        }}
+                        size="lg"
+                        className="w-full sm:w-auto h-12 rounded-xl"
+                        onClick={() => { setSubmitState('idle'); setDraftUrl('') }}
                       >
                         Edit Message
                       </Button>
@@ -140,55 +147,39 @@ export default function ContactPage() {
                   </div>
                 )}
 
-                <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-                  <div>
-                    <label htmlFor="contact-name" className="block text-sm font-medium text-foreground mb-2">
-                      Name
-                    </label>
-                    <input
-                      id="contact-name"
-                      placeholder="Your name"
-                      className="w-full min-h-[44px] rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      aria-invalid={!!errors.name}
-                      aria-describedby={errors.name ? 'contact-name-error' : undefined}
-                      {...register('name')}
-                    />
-                    {errors.name && (
-                      <p id="contact-name-error" className="mt-1 text-sm text-destructive" role="alert">
-                        {errors.name.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label htmlFor="contact-email" className="block text-sm font-medium text-foreground mb-2">
-                      Email
-                    </label>
-                    <input
-                      id="contact-email"
-                      type="email"
-                      placeholder="Email"
-                      className="w-full min-h-[44px] rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      aria-invalid={!!errors.email}
-                      aria-describedby={errors.email ? 'contact-email-error' : undefined}
-                      {...register('email')}
-                    />
-                    {errors.email && (
-                      <p id="contact-email-error" className="mt-1 text-sm text-destructive" role="alert">
-                        {errors.email.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
+                <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+                  <Input
+                    {...register('name')}
+                    type="text"
+                    inputMode="text"
+                    label="Name"
+                    autoComplete="name"
+                    placeholder="Your name"
+                    error={errors.name?.message}
+                    className="h-12 rounded-xl"
+                    required
+                  />
+                  <Input
+                    {...register('email')}
+                    type="email"
+                    inputMode="email"
+                    label="Email"
+                    autoComplete="email"
+                    placeholder="Email"
+                    error={errors.email?.message}
+                    className="h-12 rounded-xl"
+                    required
+                  />
+                  <div className="w-full">
                     <label htmlFor="contact-message" className="block text-sm font-medium text-foreground mb-2">
-                      Message
+                      Message <span className="text-destructive ml-1">*</span>
                     </label>
                     <textarea
                       id="contact-message"
+                      autoComplete="off"
                       placeholder="How can we help?"
                       rows={5}
-                      className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      className="w-full min-h-[120px] rounded-xl border border-input bg-background px-4 py-3 text-[15px] text-foreground placeholder:text-muted-foreground hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all duration-200"
                       aria-invalid={!!errors.message}
                       aria-describedby={errors.message ? 'contact-message-error' : undefined}
                       {...register('message')}
@@ -199,8 +190,7 @@ export default function ContactPage() {
                       </p>
                     )}
                   </div>
-
-                  <Button type="submit" className="w-full">
+                  <Button type="submit" variant="gradient" size="lg" className="w-full h-12 rounded-xl">
                     {submitState === 'draft_ready' ? 'Update Email Draft' : 'Prepare Email Draft'}
                   </Button>
                 </form>

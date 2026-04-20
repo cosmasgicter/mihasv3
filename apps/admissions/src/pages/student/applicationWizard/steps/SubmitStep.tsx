@@ -122,7 +122,7 @@ const SubmitStep = ({
                 <li
                   key={item.label}
                   className={cn(
-                    'rounded-xl border px-4 py-3',
+                    'rounded-xl border px-4 py-3.5 transition-all duration-300',
                     item.completed ? 'border-success/20 bg-success/5' : 'border-warning/20 bg-warning/5'
                   )}
                 >

@@ -1,4 +1,4 @@
-import { Award, ChevronDown, Download, FileText } from 'lucide-react'
+import { Award, ChevronDown, Download, FileCheck, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useDocumentGeneration } from '@/hooks/useDocumentGeneration'
 import { useToastStore } from '@/hooks/useToast'
@@ -17,7 +17,7 @@ export function DocumentButtons({ applicationId, applicationNumber, status, paym
   const { generateDocument, loading } = useDocumentGeneration()
   const { addToast } = useToastStore()
 
-  const handleDownload = async (type: 'acceptance' | 'receipt') => {
+  const handleDownload = async (type: 'acceptance' | 'receipt' | 'conditional') => {
     logger.debug('[DocumentButtons] handleDownload called for type:', type)
     const success = await generateDocument(type, applicationId)
     logger.debug('[DocumentButtons] generateDocument returned:', success)
@@ -29,10 +29,11 @@ export function DocumentButtons({ applicationId, applicationNumber, status, paym
   }
 
   const hasAcceptanceLetter = status === 'approved'
+  const hasConditionalLetter = status === 'conditionally_approved'
   const hasReceipt = isPaymentVerified(paymentStatus)
   const hasSlip = status !== 'draft'
 
-  if (!hasSlip && !hasAcceptanceLetter && !hasReceipt) {
+  if (!hasSlip && !hasAcceptanceLetter && !hasConditionalLetter && !hasReceipt) {
     return null
   }
 
@@ -55,6 +56,19 @@ export function DocumentButtons({ applicationId, applicationNumber, status, paym
         >
           <Award className="w-4 h-4" />
           Acceptance Letter
+        </Button>
+      )}
+
+      {hasConditionalLetter && (
+        <Button
+          onClick={() => handleDownload('conditional')}
+          disabled={loading}
+          variant="outline"
+          size="sm"
+          className="min-h-11 w-full justify-center gap-2 border-amber-500 text-amber-700 hover:bg-amber-50 sm:w-auto"
+        >
+          <FileCheck className="w-4 h-4" />
+          Conditional Acceptance
         </Button>
       )}
 
@@ -101,6 +115,18 @@ export function DocumentButtons({ applicationId, applicationNumber, status, paym
             >
               <Award className="w-4 h-4" />
               Acceptance Letter
+            </Button>
+          )}
+          {hasConditionalLetter && (
+            <Button
+              onClick={() => handleDownload('conditional')}
+              disabled={loading}
+              variant="outline"
+              size="sm"
+              className="min-h-11 w-full justify-center gap-2 border-amber-500 text-amber-700 hover:bg-amber-50"
+            >
+              <FileCheck className="w-4 h-4" />
+              Conditional Acceptance
             </Button>
           )}
           {hasReceipt && (

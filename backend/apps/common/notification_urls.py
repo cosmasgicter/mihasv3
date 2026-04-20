@@ -28,6 +28,8 @@ from apps.common.notification_views import (
 urlpatterns = [
     path("preferences/", NotificationPreferenceView.as_view(), name="notification-preferences"),
     path("read-all/", NotificationMarkAllReadView.as_view(), name="notification-mark-all-read"),
+    path("mark-all-read/", NotificationMarkAllReadView.as_view(), name="notification-mark-all-read-alias"),
+    path("mark-read/", NotificationMarkAllReadView.as_view(), name="notification-mark-read-batch"),
     path("<uuid:pk>/read/", NotificationMarkReadView.as_view(), name="notification-mark-read"),
     path("<uuid:pk>/", NotificationDeleteView.as_view(), name="notification-delete"),
     path("user/<uuid:user_id>/", AdminNotificationHistoryView.as_view(), name="notification-user-history"),

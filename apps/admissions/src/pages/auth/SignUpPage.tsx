@@ -176,7 +176,12 @@ export default function SignUpPage() {
           </>
         }
       >
-        <form className="space-y-6" onSubmit={handleSubmit((data) => signUpMutation.mutate(data))} method="post" noValidate>
+        <form
+          className={cn('space-y-6', signUpMutation.isError && 'motion-safe:animate-shake')}
+          onSubmit={handleSubmit((data) => signUpMutation.mutate(data))}
+          method="post"
+          noValidate
+        >
           <FormErrorAnnouncer
             errors={errors}
             fieldLabels={{
@@ -193,8 +198,8 @@ export default function SignUpPage() {
               {getErrorMessage(signUpMutation.error as Error)}
             </Banner>
           ) : null}
-          <fieldset className="space-y-4 rounded-2xl border border-border/60 bg-background/80 p-4 sm:p-5">
-            <legend className="text-base font-semibold text-foreground">Portal access</legend>
+          <fieldset className="space-y-4 rounded-2xl border border-border/30 bg-muted/30 p-5 sm:p-6">
+            <legend className="px-2 text-base font-semibold text-foreground">Portal access</legend>
 
             <Input
               {...register('email')}
@@ -234,8 +239,8 @@ export default function SignUpPage() {
             </div>
           </fieldset>
 
-          <fieldset className="space-y-4 rounded-2xl border border-border/60 bg-background/80 p-4 sm:p-5">
-            <legend className="text-base font-semibold text-foreground">Profile basics</legend>
+          <fieldset className="space-y-4 rounded-2xl border border-border/30 bg-muted/30 p-5 sm:p-6">
+            <legend className="px-2 text-base font-semibold text-foreground">Profile basics</legend>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Input

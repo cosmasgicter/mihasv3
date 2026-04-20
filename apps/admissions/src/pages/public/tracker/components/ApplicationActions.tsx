@@ -1,13 +1,12 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Phone, Rocket, Eye, HelpCircle } from 'lucide-react'
+import { Rocket, Eye, HelpCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
 export const ApplicationActions: React.FC = () => {
   return (
-    <div className="bg-muted/50 border-t border-border p-6">
+    <div className="border-t border-border bg-muted/30 p-6 sm:p-8">
       <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
-        {/* Help Text */}
         <div className="text-center lg:text-left">
           <p className="text-base font-semibold text-foreground flex items-center justify-center lg:justify-start gap-2">
             <HelpCircle className="h-5 w-5 text-primary" />
@@ -18,22 +17,21 @@ export const ApplicationActions: React.FC = () => {
           </p>
         </div>
         
-        {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3">
           <Link to="/auth/signup">
             <Button 
               variant="outline" 
               size="lg" 
-              className="w-full sm:w-auto border-2 hover:bg-secondary hover:text-white transition-colors"
+              className="w-full sm:w-auto h-12 rounded-2xl border-2 border-border hover:bg-secondary hover:text-white hover:border-secondary transition-all"
             >
               <Rocket className="h-5 w-5 mr-2" />
-              Create Account to Apply
+              Create Account
             </Button>
           </Link>
           <Link to="/auth/signin">
             <Button 
               size="lg" 
-              className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              className="w-full sm:w-auto h-12 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all"
             >
               <Eye className="h-5 w-5 mr-2" />
               View Full Details

@@ -31,17 +31,17 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
             id={inputId}
             type={showPassword ? 'text' : 'password'}
             className={cn(
-              'w-full min-h-[44px] h-11 px-3 pr-10 rounded-md',
-              'bg-background',
-              'border border-input',
-              'text-foreground',
+              'w-full h-12 px-4 pr-12 rounded-xl',
+              'bg-background/80',
+              'border border-border/60',
+              'text-foreground text-base',
               'placeholder:text-muted-foreground',
               'hover:border-primary/50 hover:bg-accent/30',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus:border-transparent',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary',
               'transition-all duration-200',
               'disabled:opacity-50 disabled:cursor-not-allowed',
               'disabled:hover:border-input disabled:hover:bg-background',
-              error && 'border-destructive focus-visible:border-destructive hover:border-destructive/70',
+              error && 'border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20 hover:border-destructive/70',
               className
             )}
             aria-invalid={error ? 'true' : 'false'}
@@ -51,7 +51,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-0 top-0 min-h-[44px] h-11 w-11 flex items-center justify-center text-caption hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-r-md touch-manipulation"
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring touch-manipulation"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             {showPassword ? (

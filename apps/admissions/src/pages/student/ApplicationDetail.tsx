@@ -214,7 +214,7 @@ export default function ApplicationDetail() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:p-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Personal Information */}
           <div
             className={`bg-card rounded-2xl shadow-lg border border-border p-6 ${animateClasses.slideUp}`}

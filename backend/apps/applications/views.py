@@ -2133,27 +2133,28 @@ class EmailSlipView(APIView):
         if application.created_at:
             created_at = application.created_at.strftime("%d %B %Y")
 
-        body_html = (
-            "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>"
-            "<h2 style='color: #1a365d;'>MIHAS Application Slip</h2>"
-            "<table style='width: 100%; border-collapse: collapse;'>"
-            f"<tr><td style='padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;'>Application Number</td>"
-            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{html_escape(application.application_number or '')}</td></tr>"
-            f"<tr><td style='padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;'>Applicant Name</td>"
-            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{html_escape(application.full_name or '')}</td></tr>"
-            f"<tr><td style='padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;'>Program</td>"
-            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{html_escape(application.program or '')}</td></tr>"
-            f"<tr><td style='padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;'>Status</td>"
-            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{html_escape(application.status or '')}</td></tr>"
-            f"<tr><td style='padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;'>Submitted</td>"
-            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{html_escape(submitted_at or 'Not yet submitted')}</td></tr>"
-            f"<tr><td style='padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;'>Created</td>"
-            f"<td style='padding: 8px; border-bottom: 1px solid #e2e8f0;'>{html_escape(created_at or 'N/A')}</td></tr>"
-            "</table>"
-            "<p style='margin-top: 16px; color: #718096; font-size: 12px;'>"
-            "This is an automated email from the MIHAS Application System. Please do not reply.</p>"
-            "</div>"
+        from apps.common.email_templates import get_base_email_html
+
+        def _row(label, value):
+            return (
+                f"<tr><td style='padding:10px 12px;border-bottom:1px solid #e2e8f0;font-weight:600;"
+                f"color:#1a365d;width:40%;'>{label}</td>"
+                f"<td style='padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#334155;'>"
+                f"{html_escape(str(value))}</td></tr>"
+            )
+
+        slip_html = (
+            "<table style='width:100%;border-collapse:collapse;'>"
+            + _row("Application Number", application.application_number or "")
+            + _row("Applicant Name", application.full_name or "")
+            + _row("Program", application.program or "")
+            + _row("Status", (application.status or "").replace("_", " ").title())
+            + _row("Submitted", submitted_at or "Not yet submitted")
+            + _row("Created", created_at or "N/A")
+            + "</table>"
         )
+
+        body_html = get_base_email_html(slip_html, title="Application Slip")
 
         # Create EmailQueue record and dispatch
         from apps.common.models import EmailQueue

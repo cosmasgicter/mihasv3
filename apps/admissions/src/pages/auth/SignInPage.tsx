@@ -10,6 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from '@/lib/zod';
 import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
@@ -244,7 +245,12 @@ export default function SignInPage() {
           </div>
         }
       >
-        <form className="space-y-6" onSubmit={handleSubmit((data) => signInMutation.mutate(data))} method="post" noValidate>
+        <form
+          className={cn('space-y-6', signInMutation.isError && 'motion-safe:animate-shake')}
+          onSubmit={handleSubmit((data) => signInMutation.mutate(data))}
+          method="post"
+          noValidate
+        >
           <FormErrorAnnouncer errors={errors} fieldLabels={{ email: 'Email', password: 'Password' }} />
           {activeBannerMessage ? (
             <Banner variant="error" dismissible onDismiss={dismissBanner}>
@@ -252,8 +258,8 @@ export default function SignInPage() {
             </Banner>
           ) : null}
 
-          <fieldset className="space-y-5 rounded-2xl border border-border/60 bg-background/80 p-4 sm:p-5">
-            <legend className="text-sm font-semibold text-foreground">Applicant sign-in details</legend>
+          <fieldset className="space-y-5 rounded-2xl border border-border/30 bg-muted/30 p-5 sm:p-6">
+            <legend className="px-2 text-sm font-semibold text-foreground">Applicant sign-in details</legend>
 
             <Input
               {...emailRegistration}

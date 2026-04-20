@@ -18,25 +18,32 @@ interface DashboardActivityFeedProps {
 
 export function DashboardActivityFeed({ items }: DashboardActivityFeedProps) {
   return (
-    <div className="bg-card rounded-xl shadow-lg border border-border">
-      <div className="px-6 py-4 border-b border-border">
+    <div className="rounded-2xl border border-border/60 bg-card shadow-sm">
+      <div className="px-6 py-4 border-b border-border/40">
         <h3 className="text-lg font-bold text-foreground">Recent Activity</h3>
       </div>
       <div className="p-6 space-y-4">
         {items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No recent activity</p>
+          <div className="py-8 text-center">
+            <p className="text-sm text-muted-foreground">No recent activity</p>
+          </div>
         ) : (
           items.slice(0, 10).map((activity) => (
-            <div key={activity.id} className="border-b border-border/60 pb-3 last:border-b-0 last:pb-0">
-              {activity.application_number && (
-                <div className="text-xs font-medium text-primary mb-0.5">
-                  {activity.application_number}
+            <div key={activity.id} className="flex gap-3 border-b border-border/40 pb-3 last:border-b-0 last:pb-0">
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted/50 text-xs font-medium text-muted-foreground">
+                {(activity.actor_name || activity.user || '?').charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1">
+                {activity.application_number && (
+                  <div className="text-xs font-medium text-primary mb-0.5">
+                    {activity.application_number}
+                  </div>
+                )}
+                <div className="text-sm text-foreground">{activity.message}</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {formatTimestamp(activity.timestamp)}
+                  {activity.actor_name ? ` · ${activity.actor_name}` : activity.user ? ` · ${activity.user}` : ''}
                 </div>
-              )}
-              <div className="text-sm text-foreground">{activity.message}</div>
-              <div className="text-xs text-muted-foreground mt-1">
-                {formatTimestamp(activity.timestamp)}
-                {activity.actor_name ? ` · ${activity.actor_name}` : activity.user ? ` · ${activity.user}` : ''}
               </div>
             </div>
           ))

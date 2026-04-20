@@ -2,6 +2,11 @@
 import QRCode from 'qrcode'
 import { formatDate } from './utils'
 
+// Brand constants
+const NAVY = { r: 26, g: 54, b: 93 } // #1a365d
+const MARGIN = 20
+const GREY_TEXT = { r: 107, g: 114, b: 128 }
+
 interface ReceiptData {
   receiptNumber: string
   applicationNumber: string
@@ -20,89 +25,119 @@ interface ReceiptData {
 
 function getFullInstitutionName(code: string): string {
   const names: Record<string, string> = {
-    'KATC': 'Kalulushi Training Centre',
-    'MIHAS': 'Mukuba Institute of Health and Allied Sciences'
-  };
-  return names[code] || code;
+    KATC: 'Kalulushi Training Centre',
+    MIHAS: 'Mukuba Institute of Health and Allied Sciences',
+  }
+  return names[code] || code
 }
 
 export async function generatePaymentReceipt(data: ReceiptData): Promise<Blob> {
-  const { jsPDF } = await import('jspdf');
+  const { jsPDF } = await import('jspdf')
   const doc = new jsPDF()
   const pageWidth = doc.internal.pageSize.getWidth()
+  const pageHeight = doc.internal.pageSize.getHeight()
   const institutionName = getFullInstitutionName(data.institution)
-  
-  // Header
-  doc.setFillColor(14, 165, 233)
-  doc.rect(0, 0, pageWidth, 40, 'F')
-  
+
+  // --- Header band ---
+  doc.setFillColor(NAVY.r, NAVY.g, NAVY.b)
+  doc.rect(0, 0, pageWidth, 42, 'F')
+
   doc.setTextColor(255, 255, 255)
-  doc.setFontSize(18)
+  doc.setFontSize(16)
   doc.setFont('helvetica', 'bold')
-  doc.text('PAYMENT RECEIPT', pageWidth / 2, 15, { align: 'center' })
-  
-  doc.setFontSize(13)
-  doc.setFont('helvetica', 'normal')
-  doc.text(institutionName, pageWidth / 2, 28, { align: 'center' })
-  
-  doc.setTextColor(0, 0, 0)
-  
-  // Receipt Number
+  doc.text(institutionName, pageWidth / 2, 16, { align: 'center' })
+
   doc.setFontSize(10)
-  doc.text(`Receipt No: ${data.receiptNumber}`, 20, 50)
-  doc.text(`Date: ${formatDate(data.verifiedDate)}`, pageWidth - 70, 50)
-  
-  // Line
-  doc.setLineWidth(0.5)
-  doc.line(20, 55, pageWidth - 20, 55)
-  
-  // Student Details
-  let y = 65
+  doc.setFont('helvetica', 'normal')
+  doc.text('Private Bag E10, Kitwe, Zambia', pageWidth / 2, 24, { align: 'center' })
+
+  doc.setFontSize(14)
+  doc.setFont('helvetica', 'bold')
+  doc.text('PAYMENT RECEIPT', pageWidth / 2, 35, { align: 'center' })
+
+  // --- Receipt meta ---
+  let y = 52
+  doc.setTextColor(0, 0, 0)
+  doc.setFontSize(10)
+  doc.setFont('helvetica', 'bold')
+  doc.text(`Receipt No: ${data.receiptNumber}`, MARGIN, y)
+  doc.setFont('helvetica', 'normal')
+  doc.text(`Date: ${formatDate(data.verifiedDate)}`, pageWidth - MARGIN, y, { align: 'right' })
+
+  // --- Divider ---
+  y += 5
+  doc.setDrawColor(NAVY.r, NAVY.g, NAVY.b)
+  doc.setLineWidth(0.4)
+  doc.line(MARGIN, y, pageWidth - MARGIN, y)
+
+  // --- Student Information ---
+  y += 10
+  doc.setFontSize(12)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(NAVY.r, NAVY.g, NAVY.b)
+  doc.text('STUDENT INFORMATION', MARGIN, y)
+  y += 2
+  doc.setDrawColor(200, 200, 200)
+  doc.setLineWidth(0.2)
+  doc.line(MARGIN, y, pageWidth - MARGIN, y)
+  y += 7
+
+  doc.setTextColor(0, 0, 0)
   doc.setFontSize(11)
+  const studentFields = [
+    ['Name:', data.studentName],
+    ['Email:', data.email],
+    ['Phone:', data.phone],
+    ['Application No:', data.applicationNumber],
+    ['Programme:', data.program],
+  ]
+  studentFields.forEach(([label, value]) => {
+    doc.setFont('helvetica', 'bold')
+    doc.text(label, MARGIN, y)
+    doc.setFont('helvetica', 'normal')
+    doc.text(value, MARGIN + 42, y)
+    y += 7
+  })
+
+  // --- Payment Details ---
+  y += 6
+  doc.setFontSize(12)
   doc.setFont('helvetica', 'bold')
-  doc.text('STUDENT INFORMATION', 20, y)
-  
+  doc.setTextColor(NAVY.r, NAVY.g, NAVY.b)
+  doc.text('PAYMENT DETAILS', MARGIN, y)
+  y += 2
+  doc.setDrawColor(200, 200, 200)
+  doc.line(MARGIN, y, pageWidth - MARGIN, y)
+  y += 7
+
+  doc.setTextColor(0, 0, 0)
+  doc.setFontSize(11)
+  const paymentFields: [string, string][] = [
+    ['Amount Paid:', `K${data.amount.toFixed(2)} ZMW`],
+    ['Method:', data.paymentMethod],
+    ...(data.paymentReference ? [['Reference:', data.paymentReference] as [string, string]] : []),
+    ['Payment Date:', formatDate(data.paymentDate)],
+    ['Verified Date:', formatDate(data.verifiedDate)],
+    ['Verified By:', data.verifiedBy],
+  ]
+  paymentFields.forEach(([label, value]) => {
+    doc.setFont('helvetica', 'bold')
+    doc.text(label, MARGIN, y)
+    doc.setFont('helvetica', 'normal')
+    doc.text(value, MARGIN + 42, y)
+    y += 7
+  })
+
+  // --- Status badge ---
   y += 8
-  doc.setFont('helvetica', 'normal')
-  doc.text(`Name: ${data.studentName}`, 20, y)
-  y += 6
-  doc.text(`Email: ${data.email}`, 20, y)
-  y += 6
-  doc.text(`Phone: ${data.phone}`, 20, y)
-  y += 6
-  doc.text(`Application No: ${data.applicationNumber}`, 20, y)
-  y += 6
-  doc.text(`Program: ${data.program}`, 20, y)
-  
-  // Payment Details
-  y += 12
-  doc.setFont('helvetica', 'bold')
-  doc.text('PAYMENT DETAILS', 20, y)
-  
-  y += 8
-  doc.setFont('helvetica', 'normal')
-  doc.text(`Amount Paid: K${data.amount.toFixed(2)} ZMW`, 20, y)
-  y += 6
-  doc.text(`Payment Method: ${data.paymentMethod}`, 20, y)
-  y += 6
-  if (data.paymentReference) {
-    doc.text(`Reference: ${data.paymentReference}`, 20, y)
-    y += 6
-  }
-  doc.text(`Payment Date: ${formatDate(data.paymentDate)}`, 20, y)
-  y += 6
-  doc.text(`Verified Date: ${formatDate(data.verifiedDate)}`, 20, y)
-  
-  // Status Box
-  y += 15
-  doc.setFillColor(34, 197, 94)
-  doc.rect(20, y - 5, pageWidth - 40, 12, 'F')
+  doc.setFillColor(34, 120, 74)
+  doc.roundedRect(MARGIN, y - 5, pageWidth - MARGIN * 2, 14, 2, 2, 'F')
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
-  doc.text('PAYMENT VERIFIED', pageWidth / 2, y + 2, { align: 'center' })
-  doc.setTextColor(0, 0, 0)
-  
-  // QR Code for verification
+  doc.setFontSize(12)
+  doc.text('PAYMENT VERIFIED ✓', pageWidth / 2, y + 3, { align: 'center' })
+
+  // --- QR Code ---
   const qrData = JSON.stringify({
     type: 'payment_receipt',
     receipt_no: data.receiptNumber,
@@ -110,27 +145,27 @@ export async function generatePaymentReceipt(data: ReceiptData): Promise<Blob> {
     student: data.studentName,
     institution: data.institution,
     amount: data.amount,
-    verified: data.verifiedDate
-  });
-  const qrDataUrl = await QRCode.toDataURL(qrData, { margin: 1, width: 200, errorCorrectionLevel: 'M' });
-  
-  // Footer
-  y = doc.internal.pageSize.getHeight() - 50
-  doc.addImage(qrDataUrl, 'PNG', pageWidth - 45, y, 30, 30);
-  
+    verified: data.verifiedDate,
+  })
+  const qrDataUrl = await QRCode.toDataURL(qrData, { margin: 1, width: 200, errorCorrectionLevel: 'M' })
+  const qrY = pageHeight - 48
+  doc.addImage(qrDataUrl, 'PNG', pageWidth - 48, qrY, 28, 28)
   doc.setFontSize(7)
-  doc.setTextColor(107, 114, 128)
-  doc.text('Scan to verify', pageWidth - 30, y + 33, { align: 'center' })
-  
-  doc.setFontSize(9)
-  doc.setFont('helvetica', 'italic')
-  doc.text('This is an official payment receipt.', pageWidth / 2, y + 5, { align: 'center' })
-  doc.text('For inquiries, contact ***REMOVED***', pageWidth / 2, y + 10, { align: 'center' })
-  
+  doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
+  doc.text('Scan to verify', pageWidth - 34, qrY + 31, { align: 'center' })
+
+  // --- Footer ---
+  const footerY = pageHeight - 14
+  doc.setDrawColor(NAVY.r, NAVY.g, NAVY.b)
+  doc.setLineWidth(0.3)
+  doc.line(MARGIN, footerY - 4, pageWidth - MARGIN, footerY - 4)
+
   doc.setFontSize(8)
-  doc.text(`Verified by: ${data.verifiedBy}`, 20, y + 20)
-  doc.text(`Generated: ${formatDate(new Date().toISOString())}`, 20, y + 25)
-  
+  doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
+  doc.text('This is a computer-generated document. No signature is required.', MARGIN, footerY)
+  doc.text(`Generated: ${formatDate(new Date().toISOString())}`, pageWidth / 2, footerY, { align: 'center' })
+  doc.text('Page 1 of 1', pageWidth - MARGIN, footerY, { align: 'right' })
+
   return doc.output('blob')
 }
 

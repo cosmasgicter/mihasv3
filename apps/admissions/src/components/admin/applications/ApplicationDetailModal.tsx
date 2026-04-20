@@ -793,8 +793,8 @@ export function ApplicationDetailModal({
  // Show skeleton during SSR/initial render to prevent hydration mismatch
  if (!isClient) {
  return (
- <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-0 sm:p-4 z-[60] overflow-hidden">
- <div className="bg-card w-full h-full sm:rounded-xl sm:max-w-6xl sm:w-full sm:max-h-[95vh] overflow-hidden flex flex-col max-w-full">
+ <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-0 sm:p-4 z-[60] overflow-hidden">
+ <div className="bg-card w-full h-full sm:rounded-2xl sm:max-w-6xl sm:w-full sm:max-h-[95vh] overflow-hidden flex flex-col max-w-full">
  {/* Header Skeleton */}
  <div className="flex-shrink-0 p-4 sm:p-6 border-b border-border bg-gradient-to-r from-blue-50 to-indigo-50">
  <div className="flex items-center justify-between gap-2">
@@ -890,13 +890,13 @@ export function ApplicationDetailModal({
  }
 
  return (
- <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-0 sm:p-4 z-[60] overflow-hidden">
+ <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-0 sm:p-4 z-[60] overflow-hidden">
  <div
  ref={focusTrapRef as React.RefObject<HTMLDivElement>}
  role="dialog"
  aria-modal="true"
  aria-label={`Application details for ${application.full_name}`}
- className="bg-card w-full h-full sm:rounded-xl sm:max-w-6xl sm:w-full sm:max-h-[95vh] overflow-hidden flex flex-col max-w-full"
+ className="bg-card w-full h-full sm:rounded-2xl sm:max-w-6xl sm:w-full sm:max-h-[95vh] overflow-hidden flex flex-col max-w-full animate-in fade-in zoom-in-95 duration-200"
  >
  {/* Header */}
  <div className="flex-shrink-0 p-4 sm:p-6 border-b border-border bg-gradient-to-r from-blue-50 to-indigo-50">
@@ -923,7 +923,7 @@ export function ApplicationDetailModal({
  variant="ghost"
  size="sm"
  onClick={onClose}
- className="hover:bg-white/90"
+ className="rounded-full hover:bg-muted h-9 w-9 p-0 flex-shrink-0"
  aria-label="Close application details"
  >
  <XCircle className="h-5 w-5" />
@@ -1600,8 +1600,8 @@ export function ApplicationDetailModal({
       
       {/* Payment Warning Dialog (Req 26.4) */}
       {paymentWarning && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[70]">
-          <div className="bg-card rounded-xl max-w-md w-full p-6 shadow-xl">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70]">
+          <div className="bg-card rounded-2xl max-w-md w-full p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-amber-100 rounded-lg">
                 <AlertCircle className="h-5 w-5 text-amber-600" />

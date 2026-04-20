@@ -102,12 +102,16 @@ const SubmissionSuccess = ({
         </div>
       )}
       <div
-        className={`bg-card rounded-lg shadow-lg p-4 sm:p-8 text-center ${animateClasses.scaleIn}`}
+        className={`bg-card rounded-2xl shadow-sm ring-1 ring-border/50 p-5 sm:p-8 text-center ${animateClasses.scaleIn}`}
       >
-        <div className={animateClasses.scaleIn}>
-          <CheckCircle className="h-16 w-16 text-accent mx-auto mb-6" />
+        <div className={`relative inline-flex items-center justify-center ${animateClasses.scaleIn}`}>
+          {/* Celebratory ring pulse */}
+          <div className="absolute inset-0 w-20 h-20 rounded-full bg-success/20 animate-ping" style={{ animationDuration: '1.5s', animationIterationCount: '3' }} />
+          <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-success to-emerald-400 flex items-center justify-center shadow-lg shadow-success/30">
+            <CheckCircle className="h-10 w-10 text-white" />
+          </div>
         </div>
-        <h2 className="text-2xl font-bold text-foreground mb-4">Application Submitted Successfully!</h2>
+        <h2 className="text-2xl font-bold text-foreground mt-6 mb-4">Application Submitted Successfully!</h2>
 
 
 

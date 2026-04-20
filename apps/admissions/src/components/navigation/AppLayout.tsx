@@ -218,7 +218,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
         <main
           id={APP_MAIN_CONTENT_ID}
           className={cn(
-            'min-h-screen overflow-x-hidden transition-all duration-300 ease-in-out',
+            'min-h-screen scroll-smooth overflow-x-hidden transition-all duration-300 ease-in-out',
             isWizardRoute ? 'pb-6 md:pb-6' : 'pb-20 md:pb-6'
           )}
           style={{

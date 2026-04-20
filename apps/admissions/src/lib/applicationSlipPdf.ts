@@ -3,6 +3,11 @@ import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
 import { formatTimestamp } from './dateFormat'
 import { sanitizeForLog } from './security'
 
+// Brand constants
+const NAVY = { r: 26, g: 54, b: 93 } // #1a365d
+const MARGIN = 20
+const GREY_TEXT = { r: 107, g: 114, b: 128 }
+
 function safeText(value: string | null | undefined, fallback = 'Not provided'): string {
   if (!value) return fallback
   const cleaned = value.replace(/\s+/g, ' ').trim()
@@ -53,42 +58,50 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
     ])
     const doc = new jsPDF() as InstanceType<typeof jsPDF> & { lastAutoTable?: { finalY: number } }
     const institutionName = getFullInstitutionName(data.institution)
-
     const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
 
-    doc.setFillColor(14, 165, 233)
-    doc.rect(0, 0, pageWidth, 40, 'F')
+    // --- Header band ---
+    doc.setFillColor(NAVY.r, NAVY.g, NAVY.b)
+    doc.rect(0, 0, pageWidth, 42, 'F')
 
     doc.setTextColor(255, 255, 255)
     doc.setFontSize(16)
     doc.setFont('helvetica', 'bold')
-    doc.text(institutionName, pageWidth / 2, 15, { align: 'center' })
+    doc.text(institutionName, pageWidth / 2, 16, { align: 'center' })
+
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text('Private Bag E10, Kitwe, Zambia', pageWidth / 2, 24, { align: 'center' })
 
     doc.setFontSize(14)
-    doc.setFont('helvetica', 'normal')
-    doc.text('Application Slip', pageWidth / 2, 28, { align: 'center' })
-
-    doc.setTextColor(0, 0, 0)
-    doc.setFontSize(10)
-    doc.text(`Date: ${formatDateTime(data.submitted_at)}`, pageWidth - 20, 50, { align: 'right' })
-
-    doc.setLineWidth(0.5)
-    doc.line(20, 55, pageWidth - 20, 55)
-
-    let y = 65
-    doc.setFontSize(10)
-    doc.setTextColor(75, 85, 99)
-    doc.text('Thank you for submitting your application. Below are your application details.', 20, y)
-    doc.text('Please keep this slip for your records.', 20, y + 5)
-
-    y += 15
-    doc.setFontSize(11)
     doc.setFont('helvetica', 'bold')
+    doc.text('Application Slip', pageWidth / 2, 35, { align: 'center' })
+
+    // --- Date & ref ---
     doc.setTextColor(0, 0, 0)
-    doc.text('APPLICATION DETAILS', 20, y)
+    doc.setFontSize(10)
+    doc.text(`Date: ${formatDateTime(data.submitted_at)}`, pageWidth - MARGIN, 52, { align: 'right' })
+
+    // --- Divider ---
+    doc.setDrawColor(NAVY.r, NAVY.g, NAVY.b)
+    doc.setLineWidth(0.4)
+    doc.line(MARGIN, 56, pageWidth - MARGIN, 56)
+
+    let y = 64
+    doc.setFontSize(10)
+    doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
+    doc.text('Thank you for submitting your application. Please keep this slip for your records.', MARGIN, y)
+
+    // --- Application Details table ---
+    y += 10
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(NAVY.r, NAVY.g, NAVY.b)
+    doc.text('APPLICATION DETAILS', MARGIN, y)
 
     autoTable(doc, {
-      startY: y + 5,
+      startY: y + 4,
       head: [],
       body: [
         ['Application Number', safeText(data.application_number)],
@@ -100,23 +113,25 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
         ['Payment Status', formatStatusLabel(data.payment_status, 'Pending Payment')],
       ],
       theme: 'striped',
-      headStyles: { fillColor: [249, 250, 251], textColor: [17, 24, 39] },
-      bodyStyles: { textColor: [17, 24, 39], fontSize: 10 },
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [NAVY.r, NAVY.g, NAVY.b] },
+      bodyStyles: { textColor: [17, 24, 39] },
       columnStyles: {
-        0: { fillColor: [249, 250, 251], fontStyle: 'bold', cellWidth: 60 },
+        0: { fillColor: [240, 244, 248], fontStyle: 'bold', cellWidth: 55 },
         1: { cellWidth: 'auto' },
       },
     })
 
-    let finalY = (doc.lastAutoTable?.finalY ?? 0) + 12
+    let finalY = (doc.lastAutoTable?.finalY ?? 0) + 10
 
-    doc.setFontSize(11)
+    // --- Applicant Information table ---
+    doc.setFontSize(12)
     doc.setFont('helvetica', 'bold')
-    doc.setTextColor(0, 0, 0)
-    doc.text('APPLICANT INFORMATION', 20, finalY)
+    doc.setTextColor(NAVY.r, NAVY.g, NAVY.b)
+    doc.text('APPLICANT INFORMATION', MARGIN, finalY)
 
     autoTable(doc, {
-      startY: finalY + 5,
+      startY: finalY + 4,
       head: [],
       body: [
         ['Full Name', safeText(data.full_name)],
@@ -125,24 +140,26 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
         ['Nationality', safeText(data.nationality, 'Not provided')],
       ],
       theme: 'striped',
-      bodyStyles: { textColor: [17, 24, 39], fontSize: 10 },
+      styles: { fontSize: 10 },
+      bodyStyles: { textColor: [17, 24, 39] },
       columnStyles: {
-        0: { fillColor: [249, 250, 251], fontStyle: 'bold', cellWidth: 60 },
+        0: { fillColor: [240, 244, 248], fontStyle: 'bold', cellWidth: 55 },
         1: { cellWidth: 'auto' },
       },
     })
 
-    finalY = (doc.lastAutoTable?.finalY ?? 0) + 12
+    finalY = (doc.lastAutoTable?.finalY ?? 0) + 10
 
-    doc.setFontSize(10)
+    // --- Important Notice ---
+    doc.setFontSize(12)
     doc.setFont('helvetica', 'bold')
-    doc.setTextColor(0, 0, 0)
-    doc.text('IMPORTANT NOTICE', 20, finalY)
+    doc.setTextColor(NAVY.r, NAVY.g, NAVY.b)
+    doc.text('IMPORTANT NOTICE', MARGIN, finalY)
 
     finalY += 6
-    doc.setFontSize(9)
+    doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')
-    doc.setTextColor(75, 85, 99)
+    doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
     const notices = [
       '• Keep this slip safe for your records',
       '• Use your tracking code to check application status online',
@@ -150,10 +167,11 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
       '• For inquiries, contact: ***REMOVED***',
     ]
     notices.forEach((notice) => {
-      doc.text(notice, 20, finalY)
-      finalY += 5
+      doc.text(notice, MARGIN, finalY)
+      finalY += 6
     })
 
+    // --- QR Code ---
     const qrData = JSON.stringify({
       type: 'application_slip',
       app_no: data.application_number,
@@ -163,23 +181,25 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
       student: data.full_name,
     })
     const qrDataUrl = await QRCode.toDataURL(qrData, { margin: 1, width: 240, errorCorrectionLevel: 'M' })
-    doc.addImage(qrDataUrl, 'PNG', 150, finalY + 10, 40, 40)
-
+    const qrY = pageHeight - 48
+    doc.addImage(qrDataUrl, 'PNG', pageWidth - 48, qrY, 28, 28)
     doc.setFontSize(7)
-    doc.setTextColor(107, 114, 128)
-    doc.text('Scan to verify', 170, finalY + 55, { align: 'center' })
+    doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
+    doc.text('Scan to verify', pageWidth - 34, qrY + 31, { align: 'center' })
 
-    doc.setFillColor(249, 250, 251)
-    doc.rect(0, 282, 210, 15, 'F')
+    // --- Footer ---
+    const footerY = pageHeight - 14
+    doc.setDrawColor(NAVY.r, NAVY.g, NAVY.b)
+    doc.setLineWidth(0.3)
+    doc.line(MARGIN, footerY - 4, pageWidth - MARGIN, footerY - 4)
 
-    doc.setTextColor(75, 85, 99)
     doc.setFontSize(8)
-    const year = new Date().getFullYear()
-    doc.text(`© ${year} MIHAS. All rights reserved.`, 105, 289, { align: 'center' })
-    doc.text(`Generated: ${formatDateTime(new Date().toISOString())}`, 105, 294, { align: 'center' })
+    doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
+    doc.text('This is a computer-generated document. No signature is required.', MARGIN, footerY)
+    doc.text(`Generated: ${formatDateTime(new Date().toISOString())}`, pageWidth / 2, footerY, { align: 'center' })
+    doc.text('Page 1 of 1', pageWidth - MARGIN, footerY, { align: 'right' })
 
-    const pdfBlob = doc.output('blob')
-    return new Blob([pdfBlob], { type: 'application/pdf' })
+    return new Blob([doc.output('blob')], { type: 'application/pdf' })
   } catch (error) {
     console.error(
       'Failed to generate application slip:',

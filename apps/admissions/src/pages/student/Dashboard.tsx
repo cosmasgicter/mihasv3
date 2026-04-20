@@ -20,7 +20,7 @@ import { ApplicationTimeline } from '@/components/student/ApplicationTimeline'
 import { QuickActions } from '@/components/student/QuickActions'
 import { ApplicationListItem } from '@/components/student/ApplicationListItem'
 import { StudentNextActionCard } from '@/components/student/StudentNextActionCard'
-import { User, FileText, Clock, CheckCircle, XCircle, X, RefreshCw, Calendar } from 'lucide-react'
+import { User, FileText, Clock, RefreshCw, Calendar } from 'lucide-react'
 
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
@@ -397,27 +397,6 @@ export default function StudentDashboard() {
   }
   loadDashboardDataRef.current = loadDashboardData
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return <CheckCircle className="h-5 w-5 text-success" />
-      case 'rejected':
-        return <XCircle className="h-5 w-5 text-destructive" />
-      case 'under_review':
-        return <Clock className="h-5 w-5 text-primary" />
-      default:
-        return <Clock className="h-5 w-5 text-warning" />
-    }
-  }
-
-  const getProgramName = (programName: string) => {
-    return programName || 'Unknown Program'
-  }
-
-  const getIntakeName = (intakeName: string) => {
-    return intakeName || 'Unknown Intake'
-  }
-
   const metadata = getUserMetadata(user)
 
   const { profileCompletion, profileMissingFields, firstName } = useMemo(() => {
@@ -538,9 +517,9 @@ export default function StudentDashboard() {
         ) : (
           <div className="space-y-6 sm:space-y-8">
             {isRefreshing && (
-              <div className="rounded-full bg-white px-6 py-3 shadow-lg animate-fade-in" role="status" aria-live="polite">
+              <div className="overflow-hidden rounded-full" role="status" aria-live="polite">
                 <div className="h-1 w-full overflow-hidden rounded-full bg-primary/10">
-                  <div className="h-full w-1/3 rounded-full bg-gradient-vibrant animate-pulse" />
+                  <div className="h-full w-1/3 animate-[shimmer_1.5s_ease-in-out_infinite] rounded-full bg-primary/40" />
                 </div>
                 <span className="sr-only">Refreshing dashboard data</span>
               </div>
@@ -624,35 +603,35 @@ export default function StudentDashboard() {
               <div className="space-y-6">
                 <SectionCard
                   title="Profile summary"
-                  description="Keep your personal details up to date so we can assist you faster."
+                  description="Keep your details current for faster assistance."
                   icon={<User className="h-5 w-5" />}
                 >
-                  <div className="grid gap-3">
-                    <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Full name</p>
-                      <p className="text-sm font-semibold text-foreground break-words overflow-wrap-anywhere">
+                  <div className="grid gap-2.5">
+                    <div className="rounded-xl bg-muted/60 px-4 py-3">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Full name</p>
+                      <p className="mt-0.5 text-sm font-semibold text-foreground break-words">
                         {sanitizeForDisplay(getBestValue(profile?.full_name, metadata.full_name, user?.email?.split('@')[0]))}
                       </p>
                     </div>
-                    <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Email</p>
-                      <p className="text-sm font-semibold text-foreground break-all overflow-wrap-anywhere">{sanitizeForDisplay(user?.email) || 'Not provided'}</p>
+                    <div className="rounded-xl bg-muted/60 px-4 py-3">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Email</p>
+                      <p className="mt-0.5 text-sm font-semibold text-foreground break-all">{sanitizeForDisplay(user?.email) || 'Not provided'}</p>
                     </div>
-                    <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Phone</p>
-                      <p className="text-sm font-semibold text-foreground break-words overflow-wrap-anywhere">
+                    <div className="rounded-xl bg-muted/60 px-4 py-3">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Phone</p>
+                      <p className="mt-0.5 text-sm font-semibold text-foreground break-words">
                         {sanitizeForDisplay(getBestValue(profile?.phone, metadata.phone, 'Not provided'))}
                       </p>
                     </div>
-                    <div className="rounded-xl bg-muted px-4 py-3 overflow-hidden">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Residence</p>
-                      <p className="text-sm font-semibold text-foreground break-words overflow-wrap-anywhere">
+                    <div className="rounded-xl bg-muted/60 px-4 py-3">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Residence</p>
+                      <p className="mt-0.5 text-sm font-semibold text-foreground break-words">
                         {sanitizeForDisplay(getBestValue(profile?.address, metadata.address, 'Not provided'))}
                       </p>
                     </div>
                   </div>
                   <Link to="/student/settings" className="block">
-                    <Button variant="outline" size="sm" className="mt-4 w-full">
+                    <Button variant="outline" size="sm" className="mt-4 min-h-[44px] w-full transition-all duration-200 hover:border-primary/30 active:scale-[0.98]">
                       Update profile
                     </Button>
                   </Link>
@@ -660,10 +639,10 @@ export default function StudentDashboard() {
 
                 <SectionCard
                   title="Upcoming deadlines"
-                  description="Never miss an important date for upcoming intakes."
+                  description="Key dates for upcoming intakes."
                   icon={<Clock className="h-5 w-5" />}
                 >
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     {intakesError ? (
                       <ErrorDisplay
                         title="Intakes failed to load"
@@ -681,11 +660,11 @@ export default function StudentDashboard() {
                       intakes.slice(0, 3).map((intake, index) => (
                         <div
                           key={intake.id}
-                          className={`rounded-xl border border-warning/30 bg-warning/5 px-4 py-3 ${animateClasses.slideUp}`}
+                          className={`rounded-xl border border-warning/20 bg-gradient-to-br from-warning/5 to-transparent px-4 py-3 transition-all duration-200 hover:border-warning/40 hover:shadow-sm ${animateClasses.slideUp}`}
                           style={staggerChild(index, 100)}
                         >
                           <p className="text-sm font-semibold text-foreground">{intake.name}</p>
-                          <p className="text-xs font-semibold text-warning">Deadline: {formatDate(intake.application_deadline)}</p>
+                          <p className="mt-0.5 text-xs font-medium text-warning">Deadline: {formatDate(intake.application_deadline)}</p>
                         </div>
                       ))
                     )}

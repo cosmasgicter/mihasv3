@@ -174,11 +174,11 @@ export function StudentNextActionCard(props: StudentNextActionCardProps) {
       </div>
 
       <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center">
-        <Button asChild variant={action.tone === 'warning' ? 'warning' : 'primary'} className="min-h-12 w-full sm:w-auto">
+        <Button asChild variant={action.tone === 'warning' ? 'warning' : 'primary'} className="min-h-12 w-full transition-all duration-200 active:scale-[0.98] sm:w-auto">
           <Link to={action.href}>{action.cta}</Link>
         </Button>
         {action.secondaryHref && action.secondaryCta && (
-          <Button asChild variant="ghost" className="min-h-12 w-full sm:w-auto">
+          <Button asChild variant="ghost" className="min-h-12 w-full transition-all duration-200 active:scale-[0.98] sm:w-auto">
             <Link to={action.secondaryHref}>{action.secondaryCta}</Link>
           </Button>
         )}

@@ -298,8 +298,8 @@ export default function PublicApplicationTracker() {
         path="/track-application"
       />
 
-      <div className="py-6 sm:py-8 lg:py-12">
-        <Container size="lg" className="space-y-6 sm:space-y-8">
+      <div className="py-10 sm:py-16 lg:py-20">
+        <Container size="lg" className="space-y-8 sm:space-y-10">
           {/* Page Header */}
           <PageHeader
             variant="gradient"

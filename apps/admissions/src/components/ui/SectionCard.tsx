@@ -49,13 +49,13 @@ export function SectionCard({
 
   return (
     <section
-      className={cn('rounded-2xl border border-border/70 bg-card shadow-lg backdrop-blur-sm', className)}
+      className={cn('rounded-2xl border border-border/60 bg-card shadow-sm transition-shadow duration-200 hover:shadow-md', className)}
       {...props}
     >
       {hasHeader && (
         <div
           className={cn(
-            'flex flex-col gap-3 border-b border-border/70 px-6 py-5 sm:flex-row sm:items-center sm:justify-between',
+            'flex flex-col gap-3 border-b border-border/60 px-6 py-5 sm:flex-row sm:items-center sm:justify-between',
             headerVariantStyles[headerVariant],
             stickyHeader && 'sticky top-[4.25rem] z-10 backdrop-blur-md',
             headerClassName
@@ -79,7 +79,7 @@ export function SectionCard({
       <div className={cn('space-y-4', paddingScale[padding], contentClassName)}>{children}</div>
 
       {footer && (
-        <div className={cn('border-t border-border/70', paddingScale[padding])}>{footer}</div>
+        <div className={cn('border-t border-border/60', paddingScale[padding])}>{footer}</div>
       )}
     </section>
   )

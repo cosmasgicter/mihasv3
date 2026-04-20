@@ -47,16 +47,16 @@ export function PageShell({
   })
 
   return (
-    <div ref={shellRef} className={cn('min-h-screen pb-20 md:pb-0', className)}>
-      <div className={cn('mx-auto px-4 md:px-6 lg:px-8', containerClass)}>
-        <header className="py-6">
+    <div ref={shellRef} className={cn('min-h-screen scroll-smooth pb-20 md:pb-0', className)}>
+      <div className={cn('mx-auto px-4 sm:px-6 lg:px-8', containerClass)}>
+        <header className="py-6 sm:py-8">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                 {title}
               </h1>
               {subtitle && (
-                <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+                <p className="mt-1.5 text-sm text-muted-foreground">{subtitle}</p>
               )}
             </div>
             {actions && (

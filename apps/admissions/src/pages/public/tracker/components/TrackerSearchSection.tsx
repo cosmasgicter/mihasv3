@@ -23,12 +23,10 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
   onKeyPress,
   onPaste
 }) => {
-  // Track error visibility for CSS transition
   const [errorVisible, setErrorVisible] = useState(false)
 
   useEffect(() => {
     if (error) {
-      // Small delay to trigger CSS transition from hidden → visible
       const id = requestAnimationFrame(() => setErrorVisible(true))
       return () => cancelAnimationFrame(id)
     } else {
@@ -43,15 +41,15 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
       icon={<Search className="h-5 w-5" />}
       headerVariant="tinted"
     >
-      <div className="space-y-6">
-        {/* Search Input */}
-        <div className="max-w-2xl mx-auto">
-          <div className="flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:gap-3">
-            <div className="flex-1 relative">
+      <div className="space-y-8">
+        {/* Search Input — prominent, centered */}
+        <div className="mx-auto max-w-2xl">
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="relative flex-1">
               <label htmlFor="tracker-search" className="sr-only">
                 Application number or tracking code
               </label>
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" aria-hidden="true" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" aria-hidden="true" />
               <Input
                 id="tracker-search"
                 value={searchTerm}
@@ -59,24 +57,24 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
                 onPaste={onPaste}
                 onKeyPress={onKeyPress}
                 placeholder="Enter application number..."
-                className="w-full min-h-[48px] pl-12 pr-4 py-3 text-base border-2 border-border focus:border-primary rounded-xl"
+                className="h-14 w-full pl-12 pr-4 text-base rounded-2xl border-2 border-border bg-background focus:border-primary shadow-sm"
               />
             </div>
             <Button
               onClick={onSearch}
               loading={loading}
               size="lg"
-              className="min-h-[48px] bg-gradient-to-r from-blue-600 to-secondary hover:from-blue-700 hover:to-secondary text-white font-semibold rounded-xl px-6 touch-target"
+              className="h-14 rounded-2xl bg-gradient-to-r from-blue-600 to-secondary hover:from-blue-700 hover:to-secondary text-white font-semibold px-8 shadow-md hover:shadow-lg transition-all"
             >
               <Search className="h-5 w-5 mr-2" aria-hidden="true" />
               {loading ? 'Searching...' : 'Search'}
             </Button>
           </div>
           
-          {/* Error Message - CSS transition replaces AnimatePresence */}
+          {/* Error Message */}
           {error && (
             <div
-              className={`mt-4 rounded-xl bg-error/10 border border-error/30 p-4 transition-all duration-300 ease-out ${
+              className={`mt-4 rounded-2xl bg-error/10 border border-error/30 p-4 transition-all duration-300 ease-out ${
                 errorVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
               }`}
             >
@@ -88,35 +86,33 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
           )}
         </div>
         
-        {/* Help Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
-          <div className="flex items-start gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20">
-            <div className="flex-shrink-0 p-2 rounded-lg bg-primary/10">
+        {/* Help Cards — premium rounded-2xl with backdrop-blur */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4 backdrop-blur-sm transition-all hover:shadow-md">
+            <div className="flex-shrink-0 rounded-xl bg-primary/10 p-2.5">
               <Mail className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground text-base leading-tight">Check Your Email</h3>
-              <p className="text-sm text-muted-foreground mt-1">Application number sent after submission</p>
+              <h3 className="text-sm font-semibold text-foreground">Check Your Email</h3>
+              <p className="mt-0.5 text-sm text-muted-foreground">Application number sent after submission</p>
             </div>
           </div>
-          
-          <div className="flex items-start gap-3 p-4 rounded-xl bg-warning/5 border border-warning/20">
-            <div className="flex-shrink-0 p-2 rounded-lg bg-warning/10">
+          <div className="flex items-start gap-3 rounded-2xl border border-warning/20 bg-warning/5 p-4 backdrop-blur-sm transition-all hover:shadow-md">
+            <div className="flex-shrink-0 rounded-xl bg-warning/10 p-2.5">
               <Hash className="h-5 w-5 text-warning" />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground text-base leading-tight">Format Example</h3>
-              <p className="text-sm font-mono text-muted-foreground mt-1">MIHAS123456</p>
+              <h3 className="text-sm font-semibold text-foreground">Format Example</h3>
+              <p className="mt-0.5 text-sm font-mono text-muted-foreground">MIHAS123456</p>
             </div>
           </div>
-          
-          <div className="flex items-start gap-3 p-4 rounded-xl bg-success/5 border border-success/20">
-            <div className="flex-shrink-0 p-2 rounded-lg bg-success/10">
+          <div className="flex items-start gap-3 rounded-2xl border border-success/20 bg-success/5 p-4 backdrop-blur-sm transition-all hover:shadow-md">
+            <div className="flex-shrink-0 rounded-xl bg-success/10 p-2.5">
               <Zap className="h-5 w-5 text-success" />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground text-base leading-tight">Instant Results</h3>
-              <p className="text-sm text-muted-foreground mt-1">Real-time updates without login</p>
+              <h3 className="text-sm font-semibold text-foreground">Instant Results</h3>
+              <p className="mt-0.5 text-sm text-muted-foreground">Real-time updates without login</p>
             </div>
           </div>
         </div>

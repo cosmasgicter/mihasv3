@@ -96,7 +96,7 @@ export default function ForgotPasswordPage() {
             <Button
               type="button"
               variant="outline"
-              className="w-full"
+              className="w-full min-h-[48px]"
               onClick={() => {
                 setSuccess('');
               }}
@@ -104,7 +104,7 @@ export default function ForgotPasswordPage() {
               Try another email
             </Button>
             <Link to="/auth/signin" className="block">
-              <Button variant="gradient" className="w-full" size="lg">
+              <Button variant="gradient" className="w-full min-h-[48px]" size="lg">
                 Return to sign in
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Button>
@@ -135,21 +135,24 @@ export default function ForgotPasswordPage() {
         method="post"
         noValidate
       >
-        <Input
-          {...register('email')}
-          type="email"
-          inputMode="email"
-          label="Email address"
-          required
-          autoComplete="email"
-          error={errors.email?.message}
-          disabled={resetRequestMutation.isPending}
-          className="min-h-[48px]"
-        />
+        <fieldset className="space-y-5 rounded-2xl border border-border/30 bg-muted/30 p-5 sm:p-6">
+          <legend className="sr-only">Password reset</legend>
+          <Input
+            {...register('email')}
+            type="email"
+            inputMode="email"
+            label="Email address"
+            required
+            autoComplete="email"
+            error={errors.email?.message}
+            disabled={resetRequestMutation.isPending}
+            className="min-h-[48px]"
+          />
+        </fieldset>
 
         <Button
           type="submit"
-          className="w-full"
+          className="w-full min-h-[48px]"
           loading={resetRequestMutation.isPending}
           variant="gradient"
           size="lg"

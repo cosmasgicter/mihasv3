@@ -101,11 +101,17 @@ class CommunicationService:
         # Create EmailQueue and dispatch if channel includes email
         if channel in ("email", "both"):
             try:
+                from apps.common.email_templates import get_base_email_html
+
+                wrapped_body = (
+                    body if "<!DOCTYPE" in body
+                    else get_base_email_html(body, title=subject)
+                )
                 email_record = EmailQueue.objects.create(
                     recipient_email=application.email,
                     recipient_name=getattr(application, "full_name", ""),
                     subject=subject,
-                    body=body,
+                    body=wrapped_body,
                     status="pending",
                 )
                 send_email_task.delay(str(email_record.id))

@@ -109,18 +109,18 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
   // Internalized getStatusBadge function with useCallback
   const getStatusBadge = useCallback((status: string) => {
     const statusConfig = {
-      draft: { color: 'bg-gray-100 text-foreground border border-gray-300', icon: Clock },
-      submitted: { color: 'bg-blue-100 text-blue-800 border border-blue-300', icon: AlertTriangle },
-      under_review: { color: 'bg-yellow-100 text-yellow-800 border border-yellow-300', icon: Eye },
-      approved: { color: 'bg-green-100 text-green-800 border border-green-300', icon: CheckCircle },
-      rejected: { color: 'bg-red-100 text-red-800 border border-red-300', icon: XCircle }
+      draft: { color: 'bg-gray-100/80 text-gray-700', icon: Clock },
+      submitted: { color: 'bg-blue-100/80 text-blue-700', icon: AlertTriangle },
+      under_review: { color: 'bg-amber-100/80 text-amber-700', icon: Eye },
+      approved: { color: 'bg-emerald-100/80 text-emerald-700', icon: CheckCircle },
+      rejected: { color: 'bg-red-100/80 text-red-700', icon: XCircle }
     }
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft
     const Icon = config.icon
 
     return (
-      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
+      <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${config.color}`}>
         <Icon className="h-3 w-3" />
         {status.replace('_', ' ').toUpperCase()}
       </span>
@@ -131,17 +131,17 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
   const getPaymentBadge = useCallback((paymentStatus: string) => {
     const normalizedStatus = normalizePaymentStatus(paymentStatus)
     const paymentConfig = {
-      not_paid: { color: 'bg-slate-100 text-slate-800 border border-slate-300', icon: Clock },
-      pending_review: { color: 'bg-orange-100 text-orange-800 border border-orange-300', icon: Clock },
-      verified: { color: 'bg-emerald-100 text-emerald-800 border border-emerald-300', icon: CheckCircle },
-      rejected: { color: 'bg-rose-100 text-rose-800 border border-rose-300', icon: XCircle }
+      not_paid: { color: 'bg-slate-100/80 text-slate-600', icon: Clock },
+      pending_review: { color: 'bg-amber-100/80 text-amber-700', icon: Clock },
+      verified: { color: 'bg-emerald-100/80 text-emerald-700', icon: CheckCircle },
+      rejected: { color: 'bg-red-100/80 text-red-700', icon: XCircle }
     }
 
     const config = paymentConfig[normalizedStatus]
     const Icon = config.icon
 
     return (
-      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
+      <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${config.color}`}>
         <Icon className="h-3 w-3" />
         {getPaymentStatusLabel(normalizedStatus)}
       </span>
@@ -179,8 +179,8 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
 
 
   return (
-    <div className={`relative bg-card rounded-xl border p-4 sm:p-6 hover:shadow-lg transition-all duration-200 group ${
-      isSelected ? 'border-primary bg-blue-50' : 'border-border hover:border-input'
+    <div className={`relative bg-card rounded-2xl border p-4 sm:p-6 shadow-sm hover:shadow-md transition-all duration-200 group ${
+      isSelected ? 'border-primary/40 bg-primary/5 ring-1 ring-primary/20' : 'border-border/60 hover:border-primary/20'
     }`}>
       {/* Selection Checkbox */}
       {onSelect && (
@@ -189,7 +189,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
             type="checkbox"
             checked={isSelected}
             onChange={(e) => onSelect(app.id, e.target.checked)}
-            className="h-4 w-4 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border-input rounded"
+            className="h-4 w-4 rounded-md border-2 border-input text-primary checked:bg-primary checked:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors"
           />
         </div>
       )}
@@ -197,12 +197,12 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <User className="h-4 w-4 text-foreground flex-shrink-0" />
-            <h3 className="font-semibold text-foreground truncate">{app.full_name}</h3>
+            <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <h3 className="text-base font-semibold text-foreground truncate">{app.full_name}</h3>
           </div>
-          <div className="flex items-center gap-2 text-sm text-foreground">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className="font-mono">#{app.application_number}</span>
-            <span className="text-foreground">•</span>
+            <span>•</span>
             <Calendar className="h-3 w-3" />
             <span>{formatDate(app.submitted_at || app.created_at)}</span>
           </div>
@@ -243,29 +243,29 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       )}
 
       {/* Contact Info */}
-      <div className="space-y-2 mb-4">
-        <div className="flex items-center gap-2 text-sm text-foreground">
-          <Mail className="h-3 w-3 text-foreground" />
+      <div className="space-y-1.5 mb-4">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Mail className="h-3 w-3" />
           <span className="truncate">{app.email}</span>
         </div>
         {app.phone && (
-          <div className="flex items-center gap-2 text-sm text-foreground">
-            <Phone className="h-3 w-3 text-foreground" />
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Phone className="h-3 w-3" />
             <span>{app.phone}</span>
           </div>
         )}
       </div>
 
       {/* Program Info */}
-      <div className="bg-muted rounded-lg p-3 mb-4">
+      <div className="bg-muted/50 rounded-xl p-3 mb-4">
         <div className="flex items-center gap-2 mb-1">
           <GraduationCap className="h-4 w-4 text-primary" />
           <span className="font-medium text-foreground text-sm">{app.program}</span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-foreground">
-          <Building className="h-3 w-3 text-foreground" />
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Building className="h-3 w-3" />
           <span>{getInstitutionName(app.institution)}</span>
-          <span className="text-foreground">•</span>
+          <span>•</span>
           <span>{app.intake}</span>
         </div>
       </div>
@@ -274,7 +274,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       {/* Payment & Grades */}
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <div className="text-xs text-foreground mb-1">Payment Status</div>
+          <div className="text-xs text-muted-foreground mb-1">Payment Status</div>
           {getPaymentBadge(app.payment_status)}
           <div className="text-sm font-medium text-foreground mt-1">
             K{app.paid_amount || 0} / K{app.application_fee}
@@ -283,7 +283,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         
         {app.total_subjects > 0 && (
           <div>
-            <div className="text-xs text-foreground mb-1">Academic</div>
+            <div className="text-xs text-muted-foreground mb-1">Academic</div>
             <div className="text-sm">
               <span className="text-foreground">{app.total_subjects} subjects</span>
               {app.points > 0 && (
@@ -339,10 +339,10 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       />
 
       {/* Actions */}
-      <div className="flex gap-2 mt-4 pt-4 border-t border-border">
+      <div className="flex gap-2 mt-4 pt-4 border-t border-border/40">
         <button
           onClick={() => onViewDetails(app.id)}
-          className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm py-2.5 px-4 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium flex items-center justify-center gap-2 group-hover:shadow-md"
+          className="flex-1 bg-primary text-primary-foreground text-sm py-2.5 px-4 rounded-xl hover:bg-primary/90 transition-all duration-200 font-medium flex items-center justify-center gap-2"
         >
           <Eye className="h-4 w-4" />
           View Details
@@ -352,7 +352,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         {app.isDraft && (
           <button
             onClick={() => setShowCommunicationModal(true)}
-            className="bg-secondary hover:bg-secondary/90 text-white text-sm py-2.5 px-4 rounded-lg transition-all duration-200 font-medium flex items-center justify-center gap-2"
+            className="bg-secondary text-secondary-foreground text-sm py-2.5 px-4 rounded-xl hover:bg-secondary/80 transition-all duration-200 font-medium flex items-center justify-center gap-2"
             title="Contact Applicant"
           >
             <MessageSquare className="h-4 w-4" />
@@ -367,7 +367,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
                 href={app.result_slip_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-accent hover:bg-skeleton text-foreground p-2.5 rounded-lg transition-colors"
+                className="hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg p-2 transition-colors"
                 title="Result Slip"
               >
                 <FileText className="h-4 w-4" />
@@ -393,7 +393,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
 
       {/* Loading Overlays */}
       {(updatingStatus || updatingPayment) && (
-        <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-card/80">
+        <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-card/80 backdrop-blur-sm">
           <div className="flex items-center gap-2 text-sm text-foreground">
             <div className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse" aria-hidden="true" />
             <span>Updating...</span>

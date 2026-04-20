@@ -143,7 +143,7 @@ function stringifyPayload(value: unknown) {
   }
 }
 
-function AuditEntryCard({ entry }: { entry: AuditLogEntry }) {
+const AuditEntryCard = React.memo(function AuditEntryCard({ entry }: { entry: AuditLogEntry }) {
   const [expanded, setExpanded] = useState(false)
 
   const relativeTime = useMemo(() => {
@@ -282,7 +282,7 @@ function AuditEntryCard({ entry }: { entry: AuditLogEntry }) {
       ) : null}
     </div>
   )
-}
+})
 
 export default function AuditTrailPage() {
   const [formFilters, setFormFilters] = useState({
@@ -472,52 +472,52 @@ export default function AuditTrailPage() {
     >
       <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-2xl border border-border bg-gradient-to-br from-muted to-muted/70 p-4">
+          <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total events</p>
-                <p className="mt-2 text-3xl font-bold text-foreground">{response?.totalCount || 0}</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total events</p>
+                <p className="mt-2 text-3xl font-bold tracking-tight text-foreground">{response?.totalCount || 0}</p>
               </div>
-              <div className="rounded-xl bg-foreground p-3 text-background">
-                <Activity className="h-5 w-5" />
+              <div className="rounded-xl bg-foreground/10 p-3">
+                <Activity className="h-5 w-5 text-foreground" />
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-gradient-to-br from-primary/5 to-primary/10 p-4">
+          <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Unique actors</p>
-                <p className="mt-2 text-3xl font-bold text-foreground">{summary?.uniqueActors || 0}</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Unique actors</p>
+                <p className="mt-2 text-3xl font-bold tracking-tight text-foreground">{summary?.uniqueActors || 0}</p>
               </div>
-              <div className="rounded-xl bg-primary p-3 text-primary-foreground">
-                <User className="h-5 w-5" />
+              <div className="rounded-xl bg-primary/10 p-3">
+                <User className="h-5 w-5 text-primary" />
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-gradient-to-br from-success/5 to-success/10 p-4">
+          <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Top category</p>
-                <p className="mt-2 text-xl font-bold text-foreground">{topCategory?.[0] || 'None yet'}</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Top category</p>
+                <p className="mt-2 text-xl font-bold tracking-tight text-foreground">{topCategory?.[0] || 'None yet'}</p>
                 <p className="text-sm text-muted-foreground">{topCategory ? `${topCategory[1]} events` : 'No activity loaded'}</p>
               </div>
-              <div className="rounded-xl bg-success p-3 text-success-foreground">
-                <Settings className="h-5 w-5" />
+              <div className="rounded-xl bg-success/10 p-3">
+                <Settings className="h-5 w-5 text-success" />
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-gradient-to-br from-warning/5 to-warning/10 p-4">
+          <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Most active entity</p>
-                <p className="mt-2 text-xl font-bold text-foreground">{topEntity ? formatEntityLabel(topEntity.label) : 'None yet'}</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Most active entity</p>
+                <p className="mt-2 text-xl font-bold tracking-tight text-foreground">{topEntity ? formatEntityLabel(topEntity.label) : 'None yet'}</p>
                 <p className="text-sm text-muted-foreground">{topEntity ? `${topEntity.count} events` : 'No entity activity loaded'}</p>
               </div>
-              <div className="rounded-xl bg-warning p-3 text-warning-foreground">
-                <Database className="h-5 w-5" />
+              <div className="rounded-xl bg-warning/10 p-3">
+                <Database className="h-5 w-5 text-warning" />
               </div>
             </div>
           </div>
@@ -610,7 +610,7 @@ export default function AuditTrailPage() {
                   <select
                     value={formFilters.targetTable}
                     onChange={(event) => setFormFilters((current) => ({ ...current, targetTable: event.target.value }))}
-                    className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="h-12 w-full rounded-xl border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     {ENTITY_OPTIONS.map((option) => (
                       <option key={option.value || 'all'} value={option.value}>
@@ -625,7 +625,7 @@ export default function AuditTrailPage() {
                   <select
                     value={formFilters.category}
                     onChange={(event) => setFormFilters((current) => ({ ...current, category: event.target.value }))}
-                    className="h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="h-12 w-full rounded-xl border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     <option value="">All categories</option>
                     {CATEGORY_OPTIONS.map((category) => (
@@ -667,7 +667,7 @@ export default function AuditTrailPage() {
                       setPageSize(Number.parseInt(event.target.value, 10) || DEFAULT_PAGE_SIZE)
                       setPage(1)
                     }}
-                    className="h-10 rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="h-12 rounded-xl border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     {PAGE_SIZE_OPTIONS.map((option) => (
                       <option key={option} value={option}>
@@ -738,7 +738,7 @@ export default function AuditTrailPage() {
                         key={pageNumber}
                         type="button"
                         onClick={() => setPage(pageNumber)}
-                        className={`h-10 min-w-10 rounded-lg px-3 text-sm font-semibold transition-colors ${
+                        className={`h-11 min-w-[44px] rounded-lg px-3 text-sm font-semibold transition-colors ${
                           pageNumber === response.page
                             ? 'bg-primary text-primary-foreground'
                             : 'bg-muted text-foreground hover:bg-muted/80'
