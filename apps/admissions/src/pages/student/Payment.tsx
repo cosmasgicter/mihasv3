@@ -225,6 +225,8 @@ function ApplicationPaymentCard({
     paymentStatus,
     statusMessage,
     initiateError,
+    widgetLoading,
+    isScriptLoaded,
     startPayment,
   } = useApplicationPaymentAction({
     applicationId: app.id,
@@ -235,7 +237,7 @@ function ApplicationPaymentCard({
   const latestAmount = app.application_fee ?? normalizeAmount(records[0]?.amount) ?? null
   const latestCurrency = records[0]?.currency ?? 'ZMW'
   const paymentInProgress = paymentStatus === 'initiating' || paymentStatus === 'pending'
-  const retryDisabled = paymentInProgress
+  const retryDisabled = !isScriptLoaded || widgetLoading || paymentInProgress
 
   return (
     <div
@@ -271,7 +273,7 @@ function ApplicationPaymentCard({
             size="sm"
             className="min-h-[44px] flex-shrink-0"
             disabled={retryDisabled}
-            loading={paymentStatus === 'initiating'}
+            loading={paymentStatus === 'initiating' || widgetLoading}
             onClick={() => void startPayment()}
             data-testid={`payment-page-retry-${app.id}`}
           >

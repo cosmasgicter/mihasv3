@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { apiClient } from '@/services/client'
+import { useLencoWidget } from '@/hooks/useLencoWidget'
 import { normalizePaymentStatusValue } from '@/hooks/usePaymentStatus'
 
 export type PaymentActionStatus = 'idle' | 'initiating' | 'pending' | 'successful' | 'failed'
@@ -24,7 +25,6 @@ interface InitiateResponse {
   amount: string
   currency: string
   lenco_public_key: string
-  payment_url: string
 }
 
 interface VerifyResponse {
@@ -32,8 +32,22 @@ interface VerifyResponse {
 }
 
 const PAYMENT_ERROR_STORAGE_PREFIX = 'mihas:payment-initiation-error:'
-const PAYMENT_ID_STORAGE_KEY = 'mihas:pending-payment-id'
 const PAYMENT_INITIATE_RETRY_DELAYS_MS = [500, 1_500]
+
+/**
+ * Global flag: true while the Lenco widget is open.
+ * Session revalidation and auth-expired cascades should be suppressed
+ * while this is true to prevent mobile logout during payment.
+ */
+let _paymentInProgress = false
+export function isPaymentInProgress(): boolean {
+  return _paymentInProgress
+}
+
+function splitFullName(fullName?: string | null) {
+  const parts = (fullName ?? '').trim().split(/\s+/).filter(Boolean)
+  return { firstName: parts[0] || '', lastName: parts.slice(1).join(' ') || parts[0] || '' }
+}
 
 function paymentErrorStorageKey(applicationId: string | null) {
   return applicationId ? `${PAYMENT_ERROR_STORAGE_PREFIX}${applicationId}` : null
@@ -42,22 +56,15 @@ function paymentErrorStorageKey(applicationId: string | null) {
 function readPersistedPaymentError(applicationId: string | null) {
   const key = paymentErrorStorageKey(applicationId)
   if (!key || typeof window === 'undefined') return null
-  try {
-    return window.sessionStorage.getItem(key)
-  } catch {
-    return null
-  }
+  try { return window.sessionStorage.getItem(key) } catch { return null }
 }
 
 function persistPaymentError(applicationId: string | null, message: string | null) {
   const key = paymentErrorStorageKey(applicationId)
   if (!key || typeof window === 'undefined') return
   try {
-    if (message) {
-      window.sessionStorage.setItem(key, message)
-    } else {
-      window.sessionStorage.removeItem(key)
-    }
+    if (message) window.sessionStorage.setItem(key, message)
+    else window.sessionStorage.removeItem(key)
   } catch {}
 }
 
@@ -65,37 +72,26 @@ function isOffline() {
   return typeof navigator !== 'undefined' && navigator.onLine === false
 }
 
-function isRetryablePaymentInitiationError(error: unknown) {
+function isRetryableError(error: unknown) {
   if (isOffline()) return false
   if (error instanceof TypeError) return true
   if (!(error instanceof Error)) return false
-  const message = error.message.toLowerCase()
-  return (
-    message.includes('network') ||
-    message.includes('failed to fetch') ||
-    message.includes('timeout') ||
-    message.includes('temporarily unavailable') ||
-    message.includes('api error: internal server error') ||
-    message.includes('api error: bad gateway') ||
-    message.includes('api error: service unavailable') ||
-    message.includes('api error: gateway timeout')
-  )
+  const m = error.message.toLowerCase()
+  return m.includes('network') || m.includes('failed to fetch') || m.includes('timeout') ||
+    m.includes('temporarily unavailable') || m.includes('internal server error') ||
+    m.includes('bad gateway') || m.includes('service unavailable') || m.includes('gateway timeout')
 }
 
-async function withPaymentInitiationRetry<T>(operation: () => Promise<T>): Promise<T> {
-  let lastError: unknown
-  for (let attempt = 0; attempt <= PAYMENT_INITIATE_RETRY_DELAYS_MS.length; attempt += 1) {
-    try {
-      return await operation()
-    } catch (error) {
-      lastError = error
-      if (attempt >= PAYMENT_INITIATE_RETRY_DELAYS_MS.length || !isRetryablePaymentInitiationError(error)) {
-        throw error
-      }
-      await new Promise((resolve) => window.setTimeout(resolve, PAYMENT_INITIATE_RETRY_DELAYS_MS[attempt]))
+async function withRetry<T>(op: () => Promise<T>): Promise<T> {
+  let last: unknown
+  for (let i = 0; i <= PAYMENT_INITIATE_RETRY_DELAYS_MS.length; i++) {
+    try { return await op() } catch (e) {
+      last = e
+      if (i >= PAYMENT_INITIATE_RETRY_DELAYS_MS.length || !isRetryableError(e)) throw e
+      await new Promise(r => setTimeout(r, PAYMENT_INITIATE_RETRY_DELAYS_MS[i]))
     }
   }
-  throw lastError
+  throw last
 }
 
 export function useApplicationPaymentAction({
@@ -104,19 +100,25 @@ export function useApplicationPaymentAction({
   onPaymentStatusChange,
   onPaymentStatusRefresh,
 }: UseApplicationPaymentActionOptions) {
+  const {
+    openWidget,
+    isLoading: widgetLoading,
+    isScriptLoaded,
+    loadError: widgetLoadError,
+    retryLoad: retryWidgetLoad,
+  } = useLencoWidget()
+
   const [paymentStatus, setPaymentStatus] = useState<PaymentActionStatus>('idle')
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [initiateError, setInitiateErrorState] = useState<string | null>(() => readPersistedPaymentError(applicationId))
   const paymentStatusRef = useRef<PaymentActionStatus>('idle')
   const initiatingRef = useRef(false)
 
-  useEffect(() => {
-    setInitiateErrorState(readPersistedPaymentError(applicationId))
-  }, [applicationId])
+  useEffect(() => { setInitiateErrorState(readPersistedPaymentError(applicationId)) }, [applicationId])
 
-  const setInitiateError = useCallback((message: string | null) => {
-    setInitiateErrorState(message)
-    persistPaymentError(applicationId, message)
+  const setInitiateError = useCallback((msg: string | null) => {
+    setInitiateErrorState(msg)
+    persistPaymentError(applicationId, msg)
   }, [applicationId])
 
   const updatePaymentStatus = useCallback((status: PaymentActionStatus, message: string | null = null) => {
@@ -125,56 +127,13 @@ export function useApplicationPaymentAction({
     setStatusMessage(message)
   }, [])
 
-  const refreshStatus = useCallback(async () => {
-    await onPaymentStatusRefresh?.()
-  }, [onPaymentStatusRefresh])
-
-  // Check if returning from payment tab
-  useEffect(() => {
-    const handleFocus = async () => {
-      if (paymentStatusRef.current !== 'pending') return
-      const paymentId = localStorage.getItem(PAYMENT_ID_STORAGE_KEY)
-      if (!paymentId) return
-
-      try {
-        const verifyPath = `/payments/${encodeURIComponent(paymentId)}/verify/`
-        const result = await apiClient.request<VerifyResponse>(verifyPath, { method: 'POST' })
-        const normalizedStatus = normalizePaymentStatusValue(result?.status)
-
-        if (normalizedStatus === 'successful') {
-          localStorage.removeItem(PAYMENT_ID_STORAGE_KEY)
-          setInitiateError(null)
-          updatePaymentStatus('successful', 'Payment confirmed.')
-          onPaymentStatusChange?.('successful')
-          await refreshStatus()
-        } else if (normalizedStatus === 'failed') {
-          localStorage.removeItem(PAYMENT_ID_STORAGE_KEY)
-          updatePaymentStatus('failed', 'Payment could not be verified. You can retry.')
-          onPaymentStatusChange?.('failed')
-          await refreshStatus()
-        }
-        // If still pending, keep polling
-      } catch {
-        // Silently retry on next focus
-      }
-    }
-
-    window.addEventListener('focus', handleFocus)
-    return () => window.removeEventListener('focus', handleFocus)
-  }, [onPaymentStatusChange, refreshStatus, setInitiateError, updatePaymentStatus])
+  const refreshStatus = useCallback(async () => { await onPaymentStatusRefresh?.() }, [onPaymentStatusRefresh])
 
   const startPayment = useCallback(async () => {
     if (initiatingRef.current || paymentStatusRef.current === 'initiating') return
-
-    if (!applicationId) {
-      setInitiateError('Please save your application before proceeding to payment.')
-      return
-    }
-
-    if (isOffline()) {
-      setInitiateError('You appear to be offline. Check your connection and retry payment.')
-      return
-    }
+    if (!applicationId) { setInitiateError('Please save your application before proceeding to payment.'); return }
+    if (isOffline()) { setInitiateError('You appear to be offline. Check your connection and retry.'); return }
+    if (!isScriptLoaded) { setInitiateError('Payment widget is still loading. Please wait and try again.'); return }
 
     initiatingRef.current = true
     setInitiateError(null)
@@ -182,57 +141,100 @@ export function useApplicationPaymentAction({
 
     try {
       const customer = getCustomerDetails()
-      const data = await withPaymentInitiationRetry(() =>
-        apiClient.request<InitiateResponse>(
-          '/payments/initiate/',
-          {
-            method: 'POST',
-            body: JSON.stringify({
-              application_id: applicationId,
-              customer_email: customer.email || '',
-              customer_name: customer.fullName || '',
-              customer_phone: customer.phone || '',
-            }),
-          },
-        ),
+      const data = await withRetry(() =>
+        apiClient.request<InitiateResponse>('/payments/initiate/', {
+          method: 'POST',
+          body: JSON.stringify({
+            application_id: applicationId,
+            customer_email: customer.email || '',
+            customer_name: customer.fullName || '',
+            customer_phone: customer.phone || '',
+          }),
+        }),
       )
 
       if (!data) throw new Error('No response from payment service')
 
-      const { payment_id, payment_url } = data
-
-      if (!payment_url) throw new Error('Payment service did not return a payment URL')
-
-      // Store payment_id so we can verify when user returns
-      localStorage.setItem(PAYMENT_ID_STORAGE_KEY, payment_id)
-
-      // Open payment in new tab
-      const paymentTab = window.open(payment_url, '_blank')
-      if (!paymentTab) {
-        // Popup blocked — fall back to same-window redirect
-        setInitiateError(null)
-        updatePaymentStatus('pending', 'Payment page could not open in a new tab. Click the link below to pay.')
-        setStatusMessage(payment_url) // Store URL for manual link
-        onPaymentStatusChange?.('pending')
-        initiatingRef.current = false
-        return
+      const { payment_id, reference, amount, currency, lenco_public_key } = data
+      const paymentAmount = Number.parseFloat(amount)
+      if (!lenco_public_key || !Number.isFinite(paymentAmount) || paymentAmount <= 0) {
+        throw new Error('Payment service returned incomplete details')
       }
 
-      updatePaymentStatus('pending', 'Payment opened in a new tab. Complete payment there, then return here.')
-      onPaymentStatusChange?.('pending')
-      initiatingRef.current = false
+      const { firstName, lastName } = splitFullName(customer.fullName)
+
+      // Set global flag to suppress session revalidation while widget is open
+      _paymentInProgress = true
+
+      openWidget({
+        publicKey: lenco_public_key,
+        reference,
+        amount: paymentAmount,
+        currency,
+        customerEmail: customer.email ?? '',
+        customerFirstName: firstName,
+        customerLastName: lastName,
+        customerPhone: customer.phone || undefined,
+        onSuccess: async () => {
+          _paymentInProgress = false
+          updatePaymentStatus('pending', 'Verifying payment…')
+          initiatingRef.current = false
+          try {
+            const result = await apiClient.request<VerifyResponse>(
+              `/payments/${encodeURIComponent(payment_id)}/verify/`, { method: 'POST' },
+            )
+            const s = normalizePaymentStatusValue(result?.status)
+            if (s === 'successful') {
+              setInitiateError(null)
+              updatePaymentStatus('successful', 'Payment confirmed.')
+              onPaymentStatusChange?.('successful')
+              await refreshStatus()
+            } else if (s === 'failed') {
+              updatePaymentStatus('failed', 'Payment could not be verified. You can retry.')
+              onPaymentStatusChange?.('failed')
+              await refreshStatus()
+            } else {
+              updatePaymentStatus('pending', 'Payment is being confirmed. Stay on this page.')
+              onPaymentStatusChange?.('pending')
+              void refreshStatus()
+            }
+          } catch {
+            updatePaymentStatus('pending', 'Payment is being confirmed. Stay on this page.')
+            onPaymentStatusChange?.('pending')
+            void refreshStatus()
+          }
+        },
+        onConfirmationPending: () => {
+          _paymentInProgress = false
+          initiatingRef.current = false
+          updatePaymentStatus('pending', 'Payment is being confirmed. Stay on this page.')
+          onPaymentStatusChange?.('pending')
+          void refreshStatus()
+        },
+        onClose: () => {
+          _paymentInProgress = false
+          initiatingRef.current = false
+          if (paymentStatusRef.current !== 'successful' && paymentStatusRef.current !== 'pending') {
+            updatePaymentStatus('idle', 'Payment not completed. You can retry when ready.')
+          }
+        },
+      })
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to initiate payment'
-      setInitiateError(message)
+      _paymentInProgress = false
+      setInitiateError(error instanceof Error ? error.message : 'Failed to initiate payment')
       updatePaymentStatus('idle')
       initiatingRef.current = false
     }
-  }, [applicationId, getCustomerDetails, onPaymentStatusChange, setInitiateError, updatePaymentStatus])
+  }, [applicationId, getCustomerDetails, isScriptLoaded, onPaymentStatusChange, openWidget, refreshStatus, setInitiateError, updatePaymentStatus])
 
   return {
     paymentStatus,
     statusMessage,
     initiateError,
+    widgetLoading,
+    isScriptLoaded,
+    widgetLoadError,
+    retryWidgetLoad,
     startPayment,
     updatePaymentStatus,
     setInitiateError,

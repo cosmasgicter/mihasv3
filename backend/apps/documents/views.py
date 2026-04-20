@@ -486,35 +486,6 @@ class PaymentVerifyView(APIView):
 # ---------------------------------------------------------------------------
 
 
-def _build_lenco_payment_url(*, public_key, reference, email, amount, currency, customer_name='', phone=''):
-    """Construct Lenco hosted checkout URL for new-tab redirect payment."""
-    from urllib.parse import urlencode
-
-    is_sandbox = getattr(settings, 'LENCO_SANDBOX', False)
-    base = 'https://pay.sandbox.lenco.co' if is_sandbox else 'https://pay.lenco.co'
-    frontend_url = getattr(settings, 'FRONTEND_URL', '***REMOVED***')
-    redirect_url = f"{frontend_url.rstrip('/')}/payment/callback"
-
-    parts = str(customer_name).strip().split(None, 1)
-    first_name = parts[0] if parts else ''
-    last_name = parts[1] if len(parts) > 1 else first_name
-
-    params = {
-        'key': public_key,
-        'reference': reference,
-        'email': email,
-        'amount': str(amount),
-        'currency': currency,
-        'channels': 'card,mobile-money',
-        'customer[firstName]': first_name,
-        'customer[lastName]': last_name,
-        'redirectUrl': redirect_url,
-    }
-    if phone:
-        params['customer[phone]'] = phone
-    return f"{base}/checkout?{urlencode(params)}"
-
-
 class PaymentInitiateView(APIView):
     """POST /api/v1/payments/initiate/ — create a pending payment record.
 
@@ -602,20 +573,6 @@ class PaymentInitiateView(APIView):
 
         lenco_public_key = getattr(settings, "LENCO_PUBLIC_KEY", "") or ""
 
-        # Build Lenco hosted payment page URL for new-tab redirect flow
-        customer_email = request.data.get("customer_email", getattr(request.user, "email", ""))
-        customer_name = request.data.get("customer_name", "")
-        customer_phone = request.data.get("customer_phone", "")
-        payment_url = _build_lenco_payment_url(
-            public_key=lenco_public_key,
-            reference=result.reference,
-            email=customer_email,
-            amount=result.amount,
-            currency=result.currency,
-            customer_name=customer_name,
-            phone=customer_phone,
-        )
-
         return Response(
             {
                 "success": True,
@@ -625,7 +582,6 @@ class PaymentInitiateView(APIView):
                     "amount": str(result.amount),
                     "currency": result.currency,
                     "lenco_public_key": lenco_public_key,
-                    "payment_url": payment_url,
                 },
             },
             status=status.HTTP_201_CREATED,

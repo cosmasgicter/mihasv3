@@ -30,6 +30,7 @@ import { secureStorage } from '@/lib/secureStorage'
 import { useAuthBroadcast } from '@/lib/authBroadcast'
 import { resetPrefetchState } from '@/lib/speculativePrefetch'
 import { SESSION_MESSAGES } from '@/lib/sessionHardening'
+import { isPaymentInProgress as _isPaymentInProgress } from '@/hooks/useApplicationPaymentAction'
 
 interface AuthContextType {
   user: User | null
@@ -108,6 +109,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           ? `/auth/signin?redirect=${encodeURIComponent(from)}`
           : '/auth/signin'
         if (typeof window !== 'undefined') {
+          // Don't dispatch auth-expired while payment widget is open
+          if (_isPaymentInProgress()) return
           window.dispatchEvent(new CustomEvent('mihas:auth-expired', {
             detail: { from, signInPath, message: SESSION_MESSAGES.SESSION_EXPIRED },
           }))
@@ -127,6 +130,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (document.visibilityState === 'hidden') {
         hasHiddenOnce = true
       } else if (document.visibilityState === 'visible' && hasHiddenOnce) {
+        // Skip session revalidation while Lenco payment widget is open
+        // to prevent mobile logout caused by widget iframe/popup
+        if (_isPaymentInProgress()) return
         const now = Date.now()
         if (now - lastSessionInvalidationRef.current >= VISIBILITY_DEBOUNCE_MS) {
           lastSessionInvalidationRef.current = now
