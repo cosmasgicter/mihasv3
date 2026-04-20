@@ -107,11 +107,11 @@ export async function generateAcceptanceLetter(data: AcceptanceLetterData): Prom
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(11)
-  const details = [
+  const details: [string, string][] = [
     ['Programme:', data.program],
     ['Intake:', data.intake],
     ['Application No:', data.applicationNumber],
-    ...(data.startDate ? [['Start Date:', formatDate(data.startDate)]] : []),
+    ...(data.startDate ? [['Start Date:', formatDate(data.startDate)] as [string, string]] : []),
   ]
   details.forEach(([label, value]) => {
     doc.setFont('helvetica', 'bold')

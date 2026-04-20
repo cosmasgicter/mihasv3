@@ -20,8 +20,10 @@ const TYPE_ICON_STYLES: Record<string, { icon: typeof Info; bg: string; text: st
   error:   { icon: X,             bg: 'bg-red-100 dark:bg-red-900/40',     text: 'text-red-600 dark:text-red-400' },
 }
 
-function getTypeStyle(type: string) {
-  return TYPE_ICON_STYLES[type] ?? TYPE_ICON_STYLES.info
+const DEFAULT_STYLE: { icon: typeof Info; bg: string; text: string } = TYPE_ICON_STYLES.info!
+
+function getTypeStyle(type: string): { icon: typeof Info; bg: string; text: string } {
+  return TYPE_ICON_STYLES[type] ?? DEFAULT_STYLE
 }
 
 function areNotificationItemPropsEqual(

@@ -201,21 +201,24 @@ Webhook URL registered with Lenco: `***REMOVED***/api/v1/payments/webhook/lenco/
 
 ## Error Monitoring
 
-The platform uses GlitchTip (Sentry-compatible, free tier at app.glitchtip.com) for error tracking. The standard Sentry SDK (`sentry-sdk` for Python, `@sentry/react` for React) is used with DSN URLs pointing to GlitchTip.
+The platform uses GlitchTip (Sentry-compatible, free tier at app.glitchtip.com) for error tracking. Both frontend and backend report to a single GlitchTip project (22431). The standard Sentry SDK (`sentry-sdk` for Python, `@sentry/react` for React) is used with DSN URLs pointing to GlitchTip.
 
 ### Pipeline
 
 1. Backend errors: `sentry-sdk` with `DjangoIntegration` and `CeleryIntegration` automatically captures unhandled exceptions. The `envelope_exception_handler` in `backend/apps/common/exceptions.py` also calls `sentry_sdk.capture_exception()` for 500 responses to ensure all errors reach GlitchTip.
 2. Frontend errors: `@sentry/react` captures `window.onerror` and unhandled rejections automatically once initialized via `initErrorReporter()` in `apps/admissions/src/lib/errorReporter.ts`.
-3. The legacy `POST /api/v1/errors/report/` endpoint still accepts frontend error reports for backwards compatibility, forwarding them to GlitchTip via `sentry_sdk.capture_message()`.
+3. CSP violations: The `Content-Security-Policy` header in `apps/admissions/vercel.json` includes a `report-uri` directive that sends browser CSP violations directly to GlitchTip.
+4. The legacy `POST /api/v1/errors/report/` endpoint still accepts frontend error reports for backwards compatibility, forwarding them to GlitchTip via `sentry_sdk.capture_message()`.
 
 ### Key details
 
 - Backend DSN: configured via `GLITCHTIP_DSN` env var. SDK initializes in `backend/config/settings/base.py`.
 - Frontend DSN: configured via `VITE_GLITCHTIP_DSN` env var. SDK initializes in `apps/admissions/src/lib/errorReporter.ts`.
+- CSP security endpoint: `https://app.glitchtip.com/api/22431/security/?glitchtip_key=8a2c416ba7464b6bb50a194b32b12832`
 - The `ErrorLog` model in `backend/apps/common/models.py` is deprecated. The `error_logs` table is preserved for historical records but no longer written to.
 - `ERROR_ALERT_EMAIL` is still used for non-error-monitoring alerts (uptime, payment failures, SLA breaches).
 - Frontend error reporting endpoint (`/api/v1/errors/report/`) remains unauthenticated (`AllowAny`), CSRF-exempt, and rate-limited.
+- Frontend `tracesSampleRate` is set to 0.01 (1%) to conserve GlitchTip disk space.
 
 ## Stagehand (AI Browser Automation)
 
