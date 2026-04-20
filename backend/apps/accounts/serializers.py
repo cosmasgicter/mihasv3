@@ -21,25 +21,16 @@ class RegisterSerializer(serializers.Serializer):
     """Validates registration data."""
 
     email = serializers.EmailField(required=True)
-    password = serializers.CharField(required=True, min_length=8, write_only=True)
+    password = serializers.CharField(required=True, min_length=6, write_only=True)
     first_name = serializers.CharField(required=True, max_length=255)
     last_name = serializers.CharField(required=True, max_length=255)
     phone = serializers.CharField(required=False, allow_blank=True, default="")
     nationality = serializers.CharField(required=False, allow_blank=True, default="")
 
     def validate_password(self, value):
-        """Enforce password complexity: min 8 chars, 1 uppercase, 1 digit, 1 special char."""
-        if len(value) < 8:
-            raise serializers.ValidationError("Password must be at least 8 characters.")
-        if not any(c.isupper() for c in value):
-            raise serializers.ValidationError("Password must contain at least one uppercase letter.")
-        if not any(c.isdigit() for c in value):
-            raise serializers.ValidationError("Password must contain at least one digit.")
-        if not any(c in '!@#$%^&*()_+-=[]{}|;:,.<>?/' for c in value):
-            raise serializers.ValidationError("Password must contain at least one special character.")
-        common = {'password', 'password1', '12345678', 'qwerty12', 'admin123', 'letmein1'}
-        if value.lower() in common:
-            raise serializers.ValidationError("This password is too common.")
+        """Enforce minimum password length of 6 characters."""
+        if len(value) < 6:
+            raise serializers.ValidationError("Password must be at least 6 characters.")
         return value
 
     def validate_phone(self, value):
@@ -64,7 +55,7 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
     """Validates password reset confirmation."""
 
     token = serializers.CharField(required=True)
-    new_password = serializers.CharField(required=True, min_length=8, write_only=True)
+    new_password = serializers.CharField(required=True, min_length=6, write_only=True)
 
 
 class SessionSerializer(serializers.Serializer):

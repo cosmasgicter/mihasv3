@@ -30,10 +30,7 @@ export const signUpSchema = z
     email: z.string().email('Please enter a valid email address'),
     phone: z.string().min(10, 'Please enter a valid phone number'),
     password: z.string()
-      .min(8, 'Password must be at least 8 characters')
-      .refine((value) => /[A-Z]/.test(value), 'Password must contain at least one uppercase letter')
-      .refine((value) => /[a-z]/.test(value), 'Password must contain at least one lowercase letter')
-      .refine((value) => /\d/.test(value), 'Password must contain at least one digit'),
+      .min(6, 'Password must be at least 6 characters'),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
