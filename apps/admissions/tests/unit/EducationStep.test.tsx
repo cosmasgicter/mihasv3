@@ -18,6 +18,7 @@ const baseProps = {
   extraKycFile: null,
   uploadProgress: {},
   uploadedFiles: {},
+  uploadStates: {} as Record<string, string>,
   addGrade: () => undefined,
   removeGrade: () => undefined,
   updateGrade: () => undefined,

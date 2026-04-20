@@ -71,8 +71,8 @@ describe('ShinyText', () => {
 
   it('injects a <style> block with @keyframes when not in reduced motion', () => {
     mockReducedMotion = false
-    const { container, unmount } = renderShinyText({ text: 'Test', animateOnEntry: false })
-    const style = container.querySelector('style')
+    const { unmount } = renderShinyText({ text: 'Test', animateOnEntry: false })
+    const style = document.head.querySelector('style[data-style-key="shiny-text-shimmer"]')
     expect(style).not.toBeNull()
     expect(style?.textContent).toContain('@keyframes shiny-text-shimmer')
     unmount()

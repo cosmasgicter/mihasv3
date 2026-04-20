@@ -28,7 +28,7 @@ const UNKNOWN_STATUS_COLOR = 'bg-gray-100 text-gray-600 dark:bg-gray-800/40 dark
  */
 export function getStatusColor(status: string | null | undefined): string {
   if (!status) return UNKNOWN_STATUS_COLOR
-  return STATUS_COLORS[status] ?? UNKNOWN_STATUS_COLOR
+  return Object.prototype.hasOwnProperty.call(STATUS_COLORS, status) ? STATUS_COLORS[status] : UNKNOWN_STATUS_COLOR
 }
 
 /**

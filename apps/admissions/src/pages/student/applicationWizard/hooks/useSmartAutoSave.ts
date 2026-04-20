@@ -56,6 +56,13 @@ export const useSmartAutoSave = ({
     }
   }, [autoSave.saveError])
 
+  // Reset auth-expired state when session recovers
+  useEffect(() => {
+    const handleRecovered = () => { setIsAuthExpired(false) }
+    window.addEventListener('mihas:auth-recovered', handleRecovered)
+    return () => { window.removeEventListener('mihas:auth-recovered', handleRecovered) }
+  }, [])
+
   // Track changed fields for user feedback
   useEffect(() => {
     if (!enabled || !previousValues.current) {

@@ -12,6 +12,7 @@ import { ApiErrorHandler } from '@/lib/apiErrorHandler';
 import { logger } from '@/lib/logger';
 import { getCsrfToken, setCsrfToken } from '@/lib/csrfToken';
 import { TIMEOUT_ERROR_MESSAGE } from '@/lib/errorMessages';
+import { shouldDispatchAuthFailure, isPermissionDenial, dispatchAuthRecovered } from '@/lib/sessionHardening';
 
 /**
  * Error thrown when the ApiClient encounters an unrecoverable 401
@@ -231,6 +232,7 @@ class ApiClient {
       if (result) {
         this.lastRefreshSuccessTime = Date.now();
         this.lastRefreshResult = true;
+        dispatchAuthRecovered();
       } else {
         this.lastRefreshFailureTime = Date.now();
         this.lastRefreshResult = false;
@@ -739,7 +741,7 @@ class ApiClient {
             // are not authentication failures and must not trigger logout.
             if (retryResponse.status === 401) {
               const authFailure = getOnAuthFailure();
-              if (authFailure) authFailure();
+              if (authFailure && shouldDispatchAuthFailure()) authFailure();
               throw new AuthenticationError();
             }
 
@@ -786,7 +788,7 @@ class ApiClient {
 
           // Refresh failed — invoke onAuthFailure and throw
           const authFailure = getOnAuthFailure();
-          if (authFailure) authFailure();
+          if (authFailure && shouldDispatchAuthFailure()) authFailure();
           throw new AuthenticationError();
         }
 
@@ -887,9 +889,29 @@ class ApiClient {
 
             // Only treat a second 401/403 as an auth failure. Other status
             // codes (e.g. 400 validation errors) are not auth failures.
-            if (retryResponse.status === 401 || retryResponse.status === 403) {
+            // A generic 403 INSUFFICIENT_PERMISSIONS after refresh is a
+            // permission denial, not an auth failure — do not logout.
+            if (retryResponse.status === 401) {
               const authFailure = getOnAuthFailure();
-              if (authFailure) authFailure();
+              if (authFailure && shouldDispatchAuthFailure()) authFailure();
+              throw new AuthenticationError();
+            }
+            if (retryResponse.status === 403) {
+              // Parse the error code to distinguish auth vs permission
+              let retryCode: string | undefined;
+              try {
+                const retryBody = await retryResponse.clone().text();
+                if (retryBody) { retryCode = JSON.parse(retryBody)?.code; }
+              } catch { /* ignore */ }
+              if (isPermissionDenial(403, retryCode)) {
+                // Permission denial — throw as normal error, NOT auth failure
+                const permErr = new Error('Permission denied for this action') as Error & { status: number; code?: string };
+                permErr.status = 403;
+                permErr.code = retryCode;
+                throw ApiErrorHandler.enhanceError({ endpoint: normalizedEndpoint, method, statusCode: 403, originalError: permErr });
+              }
+              const authFailure = getOnAuthFailure();
+              if (authFailure && shouldDispatchAuthFailure()) authFailure();
               throw new AuthenticationError();
             }
 
@@ -914,7 +936,7 @@ class ApiClient {
 
           // Refresh failed — invoke onAuthFailure and throw
           const authFailure = getOnAuthFailure();
-          if (authFailure) authFailure();
+          if (authFailure && shouldDispatchAuthFailure()) authFailure();
           throw new AuthenticationError();
         }
 
@@ -1029,11 +1051,23 @@ class ApiClient {
 
           // Only treat a second 401/403 as an auth failure
           if (retryResponse.status === 401 || retryResponse.status === 403) {
+            if (retryResponse.status === 403) {
+              let retryCode: string | undefined;
+              try {
+                const retryBody = await retryResponse.clone().text();
+                if (retryBody) { retryCode = JSON.parse(retryBody)?.code; }
+              } catch { /* ignore */ }
+              if (isPermissionDenial(403, retryCode)) {
+                const permErr = new Error('Permission denied for this action') as Error & { status: number };
+                permErr.status = 403;
+                throw ApiErrorHandler.enhanceError({ endpoint: normalizedEndpoint, method, statusCode: 403, originalError: permErr });
+              }
+            }
             if (this.isSessionEndpoint(normalizedEndpoint)) {
               throw new AuthenticationError();
             }
             const authFailure = getOnAuthFailure();
-            if (authFailure) authFailure();
+            if (authFailure && shouldDispatchAuthFailure()) authFailure();
             throw new AuthenticationError();
           }
 
@@ -1061,7 +1095,7 @@ class ApiClient {
           throw error;
         }
         const authFailure = getOnAuthFailure();
-        if (authFailure) authFailure();
+        if (authFailure && shouldDispatchAuthFailure()) authFailure();
         throw new AuthenticationError();
       }
 

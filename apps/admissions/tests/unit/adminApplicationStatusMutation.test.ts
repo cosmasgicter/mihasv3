@@ -122,14 +122,14 @@ describe('admin status mutation canonical path', () => {
     await applicationService.updateStatus('app-1', 'approved', 'Approved after review')
     await applicationService.updateStatus('app-1', 'rejected', 'Rejected due to missing documents', true)
 
-    expect(mockFetch).toHaveBeenCalledTimes(2)
+    expect(mockFetch).toHaveBeenCalledTimes(4)
 
-    const reviewCalls = mockFetch.mock.calls.filter(([, init]) => init?.method === 'PATCH')
+    const reviewCalls = mockFetch.mock.calls.filter(([, init]) => init?.method === 'POST')
     expect(reviewCalls).toHaveLength(2)
 
     const approveCall = reviewCalls[0]
     expect(approveCall[0]).toBe('/api/v1/applications/app-1/review/')
-    expect(approveCall[1].method).toBe('PATCH')
+    expect(approveCall[1].method).toBe('POST')
     expect(JSON.parse(approveCall[1].body)).toEqual({
       new_status: 'approved',
       notes: 'Approved after review',
@@ -137,7 +137,7 @@ describe('admin status mutation canonical path', () => {
 
     const rejectCall = reviewCalls[1]
     expect(rejectCall[0]).toBe('/api/v1/applications/app-1/review/')
-    expect(rejectCall[1].method).toBe('PATCH')
+    expect(rejectCall[1].method).toBe('POST')
     expect(JSON.parse(rejectCall[1].body)).toEqual({
       new_status: 'rejected',
       notes: 'Rejected due to missing documents',

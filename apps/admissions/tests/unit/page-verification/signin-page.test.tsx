@@ -117,6 +117,14 @@ let mockMutationState = {
 }
 
 vi.mock('@tanstack/react-query', () => ({
+  QueryClient: class {
+    defaultOptions = {}
+    getQueryData() { return null }
+    setQueryData() {}
+    prefetchQuery() { return Promise.resolve() }
+    fetchQuery() { return Promise.resolve(null) }
+  },
+  QueryClientProvider: ({ children }: { children: unknown }) => children,
   useMutation: (options: {
     mutationFn: (data: unknown) => Promise<unknown>
     onSuccess?: (result: unknown) => void

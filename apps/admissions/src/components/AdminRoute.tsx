@@ -98,6 +98,14 @@ export function AdminRoute({ children }: AdminRouteProps) {
   }
 
   if (!user) {
+    // Don't redirect while session recovery is still in progress
+    if (!recoveryAttempted || isRecoveringSession) {
+      return (
+        <GuardInlineSkeleton
+          label="Reconnecting your session…"
+        />
+      )
+    }
     // Preserve the intended destination in location state
     return <Navigate to="/auth/signin" state={{ from: location }} replace />
   }

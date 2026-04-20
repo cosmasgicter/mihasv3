@@ -254,8 +254,8 @@ describe('Property 8: Auth failure cascade clears all state', () => {
       );
     });
 
-    it('onAuthFailure calls queryClient.clear()', () => {
-      expect(source).toContain('queryClient.clear()');
+    it('onAuthFailure calls queryClient.removeQueries()', () => {
+      expect(source).toContain('queryClient.removeQueries(');
     });
 
     it('onAuthFailure calls clearCsrfToken()', () => {

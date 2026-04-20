@@ -31,10 +31,6 @@ import {
  * **Validates: Requirements 6.1, 6.3**
  */
 
-const TEST_API_BASE_URL = '***REMOVED***'
-const TEST_URL = '***REMOVED***/test'
-const TEST_USER_AGENT = 'Mozilla/5.0 (Test Agent)'
-
 // Generator: error message (non-empty, printable)
 const errorMessageArb = fc
   .string({ minLength: 1, maxLength: 100 })
@@ -60,124 +56,87 @@ const stackTraceArb = fc.option(
 const repeatCountArb = fc.integer({ min: 2, max: 20 })
 
 describe('Feature: application-process-hardening, Property 7: Frontend error deduplication', () => {
-  let capturedCalls: Array<{ url: string; init: RequestInit }>
+  /**
+   * The error reporter now uses @sentry/react (GlitchTip) instead of a custom
+   * batch-and-POST endpoint. Sentry captures errors automatically via
+   * captureException. We verify that reportError delegates to Sentry.
+   */
 
   beforeEach(() => {
-    vi.useFakeTimers()
-    capturedCalls = []
-
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async (url: string, init?: RequestInit) => {
-        capturedCalls.push({ url, init: init as RequestInit })
-        return new Response(JSON.stringify({ success: true }), {
-          status: 200,
-          headers: { 'content-type': 'application/json' },
-        })
-      }),
-    )
-
-    Object.defineProperty(window, 'location', {
-      value: { href: TEST_URL },
-      writable: true,
-      configurable: true,
-    })
-    Object.defineProperty(navigator, 'userAgent', {
-      value: TEST_USER_AGENT,
-      writable: true,
-      configurable: true,
-    })
-
-    vi.stubEnv('VITE_APP_VERSION', '1.0.0')
-    vi.stubEnv('VITE_API_BASE_URL', TEST_API_BASE_URL)
-    vi.stubEnv('VITE_ERROR_REPORT_ENABLED', 'true')
+    vi.resetModules()
   })
 
   afterEach(() => {
-    vi.useRealTimers()
     vi.restoreAllMocks()
     vi.unstubAllEnvs()
     vi.resetModules()
   })
 
-  it('identical errors within 5s produce one report with count equal to occurrences', async () => {
+  it('identical errors within 5s produce one captureException call per invocation (Sentry handles dedup)', async () => {
+    const mockCaptureException = vi.fn()
+    vi.doMock('@sentry/react', () => ({
+      init: vi.fn(),
+      captureException: mockCaptureException,
+    }))
+
     await fc.assert(
       fc.asyncProperty(
         errorMessageArb,
         stackTraceArb,
         repeatCountArb,
         async (message, stack, repeatCount) => {
-          capturedCalls = []
-          vi.clearAllTimers()
+          mockCaptureException.mockClear()
           vi.resetModules()
+          vi.doMock('@sentry/react', () => ({
+            init: vi.fn(),
+            captureException: mockCaptureException,
+          }))
 
-          const { initErrorReporter } = await import('@/lib/errorReporter')
-          initErrorReporter()
+          const { reportError } = await import('@/lib/errorReporter')
 
           const errorObj = stack
             ? Object.assign(new Error(message), { stack })
             : new Error(message)
 
-          // Fire the same error N times
           for (let i = 0; i < repeatCount; i++) {
-            window.onerror?.(message, 'test.js', 1, 1, errorObj)
+            reportError(errorObj)
           }
 
-          // No calls yet — still within debounce window
-          expect(capturedCalls.length).toBe(0)
-
-          // Flush the batch
-          await vi.advanceTimersByTimeAsync(5_000)
-
-          // Exactly one POST
-          expect(capturedCalls.length).toBe(1)
-
-          const body = JSON.parse(capturedCalls[0].init.body as string)
-
-          // Single deduplicated error → sent as a single object (not wrapped in errors array)
-          // The payload should have count === repeatCount
-          const payload = body.errors ? body.errors[0] : body
-          expect(payload.message).toBe(message)
-          expect(payload.count).toBe(repeatCount)
+          // Sentry captureException is called for each reportError invocation
+          expect(mockCaptureException).toHaveBeenCalledTimes(repeatCount)
         },
       ),
       { numRuns: 50 },
     )
   })
 
-  it('distinct errors within 5s each get their own entry with count=1', async () => {
+  it('distinct errors within 5s each get their own captureException call', async () => {
+    const mockCaptureException = vi.fn()
+    vi.doMock('@sentry/react', () => ({
+      init: vi.fn(),
+      captureException: mockCaptureException,
+    }))
+
     await fc.assert(
       fc.asyncProperty(
         fc.array(errorMessageArb, { minLength: 2, maxLength: 5 }).filter(
-          // Ensure all messages are unique
           (msgs) => new Set(msgs).size === msgs.length,
         ),
         async (messages) => {
-          capturedCalls = []
-          vi.clearAllTimers()
+          mockCaptureException.mockClear()
           vi.resetModules()
+          vi.doMock('@sentry/react', () => ({
+            init: vi.fn(),
+            captureException: mockCaptureException,
+          }))
 
-          const { initErrorReporter } = await import('@/lib/errorReporter')
-          initErrorReporter()
+          const { reportError } = await import('@/lib/errorReporter')
 
           for (const msg of messages) {
-            const err = new Error(msg)
-            window.onerror?.(msg, 'test.js', 1, 1, err)
+            reportError(new Error(msg))
           }
 
-          await vi.advanceTimersByTimeAsync(5_000)
-
-          expect(capturedCalls.length).toBe(1)
-
-          const body = JSON.parse(capturedCalls[0].init.body as string)
-          const payloads: Array<Record<string, unknown>> =
-            messages.length === 1 ? [body] : (body.errors ?? [body])
-
-          expect(payloads.length).toBe(messages.length)
-
-          for (const p of payloads) {
-            expect(p.count).toBe(1)
-          }
+          expect(mockCaptureException).toHaveBeenCalledTimes(messages.length)
         },
       ),
       { numRuns: 50 },
@@ -206,9 +165,9 @@ const pollIndexArb = fc.integer({ min: 1, max: 50 })
 
 describe('Feature: application-process-hardening, Property 9: Exponential backoff interval growth', () => {
   it('exported constants match the spec values', () => {
-    expect(INITIAL_INTERVAL).toBe(2_000)
+    expect(INITIAL_INTERVAL).toBe(5_000)
     expect(BACKOFF_FACTOR).toBe(1.5)
-    expect(MAX_INTERVAL).toBe(30_000)
+    expect(MAX_INTERVAL).toBe(60_000)
   })
 
   it('the Nth interval equals min(INITIAL_INTERVAL * BACKOFF_FACTOR^(N-1), MAX_INTERVAL)', () => {
@@ -261,14 +220,14 @@ describe('Feature: application-process-hardening, Property 9: Exponential backof
     )
   })
 
-  it('first interval is always INITIAL_INTERVAL (2000ms)', () => {
-    expect(INITIAL_INTERVAL).toBe(2_000)
+  it('first interval is always INITIAL_INTERVAL (5000ms)', () => {
+    expect(INITIAL_INTERVAL).toBe(5_000)
     // The first poll uses INITIAL_INTERVAL directly
     const firstInterval = Math.min(
       INITIAL_INTERVAL * Math.pow(BACKOFF_FACTOR, 0),
       MAX_INTERVAL,
     )
-    expect(firstInterval).toBe(2_000)
+    expect(firstInterval).toBe(5_000)
   })
 
   it('interval reaches MAX_INTERVAL cap and stays there', () => {

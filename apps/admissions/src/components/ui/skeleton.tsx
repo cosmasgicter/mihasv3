@@ -164,7 +164,7 @@ export function AuthSkeleton() {
         {/* Desktop branding panel placeholder */}
         <div className="hidden lg:flex lg:w-1/2 xl:w-[55%]">
           <div className="relative flex w-full flex-col justify-center px-12 xl:px-16">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-700 via-indigo-700 to-slate-900" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/80 to-foreground" />
             <div className="relative z-10 max-w-lg space-y-6">
               {/* Badge placeholder */}
               <Skeleton className="h-8 w-48 rounded-full bg-white/10" />
@@ -207,7 +207,7 @@ export function AuthSkeleton() {
         {/* Form panel */}
         <div className="flex flex-1 flex-col overflow-y-auto lg:w-1/2 xl:w-[45%]">
           {/* Mobile gradient bar */}
-          <div className="h-1.5 bg-gradient-to-r from-blue-700 via-indigo-600 to-slate-900 lg:hidden" />
+          <div className="h-1.5 bg-gradient-to-r from-primary via-primary/80 to-foreground lg:hidden" />
 
           <div className="flex flex-1 flex-col justify-center px-4 py-8 sm:px-6 sm:py-12 lg:px-12 xl:px-16">
             <div className="mx-auto w-full max-w-2xl">

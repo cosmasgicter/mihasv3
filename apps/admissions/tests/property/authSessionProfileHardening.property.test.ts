@@ -55,15 +55,28 @@ describe('auth session/profile hardening source invariants', () => {
     const sessionListener = read('src/hooks/auth/useSessionListener.ts')
     const authContext = read('src/contexts/AuthContext.tsx')
 
-    for (const source of [sessionListener, authContext]) {
-      const cancelAuthIndex = source.lastIndexOf("cancelQueries({ queryKey: ['auth']")
-      const cancelProfileIndex = source.lastIndexOf("cancelQueries({ queryKey: ['user-profile']")
-      const clearIndex = source.lastIndexOf('queryClient.clear()')
+    // useSessionListener uses queryClient.clear()
+    {
+      const cancelAuthIndex = sessionListener.lastIndexOf("cancelQueries({ queryKey: ['auth']")
+      const cancelProfileIndex = sessionListener.lastIndexOf("cancelQueries({ queryKey: ['user-profile']")
+      const clearIndex = sessionListener.lastIndexOf('queryClient.clear()')
 
       expect(cancelAuthIndex).toBeGreaterThanOrEqual(0)
       expect(cancelProfileIndex).toBeGreaterThanOrEqual(0)
       expect(clearIndex).toBeGreaterThan(cancelAuthIndex)
       expect(clearIndex).toBeGreaterThan(cancelProfileIndex)
+    }
+
+    // AuthContext uses queryClient.removeQueries() (selective removal, not full clear)
+    {
+      const cancelAuthIndex = authContext.lastIndexOf("cancelQueries({ queryKey: ['auth']")
+      const cancelProfileIndex = authContext.lastIndexOf("cancelQueries({ queryKey: ['user-profile']")
+      const removeIndex = authContext.lastIndexOf('queryClient.removeQueries(')
+
+      expect(cancelAuthIndex).toBeGreaterThanOrEqual(0)
+      expect(cancelProfileIndex).toBeGreaterThanOrEqual(0)
+      expect(removeIndex).toBeGreaterThan(cancelAuthIndex)
+      expect(removeIndex).toBeGreaterThan(cancelProfileIndex)
     }
   })
 })

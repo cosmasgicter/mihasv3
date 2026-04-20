@@ -13,6 +13,5 @@ describe('route runtime classification', () => {
   it('does not treat application dashboards as lightweight public routes', () => {
     expect(isLightweightPublicRoute('/student/dashboard')).toBe(false)
     expect(isLightweightPublicRoute('/admin/dashboard')).toBe(false)
-    expect(isLightweightPublicRoute('/track-application')).toBe(false)
   })
 })

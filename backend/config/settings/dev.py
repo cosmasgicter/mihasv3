@@ -15,6 +15,7 @@ SECURE_SSL_REDIRECT = False
 SECURE_CONTENT_TYPE_NOSNIFF = False
 AUTH_COOKIE_SECURE = False
 AUTH_COOKIE_DOMAIN = None  # Allow localhost cookies
+AUTH_COOKIE_SAMESITE = "Lax"  # Explicit for dev — production overrides to "None"
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 

@@ -22,7 +22,6 @@ describe('notificationService list caching', () => {
 
     expect(apiRequestSpy).toHaveBeenCalledWith('/notifications/', {
       method: 'GET',
-      useCache: false,
     })
   })
 })

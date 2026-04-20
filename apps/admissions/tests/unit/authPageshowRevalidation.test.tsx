@@ -10,10 +10,13 @@ const setQueryDataSpy = vi.fn()
 const clearSpy = vi.fn()
 
 vi.mock('@tanstack/react-query', () => ({
+  QueryClient: class { defaultOptions = {} },
+  QueryClientProvider: ({ children }: { children: unknown }) => children,
   useQueryClient: () => ({
     invalidateQueries: (...args: unknown[]) => invalidateQueriesSpy(...args),
     setQueryData: (...args: unknown[]) => setQueryDataSpy(...args),
     clear: (...args: unknown[]) => clearSpy(...args),
+    getQueryData: () => null,
   }),
 }))
 
@@ -50,6 +53,14 @@ vi.mock('@/lib/secureStorage', () => ({
   secureStorage: {
     clearSession: vi.fn().mockResolvedValue(undefined),
   },
+}))
+
+vi.mock('@/lib/speculativePrefetch', () => ({
+  resetPrefetchState: vi.fn(),
+}))
+
+vi.mock('@/lib/sessionHardening', () => ({
+  SESSION_MESSAGES: { EXPIRED: 'SESSION_EXPIRED', REVOKED: 'SESSION_REVOKED' },
 }))
 
 import { AuthProvider } from '@/contexts/AuthContext'

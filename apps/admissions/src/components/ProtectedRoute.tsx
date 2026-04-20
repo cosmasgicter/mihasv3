@@ -9,8 +9,8 @@ interface ProtectedRouteProps {
   children: React.ReactNode
 }
 
-const LOADING_TIMEOUT_MS = 5000
-const AUTH_RECOVERY_TIMEOUT_MS = 1200
+const LOADING_TIMEOUT_MS = 8000
+const AUTH_RECOVERY_TIMEOUT_MS = 5000
 const SIGNIN_REDIRECT_KEY = 'mihas:post-auth-redirect'
 
 /**
@@ -140,15 +140,16 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   if (isLoading) {
     return (
       <GuardInlineSkeleton
-        label={showTimeoutMessage || isRecoveringSession ? 'Opening your account' : 'Preparing your account'}
+        label={showTimeoutMessage || isRecoveringSession ? 'Reconnecting your session…' : 'Preparing your account'}
       />
     )
   }
 
   if (!isAuthenticated) {
     if (!allowSigninRedirect || isRecoveringSession) {
-      return <GuardInlineSkeleton label="Preparing your account" />
+      return <GuardInlineSkeleton label="Verifying your session…" />
     }
+    persistReturnPath()
     return <Navigate to="/auth/signin" state={{ from: location }} replace />
   }
 

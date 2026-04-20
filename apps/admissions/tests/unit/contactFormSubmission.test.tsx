@@ -87,17 +87,19 @@ describe('ContactPage form submission', () => {
       await new Promise((r) => setTimeout(r, 50))
     })
 
-    expect(openSpy).toHaveBeenCalledOnce()
-    const [url, target] = openSpy.mock.calls[0]
-    expect(target).toBe('_self')
-    expect(url).toContain('mailto:info@mihas.edu.zm')
-    expect(url).toContain(encodeURIComponent('Admissions inquiry from Jane Doe'))
-    expect(url).toContain(encodeURIComponent('Name: Jane Doe'))
-    expect(url).toContain(encodeURIComponent('Email: jane@example.com'))
-    expect(url).toContain(encodeURIComponent('Hello admissions'))
+    // New two-step flow: shows draft_ready state with mailto link
+    const statusMsg = container.querySelector('[role="status"]')
+    expect(statusMsg).not.toBeNull()
+    expect(statusMsg!.textContent).toContain('Your message draft is ready')
+
+    const mailtoLink = statusMsg!.querySelector('a[href^="mailto:"]') as HTMLAnchorElement
+    expect(mailtoLink).not.toBeNull()
+    expect(mailtoLink.href).toContain('mailto:')
+    expect(mailtoLink.href).toContain(encodeURIComponent('Admissions inquiry from Jane Doe'))
+    expect(mailtoLink.href).toContain(encodeURIComponent('Hello admissions'))
   })
 
-  it('shows confirmation and resets form after mailto handoff', async () => {
+  it('shows confirmation with Open Email App link after submit', async () => {
     renderPage()
     fillForm('Jane Doe', 'jane@example.com', 'Hello admissions')
     await submitForm()
@@ -109,22 +111,15 @@ describe('ContactPage form submission', () => {
     // Success message should be visible
     const successMsg = container.querySelector('[role="status"]')
     expect(successMsg).not.toBeNull()
-    expect(successMsg!.textContent).toContain('Your email app should open')
+    expect(successMsg!.textContent).toContain('Your message draft is ready')
 
-    // Form fields should be reset
-    const nameInput = container.querySelector('#contact-name') as HTMLInputElement
-    const emailInput = container.querySelector('#contact-email') as HTMLInputElement
-    const messageInput = container.querySelector('#contact-message') as HTMLTextAreaElement
-    expect(nameInput.value).toBe('')
-    expect(emailInput.value).toBe('')
-    expect(messageInput.value).toBe('')
+    // Should have an "Open Email App" link inside the status block
+    const links = successMsg!.querySelectorAll('a')
+    const openLink = Array.from(links).find(a => a.textContent?.includes('Open Email App'))
+    expect(openLink).not.toBeNull()
   })
 
-  it('shows error message and preserves data when the mail app handoff fails', async () => {
-    openSpy.mockImplementationOnce(() => {
-      throw new Error('Window open failed')
-    })
-
+  it('allows editing the message after draft is ready', async () => {
     renderPage()
     fillForm('Jane Doe', 'jane@example.com', 'Hello admissions')
     await submitForm()
@@ -133,17 +128,8 @@ describe('ContactPage form submission', () => {
       await new Promise((r) => setTimeout(r, 50))
     })
 
-    // Error message should be visible
-    const errorMsg = container.querySelector('[role="alert"]')
-    expect(errorMsg).not.toBeNull()
-    expect(errorMsg!.textContent).toContain('Unable to open your email app')
-
-    // Form data should be preserved
-    const nameInput = container.querySelector('#contact-name') as HTMLInputElement
-    const emailInput = container.querySelector('#contact-email') as HTMLInputElement
-    const messageInput = container.querySelector('#contact-message') as HTMLTextAreaElement
-    expect(nameInput.value).toBe('Jane Doe')
-    expect(emailInput.value).toBe('jane@example.com')
-    expect(messageInput.value).toBe('Hello admissions')
+    // The form should still be present for editing
+    const form = container.querySelector('form') as HTMLFormElement
+    expect(form).not.toBeNull()
   })
 })

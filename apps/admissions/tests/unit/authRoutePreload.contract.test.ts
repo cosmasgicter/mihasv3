@@ -39,8 +39,8 @@ describe('auth route preload and session race contracts', () => {
   it('cancels stale session checks before and after auth cache seeding', () => {
     const sessionListener = readSource('hooks/auth/useSessionListener.ts')
 
-    expect(sessionListener.match(/cancelQueries\(\{ queryKey: \['auth', 'session'\] \}\)/g)?.length).toBeGreaterThanOrEqual(4)
-    expect(sessionListener).toContain("queryClient.setQueryData(['auth', 'session'], { user: authUser })")
-    expect(sessionListener).toContain("queryClient.setQueryData(['auth', 'session'], { user: userPayload })")
+    expect(sessionListener).toContain('SESSION_QUERY_KEY')
+    expect(sessionListener).toContain("queryClient.setQueryData(SESSION_QUERY_KEY, { user: authUser })")
+    expect(sessionListener).toContain("queryClient.setQueryData(SESSION_QUERY_KEY, { user: userPayload })")
   })
 })

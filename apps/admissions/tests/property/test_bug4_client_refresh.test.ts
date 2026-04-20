@@ -77,12 +77,9 @@ const authRelatedGetEndpoints = [
   '/notifications/',
 ];
 
-// Non-CSRF error codes that indicate auth failure, not CSRF failure
-const nonCsrfErrorCodes = [
-  undefined,
-  'FORBIDDEN',
-  'NOT_AUTHENTICATED',
-  'PERMISSION_DENIED',
+// Non-CSRF error codes that indicate auth failure (TOKEN_EXPIRED triggers refresh)
+const tokenExpiredCodes = [
+  'TOKEN_EXPIRED',
 ];
 
 // ── Property 1: 403 on GET to auth-related endpoint triggers refresh ────
@@ -100,23 +97,26 @@ describe('Property 1: Bug Condition — 403 on GET triggers refresh for auth-rel
   });
 
   /**
-   * When a GET request to a session/auth endpoint returns 403 without a CSRF
-   * error code, the ApiClient should attempt a token refresh — same as 401.
+   * When a state-changing request returns 403 with TOKEN_EXPIRED error code,
+   * the ApiClient should attempt a token refresh — same as 401.
    *
-   * Bug condition from design:
-   *   isBugCondition_Bug4(input) where responseStatus == 403
-   *   AND NOT refreshFlowTriggered
-   *
-   * On UNFIXED code: the 403 falls through to normal error handling without
-   * attempting refresh. The test expects a refresh attempt, so it will FAIL.
+   * Session hardening made 403 handling conservative:
+   * - GET requests: only 401 triggers refresh (403 is a permission denial)
+   * - State-changing requests: 403 + TOKEN_EXPIRED triggers refresh
    *
    * **Validates: Requirements 1.7, 1.8, 1.9**
    */
-  it('attempts token refresh when GET request returns 403 without CSRF error code', async () => {
+  it('attempts token refresh when GET request returns 403 with TOKEN_EXPIRED error code', async () => {
+    const stateChangingEndpoints = [
+      '/applications/',
+      '/sessions/',
+      '/notifications/',
+    ];
+
     await fc.assert(
       fc.asyncProperty(
-        fc.constantFrom(...authRelatedGetEndpoints),
-        fc.constantFrom(...nonCsrfErrorCodes),
+        fc.constantFrom(...stateChangingEndpoints),
+        fc.constantFrom(...tokenExpiredCodes),
         async (endpoint, errorCode) => {
           vi.resetModules();
           const { clearCsrfToken } = await import('@/lib/csrfToken');
@@ -133,7 +133,7 @@ describe('Property 1: Bug Condition — 403 on GET triggers refresh for auth-rel
 
             callCount++;
 
-            // First request: 403 (expired JWT → AnonymousUser → DRF returns 403)
+            // First request: 403 (expired JWT → TOKEN_EXPIRED)
             if (callCount === 1) {
               const body: Record<string, unknown> = {
                 success: false,
@@ -164,7 +164,7 @@ describe('Property 1: Bug Condition — 403 on GET triggers refresh for auth-rel
               );
             }
 
-            // Third request: retry of original GET — succeed
+            // Third request: retry of original — succeed
             return new Response(
               JSON.stringify({ success: true, data: { session: 'valid' } }),
               {
@@ -180,13 +180,12 @@ describe('Property 1: Bug Condition — 403 on GET triggers refresh for auth-rel
           const { apiClient } = await import('@/services/client');
 
           try {
-            await apiClient.request(endpoint, { method: 'GET', retries: 0 });
+            await apiClient.request(endpoint, { method: 'POST', retries: 0 });
           } catch {
             // May throw on unfixed code — that's expected
           }
 
-          // EXPECTED behavior (will FAIL on unfixed code):
-          // The ApiClient should have attempted a refresh after the 403
+          // EXPECTED behavior: The ApiClient should have attempted a refresh after the 403 + TOKEN_EXPIRED
           const refreshCall = capturedRequests.find(r =>
             r.url.includes('/auth/refresh/')
           );

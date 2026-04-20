@@ -29,6 +29,7 @@ import { clearCsrfToken } from '@/lib/csrfToken'
 import { secureStorage } from '@/lib/secureStorage'
 import { useAuthBroadcast } from '@/lib/authBroadcast'
 import { resetPrefetchState } from '@/lib/speculativePrefetch'
+import { SESSION_MESSAGES } from '@/lib/sessionHardening'
 
 interface AuthContextType {
   user: User | null
@@ -63,11 +64,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Configure the API client's auth failure callback.
   // When a 401 triggers a refresh attempt that also fails, the API client
   // invokes this callback to perform the full auth-expired cascade:
-  //   1. Clear React Query cache (all queries)
+  //   1. Clear auth-related React Query cache (preserve public catalog data)
   //   2. Clear CSRF token store (in-memory)
   //   3. Clear secure storage (encrypted localStorage)
   //   4. Dispatch mihas:auth-expired event (route guards listen for this)
   //   5. Redirect to login page
+  // Deduplication is handled by shouldDispatchAuthFailure() in the API client.
   useEffect(() => {
     configureApiClientAuthFailure(() => {
       void (async () => {
@@ -76,8 +78,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Clear auth state in React Query cache
         queryClient.setQueryData(['auth', 'session'], null)
         queryClient.removeQueries({ queryKey: ['user-profile'] })
-        // Clear all caches
-        queryClient.clear()
+        // Only clear auth-related queries — preserve public catalog data
+        queryClient.removeQueries({ predicate: (query) => {
+          const key = query.queryKey[0]
+          return key === 'auth' || key === 'user-profile' || key === 'student-dashboard-polling' || key === 'application_drafts' || key === 'notifications'
+        }})
         // Clear CSRF token
         clearCsrfToken()
         // Clear speculative prefetch state so it re-runs on next login
@@ -102,11 +107,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const signInPath = from && from !== '/'
           ? `/auth/signin?redirect=${encodeURIComponent(from)}`
           : '/auth/signin'
-        // Do not force a hard redirect here. Route guards and explicit user actions
-        // should drive navigation so unsaved form state can be preserved.
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('mihas:auth-expired', {
-            detail: { from, signInPath },
+            detail: { from, signInPath, message: SESSION_MESSAGES.SESSION_EXPIRED },
           }))
         }
       })()

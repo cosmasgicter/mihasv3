@@ -59,7 +59,7 @@ describe('auth page form markup', () => {
   it('disables native browser validation on the sign-in form so inline errors can render', () => {
     const markup = renderAuthPage(<SignInPage />)
 
-    expect(markup).toContain('<form class="space-y-6" novalidate="">')
+    expect(markup).toContain('<form class="space-y-6" method="post" novalidate="">')
   })
 
   it('groups sign-in credentials inside a labelled fieldset', () => {
@@ -73,7 +73,7 @@ describe('auth page form markup', () => {
   it('disables native browser validation on the sign-up form so inline errors can render', () => {
     const markup = renderAuthPage(<SignUpPage />)
 
-    expect(markup).toContain('<form class="space-y-6" novalidate="">')
+    expect(markup).toContain('<form class="space-y-6" method="post" novalidate="">')
   })
 
   it('groups sign-up fields into labelled sections', () => {

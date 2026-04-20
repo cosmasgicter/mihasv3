@@ -235,8 +235,24 @@ vi.mock('@/components/ui/ProfileAutoPopulationIndicator', () => ({
 
 // ── Mock tanstack react-query ─────────────────────────────────────────
 vi.mock('@tanstack/react-query', () => ({
+  QueryClient: class {
+    defaultOptions = {}
+    getQueryData() { return null }
+    setQueryData() {}
+    prefetchQuery() { return Promise.resolve() }
+    fetchQuery() { return Promise.resolve(null) }
+  },
+  QueryClientProvider: ({ children }: { children: unknown }) => children,
   useQueryClient: () => ({
     invalidateQueries: vi.fn(),
+    getQueryData: () => null,
+    setQueryData: vi.fn(),
+  }),
+  useQuery: () => ({
+    data: undefined,
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
   }),
 }))
 

@@ -98,12 +98,12 @@ describe('ProtectedRoute loading timeout safety net', () => {
     )
 
     act(() => {
-      vi.advanceTimersByTime(4999)
+      vi.advanceTimersByTime(7999)
     })
 
     expect(mockInvalidateQueries).not.toHaveBeenCalled()
     expect(container.textContent).not.toContain('Taking longer than expected')
-    expect(container.textContent).not.toContain('Opening your account')
+    expect(container.textContent).not.toContain('Reconnecting your session')
 
     unmount()
   })
@@ -118,7 +118,7 @@ describe('ProtectedRoute loading timeout safety net', () => {
     )
 
     act(() => {
-      vi.advanceTimersByTime(5000)
+      vi.advanceTimersByTime(8000)
     })
 
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
@@ -138,11 +138,11 @@ describe('ProtectedRoute loading timeout safety net', () => {
     )
 
     act(() => {
-      vi.advanceTimersByTime(5000)
+      vi.advanceTimersByTime(8000)
     })
 
     expect(container.textContent).not.toContain('Taking longer than expected')
-    expect(container.textContent).toContain('Opening your account')
+    expect(container.textContent).toContain('Reconnecting your session')
 
     unmount()
   })
@@ -157,7 +157,7 @@ describe('ProtectedRoute loading timeout safety net', () => {
     )
 
     act(() => {
-      vi.advanceTimersByTime(5000)
+      vi.advanceTimersByTime(8000)
     })
 
     const button = container.querySelector('button')
@@ -177,7 +177,7 @@ describe('ProtectedRoute loading timeout safety net', () => {
     )
 
     act(() => {
-      vi.advanceTimersByTime(5000)
+      vi.advanceTimersByTime(8000)
     })
 
     await act(async () => {
@@ -202,7 +202,7 @@ describe('ProtectedRoute loading timeout safety net', () => {
     unmount()
 
     act(() => {
-      vi.advanceTimersByTime(5000)
+      vi.advanceTimersByTime(8000)
     })
 
     // invalidateQueries should NOT have been called since we unmounted
@@ -220,10 +220,10 @@ describe('ProtectedRoute loading timeout safety net', () => {
 
     // Trigger timeout
     act(() => {
-      vi.advanceTimersByTime(5000)
+      vi.advanceTimersByTime(8000)
     })
 
-    expect(container.textContent).toContain('Opening your account')
+    expect(container.textContent).toContain('Reconnecting your session')
 
     // Now loading resolves — user is authenticated
     mockUseAuthCheck.mockReturnValue(
@@ -241,7 +241,7 @@ describe('ProtectedRoute loading timeout safety net', () => {
     )
 
     // Timeout message should be gone, children should render
-    expect(container.textContent).not.toContain('Opening your account')
+    expect(container.textContent).not.toContain('Reconnecting your session')
     expect(container.textContent).toContain('Dashboard')
 
     unmount()
@@ -290,7 +290,7 @@ describe('ProtectedRoute loading timeout safety net', () => {
     })
 
     act(() => {
-      vi.advanceTimersByTime(1199)
+      vi.advanceTimersByTime(4999)
     })
     expect(container.querySelector('mock-navigate')).toBeNull()
 

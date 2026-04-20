@@ -19,6 +19,10 @@ vi.mock('@/services/client', () => ({
   apiClient: {
     request: (...args: unknown[]) => mockRequest(...args),
   },
+  buildQueryString: (params: Record<string, unknown>) => {
+    const entries = Object.entries(params).filter(([, v]) => v != null && v !== '')
+    return entries.length ? '?' + entries.map(([k, v]) => `${k}=${v}`).join('&') : ''
+  },
 }))
 
 vi.mock('@/lib/apiErrorLogger', () => ({

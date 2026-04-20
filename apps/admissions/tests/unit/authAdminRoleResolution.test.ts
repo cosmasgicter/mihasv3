@@ -15,13 +15,13 @@ describe('checkIsAdmin', () => {
     expect(checkIsAdmin({ id: '4', email: 'head@example.com', role: 'academic_head' } as any)).toBe(false)
   })
 
-  it('accepts role values sourced from metadata', () => {
+  it('does not resolve role from metadata (only top-level role is checked)', () => {
     expect(checkIsAdmin({
       id: '3',
       email: 'meta@example.com',
       role: undefined,
       user_metadata: { role: 'super_admin' },
-    } as any)).toBe(true)
+    } as any)).toBe(false)
   })
 
   it('does not treat reviewer/student as admin', () => {

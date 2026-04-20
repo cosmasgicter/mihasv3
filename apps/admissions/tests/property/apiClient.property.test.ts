@@ -778,6 +778,7 @@ describe('Property 12: 401 intercept-refresh-retry behavior', () => {
           });
 
           vi.stubGlobal('fetch', mockFetch);
+          vi.resetModules();
 
           const { apiClient } = await import('@/services/client');
           const result = await apiClient.request(endpoint, { method, retries: 0 });

@@ -134,8 +134,8 @@ export interface PaymentValidationContext {
 }
 
 const WIZARD_AUTH_REDIRECT_GUARD_KEY = 'mihas:wizard-auth-redirect-guard'
-const WIZARD_SESSION_GRACE_MS = 1500
-const SESSION_EXPIRED_BANNER = 'Session expired, please sign in to continue'
+const WIZARD_SESSION_GRACE_MS = 5000
+const SESSION_EXPIRED_BANNER = 'Your session expired. We saved your progress. Please sign in again to continue.'
 
 type SessionCacheShape = { user?: { id?: string } | null } | null | undefined
 

@@ -41,7 +41,7 @@ describe('Bug 8 — Legacy cleanup verification', () => {
 
   describe('8.2 — Correct bulk status URL', () => {
     it('applications.ts uses /applications/bulk-status/ not /applications/bulk', () => {
-      const filePath = resolve(ADMISSIONS_SRC, 'data/applications.ts')
+      const filePath = resolve(ADMISSIONS_SRC, 'services/applications.ts')
       const content = readFileSync(filePath, 'utf-8')
 
       // Should use the correct URL

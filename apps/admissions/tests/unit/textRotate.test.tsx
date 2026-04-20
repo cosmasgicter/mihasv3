@@ -20,7 +20,7 @@ import { TextRotate } from '@/components/smoothui/text-rotate'
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
-function renderTextRotate(props: { phrases: string[]; interval?: number; duration?: number; className?: string }) {
+function renderTextRotate(props: { phrases: string[]; interval?: number; duration?: number; className?: string; announce?: boolean }) {
   const container = document.createElement('div')
   document.body.appendChild(container)
   const root = createRoot(container)
@@ -82,7 +82,7 @@ describe('TextRotate', () => {
   })
 
   it('has aria-live="polite" attribute (Requirement 5.4)', () => {
-    const { container, unmount } = renderTextRotate({ phrases: ['Hello', 'World'] })
+    const { container, unmount } = renderTextRotate({ phrases: ['Hello', 'World'], announce: true })
     const liveRegion = container.querySelector('[aria-live="polite"]')
     expect(liveRegion).not.toBeNull()
     unmount()
@@ -90,7 +90,7 @@ describe('TextRotate', () => {
 
   it('has aria-live="polite" in reduced motion mode (Requirement 5.4)', () => {
     mockReducedMotion = true
-    const { container, unmount } = renderTextRotate({ phrases: ['Hello', 'World'] })
+    const { container, unmount } = renderTextRotate({ phrases: ['Hello', 'World'], announce: true })
     const liveRegion = container.querySelector('[aria-live="polite"]')
     expect(liveRegion).not.toBeNull()
     unmount()

@@ -17,6 +17,7 @@ Middleware ordering (configured in base.py):
 """
 
 import hashlib
+import json
 import logging
 import re
 import uuid
@@ -246,7 +247,16 @@ class JWTAuthenticationMiddleware:
         # If the token was present but expired, the downstream DRF permission
         # class will see AnonymousUser and return 403.  Convert that to 401 so
         # the frontend's refresh-token interceptor fires correctly.
+        # Do NOT convert CSRF 403s — those are recoverable without re-auth.
         if getattr(request, "_jwt_expired", False) and response.status_code == 403:
+            # Check if this is a CSRF failure (should stay 403)
+            if hasattr(response, "content"):
+                try:
+                    body = json.loads(response.content)
+                    if body.get("code") == "CSRF_INVALID":
+                        return response
+                except (json.JSONDecodeError, AttributeError):
+                    pass
             response = JsonResponse(
                 {
                     "success": False,
@@ -398,8 +408,8 @@ class CSRFEnforcementMiddleware:
         return JsonResponse(
             {
                 "success": False,
-                "error": "CSRF validation failed",
-                "code": "CSRF_VALIDATION_FAILED",
+                "error": "CSRF validation failed. Please refresh and try again.",
+                "code": "CSRF_INVALID",
             },
             status=403,
         )

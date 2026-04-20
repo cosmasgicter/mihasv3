@@ -2,16 +2,35 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const generateApplicationSlipMock = vi.fn()
 const persistSlipMock = vi.fn()
+const mockApiRequest = vi.fn()
 
-vi.mock('@/lib/applicationSlip', () => ({
-  generateApplicationSlip: generateApplicationSlipMock,
-  persistSlip: persistSlipMock,
+vi.mock('@/lib/applicationSlipPdf', () => ({
+  generateApplicationSlip: (...args: unknown[]) => generateApplicationSlipMock(...args),
+}))
+
+vi.mock('@/lib/applicationSlipStorage', () => ({
+  persistSlip: (...args: unknown[]) => persistSlipMock(...args),
+}))
+
+vi.mock('@/lib/lazyImportRecovery', () => ({
+  importWithChunkRecovery: (importFn: () => Promise<unknown>) => importFn(),
+}))
+
+vi.mock('@/services/client', () => ({
+  apiClient: {
+    request: (...args: unknown[]) => mockApiRequest(...args),
+  },
+}))
+
+vi.mock('@/lib/logger', () => ({
+  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
 }))
 
 describe('createApplicationSlip email delivery', () => {
   beforeEach(() => {
     generateApplicationSlipMock.mockReset()
     persistSlipMock.mockReset()
+    mockApiRequest.mockReset()
   })
 
   it('returns an explicit backend migration error for slip emails', async () => {
@@ -22,6 +41,7 @@ describe('createApplicationSlip email delivery', () => {
       documentId: 'doc-1',
       path: 'slips/app-1.pdf',
     })
+    mockApiRequest.mockRejectedValue(new Error('Email slip endpoint not implemented'))
 
     const { createApplicationSlip } = await import('@/lib/slipService')
     const result = await createApplicationSlip({

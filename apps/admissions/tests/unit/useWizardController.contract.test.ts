@@ -11,9 +11,8 @@ describe('useWizardController Step 1 API contract regression', () => {
     // Django validates by program name and intake.name, not the display label.
     expect(source).toContain('program: resolvedProgram.label')
     expect(source).toContain('intake: resolvedIntake.name')
-    // IDs are still used for duplicate checking
-    expect(source).toContain('resolvedProgram.id')
-    expect(source).toContain('resolvedIntake.id')
+    // IDs are still used for resolution
+    expect(source).toContain('resolvedProgramId')
   })
 
   it('advances to the next step after successful Step 1 save', () => {

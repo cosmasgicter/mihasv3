@@ -29,6 +29,7 @@ import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { Container } from '@/components/ui/Container'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
+import { Banner } from '@/components/ui/Banner'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageShell } from '@/components/ui/PageShell'
 import { useStudentDashboardRefresh } from '@/hooks/useManualRefresh'
@@ -75,6 +76,7 @@ export default function StudentDashboard() {
   const [hasDraft, setHasDraft] = useState(false)
   const [isClearingAllDrafts, setIsClearingAllDrafts] = useState(false)
   const [scheduledInterviews, setScheduledInterviews] = useState<ApplicationInterview[]>([])
+  const [sessionError, setSessionError] = useState('')
   const hasLoadedRef = useRef(false)
   const abortControllerRef = useRef<AbortController | null>(null)
   const loadRequestIdRef = useRef(0)
@@ -369,9 +371,9 @@ export default function StudentDashboard() {
         failedResults.every(r => is403Error((r as PromiseRejectedResult).reason))
 
       if (all403 && isLatestRequest() && !signal.aborted) {
-        // All sources returned 403 — session expired, redirect within 2 seconds
+        // All sources returned 403 — show error banner instead of redirecting
         setTimeout(() => {
-          navigate('/auth/signin')
+          setSessionError('Unable to load dashboard data. Please try refreshing the page.')
         }, 2000)
       }
     } catch (error) {
@@ -542,6 +544,12 @@ export default function StudentDashboard() {
                 </div>
                 <span className="sr-only">Refreshing dashboard data</span>
               </div>
+            )}
+
+            {sessionError && (
+              <Banner variant="error">
+                {sessionError}
+              </Banner>
             )}
 
             <StudentNextActionCard
