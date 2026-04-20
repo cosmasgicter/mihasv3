@@ -84,7 +84,7 @@ export async function generatePaymentReceipt(data: ReceiptData): Promise<Blob> {
 
   doc.setTextColor(0, 0, 0)
   doc.setFontSize(11)
-  const studentFields = [
+  const studentFields: [string, string][] = [
     ['Name:', data.studentName],
     ['Email:', data.email],
     ['Phone:', data.phone],

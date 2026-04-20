@@ -22,7 +22,7 @@ Both are backed by the Django API in `backend/`. Treat changes as production-sen
 
 ### Error Monitoring
 
-The platform uses GlitchTip (Sentry-compatible, free tier) for error tracking. Backend errors are captured automatically by `sentry-sdk` with Django and Celery integrations. Frontend errors are captured by `@sentry/react`. Both are configured via DSN environment variables (`GLITCHTIP_DSN` for backend, `VITE_GLITCHTIP_DSN` for frontend). The legacy `ErrorLog` model and `error_logs` table are preserved but no longer written to. The `POST /api/v1/errors/report/` endpoint still accepts reports for backwards compatibility, forwarding them to GlitchTip. `ERROR_ALERT_EMAIL` remains in use for non-error-monitoring alerts (uptime, payment failures, SLA breaches).
+The platform uses GlitchTip (Sentry-compatible, free tier) for error tracking. Both frontend and backend report to a single GlitchTip project (22431). Backend errors are captured automatically by `sentry-sdk` with Django and Celery integrations. Frontend errors are captured by `@sentry/react`. CSP violations are reported via the `report-uri` directive in the Vercel CSP header. Both SDKs are configured via DSN environment variables (`GLITCHTIP_DSN` for backend, `VITE_GLITCHTIP_DSN` for frontend). The legacy `ErrorLog` model and `error_logs` table are preserved but no longer written to. The `POST /api/v1/errors/report/` endpoint still accepts reports for backwards compatibility, forwarding them to GlitchTip. `ERROR_ALERT_EMAIL` remains in use for non-error-monitoring alerts (uptime, payment failures, SLA breaches).
 
 ## Hard Constraints
 
