@@ -73,7 +73,7 @@ export function NotificationBell() {
         <Bell className={`h-5 w-5 text-muted-foreground${unreadCount > 0 ? ' motion-safe:animate-bounce' : ''}`} aria-hidden="true" style={unreadCount > 0 ? { animationIterationCount: 1 } : undefined} />
         {unreadCount > 0 && (
           <span
-            className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white animate-scale-in"
+            className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white animate-pulse shadow-sm shadow-destructive/50"
             data-testid="unread-count"
           >
             {unreadCount > 99 ? '99+' : unreadCount}
