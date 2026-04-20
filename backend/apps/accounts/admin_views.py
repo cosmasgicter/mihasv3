@@ -141,7 +141,7 @@ class AdminUserSerializer(serializers.Serializer):
 
 class AdminUserCreateSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    password = serializers.CharField(min_length=8, write_only=True)
+    password = serializers.CharField(min_length=6, write_only=True)
     first_name = serializers.CharField(max_length=255)
     last_name = serializers.CharField(max_length=255)
     role = serializers.ChoiceField(choices=["student", "admin", "reviewer", "super_admin"])
@@ -149,18 +149,9 @@ class AdminUserCreateSerializer(serializers.Serializer):
     nationality = serializers.CharField(max_length=100, required=False, default="Zambian")
 
     def validate_password(self, value):
-        """Enforce password complexity: min 8 chars, 1 uppercase, 1 digit, 1 special char."""
-        if len(value) < 8:
-            raise serializers.ValidationError("Password must be at least 8 characters.")
-        if not any(c.isupper() for c in value):
-            raise serializers.ValidationError("Password must contain at least one uppercase letter.")
-        if not any(c.isdigit() for c in value):
-            raise serializers.ValidationError("Password must contain at least one digit.")
-        if not any(c in '!@#$%^&*()_+-=[]{}|;:,.<>?/' for c in value):
-            raise serializers.ValidationError("Password must contain at least one special character.")
-        common = {'password', 'password1', '12345678', 'qwerty12', 'admin123', 'letmein1'}
-        if value.lower() in common:
-            raise serializers.ValidationError("This password is too common.")
+        """Enforce minimum password length of 6 characters."""
+        if len(value) < 6:
+            raise serializers.ValidationError("Password must be at least 6 characters.")
         return value
 
 
@@ -171,7 +162,7 @@ class AdminUserUpdateSerializer(serializers.Serializer):
     is_active = serializers.BooleanField(required=False)
     first_name = serializers.CharField(max_length=255, required=False)
     last_name = serializers.CharField(max_length=255, required=False)
-    password = serializers.CharField(min_length=8, write_only=True, required=False)
+    password = serializers.CharField(min_length=6, write_only=True, required=False)
 
 
 class SettingSerializer(serializers.Serializer):
