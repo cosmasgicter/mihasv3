@@ -451,7 +451,7 @@ class NotificationListView(APIView):
     ),
 )
 class NotificationMarkReadView(APIView):
-    """PUT /api/v1/notifications/{id}/read/
+    """PUT/POST /api/v1/notifications/{id}/read/
 
     Mark a single notification as read. Only the notification owner can do this.
     """
@@ -459,7 +459,7 @@ class NotificationMarkReadView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = MessageSerializer
 
-    def put(self, request, pk):
+    def _mark_read(self, request, pk):
         try:
             notification = Notification.objects.get(pk=pk, user_id=request.user.pk)
         except Notification.DoesNotExist:
@@ -480,6 +480,12 @@ class NotificationMarkReadView(APIView):
             "data": {"message": "Notification marked as read"},
         })
 
+    def put(self, request, pk):
+        return self._mark_read(request, pk)
+
+    def post(self, request, pk):
+        return self._mark_read(request, pk)
+
 
 # ---------------------------------------------------------------------------
 # 11.1 — Mark All Notifications as Read
@@ -494,7 +500,7 @@ class NotificationMarkReadView(APIView):
     ),
 )
 class NotificationMarkAllReadView(APIView):
-    """PUT /api/v1/notifications/read-all/
+    """PUT/POST /api/v1/notifications/read-all/ or /api/v1/notifications/mark-all-read/
 
     Mark all unread notifications as read for the authenticated user.
     """
@@ -502,7 +508,7 @@ class NotificationMarkAllReadView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = MessageSerializer
 
-    def put(self, request):
+    def _mark_all_read(self, request):
         updated = Notification.objects.filter(
             user_id=request.user.pk, is_read=False
         ).update(is_read=True)
@@ -511,6 +517,12 @@ class NotificationMarkAllReadView(APIView):
             "success": True,
             "data": {"message": f"{updated} notification(s) marked as read"},
         })
+
+    def put(self, request):
+        return self._mark_all_read(request)
+
+    def post(self, request):
+        return self._mark_all_read(request)
 
 
 # ---------------------------------------------------------------------------

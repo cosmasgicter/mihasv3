@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Download, Loader2, Mail } from 'lucide-react'
+import { CheckCircle2, Download, Mail, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthContext'
@@ -23,9 +23,7 @@ function buildSlipPayload(
   const email = application.email || fallbackEmail
   const trackingCode = application.public_tracking_code
 
-  if (!email || !trackingCode || !application.application_number) {
-    return null
-  }
+  if (!email || !trackingCode || !application.application_number) return null
 
   return {
     application_id: applicationId || application.id || undefined,
@@ -53,45 +51,29 @@ export function ApplicationSlipActions({ applicationId, applicationNumber, compa
   const { user } = useAuth()
   const [isDownloading, setIsDownloading] = useState(false)
   const [isEmailing, setIsEmailing] = useState(false)
-  const [emailSent, setEmailSent] = useState(false)
-  const [emailStatusMessage, setEmailStatusMessage] = useState<string | null>(null)
+  const [showEmailInput, setShowEmailInput] = useState(false)
+  const [emailAddress, setEmailAddress] = useState('')
+  const [sentTo, setSentTo] = useState<string | null>(null)
+  const [emailError, setEmailError] = useState<string | null>(null)
 
-  const prepareSlip = async (sendEmail: boolean) => {
+  const fetchSlipPayload = async (targetEmail?: string) => {
     const response = await applicationService.getById(applicationId)
     const application = response?.application
+    if (!application) throw new Error('Application details are unavailable')
 
-    if (!application) {
-      throw new Error('Application details are unavailable')
-    }
+    const payload = buildSlipPayload(application as Record<string, any>, user?.email, user?.id, applicationId)
+    if (!payload) throw new Error('Missing application details required for the slip')
 
-    const slipPayload = buildSlipPayload(application as Record<string, any>, user?.email, user?.id, applicationId)
-    if (!slipPayload) {
-      throw new Error('Missing application details required for the slip')
-    }
-
-    const result = await createApplicationSlip(slipPayload, {
-      sendEmail,
-      toast: {
-        showSuccess: (title, message) => toast.success(title, message),
-        showError: (title, message) => toast.error(title, message),
-        showInfo: (title, message) => toast.info(title, message),
-        showWarning: (title, message) => toast.warning(title, message),
-      }
-    })
-
-    if (result.error) {
-      throw new Error(result.error)
-    }
-
-    return result
+    if (targetEmail) payload.email = targetEmail
+    return payload
   }
 
   const triggerBlobDownload = (blob: Blob) => {
-    const resolvedApplicationNumber = applicationNumber || applicationId
+    const name = applicationNumber || applicationId
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `application-slip-${resolvedApplicationNumber}.pdf`
+    link.download = `application-slip-${name}.pdf`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -101,96 +83,161 @@ export function ApplicationSlipActions({ applicationId, applicationNumber, compa
   const handleDownload = async () => {
     setIsDownloading(true)
     try {
-      const result = await prepareSlip(false)
-
-      if (!result.blob) {
-        throw new Error('The slip could not be generated for download')
-      }
-
+      const payload = await fetchSlipPayload()
+      const result = await createApplicationSlip(payload, {
+        toast: {
+          showSuccess: (t, m) => toast.success(t, m),
+          showError: (t, m) => toast.error(t, m),
+          showInfo: (t, m) => toast.info(t, m),
+          showWarning: (t, m) => toast.warning(t, m),
+        },
+      })
+      if (result.error) throw new Error(result.error)
+      if (!result.blob) throw new Error('The slip could not be generated for download')
       triggerBlobDownload(result.blob)
     } catch (error) {
-      console.error('Download failed:', error)
       toast.error('Download Failed', error instanceof Error ? error.message : 'Unable to download the slip')
     } finally {
       setIsDownloading(false)
     }
   }
 
-  const handleEmailRequest = async () => {
-    if (isEmailing) return
+  const handleEmailOpen = () => {
+    setShowEmailInput(true)
+    setEmailAddress(user?.email || '')
+    setSentTo(null)
+    setEmailError(null)
+  }
+
+  const handleEmailSend = async () => {
+    const target = emailAddress.trim()
+    if (!target || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(target)) {
+      setEmailError('Please enter a valid email address')
+      return
+    }
 
     setIsEmailing(true)
-    setEmailStatusMessage(null)
+    setEmailError(null)
+    setSentTo(null)
+
     try {
-      const result = await prepareSlip(true)
+      const payload = await fetchSlipPayload(target)
+      const result = await createApplicationSlip(payload, {
+        sendEmail: true,
+        toast: {
+          showSuccess: (t, m) => toast.success(t, m),
+          showError: (t, m) => toast.error(t, m),
+          showInfo: (t, m) => toast.info(t, m),
+          showWarning: (t, m) => toast.warning(t, m),
+        },
+      })
+
+      if (result.error) throw new Error(result.error)
 
       if (result.emailError) {
         if (result.blob) {
           triggerBlobDownload(result.blob)
-          setEmailStatusMessage('Email could not be sent. Your slip is downloading now so you can share it manually.')
-          toast.warning('Email unavailable', 'We could not send email right now. Your slip is downloading instead.')
-          return
+          setEmailError('Email could not be sent. Your slip is downloading instead.')
+        } else {
+          setEmailError(result.emailError)
         }
-        setEmailStatusMessage(result.emailError)
         return
       }
 
-      setEmailSent(true)
-      setEmailStatusMessage('Application slip emailed successfully.')
-      window.setTimeout(() => setEmailSent(false), 5000)
+      setSentTo(target)
+      setTimeout(() => { setSentTo(null); setShowEmailInput(false) }, 5000)
     } catch (error) {
-      console.error('Email failed:', error)
-      const message = error instanceof Error ? error.message : 'Unable to email the slip'
-      setEmailStatusMessage(message)
-      toast.error('Email Failed', message)
+      setEmailError(error instanceof Error ? error.message : 'Unable to email the slip')
     } finally {
       setIsEmailing(false)
     }
   }
 
-  const emailDisabled = isEmailing || emailSent
-
   return (
-    <div className={compact ? 'flex w-full flex-col gap-2' : 'flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap'}>
-      <Button
-        onClick={handleDownload}
-        disabled={isDownloading}
-        variant="secondary"
-        className={compact
-          ? 'min-h-11 w-full justify-center gap-2 border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400 disabled:bg-slate-100 disabled:border-slate-200 disabled:text-slate-400 disabled:shadow-none'
-          : 'min-h-11 w-full justify-center gap-2 border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400 disabled:bg-slate-100 disabled:border-slate-200 disabled:text-slate-400 disabled:shadow-none sm:w-auto'
-        }
-        loading={isDownloading}
-      >
-        {!isDownloading && <Download className="h-4 w-4" />}
-        <span>{isDownloading ? 'Generating...' : 'Download Slip'}</span>
-      </Button>
-
-      <Button
-        onClick={handleEmailRequest}
-        disabled={emailDisabled}
-        variant="primary"
-        className={compact
-          ? 'min-h-11 w-full justify-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-primary/50 disabled:text-primary-foreground disabled:opacity-100 disabled:cursor-not-allowed'
-          : 'min-h-11 w-full justify-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-primary/50 disabled:text-primary-foreground disabled:opacity-100 disabled:cursor-not-allowed sm:w-auto'
-        }
-        loading={isEmailing}
-      >
-        {!isEmailing && <Mail className="h-4 w-4" />}
-        <span>
-          {isEmailing ? 'Sending...' : emailSent ? 'Email Sent!' : 'Email Slip'}
-        </span>
-      </Button>
-
-      {(emailSent || emailStatusMessage) && (
-        <div
-          className={`text-sm font-medium animate-fade-in ${
-            emailSent ? 'text-success' : 'text-warning'
-          }`}
-          role="status"
-          aria-live="polite"
+    <div className={compact ? 'flex w-full flex-col gap-2' : 'flex w-full flex-col gap-3'}>
+      <div className={compact ? 'flex w-full flex-col gap-2' : 'flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:w-auto'}>
+        <Button
+          onClick={handleDownload}
+          disabled={isDownloading}
+          variant="secondary"
+          className={compact
+            ? 'min-h-[44px] w-full justify-center gap-2 rounded-xl border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400'
+            : 'min-h-[44px] w-full justify-center gap-2 rounded-xl border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400 sm:w-auto'
+          }
+          loading={isDownloading}
         >
-          {emailStatusMessage ?? '✓ Application slip will be sent to your email shortly'}
+          {!isDownloading && <Download className="h-4 w-4" />}
+          <span>{isDownloading ? 'Generating...' : 'Download Slip'}</span>
+        </Button>
+
+        {!showEmailInput && (
+          <Button
+            onClick={handleEmailOpen}
+            variant="primary"
+            className={compact
+              ? 'min-h-[44px] w-full justify-center gap-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90'
+              : 'min-h-[44px] w-full justify-center gap-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto'
+            }
+          >
+            <Mail className="h-4 w-4" />
+            <span>Email Slip</span>
+          </Button>
+        )}
+      </div>
+
+      {showEmailInput && (
+        <div className="flex w-full flex-col gap-2 animate-fade-in">
+          <div className="flex items-center gap-2">
+            <input
+              type="email"
+              value={emailAddress}
+              onChange={(e) => { setEmailAddress(e.target.value); setEmailError(null) }}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleEmailSend() }}
+              placeholder="Enter email address"
+              autoFocus
+              className="h-12 flex-1 rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
+              disabled={isEmailing}
+              aria-label="Email address for application slip"
+            />
+            <Button
+              onClick={handleEmailSend}
+              disabled={isEmailing || !emailAddress.trim()}
+              variant="primary"
+              className="min-h-[44px] rounded-xl bg-primary px-5 text-primary-foreground hover:bg-primary/90"
+              loading={isEmailing}
+            >
+              {!isEmailing && <Mail className="h-4 w-4" />}
+              <span>{isEmailing ? 'Sending...' : 'Send'}</span>
+            </Button>
+            <button
+              onClick={() => { setShowEmailInput(false); setEmailError(null); setSentTo(null) }}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              aria-label="Cancel email"
+              type="button"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {sentTo && (
+            <div className="flex items-center gap-2 text-sm font-medium text-emerald-600 animate-fade-in" role="status" aria-live="polite">
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
+              <span>Slip sent to {sentTo}</span>
+            </div>
+          )}
+
+          {emailError && (
+            <div className="flex items-center justify-between text-sm text-red-600 animate-fade-in" role="alert">
+              <span>{emailError}</span>
+              <button
+                onClick={handleEmailSend}
+                className="ml-2 shrink-0 text-xs font-medium text-red-700 underline hover:text-red-800"
+                type="button"
+              >
+                Retry
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

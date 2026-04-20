@@ -234,16 +234,26 @@ export default function NotificationSettings() {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 pt-2 border-t border-border">
-          <Button
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-border">
+          <span className="text-xs text-muted-foreground">
+            {optedIn ? 'You will receive SMS alerts' : 'SMS alerts are off'}
+          </span>
+          <button
             type="button"
-            variant={optedIn ? 'outline' : 'primary'}
-            loading={savingChannel === channel}
+            role="switch"
+            aria-checked={optedIn}
             disabled={savingChannel === channel || disableGrant}
             onClick={() => handleConsentChange(channel, !optedIn)}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+              optedIn ? 'bg-primary' : 'bg-muted'
+            }`}
           >
-            {savingChannel === channel ? 'Saving…' : buttonLabel}
-          </Button>
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform duration-200 ease-in-out ${
+                optedIn ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
         </div>
       </div>
     )
@@ -396,14 +406,14 @@ export default function NotificationSettings() {
                     <p className="mt-1 text-sm text-foreground">Important updates will appear here as soon as they are sent. If you have just changed application state elsewhere, use refresh to pull the newest inbox items immediately.</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     {notifications.map(notification => (
                       <div
                         key={notification.id}
-                        className={`rounded-xl border px-4 py-3 ${
+                        className={`rounded-xl px-4 py-3 min-h-[60px] transition-colors ${
                           notification.read
-                            ? 'border-border bg-card'
-                            : 'border-primary/20 bg-primary/5'
+                            ? 'bg-transparent hover:bg-muted/50'
+                            : 'bg-primary/5 border-l-2 border-primary hover:bg-primary/10'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3">

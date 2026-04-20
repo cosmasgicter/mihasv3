@@ -117,10 +117,10 @@ export default function History() {
                     {group.entries.map((entry) => (
                       <li
                         key={entry.id}
-                        className="flex items-start gap-3 px-3 py-4"
+                        className="flex flex-col gap-2 px-3 py-4 sm:flex-row sm:items-start sm:gap-3"
                       >
                         {/* Status transition indicator */}
-                        <div className="mt-0.5 flex shrink-0 items-center gap-1.5">
+                        <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
                           <span
                             className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(entry.old_status)}`}
                           >

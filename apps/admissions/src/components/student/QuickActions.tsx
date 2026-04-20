@@ -67,31 +67,31 @@ function ActionCard({
   const content = (
     <div
       className={cn(
-        'flex items-center gap-3 p-3 rounded-xl border transition-all duration-200',
+        'flex items-center gap-3 p-3 rounded-2xl border transition-all duration-200 min-h-[44px]',
         variantStyles[variant],
         disabled && 'opacity-50 cursor-not-allowed',
-        !disabled && 'cursor-pointer'
+        !disabled && 'cursor-pointer active:scale-[0.98]'
       )}
     >
       <div className={cn(
-        'flex h-10 w-10 items-center justify-center rounded-lg shrink-0',
+        'flex h-9 w-9 items-center justify-center rounded-xl shrink-0',
         iconStyles[variant]
       )}>
         {loading ? (
-          <Loader2 className="h-5 w-5 animate-pulse" />
+          <Loader2 className="h-4 w-4 animate-pulse" />
         ) : (
           icon
         )}
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-medium text-foreground text-sm">{title}</p>
-        <p className="text-xs text-foreground/75 truncate">{description}</p>
+        <p className="text-xs text-muted-foreground truncate">{description}</p>
       </div>
     </div>
   );
 
   const wrappedContent = (
-    <div className="hover:scale-[1.02] active:scale-[0.98] transition-transform duration-150">
+    <div className="transition-transform duration-150">
       {content}
     </div>
   );
@@ -131,13 +131,13 @@ export function QuickActions({
   }
 
   return (
-    <Card className={cn('border-border/50', className)}>
+    <Card className={cn('border-border/50 rounded-2xl', className)}>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold flex items-center gap-2">
+        <CardTitle className="text-sm font-semibold flex items-center gap-2">
           <Plus className="h-4 w-4 text-primary" />
           Quick Actions
         </CardTitle>
-        <p className="text-sm text-foreground/80">
+        <p className="text-xs text-muted-foreground">
           Resolve time-sensitive tasks quickly
         </p>
       </CardHeader>

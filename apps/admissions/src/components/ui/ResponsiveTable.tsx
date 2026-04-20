@@ -77,13 +77,13 @@ function TableView<T>({
   return (
     <table className="w-full border-collapse" aria-label={caption}>
       {caption && <caption className="sr-only">{caption}</caption>}
-      <thead>
-        <tr className="border-b border-border bg-muted/50">
+      <thead className="sticky top-0 z-10">
+        <tr className="border-b border-border/40 bg-muted/50 backdrop-blur-sm">
           {columns.map((col) => (
             <th
               key={String(col.key)}
               scope="col"
-              className="px-4 py-3 text-left text-sm font-medium text-muted-foreground"
+              className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
             >
               {col.header}
             </th>
@@ -95,7 +95,7 @@ function TableView<T>({
           <tr
             key={rowIndex}
             className={cn(
-              'border-b border-border transition-colors duration-fast hover:bg-muted/50',
+              'border-b border-border/40 transition-colors hover:bg-muted/30',
               onRowClick && 'cursor-pointer'
             )}
             onClick={onRowClick ? () => onRowClick(row) : undefined}
@@ -222,7 +222,7 @@ export function ResponsiveTable<T>({
   return (
     <div className={className}>
       {/* Desktop: standard table */}
-      <div className="hidden md:block overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto rounded-xl border border-border/60">
         <TableView
           columns={columns}
           data={data}

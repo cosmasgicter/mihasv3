@@ -506,7 +506,7 @@ const ApplicationWizardContent = () => {
               <div className="mt-2 space-y-2">
                 <div className="flex items-center gap-2">
                   <div
-                    className="flex-1 overflow-hidden rounded-full bg-border"
+                    className="flex-1 overflow-hidden rounded-full bg-border/40"
                     role="progressbar"
                     aria-label="Application progress"
                     aria-valuemin={0}
@@ -514,7 +514,7 @@ const ApplicationWizardContent = () => {
                     aria-valuenow={progressPercent}
                   >
                     <div
-                      className="h-2 bg-gradient-to-r from-primary to-success transition-all duration-500 ease-out"
+                      className="h-2 rounded-full bg-gradient-to-r from-primary to-success transition-all duration-700 ease-out"
                       style={{ width: `${progressPercent}%` }}
                     />
                   </div>
@@ -723,7 +723,7 @@ const ApplicationWizardContent = () => {
             )}
             </div>
 
-              <div className="sticky bottom-0 z-10 -mx-4 border-t border-border bg-background/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] pt-3 backdrop-blur-sm sm:static sm:mx-0 sm:border-t-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
+              <div className="sticky bottom-0 z-10 -mx-4 border-t border-border/40 bg-background/80 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] pt-3 backdrop-blur-xl sm:static sm:mx-0 sm:border-t-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
               <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:pt-6 sm:border-t sm:border-border">
             <div className="order-2 sm:order-1">
               {currentStepIndex > 0 && (

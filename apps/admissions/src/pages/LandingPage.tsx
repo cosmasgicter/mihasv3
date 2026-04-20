@@ -171,15 +171,15 @@ export default function LandingPage() {
       />
       <ShapeLandingHero
         headline="Train for the Healthcare Jobs Zambia Needs"
-        description="MIHAS and Kalulushi Training Centre offer government-accredited nursing, clinical medicine, and environmental health diplomas. 92% of our graduates are working within a year."
+        description="Government-accredited nursing, clinical medicine, and environmental health diplomas — 92% of graduates working within a year."
         rotatingPhrases={heroRotatingPhrases}
         primaryCta={{
-          label: 'Apply Now',
+          label: 'Start Your Application',
           href: '/auth/signup',
           icon: <ArrowRight className="w-5 h-5" />,
         }}
         secondaryCta={{
-          label: 'See Our Programs',
+          label: 'Explore Programs',
           href: '#programs',
           icon: <Star className="w-5 h-5" />,
         }}
@@ -192,7 +192,7 @@ export default function LandingPage() {
           },
           eyebrow: 'Two Campuses, One Portal',
           title: 'Apply once. Track everything online.',
-          description: 'No more chasing paper forms or waiting for phone calls. See exactly where your application stands at every step.',
+          description: 'No paper forms. No phone calls. See exactly where your application stands — anytime, from any device.',
           badges: ['NMCZ', 'HPCZ', 'ECZ', 'UNZA'],
           highlights: [
             { value: '2', label: 'campuses' },

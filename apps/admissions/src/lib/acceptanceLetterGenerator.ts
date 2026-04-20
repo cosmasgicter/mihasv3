@@ -2,6 +2,11 @@
 import QRCode from 'qrcode'
 import { formatDate } from './utils'
 
+// Brand constants
+const NAVY = { r: 26, g: 54, b: 93 } // #1a365d
+const MARGIN = 20
+const GREY_TEXT = { r: 107, g: 114, b: 128 }
+
 interface AcceptanceLetterData {
   applicationNumber: string
   studentName: string
@@ -10,110 +15,223 @@ interface AcceptanceLetterData {
   intake: string
   approvedDate: string
   startDate?: string
+  conditional?: boolean
+  conditions?: Array<{ description: string; deadline?: string }>
 }
 
 function getFullInstitutionName(code: string): string {
   const names: Record<string, string> = {
-    'KATC': 'Kalulushi Training Centre',
-    'MIHAS': 'Mukuba Institute of Health and Allied Sciences'
-  };
-  return names[code] || code;
+    KATC: 'Kalulushi Training Centre',
+    MIHAS: 'Mukuba Institute of Health and Allied Sciences',
+  }
+  return names[code] || code
 }
 
 export async function generateAcceptanceLetter(data: AcceptanceLetterData): Promise<Blob> {
-  const { jsPDF } = await import('jspdf');
+  const { jsPDF } = await import('jspdf')
   const doc = new jsPDF()
   const pageWidth = doc.internal.pageSize.getWidth()
+  const pageHeight = doc.internal.pageSize.getHeight()
+  const contentWidth = pageWidth - MARGIN * 2
   const institutionName = getFullInstitutionName(data.institution)
-  
-  // Header
-  doc.setFillColor(14, 165, 233)
-  doc.rect(0, 0, pageWidth, 40, 'F')
-  
+  const isConditional = data.conditional && data.conditions?.length
+
+  // --- Header band ---
+  doc.setFillColor(NAVY.r, NAVY.g, NAVY.b)
+  doc.rect(0, 0, pageWidth, 42, 'F')
+
   doc.setTextColor(255, 255, 255)
   doc.setFontSize(16)
   doc.setFont('helvetica', 'bold')
-  doc.text(institutionName, pageWidth / 2, 15, { align: 'center' })
-  
-  doc.setFontSize(14)
+  doc.text(institutionName, pageWidth / 2, 16, { align: 'center' })
+
+  doc.setFontSize(10)
   doc.setFont('helvetica', 'normal')
-  doc.text('Letter of Acceptance', pageWidth / 2, 28, { align: 'center' })
-  
-  // Date
-  let y = 55
+  doc.text('Private Bag E10, Kitwe, Zambia', pageWidth / 2, 24, { align: 'center' })
+
+  doc.setFontSize(14)
+  doc.setFont('helvetica', 'bold')
+  doc.text(
+    isConditional ? 'Conditional Letter of Acceptance' : 'Letter of Acceptance',
+    pageWidth / 2,
+    35,
+    { align: 'center' },
+  )
+
+  // --- Date line ---
+  let y = 54
   doc.setTextColor(0, 0, 0)
   doc.setFontSize(10)
-  doc.text(`Date: ${formatDate(data.approvedDate)}`, pageWidth - 20, y, { align: 'right' })
-  
-  // Salutation
-  y = 65
-  doc.setFontSize(11)
-  doc.text(`Dear ${data.studentName},`, 20, y)
-  
-  // Body
+  doc.text(`Date: ${formatDate(data.approvedDate)}`, pageWidth - MARGIN, y, { align: 'right' })
+  doc.text(`Ref: ${data.applicationNumber}`, MARGIN, y)
+
+  // --- Divider ---
+  y += 6
+  doc.setDrawColor(NAVY.r, NAVY.g, NAVY.b)
+  doc.setLineWidth(0.4)
+  doc.line(MARGIN, y, pageWidth - MARGIN, y)
+
+  // --- Salutation ---
   y += 10
+  doc.setFontSize(12)
+  doc.text(`Dear ${data.studentName},`, MARGIN, y)
+
+  // --- Congratulations ---
+  y += 10
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(14)
+  doc.text('CONGRATULATIONS!', pageWidth / 2, y, { align: 'center' })
+
+  // --- Body ---
+  y += 10
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(12)
+
+  const introText = isConditional
+    ? `We are pleased to inform you that your application (${data.applicationNumber}) has been conditionally approved for admission to the ${data.program} programme for the ${data.intake} intake.`
+    : `We are pleased to inform you that your application (${data.applicationNumber}) has been approved for admission to the ${data.program} programme for the ${data.intake} intake.`
+
+  const introLines = doc.splitTextToSize(introText, contentWidth)
+  doc.text(introLines, MARGIN, y)
+  y += introLines.length * 6 + 4
+
+  // --- Programme Details section ---
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(12)
-  doc.text('CONGRATULATIONS!', pageWidth / 2, y, { align: 'center' })
-  
-  y += 10
+  doc.text('Programme Details', MARGIN, y)
+  y += 2
+  doc.setDrawColor(200, 200, 200)
+  doc.setLineWidth(0.2)
+  doc.line(MARGIN, y, pageWidth - MARGIN, y)
+  y += 6
+
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(11)
-  
-  const bodyText = [
-    `We are pleased to inform you that your application (${data.applicationNumber}) has been`,
-    `approved for admission to the ${data.program} program.`,
-    '',
-    `Your admission is for the ${data.intake} intake.`,
-    '',
-    'This letter confirms your acceptance into our institution. Please note the following:',
-    '',
-    '1. You must confirm your acceptance within 14 days of receiving this letter.',
-    '2. Complete all registration requirements before the start date.',
-    '3. Ensure all fees are paid according to the payment schedule.',
-    '4. Attend the orientation program on the specified date.',
-    '',
-    'We look forward to welcoming you to our institution.',
+  const details = [
+    ['Programme:', data.program],
+    ['Intake:', data.intake],
+    ['Application No:', data.applicationNumber],
+    ...(data.startDate ? [['Start Date:', formatDate(data.startDate)]] : []),
   ]
-  
-  bodyText.forEach(line => {
-    doc.text(line, 20, y, { maxWidth: pageWidth - 40 })
-    y += 6
+  details.forEach(([label, value]) => {
+    doc.setFont('helvetica', 'bold')
+    doc.text(label, MARGIN, y)
+    doc.setFont('helvetica', 'normal')
+    doc.text(value, MARGIN + 45, y)
+    y += 7
   })
-  
-  // Signature
-  y += 10
-  doc.text('Sincerely,', 20, y)
-  y += 15
+
+  // --- Conditions section (conditional only) ---
+  if (isConditional && data.conditions) {
+    y += 4
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(12)
+    doc.setTextColor(180, 60, 20)
+    doc.text('Conditions of Admission', MARGIN, y)
+    doc.setTextColor(0, 0, 0)
+    y += 2
+    doc.setDrawColor(200, 200, 200)
+    doc.line(MARGIN, y, pageWidth - MARGIN, y)
+    y += 6
+
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'normal')
+    const condNote = 'Your admission is subject to the following conditions being met:'
+    doc.text(condNote, MARGIN, y)
+    y += 8
+
+    data.conditions.forEach((cond, i) => {
+      doc.setFont('helvetica', 'bold')
+      const prefix = `${i + 1}. `
+      doc.text(prefix, MARGIN + 2, y)
+      doc.setFont('helvetica', 'normal')
+      const condLines = doc.splitTextToSize(cond.description, contentWidth - 12)
+      doc.text(condLines, MARGIN + 10, y)
+      y += condLines.length * 6
+      if (cond.deadline) {
+        doc.setFontSize(10)
+        doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
+        doc.text(`Deadline: ${formatDate(cond.deadline)}`, MARGIN + 10, y)
+        doc.setTextColor(0, 0, 0)
+        doc.setFontSize(11)
+        y += 6
+      }
+      y += 2
+    })
+
+    y += 2
+    doc.setFontSize(10)
+    doc.setTextColor(180, 60, 20)
+    const warning = 'Failure to meet these conditions by the stated deadlines may result in withdrawal of this offer.'
+    const warnLines = doc.splitTextToSize(warning, contentWidth)
+    doc.text(warnLines, MARGIN, y)
+    doc.setTextColor(0, 0, 0)
+    y += warnLines.length * 5 + 4
+  }
+
+  // --- Next Steps ---
+  y += 4
   doc.setFont('helvetica', 'bold')
-  doc.text('Admissions Office', 20, y)
+  doc.setFontSize(12)
+  doc.text('Next Steps', MARGIN, y)
+  y += 2
+  doc.setDrawColor(200, 200, 200)
+  doc.line(MARGIN, y, pageWidth - MARGIN, y)
+  y += 6
+
   doc.setFont('helvetica', 'normal')
-  doc.text(data.institution, 20, y + 5)
-  
-  // QR Code for verification
+  doc.setFontSize(11)
+  const steps = [
+    'Confirm your acceptance within 14 days of receiving this letter.',
+    'Complete all registration requirements before the start date.',
+    'Ensure all fees are paid according to the payment schedule.',
+    'Attend the orientation programme on the specified date.',
+  ]
+  steps.forEach((step, i) => {
+    doc.text(`${i + 1}. ${step}`, MARGIN + 2, y)
+    y += 7
+  })
+
+  // --- Closing ---
+  y += 6
+  doc.setFontSize(12)
+  doc.text('We look forward to welcoming you to our institution.', MARGIN, y)
+  y += 12
+  doc.text('Sincerely,', MARGIN, y)
+  y += 14
+  doc.setFont('helvetica', 'bold')
+  doc.text('Admissions Office', MARGIN, y)
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(10)
+  doc.text(institutionName, MARGIN, y + 5)
+
+  // --- QR Code ---
   const qrData = JSON.stringify({
-    type: 'acceptance_letter',
+    type: isConditional ? 'conditional_acceptance' : 'acceptance_letter',
     app_no: data.applicationNumber,
     student: data.studentName,
     institution: data.institution,
     program: data.program,
-    approved: data.approvedDate
-  });
-  const qrDataUrl = await QRCode.toDataURL(qrData, { margin: 1, width: 200, errorCorrectionLevel: 'M' });
-  const footerY = doc.internal.pageSize.getHeight() - 45
-  doc.addImage(qrDataUrl, 'PNG', pageWidth - 45, footerY - 5, 30, 30);
-  
+    approved: data.approvedDate,
+  })
+  const qrDataUrl = await QRCode.toDataURL(qrData, { margin: 1, width: 200, errorCorrectionLevel: 'M' })
+  const qrY = pageHeight - 48
+  doc.addImage(qrDataUrl, 'PNG', pageWidth - 48, qrY, 28, 28)
   doc.setFontSize(7)
-  doc.setTextColor(107, 114, 128)
-  doc.text('Scan to verify', pageWidth - 30, footerY + 28, { align: 'center' })
-  
-  // Footer
-  doc.setFillColor(249, 250, 251)
-  doc.rect(0, footerY + 30, pageWidth, 20, 'F')
-  
+  doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
+  doc.text('Scan to verify', pageWidth - 34, qrY + 31, { align: 'center' })
+
+  // --- Footer ---
+  const footerY = pageHeight - 14
+  doc.setDrawColor(NAVY.r, NAVY.g, NAVY.b)
+  doc.setLineWidth(0.3)
+  doc.line(MARGIN, footerY - 4, pageWidth - MARGIN, footerY - 4)
+
   doc.setFontSize(8)
-  doc.text('This is an official acceptance letter.', pageWidth / 2, footerY + 38, { align: 'center' })
-  doc.text(`Application No: ${data.applicationNumber}`, pageWidth / 2, footerY + 43, { align: 'center' })
-  
+  doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
+  doc.text('This is a computer-generated document. No signature is required.', MARGIN, footerY)
+  doc.text(`Generated: ${formatDate(new Date().toISOString())}`, pageWidth / 2, footerY, { align: 'center' })
+  doc.text('Page 1 of 1', pageWidth - MARGIN, footerY, { align: 'right' })
+
   return doc.output('blob')
 }

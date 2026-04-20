@@ -294,12 +294,13 @@ describe('Property 7: Form Input Touch Target Minimum', () => {
 
     fc.assert(
       fc.property(formInputArb, (component) => {
-        // Check for min-h-[44px], min-h-[48px], h-11 (44px), or min-h-[100px] (textarea)
+        // Check for min-h-[44px], min-h-[48px], h-11 (44px), h-12 (48px), or min-h-[100px] (textarea)
         const hasTouchTarget =
           component.source.includes('min-h-[44px]') ||
           component.source.includes('min-h-[48px]') ||
           component.source.includes('min-h-[100px]') ||
-          component.source.includes('h-11')
+          component.source.includes('h-11') ||
+          component.source.includes('h-12')
 
         expect(
           hasTouchTarget,
@@ -314,11 +315,11 @@ describe('Property 7: Form Input Touch Target Minimum', () => {
     const passwordSource = formInputSources.get('PasswordInput')
     expect(passwordSource, 'PasswordInput source must be loaded').toBeDefined()
 
-    // The toggle button should have both min-h-[44px] and w-11 (44px)
+    // The toggle button should have both h-12 and w-12 (48px) or equivalent
     const hasMinHeight =
-      passwordSource!.includes('min-h-[44px]') || passwordSource!.includes('h-11')
+      passwordSource!.includes('min-h-[44px]') || passwordSource!.includes('h-11') || passwordSource!.includes('h-12')
     const hasMinWidth =
-      passwordSource!.includes('w-11') || passwordSource!.includes('min-w-[44px]')
+      passwordSource!.includes('w-11') || passwordSource!.includes('w-12') || passwordSource!.includes('min-w-[44px]')
 
     expect(
       hasMinHeight,

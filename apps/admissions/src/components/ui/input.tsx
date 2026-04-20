@@ -37,17 +37,17 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             type={type}
             id={inputId}
             className={cn(
-              'w-full min-h-[44px] h-11 px-3 rounded-md touch-target',
-              'bg-background',
-              'border border-input',
-              'text-foreground',
+              'w-full h-12 px-4 rounded-xl touch-target',
+              'bg-background/80',
+              'border border-border/60',
+              'text-foreground text-base',
               'placeholder:text-muted-foreground',
               'hover:border-primary/50 hover:bg-accent/30',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus:border-transparent',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary',
               'transition-all duration-200',
               'disabled:opacity-50 disabled:cursor-not-allowed',
               'disabled:hover:border-input disabled:hover:bg-background',
-              error && 'border-destructive focus-visible:border-destructive hover:border-destructive/70',
+              error && 'border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20 hover:border-destructive/70',
               icon && 'pl-10',
               className
             )}

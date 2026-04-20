@@ -35,6 +35,8 @@ type ApplicationPayload = {
   full_name?: string;
   email?: string;
   phone?: string;
+  start_date?: string;
+  conditions?: Array<{ description: string; deadline?: string }>;
 };
 
 interface PaymentRecord {
@@ -166,7 +168,7 @@ export function useDocumentGeneration() {
   const [error, setError] = useState<string | null>(null);
 
   const generateDocument = async (
-    type: 'slip' | 'acceptance' | 'receipt',
+    type: 'slip' | 'acceptance' | 'receipt' | 'conditional',
     applicationId: string
   ) => {
     setLoading(true);
@@ -206,7 +208,7 @@ export function useDocumentGeneration() {
           break;
 
         case 'acceptance':
-          if (application.status !== 'approved') {
+          if (application.status !== 'approved' && application.status !== 'conditionally_approved') {
             throw new Error('Application must be approved to generate acceptance letter');
           }
           pdfBlob = await generateAcceptanceLetter({
@@ -216,8 +218,27 @@ export function useDocumentGeneration() {
             institution: application.institution ?? 'MIHAS',
             intake: application.intake ?? '',
             approvedDate: application.updated_at ?? '',
+            startDate: application.start_date,
           });
           filename = `acceptance_letter_${application.application_number}.pdf`;
+          break;
+
+        case 'conditional':
+          if (application.status !== 'conditionally_approved') {
+            throw new Error('Application must be conditionally approved');
+          }
+          pdfBlob = await generateAcceptanceLetter({
+            applicationNumber: application.application_number ?? '',
+            studentName: application.full_name ?? '',
+            program: application.program ?? '',
+            institution: application.institution ?? 'MIHAS',
+            intake: application.intake ?? '',
+            approvedDate: application.updated_at ?? '',
+            startDate: application.start_date,
+            conditional: true,
+            conditions: application.conditions,
+          });
+          filename = `conditional_acceptance_${application.application_number}.pdf`;
           break;
 
         case 'receipt':

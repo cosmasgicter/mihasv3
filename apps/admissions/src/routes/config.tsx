@@ -16,6 +16,7 @@ const PrivacyPage = React.lazy(() => import('@/pages/PrivacyPage'))
 // Lazy load non-critical pages
 const StudentDashboard = React.lazy(() => import('@/pages/student/Dashboard'))
 const AuthCallbackPage = React.lazy(() => import('@/pages/auth/AuthCallbackPage'))
+const PaymentCallback = React.lazy(() => import('@/pages/student/PaymentCallback'))
 const ApplicationWizard = React.lazy(() => import('@/pages/student/applicationWizard/index'))
 const ApplicationStatus = React.lazy(() => import('@/pages/student/ApplicationStatus'))
 const ApplicationDetail = React.lazy(() => import('@/pages/student/ApplicationDetail'))
@@ -69,6 +70,7 @@ export const routes: RouteConfig[] = [
   { path: '/auth/forgot-password', element: ForgotPasswordPage, guard: 'public', lazy: true, skeletonType: 'auth' },
   { path: '/auth/reset-password', element: ResetPasswordPage, guard: 'public', lazy: true, skeletonType: 'auth' },
   { path: '/auth/callback', element: AuthCallbackPage, guard: 'public', lazy: true, skeletonType: 'auth' },
+  { path: '/payment/callback', element: PaymentCallback, guard: 'public', lazy: true, skeletonType: 'detail' },
   
   // Dashboard redirect (no lazy loading needed)
   { path: '/dashboard', element: <DashboardRedirect />, guard: 'public' },

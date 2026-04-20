@@ -6,16 +6,16 @@ interface GuardInlineSkeletonProps {
 
 export function GuardInlineSkeleton({ label = 'Preparing your workspace' }: GuardInlineSkeletonProps) {
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-10" aria-busy="true" aria-live="polite">
-      <div className="rounded-xl border border-border bg-card/60 p-4 shadow-sm">
-        <div className="flex items-center gap-2" role="status">
-          <Skeleton className="h-4 w-4 rounded-full" />
-          <span className="text-sm text-muted-foreground">{label}</span>
+    <div className="flex min-h-[40vh] items-center justify-center px-4 py-10" aria-busy="true" aria-live="polite">
+      <div className="w-full max-w-md rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
+        <div className="flex items-center gap-3" role="status">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <span className="text-sm font-medium text-muted-foreground">{label}</span>
         </div>
-        <div className="mt-4 space-y-2">
-          <Skeleton className="h-3 w-2/3" />
-          <Skeleton className="h-3 w-5/6" />
-          <Skeleton className="h-3 w-1/2" />
+        <div className="mt-5 space-y-2.5">
+          <Skeleton className="h-3 w-2/3 rounded-full" />
+          <Skeleton className="h-3 w-5/6 rounded-full" />
+          <Skeleton className="h-3 w-1/2 rounded-full" />
         </div>
       </div>
     </div>

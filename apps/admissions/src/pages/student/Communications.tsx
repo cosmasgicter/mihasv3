@@ -222,11 +222,11 @@ export default function Communications() {
           {!isLoading && !error && notifications.length === 0 && (
             <EmptyState
               icon={<Inbox className="h-12 w-12" />}
-              heading="No communications"
+              heading="You're all caught up"
               description={
                 typeFilter || readFilter
                   ? 'No notifications match your current filters. Try adjusting them.'
-                  : 'You have no notifications yet. They will appear here when there are updates.'
+                  : "Nothing here yet — we'll let you know when there's something important."
               }
             />
           )}
@@ -238,7 +238,7 @@ export default function Communications() {
               title={`Notifications (${pagination.totalCount})`}
               padding="sm"
             >
-              <ul className="divide-y divide-border/50" role="list">
+              <ul className="divide-y divide-border/30" role="list">
                 {notifications.map((notification) => {
                   const id = notification.id as string
                   const isRead = notification.is_read as boolean
@@ -252,8 +252,10 @@ export default function Communications() {
                   return (
                     <li
                       key={id}
-                      className={`group flex items-start gap-3 px-3 py-4 transition-colors ${
-                        !isRead ? 'bg-primary/5' : ''
+                      className={`group flex items-start gap-3 px-4 py-4 min-h-[60px] transition-colors ${
+                        !isRead
+                          ? 'bg-primary/5 border-l-2 border-primary'
+                          : 'border-l-2 border-transparent hover:bg-muted/50'
                       }`}
                     >
                       {/* Type indicator */}
@@ -278,7 +280,7 @@ export default function Communications() {
                         }}
                       >
                         <div className="flex items-center gap-2">
-                          <p className={`text-sm ${!isRead ? 'font-semibold text-foreground' : 'font-medium text-foreground/80'}`}>
+                          <p className={`text-sm ${!isRead ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground'}`}>
                             {title}
                           </p>
                           {!isRead && (
@@ -310,7 +312,7 @@ export default function Communications() {
                         type="button"
                         onClick={() => deleteMutation.mutate(id)}
                         disabled={deleteMutation.isPending}
-                        className="mt-1 shrink-0 rounded-lg p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100"
+                        className="mt-1 shrink-0 rounded-lg p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground sm:opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100"
                         aria-label={`Delete notification: ${title}`}
                       >
                         <Trash2 className="h-4 w-4" />

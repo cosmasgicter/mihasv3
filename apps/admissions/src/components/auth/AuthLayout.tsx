@@ -308,8 +308,8 @@ function FormPanel({
           </div>
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-[28px] border border-border/70 bg-background/90 p-5 shadow-xl backdrop-blur sm:p-8 lg:p-9">
-          <div className="space-y-5">
+        <div className="mt-6 overflow-hidden rounded-3xl border border-border/40 bg-card/95 p-6 shadow-2xl backdrop-blur-sm sm:p-8 lg:p-10 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-[0.98] motion-safe:duration-500">
+          <div className="space-y-6">
             {resolvedPanelBadge && (
               <div>
                 <span className={cn('inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]', config.panelBadgeClass)}>
@@ -332,7 +332,7 @@ function FormPanel({
             <div>{children}</div>
 
             {footer && (
-              <div className="border-t border-border pt-6">
+              <div className="border-t border-border/50 pt-6 mt-2">
                 {footer}
               </div>
             )}
@@ -368,7 +368,7 @@ export function AuthLayout({
 
           <div
             className={cn(
-              'flex flex-1 flex-col overflow-y-auto min-w-0',
+              'flex flex-1 flex-col overflow-y-auto min-w-0 bg-gradient-to-br from-background via-background to-primary/5',
               showBranding ? 'lg:w-1/2 xl:w-[45%]' : 'w-full',
             )}
           >

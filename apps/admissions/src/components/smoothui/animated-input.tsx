@@ -57,13 +57,13 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
             ref={ref}
             id={inputId}
             className={cn(
-              'flex w-full min-h-[44px] h-11 rounded-md border bg-background px-3 py-2',
+              'flex w-full min-h-[48px] h-12 rounded-xl border border-border/60 bg-background/80 px-4 py-2',
               'text-base text-foreground ring-offset-background',
               'transition-all duration-200 motion-reduce:transition-none',
               'file:border-0 file:bg-transparent file:text-sm file:font-medium',
-              'placeholder:text-muted-foreground',
-              'hover:border-primary/50 hover:bg-accent/30',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+              'placeholder:text-muted-foreground/60',
+              'hover:border-primary/40 hover:bg-accent/20',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary',
               'disabled:cursor-not-allowed disabled:opacity-50',
               'disabled:hover:border-input disabled:hover:bg-background',
               error 
@@ -96,7 +96,7 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
         {error && (
           <p 
             id={`${inputId}-error`}
-            className="mt-1 text-sm text-destructive animate-in fade-in-0 slide-in-from-top-1 duration-150 motion-reduce:animate-none"
+            className="mt-1.5 text-xs text-destructive motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-top-1 motion-safe:duration-150"
             role="alert"
           >
             {error}
@@ -107,7 +107,7 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
         {helperText && !error && (
           <p 
             id={`${inputId}-helper`}
-            className="mt-1 text-sm text-muted-foreground"
+            className="mt-1.5 text-xs text-muted-foreground"
           >
             {helperText}
           </p>

@@ -110,7 +110,7 @@ export function ShapeLandingHero({
               Government Accredited Health Programs
             </p>
 
-            <h1 className="mx-auto mb-4 max-w-3xl text-3xl font-bold leading-tight sm:mb-6 sm:text-4xl md:text-5xl lg:mx-0 lg:text-6xl">
+            <h1 className="mx-auto mb-4 max-w-3xl text-4xl font-bold tracking-tight leading-[1.1] sm:mb-6 sm:text-5xl lg:mx-0 lg:text-6xl">
               {headline}
             </h1>
 
@@ -154,11 +154,11 @@ export function ShapeLandingHero({
                 onFocus={warmPrimaryRoute}
                 onTouchStart={warmPrimaryRoute}
                 className={cn(
-                  'inline-flex items-center justify-center gap-2 rounded-lg font-semibold',
-                  'bg-gradient-to-r from-primary via-primary to-info text-primary-foreground',
-                  'shadow-lg hover:brightness-105 hover:shadow-xl active:scale-[0.98]',
-                  'transition-[transform,box-shadow,filter] duration-150 touch-manipulation',
-                  'w-full xs:w-auto min-h-[48px] px-6 sm:px-8 text-xl',
+                  'inline-flex items-center justify-center gap-2 rounded-2xl font-semibold',
+                  'bg-white text-primary',
+                  'shadow-lg hover:shadow-xl hover:bg-white/95 active:scale-[0.98]',
+                  'transition-[transform,box-shadow,filter] duration-200 touch-manipulation',
+                  'w-full xs:w-auto h-14 px-8 text-lg',
                   'motion-reduce:transform-none motion-reduce:transition-none',
                 )}
                 aria-label={primaryCta.label}
@@ -171,11 +171,11 @@ export function ShapeLandingHero({
                 <a
                   href={secondaryCta.href}
                   className={cn(
-                    'inline-flex items-center justify-center gap-2 rounded-lg font-semibold',
-                    'border-2 border-white bg-white/10 text-white',
-                    'hover:bg-white hover:text-primary backdrop-blur-sm',
-                    'transition-[transform,background-color,color,border-color] duration-150 touch-manipulation',
-                    'w-full xs:w-auto min-h-[48px] px-6 sm:px-8 text-xl',
+                    'inline-flex items-center justify-center gap-2 rounded-2xl font-semibold',
+                    'border-2 border-white/40 bg-white/10 text-white',
+                    'hover:bg-white/20 backdrop-blur-sm',
+                    'transition-[transform,background-color,color,border-color] duration-200 touch-manipulation',
+                    'w-full xs:w-auto h-14 px-8 text-lg',
                     'motion-reduce:transform-none motion-reduce:transition-none',
                   )}
                   aria-label={secondaryCta.label}
@@ -187,11 +187,11 @@ export function ShapeLandingHero({
                 <Link
                   to={secondaryCta.href}
                   className={cn(
-                    'inline-flex items-center justify-center gap-2 rounded-lg font-semibold',
-                    'border-2 border-white bg-white/10 text-white',
-                    'hover:bg-white hover:text-primary backdrop-blur-sm',
-                    'transition-[transform,background-color,color,border-color] duration-150 touch-manipulation',
-                    'w-full xs:w-auto min-h-[48px] px-6 sm:px-8 text-xl',
+                    'inline-flex items-center justify-center gap-2 rounded-2xl font-semibold',
+                    'border-2 border-white/40 bg-white/10 text-white',
+                    'hover:bg-white/20 backdrop-blur-sm',
+                    'transition-[transform,background-color,color,border-color] duration-200 touch-manipulation',
+                    'w-full xs:w-auto h-14 px-8 text-lg',
                     'motion-reduce:transform-none motion-reduce:transition-none',
                   )}
                   aria-label={secondaryCta.label}

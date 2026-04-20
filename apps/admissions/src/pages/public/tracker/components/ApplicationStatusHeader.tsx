@@ -16,24 +16,48 @@ interface ApplicationStatusHeaderProps {
   onEmailSlip: () => void
 }
 
+const STATUS_STEPS = ['submitted', 'under_review', 'approved'] as const
+
 const getStatusIcon = (status: string) => {
   switch (status) {
-    case 'approved': return <Trophy className="h-6 w-6 text-success" />
-    case 'rejected': return <XCircle className="h-6 w-6 text-error" />
-    case 'under_review': return <Target className="h-6 w-6 text-primary" />
-    case 'submitted': return <Rocket className="h-6 w-6 text-warning" />
-    default: return <Clock className="h-6 w-6 text-muted-foreground" />
+    case 'approved': return <Trophy className="h-5 w-5" />
+    case 'rejected': return <XCircle className="h-5 w-5" />
+    case 'under_review': return <Target className="h-5 w-5" />
+    case 'submitted': return <Rocket className="h-5 w-5" />
+    default: return <Clock className="h-5 w-5" />
   }
 }
 
-const getStatusStyles = (status: string) => {
+const getStatusColor = (status: string) => {
   switch (status) {
-    case 'approved': return 'bg-success/10 text-success border-success/30'
-    case 'rejected': return 'bg-error/10 text-error border-error/30'
-    case 'under_review': return 'bg-primary/10 text-primary border-primary/30'
-    case 'submitted': return 'bg-warning/10 text-warning border-warning/30'
-    default: return 'bg-muted text-muted-foreground border-border'
+    case 'approved': return 'text-emerald-300'
+    case 'rejected': return 'text-rose-300'
+    case 'under_review': return 'text-sky-300'
+    case 'submitted': return 'text-amber-300'
+    default: return 'text-white/60'
   }
+}
+
+function StepIndicator({ currentStatus }: { currentStatus: string }) {
+  const isRejected = currentStatus === 'rejected'
+  const currentIdx = STATUS_STEPS.indexOf(currentStatus as typeof STATUS_STEPS[number])
+
+  return (
+    <div className="flex items-center gap-1 w-full max-w-xs" aria-label="Application progress">
+      {STATUS_STEPS.map((step, i) => {
+        const isActive = !isRejected && i <= currentIdx
+        return (
+          <React.Fragment key={step}>
+            <div
+              className={`h-1.5 flex-1 rounded-full transition-colors ${
+                isRejected ? 'bg-rose-400/40' : isActive ? 'bg-white' : 'bg-white/20'
+              }`}
+            />
+          </React.Fragment>
+        )
+      })}
+    </div>
+  )
 }
 
 export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = ({
@@ -47,93 +71,69 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
   onEmailSlip
 }) => {
   return (
-    <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 p-6 sm:p-8">
+    <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-6 sm:p-8">
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-        {/* Left Side - Application Info */}
-        <div className="space-y-4 flex-1">
+        {/* Left — Application Info */}
+        <div className="flex-1 space-y-4">
           <div className={animateClasses.fadeIn}>
-            <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-3">
+            <p className="text-xs font-medium uppercase tracking-widest text-white/50 mb-2">Application</p>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
               <span className="text-2xl">{getStatusEmoji(application.status)}</span>
-              <span className="break-all">Application #{application.application_number}</span>
+              <span className="break-all font-mono">#{application.application_number}</span>
             </h2>
           </div>
           
-          <div
-            className={`space-y-2 ${animateClasses.fadeIn}`}
-            style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}
-          >
+          <div className={`space-y-1.5 ${animateClasses.fadeIn}`} style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
             <p className="text-white/90 text-base sm:text-lg font-medium flex items-center gap-2">
-              <GraduationCap className="h-5 w-5 flex-shrink-0" />
+              <GraduationCap className="h-5 w-5 flex-shrink-0 text-white/60" />
               <span className="break-words">{application.program_name}</span>
             </p>
-            <p className="text-white/90 text-sm sm:text-base flex items-center gap-2">
-              <Calendar className="h-4 w-4 flex-shrink-0" />
+            <p className="text-white/70 text-sm flex items-center gap-2">
+              <Calendar className="h-4 w-4 flex-shrink-0 text-white/50" />
               <span className="break-words">{application.intake_name}</span>
             </p>
           </div>
+
+          {/* Step Indicator */}
+          <div className="pt-2">
+            <StepIndicator currentStatus={application.status} />
+          </div>
         </div>
         
-        {/* Right Side - Status & Actions */}
-        <div
-          className={`flex flex-col items-center lg:items-end gap-4 ${animateClasses.fadeIn}`}
-          style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}
-        >
+        {/* Right — Status & Actions */}
+        <div className={`flex flex-col items-center lg:items-end gap-4 ${animateClasses.fadeIn}`} style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
           {/* Status Badge */}
-          <div className="flex items-center gap-3">
+          <div className={`inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 backdrop-blur-sm px-5 py-2.5 ${getStatusColor(application.status)}`}>
             {getStatusIcon(application.status)}
-            <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-bold border ${getStatusStyles(application.status)} bg-white/95`}>
-              {application.status.replace('_', ' ').toUpperCase()}
+            <span className="text-sm font-bold uppercase tracking-wide text-white">
+              {application.status.replace('_', ' ')}
             </span>
           </div>
           
-          {/* Last Updated */}
-          <p className="text-white/90 text-sm flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            <span>Updated: {formatDisplayDate(application.updated_at)}</span>
+          <p className="text-white/50 text-xs flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5" />
+            Updated {formatDisplayDate(application.updated_at)}
           </p>
           
           {/* Action Buttons */}
           <div className="flex flex-wrap justify-center lg:justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onShare}
-              className="min-h-[44px] bg-white/95 border-white/30 text-foreground hover:bg-white"
-            >
-              <Share2 className="h-4 w-4 mr-2" />
+            <Button variant="outline" size="sm" onClick={onShare} className="rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm">
+              <Share2 className="h-4 w-4 mr-1.5" />
               Share
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onCopy}
-              className="min-h-[44px] bg-white/95 border-white/30 text-foreground hover:bg-white"
-            >
-              <Copy className="h-4 w-4 mr-2" />
+            <Button variant="outline" size="sm" onClick={onCopy} className="rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm">
+              <Copy className="h-4 w-4 mr-1.5" />
               {copied ? 'Copied!' : 'Copy #'}
             </Button>
           </div>
           
-          {/* Download/Email Buttons */}
           <div className="flex flex-wrap justify-center lg:justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onDownloadSlip}
-              loading={slipLoading}
-              className="min-h-[44px] bg-white/95 border-white/30 text-foreground hover:bg-white"
-            >
-              <Download className="h-4 w-4 mr-2" />
+            <Button variant="outline" size="sm" onClick={onDownloadSlip} loading={slipLoading} className="rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm">
+              <Download className="h-4 w-4 mr-1.5" />
               Download Slip
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onEmailSlip}
-              loading={emailLoading}
-              className="min-h-[44px] bg-white/95 border-white/30 text-foreground hover:bg-white"
-            >
-              <Mail className="h-4 w-4 mr-2" />
+            <Button variant="outline" size="sm" onClick={onEmailSlip} loading={emailLoading} className="rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm">
+              <Mail className="h-4 w-4 mr-1.5" />
               Email Slip
             </Button>
           </div>

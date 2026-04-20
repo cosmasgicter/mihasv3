@@ -99,12 +99,11 @@ export const applicationsData = {
           throw error
         }
       },
-      staleTime: 0, // Always consider data stale for fresh fetches
+      staleTime: 30_000, // 30s — avoids redundant refetches on rapid mount/focus
       gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes for background refetch
       retry: 2,
       retryDelay: 1000,
       refetchOnWindowFocus: true, // Refetch when window gains focus
-      refetchOnMount: 'always' // Always refetch on component mount
     })
   },
 
@@ -114,10 +113,9 @@ export const applicationsData = {
       queryKey: QUERY_KEYS.applicationDetail(id),
       queryFn: () => applicationService.getById(id, options),
       enabled: !!id,
-      staleTime: 0, // Always consider data stale for fresh fetches
+      staleTime: 30_000, // 30s — consistent with list query
       gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
       refetchOnWindowFocus: true,
-      refetchOnMount: 'always'
     })
   },
 

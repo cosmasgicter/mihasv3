@@ -331,7 +331,7 @@ export default function AdminDashboard() {
     >
         {/* System Status Bar */}
         <div className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}>
-          <div className="bg-card rounded-2xl p-4 sm:p-6 shadow-sm border border-border">
+          <div className="rounded-2xl border border-border/60 bg-card p-4 sm:p-6 shadow-sm">
             <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
               <div className="flex items-center space-x-2">
                 <div className={`w-3 h-3 rounded-full ${
@@ -351,7 +351,7 @@ export default function AdminDashboard() {
                 <span className="text-xs text-muted-foreground">{isPolling ? 'Live' : 'Paused'}</span>
               </div>
               <div className="ml-auto text-foreground">
-                <span className="text-2xl sm:text-3xl font-bold">{stats.totalApplications}</span>
+                <span className="text-3xl font-bold tracking-tight">{stats.totalApplications}</span>
                 <span className="text-sm ml-2 text-muted-foreground">Total Applications</span>
               </div>
             </div>
@@ -444,9 +444,9 @@ export default function AdminDashboard() {
         </div>
         {/* Weekly Overview */}
         <div 
-          className={`mt-8 bg-card rounded-2xl shadow-lg border border-border ${animateClasses.slideUp}`}
+          className={`mt-8 rounded-2xl border border-border/60 bg-card shadow-sm ${animateClasses.slideUp}`}
         >
-          <div className="px-6 py-4 border-b border-border">
+          <div className="px-6 py-4 border-b border-border/40">
             <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-primary" />
               Weekly Overview
@@ -456,20 +456,18 @@ export default function AdminDashboard() {
           <div className="p-6">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-primary">{stats.weekApplications}</div>
-                <div className="text-sm font-semibold text-foreground">Applications This Week</div>
+                <div className="text-3xl font-bold tracking-tight text-primary">{stats.weekApplications}</div>
+                <div className="text-sm font-medium text-muted-foreground mt-1">Applications This Week</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-foreground">{stats.avgProcessingTime}</div>
-                <div className="text-sm font-semibold text-foreground">Avg Processing Days</div>
-                <div className="text-xs font-medium text-muted-foreground mt-1">Current period</div>
+                <div className="text-3xl font-bold tracking-tight text-foreground">{stats.avgProcessingTime}</div>
+                <div className="text-sm font-medium text-muted-foreground mt-1">Avg Processing Days</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-success">
+                <div className="text-3xl font-bold tracking-tight text-success">
                   {approvalRate}%
                 </div>
-                <div className="text-sm font-semibold text-foreground">Success Rate</div>
-                <div className="text-xs font-medium text-muted-foreground mt-1">Current period</div>
+                <div className="text-sm font-medium text-muted-foreground mt-1">Success Rate</div>
               </div>
             </div>
           </div>

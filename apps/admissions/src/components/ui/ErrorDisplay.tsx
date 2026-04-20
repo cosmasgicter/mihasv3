@@ -34,7 +34,7 @@ export function ErrorDisplay({
       <div
         role="alert"
         aria-live="assertive"
-        className={cn('flex items-start gap-2 text-sm', className)}
+        className={cn('flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm', className)}
       >
         <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" aria-hidden="true" />
         <div className="flex flex-col gap-1">
@@ -80,7 +80,7 @@ export function ErrorDisplay({
       role="alert"
       aria-live="assertive"
       className={cn(
-        'flex flex-col items-center gap-4 rounded-lg border border-border bg-card p-6 text-center',
+        'flex flex-col items-center gap-4 rounded-2xl border border-border/60 bg-card p-8 text-center shadow-sm',
         className,
       )}
     >
@@ -88,20 +88,20 @@ export function ErrorDisplay({
         <XCircle className="h-6 w-6 text-destructive" aria-hidden="true" />
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         {title && <h3 className="text-lg font-semibold text-foreground">{title}</h3>}
-        <p className="text-sm text-muted-foreground">{message}</p>
+        <p className="max-w-md text-sm text-muted-foreground">{message}</p>
       </div>
 
-      <div className="flex flex-wrap items-center justify-center gap-3">
+      <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
         {onRetry && (
-          <Button onClick={onRetry} variant="outline" size="sm">
+          <Button onClick={onRetry} variant="default" size="default">
             <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
-            Retry
+            Try Again
           </Button>
         )}
         {!onRetry && onGoBack && (
-          <Button onClick={onGoBack} variant="outline" size="sm">
+          <Button onClick={onGoBack} variant="outline" size="default">
             <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
             Go Back
           </Button>

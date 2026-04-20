@@ -302,13 +302,13 @@ function SidebarNavItem({
       to={item.to}
       aria-current={isActive ? 'page' : undefined}
       className={cn(
-        'group relative flex min-h-11 items-center overflow-hidden rounded-2xl',
-        'transition-all duration-200',
+        'group relative flex min-h-[44px] items-center overflow-hidden rounded-xl',
+        'transition-colors duration-150',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950',
         collapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5',
         isActive
-          ? 'bg-white text-slate-950 shadow-lg shadow-black/20'
-          : 'text-slate-300 hover:bg-white/10 hover:text-white'
+          ? 'bg-white text-slate-950 font-semibold shadow-lg shadow-black/20'
+          : 'text-slate-300 hover:bg-white/8 hover:text-white'
       )}
     >
       {/* Active indicator — only show when expanded */}
@@ -325,9 +325,8 @@ function SidebarNavItem({
 
       {/* Icon */}
       <Icon
-        style={{ width: 'var(--icon-size)', height: 'var(--icon-size)' }}
         className={cn(
-          'shrink-0 transition-colors duration-200',
+          'h-5 w-5 shrink-0 transition-colors duration-150',
           isActive ? 'text-slate-950' : 'text-slate-400 group-hover:text-white'
         )}
       />
@@ -347,7 +346,7 @@ function SidebarNavItem({
 
       {/* Hover effect */}
       {!isActive && (
-        <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r from-sky-400/10 to-emerald-300/10 opacity-0 transition-opacity duration-200 group-hover:opacity-100" aria-hidden="true" />
+        <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-sky-400/10 to-emerald-300/10 opacity-0 transition-opacity duration-150 group-hover:opacity-100" aria-hidden="true" />
       )}
     </Link>
   )

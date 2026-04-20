@@ -28,6 +28,6 @@ describe('PasswordInput UI/a11y consistency', () => {
       <PasswordInput id="password" label="Password" />
     )
     const toggleButton = document.querySelector('button')
-    expect(toggleButton?.getAttribute('class')).toContain('min-h-[44px]')
+    expect(toggleButton?.getAttribute('class')).toContain('h-12')
   })
 })

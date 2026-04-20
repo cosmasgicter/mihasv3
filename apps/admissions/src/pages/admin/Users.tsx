@@ -449,7 +449,7 @@ export default function AdminUsers() {
                 <select
                   value={roleFilter}
                   onChange={(event) => setRoleFilter(event.target.value)}
-                  className="min-h-[44px] h-11 w-full rounded-lg border border-input bg-background pl-10 pr-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="min-h-[44px] h-12 w-full rounded-xl border border-input bg-background pl-10 pr-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="">All roles</option>
                   {AVAILABLE_ROLES.map((role) => (
@@ -606,11 +606,11 @@ export default function AdminUsers() {
                 })}
               </div>
 
-              <div className="hidden overflow-x-auto lg:block">
-                <table className="min-w-full divide-y divide-border" aria-label="Users">
-                  <thead className="bg-muted/50">
+              <div className="hidden overflow-x-auto rounded-xl border border-border/60 lg:block">
+                <table className="min-w-full divide-y divide-border/40" aria-label="Users">
+                  <thead className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm">
                     <tr>
-                      <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground">
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         <div className="flex items-center gap-2">
                           <button
                             onClick={handleSelectAll}
@@ -626,28 +626,28 @@ export default function AdminUsers() {
                           <span>User</span>
                         </div>
                       </th>
-                      <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground">
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         <div className="flex items-center gap-2">
                           <Phone className="h-4 w-4" />
                           Contact
                         </div>
                       </th>
-                      <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground">
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         <div className="flex items-center gap-2">
                           <Trophy className="h-4 w-4" />
                           Role
                         </div>
                       </th>
-                      <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-foreground">
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4" />
                           Joined
                         </div>
                       </th>
-                      <th scope="col" className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-foreground">Actions</th>
+                      <th scope="col" className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border bg-card">
+                  <tbody className="divide-y divide-border/40 bg-card">
                     {filteredUsers.map((user) => {
                       const userId = user.user_id || user.id
                       return (
@@ -732,7 +732,7 @@ export default function AdminUsers() {
                 <select
                   value={createForm.role}
                   onChange={(event) => setCreateForm({ ...createForm, role: event.target.value })}
-                  className="min-h-[44px] h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="min-h-[44px] h-12 w-full rounded-xl border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   required
                 >
                   {AVAILABLE_ROLES.map((role) => (
@@ -799,7 +799,7 @@ export default function AdminUsers() {
                 <select
                   value={editForm.role}
                   onChange={(event) => setEditForm({ ...editForm, role: event.target.value })}
-                  className="min-h-[44px] h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="min-h-[44px] h-12 w-full rounded-xl border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   required
                   disabled={selectedUser?.role === 'super_admin'}
                 >

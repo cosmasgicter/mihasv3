@@ -33,7 +33,7 @@ export const Header = React.memo(function Header() {
 
   return (
     <header
-      className="fixed top-0 z-40 hidden bg-background/80 backdrop-blur-xl transition-transform duration-300 app-safe-area md:block"
+      className="fixed top-0 z-40 hidden border-b border-border/40 bg-background/80 backdrop-blur-xl transition-transform duration-300 app-safe-area md:block"
       style={{
         ...headerStyle,
         transform: transformValue

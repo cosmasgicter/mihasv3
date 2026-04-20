@@ -151,7 +151,7 @@ export default function ResetPasswordPage() {
             type="button"
             variant="gradient"
             size="lg"
-            className="w-full"
+            className="w-full min-h-[48px]"
             onClick={() => navigate('/auth/signin')}
           >
             Sign in with new password
@@ -196,7 +196,7 @@ export default function ResetPasswordPage() {
               type="button"
               variant="gradient"
               size="lg"
-              className="w-full"
+              className="w-full min-h-[48px]"
               onClick={() => navigate('/auth/forgot-password')}
             >
               <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -205,7 +205,7 @@ export default function ResetPasswordPage() {
             <Button
               type="button"
               variant="outline"
-              className="w-full"
+              className="w-full min-h-[48px]"
               onClick={() => navigate('/auth/signin')}
             >
               Return to sign in
@@ -244,26 +244,30 @@ export default function ResetPasswordPage() {
           </div>
         </div>
 
-        <PasswordInput
-          {...register('password')}
-          label="New password"
-          required
-          autoComplete="new-password"
-          error={errors.password?.message}
-          helperText="At least 8 characters with a number and letter"
-          disabled={resetPasswordMutation.isPending}
-          className="min-h-[48px]"
-        />
+        <fieldset className="space-y-5 rounded-2xl border border-border/30 bg-muted/30 p-5 sm:p-6">
+          <legend className="sr-only">New password</legend>
 
-        <PasswordInput
-          {...register('confirmPassword')}
-          label="Confirm new password"
-          required
-          autoComplete="new-password"
-          error={errors.confirmPassword?.message}
-          disabled={resetPasswordMutation.isPending}
-          className="min-h-[48px]"
-        />
+          <PasswordInput
+            {...register('password')}
+            label="New password"
+            required
+            autoComplete="new-password"
+            error={errors.password?.message}
+            helperText="At least 8 characters with a number and letter"
+            disabled={resetPasswordMutation.isPending}
+            className="min-h-[48px]"
+          />
+
+          <PasswordInput
+            {...register('confirmPassword')}
+            label="Confirm new password"
+            required
+            autoComplete="new-password"
+            error={errors.confirmPassword?.message}
+            disabled={resetPasswordMutation.isPending}
+            className="min-h-[48px]"
+          />
+        </fieldset>
 
         {/* Error message */}
         {resetPasswordMutation.error ? (
@@ -280,7 +284,7 @@ export default function ResetPasswordPage() {
 
         <Button
           type="submit"
-          className="w-full"
+          className="w-full min-h-[48px]"
           variant="gradient"
           size="lg"
           loading={resetPasswordMutation.isPending}

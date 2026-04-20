@@ -198,9 +198,9 @@ function MetricCard({
     <DataUpdateFlash show={showFlash}>
       <div
         className={cn(
-          "bg-card rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02]",
-          "transition-all duration-300 border border-border relative overflow-hidden",
-          "motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100",
+          "bg-card rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5",
+          "transition-all duration-300 border border-border/60 relative overflow-hidden",
+          "motion-reduce:hover:translate-y-0",
           "animate-fade-in opacity-0",
           compact ? "p-4" : "p-6"
         )}
@@ -215,7 +215,7 @@ function MetricCard({
               <Icon className={cn(colors.icon, compact ? 'h-5 w-5' : 'h-6 w-6')} />
             </div>
             <div className="text-right">
-              <div className={cn("font-bold text-foreground", compact ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl")}>
+              <div className={cn("font-bold tracking-tight text-foreground", compact ? "text-xl sm:text-2xl" : "text-3xl")}>
                 <AnimatedCounter
                   value={metric.value}
                   suffix={metric.suffix}

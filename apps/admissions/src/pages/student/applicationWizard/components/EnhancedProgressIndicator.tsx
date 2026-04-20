@@ -71,15 +71,14 @@ const StepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
       <div
         className={cn(
           'relative rounded-full flex items-center justify-center',
-          'text-sm font-semibold border-2 transition-all duration-300 z-10',
+          'text-sm font-semibold border-2 transition-all duration-500 ease-out z-10',
           isCompleted
-            ? 'bg-success border-success text-white shadow-md'
+            ? 'bg-success/90 border-success/70 text-white shadow-sm'
             : isCurrent
-            ? 'bg-primary border-primary text-white shadow-lg'
-            : 'bg-background border-border text-muted-foreground',
-          isCurrent && shouldAnimate && 'animate-pulse-ring'
+            ? 'bg-primary border-primary text-white shadow-lg shadow-primary/25 scale-110'
+            : 'bg-background border-border/50 text-muted-foreground/60',
         )}
-        style={{ width: 'var(--touch-target, 44px)', height: 'var(--touch-target, 44px)' }}
+        style={{ width: isCurrent ? '48px' : 'var(--touch-target, 44px)', height: isCurrent ? '48px' : 'var(--touch-target, 44px)' }}
       >
         {isCompleted ? (
           <CheckCircle
@@ -262,11 +261,11 @@ export const EnhancedProgressIndicator = ({
       {/* Desktop: Horizontal with connecting line */}
       <div className="hidden md:block">
         {/* Background connecting line */}
-        <div className="absolute top-[22px] left-0 w-full h-0.5 bg-border" />
+        <div className="absolute top-[22px] left-0 w-full h-0.5 bg-border/40" />
         
         {/* Animated progress line */}
         <div
-          className="absolute top-[22px] left-0 h-0.5 bg-gradient-to-r from-primary via-success to-primary rounded-full transition-all duration-500 ease-out"
+          className="absolute top-[22px] left-0 h-0.5 bg-gradient-to-r from-primary to-success rounded-full transition-all duration-700 ease-out shadow-[0_0_8px_rgba(var(--primary-rgb,59,130,246),0.3)]"
           style={{ width: `${displayProgressPercentage}%` }}
         />
 
@@ -303,36 +302,64 @@ export const EnhancedProgressIndicator = ({
         </div>
       </div>
 
-      {/* Mobile: Vertical stepper */}
-      <div
-        className="md:hidden space-y-1"
-        role="group"
-        aria-label="Application steps"
-        data-orientation="vertical"
-      >
-        {steps.map((step, index) => {
-          const isActive = index <= currentStepIndex;
-          const isCompleted = index < currentStepIndex || completedSteps.has(index);
-          const isCurrent = index === currentStepIndex;
-          const isClickable = index < currentStepIndex;
+      {/* Mobile: Compact horizontal dots */}
+      <div className="md:hidden">
+        <div
+          className="flex items-center justify-center gap-3 py-2"
+          role="group"
+          aria-label="Application steps"
+          data-orientation="horizontal"
+        >
+          {steps.map((step, index) => {
+            const isCompleted = index < currentStepIndex || completedSteps.has(index);
+            const isCurrent = index === currentStepIndex;
+            const isClickable = index < currentStepIndex;
+            const Icon = step.icon;
 
-          return (
-            <MobileStepItem
-              key={step.id}
-              ref={(el: HTMLButtonElement | null) => { mobileStepRefs.current[index] = el; }}
-              step={step}
-              index={index}
-              isActive={isActive}
-              isCompleted={isCompleted}
-              isCurrent={isCurrent}
-              isClickable={isClickable}
-              onClick={() => handleStepClick(index)}
-              onKeyDown={(e: React.KeyboardEvent) => handleArrowKeyNavigation(e, index, mobileStepRefs)}
-              totalSteps={steps.length}
-              shouldAnimate={shouldAnimate}
-            />
-          );
-        })}
+            return (
+              <React.Fragment key={step.id}>
+                {index > 0 && (
+                  <div className={cn(
+                    'h-0.5 w-6 rounded-full transition-all duration-500',
+                    index <= currentStepIndex ? 'bg-primary' : 'bg-border/40'
+                  )} />
+                )}
+                <button
+                  type="button"
+                  ref={(el: HTMLButtonElement | null) => { mobileStepRefs.current[index] = el; }}
+                  onClick={() => handleStepClick(index)}
+                  onKeyDown={(e: React.KeyboardEvent) => handleArrowKeyNavigation(e, index, mobileStepRefs)}
+                  disabled={!isClickable}
+                  className={cn(
+                    'relative flex items-center justify-center rounded-full transition-all duration-300',
+                    'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                    isClickable ? 'cursor-pointer' : 'cursor-default',
+                    isCurrent
+                      ? 'w-12 h-12 bg-primary text-white shadow-lg shadow-primary/25'
+                      : isCompleted
+                      ? 'w-10 h-10 bg-success/90 text-white'
+                      : 'w-10 h-10 bg-muted border border-border/50 text-muted-foreground/60'
+                  )}
+                  aria-label={`Step ${step.id}: ${step.progressTitle}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
+                  aria-current={isCurrent ? 'step' : undefined}
+                >
+                  {isCompleted ? (
+                    <CheckCircle className="h-5 w-5" />
+                  ) : (
+                    <Icon className={cn(isCurrent ? 'h-5 w-5' : 'h-4 w-4')} />
+                  )}
+                </button>
+              </React.Fragment>
+            );
+          })}
+        </div>
+        {/* Current step label */}
+        <p className="text-center text-sm font-semibold text-primary mt-2">
+          {steps[currentStepIndex]?.progressTitle}
+          <span className="text-muted-foreground font-normal ml-1.5">
+            — Step {currentStepIndex + 1} of {steps.length}
+          </span>
+        </p>
       </div>
 
       {/* Overall progress bar (mobile only) */}

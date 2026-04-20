@@ -78,7 +78,7 @@ function FeaturesSection() {
         <StaggerReveal className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-10" staggerDelay={0.1}>
           {features.map((feature) => (
             <StaggerItem key={feature.title}>
-              <Card className="group h-full text-center transition-shadow duration-300 hover:shadow-xl">
+              <Card className="group h-full rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm text-center shadow-sm transition-all duration-300 hover:shadow-lg">
                 <CardContent className="p-6 sm:p-8">
                   <div
                     className={cn(
@@ -128,7 +128,7 @@ function AccreditationSection() {
         <StaggerReveal className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8" staggerDelay={0.1}>
           {accreditations.map((accred) => (
             <StaggerItem key={accred.title}>
-              <Card className="group h-full border border-border text-center transition-shadow duration-300 hover:shadow-xl">
+              <Card className="group h-full rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm text-center shadow-sm transition-all duration-300 hover:shadow-lg">
                 <CardContent className="p-4 sm:p-6">
                   <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-muted p-2 sm:h-16 sm:w-16 group-hover:scale-110 transition-transform duration-300">
                     <OptimizedImage
@@ -161,7 +161,7 @@ function ProgramsSection() {
     <section
       id="programs"
       aria-labelledby="programs-heading"
-      className="scroll-mt-24 bg-card py-12 sm:scroll-mt-28 sm:py-16 lg:py-20"
+      className="scroll-mt-24 bg-muted py-12 sm:scroll-mt-28 sm:py-16 lg:py-20"
       style={deferredSectionStyle}
     >
       <div className="container-responsive px-4 sm:px-6 lg:px-8">
@@ -179,7 +179,7 @@ function ProgramsSection() {
         <StaggerReveal className="grid grid-cols-1 gap-8 sm:gap-12 lg:grid-cols-2" staggerDelay={0.2}>
           {programs.map((program) => (
             <StaggerItem key={program.institution}>
-              <Card className="group transition-shadow duration-300 hover:shadow-xl">
+              <Card className="group rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg">
                 <CardContent className="p-6 sm:p-8">
                   <div className="relative mb-6 overflow-hidden rounded-lg">
                     <OptimizedImage
@@ -241,7 +241,7 @@ function CTASection() {
     <section
       id="cta"
       aria-label="Apply now"
-      className="relative scroll-mt-24 overflow-hidden py-16 sm:scroll-mt-28 sm:py-20 lg:py-24"
+      className="relative scroll-mt-24 overflow-hidden py-16 sm:scroll-mt-28 sm:py-24 lg:py-28"
       style={deferredSectionStyle}
     >
       <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary" />
@@ -260,7 +260,7 @@ function CTASection() {
           asChild
           variant="secondary"
           size="xl"
-          className="group min-h-[48px] bg-white px-6 font-bold text-primary shadow-lg hover:bg-white/90 sm:px-8"
+          className="group min-h-[48px] bg-white px-6 font-bold text-primary shadow-lg hover:bg-white/90 hover:shadow-xl sm:px-8 rounded-2xl"
         >
           <Link
             to="/auth/signup"

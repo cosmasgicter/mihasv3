@@ -108,14 +108,14 @@ function BottomNavLink({
   const prefetchProps = hasImport ? prefetch : {}
   const baseClassName = cn(
     'flex flex-col items-center justify-center',
-    'min-h-[52px] min-w-[52px] px-3 py-2',
-    'rounded-2xl',
-    'transition-all duration-200',
+    'min-h-[44px] min-w-[44px] px-3 py-2',
+    'rounded-xl',
+    'transition-colors duration-150',
     'touch-manipulation select-none',
     '[-webkit-tap-highlight-color:transparent]',
     isActive
-      ? 'bg-foreground text-white shadow-lg shadow-foreground/20'
-      : 'text-muted-foreground hover:bg-accent/70 hover:text-foreground',
+      ? 'bg-primary/10 text-primary font-semibold'
+      : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
     'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
   )
 
@@ -132,12 +132,12 @@ function BottomNavLink({
         role={role}
       >
         <div className="relative">
-          <Icon className={cn('h-5 w-5', isActive ? 'text-white' : 'text-muted-foreground')} />
+          <Icon className={cn('h-5 w-5', isActive ? 'text-primary' : 'text-muted-foreground')} />
           {item.badge !== undefined && item.badge > 0 && (
             <span
               className={cn(
                 'absolute -top-1 -right-1',
-                'min-w-[16px] h-4 px-1',
+                'min-w-[18px] h-[18px] px-1',
                 'flex items-center justify-center',
                 'text-[10px] font-bold',
                 'bg-destructive text-destructive-foreground',
@@ -150,7 +150,7 @@ function BottomNavLink({
           )}
         </div>
         {!iconOnly && (
-          <span className={cn('mt-1 text-[10px] font-semibold', isActive ? 'text-white' : 'text-muted-foreground')}>
+          <span className={cn('mt-1 text-[10px] font-semibold', isActive ? 'text-primary' : 'text-muted-foreground')}>
             {item.label}
           </span>
         )}
@@ -168,12 +168,12 @@ function BottomNavLink({
       {...prefetchProps}
     >
       <div className="relative">
-        <Icon className={cn('h-5 w-5', isActive ? 'text-white' : 'text-muted-foreground')} />
+        <Icon className={cn('h-5 w-5', isActive ? 'text-primary' : 'text-muted-foreground')} />
         {item.badge !== undefined && item.badge > 0 && (
           <span
             className={cn(
               'absolute -top-1 -right-1',
-              'min-w-[16px] h-4 px-1',
+              'min-w-[18px] h-[18px] px-1',
               'flex items-center justify-center',
               'text-[10px] font-bold',
               'bg-destructive text-destructive-foreground',
@@ -186,7 +186,7 @@ function BottomNavLink({
         )}
       </div>
       {!iconOnly && (
-        <span className={cn('mt-1 text-[10px] font-semibold', isActive ? 'text-white' : 'text-muted-foreground')}>
+        <span className={cn('mt-1 text-[10px] font-semibold', isActive ? 'text-primary' : 'text-muted-foreground')}>
           {item.label}
         </span>
       )}
@@ -240,7 +240,7 @@ export function BottomNavigation({
     <nav
       className={cn(
         'fixed bottom-0 left-0 right-0 z-50',
-        'border-t border-border/70 bg-background/90 shadow-[0_-18px_50px_rgba(15,23,42,0.12)] backdrop-blur-xl',
+        'border-t border-border/40 bg-background/80 shadow-[0_-18px_50px_rgba(15,23,42,0.12)] backdrop-blur-xl',
         'md:hidden',
         className
       )}
@@ -290,21 +290,21 @@ export function BottomNavigation({
             ref={moreButtonRef}
             onClick={() => setIsMoreOpen((prev) => !prev)}
             className={cn(
-              'flex flex-col items-center justify-center rounded-lg',
-              'min-h-[52px] min-w-[52px] px-3 py-2',
+              'flex flex-col items-center justify-center rounded-xl',
+              'min-h-[44px] min-w-[44px] px-3 py-2',
               'touch-manipulation select-none [-webkit-tap-highlight-color:transparent]',
-              'transition-all duration-200',
+              'transition-colors duration-150',
               isMoreActive || isMoreOpen
-                ? 'bg-foreground text-white shadow-lg shadow-foreground/20'
-                : 'text-muted-foreground hover:bg-accent/70 hover:text-foreground'
+                ? 'bg-primary/10 text-primary font-semibold'
+                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
             )}
             aria-expanded={isMoreOpen}
             aria-controls="bottom-navigation-overflow"
             aria-label="More navigation items"
           >
-            <MoreHorizontal className={cn('h-5 w-5', isMoreActive || isMoreOpen ? 'text-white' : 'text-muted-foreground')} />
+            <MoreHorizontal className={cn('h-5 w-5', isMoreActive || isMoreOpen ? 'text-primary' : 'text-muted-foreground')} />
             {!isNarrowViewport && (
-              <span className={cn('mt-1 text-[10px] font-semibold', isMoreActive || isMoreOpen ? 'text-white' : 'text-muted-foreground')}>
+              <span className={cn('mt-1 text-[10px] font-semibold', isMoreActive || isMoreOpen ? 'text-primary' : 'text-muted-foreground')}>
                 More
               </span>
             )}

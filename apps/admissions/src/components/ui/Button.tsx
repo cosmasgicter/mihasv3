@@ -15,7 +15,7 @@ import { ButtonSpinner } from './ButtonSpinner'
 
 const buttonVariants = cva(
   // Base styles with focus-visible ring and touch-manipulation for mobile
-  'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-semibold ring-offset-background transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 touch-manipulation [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-semibold ring-offset-background transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 touch-manipulation [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
@@ -36,7 +36,7 @@ const buttonVariants = cva(
         xs: 'h-9 px-2 text-xs',                  // 36px - small contexts, still accessible
         sm: 'h-10 px-3 text-sm',                 // 40px - small
         md: 'h-11 px-4 text-base',               // 44px - medium (meets touch target)
-        lg: 'h-11 px-6 text-lg',                 // 44px - large
+        lg: 'h-12 px-6 text-lg',                 // 48px - large
         xl: 'h-12 px-8 text-xl',                 // 48px - extra large
         icon: 'h-11 w-11 p-0',                   // 44px - icon only, meets touch target
       },
