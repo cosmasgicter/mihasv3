@@ -238,6 +238,9 @@ class PaymentService:
         Admin review may override the latest payment record, but it must not
         update only ``Application.payment_status`` when a payment record exists.
         This keeps application summary state aligned with the payment ledger.
+
+        If no payment record exists and the admin is force-approving (verified),
+        a synthetic payment record is created to maintain ledger consistency.
         """
         from django.db import transaction
 
@@ -257,8 +260,35 @@ class PaymentService:
                 .first()
             )
 
+            # If no payment record exists and admin is verifying, create a
+            # synthetic admin-override record instead of rejecting.
             if target_payment_status and latest_payment is None:
-                raise ValueError("PAYMENT_RECORD_REQUIRED")
+                if payment_status == 'verified':
+                    latest_payment = Payment.objects.create(
+                        application_id=application_id,
+                        status='successful',
+                        amount=0,
+                        currency='ZMW',
+                        payment_method='admin_override',
+                        notes=notes or 'Admin force-approved payment (no prior record)',
+                        verified_by_id=reviewed_by_id,
+                        verified_at=timezone.now(),
+                        metadata={
+                            'admin_review': {
+                                'status': payment_status,
+                                'reviewed_by': reviewed_by_id,
+                                'reviewed_at': timezone.now().isoformat(),
+                                'notes': notes,
+                                'synthetic': True,
+                            }
+                        },
+                    )
+                    logger.warning(
+                        "Admin force-approved payment without record: app=%s admin=%s",
+                        application_id, reviewed_by_id,
+                    )
+                else:
+                    raise ValueError("PAYMENT_RECORD_REQUIRED")
 
             now = timezone.now()
 
