@@ -1002,6 +1002,8 @@ class ApplicationReviewView(APIView):
             bypass_changes = None
 
         if new_status == "submitted":
+            # Admin-initiated submission always bypasses student-facing gates
+            # (payment, identity document) since the admin is explicitly forcing.
             try:
                 locked_app, old_status = submit_application(
                     application=app,
@@ -1009,6 +1011,7 @@ class ApplicationReviewView(APIView):
                     notes=bypass_notes,
                     ip_address=ip_hash,
                     user_agent=user_agent,
+                    admin_force=True,
                 )
             except ApplicationSubmissionError as exc:
                 return Response(

@@ -143,24 +143,36 @@ def submit_application(
     notes: str = "",
     ip_address: str = "",
     user_agent: str = "",
+    admin_force: bool = False,
 ) -> tuple[Application, str]:
-    """Submit an application after enforcing payment/document/state checks."""
+    """Submit an application after enforcing payment/document/state checks.
+    
+    When admin_force=True, payment and identity document checks are bypassed.
+    This allows admins to force-submit applications that haven't completed
+    the normal student flow (e.g. offline payments, paper documents).
+    """
 
-    has_payment = (
-        application.payment_status in ("verified", "paid", "force_approved")
-        or _application_has_completed_payment(application.id)
-    )
-    if not has_payment:
-        raise ApplicationSubmissionError(
-            "PAYMENT_REQUIRED",
-            "Payment must be completed before submitting the application.",
+    if not admin_force:
+        has_payment = (
+            application.payment_status in ("verified", "paid", "force_approved")
+            or _application_has_completed_payment(application.id)
         )
+        if not has_payment:
+            raise ApplicationSubmissionError(
+                "PAYMENT_REQUIRED",
+                "Payment must be completed before submitting the application.",
+            )
 
-    has_identity_document = _application_has_identity_document(application.id)
-    if not has_identity_document:
-        raise ApplicationSubmissionError(
-            "IDENTITY_DOCUMENT_REQUIRED",
-            "An NRC or Passport document must be uploaded before submission.",
+        has_identity_document = _application_has_identity_document(application.id)
+        if not has_identity_document:
+            raise ApplicationSubmissionError(
+                "IDENTITY_DOCUMENT_REQUIRED",
+                "An NRC or Passport document must be uploaded before submission.",
+            )
+    else:
+        logger.warning(
+            "Admin force-submit bypassing payment/document checks: app=%s admin=%s",
+            application.id, changed_by,
         )
 
     # Intake deadline and capacity enforcement (Req 6.1, 6.3)
