@@ -116,7 +116,7 @@ describe('AuthLayout mobile overflow fixes', () => {
     let card: Element | null = null
     for (const el of allElements) {
       const cls = typeof el.className === 'string' ? el.className : ''
-      if (cls.includes('shadow-xl') && cls.includes('backdrop-blur')) {
+      if (cls.includes('shadow-2xl') && cls.includes('backdrop-blur')) {
         card = el
         break
       }

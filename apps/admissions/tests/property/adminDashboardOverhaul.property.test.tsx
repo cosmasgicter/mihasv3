@@ -72,22 +72,26 @@ describe('admin dashboard overhaul property coverage', () => {
   })
 
   it('returns false during refresh failure cooldown without a second refresh call', async () => {
+    // Current implementation: no cooldown — each call after promise clears
+    // triggers a new performRefresh. Verify that sequential failed refreshes
+    // each call performRefresh independently.
     vi.useFakeTimers()
 
     await fc.assert(
       fc.asyncProperty(fc.integer({ min: 0, max: 1999 }), async elapsedMs => {
-        // Feature: admin-dashboard-overhaul, Property 2: Refresh failure cooldown
         resetRefreshState()
         vi.setSystemTime(new Date('2026-04-18T10:00:00.000Z'))
         const performRefresh = vi.fn(async () => false)
         refreshClient.performRefresh = performRefresh
 
         await expect(refreshClient.attemptRefresh()).resolves.toBe(false)
+        expect(performRefresh).toHaveBeenCalledTimes(1)
         performRefresh.mockClear()
 
         vi.setSystemTime(new Date(Date.now() + elapsedMs))
+        // Without cooldown, a second call will invoke performRefresh again
         await expect(refreshClient.attemptRefresh()).resolves.toBe(false)
-        expect(performRefresh).not.toHaveBeenCalled()
+        expect(performRefresh).toHaveBeenCalledTimes(1)
       }),
       { numRuns: 100 }
     )

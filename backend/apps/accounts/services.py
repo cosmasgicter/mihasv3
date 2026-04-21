@@ -192,7 +192,7 @@ def send_lockout_email(user) -> None:
     """
     try:
         from apps.common.models import EmailQueue
-        from apps.common.tasks import send_email_task
+        from apps.common.tasks import dispatch_email
 
         recipient = getattr(user, "email", None)
         if not recipient:
@@ -219,7 +219,7 @@ def send_lockout_email(user) -> None:
             status="pending",
         )
 
-        send_email_task.delay(str(email_record.id))
+        dispatch_email(str(email_record.id))
 
         logger.info(
             "Lockout email queued for user_id=%s (email_queue_id=%s)",

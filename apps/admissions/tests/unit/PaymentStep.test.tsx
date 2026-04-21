@@ -69,21 +69,17 @@ describe('PaymentStep', () => {
 
     expect(markup).toContain('Application fee')
     expect(markup).toContain('K153.00')
-    expect(markup).toContain('Pay now')
+    expect(markup).toContain('data-testid="pay-momo-button"')
     expect(markup).toContain('Payments are processed securely by Lenco')
   })
 
-  it('shows a warning when the payment widget is unavailable', () => {
-    useLencoWidgetMock.mockReturnValue({
-      openWidget: vi.fn(),
-      isLoading: false,
-      isScriptLoaded: false,
-    })
-
+  it('renders mobile money form as the primary payment method', () => {
     const markup = renderPaymentStep()
 
-    expect(markup).toContain('Payment widget unavailable')
-    expect(markup).toContain('Please check your connection and try again')
-    expect(markup).toContain('Retry payment widget')
+    expect(markup).toContain('Mobile Money')
+    expect(markup).toContain('Mobile money number')
+    expect(markup).toContain('Airtel Money')
+    expect(markup).toContain('MTN MoMo')
+    expect(markup).toContain('Pay Later')
   })
 })

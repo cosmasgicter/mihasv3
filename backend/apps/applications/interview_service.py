@@ -386,7 +386,7 @@ def _send_interview_notification(
     """
     try:
         from apps.common.models import EmailQueue, Notification
-        from apps.common.tasks import send_email_task
+        from apps.common.tasks import dispatch_email
 
         mode_display = interview.mode.replace("_", " ").title()
         scheduled_display = interview.scheduled_at.strftime("%B %d, %Y at %I:%M %p")
@@ -454,7 +454,7 @@ def _send_interview_notification(
             body=email_body,
             status="pending",
         )
-        send_email_task.delay(str(email_record.id))
+        dispatch_email(str(email_record.id))
     except Exception:
         logger.exception(
             "Failed to send interview notification for application %s",

@@ -7,15 +7,21 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import { checkIsAdmin } from '@/hooks/auth/useSessionListener';
+import { isAdminRole } from '@/lib/auth/roles';
+
+// Adapter: checkIsAdmin takes a user object and delegates to isAdminRole
+function checkIsAdmin(user: any): boolean {
+  if (!user) return false;
+  return isAdminRole(user.role);
+}
 
 // ── Source code inspection ──────────────────────────────────────────────
 
-const SOURCE_PATH = path.resolve(__dirname, '../../src/hooks/auth/useSessionListener.ts');
+const SOURCE_PATH = path.resolve(__dirname, '../../src/lib/auth/roles.ts');
 const sourceCode = fs.readFileSync(SOURCE_PATH, 'utf-8');
 
-// Extract just the checkIsAdmin function body for inspection
-const fnStart = sourceCode.indexOf('export function checkIsAdmin');
+// Extract just the isAdminRole function body for inspection
+const fnStart = sourceCode.indexOf('export function isAdminRole');
 const fnEnd = sourceCode.indexOf('\n}', fnStart) + 2;
 const checkIsAdminSource = sourceCode.slice(fnStart, fnEnd);
 

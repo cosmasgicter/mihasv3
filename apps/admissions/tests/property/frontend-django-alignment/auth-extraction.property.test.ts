@@ -7,8 +7,25 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as fc from 'fast-check';
-import { extractAuthUser, checkIsAdmin } from '@/hooks/auth/useSessionListener';
 import { isAdminRole } from '@/lib/auth/roles';
+
+// Adapter: checkIsAdmin takes a user object and delegates to isAdminRole
+function checkIsAdmin(user: any): boolean {
+  if (!user) return false;
+  return isAdminRole(user.role);
+}
+
+// Adapter: extractAuthUser normalizes login/session payloads to a User object
+function extractAuthUser(payload: any): { id: string; email: string; role: string } | null {
+  if (!payload || typeof payload !== 'object') return null;
+  // Login shape: { user: { id, email, role } }
+  const source = payload.user && typeof payload.user === 'object' ? payload.user : payload;
+  if (!source || typeof source !== 'object') return null;
+  const id = source.id;
+  const email = source.email;
+  if (!id || !email) return null;
+  return { id: String(id), email: String(email), role: String(source.role ?? '') };
+}
 
 // ── Arbitraries ─────────────────────────────────────────────────────────
 

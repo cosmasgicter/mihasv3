@@ -192,6 +192,17 @@ class ConditionManager:
             admin_id,
         )
 
+        # Notify student about individual condition verification
+        try:
+            from apps.common.communication_service import CommunicationService
+            application = Application.objects.get(id=condition.application_id)
+            CommunicationService.send('condition_verified', application, {
+                'condition_name': condition.description,
+                'condition_status': status,
+            })
+        except Exception:
+            logger.exception("Failed to send condition_verified notification for condition=%s", condition_id)
+
         # Check if all conditions are now resolved and auto-promote (Req 5.5)
         ConditionManager.auto_promote_if_all_met(str(condition.application_id))
 
@@ -318,7 +329,7 @@ def _send_conditions_notification(
     """Create a Notification and dispatch email for condition assignment (Req 5.4)."""
     try:
         from apps.common.models import EmailQueue, Notification
-        from apps.common.tasks import send_email_task
+        from apps.common.tasks import dispatch_email
 
         conditions_text = "\n".join(
             f"- {c.description} (due: {c.deadline}, type: {c.condition_type})"
@@ -361,7 +372,7 @@ def _send_conditions_notification(
             body=email_body,
             status="pending",
         )
-        send_email_task.delay(str(email_record.id))
+        dispatch_email(str(email_record.id))
     except Exception:
         logger.exception(
             "Failed to send conditions notification for application %s",
@@ -373,7 +384,7 @@ def _send_approval_notification(application: Application) -> None:
     """Create a Notification and dispatch email for auto-approval after conditions met."""
     try:
         from apps.common.models import EmailQueue, Notification
-        from apps.common.tasks import send_email_task
+        from apps.common.tasks import dispatch_email
 
         Notification.objects.create(
             user_id=application.user_id,
@@ -407,7 +418,7 @@ def _send_approval_notification(application: Application) -> None:
             body=email_body,
             status="pending",
         )
-        send_email_task.delay(str(email_record.id))
+        dispatch_email(str(email_record.id))
     except Exception:
         logger.exception(
             "Failed to send approval notification for application %s",

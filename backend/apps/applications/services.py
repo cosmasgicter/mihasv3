@@ -154,7 +154,7 @@ def submit_application(
 
     if not admin_force:
         has_payment = (
-            application.payment_status in ("verified", "paid", "force_approved")
+            application.payment_status in ("verified", "paid", "force_approved", "deferred")
             or _application_has_completed_payment(application.id)
         )
         if not has_payment:

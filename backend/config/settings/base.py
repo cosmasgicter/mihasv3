@@ -72,16 +72,13 @@ MIDDLEWARE = [
     "apps.common.middleware.RateLimitMiddleware",
     # 7. URL normalization
     "django.middleware.common.CommonMiddleware",
-    # 8. JWT authentication from cookies/Bearer
-    "apps.common.middleware.JWTAuthenticationMiddleware",
-    # 9. Custom CSRF enforcement (X-CSRF-Token header)
+    # 8. Custom CSRF enforcement (X-CSRF-Token header)
     "apps.common.middleware.CSRFEnforcementMiddleware",
-    # 10. Audit logging for state-changing operations
+    # 9. Audit logging for state-changing operations
     "apps.common.middleware.AuditMiddleware",
-    # 11. Read-only mode (disabled by default — activates via READ_ONLY_MODE env var)
+    # 10. Read-only mode (disabled by default — activates via READ_ONLY_MODE env var)
     "apps.common.readonly.ReadOnlyMiddleware",
-    # 12. Idempotent request processing (Idempotency-Key header)
-    "apps.common.idempotency.IdempotencyMiddleware",
+    # 11. Idempotency: now handled per-view via @idempotent decorator
     # Django defaults needed for admin
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -195,6 +192,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.documents.tasks.document_verification_sla_task",
         "schedule": crontab(hour=8, minute=0),
     },
+    "deferred-payment-reminder": {
+        "task": "apps.documents.tasks.deferred_payment_reminder_task",
+        "schedule": crontab(hour=11, minute=0),
+    },
     "enrollment-confirmation-expiry": {
         "task": "apps.applications.tasks.enrollment_confirmation_expiry_task",
         "schedule": crontab(hour=9, minute=0),
@@ -206,6 +207,10 @@ CELERY_BEAT_SCHEDULE = {
     "cleanup-idempotency-keys": {
         "task": "cleanup_idempotency_keys",
         "schedule": crontab(hour=3, minute=0),
+    },
+    "process-pending-emails": {
+        "task": "apps.common.tasks.process_pending_emails_task",
+        "schedule": 120.0,  # Every 2 minutes — sweep stale pending EmailQueue rows
     },
 }
 
@@ -278,7 +283,7 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB for file uploads
 # ---------------------------------------------------------------------------
 
 AUTH_COOKIE_DOMAIN = ".mihas.edu.zm"
-AUTH_COOKIE_SAMESITE = "Lax"  # Production overrides to "None" in prod.py for cross-origin cookie support (api.mihas.edu.zm → apply.mihas.edu.zm)
+AUTH_COOKIE_SAMESITE = "Lax"  # Same-origin via Vercel API proxy — no cross-origin cookies needed
 AUTH_COOKIE_SECURE = True
 AUTH_COOKIE_HTTPONLY = True
 
@@ -515,6 +520,12 @@ if REQUIRED_ENV_VARS and not _is_testing:
 
 # ---------------------------------------------------------------------------
 # GlitchTip / Sentry-compatible error tracking
+# ---------------------------------------------------------------------------
+# Feature gates for scaffold domains
+# ---------------------------------------------------------------------------
+
+ENABLE_JOBS_OPS_ROUTES = os.environ.get('ENABLE_JOBS_OPS_ROUTES', 'true').lower() in ('1', 'true', 'yes')
+
 # ---------------------------------------------------------------------------
 
 GLITCHTIP_DSN = os.environ.get("GLITCHTIP_DSN", "")

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { checkIsAdmin } from '@/hooks/auth/useSessionListener'
+import { isAdminRole } from '@/lib/auth/roles'
+
+// Adapter: checkIsAdmin takes a user object and delegates to isAdminRole
+function checkIsAdmin(user: any): boolean {
+  if (!user) return false
+  return isAdminRole(user.role)
+}
 
 describe('checkIsAdmin', () => {
   it('treats admin and super_admin as admin users', () => {

@@ -237,7 +237,7 @@ def _send_promotion_notification(application: Application) -> None:
     """Create a Notification and dispatch an email for waitlist promotion."""
     try:
         from apps.common.models import EmailQueue, Notification
-        from apps.common.tasks import send_email_task
+        from apps.common.tasks import dispatch_email
 
         Notification.objects.create(
             user_id=application.user_id,
@@ -269,7 +269,7 @@ def _send_promotion_notification(application: Application) -> None:
             body=email_body,
             status="pending",
         )
-        send_email_task.delay(str(email_record.id))
+        dispatch_email(str(email_record.id))
     except Exception:
         logger.exception(
             "Failed to send promotion notification for application %s",

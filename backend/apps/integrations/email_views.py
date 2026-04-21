@@ -4,7 +4,7 @@ import uuid
 
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -67,7 +67,7 @@ class EmailThreadListView(APIView):
 
 
 class EmailDeliveryWebhookView(APIView):
-    permission_classes = []
+    permission_classes = [AllowAny]
     authentication_classes = []
     serializer_class = IntegrationActionSerializer
 

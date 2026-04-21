@@ -209,12 +209,12 @@ describe('[PBT] Preservation — Desktop layout classes', () => {
         )
         const doc = parseMarkup(markup)
 
-        // Form card is identified by shadow-xl + backdrop-blur
+        // Form card is identified by shadow-2xl + backdrop-blur
         const allEls = doc.querySelectorAll('*')
         let card: Element | null = null
         for (const el of allEls) {
           const cls = typeof el.className === 'string' ? el.className : ''
-          if (cls.includes('shadow-xl') && cls.includes('backdrop-blur')) {
+          if (cls.includes('shadow-2xl') && cls.includes('backdrop-blur')) {
             card = el
             break
           }
@@ -223,7 +223,7 @@ describe('[PBT] Preservation — Desktop layout classes', () => {
 
         const cls = classesOf(card!)
         expect(cls).toContain('sm:p-8')
-        expect(cls).toContain('lg:p-9')
+        expect(cls).toContain('lg:p-10')
       }),
       { numRuns: 10 },
     )

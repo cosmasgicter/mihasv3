@@ -62,6 +62,7 @@ class PaymentVerificationResult:
 
 _ALLOWED_TRANSITIONS: dict[str, set[str]] = {
     'pending': {'successful', 'failed', 'expired'},
+    'deferred': {'pending', 'successful', 'failed', 'expired'},
 }
 
 # Maximum payment attempts per application (Req 8.4)
@@ -248,6 +249,7 @@ class PaymentService:
             'pending_review': 'pending',
             'verified': 'successful',
             'rejected': 'failed',
+            'deferred': 'deferred',
         }
         target_payment_status = payment_status_map.get(payment_status)
 
@@ -263,16 +265,16 @@ class PaymentService:
             # If no payment record exists and admin is verifying, create a
             # synthetic admin-override record instead of rejecting.
             if target_payment_status and latest_payment is None:
-                if payment_status == 'verified':
+                if payment_status in ('verified', 'deferred'):
                     latest_payment = Payment.objects.create(
                         application_id=application_id,
-                        status='successful',
+                        status=target_payment_status,
                         amount=0,
                         currency='ZMW',
                         payment_method='admin_override',
-                        notes=notes or 'Admin force-approved payment (no prior record)',
-                        verified_by_id=reviewed_by_id,
-                        verified_at=timezone.now(),
+                        notes=notes or f'Admin set payment to {payment_status} (no prior record)',
+                        verified_by_id=reviewed_by_id if payment_status == 'verified' else None,
+                        verified_at=timezone.now() if payment_status == 'verified' else None,
                         metadata={
                             'admin_review': {
                                 'status': payment_status,
@@ -339,6 +341,82 @@ class PaymentService:
                 pass
 
             return application
+
+    def defer_payment(
+        self, application_id: UUID, user_id: UUID
+    ) -> PaymentInitiationResult:
+        """Create a *deferred* Payment record — student can pay later."""
+        from django.db import transaction
+
+        with transaction.atomic():
+            existing = (
+                Payment.objects.select_for_update()
+                .filter(application_id=application_id, status='deferred')
+                .first()
+            )
+            if existing:
+                return PaymentInitiationResult(
+                    payment_id=existing.id,
+                    reference=existing.transaction_reference,
+                    amount=existing.amount,
+                    currency=existing.currency,
+                )
+
+            application = Application.objects.get(id=application_id)
+
+            if application.payment_status in ('verified', 'force_approved'):
+                return PaymentInitiationResult(
+                    payment_id=None, reference='', amount=Decimal('0'), currency='',
+                )
+
+            resolved_program = IdentifierResolver.resolve_program(application.program)
+            if resolved_program.source == "not_found":
+                raise ValueError(f"Cannot resolve program '{application.program}'.")
+
+            resolved = self._fee_resolver.resolve_fee(
+                program_code=resolved_program.code,
+                nationality=application.nationality,
+                country=getattr(application, 'country', None),
+            )
+
+            effective_amount = resolved.amount
+            try:
+                from apps.documents.fee_waiver_service import FeeWaiverService
+                effective_amount = FeeWaiverService.get_effective_fee(
+                    str(application_id), resolved.amount,
+                )
+            except Exception:
+                pass
+
+            reference = _generate_reference(application.application_number)
+
+            payment = Payment.objects.create(
+                application_id=application_id,
+                user_id=user_id,
+                amount=effective_amount,
+                currency=resolved.currency,
+                status='deferred',
+                transaction_reference=reference,
+                metadata={
+                    'residency_category': resolved.residency_category,
+                    'fee_source': resolved.source,
+                    'deferred': True,
+                },
+                created_at=timezone.now(),
+                updated_at=timezone.now(),
+            )
+
+            # Sync application payment_status
+            Application.objects.filter(id=application_id).update(
+                payment_status='deferred', updated_at=timezone.now(),
+            )
+
+            return PaymentInitiationResult(
+                payment_id=payment.id,
+                reference=reference,
+                amount=effective_amount,
+                currency=resolved.currency,
+            )
 
     def verify_payment(self, payment_id: UUID) -> PaymentVerificationResult:
         """Call the Lenco API to verify payment status and update records.

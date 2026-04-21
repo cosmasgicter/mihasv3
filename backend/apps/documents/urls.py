@@ -7,6 +7,7 @@ Requirements: 2.1, 4.1, 6.1, 10.1, 13.1
 from django.urls import path
 
 from apps.documents.views import (
+    DeferPaymentView,
     DocumentDeleteView,
     DocumentDownloadView,
     DocumentExtractView,
@@ -15,6 +16,7 @@ from apps.documents.views import (
     DocumentUploadView,
     FeeResolveView,
     LencoWebhookView,
+    MobileMoneyInitiateView,
     PaymentDevBypassView,
     PaymentInitiateView,
     PaymentListView,
@@ -82,6 +84,16 @@ payment_urlpatterns = [
         "initiate/",
         PaymentInitiateView.as_view(),
         name="payment-initiate",
+    ),
+    path(
+        "defer/",
+        DeferPaymentView.as_view(),
+        name="payment-defer",
+    ),
+    path(
+        "mobile-money/",
+        MobileMoneyInitiateView.as_view(),
+        name="payment-mobile-money",
     ),
     path(
         "dev-bypass/",

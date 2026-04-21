@@ -75,9 +75,6 @@ describe('Auth hook consolidation - task 2.2 verification', () => {
     const content = fs.readFileSync(path.join(srcRoot, 'hooks/auth/useSessionListener.ts'), 'utf-8')
     expect(content).toContain('export function useSessionListener()')
     expect(content).toContain('export function useAuthCheck()')
-    expect(content).toContain('export function useInvalidateAuthCache()')
-    expect(content).toContain('export function checkIsAdmin(')
-    expect(content).toContain('export function normalizeSessionResult')
   })
 
   it('no source files import from useOptimizedAuthState', () => {

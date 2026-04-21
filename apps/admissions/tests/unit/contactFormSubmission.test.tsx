@@ -48,8 +48,8 @@ describe('ContactPage form submission', () => {
   }
 
   function fillForm(name: string, email: string, message: string) {
-    const nameInput = container.querySelector('#contact-name') as HTMLInputElement
-    const emailInput = container.querySelector('#contact-email') as HTMLInputElement
+    const nameInput = container.querySelector('input[name="name"]') as HTMLInputElement
+    const emailInput = container.querySelector('input[name="email"]') as HTMLInputElement
     const messageInput = container.querySelector('#contact-message') as HTMLTextAreaElement
 
     // React Hook Form uses native events for registration

@@ -846,6 +846,7 @@ export function ApplicationDetailModal({
  case 'pending_review': return <Clock className="h-5 w-5 text-orange-700" />
  case 'verified': return <CheckCircle className="h-5 w-5 text-accent" />
  case 'rejected': return <XCircle className="h-5 w-5 text-destructive" />
+ case 'deferred': return <AlertTriangle className="h-5 w-5 text-amber-600" />
  default: return <Clock className="h-5 w-5 text-slate-700" />
  }
  }
@@ -864,7 +865,8 @@ export function ApplicationDetailModal({
  'Awaiting Payment': 'text-slate-900',
  'Awaiting Payment Review': 'text-orange-900',
  Verified: 'text-green-900',
- 'Payment Rejected': 'text-red-900'
+ 'Payment Rejected': 'text-red-900',
+ Deferred: 'text-amber-800'
  }[paymentStatusLabel] || 'text-foreground'
 
  const handleGenerateAcceptance = async () => {
@@ -1207,6 +1209,38 @@ export function ApplicationDetailModal({
  </div>
  </div>
  </div>
+
+ {/* Deferred payment banner */}
+ {normalizePaymentStatus(application.payment_status) === 'deferred' && (
+ <div className="mb-4 p-4 rounded-lg bg-amber-50 border border-amber-200">
+ <div className="flex items-center gap-2 mb-2">
+ <AlertTriangle className="h-4 w-4 text-amber-600" />
+ <p className="font-medium text-amber-900">Payment Deferred</p>
+ </div>
+ <p className="text-sm text-amber-800 mb-3">This student's payment has been deferred. Please contact them to arrange payment.</p>
+ <div className="space-y-1 mb-3">
+ <div className="flex items-center gap-2 text-sm text-foreground">
+ <Mail className="h-3.5 w-3.5 text-amber-700" />
+ <span className="font-medium">{applicationData?.application?.email || application.email}</span>
+ </div>
+ {(applicationData?.application?.phone || application.phone) && (
+ <div className="flex items-center gap-2 text-sm text-foreground">
+ <Phone className="h-3.5 w-3.5 text-amber-700" />
+ <span className="font-medium">{applicationData?.application?.phone || application.phone}</span>
+ </div>
+ )}
+ </div>
+ <Button
+ variant="outline"
+ size="sm"
+ onClick={() => setShowNotificationModal(true)}
+ className="border-amber-300 text-amber-800 hover:bg-amber-100"
+ >
+ <Send className="h-3.5 w-3.5 mr-1.5" />
+ Send Payment Reminder
+ </Button>
+ </div>
+ )}
 
  {/* Payment records from payments table */}
  <div>

@@ -15,6 +15,54 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# Outbox-safe dispatch — persist intent first, best-effort broker push
+# ---------------------------------------------------------------------------
+
+
+def dispatch_email(email_queue_id: str) -> None:
+    """Best-effort push to Celery broker. If broker is down the EmailQueue
+    row still exists with status='pending' and will be picked up by the
+    periodic ``process_pending_emails_task`` sweep.
+    """
+    try:
+        send_email_task.delay(email_queue_id)
+    except Exception:
+        logger.warning(
+            "Broker unavailable — email %s will be picked up by sweep",
+            email_queue_id,
+        )
+
+
+@shared_task(bind=True, max_retries=0, soft_time_limit=120, time_limit=150)
+def process_pending_emails_task(self):
+    """Sweep for EmailQueue rows stuck in 'pending' status.
+
+    Picks up rows older than 2 minutes that were never dispatched (broker
+    was down when the request handler tried .delay()). Limits to 50 per
+    run to avoid long-running transactions.
+    """
+    from apps.common.models import EmailQueue
+
+    cutoff = timezone.now() - timedelta(minutes=2)
+    stale = EmailQueue.objects.filter(
+        status="pending",
+        created_at__lt=cutoff,
+    ).values_list("id", flat=True)[:50]
+
+    dispatched = 0
+    for eid in stale:
+        try:
+            send_email_task.delay(str(eid))
+            dispatched += 1
+        except Exception:
+            logger.warning("Sweep: broker still unavailable for email %s", eid)
+            break  # broker down, stop trying
+
+    if dispatched:
+        logger.info("Email sweep: dispatched %d stale pending emails", dispatched)
+
+
 def _send_via_smtp(email_record):
     """Try sending via Zoho SMTP. Returns True on success."""
     from django.core.mail import EmailMessage

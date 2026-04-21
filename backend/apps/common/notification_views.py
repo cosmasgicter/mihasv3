@@ -301,10 +301,10 @@ class EmailSendView(APIView):
             status="pending",
         )
 
-        # Dispatch via Celery
-        from apps.common.tasks import send_email_task
+        # Dispatch via outbox-safe helper
+        from apps.common.tasks import dispatch_email
 
-        send_email_task.delay(str(email_record.id))
+        dispatch_email(str(email_record.id))
 
         return Response(
             {

@@ -165,11 +165,6 @@ class ApiClient {
    * instead of initiating parallel refresh requests.
    */
   private refreshPromise: Promise<boolean> | null = null;
-  private lastRefreshSuccessTime: number = 0;
-  private lastRefreshFailureTime: number = 0;
-  private lastRefreshResult: boolean = false;
-  private static readonly REFRESH_COOLDOWN_MS = 5000;
-  private static readonly REFRESH_FAILURE_COOLDOWN_MS = 2000;
 
   /**
    * Perform the actual token refresh call to the server.
@@ -209,39 +204,16 @@ class ApiClient {
    * Deduplicated token refresh. If a refresh is already in-flight, returns the
    * existing promise. Otherwise starts a new refresh and clears the lock on
    * completion (success or failure).
-   *
-   * This is the same promise-lock pattern from authController.ts deduplicatedRefresh,
-   * ported into ApiClient as the single refresh mechanism.
    */
   private async attemptRefresh(): Promise<boolean> {
-    const now = Date.now();
-    // Cooldown: if a refresh succeeded recently, return cached success
-    if (this.lastRefreshResult && (now - this.lastRefreshSuccessTime) < ApiClient.REFRESH_COOLDOWN_MS) {
-      return true;
-    }
-    // Failure cooldown: if a refresh failed recently, return false immediately
-    if (!this.lastRefreshResult && this.lastRefreshFailureTime > 0
-        && (now - this.lastRefreshFailureTime) < ApiClient.REFRESH_FAILURE_COOLDOWN_MS) {
-      return false;
-    }
-
     if (this.refreshPromise) return this.refreshPromise;
     this.refreshPromise = this.performRefresh();
     try {
       const result = await this.refreshPromise;
       if (result) {
-        this.lastRefreshSuccessTime = Date.now();
-        this.lastRefreshResult = true;
         dispatchAuthRecovered();
-      } else {
-        this.lastRefreshFailureTime = Date.now();
-        this.lastRefreshResult = false;
       }
       return result;
-    } catch {
-      this.lastRefreshFailureTime = Date.now();
-      this.lastRefreshResult = false;
-      return false;
     } finally {
       this.refreshPromise = null;
     }
@@ -849,95 +821,6 @@ class ApiClient {
             originalError: csrfStatusError,
           });
           throw csrfEnhancedError;
-        }
-
-        // 403 auth-failure intercept (defense-in-depth for expired JWT → 403):
-        // Only explicit token-expiry 403s are authentication failures. Generic
-        // 403 permission denials must not clear the user's session.
-        if (
-          response.status === 403 &&
-          !this.isAuthExcludedEndpoint(normalizedEndpoint) &&
-          errorCode === 'TOKEN_EXPIRED'
-        ) {
-          console.debug('[API Client] 403 auth-related error - attempting token refresh');
-          const refreshed = await this.attemptRefresh();
-
-          if (refreshed) {
-            // Refresh succeeded — retry the original request once
-            const retryResponse = await fetch(`${API_BASE}${normalizedEndpoint}`, {
-              ...restOptions,
-              method,
-              headers: requestHeaders,
-              credentials: 'include',
-              signal: timeoutController.signal,
-            });
-
-            const retryCsrf = retryResponse.headers.get('X-CSRF-Token');
-            if (retryCsrf) {
-              setCsrfToken(retryCsrf);
-            }
-
-            if (retryResponse.ok) {
-              const retryContentType = retryResponse.headers.get('content-type') ?? '';
-              if (retryContentType && !retryContentType.includes('application/json')) {
-                const rawBody = await retryResponse.text();
-                return (rawBody || null) as TResponse | null;
-              }
-              const retryPayload = await this.parseJsonSafely<TResponse>(retryResponse, service, normalizedEndpoint);
-              return this.unwrapApiResponse<TResponse>(retryPayload, retryContentType);
-            }
-
-            // Only treat a second 401/403 as an auth failure. Other status
-            // codes (e.g. 400 validation errors) are not auth failures.
-            // A generic 403 INSUFFICIENT_PERMISSIONS after refresh is a
-            // permission denial, not an auth failure — do not logout.
-            if (retryResponse.status === 401) {
-              const authFailure = getOnAuthFailure();
-              if (authFailure && shouldDispatchAuthFailure()) authFailure();
-              throw new AuthenticationError();
-            }
-            if (retryResponse.status === 403) {
-              // Parse the error code to distinguish auth vs permission
-              let retryCode: string | undefined;
-              try {
-                const retryBody = await retryResponse.clone().text();
-                if (retryBody) { retryCode = JSON.parse(retryBody)?.code; }
-              } catch { /* ignore */ }
-              if (isPermissionDenial(403, retryCode)) {
-                // Permission denial — throw as normal error, NOT auth failure
-                const permErr = new Error('Permission denied for this action') as Error & { status: number; code?: string };
-                permErr.status = 403;
-                permErr.code = retryCode;
-                throw ApiErrorHandler.enhanceError({ endpoint: normalizedEndpoint, method, statusCode: 403, originalError: permErr });
-              }
-              const authFailure = getOnAuthFailure();
-              if (authFailure && shouldDispatchAuthFailure()) authFailure();
-              throw new AuthenticationError();
-            }
-
-            // Non-auth error after successful refresh — handle normally
-            let retryErrMsg = `API Error: ${retryResponse.statusText}`;
-            try {
-              const retryErrData = await retryResponse.text();
-              if (retryErrData) {
-                const parsed = JSON.parse(retryErrData);
-                retryErrMsg = parsed.error || parsed.message || retryErrMsg;
-              }
-            } catch { /* use default */ }
-            const retryErr = new Error(retryErrMsg) as Error & { status: number };
-            retryErr.status = retryResponse.status;
-            throw ApiErrorHandler.enhanceError({
-              endpoint: normalizedEndpoint,
-              method,
-              statusCode: retryResponse.status,
-              originalError: retryErr,
-            });
-          }
-
-          // Refresh failed — invoke onAuthFailure and throw
-          const authFailure = getOnAuthFailure();
-          if (authFailure && shouldDispatchAuthFailure()) authFailure();
-          throw new AuthenticationError();
         }
 
         // Create error with status for retry logic

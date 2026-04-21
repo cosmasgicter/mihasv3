@@ -65,7 +65,7 @@ describe('auth page form markup', () => {
   it('groups sign-in credentials inside a labelled fieldset', () => {
     const markup = renderAuthPage(<SignInPage />)
 
-    expect(markup).toContain('<legend class="text-sm font-semibold text-foreground">Applicant sign-in details</legend>')
+    expect(markup).toContain('<legend class="px-2 text-sm font-semibold text-foreground">Applicant sign-in details</legend>')
     expect(markup).toContain('>Account email<')
     expect(markup).toContain('>Account password<')
   })
@@ -79,8 +79,8 @@ describe('auth page form markup', () => {
   it('groups sign-up fields into labelled sections', () => {
     const markup = renderAuthPage(<SignUpPage />)
 
-    expect(markup).toContain('<legend class="text-base font-semibold text-foreground">Portal access</legend>')
-    expect(markup).toContain('<legend class="text-base font-semibold text-foreground">Profile basics</legend>')
+    expect(markup).toContain('<legend class="px-2 text-base font-semibold text-foreground">Portal access</legend>')
+    expect(markup).toContain('<legend class="px-2 text-base font-semibold text-foreground">Profile basics</legend>')
     expect(markup).toContain('>First name<')
     expect(markup).toContain('>Last name<')
     expect(markup).toContain('>Phone number<')

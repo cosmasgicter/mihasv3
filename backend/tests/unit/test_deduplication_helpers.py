@@ -71,7 +71,7 @@ class TestEnqueueDocumentTaskIdempotency(SimpleTestCase):
         """Duplicate call within TTL returns the stored response without dispatching."""
         cached_data = {"task_id": "cached-id", "application_id": "abc", "status": "queued"}
         existing_key = MagicMock()
-        existing_key.response_json = cached_data
+        existing_key.response_body = cached_data
         mock_idem.filter.return_value.first.return_value = existing_key
 
         app = _make_application()
@@ -100,8 +100,8 @@ class TestEnqueueDocumentTaskIdempotency(SimpleTestCase):
 
         mock_idem.create.assert_called_once()
         create_kwargs = mock_idem.create.call_args[1]
-        assert create_kwargs["key"] == f"acceptance-letter:{app.id}"
-        assert create_kwargs["response_json"]["task_id"] == "new-task-id"
+        assert create_kwargs["idempotency_key"] == f"acceptance-letter:{app.id}"
+        assert create_kwargs["response_body"]["task_id"] == "new-task-id"
 
 
 class TestEnqueueDocumentTaskDispatch(SimpleTestCase):

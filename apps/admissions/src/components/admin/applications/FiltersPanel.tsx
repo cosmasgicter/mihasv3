@@ -147,6 +147,7 @@ export function FiltersPanel({
             <option value="pending_review">Awaiting Payment Review</option>
             <option value="verified">Verified</option>
             <option value="rejected">Payment Rejected</option>
+            <option value="deferred">Deferred</option>
           </select>
         </div>
         

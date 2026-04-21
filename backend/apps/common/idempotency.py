@@ -1,87 +1,106 @@
-"""Idempotent request processing middleware.
+"""Idempotent request processing via decorator.
 
-Implements task 21.1.
-Requirements: 17.4
-
-Checks the `Idempotency-Key` header on POST/PUT/PATCH requests.
-If the key exists in the `idempotency_keys` table, returns the cached response.
-On first execution, stores the response for future replay.
+Apply @idempotent to individual DRF views that need replay protection.
+Uses command identity: (idempotency_key, actor, method, path, body hash).
+Same key + same body → cached response.  Same key + different body → 409.
 """
 
+import hashlib
 import json
 import logging
+from functools import wraps
 
 from django.db import IntegrityError, transaction
 from django.http import JsonResponse
+from django.utils import timezone
 
 from apps.common.models import IdempotencyKey
 
 logger = logging.getLogger(__name__)
 
-# Methods that support idempotency
-IDEMPOTENT_METHODS = {"POST", "PUT", "PATCH"}
+
+def _body_hash(request) -> str:
+    body = request.body or b""
+    return hashlib.sha256(body).hexdigest()
 
 
-class IdempotencyMiddleware:
-    """Middleware that checks Idempotency-Key header for request deduplication.
+def idempotent(view_func):
+    """Decorator for DRF views. Expects Idempotency-Key header."""
 
-    - On POST/PUT/PATCH with an Idempotency-Key header:
-      1. Look up the key in idempotency_keys table.
-      2. If found, return the cached response immediately.
-      3. If not found, process the request, then store the response.
-    - GET/DELETE and requests without the header pass through unchanged.
-    """
+    @wraps(view_func)
+    def wrapper(self, request, *args, **kwargs):
+        key = request.META.get("HTTP_IDEMPOTENCY_KEY")
+        if not key:
+            return view_func(self, request, *args, **kwargs)
 
-    def __init__(self, get_response):
-        self.get_response = get_response
+        actor_id = getattr(request.user, "id", None)
+        if not actor_id:
+            return view_func(self, request, *args, **kwargs)
 
-    def __call__(self, request):
-        if request.method not in IDEMPOTENT_METHODS:
-            return self.get_response(request)
+        method = request.method
+        path = request.path
+        req_hash = _body_hash(request)
 
-        idempotency_key = request.META.get("HTTP_IDEMPOTENCY_KEY")
-        if not idempotency_key:
-            return self.get_response(request)
+        existing = (
+            IdempotencyKey.objects.filter(
+                idempotency_key=key, actor_id=actor_id, method=method, path=path
+            )
+            .first()
+        )
 
-        endpoint = request.path
+        if existing:
+            if existing.request_hash != req_hash:
+                return JsonResponse(
+                    {"success": False, "error": "Idempotency key reused with different payload", "code": "IDEMPOTENCY_CONFLICT"},
+                    status=409,
+                )
+            if existing.status == IdempotencyKey.COMPLETED:
+                return JsonResponse(existing.response_body, status=existing.response_status)
+            if existing.status == IdempotencyKey.PENDING:
+                return JsonResponse(
+                    {"success": False, "error": "Request already in progress", "code": "IDEMPOTENCY_PENDING"},
+                    status=409,
+                )
 
-        # Check for existing cached response
+        # Create pending record
         try:
             with transaction.atomic():
-                existing = IdempotencyKey.objects.filter(key=idempotency_key).first()
-                if existing:
-                    cached = existing.response_json
-                    return JsonResponse(
-                        cached.get("body", {}),
-                        status=cached.get("status_code", 200),
-                    )
+                record = IdempotencyKey.objects.create(
+                    idempotency_key=key,
+                    actor_id=actor_id,
+                    method=method,
+                    path=path,
+                    request_hash=req_hash,
+                    status=IdempotencyKey.PENDING,
+                )
+        except IntegrityError:
+            # Lost race — another request created it first
+            return JsonResponse(
+                {"success": False, "error": "Request already in progress", "code": "IDEMPOTENCY_PENDING"},
+                status=409,
+            )
+
+        # Execute the real view
+        try:
+            response = view_func(self, request, *args, **kwargs)
         except Exception:
-            logger.exception("Error checking idempotency key %s", idempotency_key)
+            record.status = IdempotencyKey.FAILED
+            record.completed_at = timezone.now()
+            record.save(update_fields=["status", "completed_at"])
+            raise
 
-        # Process the request
-        response = self.get_response(request)
+        # Store completed response
+        try:
+            body = json.loads(response.content.decode("utf-8")) if hasattr(response, "content") else {}
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            body = {}
 
-        # Store the response for future replay (only for successful responses)
-        if 200 <= response.status_code < 500:
-            try:
-                # Extract response body
-                if hasattr(response, "content"):
-                    body = json.loads(response.content.decode("utf-8"))
-                else:
-                    body = {}
-
-                with transaction.atomic():
-                    IdempotencyKey.objects.create(
-                        key=idempotency_key,
-                        endpoint=endpoint,
-                        response_json={
-                            "status_code": response.status_code,
-                            "body": body,
-                        },
-                    )
-            except IntegrityError:
-                logger.info("Idempotency key %s already stored by concurrent request", idempotency_key)
-            except Exception:
-                logger.exception("Error storing idempotency key %s", idempotency_key)
+        record.status = IdempotencyKey.COMPLETED
+        record.response_status = response.status_code
+        record.response_body = body
+        record.completed_at = timezone.now()
+        record.save(update_fields=["status", "response_status", "response_body", "completed_at"])
 
         return response
+
+    return wrapper

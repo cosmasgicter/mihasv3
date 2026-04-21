@@ -337,12 +337,17 @@ class IdempotencyKeyFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = IdempotencyKey
 
-    key = factory.LazyFunction(lambda: str(uuid.uuid4()))
-    endpoint = factory.Faker(
+    idempotency_key = factory.LazyFunction(lambda: str(uuid.uuid4()))
+    actor_id = factory.LazyFunction(uuid.uuid4)
+    method = "POST"
+    path = factory.Faker(
         "random_element",
         elements=["/api/v1/applications/", "/api/v1/payments/", "/api/v1/notifications/"],
     )
-    response_json = factory.LazyFunction(lambda: {"success": True, "data": {}})
+    request_hash = factory.LazyFunction(lambda: _sha256(""))
+    status = "completed"
+    response_status = 200
+    response_body = factory.LazyFunction(lambda: {"success": True, "data": {}})
 
 
 class SettingFactory(factory.django.DjangoModelFactory):
