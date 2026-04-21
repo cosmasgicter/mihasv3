@@ -134,7 +134,8 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       not_paid: { color: 'bg-slate-100/80 text-slate-600', icon: Clock },
       pending_review: { color: 'bg-amber-100/80 text-amber-700', icon: Clock },
       verified: { color: 'bg-emerald-100/80 text-emerald-700', icon: CheckCircle },
-      rejected: { color: 'bg-red-100/80 text-red-700', icon: XCircle }
+      rejected: { color: 'bg-red-100/80 text-red-700', icon: XCircle },
+      deferred: { color: 'bg-amber-100/80 text-amber-700', icon: AlertTriangle }
     }
 
     const config = paymentConfig[normalizedStatus]
@@ -279,6 +280,12 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
           <div className="text-sm font-medium text-foreground mt-1">
             K{app.paid_amount || 0} / K{app.application_fee}
           </div>
+          {normalizePaymentStatus(app.payment_status) === 'deferred' && (
+            <div className="flex items-center gap-1 mt-1 text-xs text-amber-700">
+              <Phone className="h-3 w-3" />
+              <span>Contact Student</span>
+            </div>
+          )}
         </div>
         
         {app.total_subjects > 0 && (

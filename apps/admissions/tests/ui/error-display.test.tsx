@@ -31,12 +31,12 @@ describe('ErrorDisplay (canonical)', () => {
     const withoutRetry = renderMarkup(
       <ErrorDisplay message="Error" />
     )
-    expect(withoutRetry.body.textContent).not.toContain('Retry')
+    expect(withoutRetry.body.textContent).not.toContain('Try Again')
 
     const withRetry = renderMarkup(
       <ErrorDisplay message="Error" onRetry={() => undefined} />
     )
-    expect(withRetry.body.textContent).toContain('Retry')
+    expect(withRetry.body.textContent).toContain('Try Again')
   })
 
   it('renders inline variant compactly with role="alert"', () => {

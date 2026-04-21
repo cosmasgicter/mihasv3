@@ -1,4 +1,4 @@
-export type CanonicalPaymentStatus = 'not_paid' | 'pending_review' | 'verified' | 'rejected'
+export type CanonicalPaymentStatus = 'not_paid' | 'pending_review' | 'verified' | 'rejected' | 'deferred'
 
 export function normalizePaymentStatus(paymentStatus?: string | null): CanonicalPaymentStatus {
   switch (paymentStatus) {
@@ -13,6 +13,8 @@ export function normalizePaymentStatus(paymentStatus?: string | null): Canonical
     case 'failed':
     case 'rejected':
       return 'rejected'
+    case 'deferred':
+      return 'deferred'
     default:
       return 'not_paid'
   }
@@ -35,6 +37,8 @@ export function getPaymentStatusLabel(paymentStatus?: string | null) {
       return 'Payment Rejected'
     case 'pending_review':
       return 'Awaiting Payment Review'
+    case 'deferred':
+      return 'Deferred'
     default:
       return 'Awaiting Payment'
   }

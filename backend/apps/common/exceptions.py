@@ -65,13 +65,20 @@ def envelope_exception_handler(exc, context):
         429: "RATE_LIMITED",
     }
 
-    code = error_code_map.get(response.status_code, "INTERNAL_ERROR")
+    # Force 401 for auth exceptions regardless of DRF's default status code.
+    # This ensures AuthenticationFailed (which DRF may map to 403 when
+    # authenticate_header is missing) always produces 401.
     if isinstance(exc, (AuthenticationFailed, NotAuthenticated)):
-        exc_code = exc.get_codes() if hasattr(exc, "get_codes") else None
-        if isinstance(exc_code, str) and exc_code:
-            code = exc_code.upper()
+        response.status_code = 401
+        if hasattr(exc, "get_codes"):
+            code_val = exc.get_codes()
+            code = code_val.upper() if isinstance(code_val, str) and code_val else "AUTHENTICATION_REQUIRED"
         elif isinstance(exc, NotAuthenticated):
             code = "AUTHENTICATION_REQUIRED"
+        else:
+            code = "AUTHENTICATION_REQUIRED"
+    else:
+        code = error_code_map.get(response.status_code, "INTERNAL_ERROR")
 
     # Handle validation errors with field details
     if response.status_code == 400 and isinstance(response.data, dict):

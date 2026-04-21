@@ -49,7 +49,7 @@ inclusion: always
 | Data | Neon Postgres | Admissions and jobs-ops backend runtime database |
 | Async | Celery + Redis | Background work, retries, and periodic tasks |
 | Storage | Cloudflare R2 via `django-storages` | Signed URL workflow |
-| Email | Resend live, Zoho planned placeholders | Resend is wired for alerting; Zoho env placeholders exist for jobs-ops |
+| Email | Zoho SMTP (primary) + Resend (fallback) | Zoho SMTP for outbound email; Resend as fallback for transactional delivery |
 | HTTP client | `requests` | Used by `check_uptime_task` for internal health checks |
 | AI + messaging | OpenAI and Telegram planned placeholders | Env scaffolding now exists; integration wiring remains to be completed |
 | Browser automation | Stagehand (AI) + Playwright (low-level) | Stagehand installed at monorepo root for AI-driven browser tasks; Playwright for deterministic automation |
@@ -124,6 +124,8 @@ The frontend and backend share a single, unified API contract. There is no compa
 - The platform uses the `{"success": true, "data": ...}` envelope for API responses handled through DRF renderers. All authenticated list endpoints (including `GET /api/v1/sessions/`) must use this envelope format.
 - Paginated responses use `{page, pageSize, totalCount, results}` inside the `data` envelope.
 - Auth remains cookie-based for the main backend auth stack.
+- The admissions frontend uses a same-origin API proxy: Vercel rewrites `/api/*` to `api.mihas.edu.zm`, so cookies are first-party. In local dev, Vite proxies `/api` to the backend.
+- DRF authentication classes are the sole authority for setting `request.user`. The `JWTAuthenticationMiddleware` does NOT authenticate — it only flags expired tokens so 403→401 conversion fires for the frontend refresh interceptor.
 - Access tokens have a 30-minute lifetime; refresh tokens last 7 days with JTI blacklisting via Redis.
 - Token refresh (`POST /api/v1/auth/refresh/`) uses distinct error codes: `NO_REFRESH_TOKEN` when the cookie is missing, `TOKEN_EXPIRED` for expired/blacklisted/invalid tokens. Frontend can differentiate between configuration issues and token expiry.
 - CSRF is required for state-changing requests in authenticated flows.
@@ -139,7 +141,7 @@ The frontend and backend share a single, unified API contract. There is no compa
 - In `apps/jobs-ops`, keep route-level logic inside `src/features/*`.
 - Prefer React Query for backend data and keep shell/UI state in Zustand.
 - Use app-local API service modules instead of raw `fetch`.
-- Payment in the admissions wizard is handled exclusively by the Lenco inline widget (`LencoPay.getPaid`). Do not reintroduce the retired pre-Lenco payment UX.
+- Payment in the admissions wizard supports mobile money (primary) and card widget (secondary). Mobile money is initiated via `POST /api/v1/payments/mobile-money/` and polled for completion. The Lenco card widget (`LencoPay.getPaid`) remains available as a fallback. Students may also defer payment and submit without paying upfront. Do not reintroduce the retired pre-Lenco payment UX.
 - Student authenticated pages should prefer the canonical UI primitives already in the repo: `PageShell`, `SectionCard`, `ErrorDisplay`, `EmptyState`, and `Button asChild` for semantic links.
 - Student forms that can lose work, especially settings and wizard-related screens, should protect dirty state on navigation and `beforeunload`.
 - Use speculative prefetching (`src/lib/speculativePrefetch.ts`) for predictive data loading — prefetch catalog data on login success, wizard chunks on dashboard mount.
@@ -159,7 +161,7 @@ The frontend and backend share a single, unified API contract. There is no compa
 - Current default error-alert recipient is `admin@mihas.edu.zm` (configurable via `ERROR_ALERT_EMAIL` env var). Used for uptime, payment failures, and SLA breach alerts. Error monitoring uses GlitchTip.
 - Payment records live in the `payments` table (managed by `backend/apps/documents/`). Application-level payment summaries should be derived from canonical payment records, not from retired inline compatibility columns.
 - `.env` and `.env.local` files are gitignored and safe for real credentials during local development. They are never committed to the repository. When the user asks to add real secrets to these files, do so without hesitation — the gitignore is configured correctly.
-- Email is sent via Zoho SMTP (smtp.zoho.com:465, TLS). No IMAP integration — the platform only sends outbound email, it does not read inboxes.
+- Email is sent via Zoho SMTP (smtp.zoho.com:465, TLS). No IMAP integration — the platform only sends outbound email, it does not read inboxes. Resend is configured as a fallback for transactional delivery.
 
 ## Lenco Payment Integration
 
@@ -170,15 +172,18 @@ The platform uses Lenco as its payment gateway for application fees. Key compone
 | `PaymentService` | `backend/apps/documents/payment_service.py` | Payment lifecycle: initiate, verify, webhook processing |
 | `FeeResolver` | `backend/apps/documents/fee_resolver.py` | Dynamic fee resolution by program + residency |
 | `WebhookProcessor` | `backend/apps/documents/webhook_processor.py` | HMAC-SHA512 signature validation + event logging |
+| `MobileMoneyInitiateView` | `backend/apps/documents/views.py` | `POST /api/v1/payments/mobile-money/` — initiate mobile money collection via Lenco |
 | `ProgramFee` model | `backend/apps/documents/models.py` | Per-program fee configuration (local vs international) |
 | `WebhookEventLog` model | `backend/apps/documents/models.py` | Audit trail for all webhook events |
+| `PaymentForm` | `apps/admissions/src/components/student/PaymentForm.tsx` | Shared payment form with mobile money + card method selection |
 | `useLencoWidget` | `apps/admissions/src/hooks/useLencoWidget.ts` | Dynamic Lenco widget script loading |
 | `useFeeResolver` | `apps/admissions/src/hooks/useFeeResolver.ts` | Frontend fee resolution hook |
 | `usePaymentStatus` | `apps/admissions/src/hooks/usePaymentStatus.ts` | Payment status polling hook |
-| `PaymentStep` | `apps/admissions/src/pages/student/applicationWizard/steps/PaymentStep.tsx` | Lenco widget payment step |
+| `PaymentStep` | `apps/admissions/src/pages/student/applicationWizard/steps/PaymentStep.tsx` | Wizard payment step: mobile money (primary), card widget (secondary), defer option |
 
 Payment API endpoints:
 - `POST /api/v1/payments/initiate/` — create pending payment, returns widget config
+- `POST /api/v1/payments/mobile-money/` — initiate mobile money collection via Lenco
 - `POST /api/v1/payments/{id}/verify/` — verify payment via Lenco API
 - `POST /api/v1/payments/webhook/lenco/` — webhook receiver (unauthenticated, HMAC-validated)
 - `GET /api/v1/payments/resolve-fee/` — resolve fee for program + residency
@@ -318,6 +323,10 @@ When the intake deadline has passed, `IntakeEnforcer.check_submission()` checks 
 ### Batch Operation Safety
 
 `ApplicationBulkStatusView` enforces: max 25 applications per batch, all-or-nothing validation, SHA-256 confirmation token, single transaction, and waitlist promotion on batch rejections.
+
+### Idempotency
+
+State-changing endpoints use the `@idempotent` decorator (`backend/apps/common/idempotency.py`) for replay protection. Command identity is `(idempotency_key, actor, method, path, body_hash)`. Same key + same body returns the cached response. Same key + different body returns 409 Conflict. The `IdempotencyKey` model stores cached responses with TTL-based cleanup. Applied to submission (`POST /api/v1/applications/{id}/submit/`) and other critical write endpoints.
 
 ## Celery Beat Periodic Tasks
 

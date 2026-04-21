@@ -215,6 +215,38 @@ def _get_suffix(file_key):
 
 
 @shared_task(bind=True, max_retries=0, soft_time_limit=300, time_limit=360)
+def deferred_payment_reminder_task(self):
+    """Daily 11:00 UTC: remind students with deferred payments older than 3 days."""
+    if not _acquire_task_lock("deferred_payment_reminder_task"):
+        logger.info("deferred_payment_reminder_task: skipped (already running)")
+        return
+    try:
+        from apps.applications.models import Application
+        from apps.common.communication_service import CommunicationService
+
+        cutoff = timezone.now() - timedelta(days=3)
+        apps = list(
+            Application.objects.filter(
+                payment_status='deferred',
+                updated_at__lt=cutoff,
+            )[:100]
+        )
+
+        sent = 0
+        for app in apps:
+            try:
+                CommunicationService.send('deferred_payment_reminder', app)
+                sent += 1
+            except Exception:
+                logger.exception("Failed to send deferred payment reminder for app %s", app.id)
+
+        logger.info("deferred_payment_reminder_task: sent %d reminders", sent)
+        return {"sent": sent}
+    finally:
+        _release_task_lock("deferred_payment_reminder_task")
+
+
+@shared_task(bind=True, max_retries=0, soft_time_limit=300, time_limit=360)
 def document_verification_sla_task(self):
     """Daily 08:00 UTC: find documents pending verification beyond SLA threshold.
 

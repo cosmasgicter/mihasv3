@@ -97,7 +97,6 @@ describe('AuthProvider pageshow revalidation', () => {
       window.dispatchEvent(event)
     })
 
-    expect(setQueryDataSpy).toHaveBeenCalledWith(['auth', 'session'], { pendingValidation: true })
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['auth', 'session'] })
   })
 

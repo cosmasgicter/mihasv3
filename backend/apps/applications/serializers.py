@@ -523,6 +523,7 @@ class PaymentStatusUpdateSerializer(serializers.Serializer):
         ("pending_review", "Pending Review"),
         ("verified", "Verified"),
         ("rejected", "Rejected"),
+        ("deferred", "Deferred"),
     ]
 
     payment_status = serializers.ChoiceField(choices=PAYMENT_STATUS_CHOICES)

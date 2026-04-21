@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useEffect, useRef, useCallback } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
-import { useQueryClient } from '@tanstack/react-query'
 import { useAuthCheck } from '@/hooks/auth/useSessionListener'
 import { GuardInlineSkeleton } from '@/components/ui/GuardInlineSkeleton'
 import { startLoaderTelemetry } from '@/lib/loaderTelemetry'
@@ -9,146 +8,48 @@ interface ProtectedRouteProps {
   children: React.ReactNode
 }
 
-const LOADING_TIMEOUT_MS = 8000
-const AUTH_RECOVERY_TIMEOUT_MS = 5000
 const SIGNIN_REDIRECT_KEY = 'mihas:post-auth-redirect'
 
 /**
- * Protected route guard using optimized auth state checks.
- * Uses lightweight useAuthCheck hook that only checks authentication
- * without fetching profile data, reducing unnecessary API calls.
- * Preserves intended destination for redirect after login.
+ * Protected route guard.
  *
- * Includes a 5-second timeout safety net: if loading persists beyond
- * 5 seconds, forces a React Query refetch and shows a recovery UI.
- * This prevents the known post-login skeleton hang bug.
+ * Simple three-state logic:
+ * - Loading → show skeleton
+ * - Authenticated → render children
+ * - Not authenticated → redirect to sign-in (preserving return path)
  *
- * Requirements: 4.5, 11.5, 14.7, 34.3
+ * With same-origin API proxy and DRF as sole auth authority,
+ * there is no need for recovery loops, timeouts, or reconnection states.
+ * The session query either succeeds (user is authenticated) or returns
+ * null (user needs to sign in). Token refresh is handled by the API client.
  */
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading, retrySessionCheck } = useAuthCheck()
+  const { isAuthenticated, isLoading } = useAuthCheck()
   const location = useLocation()
-  const queryClient = useQueryClient()
-  const [showTimeoutMessage, setShowTimeoutMessage] = useState(false)
-  const [isRecoveringSession, setIsRecoveringSession] = useState(false)
-  const [recoveryAttempted, setRecoveryAttempted] = useState(false)
-  const [allowSigninRedirect, setAllowSigninRedirect] = useState(false)
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const loaderTelemetryRef = useRef<ReturnType<typeof startLoaderTelemetry> | null>(null)
+  const telemetryRef = useRef<ReturnType<typeof startLoaderTelemetry> | null>(null)
 
   const fullPath = `${location.pathname}${location.search}${location.hash}`
 
   const persistReturnPath = useCallback(() => {
     try {
       sessionStorage.setItem(SIGNIN_REDIRECT_KEY, fullPath)
-      window.dispatchEvent(new CustomEvent('mihas:before-auth-redirect', {
-        detail: { from: fullPath },
-      }))
-    } catch {
-      // best effort only
-    }
+    } catch { /* best effort */ }
   }, [fullPath])
 
-  const runSessionRecovery = useCallback(async () => {
-    if (isRecoveringSession) return
-    setIsRecoveringSession(true)
-    try {
-      await retrySessionCheck()
-    } finally {
-      setRecoveryAttempted(true)
-      setIsRecoveringSession(false)
-    }
-  }, [isRecoveringSession, retrySessionCheck])
-
   useEffect(() => {
-    if (isLoading) {
-      timeoutRef.current = setTimeout(() => {
-        // Force refetch the auth session to break out of stale loading state
-        queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
-        setShowTimeoutMessage(true)
-      }, LOADING_TIMEOUT_MS)
-    }
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-        timeoutRef.current = null
-      }
-      if (redirectTimeoutRef.current) {
-        clearTimeout(redirectTimeoutRef.current)
-        redirectTimeoutRef.current = null
-      }
-    }
-  }, [isLoading, queryClient])
-
-  // Reset timeout message when loading resolves
-  useEffect(() => {
-    if (!isLoading) {
-      setShowTimeoutMessage(false)
-      setRecoveryAttempted(false)
-    }
-  }, [isLoading])
-
-  useEffect(() => {
-    if (isLoading && !loaderTelemetryRef.current) {
-      loaderTelemetryRef.current = startLoaderTelemetry('protected-route-auth-bootstrap')
-      return
-    }
-
-    if (!isLoading && loaderTelemetryRef.current) {
-      loaderTelemetryRef.current.end({ authenticated: isAuthenticated, route: location.pathname })
-      loaderTelemetryRef.current = null
+    if (isLoading && !telemetryRef.current) {
+      telemetryRef.current = startLoaderTelemetry('protected-route-auth-bootstrap')
+    } else if (!isLoading && telemetryRef.current) {
+      telemetryRef.current.end({ authenticated: isAuthenticated, route: location.pathname })
+      telemetryRef.current = null
     }
   }, [isAuthenticated, isLoading, location.pathname])
 
-  useEffect(() => {
-    if (isLoading || isAuthenticated || allowSigninRedirect) return
-    if (!recoveryAttempted) {
-      void runSessionRecovery()
-      return
-    }
-
-    redirectTimeoutRef.current = setTimeout(() => {
-      persistReturnPath()
-      setAllowSigninRedirect(true)
-    }, AUTH_RECOVERY_TIMEOUT_MS)
-
-    return () => {
-      if (redirectTimeoutRef.current) {
-        clearTimeout(redirectTimeoutRef.current)
-        redirectTimeoutRef.current = null
-      }
-    }
-  }, [
-    allowSigninRedirect,
-    isAuthenticated,
-    isLoading,
-    persistReturnPath,
-    recoveryAttempted,
-    runSessionRecovery,
-  ])
-
-  useEffect(() => {
-    if (!isLoading || !showTimeoutMessage || recoveryAttempted || isRecoveringSession) {
-      return
-    }
-
-    void runSessionRecovery()
-  }, [isLoading, isRecoveringSession, recoveryAttempted, runSessionRecovery, showTimeoutMessage])
-
   if (isLoading) {
-    return (
-      <GuardInlineSkeleton
-        label={showTimeoutMessage || isRecoveringSession ? 'Reconnecting your session…' : 'Preparing your account'}
-      />
-    )
+    return <GuardInlineSkeleton label="Preparing your account" />
   }
 
   if (!isAuthenticated) {
-    if (!allowSigninRedirect || isRecoveringSession) {
-      return <GuardInlineSkeleton label="Verifying your session…" />
-    }
     persistReturnPath()
     return <Navigate to="/auth/signin" state={{ from: location }} replace />
   }

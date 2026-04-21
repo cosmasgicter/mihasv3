@@ -154,10 +154,12 @@ class TestOpenAPIDocsRequireAuth(SimpleTestCase):
         return match.func
 
     @override_settings(DEBUG=False)
-    def test_schema_unauthenticated_returns_403(self):
-        """Unauthenticated GET to /api/v1/schema/ with DEBUG=False should return 403.
+    def test_schema_unauthenticated_returns_401(self):
+        """Unauthenticated GET to /api/v1/schema/ with DEBUG=False should return 401.
 
-        On unfixed code, this will FAIL because docs are publicly accessible.
+        After auth architecture simplification, unauthenticated requests return 401
+        (not 403) because JWTCookieAuthentication raises AuthenticationFailed before
+        the permission check runs.
         """
         from rest_framework.test import APIRequestFactory
 
@@ -171,18 +173,20 @@ class TestOpenAPIDocsRequireAuth(SimpleTestCase):
         view = self._get_view_for_name("schema")
         response = view(request)
 
-        self.assertEqual(
+        self.assertIn(
             response.status_code,
-            403,
+            (401, 403),
             f"GET /api/v1/schema/ with DEBUG=False returned {response.status_code} — "
-            f"expected 403 (unauthenticated access should be denied in production)",
+            f"expected 401 or 403 (unauthenticated access should be denied in production)",
         )
 
     @override_settings(DEBUG=False)
-    def test_docs_unauthenticated_returns_403(self):
-        """Unauthenticated GET to /api/v1/docs/ with DEBUG=False should return 403.
+    def test_docs_unauthenticated_returns_401(self):
+        """Unauthenticated GET to /api/v1/docs/ with DEBUG=False should return 401.
 
-        On unfixed code, this will FAIL because docs are publicly accessible.
+        After auth architecture simplification, unauthenticated requests return 401
+        (not 403) because JWTCookieAuthentication raises AuthenticationFailed before
+        the permission check runs.
         """
         from rest_framework.test import APIRequestFactory
 
@@ -195,18 +199,20 @@ class TestOpenAPIDocsRequireAuth(SimpleTestCase):
         view = self._get_view_for_name("swagger-ui")
         response = view(request)
 
-        self.assertEqual(
+        self.assertIn(
             response.status_code,
-            403,
+            (401, 403),
             f"GET /api/v1/docs/ with DEBUG=False returned {response.status_code} — "
-            f"expected 403 (unauthenticated access should be denied in production)",
+            f"expected 401 or 403 (unauthenticated access should be denied in production)",
         )
 
     @override_settings(DEBUG=False)
-    def test_redoc_unauthenticated_returns_403(self):
-        """Unauthenticated GET to /api/v1/redoc/ with DEBUG=False should return 403.
+    def test_redoc_unauthenticated_returns_401(self):
+        """Unauthenticated GET to /api/v1/redoc/ with DEBUG=False should return 401.
 
-        On unfixed code, this will FAIL because docs are publicly accessible.
+        After auth architecture simplification, unauthenticated requests return 401
+        (not 403) because JWTCookieAuthentication raises AuthenticationFailed before
+        the permission check runs.
         """
         from rest_framework.test import APIRequestFactory
 
@@ -219,9 +225,9 @@ class TestOpenAPIDocsRequireAuth(SimpleTestCase):
         view = self._get_view_for_name("redoc")
         response = view(request)
 
-        self.assertEqual(
+        self.assertIn(
             response.status_code,
-            403,
+            (401, 403),
             f"GET /api/v1/redoc/ with DEBUG=False returned {response.status_code} — "
-            f"expected 403 (unauthenticated access should be denied in production)",
+            f"expected 401 or 403 (unauthenticated access should be denied in production)",
         )

@@ -18,6 +18,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.accounts.authentication import OptionalJWTCookieAuthentication
+
 from apps.accounts.models import CSRFToken, DeviceSession, Profile
 from django.utils import timezone
 
@@ -604,15 +606,12 @@ class SessionView(APIView):
     access token as a valid "not signed in" state so the browser does not log a
     failed 403 request before the frontend can render the public page.
 
-    IMPORTANT: authentication_classes = [] disables DRF's JWTCookieAuthentication
-    on this view. Without this, an expired JWT causes JWTCookieAuthentication to
-    raise AuthenticationFailed (403) BEFORE the AllowAny permission check runs.
-    The JWTAuthenticationMiddleware (middleware layer) already sets request.user
-    silently — it never raises — so the view still sees authenticated users.
+    Uses OptionalJWTCookieAuthentication which silently returns None for
+    expired/invalid tokens instead of raising AuthenticationFailed.
     """
 
     permission_classes = [AllowAny]
-    authentication_classes = []
+    authentication_classes = [OptionalJWTCookieAuthentication]
     serializer_class = SessionSerializer
 
     def get(self, request):
@@ -772,7 +771,7 @@ class PasswordResetRequestView(APIView):
         # Enqueue password reset email via Celery
         try:
             from apps.common.models import EmailQueue
-            from apps.common.tasks import send_email_task
+            from apps.common.tasks import dispatch_email
 
             reset_link = (
                 f"https://apply.mihas.edu.zm/auth/reset-password?token={raw_token}"
@@ -792,7 +791,7 @@ class PasswordResetRequestView(APIView):
                 status="pending",
             )
 
-            send_email_task.delay(str(email_record.id))
+            dispatch_email(str(email_record.id))
 
             logger.info(
                 "Password reset email queued for user_id=%s (email_queue_id=%s)",

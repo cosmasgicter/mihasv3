@@ -151,6 +151,7 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `backend/apps/documents/fee_resolver.py` | `FeeResolver` — dynamic fee resolution by program code + residency (local/international) |
 | `backend/apps/documents/webhook_processor.py` | `WebhookProcessor` — HMAC-SHA512 signature validation, event logging, delegation to PaymentService |
 | `backend/scripts/lenco_payment_integration.sql` | SQL migration: `program_fees`, `webhook_event_logs` tables, `payments` column additions, `applications.payment_status` default change |
+| `apps/admissions/src/components/student/PaymentForm.tsx` | Shared payment form with mobile money + card method selection |
 | `apps/admissions/src/hooks/useLencoWidget.ts` | Dynamic Lenco widget script loading and `LencoPay.getPaid` wrapper |
 | `apps/admissions/src/hooks/useFeeResolver.ts` | Frontend fee resolution hook (calls `/api/v1/payments/resolve-fee/`) |
 | `apps/admissions/src/hooks/usePaymentStatus.ts` | Payment status polling hook |
@@ -228,6 +229,15 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `backend/tests/unit/test_audit_production_bug_conditions.py` | Backend bug condition tests — sessions envelope, refresh error code, tracking format |
 | `backend/tests/unit/test_audit_production_preservation.py` | Backend preservation tests — sessions data shape, revoke, refresh, tracking |
 | `backend/tests/property/test_audit_production_properties.py` | Backend property-based tests — tracking format validation, sessions envelope (hypothesis) |
+
+### Documentation Files
+
+| Path | Purpose |
+|------|---------|
+| `docs/schema-ownership.md` | Table-level ownership map for the Neon database |
+| `docs/redis-dependency-tiers.md` | Redis key usage, TTLs, and failure impact tiers |
+| `shared/PLATFORM_CONTRACT.md` | Cross-app API and data contract |
+| `docs/runbooks/secrets-rotation.md` | Production secret rotation runbook |
 
 ## Testing Layout
 

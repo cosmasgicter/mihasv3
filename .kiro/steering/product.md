@@ -51,6 +51,7 @@ The platform uses GlitchTip (Sentry-compatible, free tier) for error tracking. B
 - Student payment outside the wizard is read-only. `/student/payment` is a history and guidance surface, not a payment entry form.
 - Student interview lists should be loaded through the single-query endpoint `GET /api/v1/applications/interviews/?mine=true` rather than one request per application.
 - Student-facing payment reads must normalize legacy `verified` and newer `paid` / `successful` states consistently.
+- `deferred` is a distinct canonical payment status. Students who deferred payment see a reminder to complete payment. Submission is allowed with deferred payment status.
 - Profile and settings forms must protect unsaved edits before navigation and provide accessible inline save feedback in addition to toast notifications. The Settings `onSubmit` handler uses explicit field-by-field merge with null-safe fallbacks in `reset()` to prevent isDirty persistence after save.
 - Application tracking (`GET /api/v1/applications/track/`) validates code format (`APP-YYYYMMDD-XXXXXXXX` or `TRK-XXXXXXXXXXXX`) and returns actionable error messages — 400 with format guidance for invalid formats, descriptive 404 for valid-format codes not found.
 - Sessions list (`GET /api/v1/sessions/`) uses the standard `{"success": true, "data": [...]}` envelope and validates user_id before querying.
@@ -97,7 +98,7 @@ The frontend apps consume the Django `/api/v1/` contract directly. There is no t
 
 ### Admissions
 
-`Registration -> Email Verification -> Profile Setup -> Application Wizard -> Lenco Payment -> Submission -> Interview -> Decision`
+`Registration -> Email Verification -> Profile Setup -> Application Wizard -> Payment (mobile money / card / defer) -> Submission -> Interview -> Decision`
 
 Admissions expectations:
 
@@ -106,6 +107,7 @@ Admissions expectations:
 - Eligibility checks are advisory, not hard blockers.
 - Drafts must survive refreshes, reconnects, and interrupted sessions.
 - Payment is handled by the Lenco inline widget in the payment step — no manual proof-of-payment.
+- Mobile money is the primary payment method; card widget is secondary. Students may defer payment and submit without paying upfront.
 - NRC or Passport document upload is mandatory before submission.
 
 ### Jobs Ops
@@ -123,8 +125,8 @@ Jobs-ops expectations:
 
 | Rule | Details |
 |------|---------|
-| Payment timing | Application fee is collected via Lenco gateway before submission. Admin can override payment status for offline payments. |
-| Payment state compatibility | Treat legacy `verified` and current paid/successful payment outcomes as equivalent verified states in student-facing reads and review tools. |
+| Payment timing | Application fee is collected via Lenco gateway before submission. Admin can override payment status for offline payments. Students may also defer payment and submit without paying upfront. |
+| Payment state compatibility | Treat legacy `verified` and current paid/successful payment outcomes as equivalent verified states in student-facing reads and review tools. `deferred` is a distinct canonical status — students who deferred see a reminder to pay. |
 | Payment retry limits | Maximum 5 payment attempts per application. Pending payments expire after 24 hours. Expired payments older than 7 days are excluded from the attempt count. |
 | Documents | NRC or Passport upload is mandatory. Requirements vary by program and must be validated defensively |
 | Document verification SLA | Documents pending verification beyond the configurable SLA threshold (default 5 days) trigger admin notifications. Escalation at 2x threshold. |

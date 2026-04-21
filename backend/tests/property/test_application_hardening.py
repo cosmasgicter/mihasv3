@@ -5,6 +5,7 @@ Tests Properties 1, 2, and 6 from the application-process-hardening spec.
 **Validates: Req 2, 3, 5**
 """
 
+import hashlib
 import os
 import uuid
 from unittest.mock import MagicMock, patch, PropertyMock
@@ -151,10 +152,10 @@ class TestWebhookDeduplicationPreventsReprocessing(SimpleTestCase):
 
 class TestIdempotencyKeyReturnsCachedResponse(SimpleTestCase):
     """Property 2: For any submission with an `Idempotency-Key` matching an
-    existing row, the response must equal stored `response_json` without
-    executing `submit_application()`.
+    existing row, the @idempotent decorator returns the cached response
+    without executing `submit_application()`.
 
-    **Validates: Requirements 3.2**
+    **Validates: Requirements 3.2 (redesigned with command-identity keying)**
     """
 
     @given(
@@ -167,50 +168,41 @@ class TestIdempotencyKeyReturnsCachedResponse(SimpleTestCase):
         idempotency_key,
         application_id,
     ):
-        """When an Idempotency-Key header matches an existing row in the
-        idempotency_keys table, the view must return the stored response_json
-        without calling submit_application()."""
-        from apps.applications.views import ApplicationSubmitView
+        """When an Idempotency-Key header matches an existing completed row
+        with the same command identity, the decorator returns the cached
+        response without calling the view."""
+        from apps.common.idempotency import idempotent
 
-        cached_response = {
-            "id": str(application_id),
-            "status": "submitted",
-            "cached": True,
-        }
+        cached_body = {"id": str(application_id), "status": "submitted", "cached": True}
+        actor_id = uuid.uuid4()
 
-        # Build a mock request with the idempotency key header
+        mock_existing = MagicMock()
+        mock_existing.request_hash = hashlib.sha256(b"").hexdigest()
+        mock_existing.status = "completed"
+        mock_existing.response_status = 200
+        mock_existing.response_body = cached_body
+
         mock_request = MagicMock()
         mock_request.META = {"HTTP_IDEMPOTENCY_KEY": idempotency_key}
         mock_request.user = MagicMock()
-        mock_request.user.id = uuid.uuid4()
+        mock_request.user.id = actor_id
+        mock_request.method = "POST"
+        mock_request.path = f"/api/v1/applications/{application_id}/submit/"
+        mock_request.body = b""
 
-        # Mock the application lookup
-        mock_app = MagicMock()
-        mock_app.id = application_id
-        mock_app.user_id = str(mock_request.user.id)
+        inner_view = MagicMock()
 
-        # Mock the IdempotencyKey lookup to return a cached entry
-        mock_existing_key = MagicMock()
-        mock_existing_key.response_json = cached_response
+        with patch("apps.common.idempotency.IdempotencyKey.objects") as mock_ik:
+            mock_ik.filter.return_value.first.return_value = mock_existing
 
-        with patch("apps.applications.views._with_payment_summary") as mock_ps, \
-             patch("apps.applications.views.Application.objects") as mock_app_objects, \
-             patch("apps.applications.views.IsOwnerOrAdmin") as mock_perm, \
-             patch("apps.common.models.IdempotencyKey.objects") as mock_ik_objects, \
-             patch("apps.applications.views.submit_application") as mock_submit:
+            @idempotent
+            def view(self_arg, request, *a, **kw):
+                return inner_view(request)
 
-            mock_ps.return_value.get.return_value = mock_app
-            mock_perm.return_value.has_object_permission.return_value = True
-            mock_ik_objects.get.return_value = mock_existing_key
+            response = view(MagicMock(), mock_request, application_id)
 
-            view = ApplicationSubmitView()
-            response = view.post(mock_request, application_id)
-
-            # submit_application must NOT be called
-            mock_submit.assert_not_called()
-
-            # Response must equal the cached response_json
-            self.assertEqual(response.data, cached_response)
+            inner_view.assert_not_called()
+            self.assertEqual(response.status_code, 200)
 
     @given(
         idempotency_key=idempotency_keys,
@@ -222,55 +214,38 @@ class TestIdempotencyKeyReturnsCachedResponse(SimpleTestCase):
         idempotency_key,
         application_id,
     ):
-        """When an Idempotency-Key does not match any existing row, the view
-        must proceed to call submit_application()."""
-        from apps.applications.views import ApplicationSubmitView
-        from apps.common.models import IdempotencyKey as IKModel
+        """When an Idempotency-Key does not match any existing row, the
+        decorator proceeds to call the wrapped view."""
+        from apps.common.idempotency import idempotent
+
+        actor_id = uuid.uuid4()
 
         mock_request = MagicMock()
         mock_request.META = {"HTTP_IDEMPOTENCY_KEY": idempotency_key}
         mock_request.user = MagicMock()
-        mock_request.user.id = uuid.uuid4()
+        mock_request.user.id = actor_id
+        mock_request.method = "POST"
+        mock_request.path = f"/api/v1/applications/{application_id}/submit/"
+        mock_request.body = b""
 
-        mock_app = MagicMock()
-        mock_app.id = application_id
-        mock_app.user_id = str(mock_request.user.id)
-        mock_app.status = "submitted"
-        mock_app.submitted_at = None
-        mock_app.payment_status = "verified"
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.content = b'{"success": true}'
 
-        submitted_app = MagicMock()
-        submitted_app.id = application_id
-        submitted_app.user_id = str(mock_request.user.id)
-        submitted_app.status = "submitted"
-        submitted_app.submitted_at = MagicMock()
-        submitted_app.submitted_at.isoformat.return_value = "2025-01-01T00:00:00"
-        submitted_app.payment_status = "verified"
+        with patch("apps.common.idempotency.IdempotencyKey.objects") as mock_ik, \
+             patch("apps.common.idempotency.timezone"):
+            mock_ik.filter.return_value.first.return_value = None
+            mock_record = MagicMock()
+            mock_ik.create.return_value = mock_record
 
-        with patch("apps.applications.views._with_payment_summary") as mock_ps, \
-             patch("apps.applications.views.Application.objects") as mock_app_objects, \
-             patch("apps.applications.views.IsOwnerOrAdmin") as mock_perm, \
-             patch("apps.common.models.IdempotencyKey.objects") as mock_ik_objects, \
-             patch("apps.applications.views.submit_application") as mock_submit, \
-             patch("apps.applications.views.ApplicationSerializer") as mock_serializer, \
-             patch("apps.applications.views.timezone"):
+            @idempotent
+            def view(self_arg, request, *a, **kw):
+                return mock_response
 
-            mock_ps.return_value.get.return_value = mock_app
-            mock_perm.return_value.has_object_permission.return_value = True
+            view(MagicMock(), mock_request, application_id)
 
-            # IdempotencyKey.objects.get raises DoesNotExist
-            mock_ik_objects.get.side_effect = IKModel.DoesNotExist
-            mock_ik_objects.create.return_value = MagicMock()
-            mock_ik_objects.filter.return_value.delete.return_value = (0, {})
-
-            mock_submit.return_value = (submitted_app, "draft")
-            mock_serializer.return_value.data = {"id": str(application_id), "status": "submitted"}
-
-            view = ApplicationSubmitView()
-            view.post(mock_request, application_id)
-
-            # submit_application MUST be called
-            mock_submit.assert_called_once()
+            # The create call proves the decorator proceeded
+            mock_ik.create.assert_called_once()
 
 
 # ---------------------------------------------------------------------------

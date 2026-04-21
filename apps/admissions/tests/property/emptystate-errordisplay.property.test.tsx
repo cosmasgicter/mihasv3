@@ -250,8 +250,8 @@ describe('Feature: ui-ux-quality-audit, Property 6: ErrorDisplay supportUrl defa
         })
 
         const allText = container.textContent || ''
-        // Should have "Retry" (retry takes precedence)
-        expect(allText).toContain('Retry')
+        // Section variant (default) shows "Try Again" for retry
+        expect(allText).toContain('Try Again')
         // Should NOT have "Go Back" when onRetry is present
         expect(allText).not.toContain('Go Back')
 

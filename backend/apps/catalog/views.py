@@ -18,6 +18,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.accounts.authentication import OptionalJWTCookieAuthentication
 from apps.accounts.permissions import IsAdmin
 from apps.catalog.models import Institution, Intake, Program, Subject
 from apps.catalog.serializers import (
@@ -120,7 +121,7 @@ class ProgramListCreateView(APIView):
     """
 
     permission_classes = [AllowAny]
-    authentication_classes = []
+    authentication_classes = [OptionalJWTCookieAuthentication]
     serializer_class = ProgramSerializer
 
     def get_permissions(self):
@@ -317,7 +318,7 @@ class IntakeListCreateView(APIView):
     """
 
     permission_classes = [AllowAny]
-    authentication_classes = []
+    authentication_classes = [OptionalJWTCookieAuthentication]
     serializer_class = IntakeSerializer
 
     def get_permissions(self):
@@ -481,7 +482,7 @@ class SubjectListView(APIView):
     """GET /api/v1/catalog/subjects/ — list subjects (public)"""
 
     permission_classes = [AllowAny]
-    authentication_classes = []
+    authentication_classes = [OptionalJWTCookieAuthentication]
     serializer_class = SubjectSerializer
 
     def get(self, request):
@@ -515,7 +516,7 @@ class InstitutionListCreateView(APIView):
     """
 
     permission_classes = [AllowAny]
-    authentication_classes = []
+    authentication_classes = [OptionalJWTCookieAuthentication]
     serializer_class = InstitutionSerializer
 
     def get_permissions(self):

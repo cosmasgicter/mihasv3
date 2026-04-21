@@ -11,15 +11,9 @@ import type { WizardFormData } from '@/pages/student/applicationWizard/types'
 /**
  * Validates: Requirements 17.1
  *
- * Property 12: For any state where the PaymentStep "Pay now" button is
- * disabled (fee loading, widget unavailable, or no fee resolved), the
- * component renders visible helper text (data-testid="pay-disabled-hint")
- * explaining why the button is disabled. Conversely, when the button is
- * enabled the hint is absent.
- *
- * Note: The "payment pending" disabled state is driven by internal
- * component state (useState) which cannot be set via static rendering.
- * The three externally-controllable disabled states are tested here.
+ * Property 12: When the PaymentStep cannot show a payment form (fee loading,
+ * no fee resolved), the payment form is absent. When fee is resolved, the
+ * mobile money form is rendered as the primary payment method.
  */
 
 // ---------------------------------------------------------------------------
@@ -38,42 +32,24 @@ vi.mock('@/hooks/useLencoWidget', () => ({
 }))
 
 // ---------------------------------------------------------------------------
-// Disabled-state arbitrary
+// No-payment-form state arbitrary
 // ---------------------------------------------------------------------------
 
-interface DisabledState {
+interface NoFormState {
   label: string
   feeLoading: boolean
-  isScriptLoaded: boolean
   fee: { amount: number; currency: string; residency_category: string } | null
 }
 
-/**
- * Generates one of the three externally-controllable disabled-button scenarios:
- *  1. Fee is loading
- *  2. Widget script not loaded
- *  3. No fee resolved yet (fee === null, not loading)
- */
-const disabledStateArb: fc.Arbitrary<DisabledState> = fc.oneof(
+const noFormStateArb: fc.Arbitrary<NoFormState> = fc.oneof(
   fc.record({
     label: fc.constant('fee-loading'),
     feeLoading: fc.constant(true),
-    isScriptLoaded: fc.boolean(),
     fee: fc.constant(null),
-  }),
-  fc.record({
-    label: fc.constant('widget-unavailable'),
-    feeLoading: fc.constant(false),
-    isScriptLoaded: fc.constant(false),
-    fee: fc.oneof(
-      fc.constant(null),
-      fc.constant({ amount: 153, currency: 'ZMW', residency_category: 'resident' }),
-    ),
   }),
   fc.record({
     label: fc.constant('no-fee'),
     feeLoading: fc.constant(false),
-    isScriptLoaded: fc.constant(true),
     fee: fc.constant(null),
   }),
 )
@@ -101,7 +77,6 @@ const DEFAULT_FORM_VALUES: Partial<WizardFormData> = {
 
 function renderWithState(state: {
   feeLoading: boolean
-  isScriptLoaded: boolean
   fee: { amount: number; currency: string; residency_category: string } | null
 }) {
   useFeeResolverMock.mockReturnValue({
@@ -112,7 +87,7 @@ function renderWithState(state: {
   useLencoWidgetMock.mockReturnValue({
     openWidget: vi.fn(),
     isLoading: false,
-    isScriptLoaded: state.isScriptLoaded,
+    isScriptLoaded: true,
   })
 
   const Harness = () => {
@@ -132,9 +107,7 @@ function renderWithState(state: {
 // Property tests
 // ---------------------------------------------------------------------------
 
-describe('Property 12: Disabled payment button shows explanation', () => {
-  // Suppress the harmless useLayoutEffect SSR warning from react-hook-form
-  // when using renderToStaticMarkup (server-side rendering context)
+describe('Property 12: Payment form visibility matches fee state', () => {
   let originalConsoleError: typeof console.error
   beforeAll(() => {
     originalConsoleError = console.error
@@ -151,30 +124,29 @@ describe('Property 12: Disabled payment button shows explanation', () => {
     vi.clearAllMocks()
   })
 
-  it('renders a disabled-hint when the pay button is disabled', () => {
+  it('does not render payment form when fee is unavailable', () => {
     fc.assert(
-      fc.property(disabledStateArb, (state) => {
+      fc.property(noFormStateArb, (state) => {
         const markup = renderWithState(state)
 
-        // The hint element with data-testid="pay-disabled-hint" must be present
-        expect(markup).toContain('data-testid="pay-disabled-hint"')
-
-        // The hint must contain non-empty explanatory text
-        const hintMatch = markup.match(/data-testid="pay-disabled-hint"[^>]*>([^<]+)</)
-        expect(hintMatch).not.toBeNull()
-        expect(hintMatch![1].trim().length).toBeGreaterThan(0)
+        // No payment form should be rendered
+        expect(markup).not.toContain('data-testid="payment-form"')
+        // No pay buttons should be present
+        expect(markup).not.toContain('data-testid="pay-momo-button"')
       }),
       { numRuns: 100 },
     )
   })
 
-  it('does NOT render a disabled-hint when the pay button is enabled', () => {
+  it('renders mobile money form when fee is resolved', () => {
     const markup = renderWithState({
       feeLoading: false,
-      isScriptLoaded: true,
       fee: { amount: 153, currency: 'ZMW', residency_category: 'resident' },
     })
 
-    expect(markup).not.toContain('data-testid="pay-disabled-hint"')
+    expect(markup).toContain('data-testid="payment-form"')
+    expect(markup).toContain('data-testid="pay-momo-button"')
+    expect(markup).toContain('Mobile Money')
+    expect(markup).toContain('data-testid="pay-later-button"')
   })
 })

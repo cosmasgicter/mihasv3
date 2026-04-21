@@ -28,6 +28,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.accounts.authentication import OptionalJWTCookieAuthentication
 from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin
 from apps.applications.filters import ApplicationFilter
 from apps.applications.models import (
@@ -49,6 +50,7 @@ from apps.common.openapi_helpers import (
     paginated_serializer,
 )
 from apps.common.pagination import StandardPagination
+from apps.common.idempotency import idempotent
 from apps.documents.models import ApplicationDocument, ApplicationGrade, Payment
 from apps.documents.serializers import DocumentSerializer
 from apps.applications.document_intelligence import DocumentIntelligence
@@ -795,11 +797,8 @@ class ApplicationSubmitView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ApplicationSerializer
 
+    @idempotent
     def post(self, request, application_id):
-        from datetime import timedelta
-
-        from apps.common.models import IdempotencyKey
-
         try:
             app = _with_payment_summary(Application.objects.select_related("user")).get(id=application_id)
         except Application.DoesNotExist:
@@ -814,21 +813,6 @@ class ApplicationSubmitView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # --- Idempotency check (Req 3.1, 3.2) ---
-        idempotency_key = request.META.get('HTTP_IDEMPOTENCY_KEY')
-        if idempotency_key:
-            try:
-                existing = IdempotencyKey.objects.get(key=idempotency_key)
-                return Response(existing.response_json)
-            except IdempotencyKey.DoesNotExist:
-                pass
-            except Exception:
-                # Lookup failure → fall through to SELECT FOR UPDATE guard (Req 3.5)
-                logger.warning(
-                    "Idempotency key lookup failed: key=%s app=%s",
-                    idempotency_key, application_id,
-                )
-
         try:
             submitted_app, _old_status = submit_application(
                 application=app,
@@ -841,25 +825,6 @@ class ApplicationSubmitView(APIView):
             )
 
         response_data = ApplicationSerializer(submitted_app).data
-
-        # --- Store idempotency key (Req 3.3) ---
-        if idempotency_key:
-            try:
-                IdempotencyKey.objects.create(
-                    key=idempotency_key,
-                    endpoint=f'/api/v1/applications/{application_id}/submit/',
-                    response_json=response_data,
-                )
-                # Inline cleanup: remove keys older than 1 hour (Req 3.4)
-                IdempotencyKey.objects.filter(
-                    created_at__lt=timezone.now() - timedelta(hours=1),
-                ).delete()
-            except Exception:
-                logger.warning(
-                    "Idempotency key store/cleanup failed: key=%s app=%s",
-                    idempotency_key, application_id,
-                )
-
         return Response(response_data)
 
 
@@ -1106,13 +1071,16 @@ class ApplicationReviewView(APIView):
                     app.id,
                 )
 
-        # Send notification to student on approval/rejection/conditional approval
-        if new_status in ("approved", "rejected", "conditionally_approved"):
+        # Send notification to student on status changes
+        if new_status in ("under_review", "approved", "rejected", "conditionally_approved"):
             try:
                 from apps.common.communication_service import CommunicationService
 
                 extra_ctx = {"admin_feedback": notes or ""}
-                if new_status == "approved":
+                if new_status == "under_review":
+                    CommunicationService.send("application_under_review", app)
+                elif new_status == "approved":
+                    extra_ctx["enrollment_deadline"] = str(getattr(app, "enrollment_confirmation_deadline", "") or "")
                     CommunicationService.send("application_approved", app, extra_ctx)
                 elif new_status == "conditionally_approved":
                     CommunicationService.send("condition_assigned", app, extra_ctx)
@@ -1201,7 +1169,7 @@ class ApplicationExportView(APIView):
 )
 class ApplicationTrackView(APIView):
     permission_classes = [AllowAny]
-    authentication_classes = []
+    authentication_classes = [OptionalJWTCookieAuthentication]
     serializer_class = ApplicationTrackingSerializer
 
     # Accepted formats:
@@ -1869,16 +1837,20 @@ def _enqueue_document_task(application, task_type, task_func, request):
 
     application_id = str(application.id)
 
-    # Idempotency check — 1-hour TTL
-    idempotency_key = f"{task_type}:{application_id}"
+    # Idempotency check — 1-hour TTL (server-generated key for task dedup)
+    idem_key = f"{task_type}:{application_id}"
+    actor_id = request.user.id
+    method = "POST"
+    path = f"/api/v1/applications/{application_id}/{task_type}/"
     ttl_threshold = timezone.now() - timedelta(hours=1)
 
     existing = IdempotencyKey.objects.filter(
-        key=idempotency_key, created_at__gt=ttl_threshold
+        idempotency_key=idem_key, actor_id=actor_id, method=method, path=path,
+        created_at__gt=ttl_threshold,
     ).first()
-    if existing:
+    if existing and existing.response_body:
         return Response(
-            {"success": True, "data": existing.response_json},
+            {"success": True, "data": existing.response_body},
             status=status.HTTP_202_ACCEPTED,
         )
 
@@ -1903,14 +1875,18 @@ def _enqueue_document_task(application, task_type, task_func, request):
     }
 
     # Store idempotency key
-    # Derive the audit action from the task_type slug (e.g. "acceptance-letter" → "generate_acceptance_letter")
     action_name = f"generate_{task_type.replace('-', '_')}"
-    endpoint = f"/api/v1/applications/{application_id}/{task_type}/"
 
     IdempotencyKey.objects.create(
-        key=idempotency_key,
-        endpoint=endpoint,
-        response_json=response_data,
+        idempotency_key=idem_key,
+        actor_id=actor_id,
+        method=method,
+        path=path,
+        request_hash=hashlib.sha256(b"").hexdigest(),
+        status=IdempotencyKey.COMPLETED,
+        response_status=202,
+        response_body=response_data,
+        completed_at=timezone.now(),
     )
 
     # Audit log
@@ -2161,7 +2137,7 @@ class EmailSlipView(APIView):
 
         # Create EmailQueue record and dispatch
         from apps.common.models import EmailQueue
-        from apps.common.tasks import send_email_task
+        from apps.common.tasks import dispatch_email
 
         email_record = EmailQueue.objects.create(
             recipient_email=email,
@@ -2171,7 +2147,7 @@ class EmailSlipView(APIView):
             status="pending",
         )
 
-        send_email_task.delay(str(email_record.id))
+        dispatch_email(str(email_record.id))
 
         return Response(
             {"success": True, "data": {"queued_id": str(email_record.id)}},
@@ -2229,11 +2205,9 @@ class ApplicationWithdrawView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = WithdrawalReasonSerializer
 
+    @idempotent
     def post(self, request, application_id):
-        from datetime import timedelta
-
         from apps.applications.withdrawal_service import WithdrawalError, WithdrawalService
-        from apps.common.models import IdempotencyKey
 
         # --- Fetch application ---
         try:
@@ -2255,21 +2229,6 @@ class ApplicationWithdrawView(APIView):
                 },
                 status=status.HTTP_403_FORBIDDEN,
             )
-
-        # --- Idempotency check (Req 1.10) ---
-        idempotency_key = request.META.get("HTTP_IDEMPOTENCY_KEY")
-        if idempotency_key:
-            try:
-                existing = IdempotencyKey.objects.get(key=idempotency_key)
-                return Response(existing.response_json)
-            except IdempotencyKey.DoesNotExist:
-                pass
-            except Exception:
-                logger.warning(
-                    "Idempotency key lookup failed: key=%s app=%s",
-                    idempotency_key,
-                    application_id,
-                )
 
         # --- Validate request body ---
         withdrawal_reason = (request.data or {}).get("withdrawal_reason", "")
@@ -2293,28 +2252,7 @@ class ApplicationWithdrawView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        response_data = {"success": True, "data": ApplicationSerializer(withdrawn_app).data}
-
-        # --- Store idempotency key (Req 1.10) ---
-        if idempotency_key:
-            try:
-                IdempotencyKey.objects.create(
-                    key=idempotency_key,
-                    endpoint=f"/api/v1/applications/{application_id}/withdraw/",
-                    response_json=response_data,
-                )
-                # Inline cleanup: remove keys older than 1 hour
-                IdempotencyKey.objects.filter(
-                    created_at__lt=timezone.now() - timedelta(hours=1),
-                ).delete()
-            except Exception:
-                logger.warning(
-                    "Idempotency key store/cleanup failed: key=%s app=%s",
-                    idempotency_key,
-                    application_id,
-                )
-
-        return Response(response_data)
+        return Response({"success": True, "data": ApplicationSerializer(withdrawn_app).data})
 
 
 class ApplicationWaitlistPositionView(APIView):

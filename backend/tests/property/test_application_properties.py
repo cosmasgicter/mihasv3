@@ -327,12 +327,13 @@ class TestPublicTrackingWithoutAuth(SimpleTestCase):
     """
 
     def test_track_view_has_allow_any_permission(self):
-        """ApplicationTrackView must use AllowAny permission."""
+        """ApplicationTrackView must use AllowAny permission and OptionalJWTCookieAuthentication."""
         from apps.applications.views import ApplicationTrackView
+        from apps.accounts.authentication import OptionalJWTCookieAuthentication
 
         view = ApplicationTrackView()
         self.assertEqual(view.permission_classes, [AllowAny])
-        self.assertEqual(view.authentication_classes, [])
+        self.assertEqual(view.authentication_classes, [OptionalJWTCookieAuthentication])
 
     @given(code=_tracking_codes)
     @_default_settings

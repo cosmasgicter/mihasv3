@@ -215,15 +215,11 @@ class RateLimitMiddleware:
 
 
 class JWTAuthenticationMiddleware:
-    """Extract JWT from cookies/Bearer header and set request.user.
+    """Flag expired JWT tokens so downstream 403 can be converted to 401.
 
-    Purely stateless — no database queries. On any validation failure the
-    request passes through silently so DRF permission classes can enforce
-    authentication downstream.
-
-    Token extraction order:
-      1. ``access_token`` HTTP-only cookie (primary)
-      2. ``Authorization: Bearer <token>`` header (fallback)
+    DRF authentication classes are the sole authority for setting request.user.
+    This middleware does NOT authenticate — it only detects expired tokens so
+    the 403→401 conversion can fire, enabling the frontend refresh interceptor.
 
     Requirements: 1.1–1.9
     """
@@ -232,15 +228,11 @@ class JWTAuthenticationMiddleware:
 
     def __init__(self, get_response):
         self.get_response = get_response
-        self._signing_key: str | None = None
-        self._algorithm: str | None = None
 
     def __call__(self, request):
         token = self._extract_token(request)
         if token:
-            user = self._authenticate(token, request)
-            if user is not None:
-                request.user = user
+            self._flag_if_expired(token, request)
 
         response = self.get_response(request)
 
@@ -249,7 +241,6 @@ class JWTAuthenticationMiddleware:
         # the frontend's refresh-token interceptor fires correctly.
         # Do NOT convert CSRF 403s — those are recoverable without re-auth.
         if getattr(request, "_jwt_expired", False) and response.status_code == 403:
-            # Check if this is a CSRF failure (should stay 403)
             if hasattr(response, "content"):
                 try:
                     body = json.loads(response.content)
@@ -268,72 +259,26 @@ class JWTAuthenticationMiddleware:
 
         return response
 
-    # ------------------------------------------------------------------
-    # Token extraction
-    # ------------------------------------------------------------------
-
     def _extract_token(self, request) -> str | None:
-        """Return the raw JWT string, or *None* if no token is present."""
-        # 1. Cookie first
         token = request.COOKIES.get(self.COOKIE_NAME)
         if token:
             return token
-        # 2. Authorization: Bearer fallback
         auth = request.META.get("HTTP_AUTHORIZATION", "")
         if auth.startswith("Bearer "):
             return auth[7:].strip()
         return None
 
-    # ------------------------------------------------------------------
-    # Token validation (stateless — no DB queries)
-    # ------------------------------------------------------------------
-
-    def _authenticate(self, token: str, request=None):
-        """Decode *token* and return a ``JWTUser``, or *None* on failure."""
+    @staticmethod
+    def _flag_if_expired(token: str, request) -> None:
+        """Check expiry only — do NOT decode payload or set request.user."""
         import jwt as pyjwt
 
-        from apps.accounts.authentication import JWTUser
-
-        signing_key, algorithm = self._get_jwt_config()
-        if not signing_key:
-            logger.error("JWT_SIGNING_KEY is not configured — middleware cannot authenticate")
-            return None
-
         try:
-            payload = pyjwt.decode(token, signing_key, algorithms=[algorithm])
+            pyjwt.decode(token, options={"verify_signature": False, "verify_exp": True})
         except pyjwt.ExpiredSignatureError:
-            # Flag the request so __call__ can convert 403 → 401.
-            if request is not None:
-                request._jwt_expired = True
-            return None
-        except pyjwt.InvalidTokenError as exc:
-            logger.warning("Invalid JWT token in middleware: %s", exc)
-            return None
-
-        # Validate token_type == 'access'
-        if payload.get("token_type") != "access":
-            return None
-
-        # Validate user_id is present and non-empty
-        user_id = payload.get("user_id")
-        if not user_id:
-            return None
-
-        return JWTUser(payload)
-
-    # ------------------------------------------------------------------
-    # Helpers
-    # ------------------------------------------------------------------
-
-    def _get_jwt_config(self) -> tuple[str, str]:
-        """Lazy-load signing key and algorithm from ``settings.SIMPLE_JWT``."""
-        if self._signing_key is None:
-            from django.conf import settings
-
-            jwt_settings = getattr(settings, "SIMPLE_JWT", {})
-            self._signing_key = jwt_settings.get("SIGNING_KEY", "")
-            self._algorithm = jwt_settings.get("ALGORITHM", "HS256")
-        return self._signing_key, self._algorithm
+            request._jwt_expired = True
+        except Exception:
+            pass
 
 
 # ---------------------------------------------------------------------------

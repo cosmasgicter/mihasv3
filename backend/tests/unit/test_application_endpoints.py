@@ -406,7 +406,7 @@ class TestAcceptanceLetter:
             "status": "queued",
         }
         existing_key = MagicMock()
-        existing_key.response_json = cached_response
+        existing_key.response_body = cached_response
         mock_idem_qs.filter.return_value.first.return_value = existing_key
 
         request = _auth_request(
@@ -566,7 +566,7 @@ class TestFinanceReceipt:
             "status": "queued",
         }
         existing_key = MagicMock()
-        existing_key.response_json = cached_response
+        existing_key.response_body = cached_response
         mock_idem_qs.filter.return_value.first.return_value = existing_key
 
         request = _auth_request(

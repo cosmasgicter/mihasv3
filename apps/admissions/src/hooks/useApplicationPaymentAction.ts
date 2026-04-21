@@ -34,16 +34,6 @@ interface VerifyResponse {
 const PAYMENT_ERROR_STORAGE_PREFIX = 'mihas:payment-initiation-error:'
 const PAYMENT_INITIATE_RETRY_DELAYS_MS = [500, 1_500]
 
-/**
- * Global flag: true while the Lenco widget is open.
- * Session revalidation and auth-expired cascades should be suppressed
- * while this is true to prevent mobile logout during payment.
- */
-let _paymentInProgress = false
-export function isPaymentInProgress(): boolean {
-  return _paymentInProgress
-}
-
 function splitFullName(fullName?: string | null) {
   const parts = (fullName ?? '').trim().split(/\s+/).filter(Boolean)
   return { firstName: parts[0] || '', lastName: parts.slice(1).join(' ') || parts[0] || '' }
@@ -164,7 +154,6 @@ export function useApplicationPaymentAction({
       const { firstName, lastName } = splitFullName(customer.fullName)
 
       // Set global flag to suppress session revalidation while widget is open
-      _paymentInProgress = true
 
       openWidget({
         publicKey: lenco_public_key,
@@ -176,7 +165,6 @@ export function useApplicationPaymentAction({
         customerLastName: lastName,
         customerPhone: customer.phone || undefined,
         onSuccess: async () => {
-          _paymentInProgress = false
           updatePaymentStatus('pending', 'Verifying payment…')
           initiatingRef.current = false
           try {
@@ -205,14 +193,12 @@ export function useApplicationPaymentAction({
           }
         },
         onConfirmationPending: () => {
-          _paymentInProgress = false
           initiatingRef.current = false
           updatePaymentStatus('pending', 'Payment is being confirmed. Stay on this page.')
           onPaymentStatusChange?.('pending')
           void refreshStatus()
         },
         onClose: () => {
-          _paymentInProgress = false
           initiatingRef.current = false
           if (paymentStatusRef.current !== 'successful' && paymentStatusRef.current !== 'pending') {
             updatePaymentStatus('idle', 'Payment not completed. You can retry when ready.')
@@ -220,7 +206,6 @@ export function useApplicationPaymentAction({
         },
       })
     } catch (error) {
-      _paymentInProgress = false
       setInitiateError(error instanceof Error ? error.message : 'Failed to initiate payment')
       updatePaymentStatus('idle')
       initiatingRef.current = false

@@ -159,8 +159,8 @@ describe('Contact page verification', () => {
   it('renders contact phone numbers', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('KATC:')
-    expect(text).toContain('MIHAS:')
+    expect(text).toContain('KATC')
+    expect(text).toContain('MIHAS')
     expect(text).toContain('+260 966 992 299')
     expect(text).toContain('+260 961 515 151')
   })
@@ -181,8 +181,8 @@ describe('Contact page verification', () => {
 
   it('renders the contact form with all fields', async () => {
     await renderAndWait()
-    const nameInput = container.querySelector('#contact-name') as HTMLInputElement
-    const emailInput = container.querySelector('#contact-email') as HTMLInputElement
+    const nameInput = container.querySelector('input[name="name"]') as HTMLInputElement
+    const emailInput = container.querySelector('input[name="email"]') as HTMLInputElement
     const messageInput = container.querySelector('#contact-message') as HTMLTextAreaElement
 
     expect(nameInput).toBeTruthy()
@@ -208,7 +208,7 @@ describe('Contact page verification', () => {
 
   it('accepts input in the name field', async () => {
     await renderAndWait()
-    const nameInput = container.querySelector('#contact-name') as HTMLInputElement
+    const nameInput = container.querySelector('input[name="name"]') as HTMLInputElement
     expect(nameInput).toBeTruthy()
 
     await act(async () => {
@@ -224,7 +224,7 @@ describe('Contact page verification', () => {
 
   it('accepts input in the email field', async () => {
     await renderAndWait()
-    const emailInput = container.querySelector('#contact-email') as HTMLInputElement
+    const emailInput = container.querySelector('input[name="email"]') as HTMLInputElement
     expect(emailInput).toBeTruthy()
 
     await act(async () => {
@@ -259,8 +259,8 @@ describe('Contact page verification', () => {
   it('shows a prepared email draft after form submission', async () => {
     await renderAndWait()
 
-    const nameInput = container.querySelector('#contact-name') as HTMLInputElement
-    const emailInput = container.querySelector('#contact-email') as HTMLInputElement
+    const nameInput = container.querySelector('input[name="name"]') as HTMLInputElement
+    const emailInput = container.querySelector('input[name="email"]') as HTMLInputElement
     const messageInput = container.querySelector('#contact-message') as HTMLTextAreaElement
 
     // Fill in form fields using native value setters for react-hook-form compatibility
@@ -299,8 +299,8 @@ describe('Contact page verification', () => {
   it('keeps an editable handoff state after preparing the draft', async () => {
     await renderAndWait()
 
-    const nameInput = container.querySelector('#contact-name') as HTMLInputElement
-    const emailInput = container.querySelector('#contact-email') as HTMLInputElement
+    const nameInput = container.querySelector('input[name="name"]') as HTMLInputElement
+    const emailInput = container.querySelector('input[name="email"]') as HTMLInputElement
     const messageInput = container.querySelector('#contact-message') as HTMLTextAreaElement
 
     await act(async () => {

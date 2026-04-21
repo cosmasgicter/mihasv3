@@ -29,7 +29,7 @@ const VARIANT_CLASSES = {
 } as const;
 
 // Base classes present on all variants
-const BASE_CLASSES = ['rounded-lg', 'text-card-foreground', 'transition-shadow'];
+const BASE_CLASSES = ['rounded-2xl', 'text-card-foreground', 'transition-shadow'];
 
 // Interactive classes added when interactive=true
 const INTERACTIVE_CLASSES = [

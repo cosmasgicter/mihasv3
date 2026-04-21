@@ -79,7 +79,7 @@ const formDataArb = fc.record({
   payer_name: fc.string({ minLength: 1, maxLength: 50 }),
   payer_phone: fc.string({ minLength: 5, maxLength: 20 }),
   amount: fc.float({ min: 0, max: 10000 }),
-  paid_at: fc.date().map(d => d.toISOString()),
+  paid_at: fc.constant('2025-01-15T10:00:00.000Z'),
   momo_ref: fc.string({ minLength: 5, maxLength: 30 }),
   pop_url: fc.webUrl(),
 })

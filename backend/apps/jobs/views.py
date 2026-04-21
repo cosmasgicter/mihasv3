@@ -9,6 +9,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.accounts.authentication import OptionalJWTCookieAuthentication
 from apps.common.jobs_ops_seed import build_action_payload, sample_job_applications, sample_job_detail, sample_jobs
 from apps.common.openapi_helpers import ErrorResponseSerializer, envelope_serializer, paginated_serializer
 from apps.jobs.serializers import (
@@ -56,7 +57,7 @@ class PublicReadWriteProtectedMixin:
 )
 class JobListView(APIView):
     permission_classes = [AllowAny]
-    authentication_classes = []
+    authentication_classes = [OptionalJWTCookieAuthentication]
     serializer_class = JobSummarySerializer
 
     def get(self, request):
@@ -132,7 +133,7 @@ class DiscoveryRunDetailView(APIView):
 )
 class JobDetailView(APIView):
     permission_classes = [AllowAny]
-    authentication_classes = []
+    authentication_classes = [OptionalJWTCookieAuthentication]
     serializer_class = JobDetailSerializer
 
     def get(self, request, job_id):

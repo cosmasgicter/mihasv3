@@ -1,4 +1,5 @@
 """Root URL configuration for MIHAS Django API."""
+from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
 
@@ -37,13 +38,6 @@ urlpatterns = [
     path("api/v1/applications/", include("apps.applications.urls")),
     path("api/v1/catalog/", include("apps.catalog.urls")),
     path("api/v1/meta/", include("apps.common.meta_urls")),
-    path("api/v1/jobs/", include("apps.jobs.urls")),
-    path("api/v1/job-applications/", include("apps.jobs.application_urls")),
-    path("api/v1/outreach/", include("apps.outreach.urls")),
-    path("api/v1/automation/", include("apps.automation.urls")),
-    path("api/v1/integrations/", include("apps.integrations.urls")),
-    path("api/v1/analytics/", include("apps.analytics.urls")),
-    path("api/v1/reports/", include("apps.analytics.report_urls")),
     path("api/v1/documents/", include((document_urlpatterns, "documents"))),
     path("api/v1/payments/", include((payment_urlpatterns, "payments"))),
     path("api/v1/programs/<uuid:program_id>/fees/", include((program_fee_urlpatterns, "program-fees"))),
@@ -57,3 +51,15 @@ urlpatterns = [
     # Error monitoring endpoints
     path("api/v1/errors/", include("apps.common.error_urls")),
 ]
+
+# Scaffold domains — gated for production safety
+if settings.ENABLE_JOBS_OPS_ROUTES:
+    urlpatterns += [
+        path("api/v1/jobs/", include("apps.jobs.urls")),
+        path("api/v1/job-applications/", include("apps.jobs.application_urls")),
+        path("api/v1/outreach/", include("apps.outreach.urls")),
+        path("api/v1/automation/", include("apps.automation.urls")),
+        path("api/v1/integrations/", include("apps.integrations.urls")),
+        path("api/v1/analytics/", include("apps.analytics.urls")),
+        path("api/v1/reports/", include("apps.analytics.report_urls")),
+    ]

@@ -169,8 +169,8 @@ describe('Property 4: Exactly 1 session call on page load', () => {
     });
 
     it('both hooks share the same queryKey ["auth", "session"]', () => {
-      // Both hooks must use the same queryKey for React Query deduplication
-      const keyMatches = source.match(/queryKey:\s*\['auth',\s*'session'\]/g);
+      // Both hooks must use SESSION_QUERY_KEY for React Query deduplication
+      const keyMatches = source.match(/queryKey:\s*SESSION_QUERY_KEY/g);
       expect(keyMatches).not.toBeNull();
       // At least 2: one in useSessionListener, one in useAuthCheck
       expect(keyMatches!.length).toBeGreaterThanOrEqual(2);

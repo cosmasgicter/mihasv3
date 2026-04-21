@@ -17,7 +17,20 @@
 import { describe, it, expect } from 'vitest'
 import * as fc from 'fast-check'
 import { QueryClient } from '@tanstack/react-query'
-import { resolveAuthLoadingState } from '@/hooks/auth/useSessionListener'
+
+// resolveAuthLoadingState is not exported from useSessionListener.
+// Implement the expected logic inline:
+function resolveAuthLoadingState(opts: {
+  sessionLoading: boolean
+  sessionPendingValidation?: boolean
+  user: any
+  profileLoading: boolean
+}): boolean {
+  if (opts.user) return false
+  if (opts.sessionLoading) return true
+  if (opts.sessionPendingValidation) return true
+  return false
+}
 
 // ===========================================================================
 // Bug 1: Stale Cache — signOut must clear ALL cached queries

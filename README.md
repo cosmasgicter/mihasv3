@@ -56,8 +56,8 @@ docs/                  Project documentation, runbooks, and reports
 | Database | Neon Postgres (serverless) |
 | Async Tasks | Celery + Redis |
 | Storage | Cloudflare R2 via django-storages |
-| Email | Resend |
-| Payments | Lenco gateway |
+| Email | Zoho SMTP (primary) + Resend (fallback) |
+| Payments | Lenco gateway (mobile money + card widget) |
 | API Docs | drf-spectacular (Swagger + ReDoc) |
 | Error Monitoring | GlitchTip (Sentry-compatible) via `sentry-sdk` |
 | Testing | pytest + hypothesis |
@@ -107,7 +107,7 @@ All endpoints live under `/api/v1/`. Key route groups:
 | `/api/v1/auth/` | Authentication, sessions, token refresh |
 | `/api/v1/applications/` | Admissions applications, submission, review, withdrawal, waitlist, conditions, enrollment, assignments, amendments |
 | `/api/v1/catalog/` | Programs, intakes, subjects |
-| `/api/v1/payments/` | Lenco payment lifecycle, webhooks, fee resolution |
+| `/api/v1/payments/` | Payment lifecycle (mobile money, card widget, deferred), webhooks, fee resolution |
 | `/api/v1/documents/` | Document uploads, OCR |
 | `/api/v1/jobs/` | Job discovery and scoring |
 | `/api/v1/job-applications/` | Job application tracking |
@@ -153,7 +153,7 @@ cd apps/jobs-ops && bun run type-check && bun run lint
 | Backend API | Koyeb (Docker) | `backend/Dockerfile` |
 | Celery Worker | Koyeb (Docker) | Same image, different entrypoint |
 | Celery Beat | Koyeb (1 instance) | Periodic task scheduler |
-| Admissions | Vercel | `apps/admissions/vercel.json` |
+| Admissions | Vercel | `apps/admissions/vercel.json` (same-origin API proxy via rewrites) |
 | Jobs Ops | Vercel (planned) | Independent deploy |
 
 Each app deploys independently. Backend health checks at `/health/live/` and `/health/ready/`.
@@ -224,8 +224,19 @@ Backend env vars are documented in `.env.example`. Frontend env vars use `VITE_`
 - Neon Postgres (database)
 - Redis (Celery broker + cache)
 - Cloudflare R2 (file storage)
-- Lenco (payment gateway)
-- Resend (transactional email)
+- Lenco (payment gateway — mobile money + card widget)
+- Zoho SMTP (primary outbound email)
+- Resend (fallback transactional email)
+- GlitchTip (error monitoring)
+
+## Documentation
+
+| Document | Location | Purpose |
+|----------|----------|---------|
+| Schema ownership | `docs/schema-ownership.md` | Table-level ownership map for the Neon database |
+| Redis dependency tiers | `docs/redis-dependency-tiers.md` | Redis key usage, TTLs, and failure impact tiers |
+| Platform contract | `shared/PLATFORM_CONTRACT.md` | Cross-app API and data contract |
+| Secrets rotation | `docs/runbooks/secrets-rotation.md` | Production secret rotation runbook |
 
 ## License
 

@@ -145,12 +145,12 @@ describe('[PBT] Bug 1 — AuthLayout mobile overflow classes', () => {
         const parser = new DOMParser()
         const doc = parser.parseFromString(markup, 'text/html')
 
-        // Find the form card by its unique shadow-xl class
+        // Find the form card by its unique shadow-2xl class
         const allElements = doc.querySelectorAll('*')
         let card: Element | null = null
         for (const el of allElements) {
           const cls = typeof el.className === 'string' ? el.className : ''
-          if (cls.includes('shadow-xl') && cls.includes('backdrop-blur')) {
+          if (cls.includes('shadow-2xl') && cls.includes('backdrop-blur')) {
             card = el
             break
           }

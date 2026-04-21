@@ -180,9 +180,9 @@ describe('[PBT] Preservation — Production payment enforcement', () => {
       fc.property(
         fc.constantFrom('production', 'prod'),
         (_envLabel) => {
-          // The known test-ids in PaymentStep are: pay-now-button, retry-payment-button,
-          // payment-step, pay-disabled-hint, and dev-bypass-payment-button (DEV-gated).
-          const knownTestIds = ['pay-now-button', 'retry-payment-button', 'payment-step', 'pay-disabled-hint', 'dev-bypass-payment-button']
+          // The known test-ids in PaymentStep are: payment-step and pay-later-button.
+          // Dev bypass was removed during auth simplification.
+          const knownTestIds = ['payment-step', 'pay-later-button']
           const testIdMatches = source.match(/data-testid="([^"]+)"/g) || []
           const foundTestIds = testIdMatches.map(m => m.replace(/data-testid="([^"]+)"/, '$1'))
 
@@ -191,13 +191,9 @@ describe('[PBT] Preservation — Production payment enforcement', () => {
             expect(knownTestIds).toContain(tid)
           }
 
-          // Verify no unconditional "bypass" or "simulate" button exists
-          // If bypass logic exists, it must be gated behind import.meta.env.DEV
-          const bypassPattern = /[Bb]ypass|[Ss]imulate\s*[Pp]ayment/
-          if (bypassPattern.test(source)) {
-            // If bypass text exists, it MUST be inside a DEV-gated block
-            expect(source).toContain('import.meta.env.DEV')
-          }
+          // Verify no dev bypass mechanism exists in the source
+          expect(source).not.toContain('VITE_PAYMENT_DEV_BYPASS')
+          expect(source).not.toContain('dev-bypass-payment-button')
         }
       ),
       { numRuns: 2 }

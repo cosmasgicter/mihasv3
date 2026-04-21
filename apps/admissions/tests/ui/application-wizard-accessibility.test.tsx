@@ -69,7 +69,8 @@ describe('PaymentStep accessibility', () => {
 
     expect(markup).toContain('<fieldset')
     expect(markup).toContain('<legend class="sr-only">Payment</legend>')
-    expect(markup).toContain('data-testid="pay-now-button"')
+    expect(markup).toContain('data-testid="pay-momo-button"')
+    expect(markup).toContain('data-testid="pay-later-button"')
     expect(markup).not.toContain('radiogroup')
     expect(markup).not.toContain('type="radio"')
   })

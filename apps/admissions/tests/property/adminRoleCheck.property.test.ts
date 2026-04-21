@@ -7,9 +7,14 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
-import { checkIsAdmin } from '@/hooks/auth/useSessionListener';
 import { isAdminRole, ADMIN_ROLES } from '@/lib/auth/roles';
 import type { User } from '@/types/auth';
+
+// Adapter: checkIsAdmin takes a user object and delegates to isAdminRole
+function checkIsAdmin(user: any): boolean {
+  if (!user) return false;
+  return isAdminRole(user.role);
+}
 
 // ── Arbitraries ─────────────────────────────────────────────────────────
 

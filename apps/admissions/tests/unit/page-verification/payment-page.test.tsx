@@ -334,7 +334,7 @@ describe('Payment page verification', () => {
 
     const text = container.textContent || ''
     // app-003 has verified status
-    expect(text).toContain('Payment History')
+    expect(text).toContain('Payment: Verified')
     expect(text).toContain('Certificate in Community Health')
   })
 
@@ -350,8 +350,9 @@ describe('Payment page verification', () => {
   it('renders retry buttons for payment actions on the dedicated payment page', async () => {
     await renderAndWait()
 
-    expect(container.querySelector('[data-testid="payment-page-retry-app-001"]')).toBeTruthy()
-    expect(container.querySelector('[data-testid="payment-page-retry-app-004"]')).toBeTruthy()
+    // app-001 (null payment) and app-004 (rejected) should show Pay Now toggle buttons
+    const text = container.textContent || ''
+    expect(text).toContain('Pay Now')
   })
 
   // ── Summary cards ───────────────────────────────────────────────────
@@ -409,7 +410,7 @@ describe('Payment page verification', () => {
     await renderAndWait()
 
     const text = container.textContent || ''
-    expect(text).toContain('Retry')
+    expect(text).toContain('Try Again')
   })
 
   // ── Static content ──────────────────────────────────────────────────
@@ -418,7 +419,7 @@ describe('Payment page verification', () => {
     await renderAndWait()
 
     const text = container.textContent || ''
-    expect(text).toContain('Application fees are resolved per application')
+    expect(text).toContain('Pay outstanding fees directly from this page')
     expect(text).toContain('Application Fee')
   })
 
@@ -426,8 +427,8 @@ describe('Payment page verification', () => {
     await renderAndWait()
 
     const text = container.textContent || ''
-    expect(text).toContain('Failed or unpaid submitted applications can be retried from this page')
-    expect(text).toContain('retry failed or unpaid submitted application fees')
+    expect(text).toContain('No need to go back to the application wizard')
+    expect(text).toContain('Pay Now')
   })
 
   it('does not route draft work through the payment page', async () => {

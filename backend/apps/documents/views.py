@@ -588,6 +588,201 @@ class PaymentInitiateView(APIView):
         )
 
 
+class DeferPaymentView(APIView):
+    """POST /api/v1/payments/defer/ — create a deferred payment record."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        application_id = request.data.get("application_id")
+        if not application_id:
+            return Response(
+                {"success": False, "error": "application_id is required", "code": "VALIDATION_ERROR"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        from apps.applications.models import Application
+
+        try:
+            application = Application.objects.get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        user = request.user
+        role = getattr(user, "role", "student")
+        if role not in ("admin", "super_admin") and str(application.user_id) != str(user.id):
+            return Response(
+                {"success": False, "error": "Not authorized", "code": "INSUFFICIENT_PERMISSIONS"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        from apps.documents.payment_service import PaymentService
+
+        try:
+            result = PaymentService().defer_payment(
+                application_id=application.id, user_id=user.id,
+            )
+        except ValueError as exc:
+            return Response(
+                {"success": False, "error": str(exc), "code": "PAYMENT_ERROR"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception:
+            logger.exception("Failed to defer payment for application %s", application_id)
+            return Response(
+                {"success": False, "error": "Failed to defer payment", "code": "PAYMENT_ERROR"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(
+            {
+                "success": True,
+                "data": {
+                    "payment_id": str(result.payment_id),
+                    "reference": result.reference,
+                    "amount": str(result.amount),
+                    "currency": result.currency,
+                    "status": "deferred",
+                },
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class MobileMoneyInitiateView(APIView):
+    """POST /api/v1/payments/mobile-money/ — initiate mobile money collection.
+
+    Creates a pending Payment record then calls the Lenco mobile money API.
+    The student authorizes the payment on their phone (pay-offline flow).
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        application_id = request.data.get("application_id")
+        phone = request.data.get("phone", "").strip()
+        operator = request.data.get("operator", "").strip().lower()
+
+        if not application_id or not phone or operator not in ("airtel", "mtn"):
+            return Response(
+                {"success": False, "error": "application_id, phone, and operator (airtel/mtn) are required", "code": "VALIDATION_ERROR"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        from apps.applications.models import Application
+
+        try:
+            application = Application.objects.get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        user = request.user
+        role = getattr(user, "role", "student")
+        if role not in ("admin", "super_admin") and str(application.user_id) != str(user.id):
+            return Response(
+                {"success": False, "error": "Not authorized", "code": "INSUFFICIENT_PERMISSIONS"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        from apps.documents.payment_service import PaymentService
+
+        service = PaymentService()
+        try:
+            result = service.initiate_payment(application_id=application.id, user_id=user.id)
+        except ValueError as exc:
+            error_msg = str(exc)
+            if error_msg.startswith("MAX_PAYMENT_ATTEMPTS_EXCEEDED"):
+                return Response(
+                    {"success": False, "error": "Maximum payment attempts exceeded.", "code": "MAX_PAYMENT_ATTEMPTS_EXCEEDED"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            return Response(
+                {"success": False, "error": str(exc), "code": "PAYMENT_ERROR"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not result.payment_id:
+            return Response(
+                {"success": True, "data": {"status": "already_paid"}},
+                status=status.HTTP_200_OK,
+            )
+
+        # Call Lenco mobile money API
+        api_secret = getattr(settings, "LENCO_API_SECRET_KEY", "")
+        base_url = getattr(settings, "LENCO_API_BASE_URL", "")
+
+        if not api_secret or not base_url:
+            return Response(
+                {"success": False, "error": "Payment processing is unavailable.", "code": "PAYMENT_UNAVAILABLE"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        import requests as http_requests
+
+        url = f"{base_url.rstrip('/')}/collections/mobile-money"
+        try:
+            resp = http_requests.post(
+                url,
+                json={
+                    "amount": float(result.amount),
+                    "reference": result.reference,
+                    "phone": phone,
+                    "operator": operator,
+                    "country": "zm",
+                    "bearer": "merchant",
+                },
+                headers={"Authorization": f"Bearer {api_secret}"},
+                timeout=15,
+            )
+            resp.raise_for_status()
+            lenco_data = resp.json()
+        except http_requests.RequestException:
+            logger.exception("Lenco mobile money API failed for payment %s", result.payment_id)
+            return Response(
+                {"success": False, "error": "Unable to reach payment provider. Please try again.", "code": "PROVIDER_ERROR"},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        lenco_status = lenco_data.get("data", {}).get("status", "")
+        lenco_ref = lenco_data.get("data", {}).get("lencoReference", "")
+
+        # Update payment with Lenco reference
+        from apps.documents.models import Payment
+        Payment.objects.filter(id=result.payment_id).update(
+            lenco_reference=lenco_ref,
+            payment_method="mobile-money",
+            metadata={
+                **(Payment.objects.get(id=result.payment_id).metadata or {}),
+                "lenco_initiation": lenco_data.get("data", {}),
+                "operator": operator,
+                "phone": phone,
+            },
+        )
+
+        return Response(
+            {
+                "success": True,
+                "data": {
+                    "payment_id": str(result.payment_id),
+                    "reference": result.reference,
+                    "amount": str(result.amount),
+                    "currency": result.currency,
+                    "lenco_status": lenco_status,
+                    "lenco_reference": lenco_ref,
+                    "operator": operator,
+                    "phone": phone,
+                },
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
 class PaymentDevBypassView(APIView):
     """POST /api/v1/payments/dev-bypass/ — simulate payment in local development.
 

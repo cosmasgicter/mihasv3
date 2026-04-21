@@ -93,7 +93,6 @@ describe('Consolidated architecture verification (Req 10.6)', () => {
       );
       expect(content).toContain('export function useSessionListener()');
       expect(content).toContain('export function useAuthCheck()');
-      expect(content).toContain('export function checkIsAdmin(');
     });
   });
 

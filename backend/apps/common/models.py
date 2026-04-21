@@ -28,19 +28,36 @@ class AuditLog(models.Model):
 
 
 class IdempotencyKey(models.Model):
-    """Maps to 'idempotency_keys' table."""
+    """Maps to 'idempotency_keys' table — command-identity keying."""
 
-    key = models.TextField(primary_key=True)
-    endpoint = models.TextField()
-    response_json = models.JSONField()
+    PENDING = "pending"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    idempotency_key = models.TextField()
+    actor_id = models.UUIDField()
+    method = models.CharField(max_length=10)
+    path = models.TextField()
+    request_hash = models.CharField(max_length=64)
+    status = models.CharField(max_length=10, default=PENDING)
+    response_status = models.SmallIntegerField(null=True, blank=True)
+    response_body = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         managed = False
-        db_table = 'idempotency_keys'
+        db_table = "idempotency_keys"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["idempotency_key", "actor_id", "method", "path"],
+                name="uq_idempotency_actor_method_path",
+            ),
+        ]
 
     def __str__(self):
-        return f"IdempotencyKey {self.key} → {self.endpoint}"
+        return f"IdempotencyKey {self.idempotency_key} → {self.path}"
 
 
 class Setting(models.Model):

@@ -64,7 +64,7 @@ class CommunicationService:
         channel is 'email' or 'both'.
         """
         from apps.common.models import CommunicationTemplate, EmailQueue, Notification
-        from apps.common.tasks import send_email_task
+        from apps.common.tasks import dispatch_email
 
         context = _build_context(application, extra_context)
 
@@ -114,7 +114,7 @@ class CommunicationService:
                     body=wrapped_body,
                     status="pending",
                 )
-                send_email_task.delay(str(email_record.id))
+                dispatch_email(str(email_record.id))
             except Exception:
                 logger.exception(
                     "Failed to create/dispatch email for template '%s', app=%s",

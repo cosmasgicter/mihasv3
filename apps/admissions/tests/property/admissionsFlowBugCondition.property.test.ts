@@ -118,42 +118,42 @@ describe('[PBT] Bug 2 — Phone with spaces normalized, placeholder no spaces', 
 })
 
 // ---------------------------------------------------------------------------
-// Bug 3 — Dev payment bypass
+// Bug 3 — Dev payment bypass removed; PaymentStep uses Lenco + defer
 // ---------------------------------------------------------------------------
-describe('[PBT] Bug 3 — Dev payment bypass button in development mode', () => {
-  it('PaymentStep source contains dev bypass logic', () => {
+describe('[PBT] Bug 3 — PaymentStep uses Lenco payment + defer (no dev bypass)', () => {
+  it('PaymentStep source contains defer payment logic', () => {
     const paymentStepPath = path.resolve(
       __dirname, '../../src/pages/student/applicationWizard/steps/PaymentStep.tsx'
     )
     const source = fs.readFileSync(paymentStepPath, 'utf-8')
-    const hasDevBypassCheck =
-      source.includes('VITE_PAYMENT_DEV_BYPASS') ||
-      source.includes('devBypass') ||
-      source.includes('isDevBypass')
-    expect(hasDevBypassCheck).toBe(true)
+    const hasDeferLogic =
+      source.includes('handleDefer') ||
+      source.includes('deferred') ||
+      source.includes('Pay Later')
+    expect(hasDeferLogic).toBe(true)
   })
 
-  it('PaymentStep source contains a bypass/simulate button element', () => {
+  it('PaymentStep source contains a pay-later button element', () => {
     const paymentStepPath = path.resolve(
       __dirname, '../../src/pages/student/applicationWizard/steps/PaymentStep.tsx'
     )
     const source = fs.readFileSync(paymentStepPath, 'utf-8')
-    const hasBypassButton =
-      /[Bb]ypass/i.test(source) ||
-      /[Ss]imulate\s*[Pp]ayment/i.test(source) ||
-      /dev-bypass/i.test(source)
-    expect(hasBypassButton).toBe(true)
+    const hasPayLaterButton = source.includes('pay-later-button')
+    expect(hasPayLaterButton).toBe(true)
   })
 
-  it('property: PaymentStep dev bypass is gated on env checks', () => {
+  it('property: PaymentStep has no unconditional dev bypass', () => {
     const paymentStepPath = path.resolve(
       __dirname, '../../src/pages/student/applicationWizard/steps/PaymentStep.tsx'
     )
     const source = fs.readFileSync(paymentStepPath, 'utf-8')
     fc.assert(
       fc.property(
-        fc.constantFrom('import.meta.env.DEV', 'VITE_PAYMENT_DEV_BYPASS'),
-        (envCheck) => { expect(source).toContain(envCheck) }
+        fc.constantFrom('VITE_PAYMENT_DEV_BYPASS', 'dev-bypass-payment-button'),
+        (pattern) => {
+          // Dev bypass patterns must NOT exist in the simplified PaymentStep
+          expect(source).not.toContain(pattern)
+        }
       ),
       { numRuns: 2 }
     )

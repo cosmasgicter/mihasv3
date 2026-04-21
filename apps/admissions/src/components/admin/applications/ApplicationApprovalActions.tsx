@@ -36,6 +36,8 @@ const normalizePaymentStatusForActions = (status?: string | null) => {
     case 'failed':
     case 'rejected':
       return 'rejected'
+    case 'deferred':
+      return 'deferred'
     default:
       return 'not_paid'
   }
@@ -78,6 +80,17 @@ export function ApplicationApprovalActions({
         confirmText: 'Reject payment',
         notesLabel: 'Rejection reason',
         notesPlaceholder: 'State what is wrong with the submitted proof or payment details.',
+        notesRequired: true,
+      }
+    }
+
+    if (pendingPaymentStatus === 'deferred') {
+      return {
+        title: 'Defer Payment',
+        description: 'Defer payment collection for this application. The student will be contacted to arrange payment.',
+        confirmText: 'Defer payment',
+        notesLabel: 'Deferral reason',
+        notesPlaceholder: 'Explain why payment is being deferred (e.g. financial hardship, instalment arrangement).',
         notesRequired: true,
       }
     }
@@ -350,6 +363,18 @@ export function ApplicationApprovalActions({
                   </>
                 )}
               </button>
+              <button
+                onClick={() => openPaymentReviewDialog('deferred')}
+                disabled={updatingPayment || disabled}
+                className="flex-1 border-2 border-amber-500 text-amber-700 hover:bg-amber-50 disabled:opacity-50 text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
+              >
+                {updatingPayment ? 'Updating...' : (
+                  <>
+                    <Clock className="h-3 w-3" />
+                    Defer
+                  </>
+                )}
+              </button>
             </>
           )}
 
@@ -366,6 +391,29 @@ export function ApplicationApprovalActions({
                 </>
               )}
             </button>
+          )}
+
+          {normalizedPaymentStatus === 'deferred' && (
+            <>
+              <div className="flex-1 text-center py-2">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
+                  <Clock className="h-3 w-3 mr-1" />
+                  Deferred
+                </span>
+              </div>
+              <button
+                onClick={() => openPaymentReviewDialog('pending_review')}
+                disabled={updatingPayment || disabled}
+                className="flex-1 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
+              >
+                {updatingPayment ? 'Updating...' : (
+                  <>
+                    <RotateCcw className="h-3 w-3" />
+                    Reopen Review
+                  </>
+                )}
+              </button>
+            </>
           )}
           
           {(normalizedPaymentStatus === 'verified' || normalizedPaymentStatus === 'rejected') && (
