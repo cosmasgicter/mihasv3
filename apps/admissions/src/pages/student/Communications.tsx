@@ -87,6 +87,7 @@ export default function Communications() {
 
   const invalidate = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['communications'] })
+    queryClient.invalidateQueries({ queryKey: ['student-notifications'] })
   }, [queryClient])
 
   // ─── Mutations ───
@@ -222,7 +223,7 @@ export default function Communications() {
           {!isLoading && !error && notifications.length === 0 && (
             <EmptyState
               icon={<Inbox className="h-12 w-12" />}
-              heading="You're all caught up"
+              heading="No communications"
               description={
                 typeFilter || readFilter
                   ? 'No notifications match your current filters. Try adjusting them.'

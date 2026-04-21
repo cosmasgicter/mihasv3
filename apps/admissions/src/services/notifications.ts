@@ -30,10 +30,67 @@ type SendNotificationApiResponse = {
   id?: string
 }
 
+const VALID_NOTIFICATION_TYPES = new Set(['info', 'success', 'warning', 'error'])
+
+type RawNotification = Record<string, unknown>
+
+function normalizeNotificationType(value: unknown): StudentNotification['type'] {
+  return typeof value === 'string' && VALID_NOTIFICATION_TYPES.has(value)
+    ? value as StudentNotification['type']
+    : 'info'
+}
+
+function stringValue(value: unknown, fallback = ''): string {
+  return typeof value === 'string' ? value : fallback
+}
+
+function normalizeNotification(item: unknown): StudentNotification | null {
+  if (!item || typeof item !== 'object') {
+    return null
+  }
+
+  const raw = item as RawNotification
+  const id = stringValue(raw.id)
+
+  if (!id) {
+    return null
+  }
+
+  const read =
+    typeof raw.read === 'boolean'
+      ? raw.read
+      : typeof raw.is_read === 'boolean'
+        ? raw.is_read
+        : true
+  const actionUrl = stringValue(raw.action_url)
+  const readAt = stringValue(raw.read_at)
+
+  return {
+    id,
+    title: stringValue(raw.title, 'Notification'),
+    content: stringValue(raw.content, stringValue(raw.message)),
+    type: normalizeNotificationType(raw.type),
+    read,
+    ...(actionUrl ? { action_url: actionUrl } : {}),
+    created_at: stringValue(raw.created_at),
+    ...(readAt ? { read_at: readAt } : {}),
+  }
+}
+
+function normalizeNotificationArray(value: unknown): StudentNotification[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value
+    .map(normalizeNotification)
+    .filter((notification): notification is StudentNotification => notification !== null)
+}
+
 function firstArrayValue(...values: unknown[]): StudentNotification[] {
   for (const value of values) {
     if (Array.isArray(value)) {
-      return value as StudentNotification[]
+      return normalizeNotificationArray(value)
     }
   }
 
@@ -42,7 +99,7 @@ function firstArrayValue(...values: unknown[]): StudentNotification[] {
 
 export function normalizeNotificationsResponse(response: unknown): StudentNotification[] {
   if (Array.isArray(response)) {
-    return response as StudentNotification[]
+    return normalizeNotificationArray(response)
   }
 
   if (!response || typeof response !== 'object') {
@@ -53,7 +110,7 @@ export function normalizeNotificationsResponse(response: unknown): StudentNotifi
   const data = envelope.data
 
   if (Array.isArray(data)) {
-    return data as StudentNotification[]
+    return normalizeNotificationArray(data)
   }
 
   if (data && typeof data === 'object') {
