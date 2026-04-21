@@ -22,6 +22,7 @@ import type { StudentNotification } from '@/types/notifications'
 const HIDDEN_PAUSE_THRESHOLD = 300_000 // 5 minutes
 
 const DEFAULT_POLLING_INTERVAL = 60_000 // 60 seconds
+const COMMUNICATIONS_QUERY_KEY = ['communications'] as const
 
 export interface UseNotificationPollingOptions {
   enabled?: boolean
@@ -144,6 +145,7 @@ export function useNotificationPolling(
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey })
+      void queryClient.invalidateQueries({ queryKey: COMMUNICATIONS_QUERY_KEY })
     },
   })
 
@@ -165,6 +167,7 @@ export function useNotificationPolling(
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey })
+      void queryClient.invalidateQueries({ queryKey: COMMUNICATIONS_QUERY_KEY })
     },
   })
 
@@ -185,6 +188,7 @@ export function useNotificationPolling(
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey })
+      void queryClient.invalidateQueries({ queryKey: COMMUNICATIONS_QUERY_KEY })
     },
   })
 
