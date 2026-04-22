@@ -930,7 +930,7 @@ class PaymentDevBypassView(APIView):
                 "updated_at",
             ])
 
-        application.payment_status = "verified"
+        application.payment_status = "successful"
         application.payment_verified_by_id = user.id
         application.payment_verified_at = now
         application.updated_at = now
@@ -946,7 +946,7 @@ class PaymentDevBypassView(APIView):
             "data": {
                 "payment_id": str(payment.id),
                 "status": "successful",
-                "payment_status": "verified",
+                "payment_status": "successful",
             },
         })
 

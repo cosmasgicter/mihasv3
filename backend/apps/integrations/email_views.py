@@ -73,4 +73,12 @@ class EmailDeliveryWebhookView(APIView):
 
     @extend_schema(operation_id="email_delivery_webhook", tags=["email"], auth=[], responses={200: OpenApiResponse(response=EMAIL_ACTION_RESPONSE)})
     def post(self, request):
+        # Validate webhook secret if configured
+        from django.conf import settings as django_settings
+        expected = getattr(django_settings, "EMAIL_WEBHOOK_SECRET", None)
+        if expected:
+            provided = request.headers.get("X-Webhook-Secret", "")
+            if not provided or provided != expected:
+                return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
+
         return Response(build_action_payload(uuid.uuid4(), "Email delivery webhook scaffold accepted.", "accepted"))
