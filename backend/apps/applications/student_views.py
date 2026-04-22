@@ -955,6 +955,12 @@ class EmailSlipView(APIView):
                 f"{html_escape(str(value))}</td></tr>"
             )
 
+        tracking_code = (
+            getattr(application, "public_tracking_code", "")
+            or getattr(application, "tracking_code", "")
+            or ""
+        )
+
         slip_html = (
             "<div style='padding-bottom:18px;'>"
             "<div style='font-size:13px;letter-spacing:0.16em;text-transform:uppercase;color:#64748b;font-weight:700;'>"
@@ -979,7 +985,7 @@ class EmailSlipView(APIView):
             + _row("Application Number", application.application_number or "")
             + _row("Applicant Name", application.full_name or "")
             + _row("Program", application.program or "")
-            + _row("Tracking Code", application.tracking_code or getattr(application, "public_tracking_code", "") or "")
+            + _row("Tracking Code", tracking_code)
             + _row("Submitted", submitted_at or "Not yet submitted")
             + _row("Created", created_at or "N/A")
             + "</table>"
