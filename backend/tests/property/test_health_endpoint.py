@@ -64,15 +64,15 @@ class TestHealthEndpointReflectsDependencyState(SimpleTestCase):
             view = ReadinessView.as_view()
             response = view(request)
 
-        if db_ok and redis_ok:
-            # Both healthy → 200
+        if db_ok:
+            # DB healthy → always 200, Redis status is "ok" or "degraded"
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.data["status"], "ok")
             self.assertEqual(response.data["db"], "ok")
-            self.assertEqual(response.data["redis"], "ok")
+            self.assertEqual(response.data["redis"], "ok" if redis_ok else "degraded")
         else:
-            # At least one unhealthy → 503
+            # DB unhealthy → 503
             self.assertEqual(response.status_code, 503)
             self.assertEqual(response.data["status"], "unhealthy")
-            self.assertEqual(response.data["db"], "ok" if db_ok else "error")
+            self.assertEqual(response.data["db"], "error")
             self.assertEqual(response.data["redis"], "ok" if redis_ok else "error")

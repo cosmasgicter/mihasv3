@@ -68,37 +68,23 @@ class TestSubmissionBlockedWithoutPayment(SimpleTestCase):
         mock_request.data = {"new_status": "submitted"}
         mock_request.META = {}
 
+        from apps.applications.services import ApplicationSubmissionError
+
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
-            patch("apps.documents.models.Payment.objects") as mock_payment_qs,
-            patch("apps.documents.models.ApplicationDocument.objects") as mock_doc_qs,
-            patch("apps.applications.services.transition_application_status") as mock_transition,
-            patch("apps.applications.services.transaction") as mock_txn,
-            patch("apps.applications.intake_enforcer.IntakeEnforcer.check_submission") as mock_intake_check,
-            patch("apps.applications.intake_enforcer.IntakeEnforcer.increment_enrollment"),
-            patch("apps.applications.duplicate_checker.DuplicateChecker.check_at_submit") as mock_duplicate_check,
-            patch("apps.applications.eligibility_engine.EligibilityEngine.evaluate") as mock_eligibility,
-            patch("apps.applications.models.ApplicationDraft.objects") as mock_draft_objects,
+            patch("apps.applications.views.submit_application") as mock_submit,
         ):
             mock_app_qs.get.return_value = mock_app
-            mock_app_qs.select_for_update.return_value.get.return_value = mock_app
-            mock_payment_qs.filter.return_value.exists.return_value = False
-            mock_doc_qs.filter.return_value.exists.return_value = True
-            mock_transition.return_value = "draft"
-            mock_intake_check.return_value = MagicMock(allowed=True)
-            mock_duplicate_check.return_value = MagicMock(has_duplicate=False)
-            mock_eligibility.return_value = MagicMock(status="eligible", score=100, missing_requirements=[])
-            mock_draft_objects.filter.return_value.update.return_value = 1
-            mock_txn.atomic.return_value.__enter__ = MagicMock(return_value=None)
-            mock_txn.atomic.return_value.__exit__ = MagicMock(return_value=False)
+            mock_submit.side_effect = ApplicationSubmissionError(
+                "PAYMENT_REQUIRED",
+                "Payment must be completed before submitting the application.",
+            )
 
             from apps.applications.views import ApplicationReviewView
 
             view = ApplicationReviewView()
             response = view.post(mock_request, application_id)
 
-            # Should be blocked — transition was NOT called
-            mock_transition.assert_not_called()
             self.assertEqual(response.status_code, 400)
             self.assertEqual(response.data["code"], "PAYMENT_REQUIRED")
 
@@ -195,31 +181,17 @@ class TestPaymentGateOnlyChecksSuccessfulStatus(SimpleTestCase):
         mock_request.data = {"new_status": "submitted"}
         mock_request.META = {}
 
+        from apps.applications.services import ApplicationSubmissionError
+
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
-            patch("apps.documents.models.Payment.objects") as mock_payment_qs,
-            patch("apps.documents.models.ApplicationDocument.objects") as mock_doc_qs,
-            patch("apps.applications.services.transition_application_status") as mock_transition,
-            patch("apps.applications.services.transaction") as mock_txn,
-            patch("apps.applications.intake_enforcer.IntakeEnforcer.check_submission") as mock_intake_check,
-            patch("apps.applications.intake_enforcer.IntakeEnforcer.increment_enrollment"),
-            patch("apps.applications.duplicate_checker.DuplicateChecker.check_at_submit") as mock_duplicate_check,
-            patch("apps.applications.eligibility_engine.EligibilityEngine.evaluate") as mock_eligibility,
-            patch("apps.applications.models.ApplicationDraft.objects") as mock_draft_objects,
+            patch("apps.applications.views.submit_application") as mock_submit,
         ):
             mock_app_qs.get.return_value = mock_app
-            mock_app_qs.select_for_update.return_value.get.return_value = mock_app
-            # The gate filters for status="successful", so even if a payment
-            # with another status exists, the filter returns no results
-            mock_payment_qs.filter.return_value.exists.return_value = False
-            mock_doc_qs.filter.return_value.exists.return_value = True
-            mock_transition.return_value = "draft"
-            mock_intake_check.return_value = MagicMock(allowed=True)
-            mock_duplicate_check.return_value = MagicMock(has_duplicate=False)
-            mock_eligibility.return_value = MagicMock(status="eligible", score=100, missing_requirements=[])
-            mock_draft_objects.filter.return_value.update.return_value = 1
-            mock_txn.atomic.return_value.__enter__ = MagicMock(return_value=None)
-            mock_txn.atomic.return_value.__exit__ = MagicMock(return_value=False)
+            mock_submit.side_effect = ApplicationSubmissionError(
+                "PAYMENT_REQUIRED",
+                "Payment must be completed before submitting the application.",
+            )
 
             from apps.applications.views import ApplicationReviewView
 
@@ -227,7 +199,6 @@ class TestPaymentGateOnlyChecksSuccessfulStatus(SimpleTestCase):
             response = view.post(mock_request, application_id)
 
             # Should be blocked
-            mock_transition.assert_not_called()
             self.assertEqual(response.status_code, 400)
             self.assertEqual(response.data["code"], "PAYMENT_REQUIRED")
 
@@ -264,29 +235,21 @@ class TestPaymentGateIntegrationWithView(SimpleTestCase):
         mock_request.data = {"new_status": "submitted"}
         mock_request.META = {}
 
+        from apps.applications.services import ApplicationSubmissionError
+
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
-            patch("apps.documents.models.Payment.objects") as mock_payment_qs,
-            patch("apps.documents.models.ApplicationDocument.objects") as mock_doc_qs,
-            patch("apps.applications.services.transition_application_status") as mock_transition,
-            patch("apps.applications.services.transaction") as mock_txn,
-            patch("apps.applications.intake_enforcer.IntakeEnforcer.check_submission") as mock_intake_check,
-            patch("apps.applications.intake_enforcer.IntakeEnforcer.increment_enrollment"),
-            patch("apps.applications.duplicate_checker.DuplicateChecker.check_at_submit") as mock_duplicate_check,
-            patch("apps.applications.eligibility_engine.EligibilityEngine.evaluate") as mock_eligibility,
-            patch("apps.applications.models.ApplicationDraft.objects") as mock_draft_objects,
+            patch("apps.applications.views.submit_application") as mock_submit,
         ):
             mock_app_qs.get.return_value = mock_app
-            mock_app_qs.select_for_update.return_value.get.return_value = mock_app
-            mock_payment_qs.filter.return_value.exists.return_value = has_payment
-            mock_doc_qs.filter.return_value.exists.return_value = True
-            mock_transition.return_value = "draft"
-            mock_intake_check.return_value = MagicMock(allowed=True)
-            mock_duplicate_check.return_value = MagicMock(has_duplicate=False)
-            mock_eligibility.return_value = MagicMock(status="eligible", score=100, missing_requirements=[])
-            mock_draft_objects.filter.return_value.update.return_value = 1
-            mock_txn.atomic.return_value.__enter__ = MagicMock(return_value=None)
-            mock_txn.atomic.return_value.__exit__ = MagicMock(return_value=False)
+
+            if has_payment:
+                mock_submit.return_value = (mock_app, "draft")
+            else:
+                mock_submit.side_effect = ApplicationSubmissionError(
+                    "PAYMENT_REQUIRED",
+                    "Payment must be completed before submitting the application.",
+                )
 
             from apps.applications.views import ApplicationReviewView
 
@@ -294,11 +257,10 @@ class TestPaymentGateIntegrationWithView(SimpleTestCase):
             response = view.post(mock_request, application_id)
 
             if has_payment:
-                # Should succeed — transition was called
-                mock_transition.assert_called_once()
+                # Should succeed — submit was called
+                mock_submit.assert_called_once()
                 self.assertIn(response.status_code, [200])
             else:
-                # Should be blocked — transition was NOT called
-                mock_transition.assert_not_called()
+                # Should be blocked
                 self.assertEqual(response.status_code, 400)
                 self.assertEqual(response.data["code"], "PAYMENT_REQUIRED")

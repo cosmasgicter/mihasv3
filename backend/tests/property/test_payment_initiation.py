@@ -170,6 +170,8 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
             mock_resolver.resolve_fee.return_value = resolved_fee
             mock_payment_qs.create.return_value = mock_payment
             mock_payment_qs.filter.return_value.first.return_value = None
+            mock_payment_qs.select_for_update.return_value.filter.return_value.first.return_value = None
+            mock_payment_qs.filter.return_value.exclude.return_value.count.return_value = 0
 
             service.initiate_payment(application_id, user_id)
 
@@ -249,6 +251,8 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
             mock_resolver.resolve_fee.return_value = resolved_fee
             mock_payment_qs.create.return_value = mock_payment
             mock_payment_qs.filter.return_value.first.return_value = None
+            mock_payment_qs.select_for_update.return_value.filter.return_value.first.return_value = None
+            mock_payment_qs.filter.return_value.exclude.return_value.count.return_value = 0
 
             service.initiate_payment(application_id, user_id)
 
@@ -330,6 +334,8 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
             mock_resolver.resolve_fee.return_value = resolved_fee
             mock_payment_qs.create.return_value = mock_payment
             mock_payment_qs.filter.return_value.first.return_value = None
+            mock_payment_qs.select_for_update.return_value.filter.return_value.first.return_value = None
+            mock_payment_qs.filter.return_value.exclude.return_value.count.return_value = 0
 
             service.initiate_payment(application_id, user_id)
 
@@ -407,6 +413,8 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
             mock_resolver.resolve_fee.return_value = resolved_fee
             mock_payment_qs.create.return_value = mock_payment
             mock_payment_qs.filter.return_value.first.return_value = None
+            mock_payment_qs.select_for_update.return_value.filter.return_value.first.return_value = None
+            mock_payment_qs.filter.return_value.exclude.return_value.count.return_value = 0
 
             service.initiate_payment(application_id, user_id)
 
@@ -485,6 +493,8 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
             mock_resolver.resolve_fee.return_value = resolved_fee
             mock_payment_qs.create.return_value = mock_payment
             mock_payment_qs.filter.return_value.first.return_value = None
+            mock_payment_qs.select_for_update.return_value.filter.return_value.first.return_value = None
+            mock_payment_qs.filter.return_value.exclude.return_value.count.return_value = 0
 
             service.initiate_payment(application_id, user_id)
 
