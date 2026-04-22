@@ -5,6 +5,7 @@ Requirements: 9.1, 9.2, 9.3
 """
 
 import logging
+from django.utils import timezone
 
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import status
@@ -14,6 +15,7 @@ from rest_framework.views import APIView
 
 from apps.accounts.models import DeviceSession
 from apps.accounts.tokens import blacklist_jti, verify_token
+from apps.accounts.views import _active_session_filters, _deactivate_stale_sessions, _hash_value
 from apps.common.openapi_helpers import (
     ErrorResponseSerializer,
     MessageSerializer,
@@ -58,16 +60,22 @@ class SessionListView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
+        _deactivate_stale_sessions(user_id)
+        current_refresh_hash = _hash_value(request.COOKIES["refresh_token"]) if request.COOKIES.get("refresh_token") else None
         sessions = DeviceSession.objects.filter(
             user_id=user_id, is_active=True
+        ).filter(
+            _active_session_filters(timezone.now())
         ).order_by("-last_activity")
 
         data = [
             {
                 "id": str(s.id),
                 "device_info": s.device_info,
+                "ip_address": s.ip_address,
                 "last_active": s.last_activity.isoformat() if s.last_activity else None,
                 "created_at": s.created_at.isoformat() if s.created_at else None,
+                "is_current": bool(current_refresh_hash and s.session_token == current_refresh_hash),
             }
             for s in sessions
         ]
@@ -139,11 +147,16 @@ class SessionRevokeAllView(APIView):
 
     def post(self, request):
         user_id = str(getattr(request.user, "id", ""))
+        _deactivate_stale_sessions(user_id)
+        current_refresh_hash = _hash_value(request.COOKIES["refresh_token"]) if request.COOKIES.get("refresh_token") else None
 
         # Deactivate all active sessions
-        updated = DeviceSession.objects.filter(
+        queryset = DeviceSession.objects.filter(
             user_id=user_id, is_active=True
-        ).update(is_active=False)
+        ).filter(_active_session_filters(timezone.now()))
+        if current_refresh_hash:
+            queryset = queryset.exclude(session_token=current_refresh_hash)
+        updated = queryset.update(is_active=False, updated_at=timezone.now())
 
         # Blacklist the current refresh token if present
         refresh_token = request.COOKIES.get("refresh_token")

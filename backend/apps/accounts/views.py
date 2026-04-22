@@ -8,10 +8,12 @@ import hashlib
 import json
 import logging
 import secrets
+import uuid
 from datetime import timedelta
 
 import jwt
 from django.conf import settings
+from django.db.models import Q
 from drf_spectacular.utils import OpenApiResponse, OpenApiTypes, extend_schema, extend_schema_view
 from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -134,6 +136,53 @@ def _clear_auth_cookies(response: Response) -> None:
     response.delete_cookie("refresh_token", domain=cookie_domain, path="/")
 
 
+def _get_refresh_token_expiry(now=None):
+    current_time = now or timezone.now()
+    lifetime = settings.SIMPLE_JWT.get("REFRESH_TOKEN_LIFETIME", timedelta(days=7))
+    return current_time + lifetime
+
+
+def _active_session_filters(now=None) -> Q:
+    current_time = now or timezone.now()
+    activity_cutoff = current_time - settings.SIMPLE_JWT.get(
+        "REFRESH_TOKEN_LIFETIME",
+        timedelta(days=7),
+    )
+    return (
+        Q(expires_at__gt=current_time)
+        | Q(expires_at__isnull=True, last_activity__gte=activity_cutoff)
+        | Q(
+            expires_at__isnull=True,
+            last_activity__isnull=True,
+            created_at__gte=activity_cutoff,
+        )
+    )
+
+
+def _deactivate_stale_sessions(user_id) -> None:
+    current_time = timezone.now()
+    activity_cutoff = current_time - settings.SIMPLE_JWT.get(
+        "REFRESH_TOKEN_LIFETIME",
+        timedelta(days=7),
+    )
+    stale_filters = (
+        Q(expires_at__lte=current_time)
+        | Q(expires_at__isnull=True, last_activity__lt=activity_cutoff)
+        | Q(
+            expires_at__isnull=True,
+            last_activity__isnull=True,
+            created_at__lt=activity_cutoff,
+        )
+    )
+    DeviceSession.objects.filter(
+        user_id=user_id,
+        is_active=True,
+    ).filter(stale_filters).update(
+        is_active=False,
+        updated_at=current_time,
+    )
+
+
 def _generate_csrf_token(user) -> str:
     """Generate a CSRF token, store its SHA-256 hash, return the raw token."""
     from datetime import timedelta
@@ -154,6 +203,31 @@ def _generate_csrf_token(user) -> str:
     )
 
     return raw_token
+
+
+def _has_recent_csrf_token(user) -> bool:
+    """Return True when a real user already has a fresh CSRF token.
+
+    Session bootstrap should be tolerant of mocked users and JWT-backed test
+    doubles. If the user id is not a valid UUID-backed profile identifier,
+    fail open and let SessionView mint a fresh token instead of exploding
+    during the existence check.
+    """
+    user_id = getattr(user, "pk", None) or getattr(user, "id", None)
+    if not user_id:
+        return False
+
+    try:
+        normalized_user_id = str(uuid.UUID(str(user_id)))
+    except (TypeError, ValueError, AttributeError):
+        return False
+
+    now = timezone.now()
+    return CSRFToken.objects.filter(
+        user_id=normalized_user_id,
+        expires_at__gt=now,
+        created_at__gte=now - timedelta(minutes=5),
+    ).exists()
 
 
 # ---------------------------------------------------------------------------
@@ -294,6 +368,8 @@ class LoginView(APIView):
             user_agent=user_agent[:500],
             last_activity=tz.now(),
             is_active=True,
+            expires_at=_get_refresh_token_expiry(tz.now()),
+            updated_at=tz.now(),
         )
 
         # Generate CSRF token
@@ -467,13 +543,30 @@ class RefreshView(APIView):
 
         from django.utils import timezone as tz
 
-        DeviceSession.objects.filter(
+        refreshed = DeviceSession.objects.filter(
             session_token=old_refresh_hash,
             is_active=True,
         ).update(
             session_token=new_refresh_hash,
             last_activity=tz.now(),
+            expires_at=_get_refresh_token_expiry(tz.now()),
+            updated_at=tz.now(),
         )
+        if not refreshed:
+            user_agent = request.META.get("HTTP_USER_AGENT", "unknown")
+            ip_hash = _hash_value(_get_client_ip(request))
+            DeviceSession.objects.create(
+                user=user,
+                device_id=ip_hash[:32],
+                device_info=json.dumps({"user_agent": user_agent}),
+                ip_address=ip_hash,
+                session_token=new_refresh_hash,
+                user_agent=user_agent[:500],
+                last_activity=tz.now(),
+                is_active=True,
+                expires_at=_get_refresh_token_expiry(tz.now()),
+                updated_at=tz.now(),
+            )
 
         response = Response(
             {"success": True, "data": {"message": "Tokens refreshed"}},
@@ -630,16 +723,9 @@ class SessionView(APIView):
 
         # Tolerance window: skip CSRF token creation if the user already has
         # a valid token issued within the last 5 minutes (the frontend still
-        # holds it).  Login and refresh always rotate tokens; SessionView only
+        # holds it). Login and refresh always rotate tokens; SessionView only
         # needs to issue one when the user has none or the latest is stale.
-        from datetime import timedelta
-        now = timezone.now()
-        recent = CSRFToken.objects.filter(
-            user_id=user.pk,
-            expires_at__gt=now,
-            created_at__gte=now - timedelta(minutes=5),
-        ).exists()
-        if not recent:
+        if not _has_recent_csrf_token(user):
             response["X-CSRF-Token"] = _generate_csrf_token(user)
 
         return response
