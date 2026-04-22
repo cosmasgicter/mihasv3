@@ -2,7 +2,7 @@
 Bug 5 (P1) — Preservation Tests for Admin Functionality and Dev Docs Access
 
 These tests verify baseline behavior that MUST be preserved after the fix:
-1. Health check endpoints (/health/live/, /health/ready/) remain publicly accessible
+1. Health check endpoints (/health/live/, /health/ready/, /health/redis/) remain publicly accessible
 2. OpenAPI docs remain accessible in DEBUG=True mode (development)
 3. Public endpoints (login, register, etc.) remain accessible without auth
 
@@ -19,7 +19,7 @@ from unittest.mock import MagicMock
 from django.test import override_settings
 from rest_framework.permissions import AllowAny
 
-from apps.common.health import LivenessView, ReadinessView
+from apps.common.health import LivenessView, ReadinessView, RedisHealthView
 
 
 # ---------------------------------------------------------------------------
@@ -29,6 +29,7 @@ from apps.common.health import LivenessView, ReadinessView
 HEALTH_CHECK_VIEWS = [
     ("LivenessView", LivenessView),
     ("ReadinessView", ReadinessView),
+    ("RedisHealthView", RedisHealthView),
 ]
 
 health_view_strategy = st.sampled_from(HEALTH_CHECK_VIEWS)
@@ -172,6 +173,17 @@ class TestPublicEndpointsPreservation:
         assert match is not None, "/health/ready/ does not resolve"
         assert match.func is not None, "/health/ready/ resolves but has no view"
 
+    def test_health_redis_url_resolves(self):
+        """
+        /health/redis/ must resolve to a valid view.
+
+        **Validates: Requirements 3.9**
+        """
+        from django.urls import resolve
+        match = resolve("/health/redis/")
+        assert match is not None, "/health/redis/ does not resolve"
+        assert match.func is not None, "/health/redis/ resolves but has no view"
+
     def test_health_live_view_is_liveness(self):
         """
         /health/live/ must map to LivenessView.
@@ -201,6 +213,21 @@ class TestPublicEndpointsPreservation:
         )
         assert view_cls is ReadinessView, (
             f"/health/ready/ maps to {view_cls}, expected ReadinessView"
+        )
+
+    def test_health_redis_view_is_redis_health(self):
+        """
+        /health/redis/ must map to RedisHealthView.
+
+        **Validates: Requirements 3.9**
+        """
+        from django.urls import resolve
+        match = resolve("/health/redis/")
+        view_cls = getattr(match.func, "cls", None) or getattr(
+            match.func, "view_class", None
+        )
+        assert view_cls is RedisHealthView, (
+            f"/health/redis/ maps to {view_cls}, expected RedisHealthView"
         )
 
     def test_lenco_webhook_url_resolves(self):

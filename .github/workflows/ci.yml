@@ -1,0 +1,99 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: test_mihas
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mihas
+      REDIS_URL: redis://localhost:6379/0
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      JWT_SIGNING_KEY: ci-test-key-not-for-production
+      SECRET_KEY: ci-test-secret-not-for-production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements.txt
+        working-directory: backend
+      - name: Django checks
+        run: python manage.py check
+        working-directory: backend
+      - name: Contract parity tests
+        run: python -m pytest tests/contract/test_contract_parity.py -q
+        working-directory: backend
+      - name: Run tests
+        run: python -m pytest tests/unit/ tests/property/ -x -q --tb=short
+        working-directory: backend
+
+  admissions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install
+        working-directory: apps/admissions
+      - name: Type check
+        run: bun run type-check
+        working-directory: apps/admissions
+      - name: Lint
+        run: bun run lint
+        working-directory: apps/admissions
+      - name: Unit tests
+        run: bun run test
+        working-directory: apps/admissions
+      - name: Build
+        run: bun run build
+        working-directory: apps/admissions
+
+  jobs-ops:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install
+        working-directory: apps/jobs-ops
+      - name: Type check
+        run: bun run type-check
+        working-directory: apps/jobs-ops
+      - name: Lint
+        run: bun run lint
+        working-directory: apps/jobs-ops
+      - name: Build
+        run: bun run build
+        working-directory: apps/jobs-ops

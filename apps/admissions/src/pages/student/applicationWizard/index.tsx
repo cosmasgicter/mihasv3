@@ -469,8 +469,32 @@ const ApplicationWizardContent = () => {
       />
     <PageShell
       title="Student Application"
-      subtitle={`Apply in ${totalSteps} steps`}
+      eyebrow="Application Flow"
+      subtitle={`Apply in ${totalSteps} guided steps with live progress, autosave, and clear approval readiness checks.`}
       maxWidth="full"
+      tone="application"
+      metrics={[
+        {
+          label: 'Current step',
+          value: `${currentStepIndex + 1} of ${totalSteps}`,
+          helper: currentStepConfig.title,
+        },
+        {
+          label: 'Completion',
+          value: `${progressPercent}%`,
+          helper: currentStepReadiness.isComplete ? 'Step ready to advance' : `${currentStepReadiness.completed}/${currentStepReadiness.total} checks complete`,
+        },
+        {
+          label: 'Estimated time',
+          value: formattedTime,
+          helper: 'Based on your current progress',
+        },
+        {
+          label: 'Draft status',
+          value: smartAutoSave.saveStatus === 'saved' ? 'Protected' : smartAutoSave.saveStatus === 'saving' ? 'Saving…' : 'In progress',
+          helper: smartAutoSave.changedFields.length > 0 ? `${smartAutoSave.changedFields.length} unsaved field changes` : 'Autosave is active',
+        },
+      ]}
       className={shouldAnimate ? "animate-fade-in" : ""}
     >
       {/* Visually hidden aria-live region for screen reader step announcements */}
@@ -479,22 +503,54 @@ const ApplicationWizardContent = () => {
       </div>
       <div className="w-full">
         <Container size="md" className="py-4 sm:py-8">
-          <div className="mb-8">
+          <div className="mb-8 space-y-4">
             <Link
               to="/student/dashboard"
-              className="mb-4 inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-3 py-2 text-sm font-medium text-primary shadow-sm transition-colors hover:bg-primary/5"
+              className="feature-chip"
             >
               <ArrowLeft style={{ width: 'var(--icon-size-sm)', height: 'var(--icon-size-sm)', marginRight: '0.5rem' }} />
               Back to Dashboard
             </Link>
-            
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-foreground/80">
-              <span className="break-all">Logged in as: {user.email}</span>
+
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(18rem,0.8fr)]">
+              <div className="glass-panel p-5 sm:p-6">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="feature-chip">Live autosave</span>
+                  <span className="feature-chip">Approval-ready checklist</span>
+                  <span className="feature-chip">Secure payment confirmation</span>
+                </div>
+                <h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+                  A guided application experience that stays clear under pressure
+                </h2>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+                  Every step is framed around what admissions actually needs to approve you faster: complete identity details, strong education evidence, confirmed payment, and a final review before submission.
+                </p>
+              </div>
+              <div className="polished-panel p-5 sm:p-6">
+                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary/80">Session</p>
+                <p className="mt-3 text-sm font-semibold text-slate-900 break-all">{user.email}</p>
+                <div className="mt-4 h-px ambient-divider" />
+                <div className="mt-4 grid gap-3 text-sm text-slate-600">
+                  <div className="flex items-center justify-between gap-3">
+                    <span>Autosave</span>
+                    <span className="font-semibold text-slate-900">
+                      {smartAutoSave.saveStatus === 'saved' ? 'Up to date' : smartAutoSave.saveStatus === 'saving' ? 'Saving' : 'Monitoring'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span>Ready checks</span>
+                    <span className="font-semibold text-slate-900">
+                      {currentStepReadiness.completed}/{currentStepReadiness.total}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </Container>
 
         <Container size="md" className="mb-6 lg:mb-8">
+          <div className="glass-panel p-4 sm:p-5 lg:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div className="flex-1">
               <h2 className="text-base sm:text-lg font-semibold text-foreground">
@@ -597,6 +653,7 @@ const ApplicationWizardContent = () => {
               onStepClick={handleProgressStepClick}
               progressPercentage={progressPercent}
             />
+          </div>
           </div>
         </Container>
 
@@ -724,7 +781,7 @@ const ApplicationWizardContent = () => {
             </div>
 
               <div className="sticky bottom-0 z-10 -mx-4 border-t border-border/40 bg-background/80 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] pt-3 backdrop-blur-xl sm:static sm:mx-0 sm:border-t-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
-              <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:pt-6 sm:border-t sm:border-border">
+              <div className="glass-panel flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-5">
             <div className="order-2 sm:order-1">
               {currentStepIndex > 0 && (
                 <div className="transition-transform duration-150 hover:scale-105 active:scale-95">

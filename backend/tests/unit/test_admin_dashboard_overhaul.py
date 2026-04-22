@@ -77,13 +77,18 @@ class AdminDashboardOverhaulUnitTests(SimpleTestCase):
                 changes={"role": {"old": "student", "new": "admin"}},
                 ip_address="hashed-ip",
                 user_agent="hashed-agent",
+                ip_address_encrypted=None,
+                user_agent_encrypted=None,
                 retention_category="security",
                 created_at=datetime(2026, 4, 18, 10, 0, tzinfo=timezone.utc),
-            )
+            ),
+            context={"request": SimpleNamespace(user=SimpleNamespace(is_authenticated=True, role="admin"))},
         )
 
-        self.assertEqual(serializer.data["ip_address"], "hashed-ip")
-        self.assertEqual(serializer.data["user_agent"], "hashed-agent")
+        self.assertEqual(serializer.data["ip_hash"], "hashed-ip")
+        self.assertEqual(serializer.data["user_agent_hash"], "hashed-agent")
+        self.assertIsNone(serializer.data["request_ip"])
+        self.assertIsNone(serializer.data["request_user_agent"])
 
     def test_program_fee_queryset_includes_legacy_null_active_rows(self):
         viewset = ProgramFeeViewSet()

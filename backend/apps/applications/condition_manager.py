@@ -328,15 +328,14 @@ def _send_conditions_notification(
 ) -> None:
     """Create a Notification and dispatch email for condition assignment (Req 5.4)."""
     try:
-        from apps.common.models import EmailQueue, Notification
-        from apps.common.tasks import dispatch_email
+        from apps.common.outbox import create_notification, queue_email
 
         conditions_text = "\n".join(
             f"- {c.description} (due: {c.deadline}, type: {c.condition_type})"
             for c in conditions
         )
 
-        Notification.objects.create(
+        create_notification(
             user_id=application.user_id,
             title="Conditional Admission — Action Required",
             message=(
@@ -366,13 +365,11 @@ def _send_conditions_notification(
             f"<p>Best regards,<br>MIHAS Admissions</p>"
         )
 
-        email_record = EmailQueue.objects.create(
+        queue_email(
             recipient_email=application.email,
             subject=f"Conditional Admission — Action Required ({application.program})",
             body=email_body,
-            status="pending",
         )
-        dispatch_email(str(email_record.id))
     except Exception:
         logger.exception(
             "Failed to send conditions notification for application %s",
@@ -383,10 +380,9 @@ def _send_conditions_notification(
 def _send_approval_notification(application: Application) -> None:
     """Create a Notification and dispatch email for auto-approval after conditions met."""
     try:
-        from apps.common.models import EmailQueue, Notification
-        from apps.common.tasks import dispatch_email
+        from apps.common.outbox import create_notification, queue_email
 
-        Notification.objects.create(
+        create_notification(
             user_id=application.user_id,
             title="Application Approved!",
             message=(
@@ -412,13 +408,11 @@ def _send_approval_notification(application: Application) -> None:
             f"<p>Best regards,<br>MIHAS Admissions</p>"
         )
 
-        email_record = EmailQueue.objects.create(
+        queue_email(
             recipient_email=application.email,
             subject=f"Application Approved — {application.program}",
             body=email_body,
-            status="pending",
         )
-        dispatch_email(str(email_record.id))
     except Exception:
         logger.exception(
             "Failed to send approval notification for application %s",

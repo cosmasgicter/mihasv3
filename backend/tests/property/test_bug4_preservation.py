@@ -56,14 +56,15 @@ class TestBug4AlreadyAuthenticatedViewsPreservation:
         """
         view_name, view_class = view_pair
         permission_classes = view_class.permission_classes
+        from apps.accounts.permissions import IsAdmin, IsSuperAdmin, IsOwnerOrAdmin
+        auth_implying = (IsAuthenticated, IsAdmin, IsSuperAdmin, IsOwnerOrAdmin)
         has_is_authenticated = any(
-            perm is IsAuthenticated
-            or (isinstance(perm, type) and issubclass(perm, IsAuthenticated))
+            isinstance(perm, type) and issubclass(perm, auth_implying)
             for perm in permission_classes
         )
         assert has_is_authenticated, (
             f"{view_name}.permission_classes == {permission_classes} — "
-            f"expected to contain IsAuthenticated (preservation requirement)"
+            f"expected to contain IsAuthenticated or auth-implying permission (preservation requirement)"
         )
 
     @given(view_pair=authenticated_view_strategy)
@@ -109,15 +110,20 @@ class TestBug4WebhookPreservation:
             f"webhook endpoint must NOT require IsAuthenticated"
         )
 
-    def test_webhook_view_has_empty_or_no_permission_classes(self):
+    def test_webhook_view_has_empty_or_allow_any_permission_classes(self):
         """
-        EmailDeliveryWebhookView.permission_classes should be [] (empty),
+        EmailDeliveryWebhookView.permission_classes should be [] or [AllowAny],
         confirming it is intentionally unauthenticated.
 
         **Validates: Requirements 3.5**
         """
+        from rest_framework.permissions import AllowAny
         permission_classes = EmailDeliveryWebhookView.permission_classes
-        assert permission_classes == [], (
+        is_open = (
+            permission_classes == []
+            or (len(permission_classes) == 1 and permission_classes[0] is AllowAny)
+        )
+        assert is_open, (
             f"EmailDeliveryWebhookView.permission_classes == {permission_classes} — "
-            f"expected [] for webhook endpoint"
+            f"expected [] or [AllowAny] for webhook endpoint"
         )

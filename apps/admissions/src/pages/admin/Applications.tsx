@@ -27,7 +27,7 @@ import {
   exportToPDF,
   type ApplicationData
 } from '@/lib/exportUtils'
-import { calculatePointsFromSummary } from '@/utils/grades'
+import { calculatePointsFromSummary } from '@/lib/grades'
 import { buildApplicationsOverview } from '@/pages/admin/lib/applicationsOverview'
 import { getPaymentStatusLabel } from '@/lib/paymentStatus'
 import { formatApplicationStatus, type ApplicationStatus } from '@/types/applicationStatus'
@@ -345,8 +345,8 @@ export default function Applications() {
     if (!selectedApp) return
     
     const documents: Array<{ name: string; url: string }> = []
-    if (selectedApp.result_slip_url) documents.push({ name: 'Result Slip', url: selectedApp.result_slip_url })
-    if (selectedApp.extra_kyc_url) documents.push({ name: 'Identity Support Document', url: selectedApp.extra_kyc_url })
+    if (selectedApp.result_slip_url && !selectedApp.result_slip_url.includes('supabase')) documents.push({ name: 'Result Slip', url: selectedApp.result_slip_url })
+    if (selectedApp.extra_kyc_url && !selectedApp.extra_kyc_url.includes('supabase')) documents.push({ name: 'Identity Support Document', url: selectedApp.extra_kyc_url })
     
     if (documents.length === 0) {
       showInfo('No documents', 'No documents have been uploaded for this application.')
@@ -545,8 +545,32 @@ export default function Applications() {
       />
     <PageShell
       title="Applications"
-      subtitle={`${stats.total} total applications`}
+      eyebrow="Admissions Review"
+      subtitle="Review intake volume, payment proof, and decision readiness from a single triage surface built for fast, accurate approvals."
       maxWidth="7xl"
+      tone="admin"
+      metrics={[
+        {
+          label: 'Portfolio',
+          value: `${stats.total} total`,
+          helper: `${stats.loadedCount} currently loaded in this view`,
+        },
+        {
+          label: 'Decision queue',
+          value: stats.decisionQueue,
+          helper: `${stats.pendingReview} new + ${stats.underReview} under review`,
+        },
+        {
+          label: 'Payment proof review',
+          value: stats.paymentPending,
+          helper: `${stats.paymentNotPaid + stats.paymentRejected} still need follow-up`,
+        },
+        {
+          label: 'Approved',
+          value: stats.approved,
+          helper: `${stats.rejected} rejected decisions recorded`,
+        },
+      ]}
       actions={
         <div className="flex items-center space-x-2">
           {/* View Toggle */}
@@ -601,11 +625,41 @@ export default function Applications() {
     >
       {/* Enhanced Admin Metrics */}
       <div className="px-4 py-4 sm:px-6">
+        <div className="mb-6 grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.8fr)]">
+          <div className="glass-panel p-5 sm:p-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="feature-chip">High-confidence approvals</span>
+              <span className="feature-chip">Payment-first decisioning</span>
+              <span className="feature-chip">Queue visibility</span>
+            </div>
+            <h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+              Built for fast triage without sacrificing judgment
+            </h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+              The review flow now emphasizes what admissions officers need first: today’s intake pressure, payment proof requiring attention, and the exact queue that still needs a decision.
+            </p>
+          </div>
+          <div className="polished-panel p-5 sm:p-6">
+            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary/80">Review posture</p>
+            <div className="mt-4 grid gap-3">
+              <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Today</p>
+                <p className="mt-1 text-lg font-semibold text-slate-950">{stats.todaySubmissions} new submissions landed</p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Most urgent</p>
+                <p className="mt-1 text-lg font-semibold text-slate-950">
+                  {stats.paymentPending > 0 ? 'Payment proof review is active' : stats.decisionQueue > 0 ? 'Decision queue needs attention' : 'Queue is under control'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
         <AdminMetrics applications={applications} />
         
         {/* Quick Stats Cards - Mobile First */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-          <div className="bg-card rounded-xl p-4 shadow-sm border border-border">
+          <div className="polished-panel p-4">
             <div className="flex items-center space-x-2">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Clock className="h-4 w-4 text-primary" />
@@ -616,7 +670,7 @@ export default function Applications() {
               </div>
             </div>
           </div>
-          <div className="bg-card rounded-xl p-4 shadow-sm border border-border">
+          <div className="polished-panel p-4">
             <div className="flex items-center space-x-2">
               <div className="p-2 bg-accent/10 rounded-lg">
                 <AlertCircle className="h-4 w-4 text-accent" />
@@ -627,7 +681,7 @@ export default function Applications() {
               </div>
             </div>
           </div>
-          <div className="bg-card rounded-xl p-4 shadow-sm border border-border">
+          <div className="polished-panel p-4">
             <div className="flex items-center space-x-2">
               <div className="p-2 bg-orange-100 rounded-lg">
                 <CreditCard className="h-4 w-4 text-orange-600" />
@@ -638,7 +692,7 @@ export default function Applications() {
               </div>
             </div>
           </div>
-          <div className="bg-card rounded-xl p-4 shadow-sm border border-border">
+          <div className="polished-panel p-4">
             <div className="flex items-center space-x-2">
               <div className="p-2 bg-destructive/10 rounded-lg">
                 <XCircle className="h-4 w-4 text-destructive" />
@@ -652,7 +706,7 @@ export default function Applications() {
         </div>
 
         {/* Mobile Export Actions */}
-        <div className="bg-card rounded-xl p-4 shadow-sm border border-border mb-6">
+        <div className="polished-panel mb-6 p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-foreground">Export Data</h3>
             <Download className="h-4 w-4 text-muted-foreground" />
@@ -696,7 +750,7 @@ export default function Applications() {
 
         {/* Mobile Filters Panel */}
         {showFilters && (
-          <div className="bg-card rounded-xl p-4 shadow-sm border border-border mb-6 sm:hidden">
+          <div className="polished-panel mb-6 p-4 sm:hidden">
             <FiltersPanel
               searchTerm={filters.searchTerm}
               statusFilter={filters.statusFilter}
@@ -713,7 +767,7 @@ export default function Applications() {
         )}
 
         {/* Desktop Filters */}
-        <div className="hidden sm:block bg-card rounded-xl p-4 shadow-sm border border-border mb-6">
+        <div className="polished-panel mb-6 hidden p-4 sm:block">
           <FiltersPanel
             searchTerm={filters.searchTerm}
             statusFilter={filters.statusFilter}
@@ -750,7 +804,9 @@ export default function Applications() {
           <ApplicationsSkeleton />
         ) : !isInitialLoading && applications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="text-4xl mb-3">📋</div>
+            <div className="grid h-16 w-16 place-items-center rounded-3xl border border-slate-200 bg-slate-50 mb-4">
+              <FileText className="h-7 w-7 text-slate-500" />
+            </div>
             <h3 className="text-lg font-semibold text-foreground mb-1">No applications found</h3>
             <p className="text-sm text-muted-foreground max-w-md">No applications match your current filters. Try adjusting your search criteria or clearing filters.</p>
           </div>

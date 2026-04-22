@@ -258,6 +258,17 @@ export default function SignInPage() {
             </Banner>
           ) : null}
 
+          <div className="glass-panel p-5">
+            <div className="flex flex-wrap gap-2">
+              <span className="feature-chip">Resume draft instantly</span>
+              <span className="feature-chip">Secure applicant workspace</span>
+              <span className="feature-chip">Live admissions updates</span>
+            </div>
+            <p className="mt-4 text-sm leading-6 text-slate-600">
+              Sign in if you already created your applicant account. Your saved application progress, payment state, interview updates, and notices will all appear in the same workspace.
+            </p>
+          </div>
+
           <fieldset className="space-y-5 rounded-2xl border border-border/30 bg-muted/30 p-5 sm:p-6">
             <legend className="px-2 text-sm font-semibold text-foreground">Applicant sign-in details</legend>
 

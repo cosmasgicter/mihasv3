@@ -5,7 +5,6 @@ Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6
 """
 
 import csv
-import hashlib
 import logging
 import re
 from datetime import timedelta
@@ -29,6 +28,7 @@ from rest_framework.views import APIView
 from apps.accounts.models import Profile
 from apps.accounts.permissions import IsAdmin
 from apps.accounts.services import hash_password
+from apps.common.audit_network import build_audit_network_fields, decrypt_network_value
 from apps.common.models import AuditLog, Setting
 from apps.common.openapi_helpers import (
     ErrorResponseSerializer,
@@ -283,10 +283,27 @@ class AuditLogSerializer(serializers.Serializer):
     entity_type = serializers.CharField(read_only=True)
     entity_id = serializers.UUIDField(read_only=True, allow_null=True)
     changes = serializers.JSONField(read_only=True)
-    ip_address = serializers.CharField(read_only=True, allow_blank=True, allow_null=True)
-    user_agent = serializers.CharField(read_only=True, allow_blank=True, allow_null=True)
+    ip_hash = serializers.CharField(source="ip_address", read_only=True, allow_blank=True, allow_null=True)
+    user_agent_hash = serializers.CharField(source="user_agent", read_only=True, allow_blank=True, allow_null=True)
+    request_ip = serializers.SerializerMethodField()
+    request_user_agent = serializers.SerializerMethodField()
     retention_category = serializers.CharField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
+
+    def _can_view_network_context(self) -> bool:
+        request = self.context.get("request")
+        user = getattr(request, "user", None) if request else None
+        return bool(user and getattr(user, "is_authenticated", False) and getattr(user, "role", None) == "super_admin")
+
+    def get_request_ip(self, obj):
+        if not self._can_view_network_context():
+            return None
+        return decrypt_network_value(getattr(obj, "ip_address_encrypted", None))
+
+    def get_request_user_agent(self, obj):
+        if not self._can_view_network_context():
+            return None
+        return decrypt_network_value(getattr(obj, "user_agent_encrypted", None))
 
 
 class AdminDashboardActivitySerializer(serializers.Serializer):
@@ -711,19 +728,17 @@ class AdminUserDetailView(APIView):
         # Audit trail
         if changes:
             actor_id = getattr(request.user, "pk", None)
-            ip = request.META.get("HTTP_X_FORWARDED_FOR", request.META.get("REMOTE_ADDR", ""))
-            if "," in ip:
-                ip = ip.split(",")[0].strip()
+            network_fields = build_audit_network_fields(request)
             AuditLog.objects.create(
                 actor_id=actor_id,
                 action="user_update",
                 entity_type="profiles",
                 entity_id=user.pk,
                 changes=changes,
-                ip_address=hashlib.sha256(ip.encode()).hexdigest(),
-                user_agent=hashlib.sha256(
-                    request.META.get("HTTP_USER_AGENT", "").encode()
-                ).hexdigest(),
+                ip_address=network_fields["ip_address"],
+                user_agent=network_fields["user_agent"],
+                ip_address_encrypted=network_fields["ip_address_encrypted"],
+                user_agent_encrypted=network_fields["user_agent_encrypted"],
                 retention_category="security",
             )
 
@@ -791,18 +806,16 @@ class AdminUserExportView(APIView):
 
         # Audit log the export
         actor_id = getattr(request.user, "pk", None)
-        ip = request.META.get("HTTP_X_FORWARDED_FOR", request.META.get("REMOTE_ADDR", ""))
-        if "," in ip:
-            ip = ip.split(",")[0].strip()
+        network_fields = build_audit_network_fields(request)
         AuditLog.objects.create(
             actor_id=actor_id,
             action="user_export",
             entity_type="profiles",
             changes={"filters": {"role": role, "include_inactive": include_inactive}},
-            ip_address=hashlib.sha256(ip.encode()).hexdigest(),
-            user_agent=hashlib.sha256(
-                request.META.get("HTTP_USER_AGENT", "").encode()
-            ).hexdigest(),
+            ip_address=network_fields["ip_address"],
+            user_agent=network_fields["user_agent"],
+            ip_address_encrypted=network_fields["ip_address_encrypted"],
+            user_agent_encrypted=network_fields["user_agent_encrypted"],
             retention_category="security",
         )
 
@@ -1138,5 +1151,5 @@ class AdminAuditLogView(APIView):
 
         paginator = StandardPagination()
         page = paginator.paginate_queryset(queryset, request)
-        serializer = AuditLogSerializer(page, many=True)
+        serializer = AuditLogSerializer(page, many=True, context={"request": request})
         return paginator.get_paginated_response(serializer.data)

@@ -209,3 +209,6 @@ supabase-helper.bat
 node_modules
 .vercel
 .env*.local
+
+# MCP settings with secrets
+.kiro/settings/mcp.json

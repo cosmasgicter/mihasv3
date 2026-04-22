@@ -48,7 +48,7 @@ EXPECTED_CSP_DIRECTIVES = {
     "style-src-elem": {"'self'", "'unsafe-inline'"},
     "img-src": {"'self'", "data:", "blob:"},
     "font-src": {"'self'"},
-    "connect-src": {"'self'", "***REMOVED***", "https://*.neon.tech", "https://pay.lenco.co", "https://pay.sandbox.lenco.co", "https://api.lenco.co", "https://api.sandbox.lenco.co", "https://cdn.jsdelivr.net"},
+    "connect-src": {"'self'", "***REMOVED***", "https://pay.lenco.co", "https://pay.sandbox.lenco.co", "https://api.lenco.co", "https://api.sandbox.lenco.co", "https://app.glitchtip.com"},
     "frame-src": {"'self'", "https://pay.lenco.co", "https://pay.sandbox.lenco.co"},
     "child-src": {"'self'", "blob:"},
     "frame-ancestors": {"'none'"},

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { CreditCard, Clock } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
-import { Button } from '@/components/ui/Button'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { Skeleton } from '@/components/ui'
 import { animateClasses } from '@/lib/animations'
@@ -45,11 +44,16 @@ const PaymentStep = ({
   const [deferring, setDeferring] = useState(false)
   const [deferred, setDeferred] = useState(false)
   const [deferError, setDeferError] = useState<string | null>(null)
+  const [deferConfirm, setDeferConfirm] = useState(false)
 
   const isPaymentSuccessful = polledStatus === 'successful'
 
   const handleDefer = useCallback(async () => {
     if (!applicationId) return
+    if (!deferConfirm) {
+      setDeferConfirm(true)
+      return
+    }
     setDeferring(true)
     setDeferError(null)
     try {
@@ -64,9 +68,8 @@ const PaymentStep = ({
     } finally {
       setDeferring(false)
     }
-  }, [applicationId, onPaymentStatusChange])
+  }, [applicationId, onPaymentStatusChange, deferConfirm])
 
-  // Reset deferred state if polledStatus changes to successful (actual payment)
   useEffect(() => {
     if (polledStatus === 'successful' && !deferred) setDeferred(false)
   }, [polledStatus, deferred])
@@ -84,7 +87,7 @@ const PaymentStep = ({
         <legend className="sr-only">Payment</legend>
 
         {/* Fee display */}
-        <div className="rounded-xl border border-border bg-card p-4">
+        <div className="rounded-2xl border border-border bg-card p-5">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Application fee</p>
@@ -121,7 +124,7 @@ const PaymentStep = ({
           </Alert>
         )}
 
-        {/* Payment form (shared component) */}
+        {/* Payment form */}
         {!deferred && fee && applicationId && (
           <PaymentForm
             applicationId={applicationId}
@@ -136,26 +139,43 @@ const PaymentStep = ({
           />
         )}
 
-        {/* Pay Later button */}
+        {/* Pay Later — text link, not a big button */}
         {!isPaymentSuccessful && !deferred && fee && applicationId && (
-          <div className="border-t border-border pt-4 space-y-2">
+          <div className="pt-2 text-center space-y-2">
             {deferError && <p className="text-sm text-destructive">{deferError}</p>}
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              className="w-full"
-              disabled={deferring}
-              loading={deferring}
-              onClick={handleDefer}
-              data-testid="pay-later-button"
-            >
-              <Clock className="h-4 w-4 mr-2" />
-              Pay Later
-            </Button>
-            <p className="text-center text-xs text-muted-foreground">
-              You can submit your application now and pay later from your dashboard.
-            </p>
+
+            {!deferConfirm ? (
+              <button
+                type="button"
+                className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors disabled:opacity-50"
+                disabled={deferring}
+                onClick={handleDefer}
+                data-testid="pay-later-button"
+              >
+                Can't pay right now? You can pay later from your dashboard
+              </button>
+            ) : (
+              <div className={`rounded-xl border border-border bg-card/50 p-4 ${animateClasses.scaleIn}`}>
+                <p className="text-sm text-foreground">You can submit now and pay anytime from your dashboard.</p>
+                <div className="mt-3 flex items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                    onClick={() => setDeferConfirm(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-lg bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
+                    disabled={deferring}
+                    onClick={handleDefer}
+                  >
+                    {deferring ? 'Deferring…' : 'Yes, pay later'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </fieldset>

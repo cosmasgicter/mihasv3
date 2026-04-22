@@ -80,14 +80,19 @@ export default function ContactPage() {
       <div className="container-responsive px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <ScrollReveal className="mx-auto max-w-5xl space-y-10">
           {/* Page Header */}
-          <div className="rounded-2xl border border-border/40 bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-8 shadow-sm sm:p-12">
+          <div className="glass-panel p-8 sm:p-12">
             <Link
               to="/"
-              className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+              className="feature-chip mb-6"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Back to Home
             </Link>
+            <div className="flex flex-wrap gap-2">
+              <span className="feature-chip">Admissions support</span>
+              <span className="feature-chip">Programme guidance</span>
+              <span className="feature-chip">Enrollment help</span>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
               Contact Admissions
             </h1>
@@ -96,10 +101,32 @@ export default function ContactPage() {
             </p>
           </div>
 
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.8fr)]">
+            <div className="polished-panel p-5 sm:p-6">
+              <h2 className="text-xl font-semibold tracking-tight text-slate-950">Talk to a real admissions team, not a dead form</h2>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+                Use this page when you need help choosing a programme, understanding payment steps, or resolving an application issue. We kept the path short so students can act quickly and confidently.
+              </p>
+            </div>
+            <div className="polished-panel p-5 sm:p-6">
+              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary/80">Fastest route</p>
+              <div className="mt-4 grid gap-3">
+                <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Email</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-950">{contactInfo.email}</p>
+                </div>
+                <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Phone support</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-950">{contactInfo.katcPhone}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Two-column layout */}
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             {/* Contact info */}
-            <Card className="rounded-2xl border border-border/40 shadow-sm">
+            <Card className="rounded-[1.75rem] border border-white/70 bg-white/92 shadow-[0_22px_60px_-34px_rgba(15,23,42,0.25)]">
               <CardContent className="space-y-5 p-6 sm:p-8">
                 <CardTitle className="text-xl font-semibold">Talk to our team</CardTitle>
                 <div className="space-y-3">
@@ -120,7 +147,7 @@ export default function ContactPage() {
             </Card>
 
             {/* Contact form */}
-            <Card className="rounded-2xl border border-border/40 shadow-sm">
+            <Card className="rounded-[1.75rem] border border-white/70 bg-white/92 shadow-[0_22px_60px_-34px_rgba(15,23,42,0.25)]">
               <CardContent className="p-6 sm:p-8">
                 <CardTitle className="mb-6 text-xl font-semibold">Send a Message</CardTitle>
 

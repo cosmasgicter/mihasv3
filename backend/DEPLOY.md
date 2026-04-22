@@ -69,9 +69,10 @@ Set these in both Koyeb services unless noted otherwise. The same list is captur
 | `DJANGO_SETTINGS_MODULE` | yes | `config.settings.prod` |
 | `SECRET_KEY` | yes | Long random string |
 | `DATABASE_URL` | yes | Neon pooled Postgres URL with SSL |
-| `REDIS_URL` | yes | `rediss://...` for Upstash or hosted Redis |
-| `CELERY_BROKER_URL` | recommended | Usually same value as `REDIS_URL` |
+| `REDIS_URL` | yes | `rediss://...` for Upstash or hosted Redis. Used by Celery, cache-backed rate limiting, uptime state, token rotation coordination, and JTI blacklist storage. |
+| `CELERY_BROKER_URL` | recommended | Usually same value as `REDIS_URL`. If omitted, the app falls back to `REDIS_URL`. |
 | `JWT_SIGNING_KEY` | yes | Separate long random signing key |
+| `AUDIT_LOG_ENCRYPTION_KEY` | yes | Fernet key for encrypted raw audit network context. Generate with `python - <<'PY'\nfrom cryptography.fernet import Fernet\nprint(Fernet.generate_key().decode())\nPY` |
 | `ALLOWED_HOSTS` | yes | `.beanola.com,.mihas.edu.zm,.katc.edu.zm` |
 | `CORS_ALLOWED_ORIGINS` | yes | `***REMOVED***` |
 | `CORS_ALLOWED_ORIGIN_REGEXES` | recommended | `***REMOVED***` |
@@ -148,11 +149,50 @@ UptimeRobot will send an email alert when `/health/ready/` returns a non-200 sta
 
 ### What the health endpoint checks
 
-The `/health/ready/` endpoint verifies that both Postgres (Neon) and Redis (Upstash) are reachable. A non-200 response means at least one backing service is down.
+The `/health/ready/` endpoint always checks both Postgres (Neon) and Redis (Upstash), but it does not treat them equally:
+
+- Postgres unavailable -> returns HTTP `503`
+- Postgres healthy, Redis unavailable -> returns HTTP `200` with `redis: degraded`
+
+This is intentional in the current code. Redis degradation should not cause Koyeb to restart an otherwise healthy web instance.
 
 ### Limitations of external monitoring
 
-UptimeRobot checks reachability from outside the network. It will detect full outages and DNS failures, but it may not catch partial failures where the web process is running but a backing service (database or Redis) is degraded between checks. The internal `check_uptime_task` Celery periodic task (see Celery Beat section below) provides a secondary layer that catches these cases.
+UptimeRobot checks reachability from outside the network. It will detect full outages and DNS failures, but it will not page on Redis-only degradation because `/health/ready/` intentionally remains `200` in that mode. The internal `check_uptime_task` Celery periodic task provides a secondary signal, but it also uses `/health/ready/`, so it follows the same readiness contract.
+
+If Redis outage alerting is required, add a dedicated Redis monitor or change the readiness contract after making an explicit dependency-tier decision.
+
+### Dedicated Redis monitor
+
+To alert on Redis-only outages without changing the current readiness contract, create a second external monitor:
+
+| Setting | Value |
+| --- | --- |
+| Monitor type | HTTP(s) |
+| Friendly name | `MIHAS Redis` |
+| URL | `***REMOVED***/health/redis/` |
+| Monitoring interval | 5 minutes |
+
+This endpoint returns:
+
+- `200` when Redis is reachable
+- `503` when Redis is unavailable
+
+Use it for paging and incident routing only. Do not point Koyeb instance health checks at `/health/redis/`, because Redis-only outages should not force healthy web instances to restart.
+
+## Current dependency behavior
+
+The current runtime is availability-biased under Redis incidents. Operators should know the exact behavior:
+
+- Postgres down: requests that need the database fail, and `/health/ready/` returns `503`
+- Redis down: `/health/ready/` returns `200` with degraded Redis state
+- Rate limiting cache unavailable: rate limiting fails open
+- Refresh token rotation lock unavailable: rotation deduplication fails open
+- JTI blacklist read fails twice: auth fails closed for that refresh token check
+
+This is the code’s current behavior, not a final architecture recommendation. If you want stricter security semantics, change the auth/dependency policy first and then update the health contract and runbooks to match.
+
+Incident response for Redis outages lives in [docs/runbooks/redis-incident-response.md](/home/cosmas/Downloads/mihasv3/docs/runbooks/redis-incident-response.md).
 
 ## Vercel frontend checklist
 

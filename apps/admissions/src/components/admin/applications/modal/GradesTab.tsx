@@ -1,6 +1,6 @@
 import { GraduationCap, CheckCircle, XCircle } from 'lucide-react'
 import { Skeleton } from '@/components/ui'
-import { calculateBestFivePoints, sanitizeGradeValue } from '@/utils/grades'
+import { calculateBestFivePoints, sanitizeGradeValue } from '@/lib/grades'
 
 interface Grade {
   subject_id: string

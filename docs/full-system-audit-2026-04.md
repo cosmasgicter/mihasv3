@@ -80,7 +80,7 @@ Core domain: `applications`, `application_documents`, `application_grades`, `app
 Auth: `profiles`, `csrf_tokens`, `device_sessions`, `login_attempts`, `password_reset_tokens`
 Catalog: `programs`, `intakes`, `institutions`, `subjects`, `course_requirements`, `program_intakes`, `program_fees`
 Payments: `payments`, `webhook_event_logs`
-Operations: `audit_logs`, `email_queue`, `error_logs`, `notifications`, `user_notification_preferences`, `sse_events`, `settings`, `idempotency_keys`, `migration_history`, `user_permission_overrides`
+Operations: `audit_logs`, `email_queue`, `error_logs`, `notifications`, `user_notification_preferences`, `settings`, `idempotency_keys`, `migration_history`, `user_permission_overrides`
 
 ### Index Coverage: Excellent
 
@@ -89,7 +89,6 @@ Operations: `audit_logs`, `email_queue`, `error_logs`, `notifications`, `user_no
 - `payments`: 5 indexes (application_id, status, transaction_reference, user_id, app+status composite)
 - `audit_logs`: 6 indexes including partial index for payment entities and retention-based cleanup
 - `csrf_tokens`: 3 indexes (token_hash, user_id, user_id+expires_at composite)
-- `sse_events`: 3 partial indexes for cleanup and delivery queries
 - `notifications`: 4 indexes including partial index for unread notifications
 
 ### Slow Queries: None
@@ -100,7 +99,7 @@ No application queries exceeded 100ms. All slow queries in `pg_stat_statements` 
 
 1. Consider adding a composite index on `applications(user_id, status)` for the common student dashboard query pattern
 2. The `webhook_event_logs` table only has a `reference` index — add `(reference, event_type, processed)` composite for the dedup check in `WebhookProcessor`
-3. No table partitioning needed at current scale (~38MB), but `audit_logs` and `sse_events` should be candidates if they grow past 1M rows
+3. No table partitioning needed at current scale (~38MB), but `audit_logs` should be the first candidate if it grows past 1M rows
 
 ---
 

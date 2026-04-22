@@ -9,7 +9,7 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
-from apps.common.health import LivenessView, ReadinessView
+from apps.common.health import LivenessView, ReadinessView, RedisHealthView
 from apps.common.permissions import IsAuthenticatedOrDebug
 from apps.common.views import APIHomeView
 from apps.documents.urls import document_urlpatterns, payment_urlpatterns, program_fee_urlpatterns
@@ -20,6 +20,7 @@ urlpatterns = [
     # Health checks at root level (not under /api/v1/)
     path("health/live/", LivenessView.as_view(), name="health-live"),
     path("health/ready/", ReadinessView.as_view(), name="health-ready"),
+    path("health/redis/", RedisHealthView.as_view(), name="health-redis"),
     # OpenAPI schema and documentation
     path("api/v1/schema/", SpectacularAPIView.as_view(permission_classes=[IsAuthenticatedOrDebug]), name="schema"),
     path(

@@ -14,6 +14,15 @@ from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
+EMAIL_STATUS_PENDING = "pending"
+EMAIL_STATUS_PROCESSING = "processing"
+EMAIL_STATUS_RETRYING = "retrying"
+EMAIL_STATUS_FAILED = "failed"
+EMAIL_STATUS_SENT = "sent"
+EMAIL_SWEEP_BATCH_SIZE = 50
+EMAIL_PENDING_SWEEP_AGE = timedelta(minutes=2)
+EMAIL_PROCESSING_RECLAIM_AGE = timedelta(minutes=10)
+
 
 # ---------------------------------------------------------------------------
 # Outbox-safe dispatch — persist intent first, best-effort broker push
@@ -36,7 +45,7 @@ def dispatch_email(email_queue_id: str) -> None:
 
 @shared_task(bind=True, max_retries=0, soft_time_limit=120, time_limit=150)
 def process_pending_emails_task(self):
-    """Sweep for EmailQueue rows stuck in 'pending' status.
+    """Sweep for EmailQueue rows stuck in pending delivery state.
 
     Picks up rows older than 2 minutes that were never dispatched (broker
     was down when the request handler tried .delay()). Limits to 50 per
@@ -44,14 +53,33 @@ def process_pending_emails_task(self):
     """
     from apps.common.models import EmailQueue
 
-    cutoff = timezone.now() - timedelta(minutes=2)
-    stale = EmailQueue.objects.filter(
-        status="pending",
-        created_at__lt=cutoff,
-    ).values_list("id", flat=True)[:50]
-
+    now = timezone.now()
     dispatched = 0
-    for eid in stale:
+
+    reclaim_cutoff = now - EMAIL_PROCESSING_RECLAIM_AGE
+    reclaimed = (
+        EmailQueue.objects.filter(
+            status=EMAIL_STATUS_PROCESSING,
+            created_at__lt=reclaim_cutoff,
+        )
+        .update(
+            status=EMAIL_STATUS_RETRYING,
+            error_message="Recovered stale processing email for re-dispatch",
+        )
+    )
+
+    pending_cutoff = now - EMAIL_PENDING_SWEEP_AGE
+    stale = EmailQueue.objects.filter(
+        status=EMAIL_STATUS_PENDING,
+        created_at__lt=pending_cutoff,
+    ).values_list("id", flat=True)[:EMAIL_SWEEP_BATCH_SIZE]
+
+    retrying = EmailQueue.objects.filter(
+        status=EMAIL_STATUS_RETRYING,
+        created_at__lt=reclaim_cutoff,
+    ).values_list("id", flat=True)[:EMAIL_SWEEP_BATCH_SIZE]
+
+    for eid in list(stale) + list(retrying):
         try:
             send_email_task.delay(str(eid))
             dispatched += 1
@@ -59,8 +87,39 @@ def process_pending_emails_task(self):
             logger.warning("Sweep: broker still unavailable for email %s", eid)
             break  # broker down, stop trying
 
+    if reclaimed:
+        logger.warning("Email sweep: reclaimed %d stale processing emails", reclaimed)
     if dispatched:
-        logger.info("Email sweep: dispatched %d stale pending emails", dispatched)
+        logger.info("Email sweep: dispatched %d stale email tasks", dispatched)
+
+
+def _claim_email_for_delivery(email_queue_id):
+    """Atomically claim an email row for delivery.
+
+    This makes duplicate queued tasks harmless: the first worker that flips
+    the row into ``processing`` wins, and later duplicate tasks simply exit.
+    """
+    from apps.common.models import EmailQueue
+
+    claimed = EmailQueue.objects.filter(
+        id=email_queue_id,
+        status__in=[EMAIL_STATUS_PENDING, EMAIL_STATUS_RETRYING],
+    ).update(
+        status=EMAIL_STATUS_PROCESSING,
+        error_message="",
+    )
+    if not claimed:
+        return None
+
+    return EmailQueue.objects.filter(id=email_queue_id).first()
+
+
+def _mark_email_sent(email_record, provider: str) -> None:
+    email_record.status = EMAIL_STATUS_SENT
+    email_record.error_message = ""
+    email_record.sent_at = timezone.now()
+    email_record.save(update_fields=["status", "error_message", "sent_at"])
+    logger.info("Email %s sent via %s", email_record.id, provider)
 
 
 def _send_via_smtp(email_record):
@@ -75,16 +134,13 @@ def _send_via_smtp(email_record):
         msg = EmailMessage(
             subject=email_record.subject,
             body=email_record.body,
-            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "***REMOVED***"),
+            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", settings.ERROR_ALERT_EMAIL),
             to=[email_record.recipient_email],
         )
         msg.content_subtype = "html"
         msg.send()
 
-        email_record.status = "sent"
-        email_record.error_message = ""
-        email_record.save()
-        logger.info("Email %s sent via SMTP", email_record.id)
+        _mark_email_sent(email_record, "SMTP")
         return True
     except Exception as exc:
         logger.warning("SMTP send failed for %s: %s", email_record.id, exc)
@@ -111,10 +167,7 @@ def _send_via_resend(email_record):
             }
         )
 
-        email_record.status = "sent"
-        email_record.error_message = ""
-        email_record.save()
-        logger.info("Email %s sent via Resend", email_record.id)
+        _mark_email_sent(email_record, "Resend")
         return True
     except Exception as exc:
         logger.warning("Resend send failed for %s: %s", email_record.id, exc)
@@ -136,7 +189,12 @@ def send_email_task(self, email_queue_id):
         logger.error("EmailQueue record %s not found", email_queue_id)
         return
 
-    if email_record.status == "sent":
+    if email_record.status == EMAIL_STATUS_SENT:
+        return
+
+    email_record = _claim_email_for_delivery(email_queue_id)
+    if email_record is None:
+        logger.debug("Email %s already claimed or terminal; skipping duplicate task", email_queue_id)
         return
 
     # Try SMTP first (preserves Resend quota)
@@ -148,10 +206,12 @@ def send_email_task(self, email_queue_id):
         return
 
     # Both failed
-    email_record.retry_count += 1
+    email_record.retry_count = (email_record.retry_count or 0) + 1
     email_record.error_message = "Both SMTP and Resend failed"
-    email_record.status = "retrying" if email_record.retry_count < 3 else "failed"
-    email_record.save()
+    email_record.status = (
+        EMAIL_STATUS_RETRYING if email_record.retry_count < 3 else EMAIL_STATUS_FAILED
+    )
+    email_record.save(update_fields=["retry_count", "error_message", "status"])
 
     if email_record.retry_count < 3:
         backoff = 60 * (2 ** self.request.retries)
@@ -165,7 +225,8 @@ def send_bulk_notifications_task(self, notification_ids):
     Iterates over notification IDs, sends email for each if the user
     has email notifications enabled.
     """
-    from apps.common.models import EmailQueue, Notification, UserNotificationPreference
+    from apps.common.models import Notification, UserNotificationPreference
+    from apps.common.outbox import queue_email
 
     if not notification_ids:
         return
@@ -195,15 +256,11 @@ def send_bulk_notifications_task(self, notification_ids):
                 continue
 
             # Enqueue email.
-            email_record = EmailQueue.objects.create(
+            queue_email(
                 recipient_email=user.email,
                 subject=notification.title,
                 body=notification.message,
-                status="pending",
             )
-
-            # Dispatch email task.
-            send_email_task.delay(str(email_record.id))
 
         except Exception as exc:
             logger.exception("Failed to process notification %s", notification.id)
@@ -271,7 +328,7 @@ def check_uptime_task(self):
 
     Requirements: 5.2, 5.3, 5.4, 5.5
     """
-    from apps.common.models import EmailQueue
+    from apps.common.outbox import queue_email
 
     health_url = getattr(settings, "HEALTH_CHECK_URL", "***REMOVED***")
     alert_email = settings.ERROR_ALERT_EMAIL
@@ -307,7 +364,7 @@ def check_uptime_task(self):
         # Healthy → unhealthy transition: send alert.
         logger.warning("Health check FAILED for %s — dispatching alert", health_url)
         try:
-            email_record = EmailQueue.objects.create(
+            queue_email(
                 recipient_email=alert_email,
                 subject="🔴 MIHAS API Down — Health Check Failed",
                 body=(
@@ -315,9 +372,7 @@ def check_uptime_task(self):
                     "<p>The API may be experiencing an outage. Please investigate immediately.</p>"
                     f"<p>Checked by: <code>check_uptime_task</code></p>"
                 ),
-                status="pending",
             )
-            send_email_task.delay(str(email_record.id))
         except Exception:
             logger.exception("Failed to dispatch uptime alert email")
 
@@ -325,7 +380,7 @@ def check_uptime_task(self):
         # Unhealthy → healthy transition: send recovery notification.
         logger.info("Health check RECOVERED for %s — dispatching recovery notice", health_url)
         try:
-            email_record = EmailQueue.objects.create(
+            queue_email(
                 recipient_email=alert_email,
                 subject="🟢 MIHAS API Recovered — Health Check Passed",
                 body=(
@@ -333,9 +388,7 @@ def check_uptime_task(self):
                     "<p>The API has recovered from the previous outage.</p>"
                     f"<p>Checked by: <code>check_uptime_task</code></p>"
                 ),
-                status="pending",
             )
-            send_email_task.delay(str(email_record.id))
         except Exception:
             logger.exception("Failed to dispatch uptime recovery email")
 

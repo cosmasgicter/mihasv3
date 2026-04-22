@@ -22,13 +22,13 @@ SETTINGS_MCP_JSON = os.path.join(REPO_ROOT, ".kiro", "settings", "mcp.json")
 # Expected server entry names in .kiro/mcp.json (mcpServers section)
 MCP_JSON_SERVER_NAMES = {
     "filesystem", "fetch", "memory", "chrome-devtools", "playwright",
-    "sqlite", "shadcn", "context7", "github", "brave-search", "neon", "supabase",
+    "sqlite", "shadcn", "context7", "github", "brave-search", "neon",
 }
 
 # Expected server entry names in .kiro/settings/mcp.json (mcpServers section)
 SETTINGS_MCP_JSON_SERVER_NAMES = {
     "filesystem", "fetch", "memory", "shadcn-ui", "canva", "chrome-devtools",
-    "playwright", "sqlite", "github", "brave-search", "supabase", "neon", "context7",
+    "playwright", "sqlite", "github", "brave-search", "neon", "context7",
 }
 
 # Expected env key names per server in .kiro/mcp.json
@@ -48,10 +48,6 @@ SETTINGS_MCP_JSON_ENV_KEYS = {
     "chrome-devtools": {"CHROME_REMOTE_DEBUGGING_PORT"},
     "github": {"GITHUB_PERSONAL_ACCESS_TOKEN"},
     "brave-search": {"BRAVE_API_KEY"},
-    "supabase": {
-        "SUPABASE_URL", "SUPABASE_ANON_KEY",
-        "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_ACCESS_TOKEN",
-    },
 }
 
 # Expected header key names per server in .kiro/settings/mcp.json

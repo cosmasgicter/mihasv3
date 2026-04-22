@@ -38,6 +38,8 @@ CSRF_COOKIE_SAMESITE = "Lax"
 LENCO_API_BASE_URL = os.environ.get("LENCO_API_BASE_URL", "https://api.lenco.co/access/v2/")  # noqa: F405
 if not LENCO_API_SECRET_KEY or not LENCO_PUBLIC_KEY:  # noqa: F405
     raise ImproperlyConfigured("LENCO_API_SECRET_KEY and LENCO_PUBLIC_KEY are required in production.")
+if not AUDIT_LOG_ENCRYPTION_KEY:  # noqa: F405
+    raise ImproperlyConfigured("AUDIT_LOG_ENCRYPTION_KEY is required in production.")
 
 # CORS — production frontend only
 CORS_ALLOWED_ORIGINS = split_csv_env(  # noqa: F405

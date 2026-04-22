@@ -25,7 +25,7 @@ def _log_error_and_alert(error_msg: str) -> None:
     but without a request context (this runs inside a Celery worker).
     """
     from apps.common.models import EmailQueue, ErrorLog
-    from apps.common.tasks import send_email_task
+    from apps.common.tasks import dispatch_email
 
     ErrorLog.objects.create(
         source="backend",
@@ -55,7 +55,7 @@ def _log_error_and_alert(error_msg: str) -> None:
             ),
             status="pending",
         )
-        send_email_task.delay(str(email_record.id))
+        dispatch_email(str(email_record.id))
 
 
 @shared_task(bind=True, max_retries=2, default_retry_delay=300)

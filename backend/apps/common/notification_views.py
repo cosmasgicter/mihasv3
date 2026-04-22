@@ -6,6 +6,7 @@ Requirements: 6.1, 6.2, 6.3, 8.1, 8.2, 8.3, 8.5, 8.6, 7.1, 7.2, 7.3, 7.4, 7.5, 7
 
 import logging
 
+from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
@@ -15,10 +16,10 @@ from rest_framework.views import APIView
 from apps.accounts.models import Profile
 from apps.accounts.permissions import IsAdmin
 from apps.common.models import (
-    EmailQueue,
     Notification,
     UserNotificationPreference,
 )
+from apps.common.outbox import create_notification, queue_email
 from apps.common.openapi_helpers import (
     ErrorResponseSerializer,
     IdMessageSerializer,
@@ -68,6 +69,7 @@ class NotificationItemSerializer(serializers.Serializer):
     type = serializers.CharField()
     is_read = serializers.BooleanField()
     action_url = serializers.CharField(allow_null=True, required=False)
+    read_at = serializers.DateTimeField(allow_null=True, required=False)
     created_at = serializers.DateTimeField()
 
 
@@ -234,7 +236,7 @@ class NotificationSendView(APIView):
                     },
                 })
 
-        notification = Notification.objects.create(
+        notification = create_notification(
             user_id=data["user_id"],
             title=data["title"],
             message=data["message"],
@@ -294,17 +296,11 @@ class EmailSendView(APIView):
 
         data = serializer.validated_data
 
-        email_record = EmailQueue.objects.create(
+        email_record = queue_email(
             recipient_email=data["recipient_email"],
             subject=data["subject"],
             body=data["body"],
-            status="pending",
         )
-
-        # Dispatch via outbox-safe helper
-        from apps.common.tasks import dispatch_email
-
-        dispatch_email(str(email_record.id))
 
         return Response(
             {
@@ -473,7 +469,8 @@ class NotificationMarkReadView(APIView):
             )
 
         notification.is_read = True
-        notification.save(update_fields=["is_read"])
+        notification.read_at = timezone.now()
+        notification.save(update_fields=["is_read", "read_at"])
 
         return Response({
             "success": True,

@@ -1,287 +1,285 @@
-# MIHAS Architecture Plan
+# MIHAS Infrastructure and Architecture Plan
 
 Date: 2026-04-21
-Scope: Full platform architecture review across `backend/`, `apps/admissions/`, `apps/jobs-ops/`, async workers, shared infrastructure assumptions, and domain boundaries.
+Scope: Full platform architecture review across `backend/`, `apps/admissions/`, `apps/jobs-ops/`, async workers, deployment/runtime assumptions, and domain exposure boundaries.
 
-This document is an execution plan, not a generic assessment. It names the current structural risks, defines the target architecture, and sequences the work into phases that reduce production risk without forcing a full rewrite.
+This version supersedes the earlier planning draft. It now records:
+- what has already been fixed
+- how each completed item improves the system
+- what is still partially done or still open
+- the latest end-to-end infra audit findings
+
+Status legend:
+- `DONE` = implemented in the repo
+- `PARTIAL` = materially improved, but not yet complete
+- `OPEN` = not yet implemented or only addressed by policy, not code
 
 ---
 
 ## 1. Executive Summary
 
-The platform has one strong production core and one growing blast radius.
+The system is in a better state than the original architecture review, but it is not fully hardened yet.
 
-What is strong:
-- Admissions domain coverage is broad and mostly coherent.
-- The backend has clear app-level domain boundaries.
-- Security controls exist: JWT, CSRF, rate limiting, audit logging, health probes, read-only mode, idempotency, Celery background processing.
-- The frontend has a mature API client and a large automated test surface.
+What is now materially better:
+- DRF is effectively the live authentication authority.
+- Middleware auth is no longer part of the production auth path.
+- Idempotency now behaves like command replay for same-actor same-method same-path same-body requests.
+- Scaffold Jobs/Ops routes are disabled by default outside local development.
+- Email dispatch is more durable because request flows persist `EmailQueue` rows before best-effort broker push.
+- Contract parity tests no longer require a local Postgres instance for the narrow recorded-suite path.
 
-What is structurally weak:
-- Authentication has multiple authorities and no single owner.
-- Idempotency is implemented as key replay rather than command identity.
-- The same backend runtime serves mature admissions flows and scaffold Jobs/Ops domains.
-- The database schema is widely `managed = False` without a first-class schema ownership workflow.
-- Async side effects are still request-coupled.
-- Redis is treated as operationally optional even where it affects security and consistency semantics.
-- The second frontend (`jobs-ops`) does not yet share the same platform-level auth and resilience model as admissions.
+What is still structurally weak:
+- Redis semantics are now documented and formalized, but they remain intentionally mixed by policy.
+- The generic outbox ledger now exists, but worker lifecycle hardening is still strongest on email and not yet uniform across every side effect.
+- Schema governance is now explicit at the decision/process level, but still depends on SQL artifact discipline and live verification.
+- `jobs-ops` is intentionally out of scope for the admissions frontend contract and should evolve under its own domain/runtime contract.
+- Deployment documentation has been realigned with the current readiness contract and dependency-tier policy.
 
 Bottom line:
-- Do not treat the current problems as isolated bugs.
-- Stabilize the platform by reducing architectural ambiguity.
-- The first goal is not "more features"; it is establishing authoritative boundaries.
+- The architecture is no longer breaking for the original reasons at the same severity.
+- The next failures are more likely to come from schema/process drift, incomplete outbox lifecycle parity, and local-vs-prod parity gaps.
 
 ---
 
-## 2. Current-State Diagnosis
+## 2. Current State Verified In Code
 
-### 2.1 Auth Boundary Is Ambiguous
+### 2.1 Auth Boundary
 
-The system currently has overlapping auth responsibility:
-- Django middleware mutates `request.user`.
-- DRF authentication also authenticates the request.
-- Some views bypass DRF authentication with `authentication_classes = []`.
-- CSRF uses its own validation path and status semantics.
-- The frontend contains recovery logic to infer which backend failure happened.
+Verified state:
+- `JWTAuthenticationMiddleware` remains in code as a compatibility/test helper, but is no longer intended to be the production auth authority.
+- DRF authentication classes are the active request auth path.
+- `SessionView` uses optional DRF auth instead of relying on middleware-populated `request.user`.
+- Remaining `authentication_classes = []` endpoints are concentrated in true public endpoints: login, register, refresh, password reset, health, meta, error reporting, payment webhook, and scaffold webhooks.
 
-Consequences:
-- No single source of truth for authenticated state.
-- A request can be authenticated in middleware but not in DRF.
-- `401` and `403` are not operationally stable enough for the frontend to reason about simply.
-- Frontend complexity grows as a compensation layer for backend ambiguity.
+System impact:
+- The original middleware-vs-DRF conflict has been materially reduced.
+- Public bootstrap/session behavior is more predictable.
+- The backend is closer to a single-source-of-truth auth model.
 
-Architectural conclusion:
-- Auth is not failing because JWT is inherently hard.
-- Auth is failing because responsibility is split across too many runtime layers.
+Residual risk:
+- The repo still needs a formal ADR and a stricter inventory policy so new bypass endpoints do not creep back in.
 
-### 2.2 Idempotency Is Under-Specified
+### 2.2 Idempotency
 
-Current idempotency behavior is too broad and too weak:
-- It keys replay off `Idempotency-Key` alone.
-- It does not bind replay to actor, method, canonical path, or request hash.
-- It stores and replays responses too generically.
-- It can return cached results that do not safely correspond to the same command.
+Verified state:
+- Idempotency now keys off `idempotency_key + actor_id + method + path` and compares `request_hash`.
+- Same key + same payload replays.
+- Same key + different payload returns `409 IDEMPOTENCY_CONFLICT`.
+- Failed attempts are not cached as final results.
+- Replay-safe JSON serialization is in place for DRF and JSON responses.
 
-Consequences:
-- Duplicate requests are not safely modeled as duplicate commands.
-- Cached replay correctness depends on caller behavior rather than server guarantees.
-- This becomes more dangerous as more write paths are added.
+System impact:
+- Duplicate client retries are much safer.
+- Validation or permission failures do not poison the key forever.
+- The previous blind key-cache behavior is no longer the active model.
 
-Architectural conclusion:
-- This is not true idempotent command processing yet.
-- It needs a command identity model, not a string cache.
+Residual risk:
+- The DB uniqueness constraint still does not include `request_hash`.
+- Path identity is still literal `request.path`, not a canonicalized route template.
+- No TTL cleanup or governance policy is implemented yet.
 
-### 2.3 One Runtime Contains Multiple Maturity Levels
+### 2.3 Domain Exposure
 
-The backend currently serves:
-- Mature admissions domain APIs.
-- Administrative APIs.
-- Shared platform APIs.
-- Jobs/Ops, automation, integrations, analytics, and outreach surfaces.
+Verified state:
+- Scaffold Jobs/Ops routes are gated by `ENABLE_JOBS_OPS_ROUTES`.
+- Base settings now default this to `false`.
+- Dev settings default it to `true`.
 
-Some of those newer surfaces are scaffold-backed or sample-backed.
+System impact:
+- Production admissions traffic is no longer forced to share public blast radius with scaffold domains by default.
+- This is the single biggest exposure hardening change outside auth.
 
-Consequences:
-- The production API contract is larger than the production-ready feature set.
-- Operational risk increases even when the admissions product is the only business-critical path.
-- Testing effort gets diluted across mature and immature domains.
-- Incidents in one domain can consume engineering time and platform headroom needed by another.
+Residual risk:
+- If Jobs/Ops routes are explicitly enabled, scaffold webhook endpoints are still permissive and not production-grade.
+- `jobs-ops` intentionally diverges from the admissions frontend contract, so it needs its own explicit runtime contract if it becomes production-significant.
 
-Architectural conclusion:
-- The issue is not monolith vs microservices.
-- The issue is shared runtime without shared maturity.
+### 2.4 Async Delivery
 
-### 2.4 Schema Ownership Is Weak
+Verified state:
+- Many email-producing code paths now call `dispatch_email(...)` after persisting `EmailQueue`.
+- Shared durable helpers now also write a generic `outbox_events` ledger for email and notification side effects.
+- Best-effort failures in communication flows log warnings instead of creating excessive stack-trace noise.
+- A sweep task exists to redispatch stale pending emails.
+- Email delivery now atomically claims rows before sending and reclaims stale `processing` rows back to `retrying` for re-dispatch.
 
-A large portion of the backend models use `managed = False`.
+System impact:
+- A transient broker outage is less likely to drop intent entirely.
+- Request success is less tightly coupled to broker reachability.
 
-This can be a valid choice if:
-- The schema is owned elsewhere.
-- Migrations are explicit and versioned.
-- Compatibility is tested before deploy.
-- There is a published schema contract.
+Residual risk:
+- A generic outbox table now exists, but dispatch lifecycle hardening is still uneven.
+- Claim safety exists for email delivery, but there is no dedicated persisted lease timestamp yet.
+- Notifications are recorded in the outbox ledger, but they do not yet have the same worker-driven lifecycle as email.
 
-Today the codebase shows the mapping layer, but not enough of the ownership model around it.
+### 2.5 Dependency Modes
 
-Consequences:
-- Risk of code/schema drift.
-- Harder refactors because ORM code cannot guarantee structural assumptions.
-- Slower onboarding because developers cannot tell whether code or DB is authoritative.
-- Operational dependency on undocumented migration procedure.
+Verified state:
+- Readiness returns `200` when Postgres is healthy even if Redis is degraded.
+- JTI blacklist reads fail closed after retry.
+- Token rotation lock acquisition fails open if Redis is unavailable.
+- Rate limiting fails open if the shared cache is unavailable.
 
-Architectural conclusion:
-- A schema can be external to Django.
-- It cannot be external to process discipline.
+System impact:
+- The runtime is more available during Redis incidents.
+- Security-sensitive paths are at least partially protected by fail-closed blacklist reads.
 
-### 2.5 Async Work Is Durable in Part, Coupled in Part
+Residual risk:
+- The dependency policy is intentionally mixed and now documented.
+- The remaining risk is policy drift if auth, readiness, or rate-limit behavior changes without updating the ADR and runbooks.
 
-The platform already has durable tables like `email_queue`, but many workflows still:
-1. Persist data in request code.
-2. Call `.delay()` directly from request or service logic.
+### 2.6 Frontend Platform
 
-Consequences:
-- Work publication depends on broker reachability at request time.
-- Transaction boundaries and side-effect boundaries are not unified.
-- Retries happen at the worker level, but dispatch itself is not always transactionally aligned.
+Verified state:
+- `apps/admissions` contains the mature cookie-auth, refresh, CSRF, timeout, and retry behavior.
+- `apps/jobs-ops` uses a much thinner `credentials: include` API client with generic retry logic only.
 
-Architectural conclusion:
-- The system is close to an outbox architecture, but not fully using one.
+System impact:
+- Admissions remains the better-hardened frontend.
+- Jobs/Ops can evolve independently without inheriting admissions-specific browser/runtime constraints.
 
-### 2.6 Dependency Tiers Are Not Clearly Defined
-
-Redis currently influences:
-- token rotation locks
-- refresh token blacklist checks
-- Celery locking
-- health transition memory
-- rate limiting and other cache state
-
-But the platform treats Redis as degraded-not-failed for readiness in some cases.
-
-Consequences:
-- Security and consistency guarantees become mode-dependent.
-- Operators may see "healthy" while important guarantees are weakened.
-- Product behavior under dependency failure is not explicit enough.
-
-Architectural conclusion:
-- If a dependency matters, define exactly what breaks when it is down.
-- "Fail open" and "fail closed" must be product decisions, not incidental code paths.
-
-### 2.7 Frontend Platform Standards Diverge
-
-`apps/admissions` has:
-- auth/session lifecycle handling
-- retry logic
-- CSRF handling
-- route protection
-- auth recovery events
-- cache invalidation patterns
-
-`apps/jobs-ops` currently has a much thinner API client and no equivalent platform boundary.
-
-Consequences:
-- Future auth and resilience bugs will be solved twice.
-- Shared browser behavior will drift.
-- Operational guarantees differ by frontend even when both target the same backend.
-
-Architectural conclusion:
-- If multiple frontends are first-class, platform logic must be shared.
+Residual risk:
+- The two frontends now need separate explicit contracts and ownership if they continue to diverge intentionally.
 
 ---
 
-## 3. Architectural Principles
+## 3. Work Already Completed
 
-The plan below assumes these principles will govern all future changes.
+These are the notable remediations already present in the repo.
+
+1. Auth authority was narrowed.
+   Done:
+   `backend/apps/common/middleware.py` keeps middleware auth semantics only as a compatibility/test helper instead of a production authority.
+   Improves:
+   Reduces the risk of middleware and DRF fighting over `request.user`.
+
+2. Session bootstrap path was hardened.
+   Done:
+   `backend/apps/accounts/views.py` uses `OptionalJWTCookieAuthentication` for session discovery.
+   Improves:
+   Public pages can probe auth state without turning absence of auth into a backend-side failure.
+
+3. Idempotency logic was redesigned from blind key replay to command identity.
+   Done:
+   `backend/apps/common/idempotency.py` now checks actor, method, path, and body hash, replays safe JSON payloads, and avoids poisoning keys on failed requests.
+   Improves:
+   Duplicate submissions are safer and more predictable.
+
+4. Scaffold Jobs/Ops public exposure was tightened.
+   Done:
+   `backend/config/settings/base.py` disables these routes by default; `backend/config/settings/dev.py` re-enables them for local development.
+   Improves:
+   Production surface area is smaller by default.
+
+5. Email dispatch became more durable.
+   Done:
+   `dispatch_email(...)` plus stale-pending sweep behavior were normalized across multiple task and service modules.
+   Improves:
+   Persisted delivery intent survives transient broker failures more often.
+
+6. A generic outbox ledger was added.
+   Done:
+   `backend/apps/common/outbox.py`, `backend/apps/common/models.py`, and `backend/scripts/add_outbox_events.sql` now persist normalized `outbox_events` rows for email and notification side effects.
+   Improves:
+   Gives the platform one durable audit and extension point for side effects beyond email-specific delivery rows.
+
+7. Communication flow noise was reduced.
+   Done:
+   `backend/apps/common/communication_service.py` treats best-effort failures as warnings rather than stack-trace storms.
+   Improves:
+   Operators get cleaner signal during degraded integrations or template lookup failures.
+
+8. Contract parity became locally reproducible for the narrow recorded suite.
+   Done:
+   `backend/tests/contract/conftest.py` bootstraps a minimal SQLite schema for contract recordings.
+   Improves:
+   Architecture verification no longer depends on a live local Postgres instance for that limited suite.
+
+---
+
+## 4. Architectural Principles
+
+These principles still govern the recommended target state.
 
 1. One authority per concern.
-   Authentication, authorization, idempotency, schema ownership, and side-effect dispatch must each have a clearly named owner.
-
 2. Stable transport semantics.
-   The client must not guess what `401`, `403`, `409`, `422`, or `503` mean.
-
 3. Domain isolation before service extraction.
-   Separate unstable domains from stable ones logically and operationally before debating microservices.
-
 4. Durable intent before async execution.
-   Persist the fact that work must happen before attempting to publish or perform it.
-
 5. Explicit dependency tiers.
-   State which dependencies are hard requirements, degraded-mode dependencies, or optional enhancements.
-
-6. Shared platform layer across frontends.
-   Authentication, request semantics, tracing, and retry policy must be centralized.
-
+6. Explicit frontend contracts per product boundary.
 7. Schema discipline is non-negotiable.
-   If Django does not own the schema, another explicit process must.
 
 ---
 
-## 4. Target Architecture
+## 5. Target Architecture
 
-### 4.1 Platform Layers
-
-The platform should be thought of in 5 layers:
+### 5.1 Platform Layers
 
 Layer A: Edge and delivery
-- Vercel-hosted web frontend(s)
+- Vercel-hosted frontend(s)
 - Koyeb-hosted backend ASGI service
-- DNS, TLS, HSTS, proxy routing, origin policy
+- DNS, TLS, origin policy, proxy rules
 
 Layer B: Platform core
-- Auth
-- Sessions
-- Permissions/RBAC
-- Notifications
-- Audit logging
-- Settings and feature flags
-- Error reporting
+- auth
+- sessions
+- permissions/RBAC
+- notifications
+- audit
+- settings
+- error reporting
 
 Layer C: Business domains
-- Admissions
-- Documents
-- Payments
-- Catalog
-- Jobs/Ops
-- Outreach
-- Automation
-- Analytics
+- admissions
+- documents
+- payments
+- catalog
+- jobs/ops
+- outreach
+- automation
+- analytics
 
 Layer D: Async orchestration
-- Outbox tables
+- outbox tables
 - Celery workers
-- Scheduled jobs
-- Task routing
-- Delivery retry policy
+- periodic jobs
+- queue routing
 
 Layer E: Persistence and state
-- Postgres as system of record
-- Redis as coordination and short-lived state
-- Object storage
+- Postgres
+- Redis
+- object storage
 
-The immediate goal is not to split all these layers physically. The goal is to make the boundaries explicit.
-
-### 4.2 Auth Target State
+### 5.2 Auth Target State
 
 Target:
-- DRF authentication is the only request auth authority.
-- Middleware does not authenticate users or mutate `request.user`.
-- Public endpoints use either:
-  - `AllowAny` + no auth, or
-  - `AllowAny` + optional auth explicitly for personalization.
-- Protected endpoints use explicit DRF auth and permission classes.
+- DRF is the only runtime auth authority.
+- Middleware never authenticates users in production.
+- Public endpoints are explicitly public.
+- Optional auth is explicit.
+- Protected endpoints rely on DRF auth plus permission classes.
 
 HTTP contract:
-- `401` = unauthenticated, invalid token, expired token, refresh failure
+- `401` = unauthenticated/expired/invalid token
 - `403` = authenticated but forbidden
-- `409` = semantic conflict, including token rotation conflict if exposed
-- `422` or `400` = validation failure, consistently chosen and documented
-- CSRF remains explicit if cookie auth remains
+- `409` = semantic conflict
+- `400` or `422` = validation, chosen consistently
 
-Frontend target:
-- One auth/session platform module
-- One refresh mechanism
-- One logout/auth-expired cascade
-- No multi-meaning guessing logic
+### 5.3 Idempotency Target State
 
-### 4.3 Idempotency Target State
-
-Target idempotency identity:
+Target identity:
 - idempotency key
 - actor id
-- HTTP method
+- method
 - normalized route
-- request body hash
+- request hash
 
 Behavior:
-- First command persists normalized request identity and processing state.
-- Duplicate identical command returns the canonical result.
-- Duplicate key with different body returns conflict.
-- Only selected command classes are idempotent.
-- Replay headers/status are intentional and well-defined.
+- identical duplicate returns canonical result
+- same key with different body returns conflict
+- only explicit command classes are idempotent
+- TTL and cleanup are documented
 
-### 4.4 Domain Target State
-
-The platform should be logically split into:
+### 5.4 Domain Target State
 
 Core platform:
 - accounts
@@ -290,514 +288,716 @@ Core platform:
 - permissions
 - audit
 - notifications
-- settings
-- shared infrastructure behavior
 
 Admissions product:
 - applications
 - catalog
 - documents
 - payments
-- student/admin flows
 
 Jobs/Ops product:
 - jobs
-- job applications
 - outreach
 - automation
 - analytics
 - integrations
 
 Rule:
-- If Jobs/Ops is not production-ready, it must not expand admissions production risk.
+- immature domains must not expand admissions production risk.
 
-That can be achieved by any of:
-- separate deployment
-- feature-gated routes
-- internal-only routing
-- disabled production URL registration
+### 5.5 Async Target State
 
-### 4.5 Async/Outbox Target State
+Flow:
+1. domain write transaction
+2. outbox row creation in same transaction
+3. dispatcher/worker claims row
+4. delivery retry policy executes
+5. terminal status is persisted
 
-All side-effecting workflows should use:
+### 5.6 Dependency Tier Target State
 
-1. Domain write transaction
-2. Outbox row creation in same transaction
-3. Worker or dispatcher consumes outbox rows
-4. Delivery-specific retry policy
-5. Terminal status persisted
-
-Recommended outbox categories:
-- email
-- notifications
-- OCR/document processing
-- payment verification/reconciliation
-- webhooks/integration fan-out
-
-This does not require immediate Kafka or event bus adoption.
-Postgres-backed outbox + Celery is enough.
-
-### 4.6 Dependency Tier Target State
-
-Define dependency tiers explicitly:
-
-Tier 1: hard requirements
+Tier 1:
 - Postgres
-- backend app runtime
+- backend runtime
 
-Tier 2: degraded-mode dependencies
-- Redis for non-critical caches and coordination where safe fallback exists
+Tier 2:
+- Redis for degraded-safe coordination and caching
 
-Tier 3: security-critical optionality to be removed
-- token rotation locks
-- JTI blacklist reads/writes
+Tier 3:
+- no security-critical behavior should depend on best-effort Redis semantics without explicit policy
 
-For Tier 3, pick one:
-- make Redis required for auth guarantees, or
-- redesign auth flow so these guarantees do not depend on best-effort Redis semantics
+### 5.7 Frontend Platform Target State
 
-### 4.7 Frontend Platform Target State
-
-Shared browser platform package or shared module set:
+Shared browser platform layer:
 - API client core
 - auth/session state
-- request retry policy
-- request ID propagation hooks
-- consistent error envelope parsing
-- route protection primitives
-- telemetry hooks
-
-Admissions and Jobs/Ops should both consume this layer.
+- timeout/retry policy
+- CSRF handling where applicable
+- request tracing
+- route protection
+- consistent envelope parsing
 
 ---
 
-## 5. ADRs To Create
-
-The following ADRs should be written before major refactors begin.
+## 6. ADR Status
 
 ### ADR-001: Authentication Authority
-Decision:
-- DRF is the only runtime authentication authority.
-- Middleware must not set `request.user`.
+Status: `PARTIAL`
+Done:
+- Runtime behavior is already moving in this direction.
+Open:
+- The decision is not yet captured as an ADR.
+Improves:
+- Prevents future reintroduction of middleware-auth ambiguity.
 
 ### ADR-002: Cookie Auth Strategy
-Decision:
-- Keep cookie auth for browser clients in current phase.
-- Same-origin proxy is optional hardening, not the primary architectural fix.
-- Revisit header tokens only if mobile/native clients become first-class.
+Status: `OPEN`
+Done:
+- Cookie auth remains the live browser strategy.
+Open:
+- Same-origin proxy vs current sibling-subdomain cookie model is not documented as a deliberate long-term choice.
+Improves:
+- Clarifies whether transport hardening is optional or mandatory.
 
 ### ADR-003: Idempotent Command Model
-Decision:
-- Idempotency is command identity, not blind key replay.
+Status: `PARTIAL`
+Done:
+- Code moved toward command identity semantics.
+Open:
+- Storage contract, TTL, conflict policy, and eligible endpoints are not documented.
+Improves:
+- Makes deduplication rules stable and reviewable.
 
 ### ADR-004: Schema Ownership
-Decision:
-- Define whether Postgres schema is owned by:
-  - SQL migrations outside Django,
-  - another service/repo,
-  - or a hybrid process.
-- Document the exact promotion and rollback workflow.
+Status: `DONE`
+Done:
+- Accepted in `docs/decision/2026-04-21-adr-004-schema-ownership.md`.
+- Operationalized in `docs/schema-ownership.md`.
+- Backed by `backend/scripts/verify_schema_static.py` and `backend/scripts/verify_migration.py`.
+Open:
+- Live Postgres verification still depends on environment availability.
+Improves:
+- Reduces code/schema drift across `managed = False` tables.
 
 ### ADR-005: Domain Exposure Policy
-Decision:
-- Scaffold domains are not publicly exposed in production unless explicitly approved.
+Status: `PARTIAL`
+Done:
+- Scaffold route exposure is now secure-by-default in code.
+Open:
+- Production exposure classes and approval process are not documented.
+Improves:
+- Prevents accidental re-exposure of scaffold APIs.
 
 ### ADR-006: Async Delivery Model
-Decision:
-- Use outbox-driven side effects for durable delivery workflows.
+Status: `DONE`
+Done:
+- Accepted in `docs/decision/2026-04-21-adr-006-outbox-and-side-effects.md`.
+- Durable intent exists for email via `EmailQueue`, and side effects now also write to `outbox_events` through shared outbox helpers.
+- Shared durable side-effect helpers now exist in `backend/apps/common/outbox.py`.
+Open:
+- The model is still strongest for email; broader non-email worker lifecycle parity remains future work.
+Improves:
+- Prevents duplicate or invisible side effects.
 
 ### ADR-007: Dependency Tiers
-Decision:
-- Enumerate fail-open vs fail-closed behavior by dependency and use case.
+Status: `DONE`
+Done:
+- Accepted in `docs/decision/2026-04-21-adr-007-redis-dependency-policy.md`.
+- Operationalized in `docs/redis-dependency-tiers.md` and `backend/DEPLOY.md`.
+Open:
+- Dedicated Redis-specific alerting is still optional and not yet implemented.
+Improves:
+- Makes outages predictable for engineering and operations.
 
 ### ADR-008: Frontend Platform Layer
-Decision:
-- Shared request/auth/runtime contracts must be used across all browser apps.
+Status: `N/A`
+Done:
+- Not applicable as a global requirement because `jobs-ops` is intentionally diverging into a separate domain/runtime contract.
+Open:
+- Admissions still benefits from maintaining its own explicit platform contract.
+Improves:
+- Prevents forcing unrelated products into one browser/runtime architecture.
 
 ---
 
-## 6. Phased Plan
+## 7. Phased Plan With Status And Impact
 
-## Phase 0: Immediate Stabilization (Week 1)
+## Phase 0: Immediate Stabilization
 
 Goal:
 - Reduce the highest production risk without broad product changes.
 
-Actions:
-- Freeze expansion of auth complexity until the auth authority decision is implemented.
-- Inventory every endpoint with `authentication_classes = []` and classify it:
-  - truly public
-  - public with optional auth
-  - protected but currently bypassing auth
-- Inventory every scaffold/sample-backed API route and decide whether it remains exposed in production.
-- Document current dependency modes:
-  - what happens if Postgres is down
-  - what happens if Redis is down
-  - what happens if Celery broker is down
-  - what happens if object storage is down
-- Declare temporary architectural guardrails:
-  - no new auth layers
-  - no new direct `.delay()` calls from request handlers without justification
-  - no new `managed = False` models without schema ownership note
+1. Freeze expansion of auth complexity until the auth authority decision is implemented.
+Status: `PARTIAL`
+Done:
+- The codebase has been moved closer to DRF-only authority and away from middleware auth.
+Open:
+- No repo-level guardrail or ADR prevents future auth-layer sprawl.
+Improves:
+- Lowers the chance of recreating the original session ambiguity.
 
-Deliverables:
-- classified auth endpoint inventory
-- scaffold domain exposure inventory
-- dependency behavior matrix
+2. Inventory every endpoint with `authentication_classes = []` and classify it.
+Status: `DONE`
+Done:
+- Remaining bypass endpoints are now concentrated in true public endpoints and explicit webhook/public routes.
+Open:
+- The inventory is not codified as a generated artifact yet.
+Improves:
+- Makes hidden auth bypasses easier to spot and review.
 
-Success criteria:
-- no new ambiguous auth behavior introduced
-- operators can answer what degraded mode means for each dependency
+3. Inventory every scaffold/sample-backed API route and decide whether it remains exposed in production.
+Status: `DONE`
+Done:
+- Shared scaffold routes are now gated off by default outside local dev.
+Open:
+- Per-domain maturity policy is still undocumented.
+Improves:
+- Shrinks the default public API surface.
 
-## Phase 1: Auth Boundary Refactor (Weeks 2-4)
+4. Document current dependency modes.
+Status: `PARTIAL`
+Done:
+- Current behavior is visible in code for Postgres, Redis, cache/rate-limit, and auth flows.
+Open:
+- Deployment docs and runbooks do not accurately match all current behaviors.
+Improves:
+- Operators can reason about degraded mode instead of discovering it live.
+
+5. Declare temporary architectural guardrails.
+Status: `PARTIAL`
+Done:
+- The repo has already been moved away from direct auth-layer overlap and many direct email `.delay()` calls.
+Open:
+- These rules are not enforced by ADR, lint, or architecture tests.
+Improves:
+- Prevents slow regression back to the original broken state.
+
+Deliverables status:
+- classified auth endpoint inventory: `DONE`
+- scaffold domain exposure inventory: `DONE`
+- dependency behavior matrix: `PARTIAL`
+
+## Phase 1: Auth Boundary Refactor
 
 Goal:
 - Create one authoritative auth path.
 
-Actions:
-- Remove JWT auth responsibility from middleware.
-- Keep middleware only for orthogonal concerns:
-  - security headers
-  - request ID
-  - rate limiting
-  - CSRF
-  - audit
-  - read-only mode
-  - idempotency
-- Convert protected endpoints to rely on DRF auth only.
-- Convert public-but-personalized endpoints to optional DRF auth only.
-- Normalize exception mapping so auth failures always serialize consistently.
-- Reduce frontend auth recovery logic to the minimum required by the new contract.
-- Add architecture tests for:
-  - 401 vs 403 behavior
-  - optional auth endpoints
-  - expired token handling
-  - auth-bypass endpoints forbidden from protected access
+1. Remove JWT auth responsibility from middleware.
+Status: `DONE`
+Done:
+- Middleware remains only as a compatibility/test helper, not a live production authority.
+Improves:
+- Eliminates the middleware-vs-DRF race over authenticated state.
 
-Deliverables:
-- ADR-001 and ADR-002
-- simplified auth flow diagram
-- backend auth contract tests
+2. Keep middleware only for orthogonal concerns.
+Status: `DONE`
+Done:
+- Middleware responsibilities are now security headers, request ID, rate limiting, CSRF, audit, read-only mode, and compatibility helpers.
+Improves:
+- Restores cleaner layer boundaries.
 
-Success criteria:
-- one backend auth authority
-- frontend does not need to infer auth failure type from multiple layers
+3. Convert protected endpoints to rely on DRF auth only.
+Status: `PARTIAL`
+Done:
+- Core admissions/auth/session flows do.
+Open:
+- The repo still needs stronger architectural tests to ensure new protected endpoints do not bypass auth.
+Improves:
+- Stabilizes request authentication semantics.
 
-## Phase 2: Idempotency Redesign (Weeks 4-6)
+4. Convert public-but-personalized endpoints to optional DRF auth only.
+Status: `DONE`
+Done:
+- Session bootstrap now uses optional DRF auth explicitly.
+Improves:
+- Makes anonymous-vs-authenticated bootstrap behavior predictable.
+
+5. Normalize exception mapping so auth failures always serialize consistently.
+Status: `PARTIAL`
+Done:
+- The original session 403/auth ambiguity has been reduced materially.
+Open:
+- There is still no single ADR-backed contract covering all auth and refresh failure cases.
+Improves:
+- Reduces frontend guesswork.
+
+6. Reduce frontend auth recovery logic to the minimum required by the new contract.
+Status: `PARTIAL`
+Done:
+- Backend simplification reduces the need for frontend compensation logic.
+Open:
+- Admissions still carries a heavy auth recovery state machine, and jobs-ops has not been aligned to it or replaced by a shared layer.
+Improves:
+- Cuts race conditions and recovery complexity over time.
+
+7. Add architecture tests for auth semantics.
+Status: `PARTIAL`
+Done:
+- Targeted backend and frontend auth/session hardening suites exist and have already been exercised.
+Open:
+- This is not yet a broad architecture test gate across all apps and endpoints.
+Improves:
+- Makes auth regressions cheaper to catch.
+
+Deliverables status:
+- ADR-001 and ADR-002: `OPEN`
+- simplified auth flow diagram: `OPEN`
+- backend auth contract tests: `PARTIAL`
+
+## Phase 2: Idempotency Redesign
 
 Goal:
 - Make write deduplication correct and predictable.
 
-Actions:
-- Redesign `IdempotencyKey` storage to include:
-  - method
-  - endpoint
-  - actor_id
-  - request_hash
-  - status
-  - stored response metadata
-- Enforce duplicate-key-with-different-payload conflict behavior.
-- Decide which endpoints are explicitly idempotent.
-- Add replay-safe handling for partial failures and in-flight commands.
-- Define TTL and cleanup policy.
+1. Redesign `IdempotencyKey` storage to include method, endpoint, actor, request hash, status, and response metadata.
+Status: `PARTIAL`
+Done:
+- The model and decorator use actor, method, path, request hash, status, response status, and response body.
+Open:
+- Canonical route normalization and lifecycle/cleanup policy are still missing.
+Improves:
+- Duplicate writes are safer and replay behavior is more coherent.
 
-Deliverables:
-- ADR-003
-- command idempotency spec
-- endpoint-by-endpoint idempotency eligibility matrix
+2. Enforce duplicate-key-with-different-payload conflict behavior.
+Status: `DONE`
+Done:
+- Same key + different payload now returns `409 IDEMPOTENCY_CONFLICT`.
+Improves:
+- Prevents accidental cross-command replay under reused keys.
 
-Success criteria:
-- duplicate client retries are safe
-- replay correctness is provable from persisted state
+3. Decide which endpoints are explicitly idempotent.
+Status: `OPEN`
+Done:
+- None as a documented matrix.
+Open:
+- Endpoint eligibility remains code-local rather than program-level.
+Improves:
+- Avoids accidental idempotency on the wrong flows.
 
-## Phase 3: Domain Exposure and Runtime Isolation (Weeks 6-8)
+4. Add replay-safe handling for partial failures and in-flight commands.
+Status: `PARTIAL`
+Done:
+- In-flight commands return `409 IDEMPOTENCY_PENDING`.
+- Failed commands can be retried rather than permanently poisoning the key.
+Open:
+- No lease expiration, claim timeout, or richer in-flight resolution policy yet.
+Improves:
+- Makes retries less hazardous during transient faults.
+
+5. Define TTL and cleanup policy.
+Status: `OPEN`
+Done:
+- None.
+Open:
+- No retention or purge process is defined.
+Improves:
+- Prevents infinite table growth and stale replay records.
+
+Deliverables status:
+- ADR-003: `OPEN`
+- command idempotency spec: `OPEN`
+- endpoint eligibility matrix: `OPEN`
+
+## Phase 3: Domain Exposure And Runtime Isolation
 
 Goal:
 - Stop immature domains from increasing mature product risk.
 
-Actions:
-- Classify each non-admissions domain:
-  - production-ready
-  - internal preview
-  - scaffold only
-- For scaffold-only domains:
-  - remove from production URL registration, or
-  - gate behind feature flags/internal access rules
-- Decide whether Jobs/Ops will:
-  - stay in the monolith but behind hard feature boundaries, or
-  - move toward separate deployment/runtime
-- Separate operational dashboards/alerts by domain.
+1. Classify each non-admissions domain by maturity.
+Status: `PARTIAL`
+Done:
+- There is now an implicit production-safe stance through route gating.
+Open:
+- No documented maturity matrix exists.
+Improves:
+- Allows exposure decisions to be tied to actual readiness.
 
-Deliverables:
-- ADR-005
-- domain maturity matrix
-- production exposure policy
+2. Remove scaffold-only domains from production URL registration or gate them.
+Status: `DONE`
+Done:
+- Shared scaffold route registration is gated and disabled by default outside dev.
+Improves:
+- Admissions does not automatically inherit scaffold blast radius.
 
-Success criteria:
-- admissions critical path no longer shares the same public blast radius with scaffold domains
+3. Decide whether Jobs/Ops stays in the monolith or moves toward separate deployment/runtime.
+Status: `OPEN`
+Done:
+- None.
+Open:
+- The repo still carries both a gated backend surface and a separate frontend without a final runtime decision.
+Improves:
+- Prevents long-term ambiguity in ownership and operational isolation.
 
-## Phase 4: Schema Governance (Weeks 8-10)
+4. Separate operational dashboards/alerts by domain.
+Status: `OPEN`
+Done:
+- None in repo-grounded infra docs.
+Open:
+- Operations still appear platform-wide rather than product-segmented.
+Improves:
+- Makes incidents easier to triage by business impact.
+
+Deliverables status:
+- ADR-005: `OPEN`
+- domain maturity matrix: `OPEN`
+- production exposure policy: `PARTIAL`
+
+## Phase 4: Schema Governance
 
 Goal:
 - Replace implicit schema assumptions with an explicit process.
 
-Actions:
-- Identify the true source of schema changes today.
-- Create a canonical schema change workflow:
-  - design
-  - migration authoring
-  - review
-  - deploy order
-  - rollback order
-- Generate schema snapshots in CI.
-- Add compatibility checks between ORM models and actual schema.
-- Mark which tables are platform-owned vs externally-owned.
+1. Identify the true source of schema changes today.
+Status: `DONE`
+Done:
+- Captured in ADR-004 and `docs/schema-ownership.md`.
+Improves:
+- Clarifies what actually owns production structure.
 
-Deliverables:
-- ADR-004
-- schema change runbook
-- CI schema validation step
+2. Create a canonical schema change workflow.
+Status: `DONE`
+Done:
+- Documented in `docs/schema-ownership.md`.
+Improves:
+- Prevents schema drift and ambiguous deploy order.
 
-Success criteria:
-- every engineer knows how schema changes are made and verified
-- `managed = False` no longer means "tribal knowledge required"
+3. Generate schema snapshots in CI.
+Status: `PARTIAL`
+Done:
+- Static schema verification is now enforced through `.github/workflows/backend-governance.yml`.
+Open:
+- There is still no snapshot artifact for live schema shape.
+Improves:
+- Makes structural drift visible before release.
 
-## Phase 5: Outbox and Async Reliability (Weeks 10-13)
+4. Add compatibility checks between ORM models and actual schema.
+Status: `PARTIAL`
+Done:
+- Property tests and contract harnesses provide some indirect coverage.
+Open:
+- There is no first-class schema compatibility pipeline.
+Improves:
+- Reduces surprises from `managed = False` assumptions.
+
+5. Mark which tables are platform-owned vs externally-owned.
+Status: `PARTIAL`
+Done:
+- Schema ownership is now explicit for the managed=`False` estate as SQL-owned mapping.
+Open:
+- Per-table ownership classes are still not broken out in a separate manifest.
+Improves:
+- Clarifies who can change what, and how.
+
+Deliverables status:
+- ADR-004: `DONE`
+- schema change runbook: `DONE`
+- CI schema validation step: `PARTIAL`
+
+## Phase 5: Outbox And Async Reliability
 
 Goal:
 - Move from request-coupled dispatch to durable asynchronous processing.
 
-Actions:
-- Introduce or formalize outbox tables for email and notification workflows.
-- Ensure request handlers only write durable intent, not dispatch directly.
-- Build dispatcher workers that claim pending outbox rows safely.
-- Add task routing by category:
-  - email
-  - OCR
-  - payments
-  - integrations
-- Add operational status reporting:
-  - pending
-  - processing
-  - retrying
-  - failed
-  - dead-letter/manual intervention required
+1. Introduce or formalize outbox tables for email and notification workflows.
+Status: `PARTIAL`
+Done:
+- `EmailQueue` is already used as durable intent for email.
+- Shared durable side-effect helpers now cover both notification creation and email queueing.
+- A generic `outbox_events` ledger now records normalized side-effect events for those flows.
+Open:
+- Notifications are durable but not worker-driven like email.
+Improves:
+- Preserves intent even when workers or brokers are degraded.
 
-Deliverables:
-- ADR-006
-- async delivery lifecycle diagram
-- worker queue policy
+2. Ensure request handlers only write durable intent, not dispatch directly.
+Status: `PARTIAL`
+Done:
+- Many request/task paths now persist and queue through `apps.common.outbox`.
+Open:
+- Some legacy business flows still need helper adoption over time.
+Improves:
+- Reduces coupling between request success and broker health.
 
-Success criteria:
-- a request can succeed even if broker publication is transiently unhealthy
-- side effects are observable and recoverable
+3. Build dispatcher workers that claim pending outbox rows safely.
+Status: `PARTIAL`
+Done:
+- Email delivery now uses atomic `pending/retrying -> processing` claims.
+- Stale `processing` rows are reclaimed back into `retrying` and redispatched by the sweep.
+Open:
+- There is still no dedicated persisted lease timestamp or generalized dispatcher model for non-email outbox work.
+Improves:
+- Prevents double sends and invisible stuck work.
 
-## Phase 6: Dependency Tier Hardening (Weeks 13-15)
+4. Add task routing by category.
+Status: `OPEN`
+Done:
+- None as an explicit queue topology.
+Improves:
+- Prevents one class of work from starving another.
+
+5. Add operational status reporting for pending/processing/retrying/failed/dead-letter.
+Status: `PARTIAL`
+Done:
+- `EmailQueue` already carries basic status and retry metadata.
+Open:
+- No formal dead-letter/manual intervention state machine or dashboard exists.
+Improves:
+- Makes async failures observable and recoverable.
+
+Deliverables status:
+- ADR-006: `DONE`
+- async delivery lifecycle diagram: `OPEN`
+- worker queue policy: `OPEN`
+
+## Phase 6: Dependency Tier Hardening
 
 Goal:
 - Remove ambiguity in degraded mode.
 
-Actions:
-- Decide auth behavior under Redis outage:
-  - required dependency for secure refresh rotation, or
-  - explicit safe degradation mode
-- Revisit readiness semantics based on that decision.
-- Define fail-open/fail-closed policy for:
-  - rate limiting
-  - refresh token rotation
-  - JTI blacklist checks
-  - Celery task locks
-  - cache-backed coordination
-- Add dependency-specific incident runbooks.
+1. Decide auth behavior under Redis outage.
+Status: `DONE`
+Done:
+- Captured in ADR-007 and aligned docs.
+Improves:
+- Operators and developers no longer have to infer the contract from implementation details.
 
-Deliverables:
-- ADR-007
-- degraded-mode matrix
-- incident playbooks
+2. Revisit readiness semantics based on that decision.
+Status: `DONE`
+Done:
+- Current readiness behavior is implemented and documented in `backend/DEPLOY.md`.
+Improves:
+- Keeps health endpoints honest about real guarantees.
 
-Success criteria:
-- health and readiness states accurately reflect real guarantees
-- dependency failures produce expected system behavior
+3. Define fail-open/fail-closed policy for rate limiting, token rotation, blacklist checks, task locks, and coordination.
+Status: `DONE`
+Done:
+- Captured in ADR-007 and `docs/redis-dependency-tiers.md`.
+Improves:
+- Makes incidents predictable and easier to reason about.
 
-## Phase 7: Shared Frontend Platform Layer (Weeks 15-18)
+4. Add dependency-specific incident runbooks.
+Status: `OPEN`
+Done:
+- None that match the current code precisely.
+Improves:
+- Shortens recovery time and reduces operator confusion.
+
+Deliverables status:
+- ADR-007: `DONE`
+- degraded-mode matrix: `DONE`
+- incident playbooks: `OPEN`
+
+## Phase 7: Frontend Contract Separation
 
 Goal:
-- Standardize browser runtime behavior across apps.
+- Keep admissions and jobs-ops explicit about their intentionally different runtime contracts.
 
-Actions:
-- Extract shared modules for:
-  - API client behavior
-  - auth/session contract
-  - envelope parsing
-  - retry and timeout policy
-  - route protection
-  - request tracing and telemetry hooks
-- Upgrade `jobs-ops` to consume the same platform layer.
-- Remove duplicated behavior and divergence risk.
+1. Preserve admissions as its own reference browser/runtime contract.
+Status: `DONE`
+Done:
+- Admissions contract is documented in `shared/PLATFORM_CONTRACT.md`.
+Improves:
+- Keeps the admissions browser/runtime contract explicit.
 
-Deliverables:
-- ADR-008
-- shared browser platform package or module set
-- migration guide for frontend apps
+2. Stop treating jobs-ops as required to align to admissions.
+Status: `DONE`
+Done:
+- The shared contract now explicitly scopes itself to admissions and marks jobs-ops as intentionally out of scope.
+Improves:
+- Prevents false architectural coupling.
 
-Success criteria:
-- new frontends do not reinvent auth or API semantics
-- operational behavior is consistent across products
+Deliverables status:
+- admissions platform contract: `DONE`
+- jobs-ops shared-platform requirement: `REMOVED`
 
 ---
 
-## 7. 30/60/90-Day Plan
+## 8. 30/60/90-Day Plan Updated
 
 ## First 30 Days
 
 Priority:
-- Auth authority
-- endpoint classification
-- scaffold exposure review
-- dependency matrix
+- dependency tier decision
+- deployment doc correction
+- email outbox claim safety
+- formal auth/domain exposure ADRs
 
 Required outcomes:
-- One approved auth direction
-- No unresolved protected endpoints bypassing proper auth
-- Clear decision on whether Jobs/Ops scaffold APIs remain publicly exposed
-
-Do not do:
-- Full token architecture rewrite
-- Broad microservice extraction
-- New major feature launches in unstable domains
+- one written Redis/auth policy
+- `DEPLOY.md` aligned with real readiness semantics
+- no duplicate-dispatch risk in email sweep
+- written production exposure policy for scaffold domains
 
 ## By 60 Days
 
 Priority:
-- Idempotency redesign
-- production domain isolation
-- schema governance workflow
+- idempotency governance
+- schema ownership workflow
+- domain maturity matrix
 
 Required outcomes:
-- Duplicate write safety
-- mature and immature domains separated operationally
-- documented schema ownership
-
-Do not do:
-- Add more `managed = False` models without ownership notes
-- Add more request-time side-effect dispatch
+- documented idempotent endpoint matrix
+- canonical schema workflow
+- explicit Jobs/Ops maturity and exposure decision
 
 ## By 90 Days
 
 Priority:
-- outbox implementation
-- dependency tier hardening
-- shared frontend platform layer
+- full outbox lifecycle
+- explicit per-product frontend/runtime contracts
+- domain-specific ops segmentation
 
 Required outcomes:
-- durable async side effects
-- explicit degraded-mode behavior
-- consistent browser runtime model across apps
+- atomic outbox claim/lease semantics
+- admissions and jobs-ops each have a documented runtime contract
+- clearer product/domain operational boundaries
 
 ---
 
-## 8. Ownership Model
+## 9. Fresh End-To-End Infra Audit
 
-This plan needs named ownership, not broad team responsibility.
+This section records the latest audit findings after the implemented hardening.
 
-Suggested ownership:
+### Finding 1: Deployment docs were previously stale, and are now corrected
 
-Platform owner:
-- auth
-- sessions
-- permissions
-- idempotency
-- dependency policy
-- schema governance
+Evidence:
+- `backend/apps/common/health.py` returns `200` with `redis: degraded` when Postgres is healthy and Redis is down.
+- `backend/DEPLOY.md` now documents that `/health/ready/` returns `503` for Postgres failure but remains `200` with `redis: degraded` when only Redis is down.
 
-Admissions owner:
-- applications
-- documents
-- payments
-- student/admin UX on admissions
+Risk:
+- The immediate doc/code mismatch is resolved.
+- The remaining risk is policy drift if dependency-tier decisions change without keeping the runbook aligned.
 
-Jobs/Ops owner:
-- jobs
-- outreach
-- automation
-- integrations
-- analytics
-- exposure readiness for that product surface
+Recommendation:
+- Keep `DEPLOY.md`, readiness behavior, and ADR-007 aligned as a single contract.
 
-Frontend platform owner:
-- shared browser client
-- shared auth/session semantics
-- telemetry and error handling
+### Finding 2: Redis still has mixed security and availability semantics
 
-SRE/infra owner:
-- health semantics
-- dependency tier documentation
-- monitoring and incident playbooks
+Evidence:
+- Token rotation lock acquisition fails open if Redis is unavailable.
+- JTI blacklist reads fail closed after retry.
+- Readiness stays `200` under Redis degradation.
+- Rate limiting fails open on cache failure.
 
-If these owners do not exist as individuals, assign them as roles for the duration of the refactor.
+Risk:
+- Security guarantees are mode-dependent and not obvious.
+- A Redis outage can preserve uptime while changing auth behavior in subtle ways.
+
+Recommendation:
+- Keep ADR-007, runbooks, and code behavior aligned.
+- If policy changes later, choose one explicit stance for auth under Redis outage:
+  - security-first: fail refresh/rotation when Redis is down
+  - availability-first: accept weaker guarantees and expose that mode clearly
+
+### Finding 3: Generic outbox recording now exists, but lifecycle hardening is still email-first
+
+Evidence:
+- `outbox_events` now records normalized email and notification side effects.
+- `dispatch_email(...)` is best-effort.
+- `process_pending_emails_task` sweeps rows with `status='pending'` and reclaims stale `processing` rows.
+- `send_email_task` now atomically moves rows into `processing` before delivery.
+
+Risk:
+- Immediate duplicate queued tasks are now harmless for email delivery.
+- The remaining risk is lifecycle asymmetry: email has claim/retry behavior, while other outbox-recorded side effects do not yet have equivalent worker orchestration.
+
+Recommendation:
+- Add a persisted lease/claim timestamp when the schema allows it.
+- Extend the same lifecycle model beyond email into the broader `outbox_events` policy.
+
+### Finding 4: Idempotency is improved but not fully normalized
+
+Evidence:
+- The decorator uses actor, method, path, and request hash.
+- The DB uniqueness constraint is still on `idempotency_key + actor_id + method + path`.
+- The route identity is still literal path text.
+
+Risk:
+- Command identity is stronger than before but not yet canonical enough for long-term guarantees.
+- Cleanup/retention is undefined.
+
+Recommendation:
+- Add a canonical route field or normalized endpoint identity.
+- Add retention/TTL policy and cleanup job.
+- Publish an endpoint eligibility matrix.
+
+### Finding 5: Schema governance remains the biggest unresolved structural risk
+
+Evidence:
+- Large parts of the backend still use `managed = False`.
+- There is no repo-visible schema promotion/runbook replacing Django migrations as the source of truth.
+
+Risk:
+- Code can pass tests while drifting from production schema reality.
+- Changes become dependent on tribal knowledge.
+
+Recommendation:
+- Keep ADR-004 backed by enforceable schema checks in CI.
+- Add schema snapshots and compatibility checks in CI.
+- Document whether SQL migrations live elsewhere or need to be introduced here.
+
+### Finding 6: Frontend contract separation is intentional
+
+Evidence:
+- `apps/admissions` has a mature cookie-auth, refresh, CSRF, timeout, and retry stack.
+- `apps/jobs-ops` uses a simpler API client with generic retries.
+- `shared/PLATFORM_CONTRACT.md` now explicitly scopes itself to admissions only.
+
+Risk:
+- If jobs-ops becomes production-significant, it will need its own explicit contract instead of silently drifting.
+
+Recommendation:
+- Define a separate jobs-ops contract when that product/runtime boundary hardens.
+
+### Finding 7: Local infra parity is still weak
+
+Evidence:
+- `backend/docker-compose.yml` provisions Redis/web/celery only.
+- Local Postgres parity still depends on external Neon or ad hoc setup.
+- SQLite harness now exists for contract tests, but that is not full environment parity.
+
+Risk:
+- End-to-end backend behavior is harder to reproduce locally.
+- CI and local debugging can diverge from production characteristics.
+
+Recommendation:
+- Add an optional local Postgres service or a documented local parity profile.
+- Separate "fast local" and "prod-like local" workflows.
+
+### Finding 8: Scaffold webhook surfaces remain unsafe if re-exposed
+
+Evidence:
+- Integration/email webhook scaffold views are `AllowAny` and unauthenticated.
+- They are route-gated by default now, but they are still placeholders if re-enabled.
+
+Risk:
+- A future route toggle could expose non-production webhook handlers without signature validation or business rules.
+
+Recommendation:
+- Mark scaffold webhook endpoints as internal-preview only.
+- Require signature validation before any production exposure.
 
 ---
 
-## 9. Metrics To Track
+## 10. Highest-Value Next Improvements
 
-Track the architecture program with measurable signals:
-
-Auth metrics:
-- number of endpoints bypassing normal DRF auth
-- number of auth-related frontend recovery branches
-- auth-related incident count
-- percentage of auth failures with unambiguous status semantics
-
-Reliability metrics:
-- duplicate command conflict rate
-- outbox backlog age
-- async delivery success rate
-- number of request handlers calling `.delay()` directly
-
-Domain isolation metrics:
-- number of scaffold endpoints exposed in production
-- number of production incidents attributable to non-admissions domains
-
-Schema governance metrics:
-- schema changes with approved migration artifact
-- ORM/schema compatibility failures in CI
-
-Frontend platform metrics:
-- number of frontend apps using the shared platform layer
-- number of distinct auth/session implementations in the repo
-
----
-
-## 10. Recommended Immediate Decisions
-
-These decisions should be made before starting implementation work:
-
-1. Keep cookie auth for the current browser platform in the next phase.
-2. Use DRF as the only auth authority.
-3. Treat same-origin proxying as optional transport hardening, not the primary auth fix.
-4. Rebuild idempotency around command identity.
-5. Remove or gate scaffold domains from production exposure.
-6. Formalize schema ownership before expanding `managed = False` usage.
-7. Convert durable side effects to an outbox-driven model.
-8. Standardize frontend runtime behavior across apps.
+1. Publish an idempotent endpoint matrix and add retention/cleanup policy.
+2. Add a local Postgres parity profile for reproducible infra debugging.
+3. Document domain maturity and keep scaffold webhooks non-production until signed/validated.
+4. Add a persisted lease/claim timestamp for email delivery when the schema workflow is in place.
+5. Extend worker lifecycle parity from email into notifications and other outbox-recorded side effects.
+6. Add dedicated Redis-only monitoring if degraded Redis should page.
 
 ---
 
 ## 11. Final Recommendation
 
-The right move is not a rewrite.
+The architecture is no longer primarily blocked by the original auth-layer conflict. That part is materially better.
 
-The right move is to simplify the architecture by enforcing authority boundaries:
-- one auth path
-- one command identity model
-- one schema ownership process
-- one async delivery model
-- one shared frontend platform contract
+The next stage is different:
+- reduce dependency-mode ambiguity
+- finish outbox hardening
+- make schema ownership explicit
+- keep frontend contracts explicit per product boundary
 
-If this plan is followed in order, the platform should become:
-- easier to reason about
-- less fragile under retries and dependency degradation
-- safer to expand
-- clearer to operate
-
-Without this boundary work, new fixes will continue to behave like local patches inside a system that is structurally over-ambiguous.
+If the next round of work focuses on those four areas, the system will become easier to operate, safer under degradation, and less likely to regress into hidden architectural ambiguity.

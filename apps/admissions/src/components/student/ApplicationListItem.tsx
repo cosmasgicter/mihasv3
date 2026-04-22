@@ -91,7 +91,7 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
 
   return (
     <div
-      className={`border-l-4 border-l-transparent px-4 py-4 transition-all duration-200 hover:border-l-primary hover:bg-muted/30 sm:px-6 sm:py-5 ${animateClasses.slideUp}`}
+      className={`mx-3 my-3 rounded-[1.6rem] border border-slate-200/80 bg-white/88 px-4 py-4 shadow-[0_20px_50px_-38px_rgba(15,23,42,0.45)] transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[0_26px_65px_-36px_rgba(37,99,235,0.35)] sm:mx-4 sm:px-6 sm:py-5 ${animateClasses.slideUp}`}
       style={staggerChild(index, 50)}
     >
       <div className="space-y-3">
@@ -108,10 +108,12 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
               </p>
             </div>
           </div>
-          <span className={`w-fit rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(application.status)}`}>
+          <span className={`w-fit rounded-full px-3 py-1 text-xs font-medium shadow-sm ${getStatusColor(application.status)}`}>
             {application.status.replace(/_/g, ' ').toUpperCase()}
           </span>
         </div>
+
+        <div className="h-px ambient-divider" />
 
         {/* Details Grid */}
         <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 sm:gap-2">

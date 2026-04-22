@@ -205,10 +205,10 @@ const AuditEntryCard = React.memo(function AuditEntryCard({ entry }: { entry: Au
             <div className="rounded-xl border border-border bg-muted/20 p-3">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 <Globe className="h-3.5 w-3.5" />
-                Request IP
+                IP Hash
               </div>
-              <p className="mt-1 text-sm font-medium text-foreground">{sanitizeForDisplay(entry.requestIp) || 'Unavailable'}</p>
-              <p className="text-xs text-muted-foreground">Captured from request context</p>
+              <p className="mt-1 text-sm font-medium text-foreground">{sanitizeForDisplay(entry.ipHash) || 'Unavailable'}</p>
+              <p className="text-xs text-muted-foreground">Privacy-safe correlation value</p>
             </div>
 
             <div className="rounded-xl border border-border bg-muted/20 p-3">
@@ -259,8 +259,16 @@ const AuditEntryCard = React.memo(function AuditEntryCard({ entry }: { entry: Au
                   <dd className="break-all font-mono text-foreground">{sanitizeForDisplay(entry.actorId) || 'System'}</dd>
                 </div>
                 <div>
-                  <dt className="font-medium text-muted-foreground">User agent</dt>
-                  <dd className="break-words text-foreground">{sanitizeForDisplay(entry.userAgent) || 'Unavailable'}</dd>
+                  <dt className="font-medium text-muted-foreground">User agent hash</dt>
+                  <dd className="break-words text-foreground">{sanitizeForDisplay(entry.userAgentHash) || 'Unavailable'}</dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-muted-foreground">Request IP</dt>
+                  <dd className="break-words text-foreground">{sanitizeForDisplay(entry.requestIp) || 'Restricted or unavailable'}</dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-muted-foreground">Request user agent</dt>
+                  <dd className="break-words text-foreground">{sanitizeForDisplay(entry.requestUserAgent) || 'Restricted or unavailable'}</dd>
                 </div>
               </dl>
             </div>

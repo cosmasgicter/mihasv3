@@ -32,15 +32,18 @@ AFFECTED_VIEWS = [
 
 @pytest.mark.parametrize("view_name,view_class", AFFECTED_VIEWS)
 def test_view_requires_is_authenticated(view_name, view_class):
-    """Each affected view must have IsAuthenticated in permission_classes."""
+    """Each affected view must have a permission class that requires authentication."""
+    from apps.accounts.permissions import IsAdmin, IsSuperAdmin, IsOwnerOrAdmin
     permission_classes = view_class.permission_classes
-    has_is_authenticated = any(
-        perm is IsAuthenticated or (isinstance(perm, type) and issubclass(perm, IsAuthenticated))
+    # IsAdmin, IsSuperAdmin, IsOwnerOrAdmin all check is_authenticated internally
+    auth_implying = (IsAuthenticated, IsAdmin, IsSuperAdmin, IsOwnerOrAdmin)
+    has_auth = any(
+        isinstance(perm, type) and issubclass(perm, auth_implying)
         for perm in permission_classes
     )
-    assert has_is_authenticated, (
+    assert has_auth, (
         f"{view_name}.permission_classes == {permission_classes} — "
-        f"expected to contain IsAuthenticated, but it does not"
+        f"expected to contain IsAuthenticated or an auth-implying permission, but it does not"
     )
 
 

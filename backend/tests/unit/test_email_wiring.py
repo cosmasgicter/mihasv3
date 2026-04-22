@@ -8,6 +8,7 @@ Tests:
 """
 
 import os
+from contextlib import nullcontext
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 os.environ["TESTING"] = "1"
@@ -50,7 +51,10 @@ class TestPasswordResetDispatchesEmailTask(SimpleTestCase):
     """PasswordResetRequestView.post() should create an EmailQueue record
     and call send_email_task.delay() with its ID."""
 
+    @patch("apps.common.outbox.transaction.on_commit", side_effect=lambda fn: fn())
+    @patch("apps.common.outbox.transaction.atomic", side_effect=lambda: nullcontext())
     @patch("apps.common.tasks.send_email_task.delay")
+    @patch("apps.common.models.OutboxEvent.objects.create")
     @patch("apps.common.models.EmailQueue.objects.create")
     @patch("apps.accounts.views.generate_password_reset_token")
     @patch("apps.accounts.models.PasswordResetToken.objects")
@@ -61,7 +65,10 @@ class TestPasswordResetDispatchesEmailTask(SimpleTestCase):
         mock_reset_token_objects,
         mock_gen_token,
         mock_eq_create,
+        mock_outbox_create,
         mock_delay,
+        _mock_atomic,
+        _mock_on_commit,
     ):
         user = _make_user()
         mock_profile_objects.get.return_value = user
@@ -90,6 +97,7 @@ class TestPasswordResetDispatchesEmailTask(SimpleTestCase):
 
         # EmailQueue.objects.create was called with the right fields
         mock_eq_create.assert_called_once()
+        mock_outbox_create.assert_called_once()
         create_kwargs = mock_eq_create.call_args
         self.assertEqual(create_kwargs.kwargs["recipient_email"], "student@example.com")
         self.assertEqual(create_kwargs.kwargs["status"], "pending")
@@ -109,9 +117,12 @@ class TestLockoutTriggersEmailTask(SimpleTestCase):
     """send_lockout_email() should create an EmailQueue record and
     call send_email_task.delay() with its ID."""
 
+    @patch("apps.common.outbox.transaction.on_commit", side_effect=lambda fn: fn())
+    @patch("apps.common.outbox.transaction.atomic", side_effect=lambda: nullcontext())
     @patch("apps.common.tasks.send_email_task.delay")
+    @patch("apps.common.models.OutboxEvent.objects.create")
     @patch("apps.common.models.EmailQueue.objects.create")
-    def test_lockout_dispatches_email_task(self, mock_eq_create, mock_delay):
+    def test_lockout_dispatches_email_task(self, mock_eq_create, mock_outbox_create, mock_delay, _mock_atomic, _mock_on_commit):
         user = _make_user()
 
         email_record = MagicMock()
@@ -124,6 +135,7 @@ class TestLockoutTriggersEmailTask(SimpleTestCase):
 
         # EmailQueue.objects.create was called
         mock_eq_create.assert_called_once()
+        mock_outbox_create.assert_called_once()
         create_kwargs = mock_eq_create.call_args
         self.assertEqual(create_kwargs.kwargs["recipient_email"], "student@example.com")
         self.assertEqual(create_kwargs.kwargs["status"], "pending")
@@ -142,9 +154,12 @@ class TestEmailQueueFailureDoesNotRaise(SimpleTestCase):
     """If EmailQueue.objects.create() raises, the caller should not see
     the exception — it should be swallowed and logged."""
 
+    @patch("apps.common.outbox.transaction.on_commit", side_effect=lambda fn: fn())
+    @patch("apps.common.outbox.transaction.atomic", side_effect=lambda: nullcontext())
     @patch("apps.common.tasks.send_email_task.delay")
+    @patch("apps.common.models.OutboxEvent.objects.create")
     @patch("apps.common.models.EmailQueue.objects.create")
-    def test_lockout_email_swallows_create_failure(self, mock_eq_create, mock_delay):
+    def test_lockout_email_swallows_create_failure(self, mock_eq_create, mock_outbox_create, mock_delay, _mock_atomic, _mock_on_commit):
         mock_eq_create.side_effect = Exception("DB connection lost")
 
         user = _make_user()
@@ -156,8 +171,12 @@ class TestEmailQueueFailureDoesNotRaise(SimpleTestCase):
 
         # send_email_task.delay should NOT have been called
         mock_delay.assert_not_called()
+        mock_outbox_create.assert_not_called()
 
+    @patch("apps.common.outbox.transaction.on_commit", side_effect=lambda fn: fn())
+    @patch("apps.common.outbox.transaction.atomic", side_effect=lambda: nullcontext())
     @patch("apps.common.tasks.send_email_task.delay")
+    @patch("apps.common.models.OutboxEvent.objects.create")
     @patch("apps.common.models.EmailQueue.objects.create")
     @patch("apps.accounts.views.generate_password_reset_token")
     @patch("apps.accounts.models.PasswordResetToken.objects")
@@ -168,7 +187,10 @@ class TestEmailQueueFailureDoesNotRaise(SimpleTestCase):
         mock_reset_token_objects,
         mock_gen_token,
         mock_eq_create,
+        mock_outbox_create,
         mock_delay,
+        _mock_atomic,
+        _mock_on_commit,
     ):
         user = _make_user()
         mock_profile_objects.get.return_value = user
@@ -193,6 +215,7 @@ class TestEmailQueueFailureDoesNotRaise(SimpleTestCase):
 
         self.assertEqual(response.status_code, 200)
         mock_delay.assert_not_called()
+        mock_outbox_create.assert_not_called()
 
 
 # =========================================================================
@@ -205,9 +228,12 @@ class TestLockoutEmailBodyContainsLockoutMessage(SimpleTestCase):
     """The lockout email body should inform the user their account has been
     temporarily locked due to repeated failed login attempts."""
 
+    @patch("apps.common.outbox.transaction.on_commit", side_effect=lambda fn: fn())
+    @patch("apps.common.outbox.transaction.atomic", side_effect=lambda: nullcontext())
     @patch("apps.common.tasks.send_email_task.delay")
+    @patch("apps.common.models.OutboxEvent.objects.create")
     @patch("apps.common.models.EmailQueue.objects.create")
-    def test_lockout_body_mentions_lockout(self, mock_eq_create, mock_delay):
+    def test_lockout_body_mentions_lockout(self, mock_eq_create, mock_outbox_create, mock_delay, _mock_atomic, _mock_on_commit):
         email_record = MagicMock()
         email_record.id = uuid.uuid4()
         mock_eq_create.return_value = email_record

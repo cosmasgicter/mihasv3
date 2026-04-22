@@ -219,34 +219,45 @@ export function ApplicationApprovalActions({
 
   return (
     <div className="space-y-3">
+      <div className="grid gap-2 sm:grid-cols-2">
+        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/90 px-3 py-3">
+          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-slate-500">Application</p>
+          <p className="mt-1 text-sm font-semibold text-slate-950">{currentStatus.replace(/_/g, ' ')}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/90 px-3 py-3">
+          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-slate-500">Payment</p>
+          <p className="mt-1 text-sm font-semibold text-slate-950">{normalizedPaymentStatus.replace(/_/g, ' ')}</p>
+        </div>
+      </div>
+
       {/* Application Status Controls */}
       <div>
-        <label className="text-xs font-medium text-foreground mb-1 block">
+        <label className="mb-2 block text-xs font-medium text-foreground">
           Application Status
         </label>
-        <div className="flex gap-1">
+        <div className="grid gap-2 sm:grid-cols-2">
           {currentStatus === 'draft' && (
             <>
-              <div className="flex-1 text-center py-2">
+              <div className="flex-1 rounded-2xl border border-slate-200 bg-slate-50 py-3 text-center">
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-300">
                   Draft — not yet submitted
                 </span>
               </div>
-              <button
+              <Button
                 onClick={() => handleStatusUpdate('submitted')}
                 disabled={updatingStatus || disabled}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
+                className="w-full"
               >
                 {updatingStatus ? 'Updating...' : 'Force Submit'}
-              </button>
+              </Button>
             </>
           )}
 
           {currentStatus === 'submitted' && (
-            <button
+            <Button
               onClick={() => handleStatusUpdate('under_review')}
               disabled={updatingStatus || disabled}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
+              className="sm:col-span-2"
             >
               {updatingStatus ? 'Updating...' : (
                 <>
@@ -254,15 +265,16 @@ export function ApplicationApprovalActions({
                   Review
                 </>
               )}
-            </button>
+            </Button>
           )}
           
           {currentStatus === 'under_review' && (
             <>
-              <button
+              <Button
+                variant="success"
                 onClick={() => handleStatusUpdate('approved')}
                 disabled={updatingStatus || disabled || !isPaymentVerified}
-                className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
+                className="w-full"
                 title={!isPaymentVerified ? 'Payment must be verified first' : 'Approve application'}
               >
                 {updatingStatus ? 'Updating...' : (
@@ -271,11 +283,12 @@ export function ApplicationApprovalActions({
                     Approve
                   </>
                 )}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="destructive"
                 onClick={() => handleStatusUpdate('rejected')}
                 disabled={updatingStatus || disabled}
-                className="flex-1 bg-destructive hover:bg-destructive/90 disabled:opacity-50 text-white text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
+                className="w-full"
               >
                 {updatingStatus ? 'Updating...' : (
                   <>
@@ -283,12 +296,12 @@ export function ApplicationApprovalActions({
                     Reject
                   </>
                 )}
-              </button>
+              </Button>
             </>
           )}
           
           {(currentStatus === 'approved' || currentStatus === 'rejected') && (
-            <div className="flex-1 text-center py-2">
+            <div className="sm:col-span-2 text-center py-2">
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                 currentStatus === 'approved' 
                   ? 'bg-green-100 text-green-800 border border-green-300' 
@@ -313,19 +326,22 @@ export function ApplicationApprovalActions({
 
       {/* Payment Status Controls */}
       <div>
-        <label className="text-xs font-medium text-foreground mb-1 block">
+        <label className="mb-2 block text-xs font-medium text-foreground">
           Payment Status
         </label>
-        <div className="flex gap-1">
+        <div className="grid gap-2 sm:grid-cols-2">
           {normalizedPaymentStatus === 'not_paid' && (
-            <div className="flex-1 text-center py-2 space-y-1">
+            <div className="sm:col-span-2 grid gap-2">
+            <div className="text-center py-2 space-y-1 rounded-2xl border border-amber-200 bg-amber-50">
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-300">
                 Awaiting Payment
               </span>
-              <button
+            </div>
+              <Button
+                variant="outline"
                 onClick={() => openPaymentReviewDialog('verified')}
                 disabled={updatingPayment || disabled}
-                className="w-full border-2 border-green-600 text-green-700 hover:bg-green-50 disabled:opacity-50 text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
+                className="w-full border-green-600 text-green-700 hover:bg-green-50"
               >
                 {updatingPayment ? 'Updating...' : (
                   <>
@@ -333,16 +349,17 @@ export function ApplicationApprovalActions({
                     Mark as Paid
                   </>
                 )}
-              </button>
+              </Button>
             </div>
           )}
 
           {normalizedPaymentStatus === 'pending_review' && (
             <>
-              <button
+              <Button
+                variant="outline"
                 onClick={() => openPaymentReviewDialog('verified')}
                 disabled={updatingPayment || disabled}
-                className="flex-1 border-2 border-green-600 text-green-700 hover:bg-green-50 disabled:opacity-50 text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
+                className="border-green-600 text-green-700 hover:bg-green-50"
               >
                 {updatingPayment ? 'Updating...' : (
                   <>
@@ -350,11 +367,12 @@ export function ApplicationApprovalActions({
                     Verify
                   </>
                 )}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="destructive"
                 onClick={() => openPaymentReviewDialog('rejected')}
                 disabled={updatingPayment || disabled}
-                className="flex-1 bg-destructive hover:bg-destructive/90 disabled:opacity-50 text-white text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
+                className="w-full"
               >
                 {updatingPayment ? 'Updating...' : (
                   <>
@@ -362,11 +380,12 @@ export function ApplicationApprovalActions({
                     Reject
                   </>
                 )}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="outline"
                 onClick={() => openPaymentReviewDialog('deferred')}
                 disabled={updatingPayment || disabled}
-                className="flex-1 border-2 border-amber-500 text-amber-700 hover:bg-amber-50 disabled:opacity-50 text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
+                className="border-amber-500 text-amber-700 hover:bg-amber-50 sm:col-span-2"
               >
                 {updatingPayment ? 'Updating...' : (
                   <>
@@ -374,15 +393,16 @@ export function ApplicationApprovalActions({
                     Defer
                   </>
                 )}
-              </button>
+              </Button>
             </>
           )}
 
           {normalizedPaymentStatus === 'rejected' && (
-            <button
+            <Button
+              variant="warning"
               onClick={() => openPaymentReviewDialog('pending_review')}
               disabled={updatingPayment || disabled}
-              className="flex-1 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
+              className="sm:col-span-2"
             >
               {updatingPayment ? 'Updating...' : (
                 <>
@@ -390,21 +410,22 @@ export function ApplicationApprovalActions({
                   Reopen Review
                 </>
               )}
-            </button>
+            </Button>
           )}
 
           {normalizedPaymentStatus === 'deferred' && (
             <>
-              <div className="flex-1 text-center py-2">
+              <div className="text-center py-3 rounded-2xl border border-amber-200 bg-amber-50">
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
                   <Clock className="h-3 w-3 mr-1" />
                   Deferred
                 </span>
               </div>
-              <button
+              <Button
+                variant="warning"
                 onClick={() => openPaymentReviewDialog('pending_review')}
                 disabled={updatingPayment || disabled}
-                className="flex-1 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-xs font-medium min-h-[44px] py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1"
+                className="w-full"
               >
                 {updatingPayment ? 'Updating...' : (
                   <>
@@ -412,12 +433,12 @@ export function ApplicationApprovalActions({
                     Reopen Review
                   </>
                 )}
-              </button>
+              </Button>
             </>
           )}
           
           {(normalizedPaymentStatus === 'verified' || normalizedPaymentStatus === 'rejected') && (
-            <div className="flex-1 text-center py-2">
+            <div className="sm:col-span-2 text-center py-2">
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                 normalizedPaymentStatus === 'verified'
                   ? 'bg-green-100 text-green-800 border border-green-300' 

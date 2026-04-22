@@ -45,6 +45,10 @@
   }
   
   body {
+    background:
+      radial-gradient(circle at top left, rgba(14, 165, 233, 0.08), transparent 22rem),
+      radial-gradient(circle at top right, rgba(37, 99, 235, 0.06), transparent 26rem),
+      linear-gradient(180deg, #f8fbff 0%, #ffffff 18rem, #f8fafc 100%);
     @apply bg-background text-foreground;
     font-family: Inter, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -257,6 +261,22 @@ input, textarea, select {
   
   .text-vibrant {
     @apply bg-gradient-to-r from-blue-600/90 to-indigo-600/85 bg-clip-text text-transparent;
+  }
+
+  .glass-panel {
+    @apply rounded-[1.75rem] border border-white/70 bg-white/80 shadow-[0_22px_70px_-36px_rgba(15,23,42,0.35)] backdrop-blur-xl;
+  }
+
+  .polished-panel {
+    @apply rounded-[1.5rem] border border-slate-200/80 bg-white/95 shadow-[0_18px_44px_-28px_rgba(15,23,42,0.28)];
+  }
+
+  .feature-chip {
+    @apply inline-flex items-center gap-2 rounded-full border border-slate-200/80 bg-white/85 px-3 py-1.5 text-xs font-semibold tracking-wide text-slate-600 shadow-sm;
+  }
+
+  .ambient-divider {
+    background: linear-gradient(90deg, rgba(37,99,235,0.16), rgba(14,165,233,0.08), rgba(15,23,42,0));
   }
   
   /* Performance-optimized animations */

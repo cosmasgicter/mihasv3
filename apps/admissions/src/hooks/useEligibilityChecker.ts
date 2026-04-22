@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   checkEligibility,
   eligibilityEngine,
+  type CurriculumType,
   type EligibilityAssessment,
   type EligibilityResult,
   type SubjectGrade,
@@ -12,6 +13,7 @@ interface UseEligibilityCheckerProps {
   programId: string
   programName?: string
   grades: SubjectGrade[]
+  curriculum?: CurriculumType
   enabled?: boolean
 }
 
@@ -39,6 +41,7 @@ export function useEligibilityChecker({
   programId,
   programName,
   grades,
+  curriculum,
   enabled = true,
 }: UseEligibilityCheckerProps): UseEligibilityCheckerReturn {
   const [assessment, setAssessment] = useState<EligibilityResult | null>(null)
@@ -56,7 +59,7 @@ export function useEligibilityChecker({
     try {
       // Fast path: use programName directly with the local checker
       if (programName) {
-        const result = checkEligibility(programName, grades)
+        const result = checkEligibility(programName, grades, curriculum)
         setAssessment(result)
       }
 
@@ -101,7 +104,7 @@ export function useEligibilityChecker({
     } finally {
       setLoading(false)
     }
-  }, [applicationId, programId, programName, grades, enabled])
+  }, [applicationId, programId, programName, grades, curriculum, enabled])
 
   const refresh = useCallback(async () => {
     await runCheck()

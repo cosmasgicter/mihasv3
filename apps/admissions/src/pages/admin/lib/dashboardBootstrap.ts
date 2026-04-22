@@ -1,4 +1,4 @@
-import { getDisplayName } from '@/utils/userDisplayName'
+import { getDisplayName } from '@/lib/userDisplayName'
 import type { User, UserProfile } from '@/types/auth'
 
 export function shouldLoadAdminDashboard(user: User | null | undefined): boolean {

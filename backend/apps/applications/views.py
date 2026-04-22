@@ -1046,12 +1046,23 @@ class ApplicationReviewView(APIView):
                     )
 
         # Sync intake enrollment on status changes that affect capacity
-        if new_status in ("approved", "rejected"):
-            from apps.applications.intake_enforcer import IntakeEnforcer
-            IntakeEnforcer.sync_enrollment(app.intake)
+        intake_name = getattr(app, "intake", None)
+        has_resolved_intake = isinstance(intake_name, str) and bool(intake_name.strip())
+
+        if new_status in ("approved", "rejected") and has_resolved_intake:
+            try:
+                from apps.applications.intake_enforcer import IntakeEnforcer
+
+                IntakeEnforcer.sync_enrollment(intake_name)
+            except Exception:
+                logger.exception(
+                    "Failed to sync intake enrollment for app=%s intake=%s",
+                    app.id,
+                    intake_name,
+                )
 
         # Set enrollment deadline on approval (Req 10.3, 10.4)
-        if new_status == "approved":
+        if new_status == "approved" and has_resolved_intake:
             try:
                 from apps.applications.enrollment_service import EnrollmentService
                 deadline = EnrollmentService.compute_deadline(app)
@@ -1098,7 +1109,9 @@ class ApplicationReviewView(APIView):
         # Add intake capacity info for admin UI
         try:
             from apps.catalog.models import Intake
-            intake = Intake.objects.filter(name=app.intake, is_active=True).first()
+            intake = None
+            if has_resolved_intake:
+                intake = Intake.objects.filter(name=intake_name, is_active=True).first()
             if intake:
                 response_data["intake_capacity"] = intake.max_capacity
                 response_data["intake_enrollment"] = intake.current_enrollment
@@ -1777,11 +1790,7 @@ class ApplicationVerifyDocumentView(APIView):
         # Create audit log entry
         from apps.common.models import AuditLog
 
-        ip_address = request.META.get("HTTP_X_FORWARDED_FOR", "")
-        if ip_address:
-            ip_address = ip_address.split(",")[0].strip()
-        else:
-            ip_address = request.META.get("REMOTE_ADDR", "")
+        network_fields = build_audit_network_fields(request)
 
         AuditLog.objects.create(
             actor_id=str(request.user.id),
@@ -1793,10 +1802,10 @@ class ApplicationVerifyDocumentView(APIView):
                 "new_status": verification_status,
                 "notes": notes,
             },
-            ip_address=hashlib.sha256(ip_address.encode()).hexdigest(),
-            user_agent=hashlib.sha256(
-                request.META.get("HTTP_USER_AGENT", "").encode()
-            ).hexdigest(),
+            ip_address=network_fields["ip_address"],
+            user_agent=network_fields["user_agent"],
+            ip_address_encrypted=network_fields["ip_address_encrypted"],
+            user_agent_encrypted=network_fields["user_agent_encrypted"],
             retention_category="standard",
         )
 
@@ -1890,11 +1899,7 @@ def _enqueue_document_task(application, task_type, task_func, request):
     )
 
     # Audit log
-    ip_address = request.META.get("HTTP_X_FORWARDED_FOR", "")
-    if ip_address:
-        ip_address = ip_address.split(",")[0].strip()
-    else:
-        ip_address = request.META.get("REMOTE_ADDR", "")
+    network_fields = build_audit_network_fields(request)
 
     AuditLog.objects.create(
         actor_id=str(request.user.id),
@@ -1902,10 +1907,10 @@ def _enqueue_document_task(application, task_type, task_func, request):
         entity_type="applications",
         entity_id=application.id,
         changes={"task_id": task.id, "status": "queued"},
-        ip_address=hashlib.sha256(ip_address.encode()).hexdigest(),
-        user_agent=hashlib.sha256(
-            request.META.get("HTTP_USER_AGENT", "").encode()
-        ).hexdigest(),
+        ip_address=network_fields["ip_address"],
+        user_agent=network_fields["user_agent"],
+        ip_address_encrypted=network_fields["ip_address_encrypted"],
+        user_agent_encrypted=network_fields["user_agent_encrypted"],
         retention_category="standard",
     )
 
@@ -2894,3 +2899,4 @@ class ApplicationAmendmentReviewView(APIView):
                 "status": amendment.status,
             },
         })
+from apps.common.audit_network import build_audit_network_fields

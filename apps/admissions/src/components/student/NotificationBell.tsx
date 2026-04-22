@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Bell, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -8,9 +8,12 @@ import type { StudentNotification } from '@/types/notifications'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { NotificationItem } from '@/components/student/NotificationItem'
+import { sanitizeText } from '@/lib/sanitize'
 
 export function NotificationBell() {
   const [showPanel, setShowPanel] = useState(false)
+  const [isPulsing, setIsPulsing] = useState(false)
+  const prevUnreadRef = useRef<number>(0)
   const focusTrapRef = useFocusTrap(showPanel)
   useEscapeKey(showPanel, () => setShowPanel(false))
   const { 
@@ -22,6 +25,30 @@ export function NotificationBell() {
     deleteNotification,
     refresh,
   } = useNotificationPolling()
+
+  // Badge pulse + browser notification when unread count increases
+  useEffect(() => {
+    if (unreadCount > prevUnreadRef.current && prevUnreadRef.current !== 0) {
+      setIsPulsing(true)
+      const timer = setTimeout(() => setIsPulsing(false), 1500)
+
+      // Browser notification if already granted (never request proactively)
+      if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        const newest = notifications.find((n) => !n.read)
+        if (newest) {
+          try {
+            new Notification(sanitizeText(newest.title), {
+              body: sanitizeText(newest.content).slice(0, 100),
+              icon: '/favicon.ico',
+            })
+          } catch { /* silently fail */ }
+        }
+      }
+
+      return () => clearTimeout(timer)
+    }
+    prevUnreadRef.current = unreadCount
+  }, [unreadCount, notifications])
 
   const handleNotificationClick = useCallback(async (notification: StudentNotification) => {
     try {
@@ -72,11 +99,13 @@ export function NotificationBell() {
       >
         <Bell className={`h-5 w-5 text-muted-foreground${unreadCount > 0 ? ' motion-safe:animate-bounce' : ''}`} aria-hidden="true" style={unreadCount > 0 ? { animationIterationCount: 1 } : undefined} />
         {unreadCount > 0 && (
-          <span
-            className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white animate-pulse shadow-sm shadow-destructive/50"
-            data-testid="unread-count"
-          >
-            {unreadCount > 99 ? '99+' : unreadCount}
+          <span className="absolute -top-0.5 -right-0.5" data-testid="unread-count">
+            {isPulsing && (
+              <span className="absolute inset-0 rounded-full bg-destructive motion-safe:animate-ping opacity-75" />
+            )}
+            <span className="relative min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white shadow-sm shadow-destructive/50">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
           </span>
         )}
       </Button>
@@ -150,9 +179,9 @@ export function NotificationBell() {
                   </div>
                 ) : notifications.length === 0 ? (
                   <div className="p-8 text-center">
-                    <Bell className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                    <p className="font-medium text-foreground">No notifications yet</p>
-                    <p className="text-xs mt-1 text-muted-foreground">We'll notify you about important updates</p>
+                    <Bell className="h-12 w-12 mx-auto mb-3 text-muted-foreground/30" />
+                    <p className="font-medium text-foreground">You're all caught up!</p>
+                    <p className="text-xs mt-1 text-muted-foreground">We'll notify you when something needs your attention.</p>
                   </div>
                 ) : (
                   <div className="py-1">

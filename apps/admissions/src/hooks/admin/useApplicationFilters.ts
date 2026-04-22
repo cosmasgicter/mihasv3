@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 
-import { getEnvVariable } from '@/utils/env'
+import { getEnvVariable } from '@/lib/env'
 
 export interface ApplicationFilters {
   searchTerm: string

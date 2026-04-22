@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { applicationService } from '@/services/applications'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { ApplicationFilters, DEFAULT_APPLICATION_FILTERS } from './useApplicationFilters'
-import { calculatePointsFromSummary } from '@/utils/grades'
+import { calculatePointsFromSummary } from '@/lib/grades'
 import { invalidateAdminApplicationQueries } from './applicationQueryInvalidation'
 
 interface ApplicationSummary {

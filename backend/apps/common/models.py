@@ -6,7 +6,11 @@ from django.db import models
 
 
 class AuditLog(models.Model):
-    """Maps to 'audit_logs' table. No PII stored."""
+    """Maps to 'audit_logs' table.
+
+    Long-retention network context is stored as SHA-256 hashes. Raw network
+    context may also be stored in encrypted form for restricted forensic use.
+    """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     actor_id = models.UUIDField(null=True, blank=True)
@@ -15,7 +19,9 @@ class AuditLog(models.Model):
     entity_id = models.UUIDField(null=True, blank=True)
     changes = models.JSONField(null=True, blank=True)
     ip_address = models.CharField(max_length=64, null=True, blank=True)  # SHA-256 hash of IP
-    user_agent = models.TextField(null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)  # SHA-256 hash of user-agent
+    ip_address_encrypted = models.TextField(null=True, blank=True)
+    user_agent_encrypted = models.TextField(null=True, blank=True)
     retention_category = models.CharField(max_length=20, default='standard')
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -102,6 +108,14 @@ class Notification(models.Model):
         managed = False
         db_table = 'notifications'
 
+    def save(self, *args, **kwargs):
+        from django.utils import timezone as tz
+        now = tz.now()
+        if not self.created_at:
+            self.created_at = now
+        self.updated_at = now
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.title} → {self.user_id}"
 
@@ -156,6 +170,32 @@ class EmailQueue(models.Model):
 
     def __str__(self):
         return f"Email to {self.recipient_email} ({self.status})"
+
+
+class OutboxEvent(models.Model):
+    """Maps to 'outbox_events' table."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    event_type = models.CharField(max_length=100)
+    channel = models.CharField(max_length=50)
+    aggregate_type = models.CharField(max_length=100, null=True, blank=True)
+    aggregate_id = models.UUIDField(null=True, blank=True)
+    payload = models.JSONField(default=dict)
+    status = models.CharField(max_length=20, default="published")
+    target_table = models.CharField(max_length=100, null=True, blank=True)
+    target_id = models.UUIDField(null=True, blank=True)
+    idempotency_key = models.TextField(null=True, blank=True, unique=True)
+    error_message = models.TextField(null=True, blank=True)
+    retry_count = models.IntegerField(null=True, blank=True, default=0)
+    created_at = models.DateTimeField(null=True, blank=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = "outbox_events"
+
+    def __str__(self):
+        return f"{self.channel}:{self.event_type} ({self.status})"
 
 
 class ErrorLog(models.Model):
