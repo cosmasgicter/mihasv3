@@ -117,6 +117,10 @@ class TestNotificationListPaginated(SimpleTestCase):
 
         data = response.data
 
+        # Handle envelope format: {"success": true, "data": {...}}
+        if "data" in data and "success" in data:
+            data = data["data"]
+
         # Envelope must contain all four pagination keys
         self.assertIn("page", data)
         self.assertIn("pageSize", data)

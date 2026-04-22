@@ -8,6 +8,7 @@ import { invalidateAdminApplicationQueries } from './applicationQueryInvalidatio
 
 interface ApplicationSummary {
   id: string
+  user_id: string
   application_number: string
   full_name: string
   email: string
@@ -38,6 +39,10 @@ interface ApplicationSummary {
   points: number
   age: number
   days_since_submission: number
+  admin_feedback: string
+  admin_feedback_date: string | null
+  admin_feedback_by: string | null
+  nationality: string
   isDraft: boolean
   completionPercentage: number
   lastUpdated: string
@@ -75,6 +80,7 @@ const calculateCompletionPercentage = (application: any): number => {
 
 const mapApplicationRow = (row: any): ApplicationSummary => ({
   id: row.id,
+  user_id: row.user_id ?? '',
   application_number: row.application_number ?? '',
   full_name: row.full_name ?? '',
   email: row.email ?? '',
@@ -105,6 +111,10 @@ const mapApplicationRow = (row: any): ApplicationSummary => ({
   points: Number(row.points ?? calculatePointsFromSummary(row.grades_summary)),
   age: Number(row.age ?? 0),
   days_since_submission: Number(row.days_since_submission ?? 0),
+  admin_feedback: row.admin_feedback ?? '',
+  admin_feedback_date: row.admin_feedback_date ?? null,
+  admin_feedback_by: row.admin_feedback_by ?? null,
+  nationality: row.nationality ?? '',
   isDraft: row.status === 'draft',
   completionPercentage: calculateCompletionPercentage(row),
   lastUpdated: row.updated_at ?? row.created_at ?? ''
