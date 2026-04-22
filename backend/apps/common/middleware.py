@@ -13,6 +13,7 @@ import re
 import time
 import uuid
 
+from django.conf import settings
 from django.http import JsonResponse
 
 from apps.common.audit_network import build_audit_network_fields
@@ -91,6 +92,7 @@ class RequestIDMiddleware:
         finally:
             clear_request_context()
         response["X-Request-ID"] = request_id
+        response["X-Backend-Version"] = getattr(settings, "APP_VERSION", "dev")
         return response
 
 

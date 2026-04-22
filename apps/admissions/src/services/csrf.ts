@@ -26,14 +26,14 @@ export async function recoverCsrfAndRetry(
   requestHeaders: Record<string, string>,
   signal: AbortSignal,
 ): Promise<Response> {
-  // Re-fetch CSRF token from session endpoint
-  const sessionEndpoint = toApiV1Path('/auth/session/');
+  // Re-fetch CSRF token from session endpoint.
+  // Use query parameter instead of (or in addition to) the custom header
+  // because cross-origin requests with non-standard headers require a CORS
+  // preflight that may be blocked if the header isn't in CORS_ALLOW_HEADERS.
+  const sessionEndpoint = toApiV1Path('/auth/session/') + '?refresh_csrf=1';
   const sessionResponse = await fetch(`${API_BASE}${sessionEndpoint}`, {
     method: 'GET',
     credentials: 'include',
-    headers: {
-      'X-CSRF-Recovery': '1',
-    },
     signal,
   });
 

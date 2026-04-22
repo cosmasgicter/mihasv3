@@ -2,6 +2,7 @@
 
 import json
 import logging
+from unittest.mock import patch
 
 from django.test import RequestFactory, SimpleTestCase
 
@@ -83,3 +84,19 @@ class TestRequestIDMiddleware(SimpleTestCase):
         )
         RequestContextFilter().filter(record)
         self.assertIsNone(getattr(record, "request_id", None))
+
+    @patch("apps.common.middleware.settings.APP_VERSION", "2026.04.22-sha1234")
+    def test_sets_backend_version_header(self):
+        factory = RequestFactory()
+
+        def get_response(request):
+            class DummyResponse(dict):
+                pass
+
+            return DummyResponse()
+
+        middleware = RequestIDMiddleware(get_response)
+        request = factory.get("/health/live/")
+        response = middleware(request)
+
+        self.assertEqual(response["X-Backend-Version"], "2026.04.22-sha1234")

@@ -262,8 +262,8 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = split_csv_env("CORS_ALLOWED_ORIGINS")
 CORS_ALLOWED_ORIGIN_REGEXES = split_csv_env("CORS_ALLOWED_ORIGIN_REGEXES")
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_HEADERS = list(dict.fromkeys([*default_headers, "cache-control", "x-csrf-token"]))
-CORS_EXPOSE_HEADERS = ["X-CSRF-Token", "X-Request-ID"]
+CORS_ALLOW_HEADERS = list(dict.fromkeys([*default_headers, "cache-control", "x-csrf-token", "x-csrf-recovery"]))
+CORS_EXPOSE_HEADERS = ["X-CSRF-Token", "X-Request-ID", "X-Backend-Version"]
 CORS_PREFLIGHT_MAX_AGE = 86400
 
 # ---------------------------------------------------------------------------
@@ -287,7 +287,7 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB for file uploads
 # ---------------------------------------------------------------------------
 
 AUTH_COOKIE_DOMAIN = ".mihas.edu.zm"
-AUTH_COOKIE_SAMESITE = "Lax"  # Same-origin via Vercel API proxy — no cross-origin cookies needed
+AUTH_COOKIE_SAMESITE = "Lax"  # Same-site subdomains: apply.mihas.edu.zm -> api.mihas.edu.zm
 AUTH_COOKIE_SECURE = True
 AUTH_COOKIE_HTTPONLY = True
 
@@ -467,6 +467,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ---------------------------------------------------------------------------
 
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
+APP_VERSION = os.environ.get("APP_VERSION", "dev")
 
 LOGGING = {
     "version": 1,
