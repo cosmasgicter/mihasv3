@@ -74,13 +74,11 @@ MIDDLEWARE = [
     "apps.common.middleware.RateLimitMiddleware",
     # 7. URL normalization
     "django.middleware.common.CommonMiddleware",
-    # 8. Custom CSRF enforcement (X-CSRF-Token header)
-    "apps.common.middleware.CSRFEnforcementMiddleware",
-    # 9. Audit logging for state-changing operations
+    # 8. Audit logging for state-changing operations
     "apps.common.middleware.AuditMiddleware",
-    # 10. Read-only mode (disabled by default — activates via READ_ONLY_MODE env var)
+    # 9. Read-only mode (disabled by default — activates via READ_ONLY_MODE env var)
     "apps.common.readonly.ReadOnlyMiddleware",
-    # 11. Idempotency: now handled per-view via @idempotent decorator
+    # 10. Idempotency: now handled per-view via @idempotent decorator
     # Django defaults needed for admin
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",

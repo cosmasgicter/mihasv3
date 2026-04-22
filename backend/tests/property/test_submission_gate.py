@@ -72,7 +72,7 @@ class TestSubmissionBlockedWithoutPayment(SimpleTestCase):
 
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
-            patch("apps.applications.views.submit_application") as mock_submit,
+            patch("apps.applications.admin_views.submit_application") as mock_submit,
         ):
             mock_app_qs.get.return_value = mock_app
             mock_submit.side_effect = ApplicationSubmissionError(
@@ -185,7 +185,7 @@ class TestPaymentGateOnlyChecksSuccessfulStatus(SimpleTestCase):
 
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
-            patch("apps.applications.views.submit_application") as mock_submit,
+            patch("apps.applications.admin_views.submit_application") as mock_submit,
         ):
             mock_app_qs.get.return_value = mock_app
             mock_submit.side_effect = ApplicationSubmissionError(
@@ -239,7 +239,7 @@ class TestPaymentGateIntegrationWithView(SimpleTestCase):
 
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
-            patch("apps.applications.views.submit_application") as mock_submit,
+            patch("apps.applications.admin_views.submit_application") as mock_submit,
         ):
             mock_app_qs.get.return_value = mock_app
 

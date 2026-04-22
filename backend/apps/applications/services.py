@@ -253,6 +253,17 @@ def submit_application(
             user_agent=user_agent,
         )
 
+        # Emit business metric for application submission (Req 3.2)
+        logger.info(
+            "business_metric",
+            extra={
+                "type": "business_metric",
+                "metric": "application_submitted",
+                "application_id": str(locked_app.id),
+                "program": locked_app.program,
+            },
+        )
+
         now = timezone.now()
         locked_app.submitted_at = locked_app.submitted_at or now
         locked_app.updated_at = now

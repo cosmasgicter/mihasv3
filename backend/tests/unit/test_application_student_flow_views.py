@@ -61,9 +61,9 @@ class TestApplicationSubmitView:
         self.factory = APIRequestFactory()
         self.view = ApplicationSubmitView.as_view()
 
-    @patch("apps.applications.views.ApplicationSerializer")
-    @patch("apps.applications.views.submit_application")
-    @patch("apps.applications.views.Application.objects")
+    @patch("apps.applications.student_views.ApplicationSerializer")
+    @patch("apps.applications.student_views.submit_application")
+    @patch("apps.applications.student_views.Application.objects")
     def test_student_owner_can_submit_application(
         self,
         mock_app_objects,
@@ -97,8 +97,8 @@ class TestApplicationSubmitView:
             changed_by=str(student.id),
         )
 
-    @patch("apps.applications.views.submit_application")
-    @patch("apps.applications.views.Application.objects")
+    @patch("apps.applications.student_views.submit_application")
+    @patch("apps.applications.student_views.Application.objects")
     def test_submit_validation_failure_returns_400(self, mock_app_objects, mock_submit_application):
         user_id = uuid.uuid4()
         app_id = uuid.uuid4()
@@ -129,8 +129,8 @@ class TestApplicationInterviewListView:
         self.factory = APIRequestFactory()
         self.view = ApplicationInterviewListView.as_view()
 
-    @patch("apps.applications.views.ApplicationInterviewSerializer")
-    @patch("apps.applications.views.ApplicationInterview.objects")
+    @patch("apps.applications.interview_views.ApplicationInterviewSerializer")
+    @patch("apps.applications.interview_views.ApplicationInterview.objects")
     def test_student_list_filters_to_owned_interviews(
         self,
         mock_interview_objects,
@@ -157,8 +157,8 @@ class TestApplicationInterviewListView:
         queryset.filter.assert_called_once_with(application__user_id=str(student.id))
         filtered_queryset.order_by.assert_called_once_with("scheduled_at", "-created_at")
 
-    @patch("apps.applications.views.ApplicationInterviewSerializer")
-    @patch("apps.applications.views.ApplicationInterview.objects")
+    @patch("apps.applications.interview_views.ApplicationInterviewSerializer")
+    @patch("apps.applications.interview_views.ApplicationInterview.objects")
     def test_admin_list_without_mine_uses_unfiltered_queryset(
         self,
         mock_interview_objects,
@@ -188,7 +188,7 @@ class TestStudentPostSubmissionMutationGuards:
     def setup_method(self):
         self.factory = APIRequestFactory()
 
-    @patch("apps.applications.views._with_payment_summary")
+    @patch("apps.applications.student_views._with_payment_summary")
     def test_delete_missing_application_is_idempotent(self, mock_with_payment_summary):
         app_id = uuid.uuid4()
         student = _student_user()
@@ -205,8 +205,8 @@ class TestStudentPostSubmissionMutationGuards:
 
         assert response.status_code == 204
 
-    @patch("apps.applications.views.IsOwnerOrAdmin")
-    @patch("apps.applications.views._with_payment_summary")
+    @patch("apps.applications.student_views.IsOwnerOrAdmin")
+    @patch("apps.applications.student_views._with_payment_summary")
     def test_student_cannot_delete_submitted_application(self, mock_with_payment_summary, mock_permission):
         user_id = uuid.uuid4()
         app_id = uuid.uuid4()
@@ -227,10 +227,10 @@ class TestStudentPostSubmissionMutationGuards:
         assert response.status_code == 403
         assert response.data["code"] == "APPLICATION_NOT_EDITABLE"
 
-    @patch("apps.applications.views.transaction.atomic")
-    @patch("apps.applications.views.connection")
-    @patch("apps.applications.views.IsOwnerOrAdmin")
-    @patch("apps.applications.views._with_payment_summary")
+    @patch("apps.applications.student_views.transaction.atomic")
+    @patch("apps.applications.student_views.connection")
+    @patch("apps.applications.student_views.IsOwnerOrAdmin")
+    @patch("apps.applications.student_views._with_payment_summary")
     def test_student_can_delete_draft_application_with_explicit_child_cleanup(
         self,
         mock_with_payment_summary,
@@ -272,10 +272,10 @@ class TestStudentPostSubmissionMutationGuards:
             assert call.args[1] == [str(app_id)]
         application.delete.assert_not_called()
 
-    @patch("apps.applications.views.transaction.atomic")
-    @patch("apps.applications.views.connection")
-    @patch("apps.applications.views.IsOwnerOrAdmin")
-    @patch("apps.applications.views._with_payment_summary")
+    @patch("apps.applications.student_views.transaction.atomic")
+    @patch("apps.applications.student_views.connection")
+    @patch("apps.applications.student_views.IsOwnerOrAdmin")
+    @patch("apps.applications.student_views._with_payment_summary")
     def test_delete_draft_database_failure_returns_json_error(
         self,
         mock_with_payment_summary,
@@ -306,8 +306,8 @@ class TestStudentPostSubmissionMutationGuards:
         assert response.status_code == 500
         assert response.data["code"] == "APPLICATION_DELETE_FAILED"
 
-    @patch("apps.applications.views.IsOwnerOrAdmin")
-    @patch("apps.applications.views.Application.objects")
+    @patch("apps.applications.student_views.IsOwnerOrAdmin")
+    @patch("apps.applications.student_views.Application.objects")
     def test_student_cannot_update_grades_after_submission(self, mock_app_objects, mock_permission):
         user_id = uuid.uuid4()
         app_id = uuid.uuid4()

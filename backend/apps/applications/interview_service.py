@@ -385,8 +385,7 @@ def _send_interview_notification(
         extra_context: Additional context for the notification.
     """
     try:
-        from apps.common.models import EmailQueue, Notification
-        from apps.common.tasks import dispatch_email
+        from apps.common.outbox import create_notification, queue_email
 
         mode_display = interview.mode.replace("_", " ").title()
         scheduled_display = interview.scheduled_at.strftime("%B %d, %Y at %I:%M %p")
@@ -421,7 +420,7 @@ def _send_interview_notification(
             title = "Interview Update"
             message = f"Your interview for {application.program} has been updated."
 
-        Notification.objects.create(
+        create_notification(
             user_id=application.user_id,
             title=title,
             message=message,
@@ -448,13 +447,11 @@ def _send_interview_notification(
             "interview_cancelled": f"Interview Cancelled — {application.program}",
         }
 
-        email_record = EmailQueue.objects.create(
+        queue_email(
             recipient_email=application.email,
             subject=subject_map.get(template, f"Interview Update — {application.program}"),
             body=email_body,
-            status="pending",
         )
-        dispatch_email(str(email_record.id))
     except Exception:
         logger.exception(
             "Failed to send interview notification for application %s",

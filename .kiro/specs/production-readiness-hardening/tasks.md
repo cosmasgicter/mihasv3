@@ -28,74 +28,74 @@ Raise the MIHAS platform production readiness score from 79 to 90+ across six ar
   - Ensure all tests pass with exit code 0, ask the user if questions arise.
   - _Requirements: 1.1, 1.5_
 
-- [ ] 3. Implement request metrics middleware (P1 — Observability)
-  - [-] 3.1 Add `MetricsMiddleware` to `backend/apps/common/middleware.py`
+- [x] 3. Implement request metrics middleware (P1 — Observability)
+  - [x] 3.1 Add `MetricsMiddleware` to `backend/apps/common/middleware.py`
     - Implement `MetricsMiddleware` class with `SKIP_PATHS` for health endpoints
     - Compute `duration_ms` via `time.monotonic()`, emit structured log with `type: "request_metric"`, `method`, `path`, `status_code`, `duration_ms`, `request_id`
     - Wrap metric emission in try/except to never block responses
     - _Requirements: 2.1, 2.2, 2.3, 2.5_
     - _Design: Section 2 (MetricsMiddleware)_
 
-  - [~] 3.2 Update `JsonLogFormatter` in `backend/apps/common/logging.py`
+  - [x] 3.2 Update `JsonLogFormatter` in `backend/apps/common/logging.py`
     - Merge `extra` dict fields into JSON payload so `type`, `method`, `path`, `status_code`, `duration_ms` appear as top-level keys
     - _Requirements: 2.1, 2.5_
 
-  - [~] 3.3 Register `MetricsMiddleware` in `MIDDLEWARE` in `backend/config/settings/base.py`
+  - [x] 3.3 Register `MetricsMiddleware` in `MIDDLEWARE` in `backend/config/settings/base.py`
     - Insert after `RequestIDMiddleware` (position 5.5 in the stack)
     - _Requirements: 2.4_
 
-  - [~] 3.4 Write property test for MetricsMiddleware structured log completeness
+  - [x] 3.4 Write property test for MetricsMiddleware structured log completeness
     - **Property 2: MetricsMiddleware Emits Complete Structured Logs**
     - **Validates: Requirements 2.1, 2.5**
 
-  - [~] 3.5 Write property test for MetricsMiddleware health path skipping
+  - [x] 3.5 Write property test for MetricsMiddleware health path skipping
     - **Property 3: MetricsMiddleware Skips Health Paths**
     - **Validates: Requirements 2.3**
 
-  - [~] 3.6 Write property test for MetricsMiddleware duration positivity
+  - [x] 3.6 Write property test for MetricsMiddleware duration positivity
     - **Property 4: MetricsMiddleware Duration Is Positive**
     - **Validates: Requirements 2.2**
 
-- [ ] 4. Add business metrics logging (P1 — Observability)
-  - [~] 4.1 Add payment completion metric in `backend/apps/documents/payment_service.py`
+- [x] 4. Add business metrics logging (P1 — Observability)
+  - [x] 4.1 Add payment completion metric in `backend/apps/documents/payment_service.py`
     - After payment transitions to `successful`, emit structured log with `type: "business_metric"`, `metric: "payment_completed"`, `amount`, `currency`
     - _Requirements: 3.1_
     - _Design: Section 3 (Business Metrics Logging)_
 
-  - [~] 4.2 Add application submission metric in `backend/apps/applications/services.py`
+  - [x] 4.2 Add application submission metric in `backend/apps/applications/services.py`
     - After successful `draft → submitted` transition, emit structured log with `type: "business_metric"`, `metric: "application_submitted"`, `application_id`, `program`
     - _Requirements: 3.2_
 
-  - [~] 4.3 Write property test for payment completion business metric
+  - [x] 4.3 Write property test for payment completion business metric
     - **Property 5: Payment Completion Business Metric**
     - **Validates: Requirements 3.1**
 
-  - [~] 4.4 Write property test for application submission business metric
+  - [x] 4.4 Write property test for application submission business metric
     - **Property 6: Application Submission Business Metric**
     - **Validates: Requirements 3.2**
 
-- [ ] 5. Enhance readiness probe with Redis latency (P1 — Observability)
-  - [~] 5.1 Modify `ReadinessView` in `backend/apps/common/health.py`
+- [x] 5. Enhance readiness probe with Redis latency (P1 — Observability)
+  - [x] 5.1 Modify `ReadinessView` in `backend/apps/common/health.py`
     - Replace `_check_redis()` with `_check_redis_with_latency()` returning `(status_str, latency_ms)`
     - Add `redis_latency_ms` to response body
     - Ensure Redis failure returns `"degraded"` with HTTP 200, HTTP 503 only on DB failure
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
     - _Design: Section 4 (Enhanced Readiness Probe)_
 
-  - [~] 5.2 Write property test for readiness probe Redis status and latency
+  - [x] 5.2 Write property test for readiness probe Redis status and latency
     - **Property 7: Readiness Probe Redis Status and Latency**
     - **Validates: Requirements 4.1, 4.2, 4.3**
 
-  - [~] 5.3 Write property test for readiness probe 503 only on DB failure
+  - [x] 5.3 Write property test for readiness probe 503 only on DB failure
     - **Property 8: Readiness Probe 503 Only On DB Failure**
     - **Validates: Requirements 4.4**
 
-- [~] 6. Checkpoint — Verify observability changes pass tests
+- [x] 6. Checkpoint — Verify observability changes pass tests
   - Ensure all tests pass, ask the user if questions arise.
   - _Requirements: 2.1–2.5, 3.1–3.3, 4.1–4.4_
 
-- [ ] 7. Implement JTI blacklist recovery command (P2 — Redis Resilience)
-  - [~] 7.1 Create `backend/apps/accounts/management/commands/recover_jti_blacklist.py`
+- [x] 7. Implement JTI blacklist recovery command (P2 — Redis Resilience)
+  - [x] 7.1 Create `backend/apps/accounts/management/commands/recover_jti_blacklist.py`
     - Query `device_sessions` for active sessions (`is_active=True`, `expires_at > now`)
     - Force-expire all active sessions by setting `expires_at = now` (conservative approach since raw JWTs aren't stored)
     - Log count of sessions invalidated and expired sessions skipped
@@ -104,16 +104,16 @@ Raise the MIHAS platform production readiness score from 79 to 90+ across six ar
     - _Requirements: 5.1, 5.2, 5.3_
     - _Design: Section 5 (JTI Blacklist Recovery Command)_
 
-  - [~] 7.2 Update `docs/runbooks/redis-recovery.md` with recovery command documentation
+  - [x] 7.2 Update `docs/runbooks/redis-recovery.md` with recovery command documentation
     - Document when to run (after Redis flush/failover), command invocation, expected output, and impact
     - _Requirements: 5.4_
 
-  - [~] 7.3 Write property test for JTI recovery command logging
+  - [x] 7.3 Write property test for JTI recovery command logging
     - **Property 9: JTI Recovery Command Logs Counts**
     - **Validates: Requirements 5.2**
 
-- [ ] 8. Add CSRF degradation warning logging (P2 — Redis Resilience)
-  - [~] 8.1 Add Redis degradation warning to `CSRFEnforcementMiddleware` in `backend/apps/common/middleware.py`
+- [x] 8. Add CSRF degradation warning logging (P2 — Redis Resilience)
+  - [x] 8.1 Add Redis degradation warning to `CSRFEnforcementMiddleware` in `backend/apps/common/middleware.py`
     - Add lightweight Redis health check (cache ping) at top of `__call__`
     - Log warning with `type: "csrf_redis_warning"` when Redis is unavailable
     - Rate-limit warning to once per 60 seconds using module-level timestamp
@@ -121,16 +121,16 @@ Raise the MIHAS platform production readiness score from 79 to 90+ across six ar
     - _Requirements: 6.1, 6.2, 6.3_
     - _Design: Section 6 (CSRF Graceful Degradation)_
 
-  - [~] 8.2 Write property test for CSRF validation during Redis downtime
+  - [x] 8.2 Write property test for CSRF validation during Redis downtime
     - **Property 10: CSRF Validation Works During Redis Downtime**
     - **Validates: Requirements 6.1**
 
-  - [~] 8.3 Write property test for CSRF Redis degradation warning
+  - [x] 8.3 Write property test for CSRF Redis degradation warning
     - **Property 11: CSRF Logs Warning During Redis Downtime**
     - **Validates: Requirements 6.3**
 
-- [ ] 9. Split applications views module (P3 — Code Organization)
-  - [~] 9.1 Create domain-scoped view files in `backend/apps/applications/`
+- [x] 9. Split applications views module (P3 — Code Organization)
+  - [x] 9.1 Create domain-scoped view files in `backend/apps/applications/`
     - Create `student_views.py` (~600 lines): `ApplicationCreateView`, `ApplicationDraftView`, `ApplicationSubmitView`, `ApplicationTrackView`, `ApplicationWithdrawView`, `ConfirmEnrollmentView`, `AmendmentCreateView`, `WaitlistPositionView`, `ConditionListView`
     - Create `admin_views.py` (~900 lines): `ApplicationListView`, `ApplicationReviewView`, `ApplicationBulkStatusView`, `ApplicationGradeView`, `ApplicationExportView`, `AssignReviewerView`, `AutoAssignView`, `FeeWaiverView`, `AmendmentReviewView`
     - Create `interview_views.py` (~300 lines): `InterviewListView`, `InterviewScheduleView`, `InterviewUpdateView`
@@ -140,17 +140,17 @@ Raise the MIHAS platform production readiness score from 79 to 90+ across six ar
     - _Requirements: 7.1, 7.5_
     - _Design: Section 7 (Split Applications Views Module)_
 
-  - [~] 9.2 Replace `views.py` with backward-compatible re-export module
+  - [x] 9.2 Replace `views.py` with backward-compatible re-export module
     - Reduce `backend/apps/applications/views.py` to <100 lines of re-exports
     - Ensure all existing URL configurations and test imports continue to work
     - _Requirements: 7.2, 7.3, 7.4_
 
-  - [~] 9.3 Write property test for view re-export completeness
+  - [x] 9.3 Write property test for view re-export completeness
     - **Property 12: View Re-exports Preserve All Class Names**
     - **Validates: Requirements 7.2, 7.4**
 
 - [ ] 10. Break circular import dependencies (P3 — Code Organization)
-  - [~] 10.1 Convert top-level cross-app imports to lazy imports
+  - [-] 10.1 Convert top-level cross-app imports to lazy imports
     - Fix `applications ↔ accounts`: move `Profile` import inside method body in views
     - Fix `common ↔ accounts`: move `Profile`, `CSRFToken` imports inside task function bodies
     - Fix `common ↔ catalog`: move catalog model imports inside `communication_service.py` method bodies

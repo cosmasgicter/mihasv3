@@ -193,7 +193,7 @@ class TestPreservationTrackingValidCode:
         self.factory = APIRequestFactory()
         self.view = ApplicationTrackView.as_view()
 
-    @patch("apps.applications.views.Application.objects")
+    @patch("apps.applications.public_views.Application.objects")
     def test_valid_code_returns_tracking_data(self, mock_qs):
         """Preservation: Valid tracking code returns application tracking data.
 

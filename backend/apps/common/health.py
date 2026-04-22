@@ -5,6 +5,8 @@ Readiness: /health/ready/ — verifies Neon Postgres and Redis connectivity.
 Redis: /health/redis/ — verifies Redis only for dedicated paging/monitoring.
 """
 
+import time
+
 from django.db import connection
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework.permissions import AllowAny
@@ -53,7 +55,7 @@ class ReadinessView(APIView):
 
     def get(self, request):
         db_ok = self._check_db()
-        redis_ok = self._check_redis()
+        redis_status, redis_latency = self._check_redis_with_latency()
 
         # Return 200 as long as the database is healthy.
         # Redis is non-critical — auth and API work without it (JTI blacklist
@@ -61,7 +63,12 @@ class ReadinessView(APIView):
         # Koyeb to restart the instance, which makes the outage worse.
         if db_ok:
             return Response(
-                {"status": "ok", "db": "ok", "redis": "ok" if redis_ok else "degraded"},
+                {
+                    "status": "ok",
+                    "db": "ok",
+                    "redis": redis_status,
+                    "redis_latency_ms": redis_latency,
+                },
                 status=200,
             )
 
@@ -69,7 +76,8 @@ class ReadinessView(APIView):
             {
                 "status": "unhealthy",
                 "db": "error",
-                "redis": "ok" if redis_ok else "error",
+                "redis": redis_status,
+                "redis_latency_ms": redis_latency,
             },
             status=503,
         )
@@ -83,14 +91,21 @@ class ReadinessView(APIView):
         except Exception:
             return False
 
-    def _check_redis(self):
-        """Ping Redis using Django's cache framework (reuses connection pool)."""
+    def _check_redis_with_latency(self):
+        """Ping Redis and return (status_str, latency_ms)."""
+        start = time.monotonic()
         try:
             from django.core.cache import cache
+
             cache.set("_health_ping", "1", 10)
-            return cache.get("_health_ping") == "1"
+            ok = cache.get("_health_ping") == "1"
+            latency = round((time.monotonic() - start) * 1000, 1)
+            if ok:
+                return "ok", latency
+            return "degraded", latency
         except Exception:
-            return False
+            latency = round((time.monotonic() - start) * 1000, 1)
+            return "degraded", latency
 
 
 @extend_schema_view(
@@ -112,7 +127,7 @@ class RedisHealthView(APIView):
     serializer_class = HealthStatusSerializer
 
     def get(self, request):
-        redis_ok = ReadinessView()._check_redis()
-        if redis_ok:
+        redis_status, _ = ReadinessView()._check_redis_with_latency()
+        if redis_status == "ok":
             return Response({"status": "ok", "redis": "ok"}, status=200)
         return Response({"status": "unhealthy", "redis": "error"}, status=503)

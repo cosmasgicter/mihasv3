@@ -79,6 +79,10 @@ def envelope_exception_handler(exc, context):
             code = "AUTHENTICATION_REQUIRED"
     else:
         code = error_code_map.get(response.status_code, "INTERNAL_ERROR")
+        if response.status_code == 403 and hasattr(exc, "get_codes"):
+            code_val = exc.get_codes()
+            if isinstance(code_val, str) and code_val and code_val.upper().startswith("CSRF_"):
+                code = code_val.upper()
 
     # Handle validation errors with field details
     if response.status_code == 400 and isinstance(response.data, dict):

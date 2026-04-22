@@ -187,11 +187,11 @@ def _notify_admins_of_amendment(application: Application, amendment: Application
     """Notify admin users about a new amendment request."""
     try:
         from apps.accounts.models import Profile
-        from apps.common.models import Notification
+        from apps.common.outbox import create_notification
 
         admins = Profile.objects.filter(role__in=["admin", "super_admin"], is_active=True)
         for admin in admins:
-            Notification.objects.create(
+            create_notification(
                 user_id=admin.id,
                 title="Amendment Request",
                 message=(
