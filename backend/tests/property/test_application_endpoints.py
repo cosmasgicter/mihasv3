@@ -620,7 +620,7 @@ class TestIdempotentGenerationRequests:
                 "status": "queued",
             }
             existing_key = MagicMock()
-            existing_key.response_json = cached_response
+            existing_key.response_body = cached_response
             mock_idem_qs.filter.return_value.first.return_value = existing_key
             mock_task.delay.reset_mock()
 
@@ -678,7 +678,7 @@ class TestIdempotentGenerationRequests:
                 "status": "queued",
             }
             existing_key = MagicMock()
-            existing_key.response_json = cached_response
+            existing_key.response_body = cached_response
             mock_idem_qs.filter.return_value.first.return_value = existing_key
             mock_task.delay.reset_mock()
 

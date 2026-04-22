@@ -168,13 +168,14 @@ class TestGradesSyncPostRoundTrip:
             assert post_response.status_code == 200, (
                 f"Batch POST should return 200, got {post_response.status_code}"
             )
-            assert "grades" in post_response.data
-            assert len(post_response.data["grades"]) == len(grade_pairs)
+            assert "grades" in post_response.data.get("data", post_response.data)
+            post_data = post_response.data.get("data", post_response.data)
+            assert len(post_data["grades"]) == len(grade_pairs)
 
             # Verify each posted grade appears in the POST response
             response_pairs = {
                 (str(g["subject_id"]), g["grade"])
-                for g in post_response.data["grades"]
+                for g in post_data["grades"]
             }
             input_pairs = {(str(sid), gval) for sid, gval in grade_pairs}
             assert response_pairs == input_pairs, (
@@ -190,9 +191,11 @@ class TestGradesSyncPostRoundTrip:
             get_response = _view(get_request, application_id=app_id)
 
             assert get_response.status_code == 200
+            get_data = get_response.data.get("data", get_response.data)
+            get_grades = get_data.get("grades", get_data) if isinstance(get_data, dict) else get_data
             get_pairs = {
                 (str(g["subject_id"]), g["grade"])
-                for g in get_response.data
+                for g in (get_grades if isinstance(get_grades, list) else [])
             }
             assert get_pairs == input_pairs, (
                 f"GET response should match POSTed grades. "
@@ -281,15 +284,19 @@ class TestGradesSyncPostRoundTrip:
             get_response = _view(get_request, application_id=app_id)
 
             assert get_response.status_code == 200
-            assert len(get_response.data) == len(grade_pairs), (
+            get_data2 = get_response.data.get("data", get_response.data)
+            get_grades2 = get_data2.get("grades", get_data2) if isinstance(get_data2, dict) else get_data2
+            assert len(get_grades2 if isinstance(get_grades2, list) else []) == len(grade_pairs), (
                 f"Double POST should not create duplicates. "
                 f"Expected {len(grade_pairs)} grades, got {len(get_response.data)}"
             )
 
             # Verify the grade values match the input
+            get_data = get_response.data.get("data", get_response.data)
+            get_grades = get_data.get("grades", get_data) if isinstance(get_data, dict) else get_data
             get_pairs = {
                 (str(g["subject_id"]), g["grade"])
-                for g in get_response.data
+                for g in (get_grades if isinstance(get_grades, list) else [])
             }
             input_pairs = {(str(sid), gval) for sid, gval in grade_pairs}
             assert get_pairs == input_pairs
