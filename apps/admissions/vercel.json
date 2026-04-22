@@ -5,10 +5,6 @@
   "framework": null,
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "***REMOVED***/api/:path*"
-    },
-    {
       "source": "/((?!assets/|images/|favicon\\.ico|robots\\.txt|sitemap\\.xml).*)",
       "destination": "/index.html"
     }

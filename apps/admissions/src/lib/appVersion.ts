@@ -37,7 +37,7 @@ export async function getBackendBuildVersion(): Promise<string> {
 }
 
 export function formatBuildVersion(version: string): string {
-  if (!version || version === 'unknown' || version === 'unavailable' || version === 'dev') {
+  if (!version || version === 'unknown' || version === 'unavailable') {
     return version || 'unknown'
   }
 

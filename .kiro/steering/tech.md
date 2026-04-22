@@ -124,7 +124,7 @@ The frontend and backend share a single, unified API contract. There is no compa
 - The platform uses the `{"success": true, "data": ...}` envelope for API responses handled through DRF renderers. All authenticated list endpoints (including `GET /api/v1/sessions/`) must use this envelope format.
 - Paginated responses use `{page, pageSize, totalCount, results}` inside the `data` envelope.
 - Auth remains cookie-based for the main backend auth stack.
-- The admissions frontend uses a same-origin API proxy: Vercel rewrites `/api/*` to `api.mihas.edu.zm`, so cookies are first-party. In local dev, Vite proxies `/api` to the backend.
+- The admissions frontend calls `***REMOVED***` directly (cross-origin with `credentials: 'include'`). Vercel free tier does not support external rewrites, so there is no same-origin proxy. In local dev, Vite proxies `/api` to the backend.
 - DRF authentication classes are the sole authority for setting `request.user`. The `JWTAuthenticationMiddleware` does NOT authenticate — it only flags expired tokens so 403→401 conversion fires for the frontend refresh interceptor.
 - Access tokens have a 30-minute lifetime; refresh tokens last 7 days with JTI blacklisting via Redis.
 - Token refresh (`POST /api/v1/auth/refresh/`) uses distinct error codes: `NO_REFRESH_TOKEN` when the cookie is missing, `TOKEN_EXPIRED` for expired/blacklisted/invalid tokens. Frontend can differentiate between configuration issues and token expiry.
