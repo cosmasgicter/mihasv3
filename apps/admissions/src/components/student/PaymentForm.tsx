@@ -36,6 +36,20 @@ function phoneDigits(formatted: string): string {
   return formatted.replace(/\D/g, '')
 }
 
+/** Normalize any Zambian phone to 10-digit local format (e.g. 0977123456) */
+export function normalizeZambianPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, '')
+  // Strip country code: 260977... -> 0977...
+  if (digits.startsWith('260') && digits.length >= 12) {
+    return '0' + digits.slice(3, 12)
+  }
+  // Already local: 0977... or 977...
+  if (!digits.startsWith('0') && digits.length === 9) {
+    return '0' + digits
+  }
+  return digits.slice(0, 10)
+}
+
 interface MobileMoneyResponse {
   payment_id: string
   reference: string
@@ -87,6 +101,7 @@ export function PaymentForm({
   onPaymentStatusRefresh,
   onSuccess,
 }: PaymentFormProps) {
+  const normalizedPhone = normalizeZambianPhone(initialPhone)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('mobile-money')
   const [momoPhone, setMomoPhone] = useState(() => formatPhone(initialPhone))
   const [momoOperator, setMomoOperator] = useState<MomoOperator>(() => detectOperator(initialPhone))
@@ -97,7 +112,7 @@ export function PaymentForm({
   const retryRef = useRef<HTMLButtonElement>(null)
   const pollRef = useRef<ReturnType<typeof setInterval>>()
 
-  const getCustomerDetails = useCallback(() => ({ fullName, email, phone: initialPhone }), [fullName, email, initialPhone])
+  const getCustomerDetails = useCallback(() => ({ fullName, email, phone: normalizedPhone }), [fullName, email, normalizedPhone])
 
   const {
     paymentStatus: cardPaymentStatus,
@@ -165,7 +180,7 @@ export function PaymentForm({
   })()
 
   const handleMomoPayment = useCallback(async () => {
-    const digits = phoneDigits(momoPhone)
+    const digits = normalizeZambianPhone(momoPhone)
     if (!digits || digits.length < 10) {
       setMomoError('Please enter a valid 10-digit phone number.')
       return

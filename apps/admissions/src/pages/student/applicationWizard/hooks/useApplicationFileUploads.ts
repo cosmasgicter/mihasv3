@@ -3,6 +3,7 @@ import type { ChangeEvent } from 'react'
 
 import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
 import { sanitizeForLog } from '@/lib/security'
+import { isPermissionDenial } from '@/lib/sessionHardening'
 import { apiClient } from '@/services/client'
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024
@@ -61,7 +62,13 @@ export function isAuthError(error: unknown): boolean {
     return true
   }
   const status = (error as { status?: number })?.status
-  return status === 401 || status === 403
+  if (status === 401) return true
+  if (status === 403) {
+    const code = (error as { code?: string })?.code
+    // Permission denials (e.g. INSUFFICIENT_PERMISSIONS) are NOT auth errors
+    return !isPermissionDenial(403, code)
+  }
+  return false
 }
 
 export function delay(ms: number): Promise<void> {

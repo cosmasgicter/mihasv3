@@ -23,7 +23,7 @@ import type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult
 import { useSessionListener } from '@/hooks/auth/useSessionListener'
 import { configureApiClientAuthFailure } from '@/services/client'
 import { clearCsrfToken } from '@/lib/csrfToken'
-import { secureStorage } from '@/lib/secureStorage'
+import { clearSession } from '@/lib/secureStorage'
 import { useAuthBroadcast } from '@/lib/authBroadcast'
 import { resetPrefetchState } from '@/lib/speculativePrefetch'
 import { SESSION_MESSAGES } from '@/lib/sessionHardening'
@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }})
         clearCsrfToken()
         resetPrefetchState()
-        secureStorage.clearSession().catch(() => {})
+        clearSession().catch(() => {})
 
         const from = typeof window !== 'undefined'
           ? `${window.location.pathname}${window.location.search}`

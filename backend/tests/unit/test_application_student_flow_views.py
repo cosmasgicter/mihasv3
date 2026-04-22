@@ -91,7 +91,8 @@ class TestApplicationSubmitView:
         response = self.view(request, application_id=app_id)
 
         assert response.status_code == 200
-        assert response.data["status"] == "submitted"
+        inner = response.data.get("data", response.data)
+        assert inner["status"] == "submitted"
         mock_submit_application.assert_called_once_with(
             application=application,
             changed_by=str(student.id),

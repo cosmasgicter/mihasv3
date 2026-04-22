@@ -418,7 +418,7 @@ class TestApprovalRequiresPaymentOrForce(SimpleTestCase):
             self.assertEqual(response.status_code, 200)
 
     @given(
-        payment_status=st.sampled_from(["paid", "verified"]),
+        payment_status=st.sampled_from(["successful", "force_approved"]),
     )
     @settings(max_examples=5)
     def test_approval_allowed_with_verified_payment(self, payment_status):

@@ -1,5 +1,9 @@
 """Analytics scaffold views."""
 
+import hashlib
+import json
+import logging
+
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework.permissions import IsAuthenticated
@@ -9,6 +13,8 @@ from rest_framework.views import APIView
 from apps.analytics.serializers import DailyDigestSerializer, FunnelAnalyticsSerializer, OutreachAnalyticsSerializer, SourceAnalyticsSerializer
 from apps.common.jobs_ops_seed import sample_daily_digest, sample_funnel_analytics, sample_outreach_analytics, sample_source_analytics
 from apps.common.openapi_helpers import envelope_serializer
+
+logger = logging.getLogger(__name__)
 
 
 FUNNEL_RESPONSE = envelope_serializer("FunnelAnalyticsResponse", FunnelAnalyticsSerializer())
@@ -37,7 +43,7 @@ class FunnelAnalyticsView(APIView):
         if request.query_params.get("program"):
             filters["program"] = request.query_params["program"]
 
-        cache_key = f"admissions_funnel:{hash(frozenset(filters.items()))}"
+        cache_key = f"admissions_funnel:{hashlib.md5(json.dumps(filters, sort_keys=True).encode()).hexdigest()}"
         cached = cache.get(cache_key)
         if cached:
             return Response(cached)
@@ -52,6 +58,7 @@ class FunnelAnalyticsView(APIView):
             cache.set(cache_key, data, 300)  # 5-minute cache
             return Response(data)
         except Exception:
+            logger.exception("Funnel analytics query failed, returning sample data")
             return Response(sample_funnel_analytics())
 
 

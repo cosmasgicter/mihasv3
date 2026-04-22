@@ -1,6 +1,7 @@
 import { authService } from '@/services/auth'
 import { AuthenticationError } from '@/services/client'
 import { sanitizeForDisplay } from '@/lib/sanitize'
+import { isPermissionDenial } from '@/lib/sessionHardening'
 import { extractAuthUser } from '@/lib/authSession'
 import type { User, UserProfile } from '@/types/auth'
 
@@ -54,11 +55,11 @@ export function isAuthProfileError(error: unknown): boolean {
     return false
   }
 
-  const maybeError = error as { name?: string; status?: number }
+  const maybeError = error as { name?: string; status?: number; code?: string }
   return error instanceof AuthenticationError ||
     maybeError.name === 'AuthenticationError' ||
     maybeError.status === 401 ||
-    maybeError.status === 403
+    (maybeError.status === 403 && !isPermissionDenial(403, maybeError.code))
 }
 
 function isRecoverableProfileFetchError(error: unknown): boolean {

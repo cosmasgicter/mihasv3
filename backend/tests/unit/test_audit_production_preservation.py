@@ -225,7 +225,9 @@ class TestPreservationTrackingValidCode:
             f"Expected 200 for valid tracking code, got {response.status_code}: {response.data}"
         )
         body = response.data
-        assert "application_number" in body or "status" in body, (
+        # Response is wrapped in {success: true, data: ...} envelope
+        inner = body.get("data", body)
+        assert "application_number" in inner or "status" in inner, (
             f"Expected tracking data in response, got: {body}"
         )
 

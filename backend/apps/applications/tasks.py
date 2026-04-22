@@ -840,7 +840,7 @@ def generate_finance_receipt_task(self, application_id):
 
         # Get the verified payment for receipt details
         payment = Payment.objects.filter(
-            application_id=application.id, status="verified"
+            application_id=application.id, status__in=("successful", "force_approved")
         ).first()
 
         # Generate PDF

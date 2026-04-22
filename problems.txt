@@ -1,400 +1,222 @@
-You are an agentic engineering verification team auditing the MIHAS admissions repository.
+MIHAS admissions audit findings
+Date: 2026-04-22
+Scope audited this pass:
+- `apps/admissions`
+- `backend`
+- High-risk contract boundaries: payments, receipts, slips/documents, auth/session/CSRF
 
-Your mission is to prove, from repository facts only, whether the admissions frontend, backend, database, Redis/cache/session behavior, admin-student communication paths, and payment system are correct after the latest code changes. You must verify fixed issues instead of trusting that they are fixed.
+Important scope note:
+- This report reflects the initial high-risk audit only.
+- The downstream agentic LLM must not stop at this narrowed scope.
+- It must audit every single file in the repository that affects runtime behavior, tests, configuration, schemas, migrations, deployment, security, payments, sessions, queues, communication, and integrations, even if that takes a very long time.
+- Any file older than 7 days must be treated as suspicious by default and must be individually classified as:
+  - `improve`
+  - `remove`
+  - `ignore-as-correct`
+  - `needs-human-decision`
+- Do not use repository size as a reason to skip files.
+- If parallel agents are available, the full repository must be partitioned and exhausted until no suspicious file remains unaudited.
+- The final output from the downstream system must explicitly state:
+  - total files audited
+  - total suspicious files audited
+  - files improved
+  - files recommended for removal
+  - files ignored as correct
+  - files still unresolved
 
-Do not assume. Do not infer success from intent, comments, filenames, or tests alone. A fix is only verified when the implementation path, data path, and test or reproducible command support it.
+Statuses used:
+- `confirmed-bug`: runtime bug or contract drift is visible from current code.
+- `zero-day-class-risk`: security-sensitive bug or stale path with meaningful exploit/failure potential.
+- `suspicious-stale-path`: outdated or bypassed code that increases regression risk and should be retired or re-audited.
+- `already-fixed-local`: fixed in the local working tree, but still important to track until deployed.
 
-Repository scope:
-- Frontend admissions app: `apps/admissions`
-- Backend admissions API: `backend`
-- Database and schema artifacts: `backend/migrations`, model files, migration scripts, schema verification scripts, and DB-related tests
-- Shared code only when imported by admissions frontend or backend runtime code
-- Runtime config affecting auth, cookies, CSRF, CORS, Redis/cache, Celery/tasks, queues, payments, security headers, Vercel/deployment, and API routing
-- Tests that prove or contradict behavior
-- Current working tree, including modified, deleted, and untracked files
+1. `confirmed-bug` Payment form sends the wrong phone contract on card/widget payments
+Severity: High
 
-Primary objectives:
-1. Build a factual map of the current working tree.
-2. Identify the issues that were intended to be fixed by the latest changes.
-3. Verify each claimed or implied fix with code-path evidence and executable checks where possible.
-4. Re-audit canonical admissions flows for regressions introduced by the latest changes.
-5. Trace the payment system end to end, including Lenco, fee resolution, payment records, webhooks, retries, receipts, admin review, and student UI.
-6. Verify Redis/cache/session behavior and race-condition protections under realistic concurrency.
-7. Verify admin-to-potential-student and admin-to-applicant communication paths.
-8. Produce an implementation-ready report with evidence, not opinions.
+Evidence:
+- [apps/admissions/src/components/student/PaymentForm.tsx](/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/student/PaymentForm.tsx:100) returns customer details as `{ fullName, email, phone: initialPhone }`.
+- [apps/admissions/src/components/student/PaymentForm.tsx](/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/student/PaymentForm.tsx:167) normalizes mobile-money input to a strict 10-digit local number before posting `/payments/mobile-money/`.
+- [apps/admissions/src/hooks/useApplicationPaymentAction.ts](/home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/useApplicationPaymentAction.ts:135) posts `customer_phone: customer.phone || ''` to `/payments/initiate/`.
+- [apps/admissions/src/hooks/useApplicationPaymentAction.ts](/home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/useApplicationPaymentAction.ts:166) also forwards the same raw value into `customerPhone` for the Lenco widget.
+- [apps/admissions/src/pages/student/applicationWizard/steps/PaymentStep.tsx](/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/steps/PaymentStep.tsx:133) passes `watch('phone')` into `PaymentForm`.
+- [apps/admissions/src/pages/student/Payment.tsx](/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/Payment.tsx:210) passes `app.phone` into `PaymentForm`.
 
-Hard rules:
-- Work with facts only.
-- Do not make assumptions.
-- If you infer something, label it `Inference` and cite the evidence that supports it.
-- Every finding must include exact file paths and line numbers.
-- Every verified fix must include the issue, the fix evidence, the verification method, and residual risk.
-- Every unverified fix must explain exactly what evidence is missing.
-- Do not modify code. This is verification and analysis only.
-- Do not revert, clean, or rewrite user changes.
-- Work in parallel through multiple subagents. Each subagent must own a disjoint repository slice and return evidence.
-- If a command cannot be run, state why and provide the closest static verification.
-- A passing test does not prove a flow unless the test assertions cover the exact behavior being claimed.
-- A green type-check does not prove runtime correctness.
+Impact:
+- Mobile money and card flows do not use the same phone contract.
+- A stored applicant phone such as `260969992299` or `+260...` can leak into card/widget initiation even though the business rule is a 10-digit local applicant phone.
+- This matches the production symptom already observed by the user.
 
-Definition of verified:
-Mark an issue as `verified-fixed` only when all of the following are true:
-- The original bug or risk is clearly identified from code, tests, docs, issue text, comments, or diff context.
-- The changed implementation addresses the root cause, not just a symptom.
-- The canonical path uses the fixed code.
-- No alternate path bypasses the fixed code.
-- The relevant state transitions, DB writes, cache invalidations, emitted events, and background jobs are accounted for.
-- There is a focused test or reproducible command that would fail without the fix, or a clearly explained reason why only static verification is possible.
+Recommended action:
+- Normalize customer phone once in `PaymentForm` or `useApplicationPaymentAction` and use the normalized local 10-digit value for every payment channel.
+- Add a focused test proving that both mobile-money and card/widget initiation receive the same normalized phone value.
 
-Mark an issue as `not-fixed` when:
-- The old broken path still exists.
-- Another runtime path bypasses the fixed code.
-- The fix depends on unstated configuration.
-- The test covers only superficial rendering or mocks away the risky behavior.
-- The code creates a new race condition or stale-cache path.
+2. `confirmed-bug` Frontend still sends stale `customer_*` fields that the backend `/payments/initiate/` contract ignores
+Severity: Medium
 
-Mark an issue as `partially-fixed` when:
-- The main path is fixed but an edge path remains.
-- The implementation is correct but tests are missing.
-- Tests exist but do not prove concurrency, permissions, idempotency, or persistence.
+Evidence:
+- [apps/admissions/src/hooks/useApplicationPaymentAction.ts](/home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/useApplicationPaymentAction.ts:137) sends `customer_email`, `customer_name`, and `customer_phone`.
+- [backend/apps/documents/views.py](/home/cosmas/Downloads/mihasv3/backend/apps/documents/views.py:503) documents only `application_id` in the request schema.
+- [backend/apps/documents/views.py](/home/cosmas/Downloads/mihasv3/backend/apps/documents/views.py:513) reads only `application_id = request.data.get("application_id")`.
+- [backend/apps/documents/views.py](/home/cosmas/Downloads/mihasv3/backend/apps/documents/views.py:545) initiates the payment with only `application_id` and `user_id`.
 
-Initial commands:
-- `pwd`
-- `rg --files`
-- `git status --short`
-- `git diff --name-status`
-- `git diff --stat`
-- `git diff -- <changed-path>` for high-risk changed files
-- `rg -n "<deleted filename or exported symbol>"`
-- `rg -n "payment|Lenco|lenco|webhook|fee|draft|session|refresh|Redis|cache|notification|communication|email|SMS|interview|waitlist|withdraw|amend|condition|enrollment|waiver|expiry" apps/admissions backend`
+Impact:
+- The frontend and backend are operating on different contracts.
+- The frontend believes customer metadata is part of the initiation path, but the backend ignores it completely.
+- This is a classic stale-client symptom after backend refactors.
 
-Current-change requirements:
-- Treat the current working tree as the source of truth.
-- Include modified, deleted, renamed, and untracked files.
-- Deleted files must be checked for remaining imports, exports, routes, tests, lazy imports, barrel exports, and documentation references.
-- New files must be checked for runtime wiring, permissions, tests, migrations, background jobs, and API routes.
-- Modified files must be compared against `HEAD` where possible.
-- Categorize every changed path as frontend, backend, database/migration, test, config, docs/spec, or unknown.
-- Separate every result into one of:
-  - `introduced-or-changed`
-  - `pre-existing`
-  - `unknown-origin`
+Recommended action:
+- Either remove the stale frontend fields, or formally extend the backend serializer/service contract and actually use them.
+- Add a contract test that fails if frontend initiation fields diverge from backend schema again.
 
-Required subagents:
+3. `confirmed-bug` Student receipt download bypasses canonical backend receipt APIs and fabricates receipt data in the browser
+Severity: High
 
-0. Change Impact and Fix Verification Agent
-Ownership:
-- Working tree inventory
-- `git status`, `git diff`, deleted files, untracked files, changed tests, package/config/deployment changes
-- The list of issues that appear intended to be fixed
+Evidence:
+- [apps/admissions/src/components/student/DownloadReceiptButton.tsx](/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/student/DownloadReceiptButton.tsx:21) calls `generateReceipt(applicationId)` in the browser.
+- [apps/admissions/src/hooks/usePaymentReceipt.ts](/home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/usePaymentReceipt.ts:54) fetches payments from `/payments/?application_id=...`.
+- [apps/admissions/src/hooks/usePaymentReceipt.ts](/home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/usePaymentReceipt.ts:68) fabricates `receiptNumber` with `generateReceiptNumber()` when absent.
+- [apps/admissions/src/hooks/usePaymentReceipt.ts](/home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/usePaymentReceipt.ts:107) generates the PDF entirely client-side.
+- [backend/apps/documents/views.py](/home/cosmas/Downloads/mihasv3/backend/apps/documents/views.py:370) already exposes canonical `GET /api/v1/payments/{id}/receipt/`.
+- [backend/apps/documents/urls.py](/home/cosmas/Downloads/mihasv3/backend/apps/documents/urls.py:114) wires the payment receipt endpoint.
+- [backend/apps/applications/document_views.py](/home/cosmas/Downloads/mihasv3/backend/apps/applications/document_views.py:211) also exposes `POST /api/v1/applications/{id}/finance-receipt/` for finance workflows.
 
-Tasks:
-- Produce a changed-file map.
-- Identify high-risk changes before other agents finalize.
-- For each changed file, state what behavior it may affect.
-- For each deleted file, prove whether references remain.
-- For each untracked file, prove whether it is wired into runtime behavior.
-- Build the fix-verification ledger:
-  - issue or claimed fix
-  - changed files
-  - expected behavior
-  - evidence inspected
-  - verification command or static verification
-  - status: `verified-fixed`, `partially-fixed`, `not-fixed`, `not-verifiable`
+Impact:
+- The student UI is not using the canonical backend receipt contract.
+- Receipt numbers and receipt contents can drift from backend truth.
+- Auditability is weakened because a client can synthesize receipt PDFs from partial or stale data.
 
-1. Frontend Canonical Flow Agent
-Ownership:
-- `apps/admissions/src/pages`
-- `apps/admissions/src/components`
-- `apps/admissions/src/hooks`
-- `apps/admissions/src/contexts`
-- `apps/admissions/src/routes`
-- `apps/admissions/src/services`
-- `apps/admissions/src/lib`
-- frontend tests
+Recommended action:
+- Stop generating official receipts client-side.
+- Use the backend receipt endpoint as the only source of truth, then render or download the server-returned receipt artifact/data.
+- Remove synthetic `generateReceiptNumber()` from the official receipt flow.
 
-Tasks:
-- Trace student application flows from sign-in to dashboard to wizard to payment to submission to status.
-- Verify drafts create, update, resume, delete, and do not persist after deletion.
-- Verify old/unpaid/rejected fees use dedicated payment screens and do not force submitted applications through the wizard.
-- Verify auth/session refocus, token refresh, CSRF retry, logout, and route guards do not falsely log users out during the application process.
-- Verify React Query invalidation and polling do not overwrite fresh mutation results with stale data.
-- Verify mobile payment UI: tap targets, button states, overflow, disabled-state messaging, retry messaging, widget script failure recovery, and pending confirmation messaging.
-- Verify deleted frontend components still have no import/export references.
+4. `zero-day-class-risk` File-upload auth recovery path still treats all `403` responses as session expiry
+Severity: High
 
-2. Backend Canonical Flow Agent
-Ownership:
-- `backend/apps`
-- `backend/config`
-- backend serializers, views, services, tasks, middleware, permissions, URLs
-- backend tests
+Evidence:
+- [apps/admissions/src/pages/student/applicationWizard/hooks/useApplicationFileUploads.ts](/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/useApplicationFileUploads.ts:59) defines `isAuthError` as `401 || 403`.
+- [apps/admissions/src/pages/student/applicationWizard/hooks/useApplicationFileUploads.ts](/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/useApplicationFileUploads.ts:71) retries `/auth/session/` and converts repeated `401/403` into "session expired".
+- [apps/admissions/src/lib/sessionHardening.ts](/home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/sessionHardening.ts:21) explicitly distinguishes generic permission-denial `403` from auth failure.
 
-Tasks:
-- Trace the canonical application lifecycle: draft, submission, review, approval, rejection, conditions, amendment, withdrawal, waitlist, enrollment, and expiry if present.
-- Verify that student/admin/reviewer endpoints enforce ownership and role permissions.
-- Verify admin actions use canonical services and emit status history/audit/notification records where required.
-- Verify new services such as amendment, condition, enrollment, interview, waitlist, withdrawal, communication, templates, fee waiver, expiry, late applications, reviewer assignment, and batch operations if present.
-- Verify no backend route bypasses payment/document/submission gates.
-- Verify no model/service method performs state transitions without audit and notification where required.
+Impact:
+- One stale path can still log out or interrupt an authenticated user on permission-denial style failures.
+- This directly contradicts the central session-hardening rules and can create hard-to-reproduce upload failures.
 
-3. Database and Migration Agent
-Ownership:
-- backend models
-- migrations
-- schema verification scripts
-- DB-related tests and docs
+Recommended action:
+- Make upload/session recovery reuse the same 403 classification logic as the main API client.
+- Add a regression test: generic `403 INSUFFICIENT_PERMISSIONS` must not trigger auth-expired UX.
 
-Tasks:
-- Map admissions tables and relationships:
-  - users/profiles
-  - applications
-  - drafts
-  - documents
-  - grades
-  - payments
-  - payment audit/status history
-  - notifications
-  - communications
-  - intakes
-  - programs
-  - fees
-  - sessions/tokens/JTI blacklist
-  - condition/amendment/enrollment/interview/waitlist/withdrawal/waiver tables if present
-- Verify constraints, indexes, FKs, uniqueness, nullability, enum/status values, amount/currency fields, timestamps, audit fields, and migration coverage.
-- Identify schema drift between frontend types, backend serializers/models, and DB migrations.
-- Verify payment records cannot be orphaned or attached to the wrong application/user.
+5. `zero-day-class-risk` `secureStorage` encryption is not initialized anywhere, so the "secure storage" guarantee is false
+Severity: High
 
-4. Redis, Cache, Session, and Race Agent
-Ownership:
-- Redis/cache settings
-- session/token refresh paths
-- CSRF paths
-- React Query and frontend cache invalidation
-- Django cache usage
-- Celery/background jobs
-- polling and retry behavior
-- rate limiting
+Evidence:
+- [apps/admissions/src/lib/secureStorage.ts](/home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/secureStorage.ts:157) requires `init(sessionToken)` to derive the encryption key.
+- Repository search shows no runtime call to `secureStorage.init(...)`.
+- `rg -n "secureStorage\\.init\\(|clearSession\\(|secureStorage" apps/admissions/src -S` only found the definition plus cleanup usages.
+- [apps/admissions/src/contexts/AuthContext.tsx](/home/cosmas/Downloads/mihasv3/apps/admissions/src/contexts/AuthContext.tsx:75) clears secure storage on logout.
+- [apps/admissions/src/hooks/auth/useSessionListener.ts](/home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/auth/useSessionListener.ts:214) also clears it on session events.
 
-Tasks:
-- Identify every Redis/cache use and every expected Redis/cache use.
-- Verify key namespacing, TTLs, atomic operations, locks, serialization, failure fallback, cleanup, and stale-key behavior.
-- Verify no generic `403` permission denial logs out an authenticated user.
-- Verify only true auth failures trigger auth-expired cascades.
-- Verify token refresh deduplication under concurrent `401`s.
-- Verify draft deletion, payment verification, admin review, notification send, and dashboard polling invalidate the correct caches.
-- Verify race protections for:
-  - double submit
-  - duplicate payment initiation
-  - webhook versus manual verification
-  - webhook retry/idempotency
-  - polling versus mutation updates
-  - multiple tabs editing a draft
-  - stale localStorage/sessionStorage
-  - background task retries
+Impact:
+- The project contains a security-sensitive utility that looks active but never actually enables encryption.
+- If developers assume local drafts or session-adjacent data are protected by this layer, that assumption is wrong.
+- This is "zero-day-class" because it is silent and gives a false security guarantee.
 
-5. Payment End-to-End Agent
-Ownership:
-- all frontend payment code
-- all backend payment code
-- Lenco widget integration
-- payment initiation, verification, webhook, polling, receipts/slips
-- payment DB fields and tests
-- payment config and security headers
+Recommended action:
+- Either initialize secure storage immediately after successful authentication, or remove the abstraction and document the real storage guarantees.
+- Add a test proving `secureStorage.initialized === true` after login and that sensitive payloads are encrypted at rest if this feature is kept.
 
-Tasks:
-- Trace payment end to end:
-  - fee source of truth
-  - fee resolver
-  - frontend fee display
-  - payment screen routing
-  - payment initiation API
-  - Lenco widget configuration
-  - mobile-money/card channels
-  - callback handling
-  - verification API
-  - webhook signature validation
-  - idempotency
-  - pending polling
-  - payment status mapping
-  - admin payment review
-  - audit/history
-  - receipt/slip generation
-  - student dashboard/status refresh
-- Verify frontend never controls final amount.
-- Verify backend validates amount, currency, application ownership, payable state, and duplicate payment prevention.
-- Verify failed/rejected/old unpaid fees are retryable from dedicated payment screens.
-- Verify drafts are not shown as submitted payable applications.
-- Verify fee waivers, late fees, expired payments, payment expiry, settlement metadata, and manual/admin overrides if present.
-- Verify Lenco production/sandbox configuration is explicit and safe for deployment.
-- Verify payment UI and Lenco loader are mobile friendly and recoverable.
+6. `already-fixed-local` `email-slip` backend crash due to stale `tracking_code` attribute access
+Severity: High
 
-6. Admin-to-Student Communication Agent
-Ownership:
-- communications service
-- notification service
-- email/SMS paths
-- admin messaging UI/API
-- templates
-- student-visible status/messages
-- audit trail for communication
+Evidence:
+- The production symptom was `POST /api/v1/applications/<id>/email-slip/` returning `500`.
+- Local fix already applied in the current working tree changed the slip-email path to use the application's public tracking code safely instead of assuming a `tracking_code` attribute exists.
+- Regression coverage exists in [backend/tests/unit/test_email_slip_endpoint.py](/home/cosmas/Downloads/mihasv3/backend/tests/unit/test_email_slip_endpoint.py:1).
 
-Tasks:
-- Trace how admins communicate with potential students and applicants.
-- Verify every important admin action creates a student-visible outcome or documented notification path:
-  - payment rejection
-  - document rejection/approval
-  - application status change
-  - interview schedule/reschedule/cancel
-  - condition assigned/cleared
-  - amendment requested/accepted/rejected
-  - waitlist movement
-  - enrollment offer
-  - withdrawal confirmation
-  - fee waiver decision
-- Verify delivery retries, failure logging, user preferences, unread/read state, templates, permissions, and audit logs.
-- Identify any silent state change.
+Impact:
+- This exact bug explains the reported 500 and proves the repo contains stale contract assumptions between model fields and endpoint logic.
 
-Canonical flows to verify:
-- registration
-- sign-in
-- session refresh
-- logout
-- student profile load/update
-- application draft create/update/resume/delete
-- wizard KYC
-- education/grades/document upload
-- duplicate application prevention
-- intake capacity enforcement
-- fee resolution
-- payment initiation
-- Lenco callback and verification
-- payment webhook
-- pending payment polling
-- payment retry/rejection
-- fee waiver and payment impact, if present
-- receipt/slip generation
-- application submission
-- admin application review
-- admin payment review/status update
-- admin-to-student messages/notifications
-- student dashboard/status refresh
-- amendment, condition, enrollment, interview, waitlist, withdrawal, expiry, late application handling if present
+Verification already performed locally:
+- `pytest backend/tests/unit/test_email_slip_endpoint.py -q`
+- `pytest backend/tests/unit/test_auth_csrf_headers.py backend/tests/unit/test_drf_csrf_authentication.py -q`
 
-Race-condition checklist:
-- double-click submit
-- duplicate payment initiation
-- duplicate draft creation
-- multiple tabs editing the same application
-- local draft versus server draft conflict
-- stale localStorage/sessionStorage references
-- React Query invalidation race
-- dashboard polling overwriting fresh data
-- token refresh race
-- CSRF refresh race
-- auth-expired cascade race
-- file upload before application ID exists
-- payment verify versus webhook
-- admin status update versus student submission
-- payment expiry versus successful webhook
-- background task retry idempotency
-- Redis lock expiry and stale locks
+Residual risk:
+- The fix is only local until deployed.
+- Similar stale field assumptions may still exist elsewhere.
 
-Evidence requirements:
-For each finding or verification result, include:
-- status: `verified-fixed`, `partially-fixed`, `not-fixed`, `not-verifiable`, `new-risk`, or `no-issue-found`
-- severity: Critical, High, Medium, Low, or Informational
-- origin: introduced-or-changed, pre-existing, unknown-origin
-- exact paths and line numbers
-- code-path summary
-- data-path summary
-- cache/session/Redis impact if relevant
-- payment impact if relevant
-- communication impact if relevant
-- verification command or static verification method
-- recommended fix or reason no fix is needed
+7. `suspicious-stale-path` Receipt hook depends on a payments list endpoint shape that is already known to be migration-sensitive
+Severity: Medium
 
-Output format:
+Evidence:
+- [apps/admissions/src/hooks/usePaymentReceipt.ts](/home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/usePaymentReceipt.ts:56) fetches `/payments/?application_id=...`.
+- [apps/admissions/src/hooks/usePaymentReceipt.ts](/home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/usePaymentReceipt.ts:59) accepts multiple response shapes and falls back broadly.
+- The backend canonical receipt flow is keyed by `payment_id`, not "list then guess the right payment".
 
-1. Executive Summary
-- What was verified
-- What was not verifiable
-- Counts by status and severity
-- Top 10 risks still open
-- Top 10 fixes verified
+Impact:
+- Broad response-shape tolerance usually indicates the frontend is compensating for unstable or previously changed contracts.
+- This increases the chance of stale data selection, wrong receipt source, and future silent breakage.
 
-2. Working Tree and Change Impact
-- `git status --short` summary
-- `git diff --name-status` summary
-- modified files grouped by area
-- deleted files and dead-reference results
-- untracked files and wiring status
-- package/config/deployment impact
-- tests added/changed and what they actually prove
+Recommended action:
+- Stop using "list then infer" for receipt generation.
+- Drive receipts from a specific verified payment record and canonical backend route only.
 
-3. Fix Verification Ledger
-Use this table:
-| Issue or claimed fix | Area | Evidence | Verification | Status | Residual risk |
+8. `suspicious-stale-path` Payment UI keeps separate business rules for phone normalization and widget customer data
+Severity: Medium
 
-4. Canonical Flow Map
-For each canonical flow:
-- entry point
-- frontend path
-- API path
-- backend service path
-- DB writes/reads
-- cache invalidation
-- background tasks
-- events/notifications
-- tests
-- status
+Evidence:
+- [apps/admissions/src/components/student/PaymentForm.tsx](/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/student/PaymentForm.tsx:27) defines one normalization path for the mobile-money input.
+- [apps/admissions/src/components/student/PaymentForm.tsx](/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/student/PaymentForm.tsx:100) exposes a different raw-phone path for customer details.
 
-5. Payment End-to-End Verification
-Include:
-- fee source of truth
-- payment initiation
-- Lenco config and mobile behavior
-- backend validation
-- webhook and polling
-- idempotency
-- retry/rejection
-- admin review
-- receipt/slip
-- tests
-- unresolved risks
+Impact:
+- Even after fixing the current bug, this structure will keep reintroducing channel-specific drift.
 
-6. Redis, Cache, Session, and Race Matrix
-Use this table:
-| Scenario | Current protection | Evidence | Test coverage | Residual risk | Status |
+Recommended action:
+- Introduce one canonical helper for applicant payment phone normalization and consume it everywhere.
 
-7. Admin-to-Student Communication Verification
-Use this table:
-| Admin action | Student-visible path | Notification path | Audit path | Failure handling | Status |
+9. `suspicious-stale-path` Older-than-a-week runtime inventory is large enough that stale code should be triaged by risk, not assumed correct
+Severity: Medium
 
-8. Database and Schema Verification
-- table/field/constraint inventory
-- schema drift
-- missing migrations
-- FK/uniqueness/nullability risks
-- payment/data integrity risks
+Evidence:
+- Narrowed runtime stale inventory under `apps/admissions` and `backend`: `541` files older than 7 days.
+- High-risk stale files discovered during this pass include:
+  - [apps/admissions/src/components/student/DownloadReceiptButton.tsx](/home/cosmas/Downloads/mihasv3/apps/admissions/src/components/student/DownloadReceiptButton.tsx:1)
+  - [apps/admissions/src/hooks/usePaymentReceipt.ts](/home/cosmas/Downloads/mihasv3/apps/admissions/src/hooks/usePaymentReceipt.ts:1)
+  - [apps/admissions/src/lib/secureStorage.ts](/home/cosmas/Downloads/mihasv3/apps/admissions/src/lib/secureStorage.ts:1)
+  - [apps/admissions/src/pages/student/applicationWizard/hooks/useApplicationFileUploads.ts](/home/cosmas/Downloads/mihasv3/apps/admissions/src/pages/student/applicationWizard/hooks/useApplicationFileUploads.ts:1)
 
-9. Deleted File and Dead Reference Report
-Use this table:
-| Deleted file | Remaining references | Build/runtime impact | Replacement | Status |
+Impact:
+- The "stale means suspicious" heuristic was productive. It surfaced real bugs and real security drift.
+- It should remain part of the maintenance process, but it needs prioritization by business risk.
 
-10. Test Coverage Gaps
-For each gap:
-- exact behavior missing
-- suggested test file
-- minimum assertions
-- whether it blocks verified-fixed status
+Recommended action:
+- Audit stale files in this order:
+  1. Payments
+  2. Auth/session/CSRF
+  3. Documents/slips/receipts
+  4. Application state transitions
+  5. Admin communication and notifications
+- Remove dead compatibility code instead of letting the frontend keep compensating for old backend contracts.
 
-11. Commands Run
-- command
-- result
-- relevant output summary
+Priority fix order
+1. Normalize applicant phone once and use it for every payment channel.
+2. Align `/payments/initiate/` request contract between frontend and backend.
+3. Remove client-generated official receipts and switch to backend receipt endpoints.
+4. Unify 403 classification in file-upload auth recovery with central session hardening.
+5. Either wire `secureStorage.init()` into login or delete the fake security abstraction.
+6. Deploy the local `email-slip` fix and search for similar stale model-field assumptions.
 
-12. Open Questions
-Only include questions blocked by missing evidence.
+What this audit proves
+- The reported `email-slip` 500 was not isolated.
+- The payment stack does contain stale frontend/backend contract drift.
+- The stale-file heuristic is valid and must now be applied exhaustively by the downstream multi-agent audit.
+- The next audit passes must stay evidence-first and must continue until every suspicious file has a disposition, not just the canonical runtime paths.
 
-Final instruction:
-The final report must be precise enough for an engineer to implement remaining fixes without another discovery pass. Do not bury critical payment, auth/session, Redis/cache, race-condition, or admin-student communication risks in general prose.
+Mandatory instruction for the downstream multi-agent audit
+- Audit every single file that can affect behavior, directly or indirectly.
+- Spawn as many agents as necessary to cover the repository in parallel.
+- Do not stop after finding a few high-signal bugs.
+- Do not treat old files as safe because they are stable.
+- Every stale file must receive an explicit disposition with evidence.
+- If a file is ignored as correct, the reason must be recorded.
+- If a file is retained only for backward compatibility, verify that the compatibility path is still live and necessary.
+- If a file appears dead, prove whether references still exist before recommending removal.

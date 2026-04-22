@@ -82,22 +82,19 @@ class TestErrorLoggingOnFailure(SimpleTestCase):
     """When the task fails after exhausting retries, it should log to ErrorLog and dispatch alert."""
 
     def test_logs_to_errorlog_on_final_failure(self):
-        """Directly test _log_error_and_alert creates an ErrorLog row."""
+        """Directly test _log_error_and_alert sends to GlitchTip via sentry_sdk."""
         from apps.catalog.tasks import _log_error_and_alert
 
-        mock_errorlog_create = MagicMock()
+        mock_capture = MagicMock()
 
-        with patch("apps.common.models.ErrorLog.objects.create", mock_errorlog_create), \
+        with patch("sentry_sdk.capture_message", mock_capture), \
              patch("apps.common.outbox.queue_email"), \
              patch("django.core.cache.cache.add", return_value=True):
             _log_error_and_alert("intake_manager_task failed: Exception: connection refused")
 
-        mock_errorlog_create.assert_called_once()
-        create_kwargs = mock_errorlog_create.call_args.kwargs
-        self.assertEqual(create_kwargs["source"], "backend")
-        self.assertEqual(create_kwargs["level"], "error")
-        self.assertIn("connection refused", create_kwargs["message"])
-        self.assertEqual(create_kwargs["context"], {"task": "intake_manager_task"})
+        mock_capture.assert_called_once()
+        msg = mock_capture.call_args[0][0]
+        self.assertIn("connection refused", msg)
 
     def test_dispatches_alert_email_on_final_failure(self):
         """Directly test _log_error_and_alert dispatches an alert email."""

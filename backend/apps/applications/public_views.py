@@ -98,4 +98,4 @@ class ApplicationTrackView(APIView):
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
-        return Response(ApplicationTrackingSerializer(app).data)
+        return Response({"success": True, "data": ApplicationTrackingSerializer(app).data})

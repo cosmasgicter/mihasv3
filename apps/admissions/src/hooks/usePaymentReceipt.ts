@@ -1,30 +1,17 @@
 /**
  * Payment Receipt Hook - Cookie-based authentication
- * 
- * Uses HTTP-only cookies (credentials: 'include') for authentication.
- * Reads payment data from the `payments` table instead of deprecated
- * Application model fields.
+ *
+ * Fetches receipt data from the backend receipt API instead of
+ * fabricating it client-side. Falls back to payment record fields
+ * if the receipt endpoint is unavailable.
  *
  * @module usePaymentReceipt
  * @requirements 2.7
  */
 
 import { useState } from 'react';
-import { generatePaymentReceipt, generateReceiptNumber } from '@/lib/receiptGenerator';
-import { applicationService } from '@/services/applications';
+import { generatePaymentReceipt } from '@/lib/receiptGenerator';
 import { apiClient } from '@/services/client';
-
-type ReceiptApplication = {
-  application_number?: string | null
-  full_name?: string | null
-  email?: string | null
-  phone?: string | null
-  program?: string | null
-  institution?: string | null
-  application_fee?: number | string | null
-  payment_verified_by_name?: string | null
-  receipt_number?: string | null
-}
 
 interface PaymentRecord {
   id: string
@@ -42,13 +29,15 @@ interface PaymentListResponse {
   [key: string]: unknown
 }
 
-function normalizeAmount(value: number | string | null | undefined): number {
-  if (typeof value === 'number') return value
-  if (typeof value === 'string') {
-    const parsed = Number(value)
-    return Number.isFinite(parsed) ? parsed : 0
-  }
-  return 0
+interface BackendReceiptData {
+  payment_id: string
+  amount: string
+  currency: string
+  status: string
+  created_at: string | null
+  application_number: string | null
+  program: string | null
+  applicant_name: string | null
 }
 
 async function fetchSuccessfulPayment(applicationId: string): Promise<PaymentRecord | null> {
@@ -63,21 +52,48 @@ async function fetchSuccessfulPayment(applicationId: string): Promise<PaymentRec
   }
 }
 
-function buildReceiptData(application: ReceiptApplication, payment: PaymentRecord | null) {
+async function fetchReceiptData(paymentId: string): Promise<BackendReceiptData | null> {
+  try {
+    return await apiClient.request<BackendReceiptData>(`/payments/${encodeURIComponent(paymentId)}/receipt/`)
+  } catch {
+    return null
+  }
+}
+
+function buildReceiptFromBackend(receipt: BackendReceiptData, payment: PaymentRecord) {
   return {
-    receiptNumber: application.receipt_number || generateReceiptNumber(),
-    applicationNumber: application.application_number || 'Unknown',
-    studentName: application.full_name || 'Applicant',
-    email: application.email || 'Not provided',
-    phone: application.phone || 'Not provided',
-    program: application.program || 'Not specified',
-    institution: application.institution || 'MIHAS',
-    amount: payment ? normalizeAmount(payment.amount) : normalizeAmount(application.application_fee),
-    paymentMethod: payment?.payment_method || 'Online Payment',
-    paymentReference: payment?.transaction_reference || undefined,
-    paymentDate: payment?.created_at || new Date().toISOString(),
-    verifiedDate: payment?.updated_at || payment?.created_at || new Date().toISOString(),
-    verifiedBy: application.payment_verified_by_name || 'Admissions Office',
+    receiptNumber: receipt.payment_id.slice(0, 8).toUpperCase(),
+    applicationNumber: receipt.application_number || 'Unknown',
+    studentName: receipt.applicant_name || 'Applicant',
+    email: '',
+    phone: '',
+    program: receipt.program || 'Not specified',
+    institution: 'MIHAS',
+    amount: Number(receipt.amount) || 0,
+    paymentMethod: payment.payment_method || 'Online Payment',
+    paymentReference: payment.transaction_reference || undefined,
+    paymentDate: receipt.created_at || new Date().toISOString(),
+    verifiedDate: receipt.created_at || new Date().toISOString(),
+    verifiedBy: 'Admissions Office',
+  }
+}
+
+function buildReceiptFromPayment(payment: PaymentRecord) {
+  const now = new Date().toISOString()
+  return {
+    receiptNumber: payment.id.slice(0, 8).toUpperCase(),
+    applicationNumber: 'Unknown',
+    studentName: 'Applicant',
+    email: '',
+    phone: '',
+    program: 'Not specified',
+    institution: 'MIHAS',
+    amount: typeof payment.amount === 'number' ? payment.amount : 0,
+    paymentMethod: payment.payment_method || 'Online Payment',
+    paymentReference: payment.transaction_reference || undefined,
+    paymentDate: payment.created_at || now,
+    verifiedDate: payment.updated_at || payment.created_at || now,
+    verifiedBy: 'Admissions Office',
   }
 }
 
@@ -90,26 +106,22 @@ export function usePaymentReceipt() {
     setError(null);
 
     try {
-      const detail = await applicationService.getById(applicationId)
-      const application = detail?.application
-
-      if (!application) {
-        throw new Error('Application details are unavailable')
-      }
-
-      const pStatus = application.payment_status
-      if (pStatus !== 'verified' && pStatus !== 'paid') {
-        throw new Error('Payment must be verified before a receipt can be generated')
-      }
-
       const payment = await fetchSuccessfulPayment(applicationId)
+      if (!payment) {
+        throw new Error('No payment record found for this application')
+      }
 
-      const pdfBlob = await generatePaymentReceipt(buildReceiptData(application, payment));
+      const receipt = await fetchReceiptData(payment.id)
+      const receiptInput = receipt
+        ? buildReceiptFromBackend(receipt, payment)
+        : buildReceiptFromPayment(payment)
+
+      const pdfBlob = await generatePaymentReceipt(receiptInput);
 
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `receipt_${application.receipt_number || application.application_number || applicationId}.pdf`;
+      link.download = `receipt_${receipt?.application_number || applicationId}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
