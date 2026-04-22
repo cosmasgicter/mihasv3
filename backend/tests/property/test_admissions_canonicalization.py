@@ -487,16 +487,16 @@ class TestFeeResolutionRoundTrip(SimpleTestCase):
 
         # --- PaymentService path: name → IdentifierResolver → code → FeeResolver ---
         with patch(
-            "apps.documents.payment_service.IdentifierResolver.resolve_program",
+            "apps.applications.identifier_resolver.IdentifierResolver.resolve_program",
             return_value=mock_resolved_identifier,
         ) as mock_resolve_program, patch(
             "apps.documents.payment_service.FeeResolver.resolve_fee",
             return_value=expected_fee,
         ) as mock_ps_fee_resolve, patch(
-            "apps.documents.payment_service.Payment.objects"
-        ) as mock_payment_qs, patch(
-            "apps.documents.payment_service.Application.objects"
+            "apps.applications.models.Application.objects"
         ) as mock_app_qs, patch(
+            "apps.documents.models.Payment.objects"
+        ) as mock_payment_qs, patch(
             "django.db.transaction.atomic"
         ) as mock_atomic:
             # No existing pending payment
@@ -1737,7 +1737,7 @@ class TestPaymentStatusCanonicalMapping(SimpleTestCase):
         with patch(
             "apps.documents.payment_service.Payment.objects"
         ) as mock_payment_qs, patch(
-            "apps.documents.payment_service.Application.objects"
+            "apps.applications.models.Application.objects"
         ) as mock_app_qs, patch(
             "django.db.transaction.atomic",
             return_value=MagicMock(__enter__=MagicMock(), __exit__=MagicMock(return_value=False)),
@@ -1789,7 +1789,7 @@ class TestPaymentStatusCanonicalMapping(SimpleTestCase):
         with patch(
             "apps.documents.payment_service.Payment.objects"
         ) as mock_payment_qs, patch(
-            "apps.documents.payment_service.Application.objects"
+            "apps.applications.models.Application.objects"
         ) as mock_app_qs, patch(
             "django.db.transaction.atomic",
             return_value=MagicMock(__enter__=MagicMock(), __exit__=MagicMock(return_value=False)),

@@ -152,7 +152,7 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
 
         with (
             patch(
-                "apps.documents.payment_service.Application.objects"
+                "apps.applications.models.Application.objects"
             ) as mock_app_qs,
             patch.object(
                 service, "_fee_resolver"
@@ -235,7 +235,7 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
 
         with (
             patch(
-                "apps.documents.payment_service.Application.objects"
+                "apps.applications.models.Application.objects"
             ) as mock_app_qs,
             patch.object(service, "_fee_resolver") as mock_resolver,
             patch(
@@ -318,7 +318,7 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
 
         with (
             patch(
-                "apps.documents.payment_service.Application.objects"
+                "apps.applications.models.Application.objects"
             ) as mock_app_qs,
             patch.object(service, "_fee_resolver") as mock_resolver,
             patch(
@@ -397,7 +397,7 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
 
         with (
             patch(
-                "apps.documents.payment_service.Application.objects"
+                "apps.applications.models.Application.objects"
             ) as mock_app_qs,
             patch.object(service, "_fee_resolver") as mock_resolver,
             patch(
@@ -477,7 +477,7 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
 
         with (
             patch(
-                "apps.documents.payment_service.Application.objects"
+                "apps.applications.models.Application.objects"
             ) as mock_app_qs,
             patch.object(service, "_fee_resolver") as mock_resolver,
             patch(

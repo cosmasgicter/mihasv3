@@ -8,7 +8,6 @@ Requirements: 12.1–12.6
 import logging
 from decimal import Decimal
 
-from apps.applications.models import Application, ApplicationStatusHistory
 from apps.documents.models import FeeWaiver
 
 logger = logging.getLogger(__name__)
@@ -74,6 +73,8 @@ class FeeWaiverService:
                 "INVALID_DISCOUNT",
                 "discount_percentage must be between 0 and 100.",
             )
+
+        from apps.applications.models import Application, ApplicationStatusHistory
 
         application = Application.objects.get(id=application_id)
 

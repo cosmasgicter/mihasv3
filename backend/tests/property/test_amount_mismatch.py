@@ -182,7 +182,7 @@ class TestAmountMismatchDetection(SimpleTestCase):
 
         with (
             patch("apps.documents.payment_service.Payment.objects") as mock_payment_qs,
-            patch("apps.documents.payment_service.Application.objects") as mock_app_qs,
+            patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("django.db.transaction.atomic", side_effect=_noop_atomic),
         ):
             mock_payment_qs.select_for_update.return_value.get.return_value = payment

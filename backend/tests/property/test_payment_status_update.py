@@ -154,7 +154,7 @@ class TestPaymentStatusUpdateFromLencoResponse(SimpleTestCase):
 
         with (
             patch("apps.documents.payment_service.Payment.objects") as mock_pay_qs,
-            patch("apps.documents.payment_service.Application.objects") as mock_app_qs,
+            patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("django.db.transaction.atomic", side_effect=_noop_atomic),
         ):
             mock_pay_qs.select_for_update.return_value.get.return_value = locked_payment
@@ -198,7 +198,7 @@ class TestPaymentStatusUpdateFromLencoResponse(SimpleTestCase):
 
         with (
             patch("apps.documents.payment_service.Payment.objects") as mock_pay_qs,
-            patch("apps.documents.payment_service.Application.objects") as mock_app_qs,
+            patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("django.db.transaction.atomic", side_effect=_noop_atomic),
         ):
             mock_pay_qs.select_for_update.return_value.get.return_value = locked_payment
@@ -234,7 +234,7 @@ class TestPaymentStatusUpdateFromLencoResponse(SimpleTestCase):
 
         with (
             patch("apps.documents.payment_service.Payment.objects") as mock_pay_qs,
-            patch("apps.documents.payment_service.Application.objects"),
+            patch("apps.applications.models.Application.objects"),
             patch("django.db.transaction.atomic", side_effect=_noop_atomic),
         ):
             mock_pay_qs.select_for_update.return_value.get.return_value = locked_payment
@@ -280,7 +280,7 @@ class TestApplicationStatusSyncOnPaymentSuccess(SimpleTestCase):
 
         with (
             patch("apps.documents.payment_service.Payment.objects") as mock_pay_qs,
-            patch("apps.documents.payment_service.Application.objects") as mock_app_qs,
+            patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("django.db.transaction.atomic", side_effect=_noop_atomic),
         ):
             mock_pay_qs.select_for_update.return_value.get.return_value = locked_payment
@@ -325,7 +325,7 @@ class TestApplicationStatusSyncOnPaymentSuccess(SimpleTestCase):
 
         with (
             patch("apps.documents.payment_service.Payment.objects") as mock_pay_qs,
-            patch("apps.documents.payment_service.Application.objects") as mock_app_qs,
+            patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("django.db.transaction.atomic", side_effect=_noop_atomic),
         ):
             mock_pay_qs.select_for_update.return_value.get.return_value = locked_payment
@@ -363,7 +363,7 @@ class TestApplicationStatusSyncOnPaymentSuccess(SimpleTestCase):
 
         with (
             patch("apps.documents.payment_service.Payment.objects") as mock_pay_qs,
-            patch("apps.documents.payment_service.Application.objects") as mock_app_qs,
+            patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("django.db.transaction.atomic", side_effect=_noop_atomic),
         ):
             mock_pay_qs.select_for_update.return_value.get.return_value = locked_payment
@@ -408,7 +408,7 @@ class TestLencoResponseDataStored(SimpleTestCase):
 
         with (
             patch("apps.documents.payment_service.Payment.objects") as mock_pay_qs,
-            patch("apps.documents.payment_service.Application.objects") as mock_app_qs,
+            patch("apps.applications.models.Application.objects") as mock_app_qs,
             patch("django.db.transaction.atomic", side_effect=_noop_atomic),
         ):
             mock_pay_qs.select_for_update.return_value.get.return_value = locked_payment
