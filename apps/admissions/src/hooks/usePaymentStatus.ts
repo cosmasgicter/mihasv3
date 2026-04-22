@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { normalizePaymentStatus } from '@/lib/paymentStatus'
 import { apiClient } from '@/services/client'
 
 // ---------------------------------------------------------------------------
@@ -32,16 +33,11 @@ export const MAX_POLL_COUNT = 30
 // ---------------------------------------------------------------------------
 
 export function normalizePaymentStatusValue(status?: string | null): PaymentStatusValue {
-  switch (status?.toLowerCase()) {
-    case 'pending':
+  switch (normalizePaymentStatus(status)) {
     case 'pending_review':
       return 'pending'
-    case 'successful':
     case 'verified':
-    case 'paid':
-    case 'force_approved':
       return 'successful'
-    case 'failed':
     case 'rejected':
       return 'failed'
     default:

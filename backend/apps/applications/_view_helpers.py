@@ -260,6 +260,9 @@ class ApplicationSummarySerializer(serializers.Serializer):
     documents_count = serializers.IntegerField()
     grades_count = serializers.IntegerField()
     status_history = ApplicationStatusHistorySerializer(many=True)
+    grades_summary = serializers.CharField(required=False, allow_blank=True)
+    grades = serializers.JSONField(required=False)
+    ai_summary = serializers.JSONField(allow_null=True, required=False)
 
 
 class ApplicationDraftWriteSerializer(serializers.Serializer):

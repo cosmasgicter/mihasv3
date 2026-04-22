@@ -11,6 +11,7 @@ import { generateAcceptanceLetter } from '@/lib/acceptanceLetterGenerator';
 import { generatePaymentReceipt } from '@/lib/receiptGenerator';
 
 const getByIdMock = vi.fn();
+const apiRequestMock = vi.fn();
 
 vi.mock('@/lib/applicationSlipPdf', () => ({
   generateApplicationSlip: vi.fn(async () => new Blob(['slip'])),
@@ -28,6 +29,12 @@ vi.mock('@/lib/receiptGenerator', () => ({
 vi.mock('@/services/applications', () => ({
   applicationService: {
     getById: (...args: unknown[]) => getByIdMock(...args),
+  },
+}));
+
+vi.mock('@/services/client', () => ({
+  apiClient: {
+    request: (...args: unknown[]) => apiRequestMock(...args),
   },
 }));
 
@@ -86,6 +93,7 @@ describe('useDocumentGeneration payload handling', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     getByIdMock.mockReset();
+    apiRequestMock.mockReset();
     vi.stubGlobal('URL', {
       createObjectURL: vi.fn(() => 'blob:mock-url'),
       revokeObjectURL: vi.fn(),
@@ -178,13 +186,36 @@ describe('useDocumentGeneration payload handling', () => {
     await cleanup();
   });
 
-  it('validates and generates receipt data from the application payload', async () => {
+  it('validates and generates receipt data from the backend receipt endpoint when available', async () => {
     getByIdMock.mockResolvedValueOnce({
       application: {
         ...baseApplication,
-        receipt_number: 'RCT-001',
+        id: 'app-3',
       },
     });
+    apiRequestMock
+      .mockResolvedValueOnce([
+        {
+          id: 'pay-abcdef12',
+          status: 'successful',
+          amount: 150,
+          currency: 'ZMW',
+          payment_method: 'mobile_money',
+          transaction_reference: 'TX-123',
+          created_at: '2026-01-03T00:00:00.000Z',
+          updated_at: '2026-01-04T00:00:00.000Z',
+        },
+      ])
+      .mockResolvedValueOnce({
+        payment_id: 'pay-abcdef12',
+        amount: '150',
+        currency: 'ZMW',
+        status: 'successful',
+        created_at: '2026-01-04T00:00:00.000Z',
+        application_number: 'APP-001',
+        program: 'Computer Science',
+        applicant_name: 'Jane Doe',
+      });
 
     const { getApi, cleanup } = await setupHook();
 
@@ -194,8 +225,15 @@ describe('useDocumentGeneration payload handling', () => {
     });
 
     expect(getByIdMock).toHaveBeenCalledWith('3');
+    expect(apiRequestMock).toHaveBeenNthCalledWith(1, '/payments/?application_id=3');
+    expect(apiRequestMock).toHaveBeenNthCalledWith(2, '/payments/pay-abcdef12/receipt/');
     expect(generatePaymentReceipt).toHaveBeenCalledWith(
-      expect.objectContaining({ receiptNumber: 'RCT-001' })
+      expect.objectContaining({
+        receiptNumber: 'PAY-ABCD',
+        applicationNumber: 'APP-001',
+        amount: 150,
+        paymentReference: 'TX-123',
+      })
     );
 
     await cleanup();

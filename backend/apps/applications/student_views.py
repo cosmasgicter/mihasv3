@@ -32,6 +32,8 @@ from apps.applications.serializers import (
     ApplicationCreateSerializer,
     ApplicationGradeSerializer,
     ApplicationSerializer,
+    build_grades_payload,
+    build_grades_summary,
 )
 from apps.applications.services import (
     ApplicationSubmissionError,
@@ -445,13 +447,26 @@ class ApplicationSummaryView(APIView):
                     "program": app.program,
                     "status": app.status,
                     "payment_status": app.payment_status,
-                    "grades_summary": getattr(app, "grades_summary", ""),
+                    "grades_summary": build_grades_summary(app),
                     "nationality": getattr(app, "nationality", ""),
                     "institution": getattr(app, "institution", ""),
                 })
             except Exception:
                 pass
-        return Response({"application": ApplicationSerializer(app).data, "documents_count": docs_count, "grades_count": grades_count, "status_history": history, "ai_summary": ai_summary})
+        return Response(
+            {
+                "success": True,
+                "data": {
+                    "application": ApplicationSerializer(app).data,
+                    "documents_count": docs_count,
+                    "grades_count": grades_count,
+                    "status_history": history,
+                    "ai_summary": ai_summary,
+                    "grades_summary": build_grades_summary(app),
+                    "grades": build_grades_payload(app),
+                },
+            }
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -545,7 +560,7 @@ class ApplicationDraftView(APIView):
         draft = ApplicationDraft.objects.filter(user_id=user_id).order_by("-updated_at").first()
         if not draft:
             return Response({"success": False, "error": "No draft found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
-        return Response(ApplicationDraftSerializer(draft).data)
+        return Response({"success": True, "data": ApplicationDraftSerializer(draft).data})
 
     def post(self, request):
         from apps.applications.serializers import ApplicationDraftSerializer
@@ -555,7 +570,7 @@ class ApplicationDraftView(APIView):
         application_id = request.data.get("application_id")
         draft, created = ApplicationDraft.objects.update_or_create(user_id=user_id, application_id=application_id, defaults={"draft_data": draft_data})
         resp_status = status.HTTP_201_CREATED if created else status.HTTP_200_OK
-        return Response(ApplicationDraftSerializer(draft).data, status=resp_status)
+        return Response({"success": True, "data": ApplicationDraftSerializer(draft).data}, status=resp_status)
 
 
 # ---------------------------------------------------------------------------

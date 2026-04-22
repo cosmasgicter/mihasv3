@@ -114,7 +114,13 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       submitted: { color: 'bg-blue-100/80 text-blue-700', icon: AlertTriangle },
       under_review: { color: 'bg-amber-100/80 text-amber-700', icon: Eye },
       approved: { color: 'bg-emerald-100/80 text-emerald-700', icon: CheckCircle },
-      rejected: { color: 'bg-red-100/80 text-red-700', icon: XCircle }
+      conditionally_approved: { color: 'bg-emerald-100/80 text-emerald-700', icon: CheckCircle },
+      rejected: { color: 'bg-red-100/80 text-red-700', icon: XCircle },
+      waitlisted: { color: 'bg-amber-100/80 text-amber-700', icon: Clock },
+      withdrawn: { color: 'bg-slate-100/80 text-slate-700', icon: XCircle },
+      expired: { color: 'bg-orange-100/80 text-orange-700', icon: AlertTriangle },
+      enrolled: { color: 'bg-emerald-100/80 text-emerald-700', icon: CheckCircle },
+      enrollment_expired: { color: 'bg-orange-100/80 text-orange-700', icon: AlertTriangle },
     }
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft

@@ -167,9 +167,25 @@ class JobScoreView(JobActionBaseView):
         result = score_job_match(job_data, candidate_data)
 
         if result:
-            # Save score
+            score_value = float(result.get("score", 0) or 0)
+            recommendation = str(result.get("recommendation") or "review")
+            explanation = result.get("reasons") or result
+            if not isinstance(explanation, (list, dict)):
+                explanation = {"details": explanation}
+            missing_signals = result.get("missing_skills") or result.get("missing_signals") or []
+            if not isinstance(missing_signals, list):
+                missing_signals = [str(missing_signals)]
+
             JobMatchScore.objects.update_or_create(
-                job_posting=job, defaults={"match_score": result.get("score", 0), "explanation": result}
+                job_posting=job,
+                candidate=request.user,
+                defaults={
+                    "match_score": score_value,
+                    "shortlist_probability": score_value,
+                    "recommendation": recommendation,
+                    "explanation": explanation,
+                    "missing_signals": missing_signals,
+                },
             )
             return Response({"success": True, "data": {"job_id": str(job_id), "score": result}})
 
