@@ -67,10 +67,10 @@ function ActionCard({
   const content = (
     <div
       className={cn(
-        'flex items-center gap-3 p-3 rounded-2xl border transition-all duration-200 min-h-[44px]',
+        'interactive-surface motion-card flex min-h-[44px] items-center gap-3 rounded-2xl border p-3',
         variantStyles[variant],
         disabled && 'opacity-50 cursor-not-allowed',
-        !disabled && 'cursor-pointer active:scale-[0.98]'
+        !disabled && 'cursor-pointer'
       )}
     >
       <div className={cn(
@@ -91,7 +91,7 @@ function ActionCard({
   );
 
   const wrappedContent = (
-    <div className="transition-transform duration-150">
+    <div className="micro-lift">
       {content}
     </div>
   );

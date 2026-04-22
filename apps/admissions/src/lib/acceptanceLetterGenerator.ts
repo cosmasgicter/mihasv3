@@ -6,6 +6,8 @@ import { formatDate } from './utils'
 const NAVY = { r: 26, g: 54, b: 93 } // #1a365d
 const MARGIN = 20
 const GREY_TEXT = { r: 107, g: 114, b: 128 }
+const GOLD = { r: 187, g: 139, b: 64 }
+const SOFT_SURFACE = { r: 244, g: 248, b: 252 }
 
 interface AcceptanceLetterData {
   applicationNumber: string
@@ -36,56 +38,82 @@ export async function generateAcceptanceLetter(data: AcceptanceLetterData): Prom
   const institutionName = getFullInstitutionName(data.institution)
   const isConditional = data.conditional && data.conditions?.length
 
+  const ensureSpace = (required: number) => {
+    if (y + required <= pageHeight - 28) return
+    doc.addPage()
+    doc.setFillColor(SOFT_SURFACE.r, SOFT_SURFACE.g, SOFT_SURFACE.b)
+    doc.rect(0, 0, pageWidth, pageHeight, 'F')
+    y = 24
+  }
+
+  doc.setFillColor(SOFT_SURFACE.r, SOFT_SURFACE.g, SOFT_SURFACE.b)
+  doc.rect(0, 0, pageWidth, pageHeight, 'F')
+
   // --- Header band ---
   doc.setFillColor(NAVY.r, NAVY.g, NAVY.b)
-  doc.rect(0, 0, pageWidth, 42, 'F')
+  doc.rect(0, 0, pageWidth, 48, 'F')
+  doc.setFillColor(GOLD.r, GOLD.g, GOLD.b)
+  doc.rect(0, 48, pageWidth, 3, 'F')
 
   doc.setTextColor(255, 255, 255)
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'bold')
+  doc.text('MIHAS OFFICIAL LETTER', MARGIN, 12)
   doc.setFontSize(16)
   doc.setFont('helvetica', 'bold')
-  doc.text(institutionName, pageWidth / 2, 16, { align: 'center' })
+  doc.text(institutionName, pageWidth / 2, 24, { align: 'center' })
 
   doc.setFontSize(10)
   doc.setFont('helvetica', 'normal')
-  doc.text('Private Bag E10, Kitwe, Zambia', pageWidth / 2, 24, { align: 'center' })
+  doc.text('Private Bag E10, Kitwe, Zambia', pageWidth / 2, 31, { align: 'center' })
 
   doc.setFontSize(14)
   doc.setFont('helvetica', 'bold')
   doc.text(
     isConditional ? 'Conditional Letter of Acceptance' : 'Letter of Acceptance',
     pageWidth / 2,
-    35,
+    42,
     { align: 'center' },
   )
 
   // --- Date line ---
-  let y = 54
+  let y = 62
   doc.setTextColor(0, 0, 0)
+  doc.setFillColor(255, 255, 255)
+  doc.roundedRect(MARGIN, y - 6, contentWidth, 18, 4, 4, 'F')
+  doc.setDrawColor(223, 231, 239)
+  doc.roundedRect(MARGIN, y - 6, contentWidth, 18, 4, 4)
   doc.setFontSize(10)
-  doc.text(`Date: ${formatDate(data.approvedDate)}`, pageWidth - MARGIN, y, { align: 'right' })
-  doc.text(`Ref: ${data.applicationNumber}`, MARGIN, y)
+  doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
+  doc.text('REFERENCE', MARGIN + 4, y)
+  doc.text('ISSUED', pageWidth - MARGIN - 36, y)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(NAVY.r, NAVY.g, NAVY.b)
+  doc.text(data.applicationNumber, MARGIN + 4, y + 5)
+  doc.text(formatDate(data.approvedDate), pageWidth - MARGIN - 4, y + 5, { align: 'right' })
 
   // --- Divider ---
-  y += 6
-  doc.setDrawColor(NAVY.r, NAVY.g, NAVY.b)
-  doc.setLineWidth(0.4)
-  doc.line(MARGIN, y, pageWidth - MARGIN, y)
+  y += 24
 
   // --- Salutation ---
   y += 10
   doc.setFontSize(12)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(NAVY.r, NAVY.g, NAVY.b)
   doc.text(`Dear ${data.studentName},`, MARGIN, y)
 
   // --- Congratulations ---
   y += 10
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(14)
-  doc.text('CONGRATULATIONS!', pageWidth / 2, y, { align: 'center' })
+  doc.setTextColor(GOLD.r, GOLD.g, GOLD.b)
+  doc.text('CONGRATULATIONS', pageWidth / 2, y, { align: 'center' })
 
   // --- Body ---
   y += 10
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(12)
+  doc.setTextColor(20, 34, 54)
 
   const introText = isConditional
     ? `We are pleased to inform you that your application (${data.applicationNumber}) has been conditionally approved for admission to the ${data.program} programme for the ${data.intake} intake.`
@@ -96,14 +124,16 @@ export async function generateAcceptanceLetter(data: AcceptanceLetterData): Prom
   y += introLines.length * 6 + 4
 
   // --- Programme Details section ---
+  ensureSpace(48)
+  doc.setFillColor(255, 255, 255)
+  doc.roundedRect(MARGIN, y - 2, contentWidth, 38, 5, 5, 'F')
+  doc.setDrawColor(223, 231, 239)
+  doc.roundedRect(MARGIN, y - 2, contentWidth, 38, 5, 5)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(12)
-  doc.text('Programme Details', MARGIN, y)
-  y += 2
-  doc.setDrawColor(200, 200, 200)
-  doc.setLineWidth(0.2)
-  doc.line(MARGIN, y, pageWidth - MARGIN, y)
-  y += 6
+  doc.setTextColor(NAVY.r, NAVY.g, NAVY.b)
+  doc.text('Programme Details', MARGIN + 5, y + 6)
+  y += 14
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(11)
@@ -115,14 +145,16 @@ export async function generateAcceptanceLetter(data: AcceptanceLetterData): Prom
   ]
   details.forEach(([label, value]) => {
     doc.setFont('helvetica', 'bold')
-    doc.text(label, MARGIN, y)
+    doc.text(label, MARGIN + 5, y)
     doc.setFont('helvetica', 'normal')
-    doc.text(value, MARGIN + 45, y)
+    doc.text(value, MARGIN + 50, y)
     y += 7
   })
+  y += 4
 
   // --- Conditions section (conditional only) ---
   if (isConditional && data.conditions) {
+    ensureSpace(48)
     y += 4
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(12)
@@ -141,6 +173,7 @@ export async function generateAcceptanceLetter(data: AcceptanceLetterData): Prom
     y += 8
 
     data.conditions.forEach((cond, i) => {
+      ensureSpace(18)
       doc.setFont('helvetica', 'bold')
       const prefix = `${i + 1}. `
       doc.text(prefix, MARGIN + 2, y)
@@ -170,14 +203,17 @@ export async function generateAcceptanceLetter(data: AcceptanceLetterData): Prom
   }
 
   // --- Next Steps ---
+  ensureSpace(52)
   y += 4
+  doc.setFillColor(255, 255, 255)
+  doc.roundedRect(MARGIN, y - 2, contentWidth, 38, 5, 5, 'F')
+  doc.setDrawColor(223, 231, 239)
+  doc.roundedRect(MARGIN, y - 2, contentWidth, 38, 5, 5)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(12)
-  doc.text('Next Steps', MARGIN, y)
-  y += 2
-  doc.setDrawColor(200, 200, 200)
-  doc.line(MARGIN, y, pageWidth - MARGIN, y)
-  y += 6
+  doc.setTextColor(NAVY.r, NAVY.g, NAVY.b)
+  doc.text('Next Steps', MARGIN + 5, y + 6)
+  y += 14
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(11)
@@ -188,13 +224,16 @@ export async function generateAcceptanceLetter(data: AcceptanceLetterData): Prom
     'Attend the orientation programme on the specified date.',
   ]
   steps.forEach((step, i) => {
-    doc.text(`${i + 1}. ${step}`, MARGIN + 2, y)
-    y += 7
+    const stepLines = doc.splitTextToSize(`${i + 1}. ${step}`, contentWidth - 10)
+    doc.text(stepLines, MARGIN + 5, y)
+    y += stepLines.length * 6 + 1
   })
 
   // --- Closing ---
+  ensureSpace(44)
   y += 6
   doc.setFontSize(12)
+  doc.setTextColor(20, 34, 54)
   doc.text('We look forward to welcoming you to our institution.', MARGIN, y)
   y += 12
   doc.text('Sincerely,', MARGIN, y)

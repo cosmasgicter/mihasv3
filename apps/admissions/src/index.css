@@ -1,6 +1,7 @@
 @import './styles/design-tokens.css';
 @import './styles/interactive-feedback.css';
 @import './styles/print.css';
+@import './styles/smooth-animations.css';
 
 @tailwind base;
 @tailwind components;
@@ -42,6 +43,7 @@
 
   html {
     color-scheme: light only !important;
+    scroll-behavior: smooth;
   }
   
   body {
@@ -107,6 +109,11 @@
   --max-content-width: 1200px;
   --content-padding: 1rem;
   --type-base: 16px;
+  --motion-fast: 160ms;
+  --motion-normal: 240ms;
+  --motion-slow: 360ms;
+  --motion-ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
   
   /* Enhanced responsive breakpoints */
   --breakpoint-mobile: 768px;
@@ -277,6 +284,54 @@ input, textarea, select {
 
   .ambient-divider {
     background: linear-gradient(90deg, rgba(37,99,235,0.16), rgba(14,165,233,0.08), rgba(15,23,42,0));
+  }
+
+  .interactive-surface {
+    transition:
+      transform var(--motion-normal) var(--motion-ease-standard),
+      box-shadow var(--motion-normal) var(--motion-ease-standard),
+      border-color var(--motion-fast) var(--motion-ease-standard),
+      background-color var(--motion-fast) var(--motion-ease-standard),
+      opacity var(--motion-fast) var(--motion-ease-standard);
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  .interactive-surface:hover {
+    transform: translate3d(0, -2px, 0);
+  }
+
+  .interactive-surface:active {
+    transform: translate3d(0, 0, 0) scale(0.992);
+    transition-duration: var(--motion-fast);
+  }
+
+  .micro-lift {
+    transition:
+      transform var(--motion-fast) var(--motion-ease-standard),
+      opacity var(--motion-fast) var(--motion-ease-standard);
+    transform: translateZ(0);
+  }
+
+  .micro-lift:hover {
+    transform: translate3d(0, -1px, 0);
+  }
+
+  .motion-card {
+    will-change: transform, box-shadow;
+    transform: translateZ(0);
+  }
+
+  .motion-chip {
+    transition:
+      transform var(--motion-fast) var(--motion-ease-standard),
+      background-color var(--motion-fast) var(--motion-ease-standard),
+      border-color var(--motion-fast) var(--motion-ease-standard);
+    transform: translateZ(0);
+  }
+
+  .motion-chip:hover {
+    transform: translate3d(0, -1px, 0);
   }
   
   /* Performance-optimized animations */

@@ -9,14 +9,14 @@
  * @requirements 1.5 - Preserve same visual transition behavior using CSS equivalents
  */
 
-/** Fade-in transition: opacity 0→1 over 300ms with ease-out */
-export const fadeIn = 'transition-opacity duration-300 ease-out';
+/** Fade-in transition: opacity 0→1 over 240ms with a softer, premium easing curve */
+export const fadeIn = 'transform-gpu transition-opacity duration-240 ease-smooth-out';
 
-/** Slide-up transition: translateY + opacity over 300ms with ease-out */
-export const slideUp = 'transition-all duration-300 ease-out transform';
+/** Slide-up transition: translateY + opacity over 240ms using transform-only motion */
+export const slideUp = 'transform-gpu transition-[transform,opacity] duration-240 ease-smooth-out';
 
-/** Scale-in transition: scale + opacity over 200ms with ease-out */
-export const scaleIn = 'transition-all duration-200 ease-out transform';
+/** Scale-in transition: scale + opacity over 200ms with eased landing */
+export const scaleIn = 'transform-gpu transition-[transform,opacity] duration-200 ease-smooth-out';
 
 /**
  * Returns an inline style string for staggered animation delay.

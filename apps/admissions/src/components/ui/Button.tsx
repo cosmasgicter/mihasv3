@@ -15,7 +15,7 @@ import { ButtonSpinner } from './ButtonSpinner'
 
 const buttonVariants = cva(
   // Base styles with focus-visible ring and touch-manipulation for mobile
-  'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-semibold ring-offset-background transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 touch-manipulation [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  'relative inline-flex transform-gpu items-center justify-center gap-2 whitespace-nowrap rounded-xl font-semibold ring-offset-background transition-[transform,box-shadow,background-color,border-color,color,opacity,filter] duration-200 ease-smooth-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 touch-manipulation [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {

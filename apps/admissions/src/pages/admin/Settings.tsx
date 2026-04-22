@@ -552,8 +552,16 @@ export default function AdminSettings() {
       />
     <PageShell
       title="Operational Settings"
+      eyebrow="System Configuration"
       subtitle="Configure the admissions portal through guided controls first, then use advanced keys only when needed."
       maxWidth="7xl"
+      tone="admin"
+      metrics={[
+        { label: 'Guided controls', value: `${configuredBlueprintCount}/${SETTING_BLUEPRINTS.length}`, helper: 'Operational settings already configured' },
+        { label: 'Advanced keys', value: advancedSettingsCount, helper: 'Manual settings beyond the guided layer' },
+        { label: 'Public settings', value: publicSettingsCount, helper: `${privateSettingsCount} remain internal only` },
+        { label: 'State', value: loading ? 'Loading' : error ? 'Needs attention' : 'Ready', helper: error || success || 'Settings layer is healthy' },
+      ]}
       actions={
         <div className="flex flex-wrap gap-2">
           <Link to="/admin">

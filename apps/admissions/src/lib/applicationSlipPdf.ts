@@ -7,6 +7,8 @@ import { sanitizeForLog } from './security'
 const NAVY = { r: 26, g: 54, b: 93 } // #1a365d
 const MARGIN = 20
 const GREY_TEXT = { r: 107, g: 114, b: 128 }
+const GOLD = { r: 187, g: 139, b: 64 }
+const SOFT_SURFACE = { r: 244, g: 248, b: 252 }
 
 function safeText(value: string | null | undefined, fallback = 'Not provided'): string {
   if (!value) return fallback
@@ -61,40 +63,58 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
     const pageWidth = doc.internal.pageSize.getWidth()
     const pageHeight = doc.internal.pageSize.getHeight()
 
+    doc.setFillColor(SOFT_SURFACE.r, SOFT_SURFACE.g, SOFT_SURFACE.b)
+    doc.rect(0, 0, pageWidth, pageHeight, 'F')
+
     // --- Header band ---
     doc.setFillColor(NAVY.r, NAVY.g, NAVY.b)
-    doc.rect(0, 0, pageWidth, 42, 'F')
+    doc.rect(0, 0, pageWidth, 48, 'F')
+    doc.setFillColor(GOLD.r, GOLD.g, GOLD.b)
+    doc.rect(0, 48, pageWidth, 3, 'F')
 
     doc.setTextColor(255, 255, 255)
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'bold')
+    doc.text('MIHAS APPLICATION RECORD', MARGIN, 12)
     doc.setFontSize(16)
     doc.setFont('helvetica', 'bold')
-    doc.text(institutionName, pageWidth / 2, 16, { align: 'center' })
+    doc.text(institutionName, pageWidth / 2, 24, { align: 'center' })
 
     doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')
-    doc.text('Private Bag E10, Kitwe, Zambia', pageWidth / 2, 24, { align: 'center' })
+    doc.text('Private Bag E10, Kitwe, Zambia', pageWidth / 2, 31, { align: 'center' })
 
     doc.setFontSize(14)
     doc.setFont('helvetica', 'bold')
-    doc.text('Application Slip', pageWidth / 2, 35, { align: 'center' })
+    doc.text('Application Slip', pageWidth / 2, 42, { align: 'center' })
 
     // --- Date & ref ---
     doc.setTextColor(0, 0, 0)
     doc.setFontSize(10)
-    doc.text(`Date: ${formatDateTime(data.submitted_at)}`, pageWidth - MARGIN, 52, { align: 'right' })
+    doc.setFillColor(255, 255, 255)
+    doc.roundedRect(MARGIN, 56, pageWidth - MARGIN * 2, 18, 4, 4, 'F')
+    doc.setDrawColor(223, 231, 239)
+    doc.roundedRect(MARGIN, 56, pageWidth - MARGIN * 2, 18, 4, 4)
+    doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
+    doc.text('TRACKING CODE', MARGIN + 4, 63)
+    doc.text('SUBMITTED', pageWidth - MARGIN - 26, 63, { align: 'right' })
+    doc.setTextColor(NAVY.r, NAVY.g, NAVY.b)
+    doc.setFont('helvetica', 'bold')
+    doc.text(safeText(data.public_tracking_code), MARGIN + 4, 69)
+    doc.text(formatDateTime(data.submitted_at), pageWidth - MARGIN - 4, 69, { align: 'right' })
 
     // --- Divider ---
-    doc.setDrawColor(NAVY.r, NAVY.g, NAVY.b)
-    doc.setLineWidth(0.4)
-    doc.line(MARGIN, 56, pageWidth - MARGIN, 56)
-
-    let y = 64
+    let y = 84
     doc.setFontSize(10)
     doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
-    doc.text('Thank you for submitting your application. Please keep this slip for your records.', MARGIN, y)
+    const intro = doc.splitTextToSize(
+      'Thank you for submitting your application. This slip confirms that your details are now recorded in the MIHAS admissions platform.',
+      pageWidth - MARGIN * 2,
+    )
+    doc.text(intro, MARGIN, y)
 
     // --- Application Details table ---
-    y += 10
+    y += intro.length * 5 + 8
     doc.setFontSize(12)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(NAVY.r, NAVY.g, NAVY.b)
@@ -112,12 +132,12 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
         ['Application Status', formatStatusLabel(data.status, 'Pending')],
         ['Payment Status', formatStatusLabel(data.payment_status, 'Pending Payment')],
       ],
-      theme: 'striped',
-      styles: { fontSize: 10 },
+      theme: 'grid',
+      styles: { fontSize: 10, lineColor: [223, 231, 239], lineWidth: 0.2, cellPadding: 4 },
       headStyles: { fillColor: [NAVY.r, NAVY.g, NAVY.b] },
       bodyStyles: { textColor: [17, 24, 39] },
       columnStyles: {
-        0: { fillColor: [240, 244, 248], fontStyle: 'bold', cellWidth: 55 },
+        0: { fillColor: [248, 251, 255], fontStyle: 'bold', cellWidth: 55 },
         1: { cellWidth: 'auto' },
       },
     })
@@ -139,11 +159,11 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
         ['Phone', safeText(data.phone)],
         ['Nationality', safeText(data.nationality, 'Not provided')],
       ],
-      theme: 'striped',
-      styles: { fontSize: 10 },
+      theme: 'grid',
+      styles: { fontSize: 10, lineColor: [223, 231, 239], lineWidth: 0.2, cellPadding: 4 },
       bodyStyles: { textColor: [17, 24, 39] },
       columnStyles: {
-        0: { fillColor: [240, 244, 248], fontStyle: 'bold', cellWidth: 55 },
+        0: { fillColor: [248, 251, 255], fontStyle: 'bold', cellWidth: 55 },
         1: { cellWidth: 'auto' },
       },
     })
@@ -161,10 +181,10 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
     const notices = [
-      '• Keep this slip safe for your records',
-      '• Use your tracking code to check application status online',
-      '• You will be notified via email once your application is reviewed',
-      '• For inquiries, contact: admissions@mihas.edu.zm',
+      '• Keep this slip in a safe place for future reference',
+      '• Use your tracking code when checking status online',
+      '• You will be notified by email once a decision is made',
+      '• Contact admissions@mihas.edu.zm if any of your details change',
     ]
     notices.forEach((notice) => {
       doc.text(notice, MARGIN, finalY)

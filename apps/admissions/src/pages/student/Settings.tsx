@@ -241,6 +241,14 @@ export default function StudentSettings() {
     <PageShell
       title="Profile and security settings"
       subtitle="Review your account details, residence information, notification contact, and active sessions before you continue with applications and payments."
+      eyebrow="Profile"
+      tone="student"
+      metrics={[
+        { label: 'Profile status', value: isDirty ? 'Unsaved changes' : 'Up to date', helper: 'Form edit state for this session' },
+        { label: 'Notifications', value: 'Managed', helper: 'Channel preferences available from the linked page' },
+        { label: 'Sessions', value: 'Managed', helper: 'Review and revoke active browser sessions below' },
+        { label: 'Country', value: watch('country') || 'Not set', helper: 'Residence country currently selected' },
+      ]}
       actions={
         <Button type="button" variant="secondary" onClick={() => handleNavigate('/student/notifications')}>
           <Bell className="h-4 w-4" />

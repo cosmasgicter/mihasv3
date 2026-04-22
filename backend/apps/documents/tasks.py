@@ -134,8 +134,9 @@ def poll_pending_payments_task(self):
 def extract_document_text_task(self, document_id):
     """Run pytesseract OCR on an uploaded document and store extracted text.
 
-    Downloads the file from S3/R2, runs OCR via pytesseract, and saves
-    the extracted text to the ApplicationDocument record.
+    Downloads the file from S3/R2, extracts text using AI vision (Vercel AI Gateway),
+    and saves the extracted text to the ApplicationDocument record.
+    Falls back to pytesseract if AI is unavailable.
 
     Retry delays: 60s, 120s, 240s (exponential backoff).
     """
@@ -152,40 +153,68 @@ def extract_document_text_task(self, document_id):
         return
 
     try:
-        import pytesseract
-        from PIL import Image
-
         from apps.common.storage import MediaStorage
 
         storage = MediaStorage()
 
-        # Download file to a temp location.
+        # Download file
         with tempfile.NamedTemporaryFile(suffix=_get_suffix(document.file_key)) as tmp:
             file_obj = storage.open(document.file_key, "rb")
-            tmp.write(file_obj.read())
+            file_bytes = file_obj.read()
+            tmp.write(file_bytes)
             tmp.flush()
             file_obj.close()
 
-            # Run OCR — pytesseract handles PDF and image formats.
-            if document.file_key.lower().endswith(".pdf"):
-                # For PDFs, use pdf_to_string if available, otherwise
-                # convert pages to images first.
+            extracted_text = None
+
+            # Try AI vision first (Vercel AI Gateway)
+            try:
+                from apps.common.ai_service import extract_text_from_image, analyze_document
+
+                mime = "image/jpeg"
+                if document.file_key.lower().endswith(".png"):
+                    mime = "image/png"
+                elif document.file_key.lower().endswith(".pdf"):
+                    mime = "application/pdf"
+
+                extracted_text = extract_text_from_image(file_bytes, mime)
+
+                # If we got text, also try structured analysis
+                if extracted_text:
+                    doc_type = "result_slip" if "slip" in (document.document_type or "").lower() else "identity"
+                    analysis = analyze_document(extracted_text, doc_type)
+                    if analysis:
+                        meta = document.metadata or {}
+                        meta["ai_analysis"] = analysis
+                        document.metadata = meta
+
+            except Exception:
+                logger.info("AI vision unavailable, falling back to Tesseract for document %s", document_id)
+
+            # Fallback to Tesseract if AI didn't work
+            if not extracted_text:
                 try:
-                    from pdf2image import convert_from_path
+                    import pytesseract
+                    from PIL import Image
 
-                    images = convert_from_path(tmp.name)
-                    text_parts = [pytesseract.image_to_string(img) for img in images]
-                    extracted_text = "\n".join(text_parts)
-                except ImportError:
-                    logger.warning("pdf2image not available, attempting direct OCR on PDF")
-                    extracted_text = pytesseract.image_to_string(tmp.name)
-            else:
-                image = Image.open(tmp.name)
-                extracted_text = pytesseract.image_to_string(image)
+                    if document.file_key.lower().endswith(".pdf"):
+                        try:
+                            from pdf2image import convert_from_path
+                            images = convert_from_path(tmp.name)
+                            text_parts = [pytesseract.image_to_string(img) for img in images]
+                            extracted_text = "\n".join(text_parts)
+                        except ImportError:
+                            extracted_text = pytesseract.image_to_string(tmp.name)
+                    else:
+                        image = Image.open(tmp.name)
+                        extracted_text = pytesseract.image_to_string(image)
+                except Exception:
+                    logger.warning("Tesseract fallback also failed for document %s", document_id)
 
-        document.extracted_text = extracted_text.strip()
+        if extracted_text:
+            document.extracted_text = extracted_text.strip()
         document.save()
-        logger.info("OCR completed for document %s (%d chars)", document_id, len(document.extracted_text))
+        logger.info("OCR completed for document %s (%d chars)", document_id, len(document.extracted_text or ""))
 
     except Exception as exc:
         logger.warning(

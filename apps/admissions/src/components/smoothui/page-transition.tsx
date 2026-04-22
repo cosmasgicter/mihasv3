@@ -71,7 +71,7 @@ export function PageTransition({
   return (
     <div
       className={cn(
-        'transition-all ease-out motion-reduce:transition-none',
+        'transform-gpu will-change-[opacity,transform] transition-[opacity,transform] ease-smooth-out motion-reduce:transition-none',
         isVisible ? classes.animate : classes.initial,
         className
       )}
@@ -106,9 +106,7 @@ export function RouteTransition({
   useEffect(() => {
     if (reducedMotion) return;
     setIsVisible(false);
-    const frame = requestAnimationFrame(() => {
-      requestAnimationFrame(() => setIsVisible(true));
-    });
+    const frame = requestAnimationFrame(() => setIsVisible(true));
     return () => cancelAnimationFrame(frame);
   }, [location.pathname, reducedMotion]);
 
@@ -120,7 +118,7 @@ export function RouteTransition({
     <PageTransition mode={mode} className={className}>
       <div
         className={cn(
-          'transition-opacity duration-200 ease-out motion-reduce:transition-none',
+          'transform-gpu transition-opacity duration-200 ease-smooth-out motion-reduce:transition-none',
           isVisible ? 'opacity-100' : 'opacity-0'
         )}
       >
@@ -144,9 +142,7 @@ export function AnimatedRoutes({ children, locationKey, mode = 'fade' }: Animate
   useEffect(() => {
     if (reducedMotion) return;
     setIsVisible(false);
-    const frame = requestAnimationFrame(() => {
-      requestAnimationFrame(() => setIsVisible(true));
-    });
+    const frame = requestAnimationFrame(() => setIsVisible(true));
     return () => cancelAnimationFrame(frame);
   }, [locationKey, reducedMotion]);
 
@@ -159,7 +155,7 @@ export function AnimatedRoutes({ children, locationKey, mode = 'fade' }: Animate
   return (
     <div
       className={cn(
-        'transition-all duration-300 ease-out motion-reduce:transition-none',
+        'transform-gpu will-change-[opacity,transform] transition-[opacity,transform] duration-300 ease-smooth-out motion-reduce:transition-none',
         isVisible ? classes.animate : classes.initial
       )}
     >
@@ -183,7 +179,7 @@ export function LayoutTransition({
   return (
     <div
       className={cn(
-        'transition-all duration-300 ease-out motion-reduce:transition-none',
+        'transform-gpu transition-[opacity,transform] duration-300 ease-smooth-out motion-reduce:transition-none',
         className
       )}
     >
@@ -215,9 +211,7 @@ export function ContentTransition({
   useEffect(() => {
     if (reducedMotion) return;
     setIsVisible(false);
-    const frame = requestAnimationFrame(() => {
-      requestAnimationFrame(() => setIsVisible(true));
-    });
+    const frame = requestAnimationFrame(() => setIsVisible(true));
     return () => cancelAnimationFrame(frame);
   }, [contentKey, reducedMotion]);
 
@@ -230,7 +224,7 @@ export function ContentTransition({
   return (
     <div
       className={cn(
-        'transition-all duration-300 ease-out motion-reduce:transition-none',
+        'transform-gpu will-change-[opacity,transform] transition-[opacity,transform] duration-300 ease-smooth-out motion-reduce:transition-none',
         isVisible ? classes.animate : classes.initial,
         className
       )}

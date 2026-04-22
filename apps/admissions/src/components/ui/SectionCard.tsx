@@ -49,7 +49,7 @@ export function SectionCard({
 
   return (
     <section
-      className={cn('rounded-2xl border border-border/60 bg-card shadow-sm transition-shadow duration-200 hover:shadow-md', className)}
+      className={cn('interactive-surface motion-card rounded-2xl border border-border/60 bg-card shadow-sm hover:shadow-md', className)}
       {...props}
     >
       {hasHeader && (

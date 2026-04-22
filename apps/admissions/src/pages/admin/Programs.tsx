@@ -685,8 +685,16 @@ export default function AdminPrograms() {
       />
     <PageShell
       title="Programs & Institutions"
+      eyebrow="Academic Catalog"
       subtitle="Manage the academic catalog and the institutions that own each program."
       maxWidth="7xl"
+      tone="admin"
+      metrics={[
+        { label: 'Programs', value: totalPrograms, helper: 'Application options available to students' },
+        { label: 'Institutions', value: totalInstitutions, helper: 'Owning institutions in the catalog' },
+        { label: 'Primary action', value: primaryActionLabel, helper: 'Current quick action for this page' },
+        { label: 'Catalog state', value: loading ? 'Loading' : error ? 'Needs attention' : 'Healthy', helper: error || 'Catalog is ready for review and edits' },
+      ]}
       actions={
         <div className="flex items-center gap-2">
           <Link to="/admin">

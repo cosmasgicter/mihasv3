@@ -150,9 +150,15 @@ module.exports = {
         xl: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
       },
       transitionDuration: {
+        '240': '240ms',
+        '250': '250ms',
         fast: '150ms',
         normal: '200ms',
         slow: '300ms',
+      },
+      transitionTimingFunction: {
+        'smooth-out': 'cubic-bezier(0.22, 1, 0.36, 1)',
+        'standard': 'cubic-bezier(0.4, 0, 0.2, 1)',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

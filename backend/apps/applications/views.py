@@ -774,7 +774,24 @@ class ApplicationSummaryView(APIView):
                     else None,
                 }
             )
-        return Response({"application": ApplicationSerializer(app).data, "documents_count": docs_count, "grades_count": grades_count, "status_history": history})
+        # AI-powered summary for admin reviewers (best-effort)
+        ai_summary = None
+        role = getattr(request.user, "role", "student")
+        if role in ("admin", "super_admin", "reviewer"):
+            try:
+                from apps.common.ai_service import summarize_application
+                ai_summary = summarize_application({
+                    "full_name": app.full_name,
+                    "program": app.program,
+                    "status": app.status,
+                    "payment_status": app.payment_status,
+                    "grades_summary": app.grades_summary,
+                    "nationality": getattr(app, "nationality", ""),
+                    "institution": getattr(app, "institution", ""),
+                })
+            except Exception:
+                pass
+        return Response({"application": ApplicationSerializer(app).data, "documents_count": docs_count, "grades_count": grades_count, "status_history": history, "ai_summary": ai_summary})
 
 
 @extend_schema_view(
@@ -2119,23 +2136,47 @@ class EmailSlipView(APIView):
 
         from apps.common.email_templates import get_base_email_html
 
+        status_label = (application.status or "").replace("_", " ").title() or "Pending"
+
         def _row(label, value):
             return (
-                f"<tr><td style='padding:10px 12px;border-bottom:1px solid #e2e8f0;font-weight:600;"
-                f"color:#1a365d;width:40%;'>{label}</td>"
-                f"<td style='padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#334155;'>"
+                f"<tr><td style='padding:12px 14px;border-bottom:1px solid #e2e8f0;font-weight:600;"
+                f"color:#16324f;width:38%;background-color:#f8fbff;'>{label}</td>"
+                f"<td style='padding:12px 14px;border-bottom:1px solid #e2e8f0;color:#334155;background-color:#ffffff;'>"
                 f"{html_escape(str(value))}</td></tr>"
             )
 
         slip_html = (
-            "<table style='width:100%;border-collapse:collapse;'>"
+            "<div style='padding-bottom:18px;'>"
+            "<div style='font-size:13px;letter-spacing:0.16em;text-transform:uppercase;color:#64748b;font-weight:700;'>"
+            "Application record"
+            "</div>"
+            "<div style='padding-top:10px;font-size:16px;line-height:1.7;color:#334155;'>"
+            "Your application slip confirms that your submission has been received and recorded in the MIHAS admissions system."
+            "</div>"
+            "</div>"
+            "<table role='presentation' style='width:100%;border-collapse:separate;border-spacing:0 0;"
+            "border:1px solid #dbe5ef;border-radius:18px;overflow:hidden;'>"
+            "<tr>"
+            "<td style='padding:16px 18px;background:linear-gradient(135deg,#eff6ff 0%,#f8fafc 100%);' colspan='2'>"
+            "<div style='font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#64748b;font-weight:700;'>"
+            "Current status"
+            "</div>"
+            f"<div style='padding-top:8px;display:inline-block;background-color:#10233f;color:#ffffff;"
+            "font-weight:700;font-size:13px;padding:8px 12px;border-radius:999px;'>"
+            f"{html_escape(status_label)}</div>"
+            "</td>"
+            "</tr>"
             + _row("Application Number", application.application_number or "")
             + _row("Applicant Name", application.full_name or "")
             + _row("Program", application.program or "")
-            + _row("Status", (application.status or "").replace("_", " ").title())
+            + _row("Tracking Code", application.tracking_code or getattr(application, "public_tracking_code", "") or "")
             + _row("Submitted", submitted_at or "Not yet submitted")
             + _row("Created", created_at or "N/A")
             + "</table>"
+            "<div style='padding-top:18px;font-size:14px;line-height:1.75;color:#475569;'>"
+            "Keep this slip for reference when checking your application status or communicating with the admissions office."
+            "</div>"
         )
 
         body_html = get_base_email_html(slip_html, title="Application Slip")

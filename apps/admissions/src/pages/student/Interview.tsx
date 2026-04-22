@@ -304,12 +304,20 @@ export default function InterviewPage() {
     <PageShell
       title="Interview Schedule"
       subtitle="View your scheduled interviews and prepare for your admission process."
+      eyebrow="Interview Journey"
+      tone="student"
+      metrics={[
+        { label: 'Upcoming', value: upcomingInterviews.length, helper: 'Interviews still ahead of you' },
+        { label: 'Past', value: pastInterviews.length, helper: 'Completed or closed interview records' },
+        { label: 'Total', value: state.interviews.length, helper: 'All interview records tied to your account' },
+        { label: 'State', value: state.error ? 'Needs attention' : 'Ready', helper: state.error || 'Use this page to prepare and review details' },
+      ]}
     >
         {/* @requirements 3.5 - Back to Dashboard navigation link */}
         <div className="mb-6">
           <Link 
             to="/student/dashboard" 
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="feature-chip"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to Dashboard

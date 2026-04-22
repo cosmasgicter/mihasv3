@@ -67,6 +67,14 @@ export default function History() {
       <PageShell
         title="Activity History"
         subtitle="A chronological timeline of all activity on your applications."
+        eyebrow="Timeline"
+        tone="student"
+        metrics={[
+          { label: 'Applications', value: groupedEntries.length, helper: 'Applications with recorded history' },
+          { label: 'Entries', value: pagination.totalCount, helper: 'Total timeline events available' },
+          { label: 'Page', value: `${page}/${totalPages}`, helper: 'Current history page' },
+          { label: 'State', value: error ? 'Needs attention' : isEmpty ? 'Quiet' : 'Active', helper: error?.message || 'Your timeline is ready to review' },
+        ]}
       >
         <div className="space-y-6">
           {/* Error state */}
