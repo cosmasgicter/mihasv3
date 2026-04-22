@@ -16,8 +16,10 @@ type MomoOperator = 'airtel' | 'mtn' | null
 function detectOperator(phone: string): MomoOperator {
   const digits = phone.replace(/[\s\-+]/g, '')
   const local = digits.startsWith('260') ? digits.slice(3) : digits
-  if (/^0?9[67]/.test(local) || /^0?7[67]/.test(local)) return 'mtn'
-  if (/^0?9[7]/.test(local) || /^0?7[7]/.test(local)) return 'airtel'
+  // MTN: 096x, 076x
+  if (/^0?96/.test(local) || /^0?76/.test(local)) return 'mtn'
+  // Airtel: 097x, 077x
+  if (/^0?97/.test(local) || /^0?77/.test(local)) return 'airtel'
   if (local.length >= 4) return 'airtel'
   return null
 }
