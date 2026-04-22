@@ -435,15 +435,16 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
         request.user = user
         request.data = {"new_status": "approved", "notes": notes, "force": True}
 
-        with patch("apps.applications.views.Application.objects") as mock_qs:
+        with patch("apps.applications.views.Application.objects") as mock_qs, \
+             patch("apps.applications.views.transition_application_status", return_value="submitted") as mock_transition, \
+             patch("apps.applications.views.ApplicationStatusHistory.objects") as mock_history, \
+             patch("apps.applications.views.CommunicationService") as mock_comms:
             mock_qs.get.return_value = app
+            mock_history.create.return_value = MagicMock()
+            mock_history.filter.return_value.order_by.return_value.first.return_value = MagicMock()
 
-            with patch("apps.applications.views.ApplicationStatusHistory.objects") as mock_history:
-                mock_history.create.return_value = MagicMock()
-                mock_history.filter.return_value.order_by.return_value.first.return_value = MagicMock()
-
-                view = ApplicationReviewView()
-                response = view.post(request, application_id=app.id)
+            view = ApplicationReviewView()
+            response = view.post(request, application_id=app.id)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["new_status"], "approved")

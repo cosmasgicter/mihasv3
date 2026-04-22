@@ -61,7 +61,7 @@ def _make_mock_program(institution=None, is_active=True):
     prog.institution = institution or _make_mock_institution()
     prog.institution_id = prog.institution.id
     prog.duration_months = 36
-    prog.application_fee = "500.00"
+    prog.application_fee = Decimal("500.00")
     prog.requirements = {}
     prog.is_active = is_active
     prog.created_at = MagicMock()
