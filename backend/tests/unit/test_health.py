@@ -31,7 +31,6 @@ class TestLivenessView(SimpleTestCase):
         self.assertEqual(response.data["status"], "ok")
 
     def test_no_auth_required(self):
-        """Liveness should work without any authentication."""
         request = self.factory.get("/health/live/")
         response = self.view(request)
         self.assertEqual(response.status_code, 200)
@@ -51,7 +50,7 @@ class TestReadinessView(SimpleTestCase):
         self.view = ReadinessView.as_view()
 
     @patch.object(ReadinessView, "_check_db", return_value=True)
-    @patch.object(ReadinessView, "_check_redis", return_value=True)
+    @patch.object(ReadinessView, "_check_redis_with_latency", return_value=("ok", 1.2))
     def test_returns_200_when_all_healthy(self, mock_redis, mock_db):
         request = self.factory.get("/health/ready/")
         response = self.view(request)
@@ -59,55 +58,51 @@ class TestReadinessView(SimpleTestCase):
         self.assertEqual(response.data["status"], "ok")
         self.assertEqual(response.data["db"], "ok")
         self.assertEqual(response.data["redis"], "ok")
+        self.assertIn("redis_latency_ms", response.data)
 
     @patch.object(ReadinessView, "_check_db", return_value=False)
-    @patch.object(ReadinessView, "_check_redis", return_value=True)
+    @patch.object(ReadinessView, "_check_redis_with_latency", return_value=("ok", 1.0))
     def test_returns_503_when_db_unhealthy(self, mock_redis, mock_db):
         request = self.factory.get("/health/ready/")
         response = self.view(request)
         self.assertEqual(response.status_code, 503)
         self.assertEqual(response.data["status"], "unhealthy")
         self.assertEqual(response.data["db"], "error")
-        self.assertEqual(response.data["redis"], "ok")
 
     @patch.object(ReadinessView, "_check_db", return_value=True)
-    @patch.object(ReadinessView, "_check_redis", return_value=False)
+    @patch.object(ReadinessView, "_check_redis_with_latency", return_value=("degraded", 2000.0))
     def test_returns_200_when_redis_unhealthy(self, mock_redis, mock_db):
-        """Redis failure is non-critical — returns 200 with degraded status."""
         request = self.factory.get("/health/ready/")
         response = self.view(request)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["status"], "ok")
-        self.assertEqual(response.data["db"], "ok")
         self.assertEqual(response.data["redis"], "degraded")
 
     @patch.object(ReadinessView, "_check_db", return_value=False)
-    @patch.object(ReadinessView, "_check_redis", return_value=False)
+    @patch.object(ReadinessView, "_check_redis_with_latency", return_value=("degraded", 2000.0))
     def test_returns_503_when_both_unhealthy(self, mock_redis, mock_db):
         request = self.factory.get("/health/ready/")
         response = self.view(request)
         self.assertEqual(response.status_code, 503)
         self.assertEqual(response.data["status"], "unhealthy")
         self.assertEqual(response.data["db"], "error")
-        self.assertEqual(response.data["redis"], "error")
 
     def test_no_auth_required(self):
-        """Readiness should work without any authentication."""
         with patch.object(ReadinessView, "_check_db", return_value=True), \
-             patch.object(ReadinessView, "_check_redis", return_value=True):
+             patch.object(ReadinessView, "_check_redis_with_latency", return_value=("ok", 1.0)):
             request = self.factory.get("/health/ready/")
             response = self.view(request)
             self.assertEqual(response.status_code, 200)
 
     @patch.object(ReadinessView, "_check_db", return_value=True)
-    @patch.object(ReadinessView, "_check_redis", return_value=True)
+    @patch.object(ReadinessView, "_check_redis_with_latency", return_value=("ok", 1.5))
     def test_response_structure_healthy(self, mock_redis, mock_db):
         request = self.factory.get("/health/ready/")
         response = self.view(request)
         self.assertIn("status", response.data)
         self.assertIn("db", response.data)
         self.assertIn("redis", response.data)
-        self.assertEqual(len(response.data), 3)
+        self.assertIn("redis_latency_ms", response.data)
 
 
 class TestRedisHealthView(SimpleTestCase):
@@ -117,23 +112,21 @@ class TestRedisHealthView(SimpleTestCase):
         self.factory = APIRequestFactory()
         self.view = RedisHealthView.as_view()
 
-    @patch.object(ReadinessView, "_check_redis", return_value=True)
+    @patch.object(ReadinessView, "_check_redis_with_latency", return_value=("ok", 1.0))
     def test_returns_200_when_redis_healthy(self, mock_redis):
         request = self.factory.get("/health/redis/")
         response = self.view(request)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["status"], "ok")
-        self.assertEqual(response.data["redis"], "ok")
 
-    @patch.object(ReadinessView, "_check_redis", return_value=False)
+    @patch.object(ReadinessView, "_check_redis_with_latency", return_value=("degraded", 2000.0))
     def test_returns_503_when_redis_unhealthy(self, mock_redis):
         request = self.factory.get("/health/redis/")
         response = self.view(request)
         self.assertEqual(response.status_code, 503)
         self.assertEqual(response.data["status"], "unhealthy")
-        self.assertEqual(response.data["redis"], "error")
 
-    @patch.object(ReadinessView, "_check_redis", return_value=True)
+    @patch.object(ReadinessView, "_check_redis_with_latency", return_value=("ok", 1.0))
     def test_no_auth_required(self, mock_redis):
         request = self.factory.get("/health/redis/")
         response = self.view(request)

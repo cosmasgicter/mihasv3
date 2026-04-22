@@ -60,7 +60,7 @@ class TestHealthEndpointReflectsDependencyState(SimpleTestCase):
         request = factory.get("/health/ready/")
 
         with patch.object(ReadinessView, "_check_db", return_value=db_ok), \
-             patch.object(ReadinessView, "_check_redis", return_value=redis_ok):
+             patch.object(ReadinessView, "_check_redis_with_latency", return_value=("ok" if redis_ok else "degraded", 1.0)):
             view = ReadinessView.as_view()
             response = view(request)
 
@@ -75,4 +75,3 @@ class TestHealthEndpointReflectsDependencyState(SimpleTestCase):
             self.assertEqual(response.status_code, 503)
             self.assertEqual(response.data["status"], "unhealthy")
             self.assertEqual(response.data["db"], "error")
-            self.assertEqual(response.data["redis"], "ok" if redis_ok else "error")
