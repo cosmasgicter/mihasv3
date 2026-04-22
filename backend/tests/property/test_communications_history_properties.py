@@ -260,7 +260,7 @@ class TestAdminNotificationChronologicalOrdering:
 
         admin = _make_user(role="admin")
 
-        with patch("apps.common.notification_views.Profile.objects") as mock_profile, \
+        with patch("apps.accounts.models.Profile.objects") as mock_profile, \
              patch("apps.common.notification_views.Notification.objects") as mock_notif:
             mock_profile.filter.return_value.exists.return_value = True
             mock_notif.filter.return_value = _build_notification_queryset(notifications)
@@ -508,7 +508,7 @@ class TestResponseEnvelopeFormatAdminNotification:
 
         admin = _make_user(role="admin")
 
-        with patch("apps.common.notification_views.Profile.objects") as mock_profile, \
+        with patch("apps.accounts.models.Profile.objects") as mock_profile, \
              patch("apps.common.notification_views.Notification.objects") as mock_notif:
             mock_profile.filter.return_value.exists.return_value = True
             mock_notif.filter.return_value = _build_notification_queryset(notifications)
@@ -660,7 +660,7 @@ class TestPaginationInvariantsAdminNotification:
 
         admin = _make_user(role="admin")
 
-        with patch("apps.common.notification_views.Profile.objects") as mock_profile, \
+        with patch("apps.accounts.models.Profile.objects") as mock_profile, \
              patch("apps.common.notification_views.Notification.objects") as mock_notif:
             mock_profile.filter.return_value.exists.return_value = True
             mock_notif.filter.return_value = _build_notification_queryset(notifications)
@@ -859,7 +859,7 @@ class TestAdminUserScopedNotificationRetrieval:
 
         admin = _make_user(role="admin")
 
-        with patch("apps.common.notification_views.Profile.objects") as mock_profile, \
+        with patch("apps.accounts.models.Profile.objects") as mock_profile, \
              patch("apps.common.notification_views.Notification.objects") as mock_notif:
             mock_profile.filter.return_value.exists.return_value = True
             mock_notif.filter.return_value = FilteringNotifQS(all_notifications).filter(

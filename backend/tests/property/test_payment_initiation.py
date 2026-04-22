@@ -161,7 +161,7 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
                 "apps.documents.payment_service.Payment.objects"
             ) as mock_payment_qs,
             patch(
-                "apps.documents.payment_service.IdentifierResolver.resolve_program",
+                "apps.applications.identifier_resolver.IdentifierResolver.resolve_program",
                 return_value=_mock_resolved_program(program_code),
             ),
             patch("django.db.transaction.atomic", side_effect=_noop_atomic),
@@ -242,7 +242,7 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
                 "apps.documents.payment_service.Payment.objects"
             ) as mock_payment_qs,
             patch(
-                "apps.documents.payment_service.IdentifierResolver.resolve_program",
+                "apps.applications.identifier_resolver.IdentifierResolver.resolve_program",
                 return_value=_mock_resolved_program(program_code),
             ),
             patch("django.db.transaction.atomic", side_effect=_noop_atomic),
@@ -325,7 +325,7 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
                 "apps.documents.payment_service.Payment.objects"
             ) as mock_payment_qs,
             patch(
-                "apps.documents.payment_service.IdentifierResolver.resolve_program",
+                "apps.applications.identifier_resolver.IdentifierResolver.resolve_program",
                 return_value=_mock_resolved_program(program_code),
             ),
             patch("django.db.transaction.atomic", side_effect=_noop_atomic),
@@ -404,7 +404,7 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
                 "apps.documents.payment_service.Payment.objects"
             ) as mock_payment_qs,
             patch(
-                "apps.documents.payment_service.IdentifierResolver.resolve_program",
+                "apps.applications.identifier_resolver.IdentifierResolver.resolve_program",
                 return_value=_mock_resolved_program(program_code),
             ),
             patch("django.db.transaction.atomic", side_effect=_noop_atomic),
@@ -484,7 +484,7 @@ class TestPaymentInitiationCreatesCompleteRecord(SimpleTestCase):
                 "apps.documents.payment_service.Payment.objects"
             ) as mock_payment_qs,
             patch(
-                "apps.documents.payment_service.IdentifierResolver.resolve_program",
+                "apps.applications.identifier_resolver.IdentifierResolver.resolve_program",
                 return_value=_mock_resolved_program(program_code),
             ),
             patch("django.db.transaction.atomic", side_effect=_noop_atomic),

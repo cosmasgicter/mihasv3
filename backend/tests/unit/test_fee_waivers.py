@@ -49,9 +49,9 @@ class TestFullWaiverGrantsForceApproved:
         mock_waiver.id = uuid.uuid4()
 
         with (
-            patch("apps.documents.fee_waiver_service.Application.objects") as mq,
+            patch("apps.applications.models.Application.objects") as mq,
             patch("apps.documents.fee_waiver_service.FeeWaiver.objects") as fwq,
-            patch("apps.documents.fee_waiver_service.ApplicationStatusHistory.objects"),
+            patch("apps.applications.models.ApplicationStatusHistory.objects"),
         ):
             mq.get.return_value = app
             fwq.create.return_value = mock_waiver
@@ -132,9 +132,9 @@ class TestWaiverRecordedInHistory:
         mock_waiver.id = uuid.uuid4()
 
         with (
-            patch("apps.documents.fee_waiver_service.Application.objects") as mq,
+            patch("apps.applications.models.Application.objects") as mq,
             patch("apps.documents.fee_waiver_service.FeeWaiver.objects") as fwq,
-            patch("apps.documents.fee_waiver_service.ApplicationStatusHistory.objects") as hq,
+            patch("apps.applications.models.ApplicationStatusHistory.objects") as hq,
         ):
             mq.get.return_value = app
             fwq.create.return_value = mock_waiver
@@ -157,9 +157,9 @@ class TestWaiverValidation:
 
     def test_invalid_waiver_type(self):
         with (
-            patch("apps.documents.fee_waiver_service.Application.objects"),
+            patch("apps.applications.models.Application.objects"),
             patch("apps.documents.fee_waiver_service.FeeWaiver.objects"),
-            patch("apps.documents.fee_waiver_service.ApplicationStatusHistory.objects"),
+            patch("apps.applications.models.ApplicationStatusHistory.objects"),
         ):
             try:
                 FeeWaiverService.grant_waiver(
