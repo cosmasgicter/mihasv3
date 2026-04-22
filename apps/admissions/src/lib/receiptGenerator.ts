@@ -6,6 +6,8 @@ import { formatDate } from './utils'
 const NAVY = { r: 26, g: 54, b: 93 } // #1a365d
 const MARGIN = 20
 const GREY_TEXT = { r: 107, g: 114, b: 128 }
+const GOLD = { r: 187, g: 139, b: 64 }
+const SOFT_SURFACE = { r: 244, g: 248, b: 252 }
 
 interface ReceiptData {
   receiptNumber: string
@@ -37,41 +39,51 @@ export async function generatePaymentReceipt(data: ReceiptData): Promise<Blob> {
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
   const institutionName = getFullInstitutionName(data.institution)
+  const contentWidth = pageWidth - MARGIN * 2
+
+  doc.setFillColor(SOFT_SURFACE.r, SOFT_SURFACE.g, SOFT_SURFACE.b)
+  doc.rect(0, 0, pageWidth, pageHeight, 'F')
 
   // --- Header band ---
   doc.setFillColor(NAVY.r, NAVY.g, NAVY.b)
-  doc.rect(0, 0, pageWidth, 42, 'F')
+  doc.rect(0, 0, pageWidth, 48, 'F')
+  doc.setFillColor(GOLD.r, GOLD.g, GOLD.b)
+  doc.rect(0, 48, pageWidth, 3, 'F')
 
   doc.setTextColor(255, 255, 255)
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'bold')
+  doc.text('MIHAS FINANCE OFFICE', MARGIN, 12)
   doc.setFontSize(16)
   doc.setFont('helvetica', 'bold')
-  doc.text(institutionName, pageWidth / 2, 16, { align: 'center' })
+  doc.text(institutionName, pageWidth / 2, 24, { align: 'center' })
 
   doc.setFontSize(10)
   doc.setFont('helvetica', 'normal')
-  doc.text('Private Bag E10, Kitwe, Zambia', pageWidth / 2, 24, { align: 'center' })
+  doc.text('Private Bag E10, Kitwe, Zambia', pageWidth / 2, 31, { align: 'center' })
 
   doc.setFontSize(14)
   doc.setFont('helvetica', 'bold')
-  doc.text('PAYMENT RECEIPT', pageWidth / 2, 35, { align: 'center' })
+  doc.text('PAYMENT RECEIPT', pageWidth / 2, 42, { align: 'center' })
 
   // --- Receipt meta ---
-  let y = 52
+  let y = 60
   doc.setTextColor(0, 0, 0)
+  doc.setFillColor(255, 255, 255)
+  doc.roundedRect(MARGIN, y - 4, contentWidth, 20, 4, 4, 'F')
+  doc.setDrawColor(223, 231, 239)
+  doc.roundedRect(MARGIN, y - 4, contentWidth, 20, 4, 4)
   doc.setFontSize(10)
+  doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
+  doc.text('RECEIPT NUMBER', MARGIN + 4, y + 2)
+  doc.text('ISSUED', pageWidth - MARGIN - 4, y + 2, { align: 'right' })
   doc.setFont('helvetica', 'bold')
-  doc.text(`Receipt No: ${data.receiptNumber}`, MARGIN, y)
-  doc.setFont('helvetica', 'normal')
-  doc.text(`Date: ${formatDate(data.verifiedDate)}`, pageWidth - MARGIN, y, { align: 'right' })
-
-  // --- Divider ---
-  y += 5
-  doc.setDrawColor(NAVY.r, NAVY.g, NAVY.b)
-  doc.setLineWidth(0.4)
-  doc.line(MARGIN, y, pageWidth - MARGIN, y)
+  doc.setTextColor(NAVY.r, NAVY.g, NAVY.b)
+  doc.text(data.receiptNumber, MARGIN + 4, y + 9)
+  doc.text(formatDate(data.verifiedDate), pageWidth - MARGIN - 4, y + 9, { align: 'right' })
 
   // --- Student Information ---
-  y += 10
+  y += 30
   doc.setFontSize(12)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(NAVY.r, NAVY.g, NAVY.b)
@@ -101,6 +113,18 @@ export async function generatePaymentReceipt(data: ReceiptData): Promise<Blob> {
 
   // --- Payment Details ---
   y += 6
+  doc.setFillColor(255, 255, 255)
+  doc.roundedRect(pageWidth - MARGIN - 64, y - 18, 64, 24, 4, 4, 'F')
+  doc.setDrawColor(223, 231, 239)
+  doc.roundedRect(pageWidth - MARGIN - 64, y - 18, 64, 24, 4, 4)
+  doc.setFontSize(9)
+  doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
+  doc.text('AMOUNT RECEIVED', pageWidth - MARGIN - 60, y - 9)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(14)
+  doc.setTextColor(NAVY.r, NAVY.g, NAVY.b)
+  doc.text(`K${data.amount.toFixed(2)}`, pageWidth - MARGIN - 60, y - 1)
+
   doc.setFontSize(12)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(NAVY.r, NAVY.g, NAVY.b)
@@ -131,11 +155,11 @@ export async function generatePaymentReceipt(data: ReceiptData): Promise<Blob> {
   // --- Status badge ---
   y += 8
   doc.setFillColor(34, 120, 74)
-  doc.roundedRect(MARGIN, y - 5, pageWidth - MARGIN * 2, 14, 2, 2, 'F')
+  doc.roundedRect(MARGIN, y - 5, pageWidth - MARGIN * 2, 16, 3, 3, 'F')
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(12)
-  doc.text('PAYMENT VERIFIED ✓', pageWidth / 2, y + 3, { align: 'center' })
+  doc.text('PAYMENT VERIFIED', pageWidth / 2, y + 4, { align: 'center' })
 
   // --- QR Code ---
   const qrData = JSON.stringify({

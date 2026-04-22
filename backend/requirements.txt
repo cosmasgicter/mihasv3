@@ -49,3 +49,4 @@ pytest-django>=4.8,<5.0
 factory-boy>=3.3,<4.0
 freezegun>=1.4,<2.0
 fakeredis>=2.21,<3.0
+openai>=1.40.0

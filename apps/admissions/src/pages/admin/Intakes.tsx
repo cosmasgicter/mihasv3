@@ -276,8 +276,16 @@ export default function AdminIntakes() {
       />
     <PageShell
       title="Intakes"
-      subtitle="Manage admission intakes"
+      eyebrow="Admissions Calendar"
+      subtitle="Manage admission intakes, windows, deadlines, and readiness for upcoming cohorts."
       maxWidth="7xl"
+      tone="admin"
+      metrics={[
+        { label: 'Configured intakes', value: intakes.length, helper: 'Admission windows currently available' },
+        { label: 'Year focus', value: intakes[0]?.year || 'None', helper: 'Latest intake year in this list' },
+        { label: 'State', value: loading ? 'Loading' : error ? 'Needs attention' : 'Ready', helper: error || 'Create, edit, and retire intake periods' },
+        { label: 'Next action', value: 'Add intake', helper: 'Create the next admission window when ready' },
+      ]}
       actions={
         <div className="flex items-center gap-2">
           <Link to="/admin">

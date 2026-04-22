@@ -346,9 +346,20 @@ export default function PaymentPage() {
   return (
     <>
       <Seo title="Payment | MIHAS-KATC Admissions" description="View your application payment history." path="/student/payment" noindex />
-      <PageShell title="Application Payment" subtitle="View payment history and complete outstanding application fees.">
+      <PageShell
+        title="Application Payment"
+        subtitle="View payment history and complete outstanding application fees."
+        eyebrow="Payments"
+        tone="student"
+        metrics={[
+          { label: 'Applications', value: paymentApplications.length, helper: 'Submitted applications shown here' },
+          { label: 'Selected', value: selectedApplicationId ? '1 active' : 'None', helper: 'Current payment focus' },
+          { label: 'Gateway', value: 'Lenco', helper: 'Secure payment processing' },
+          { label: 'State', value: appsError ? 'Needs attention' : 'Ready', helper: typeof appsError === 'string' ? appsError : 'Outstanding fees can be resolved here' },
+        ]}
+      >
         <div className="mb-6">
-          <Link to="/student/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link to="/student/dashboard" className="feature-chip">
             <ArrowLeft className="h-4 w-4 mr-1" />Back to Dashboard
           </Link>
         </div>

@@ -142,6 +142,14 @@ export default function Communications() {
       <PageShell
         title="Communications"
         subtitle="All your notifications and messages in one place."
+        eyebrow="Inbox"
+        tone="student"
+        metrics={[
+          { label: 'Messages', value: pagination.totalCount, helper: `${notifications.length} currently loaded` },
+          { label: 'Unread', value: notifications.filter((n) => !n.is_read).length, helper: 'Messages needing attention' },
+          { label: 'Page', value: `${page}/${totalPages}`, helper: 'Current inbox page' },
+          { label: 'State', value: error ? 'Needs attention' : 'Ready', helper: error?.message || 'Your communication history is available' },
+        ]}
         actions={
           hasUnread ? (
             <Button

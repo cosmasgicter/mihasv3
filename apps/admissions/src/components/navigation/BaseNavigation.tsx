@@ -111,7 +111,7 @@ export function BaseNavigation({
           <div
             className={cn(
               "fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-card shadow-2xl lg:hidden border-l-4 border-primary overflow-y-auto",
-              "transition-transform duration-250 ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none",
+              "transition-transform duration-250 ease-standard motion-reduce:transition-none",
               isOpen ? "translate-x-0" : "translate-x-full"
             )}
             style={{ zIndex: 9999 }}

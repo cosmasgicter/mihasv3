@@ -330,8 +330,16 @@ export default function ProgramFees() {
       />
     <PageShell
       title="Program Fees"
+      eyebrow="Pricing Controls"
       subtitle="Manage application and tuition fees for each program and residency category."
       maxWidth="7xl"
+      tone="admin"
+      metrics={[
+        { label: 'Fee rules', value: totalFees, helper: `${programsWithFees} programs currently configured` },
+        { label: 'Programs', value: programs.length, helper: 'Available catalog programs' },
+        { label: 'Coverage', value: `${programsWithFees}/${programs.length || 0}`, helper: 'Programs with at least one fee configured' },
+        { label: 'State', value: loading ? 'Loading' : error ? 'Needs attention' : 'Ready', helper: error || 'Fees can be updated safely' },
+      ]}
       actions={
         <div className="flex items-center gap-2">
           <Link to="/admin">

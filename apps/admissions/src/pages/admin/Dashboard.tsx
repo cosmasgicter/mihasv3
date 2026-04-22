@@ -313,8 +313,16 @@ export default function AdminDashboard() {
       />
     <PageShell
       title={`Welcome back, ${adminFirstName}`}
-      subtitle="Here's your system overview for today"
+      eyebrow="Operations Overview"
+      subtitle="Admissions volume, queue pressure, and live operational health in one control surface."
       maxWidth="7xl"
+      tone="admin"
+      metrics={[
+        { label: 'Applications', value: stats.totalApplications, helper: `${stats.todayApplications} arrived today` },
+        { label: 'Decision queue', value: stats.pendingApplications, helper: 'Applications currently awaiting admin action' },
+        { label: 'Approved', value: stats.approvedApplications, helper: `${stats.rejectedApplications} rejected so far` },
+        { label: 'System health', value: stats.systemHealth, helper: `${stats.activeUsers} active users online` },
+      ]}
       actions={
         <Button
           variant="outline"

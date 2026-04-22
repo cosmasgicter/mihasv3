@@ -421,8 +421,16 @@ export default function AuditTrailPage() {
       />
     <PageShell
       title="Audit Trail"
+      eyebrow="Traceability"
       subtitle="Review real operational history across authentication, application management, settings, and staff actions."
       maxWidth="7xl"
+      tone="admin"
+      metrics={[
+        { label: 'Total events', value: response?.totalCount || 0, helper: `${response?.entries.length || 0} loaded in this view` },
+        { label: 'Actors', value: summary?.uniqueActors || 0, helper: 'Unique staff or system actors' },
+        { label: 'Top category', value: topCategory?.[0] || 'None', helper: topCategory ? `${topCategory[1]} events` : 'No activity loaded' },
+        { label: 'Page', value: `${response?.page || 1}/${response?.totalPages || 1}`, helper: 'Current export and review window' },
+      ]}
       actions={
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" size="sm">

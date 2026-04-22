@@ -363,8 +363,16 @@ export default function AdminUsers() {
       />
     <PageShell
       title="User Management"
+      eyebrow="People & Access"
       subtitle="Create accounts, adjust operational roles, manage effective permissions, and review account activity."
       maxWidth="7xl"
+      tone="admin"
+      metrics={[
+        { label: 'Users', value: totalCount, helper: `${filteredCount} currently match filters` },
+        { label: 'Selected', value: selectedUsers.length, helper: 'Bulk action selection size' },
+        { label: 'Visible list', value: filteredUsers.length, helper: 'Users shown on the current screen' },
+        { label: 'State', value: error ? 'Needs attention' : 'Ready', helper: error || 'Permissions and role actions available' },
+      ]}
       actions={
         <div className="flex flex-wrap gap-2">
           <Link to="/admin">

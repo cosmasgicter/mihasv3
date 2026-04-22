@@ -115,13 +115,55 @@ const DATE_LIKE_TOKEN_SET = new Set([
   'payment.lastPaymentDate'
 ]);
 
-const escapeHtml = (value: string) => sanitizeHtml(value);
-
-const isIsoLikeDateString = (value: string): boolean => {
-  if (!value) return false;
-  const parsed = Date.parse(value);
-  return Number.isFinite(parsed);
+const DOCUMENT_COLORS = {
+  ink: [16, 35, 63] as const,
+  blue: [23, 72, 129] as const,
+  accent: [187, 139, 64] as const,
+  slate: [82, 96, 116] as const,
+  mist: [240, 245, 250] as const,
+  line: [214, 225, 236] as const,
 };
+
+const getInstitutionLabel = () => 'Mukuba Institute of Health and Allied Sciences';
+
+const getTemplateSubtitle = (template: DocumentTemplateDefinition) => {
+  switch (template.id) {
+    case 'offerLetter':
+      return 'Formal admission confirmation and onboarding guidance';
+    case 'interviewInvitation':
+      return 'Selection-stage interview invitation and preparation brief';
+    case 'rejectionFeedback':
+      return 'Decision summary with constructive guidance';
+    case 'paymentBalanceStatement':
+      return 'Student finance account statement';
+    default:
+      return template.description;
+  }
+};
+
+const buildDocumentSummary = (template: DocumentTemplateDefinition, context: DocumentTemplateContext) => {
+  const summary: Array<{ label: string; value: string }> = [];
+  const candidatePairs = [
+    ['Student', formatTokenValue('student.fullName', getValueAtPath(context, 'student.fullName'))],
+    ['Programme', formatTokenValue('application.programName', getValueAtPath(context, 'application.programName'))],
+    ['Intake', formatTokenValue('application.intake', getValueAtPath(context, 'application.intake'))],
+    ['Reference', formatTokenValue('application.referenceNumber', getValueAtPath(context, 'application.referenceNumber'))],
+    ['Decision Date', formatTokenValue('application.decisionDate', getValueAtPath(context, 'application.decisionDate'))],
+    ['Due Date', formatTokenValue('payment.dueDate', getValueAtPath(context, 'payment.dueDate'))],
+  ] as const;
+
+  candidatePairs.forEach(([label, value]) => {
+    if (value) summary.push({ label, value });
+  });
+
+  if (summary.length === 0) {
+    summary.push({ label: 'Document', value: template.name });
+  }
+
+  return summary.slice(0, 4);
+};
+
+const escapeHtml = (value: string) => sanitizeHtml(value);
 
 const getValueAtPath = (source: unknown, path: string): unknown => {
   if (!source || typeof source !== 'object') return undefined;
@@ -170,7 +212,7 @@ const formatTokenValue = (token: string, rawValue: unknown): string => {
   if (typeof rawValue === 'string') {
     const trimmed = rawValue.trim();
     if (!trimmed) return '';
-    if (DATE_LIKE_TOKEN_SET.has(token) || isIsoLikeDateString(trimmed)) {
+    if (DATE_LIKE_TOKEN_SET.has(token)) {
       return formatDate(trimmed);
     }
     return trimmed;
@@ -278,18 +320,47 @@ const buildSectionHtml = (
   template: DocumentTemplateDefinition,
   context: DocumentTemplateContext
 ) => {
-  const parts: string[] = ['<article class="document-template">'];
+  const subtitle = getTemplateSubtitle(template);
+  const summary = buildDocumentSummary(template, context);
+  const parts: string[] = [
+    `<article class="document-template" style="font-family:Inter,'Segoe UI',Arial,sans-serif;color:#24364b;
+      background:linear-gradient(180deg,#f8fbff 0%,#ffffff 100%);border:1px solid #d9e5f1;border-radius:28px;
+      overflow:hidden;box-shadow:0 18px 50px rgba(15,23,42,0.08);">`,
+    `<header style="padding:28px 32px;background:linear-gradient(135deg,#10233f 0%,#184777 70%,#215c9b 100%);color:#ffffff;">`,
+    `<div style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:700;color:#dbeafe;">MIHAS Documents</div>`,
+    `<h1 style="margin:16px 0 8px 0;font-family:Georgia,'Times New Roman',serif;font-size:34px;line-height:1.08;font-weight:700;color:#ffffff;">${escapeHtml(template.name)}</h1>`,
+    `<p style="margin:0;max-width:620px;font-size:14px;line-height:1.7;color:#d7e5f6;">${escapeHtml(subtitle)}</p>`,
+    `</header>`,
+    `<section style="padding:20px 32px;background:#f6f9fc;border-bottom:1px solid #e1ebf3;">`,
+    `<table role="presentation" style="width:100%;border-collapse:separate;border-spacing:12px 12px;">`,
+  ];
+
+  summary.forEach(item => {
+    parts.push(
+      `<tr><td style="padding:0;">
+        <div style="background:#ffffff;border:1px solid #d9e5f1;border-radius:18px;padding:14px 16px;">
+          <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#64748b;font-weight:700;">${escapeHtml(item.label)}</div>
+          <div style="padding-top:7px;font-size:15px;line-height:1.5;color:#10233f;font-weight:600;">${escapeHtml(item.value)}</div>
+        </div>
+      </td></tr>`
+    );
+  });
+
+  parts.push(`</table>`, `</section>`, `<div style="padding:28px 32px 32px 32px;">`);
 
   template.sections.forEach(section => {
-    parts.push('<section>');
+    parts.push('<section style="padding:0 0 22px 0;">');
     if (section.heading) {
       const heading = escapeHtml(fillTemplateString(section.heading, context));
-      parts.push(`<h2>${heading}</h2>`);
+      parts.push(
+        `<h2 style="margin:0 0 12px 0;font-size:18px;line-height:1.3;color:#10233f;font-weight:700;">${heading}</h2>`
+      );
+      parts.push(`<div style="height:1px;background:linear-gradient(90deg,#cfdbe7 0%,#e9f0f6 100%);margin:0 0 16px 0;"></div>`);
     }
 
     section.paragraphs?.forEach(paragraph => {
       const htmlParagraph = escapeHtml(fillTemplateString(paragraph, context));
-      parts.push(`<p>${htmlParagraph}</p>`);
+      parts.push(`<p style="margin:0 0 14px 0;font-size:15px;line-height:1.8;color:#334155;">${htmlParagraph}</p>`);
     });
 
     const bulletItems: string[] = [];
@@ -317,9 +388,9 @@ const buildSectionHtml = (
     });
 
     if (bulletItems.length > 0) {
-      parts.push('<ul>');
+      parts.push('<ul style="margin:0;padding:0 0 0 18px;">');
       bulletItems.forEach(item => {
-        parts.push(`<li>${item}</li>`);
+        parts.push(`<li style="margin:0 0 12px 0;font-size:15px;line-height:1.8;color:#334155;">${item}</li>`);
       });
       parts.push('</ul>');
     }
@@ -327,7 +398,13 @@ const buildSectionHtml = (
     parts.push('</section>');
   });
 
-  parts.push('</article>');
+  parts.push(
+    `</div>`,
+    `<footer style="padding:18px 32px 28px 32px;border-top:1px solid #e1ebf3;background:#fbfdff;font-size:12px;line-height:1.7;color:#64748b;">
+      ${getInstitutionLabel()}<br />Official admissions document
+    </footer>`,
+    '</article>'
+  );
   return parts.join('\n');
 };
 
@@ -339,41 +416,93 @@ const generatePdfDocument = async (
   const { jsPDF } = await import('jspdf');
   await import('jspdf-autotable');
   const doc = new jsPDF();
-  let yPos = 20;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 18;
+  const contentWidth = pageWidth - margin * 2;
+  const subtitle = getTemplateSubtitle(template);
+  const summary = buildDocumentSummary(template, context);
 
-  if (title) {
-    doc.setFontSize(16);
+  const ensureSpace = (required: number) => {
+    if (yPos + required <= pageHeight - 28) return;
+    doc.addPage();
+    yPos = 18;
+  };
+
+  doc.setFillColor(...DOCUMENT_COLORS.ink);
+  doc.rect(0, 0, pageWidth, 40, 'F');
+  doc.setFillColor(...DOCUMENT_COLORS.accent);
+  doc.rect(0, 40, pageWidth, 3, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('MIHAS OFFICIAL DOCUMENT', margin, 14);
+  doc.setFontSize(20);
+  doc.text(title, margin, 26);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text(getInstitutionLabel(), margin, 33);
+
+  let yPos = 54;
+  doc.setTextColor(...DOCUMENT_COLORS.slate);
+  doc.setFontSize(11);
+  const subtitleLines = doc.splitTextToSize(subtitle, contentWidth);
+  doc.text(subtitleLines, margin, yPos);
+  yPos += subtitleLines.length * 5 + 8;
+
+  summary.forEach(item => {
+    ensureSpace(18);
+    doc.setFillColor(...DOCUMENT_COLORS.mist);
+    doc.roundedRect(margin, yPos - 4, contentWidth, 14, 3, 3, 'F');
+    doc.setTextColor(...DOCUMENT_COLORS.slate);
     doc.setFont('helvetica', 'bold');
-    doc.text(title, 14, yPos);
-    yPos += 10;
-  }
+    doc.setFontSize(9);
+    doc.text(item.label.toUpperCase(), margin + 4, yPos + 1);
+    doc.setTextColor(...DOCUMENT_COLORS.ink);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(item.value, margin + 42, yPos + 1);
+    yPos += 18;
+  });
+
+  yPos += 4;
 
   template.sections.forEach(section => {
     if (section.heading) {
+      ensureSpace(20);
+      doc.setDrawColor(...DOCUMENT_COLORS.line);
+      doc.line(margin, yPos - 3, pageWidth - margin, yPos - 3);
+      doc.setTextColor(...DOCUMENT_COLORS.blue);
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.text(fillTemplateString(section.heading, context), 14, yPos);
-      yPos += 8;
+      doc.text(fillTemplateString(section.heading, context), margin, yPos + 3);
+      yPos += 11;
     }
 
-    doc.setFontSize(10);
+    doc.setFontSize(10.5);
     doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...DOCUMENT_COLORS.ink);
 
     section.paragraphs?.forEach(paragraph => {
       const text = fillTemplateString(paragraph, context);
       if (text.trim()) {
-        const lines = doc.splitTextToSize(text, 180);
-        doc.text(lines, 14, yPos);
-        yPos += lines.length * 6;
+        const lines = doc.splitTextToSize(text, contentWidth);
+        ensureSpace(lines.length * 5 + 8);
+        doc.text(lines, margin, yPos);
+        yPos += lines.length * 5 + 3;
       }
     });
 
     section.bullets?.forEach(bullet => {
       const text = fillTemplateString(bullet, context);
       if (text.trim()) {
-        const lines = doc.splitTextToSize(`• ${text}`, 175);
-        doc.text(lines, 18, yPos);
-        yPos += lines.length * 6;
+        const lines = doc.splitTextToSize(text, contentWidth - 9);
+        ensureSpace(lines.length * 5 + 8);
+        doc.setTextColor(...DOCUMENT_COLORS.accent);
+        doc.text('•', margin, yPos);
+        doc.setTextColor(...DOCUMENT_COLORS.ink);
+        doc.text(lines, margin + 6, yPos);
+        yPos += lines.length * 5 + 3;
       }
     });
 
@@ -391,15 +520,26 @@ const generatePdfDocument = async (
         });
         const text = fillTemplateString(rendered, context);
         if (text.trim()) {
-          const lines = doc.splitTextToSize(`• ${text}`, 175);
-          doc.text(lines, 18, yPos);
-          yPos += lines.length * 6;
+          const lines = doc.splitTextToSize(text, contentWidth - 9);
+          ensureSpace(lines.length * 5 + 8);
+          doc.setTextColor(...DOCUMENT_COLORS.accent);
+          doc.text('•', margin, yPos);
+          doc.setTextColor(...DOCUMENT_COLORS.ink);
+          doc.text(lines, margin + 6, yPos);
+          yPos += lines.length * 5 + 3;
         }
       });
     });
 
-    yPos += 5;
+    yPos += 6;
   });
+
+  doc.setDrawColor(...DOCUMENT_COLORS.line);
+  doc.line(margin, pageHeight - 18, pageWidth - margin, pageHeight - 18);
+  doc.setTextColor(...DOCUMENT_COLORS.slate);
+  doc.setFontSize(8);
+  doc.text('Mukuba Institute of Health and Allied Sciences', margin, pageHeight - 11);
+  doc.text('Official admissions document', pageWidth - margin, pageHeight - 11, { align: 'right' });
 
   const bytes = new Uint8Array(doc.output('arraybuffer'));
   const blob = new Blob([bytes], { type: 'application/pdf' });

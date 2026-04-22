@@ -163,6 +163,14 @@ export default function ApplicationDetail() {
     <PageShell
       title="Application Details"
       subtitle={`#${application.application_number}`}
+      eyebrow="Application Record"
+      tone="student"
+      metrics={[
+        { label: 'Status', value: application.status?.replace('_', ' ') || 'Pending', helper: 'Current application decision state' },
+        { label: 'Program', value: application.program || 'Not provided', helper: application.intake || 'Intake pending' },
+        { label: 'Payment', value: paymentStatusLabel, helper: 'Current fee verification position' },
+        { label: 'Tracking code', value: application.public_tracking_code || 'Not available', helper: 'Use this for public status tracking' },
+      ]}
       actions={
         <div className="flex flex-wrap items-center gap-3">
           {getStatusIcon(application.status)}
@@ -179,7 +187,7 @@ export default function ApplicationDetail() {
     >
         {/* Back link */}
         <div className={`mb-8 ${animateClasses.slideUp}`}>
-          <Link to="/student/dashboard" className="inline-flex items-center text-primary hover:text-primary/80 mb-4">
+          <Link to="/student/dashboard" className="feature-chip mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Link>

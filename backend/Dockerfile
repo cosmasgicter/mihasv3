@@ -44,6 +44,7 @@ RUN SECRET_KEY=build-time-placeholder \
     LENCO_API_SECRET_KEY=build-time-placeholder \
     LENCO_PUBLIC_KEY=build-time-placeholder \
     AUDIT_LOG_ENCRYPTION_KEY=build-time-placeholder-key-0123456789ab \
+    AI_GATEWAY_API_KEY=build-time-placeholder \
     python manage.py collectstatic --noinput
 
 # Expose the application port expected by Koyeb and local container runs.

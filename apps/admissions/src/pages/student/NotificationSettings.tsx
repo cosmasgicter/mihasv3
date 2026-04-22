@@ -270,12 +270,20 @@ export default function NotificationSettings() {
     <PageShell
       title="Notification preferences and portal inbox"
       subtitle="In-app notifications stay available inside the portal. You can manage SMS delivery below."
+      eyebrow="Notifications"
+      tone="student"
+      metrics={[
+        { label: 'Inbox items', value: notifications.length, helper: 'Latest portal notifications on this page' },
+        { label: 'SMS consent', value: preferences.sms_enabled ? 'Enabled' : 'Disabled', helper: 'Student-controlled delivery preference' },
+        { label: 'Contact source', value: contactSourceLabel, helper: contactPhone || 'No phone number on file' },
+        { label: 'State', value: loading ? 'Loading' : (error || preferencesErrorMessage) ? 'Needs attention' : 'Ready', helper: error || preferencesErrorMessage || success || 'Notification controls are available' },
+      ]}
     >
       <div className="space-y-6 sm:space-y-8">
         <div className="mb-6 sm:mb-8">
           <Link
             to="/student/settings"
-            className="mb-4 inline-flex items-center font-medium text-primary transition-colors hover:text-primary/80"
+            className="feature-chip mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to profile settings
