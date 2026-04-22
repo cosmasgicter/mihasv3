@@ -150,7 +150,7 @@ Raise the MIHAS platform production readiness score from 79 to 90+ across six ar
     - **Validates: Requirements 7.2, 7.4**
 
 - [ ] 10. Break circular import dependencies (P3 — Code Organization)
-  - [-] 10.1 Convert top-level cross-app imports to lazy imports
+  - [x] 10.1 Convert top-level cross-app imports to lazy imports
     - Fix `applications ↔ accounts`: move `Profile` import inside method body in views
     - Fix `common ↔ accounts`: move `Profile`, `CSRFToken` imports inside task function bodies
     - Fix `common ↔ catalog`: move catalog model imports inside `communication_service.py` method bodies
