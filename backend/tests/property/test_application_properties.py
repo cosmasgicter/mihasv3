@@ -436,9 +436,10 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
         request.data = {"new_status": "approved", "notes": notes, "force": True}
 
         with patch("apps.applications.views.Application.objects") as mock_qs, \
-             patch("apps.applications.views.transition_application_status", return_value="submitted") as mock_transition, \
+             patch("apps.applications.views.transition_application_status", return_value="submitted"), \
              patch("apps.applications.views.ApplicationStatusHistory.objects") as mock_history, \
-             patch("apps.applications.views.CommunicationService") as mock_comms:
+             patch("apps.common.communication_service.CommunicationService") as mock_comms, \
+             patch("apps.applications.views.CommunicationService", mock_comms):
             mock_qs.get.return_value = app
             mock_history.create.return_value = MagicMock()
             mock_history.filter.return_value.order_by.return_value.first.return_value = MagicMock()
@@ -447,7 +448,8 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
             response = view.post(request, application_id=app.id)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["new_status"], "approved")
+        resp_data = response.data.get("data", response.data)
+        self.assertEqual(resp_data["new_status"], "approved")
 
     @given(new_status=st.sampled_from(["rejected", "under_review", "submitted"]))
     @_default_settings

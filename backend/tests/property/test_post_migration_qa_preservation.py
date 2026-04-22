@@ -270,27 +270,26 @@ class TestApplicationAPIContractsPreservation:
         """
         factory = APIRequestFactory()
         view = ApplicationDetailView.as_view()
-        user = _make_user()
+        user = _make_user(role="admin")
 
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id, user_id=user.id)
+        application.status = "draft"  # Ensure student can mutate
 
-        # Mock the serializer save to avoid DB writes
-        with patch("apps.applications.views.Application.objects") as mock_qs, \
-             patch("apps.applications.views.ApplicationSerializer") as mock_ser_cls, \
-             patch("apps.applications.views.IsOwnerOrAdmin") as mock_perm:
+        # Mock the queryset chain and serializer to avoid DB writes
+        with patch("apps.applications.views._with_payment_summary", side_effect=lambda qs: qs), \
+             patch("apps.applications.views.Application.objects") as mock_qs, \
+             patch("apps.applications.views.ApplicationSerializer") as mock_ser_cls:
             mock_chain = MagicMock()
             mock_chain.get.return_value = application
             mock_qs.select_related.return_value.prefetch_related.return_value = mock_chain
-            mock_perm.return_value.has_permission.return_value = True
-            mock_perm.return_value.has_object_permission.return_value = True
 
             mock_serializer = MagicMock()
             mock_serializer.is_valid.return_value = True
             mock_serializer.data = {
                 "id": str(app_id),
                 "full_name": "Updated Name",
-                "status": "submitted",
+                "status": "draft",
             }
             mock_ser_cls.return_value = mock_serializer
 
@@ -370,10 +369,11 @@ class TestApplicationAPIContractsPreservation:
         assert response.status_code == 200, (
             f"Expected 200 from review POST with new_status, got {response.status_code}"
         )
-        assert "new_status" in response.data, (
+        resp_data = response.data.get("data", response.data)
+        assert "new_status" in resp_data, (
             "Review response should contain new_status field"
         )
-        assert response.data["new_status"] == "under_review"
+        assert resp_data["new_status"] == "under_review"
         mock_transition.assert_called_once()
 
     def test_review_post_with_legacy_status_normalizes_to_new_status(self):

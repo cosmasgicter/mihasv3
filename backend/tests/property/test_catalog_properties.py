@@ -63,10 +63,15 @@ def _make_mock_program(institution=None, is_active=True):
     prog.institution_id = prog.institution.id
     prog.duration_months = 36
     prog.application_fee = Decimal("500.00")
+    prog.tuition_fee = Decimal("5000.00")
     prog.requirements = {}
+    prog.regulatory_body = "HPCZ"
+    prog.accreditation_status = "accredited"
     prog.is_active = is_active
     prog.created_at = MagicMock()
     prog.created_at.isoformat.return_value = "2025-01-01T00:00:00"
+    prog.updated_at = MagicMock()
+    prog.updated_at.isoformat.return_value = "2025-01-01T00:00:00"
     return prog
 
 
