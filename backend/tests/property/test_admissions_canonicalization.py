@@ -501,6 +501,10 @@ class TestFeeResolutionRoundTrip(SimpleTestCase):
         ) as mock_atomic:
             # No existing pending payment
             mock_payment_qs.filter.return_value.first.return_value = None
+            mock_payment_qs.select_for_update.return_value.filter.return_value.first.return_value = None
+            mock_payment_qs.filter.return_value.exclude.return_value.count.return_value = 0
+            mock_atomic.return_value.__enter__ = MagicMock(return_value=None)
+            mock_atomic.return_value.__exit__ = MagicMock(return_value=False)
 
             # Mock application with program name and nationality
             mock_app = MagicMock()
@@ -1336,6 +1340,7 @@ def _make_mock_intake_for_enforcer(
     intake.max_capacity = max_capacity
     intake.current_enrollment = current_enrollment
     intake.is_active = True
+    intake.grace_period_days = 0
     return intake
 
 
@@ -1463,8 +1468,11 @@ class TestIntakeCapacityEnforcement(SimpleTestCase):
             return_value=resolved,
         ), patch(
             "apps.applications.intake_enforcer.Intake.objects"
-        ) as mock_intake_qs:
+        ) as mock_intake_qs, patch(
+            "apps.applications.models.Application.objects"
+        ) as mock_app_qs:
             mock_intake_qs.filter.return_value.first.return_value = mock_intake
+            mock_app_qs.filter.return_value.count.return_value = current_enrollment
 
             result = IntakeEnforcer.check_submission("Test Intake", "Test Program")
 
@@ -1498,8 +1506,11 @@ class TestIntakeCapacityEnforcement(SimpleTestCase):
             return_value=resolved,
         ), patch(
             "apps.applications.intake_enforcer.Intake.objects"
-        ) as mock_intake_qs:
+        ) as mock_intake_qs, patch(
+            "apps.applications.models.Application.objects"
+        ) as mock_app_qs:
             mock_intake_qs.filter.return_value.first.return_value = mock_intake
+            mock_app_qs.filter.return_value.count.return_value = current_enrollment
 
             result = IntakeEnforcer.check_submission("Test Intake", "Test Program")
 
@@ -2113,45 +2124,41 @@ class TestCompletenessScoreFormula(SimpleTestCase):
         mock_app = MagicMock()
         mock_app.id = uuid.uuid4()
 
-        # We mock the internal computations to control each component score
-        with patch(
-            "apps.documents.models.ApplicationDocument.objects"
-        ) as mock_doc_qs, patch(
-            "apps.documents.models.ApplicationGrade.objects"
-        ) as mock_grade_qs:
-            # --- Control document_score ---
-            # document_score = round(doc_ratio * 100) where doc_ratio = matched/3
-            # We reverse-engineer the uploaded types to produce the desired score
-            if document_score >= 100:
-                uploaded_types = ["nrc", "passport", "result_slip"]
-            elif document_score >= 67:
-                uploaded_types = ["nrc", "passport"]
-            elif document_score >= 33:
-                uploaded_types = ["nrc"]
-            else:
-                uploaded_types = []
+        # Control document_score via reverse relation
+        if document_score >= 100:
+            uploaded_types = ["nrc", "passport", "result_slip"]
+        elif document_score >= 67:
+            uploaded_types = ["nrc", "passport"]
+        elif document_score >= 33:
+            uploaded_types = ["nrc"]
+        else:
+            uploaded_types = []
 
-            mock_doc_qs.filter.return_value.values_list.return_value = uploaded_types
-            # No docs with extracted_text → consistency_score defaults to 100
-            mock_doc_qs.filter.return_value.__iter__ = MagicMock(return_value=iter([]))
+        mock_docs = []
+        for dt in uploaded_types:
+            d = MagicMock()
+            d.document_type = dt
+            d.extracted_text = ""
+            mock_docs.append(d)
 
-            # --- Control grade_score ---
-            # grade_score = min(100, round((grade_count / 5) * 100))
-            if grade_score >= 100:
-                grade_count = 5
-            else:
-                grade_count = round(grade_score * 5 / 100)
+        # Control grade_score via reverse relation
+        if grade_score >= 100:
+            grade_count = 5
+        else:
+            grade_count = round(grade_score * 5 / 100)
 
-            mock_grade_qs.filter.return_value.count.return_value = grade_count
+        mock_grades = [MagicMock() for _ in range(grade_count)]
 
-            di = DocumentIntelligence()
-            result = di.compute_completeness(mock_app)
+        mock_app.applicationdocument_set.all.return_value = mock_docs
+        mock_app.applicationgrade_set.all.return_value = mock_grades
+
+        di = DocumentIntelligence()
+        result = di.compute_completeness(mock_app)
 
         # Recompute expected component scores from the mocked data
         actual_doc_ratio = len(set(uploaded_types) & di.REQUIRED_DOC_TYPES) / len(di.REQUIRED_DOC_TYPES)
         expected_doc_score = round(actual_doc_ratio * 100)
         expected_grade_score = min(100, round((grade_count / 5) * 100))
-        # No docs iterated → consistency_score = 100
         expected_consistency_score = 100
 
         expected_total = round(
@@ -2188,23 +2195,26 @@ class TestCompletenessScoreFormula(SimpleTestCase):
         mock_app = MagicMock()
         mock_app.id = uuid.uuid4()
 
-        with patch(
-            "apps.documents.models.ApplicationDocument.objects"
-        ) as mock_doc_qs, patch(
-            "apps.documents.models.ApplicationGrade.objects"
-        ) as mock_grade_qs:
-            mock_doc_qs.filter.return_value.values_list.return_value = doc_types
-            mock_doc_qs.filter.return_value.__iter__ = MagicMock(return_value=iter([]))
-            mock_grade_qs.filter.return_value.count.return_value = grade_count
+        mock_docs = []
+        for dt in doc_types:
+            d = MagicMock()
+            d.document_type = dt
+            d.extracted_text = ""
+            mock_docs.append(d)
 
-            di = DocumentIntelligence()
-            result = di.compute_completeness(mock_app)
+        mock_grades = [MagicMock() for _ in range(grade_count)]
+
+        mock_app.applicationdocument_set.all.return_value = mock_docs
+        mock_app.applicationgrade_set.all.return_value = mock_grades
+
+        di = DocumentIntelligence()
+        result = di.compute_completeness(mock_app)
 
         # Independently compute expected scores
         required = {"nrc", "passport", "result_slip"}
         doc_ratio = len(set(doc_types) & required) / len(required)
         expected_doc_score = round(doc_ratio * 100)
-        expected_consistency_score = 100  # no docs with extracted_text
+        expected_consistency_score = 100
         expected_grade_score = min(100, round((grade_count / 5) * 100))
 
         expected_total = round(

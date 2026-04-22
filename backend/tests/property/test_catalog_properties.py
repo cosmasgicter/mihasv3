@@ -60,8 +60,8 @@ def _make_mock_program(institution=None, is_active=True):
     prog.code = "NUR"
     prog.institution = institution or _make_mock_institution()
     prog.institution_id = prog.institution.id
-    prog.duration_years = 3
-    prog.application_fee = 500.00
+    prog.duration_months = 36
+    prog.application_fee = "500.00"
     prog.requirements = {}
     prog.is_active = is_active
     prog.created_at = MagicMock()
@@ -276,7 +276,7 @@ class TestProgramListingIncludesInstitutionData(SimpleTestCase):
 
         fields = ProgramSerializer.Meta.fields
         self.assertIn("institution", fields)
-        self.assertIn("duration_years", fields)
+        self.assertIn("duration_months", fields)
         self.assertIn("application_fee", fields)
 
     def test_program_serializer_nests_institution_data(self):
@@ -298,18 +298,18 @@ class TestProgramListingIncludesInstitutionData(SimpleTestCase):
     @given(duration=st.integers(min_value=1, max_value=6))
     @_default_settings
     def test_program_serializer_includes_duration_and_fee(self, duration):
-        """ProgramSerializer includes duration_years and application_fee."""
+        """ProgramSerializer includes duration_months and application_fee."""
         from apps.catalog.serializers import ProgramSerializer
 
         institution = _make_mock_institution()
         program = _make_mock_program(institution=institution)
-        program.duration_years = duration
-        program.application_fee = 500.00
+        program.duration_months = duration * 12
+        program.application_fee = "500.00"
 
         serializer = ProgramSerializer(program)
         data = serializer.data
 
-        self.assertEqual(data["duration_years"], duration)
+        self.assertEqual(data["duration_months"], duration * 12)
         self.assertIn("application_fee", data)
 
     def test_institution_serializer_fields(self):

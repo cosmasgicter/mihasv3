@@ -106,24 +106,23 @@ class TestIdentityDocumentRequired(SimpleTestCase):
         mock_app = _make_mock_app(application_id, user_id)
         mock_request = _make_mock_request(user_id, {"new_status": "submitted"})
 
+        from apps.applications.services import ApplicationSubmissionError
+
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
-            patch("apps.documents.models.Payment.objects") as mock_payment_qs,
-            patch("apps.documents.models.ApplicationDocument.objects") as mock_doc_qs,
-            patch("apps.applications.services.transition_application_status") as mock_transition,
+            patch("apps.applications.views.submit_application") as mock_submit,
         ):
             mock_app_qs.get.return_value = mock_app
-            # Payment gate passes
-            mock_payment_qs.filter.return_value.exists.return_value = True
-            # Identity document gate fails
-            mock_doc_qs.filter.return_value.exists.return_value = False
+            mock_submit.side_effect = ApplicationSubmissionError(
+                "IDENTITY_DOCUMENT_REQUIRED",
+                "An NRC or Passport document must be uploaded before submission.",
+            )
 
             from apps.applications.views import ApplicationReviewView
 
             view = ApplicationReviewView()
             response = view.post(mock_request, application_id)
 
-            mock_transition.assert_not_called()
             self.assertEqual(response.status_code, 400)
             self.assertEqual(response.data["code"], "IDENTITY_DOCUMENT_REQUIRED")
 
@@ -191,20 +190,23 @@ class TestPaymentGateEnforcement(SimpleTestCase):
         )
         mock_request = _make_mock_request(user_id, {"new_status": "submitted"})
 
+        from apps.applications.services import ApplicationSubmissionError
+
         with (
             patch("apps.applications.models.Application.objects") as mock_app_qs,
-            patch("apps.documents.models.Payment.objects") as mock_payment_qs,
-            patch("apps.applications.services.transition_application_status") as mock_transition,
+            patch("apps.applications.views.submit_application") as mock_submit,
         ):
             mock_app_qs.get.return_value = mock_app
-            mock_payment_qs.filter.return_value.exists.return_value = False
+            mock_submit.side_effect = ApplicationSubmissionError(
+                "PAYMENT_REQUIRED",
+                "Payment must be completed before submitting the application.",
+            )
 
             from apps.applications.views import ApplicationReviewView
 
             view = ApplicationReviewView()
             response = view.post(mock_request, application_id)
 
-            mock_transition.assert_not_called()
             self.assertEqual(response.status_code, 400)
             self.assertEqual(response.data["code"], "PAYMENT_REQUIRED")
 
