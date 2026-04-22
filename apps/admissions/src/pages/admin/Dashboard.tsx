@@ -21,6 +21,7 @@ import { DashboardActivityFeed } from '@/components/admin/dashboard/DashboardAct
 import { DashboardQuickActions } from '@/components/admin/dashboard/DashboardQuickActions'
 
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
+import { onAdminDashboardMount } from '@/lib/speculativePrefetch'
 
 type DashboardFetchMode = 'initial' | 'manual'
 
@@ -42,6 +43,9 @@ type DashboardApiStatus = {
 export default function AdminDashboard() {
   const { user, isAdmin, profileLoading } = useAuth()
   const { profile } = useProfileQuery()
+
+  useEffect(() => { onAdminDashboardMount() }, [])
+
   const [stats, setStats] = useState<AdminDashboardStats>({
     totalApplications: 0,
     pendingApplications: 0,

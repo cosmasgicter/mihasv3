@@ -18,6 +18,7 @@ import { repairLegacyDocumentReference } from '@/lib/applicationSlipStorage'
 import { createApplicationSlip } from '@/lib/slipService'
 import { logger } from '@/lib/logger'
 import { animateClasses } from '@/lib/animations'
+import { onTrackerMount } from '@/lib/speculativePrefetch'
 import { useApplicationTracker } from './hooks/useApplicationTracker'
 import { Seo } from '@/components/seo/Seo'
 import { PublicLayout } from '@/components/layout/PublicLayout'
@@ -34,6 +35,8 @@ import {
 
 export default function PublicApplicationTracker() {
   const toast = useToastStore()
+
+  useEffect(() => { onTrackerMount() }, [])
   
   const {
     searchTerm,

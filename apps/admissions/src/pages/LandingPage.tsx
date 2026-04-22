@@ -15,7 +15,7 @@ import {
 import { Seo } from '@/components/seo/Seo';
 import { prefersReducedMotion } from '@/lib/animation-config';
 import { useDeferredHydration } from '@/hooks/useDeferredHydration';
-import { scheduleLikelyAuthRoutePreload } from '@/lib/routePreload';
+import { onLandingMount } from '@/lib/speculativePrefetch';
 
 const LandingPageSections = lazy(() => import('@/components/landing/LandingPageSections').then((mod) => ({ default: mod.LandingPageSections })));
 
@@ -152,7 +152,7 @@ export default function LandingPage() {
   const showDeferredSections = useDeferredHydration(true, 450)
 
   useEffect(() => {
-    return scheduleLikelyAuthRoutePreload(900)
+    onLandingMount()
   }, [])
 
   useEffect(() => {

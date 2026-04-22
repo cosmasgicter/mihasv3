@@ -273,7 +273,10 @@ export default function PaymentPage() {
       }))
     },
     enabled: !!user?.id,
-    ...CACHE_CONFIG.applications,
+    // Longer staleTime: dashboard polling already keeps applications fresh.
+    // This avoids a redundant /applications/ call when navigating from dashboard.
+    staleTime: 2 * 60_000,
+    gcTime: 5 * 60_000,
   })
 
   const paymentApplications = applications.filter((app) => app.status !== 'draft')
