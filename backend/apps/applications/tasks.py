@@ -138,7 +138,8 @@ def interview_reminder_task(self):
                     body=email_body,
                     status="pending",
                 )
-                send_email_task.delay(str(email_record.id))
+                from apps.common.tasks import dispatch_email
+                dispatch_email(str(email_record.id))
                 sent += 1
             except Exception:
                 logger.exception(
@@ -229,7 +230,8 @@ def draft_expiry_reminder_task(self):
                         ),
                         status="pending",
                     )
-                    send_email_task.delay(str(email_record.id))
+                    from apps.common.tasks import dispatch_email
+                    dispatch_email(str(email_record.id))
                     expired_count += 1
                 except Exception:
                     logger.exception(
@@ -282,7 +284,8 @@ def draft_expiry_reminder_task(self):
                         ),
                         status="pending",
                     )
-                    send_email_task.delay(str(email_record.id))
+                    from apps.common.tasks import dispatch_email
+                    dispatch_email(str(email_record.id))
                     reminders_sent += 1
                 except Exception:
                     logger.exception(
@@ -396,7 +399,8 @@ def review_sla_reminder_task(self):
                     ),
                     status="pending",
                 )
-                send_email_task.delay(str(email_record.id))
+                from apps.common.tasks import dispatch_email
+                dispatch_email(str(email_record.id))
                 admins_notified += 1
             except Exception:
                 logger.exception(
@@ -480,7 +484,8 @@ def condition_expiry_task(self):
                     ),
                     status="pending",
                 )
-                send_email_task.delay(str(email_record.id))
+                from apps.common.tasks import dispatch_email
+                dispatch_email(str(email_record.id))
 
             except Exception:
                 logger.exception(
@@ -750,7 +755,8 @@ def waitlist_cascade_task(self):
                             body=email_body,
                             status="pending",
                         )
-                        send_email_task.delay(str(email_record.id))
+                        from apps.common.tasks import dispatch_email
+                        dispatch_email(str(email_record.id))
                     except Exception:
                         logger.exception("Failed to notify student for cascade app=%s", app.id)
 

@@ -9,6 +9,10 @@
  * Consolidated from: eligibility.ts, detailedEligibilityScoring.ts, eligibilityScoringEngine.ts
  */
 
+// ─── Curriculum Types ──────────────────────────────────────────────────────────
+
+export type CurriculumType = 'ecz' | 'cambridge_igcse' | 'cambridge_alevel'
+
 // ─── Grade Constants ───────────────────────────────────────────────────────────
 
 export const ZAMBIAN_GRADE_SCALE = {
@@ -31,12 +35,56 @@ export const GRADE_DESCRIPTIONS: Record<number, string> = {
   9: 'Fail (9)',
 }
 
+export const CAMBRIDGE_IGCSE_GRADES: Record<string, { numeric: number; description: string }> = {
+  'A*': { numeric: 1, description: 'A* – Distinction' },
+  'A':  { numeric: 2, description: 'A – Merit' },
+  'B':  { numeric: 3, description: 'B – Very Good' },
+  'C':  { numeric: 4, description: 'C – Good' },
+  'D':  { numeric: 5, description: 'D – Satisfactory' },
+  'E':  { numeric: 6, description: 'E – Credit' },
+  'F':  { numeric: 7, description: 'F – Pass' },
+  'G':  { numeric: 8, description: 'G – Weak Pass' },
+  'U':  { numeric: 9, description: 'U – Ungraded' },
+}
+
+export const CAMBRIDGE_ALEVEL_GRADES: Record<string, { numeric: number; description: string }> = {
+  'A*': { numeric: 1, description: 'A* – Distinction' },
+  'A':  { numeric: 2, description: 'A – Merit' },
+  'B':  { numeric: 3, description: 'B – Very Good' },
+  'C':  { numeric: 4, description: 'C – Good' },
+  'D':  { numeric: 5, description: 'D – Satisfactory' },
+  'E':  { numeric: 6, description: 'E – Credit' },
+}
+
+/**
+ * Normalize a grade from any supported curriculum to the 1-9 ECZ-equivalent numeric scale.
+ * Numeric grades (already ECZ) pass through with clamping. Letter grades are mapped per curriculum.
+ */
+export function normalizeGrade(grade: string | number, curriculum: CurriculumType = 'ecz'): number {
+  if (typeof grade === 'number') {
+    return Math.max(1, Math.min(9, Math.round(grade)))
+  }
+
+  const letter = grade.trim().toUpperCase()
+
+  if (curriculum === 'cambridge_igcse') {
+    return CAMBRIDGE_IGCSE_GRADES[letter]?.numeric ?? 9
+  }
+  if (curriculum === 'cambridge_alevel') {
+    return CAMBRIDGE_ALEVEL_GRADES[letter]?.numeric ?? 9
+  }
+
+  // ECZ: try parsing as number
+  const parsed = parseInt(letter, 10)
+  return parsed >= 1 && parsed <= 9 ? parsed : 9
+}
+
 // ─── Shared Types ──────────────────────────────────────────────────────────────
 
 export interface SubjectGrade {
   subject_id?: string
   subject_name: string
-  grade: number
+  grade: number | string
 }
 
 export interface StudentGrades {
@@ -142,19 +190,20 @@ function parseGrades(grades: SubjectGrade[]): StudentGrades {
 
   grades.forEach(g => {
     const name = g.subject_name.toLowerCase()
-    if (name.includes('english')) parsed.english = g.grade
-    else if (name.includes('math')) parsed.mathematics = g.grade
-    else if (name.includes('biology')) parsed.biology = g.grade
-    else if (name.includes('chemistry')) parsed.chemistry = g.grade
-    else if (name.includes('physics')) parsed.physics = g.grade
-    else if (name.includes('science')) parsed.science = g.grade
-    else if (name.includes('agricultural')) parsed.agriculturalScience = g.grade
-    else if (name.includes('geography')) parsed.geography = g.grade
-    else if (name.includes('civic')) parsed.civicEducation = g.grade
-    else if (name.includes('religious')) parsed.religiousEducation = g.grade
+    const grade = typeof g.grade === 'number' ? g.grade : parseInt(String(g.grade), 10) || 9
+    if (name.includes('english')) parsed.english = grade
+    else if (name.includes('math')) parsed.mathematics = grade
+    else if (name.includes('biology')) parsed.biology = grade
+    else if (name.includes('chemistry')) parsed.chemistry = grade
+    else if (name.includes('physics')) parsed.physics = grade
+    else if (name.includes('science')) parsed.science = grade
+    else if (name.includes('agricultural')) parsed.agriculturalScience = grade
+    else if (name.includes('geography')) parsed.geography = grade
+    else if (name.includes('civic')) parsed.civicEducation = grade
+    else if (name.includes('religious')) parsed.religiousEducation = grade
     else {
       if (!parsed.otherSubjects) parsed.otherSubjects = []
-      parsed.otherSubjects.push(g.grade)
+      parsed.otherSubjects.push(grade)
     }
   })
 
@@ -353,9 +402,12 @@ function checkEnvironmentalHealthEligibility(grades: StudentGrades): Eligibility
  * Check eligibility for a given program and set of grades.
  * Returns an advisory result — never blocks the application flow.
  */
-export function checkEligibility(programName: string, grades: SubjectGrade[]): EligibilityResult {
+export function checkEligibility(programName: string, grades: SubjectGrade[], curriculum?: CurriculumType): EligibilityResult {
   const normalized = programName.toLowerCase().trim()
-  const parsed = parseGrades(grades)
+  const normalizedGrades = curriculum && curriculum !== 'ecz'
+    ? grades.map(g => ({ ...g, grade: normalizeGrade(g.grade, curriculum) }))
+    : grades
+  const parsed = parseGrades(normalizedGrades)
 
   if (normalized.includes('nursing')) return checkNursingEligibility(parsed)
   if (normalized.includes('clinical')) return checkClinicalMedicineEligibility(parsed)
@@ -395,9 +447,10 @@ export function getRecommendedSubjects(programName: string): string[] {
  */
 export async function checkEnhancedEligibility(
   programName: string,
-  grades: SubjectGrade[]
+  grades: SubjectGrade[],
+  curriculum?: CurriculumType
 ): Promise<EnhancedEligibilityResult> {
-  const result = checkEligibility(programName, grades)
+  const result = checkEligibility(programName, grades, curriculum)
 
   const missingReqs: EnhancedEligibilityResult['missingRequirements'] = []
 

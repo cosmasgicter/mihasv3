@@ -50,7 +50,7 @@ vi.mock('@/lib/auth/roles', () => ({
   ),
 }));
 
-vi.mock('@/utils/userDisplayName', () => ({
+vi.mock('@/lib/userDisplayName', () => ({
   getDisplayName: vi.fn(() => 'Test User'),
 }));
 

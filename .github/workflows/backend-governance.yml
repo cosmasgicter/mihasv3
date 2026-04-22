@@ -1,0 +1,45 @@
+name: Backend Governance
+
+on:
+  push:
+    paths:
+      - "backend/**"
+      - "docs/schema-ownership.md"
+      - "docs/redis-dependency-tiers.md"
+      - "docs/decision/**"
+      - ".github/workflows/backend-governance.yml"
+  pull_request:
+    paths:
+      - "backend/**"
+      - "docs/schema-ownership.md"
+      - "docs/redis-dependency-tiers.md"
+      - "docs/decision/**"
+      - ".github/workflows/backend-governance.yml"
+
+jobs:
+  schema-and-outbox-checks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install backend dependencies
+        run: pip install -r requirements.txt
+
+      - name: Static schema verification
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.dev
+          TESTING: "1"
+        run: python3 scripts/verify_schema_static.py
+
+      - name: Focused governance tests
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.dev
+          TESTING: "1"
+        run: pytest tests/unit/test_outbox_helpers.py tests/unit/test_email_outbox_hardening.py tests/unit/test_communication_service.py -q

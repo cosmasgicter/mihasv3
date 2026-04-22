@@ -41,3 +41,10 @@ PAYMENT_DEV_BYPASS = os.environ.get("PAYMENT_DEV_BYPASS", "true").lower() in (  
     "true",
     "yes",
 )
+
+# Local development can expose scaffold Jobs/Ops routes unless explicitly disabled.
+ENABLE_JOBS_OPS_ROUTES = os.environ.get("ENABLE_JOBS_OPS_ROUTES", "true").lower() in (  # noqa: F405
+    "1",
+    "true",
+    "yes",
+)

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getDisplayName } from '@/utils/userDisplayName'
+import { getDisplayName } from '@/lib/userDisplayName'
 
 describe('getDisplayName', () => {
   it('uses profile.full_name first', () => {

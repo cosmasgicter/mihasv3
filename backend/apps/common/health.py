@@ -1,7 +1,8 @@
-"""Health check endpoints for liveness and readiness probes.
+"""Health check endpoints for liveness, readiness, and Redis-specific probes.
 
 Liveness: /health/live/ — returns HTTP 200 without any database access.
 Readiness: /health/ready/ — verifies Neon Postgres and Redis connectivity.
+Redis: /health/redis/ — verifies Redis only for dedicated paging/monitoring.
 """
 
 from django.db import connection
@@ -90,3 +91,28 @@ class ReadinessView(APIView):
             return cache.get("_health_ping") == "1"
         except Exception:
             return False
+
+
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="health_redis",
+        tags=["health"],
+        auth=[],
+        responses={
+            200: OpenApiResponse(response=HealthStatusSerializer, description="Redis is reachable."),
+            503: OpenApiResponse(response=HealthStatusSerializer, description="Redis is unavailable."),
+        },
+    )
+)
+class RedisHealthView(APIView):
+    """Redis-only probe for dedicated monitoring without changing readiness."""
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+    serializer_class = HealthStatusSerializer
+
+    def get(self, request):
+        redis_ok = ReadinessView()._check_redis()
+        if redis_ok:
+            return Response({"status": "ok", "redis": "ok"}, status=200)
+        return Response({"status": "unhealthy", "redis": "error"}, status=503)

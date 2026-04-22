@@ -1,6 +1,10 @@
-# MIHAS Shared Platform Contract
+# MIHAS Admissions Platform Contract
 
-Canonical frontend contract for `apps/admissions` and `apps/jobs-ops`. Both apps consume the same Django `/api/v1/` backend. This document is the alignment spec — new frontend code in either app must follow these conventions.
+Canonical frontend/runtime contract for `apps/admissions`.
+
+`apps/jobs-ops` is intentionally diverging into a separate product/domain with a
+different deployment/runtime boundary. It is not required to consume this
+contract and should define its own explicit contract as that product matures.
 
 ---
 
@@ -123,6 +127,4 @@ These are **not** under `/api/v1/` and do not require authentication.
 | App | Status |
 |-----|--------|
 | `apps/admissions` | Fully aligned. Reference implementation. |
-| `apps/jobs-ops` | Partially aligned. API client follows envelope + credentials conventions. Auth refresh flow and CSRF not yet wired. |
-
-Jobs-ops should align its auth layer with this contract as it matures beyond read-only scaffold views into authenticated write flows.
+| `apps/jobs-ops` | Intentionally out of scope for this document. Separate domain/runtime contract required. |

@@ -296,11 +296,11 @@ function FormPanel({
           <span className="ml-3 text-lg font-semibold text-foreground">MIHAS</span>
         </div>
 
-        <div className={cn('mt-4 rounded-2xl border bg-gradient-to-r p-4 lg:hidden', config.mobileCardClass)}>
+        <div className={cn('mt-4 rounded-[1.75rem] border bg-gradient-to-r p-5 shadow-[0_18px_44px_-28px_rgba(15,23,42,0.22)] lg:hidden', config.mobileCardClass)}>
           <p className="text-sm leading-relaxed text-muted-foreground">{config.mobileSummary}</p>
           <div className="mt-3 flex flex-wrap gap-3">
             {config.mobileFeatures.map((feature) => (
-              <span key={feature.text} className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground/80">
+              <span key={feature.text} className="inline-flex items-center gap-1.5 rounded-full border border-white/70 bg-white/70 px-3 py-1.5 text-xs font-medium text-foreground/80">
                 <feature.icon className="h-3.5 w-3.5" aria-hidden="true" />
                 {feature.text}
               </span>
@@ -308,7 +308,7 @@ function FormPanel({
           </div>
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-3xl border border-border/40 bg-card/95 p-6 shadow-2xl backdrop-blur-sm sm:p-8 lg:p-10 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-[0.98] motion-safe:duration-500">
+        <div className="mt-6 overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 p-6 shadow-[0_30px_90px_-44px_rgba(15,23,42,0.42)] backdrop-blur-xl sm:p-8 lg:p-10 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-[0.98] motion-safe:duration-500">
           <div className="space-y-6">
             {resolvedPanelBadge && (
               <div>
@@ -358,7 +358,7 @@ export function AuthLayout({
 
   return (
     <PageTransition mode="fade">
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.1),transparent_20rem),radial-gradient(circle_at_bottom_right,rgba(37,99,235,0.08),transparent_24rem),linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)]">
         <div className="flex min-h-screen">
           {showBranding && (
             <div className="hidden lg:flex lg:w-1/2 xl:w-[55%]">

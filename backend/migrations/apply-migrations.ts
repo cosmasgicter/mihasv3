@@ -31,6 +31,7 @@ const REQUIRED_MIGRATIONS = [
   'add_audit_retention_category.sql',
   'add_password_reset_tokens_table.sql',
   'add_login_attempts_table.sql',
+  'add_audit_log_encrypted_network_context.sql',
 ] as const;
 
 interface MigrationFile {

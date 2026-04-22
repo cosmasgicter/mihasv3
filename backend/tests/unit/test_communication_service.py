@@ -101,33 +101,26 @@ class TestFallback:
 class TestSendNotificationCreation:
     """4. Notification and EmailQueue creation (Req 9.3, 9.4)."""
 
-    @patch("apps.common.tasks.send_email_task")
-    @patch("apps.common.models.EmailQueue.objects")
-    @patch("apps.common.models.Notification.objects")
+    @patch("apps.common.outbox.queue_email")
+    @patch("apps.common.outbox.create_notification")
     @patch("apps.common.models.CommunicationTemplate.objects")
     def test_send_creates_notification_and_email_for_both_channel(
-        self, mock_tpl_qs, mock_notif_qs, mock_email_qs, mock_task
+        self, mock_tpl_qs, mock_notif_create, mock_queue_email
     ):
         tpl = _mock_template(channel="both")
         mock_tpl_qs.filter.return_value.first.return_value = tpl
 
-        email_record = MagicMock()
-        email_record.id = uuid.uuid4()
-        mock_email_qs.create.return_value = email_record
-
         app = _mock_app()
         CommunicationService.send("test_key", app)
 
-        mock_notif_qs.create.assert_called_once()
-        mock_email_qs.create.assert_called_once()
-        mock_task.delay.assert_called_once_with(str(email_record.id))
+        mock_notif_create.assert_called_once()
+        mock_queue_email.assert_called_once()
 
-    @patch("apps.common.tasks.send_email_task")
-    @patch("apps.common.models.EmailQueue.objects")
-    @patch("apps.common.models.Notification.objects")
+    @patch("apps.common.outbox.queue_email")
+    @patch("apps.common.outbox.create_notification")
     @patch("apps.common.models.CommunicationTemplate.objects")
     def test_send_notification_only_channel(
-        self, mock_tpl_qs, mock_notif_qs, mock_email_qs, mock_task
+        self, mock_tpl_qs, mock_notif_create, mock_queue_email
     ):
         tpl = _mock_template(channel="notification")
         mock_tpl_qs.filter.return_value.first.return_value = tpl
@@ -135,62 +128,49 @@ class TestSendNotificationCreation:
         app = _mock_app()
         CommunicationService.send("test_key", app)
 
-        mock_notif_qs.create.assert_called_once()
-        mock_email_qs.create.assert_not_called()
-        mock_task.delay.assert_not_called()
+        mock_notif_create.assert_called_once()
+        mock_queue_email.assert_not_called()
 
-    @patch("apps.common.tasks.send_email_task")
-    @patch("apps.common.models.EmailQueue.objects")
-    @patch("apps.common.models.Notification.objects")
+    @patch("apps.common.outbox.queue_email")
+    @patch("apps.common.outbox.create_notification")
     @patch("apps.common.models.CommunicationTemplate.objects")
     def test_send_email_only_channel(
-        self, mock_tpl_qs, mock_notif_qs, mock_email_qs, mock_task
+        self, mock_tpl_qs, mock_notif_create, mock_queue_email
     ):
         tpl = _mock_template(channel="email")
         mock_tpl_qs.filter.return_value.first.return_value = tpl
 
-        email_record = MagicMock()
-        email_record.id = uuid.uuid4()
-        mock_email_qs.create.return_value = email_record
-
         app = _mock_app()
         CommunicationService.send("test_key", app)
 
-        mock_notif_qs.create.assert_not_called()
-        mock_email_qs.create.assert_called_once()
-        mock_task.delay.assert_called_once()
+        mock_notif_create.assert_not_called()
+        mock_queue_email.assert_called_once()
 
-    @patch("apps.common.tasks.send_email_task")
-    @patch("apps.common.models.EmailQueue.objects")
-    @patch("apps.common.models.Notification.objects")
+    @patch("apps.common.outbox.queue_email")
+    @patch("apps.common.outbox.create_notification")
     @patch("apps.common.models.CommunicationTemplate.objects")
     def test_send_fallback_when_template_missing(
-        self, mock_tpl_qs, mock_notif_qs, mock_email_qs, mock_task
+        self, mock_tpl_qs, mock_notif_create, mock_queue_email
     ):
         """Fallback uses 'both' channel when template not found."""
         mock_tpl_qs.filter.return_value.first.return_value = None
-
-        email_record = MagicMock()
-        email_record.id = uuid.uuid4()
-        mock_email_qs.create.return_value = email_record
 
         app = _mock_app()
         CommunicationService.send("nonexistent", app)
 
         # Fallback channel is 'both'
-        mock_notif_qs.create.assert_called_once()
-        mock_email_qs.create.assert_called_once()
+        mock_notif_create.assert_called_once()
+        mock_queue_email.assert_called_once()
 
 
 class TestSendExtraContext:
     """5. Extra context merges into template variables."""
 
-    @patch("apps.common.tasks.send_email_task")
-    @patch("apps.common.models.EmailQueue.objects")
-    @patch("apps.common.models.Notification.objects")
+    @patch("apps.common.outbox.queue_email")
+    @patch("apps.common.outbox.create_notification")
     @patch("apps.common.models.CommunicationTemplate.objects")
     def test_extra_context_used_in_rendering(
-        self, mock_tpl_qs, mock_notif_qs, mock_email_qs, mock_task
+        self, mock_tpl_qs, mock_notif_create, mock_queue_email
     ):
         tpl = _mock_template(
             subject="Feedback: {{admin_feedback}}",
@@ -202,5 +182,5 @@ class TestSendExtraContext:
         app = _mock_app()
         CommunicationService.send("test_key", app, extra_context={"admin_feedback": "Great work"})
 
-        call_kwargs = mock_notif_qs.create.call_args
+        call_kwargs = mock_notif_create.call_args
         assert "Great work" in call_kwargs.kwargs.get("title", "") or "Great work" in str(call_kwargs)

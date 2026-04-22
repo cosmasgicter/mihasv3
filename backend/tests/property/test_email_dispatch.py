@@ -9,6 +9,7 @@ is called with that record's ID.
 """
 
 import os
+from contextlib import nullcontext
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 os.environ["TESTING"] = "1"
@@ -89,8 +90,16 @@ class TestEmailDispatchCreatesQueueRecord(SimpleTestCase):
             call_order.append("delay")
 
         with patch(
+            "apps.common.outbox.transaction.atomic",
+            side_effect=lambda: nullcontext(),
+        ), patch(
+            "apps.common.outbox.transaction.on_commit",
+            side_effect=lambda fn: fn(),
+        ), patch(
             "apps.common.models.EmailQueue.objects.create",
             side_effect=mock_create,
+        ), patch(
+            "apps.common.models.OutboxEvent.objects.create",
         ), patch(
             "apps.common.tasks.send_email_task.delay",
             side_effect=mock_delay,
@@ -143,8 +152,16 @@ class TestEmailDispatchCreatesQueueRecord(SimpleTestCase):
         raw_token = "abc123testtoken"
 
         with patch(
+            "apps.common.outbox.transaction.atomic",
+            side_effect=lambda: nullcontext(),
+        ), patch(
+            "apps.common.outbox.transaction.on_commit",
+            side_effect=lambda fn: fn(),
+        ), patch(
             "apps.common.models.EmailQueue.objects.create",
             side_effect=mock_create,
+        ), patch(
+            "apps.common.models.OutboxEvent.objects.create",
         ), patch(
             "apps.common.tasks.send_email_task.delay",
             side_effect=mock_delay,
@@ -155,7 +172,7 @@ class TestEmailDispatchCreatesQueueRecord(SimpleTestCase):
             "apps.accounts.views.generate_password_reset_token",
             return_value=raw_token,
         ), patch(
-            "apps.accounts.views.PasswordResetToken.objects.filter",
+            "apps.accounts.models.PasswordResetToken.objects.filter",
         ) as mock_reset_filter:
             mock_reset_filter.return_value.count.return_value = 0
 
@@ -217,6 +234,12 @@ class TestPasswordResetEmailContainsTokenAndUrl(SimpleTestCase):
             return mock_record
 
         with patch(
+            "apps.common.outbox.transaction.atomic",
+            side_effect=lambda: nullcontext(),
+        ), patch(
+            "apps.common.outbox.transaction.on_commit",
+            side_effect=lambda fn: fn(),
+        ), patch(
             "apps.common.models.EmailQueue.objects.create",
             side_effect=mock_create,
         ), patch(

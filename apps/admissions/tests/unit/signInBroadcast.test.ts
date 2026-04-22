@@ -23,7 +23,7 @@ vi.mock('@/lib/auth/roles', () => ({
   isAdminRole: vi.fn(() => false),
 }))
 
-vi.mock('@/utils/userDisplayName', () => ({
+vi.mock('@/lib/userDisplayName', () => ({
   getDisplayName: vi.fn(() => 'Test User'),
 }))
 

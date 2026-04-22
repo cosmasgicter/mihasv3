@@ -27,7 +27,7 @@ vi.mock('@/hooks/queries/useQueryConfig', () => ({
   },
 }))
 
-vi.mock('@/utils/userDisplayName', () => ({
+vi.mock('@/lib/userDisplayName', () => ({
   getDisplayName: vi.fn((profile: any) => profile?.full_name || ''),
 }))
 

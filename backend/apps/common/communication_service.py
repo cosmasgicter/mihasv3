@@ -7,6 +7,7 @@ Requirements: 9.1–9.5, 9.7
 import logging
 import re
 
+from django.utils import timezone
 from html import escape as html_escape
 
 logger = logging.getLogger(__name__)
@@ -21,6 +22,31 @@ _DEFAULT_BODY = (
 
 # Regex for {{variable}} placeholders
 _PLACEHOLDER_RE = re.compile(r"\{\{(\w+)\}\}")
+
+
+def _log_best_effort_failure(action: str, template_key: str, application_id=None, exc: Exception | None = None) -> None:
+    """Log communication side-effect failures without full traceback noise.
+
+    Communication delivery is best-effort. Repeated stack traces for expected
+    secondary failures create test flakiness and operational noise without
+    improving recoverability.
+    """
+    details = f"{exc.__class__.__name__}: {exc}" if exc is not None else "unknown error"
+    if application_id is None:
+        logger.warning(
+            "Communication best-effort failure during %s for template '%s': %s",
+            action,
+            template_key,
+            details,
+        )
+    else:
+        logger.warning(
+            "Communication best-effort failure during %s for template '%s', app=%s: %s",
+            action,
+            template_key,
+            application_id,
+            details,
+        )
 
 
 class CommunicationService:
@@ -41,8 +67,8 @@ class CommunicationService:
             template = CommunicationTemplate.objects.filter(
                 template_key=template_key, is_active=True
             ).first()
-        except Exception:
-            logger.exception("Error looking up template '%s'", template_key)
+        except Exception as exc:
+            _log_best_effort_failure("template lookup", template_key, exc=exc)
             template = None
 
         if template is None:
@@ -63,8 +89,8 @@ class CommunicationService:
         Creates an EmailQueue row and dispatches via send_email_task if
         channel is 'email' or 'both'.
         """
-        from apps.common.models import CommunicationTemplate, EmailQueue, Notification
-        from apps.common.tasks import dispatch_email
+        from apps.common.models import CommunicationTemplate
+        from apps.common.outbox import create_notification, queue_email
 
         context = _build_context(application, extra_context)
 
@@ -73,8 +99,8 @@ class CommunicationService:
             template = CommunicationTemplate.objects.filter(
                 template_key=template_key, is_active=True
             ).first()
-        except Exception:
-            logger.exception("Error looking up template '%s'", template_key)
+        except Exception as exc:
+            _log_best_effort_failure("channel lookup", template_key, application_id=getattr(application, "id", None), exc=exc)
             template = None
 
         channel = template.channel if template else "both"
@@ -83,7 +109,7 @@ class CommunicationService:
         # Create Notification if channel includes notification
         if channel in ("notification", "both"):
             try:
-                Notification.objects.create(
+                create_notification(
                     user_id=application.user_id,
                     title=subject,
                     message=body,
@@ -91,11 +117,12 @@ class CommunicationService:
                     priority="normal",
                     action_url=f"/student/application/{application.id}",
                 )
-            except Exception:
-                logger.exception(
-                    "Failed to create notification for template '%s', app=%s",
+            except Exception as exc:
+                _log_best_effort_failure(
+                    "notification create",
                     template_key,
-                    application.id,
+                    application_id=getattr(application, "id", None),
+                    exc=exc,
                 )
 
         # Create EmailQueue and dispatch if channel includes email
@@ -107,19 +134,18 @@ class CommunicationService:
                     body if "<!DOCTYPE" in body
                     else get_base_email_html(body, title=subject)
                 )
-                email_record = EmailQueue.objects.create(
+                queue_email(
                     recipient_email=application.email,
                     recipient_name=getattr(application, "full_name", ""),
                     subject=subject,
                     body=wrapped_body,
-                    status="pending",
                 )
-                dispatch_email(str(email_record.id))
-            except Exception:
-                logger.exception(
-                    "Failed to create/dispatch email for template '%s', app=%s",
+            except Exception as exc:
+                _log_best_effort_failure(
+                    "email dispatch",
                     template_key,
-                    application.id,
+                    application_id=getattr(application, "id", None),
+                    exc=exc,
                 )
 
 

@@ -110,8 +110,16 @@ class TestUptimeStateTransitions(SimpleTestCase):
                 "apps.common.tasks.cache.set",
                 side_effect=mock_cache_set,
             ), patch(
+                "apps.common.outbox.transaction.atomic",
+                side_effect=lambda: nullcontext(),
+            ), patch(
+                "apps.common.outbox.transaction.on_commit",
+                side_effect=lambda fn: fn(),
+            ), patch(
                 "apps.common.models.EmailQueue.objects.create",
                 side_effect=mock_email_create,
+            ), patch(
+                "apps.common.models.OutboxEvent.objects.create",
             ), patch(
                 "apps.common.tasks.send_email_task.delay",
                 side_effect=mock_delay,
@@ -171,3 +179,4 @@ class TestUptimeStateTransitions(SimpleTestCase):
                 self.assertEqual(email_creates[email_idx]["status"], "pending")
                 email_idx += 1
             previous = current
+from contextlib import nullcontext

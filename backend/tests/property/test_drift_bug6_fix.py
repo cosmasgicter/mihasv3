@@ -3,8 +3,8 @@ Bug 6 (MEDIUM) — DB migration ownership drifting: Fix Checking Test
 
 Parametrized test verifying that all Django models with managed=False in the
 admissions-related apps have their db_table listed in EXPECTED_TABLES in
-verify_schema_static.py. Specifically checks that the 4 newly added tables
-(program_fees, webhook_event_logs, error_logs, sse_events) are present.
+verify_schema_static.py. Specifically checks that the newly added managed
+tables (program_fees, webhook_event_logs, error_logs) are present.
 
 **Validates: Requirements 2.15**
 """
@@ -64,11 +64,11 @@ def test_admissions_unmanaged_model_table_in_expected_tables(db_table, model_lab
 
 
 def test_newly_added_tables_present():
-    """The 4 tables added by Bug 6 fix are in EXPECTED_TABLES.
+    """The required bug-fix tables are in EXPECTED_TABLES.
 
     **Validates: Requirements 2.15**
     """
-    required_new_tables = ["program_fees", "webhook_event_logs", "error_logs", "sse_events"]
+    required_new_tables = ["program_fees", "webhook_event_logs", "error_logs"]
     for table in required_new_tables:
         assert table in EXPECTED_TABLES, (
             f"'{table}' must be in EXPECTED_TABLES after Bug 6 fix"

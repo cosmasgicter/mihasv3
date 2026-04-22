@@ -110,6 +110,7 @@ class Subject(models.Model):
     category = models.CharField(max_length=100, null=True, blank=True)
     is_core = models.BooleanField(null=True, blank=True, default=False)
     is_active = models.BooleanField(null=True, blank=True, default=True)
+    curriculum_type = models.CharField(max_length=20, null=True, blank=True, default='ecz')
     created_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:

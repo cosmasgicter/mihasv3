@@ -184,15 +184,13 @@ def verify_password_reset_token(token: str):
 
 
 def send_lockout_email(user) -> None:
-    """Enqueue a lockout notification email via Celery.
+    """Enqueue a lockout notification email via the shared outbox helper.
 
-    Creates an EmailQueue record with the lockout notification body,
-    then dispatches send_email_task.delay() to send it asynchronously.
-    Errors are logged but never raised to the caller.
+    Persists an ``EmailQueue`` row and dispatches it through the centralized
+    durable-delivery path. Errors are logged but never raised to the caller.
     """
     try:
-        from apps.common.models import EmailQueue
-        from apps.common.tasks import dispatch_email
+        from apps.common.outbox import queue_email
 
         recipient = getattr(user, "email", None)
         if not recipient:
@@ -212,14 +210,11 @@ def send_lockout_email(user) -> None:
             "<p>If you need assistance, please contact support.</p>"
         )
 
-        email_record = EmailQueue.objects.create(
+        email_record = queue_email(
             recipient_email=recipient,
             subject=subject,
             body=body,
-            status="pending",
         )
-
-        dispatch_email(str(email_record.id))
 
         logger.info(
             "Lockout email queued for user_id=%s (email_queue_id=%s)",

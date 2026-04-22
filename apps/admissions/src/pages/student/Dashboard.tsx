@@ -36,7 +36,7 @@ import { useStudentDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useStudentDashboardPolling, type StudentDashboardData } from '@/hooks/useStudentDashboardPolling'
 
 import { staggerChild, animateClasses } from '@/lib/animations'
-import { getDisplayName } from '@/utils/userDisplayName'
+import { getDisplayName } from '@/lib/userDisplayName'
 import { Seo } from '@/components/seo/Seo'
 import { applicationSessionManager } from '@/lib/applicationSession'
 import { requiresStudentPaymentAction } from '@/lib/paymentStatus'
@@ -491,8 +491,32 @@ export default function StudentDashboard() {
       />
     <PageShell
       title={`Welcome back, ${firstName}`}
-      subtitle="Track your applications, manage drafts, and keep your profile information up to date."
+      eyebrow="Student Workspace"
+      subtitle="Track your applications, manage drafts, and stay ahead of deadlines, interviews, and payment actions from one calm, guided dashboard."
       maxWidth="7xl"
+      tone="student"
+      metrics={[
+        {
+          label: 'Submitted applications',
+          value: submittedApplications.length,
+          helper: totalDraftCount > 0 ? `${totalDraftCount} draft${totalDraftCount > 1 ? 's' : ''} still in progress` : 'No draft currently waiting',
+        },
+        {
+          label: 'Profile completion',
+          value: `${profileCompletion}%`,
+          helper: profileMissingFields.length > 0 ? `${profileMissingFields.length} details still missing` : 'Profile ready for support workflows',
+        },
+        {
+          label: 'Pending payments',
+          value: hasPendingPayment ? 'Action needed' : 'Clear',
+          helper: hasPendingPayment ? 'At least one application fee still needs attention' : 'All tracked fees are resolved',
+        },
+        {
+          label: 'Interviews',
+          value: hasScheduledInterview ? scheduledInterviews.length : 'None',
+          helper: hasScheduledInterview ? 'Upcoming interview activity detected' : 'No active interview events right now',
+        },
+      ]}
       actions={
         <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-end sm:gap-3">
           <Button
@@ -530,6 +554,37 @@ export default function StudentDashboard() {
                 {sessionError}
               </Banner>
             )}
+
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.75fr)]">
+              <div className="glass-panel p-5 sm:p-6">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="feature-chip">Application command center</span>
+                  <span className="feature-chip">Live timeline cues</span>
+                  <span className="feature-chip">Decision-ready status tracking</span>
+                </div>
+                <h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+                  Everything important is surfaced before it becomes urgent
+                </h2>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+                  This dashboard is designed to keep the next step obvious: continue a draft, settle a payment issue, prepare for an interview, or review the latest admissions decision without hunting through menus.
+                </p>
+              </div>
+              <div className="polished-panel p-5 sm:p-6">
+                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary/80">Today’s readiness</p>
+                <div className="mt-4 grid gap-3">
+                  <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Drafts</p>
+                    <p className="mt-1 text-lg font-semibold text-slate-950">{totalDraftCount > 0 ? `${totalDraftCount} awaiting completion` : 'All drafts resolved'}</p>
+                  </div>
+                  <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Immediate focus</p>
+                    <p className="mt-1 text-lg font-semibold text-slate-950">
+                      {hasPendingPayment ? 'Payment follow-up' : hasScheduledInterview ? 'Interview preparation' : 'Monitor application progress'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <StudentNextActionCard
               applications={applications}

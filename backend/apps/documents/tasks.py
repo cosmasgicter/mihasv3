@@ -263,8 +263,8 @@ def document_verification_sla_task(self):
         from django.conf import settings
 
         from apps.accounts.models import Profile
-        from apps.common.models import EmailQueue, Notification, Setting
-        from apps.common.tasks import send_email_task
+        from apps.common.models import Setting
+        from apps.common.outbox import create_notification, queue_email
         from apps.documents.models import ApplicationDocument
 
         # Read configurable SLA threshold
@@ -313,7 +313,7 @@ def document_verification_sla_task(self):
         notified = 0
         for admin in admins:
             try:
-                Notification.objects.create(
+                create_notification(
                     user_id=admin.id,
                     title="Documents Pending Verification Beyond SLA",
                     message=f"{len(overdue_docs)} document(s) have exceeded the {sla_days}-day verification SLA.",
@@ -333,13 +333,11 @@ def document_verification_sla_task(self):
                     f"<ul>{doc_list_html}</ul>"
                 )
                 for admin in admins:
-                    email = EmailQueue.objects.create(
+                    queue_email(
                         recipient_email=admin.email,
                         subject=f"ALERT: {len(overdue_docs)} Documents Pending Verification",
                         body=email_body,
-                        status="pending",
                     )
-                    send_email_task.delay(str(email.id))
             except Exception:
                 logger.exception("Failed to send SLA breach email")
 
@@ -356,13 +354,11 @@ def document_verification_sla_task(self):
                     f"have been pending verification for more than {sla_days * 2} days:</p>"
                     f"<ul>{escalation_list}</ul>"
                 )
-                email = EmailQueue.objects.create(
-                    recipient_email=getattr(settings, "ERROR_ALERT_EMAIL", "admin@mihas.edu.zm"),
+                queue_email(
+                    recipient_email=getattr(settings, "ERROR_ALERT_EMAIL", ""),
                     subject=f"ESCALATION: Documents pending verification for {sla_days * 2}+ days",
                     body=escalation_body,
-                    status="pending",
                 )
-                send_email_task.delay(str(email.id))
                 escalated = len(escalation_docs)
             except Exception:
                 logger.exception("Failed to send escalation email")

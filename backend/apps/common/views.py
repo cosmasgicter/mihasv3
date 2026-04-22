@@ -224,6 +224,7 @@ class APIHomeView(View):
           cookie issued by the login endpoint.
         </p>
 <pre>GET  /health/ready/
+GET  /health/redis/
 POST /api/v1/auth/login/
 GET  /api/v1/applications/
 GET  /api/v1/catalog/programs/</pre>

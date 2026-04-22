@@ -8,7 +8,7 @@ import { useSidebar } from '@/contexts/SidebarContext'
 import { designTokens } from '@/design-system/tokens'
 import { useResponsive } from '@/hooks/useResponsive'
 import { useScrollDirection } from '@/hooks/useScrollDirection'
-import { getDisplayName } from '@/utils/userDisplayName'
+import { getDisplayName } from '@/lib/userDisplayName'
 
 export const Header = React.memo(function Header() {
   const { user, isAdmin } = useAuth()

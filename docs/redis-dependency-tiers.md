@@ -1,66 +1,57 @@
 # Redis Dependency Tiers
 
-Redis serves multiple roles. This document defines what happens when Redis is unavailable.
+Operational guide for the accepted policy in
+`docs/decision/2026-04-21-adr-007-redis-dependency-policy.md`.
+
+## Summary
+
+Redis is a degraded-mode dependency for MIHAS, not a universal hard-failure
+dependency.
+
+Current policy:
+- JTI blacklist reads: fail closed after retry
+- JTI blacklist writes: log critical, do not block request
+- refresh token rotation lock: fail open
+- rate limiting: fail open
+- readiness: Postgres hard-failure, Redis degraded-only
 
 ## Usage Inventory
 
-| Use Case | Location | Redis Key Pattern | Tier |
-|----------|----------|-------------------|------|
-| JTI Blacklist | `accounts/tokens.py` | `jti:{uuid}` | Security-Critical |
-| Token Rotation Lock | `accounts/tokens.py` | `token_rotation:{jti}` via Django cache | Coordination |
-| Celery Broker | `config/settings/base.py` | Celery internal | Infrastructure |
-| Celery Task Locks | `applications/tasks.py`, `documents/tasks.py` | `celery_lock:{task_name}` | Coordination |
-| Uptime Status | `common/tasks.py` | `uptime:last_status` | Operational |
-| Rate Limiting | `common/middleware.py` | `rl:{hash}` via Django cache | Protection |
-| Analytics Cache | `analytics/views.py` | `analytics:{key}` | Performance |
-| Health Check Ping | `common/health.py` | `_health_ping` | Diagnostic |
+| Use Case | Location | Behavior When Redis Is Down |
+|----------|----------|-----------------------------|
+| JTI blacklist read | `backend/apps/accounts/tokens.py` | Fail closed after retry |
+| JTI blacklist write | `backend/apps/accounts/tokens.py` | Log critical, continue |
+| Token rotation lock | `backend/apps/accounts/tokens.py` | Fail open |
+| Rate limiting | `backend/apps/common/middleware.py` | Fail open |
+| Celery broker | `backend/config/settings/base.py` | Delivery delayed until broker recovers |
+| Uptime state | `backend/apps/common/tasks.py` | Operational signal degraded |
+| Health ping | `backend/apps/common/health.py` | Readiness shows `redis: degraded` |
 
-## Behavior When Redis Is Down
+## Monitoring Consequences
 
-### Tier 1: Security-Critical — Fail Closed
+- `/health/ready/` does not alert on Redis-only outage because it remains `200`
+- `/health/redis/` exists for Redis-only paging without changing readiness semantics
+- do not treat Redis-only degradation as a reason to recycle healthy web pods
 
-| Use Case | Behavior | Impact | Correct? |
-|----------|----------|--------|----------|
-| **JTI Blacklist read** (`is_jti_blacklisted`) | Returns `True` (blacklisted) after 1 retry | Valid tokens rejected → user must re-login | ✅ Yes — secure default |
-| **JTI Blacklist write** (`blacklist_jti`) | Logs CRITICAL, does NOT raise | Old token remains valid until expiry | ⚠️ Acceptable — 30min window max |
+## Operator Checklist
 
-### Tier 2: Coordination — Fail Open
+1. Confirm Postgres state first. If Postgres is healthy, app traffic can still
+   be partially functional during Redis degradation.
+2. Check auth symptoms:
+   - more forced re-logins can indicate blacklist read failures
+   - duplicate refresh rotations can indicate rotation-lock degradation
+3. Check background delivery backlog if the Celery broker path is impaired.
 
-| Use Case | Behavior | Impact | Correct? |
-|----------|----------|--------|----------|
-| **Token Rotation Lock** | `cache.add()` fails → lock not acquired → rotation proceeds | Risk of duplicate token pair — not a security issue | ✅ Yes |
-| **Celery Task Locks** | `cache.add()` fails → lock not acquired → task runs | Risk of duplicate task execution — idempotent tasks handle this | ✅ Yes |
+## Incident Runbook
 
-### Tier 3: Infrastructure — Service Degraded
+Use [docs/runbooks/redis-incident-response.md](/home/cosmas/Downloads/mihasv3/docs/runbooks/redis-incident-response.md) during Redis outages or cache/broker degradation.
 
-| Use Case | Behavior | Impact | Correct? |
-|----------|----------|--------|----------|
-| **Celery Broker** | `.delay()` raises `ConnectionError` | Background tasks don't dispatch — outbox rows (EmailQueue) still persist | ⚠️ Email/notification delivery delayed until broker recovers |
-| **Rate Limiting** | Should fail open (allow request) | If fails closed: all requests blocked | Verify middleware handles this |
+## Maintenance Rule
 
-### Tier 4: Performance — Graceful Degradation
+If code behavior changes in:
+- `backend/apps/accounts/tokens.py`
+- `backend/apps/common/health.py`
+- `backend/apps/common/middleware.py`
+- `backend/DEPLOY.md`
 
-| Use Case | Behavior | Impact | Correct? |
-|----------|----------|--------|----------|
-| **Analytics Cache** | Cache miss → query DB directly | Slower but correct | ✅ Yes |
-| **Uptime Status** | `cache.get()` returns None → treated as first check | May send duplicate alert on recovery | ✅ Acceptable |
-| **Health Check** | `_check_redis()` returns False → readiness reports `redis: degraded` | Monitoring alerted | ✅ Yes |
-
-## Rate Limiting Fail-Open Verification
-
-The `RateLimitMiddleware` in `common/middleware.py` uses Django cache (`cache.add`, `cache.get`). If Redis is down, these calls raise `ConnectionError`. The middleware should catch this and allow the request through:
-
-```python
-try:
-    # rate limit check
-except Exception:
-    # Redis down — fail open, allow request
-    return self.get_response(request)
-```
-
-## Recommendations
-
-1. **JTI blacklist**: Current fail-closed behavior is correct. No change needed.
-2. **Rate limiting**: Ensure fail-open. Wrap Redis calls in try/except.
-3. **Celery broker**: The outbox pattern (EmailQueue) provides durability for email. Other tasks (payment polling, intake management) will retry on next Beat cycle.
-4. **Monitor**: Alert on `redis: degraded` in health check. Don't page — it's degraded, not down.
+then this document and ADR-007 must be updated in the same change.

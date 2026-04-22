@@ -35,6 +35,8 @@ EXPECTED_TABLE_MAPPING: dict[str, set[str]] = {
         "application_status_history",
         "application_drafts",
         "application_interviews",
+        "application_conditions",
+        "application_amendments",
     },
     "documents": {
         "application_documents",
@@ -42,6 +44,7 @@ EXPECTED_TABLE_MAPPING: dict[str, set[str]] = {
         "payments",
         "program_fees",
         "webhook_event_logs",
+        "fee_waivers",
     },
     "catalog": {
         "institutions",
@@ -50,6 +53,7 @@ EXPECTED_TABLE_MAPPING: dict[str, set[str]] = {
         "program_intakes",
         "subjects",
         "course_requirements",
+        "academic_calendar_events",
     },
     "common": {
         "audit_logs",
@@ -58,9 +62,10 @@ EXPECTED_TABLE_MAPPING: dict[str, set[str]] = {
         "notifications",
         "user_notification_preferences",
         "email_queue",
+        "outbox_events",
         "error_logs",
-        "sse_events",
         "migration_history",
+        "communication_templates",
     },
 }
 

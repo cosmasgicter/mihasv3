@@ -459,6 +459,45 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ---------------------------------------------------------------------------
+# Logging — structured JSON for production log aggregation
+# ---------------------------------------------------------------------------
+
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {
+        "request_context": {
+            "()": "apps.common.logging.RequestContextFilter",
+        },
+    },
+    "formatters": {
+        "json": {
+            "()": "apps.common.logging.JsonLogFormatter",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "json",
+            "filters": ["request_context"],
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": LOG_LEVEL,
+    },
+    "loggers": {
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+    },
+}
+
+# ---------------------------------------------------------------------------
 # Lenco payment gateway
 # ---------------------------------------------------------------------------
 
@@ -474,6 +513,7 @@ PAYMENT_DEV_BYPASS = os.environ.get("PAYMENT_DEV_BYPASS", "").lower() in (
     "true",
     "yes",
 )
+AUDIT_LOG_ENCRYPTION_KEY = os.environ.get("AUDIT_LOG_ENCRYPTION_KEY", "").strip()
 
 # ---------------------------------------------------------------------------
 # Required environment variables — validated at startup (task 1.3)
@@ -524,7 +564,7 @@ if REQUIRED_ENV_VARS and not _is_testing:
 # Feature gates for scaffold domains
 # ---------------------------------------------------------------------------
 
-ENABLE_JOBS_OPS_ROUTES = os.environ.get('ENABLE_JOBS_OPS_ROUTES', 'true').lower() in ('1', 'true', 'yes')
+ENABLE_JOBS_OPS_ROUTES = os.environ.get('ENABLE_JOBS_OPS_ROUTES', 'false').lower() in ('1', 'true', 'yes')
 
 # ---------------------------------------------------------------------------
 

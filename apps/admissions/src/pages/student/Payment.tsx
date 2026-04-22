@@ -289,19 +289,14 @@ export default function PaymentPage() {
       const result: Record<string, PaymentRecord[]> = {}
       if (applicationIds.length === 0) return result
       try {
-        const settled = await Promise.allSettled(
-          applicationIds.map(async (appId) => {
-            const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>(
-              `/payments/?application_id=${encodeURIComponent(appId)}`
-            )
-            return [appId, normalizePaymentRecords(data)] as const
-          })
-        )
-        settled.forEach((s, i) => {
-          const id = applicationIds[i]
-          if (!id) return
-          result[id] = s.status === 'fulfilled' ? s.value[1] : []
-          if (s.status === 'rejected') logApiError('payment-page', `/payments/?application_id=${id}`, s.reason)
+        // Single request to fetch all user payments, then group by application_id
+        const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>('/payments/')
+        const allRecords = normalizePaymentRecords(data)
+        applicationIds.forEach((id) => { result[id] = [] })
+        allRecords.forEach((r) => {
+          const appId = (r as any).application_id
+          if (appId && result[appId]) result[appId].push(r)
+          else if (appId) result[appId] = [r]
         })
       } catch (err) {
         logApiError('payment-page', '/payments/', err)

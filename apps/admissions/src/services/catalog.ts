@@ -44,6 +44,7 @@ type RawSubject = {
   code?: string
   category?: string
   is_core?: boolean
+  curriculum_type?: string
 }
 
 export interface Institution {
@@ -87,6 +88,7 @@ export interface Subject {
   name: string
   code?: string
   category?: string
+  curriculum_type?: string
   is_active?: boolean
 }
 
@@ -272,8 +274,8 @@ function normalizeSubject(record: RawSubject | Subject | null | undefined): Subj
     if (!record.id) return null
   }
 
-  if ('is_active' in record) {
-    return record
+  if ('is_active' in record && !('is_core' in record)) {
+    return record as Subject
   }
 
   return {
@@ -281,6 +283,7 @@ function normalizeSubject(record: RawSubject | Subject | null | undefined): Subj
     name: record.name || '',
     code: record.code,
     category: record.category,
+    curriculum_type: 'curriculum_type' in record ? record.curriculum_type : undefined,
     is_active:
       'is_core' in record
         ? record.is_core ?? true

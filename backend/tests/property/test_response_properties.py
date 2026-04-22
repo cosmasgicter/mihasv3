@@ -209,12 +209,12 @@ class TestPaginationMetadata(SimpleTestCase):
         paginator = StandardPagination()
         self.assertEqual(paginator.page_size, 20)
 
-    def test_max_page_size_is_100(self):
-        """The maximum allowed page size should be 100."""
+    def test_max_page_size_is_500(self):
+        """The maximum allowed page size should be 500."""
         from apps.common.pagination import StandardPagination
 
         paginator = StandardPagination()
-        self.assertEqual(paginator.max_page_size, 100)
+        self.assertEqual(paginator.max_page_size, 500)
 
 
 class TestSignedUrlExpiry(SimpleTestCase):

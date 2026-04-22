@@ -281,7 +281,7 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
             ("/api/v1/email/", "30/10m"),
             ("/api/v1/integrations/", "20/10m"),
             ("/api/v1/payments/webhook/", "30/10m"),
-            ("/api/v1/payments/", "20/10m"),
+            ("/api/v1/payments/", "60/10m"),
             ("/api/v1/", "120/10m"),
         ]
         self.assertEqual(RateLimitMiddleware.SCOPE_LIMITS, expected_scopes)

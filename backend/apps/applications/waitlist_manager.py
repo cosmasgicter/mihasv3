@@ -236,10 +236,9 @@ class WaitlistManager:
 def _send_promotion_notification(application: Application) -> None:
     """Create a Notification and dispatch an email for waitlist promotion."""
     try:
-        from apps.common.models import EmailQueue, Notification
-        from apps.common.tasks import dispatch_email
+        from apps.common.outbox import create_notification, queue_email
 
-        Notification.objects.create(
+        create_notification(
             user_id=application.user_id,
             title="You Have Been Accepted!",
             message=(
@@ -263,13 +262,11 @@ def _send_promotion_notification(application: Application) -> None:
             f"<p>Best regards,<br>MIHAS Admissions</p>"
         )
 
-        email_record = EmailQueue.objects.create(
+        queue_email(
             recipient_email=application.email,
             subject=f"Great News — You Have Been Accepted! ({application.program})",
             body=email_body,
-            status="pending",
         )
-        dispatch_email(str(email_record.id))
     except Exception:
         logger.exception(
             "Failed to send promotion notification for application %s",

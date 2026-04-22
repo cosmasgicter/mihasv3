@@ -21,14 +21,17 @@ export interface AuditLogEntry {
   entityType: string
   entityId: string
   changes: Record<string, unknown> | null
-  ipAddress: string | null
-  userAgent: string | null
+  ipHash: string | null
+  userAgentHash: string | null
+  ipAddress?: string | null
+  userAgent?: string | null
   createdAt: string
   targetTable?: string
   targetId?: string
   targetLabel?: string
   requestId?: string
   requestIp?: string
+  requestUserAgent?: string
   metadata?: Record<string, unknown>
 }
 
@@ -76,6 +79,10 @@ interface BackendAuditEntry {
   entity_type: string
   entity_id: string
   changes: Record<string, unknown> | null
+  ip_hash?: string | null
+  user_agent_hash?: string | null
+  request_ip?: string | null
+  request_user_agent?: string | null
   ip_address?: string | null
   user_agent?: string | null
   created_at: string
@@ -249,12 +256,15 @@ function mapAuditEntry(log: BackendAuditEntry): AuditLogEntry {
     entityType: log.entity_type,
     entityId: log.entity_id,
     changes: log.changes,
-    ipAddress: log.ip_address ?? null,
-    userAgent: log.user_agent ?? null,
+    ipHash: log.ip_hash ?? log.ip_address ?? null,
+    userAgentHash: log.user_agent_hash ?? log.user_agent ?? null,
+    ipAddress: log.ip_hash ?? log.ip_address ?? null,
+    userAgent: log.user_agent_hash ?? log.user_agent ?? null,
     createdAt: log.created_at,
     targetTable: log.entity_type,
     targetId: log.entity_id,
-    requestIp: log.ip_address ?? undefined,
+    requestIp: log.request_ip ?? undefined,
+    requestUserAgent: log.request_user_agent ?? undefined,
     metadata: log.changes ?? undefined,
   }
 }

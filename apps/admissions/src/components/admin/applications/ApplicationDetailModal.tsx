@@ -7,7 +7,7 @@ import { apiClient } from '@/services/client'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { Skeleton } from '@/components/ui'
 import type { ApplicationInterview } from '@/types/database'
-import { calculateBestFivePoints, sanitizeGradeValue } from '@/utils/grades'
+import { calculateBestFivePoints, sanitizeGradeValue } from '@/lib/grades'
 import { SendNotificationModal } from './SendNotificationModal'
 import AdminCommunicationsPanel from '@/components/admin/AdminCommunicationsPanel'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
@@ -892,26 +892,26 @@ export function ApplicationDetailModal({
  }
 
  return (
- <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-0 sm:p-4 z-[60] overflow-hidden">
+ <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-hidden bg-slate-950/55 p-0 backdrop-blur-md sm:p-4">
  <div
  ref={focusTrapRef as React.RefObject<HTMLDivElement>}
  role="dialog"
  aria-modal="true"
  aria-label={`Application details for ${application.full_name}`}
- className="bg-card w-full h-full sm:rounded-2xl sm:max-w-6xl sm:w-full sm:max-h-[95vh] overflow-hidden flex flex-col max-w-full animate-in fade-in zoom-in-95 duration-200"
+ className="flex h-full max-w-full flex-col overflow-hidden bg-white/96 shadow-[0_38px_120px_-52px_rgba(15,23,42,0.55)] animate-in fade-in zoom-in-95 duration-200 sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-[2rem]"
  >
  {/* Header */}
- <div className="flex-shrink-0 p-4 sm:p-6 border-b border-border bg-gradient-to-r from-blue-50 to-indigo-50">
+ <div className="flex-shrink-0 border-b border-slate-200/80 bg-[linear-gradient(135deg,rgba(239,246,255,0.95),rgba(255,255,255,0.88),rgba(224,242,254,0.82))] p-4 sm:p-6">
  <div className="flex items-center justify-between gap-2">
  <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
- <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+ <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-r from-slate-950 via-primary to-cyan-500 shadow-[0_18px_30px_-18px_rgba(37,99,235,0.72)] sm:h-12 sm:w-12">
  <User className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
  </div>
  <div className="min-w-0 flex-1">
  <h2 className="text-base sm:text-xl font-bold text-foreground truncate" title={application.full_name}>
  {application.full_name}
  </h2>
- <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-foreground flex-wrap">
+ <div className="flex flex-wrap items-center gap-2 text-xs text-foreground sm:gap-3 sm:text-sm">
  <span className="font-mono truncate">#{application.application_number}</span>
  <span className="text-foreground hidden sm:inline">•</span>
  <div className="flex items-center gap-1">
@@ -925,7 +925,7 @@ export function ApplicationDetailModal({
  variant="ghost"
  size="sm"
  onClick={onClose}
- className="rounded-full hover:bg-muted h-9 w-9 p-0 flex-shrink-0"
+ className="h-9 w-9 flex-shrink-0 rounded-full border border-slate-200 bg-white/90 p-0 hover:bg-slate-50"
  aria-label="Close application details"
  >
  <XCircle className="h-5 w-5" />
@@ -934,7 +934,7 @@ export function ApplicationDetailModal({
  </div>
 
  {/* Tabs */}
- <div className="flex-shrink-0 border-b border-border bg-card overflow-x-auto">
+ <div className="flex-shrink-0 overflow-x-auto border-b border-slate-200/80 bg-white/90">
  <div className="flex px-2 sm:px-6 min-w-max">
  {tabs.map((tab) => {
  const Icon = tab.icon
@@ -944,10 +944,10 @@ export function ApplicationDetailModal({
  onClick={() => setActiveTab(tab.id)}
  aria-label={tab.label}
  aria-selected={activeTab === tab.id}
- className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+ className={`flex items-center gap-1 whitespace-nowrap rounded-t-2xl px-3 py-3 text-xs font-medium transition-all sm:gap-2 sm:px-4 sm:text-sm ${
  activeTab === tab.id
- ? 'border-primary text-primary'
- : 'border-transparent text-foreground hover:text-foreground hover:border-input'
+ ? 'bg-slate-950 text-white shadow-[0_16px_28px_-20px_rgba(15,23,42,0.7)]'
+ : 'text-foreground hover:bg-slate-50 hover:text-slate-950'
  }`}
  >
  <Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
@@ -978,8 +978,8 @@ export function ApplicationDetailModal({
    intake_enrollment={applicationData?.application?.intake_enrollment ?? application.intake_enrollment}
  />
  {/* Quick Stats */}
- <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
- <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl">
+ <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+ <div className="rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-blue-100 p-4 shadow-sm">
  <div className="flex items-center gap-3">
  {getStatusIcon(application.status)}
  <div>
@@ -991,7 +991,7 @@ export function ApplicationDetailModal({
  </div>
  </div>
  
- <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-xl">
+ <div className="rounded-2xl border border-emerald-100 bg-gradient-to-r from-green-50 to-green-100 p-4 shadow-sm">
  <div className="flex items-center gap-3">
  {getPaymentIcon(application.payment_status || 'not_paid')}
  <div>
@@ -1003,7 +1003,7 @@ export function ApplicationDetailModal({
  </div>
  </div>
  
- <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-xl">
+ <div className="rounded-2xl border border-purple-100 bg-gradient-to-r from-purple-50 to-purple-100 p-4 shadow-sm">
  <div className="flex items-center gap-3">
  <Calendar className="h-5 w-5 text-secondary" />
  <div>
@@ -1072,7 +1072,7 @@ export function ApplicationDetailModal({
 
  {/* Fee waiver dialog */}
  {feeWaiverOpen && (
- <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+ <div className="rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm space-y-3">
    <h4 className="text-sm font-semibold text-foreground">Apply Fee Waiver</h4>
    <div className="grid grid-cols-2 gap-3">
      <div>

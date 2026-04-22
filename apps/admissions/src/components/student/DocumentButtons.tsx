@@ -1,8 +1,8 @@
+import { useState } from 'react'
 import { Award, ChevronDown, Download, FileCheck, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useDocumentGeneration } from '@/hooks/useDocumentGeneration'
 import { useToastStore } from '@/hooks/useToast'
-import { logger } from '@/lib/logger'
 import { ApplicationSlipActions } from '@/components/student/ApplicationSlipActions'
 import { isPaymentVerified } from '@/lib/paymentStatus'
 
@@ -14,17 +14,21 @@ interface DocumentButtonsProps {
 }
 
 export function DocumentButtons({ applicationId, applicationNumber, status, paymentStatus }: DocumentButtonsProps) {
-  const { generateDocument, loading } = useDocumentGeneration()
+  const { generateDocument } = useDocumentGeneration()
   const { addToast } = useToastStore()
+  const [loadingType, setLoadingType] = useState<string | null>(null)
 
   const handleDownload = async (type: 'acceptance' | 'receipt' | 'conditional') => {
-    logger.debug('[DocumentButtons] handleDownload called for type:', type)
-    const success = await generateDocument(type, applicationId)
-    logger.debug('[DocumentButtons] generateDocument returned:', success)
-    if (success) {
-      addToast('success', 'Document downloaded successfully')
-    } else {
-      addToast('error', 'Failed to generate document')
+    setLoadingType(type)
+    try {
+      const success = await generateDocument(type, applicationId)
+      if (success) {
+        addToast('success', 'Document downloaded successfully')
+      } else {
+        addToast('error', 'Failed to generate document. Please try again.')
+      }
+    } finally {
+      setLoadingType(null)
     }
   }
 
@@ -37,58 +41,51 @@ export function DocumentButtons({ applicationId, applicationNumber, status, paym
     return null
   }
 
-  const actions = (
-    <>
-      {hasSlip && (
-        <ApplicationSlipActions
-          applicationId={applicationId}
-          applicationNumber={applicationNumber}
-        />
-      )}
+  const acceptanceBtn = hasAcceptanceLetter && (
+    <Button
+      onClick={() => handleDownload('acceptance')}
+      disabled={loadingType !== null}
+      loading={loadingType === 'acceptance'}
+      variant="outline"
+      size="sm"
+      className="min-h-11 w-full justify-center gap-2 border-green-500 text-green-700 hover:bg-green-50 sm:w-auto"
+    >
+      {loadingType !== 'acceptance' && <Award className="w-4 h-4" />}
+      {loadingType === 'acceptance' ? 'Generating…' : 'Acceptance Letter'}
+    </Button>
+  )
 
-      {hasAcceptanceLetter && (
-        <Button
-          onClick={() => handleDownload('acceptance')}
-          disabled={loading}
-          variant="outline"
-          size="sm"
-          className="min-h-11 w-full justify-center gap-2 border-green-500 text-green-700 hover:bg-green-50 sm:w-auto"
-        >
-          <Award className="w-4 h-4" />
-          Acceptance Letter
-        </Button>
-      )}
+  const conditionalBtn = hasConditionalLetter && (
+    <Button
+      onClick={() => handleDownload('conditional')}
+      disabled={loadingType !== null}
+      loading={loadingType === 'conditional'}
+      variant="outline"
+      size="sm"
+      className="min-h-11 w-full justify-center gap-2 border-amber-500 text-amber-700 hover:bg-amber-50 sm:w-auto"
+    >
+      {loadingType !== 'conditional' && <FileCheck className="w-4 h-4" />}
+      {loadingType === 'conditional' ? 'Generating…' : 'Conditional Acceptance'}
+    </Button>
+  )
 
-      {hasConditionalLetter && (
-        <Button
-          onClick={() => handleDownload('conditional')}
-          disabled={loading}
-          variant="outline"
-          size="sm"
-          className="min-h-11 w-full justify-center gap-2 border-amber-500 text-amber-700 hover:bg-amber-50 sm:w-auto"
-        >
-          <FileCheck className="w-4 h-4" />
-          Conditional Acceptance
-        </Button>
-      )}
-
-      {hasReceipt && (
-        <Button
-          onClick={() => handleDownload('receipt')}
-          disabled={loading}
-          variant="outline"
-          size="sm"
-          className="min-h-11 w-full justify-center gap-2 sm:w-auto"
-        >
-          <Download className="w-4 h-4" />
-          Payment Receipt
-        </Button>
-      )}
-    </>
+  const receiptBtn = hasReceipt && (
+    <Button
+      onClick={() => handleDownload('receipt')}
+      disabled={loadingType !== null}
+      loading={loadingType === 'receipt'}
+      variant="outline"
+      size="sm"
+      className="min-h-11 w-full justify-center gap-2 sm:w-auto"
+    >
+      {loadingType !== 'receipt' && <Download className="w-4 h-4" />}
+      {loadingType === 'receipt' ? 'Generating…' : 'Payment Receipt'}
+    </Button>
   )
 
   return (
     <>
+      {/* Mobile: collapsible */}
       <details className="group w-full rounded-xl border border-border bg-muted/30 sm:hidden">
         <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 text-sm font-semibold text-foreground marker:hidden">
           <span className="inline-flex items-center gap-2">
@@ -98,53 +95,19 @@ export function DocumentButtons({ applicationId, applicationNumber, status, paym
           <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden="true" />
         </summary>
         <div className="space-y-2 border-t border-border px-3 py-3">
-          {hasSlip && (
-            <ApplicationSlipActions
-              applicationId={applicationId}
-              applicationNumber={applicationNumber}
-              compact
-            />
-          )}
-          {hasAcceptanceLetter && (
-            <Button
-              onClick={() => handleDownload('acceptance')}
-              disabled={loading}
-              variant="outline"
-              size="sm"
-              className="min-h-11 w-full justify-center gap-2 border-green-500 text-green-700 hover:bg-green-50"
-            >
-              <Award className="w-4 h-4" />
-              Acceptance Letter
-            </Button>
-          )}
-          {hasConditionalLetter && (
-            <Button
-              onClick={() => handleDownload('conditional')}
-              disabled={loading}
-              variant="outline"
-              size="sm"
-              className="min-h-11 w-full justify-center gap-2 border-amber-500 text-amber-700 hover:bg-amber-50"
-            >
-              <FileCheck className="w-4 h-4" />
-              Conditional Acceptance
-            </Button>
-          )}
-          {hasReceipt && (
-            <Button
-              onClick={() => handleDownload('receipt')}
-              disabled={loading}
-              variant="outline"
-              size="sm"
-              className="min-h-11 w-full justify-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Payment Receipt
-            </Button>
-          )}
+          {hasSlip && <ApplicationSlipActions applicationId={applicationId} applicationNumber={applicationNumber} compact />}
+          {acceptanceBtn}
+          {conditionalBtn}
+          {receiptBtn}
         </div>
       </details>
+
+      {/* Desktop: inline */}
       <div className="hidden w-full flex-col gap-2 sm:flex sm:flex-row sm:flex-wrap sm:items-center">
-        {actions}
+        {hasSlip && <ApplicationSlipActions applicationId={applicationId} applicationNumber={applicationNumber} />}
+        {acceptanceBtn}
+        {conditionalBtn}
+        {receiptBtn}
       </div>
     </>
   )

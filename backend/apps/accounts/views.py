@@ -770,8 +770,7 @@ class PasswordResetRequestView(APIView):
 
         # Enqueue password reset email via Celery
         try:
-            from apps.common.models import EmailQueue
-            from apps.common.tasks import dispatch_email
+            from apps.common.outbox import queue_email
 
             reset_link = (
                 f"https://apply.mihas.edu.zm/auth/reset-password?token={raw_token}"
@@ -784,14 +783,11 @@ class PasswordResetRequestView(APIView):
                 "The link will expire in 1 hour.</p>"
             )
 
-            email_record = EmailQueue.objects.create(
+            email_record = queue_email(
                 recipient_email=user.email,
                 subject=subject,
                 body=body,
-                status="pending",
             )
-
-            dispatch_email(str(email_record.id))
 
             logger.info(
                 "Password reset email queued for user_id=%s (email_queue_id=%s)",

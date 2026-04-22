@@ -195,6 +195,17 @@ export default function SignUpPage() {
               {getErrorMessage(signUpMutation.error as Error)}
             </Banner>
           ) : null}
+
+          <div className="glass-panel p-5">
+            <div className="flex flex-wrap gap-2">
+              <span className="feature-chip">Create once</span>
+              <span className="feature-chip">Reuse profile later</span>
+              <span className="feature-chip">Move faster in the wizard</span>
+            </div>
+            <p className="mt-4 text-sm leading-6 text-slate-600">
+              This account is your secure starting point. Once it exists, the application flow becomes faster because core profile details can carry forward into your admissions journey.
+            </p>
+          </div>
           <fieldset className="space-y-4 rounded-2xl border border-border/30 bg-muted/30 p-5 sm:p-6">
             <legend className="px-2 text-base font-semibold text-foreground">Portal access</legend>
 

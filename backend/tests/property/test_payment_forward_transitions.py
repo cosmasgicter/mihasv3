@@ -120,7 +120,7 @@ class TestPaymentForwardOnlyTransitions(SimpleTestCase):
         and pending→failed. No other source status has transitions."""
         self.assertIn("pending", _ALLOWED_TRANSITIONS)
         self.assertEqual(
-            _ALLOWED_TRANSITIONS["pending"], {"successful", "failed"}
+            _ALLOWED_TRANSITIONS["pending"], {"successful", "failed", "expired"}
         )
         # No transitions from terminal states
         self.assertNotIn("successful", _ALLOWED_TRANSITIONS)

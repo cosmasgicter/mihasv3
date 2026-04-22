@@ -65,6 +65,7 @@ TABLES = [
     "notifications",
     "user_notification_preferences",
     "email_queue",
+    "outbox_events",
     "device_sessions",
     "csrf_tokens",
     "password_reset_tokens",
@@ -77,7 +78,6 @@ TABLES = [
     "program_fees",
     "webhook_event_logs",
     "error_logs",
-    "sse_events",
 ]
 
 

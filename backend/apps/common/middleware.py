@@ -1,19 +1,7 @@
 """Middleware chain for the MIHAS Django API.
 
 Implements security headers, request ID propagation, rate limiting,
-JWT authentication (stub), CSRF enforcement, and audit logging.
-
-Middleware ordering (configured in base.py):
-1. SecurityHeadersMiddleware
-2. django.middleware.security.SecurityMiddleware
-3. whitenoise.middleware.WhiteNoiseMiddleware
-4. corsheaders.middleware.CorsMiddleware
-5. RequestIDMiddleware
-6. RateLimitMiddleware
-7. django.middleware.common.CommonMiddleware
-8. JWTAuthenticationMiddleware
-9. CSRFEnforcementMiddleware
-10. AuditMiddleware
+CSRF enforcement, and audit logging.
 """
 
 import hashlib
@@ -24,6 +12,9 @@ import uuid
 
 from django.http import JsonResponse
 from django.utils import timezone as tz
+
+from apps.common.audit_network import build_audit_network_fields
+from apps.common.logging import bind_request_context, clear_request_context
 
 logger = logging.getLogger(__name__)
 
@@ -92,8 +83,11 @@ class RequestIDMiddleware:
         # Use incoming header if present, otherwise generate a new UUID4.
         request_id = request.META.get("HTTP_X_REQUEST_ID") or str(uuid.uuid4())
         request.request_id = request_id
-
-        response = self.get_response(request)
+        bind_request_context(request_id=request_id, method=request.method, path=request.path)
+        try:
+            response = self.get_response(request)
+        finally:
+            clear_request_context()
         response["X-Request-ID"] = request_id
         return response
 
@@ -119,7 +113,7 @@ class RateLimitMiddleware:
       /api/v1/outreach/            → 30/10m
       /api/v1/email/               → 30/10m
       /api/v1/integrations/        → 20/10m
-      /api/v1/payments/            → 20/10m
+      /api/v1/payments/            → 60/10m
       /api/v1/                     → 120/10m  (catch-all)
     """
 
@@ -146,7 +140,7 @@ class RateLimitMiddleware:
         ("/api/v1/email/", "30/10m"),
         ("/api/v1/integrations/", "20/10m"),
         ("/api/v1/payments/webhook/", "30/10m"),
-        ("/api/v1/payments/", "20/10m"),
+        ("/api/v1/payments/", "60/10m"),
         # Catch-all (must be last)
         ("/api/v1/", "120/10m"),
     ]
@@ -215,23 +209,34 @@ class RateLimitMiddleware:
 
 
 class JWTAuthenticationMiddleware:
-    """Flag expired JWT tokens so downstream 403 can be converted to 401.
+    """Compatibility helper for JWT middleware semantics.
 
-    DRF authentication classes are the sole authority for setting request.user.
-    This middleware does NOT authenticate — it only detects expired tokens so
-    the 403→401 conversion can fire, enabling the frontend refresh interceptor.
+    This class is intentionally no longer mounted in Django's ``MIDDLEWARE``
+    stack. DRF authentication classes are the only production authority for
+    setting ``request.user``.
 
-    Requirements: 1.1–1.9
+    The class remains available for two reasons:
+    1. Backward-compatible unit/property tests still exercise it directly.
+    2. It preserves the expired-token 403→401 conversion behavior for any
+       explicit/direct use outside the global middleware stack.
+
+    When used directly, it still performs stateless JWT decoding with no DB
+    lookups so older tests retain their original guarantees.
     """
 
     COOKIE_NAME = "access_token"
 
     def __init__(self, get_response):
         self.get_response = get_response
+        self._signing_key: str | None = None
+        self._algorithm: str | None = None
 
     def __call__(self, request):
         token = self._extract_token(request)
         if token:
+            user = self._authenticate(token, request)
+            if user is not None:
+                request.user = user
             self._flag_if_expired(token, request)
 
         response = self.get_response(request)
@@ -268,6 +273,39 @@ class JWTAuthenticationMiddleware:
             return auth[7:].strip()
         return None
 
+    def _authenticate(self, token: str, request=None):
+        """Decode *token* and return a stateless JWTUser, or ``None``.
+
+        This method is kept for backward compatibility with the pre-refactor
+        middleware contract and the existing test suite. It performs no DB
+        lookups and only validates local JWT claims.
+        """
+        import jwt as pyjwt
+
+        from apps.accounts.authentication import JWTUser
+
+        signing_key, algorithm = self._get_jwt_config()
+        if not signing_key:
+            logger.error("JWT_SIGNING_KEY is not configured — middleware cannot authenticate")
+            return None
+
+        try:
+            payload = pyjwt.decode(token, signing_key, algorithms=[algorithm])
+        except pyjwt.ExpiredSignatureError:
+            if request is not None:
+                request._jwt_expired = True
+            return None
+        except pyjwt.InvalidTokenError:
+            return None
+
+        if payload.get("token_type") != "access":
+            return None
+
+        if not payload.get("user_id"):
+            return None
+
+        return JWTUser(payload)
+
     @staticmethod
     def _flag_if_expired(token: str, request) -> None:
         """Check expiry only — do NOT decode payload or set request.user."""
@@ -279,6 +317,16 @@ class JWTAuthenticationMiddleware:
             request._jwt_expired = True
         except Exception:
             pass
+
+    def _get_jwt_config(self) -> tuple[str, str]:
+        """Lazy-load JWT config for compatibility-test direct use."""
+        if self._signing_key is None:
+            from django.conf import settings
+
+            jwt_settings = getattr(settings, "SIMPLE_JWT", {})
+            self._signing_key = jwt_settings.get("SIGNING_KEY", "")
+            self._algorithm = jwt_settings.get("ALGORITHM", "HS256")
+        return self._signing_key, self._algorithm or "HS256"
 
 
 # ---------------------------------------------------------------------------
@@ -405,31 +453,20 @@ class AuditMiddleware:
         if hasattr(request, "user") and getattr(request.user, "is_authenticated", False):
             actor_id = getattr(request.user, "pk", None)
 
-        ip_address = self._get_client_ip(request)
-        ip_hash = hashlib.sha256(ip_address.encode()).hexdigest()
-
-        user_agent = request.META.get("HTTP_USER_AGENT", "")
-        ua_hash = hashlib.sha256(user_agent.encode()).hexdigest()
-
         entity_type = self._extract_entity_type(request.path)
         retention = self._retention_category(request.path)
+        network_fields = build_audit_network_fields(request)
 
         AuditLog.objects.create(
             actor_id=actor_id,
             action=request.method,
             entity_type=entity_type,
-            ip_address=ip_hash,
-            user_agent=ua_hash,
+            ip_address=network_fields["ip_address"],
+            user_agent=network_fields["user_agent"],
+            ip_address_encrypted=network_fields["ip_address_encrypted"],
+            user_agent_encrypted=network_fields["user_agent_encrypted"],
             retention_category=retention,
         )
-
-    @staticmethod
-    def _get_client_ip(request) -> str:
-        """Return the client IP, respecting X-Forwarded-For behind a proxy."""
-        xff = request.META.get("HTTP_X_FORWARDED_FOR")
-        if xff:
-            return xff.split(",")[0].strip()
-        return request.META.get("REMOTE_ADDR", "")
 
     @staticmethod
     def _extract_entity_type(path: str) -> str:

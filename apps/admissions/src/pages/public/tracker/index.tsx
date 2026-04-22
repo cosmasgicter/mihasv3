@@ -300,13 +300,39 @@ export default function PublicApplicationTracker() {
 
       <div className="py-10 sm:py-16 lg:py-20">
         <Container size="lg" className="space-y-8 sm:space-y-10">
-          {/* Page Header */}
-          <PageHeader
-            variant="gradient"
-            icon={<Search className="h-6 w-6" aria-hidden="true" />}
-            title="Track Your Application"
-            description="Check your application status instantly — no login required. Enter your application number or tracking code below."
-          />
+          <div className="glass-panel p-6 sm:p-8 lg:p-10">
+            <PageHeader
+              variant="gradient"
+              icon={<Search className="h-6 w-6" aria-hidden="true" />}
+              title="Track Your Application"
+              description="Check your application status instantly — no login required. Enter your application number or tracking code below."
+            />
+            <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.75fr)]">
+              <div>
+                <div className="flex flex-wrap gap-2">
+                  <span className="feature-chip">No sign-in required</span>
+                  <span className="feature-chip">Live status visibility</span>
+                  <span className="feature-chip">Slip download and sharing</span>
+                </div>
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+                  This tracker is designed for confidence. Students and sponsors can see where an application stands without navigating the full portal, while still keeping the result clear and action-oriented.
+                </p>
+              </div>
+              <div className="polished-panel p-5 sm:p-6">
+                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary/80">Best input</p>
+                <div className="mt-4 grid gap-3">
+                  <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Use</p>
+                    <p className="mt-1 text-lg font-semibold text-slate-950">Application number or tracking code</p>
+                  </div>
+                  <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Outcome</p>
+                    <p className="mt-1 text-lg font-semibold text-slate-950">Status, milestones, and application slip</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Search Section */}
           <TrackerSearchSection
@@ -322,7 +348,7 @@ export default function PublicApplicationTracker() {
           {/* Application Results - conditional rendering replaces AnimatePresence */}
           {application && (
             <div className={animateClasses.slideUp}>
-              <SectionCard className="overflow-hidden" padding="sm">
+              <SectionCard className="overflow-hidden rounded-[1.75rem] border-white/70 bg-white/92 shadow-[0_22px_60px_-34px_rgba(15,23,42,0.25)]" padding="sm">
                 <ApplicationStatusHeader
                   application={application}
                   copied={copied}

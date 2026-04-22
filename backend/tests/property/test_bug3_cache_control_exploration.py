@@ -100,8 +100,8 @@ class TestBug3CacheControlExploration:
             f"Bug condition: request.user.is_authenticated=True, "
             f"status_code={status_code}, 'Cache-Control' NOT IN response.headers"
         )
-        assert response["Cache-Control"] == "no-store, private", (
+        assert response["Cache-Control"] == "no-store, no-cache, must-revalidate, private", (
             f"Authenticated {method} {path} (status {status_code}) "
             f"has Cache-Control={response.get('Cache-Control')!r} "
-            f"but expected 'no-store, private'"
+            f"but expected 'no-store, no-cache, must-revalidate, private'"
         )

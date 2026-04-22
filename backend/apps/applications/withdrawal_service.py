@@ -134,10 +134,9 @@ class WithdrawalService:
 def _send_withdrawal_notification(application: Application, reason: str) -> None:
     """Create a Notification and dispatch a confirmation email."""
     try:
-        from apps.common.models import EmailQueue, Notification
-        from apps.common.tasks import dispatch_email
+        from apps.common.outbox import create_notification, queue_email
 
-        Notification.objects.create(
+        create_notification(
             user_id=application.user_id,
             title="Application Withdrawn",
             message=(
@@ -159,13 +158,11 @@ def _send_withdrawal_notification(application: Application, reason: str) -> None
             f"<p>Best regards,<br>MIHAS Admissions</p>"
         )
 
-        email_record = EmailQueue.objects.create(
+        queue_email(
             recipient_email=application.email,
             subject="Application Withdrawal Confirmed",
             body=email_body,
-            status="pending",
         )
-        dispatch_email(str(email_record.id))
     except Exception:
         logger.exception(
             "Failed to send withdrawal notification for application %s",

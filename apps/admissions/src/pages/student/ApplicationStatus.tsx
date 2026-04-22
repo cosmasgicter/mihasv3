@@ -419,8 +419,32 @@ export default function ApplicationStatus() {
       />
     <PageShell
       title={applicationTitle}
+      eyebrow="Application Status"
       subtitle={`${truncateValue(application.program, 40) || 'Programme pending'} • ${applicationSubtitlePrefix} ${applicationSubtitleDate}`}
       maxWidth="7xl"
+      tone="student"
+      metrics={[
+        {
+          label: 'Decision state',
+          value: formatStatusLabel(application.status),
+          helper: application.status === 'under_review' ? 'Admissions is actively reviewing this file' : 'Latest recorded application state',
+        },
+        {
+          label: 'Payment',
+          value: paymentStatusLabel,
+          helper: paymentStatusDescription,
+        },
+        {
+          label: 'Interview',
+          value: hasActiveInterview ? 'Scheduled' : 'Not active',
+          helper: hasActiveInterview ? formatInterviewDateTime(interview?.scheduled_at) : 'You will be notified if an interview is required',
+        },
+        {
+          label: 'Next move',
+          value: paymentAction ? paymentAction.label : application.status === 'approved' ? 'Confirm enrollment' : 'Monitor progress',
+          helper: needsPaymentAttention ? 'There is still an action blocking forward movement' : 'No immediate blocker detected',
+        },
+      ]}
       actions={
         <div className="flex items-center gap-2">
           {getStatusIcon(application.status)}
@@ -431,11 +455,42 @@ export default function ApplicationStatus() {
         <div className="space-y-6 sm:space-y-8">
           <Link
             to="/student/dashboard"
-            className="inline-flex items-center rounded-full border border-border/70 bg-card px-3 py-2 text-sm font-medium text-primary shadow-sm transition-colors hover:bg-primary/5"
+            className="feature-chip"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to dashboard
           </Link>
+
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.8fr)]">
+            <div className="glass-panel p-5 sm:p-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="feature-chip">Status clarity</span>
+                <span className="feature-chip">Document access</span>
+                <span className="feature-chip">Payment guidance</span>
+              </div>
+              <h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+                A single view of where your application stands and what happens next
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+                This page is structured to reduce uncertainty. The latest admissions state, payment position, interview details, and supporting documents are all surfaced here in the order students usually need them.
+              </p>
+            </div>
+            <div className="polished-panel p-5 sm:p-6">
+              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary/80">Decision snapshot</p>
+              <div className="mt-4 grid gap-3">
+                <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Status</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-950">{formatStatusLabel(application.status)}</p>
+                </div>
+                <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Priority</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-950">
+                    {needsPaymentAttention ? 'Resolve payment' : hasActiveInterview ? 'Prepare for interview' : application.status === 'approved' ? 'Confirm enrollment' : 'Watch review progress'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {hasActiveInterview && interview ? (
             <SectionCard
@@ -576,6 +631,9 @@ export default function ApplicationStatus() {
                           <p className="text-xs font-medium text-info-strong">✓ Uploaded</p>
                         </div>
                       </div>
+                      {String(application.result_slip_url).includes('supabase') ? (
+                        <span className="text-xs text-muted-foreground">File migrated — re-upload if needed</span>
+                      ) : (
                       <Button asChild variant="outline" size="sm">
                         <a
                           href={application.result_slip_url as string}
@@ -587,6 +645,7 @@ export default function ApplicationStatus() {
                           View
                         </a>
                       </Button>
+                      )}
                     </div>
                   )}
 
@@ -604,6 +663,9 @@ export default function ApplicationStatus() {
                           <p className="text-xs font-medium text-warning-strong">✓ Uploaded</p>
                         </div>
                       </div>
+                      {String(application.extra_kyc_url).includes('supabase') ? (
+                        <span className="text-xs text-muted-foreground">File migrated — re-upload if needed</span>
+                      ) : (
                       <Button asChild variant="outline" size="sm">
                         <a
                           href={application.extra_kyc_url as string}
@@ -615,6 +677,7 @@ export default function ApplicationStatus() {
                           View
                         </a>
                       </Button>
+                      )}
                     </div>
                   )}
 

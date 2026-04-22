@@ -83,8 +83,8 @@ export function exportAuditEntriesToCsv({
       'Actor',
       'Role',
       'Entity',
-      'IP Address',
-      'User Agent',
+      'Request IP / IP Hash',
+      'Request User Agent / User Agent Hash',
     ].join(','),
     ...entries.map((entry) =>
       [
@@ -94,8 +94,8 @@ export function exportAuditEntriesToCsv({
         escapeCsv(formatActor(entry)),
         escapeCsv(entry.actorRoles?.join(', ') || ''),
         escapeCsv(formatEntity(entry)),
-        escapeCsv(entry.requestIp || ''),
-        escapeCsv(entry.userAgent || ''),
+        escapeCsv(entry.requestIp || entry.ipHash || ''),
+        escapeCsv(entry.requestUserAgent || entry.userAgentHash || ''),
       ].join(',')
     ),
   ]
@@ -169,7 +169,7 @@ export async function exportAuditEntriesToPdf({
 
   ;(doc as any).autoTable({
     startY,
-    head: [['Time', 'Category', 'Action', 'Actor', 'Role', 'Entity', 'IP']],
+    head: [['Time', 'Category', 'Action', 'Actor', 'Role', 'Entity', 'IP / Hash']],
     body: entries.map((entry) => [
       entry.createdAt,
       entry.category,
@@ -177,7 +177,7 @@ export async function exportAuditEntriesToPdf({
       formatActor(entry),
       entry.actorRoles?.join(', ') || '',
       formatEntity(entry),
-      entry.requestIp || '',
+      entry.requestIp || entry.ipHash || '',
     ]),
     theme: 'grid',
     styles: {
