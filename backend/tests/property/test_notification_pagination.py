@@ -91,7 +91,7 @@ class TestNotificationListPaginated(SimpleTestCase):
         fake_notifications = _build_mock_queryset(n)
 
         factory = RequestFactory()
-        django_request = factory.get("/api/v1/notifications/")
+        django_request = factory.get("/api/v1/notifications/", {"page": "1", "pageSize": "20"})
         # Attach a mock authenticated user
         django_request.user = MagicMock()
         django_request.user.pk = uuid.uuid4()

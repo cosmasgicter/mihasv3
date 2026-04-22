@@ -7,7 +7,7 @@ Raise the MIHAS platform production readiness score from 79 to 90+ across six ar
 ## Tasks
 
 - [ ] 1. Fix failing property tests (P0 — unblock CI)
-  - [-] 1.1 Audit all 43 failing property tests and add mocks for outbox/communication DB paths
+  - [x] 1.1 Audit all 43 failing property tests and add mocks for outbox/communication DB paths
     - For each property test class extending `SimpleTestCase`, add `@unittest.mock.patch` decorators for:
       - `apps.common.outbox._record_outbox_event` → returns `None`
       - `apps.common.outbox.create_notification` → returns `MagicMock`
@@ -18,7 +18,7 @@ Raise the MIHAS platform production readiness score from 79 to 90+ across six ar
     - No production code changes — only test files in `backend/tests/property/`
     - _Requirements: 1.2, 1.3, 1.4_
 
-  - [~] 1.2 Write property test for SimpleTestCase DB isolation
+  - [-] 1.2 Write property test for SimpleTestCase DB isolation
     - **Property 1: SimpleTestCase DB Isolation**
     - Verify that all `SimpleTestCase`-based property tests have mocked outbox and communication service calls
     - **Validates: Requirements 1.2, 1.3, 1.4**
