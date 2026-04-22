@@ -9,9 +9,8 @@ from django.utils import timezone
 _DOC_MODEL = "apps.documents.models.ApplicationDocument"
 _SETTING = "apps.common.models.Setting"
 _PROFILE = "apps.accounts.models.Profile"
-_NOTIF = "apps.common.models.Notification"
-_EMAIL = "apps.common.models.EmailQueue"
-_SEND = "apps.common.tasks.send_email_task"
+_OUTBOX_NOTIFY = "apps.common.outbox.create_notification"
+_OUTBOX_EMAIL = "apps.common.outbox.queue_email"
 
 
 def _mock_doc(age_days, doc_type="NRC", app_id=None):
@@ -35,14 +34,13 @@ def _mock_admin(email="admin@test.com"):
 class TestSLABreachDetection:
     """1. SLA breach detection at threshold (Req 7.2, 7.4)."""
 
-    @patch(_SEND)
-    @patch(_EMAIL)
-    @patch(_NOTIF)
+    @patch(_OUTBOX_EMAIL)
+    @patch(_OUTBOX_NOTIFY)
     @patch(_PROFILE)
     @patch(_SETTING)
     @patch(_DOC_MODEL)
     def test_detects_overdue_documents(
-        self, mock_doc_cls, mock_setting, mock_profile, mock_notif, mock_email, mock_send
+        self, mock_doc_cls, mock_setting, mock_profile, mock_outbox_notify, mock_outbox_email
     ):
         """Documents older than SLA threshold are detected and admins notified."""
         overdue_doc = _mock_doc(age_days=7)
@@ -55,24 +53,19 @@ class TestSLABreachDetection:
         admin = _mock_admin()
         mock_profile.objects.filter.return_value = [admin]
 
-        email_record = MagicMock()
-        email_record.id = uuid.uuid4()
-        mock_email.objects.create.return_value = email_record
-
         from apps.documents.tasks import document_verification_sla_task
         document_verification_sla_task()
 
-        mock_notif.objects.create.assert_called()
-        mock_email.objects.create.assert_called()
+        mock_outbox_notify.assert_called()
+        mock_outbox_email.assert_called()
 
-    @patch(_SEND)
-    @patch(_EMAIL)
-    @patch(_NOTIF)
+    @patch(_OUTBOX_EMAIL)
+    @patch(_OUTBOX_NOTIFY)
     @patch(_PROFILE)
     @patch(_SETTING)
     @patch(_DOC_MODEL)
     def test_no_notification_when_no_overdue(
-        self, mock_doc_cls, mock_setting, mock_profile, mock_notif, mock_email, mock_send
+        self, mock_doc_cls, mock_setting, mock_profile, mock_outbox_notify, mock_outbox_email
     ):
         """No notifications when all documents are within SLA."""
         mock_setting.objects.filter.return_value.first.return_value = None
@@ -84,21 +77,20 @@ class TestSLABreachDetection:
         from apps.documents.tasks import document_verification_sla_task
         result = document_verification_sla_task()
 
-        mock_notif.objects.create.assert_not_called()
+        mock_outbox_notify.assert_not_called()
         assert result == {"notified": 0, "escalated": 0}
 
 
 class TestEscalationAt2xThreshold:
     """2. Escalation at 2x threshold (Req 7.5)."""
 
-    @patch(_SEND)
-    @patch(_EMAIL)
-    @patch(_NOTIF)
+    @patch(_OUTBOX_EMAIL)
+    @patch(_OUTBOX_NOTIFY)
     @patch(_PROFILE)
     @patch(_SETTING)
     @patch(_DOC_MODEL)
     def test_escalation_email_sent_at_2x_threshold(
-        self, mock_doc_cls, mock_setting, mock_profile, mock_notif, mock_email, mock_send
+        self, mock_doc_cls, mock_setting, mock_profile, mock_outbox_notify, mock_outbox_email
     ):
         """Documents older than 2x SLA threshold trigger escalation email."""
         escalation_doc = _mock_doc(age_days=12)
@@ -111,30 +103,26 @@ class TestEscalationAt2xThreshold:
         admin = _mock_admin()
         mock_profile.objects.filter.return_value = [admin]
 
-        email_record = MagicMock()
-        email_record.id = uuid.uuid4()
-        mock_email.objects.create.return_value = email_record
-
         from apps.documents.tasks import document_verification_sla_task
         result = document_verification_sla_task()
 
-        assert mock_email.objects.create.call_count >= 2
-        calls = mock_email.objects.create.call_args_list
-        subjects = [c.kwargs.get("subject", "") for c in calls]
+        # At least 2 queue_email calls: one for admin summary, one for escalation
+        assert mock_outbox_email.call_count >= 2
+        calls = mock_outbox_email.call_args_list
+        subjects = [c[1].get("subject", "") for c in calls]
         assert any("ESCALATION" in s for s in subjects)
 
 
 class TestConfigurableThreshold:
     """3. Configurable threshold via SystemSetting (Req 7.3)."""
 
-    @patch(_SEND)
-    @patch(_EMAIL)
-    @patch(_NOTIF)
+    @patch(_OUTBOX_EMAIL)
+    @patch(_OUTBOX_NOTIFY)
     @patch(_PROFILE)
     @patch(_SETTING)
     @patch(_DOC_MODEL)
     def test_custom_sla_threshold(
-        self, mock_doc_cls, mock_setting, mock_profile, mock_notif, mock_email, mock_send
+        self, mock_doc_cls, mock_setting, mock_profile, mock_outbox_notify, mock_outbox_email
     ):
         """Custom SLA threshold from SystemSetting is respected."""
         setting = MagicMock()
@@ -149,12 +137,8 @@ class TestConfigurableThreshold:
         admin = _mock_admin()
         mock_profile.objects.filter.return_value = [admin]
 
-        email_record = MagicMock()
-        email_record.id = uuid.uuid4()
-        mock_email.objects.create.return_value = email_record
-
         from apps.documents.tasks import document_verification_sla_task
         result = document_verification_sla_task()
 
-        mock_notif.objects.create.assert_called()
+        mock_outbox_notify.assert_called()
         assert result["notified"] == 1

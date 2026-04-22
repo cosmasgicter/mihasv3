@@ -50,6 +50,9 @@ jobs:
       - name: Django checks
         run: python manage.py check
         working-directory: backend
+      - name: Critical backend slice
+        run: python -m pytest tests/unit/test_drf_csrf_authentication.py tests/unit/test_auth_csrf_headers.py tests/unit/test_session_hardening.py tests/unit/test_device_session_lifecycle.py tests/unit/test_cleanup_stale_sessions_task.py -q
+        working-directory: backend
       - name: Circular import check
         run: python scripts/check_circular_imports.py
         working-directory: backend
@@ -71,6 +74,9 @@ jobs:
         working-directory: apps/admissions
       - name: Type check
         run: bun run type-check
+        working-directory: apps/admissions
+      - name: Critical frontend slice
+        run: bunx vitest run tests/unit/PaymentStep.test.tsx tests/unit/paymentStep.test.ts tests/unit/apiClientCsrf403Retry.test.ts tests/unit/sessionHardening.test.ts
         working-directory: apps/admissions
       - name: Lint
         run: bun run lint

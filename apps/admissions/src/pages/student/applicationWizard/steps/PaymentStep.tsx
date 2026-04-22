@@ -152,7 +152,7 @@ const PaymentStep = ({
                 onClick={handleDefer}
                 data-testid="pay-later-button"
               >
-                Can't pay right now? You can pay later from your dashboard
+                <span className="font-medium text-foreground">Pay Later</span>: Can't pay right now? You can pay later from your dashboard
               </button>
             ) : (
               <div className={`rounded-xl border border-border bg-card/50 p-4 ${animateClasses.scaleIn}`}>

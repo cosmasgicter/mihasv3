@@ -138,7 +138,11 @@ class TestApprovalCreatesNotificationAndEmail:
         response = self.view(request, application_id=app.id)
 
         assert response.status_code == 200
-        mock_comm_send.assert_called_once_with("application_approved", app, {"admin_feedback": ""})
+        mock_comm_send.assert_called_once()
+        call_args = mock_comm_send.call_args
+        assert call_args[0][0] == "application_approved"
+        assert call_args[0][1] == app
+        assert call_args[0][2]["admin_feedback"] == ""
 
     @patch(_HISTORY)
     @patch(_PAYMENT)

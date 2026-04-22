@@ -156,6 +156,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.common.tasks.check_uptime_task",
         "schedule": 900.0,  # Every 15 minutes (was 5m — reduced to conserve Upstash free-tier Redis requests)
     },
+    "cleanup-stale-sessions": {
+        "task": "apps.accounts.tasks.cleanup_stale_sessions_task",
+        "schedule": crontab(hour=2, minute=30),
+    },
     "cleanup-audit-logs": {
         "task": "apps.common.tasks.cleanup_audit_logs_task",
         "schedule": crontab(hour=3, minute=0),

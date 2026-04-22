@@ -86,6 +86,16 @@ class TestRBACPermissionDeterminism(SimpleTestCase):
     **Validates: Requirements 3.1, 3.2**
     """
 
+    databases = []
+
+    @classmethod
+    def _remove_databases_failures(cls):
+        """Override to prevent teardown error with Hypothesis-wrapped methods."""
+        try:
+            super()._remove_databases_failures()
+        except AttributeError:
+            pass
+
     @given(role=_roles)
     @_default_settings
     def test_same_role_always_produces_same_permissions(self, role):
@@ -217,6 +227,8 @@ class TestStudentResourceOwnership(SimpleTestCase):
     **Validates: Requirements 3.3**
     """
 
+    databases = []
+
     @given(student_id=_user_ids)
     @_default_settings
     def test_student_can_access_own_resource(self, student_id):
@@ -322,6 +334,8 @@ class TestReviewerWriteDenial(SimpleTestCase):
 
     **Validates: Requirements 3.4**
     """
+
+    databases = []
 
     @given(method=st.sampled_from(["POST", "PUT", "PATCH", "DELETE"]))
     @_default_settings

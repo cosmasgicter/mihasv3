@@ -56,20 +56,27 @@ class TestPreservationSessionsDataShape:
         self.view = SessionListView.as_view()
         self.user = _make_user()
 
+    @patch("apps.accounts.session_views.active_session_filters")
+    @patch("apps.accounts.session_views.deactivate_stale_sessions")
     @patch("apps.accounts.session_views.DeviceSession.objects")
-    def test_sessions_contain_expected_fields(self, mock_qs):
+    def test_sessions_contain_expected_fields(self, mock_qs, mock_deactivate, mock_active_filters):
         """Preservation: Session objects must include id, device_info, last_active, created_at.
 
         Validates: Requirements 3.15
         """
+        from django.db.models import Q
+        mock_active_filters.return_value = Q()
+
         now = datetime.now(timezone.utc)
         mock_session = MagicMock()
         mock_session.id = uuid.uuid4()
         mock_session.device_info = '{"user_agent": "Mozilla/5.0"}'
+        mock_session.ip_address = "127.0.0.1"
         mock_session.last_activity = now
         mock_session.created_at = now - timedelta(hours=1)
+        mock_session.session_token = None
 
-        mock_qs.filter.return_value.order_by.return_value = [mock_session]
+        mock_qs.filter.return_value.filter.return_value.order_by.return_value = [mock_session]
 
         request = _auth_request(self.factory, "get", "/api/v1/sessions/", self.user)
         response = self.view(request)

@@ -32,38 +32,39 @@ _EMAIL_QUEUE = "apps.common.models.EmailQueue"
 _SEND_EMAIL = "apps.common.tasks.send_email_task"
 _PROFILE = "apps.accounts.models.Profile"
 _SETTING = "apps.common.models.Setting"
+_OUTBOX_NOTIFY = "apps.common.outbox.create_notification"
+_OUTBOX_EMAIL = "apps.common.outbox.queue_email"
 
 
 class TestDraftExpiryReminderTrigger:
     """1. 7-day reminder trigger — draft_expiry_reminder_task finds drafts older than 7 days (Req 4.1, 4.2)."""
 
-    @patch(_SEND_EMAIL)
-    @patch(_EMAIL_QUEUE)
+    @patch(_OUTBOX_EMAIL)
+    @patch(_OUTBOX_NOTIFY)
     @patch(_NOTIFICATION)
     @patch(_APP_MODEL)
-    def test_sends_reminder_for_7_day_stale_draft(self, mock_app_cls, mock_notif, mock_email, mock_send):
+    def test_sends_reminder_for_7_day_stale_draft(self, mock_app_cls, mock_notif, mock_outbox_notify, mock_outbox_email):
         """Drafts with no updates in 7+ days get a reminder notification + email."""
         app = _mock_app(days_since_update=10)
 
         mock_app_cls.objects.filter.return_value = [app]
         mock_notif.objects.filter.return_value.exists.return_value = False
-        mock_email.objects.create.return_value = MagicMock(id=uuid.uuid4())
 
         from apps.applications.tasks import draft_expiry_reminder_task
         result = draft_expiry_reminder_task()
 
         assert result["reminders_sent"] == 1
-        mock_notif.objects.create.assert_called_once()
-        notif_kwargs = mock_notif.objects.create.call_args[1]
+        mock_outbox_notify.assert_called_once()
+        notif_kwargs = mock_outbox_notify.call_args[1]
         assert notif_kwargs["user_id"] == app.user_id
         assert notif_kwargs["title"] == "Complete Your Application Draft"
-        mock_email.objects.create.assert_called_once()
+        mock_outbox_email.assert_called_once()
 
-    @patch(_SEND_EMAIL)
-    @patch(_EMAIL_QUEUE)
+    @patch(_OUTBOX_EMAIL)
+    @patch(_OUTBOX_NOTIFY)
     @patch(_NOTIFICATION)
     @patch(_APP_MODEL)
-    def test_skips_already_notified_draft(self, mock_app_cls, mock_notif, mock_email, mock_send):
+    def test_skips_already_notified_draft(self, mock_app_cls, mock_notif, mock_outbox_notify, mock_outbox_email):
         """Deduplication: skip if reminder already sent today."""
         app = _mock_app(days_since_update=10)
 
@@ -74,23 +75,21 @@ class TestDraftExpiryReminderTrigger:
         result = draft_expiry_reminder_task()
 
         assert result["reminders_sent"] == 0
-        mock_notif.objects.create.assert_not_called()
+        mock_outbox_notify.assert_not_called()
 
 
 class TestDraftExpiryTransition:
     """2. 30-day expiry transition — drafts older than 30 days transition to expired (Req 4.3, 4.4)."""
 
-    @patch(_SEND_EMAIL)
-    @patch(_EMAIL_QUEUE)
-    @patch(_NOTIFICATION)
+    @patch(_OUTBOX_EMAIL)
+    @patch(_OUTBOX_NOTIFY)
     @patch(_TRANSITION)
     @patch(_APP_MODEL)
-    def test_expires_draft_after_30_days(self, mock_app_cls, mock_transition, mock_notif, mock_email, mock_send):
+    def test_expires_draft_after_30_days(self, mock_app_cls, mock_transition, mock_outbox_notify, mock_outbox_email):
         """Drafts with no updates for 30+ days are transitioned to expired."""
         app = _mock_app(days_since_update=35)
 
         mock_app_cls.objects.filter.return_value = [app]
-        mock_email.objects.create.return_value = MagicMock(id=uuid.uuid4())
 
         from apps.applications.tasks import draft_expiry_reminder_task
         result = draft_expiry_reminder_task()
@@ -101,123 +100,117 @@ class TestDraftExpiryTransition:
         assert call_kwargs["new_status"] == "expired"
         assert call_kwargs["changed_by"] == "system"
 
-    @patch(_SEND_EMAIL)
-    @patch(_EMAIL_QUEUE)
-    @patch(_NOTIFICATION)
+    @patch(_OUTBOX_EMAIL)
+    @patch(_OUTBOX_NOTIFY)
     @patch(_TRANSITION)
     @patch(_APP_MODEL)
-    def test_expired_draft_gets_notification_and_email(self, mock_app_cls, mock_transition, mock_notif, mock_email, mock_send):
+    def test_expired_draft_gets_notification_and_email(self, mock_app_cls, mock_transition, mock_outbox_notify, mock_outbox_email):
         """Expired drafts trigger both a notification and an email to the student."""
         app = _mock_app(days_since_update=31)
 
         mock_app_cls.objects.filter.return_value = [app]
-        mock_email.objects.create.return_value = MagicMock(id=uuid.uuid4())
 
         from apps.applications.tasks import draft_expiry_reminder_task
         draft_expiry_reminder_task()
 
-        mock_notif.objects.create.assert_called_once()
-        notif_kwargs = mock_notif.objects.create.call_args[1]
+        mock_outbox_notify.assert_called_once()
+        notif_kwargs = mock_outbox_notify.call_args[1]
         assert notif_kwargs["title"] == "Application Draft Expired"
         assert notif_kwargs["type"] == "warning"
         assert notif_kwargs["priority"] == "high"
-        mock_email.objects.create.assert_called_once()
-        email_kwargs = mock_email.objects.create.call_args[1]
+        mock_outbox_email.assert_called_once()
+        email_kwargs = mock_outbox_email.call_args[1]
         assert email_kwargs["subject"] == "Application Draft Expired"
 
 
 class TestUrgencyIndicator:
     """3. Urgency indicator for days 27–30 (Req 4.9)."""
 
-    @patch(_SEND_EMAIL)
-    @patch(_EMAIL_QUEUE)
+    @patch(_OUTBOX_EMAIL)
+    @patch(_OUTBOX_NOTIFY)
     @patch(_NOTIFICATION)
     @patch(_APP_MODEL)
-    def test_urgency_message_at_28_days(self, mock_app_cls, mock_notif, mock_email, mock_send):
+    def test_urgency_message_at_28_days(self, mock_app_cls, mock_notif, mock_outbox_notify, mock_outbox_email):
         """Draft at 28 days (2 days until expiry) includes urgency indicator."""
         app = _mock_app(days_since_update=28)
 
         mock_app_cls.objects.filter.return_value = [app]
         mock_notif.objects.filter.return_value.exists.return_value = False
-        mock_email.objects.create.return_value = MagicMock(id=uuid.uuid4())
 
         from apps.applications.tasks import draft_expiry_reminder_task
         result = draft_expiry_reminder_task()
 
         assert result["reminders_sent"] == 1
-        notif_kwargs = mock_notif.objects.create.call_args[1]
+        notif_kwargs = mock_outbox_notify.call_args[1]
         assert "expire in 2 days" in notif_kwargs["message"]
         assert notif_kwargs["priority"] == "high"
 
-    @patch(_SEND_EMAIL)
-    @patch(_EMAIL_QUEUE)
+    @patch(_OUTBOX_EMAIL)
+    @patch(_OUTBOX_NOTIFY)
     @patch(_NOTIFICATION)
     @patch(_APP_MODEL)
-    def test_urgency_message_at_29_days(self, mock_app_cls, mock_notif, mock_email, mock_send):
+    def test_urgency_message_at_29_days(self, mock_app_cls, mock_notif, mock_outbox_notify, mock_outbox_email):
         """Draft at 29 days (1 day until expiry) includes singular urgency indicator."""
         app = _mock_app(days_since_update=29)
 
         mock_app_cls.objects.filter.return_value = [app]
         mock_notif.objects.filter.return_value.exists.return_value = False
-        mock_email.objects.create.return_value = MagicMock(id=uuid.uuid4())
 
         from apps.applications.tasks import draft_expiry_reminder_task
         result = draft_expiry_reminder_task()
 
         assert result["reminders_sent"] == 1
-        notif_kwargs = mock_notif.objects.create.call_args[1]
+        notif_kwargs = mock_outbox_notify.call_args[1]
         assert "expire in 1 day" in notif_kwargs["message"]
 
-    @patch(_SEND_EMAIL)
-    @patch(_EMAIL_QUEUE)
+    @patch(_OUTBOX_EMAIL)
+    @patch(_OUTBOX_NOTIFY)
     @patch(_NOTIFICATION)
     @patch(_APP_MODEL)
-    def test_urgent_email_subject(self, mock_app_cls, mock_notif, mock_email, mock_send):
+    def test_urgent_email_subject(self, mock_app_cls, mock_notif, mock_outbox_notify, mock_outbox_email):
         """Drafts within 3 days of expiry get an urgent email subject."""
         app = _mock_app(days_since_update=27)
 
         mock_app_cls.objects.filter.return_value = [app]
         mock_notif.objects.filter.return_value.exists.return_value = False
-        mock_email.objects.create.return_value = MagicMock(id=uuid.uuid4())
 
         from apps.applications.tasks import draft_expiry_reminder_task
         draft_expiry_reminder_task()
 
-        email_kwargs = mock_email.objects.create.call_args[1]
+        email_kwargs = mock_outbox_email.call_args[1]
         assert email_kwargs["subject"] == "Your Application Draft Will Expire Soon"
 
-    @patch(_SEND_EMAIL)
-    @patch(_EMAIL_QUEUE)
+    @patch(_OUTBOX_EMAIL)
+    @patch(_OUTBOX_NOTIFY)
     @patch(_NOTIFICATION)
     @patch(_APP_MODEL)
-    def test_no_urgency_for_early_reminder(self, mock_app_cls, mock_notif, mock_email, mock_send):
+    def test_no_urgency_for_early_reminder(self, mock_app_cls, mock_notif, mock_outbox_notify, mock_outbox_email):
         """Drafts at 10 days (20 days until expiry) do NOT include urgency indicator."""
         app = _mock_app(days_since_update=10)
 
         mock_app_cls.objects.filter.return_value = [app]
         mock_notif.objects.filter.return_value.exists.return_value = False
-        mock_email.objects.create.return_value = MagicMock(id=uuid.uuid4())
 
         from apps.applications.tasks import draft_expiry_reminder_task
         draft_expiry_reminder_task()
 
-        notif_kwargs = mock_notif.objects.create.call_args[1]
+        notif_kwargs = mock_outbox_notify.call_args[1]
         assert "expire in" not in notif_kwargs["message"]
         assert notif_kwargs["priority"] == "normal"
-        email_kwargs = mock_email.objects.create.call_args[1]
+        email_kwargs = mock_outbox_email.call_args[1]
         assert email_kwargs["subject"] == "Reminder: Complete Your Application"
 
 
 class TestReviewSLABreachDetection:
     """4. SLA breach detection — review_sla_reminder_task finds apps older than threshold (Req 4.6-4.8)."""
 
-    @patch(_SEND_EMAIL)
-    @patch(_EMAIL_QUEUE)
+    @patch(_OUTBOX_EMAIL)
+    @patch(_OUTBOX_NOTIFY)
     @patch(_NOTIFICATION)
     @patch(_PROFILE)
     @patch(_SETTING)
     @patch(_APP_MODEL)
-    def test_detects_overdue_applications(self, mock_app_cls, mock_setting, mock_profile, mock_notif, mock_email, mock_send):
+    def test_detects_overdue_applications(self, mock_app_cls, mock_setting, mock_profile, mock_notif, mock_outbox_notify, mock_outbox_email):
         """Finds submitted/under_review apps older than SLA threshold and notifies admins."""
         overdue_app = _mock_app(status="submitted", days_since_update=7)
 
@@ -235,22 +228,21 @@ class TestReviewSLABreachDetection:
         admin.email = "admin@example.com"
         mock_profile.objects.filter.return_value = [admin]
         mock_notif.objects.filter.return_value.exists.return_value = False
-        mock_email.objects.create.return_value = MagicMock(id=uuid.uuid4())
 
         from apps.applications.tasks import review_sla_reminder_task
         result = review_sla_reminder_task()
 
         assert result["overdue_count"] == 1
         assert result["admins_notified"] == 1
-        mock_notif.objects.create.assert_called_once()
+        mock_outbox_notify.assert_called_once()
 
-    @patch(_SEND_EMAIL)
-    @patch(_EMAIL_QUEUE)
+    @patch(_OUTBOX_EMAIL)
+    @patch(_OUTBOX_NOTIFY)
     @patch(_NOTIFICATION)
     @patch(_PROFILE)
     @patch(_SETTING)
     @patch(_APP_MODEL)
-    def test_no_notification_when_no_overdue(self, mock_app_cls, mock_setting, mock_profile, mock_notif, mock_email, mock_send):
+    def test_no_notification_when_no_overdue(self, mock_app_cls, mock_setting, mock_profile, mock_notif, mock_outbox_notify, mock_outbox_email):
         """Returns zero counts when no applications exceed SLA."""
         mock_setting.objects.filter.return_value.first.return_value = None
 
@@ -263,15 +255,15 @@ class TestReviewSLABreachDetection:
 
         assert result["overdue_count"] == 0
         assert result["admins_notified"] == 0
-        mock_notif.objects.create.assert_not_called()
+        mock_outbox_notify.assert_not_called()
 
-    @patch(_SEND_EMAIL)
-    @patch(_EMAIL_QUEUE)
+    @patch(_OUTBOX_EMAIL)
+    @patch(_OUTBOX_NOTIFY)
     @patch(_NOTIFICATION)
     @patch(_PROFILE)
     @patch(_SETTING)
     @patch(_APP_MODEL)
-    def test_configurable_sla_threshold(self, mock_app_cls, mock_setting, mock_profile, mock_notif, mock_email, mock_send):
+    def test_configurable_sla_threshold(self, mock_app_cls, mock_setting, mock_profile, mock_notif, mock_outbox_notify, mock_outbox_email):
         """SLA threshold is read from SystemSetting (key: review_sla_days)."""
         setting = MagicMock()
         setting.value = "10"
@@ -289,13 +281,13 @@ class TestReviewSLABreachDetection:
         assert filter_call is not None
         assert "submitted_at__lt" in filter_call[1]
 
-    @patch(_SEND_EMAIL)
-    @patch(_EMAIL_QUEUE)
+    @patch(_OUTBOX_EMAIL)
+    @patch(_OUTBOX_NOTIFY)
     @patch(_NOTIFICATION)
     @patch(_PROFILE)
     @patch(_SETTING)
     @patch(_APP_MODEL)
-    def test_skips_already_notified_admin(self, mock_app_cls, mock_setting, mock_profile, mock_notif, mock_email, mock_send):
+    def test_skips_already_notified_admin(self, mock_app_cls, mock_setting, mock_profile, mock_notif, mock_outbox_notify, mock_outbox_email):
         """Deduplication: skip admin if already notified today."""
         overdue_app = _mock_app(status="submitted", days_since_update=7)
         mock_setting.objects.filter.return_value.first.return_value = None
@@ -317,7 +309,7 @@ class TestReviewSLABreachDetection:
         result = review_sla_reminder_task()
 
         assert result["admins_notified"] == 0
-        mock_notif.objects.create.assert_not_called()
+        mock_outbox_notify.assert_not_called()
 
 
 class TestExpiredExcludedFromDuplicateChecks:

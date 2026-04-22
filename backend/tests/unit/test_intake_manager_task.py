@@ -86,12 +86,9 @@ class TestErrorLoggingOnFailure(SimpleTestCase):
         from apps.catalog.tasks import _log_error_and_alert
 
         mock_errorlog_create = MagicMock()
-        mock_email_record = MagicMock()
-        mock_email_record.id = "fake-email-id"
 
         with patch("apps.common.models.ErrorLog.objects.create", mock_errorlog_create), \
-             patch("apps.common.models.EmailQueue.objects.create", return_value=mock_email_record), \
-             patch("apps.common.tasks.send_email_task"), \
+             patch("apps.common.outbox.queue_email"), \
              patch("django.core.cache.cache.add", return_value=True):
             _log_error_and_alert("intake_manager_task failed: Exception: connection refused")
 
@@ -106,21 +103,16 @@ class TestErrorLoggingOnFailure(SimpleTestCase):
         """Directly test _log_error_and_alert dispatches an alert email."""
         from apps.catalog.tasks import _log_error_and_alert
 
-        mock_email_record = MagicMock()
-        mock_email_record.id = "fake-email-id"
-        mock_emailqueue_create = MagicMock(return_value=mock_email_record)
+        mock_outbox_email = MagicMock()
 
         with patch("apps.common.models.ErrorLog.objects.create"), \
-             patch("apps.common.models.EmailQueue.objects.create", mock_emailqueue_create), \
-             patch("apps.common.tasks.send_email_task") as mock_send_email, \
+             patch("apps.common.outbox.queue_email", mock_outbox_email), \
              patch("django.core.cache.cache.add", return_value=True):
             _log_error_and_alert("intake_manager_task failed: Exception: connection refused")
 
-        mock_emailqueue_create.assert_called_once()
-        email_kwargs = mock_emailqueue_create.call_args.kwargs
+        mock_outbox_email.assert_called_once()
+        email_kwargs = mock_outbox_email.call_args[1]
         self.assertIn("intake_manager_task", email_kwargs["subject"])
-        self.assertEqual(email_kwargs["status"], "pending")
-        mock_send_email.delay.assert_called_once_with("fake-email-id")
 
 
 # =========================================================================
