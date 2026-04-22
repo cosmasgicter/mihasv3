@@ -10,6 +10,7 @@ event payload.
 """
 
 import os
+from contextlib import contextmanager
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
 

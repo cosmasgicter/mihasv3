@@ -110,6 +110,15 @@ def _make_pending_payment(payment_id, application_id, amount):
 # ---------------------------------------------------------------------------
 
 
+from contextlib import contextmanager
+
+
+@contextmanager
+def _noop_atomic():
+    """A no-op context manager that replaces transaction.atomic()."""
+    yield
+
+
 class TestPaymentStatusUpdateFromLencoResponse(SimpleTestCase):
     """Payment status transitions must match Lenco response status.
 
@@ -140,21 +149,25 @@ class TestPaymentStatusUpdateFromLencoResponse(SimpleTestCase):
         to 'successful'."""
         service = PaymentService()
         payment = _make_pending_payment(payment_id, application_id, amount)
+        locked_payment = _make_pending_payment(payment_id, application_id, amount)
         lenco_data = _build_lenco_data(lenco_ref, payment_type, fee, bearer_val)
 
-        with patch(
-            "apps.documents.payment_service.Application.objects"
-        ) as mock_app_qs:
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_pay_qs,
+            patch("apps.documents.payment_service.Application.objects") as mock_app_qs,
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_pay_qs.select_for_update.return_value.get.return_value = locked_payment
             mock_app_qs.filter.return_value.update.return_value = 1
 
             service._update_payment_status(payment, "successful", lenco_data)
 
         self.assertEqual(
-            payment.status,
+            locked_payment.status,
             "successful",
             "Payment status should be 'successful' after Lenco success",
         )
-        payment.save.assert_called_once()
+        locked_payment.save.assert_called_once()
 
     @given(
         payment_id=uuids,
@@ -180,21 +193,25 @@ class TestPaymentStatusUpdateFromLencoResponse(SimpleTestCase):
         to 'failed'."""
         service = PaymentService()
         payment = _make_pending_payment(payment_id, application_id, amount)
+        locked_payment = _make_pending_payment(payment_id, application_id, amount)
         lenco_data = _build_lenco_data(lenco_ref, payment_type, fee, bearer_val)
 
-        with patch(
-            "apps.documents.payment_service.Application.objects"
-        ) as mock_app_qs:
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_pay_qs,
+            patch("apps.documents.payment_service.Application.objects") as mock_app_qs,
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_pay_qs.select_for_update.return_value.get.return_value = locked_payment
             mock_app_qs.filter.return_value.update.return_value = 1
 
             service._update_payment_status(payment, "failed", lenco_data)
 
         self.assertEqual(
-            payment.status,
+            locked_payment.status,
             "failed",
             "Payment status should be 'failed' after Lenco failure",
         )
-        payment.save.assert_called_once()
+        locked_payment.save.assert_called_once()
 
     @given(
         payment_id=uuids,
@@ -213,17 +230,23 @@ class TestPaymentStatusUpdateFromLencoResponse(SimpleTestCase):
         target set)."""
         service = PaymentService()
         payment = _make_pending_payment(payment_id, application_id, amount)
+        locked_payment = _make_pending_payment(payment_id, application_id, amount)
 
-        # 'pending' is not a valid new_status in _ALLOWED_TRANSITIONS,
-        # so _update_payment_status should be a no-op.
-        service._update_payment_status(payment, "pending", {})
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_pay_qs,
+            patch("apps.documents.payment_service.Application.objects"),
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_pay_qs.select_for_update.return_value.get.return_value = locked_payment
+
+            service._update_payment_status(payment, "pending", {})
 
         self.assertEqual(
-            payment.status,
+            locked_payment.status,
             "pending",
             "Payment status should remain 'pending' when Lenco status is pending",
         )
-        payment.save.assert_not_called()
+        locked_payment.save.assert_not_called()
 
 
 class TestApplicationStatusSyncOnPaymentSuccess(SimpleTestCase):
@@ -252,11 +275,15 @@ class TestApplicationStatusSyncOnPaymentSuccess(SimpleTestCase):
         application's payment_status is set to 'paid'."""
         service = PaymentService()
         payment = _make_pending_payment(payment_id, application_id, amount)
+        locked_payment = _make_pending_payment(payment_id, application_id, amount)
         lenco_data = _build_lenco_data(lenco_ref, payment_type, None, None)
 
-        with patch(
-            "apps.documents.payment_service.Application.objects"
-        ) as mock_app_qs:
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_pay_qs,
+            patch("apps.documents.payment_service.Application.objects") as mock_app_qs,
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_pay_qs.select_for_update.return_value.get.return_value = locked_payment
             mock_app_qs.filter.return_value.update.return_value = 1
 
             service._update_payment_status(payment, "successful", lenco_data)
@@ -269,8 +296,8 @@ class TestApplicationStatusSyncOnPaymentSuccess(SimpleTestCase):
             update_kwargs = mock_app_qs.filter.return_value.update.call_args[1]
             self.assertEqual(
                 update_kwargs["payment_status"],
-                "paid",
-                "Application payment_status should be set to 'paid'",
+                "verified",
+                "Application payment_status should be set to 'verified'",
             )
 
     @given(
@@ -293,11 +320,15 @@ class TestApplicationStatusSyncOnPaymentSuccess(SimpleTestCase):
         application's payment_status is set to 'failed'."""
         service = PaymentService()
         payment = _make_pending_payment(payment_id, application_id, amount)
+        locked_payment = _make_pending_payment(payment_id, application_id, amount)
         lenco_data = _build_lenco_data(lenco_ref, payment_type, None, None)
 
-        with patch(
-            "apps.documents.payment_service.Application.objects"
-        ) as mock_app_qs:
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_pay_qs,
+            patch("apps.documents.payment_service.Application.objects") as mock_app_qs,
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_pay_qs.select_for_update.return_value.get.return_value = locked_payment
             mock_app_qs.filter.return_value.update.return_value = 1
 
             service._update_payment_status(payment, "failed", lenco_data)
@@ -328,10 +359,15 @@ class TestApplicationStatusSyncOnPaymentSuccess(SimpleTestCase):
         """When payment stays 'pending', the application is not updated."""
         service = PaymentService()
         payment = _make_pending_payment(payment_id, application_id, amount)
+        locked_payment = _make_pending_payment(payment_id, application_id, amount)
 
-        with patch(
-            "apps.documents.payment_service.Application.objects"
-        ) as mock_app_qs:
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_pay_qs,
+            patch("apps.documents.payment_service.Application.objects") as mock_app_qs,
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_pay_qs.select_for_update.return_value.get.return_value = locked_payment
+
             service._update_payment_status(payment, "pending", {})
 
             mock_app_qs.filter.assert_not_called()
@@ -367,19 +403,23 @@ class TestLencoResponseDataStored(SimpleTestCase):
         payment method, fee, bearer, and response data are stored."""
         service = PaymentService()
         payment = _make_pending_payment(payment_id, application_id, amount)
+        locked_payment = _make_pending_payment(payment_id, application_id, amount)
         lenco_data = _build_lenco_data(lenco_ref, payment_type, fee, bearer_val)
 
-        with patch(
-            "apps.documents.payment_service.Application.objects"
-        ) as mock_app_qs:
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_pay_qs,
+            patch("apps.documents.payment_service.Application.objects") as mock_app_qs,
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_pay_qs.select_for_update.return_value.get.return_value = locked_payment
             mock_app_qs.filter.return_value.update.return_value = 1
 
             service._update_payment_status(payment, "successful", lenco_data)
 
         # Lenco reference stored
-        self.assertEqual(payment.lenco_reference, lenco_ref)
+        self.assertEqual(locked_payment.lenco_reference, lenco_ref)
         # Payment method stored
-        self.assertEqual(payment.payment_method, payment_type)
+        self.assertEqual(locked_payment.payment_method, payment_type)
         # Metadata contains lenco_response
-        self.assertIn("lenco_response", payment.metadata)
-        self.assertEqual(payment.metadata["lenco_response"], lenco_data)
+        self.assertIn("lenco_response", locked_payment.metadata)
+        self.assertEqual(locked_payment.metadata["lenco_response"], lenco_data)
