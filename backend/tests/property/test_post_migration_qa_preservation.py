@@ -277,8 +277,13 @@ class TestApplicationAPIContractsPreservation:
 
         # Mock the serializer save to avoid DB writes
         with patch("apps.applications.views.Application.objects") as mock_qs, \
-             patch("apps.applications.views.ApplicationSerializer") as mock_ser_cls:
-            mock_qs.select_related.return_value.get.return_value = application
+             patch("apps.applications.views.ApplicationSerializer") as mock_ser_cls, \
+             patch("apps.applications.views.IsOwnerOrAdmin") as mock_perm:
+            mock_chain = MagicMock()
+            mock_chain.get.return_value = application
+            mock_qs.select_related.return_value.prefetch_related.return_value = mock_chain
+            mock_perm.return_value.has_permission.return_value = True
+            mock_perm.return_value.has_object_permission.return_value = True
 
             mock_serializer = MagicMock()
             mock_serializer.is_valid.return_value = True
@@ -349,7 +354,7 @@ class TestApplicationAPIContractsPreservation:
         application = _make_application(app_id=app_id, status="submitted")
 
         with patch("apps.applications.views.Application.objects") as mock_qs, \
-             patch("apps.applications.services.transition_application_status") as mock_transition:
+             patch("apps.applications.views.transition_application_status") as mock_transition:
             mock_qs.get.return_value = application
             mock_transition.return_value = "submitted"  # old_status
 
@@ -387,7 +392,7 @@ class TestApplicationAPIContractsPreservation:
         application = _make_application(app_id=app_id, status="submitted")
 
         with patch("apps.applications.views.Application.objects") as mock_qs, \
-             patch("apps.applications.services.transition_application_status") as mock_transition:
+             patch("apps.applications.views.transition_application_status") as mock_transition:
             mock_qs.get.return_value = application
             mock_transition.return_value = "submitted"
 

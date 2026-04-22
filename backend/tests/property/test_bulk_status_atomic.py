@@ -149,44 +149,41 @@ class TestBulkStatusAtomicRollback(SimpleTestCase):
     def test_failure_mid_batch_rolls_back_all_changes(
         self, new_status, batch_size, failure_index
     ):
-        """When save() raises mid-batch, no application status is committed."""
+        """When transition raises mid-batch, no applications are committed."""
+        import hashlib as _hashlib
+
         # Clamp failure_index to valid range
         failure_index = failure_index % batch_size
 
         app_ids = [uuid.uuid4() for _ in range(batch_size)]
-        original_statuses = ["draft"] * batch_size
 
-        # Build mock applications that track status changes
+        # Build mock applications
         mock_apps = []
         for i, app_id in enumerate(app_ids):
             app = MagicMock()
             app.id = app_id
             app.pk = app_id
-            app.status = original_statuses[i]
+            app.status = "draft"
             app.review_started_at = None
             app.reviewed_by_id = None
             app.admin_feedback = ""
             app.admin_feedback_date = None
             app.admin_feedback_by_id = None
             app.decision_date = None
-
-            # Track the real status value
-            app._real_status = original_statuses[i]
-
-            def make_save(idx, a):
-                def save_side_effect(**kwargs):
-                    if idx == failure_index:
-                        raise RuntimeError("Simulated DB failure")
-                    a._real_status = a.status
-                return save_side_effect
-
-            app.save = MagicMock(side_effect=make_save(i, app))
+            app.save = MagicMock()
             mock_apps.append(app)
 
         # Build a mock queryset that iterates over mock_apps
         mock_qs = MagicMock()
         mock_qs.__iter__ = MagicMock(return_value=iter(mock_apps))
+        mock_qs.__len__ = MagicMock(return_value=len(mock_apps))
         mock_qs.select_for_update.return_value = mock_qs
+
+        # Compute valid confirmation token
+        sorted_ids = sorted(str(aid) for aid in app_ids)
+        confirmation_token = _hashlib.sha256(
+            ("".join(sorted_ids) + new_status).encode("utf-8")
+        ).hexdigest()
 
         # Build mock request
         mock_request = MagicMock()
@@ -194,7 +191,18 @@ class TestBulkStatusAtomicRollback(SimpleTestCase):
         mock_request.data = {
             "application_ids": [str(aid) for aid in app_ids],
             "new_status": new_status,
+            "confirmation_token": confirmation_token,
         }
+
+        # Create a transition function that fails at the specified index
+        call_count = {"n": 0}
+
+        def mock_transition(application, new_status, changed_by, notes="", **kwargs):
+            idx = call_count["n"]
+            call_count["n"] += 1
+            if idx == failure_index:
+                raise RuntimeError("Simulated DB failure")
+            return application.status
 
         view = ApplicationBulkStatusView()
 
@@ -202,7 +210,11 @@ class TestBulkStatusAtomicRollback(SimpleTestCase):
             "apps.applications.views.Application.objects.filter",
             return_value=mock_qs,
         ), patch(
-            "apps.applications.views.ApplicationStatusHistory.objects.create",
+            "apps.applications.services.transition_application_status",
+            side_effect=mock_transition,
+        ), patch(
+            "apps.applications.services.ALLOWED_TRANSITIONS",
+            {"draft": {new_status, "submitted", "under_review", "approved", "rejected"}},
         ):
             response = view.post(mock_request)
 
@@ -211,7 +223,7 @@ class TestBulkStatusAtomicRollback(SimpleTestCase):
         self.assertEqual(
             response.status_code,
             500,
-            f"Expected 500 error response when save() fails at index "
+            f"Expected 500 error response when transition fails at index "
             f"{failure_index}, got {response.status_code}",
         )
 
