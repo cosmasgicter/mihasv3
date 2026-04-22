@@ -149,7 +149,7 @@ Raise the MIHAS platform production readiness score from 79 to 90+ across six ar
     - **Property 12: View Re-exports Preserve All Class Names**
     - **Validates: Requirements 7.2, 7.4**
 
-- [ ] 10. Break circular import dependencies (P3 — Code Organization)
+- [x] 10. Break circular import dependencies (P3 — Code Organization)
   - [x] 10.1 Convert top-level cross-app imports to lazy imports
     - Fix `applications ↔ accounts`: move `Profile` import inside method body in views
     - Fix `common ↔ accounts`: move `Profile`, `CSRFToken` imports inside task function bodies
@@ -160,23 +160,23 @@ Raise the MIHAS platform production readiness score from 79 to 90+ across six ar
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6_
     - _Design: Section 8 (Break Circular Import Dependencies)_
 
-  - [~] 10.2 Create CI governance script `backend/scripts/check_circular_imports.py`
+  - [x] 10.2 Create CI governance script `backend/scripts/check_circular_imports.py`
     - Use AST to build import graph between `apps.*` packages
     - Exit non-zero if cycles are found
     - Skip files that fail AST parsing (log warning, don't fail CI)
     - _Requirements: 8.8_
 
-  - [~] 10.3 Add circular import check as CI step in `.github/workflows/ci.yml`
+  - [x] 10.3 Add circular import check as CI step in `.github/workflows/ci.yml`
     - Add step after `Django checks` to run `python scripts/check_circular_imports.py`
     - _Requirements: 8.7, 8.8_
 
-- [~] 11. Checkpoint — Verify code organization changes pass tests
+- [x] 11. Checkpoint — Verify code organization changes pass tests
   - Run `python manage.py check` and full test suite
   - Ensure all tests pass, ask the user if questions arise.
   - _Requirements: 7.3, 8.7_
 
-- [ ] 12. Implement Celery task lifecycle signals (P4 — Task Scheduling)
-  - [~] 12.1 Create `backend/apps/common/celery_signals.py`
+- [x] 12. Implement Celery task lifecycle signals (P4 — Task Scheduling)
+  - [x] 12.1 Create `backend/apps/common/celery_signals.py`
     - Register handlers for `task_prerun`, `task_postrun`, and `task_failure` Celery signals
     - Emit structured logs with `type: "task_lifecycle"` at each phase
     - Track start times in `_task_start_times` dict for duration computation
@@ -185,16 +185,16 @@ Raise the MIHAS platform production readiness score from 79 to 90+ across six ar
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 3.3_
     - _Design: Section 9 (Celery Task Lifecycle Signals)_
 
-  - [~] 12.2 Register celery signals in `backend/config/celery.py`
+  - [x] 12.2 Register celery signals in `backend/config/celery.py`
     - Import `celery_signals` module in the Celery app's `ready()` or at module level
     - _Requirements: 9.4_
 
-  - [~] 12.3 Write property test for Celery lifecycle signal logs
+  - [x] 12.3 Write property test for Celery lifecycle signal logs
     - **Property 13: Celery Lifecycle Signals Emit Correct Logs**
     - **Validates: Requirements 9.1, 9.2, 9.3**
 
 - [ ] 13. Implement missed task detection command (P4 — Task Scheduling)
-  - [~] 13.1 Create `backend/apps/common/management/commands/check_missed_tasks.py`
+  - [-] 13.1 Create `backend/apps/common/management/commands/check_missed_tasks.py`
     - Read `CELERY_BEAT_SCHEDULE` from Django settings
     - For each task, compute expected interval (handle both numeric and `crontab` schedules)
     - Query Redis for `task_last_run:{task_name}` key (set by lifecycle signal handler)
