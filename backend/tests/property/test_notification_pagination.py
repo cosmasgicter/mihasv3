@@ -104,8 +104,12 @@ class TestNotificationListPaginated(SimpleTestCase):
         ) as mock_manager:
             mock_qs = MagicMock()
             mock_manager.filter.return_value = mock_qs
-            mock_qs.order_by.return_value = fake_notifications
-            mock_qs.order_by.return_value.count = MagicMock(return_value=len(fake_notifications))
+            mock_ordered = MagicMock()
+            mock_ordered.__iter__ = MagicMock(return_value=iter(fake_notifications))
+            mock_ordered.__len__ = MagicMock(return_value=len(fake_notifications))
+            mock_ordered.__getitem__ = MagicMock(side_effect=lambda s: fake_notifications[s] if isinstance(s, int) else fake_notifications[s.start:s.stop])
+            mock_ordered.count.return_value = len(fake_notifications)
+            mock_qs.order_by.return_value = mock_ordered
 
             view = NotificationListView()
             view.request = request

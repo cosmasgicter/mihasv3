@@ -12,6 +12,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 os.environ["TESTING"] = "1"
 
 import uuid  # noqa: E402
+from decimal import Decimal  # noqa: E402
 from unittest.mock import MagicMock, patch, PropertyMock  # noqa: E402
 
 import django  # noqa: E402
@@ -304,7 +305,7 @@ class TestProgramListingIncludesInstitutionData(SimpleTestCase):
         institution = _make_mock_institution()
         program = _make_mock_program(institution=institution)
         program.duration_months = duration * 12
-        program.application_fee = "500.00"
+        program.application_fee = Decimal("500.00")
 
         serializer = ProgramSerializer(program)
         data = serializer.data
