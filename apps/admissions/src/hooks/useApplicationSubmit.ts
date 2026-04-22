@@ -85,7 +85,7 @@ function generateIdempotencyKey(): string {
     return crypto.randomUUID()
   }
   // Fallback for environments without crypto.randomUUID
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
+  return `${Date.now()}-${Array.from(crypto.getRandomValues(new Uint8Array(8)), b => b.toString(36).padStart(2, '0')).join('').slice(0, 11)}`
 }
 
 /**

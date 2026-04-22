@@ -216,7 +216,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
             }
 
             // Create user via admin register endpoint
-            const password = userData.password || `temp${Math.random().toString(36).slice(-8)}`
+            const password = userData.password || `temp${Array.from(crypto.getRandomValues(new Uint8Array(6)), b => b.toString(36).padStart(2, '0')).join('').slice(0, 8)}`
             const createResult = await apiClient.request<{ id?: string; message?: string }>('/admin/users/', {
               method: 'POST',
               body: JSON.stringify({

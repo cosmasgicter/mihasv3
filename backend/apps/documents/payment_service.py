@@ -298,6 +298,10 @@ class PaymentService:
             now = timezone.now()
 
             if latest_payment is not None and target_payment_status:
+                # Block backward transitions from terminal successful state
+                if latest_payment.status == 'successful' and target_payment_status in ('pending', 'deferred'):
+                    raise ValueError("CANNOT_REVERSE_SUCCESSFUL_PAYMENT")
+
                 metadata = latest_payment.metadata or {}
                 metadata['admin_review'] = {
                     'status': payment_status,

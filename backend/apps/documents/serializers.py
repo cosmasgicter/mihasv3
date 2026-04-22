@@ -13,7 +13,10 @@ class DocumentUploadSerializer(serializers.Serializer):
     """Validates document upload requests."""
 
     file = serializers.FileField()
-    document_type = serializers.CharField(max_length=100)
+    document_type = serializers.ChoiceField(choices=[
+        "nrc", "passport", "result_slip", "extra_kyc",
+        "application_slip", "transcript", "certificate", "other",
+    ])
     application_id = serializers.UUIDField()
 
     def validate_application_id(self, value):
