@@ -12,6 +12,8 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 
+from apps.common.metrics import emit_metric
+
 logger = logging.getLogger(__name__)
 
 EMAIL_STATUS_PENDING = "pending"
@@ -119,6 +121,7 @@ def _mark_email_sent(email_record, provider: str) -> None:
     email_record.error_message = ""
     email_record.sent_at = timezone.now()
     email_record.save(update_fields=["status", "error_message", "sent_at"])
+    emit_metric('email.sent', provider=provider.lower())
     logger.info("Email %s sent via %s", email_record.id, provider)
 
 
@@ -212,6 +215,7 @@ def send_email_task(self, email_queue_id):
         EMAIL_STATUS_RETRYING if email_record.retry_count < 3 else EMAIL_STATUS_FAILED
     )
     email_record.save(update_fields=["retry_count", "error_message", "status"])
+    emit_metric('email.send_failed', provider='all', error='both_smtp_and_resend_failed')
 
     if email_record.retry_count < 3:
         backoff = 60 * (2 ** self.request.retries)

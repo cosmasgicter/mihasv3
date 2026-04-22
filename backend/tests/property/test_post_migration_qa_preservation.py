@@ -31,7 +31,7 @@ from hypothesis import strategies as st  # noqa: E402
 from rest_framework.test import APIRequestFactory, force_authenticate  # noqa: E402
 
 from apps.accounts.authentication import JWTUser  # noqa: E402
-from apps.common.middleware import CSRFEnforcementMiddleware  # noqa: E402
+from apps.common.middleware_compat import CSRFEnforcementMiddleware  # noqa: E402
 from apps.applications.views import (  # noqa: E402
     ApplicationDetailView,
     ApplicationReviewView,
@@ -277,9 +277,9 @@ class TestApplicationAPIContractsPreservation:
         application.status = "draft"  # Ensure student can mutate
 
         # Mock the queryset chain and serializer to avoid DB writes
-        with patch("apps.applications.views._with_payment_summary", side_effect=lambda qs: qs), \
-             patch("apps.applications.views.Application.objects") as mock_qs, \
-             patch("apps.applications.views.ApplicationSerializer") as mock_ser_cls:
+        with patch("apps.applications.student_views._with_payment_summary", side_effect=lambda qs: qs), \
+             patch("apps.applications.student_views.Application.objects") as mock_qs, \
+             patch("apps.applications.student_views.ApplicationSerializer") as mock_ser_cls:
             mock_chain = MagicMock()
             mock_chain.get.return_value = application
             mock_qs.select_related.return_value.prefetch_related.return_value = mock_chain
@@ -352,8 +352,8 @@ class TestApplicationAPIContractsPreservation:
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id, status="submitted")
 
-        with patch("apps.applications.views.Application.objects") as mock_qs, \
-             patch("apps.applications.views.transition_application_status") as mock_transition:
+        with patch("apps.applications.admin_views.Application.objects") as mock_qs, \
+             patch("apps.applications.admin_views.transition_application_status") as mock_transition:
             mock_qs.get.return_value = application
             mock_transition.return_value = "submitted"  # old_status
 
@@ -391,8 +391,8 @@ class TestApplicationAPIContractsPreservation:
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id, status="submitted")
 
-        with patch("apps.applications.views.Application.objects") as mock_qs, \
-             patch("apps.applications.views.transition_application_status") as mock_transition:
+        with patch("apps.applications.admin_views.Application.objects") as mock_qs, \
+             patch("apps.applications.admin_views.transition_application_status") as mock_transition:
             mock_qs.get.return_value = application
             mock_transition.return_value = "submitted"
 

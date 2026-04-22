@@ -38,6 +38,7 @@ from apps.common.openapi_helpers import (
     TaskQueuedSerializer,
     envelope_serializer,
 )
+from apps.common.metrics import emit_metric
 
 from django.http import HttpResponseRedirect
 
@@ -550,6 +551,7 @@ class PaymentInitiateView(APIView):
             if error_msg.startswith("MAX_PAYMENT_ATTEMPTS_EXCEEDED"):
                 parts = error_msg.split("|")
                 remaining = int(parts[1]) if len(parts) > 1 else 0
+                emit_metric('payment.initiation_failed', method='card', reason='max_attempts_exceeded', application_id=str(application_id))
                 return Response(
                     {
                         "success": False,
@@ -560,12 +562,14 @@ class PaymentInitiateView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             logger.exception("Failed to initiate payment for application %s", application_id)
+            emit_metric('payment.initiation_failed', method='card', reason=str(exc), application_id=str(application_id))
             return Response(
                 {"success": False, "error": str(exc), "code": "PAYMENT_ERROR"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception:
             logger.exception("Failed to initiate payment for application %s", application_id)
+            emit_metric('payment.initiation_failed', method='card', reason='unexpected_error', application_id=str(application_id))
             return Response(
                 {"success": False, "error": "Failed to initiate payment", "code": "PAYMENT_ERROR"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -573,6 +577,7 @@ class PaymentInitiateView(APIView):
 
         lenco_public_key = getattr(settings, "LENCO_PUBLIC_KEY", "") or ""
 
+        emit_metric('payment.initiated', method='card', application_id=str(application_id))
         return Response(
             {
                 "success": True,
@@ -698,10 +703,12 @@ class MobileMoneyInitiateView(APIView):
         except ValueError as exc:
             error_msg = str(exc)
             if error_msg.startswith("MAX_PAYMENT_ATTEMPTS_EXCEEDED"):
+                emit_metric('payment.initiation_failed', method='mobile_money', reason='max_attempts_exceeded', application_id=str(application_id))
                 return Response(
                     {"success": False, "error": "Maximum payment attempts exceeded.", "code": "MAX_PAYMENT_ATTEMPTS_EXCEEDED"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+            emit_metric('payment.initiation_failed', method='mobile_money', reason=str(exc), application_id=str(application_id))
             return Response(
                 {"success": False, "error": str(exc), "code": "PAYMENT_ERROR"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -744,6 +751,7 @@ class MobileMoneyInitiateView(APIView):
             lenco_data = resp.json()
         except http_requests.RequestException:
             logger.exception("Lenco mobile money API failed for payment %s", result.payment_id)
+            emit_metric('payment.initiation_failed', method='mobile_money', reason='provider_error', application_id=str(application_id))
             return Response(
                 {"success": False, "error": "Unable to reach payment provider. Please try again.", "code": "PROVIDER_ERROR"},
                 status=status.HTTP_502_BAD_GATEWAY,
@@ -765,6 +773,7 @@ class MobileMoneyInitiateView(APIView):
             },
         )
 
+        emit_metric('payment.initiated', method='mobile_money', application_id=str(application_id))
         return Response(
             {
                 "success": True,

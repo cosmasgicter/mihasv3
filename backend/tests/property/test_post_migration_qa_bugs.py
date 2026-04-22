@@ -31,7 +31,7 @@ import uuid  # noqa: E402
 from unittest.mock import MagicMock, patch  # noqa: E402
 
 from apps.accounts.authentication import JWTUser  # noqa: E402
-from apps.common.middleware import CSRFEnforcementMiddleware  # noqa: E402
+from apps.common.middleware_compat import CSRFEnforcementMiddleware  # noqa: E402
 
 
 # ---------------------------------------------------------------------------

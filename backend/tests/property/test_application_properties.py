@@ -347,7 +347,7 @@ class TestPublicTrackingWithoutAuth(SimpleTestCase):
         request = MagicMock()
         request.query_params = {"code": code}
 
-        with patch("apps.applications.views.Application.objects") as mock_qs:
+        with patch("apps.applications.public_views.Application.objects") as mock_qs:
             mock_qs.get.side_effect = Application.DoesNotExist()
 
             view = ApplicationTrackView()
@@ -410,7 +410,7 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
         request.user = user
         request.data = {"new_status": "approved", "notes": notes}
 
-        with patch("apps.applications.views.Application.objects") as mock_qs:
+        with patch("apps.applications.admin_views.Application.objects") as mock_qs:
             mock_qs.get.return_value = app
 
             with patch("apps.documents.models.Payment.objects") as MockPaymentObjects:
@@ -435,11 +435,11 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
         request.user = user
         request.data = {"new_status": "approved", "notes": notes, "force": True}
 
-        with patch("apps.applications.views.Application.objects") as mock_qs, \
-             patch("apps.applications.views.transition_application_status", return_value="submitted"), \
-             patch("apps.applications.views.ApplicationStatusHistory.objects") as mock_history, \
+        with patch("apps.applications.admin_views.Application.objects") as mock_qs, \
+             patch("apps.applications.admin_views.transition_application_status", return_value="submitted"), \
+             patch("apps.applications.admin_views.ApplicationStatusHistory.objects") as mock_history, \
              patch("apps.common.communication_service.CommunicationService") as mock_comms, \
-             patch("apps.applications.views.CommunicationService", mock_comms):
+             patch("apps.applications.admin_views.CommunicationService", mock_comms):
             mock_qs.get.return_value = app
             mock_history.create.return_value = MagicMock()
             mock_history.filter.return_value.order_by.return_value.first.return_value = MagicMock()
@@ -464,13 +464,13 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
         request.user = user
         request.data = {"new_status": new_status}
 
-        with patch("apps.applications.views.Application.objects") as mock_qs:
+        with patch("apps.applications.admin_views.Application.objects") as mock_qs:
             mock_qs.get.return_value = app
 
-            with patch("apps.applications.views.ApplicationStatusHistory.objects") as mock_history:
+            with patch("apps.applications.admin_views.ApplicationStatusHistory.objects") as mock_history:
                 mock_history.create.return_value = MagicMock()
 
-                with patch("apps.applications.views.submit_application", return_value=(app, "submitted")):
+                with patch("apps.applications.admin_views.submit_application", return_value=(app, "submitted")):
                     view = ApplicationReviewView()
                     response = view.post(request, application_id=app.id)
 
@@ -518,7 +518,7 @@ class TestDraftAutoSaveRoundTrip(SimpleTestCase):
         request.user = user
         request.data = {"draft_data": draft_data}
 
-        with patch("apps.applications.views.ApplicationDraft.objects") as mock_qs:
+        with patch("apps.applications.student_views.ApplicationDraft.objects") as mock_qs:
             mock_qs.update_or_create.return_value = (mock_draft, True)
 
             view = ApplicationDraftView()
@@ -559,7 +559,7 @@ class TestDraftAutoSaveRoundTrip(SimpleTestCase):
         request = MagicMock()
         request.user = user
 
-        with patch("apps.applications.views.ApplicationDraft.objects") as mock_qs:
+        with patch("apps.applications.student_views.ApplicationDraft.objects") as mock_qs:
             mock_qs.filter.return_value.order_by.return_value.first.return_value = mock_draft
 
             view = ApplicationDraftView()

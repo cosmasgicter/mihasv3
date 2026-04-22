@@ -117,7 +117,7 @@ class TestTrackingFormatValidation:
         They should either get 404 (not found in DB) or 200 (found).
         The format validation step must accept them.
         """
-        with patch("apps.applications.views.Application.objects") as mock_qs:
+        with patch("apps.applications.public_views.Application.objects") as mock_qs:
             from apps.applications.models import Application
             mock_qs.get.side_effect = Application.DoesNotExist
 

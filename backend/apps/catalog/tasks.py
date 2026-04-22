@@ -24,8 +24,8 @@ def _log_error_and_alert(error_msg: str) -> None:
     Follows the same pattern as ``apps.common.exceptions._log_error_and_alert``
     but without a request context (this runs inside a Celery worker).
     """
-    from apps.common.models import EmailQueue, ErrorLog
-    from apps.common.tasks import dispatch_email
+    from apps.common.models import ErrorLog
+    from apps.common.outbox import queue_email
 
     ErrorLog.objects.create(
         source="backend",
@@ -46,16 +46,14 @@ def _log_error_and_alert(error_msg: str) -> None:
 
     if should_alert:
         alert_email = settings.ERROR_ALERT_EMAIL
-        email_record = EmailQueue.objects.create(
+        queue_email(
             recipient_email=alert_email,
             subject=f"[ALERT] intake_manager_task failed: {error_msg[:100]}",
             body=(
                 f"<p>The <code>intake_manager_task</code> encountered an error:</p>"
                 f"<pre>{error_msg[:2000]}</pre>"
             ),
-            status="pending",
         )
-        dispatch_email(str(email_record.id))
 
 
 @shared_task(bind=True, max_retries=2, default_retry_delay=300)

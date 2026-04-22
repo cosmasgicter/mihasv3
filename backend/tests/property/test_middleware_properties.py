@@ -28,10 +28,10 @@ from hypothesis import strategies as st  # noqa: E402
 
 from apps.common.middleware import (  # noqa: E402
     AuditMiddleware,
-    CSRFEnforcementMiddleware,
     RateLimitMiddleware,
     SecurityHeadersMiddleware,
 )
+from apps.common.middleware_compat import CSRFEnforcementMiddleware  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Strategies

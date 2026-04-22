@@ -21,7 +21,7 @@ django.setup()
 import jwt
 from django.test import SimpleTestCase, override_settings
 
-from apps.common.middleware import JWTAuthenticationMiddleware
+from apps.common.middleware_compat import JWTAuthenticationMiddleware
 
 # ---------------------------------------------------------------------------
 # Constants

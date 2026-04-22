@@ -156,7 +156,7 @@ class TestBug8TrackingFormatValidation:
         self.factory = APIRequestFactory()
         self.view = ApplicationTrackView.as_view()
 
-    @patch("apps.applications.views.Application.objects")
+    @patch("apps.applications.public_views.Application.objects")
     def test_invalid_format_code_returns_400_with_guidance(self, mock_qs):
         """Bug 8: Invalid format code must return 400 with format guidance.
 
@@ -191,7 +191,7 @@ class TestBug8bTrackingDescriptive404:
         self.factory = APIRequestFactory()
         self.view = ApplicationTrackView.as_view()
 
-    @patch("apps.applications.views.Application.objects")
+    @patch("apps.applications.public_views.Application.objects")
     def test_valid_format_not_found_returns_descriptive_message(self, mock_qs):
         """Bug 8b: Valid-format code that doesn't exist must return descriptive 404.
 

@@ -76,8 +76,8 @@ def interview_reminder_task(self):
         return
     try:
         from apps.applications.models import ApplicationInterview
-        from apps.common.models import EmailQueue, Notification
-        from apps.common.tasks import send_email_task
+        from apps.common.models import Notification
+        from apps.common.outbox import create_notification, queue_email
 
         now = timezone.now()
         window_end = now + timedelta(hours=24)
@@ -112,7 +112,7 @@ def interview_reminder_task(self):
             )
 
             try:
-                Notification.objects.create(
+                create_notification(
                     user_id=application.user_id,
                     title=title,
                     message=message,
@@ -132,14 +132,11 @@ def interview_reminder_task(self):
                     f"<p>Best regards,<br>MIHAS Admissions</p>"
                 )
 
-                email_record = EmailQueue.objects.create(
+                queue_email(
                     recipient_email=application.email,
                     subject=f"Reminder: Interview Tomorrow — {application.program}",
                     body=email_body,
-                    status="pending",
                 )
-                from apps.common.tasks import dispatch_email
-                dispatch_email(str(email_record.id))
                 sent += 1
             except Exception:
                 logger.exception(
@@ -172,8 +169,8 @@ def draft_expiry_reminder_task(self):
     try:
         from apps.applications.models import Application
         from apps.applications.services import transition_application_status
-        from apps.common.models import EmailQueue, Notification
-        from apps.common.tasks import send_email_task
+        from apps.common.models import Notification
+        from apps.common.outbox import create_notification, queue_email
 
         now = timezone.now()
         seven_days_ago = now - timedelta(days=7)
@@ -204,7 +201,7 @@ def draft_expiry_reminder_task(self):
                     )
 
                     dedup_key = f"draft_expired_{app.id}"
-                    Notification.objects.create(
+                    create_notification(
                         user_id=app.user_id,
                         title="Application Draft Expired",
                         message=(
@@ -218,7 +215,7 @@ def draft_expiry_reminder_task(self):
                         idempotency_key=dedup_key,
                     )
 
-                    email_record = EmailQueue.objects.create(
+                    queue_email(
                         recipient_email=app.email,
                         subject="Application Draft Expired",
                         body=(
@@ -228,10 +225,7 @@ def draft_expiry_reminder_task(self):
                             f"<p>You may start a new application at any time.</p>"
                             f"<p>Best regards,<br>MIHAS Admissions</p>"
                         ),
-                        status="pending",
                     )
-                    from apps.common.tasks import dispatch_email
-                    dispatch_email(str(email_record.id))
                     expired_count += 1
                 except Exception:
                     logger.exception(
@@ -263,7 +257,7 @@ def draft_expiry_reminder_task(self):
                         f"Please log in to complete and submit your application.{urgency_msg}"
                     )
 
-                    Notification.objects.create(
+                    create_notification(
                         user_id=app.user_id,
                         title="Complete Your Application Draft",
                         message=message,
@@ -274,7 +268,7 @@ def draft_expiry_reminder_task(self):
                     )
 
                     email_subject = "Your Application Draft Will Expire Soon" if days_until_expiry <= 3 else "Reminder: Complete Your Application"
-                    email_record = EmailQueue.objects.create(
+                    queue_email(
                         recipient_email=app.email,
                         subject=email_subject,
                         body=(
@@ -282,10 +276,7 @@ def draft_expiry_reminder_task(self):
                             f"<p>{message}</p>"
                             f"<p>Best regards,<br>MIHAS Admissions</p>"
                         ),
-                        status="pending",
                     )
-                    from apps.common.tasks import dispatch_email
-                    dispatch_email(str(email_record.id))
                     reminders_sent += 1
                 except Exception:
                     logger.exception(
@@ -317,8 +308,8 @@ def review_sla_reminder_task(self):
     try:
         from apps.accounts.models import Profile
         from apps.applications.models import Application
-        from apps.common.models import EmailQueue, Notification, Setting
-        from apps.common.tasks import send_email_task
+        from apps.common.models import Notification, Setting
+        from apps.common.outbox import create_notification, queue_email
 
         # Read configurable SLA threshold
         sla_days = 5
@@ -375,7 +366,7 @@ def review_sla_reminder_task(self):
                 continue
 
             try:
-                Notification.objects.create(
+                create_notification(
                     user_id=admin.id,
                     title=f"Review SLA Alert: {overdue_count} Application(s) Overdue",
                     message=(
@@ -388,7 +379,7 @@ def review_sla_reminder_task(self):
                     idempotency_key=dedup_key,
                 )
 
-                email_record = EmailQueue.objects.create(
+                queue_email(
                     recipient_email=admin.email,
                     subject=f"ALERT: {overdue_count} Applications Pending Review Beyond SLA",
                     body=(
@@ -397,10 +388,7 @@ def review_sla_reminder_task(self):
                         f"<p>{summary_html}</p>"
                         f"<p>Please prioritize these reviews.</p>"
                     ),
-                    status="pending",
                 )
-                from apps.common.tasks import dispatch_email
-                dispatch_email(str(email_record.id))
                 admins_notified += 1
             except Exception:
                 logger.exception(
@@ -433,8 +421,7 @@ def condition_expiry_task(self):
     try:
         from apps.applications.condition_manager import ConditionManager
         from apps.applications.models import Application, ApplicationCondition
-        from apps.common.models import EmailQueue, Notification
-        from apps.common.tasks import send_email_task
+        from apps.common.outbox import create_notification, queue_email
 
         today = timezone.now().date()
 
@@ -456,7 +443,7 @@ def condition_expiry_task(self):
                 application = condition.application
                 dedup_key = f"condition_expired_{condition.id}"
 
-                Notification.objects.create(
+                create_notification(
                     user_id=application.user_id,
                     title="Condition Deadline Passed",
                     message=(
@@ -470,7 +457,7 @@ def condition_expiry_task(self):
                     idempotency_key=dedup_key,
                 )
 
-                email_record = EmailQueue.objects.create(
+                queue_email(
                     recipient_email=application.email,
                     subject=f"Condition Deadline Passed — {application.program}",
                     body=(
@@ -482,10 +469,7 @@ def condition_expiry_task(self):
                         f"<p>Please log in to check your application status.</p>"
                         f"<p>Best regards,<br>MIHAS Admissions</p>"
                     ),
-                    status="pending",
                 )
-                from apps.common.tasks import dispatch_email
-                dispatch_email(str(email_record.id))
 
             except Exception:
                 logger.exception(
@@ -725,10 +709,9 @@ def waitlist_cascade_task(self):
 
                     # Notify student (Req 15.4)
                     try:
-                        from apps.common.models import EmailQueue, Notification
-                        from apps.common.tasks import send_email_task
+                        from apps.common.outbox import create_notification, queue_email
 
-                        Notification.objects.create(
+                        create_notification(
                             user_id=app.user_id,
                             title="Application Carried Forward",
                             message=(
@@ -749,14 +732,11 @@ def waitlist_cascade_task(self):
                             f"<p>Best regards,<br>MIHAS Admissions</p>"
                         )
 
-                        email_record = EmailQueue.objects.create(
+                        queue_email(
                             recipient_email=app.email,
                             subject=f"Application Carried Forward — {app.program}",
                             body=email_body,
-                            status="pending",
                         )
-                        from apps.common.tasks import dispatch_email
-                        dispatch_email(str(email_record.id))
                     except Exception:
                         logger.exception("Failed to notify student for cascade app=%s", app.id)
 

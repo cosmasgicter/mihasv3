@@ -13,7 +13,7 @@ _APP_OBJECTS = f"{_WM_BASE}.Application.objects"
 _TRANSITION = f"{_WM_BASE}.transition_application_status"
 _HISTORY = f"{_WM_BASE}.ApplicationStatusHistory.objects"
 _SEND_NOTIF = f"{_WM_BASE}._send_promotion_notification"
-_VIEW_APP_OBJECTS = "apps.applications.views.Application.objects"
+_VIEW_APP_OBJECTS = "apps.applications.admin_views.Application.objects"
 
 
 def _user(uid=None, role="student"):
@@ -401,9 +401,9 @@ class TestPromotionTriggeredByRejection:
     @patch("apps.common.tasks.send_email_task")
     @patch(f"{_WM_BASE}.WaitlistManager.promote_next")
     @patch("apps.applications.intake_enforcer.IntakeEnforcer.sync_enrollment")
-    @patch("apps.applications.views.ApplicationSerializer")
-    @patch("apps.applications.views.transition_application_status", return_value="under_review")
-    @patch("apps.applications.views.Application.objects")
+    @patch("apps.applications.admin_views.ApplicationSerializer")
+    @patch("apps.applications.admin_views.transition_application_status", return_value="under_review")
+    @patch("apps.applications.admin_views.Application.objects")
     def test_rejection_calls_promote_next(self, mock_qs, mock_trans, mock_ser,
                                           mock_sync, mock_promote,
                                           mock_email_task, mock_notif_qs,

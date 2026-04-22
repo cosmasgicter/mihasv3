@@ -22,7 +22,7 @@ import jwt as pyjwt  # noqa: E402
 from django.conf import settings  # noqa: E402
 from django.test import RequestFactory, SimpleTestCase, override_settings  # noqa: E402
 
-from apps.common.middleware import CSRFEnforcementMiddleware, JWTAuthenticationMiddleware  # noqa: E402
+from apps.common.middleware_compat import CSRFEnforcementMiddleware, JWTAuthenticationMiddleware  # noqa: E402
 
 
 # ─── 1. Auth Error Codes ────────────────────────────────────────────────────────

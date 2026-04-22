@@ -689,6 +689,18 @@ class PaymentService:
                 locked.lenco_reference,
             )
 
+            # Emit business metric for successful payments (Req 3.1)
+            if new_status == "successful":
+                logger.info(
+                    "business_metric",
+                    extra={
+                        "type": "business_metric",
+                        "metric": "payment_completed",
+                        "amount": str(locked.amount),
+                        "currency": locked.currency or "ZMW",
+                    },
+                )
+
             # Sync application payment_status inside the same atomic block
             # so both updates commit or roll back together (Req 8.7).
             _PAYMENT_TO_APP_STATUS = {

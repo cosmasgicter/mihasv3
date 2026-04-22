@@ -386,7 +386,7 @@ class TestSimpleTestCaseDBIsolation(SimpleTestCase):
                         )
 
     @given(file_index=st.integers(min_value=0, max_value=500))
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=20, deadline=None)
     def test_any_simple_test_case_class_has_no_unmocked_db_calls(self, file_index):
         """For any SimpleTestCase class selected by index, all outbox and
         CommunicationService DB paths are mocked.

@@ -57,12 +57,17 @@ If Redis was flushed or data was lost, previously-revoked refresh tokens may bec
 2. **If JTI data was lost** (FLUSHDB, instance replacement, etc.):
 
    ```bash
-   # Option A: Rotate the JWT signing key (invalidates ALL tokens immediately)
+   # Option A (Recommended): Run the JTI recovery command
+   # Force-expires all active device sessions, requiring all users to re-authenticate.
+   # See the "JTI Blacklist Recovery Command" section below for details.
+   python manage.py recover_jti_blacklist
+
+   # Option B: Rotate the JWT signing key (invalidates ALL tokens immediately)
    # Update JWT_SIGNING_KEY in production environment variables (Koyeb dashboard).
    # All users will be logged out and must re-authenticate.
    # See: docs/runbooks/secrets-rotation.md for the full procedure.
 
-   # Option B: Wait it out
+   # Option C: Wait it out
    # Access tokens expire in 30 minutes. Refresh tokens expire in 7 days.
    # If the security risk is acceptable, tokens will naturally expire.
    ```
@@ -76,6 +81,54 @@ If Redis was flushed or data was lost, previously-revoked refresh tokens may bec
    print('OK' if is_jti_blacklisted('test-recovery-jti') else 'FAIL')
    "
    ```
+
+## JTI Blacklist Recovery Command
+
+### When to Run
+
+Run `recover_jti_blacklist` after any event that causes JTI blacklist data loss:
+
+- Redis `FLUSHDB` or `FLUSHALL`
+- Redis instance replacement or failover
+- Upstash plan migration that resets data
+- Any scenario where Redis keys are lost but the database is intact
+
+### Command Invocation
+
+```bash
+# From the backend directory (or via Koyeb one-off task):
+python manage.py recover_jti_blacklist
+```
+
+### What It Does
+
+Since raw JWTs are not stored in the database, the command takes a conservative approach:
+
+1. Verifies Redis is reachable (exits with code 1 if not)
+2. Queries `device_sessions` for active sessions (`is_active=True`, `expires_at > now`)
+3. Force-expires all active sessions by setting `expires_at = now`
+4. Logs the count of sessions invalidated and expired sessions skipped
+
+### Expected Output
+
+```
+Recovery complete: 42 sessions invalidated, 7 expired sessions skipped.
+```
+
+If Redis is unreachable:
+
+```
+Redis is unreachable: <error details>. Aborting recovery.
+```
+
+The command exits with code 1 in this case.
+
+### Impact
+
+- All users with active sessions will be logged out and must re-authenticate
+- Access tokens (30-minute lifetime) will continue to work until they expire
+- Refresh tokens will fail immediately since their device sessions are expired
+- No data is deleted — sessions are only expired, preserving audit history
 
 ## Monitoring
 

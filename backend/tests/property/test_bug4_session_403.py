@@ -31,7 +31,7 @@ from django.test import SimpleTestCase, override_settings  # noqa: E402
 from hypothesis import given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 
-from apps.common.middleware import JWTAuthenticationMiddleware  # noqa: E402
+from apps.common.middleware_compat import JWTAuthenticationMiddleware  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Constants

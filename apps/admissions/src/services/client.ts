@@ -14,6 +14,14 @@ import { getCsrfToken, setCsrfToken } from '@/lib/csrfToken';
 import { TIMEOUT_ERROR_MESSAGE } from '@/lib/errorMessages';
 import { shouldDispatchAuthFailure, isPermissionDenial, dispatchAuthRecovered } from '@/lib/sessionHardening';
 
+import { toApiV1Path, getServiceName } from './apiHelpers';
+import { isRetryableFailure, MAX_RETRIES, RETRY_DELAYS, createTimeoutController, getTimeoutForEndpoint } from './retry';
+import { recoverCsrfAndRetry } from './csrf';
+
+// Re-export moved items so existing import sites don't break
+export { toApiV1Path, buildQueryString, type QueryParams, type QueryParamValue, API_V1_PREFIX } from './apiHelpers';
+export { syncApiClientCsrfToken } from './csrf';
+
 /**
  * Error thrown when the ApiClient encounters an unrecoverable 401
  * (token refresh failed or second 401 after retry).
@@ -28,135 +36,6 @@ export class AuthenticationError extends Error {
 }
 
 const API_BASE = getApiBaseUrl();
-const API_V1_PREFIX = '/api/v1';
-
-/** Default request timeout in milliseconds (30s) */
-const DEFAULT_TIMEOUT = 30_000;
-/** Shorter timeout for health check and session validation requests (10s) */
-const SHORT_TIMEOUT = 10_000;
-/** Maximum retry attempts for network/5xx errors */
-const MAX_RETRIES = 3;
-/** Backoff delays in ms for each retry attempt (2s, 5s, 10s) */
-const RETRY_DELAYS = [2_000, 5_000, 10_000];
-
-/** Endpoints that use the shorter timeout */
-const SHORT_TIMEOUT_PATTERNS = ['/api/v1/health/', '/api/v1/auth/session/'];
-
-/**
- * Determine the appropriate timeout for a given endpoint.
- * Health checks and session validation use 10s; everything else uses 30s.
- */
-function getTimeoutForEndpoint(endpoint: string): number {
-  for (const pattern of SHORT_TIMEOUT_PATTERNS) {
-    if (endpoint.startsWith(pattern) || endpoint.includes(pattern)) {
-      return SHORT_TIMEOUT;
-    }
-  }
-  return DEFAULT_TIMEOUT;
-}
-
-/**
- * Check whether a failed request should be retried.
- * Retries network errors and 5xx server errors.
- * Does NOT retry 4xx client errors or user-aborted requests.
- */
-function isRetryableFailure(error: unknown): boolean {
-  // Never retry user-aborted requests
-  if (error instanceof DOMException && error.name === 'AbortError') return false;
-  if (error instanceof Error && error.name === 'AbortError') return false;
-
-  // Timeout errors (our custom TimeoutError) are retryable
-  if (error instanceof Error && error.name === 'TimeoutError') return true;
-
-  // Network errors (TypeError from fetch) are retryable
-  if (error instanceof TypeError) return true;
-
-  // Check for 5xx status in error metadata
-  const errWithStatus = error as { status?: number };
-  if (typeof errWithStatus?.status === 'number') {
-    return errWithStatus.status >= 500;
-  }
-
-  // Check error message for network-related failures
-  if (error instanceof Error) {
-    const msg = error.message.toLowerCase();
-    if (
-      msg.includes('network') ||
-      msg.includes('failed to fetch') ||
-      msg.includes('load failed') ||
-      msg.includes('net::err')
-    ) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/**
- * Create an AbortController that auto-aborts after `ms` milliseconds.
- * If an external signal is provided, it is linked so that external abort
- * also cancels the timeout controller.
- */
-function createTimeoutController(
-  ms: number,
-  externalSignal?: AbortSignal | null
-): { controller: AbortController; clear: () => void } {
-  const controller = new AbortController();
-  const timer = setTimeout(() => {
-    const err = new DOMException(TIMEOUT_ERROR_MESSAGE, 'TimeoutError');
-    controller.abort(err);
-  }, ms);
-
-  const clear = () => clearTimeout(timer);
-
-  // If the caller already has an AbortSignal (e.g. from navigation), link it
-  if (externalSignal) {
-    if (externalSignal.aborted) {
-      clear();
-      controller.abort(externalSignal.reason);
-    } else {
-      const onExternalAbort = () => {
-        clear();
-        controller.abort(externalSignal.reason);
-      };
-      externalSignal.addEventListener('abort', onExternalAbort, { once: true });
-    }
-  }
-
-  return { controller, clear };
-}
-
-/**
- * Normalize an endpoint path to include the `/api/v1` prefix.
- * - Absolute URLs (http:// or https://) pass through unchanged.
- * - Paths already starting with `/api/v1/` are returned as-is (idempotent).
- * - All other paths get `/api/v1` prepended.
- * - Consecutive slashes are deduplicated.
- */
-export function toApiV1Path(path: string): string {
-  // Absolute URLs pass through unchanged
-  if (path.startsWith('http://') || path.startsWith('https://')) {
-    return path;
-  }
-
-  // Already prefixed — return as-is (idempotent)
-  if (path.startsWith('/api/v1/') || path.startsWith('/api/v1?')) {
-    return path.replace(/\/{2,}/g, '/');
-  }
-
-  const trimmedPath = path.replace(/^\/+/, '');
-  return `${API_V1_PREFIX}/${trimmedPath}`.replace(/\/{2,}/g, '/');
-}
-
-/**
- * Extract the primary resource name from a normalized `/api/v1/...` endpoint.
- * Used for logging/metrics only.
- */
-function getServiceName(endpoint: string): string {
-  const stripped = endpoint.replace(/^\/api\/v1\//, '').replace(/^\//, '');
-  return stripped.split('/')[0] || 'unknown';
-}
 
 class ApiClient {
   /**
@@ -259,32 +138,7 @@ class ApiClient {
     requestHeaders: Record<string, string>,
     signal: AbortSignal,
   ): Promise<Response> {
-    // Re-fetch CSRF token from session endpoint
-    const sessionEndpoint = toApiV1Path('/auth/session/');
-    const sessionResponse = await fetch(`${API_BASE}${sessionEndpoint}`, {
-      method: 'GET',
-      credentials: 'include',
-      signal,
-    });
-
-    const freshCsrf = sessionResponse.headers.get('X-CSRF-Token');
-    if (freshCsrf) {
-      setCsrfToken(freshCsrf);
-    }
-
-    // Retry the original request with the fresh CSRF token
-    const csrfToken = getCsrfToken();
-    if (csrfToken) {
-      requestHeaders['X-CSRF-Token'] = csrfToken;
-    }
-
-    return fetch(`${API_BASE}${endpoint}`, {
-      ...restOptions,
-      method,
-      headers: requestHeaders,
-      credentials: 'include',
-      signal,
-    });
+    return recoverCsrfAndRetry(endpoint, method, restOptions, requestHeaders, signal);
   }
 
 
@@ -1032,49 +886,6 @@ export function configureApiClientAuthFailure(callback: () => void): void {
  */
 export function getOnAuthFailure(): (() => void) | null {
   return onAuthFailure;
-}
-
-/**
- * Sync the in-memory CSRF token from external auth events such as multi-tab
- * broadcasts. Keeping the write inside ApiClient preserves the single writer
- * invariant for the token store.
- */
-export function syncApiClientCsrfToken(token: string | null): void {
-  setCsrfToken(token);
-}
-
-export type QueryParamValue = string | number | boolean;
-
-export type QueryParams = Record<string, QueryParamValue | QueryParamValue[] | null | undefined>;
-
-export function buildQueryString(params: QueryParams = {}) {
-  const query = new URLSearchParams();
-
-  Object.entries(params).forEach(([key, value]) => {
-    if (value === undefined || value === null || value === '') {
-      return;
-    }
-
-    if (Array.isArray(value)) {
-      const validItems = value.filter(item => item !== undefined && item !== null && item !== '');
-      if (validItems.length > 0) {
-        query.set(key, validItems.join(','));
-      }
-      return;
-    }
-
-    // Django pagination is 1-based — clamp page to >= 1
-    if (key === 'page') {
-      const pageNum = Number(value);
-      query.set(key, String(Math.max(pageNum || 1, 1)));
-      return;
-    }
-
-    query.set(key, String(value));
-  });
-
-  const queryString = query.toString();
-  return queryString ? `?${queryString}` : '';
 }
 
 export type ApiClientRequest = ApiClient['request'];
