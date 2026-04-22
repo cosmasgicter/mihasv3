@@ -7,6 +7,7 @@ import { z } from '@/lib/zod'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useToastStore } from '@/hooks/useToast'
+import { onSettingsMount } from '@/lib/speculativePrefetch'
 import { Button } from '@/components/ui/Button'
 import { FormSelect } from '@/components/ui/form-select'
 import { Input } from '@/components/ui/input'
@@ -76,6 +77,9 @@ export default function StudentSettings() {
   const { profile, updateProfile, updatingProfile } = useProfileQuery()
   const { metadata } = useProfileAutoPopulation()
   const toast = useToastStore()
+
+  React.useEffect(() => { onSettingsMount(user?.id) }, [user?.id])
+
   const profileEditingEnabled = true
   const [saveStatus, setSaveStatus] = React.useState<{ tone: 'success' | 'error'; message: string } | null>(null)
 

@@ -63,8 +63,8 @@ export default function StudentDashboard() {
 
   // Speculative prefetch: preload catalog data + wizard chunk during idle time
   useEffect(() => {
-    onDashboardMount()
-  }, [])
+    onDashboardMount(user?.id)
+  }, [user?.id])
 
   const [applications, setApplications] = useState<Application[]>([])
   const [intakes, setIntakes] = useState<Intake[]>([])
