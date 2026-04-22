@@ -193,8 +193,8 @@ Raise the MIHAS platform production readiness score from 79 to 90+ across six ar
     - **Property 13: Celery Lifecycle Signals Emit Correct Logs**
     - **Validates: Requirements 9.1, 9.2, 9.3**
 
-- [ ] 13. Implement missed task detection command (P4 — Task Scheduling)
-  - [-] 13.1 Create `backend/apps/common/management/commands/check_missed_tasks.py`
+- [x] 13. Implement missed task detection command (P4 — Task Scheduling)
+  - [x] 13.1 Create `backend/apps/common/management/commands/check_missed_tasks.py`
     - Read `CELERY_BEAT_SCHEDULE` from Django settings
     - For each task, compute expected interval (handle both numeric and `crontab` schedules)
     - Query Redis for `task_last_run:{task_name}` key (set by lifecycle signal handler)
@@ -205,16 +205,16 @@ Raise the MIHAS platform production readiness score from 79 to 90+ across six ar
     - _Requirements: 10.1, 10.2, 10.3, 10.4_
     - _Design: Section 10 (Missed Task Detection Command)_
 
-  - [~] 13.2 Write property test for missed task detection
+  - [x] 13.2 Write property test for missed task detection
     - **Property 14: Missed Task Detection Within 2x Interval**
     - **Validates: Requirements 10.2**
 
-- [~] 14. Checkpoint — Verify task scheduling changes pass tests
+- [x] 14. Checkpoint — Verify task scheduling changes pass tests
   - Ensure all tests pass, ask the user if questions arise.
   - _Requirements: 9.1–9.4, 10.1–10.4_
 
-- [ ] 15. Create scaling playbook and Beat HA documentation (P5 — Documentation)
-  - [~] 15.1 Create `docs/runbooks/scaling-playbook.md`
+- [x] 15. Create scaling playbook and Beat HA documentation (P5 — Documentation)
+  - [x] 15.1 Create `docs/runbooks/scaling-playbook.md`
     - Document Koyeb backend scaling (current 1-instance Uvicorn, steps to add instances)
     - Document Celery worker scaling (concurrency, Redis connection limits for Upstash free tier)
     - Document Neon Postgres connection pool sizing (0.25 CU tier, `CONN_MAX_AGE=300` rationale)
@@ -223,7 +223,7 @@ Raise the MIHAS platform production readiness score from 79 to 90+ across six ar
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
     - _Design: Section 11 (Scaling Playbook)_
 
-  - [~] 15.2 Add Celery Beat HA section to scaling playbook
+  - [x] 15.2 Add Celery Beat HA section to scaling playbook
     - Document current SPOF risk (single Beat instance, 16 tasks)
     - Document migration path to `celery-redbeat`
     - Document trade-offs (complexity, Redis dependency, Upstash free-tier limits)
@@ -231,7 +231,7 @@ Raise the MIHAS platform production readiness score from 79 to 90+ across six ar
     - _Requirements: 12.1, 12.2, 12.3_
     - _Design: Section 12 (Celery Beat HA Documentation)_
 
-- [~] 16. Final checkpoint — Ensure all tests pass
+- [x] 16. Final checkpoint — Ensure all tests pass
   - Run full test suite: `python -m pytest tests/unit/ tests/property/ -x -q --tb=short`
   - Run `python manage.py check`
   - Run circular import check: `python scripts/check_circular_imports.py`

@@ -125,3 +125,113 @@ class TestCeleryLifecycleSignalLogs(SimpleTestCase):
         self.assertEqual(len(failed), 1)
         self.assertEqual(getattr(failed[0], "type"), "task_lifecycle")
         self.assertIn("ValueError", getattr(failed[0], "error"))
+
+
+# =========================================================================
+# Property 14: Missed Task Detection Within 2x Interval
+# =========================================================================
+
+
+class TestMissedTaskDetection(SimpleTestCase):
+    """Property 14: Missed Task Detection Within 2x Interval.
+
+    # Feature: production-readiness-hardening, Property 14
+    **Validates: Requirements 10.2**
+    """
+
+    @given(
+        interval=st.integers(min_value=60, max_value=86400),
+        elapsed_factor=st.floats(min_value=2.1, max_value=10.0, allow_nan=False, allow_infinity=False),
+    )
+    @settings(max_examples=20, deadline=None)
+    def test_overdue_task_reported_as_missed(self, interval, elapsed_factor):
+        """Tasks not run within 2x interval are reported as missed."""
+        import io
+        import time as _time
+
+        from apps.common.management.commands.check_missed_tasks import Command
+
+        now = _time.time()
+        last_run = now - (interval * elapsed_factor)
+
+        mock_cache = MagicMock()
+        mock_cache.set.return_value = True
+        mock_cache.get.side_effect = lambda key, default=None: (
+            "1" if key == "_missed_task_ping" else
+            last_run if "task_last_run:" in key else default
+        )
+
+        fake_schedule = {
+            "test_task": {
+                "task": "apps.common.tasks.test_task",
+                "schedule": interval,
+            }
+        }
+
+        handler = _LogCapture()
+        cmd_logger = logging.getLogger("apps.common.management.commands.check_missed_tasks")
+        cmd_logger.addHandler(handler)
+        cmd_logger.setLevel(logging.DEBUG)
+
+        cmd = Command()
+        cmd.stdout = io.StringIO()
+        cmd.stderr = io.StringIO()
+
+        try:
+            with patch("django.core.cache.cache", mock_cache), \
+                 patch("django.conf.settings.CELERY_BEAT_SCHEDULE", fake_schedule):
+                try:
+                    cmd.handle()
+                except SystemExit:
+                    pass
+        finally:
+            cmd_logger.removeHandler(handler)
+
+        missed = [r for r in handler.records if getattr(r, "type", None) == "missed_task"]
+        self.assertGreaterEqual(len(missed), 1)
+        self.assertEqual(getattr(missed[0], "task_name"), "apps.common.tasks.test_task")
+
+    @given(interval=st.integers(min_value=60, max_value=86400))
+    @settings(max_examples=20, deadline=None)
+    def test_on_time_task_not_reported(self, interval):
+        """Tasks run within 2x interval are not reported as missed."""
+        import io
+        import time as _time
+
+        from apps.common.management.commands.check_missed_tasks import Command
+
+        now = _time.time()
+        last_run = now - (interval * 0.5)  # Well within window
+
+        mock_cache = MagicMock()
+        mock_cache.set.return_value = True
+        mock_cache.get.side_effect = lambda key, default=None: (
+            "1" if key == "_missed_task_ping" else
+            last_run if "task_last_run:" in key else default
+        )
+
+        fake_schedule = {
+            "test_task": {
+                "task": "apps.common.tasks.test_task",
+                "schedule": interval,
+            }
+        }
+
+        handler = _LogCapture()
+        cmd_logger = logging.getLogger("apps.common.management.commands.check_missed_tasks")
+        cmd_logger.addHandler(handler)
+        cmd_logger.setLevel(logging.DEBUG)
+
+        cmd = Command()
+        cmd.stdout = io.StringIO()
+        cmd.stderr = io.StringIO()
+
+        try:
+            with patch("django.core.cache.cache", mock_cache), \
+                 patch("django.conf.settings.CELERY_BEAT_SCHEDULE", fake_schedule):
+                cmd.handle()
+        finally:
+            cmd_logger.removeHandler(handler)
+
+        missed = [r for r in handler.records if getattr(r, "type", None) == "missed_task"]
+        self.assertEqual(len(missed), 0)
