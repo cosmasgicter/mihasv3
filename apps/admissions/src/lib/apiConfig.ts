@@ -46,10 +46,9 @@ export function getApiBaseUrl(): string {
     }
   }
 
-  // Production: same-origin via Vercel API rewrite (/api/* → api.mihas.edu.zm)
-  // This eliminates cross-origin cookie issues entirely.
+  // Production: direct API origin (Vercel free plan doesn't support external rewrites)
   if (browserOrigin === PRODUCTION_APP_ORIGIN) {
-    return PRODUCTION_APP_ORIGIN
+    return PRODUCTION_API_ORIGIN
   }
 
   if (browserOrigin) {
