@@ -36,18 +36,22 @@ function phoneDigits(formatted: string): string {
   return formatted.replace(/\D/g, '')
 }
 
-/** Normalize any Zambian phone to 10-digit local format (e.g. 0977123456) */
+/** Normalize any Zambian phone to E.164 format (+260XXXXXXXXX) for API calls */
 export function normalizeZambianPhone(raw: string): string {
   const digits = raw.replace(/\D/g, '')
-  // Strip country code: 260977... -> 0977...
+  // +260977... → 260977...
   if (digits.startsWith('260') && digits.length >= 12) {
-    return '0' + digits.slice(3, 12)
+    return '+' + digits.slice(0, 12)
   }
-  // Already local: 0977... or 977...
-  if (!digits.startsWith('0') && digits.length === 9) {
-    return '0' + digits
+  // 0977... → +260977...
+  if (digits.startsWith('0') && digits.length === 10) {
+    return '+260' + digits.slice(1)
   }
-  return digits.slice(0, 10)
+  // 977... (9 digits, no leading 0) → +260977...
+  if (digits.length === 9) {
+    return '+260' + digits
+  }
+  return digits
 }
 
 interface MobileMoneyResponse {
@@ -174,15 +178,15 @@ export function PaymentForm({
   const phoneValidationError = (() => {
     const digits = phoneDigits(momoPhone)
     if (!digits) return null
-    if (digits.length > 0 && digits.length < 10) return 'Enter a 10-digit phone number (e.g. 0977 123 456)'
-    if (digits.length > 10) return 'Phone number is too long'
+    if (digits.length > 0 && digits.length < 9) return 'Enter a valid phone number (e.g. 0977 123 456)'
+    if (digits.length > 12) return 'Phone number is too long'
     return null
   })()
 
   const handleMomoPayment = useCallback(async () => {
-    const digits = normalizeZambianPhone(momoPhone)
-    if (!digits || digits.length < 10) {
-      setMomoError('Please enter a valid 10-digit phone number.')
+    const normalized = normalizeZambianPhone(momoPhone)
+    if (!normalized || normalized.length < 12) {
+      setMomoError('Please enter a valid phone number.')
       return
     }
     setMomoLoading(true)
@@ -190,7 +194,7 @@ export function PaymentForm({
     try {
       const data = await apiClient.request<MobileMoneyResponse>('/payments/mobile-money/', {
         method: 'POST',
-        body: JSON.stringify({ application_id: applicationId, phone: digits, operator: momoOperator || 'airtel' }),
+        body: JSON.stringify({ application_id: applicationId, phone: normalized, operator: momoOperator || 'airtel' }),
       })
       if (!data) throw new Error('No response from payment service')
       if ((data as MobileMoneyResponse).status === 'already_paid') {

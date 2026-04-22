@@ -153,7 +153,7 @@ cd apps/jobs-ops && bun run type-check && bun run lint
 | Backend API | Koyeb (Docker) | `backend/Dockerfile` |
 | Celery Worker | Koyeb (Docker) | Same image, different entrypoint |
 | Celery Beat | Koyeb (1 instance) | Periodic task scheduler |
-| Admissions | Vercel | `apps/admissions/vercel.json` (same-origin API proxy via rewrites) |
+| Admissions | Vercel | `apps/admissions/vercel.json` |
 | Jobs Ops | Vercel (planned) | Independent deploy |
 
 Each app deploys independently. Backend health checks at `/health/live/` and `/health/ready/`.

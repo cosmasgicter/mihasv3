@@ -467,7 +467,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ---------------------------------------------------------------------------
 
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
-APP_VERSION = os.environ.get("APP_VERSION", "dev")
+APP_VERSION = os.environ.get("APP_VERSION", "1.0.0")
 
 LOGGING = {
     "version": 1,

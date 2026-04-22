@@ -666,16 +666,31 @@ class MobileMoneyInitiateView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @staticmethod
+    def _normalize_phone_e164(raw: str) -> str:
+        """Normalize any Zambian phone input to E.164 (+260XXXXXXXXX)."""
+        digits = "".join(c for c in raw if c.isdigit())
+        if digits.startswith("260") and len(digits) >= 12:
+            return f"+{digits[:12]}"
+        if digits.startswith("0") and len(digits) == 10:
+            return f"+260{digits[1:]}"
+        if len(digits) == 9:
+            return f"+260{digits}"
+        # Already has + prefix or unknown format — return cleaned
+        return f"+{digits}" if not raw.startswith("+") else raw.strip()
+
     def post(self, request):
         application_id = request.data.get("application_id")
-        phone = request.data.get("phone", "").strip()
+        phone_raw = request.data.get("phone", "").strip()
         operator = request.data.get("operator", "").strip().lower()
 
-        if not application_id or not phone or operator not in ("airtel", "mtn"):
+        if not application_id or not phone_raw or operator not in ("airtel", "mtn"):
             return Response(
                 {"success": False, "error": "application_id, phone, and operator (airtel/mtn) are required", "code": "VALIDATION_ERROR"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        phone = self._normalize_phone_e164(phone_raw)
 
         from apps.applications.models import Application
 
@@ -713,6 +728,12 @@ class MobileMoneyInitiateView(APIView):
                 {"success": False, "error": str(exc), "code": "PAYMENT_ERROR"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        except Exception:
+            logger.exception("Failed to initiate payment for application %s", application_id)
+            return Response(
+                {"success": False, "error": "Failed to initiate payment. Please try again.", "code": "PAYMENT_ERROR"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         if not result.payment_id:
             return Response(
@@ -733,6 +754,7 @@ class MobileMoneyInitiateView(APIView):
         import requests as http_requests
 
         url = f"{base_url.rstrip('/')}/collections/mobile-money"
+        lenco_data = {}
         try:
             resp = http_requests.post(
                 url,
@@ -747,8 +769,18 @@ class MobileMoneyInitiateView(APIView):
                 headers={"Authorization": f"Bearer {api_secret}"},
                 timeout=15,
             )
-            resp.raise_for_status()
-            lenco_data = resp.json()
+            lenco_data = resp.json() if resp.content else {}
+            if not resp.ok:
+                lenco_error = lenco_data.get("message") or lenco_data.get("error") or resp.reason
+                logger.error(
+                    "Lenco mobile money API returned %s for payment %s: %s",
+                    resp.status_code, result.payment_id, lenco_error,
+                )
+                emit_metric('payment.initiation_failed', method='mobile_money', reason='provider_rejected', application_id=str(application_id))
+                return Response(
+                    {"success": False, "error": f"Payment provider error: {lenco_error}", "code": "PROVIDER_ERROR"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
         except http_requests.RequestException:
             logger.exception("Lenco mobile money API failed for payment %s", result.payment_id)
             emit_metric('payment.initiation_failed', method='mobile_money', reason='provider_error', application_id=str(application_id))
@@ -756,22 +788,32 @@ class MobileMoneyInitiateView(APIView):
                 {"success": False, "error": "Unable to reach payment provider. Please try again.", "code": "PROVIDER_ERROR"},
                 status=status.HTTP_502_BAD_GATEWAY,
             )
+        except Exception:
+            logger.exception("Unexpected error during Lenco mobile money call for payment %s", result.payment_id)
+            return Response(
+                {"success": False, "error": "Payment processing failed. Please try again.", "code": "PAYMENT_ERROR"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         lenco_status = lenco_data.get("data", {}).get("status", "")
         lenco_ref = lenco_data.get("data", {}).get("lencoReference", "")
 
         # Update payment with Lenco reference
-        from apps.documents.models import Payment
-        Payment.objects.filter(id=result.payment_id).update(
-            lenco_reference=lenco_ref,
-            payment_method="mobile-money",
-            metadata={
-                **(Payment.objects.get(id=result.payment_id).metadata or {}),
-                "lenco_initiation": lenco_data.get("data", {}),
-                "operator": operator,
-                "phone": phone,
-            },
-        )
+        try:
+            payment_obj = Payment.objects.get(id=result.payment_id)
+            existing_meta = payment_obj.metadata or {}
+            Payment.objects.filter(id=result.payment_id).update(
+                lenco_reference=lenco_ref,
+                payment_method="mobile-money",
+                metadata={
+                    **existing_meta,
+                    "lenco_initiation": lenco_data.get("data", {}),
+                    "operator": operator,
+                    "phone": phone,
+                },
+            )
+        except Exception:
+            logger.exception("Failed to update payment %s with Lenco reference", result.payment_id)
 
         emit_metric('payment.initiated', method='mobile_money', application_id=str(application_id))
         return Response(
