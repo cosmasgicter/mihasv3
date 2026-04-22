@@ -375,6 +375,15 @@ export function PaymentForm({
       {/* Mobile Money Form */}
       {paymentMethod === 'mobile-money' && (
         <div className="space-y-4 rounded-2xl border border-border bg-card/50 p-5">
+          <div className="flex flex-wrap items-center gap-2" aria-label="Supported mobile money networks">
+            <span className="rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
+              Airtel Money
+            </span>
+            <span className="rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-1 text-xs font-semibold text-yellow-700 dark:border-yellow-900/40 dark:bg-yellow-950/30 dark:text-yellow-300">
+              MTN MoMo
+            </span>
+          </div>
+
           <div>
             <label htmlFor="momo-phone" className="block text-sm font-medium text-foreground mb-2">
               Mobile money number

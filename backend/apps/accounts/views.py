@@ -13,7 +13,6 @@ from datetime import timedelta
 
 import jwt
 from django.conf import settings
-from django.db.models import Q
 from drf_spectacular.utils import OpenApiResponse, OpenApiTypes, extend_schema, extend_schema_view
 from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -22,6 +21,7 @@ from rest_framework.views import APIView
 
 from apps.accounts.authentication import OptionalJWTCookieAuthentication
 
+from apps.accounts.session_lifecycle import get_refresh_token_expiry
 from apps.accounts.models import CSRFToken, DeviceSession, Profile
 from django.utils import timezone
 
@@ -134,54 +134,6 @@ def _clear_auth_cookies(response: Response) -> None:
 
     response.delete_cookie("access_token", domain=cookie_domain, path="/")
     response.delete_cookie("refresh_token", domain=cookie_domain, path="/")
-
-
-def _get_refresh_token_expiry(now=None):
-    current_time = now or timezone.now()
-    lifetime = settings.SIMPLE_JWT.get("REFRESH_TOKEN_LIFETIME", timedelta(days=7))
-    return current_time + lifetime
-
-
-def _active_session_filters(now=None) -> Q:
-    current_time = now or timezone.now()
-    activity_cutoff = current_time - settings.SIMPLE_JWT.get(
-        "REFRESH_TOKEN_LIFETIME",
-        timedelta(days=7),
-    )
-    return (
-        Q(expires_at__gt=current_time)
-        | Q(expires_at__isnull=True, last_activity__gte=activity_cutoff)
-        | Q(
-            expires_at__isnull=True,
-            last_activity__isnull=True,
-            created_at__gte=activity_cutoff,
-        )
-    )
-
-
-def _deactivate_stale_sessions(user_id) -> None:
-    current_time = timezone.now()
-    activity_cutoff = current_time - settings.SIMPLE_JWT.get(
-        "REFRESH_TOKEN_LIFETIME",
-        timedelta(days=7),
-    )
-    stale_filters = (
-        Q(expires_at__lte=current_time)
-        | Q(expires_at__isnull=True, last_activity__lt=activity_cutoff)
-        | Q(
-            expires_at__isnull=True,
-            last_activity__isnull=True,
-            created_at__lt=activity_cutoff,
-        )
-    )
-    DeviceSession.objects.filter(
-        user_id=user_id,
-        is_active=True,
-    ).filter(stale_filters).update(
-        is_active=False,
-        updated_at=current_time,
-    )
-
 
 def _generate_csrf_token(user) -> str:
     """Generate a CSRF token, store its SHA-256 hash, return the raw token."""
@@ -368,7 +320,7 @@ class LoginView(APIView):
             user_agent=user_agent[:500],
             last_activity=tz.now(),
             is_active=True,
-            expires_at=_get_refresh_token_expiry(tz.now()),
+            expires_at=get_refresh_token_expiry(tz.now()),
             updated_at=tz.now(),
         )
 
@@ -549,7 +501,7 @@ class RefreshView(APIView):
         ).update(
             session_token=new_refresh_hash,
             last_activity=tz.now(),
-            expires_at=_get_refresh_token_expiry(tz.now()),
+            expires_at=get_refresh_token_expiry(tz.now()),
             updated_at=tz.now(),
         )
         if not refreshed:
@@ -564,7 +516,7 @@ class RefreshView(APIView):
                 user_agent=user_agent[:500],
                 last_activity=tz.now(),
                 is_active=True,
-                expires_at=_get_refresh_token_expiry(tz.now()),
+                expires_at=get_refresh_token_expiry(tz.now()),
                 updated_at=tz.now(),
             )
 

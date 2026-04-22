@@ -14,8 +14,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import DeviceSession
+from apps.accounts.session_lifecycle import active_session_filters, deactivate_stale_sessions
 from apps.accounts.tokens import blacklist_jti, verify_token
-from apps.accounts.views import _active_session_filters, _deactivate_stale_sessions, _hash_value
+from apps.accounts.views import _hash_value
 from apps.common.openapi_helpers import (
     ErrorResponseSerializer,
     MessageSerializer,
@@ -60,12 +61,12 @@ class SessionListView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        _deactivate_stale_sessions(user_id)
+        deactivate_stale_sessions(user_id)
         current_refresh_hash = _hash_value(request.COOKIES["refresh_token"]) if request.COOKIES.get("refresh_token") else None
         sessions = DeviceSession.objects.filter(
             user_id=user_id, is_active=True
         ).filter(
-            _active_session_filters(timezone.now())
+            active_session_filters(timezone.now())
         ).order_by("-last_activity")
 
         data = [
@@ -147,13 +148,13 @@ class SessionRevokeAllView(APIView):
 
     def post(self, request):
         user_id = str(getattr(request.user, "id", ""))
-        _deactivate_stale_sessions(user_id)
+        deactivate_stale_sessions(user_id)
         current_refresh_hash = _hash_value(request.COOKIES["refresh_token"]) if request.COOKIES.get("refresh_token") else None
 
         # Deactivate all active sessions
         queryset = DeviceSession.objects.filter(
             user_id=user_id, is_active=True
-        ).filter(_active_session_filters(timezone.now()))
+        ).filter(active_session_filters(timezone.now()))
         if current_refresh_hash:
             queryset = queryset.exclude(session_token=current_refresh_hash)
         updated = queryset.update(is_active=False, updated_at=timezone.now())

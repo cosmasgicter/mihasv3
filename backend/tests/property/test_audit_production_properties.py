@@ -189,6 +189,8 @@ class TestSessionsEnvelopeWrapping:
             mock_s = MagicMock()
             mock_s.id = s["id"]
             mock_s.device_info = s["device_info"]
+            mock_s.ip_address = "127.0.0.1"
+            mock_s.session_token = None
             if s["last_activity"] is not None:
                 mock_s.last_activity = MagicMock()
                 mock_s.last_activity.isoformat.return_value = s["last_activity"]
@@ -201,8 +203,12 @@ class TestSessionsEnvelopeWrapping:
                 mock_s.created_at = None
             mock_sessions.append(mock_s)
 
-        with patch("apps.accounts.session_views.DeviceSession.objects") as mock_qs:
-            mock_qs.filter.return_value.order_by.return_value = mock_sessions
+        with patch("apps.accounts.session_views.DeviceSession.objects") as mock_qs, \
+             patch("apps.accounts.session_views.deactivate_stale_sessions"), \
+             patch("apps.accounts.session_views.active_session_filters") as mock_active_filters:
+            from django.db.models import Q
+            mock_active_filters.return_value = Q()
+            mock_qs.filter.return_value.filter.return_value.order_by.return_value = mock_sessions
 
             request = self.factory.get("/api/v1/sessions/")
             from rest_framework.test import force_authenticate

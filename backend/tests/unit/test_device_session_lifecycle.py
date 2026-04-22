@@ -35,7 +35,7 @@ def _jwt_user(user_id="6e147ead-e34d-41e2-bc05-358a653ff633"):
 
 
 class TestSessionListLifecycle(SimpleTestCase):
-    @patch("apps.accounts.session_views._deactivate_stale_sessions")
+    @patch("apps.accounts.session_views.deactivate_stale_sessions")
     @patch("apps.accounts.session_views.DeviceSession.objects")
     def test_list_marks_current_session_and_returns_ip(self, mock_objects, mock_cleanup):
         current_hash = "current-refresh-hash"
@@ -63,7 +63,7 @@ class TestSessionListLifecycle(SimpleTestCase):
 
 
 class TestSessionRevokeAllLifecycle(SimpleTestCase):
-    @patch("apps.accounts.session_views._deactivate_stale_sessions")
+    @patch("apps.accounts.session_views.deactivate_stale_sessions")
     @patch("apps.accounts.session_views.DeviceSession.objects")
     def test_revoke_all_excludes_current_session(self, mock_objects, mock_cleanup):
         active_qs = mock_objects.filter.return_value.filter.return_value

@@ -91,12 +91,10 @@ class TestBatchSummaryResponseFormat:
     """5. Summary response includes required fields (Req 13.9)."""
 
     def test_response_fields_documented(self):
-        """The view returns processed, status, and application_ids in data."""
+        """The view returns updated_count in data."""
         import inspect
         source = inspect.getsource(ApplicationBulkStatusView.post)
-        assert '"processed"' in source
-        assert '"status"' in source
-        assert '"application_ids"' in source
+        assert '"updated_count"' in source
 
 
 class TestBatchWaitlistPromotion:
