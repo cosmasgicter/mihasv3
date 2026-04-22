@@ -12,7 +12,7 @@ TERMINAL_STATUSES = {"rejected", "withdrawn", "expired", "enrolled", "enrollment
 # creation of a new application for the same program+intake.
 NON_TERMINAL_STATUSES = {"draft", "submitted", "under_review", "waitlisted", "conditionally_approved", "approved"}
 
-SUBMITTED_STATUSES = {"submitted", "under_review", "approved", "waitlisted"}
+SUBMITTED_STATUSES = {"submitted", "under_review", "approved", "waitlisted", "conditionally_approved"}
 
 
 @dataclass(frozen=True)

@@ -106,8 +106,7 @@ export class AdminErrorBoundary extends React.Component<
         sessionStorage.setItem(ADMIN_ERROR_CONTEXT_KEY, JSON.stringify({
           name: error.name,
           message: error.message,
-          stack: error.stack,
-          componentStack: errorInfo.componentStack,
+          ...(import.meta.env.DEV && { stack: error.stack, componentStack: errorInfo.componentStack }),
           capturedAt,
         }))
       } catch {
@@ -174,7 +173,7 @@ export class AdminErrorBoundary extends React.Component<
                         {this.state.error.message}
                       </p>
                     )}
-                    {(isDevelopment || this.state.errorInfo?.componentStack) && (
+                    {isDevelopment && (
                       <pre className="text-xs text-red-600 overflow-auto max-h-48">
                         {this.state.errorInfo?.componentStack || this.state.error?.stack}
                       </pre>

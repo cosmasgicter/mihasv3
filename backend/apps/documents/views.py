@@ -245,7 +245,11 @@ class DocumentUploadView(APIView):
             )
 
         # Store file in S3/R2.
-        file_key = f"documents/{application_id}/{uuid.uuid4().hex}_{file_obj.name}"
+        import os as _os
+        import re as _re
+        safe_name = _os.path.basename(file_obj.name or "unnamed")
+        safe_name = _re.sub(r'[^\w\s\-.]', '_', safe_name)[:255] or "unnamed"
+        file_key = f"documents/{application_id}/{uuid.uuid4().hex}_{safe_name}"
         try:
             from apps.common.storage import MediaStorage
 
@@ -263,7 +267,7 @@ class DocumentUploadView(APIView):
         doc = ApplicationDocument.objects.create(
             application_id=application_id,
             document_type=document_type,
-            document_name=file_obj.name,
+            document_name=safe_name,
             file_url=file_url,
             file_size=getattr(file_obj, "size", None),
             mime_type=declared_mime or None,
