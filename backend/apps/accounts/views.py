@@ -672,12 +672,17 @@ class SessionView(APIView):
             "role": user.role,
         })
         response = Response(serializer.data)
+        request_query_params = getattr(request, "query_params", request.GET)
+        force_csrf_refresh = (
+            request_query_params.get("refresh_csrf") == "1"
+            or request.headers.get("X-CSRF-Recovery") == "1"
+        )
 
         # Tolerance window: skip CSRF token creation if the user already has
         # a valid token issued within the last 5 minutes (the frontend still
         # holds it). Login and refresh always rotate tokens; SessionView only
         # needs to issue one when the user has none or the latest is stale.
-        if not _has_recent_csrf_token(user):
+        if force_csrf_refresh or not _has_recent_csrf_token(user):
             response["X-CSRF-Token"] = _generate_csrf_token(user)
 
         return response

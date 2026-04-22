@@ -31,6 +31,9 @@ export async function recoverCsrfAndRetry(
   const sessionResponse = await fetch(`${API_BASE}${sessionEndpoint}`, {
     method: 'GET',
     credentials: 'include',
+    headers: {
+      'X-CSRF-Recovery': '1',
+    },
     signal,
   });
 

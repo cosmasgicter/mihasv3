@@ -56,6 +56,30 @@ class TestSessionViewCsrfHeader(SimpleTestCase):
         self.assertEqual(response["X-CSRF-Token"], "session-csrf-token")
         mock_generate_csrf.assert_called_once_with(request.user)
 
+    @patch("apps.accounts.views._has_recent_csrf_token", return_value=True)
+    @patch("apps.accounts.views._generate_csrf_token", return_value="forced-csrf-token")
+    def test_session_view_forces_csrf_header_for_recovery_requests(
+        self,
+        mock_generate_csrf,
+        mock_has_recent,
+    ):
+        request = factory.get("/api/v1/auth/session/?refresh_csrf=1", HTTP_X_CSRF_RECOVERY="1")
+        request.user = MagicMock(
+            id="user-1",
+            email="user@example.com",
+            first_name="Test",
+            last_name="User",
+            role="student",
+            is_authenticated=True,
+        )
+
+        response = SessionView().get(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["X-CSRF-Token"], "forced-csrf-token")
+        mock_has_recent.assert_not_called()
+        mock_generate_csrf.assert_called_once_with(request.user)
+
     @patch("apps.accounts.views.CSRFToken.objects.create")
     @patch("apps.accounts.views.Profile.objects.get")
     def test_session_view_accepts_jwt_user_when_reissuing_csrf_header(
