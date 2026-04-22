@@ -10,10 +10,15 @@ from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.permissions import IsAdmin
 from apps.common.models import CommunicationTemplate
 
 logger = logging.getLogger(__name__)
+
+
+def _get_admin_permission():
+    """Lazy accessor for IsAdmin to avoid common ↔ accounts circular import."""
+    from apps.accounts.permissions import IsAdmin
+    return IsAdmin
 
 
 class CommunicationTemplateSerializer(serializers.Serializer):
@@ -32,7 +37,8 @@ class CommunicationTemplateSerializer(serializers.Serializer):
 class CommunicationTemplateListView(APIView):
     """GET /api/v1/admin/templates/ — list all communication templates (admin only)."""
 
-    permission_classes = [IsAdmin]
+    def get_permissions(self):
+        return [_get_admin_permission()()]
 
     def get(self, request):
         templates = CommunicationTemplate.objects.all().order_by("template_key")
@@ -43,7 +49,8 @@ class CommunicationTemplateListView(APIView):
 class CommunicationTemplateUpdateView(APIView):
     """PUT /api/v1/admin/templates/{key}/ — update a template by key (admin only)."""
 
-    permission_classes = [IsAdmin]
+    def get_permissions(self):
+        return [_get_admin_permission()()]
 
     def put(self, request, key):
         try:

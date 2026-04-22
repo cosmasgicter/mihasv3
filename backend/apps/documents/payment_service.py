@@ -22,8 +22,6 @@ import requests as http_requests
 from django.conf import settings
 from django.utils import timezone
 
-from apps.applications.identifier_resolver import IdentifierResolver
-from apps.applications.models import Application
 from apps.documents.fee_resolver import FeeResolver
 from apps.documents.models import Payment
 
@@ -111,6 +109,9 @@ class PaymentService:
         Raises ``ValueError`` with code MAX_PAYMENT_ATTEMPTS_EXCEEDED when limit reached.
         """
         from django.db import transaction
+
+        from apps.applications.identifier_resolver import IdentifierResolver
+        from apps.applications.models import Application
 
         # Double-payment prevention: atomic + select_for_update to close TOCTOU race.
         with transaction.atomic():
@@ -233,7 +234,7 @@ class PaymentService:
         payment_status: str,
         reviewed_by_id: str,
         notes: str = "",
-    ) -> Application:
+    ) -> "Application":
         """Apply an admin payment review against the canonical payment record.
 
         Admin review may override the latest payment record, but it must not
@@ -244,6 +245,8 @@ class PaymentService:
         a synthetic payment record is created to maintain ledger consistency.
         """
         from django.db import transaction
+
+        from apps.applications.models import Application
 
         payment_status_map = {
             'pending_review': 'pending',
@@ -347,6 +350,9 @@ class PaymentService:
     ) -> PaymentInitiationResult:
         """Create a *deferred* Payment record — student can pay later."""
         from django.db import transaction
+
+        from apps.applications.identifier_resolver import IdentifierResolver
+        from apps.applications.models import Application
 
         with transaction.atomic():
             existing = (
@@ -718,6 +724,8 @@ class PaymentService:
         self, application_id: UUID, status: str
     ) -> None:
         """Sync ``application.payment_status`` when payment succeeds or fails."""
+        from apps.applications.models import Application
+
         updated = Application.objects.filter(id=application_id).update(
             payment_status=status,
             updated_at=timezone.now(),

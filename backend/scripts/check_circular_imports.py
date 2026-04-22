@@ -4,6 +4,10 @@
 Uses AST parsing to build a directed import graph between top-level packages
 under ``apps.*`` and reports any cycles found via DFS.
 
+Only **module-level** imports are considered (not imports inside function or
+method bodies), because function-local imports are the standard Django pattern
+for breaking circular dependencies.
+
 Exit codes:
     0 — no circular imports detected
     1 — one or more circular import cycles found
@@ -30,17 +34,15 @@ def _top_level_package(module_path: str) -> str | None:
     return None
 
 
-def _extract_imports(filepath: Path) -> set[str]:
-    """Return the set of top-level app packages imported by *filepath*."""
-    try:
-        source = filepath.read_text(encoding="utf-8")
-        tree = ast.parse(source, filename=str(filepath))
-    except (SyntaxError, UnicodeDecodeError) as exc:
-        print(f"WARNING: skipping {filepath} — {exc}", file=sys.stderr)
-        return set()
+def _collect_imports_from_stmts(stmts: list[ast.stmt]) -> set[str]:
+    """Collect app-package imports from a list of statements.
 
+    Recurses into ``if``/``try``/``with`` blocks (which execute at module
+    load time) but stops at ``FunctionDef``, ``AsyncFunctionDef``, and
+    ``ClassDef`` boundaries (those are deferred).
+    """
     targets: set[str] = set()
-    for node in ast.walk(tree):
+    for node in stmts:
         if isinstance(node, ast.Import):
             for alias in node.names:
                 pkg = _top_level_package(alias.name)
@@ -51,7 +53,31 @@ def _extract_imports(filepath: Path) -> set[str]:
                 pkg = _top_level_package(node.module)
                 if pkg:
                     targets.add(pkg)
+        elif isinstance(node, ast.If):
+            targets |= _collect_imports_from_stmts(node.body)
+            targets |= _collect_imports_from_stmts(node.orelse)
+        elif isinstance(node, ast.Try):
+            targets |= _collect_imports_from_stmts(node.body)
+            for handler in node.handlers:
+                targets |= _collect_imports_from_stmts(handler.body)
+            targets |= _collect_imports_from_stmts(node.orelse)
+            targets |= _collect_imports_from_stmts(node.finalbody)
+        elif isinstance(node, ast.With):
+            targets |= _collect_imports_from_stmts(node.body)
+        # FunctionDef, AsyncFunctionDef, ClassDef — skip (deferred execution)
     return targets
+
+
+def _extract_top_level_imports(filepath: Path) -> set[str]:
+    """Return the set of top-level app packages imported at module level."""
+    try:
+        source = filepath.read_text(encoding="utf-8")
+        tree = ast.parse(source, filename=str(filepath))
+    except (SyntaxError, UnicodeDecodeError) as exc:
+        print(f"WARNING: skipping {filepath} — {exc}", file=sys.stderr)
+        return set()
+
+    return _collect_imports_from_stmts(tree.body)
 
 
 def build_import_graph(apps_dir: Path) -> dict[str, set[str]]:
@@ -60,7 +86,6 @@ def build_import_graph(apps_dir: Path) -> dict[str, set[str]]:
 
     for root, _dirs, files in os.walk(apps_dir):
         root_path = Path(root)
-        # Determine which top-level package this file belongs to
         try:
             rel = root_path.relative_to(apps_dir)
         except ValueError:
@@ -74,7 +99,7 @@ def build_import_graph(apps_dir: Path) -> dict[str, set[str]]:
             if not fname.endswith(".py"):
                 continue
             filepath = root_path / fname
-            imported_pkgs = _extract_imports(filepath)
+            imported_pkgs = _extract_top_level_imports(filepath)
             for target_pkg in imported_pkgs:
                 if target_pkg != source_pkg:
                     graph[source_pkg].add(target_pkg)
@@ -86,7 +111,6 @@ def find_cycles(graph: dict[str, set[str]]) -> list[list[str]]:
     """Return all elementary cycles in *graph* using DFS."""
     WHITE, GRAY, BLACK = 0, 1, 2
     color: dict[str, int] = {node: WHITE for node in graph}
-    # Also include nodes that only appear as targets
     for targets in graph.values():
         for t in targets:
             if t not in color:
@@ -100,7 +124,6 @@ def find_cycles(graph: dict[str, set[str]]) -> list[list[str]]:
         path.append(node)
         for neighbour in graph.get(node, set()):
             if color[neighbour] == GRAY:
-                # Found a cycle — extract it from path
                 idx = path.index(neighbour)
                 cycle = path[idx:] + [neighbour]
                 cycles.append(cycle)
@@ -117,7 +140,6 @@ def find_cycles(graph: dict[str, set[str]]) -> list[list[str]]:
 
 
 def main() -> int:
-    # Resolve apps directory relative to this script's location (backend/scripts/)
     script_dir = Path(__file__).resolve().parent
     backend_dir = script_dir.parent
     apps_dir = backend_dir / "apps"
@@ -128,8 +150,7 @@ def main() -> int:
 
     graph = build_import_graph(apps_dir)
 
-    # Print the import graph for visibility
-    print("Import graph (package → dependencies):")
+    print("Import graph (module-level imports only, package → dependencies):")
     for pkg in sorted(graph):
         deps = sorted(graph[pkg])
         if deps:
@@ -141,12 +162,11 @@ def main() -> int:
         print("\n✅ No circular imports detected between app packages.")
         return 0
 
-    # Deduplicate cycles (normalize by sorting the rotation)
+    # Deduplicate cycles
     seen: set[tuple[str, ...]] = set()
     unique_cycles: list[list[str]] = []
     for cycle in cycles:
-        # Normalize: rotate so smallest element is first
-        core = cycle[:-1]  # remove the repeated tail
+        core = cycle[:-1]
         if not core:
             continue
         min_idx = core.index(min(core))

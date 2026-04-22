@@ -50,6 +50,9 @@ jobs:
       - name: Django checks
         run: python manage.py check
         working-directory: backend
+      - name: Circular import check
+        run: python scripts/check_circular_imports.py
+        working-directory: backend
       - name: Contract parity tests
         run: python -m pytest tests/contract/test_contract_parity.py -q
         working-directory: backend

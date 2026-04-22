@@ -272,7 +272,7 @@ class TestPaymentCompletionBusinessMetric(SimpleTestCase):
         try:
             # Mock the DB layer and run _update_payment_status
             with patch("apps.documents.payment_service.Payment.objects") as mock_qs, \
-                 patch("apps.documents.payment_service.Application.objects") as mock_app_qs, \
+                 patch("apps.applications.models.Application.objects") as mock_app_qs, \
                  patch("django.db.transaction.atomic") as mock_atomic:
                 # Make atomic() work as a simple context manager
                 mock_atomic.return_value.__enter__ = MagicMock(return_value=None)

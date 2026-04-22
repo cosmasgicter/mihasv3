@@ -13,8 +13,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.models import Profile
-from apps.accounts.permissions import IsAdmin
 from apps.common.models import (
     Notification,
     UserNotificationPreference,
@@ -29,6 +27,12 @@ from apps.common.openapi_helpers import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _get_admin_permission():
+    """Lazy accessor for IsAdmin to avoid common ↔ accounts circular import."""
+    from apps.accounts.permissions import IsAdmin
+    return IsAdmin
 
 
 # ---------------------------------------------------------------------------
@@ -205,8 +209,11 @@ class NotificationSendView(APIView):
     Admin send notification with idempotency key. Admin only.
     """
 
-    permission_classes = [IsAuthenticated, IsAdmin]
+    permission_classes = [IsAuthenticated]
     serializer_class = NotificationSendSerializer
+
+    def get_permissions(self):
+        return [IsAuthenticated(), _get_admin_permission()()]
 
     def post(self, request):
         serializer = NotificationSendSerializer(data=request.data)
@@ -278,8 +285,11 @@ class EmailSendView(APIView):
     Admin-only, enqueue email via Celery.
     """
 
-    permission_classes = [IsAuthenticated, IsAdmin]
+    permission_classes = [IsAuthenticated]
     serializer_class = EmailSendSerializer
+
+    def get_permissions(self):
+        return [IsAuthenticated(), _get_admin_permission()()]
 
     def post(self, request):
         serializer = EmailSendSerializer(data=request.data)
@@ -419,7 +429,7 @@ class NotificationListView(APIView):
         send_view = NotificationSendView()
         send_view.request = request
         # Check admin permission for POST
-        if not IsAdmin().has_permission(request, self):
+        if not _get_admin_permission()().has_permission(request, self):
             return Response(
                 {
                     "success": False,
@@ -599,10 +609,15 @@ class AdminNotificationHistoryView(APIView):
     Returns 404 if the user_id does not exist, 403 for non-admin users.
     """
 
-    permission_classes = [IsAuthenticated, IsAdmin]
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        return [IsAuthenticated(), _get_admin_permission()()]
 
     def get(self, request, user_id):
         # Check that the target user exists
+        from apps.accounts.models import Profile
+
         if not Profile.objects.filter(pk=user_id).exists():
             return Response(
                 {
