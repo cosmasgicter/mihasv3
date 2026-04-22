@@ -1,5 +1,6 @@
 import { apiClient, AuthenticationError } from './client'
 import { logApiError } from '@/lib/apiErrorLogger'
+import { getCsrfToken } from '@/lib/csrfToken'
 
 interface RegisterData {
   email: string
@@ -71,7 +72,11 @@ export const authService = {
 
   session: async () => {
     try {
-      return await apiClient.request('/auth/session/', {
+      // After a page refresh the in-memory CSRF token is lost. Ask the server
+      // to issue a fresh one so the next state-changing request doesn't 403.
+      const needsCsrf = !getCsrfToken()
+      const endpoint = needsCsrf ? '/auth/session/?refresh_csrf=1' : '/auth/session/'
+      return await apiClient.request(endpoint, {
         method: 'GET',
         retries: 0,
         timeout: 5_000,

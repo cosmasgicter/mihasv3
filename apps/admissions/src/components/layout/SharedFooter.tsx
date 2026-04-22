@@ -7,6 +7,7 @@
 
 import { Link, useLocation } from 'react-router-dom';
 import { GraduationCap, ArrowRight, Mail, Phone, MapPin } from '@/components/icons';
+import { BuildVersionBadge } from '@/components/ui/BuildVersionBadge';
 import { cn } from '@/lib/utils';
 import { contactInfo, quickLinks, socialLinks } from '@/lib/constants/landing';
 
@@ -145,6 +146,9 @@ export function SharedFooter({ className }: SharedFooterProps) {
               Beanola Technologies
             </a>
           </p>
+          <div className="mt-4 flex justify-center text-white/90">
+            <BuildVersionBadge compact className="justify-center" />
+          </div>
         </div>
       </div>
     </footer>

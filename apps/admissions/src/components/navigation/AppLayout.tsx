@@ -11,6 +11,7 @@ import { useResponsive } from '@/hooks/useResponsive'
 import { useScrollRestoration } from '@/hooks/useScrollRestoration'
 import { SkipLink } from '@/components/ui/SkipLink'
 import { NotificationBell } from '@/components/student/NotificationBell'
+import { BuildVersionBadge } from '@/components/ui/BuildVersionBadge'
 import { useSignOutAction } from '@/hooks/useSignOutAction'
 import { useToastStore } from '@/hooks/useToast'
 import { RouteTransition } from '@/components/smoothui/page-transition'
@@ -230,6 +231,9 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
           <RouteTransition mode="fade">
             {children}
           </RouteTransition>
+          <div className="px-4 pb-4 pt-2 md:px-6">
+            <BuildVersionBadge className="ml-auto w-fit" />
+          </div>
         </main>
       </div>
 
