@@ -205,8 +205,11 @@ class TestDoublePaymentInitiation(SimpleTestCase):
 
         service = PaymentService()
 
-        with patch("apps.documents.payment_service.Payment.objects") as mock_payment_qs:
-            mock_payment_qs.filter.return_value.first.return_value = existing_payment
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_payment_qs,
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_payment_qs.select_for_update.return_value.filter.return_value.first.return_value = existing_payment
 
             result = service.initiate_payment(application_id, user_id)
 

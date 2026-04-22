@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 from apps.accounts.authentication import OptionalJWTCookieAuthentication
 from apps.common.jobs_ops_seed import build_action_payload, sample_job_applications, sample_job_detail, sample_jobs
 from apps.common.openapi_helpers import ErrorResponseSerializer, envelope_serializer, paginated_serializer
+from apps.jobs.models import JobPosting, JobMatchScore
 from apps.jobs.serializers import (
     DiscoveryRunSerializer,
     JobActionSerializer,
@@ -155,7 +156,24 @@ class JobScoreView(JobActionBaseView):
         responses={202: OpenApiResponse(response=JOB_ACTION_RESPONSE)},
     )
     def post(self, request, job_id):
-        return self.build_response(job_id, "Job scoring scaffold queued.")
+        try:
+            job = JobPosting.objects.get(id=job_id)
+        except JobPosting.DoesNotExist:
+            return Response({"success": False, "error": "Job not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        from apps.jobs.ai_service import score_job_match
+        job_data = {"title": job.title, "company": getattr(job, "company_name", ""), "location": getattr(job, "location", ""), "description": getattr(job, "description", ""), "requirements": getattr(job, "requirements", "")}
+        candidate_data = request.data.get("candidate", {})
+        result = score_job_match(job_data, candidate_data)
+
+        if result:
+            # Save score
+            JobMatchScore.objects.update_or_create(
+                job=job, defaults={"score": result.get("score", 0), "reasoning": result, "scored_at": timezone.now()}
+            )
+            return Response({"success": True, "data": {"job_id": str(job_id), "score": result}})
+
+        return self.build_response(job_id, "AI scoring unavailable. Manual review required.", "pending")
 
 
 class JobTailorDocumentsView(JobActionBaseView):
@@ -165,7 +183,22 @@ class JobTailorDocumentsView(JobActionBaseView):
         responses={202: OpenApiResponse(response=JOB_ACTION_RESPONSE)},
     )
     def post(self, request, job_id):
-        return self.build_response(job_id, "Document tailoring scaffold queued.")
+        try:
+            job = JobPosting.objects.get(id=job_id)
+        except JobPosting.DoesNotExist:
+            return Response({"success": False, "error": "Job not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        from apps.jobs.ai_service import tailor_resume
+        job_data = {"title": job.title, "company": getattr(job, "company_name", ""), "requirements": getattr(job, "requirements", "")}
+        resume_text = request.data.get("resume_text", "")
+        if not resume_text:
+            return Response({"success": False, "error": "resume_text is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        result = tailor_resume(job_data, resume_text)
+        if result:
+            return Response({"success": True, "data": {"job_id": str(job_id), "tailored": result}})
+
+        return self.build_response(job_id, "AI tailoring unavailable. Try again later.", "pending")
 
 
 class JobDismissView(JobActionBaseView):

@@ -105,6 +105,24 @@ class OutreachMessageGenerateView(APIView):
 
     @extend_schema(operation_id="outreach_messages_generate", tags=["outreach"], responses={200: OpenApiResponse(response=MESSAGE_RESPONSE)})
     def post(self, request):
+        contact_data = {
+            "name": request.data.get("contact_name", ""),
+            "company": request.data.get("company", ""),
+            "role": request.data.get("role", ""),
+        }
+        context = request.data.get("context", "")
+
+        from apps.jobs.ai_service import generate_outreach_message
+        result = generate_outreach_message(contact_data, context)
+
+        if result:
+            return Response({"success": True, "data": {
+                "id": uuid.uuid4(),
+                "subject": result.get("subject", ""),
+                "body": result.get("body", ""),
+                "status": "draft",
+                "follow_up_days": result.get("follow_up_days", 5),
+            }})
         return Response({"success": True, "data": {
             "id": uuid.uuid4(),
             "subject": "Exploring relevant opportunities",
