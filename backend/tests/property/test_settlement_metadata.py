@@ -27,6 +27,12 @@ from hypothesis import strategies as st  # noqa: E402
 
 from apps.documents.payment_service import PaymentService  # noqa: E402
 
+
+@contextmanager
+def _noop_atomic():
+    """A no-op context manager that replaces transaction.atomic()."""
+    yield
+
 # ---------------------------------------------------------------------------
 # Strategies
 # ---------------------------------------------------------------------------
@@ -134,8 +140,11 @@ class TestWebhookSettlementMetadataUpdate(SimpleTestCase):
         service = PaymentService()
         payment = _make_payment(payment_id, application_id, amount, reference, status)
 
-        with patch("apps.documents.payment_service.Payment.objects") as mock_pay:
-            mock_pay.get.return_value = payment
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_pay,
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_pay.select_for_update.return_value.get.return_value = payment
 
             service.process_webhook_event(
                 event_type="collection.settled",
@@ -195,8 +204,11 @@ class TestWebhookSettlementMetadataUpdate(SimpleTestCase):
         service = PaymentService()
         payment = _make_payment(payment_id, application_id, amount, reference, "successful")
 
-        with patch("apps.documents.payment_service.Payment.objects") as mock_pay:
-            mock_pay.get.return_value = payment
+        with (
+            patch("apps.documents.payment_service.Payment.objects") as mock_pay,
+            patch("django.db.transaction.atomic", side_effect=_noop_atomic),
+        ):
+            mock_pay.select_for_update.return_value.get.return_value = payment
 
             service.process_webhook_event(
                 event_type="collection.settled",
