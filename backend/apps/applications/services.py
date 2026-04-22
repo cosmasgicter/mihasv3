@@ -23,7 +23,7 @@ ALLOWED_TRANSITIONS: dict[str, set[str]] = {
     "under_review": {"approved", "rejected", "waitlisted", "conditionally_approved", "withdrawn"},
     "waitlisted": {"approved", "rejected", "conditionally_approved", "withdrawn"},
     "conditionally_approved": {"approved", "rejected", "enrolled", "enrollment_expired", "withdrawn"},
-    "approved": {"enrolled", "enrollment_expired"},
+    "approved": {"enrolled", "enrollment_expired", "withdrawn"},
 }
 
 # Error code raised when a disallowed transition is attempted.
@@ -228,6 +228,11 @@ def submit_application(
                 "ALREADY_SUBMITTED",
                 "This application has already been submitted.",
             )
+
+        # Re-check intake capacity inside the lock to close TOCTOU race
+        intake_recheck = IntakeEnforcer.check_submission(locked_app.intake, locked_app.program)
+        if not intake_recheck.allowed:
+            raise ApplicationSubmissionError(intake_recheck.code, intake_recheck.message)
 
         # Duplicate check at submit time (Req 4.3, 4.4)
         from apps.applications.duplicate_checker import DuplicateChecker
