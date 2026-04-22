@@ -104,7 +104,7 @@ class TestRetryLimit:
     @patch("django.db.transaction.atomic")
     @patch("apps.documents.payment_service.Payment.objects")
     @patch("apps.applications.models.Application.objects")
-    @patch("apps.documents.payment_service.IdentifierResolver")
+    @patch("apps.applications.identifier_resolver.IdentifierResolver")
     @patch("apps.documents.payment_service.FeeResolver")
     def test_allows_under_limit(self, mock_fee, mock_resolver, mock_app_qs, mock_pay_qs, mock_atomic):
         """Payment initiation succeeds when under the limit."""
