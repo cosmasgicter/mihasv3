@@ -80,8 +80,8 @@ interface ApplicationWithDetails {
  result_slip_url?: string
  extra_kyc_url?: string
  admin_feedback?: string
- admin_feedback_date?: string
- admin_feedback_by?: string
+ admin_feedback_date?: string | null
+ admin_feedback_by?: string | null
  review_started_at?: string
  decision_date?: string
  total_subjects?: number

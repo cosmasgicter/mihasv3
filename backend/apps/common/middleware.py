@@ -1,13 +1,14 @@
 """Middleware chain for the MIHAS Django API.
 
 Implements security headers, request ID propagation, rate limiting,
-CSRF enforcement, and audit logging.
+CSRF enforcement, audit logging, and request metrics.
 """
 
 import hashlib
 import json
 import logging
 import re
+import time
 import uuid
 
 from django.http import JsonResponse
@@ -89,6 +90,49 @@ class RequestIDMiddleware:
         finally:
             clear_request_context()
         response["X-Request-ID"] = request_id
+        return response
+
+
+# ---------------------------------------------------------------------------
+# 7.2b — MetricsMiddleware
+# ---------------------------------------------------------------------------
+
+
+class MetricsMiddleware:
+    """Emit structured request-level metrics for log aggregation.
+
+    Skips health-check endpoints to avoid log noise. Wraps metric
+    emission in try/except so it never blocks responses.
+    """
+
+    SKIP_PATHS = {"/health/live/", "/health/ready/", "/health/redis/"}
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.path in self.SKIP_PATHS:
+            return self.get_response(request)
+
+        start = time.monotonic()
+        response = self.get_response(request)
+
+        try:
+            duration_ms = round((time.monotonic() - start) * 1000, 1)
+            logger.info(
+                "request_metric",
+                extra={
+                    "type": "request_metric",
+                    "method": request.method,
+                    "path": request.path,
+                    "status_code": response.status_code,
+                    "duration_ms": duration_ms,
+                    "request_id": getattr(request, "request_id", None),
+                },
+            )
+        except Exception:
+            pass  # Metrics are best-effort — never block the response
+
         return response
 
 
