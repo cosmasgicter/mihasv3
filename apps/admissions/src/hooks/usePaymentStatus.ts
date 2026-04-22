@@ -37,6 +37,7 @@ export function normalizePaymentStatusValue(status?: string | null): PaymentStat
     case 'pending_review':
       return 'pending'
     case 'verified':
+    case 'deferred':
       return 'successful'
     case 'rejected':
       return 'failed'
