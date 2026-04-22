@@ -169,7 +169,7 @@ def _build_context(application, extra_context: dict | None = None) -> dict:
         "program_name": str(getattr(application, "program", "")),
         "intake_name": str(getattr(application, "intake", "")),
         "status": getattr(application, "status", ""),
-        "tracking_code": getattr(application, "tracking_code", ""),
+        "tracking_code": getattr(application, "public_tracking_code", "") or getattr(application, "tracking_code", ""),
         "portal_url": "https://apply.mihas.edu.zm",
     }
     if extra_context:

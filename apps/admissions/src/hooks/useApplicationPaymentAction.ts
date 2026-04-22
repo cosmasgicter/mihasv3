@@ -130,16 +130,10 @@ export function useApplicationPaymentAction({
     updatePaymentStatus('initiating')
 
     try {
-      const customer = getCustomerDetails()
       const data = await withRetry(() =>
         apiClient.request<InitiateResponse>('/payments/initiate/', {
           method: 'POST',
-          body: JSON.stringify({
-            application_id: applicationId,
-            customer_email: customer.email || '',
-            customer_name: customer.fullName || '',
-            customer_phone: customer.phone || '',
-          }),
+          body: JSON.stringify({ application_id: applicationId }),
         }),
       )
 
@@ -151,6 +145,7 @@ export function useApplicationPaymentAction({
         throw new Error('Payment service returned incomplete details')
       }
 
+      const customer = getCustomerDetails()
       const { firstName, lastName } = splitFullName(customer.fullName)
 
       // Set global flag to suppress session revalidation while widget is open

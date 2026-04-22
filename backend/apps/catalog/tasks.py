@@ -19,20 +19,14 @@ _ALERT_THROTTLE_TTL = 900  # 15 minutes
 
 
 def _log_error_and_alert(error_msg: str) -> None:
-    """Create an ErrorLog row and dispatch a throttled alert email.
+    """Log error to GlitchTip and dispatch a throttled alert email.
 
-    Follows the same pattern as ``apps.common.exceptions._log_error_and_alert``
-    but without a request context (this runs inside a Celery worker).
+    ErrorLog model is deprecated — errors go to GlitchTip via sentry_sdk.
     """
-    from apps.common.models import ErrorLog
+    import sentry_sdk
     from apps.common.outbox import queue_email
 
-    ErrorLog.objects.create(
-        source="backend",
-        level="error",
-        message=error_msg[:2000],
-        context={"task": "intake_manager_task"},
-    )
+    sentry_sdk.capture_message(error_msg, level="error")
 
     # Throttled alert — one per unique message per 15 minutes.
     msg_hash = hashlib.sha256(error_msg.encode("utf-8")).hexdigest()[:16]

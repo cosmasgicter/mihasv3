@@ -169,7 +169,7 @@ class JobScoreView(JobActionBaseView):
         if result:
             # Save score
             JobMatchScore.objects.update_or_create(
-                job=job, defaults={"score": result.get("score", 0), "reasoning": result, "scored_at": timezone.now()}
+                job_posting=job, defaults={"match_score": result.get("score", 0), "explanation": result}
             )
             return Response({"success": True, "data": {"job_id": str(job_id), "score": result}})
 

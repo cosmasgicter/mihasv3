@@ -177,7 +177,7 @@ class ApplicationDetailView(APIView):
         if not serializer.is_valid():
             return Response({"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
-        return Response(serializer.data)
+        return Response({"success": True, "data": serializer.data})
 
     def delete(self, request, application_id):
         app = self._get_application(request, application_id)
@@ -269,7 +269,7 @@ class ApplicationDocumentsView(APIView):
         if not IsOwnerOrAdmin().has_object_permission(request, self, app):
             return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
         docs = ApplicationDocument.objects.select_related('application').filter(application_id=application_id)
-        return Response(DocumentSerializer(docs, many=True).data)
+        return Response({"success": True, "data": DocumentSerializer(docs, many=True).data})
 
 
 # ---------------------------------------------------------------------------
@@ -445,7 +445,7 @@ class ApplicationSummaryView(APIView):
                     "program": app.program,
                     "status": app.status,
                     "payment_status": app.payment_status,
-                    "grades_summary": app.grades_summary,
+                    "grades_summary": getattr(app, "grades_summary", ""),
                     "nationality": getattr(app, "nationality", ""),
                     "institution": getattr(app, "institution", ""),
                 })
@@ -507,7 +507,7 @@ class ApplicationSubmitView(APIView):
             )
 
         response_data = ApplicationSerializer(submitted_app).data
-        return Response(response_data)
+        return Response({"success": True, "data": response_data})
 
 
 # ---------------------------------------------------------------------------

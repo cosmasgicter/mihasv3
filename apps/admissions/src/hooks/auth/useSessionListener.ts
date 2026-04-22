@@ -17,7 +17,7 @@ import { authService } from '@/services/auth'
 import { isAdminRole } from '@/lib/auth/roles'
 import { extractAuthUser as extractAuthUserFromResult } from '@/lib/authSession'
 import { clearCsrfToken } from '@/lib/csrfToken'
-import { secureStorage } from '@/lib/secureStorage'
+import { clearSession } from '@/lib/secureStorage'
 import { broadcastLogin, broadcastLogout } from '@/lib/authBroadcast'
 import { resetAuthFailureDebounce } from '@/lib/sessionHardening'
 import {
@@ -211,7 +211,7 @@ export function useSessionListener() {
     queryClient.setQueryData(profileQueryKey(undefined), null)
     queryClient.clear()
 
-    try { await secureStorage.clearSession() } catch { /* best-effort */ }
+    try { await clearSession() } catch { /* best-effort */ }
 
     if (typeof window !== 'undefined') {
       localStorage.removeItem('mihas:post-auth-redirect')

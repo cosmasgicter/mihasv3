@@ -13,7 +13,7 @@ import { useState } from 'react';
 import { logger } from '@/lib/logger';
 import { generateApplicationSlip } from '@/lib/applicationSlipPdf';
 import { generateAcceptanceLetter } from '@/lib/acceptanceLetterGenerator';
-import { generatePaymentReceipt, generateReceiptNumber } from '@/lib/receiptGenerator';
+import { generatePaymentReceipt } from '@/lib/receiptGenerator';
 import { applicationService } from '@/services/applications';
 import { apiClient } from '@/services/client';
 
@@ -146,8 +146,9 @@ async function fetchSuccessfulPayment(applicationId: string): Promise<PaymentRec
 }
 
 function buildReceiptData(application: ApplicationPayload, payment: PaymentRecord | null) {
+  // Try backend receipt endpoint first
   return {
-    receiptNumber: application.receipt_number || generateReceiptNumber(),
+    receiptNumber: payment?.id?.slice(0, 8).toUpperCase() || 'Unknown',
     applicationNumber: application.application_number || 'Unknown',
     studentName: application.full_name || 'Applicant',
     email: application.email || 'Not provided',
@@ -159,6 +160,43 @@ function buildReceiptData(application: ApplicationPayload, payment: PaymentRecor
     paymentReference: payment?.transaction_reference || undefined,
     paymentDate: payment?.created_at || application.payment_verified_at || new Date().toISOString(),
     verifiedDate: payment?.updated_at || application.payment_verified_at || new Date().toISOString(),
+    verifiedBy: application.payment_verified_by_name || 'Admissions Office',
+  };
+}
+
+interface BackendReceiptData {
+  payment_id: string
+  amount: string
+  currency: string
+  status: string
+  created_at: string | null
+  application_number: string | null
+  program: string | null
+  applicant_name: string | null
+}
+
+async function fetchReceiptData(paymentId: string): Promise<BackendReceiptData | null> {
+  try {
+    return await apiClient.request<BackendReceiptData>(`/payments/${encodeURIComponent(paymentId)}/receipt/`)
+  } catch {
+    return null
+  }
+}
+
+function buildReceiptFromBackend(receipt: BackendReceiptData, payment: PaymentRecord, application: ApplicationPayload) {
+  return {
+    receiptNumber: receipt.payment_id.slice(0, 8).toUpperCase(),
+    applicationNumber: receipt.application_number || application.application_number || 'Unknown',
+    studentName: receipt.applicant_name || application.full_name || 'Applicant',
+    email: application.email || '',
+    phone: application.phone || '',
+    program: receipt.program || application.program || 'Not specified',
+    institution: application.institution || 'MIHAS',
+    amount: Number(receipt.amount) || 0,
+    paymentMethod: payment.payment_method || 'Online Payment',
+    paymentReference: payment.transaction_reference || undefined,
+    paymentDate: receipt.created_at || new Date().toISOString(),
+    verifiedDate: receipt.created_at || new Date().toISOString(),
     verifiedBy: application.payment_verified_by_name || 'Admissions Office',
   };
 }
@@ -247,9 +285,13 @@ export function useDocumentGeneration() {
           }
           {
             const payment = await fetchSuccessfulPayment(applicationId);
-            pdfBlob = await generatePaymentReceipt(buildReceiptData(application, payment));
+            const receipt = payment ? await fetchReceiptData(payment.id) : null;
+            const receiptInput = receipt && payment
+              ? buildReceiptFromBackend(receipt, payment, application)
+              : buildReceiptData(application, payment);
+            pdfBlob = await generatePaymentReceipt(receiptInput);
           }
-          filename = `receipt_${application.receipt_number || application.application_number || applicationId}.pdf`;
+          filename = `receipt_${application.application_number || applicationId}.pdf`;
           break;
 
         default:

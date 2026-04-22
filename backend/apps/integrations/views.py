@@ -2,6 +2,7 @@
 
 import uuid
 
+from django.conf import settings
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -55,6 +56,13 @@ class TelegramWebhookView(APIView):
 
     @extend_schema(operation_id="integrations_telegram_webhook", tags=["integrations"], auth=[], responses={200: OpenApiResponse(response=ACTION_RESPONSE)})
     def post(self, request):
+        # Validate Telegram secret token header
+        expected_token = getattr(settings, "TELEGRAM_WEBHOOK_SECRET", None)
+        if expected_token:
+            provided = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
+            if not provided or provided != expected_token:
+                return Response({"error": "Unauthorized"}, status=403)
+
         return Response(
             {
                 "message": "Telegram webhook scaffold received payload.",

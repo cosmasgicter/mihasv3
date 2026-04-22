@@ -480,7 +480,7 @@ class AdminDashboardView(APIView):
 
                 recent_payments = (
                     Payment.objects
-                    .filter(status__in=['paid', 'successful', 'verified'])
+                    .filter(status__in=['successful', 'force_approved'])
                     .select_related('application')
                     .order_by('-updated_at')[:5]
                 )
