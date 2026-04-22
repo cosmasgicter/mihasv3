@@ -10,3 +10,6 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.prod")
 app = Celery("mihas")
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
+
+# Register lifecycle signal handlers for structured task logging
+import apps.common.celery_signals  # noqa: F401, E402
