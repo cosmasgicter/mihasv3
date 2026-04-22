@@ -513,7 +513,7 @@ AI_GATEWAY_API_KEY = os.environ.get("AI_GATEWAY_API_KEY", "")
 AI_GATEWAY_BASE_URL = os.environ.get("AI_GATEWAY_BASE_URL", "https://ai-gateway.vercel.sh/v1")
 AI_MODEL_FAST = os.environ.get("AI_MODEL_FAST", "google/gemini-2.5-flash")  # cheap, fast tasks
 AI_MODEL_VISION = os.environ.get("AI_MODEL_VISION", "google/gemini-2.5-flash")  # document OCR
-AI_MODEL_SMART = os.environ.get("AI_MODEL_SMART", "anthropic/claude-sonnet-4")  # complex reasoning
+AI_MODEL_SMART = os.environ.get("AI_MODEL_SMART", "deepseek/deepseek-r1")  # complex reasoning
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://apply.mihas.edu.zm")
 PAYMENT_DEV_BYPASS = os.environ.get("PAYMENT_DEV_BYPASS", "").lower() in (
     "1",
