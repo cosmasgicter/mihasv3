@@ -59,4 +59,11 @@ class JsonLogFormatter(logging.Formatter):
         if record.exc_info:
             payload["exc_info"] = self.formatException(record.exc_info)
 
+        # Merge extra dict fields into the JSON payload so structured
+        # metric fields (type, method, path, status_code, duration_ms, etc.)
+        # appear as top-level keys in the log line.
+        extra = getattr(record, "extra", None)
+        if isinstance(extra, dict):
+            payload.update(extra)
+
         return json.dumps(payload, default=str)

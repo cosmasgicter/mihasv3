@@ -29,7 +29,7 @@ Raise the MIHAS platform production readiness score from 79 to 90+ across six ar
   - _Requirements: 1.1, 1.5_
 
 - [ ] 3. Implement request metrics middleware (P1 — Observability)
-  - [~] 3.1 Add `MetricsMiddleware` to `backend/apps/common/middleware.py`
+  - [-] 3.1 Add `MetricsMiddleware` to `backend/apps/common/middleware.py`
     - Implement `MetricsMiddleware` class with `SKIP_PATHS` for health endpoints
     - Compute `duration_ms` via `time.monotonic()`, emit structured log with `type: "request_metric"`, `method`, `path`, `status_code`, `duration_ms`, `request_id`
     - Wrap metric emission in try/except to never block responses

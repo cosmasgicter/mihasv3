@@ -68,6 +68,8 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     # 5. Request ID generation/propagation
     "apps.common.middleware.RequestIDMiddleware",
+    # 5.5. Request metrics (after RequestID so request_id is available)
+    "apps.common.middleware.MetricsMiddleware",
     # 6. Per-scope rate limiting
     "apps.common.middleware.RateLimitMiddleware",
     # 7. URL normalization
