@@ -21,16 +21,20 @@ class RegisterSerializer(serializers.Serializer):
     """Validates registration data."""
 
     email = serializers.EmailField(required=True)
-    password = serializers.CharField(required=True, min_length=6, write_only=True)
+    password = serializers.CharField(required=True, min_length=8, write_only=True)
     first_name = serializers.CharField(required=True, max_length=255)
     last_name = serializers.CharField(required=True, max_length=255)
     phone = serializers.CharField(required=False, allow_blank=True, default="")
     nationality = serializers.CharField(required=False, allow_blank=True, default="")
 
     def validate_password(self, value):
-        """Enforce minimum password length of 6 characters."""
-        if len(value) < 6:
-            raise serializers.ValidationError("Password must be at least 6 characters.")
+        """Enforce minimum password strength."""
+        if len(value) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters.")
+        has_letter = any(c.isalpha() for c in value)
+        has_digit = any(c.isdigit() for c in value)
+        if not (has_letter and has_digit):
+            raise serializers.ValidationError("Password must contain both letters and numbers.")
         return value
 
     def validate_phone(self, value):

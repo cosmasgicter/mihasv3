@@ -153,7 +153,7 @@ class PaymentService:
 
             application = Application.objects.get(id=application_id)
 
-            if application.payment_status in ('verified', 'force_approved'):
+            if application.payment_status in ('successful', 'verified', 'force_approved'):
                 return PaymentInitiationResult(
                     payment_id=None,
                     reference='',
@@ -374,7 +374,7 @@ class PaymentService:
 
             application = Application.objects.get(id=application_id)
 
-            if application.payment_status in ('verified', 'force_approved'):
+            if application.payment_status in ('successful', 'verified', 'force_approved'):
                 return PaymentInitiationResult(
                     payment_id=None, reference='', amount=Decimal('0'), currency='',
                 )

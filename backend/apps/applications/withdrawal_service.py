@@ -16,7 +16,7 @@ from apps.applications.services import transition_application_status
 logger = logging.getLogger(__name__)
 
 # Statuses from which withdrawal is allowed (Req 1.1).
-WITHDRAWABLE_STATUSES = {"submitted", "under_review", "waitlisted"}
+WITHDRAWABLE_STATUSES = {"submitted", "under_review", "waitlisted", "conditionally_approved", "approved"}
 
 # Reason length constraints (Req 1.3).
 MIN_REASON_LENGTH = 10
