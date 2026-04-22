@@ -17,6 +17,8 @@ import { generatePaymentReceipt } from '@/lib/receiptGenerator';
 import { applicationService } from '@/services/applications';
 import { apiClient } from '@/services/client';
 
+import { isPaymentVerified } from '@/lib/paymentStatus';
+
 type ApplicationPayload = {
   id?: string;
   application_number?: string;
@@ -224,6 +226,9 @@ export function useDocumentGeneration() {
       let pdfBlob: Blob;
       let filename: string;
 
+      // Yield to browser so "Generating..." UI paints before CPU-intensive PDF work
+      await new Promise(r => setTimeout(r, 0));
+
       switch (type) {
         case 'slip':
           logger.info('[useDocumentGeneration] Generating slip PDF...');
@@ -280,7 +285,7 @@ export function useDocumentGeneration() {
           break;
 
         case 'receipt':
-          if (application.payment_status !== 'verified' && application.payment_status !== 'paid') {
+          if (!isPaymentVerified(application.payment_status)) {
             throw new Error('Payment must be verified to generate receipt');
           }
           {

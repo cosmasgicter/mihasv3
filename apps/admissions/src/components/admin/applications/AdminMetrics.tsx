@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { TrendingUp, Users, Clock, AlertCircle, CreditCard } from 'lucide-react'
+import { normalizePaymentStatus } from '@/lib/paymentStatus'
 
 interface ApplicationSummary {
   status: string
@@ -34,10 +35,10 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
     const decisionQueue = pendingReview + underReview
 
     const paymentNotPaid = applications.filter(
-      app => !app.payment_status || app.payment_status === 'not_paid'
+      app => normalizePaymentStatus(app.payment_status) === 'not_paid'
     ).length
-    const paymentPending = applications.filter(app => app.payment_status === 'pending_review').length
-    const paymentRejected = applications.filter(app => app.payment_status === 'rejected').length
+    const paymentPending = applications.filter(app => normalizePaymentStatus(app.payment_status) === 'pending_review').length
+    const paymentRejected = applications.filter(app => normalizePaymentStatus(app.payment_status) === 'rejected').length
     const paymentAttention = paymentNotPaid + paymentRejected
 
     const submissionTrend = todaySubmissions - yesterdaySubmissions

@@ -116,6 +116,9 @@ export function usePaymentReceipt() {
         ? buildReceiptFromBackend(receipt, payment)
         : buildReceiptFromPayment(payment)
 
+      // Yield to browser so loading state paints before CPU-intensive PDF work
+      await new Promise(r => setTimeout(r, 0));
+
       const pdfBlob = await generatePaymentReceipt(receiptInput);
 
       const url = URL.createObjectURL(pdfBlob);

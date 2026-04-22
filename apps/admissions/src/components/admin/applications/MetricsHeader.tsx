@@ -1,4 +1,5 @@
 import React from 'react'
+import { normalizePaymentStatus } from '@/lib/paymentStatus'
 
 interface ApplicationSummary {
   status: string
@@ -14,9 +15,12 @@ export function MetricsHeader({ applications, totalCount }: MetricsHeaderProps) 
   const loadedCount = applications.length
   const submitted = applications.filter(app => app.status === 'submitted').length
   const underReview = applications.filter(app => app.status === 'under_review').length
-  const paymentPending = applications.filter(app => app.payment_status === 'pending_review').length
+  const paymentPending = applications.filter(app => normalizePaymentStatus(app.payment_status) === 'pending_review').length
   const paymentAttention = applications.filter(
-    app => !app.payment_status || app.payment_status === 'not_paid' || app.payment_status === 'rejected'
+    app => {
+      const n = normalizePaymentStatus(app.payment_status)
+      return n === 'not_paid' || n === 'rejected'
+    }
   ).length
 
   return (

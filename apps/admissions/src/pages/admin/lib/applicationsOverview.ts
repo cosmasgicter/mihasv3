@@ -1,3 +1,5 @@
+import { normalizePaymentStatus } from '@/lib/paymentStatus'
+
 interface ApplicationSummary {
   status: string
   payment_status: string
@@ -28,11 +30,19 @@ export function buildApplicationsOverview(
   const loadedCount = applications.length
   const pendingReview = applications.filter(app => app.status === 'submitted').length
   const underReview = applications.filter(app => app.status === 'under_review').length
+
   const paymentNotPaid = applications.filter(
-    app => !app.payment_status || app.payment_status === 'not_paid'
+    app => normalizePaymentStatus(app.payment_status) === 'not_paid'
   ).length
-  const paymentPending = applications.filter(app => app.payment_status === 'pending_review').length
-  const paymentRejected = applications.filter(app => app.payment_status === 'rejected').length
+  const paymentPending = applications.filter(
+    app => normalizePaymentStatus(app.payment_status) === 'pending_review'
+  ).length
+  const paymentRejected = applications.filter(
+    app => normalizePaymentStatus(app.payment_status) === 'rejected'
+  ).length
+  const paymentVerified = applications.filter(
+    app => normalizePaymentStatus(app.payment_status) === 'verified'
+  ).length
 
   return {
     total: totalCount && totalCount > 0 ? totalCount : loadedCount,
@@ -48,6 +58,6 @@ export function buildApplicationsOverview(
     paymentNotPaid,
     paymentPending,
     paymentRejected,
-    paymentVerified: applications.filter(app => app.payment_status === 'verified').length,
+    paymentVerified,
   }
 }
