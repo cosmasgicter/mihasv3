@@ -525,7 +525,8 @@ class TestDraftAutoSaveRoundTrip(SimpleTestCase):
             response = view.post(request)
 
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.data["draft_data"], draft_data)
+        self.assertTrue(response.data["success"])
+        self.assertEqual(response.data["data"]["draft_data"], draft_data)
 
     def test_draft_serializer_includes_draft_data_field(self):
         """ApplicationDraftSerializer includes draft_data field."""
@@ -566,4 +567,5 @@ class TestDraftAutoSaveRoundTrip(SimpleTestCase):
             response = view.get(request)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["draft_data"], draft_data)
+        self.assertTrue(response.data["success"])
+        self.assertEqual(response.data["data"]["draft_data"], draft_data)

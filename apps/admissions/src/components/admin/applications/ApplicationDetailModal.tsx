@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/Button'
 import { formatDate, formatTimestamp } from '@/lib/dateFormat'
 import { XCircle, User, Clock, CheckCircle, FileText, CreditCard, Mail, Phone, Calendar, MapPin, Users, GraduationCap, Building, AlertCircle, Download, Send, History, Eye, MessageSquare, Shield, Tag, AlertTriangle, ClipboardList } from 'lucide-react'
@@ -488,6 +488,63 @@ export function ApplicationDetailModal({
  setIsClient(true)
  }, [])
 
+ const loadPaymentRecords = useCallback(async (applicationId: string): Promise<PaymentRecord[]> => {
+   const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>(
+     `/payments/?application_id=${encodeURIComponent(applicationId)}`
+   )
+   return Array.isArray(data) ? data : (data?.results ?? [])
+ }, [])
+
+ const loadApplicationDetails = useCallback(async (applicationId: string): Promise<ApplicationDetailResponse> => {
+   const response = await applicationService.getById(applicationId, {
+     include: ['grades', 'statusHistory', 'documents', 'interview']
+   })
+
+   const payload: any = response || {}
+   const primaryApplication = payload?.application || application
+
+   return {
+     application: primaryApplication,
+     grades: payload?.grades || [],
+     statusHistory: payload?.statusHistory || [],
+     documents: payload?.documents || [],
+     interview: payload?.interview || payload?.application?.interview || null
+   }
+ }, [application])
+
+ const refreshModalData = useCallback(async (applicationId: string) => {
+   setLoading(true)
+   setLoadingPayments(true)
+
+   const [detailsResult, paymentsResult] = await Promise.allSettled([
+     loadApplicationDetails(applicationId),
+     loadPaymentRecords(applicationId),
+   ])
+
+   if (detailsResult.status === 'fulfilled') {
+     setApplicationData(detailsResult.value)
+   } else {
+     logApiError('admin-application-detail', `/applications/${applicationId}/details/`, detailsResult.reason)
+     setApplicationData({
+       application: application!,
+       grades: [],
+       statusHistory: [],
+       documents: [],
+       interview: null
+     })
+   }
+
+   if (paymentsResult.status === 'fulfilled') {
+     setPaymentRecords(paymentsResult.value)
+   } else {
+     logApiError('admin-application-detail', `/payments/?application_id=${applicationId}`, paymentsResult.reason)
+     setPaymentRecords([])
+   }
+
+   setLoading(false)
+   setLoadingPayments(false)
+ }, [application, loadApplicationDetails, loadPaymentRecords])
+
  useEffect(() => {
  setIsGeneratingAcceptance(false)
  setIsGeneratingFinanceReceipt(false)
@@ -533,7 +590,7 @@ export function ApplicationDetailModal({
        body: JSON.stringify(feeWaiverForm),
      })
      setFeeWaiverOpen(false)
-     if (application?.id) { void loadApplicationDetails() }
+     if (application?.id) { void refreshModalData(application.id) }
    } catch (error) {
      logApiError('admin-fee-waiver', `/applications/${application.id}/fee-waiver/`, error)
    } finally {
@@ -543,60 +600,9 @@ export function ApplicationDetailModal({
 
  useEffect(() => {
  if (show && application?.id) {
- loadApplicationDetails()
- loadPaymentRecords(application.id)
+ void refreshModalData(application.id)
  }
- }, [show, application?.id])
-
- const loadPaymentRecords = async (applicationId: string) => {
-   try {
-     setLoadingPayments(true)
-     const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>(
-       `/payments/?application_id=${encodeURIComponent(applicationId)}`
-     )
-     const records = Array.isArray(data) ? data : (data?.results ?? [])
-     setPaymentRecords(records)
-   } catch (error) {
-     logApiError('admin-application-detail', `/payments/?application_id=${applicationId}`, error)
-     setPaymentRecords([])
-   } finally {
-     setLoadingPayments(false)
-   }
- }
-
- const loadApplicationDetails = async () => {
- if (!application?.id) return
-
- try {
- setLoading(true)
- const response = await applicationService.getById(application.id, { 
- include: ['grades', 'statusHistory', 'documents', 'interview'] 
- })
- 
- const payload: any = response || {}
- const primaryApplication = payload?.application || application
-
- setApplicationData({
- application: primaryApplication,
- grades: payload?.grades || [],
- statusHistory: payload?.statusHistory || [],
- documents: payload?.documents || [],
- interview: payload?.interview || payload?.application?.interview || null
- })
- } catch (error) {
- logApiError('admin-application-detail', `/applications/${application?.id}/details/`, error)
- // Set empty data on error to prevent infinite loading
- setApplicationData({
- application: application,
- grades: [],
- statusHistory: [],
- documents: [],
- interview: null
- })
- } finally {
- setLoading(false)
- }
- }
+ }, [show, application?.id, refreshModalData])
 
  const formatDateTimeLocal = (value?: string | null) => {
  if (!value) return ''
@@ -774,7 +780,7 @@ export function ApplicationDetailModal({
      return
    }
    window.dispatchEvent(new CustomEvent('applicationUpdated', { detail: { applicationId: appId } }))
-   setTimeout(() => loadApplicationDetails(), 100)
+   void refreshModalData(appId)
  }
 
  const handlePaymentWarningConfirm = async () => {
@@ -782,7 +788,7 @@ export function ApplicationDetailModal({
    try {
      await onUpdateStatus(paymentWarning.applicationId, paymentWarning.status, { force: true })
      window.dispatchEvent(new CustomEvent('applicationUpdated', { detail: { applicationId: paymentWarning.applicationId } }))
-     setTimeout(() => loadApplicationDetails(), 100)
+     void refreshModalData(paymentWarning.applicationId)
    } finally {
      setPaymentWarning(null)
    }

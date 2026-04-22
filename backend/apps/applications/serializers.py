@@ -19,7 +19,7 @@ from apps.applications.models import (
 )
 from apps.applications.identifier_resolver import IdentifierResolver
 from apps.common.validators import validate_nrc, validate_zambian_phone
-from apps.documents.models import Payment
+from apps.documents.models import ApplicationGrade, Payment
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +98,66 @@ def validate_minimum_age(date_of_birth):
             {"date_of_birth": "Applicants must be at least 16 years old."},
             code="MINIMUM_AGE_NOT_MET",
         )
+
+
+def get_application_grades(application: Application) -> list[ApplicationGrade]:
+    """Return prefetched grades when available to avoid N+1 queries."""
+    cache = getattr(application, "_prefetched_objects_cache", {})
+    if "applicationgrade_set" in cache:
+        return list(application.applicationgrade_set.all())
+    return list(
+        ApplicationGrade.objects.select_related("subject")
+        .filter(application_id=getattr(application, "id", None))
+        .order_by("subject__name", "created_at", "id")
+    )
+
+
+def build_grades_summary(application: Application) -> str:
+    """Produce the text format the admissions UI already knows how to parse."""
+    grades = get_application_grades(application)
+    if not grades:
+        return ""
+
+    summary_lines: list[str] = []
+    for entry in grades:
+        subject_name = getattr(getattr(entry, "subject", None), "name", None) or str(entry.subject_id)
+        summary_lines.append(f"{subject_name}: Grade {entry.grade}")
+    return "\n".join(summary_lines)
+
+
+def build_grades_payload(application: Application) -> list[dict[str, object]]:
+    grades = get_application_grades(application)
+    return [
+        {
+            "subject": getattr(getattr(entry, "subject", None), "name", None) or str(entry.subject_id),
+            "subject_id": str(entry.subject_id),
+            "grade": entry.grade,
+        }
+        for entry in grades
+    ]
+
+
+def calculate_points_from_grades(application: Application) -> int:
+    grades = sorted(
+        entry.grade for entry in get_application_grades(application)
+        if isinstance(entry.grade, int) and 1 <= entry.grade <= 9
+    )
+    return sum(grades[:5]) if grades else 0
+
+
+def calculate_application_age(application: Application) -> int:
+    dob = getattr(application, "date_of_birth", None)
+    if dob is None:
+        return 0
+    return relativedelta(date.today(), dob).years
+
+
+def calculate_days_since_submission(application: Application) -> int:
+    submitted_at = getattr(application, "submitted_at", None) or getattr(application, "created_at", None)
+    if submitted_at is None:
+        return 0
+    submitted_date = submitted_at.date() if hasattr(submitted_at, "date") else submitted_at
+    return max((date.today() - submitted_date).days, 0)
 
 
 class ApplicationPaymentSummaryMixin(serializers.Serializer):
@@ -415,6 +475,11 @@ class ApplicationListSerializer(ApplicationPaymentSummaryMixin, serializers.Mode
     payment_verified_by_name = serializers.SerializerMethodField()
     payment_verified_by_email = serializers.SerializerMethodField()
     last_payment_audit_notes = serializers.CharField(source="admin_feedback", read_only=True)
+    grades_summary = serializers.SerializerMethodField()
+    total_subjects = serializers.SerializerMethodField()
+    points = serializers.SerializerMethodField()
+    age = serializers.SerializerMethodField()
+    days_since_submission = serializers.SerializerMethodField()
 
     class Meta:
         model = Application
@@ -427,6 +492,7 @@ class ApplicationListSerializer(ApplicationPaymentSummaryMixin, serializers.Mode
             "payment_verified_by_name", "payment_verified_by_email",
             "submitted_at", "admin_feedback", "last_payment_audit_notes",
             "review_started_at", "decision_date", "application_fee",
+            "grades_summary", "total_subjects", "points", "age", "days_since_submission",
             "created_at", "updated_at",
         ]
 
@@ -446,6 +512,21 @@ class ApplicationListSerializer(ApplicationPaymentSummaryMixin, serializers.Mode
         if verifier is None:
             return None
         return getattr(verifier, "email", None)
+
+    def get_grades_summary(self, obj) -> str:
+        return build_grades_summary(obj)
+
+    def get_total_subjects(self, obj) -> int:
+        return len(get_application_grades(obj))
+
+    def get_points(self, obj) -> int:
+        return calculate_points_from_grades(obj)
+
+    def get_age(self, obj) -> int:
+        return calculate_application_age(obj)
+
+    def get_days_since_submission(self, obj) -> int:
+        return calculate_days_since_submission(obj)
 
 
 class ApplicationTrackingSerializer(serializers.ModelSerializer):
