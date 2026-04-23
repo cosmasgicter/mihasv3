@@ -52,8 +52,8 @@ class WebhookProcessor:
             logger.warning("LENCO_API_SECRET_KEY not configured — cannot validate webhook signature")
             return False
 
-        hash_key = hashlib.sha256(api_secret.encode('utf-8')).digest()
-        expected = hmac.new(hash_key, raw_body, hashlib.sha512).hexdigest()
+        hash_key = hashlib.sha256(api_secret.encode('utf-8')).hexdigest()
+        expected = hmac.new(hash_key.encode('utf-8'), raw_body, hashlib.sha512).hexdigest()
         return hmac.compare_digest(expected, signature)
 
     # ------------------------------------------------------------------
