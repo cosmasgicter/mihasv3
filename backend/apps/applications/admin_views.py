@@ -1066,3 +1066,55 @@ class ApplicationConditionVerifyView(APIView):
 
         data = ApplicationConditionSerializer(updated_condition).data
         return Response({"success": True, "data": data})
+
+
+class ApplicationAdminSummaryView(APIView):
+    """GET /api/v1/applications/{id}/admin-summary/
+
+    Returns an AI-generated review brief for admins. Best-effort.
+    """
+
+    permission_classes = [IsAdmin]
+
+    def get(self, request, application_id):
+        try:
+            app = Application.objects.get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        from apps.applications.serializers import build_grades_summary
+
+        docs = ApplicationDocument.objects.filter(application_id=app.id).values_list("document_type", flat=True)
+        docs_summary = ", ".join(docs) if docs else "No documents uploaded"
+
+        summary = None
+        try:
+            from apps.common.ai_service import generate_admin_review_summary
+
+            summary = generate_admin_review_summary(
+                {
+                    "full_name": app.full_name,
+                    "program": app.program,
+                    "institution": app.institution,
+                    "intake": app.intake,
+                    "nrc_number": app.nrc_number or app.passport_number or "Not provided",
+                    "nationality": getattr(app, "nationality", None) or "Unknown",
+                    "sex": app.sex,
+                    "date_of_birth": str(app.date_of_birth) if app.date_of_birth else "Unknown",
+                    "payment_status": app.payment_status or "unpaid",
+                    "documents_summary": docs_summary,
+                    "grades_summary": build_grades_summary(app),
+                }
+            )
+        except Exception:
+            pass
+
+        return Response(
+            {
+                "success": True,
+                "data": {"summary": summary},
+            }
+        )

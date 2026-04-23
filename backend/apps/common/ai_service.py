@@ -203,3 +203,44 @@ Do NOT mention payment status, fees, or anything negative. Keep it positive and 
     except Exception:
         logger.exception("AI student preview summary failed")
         return None
+
+
+def generate_admin_review_summary(application_data: dict) -> str | None:
+    """Generate a concise review brief for admins opening an application.
+
+    Highlights strengths, flags concerns, and gives a recommendation.
+    Uses gpt-4o-mini (~$0.0003/call).
+    """
+    client = _get_client()
+    if not client:
+        return None
+
+    model = getattr(settings, "AI_MODEL_ANALYSIS", "openai/gpt-4o-mini")
+
+    prompt = f"""You are an admissions officer reviewing a student application. Write a 3-4 sentence review brief.
+
+Applicant: {application_data.get('full_name', 'Unknown')}
+Program: {application_data.get('program', 'Unknown')}
+Institution: {application_data.get('institution', 'Unknown')}
+Intake: {application_data.get('intake', 'Unknown')}
+NRC: {application_data.get('nrc_number', 'Not provided')}
+Nationality: {application_data.get('nationality', 'Unknown')}
+Sex: {application_data.get('sex', 'Unknown')}
+DOB: {application_data.get('date_of_birth', 'Unknown')}
+Payment: {application_data.get('payment_status', 'Unknown')}
+Documents: {application_data.get('documents_summary', 'None')}
+Grades: {application_data.get('grades_summary', 'None entered')}
+
+Format: Start with a one-line assessment, then note any concerns or strengths. Be factual and concise. Flag missing documents or weak grades. Do not fabricate information."""
+
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=200,
+            temperature=0.3,
+        )
+        return response.choices[0].message.content
+    except Exception:
+        logger.exception("AI admin review summary failed")
+        return None
