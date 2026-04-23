@@ -85,7 +85,7 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
       const active = (res?.interviews ?? []).find(i => i.status === 'scheduled' || i.status === 'rescheduled')
       return active ?? null
     },
-    enabled: application.status !== 'draft' && application.status !== 'rejected',
+    enabled: false, // Disabled: Dashboard fetches all interviews via ?mine=true
     staleTime: 60_000,
   })
 
