@@ -74,6 +74,9 @@ _LENCO_STATUS_MAP: dict[str, str] = {
     'successful': 'successful',
     'paid': 'successful',
     'failed': 'failed',
+    'pending': 'pending',
+    'pay-offline': 'pending',
+    'otp-required': 'pending',
 }
 
 # Lenco API timeout in seconds
@@ -676,6 +679,11 @@ class PaymentService:
 
             locked.bearer = lenco_data.get('bearer') or locked.bearer
 
+            # Store failure reason from Lenco
+            reason = lenco_data.get('reasonForFailure')
+            if reason and new_status == 'failed':
+                locked.notes = str(reason)[:500]
+
             # Merge any extra Lenco data into metadata.
             meta = locked.metadata or {}
             meta['lenco_response'] = lenco_data
@@ -688,6 +696,7 @@ class PaymentService:
                 'payment_method',
                 'fee',
                 'bearer',
+                'notes',
                 'metadata',
                 'updated_at',
             ])

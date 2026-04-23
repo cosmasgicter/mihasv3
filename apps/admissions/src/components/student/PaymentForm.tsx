@@ -286,7 +286,7 @@ export function PaymentForm({
           </div>
           <p className="text-lg font-bold text-foreground">Check your phone</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Approve the payment of <span className="font-semibold text-foreground">{formatCurrency(amount, currency)}</span>
+            Approve the payment of <span className="font-semibold text-foreground">{formatCurrency(amount * 1.01, currency)}</span> (includes 1% transaction fee)
           </p>
 
           <div className="mx-auto mt-6 max-w-xs space-y-3 text-left">
