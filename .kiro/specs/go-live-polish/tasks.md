@@ -51,7 +51,7 @@
 
 - [x] 10. Run all backend tests and verify no regressions
   - Run `cd backend && python3 -m pytest tests/unit/ -q`
-  - Run Stagehand E2E: `bun run scripts/stagehand-e2e.ts`
+  - Run Playwright E2E tests
   - Verify OpenAPI schema: `cd backend && python3 manage.py spectacular --file /tmp/schema.yaml`
 
 ---

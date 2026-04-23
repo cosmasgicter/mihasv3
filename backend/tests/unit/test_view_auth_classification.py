@@ -153,3 +153,222 @@ def test_protected_views_inherit_drf_default_auth(view_path, view_name):
     assert "apps.accounts.authentication.JWTCookieAuthentication" in default_auth, (
         "DRF DEFAULT_AUTHENTICATION_CLASSES should include JWTCookieAuthentication"
     )
+
+
+# ---------------------------------------------------------------------------
+# Auto-detection: every APIView subclass must appear in a classification list
+# ---------------------------------------------------------------------------
+
+# Collect all classified view paths from the parametrize lists above + all discovered views
+_PUBLIC_PERSONALIZABLE = {
+    "apps.catalog.views.ProgramListCreateView",
+    "apps.catalog.views.IntakeListCreateView",
+    "apps.catalog.views.SubjectListView",
+    "apps.catalog.views.InstitutionListCreateView",
+    "apps.applications.views.ApplicationTrackView",
+    "apps.applications.public_views.ApplicationTrackView",
+    "apps.jobs.views.JobListView",
+    "apps.jobs.views.JobDetailView",
+    "apps.accounts.views.SessionView",
+}
+
+_AUTH_EXEMPT = {
+    "apps.accounts.views.LoginView",
+    "apps.accounts.views.RegisterView",
+    "apps.accounts.views.RefreshView",
+    "apps.accounts.views.PasswordResetRequestView",
+    "apps.accounts.views.PasswordResetConfirmView",
+    "apps.common.health.LivenessView",
+    "apps.common.health.ReadinessView",
+    "apps.common.health.RedisHealthView",
+    "apps.common.meta_views.PlatformMetaView",
+    "apps.common.error_views.ErrorReportView",
+    "apps.documents.views.LencoWebhookView",
+    "apps.integrations.views.TelegramWebhookView",
+    "apps.integrations.email_views.EmailDeliveryWebhookView",
+}
+
+_PROTECTED = {
+    # accounts
+    "apps.accounts.views.LogoutView",
+    "apps.accounts.views.ProfileView",
+    "apps.accounts.session_views.SessionListView",
+    "apps.accounts.session_views.SessionRevokeView",
+    "apps.accounts.session_views.SessionRevokeAllView",
+    "apps.accounts.admin_views.AdminDashboardView",
+    "apps.accounts.admin_views.AdminUserListView",
+    "apps.accounts.admin_views.AdminUserDetailView",
+    "apps.accounts.admin_views.AdminUserExportView",
+    "apps.accounts.admin_views.AdminAuditLogView",
+    "apps.accounts.admin_views.AdminSettingsListView",
+    "apps.accounts.admin_views.AdminSettingDetailView",
+    "apps.accounts.admin_views.AdminSettingsImportView",
+    "apps.accounts.admin_views.AdminSettingsResetView",
+    "apps.accounts.batch_views.BatchUserImportView",
+    # applications — legacy re-exports
+    "apps.applications.views.ApplicationListCreateView",
+    "apps.applications.views.ApplicationDetailView",
+    "apps.applications.views.ApplicationSubmitView",
+    # applications — student
+    "apps.applications.student_views.ApplicationDetailView",
+    "apps.applications.student_views.ApplicationDetailsView",
+    "apps.applications.student_views.ApplicationDraftView",
+    "apps.applications.student_views.ApplicationGradesView",
+    "apps.applications.student_views.ApplicationDocumentsView",
+    "apps.applications.student_views.ApplicationSummaryView",
+    "apps.applications.student_views.ApplicationPreviewSummaryView",
+    "apps.applications.student_views.ApplicationSubmitView",
+    "apps.applications.student_views.ApplicationWithdrawView",
+    "apps.applications.student_views.ApplicationWaitlistPositionView",
+    "apps.applications.student_views.ApplicationConditionsView",
+    "apps.applications.student_views.ApplicationConfirmEnrollmentView",
+    "apps.applications.student_views.ApplicationAmendmentView",
+    "apps.applications.student_views.EmailSlipView",
+    # applications — admin
+    "apps.applications.admin_views.ApplicationListCreateView",
+    "apps.applications.admin_views.ApplicationReviewView",
+    "apps.applications.admin_views.ApplicationAssignView",
+    "apps.applications.admin_views.ApplicationAutoAssignView",
+    "apps.applications.admin_views.ApplicationBulkStatusView",
+    "apps.applications.admin_views.ApplicationExportView",
+    "apps.applications.admin_views.ApplicationFeeWaiverView",
+    "apps.applications.admin_views.ApplicationConditionVerifyView",
+    "apps.applications.admin_views.ApplicationAmendmentReviewView",
+    "apps.applications.admin_views.ApplicationAdminSummaryView",
+    # applications — documents, interviews, history
+    "apps.applications.document_views.ApplicationVerifyDocumentView",
+    "apps.applications.document_views.AcceptanceLetterView",
+    "apps.applications.document_views.FinanceReceiptView",
+    "apps.applications.interview_views.ApplicationInterviewView",
+    "apps.applications.interview_views.ApplicationInterviewListView",
+    "apps.applications.history_views.TimelineHistoryView",
+    # catalog detail views
+    "apps.catalog.views.ProgramDetailView",
+    "apps.catalog.views.IntakeDetailView",
+    "apps.catalog.views.InstitutionDetailView",
+    # documents
+    "apps.documents.views.DocumentUploadView",
+    "apps.documents.views.DocumentDeleteView",
+    "apps.documents.views.DocumentDownloadView",
+    "apps.documents.views.DocumentExtractView",
+    "apps.documents.views.DocumentInfoView",
+    "apps.documents.views.DocumentSignedUrlView",
+    "apps.documents.views.PaymentInitiateView",
+    "apps.documents.views.PaymentVerifyView",
+    "apps.documents.views.PaymentListView",
+    "apps.documents.views.PaymentReceiptView",
+    "apps.documents.views.PaymentDevBypassView",
+    "apps.documents.views.MobileMoneyInitiateView",
+    "apps.documents.views.DeferPaymentView",
+    "apps.documents.views.FeeResolveView",
+    "apps.documents.views.ProgramFeeViewSet",
+    # documents — job views
+    "apps.documents.job_views.ResumeListView",
+    "apps.documents.job_views.ResumeVariantCreateView",
+    "apps.documents.job_views.CoverLetterGenerateView",
+    "apps.documents.job_views.DocumentVersionListView",
+    "apps.documents.job_views.QuestionBankAnswerView",
+    # jobs
+    "apps.jobs.views.JobActionBaseView",
+    "apps.jobs.views.JobApplicationActionBaseView",
+    "apps.jobs.views.JobApplicationListCreateView",
+    "apps.jobs.views.JobApplicationDetailView",
+    "apps.jobs.views.JobApplicationSubmitView",
+    "apps.jobs.views.JobApplicationApproveView",
+    "apps.jobs.views.JobApplicationRejectView",
+    "apps.jobs.views.JobApplicationPauseView",
+    "apps.jobs.views.JobApplicationResumeView",
+    "apps.jobs.views.JobScoreView",
+    "apps.jobs.views.JobWatchView",
+    "apps.jobs.views.JobDismissView",
+    "apps.jobs.views.JobTailorDocumentsView",
+    "apps.jobs.views.DiscoveryRunCreateView",
+    "apps.jobs.views.DiscoveryRunDetailView",
+    # outreach
+    "apps.outreach.views.OutreachContactListCreateView",
+    "apps.outreach.views.OutreachContactEnrichView",
+    "apps.outreach.views.OutreachCampaignListCreateView",
+    "apps.outreach.views.OutreachMessageGenerateView",
+    "apps.outreach.views.OutreachMessageSendView",
+    # automation
+    "apps.automation.views.AutomationRuleListCreateView",
+    "apps.automation.views.AutomationRunListCreateView",
+    "apps.automation.views.AutomationRunDetailView",
+    "apps.automation.views.AutomationRunApproveView",
+    "apps.automation.views.AutomationRunCancelView",
+    # integrations
+    "apps.integrations.views.TelegramConnectView",
+    "apps.integrations.views.TelegramTestView",
+    "apps.integrations.views.OpenAITestView",
+    "apps.integrations.email_views.EmailThreadListView",
+    "apps.integrations.email_views.EmailMessageListView",
+    "apps.integrations.email_views.ZohoConnectView",
+    # analytics
+    "apps.analytics.views.FunnelAnalyticsView",
+    "apps.analytics.views.SourceAnalyticsView",
+    "apps.analytics.views.OutreachAnalyticsView",
+    "apps.analytics.views.DailyDigestReportView",
+    # notifications
+    "apps.common.notification_views.NotificationListView",
+    "apps.common.notification_views.NotificationMarkReadView",
+    "apps.common.notification_views.NotificationMarkAllReadView",
+    "apps.common.notification_views.NotificationDeleteView",
+    "apps.common.notification_views.NotificationPreferenceView",
+    "apps.common.notification_views.NotificationSendView",
+    "apps.common.notification_views.EmailSendView",
+    "apps.common.notification_views.AdminNotificationHistoryView",
+    # templates
+    "apps.common.template_views.CommunicationTemplateListView",
+    "apps.common.template_views.CommunicationTemplateUpdateView",
+}
+
+_ALL_CLASSIFIED = _PUBLIC_PERSONALIZABLE | _AUTH_EXEMPT | _PROTECTED
+
+
+def _discover_all_api_views():
+    """Dynamically discover all APIView subclasses in backend apps."""
+    import importlib
+    import inspect
+    import pkgutil
+
+    from django.apps import apps as django_apps
+    from rest_framework.views import APIView
+
+    found = set()
+    # Scan every installed app that starts with "apps."
+    for app_config in django_apps.get_app_configs():
+        if not app_config.name.startswith("apps."):
+            continue
+        app_module = app_config.module
+        app_path = getattr(app_module, "__path__", None)
+        if not app_path:
+            continue
+        for _importer, mod_name, _ispkg in pkgutil.iter_modules(app_path):
+            # Only scan modules likely to contain views
+            if "view" not in mod_name and mod_name not in ("health",):
+                continue
+            full_module = f"{app_config.name}.{mod_name}"
+            try:
+                module = importlib.import_module(full_module)
+            except Exception:
+                continue
+            for name, obj in inspect.getmembers(module, inspect.isclass):
+                if (
+                    issubclass(obj, APIView)
+                    and obj is not APIView
+                    and obj.__module__ == full_module
+                ):
+                    found.add(f"{full_module}.{name}")
+    return found
+
+
+def test_all_api_views_are_classified():
+    """Every APIView subclass in backend apps must appear in one of the
+    classification lists. New unclassified views will cause this test to fail."""
+    all_views = _discover_all_api_views()
+    unclassified = all_views - _ALL_CLASSIFIED
+    assert not unclassified, (
+        f"Found {len(unclassified)} APIView subclass(es) not in any classification list. "
+        f"Add them to the appropriate parametrize list in this file:\n"
+        + "\n".join(f"  - {v}" for v in sorted(unclassified))
+    )

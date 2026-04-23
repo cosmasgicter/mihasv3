@@ -438,6 +438,10 @@ HEALTH_CHECK_URL = os.environ.get(
     "HEALTH_CHECK_URL", "***REMOVED***"
 )
 
+KEEP_ALIVE_URL = os.environ.get(
+    "KEEP_ALIVE_URL", "***REMOVED***/health/live/"
+)
+
 # ---------------------------------------------------------------------------
 # Password hashing
 # ---------------------------------------------------------------------------

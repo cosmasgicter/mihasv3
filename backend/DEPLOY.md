@@ -55,8 +55,23 @@ Celery Beat reads the `CELERY_BEAT_SCHEDULE` from Django settings and dispatches
 
 | Task | Schedule | Purpose |
 | --- | --- | --- |
-| `check_uptime_task` | Every 300 seconds (5 minutes) | Internal health check with email alerts on failure/recovery |
+| `keep_alive_task` | Every 240 seconds (4 minutes) | Lightweight ping to prevent Koyeb cold starts |
+| `check_uptime_task` | Every 900 seconds (15 minutes) | Internal health check with email alerts on failure/recovery |
+| `cleanup_stale_sessions_task` | Daily at 02:30 UTC | Purge expired device sessions |
 | `cleanup_audit_logs_task` | Daily at 03:00 UTC | Purge expired audit log records by retention category |
+| `poll_pending_payments_task` | Every 600 seconds (10 minutes) | Poll Lenco API for pending payments, expire payments > 24h |
+| `intake_manager_task` | Daily at 04:00 UTC | Ensure ≥2 open intakes exist (Jan/Jul pattern) |
+| `condition_expiry_task` | Daily at 05:00 UTC | Expire overdue admission conditions, trigger auto-rejection |
+| `draft_expiry_reminder_task` | Daily at 06:00 UTC | Remind students about stale drafts, expire at 30 days |
+| `review_sla_reminder_task` | Daily at 07:00 UTC | Notify admins about applications exceeding review SLA |
+| `document_verification_sla_task` | Daily at 08:00 UTC | Notify admins about documents pending beyond SLA, escalate at 2x |
+| `enrollment_confirmation_expiry_task` | Daily at 09:00 UTC | Expire unconfirmed enrollments, release spots to waitlist |
+| `waitlist_cascade_task` | Daily at 10:00 UTC | Cascade waitlisted applications to next intake |
+| `deferred_payment_reminder_task` | Daily at 11:00 UTC | Remind students with deferred payments to complete payment |
+| `interview_auto_complete_task` | Every 7200 seconds (2 hours) | Auto-complete interviews whose scheduled time has passed |
+| `interview_reminder_task` | Every 3600 seconds (1 hour) | Send reminder notifications for interviews within 24 hours |
+| `cleanup_idempotency_keys` | Daily at 03:00 UTC | Purge expired idempotency key records |
+| `process_pending_emails_task` | Every 120 seconds (2 minutes) | Sweep stale pending EmailQueue rows |
 
 Set the same environment variables as the worker service. Do not scale the beat service beyond 1 instance — running multiple beat processes will cause duplicate task dispatches.
 

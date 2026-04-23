@@ -41,7 +41,11 @@ const formatPaymentStatusLabel = (status?: string | null) => {
 const getPaymentStatusStyles = (status?: string | null) => {
   switch (status) {
     case 'verified':
+    case 'paid':
+    case 'successful':
       return 'bg-success/10 text-success border-success/30'
+    case 'deferred':
+      return 'bg-warning/10 text-warning border-warning/30'
     case 'rejected':
       return 'bg-destructive/10 text-destructive border-destructive/30'
     case null:
@@ -56,7 +60,11 @@ const getPaymentStatusStyles = (status?: string | null) => {
 const getPaymentStatusDescription = (status?: string | null) => {
   switch (status) {
     case 'verified':
+    case 'paid':
+    case 'successful':
       return 'Payment verified — you are all set.'
+    case 'deferred':
+      return 'Payment deferred — you can pay anytime from your dashboard.'
     case 'rejected':
       return 'Payment issue detected — please contact support.'
     case null:
@@ -152,8 +160,8 @@ const SubmissionSuccess = ({
         </div>
 
         <p className="text-foreground mb-6">
-          {submittedApplication.paymentStatus == null
-            ? 'Your application has been submitted. Complete payment later from your dashboard when you are ready.'
+          {submittedApplication.paymentStatus == null || submittedApplication.paymentStatus === 'deferred'
+            ? 'Your application has been submitted. Complete payment from your dashboard when you are ready.'
             : 'Your application is now under review. You will receive notifications about status updates.'}
         </p>
 
@@ -169,7 +177,7 @@ const SubmissionSuccess = ({
         </div>
 
         <div className="space-y-3">
-          {submittedApplication.paymentStatus == null && (
+          {(submittedApplication.paymentStatus == null || submittedApplication.paymentStatus === 'deferred') && (
             <Link to="/student/payment">
               <Button variant="outline" className="w-full">Complete Payment Later</Button>
             </Link>

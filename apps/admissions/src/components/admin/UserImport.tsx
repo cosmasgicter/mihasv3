@@ -43,16 +43,6 @@ function splitFullName(fullName: string): { first_name: string; last_name: strin
   }
 }
 
-async function checkUserExists(email: string): Promise<boolean> {
-  const result = await apiClient.request<{
-    results?: Array<{ email?: string }>
-  }>(`/admin/users/?search=${encodeURIComponent(email)}&include_inactive=true`)
-
-  return Boolean(
-    result?.results?.some((user) => user.email?.toLowerCase() === email.toLowerCase())
-  )
-}
-
 export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProps) {
   const [file, setFile] = useState<File | null>(null)
   const [importing, setImporting] = useState(false)
@@ -162,95 +152,79 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
 
     try {
       setImporting(true)
-      const reader = new FileReader()
-      
-      reader.onload = async (e) => {
-        const text = e.target?.result as string
-        const lines = text.split('\n').filter(line => line.trim())
-        const headers = lines[0]!.split(',').map(h => h.trim().toLowerCase())
-        
-        const result: ImportResult = {
-          success: 0,
-          failed: 0,
-          errors: [],
-          duplicates: 0
-        }
+      const text = await file.text()
+      const lines = text.split('\n').filter(line => line.trim())
+      const headers = lines[0]!.split(',').map(h => h.trim().toLowerCase())
 
-        for (let i = 1; i < lines.length; i++) {
-          const values = lines[i]!.split(',').map(v => v.trim().replace(/"/g, ''))
-          const userData: any = {}
-          
-          headers.forEach((header, index) => {
-            if (header.includes('name') || header.includes('full_name')) {
-              userData.full_name = sanitizeText(values[index] ?? '')
-            } else if (header.includes('email')) {
-              userData.email = sanitizeEmail(values[index] ?? '')
-            } else if (header.includes('phone')) {
-              userData.phone = sanitizeText(values[index] ?? '')
-            } else if (header.includes('role')) {
-              userData.role = sanitizeText(values[index] ?? '')?.toLowerCase()
-            } else if (header.includes('password')) {
-              userData.password = sanitizeText(values[index] ?? '')
-            }
-          })
+      const clientErrors: ImportResult['errors'] = []
+      const batchPayload: Array<{ email: string; first_name: string; last_name: string; phone?: string; role: string; password?: string }> = []
 
-          // Validate data
-          const validationError = validateUserData(userData, i + 1)
-          if (validationError) {
-            result.failed++
-            result.errors.push({ row: i + 1, error: validationError, data: userData })
-            continue
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i]!.split(',').map(v => v.trim().replace(/"/g, ''))
+        const userData: any = {}
+
+        headers.forEach((header, index) => {
+          if (header.includes('name') || header.includes('full_name')) {
+            userData.full_name = sanitizeText(values[index] ?? '')
+          } else if (header.includes('email')) {
+            userData.email = sanitizeEmail(values[index] ?? '')
+          } else if (header.includes('phone')) {
+            userData.phone = sanitizeText(values[index] ?? '')
+          } else if (header.includes('role')) {
+            userData.role = sanitizeText(values[index] ?? '')?.toLowerCase()
+          } else if (header.includes('password')) {
+            userData.password = sanitizeText(values[index] ?? '')
           }
+        })
 
-          try {
-            const userExists = await checkUserExists(userData.email)
-            if (userExists) {
-              result.duplicates++
-              result.failed++
-              result.errors.push({ 
-                row: i + 1, 
-                error: `User with email ${userData.email} already exists`,
-                data: userData 
-              })
-              continue
-            }
-
-            // Create user via admin register endpoint
-            const password = userData.password || `temp${Array.from(crypto.getRandomValues(new Uint8Array(6)), b => b.toString(36).padStart(2, '0')).join('').slice(0, 8)}`
-            const createResult = await apiClient.request<{ id?: string; message?: string }>('/admin/users/', {
-              method: 'POST',
-              body: JSON.stringify({
-                email: userData.email,
-                password: password,
-                ...splitFullName(userData.full_name),
-                phone: userData.phone,
-                role: userData.role
-              })
-            })
-
-            if (!createResult?.id) {
-              throw new Error(createResult?.message || 'Failed to create user')
-            }
-
-            result.success++
-          } catch (error) {
-            result.failed++
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-            result.errors.push({ 
-              row: i + 1, 
-              error: errorMessage,
-              data: userData 
-            })
-          }
+        const validationError = validateUserData(userData, i + 1)
+        if (validationError) {
+          clientErrors.push({ row: i + 1, error: validationError, data: userData })
+          continue
         }
 
-        setImportResult(result)
-        if (result.success > 0) {
-          onImportComplete()
-        }
+        const { first_name, last_name } = splitFullName(userData.full_name)
+        batchPayload.push({
+          email: userData.email,
+          first_name,
+          last_name,
+          phone: userData.phone || undefined,
+          role: userData.role,
+          password: userData.password || undefined,
+        })
       }
 
-      reader.readAsText(file)
+      if (batchPayload.length === 0) {
+        setImportResult({ success: 0, failed: clientErrors.length, errors: clientErrors, duplicates: 0 })
+        return
+      }
+
+      const response = await apiClient.request<{
+        created: number
+        skipped: number
+        errors: Array<{ index: number; email: string; errors: Record<string, string[]> }>
+      }>('/admin/users/batch-import/', {
+        method: 'POST',
+        body: JSON.stringify(batchPayload),
+      })
+
+      const serverErrors = (response?.errors ?? []).map(e => ({
+        row: e.index + 2, // +2 for header row + 0-index
+        error: Object.values(e.errors).flat().join(', '),
+        data: { email: e.email },
+      }))
+
+      const result: ImportResult = {
+        success: response?.created ?? 0,
+        failed: clientErrors.length + (response?.skipped ?? 0),
+        errors: [...clientErrors, ...serverErrors],
+        duplicates: serverErrors.filter(e => e.error.includes('Already exists')).length,
+      }
+
+      setImportResult(result)
+      if (result.success > 0) {
+        onImportComplete()
+      }
     } catch (error) {
       console.error('Import failed:', sanitizeForLog(error))
       toast.error('Import Failed', 'Please try again')

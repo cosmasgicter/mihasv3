@@ -4,12 +4,14 @@ import { Button } from '@/components/ui/Button'
 import { OptimizedImage } from '@/components/ui/OptimizedImage'
 import {
   AnimatedCounter,
-  ScrollReveal,
-  ShinyText,
-  StaggerItem,
-  StaggerReveal,
-  TextEffect,
 } from '@/components/smoothui'
+
+/** Passthrough wrappers for removed animation components */
+const ScrollReveal = ({ children, className }: { children: React.ReactNode; className?: string }) => <div className={className}>{children}</div>
+const StaggerReveal = ({ children, className }: { children: React.ReactNode; className?: string; staggerDelay?: number }) => <div className={className}>{children}</div>
+const StaggerItem = ({ children }: { children: React.ReactNode }) => <>{children}</>
+const TextEffect = ({ children }: { children: React.ReactNode; effect?: string }) => <>{children}</>
+const ShinyText = ({ text, className }: { text: string; className?: string }) => <span className={className}>{text}</span>
 import { ArrowRight, CheckCircle } from '@/components/icons'
 import { cn } from '@/lib/utils'
 import { preloadAuthRoutes } from '@/lib/routePreload'

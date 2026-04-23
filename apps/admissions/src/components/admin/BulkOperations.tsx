@@ -226,9 +226,8 @@ export function BulkOperations({
                 </label>
                 <div className="space-y-2">
                   <Button
-                    onClick={() => {
-                      // Export selected applications
-                    }}
+                    disabled
+                    title="Coming soon"
                     variant="outline"
                     size="sm"
                     className="w-full"
@@ -237,9 +236,8 @@ export function BulkOperations({
                   </Button>
                   
                   <Button
-                    onClick={() => {
-                      // Generate reports for selected
-                    }}
+                    disabled
+                    title="Coming soon"
                     variant="outline"
                     size="sm"
                     className="w-full"

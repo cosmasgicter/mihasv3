@@ -6,6 +6,8 @@ type RequestOptions = Omit<RequestInit, 'body'> & {
   retries?: number
 }
 
+let csrfToken: string | null = null
+
 export class ApiRequestError extends Error {
   readonly status?: number
   readonly code?: string
@@ -69,11 +71,18 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
+          ...(csrfToken && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) ? { 'X-CSRF-Token': csrfToken } : {}),
           ...(fetchOptions.headers || {}),
         },
         ...fetchOptions,
         body: options.body ? JSON.stringify(options.body) : undefined,
       })
+
+      // Capture CSRF token from response header
+      const responseCsrf = response.headers.get('X-CSRF-Token')
+      if (responseCsrf) {
+        csrfToken = responseCsrf
+      }
 
       const payload = await parsePayload<T>(response)
 

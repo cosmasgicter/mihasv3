@@ -133,8 +133,10 @@ class ApplicationFactory(factory.django.DjangoModelFactory):
 
     id = factory.LazyFunction(uuid.uuid4)
     user = factory.SubFactory(ProfileFactory)
-    application_number = factory.Sequence(lambda n: f"APP-{n:06d}")
-    public_tracking_code = factory.Sequence(lambda n: f"TRK-{n:06d}")
+    application_number = factory.LazyFunction(
+        lambda: f"APP-{timezone.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:8].upper()}"
+    )
+    public_tracking_code = factory.LazyFunction(lambda: f"TRK-{uuid.uuid4().hex[:12].upper()}")
     full_name = factory.Faker("name")
     nrc_number = factory.LazyFunction(
         lambda: f"{factory.Faker._get_faker().numerify('######')}/{factory.Faker._get_faker().numerify('##')}/{factory.Faker._get_faker().numerify('#')}"

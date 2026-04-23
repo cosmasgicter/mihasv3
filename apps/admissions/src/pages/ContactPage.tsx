@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from '@/lib/zod'
-import { ScrollReveal } from '@/components/smoothui'
+/** Simple wrapper — ScrollReveal was removed, children render directly */
+const ScrollReveal = ({ children, className }: { children: React.ReactNode; className?: string }) => <div className={className}>{children}</div>
 import { PublicLayout } from '@/components/layout/PublicLayout'
 import { Card, CardContent, CardTitle } from '@/components/ui'
 import { Input } from '@/components/ui/input'

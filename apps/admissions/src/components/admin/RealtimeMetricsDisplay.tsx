@@ -289,6 +289,7 @@ export function RealtimeMetricsDisplay({
   compact = false,
 }: RealtimeMetricsDisplayProps) {
   // Track previous values for change indicators
+  const previousValuesRef = useRef<Record<string, number>>({});
   const [previousValues, setPreviousValues] = useState<Record<string, number>>({});
   const [showChangeIndicators, setShowChangeIndicators] = useState(false);
   const [recentUpdates, setRecentUpdates] = useState<string[]>([]);
@@ -305,14 +306,17 @@ export function RealtimeMetricsDisplay({
       activeUsers,
     };
     
+    const prev = previousValuesRef.current;
+    
     // Only show change indicators after initial load
-    if (Object.keys(previousValues).length > 0) {
+    if (Object.keys(prev).length > 0) {
       setShowChangeIndicators(true);
+      setPreviousValues(prev);
       
       // Track which metrics changed
       const changedMetrics: string[] = [];
       Object.entries(currentValues).forEach(([key, value]) => {
-        if (previousValues[key] !== value) {
+        if (prev[key] !== value) {
           changedMetrics.push(key);
         }
       });
@@ -320,13 +324,16 @@ export function RealtimeMetricsDisplay({
       if (changedMetrics.length > 0) {
         setRecentUpdates(changedMetrics);
         const timer = setTimeout(() => setRecentUpdates([]), 3000);
+        previousValuesRef.current = currentValues;
         return () => clearTimeout(timer);
       }
       
       const timer = setTimeout(() => setShowChangeIndicators(false), 5000);
+      previousValuesRef.current = currentValues;
       return () => clearTimeout(timer);
     }
     
+    previousValuesRef.current = currentValues;
     setPreviousValues(currentValues);
   }, [todayApplications, pendingApplications, approvedApplications, rejectedApplications, totalApplications, avgProcessingTime, activeUsers]);
   

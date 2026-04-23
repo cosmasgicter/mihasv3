@@ -11,7 +11,7 @@ export function DashboardRedirect() {
   // 3s timeout before allowing redirect to signin when user is null
   useEffect(() => {
     if (!loading && !user) {
-      const timer = setTimeout(() => setNullUserTimeout(true), 3000)
+      const timer = setTimeout(() => setNullUserTimeout(true), 300)
       return () => clearTimeout(timer)
     }
   }, [loading, user])

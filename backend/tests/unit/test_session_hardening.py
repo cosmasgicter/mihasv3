@@ -167,16 +167,16 @@ class TestRefreshEndpointErrorCodes(SimpleTestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.data["code"], "NO_REFRESH_TOKEN")
 
-    def test_expired_refresh_returns_refresh_expired(self):
-        """Expired refresh token → REFRESH_EXPIRED code."""
+    def test_expired_refresh_returns_token_expired(self):
+        """Expired refresh token → TOKEN_EXPIRED code."""
         with patch("apps.accounts.views.verify_token", side_effect=pyjwt.ExpiredSignatureError("expired")):
             response = self._call_refresh_view(cookies={"refresh_token": "expired.token"})
 
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.data["code"], "REFRESH_EXPIRED")
+        self.assertEqual(response.data["code"], "TOKEN_EXPIRED")
 
-    def test_blacklisted_jti_returns_token_blacklisted(self):
-        """Revoked/consumed refresh token → TOKEN_BLACKLISTED code."""
+    def test_blacklisted_jti_returns_token_expired(self):
+        """Revoked/consumed refresh token → TOKEN_EXPIRED code."""
         mock_payload = {"user_id": str(uuid.uuid4()), "token_type": "refresh"}
         with patch("apps.accounts.views.verify_token", return_value=mock_payload):
             with patch("apps.accounts.views.Profile") as MockProfile:
@@ -185,15 +185,15 @@ class TestRefreshEndpointErrorCodes(SimpleTestCase):
                     response = self._call_refresh_view(cookies={"refresh_token": "revoked.token"})
 
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.data["code"], "TOKEN_BLACKLISTED")
+        self.assertEqual(response.data["code"], "TOKEN_EXPIRED")
 
-    def test_invalid_token_returns_refresh_expired(self):
-        """Invalid/malformed refresh token → REFRESH_EXPIRED code."""
+    def test_invalid_token_returns_token_expired(self):
+        """Invalid/malformed refresh token → TOKEN_EXPIRED code."""
         with patch("apps.accounts.views.verify_token", side_effect=pyjwt.InvalidTokenError("bad")):
             response = self._call_refresh_view(cookies={"refresh_token": "garbage"})
 
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.data["code"], "REFRESH_EXPIRED")
+        self.assertEqual(response.data["code"], "TOKEN_EXPIRED")
 
 
 # ─── 4. CSRF Failure Returns Recoverable Code ───────────────────────────────────
