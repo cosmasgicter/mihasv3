@@ -126,8 +126,11 @@ export class DraftManager {
   // Force clear browser storage (localStorage only — sessionStorage removed per Req 7.6)
   forceCleanBrowserStorage(): void {
     try {
-      // Clear all localStorage
-      localStorage.clear()
+      this.getDraftKeys(localStorage).forEach((key) => {
+        localStorage.removeItem(key)
+      })
+      removeDraftStorageEntries(localStorage)
+      localStorage.removeItem('draftDeleted')
     } catch (error) {
       console.error('Force clean failed:', sanitizeForLog(error))
     }

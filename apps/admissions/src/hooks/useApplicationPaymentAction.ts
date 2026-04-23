@@ -103,16 +103,28 @@ export function useApplicationPaymentAction({
   const [initiateError, setInitiateErrorState] = useState<string | null>(() => readPersistedPaymentError(applicationId))
   const paymentStatusRef = useRef<PaymentActionStatus>('idle')
   const initiatingRef = useRef(false)
+  const mountedRef = useRef(true)
+  const paymentAttemptRef = useRef(0)
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
 
   useEffect(() => { setInitiateErrorState(readPersistedPaymentError(applicationId)) }, [applicationId])
 
   const setInitiateError = useCallback((msg: string | null) => {
-    setInitiateErrorState(msg)
+    if (mountedRef.current) {
+      setInitiateErrorState(msg)
+    }
     persistPaymentError(applicationId, msg)
   }, [applicationId])
 
   const updatePaymentStatus = useCallback((status: PaymentActionStatus, message: string | null = null) => {
     paymentStatusRef.current = status
+    if (!mountedRef.current) return
     setPaymentStatus(status)
     setStatusMessage(message)
   }, [])
@@ -126,6 +138,7 @@ export function useApplicationPaymentAction({
     if (!isScriptLoaded) { setInitiateError('Payment widget is still loading. Please wait and try again.'); return }
 
     initiatingRef.current = true
+    const attemptId = ++paymentAttemptRef.current
     setInitiateError(null)
     updatePaymentStatus('initiating')
 
@@ -160,12 +173,14 @@ export function useApplicationPaymentAction({
         customerLastName: lastName,
         customerPhone: customer.phone || undefined,
         onSuccess: async () => {
+          if (!mountedRef.current || attemptId !== paymentAttemptRef.current) return
           updatePaymentStatus('pending', 'Verifying payment…')
           initiatingRef.current = false
           try {
             const result = await apiClient.request<VerifyResponse>(
               `/payments/${encodeURIComponent(payment_id)}/verify/`, { method: 'POST' },
             )
+            if (!mountedRef.current || attemptId !== paymentAttemptRef.current) return
             const s = normalizePaymentStatusValue(result?.status)
             if (s === 'successful') {
               setInitiateError(null)
@@ -182,18 +197,21 @@ export function useApplicationPaymentAction({
               void refreshStatus()
             }
           } catch {
+            if (!mountedRef.current || attemptId !== paymentAttemptRef.current) return
             updatePaymentStatus('pending', 'Payment is being confirmed. Stay on this page.')
             onPaymentStatusChange?.('pending')
             void refreshStatus()
           }
         },
         onConfirmationPending: () => {
+          if (!mountedRef.current || attemptId !== paymentAttemptRef.current) return
           initiatingRef.current = false
           updatePaymentStatus('pending', 'Payment is being confirmed. Stay on this page.')
           onPaymentStatusChange?.('pending')
           void refreshStatus()
         },
         onClose: () => {
+          if (!mountedRef.current || attemptId !== paymentAttemptRef.current) return
           initiatingRef.current = false
           if (paymentStatusRef.current !== 'successful' && paymentStatusRef.current !== 'pending') {
             updatePaymentStatus('idle', 'Payment not completed. You can retry when ready.')

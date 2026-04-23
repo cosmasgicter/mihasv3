@@ -114,7 +114,6 @@ interface UseWizardControllerResult {
   dismissSlipProgress: () => void
   handleResultSlipUpload: (file: File | null) => void
   handleExtraKycUpload: (file: File | null) => void
-  getPaymentTarget: () => Promise<string>
   handleLoadDraft: (draftData: unknown, draftId?: string) => Promise<void>
   handleNextStep: () => Promise<void>
   handlePrevStep: () => void
@@ -138,6 +137,34 @@ export interface PaymentValidationContext {
 
 const WIZARD_AUTH_REDIRECT_GUARD_KEY = 'mihas:wizard-auth-redirect-guard'
 const WIZARD_SESSION_GRACE_MS = 5000
+const IDENTITY_DOCUMENT_TYPES = new Set(['extra_kyc', 'nrc', 'passport'])
+
+function normalizeServerUploadedFiles(documents: unknown[]): Record<string, boolean> {
+  return documents.reduce<Record<string, boolean>>(
+    (acc, document) => {
+      if (!document || typeof document !== 'object') {
+        return acc
+      }
+
+      const record = document as { document_type?: unknown; verification_status?: unknown }
+      const documentType = typeof record.document_type === 'string' ? record.document_type : ''
+      const verificationStatus = typeof record.verification_status === 'string' ? record.verification_status : ''
+      if (verificationStatus === 'deleted') {
+        return acc
+      }
+
+      if (documentType === 'result_slip') {
+        acc.result_slip = true
+      }
+      if (IDENTITY_DOCUMENT_TYPES.has(documentType)) {
+        acc.extra_kyc = true
+      }
+
+      return acc
+    },
+    { result_slip: false, extra_kyc: false }
+  )
+}
 const SESSION_EXPIRED_BANNER = 'Your session expired. We saved your progress. Please sign in again to continue.'
 
 type SessionCacheShape = { user?: { id?: string } | null } | null | undefined
@@ -534,6 +561,22 @@ const useWizardController = (): UseWizardControllerResult => {
       return []
     }
   }, [clearStaleApplicationReference, normalizeSelectedGrades])
+
+  const hydrateServerDocuments = useCallback(async (draftApplicationId: string): Promise<Record<string, boolean>> => {
+    try {
+      const response = await applicationService.getDocuments(draftApplicationId)
+      const normalized = normalizeServerUploadedFiles(Array.isArray(response) ? response : [])
+      markUploadedFile('result_slip', Boolean(normalized.result_slip))
+      markUploadedFile('extra_kyc', Boolean(normalized.extra_kyc))
+      return normalized
+    } catch (documentError) {
+      logApiError('application-wizard', `/applications/${draftApplicationId}/documents/`, documentError)
+      if (isApplicationMissingError(documentError)) {
+        clearStaleApplicationReference(draftApplicationId)
+      }
+      return { result_slip: false, extra_kyc: false }
+    }
+  }, [clearStaleApplicationReference, markUploadedFile])
 
   const handleResultSlipUpload = useCallback((file: File | null) => {
     if (!file) {
@@ -1093,9 +1136,18 @@ const useWizardController = (): UseWizardControllerResult => {
               // localStorage may be unavailable; keep the in-memory draft state
             }
 
+            const serverUploads = localApplicationId
+              ? await hydrateServerDocuments(localApplicationId)
+              : { result_slip: false, extra_kyc: false }
             const mergedLocalUploads = {
-              result_slip: Boolean(localDraft.uploadedFiles?.result_slip) || Boolean(serverApp?.result_slip_url),
-              extra_kyc: Boolean(localDraft.uploadedFiles?.extra_kyc) || Boolean(serverApp?.extra_kyc_url),
+              result_slip:
+                Boolean(localDraft.uploadedFiles?.result_slip) ||
+                serverUploads.result_slip ||
+                Boolean(serverApp?.result_slip_url),
+              extra_kyc:
+                Boolean(localDraft.uploadedFiles?.extra_kyc) ||
+                serverUploads.extra_kyc ||
+                Boolean(serverApp?.extra_kyc_url),
             }
             markUploadedFile('result_slip', mergedLocalUploads.result_slip)
             markUploadedFile('extra_kyc', mergedLocalUploads.extra_kyc)
@@ -1158,7 +1210,11 @@ const useWizardController = (): UseWizardControllerResult => {
             setValue('program', '', { shouldValidate: false })
           }
           setValue('intake', app.intake || '', { shouldValidate: false })
-          const restoredUploads = deriveDraftResumeUploads(app)
+          const hydratedServerUploads = await hydrateServerDocuments(app.id)
+          const restoredUploads = {
+            result_slip: hydratedServerUploads.result_slip || Boolean(app.result_slip_url),
+            extra_kyc: hydratedServerUploads.extra_kyc || Boolean(app.extra_kyc_url),
+          }
           markUploadedFile('result_slip', restoredUploads.result_slip)
           markUploadedFile('extra_kyc', restoredUploads.extra_kyc)
           setGradesHydrating(true)
@@ -1287,7 +1343,12 @@ const useWizardController = (): UseWizardControllerResult => {
       }
       setValue('intake', String(draft.intake || ''), { shouldValidate: false })
 
-      const restoredUploads = deriveDraftResumeUploads(draft)
+      const hydratedServerUploads = await hydrateServerDocuments(resolvedDraftId)
+      const restoredUploads = {
+        ...deriveDraftResumeUploads(draft),
+        result_slip: hydratedServerUploads.result_slip || Boolean(draft.result_slip_url),
+        extra_kyc: hydratedServerUploads.extra_kyc || Boolean(draft.extra_kyc_url),
+      }
       markUploadedFile('result_slip', restoredUploads.result_slip)
       markUploadedFile('extra_kyc', restoredUploads.extra_kyc)
 
@@ -1559,10 +1620,6 @@ const useWizardController = (): UseWizardControllerResult => {
     () => (selectedProgramDetails?.name ? getRecommendedSubjects(selectedProgramDetails.name) : []),
     [selectedProgramDetails]
   )
-
-  const getPaymentTarget = useCallback(async () => {
-    return 'Processed via Lenco payment gateway'
-  }, [])
 
   // OCR grade auto-population: poll for AI analysis after result slip upload
   const handleOcrGrades = useCallback((grades: Array<{ subject_id: string; grade: number }>) => {
@@ -2157,7 +2214,6 @@ const useWizardController = (): UseWizardControllerResult => {
     dismissSlipProgress,
     handleResultSlipUpload,
     handleExtraKycUpload,
-    getPaymentTarget,
     handleLoadDraft,
     handleNextStep,
     handlePrevStep,

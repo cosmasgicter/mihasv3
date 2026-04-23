@@ -111,6 +111,7 @@ function formatApplicationStatus(status: string) {
 function getPaymentStatusBadge(status: string | null) {
   switch (normalizePaymentStatus(status)) {
     case 'verified': return { variant: 'success' as const, label: 'Verified' }
+    case 'deferred': return { variant: 'secondary' as const, label: 'Deferred' }
     case 'pending_review': return { variant: 'warning' as const, label: 'Awaiting Review' }
     case 'rejected': return { variant: 'destructive' as const, label: 'Rejected' }
     default: return { variant: 'secondary' as const, label: 'Action Required' }
@@ -151,9 +152,12 @@ function ApplicationPaymentCard({ app, records, isSelected, onPaymentRefresh }: 
   const showVerified = isPaymentVerified(app.payment_status)
   const isDeferred = (app.payment_status ?? '').toLowerCase() === 'deferred'
   const [expanded, setExpanded] = useState(isSelected)
+  const latestRecord = [...records].sort((left, right) => (
+    new Date(right.created_at).getTime() - new Date(left.created_at).getTime()
+  ))[0]
 
-  const latestAmount = app.application_fee ?? normalizeAmount(records[0]?.amount) ?? null
-  const latestCurrency = records[0]?.currency ?? 'ZMW'
+  const latestAmount = normalizeAmount(latestRecord?.amount) ?? app.application_fee ?? null
+  const latestCurrency = latestRecord?.currency ?? 'ZMW'
 
   return (
     <div className={`rounded-lg border p-4 space-y-3 ${isSelected ? 'border-primary bg-primary/5' : 'border-border'}`}>
@@ -182,7 +186,7 @@ function ApplicationPaymentCard({ app, records, isSelected, onPaymentRefresh }: 
       {/* Deferred message */}
       {isDeferred && (
         <div className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
-          You can submit your application now and pay later. Use the form below when you're ready.
+          Payment is deferred. Your application can still be submitted, and you can pay from this page later.
         </div>
       )}
 

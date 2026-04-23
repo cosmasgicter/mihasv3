@@ -11,11 +11,14 @@ export type PaymentStatusValue = 'pending' | 'successful' | 'failed' | 'deferred
 
 interface PaymentRecord {
   status: string
+  created_at?: string
   [key: string]: unknown
 }
 
 interface PaymentListResponse {
+  data?: PaymentRecord[] | { results?: PaymentRecord[] }
   results?: PaymentRecord[]
+  payments?: PaymentRecord[]
   [key: string]: unknown
 }
 
@@ -62,6 +65,8 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
   const pollCountRef = useRef(0)
   const mountedRef = useRef(true)
   const failCountRef = useRef(0)
+  const requestIdRef = useRef(0)
+  const inFlightRef = useRef(false)
 
   useEffect(() => () => { mountedRef.current = false }, [])
 
@@ -83,14 +88,27 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
     statusRef.current = status
   }, [status])
 
+  const normalizeRecords = useCallback((payload: PaymentListResponse | PaymentRecord[] | null | undefined): PaymentRecord[] => {
+    if (Array.isArray(payload)) return payload
+    if (!payload || typeof payload !== 'object') return []
+    if (Array.isArray(payload.results)) return payload.results
+    if (Array.isArray(payload.payments)) return payload.payments
+    if (Array.isArray(payload.data)) return payload.data
+    if (payload.data && typeof payload.data === 'object' && Array.isArray(payload.data.results)) return payload.data.results
+    return []
+  }, [])
+
   const fetchStatus = useCallback(async () => {
-    if (!applicationId) return
+    if (!applicationId || inFlightRef.current) return
+    inFlightRef.current = true
+    const requestId = ++requestIdRef.current
 
     try {
       const data = await apiClient.request<PaymentListResponse | PaymentRecord[]>(
         `/payments/?application_id=${encodeURIComponent(applicationId)}`
       )
 
+      if (!mountedRef.current || requestId !== requestIdRef.current) return
       if (!data) return
 
       const applicationStatus = normalizePaymentStatusValue(applicationPaymentStatus)
@@ -99,10 +117,11 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
         return
       }
 
-      // The response may be a paginated envelope or a plain array
-      const records: PaymentRecord[] = Array.isArray(data)
-        ? data
-        : (data as PaymentListResponse).results ?? []
+      const records = normalizeRecords(data).sort((left, right) => {
+        const leftTime = typeof left.created_at === 'string' ? new Date(left.created_at).getTime() : 0
+        const rightTime = typeof right.created_at === 'string' ? new Date(right.created_at).getTime() : 0
+        return rightTime - leftTime
+      })
 
       if (records.length === 0) {
         updateStatus(applicationStatus)
@@ -118,8 +137,10 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
       failCountRef.current = 0
     } catch {
       failCountRef.current += 1
+    } finally {
+      inFlightRef.current = false
     }
-  }, [applicationId, applicationPaymentStatus, updateStatus])
+  }, [applicationId, applicationPaymentStatus, normalizeRecords, updateStatus])
 
   const clearPending = useCallback(() => {
     if (timeoutRef.current) {

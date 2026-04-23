@@ -1313,6 +1313,34 @@ class DocumentDeleteView(APIView):
         document.updated_at = timezone.now()
         document.save(update_fields=["verification_status", "updated_at"])
 
+        application = document.application
+        if document.document_type == "result_slip":
+            remaining_result_slip = ApplicationDocument.objects.filter(
+                application_id=application.id,
+                document_type="result_slip",
+            ).exclude(
+                id=document.id,
+            ).exclude(
+                verification_status="deleted",
+            ).exists()
+            if not remaining_result_slip and application.result_slip_url:
+                application.result_slip_url = None
+                application.updated_at = timezone.now()
+                application.save(update_fields=["result_slip_url", "updated_at"])
+        elif document.document_type in ("extra_kyc", "nrc", "passport"):
+            remaining_identity_document = ApplicationDocument.objects.filter(
+                application_id=application.id,
+                document_type__in=("extra_kyc", "nrc", "passport"),
+            ).exclude(
+                id=document.id,
+            ).exclude(
+                verification_status="deleted",
+            ).exists()
+            if not remaining_identity_document and application.extra_kyc_url:
+                application.extra_kyc_url = None
+                application.updated_at = timezone.now()
+                application.save(update_fields=["extra_kyc_url", "updated_at"])
+
         return Response(
             {"success": True, "message": "Document deleted"},
             status=status.HTTP_200_OK,

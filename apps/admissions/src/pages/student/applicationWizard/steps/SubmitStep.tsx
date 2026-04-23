@@ -86,6 +86,8 @@ const SubmitStep = ({
   const institutionLabel = selectedInstitutionLabel?.trim() || ''
   const hasResultSlip = Boolean(resultSlipFile || uploadedFiles.result_slip)
   const hasIdentityDocument = Boolean(extraKycFile || uploadedFiles.extra_kyc)
+  const isDeferredPayment = paymentStatus === 'deferred'
+  const isSuccessfulPayment = paymentStatus === 'successful'
   const readinessItemsByField = new Map(
     wizardReadiness?.stepProgress.flatMap(step => step.missingItems.map(item => [item.field, item])) ?? []
   )
@@ -113,13 +115,17 @@ const SubmitStep = ({
       completed: isRequirementComplete('extra_kyc', hasIdentityDocument),
     },
     {
-      label: paymentStatus === 'deferred' ? 'Payment deferred' : 'Payment completed via Lenco',
-      detail: paymentStatus === 'successful'
+      label: isSuccessfulPayment
+        ? 'Payment completed via Lenco'
+        : isDeferredPayment
+          ? 'Payment deferred'
+          : 'Payment still required',
+      detail: isSuccessfulPayment
         ? 'Payment confirmed through the secure Lenco gateway.'
-        : paymentStatus === 'deferred'
+        : isDeferredPayment
           ? 'You chose to pay later. You can pay from your dashboard after submission.'
           : 'Please complete payment in the payment step before submitting.',
-      completed: isRequirementComplete('payment', paymentStatus === 'successful' || paymentStatus === 'deferred'),
+      completed: isRequirementComplete('payment', isSuccessfulPayment || isDeferredPayment),
     },
   ]
 
@@ -228,7 +234,11 @@ const SubmitStep = ({
               <div className="rounded-xl border border-border/70 bg-muted/50 px-4 py-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Payment</dt>
                 <dd className="mt-1 text-sm font-medium text-foreground">
-                  Processed via Lenco payment gateway
+                  {isSuccessfulPayment
+                    ? 'Processed via Lenco payment gateway'
+                    : isDeferredPayment
+                      ? 'Deferred for later payment from the dashboard'
+                      : 'Awaiting payment action'}
                 </dd>
               </div>
             </dl>

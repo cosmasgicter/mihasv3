@@ -77,10 +77,11 @@ function prefetchCatalog(): void {
   })
 }
 
-function prefetchProfile(): void {
-  once('profile', () => {
+function prefetchProfile(userId?: string): void {
+  if (!userId) return
+  once(`profile:${userId}`, () => {
     prefetchQuery(
-      ['user-profile', undefined],
+      ['user-profile', userId],
       async () => {
         const { apiClient } = await import('@/services/client')
         return apiClient.request('/auth/profile/', { method: 'GET' })
@@ -104,10 +105,11 @@ function prefetchAdminDashboard(): void {
   })
 }
 
-function prefetchStudentApplications(): void {
-  once('student-apps', () => {
+function prefetchStudentApplications(userId?: string): void {
+  if (!userId) return
+  once(`student-apps:${userId}`, () => {
     prefetchQuery(
-      ['payment-applications', undefined],
+      ['payment-applications', userId],
       async () => {
         const { applicationService } = await import('@/services/applications')
         const r = await applicationService.list({ mine: true })
@@ -250,13 +252,14 @@ export function onLoginSuccess(_response: unknown, role?: string): void {
  * Student dashboard mounted. Prefetch data for pages they'll visit next.
  */
 export function onDashboardMount(userId?: string): void {
-  once('dashboard-mount', () => {
+  once(`dashboard-mount:${userId ?? 'anonymous'}`, () => {
     prefetchCatalog()
     // Preload wizard + secondary pages during idle
     preloadStudentWizard()
     preloadStudentSecondaryPages()
     // Prefetch data for payment page and notification settings
-    prefetchStudentApplications()
+    prefetchProfile(userId)
+    prefetchStudentApplications(userId)
     prefetchNotificationPrefs(userId)
   })
 }

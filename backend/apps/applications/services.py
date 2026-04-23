@@ -134,6 +134,8 @@ def _application_has_identity_document(application_id) -> bool:
     return ApplicationDocument.objects.filter(
         application_id=application_id,
         document_type__in=["nrc", "passport", "extra_kyc"],
+    ).exclude(
+        verification_status="deleted",
     ).exists()
 
 

@@ -473,21 +473,23 @@ class ApplicationSessionManager {
         const draftList = await applicationService.list({
           mine: true,
           status: 'draft',
-          pageSize: 50
+          pageSize: 100
         }, {})
         const draftIds = (draftList?.applications ?? [])
           .map(application => application?.id)
           .filter((id): id is string => typeof id === 'string' && id.length > 0)
 
         if (draftIds.length > 0) {
-          const deleteResults = await Promise.allSettled(draftIds.map(id => applicationService.delete(id)))
-          const failedDeletes = deleteResults.filter(
-            result => result.status === 'rejected' && !isApplicationMissingError(result.reason)
-          )
-
-          // Clean up stale localStorage references for each attempted draft ID
-          // (whether the delete returned 200 or 404, the resource is gone)
+          const failedDeletes: string[] = []
           for (const id of draftIds) {
+            try {
+              await applicationService.delete(id)
+            } catch (deleteError) {
+              if (!isApplicationMissingError(deleteError)) {
+                failedDeletes.push(id)
+                continue
+              }
+            }
             clearStaleApplicationDraftReference(id)
           }
 
