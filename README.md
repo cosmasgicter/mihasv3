@@ -108,7 +108,7 @@ All endpoints live under `/api/v1/`. Key route groups:
 | `/api/v1/applications/` | Admissions applications, submission, review, withdrawal, waitlist, conditions, enrollment, assignments, amendments |
 | `/api/v1/catalog/` | Programs, intakes, subjects |
 | `/api/v1/payments/` | Payment lifecycle (mobile money, card widget, deferred), webhooks, fee resolution |
-| `/api/v1/documents/` | Document uploads, OCR |
+| `/api/v1/documents/` | Document uploads, OCR grade extraction |
 | `/api/v1/jobs/` | Job discovery and scoring |
 | `/api/v1/job-applications/` | Job application tracking |
 | `/api/v1/outreach/` | CRM contacts and campaigns |
@@ -157,6 +157,26 @@ cd apps/jobs-ops && bun run type-check && bun run lint
 | Jobs Ops | Vercel (planned) | Independent deploy |
 
 Each app deploys independently. Backend health checks at `/health/live/` and `/health/ready/`.
+
+Staging settings are available at `backend/config/settings/staging.py` for pre-production validation.
+
+## AI Features
+
+| Feature | Endpoint / Location | Model | Notes |
+|---------|---------------------|-------|-------|
+| OCR grade extraction | `backend/apps/documents/ocr_service.py` | Tesseract via Celery | Extracts grades from result slips; never overwrites manual entries; 30s timeout |
+| AI admin review summary | `GET /api/v1/applications/{id}/admin-summary/` | `gpt-4o-mini` | Cached, rate-limited, graceful fallback when API key missing |
+| AI preview summary | Review step in wizard | `gpt-4o-mini` | Personalized application summary for students |
+
+AI features use `AI_GATEWAY_API_KEY` (not `OPENAI_API_KEY`) for the LLM gateway.
+
+## Auth & CSRF
+
+- Cookie-based auth with HTTP-only `access_token` (30 min) and `refresh_token` (7 days, JTI blacklisted via Redis).
+- CSRF tokens are validated at the `JWTCookieAuthentication` layer for cookie-sourced requests.
+- Frontend bootstrap requests a fresh CSRF token via `?refresh_csrf=1` when the in-memory store is empty (after page refresh).
+- CSRF recovery uses query parameters (not custom headers) to avoid CORS preflight issues on cross-origin requests.
+- `x-csrf-token`, `x-csrf-recovery`, and `idempotency-key` are in `CORS_ALLOW_HEADERS`.
 
 ## Kiro Configuration
 
@@ -237,6 +257,14 @@ Backend env vars are documented in `.env.example`. Frontend env vars use `VITE_`
 | Redis dependency tiers | `docs/redis-dependency-tiers.md` | Redis key usage, TTLs, and failure impact tiers |
 | Platform contract | `shared/PLATFORM_CONTRACT.md` | Cross-app API and data contract |
 | Secrets rotation | `docs/runbooks/secrets-rotation.md` | Production secret rotation runbook |
+| Redis recovery | `docs/runbooks/redis-recovery.md` | Redis failure recovery procedures |
+| Scaling playbook | `docs/runbooks/scaling-playbook.md` | Scaling playbook for Koyeb workers and Neon |
+| Release & rollback | `docs/runbooks/release-and-rollback.md` | Release process and rollback procedures |
+| Post-deploy smoke | `docs/runbooks/post-deploy-smoke-check.md` | Post-deployment verification checklist |
+| Database backup | `docs/runbooks/database-backup-restore.md` | Neon database backup and restore |
+| Local parity | `docs/runbooks/local-parity.md` | Local dev environment parity with production |
+| Security audit | `docs/security-api-audit-2026-04.md` | April 2026 security and API audit report |
+| Full audit report | `docs/full-audit-report-2026-04-22.md` | Full codebase audit report (April 22, 2026) |
 
 ## License
 

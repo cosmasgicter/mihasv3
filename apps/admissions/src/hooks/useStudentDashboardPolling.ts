@@ -141,12 +141,28 @@ export function useStudentDashboardPolling(
     setLastUpdated(null)
   }, [user?.id])
 
+  // Track consecutive errors to back off polling on 429 / server errors
+  const consecutiveErrorsRef = useRef(0)
+
   const query = useQuery({
     queryKey: ['student-dashboard-polling', user?.id],
     queryFn: fetchData,
     enabled: enabled && !!user?.id,
+    retry: (failureCount, error) => {
+      const status = (error as { status?: number })?.status
+      if (status === 429) return false
+      return failureCount < 1
+    },
     refetchInterval: enabled
       ? () => {
+          // Back off when we're getting rate-limited or repeated errors
+          if (consecutiveErrorsRef.current > 0) {
+            const backoff = Math.min(
+              pollingInterval * Math.pow(2, consecutiveErrorsRef.current),
+              5 * 60_000, // cap at 5 minutes
+            )
+            return backoff
+          }
           if (document.visibilityState === 'visible') {
             return pollingInterval
           }
@@ -160,6 +176,19 @@ export function useStudentDashboardPolling(
       : false,
     staleTime: 0,
   })
+
+  // Reset or increment error counter based on query state
+  useEffect(() => {
+    if (query.isSuccess) {
+      consecutiveErrorsRef.current = 0
+    }
+  }, [query.isSuccess])
+
+  useEffect(() => {
+    if (query.isError) {
+      consecutiveErrorsRef.current = Math.min(consecutiveErrorsRef.current + 1, 6)
+    }
+  }, [query.isError, query.errorUpdateCount])
 
   // Track changes — use ref to avoid infinite loop, fingerprint to skip identical data
   useEffect(() => {
