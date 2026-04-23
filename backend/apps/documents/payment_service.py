@@ -490,7 +490,7 @@ class PaymentService:
         try:
             resp = http_requests.get(
                 url,
-                headers={'Authorization': f'Bearer {api_secret}'},
+                headers={'Authorization': f'Bearer {api_secret}', 'User-Agent': 'MIHAS/2.0', 'Accept': 'application/json'},
                 timeout=_LENCO_TIMEOUT,
             )
             resp.raise_for_status()
