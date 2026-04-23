@@ -115,9 +115,7 @@ function send(message: AuthBroadcastMessage): void {
     channel.postMessage(message)
   } else if (typeof window !== 'undefined') {
     // Storage event only fires in *other* tabs, which is exactly what we want.
-    // Strip csrfToken from localStorage fallback — each tab fetches its own.
-    const { csrfToken: _stripped, ...safeMessage } = message as AuthBroadcastMessage & { csrfToken?: string }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(safeMessage))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(message))
     // Remove immediately so the next write triggers a new event.
     localStorage.removeItem(STORAGE_KEY)
   }

@@ -34,6 +34,7 @@ import { apiClient } from '@/services/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
+import { useFeeResolver } from '@/hooks/useFeeResolver'
 import {
   normalizePaymentStatus,
   isPaymentVerified,
@@ -156,8 +157,17 @@ function ApplicationPaymentCard({ app, records, isSelected, onPaymentRefresh }: 
     new Date(right.created_at).getTime() - new Date(left.created_at).getTime()
   ))[0]
 
-  const latestAmount = normalizeAmount(latestRecord?.amount) ?? app.application_fee ?? null
-  const latestCurrency = latestRecord?.currency ?? 'ZMW'
+  // Canonical fee: prefer latest payment record, then resolved fee, then stale application_fee
+  const { fee: resolvedFee } = useFeeResolver(
+    showPayForm && !latestRecord ? (app.program ?? '') : '',
+    undefined,
+    undefined,
+  )
+  const latestAmount = normalizeAmount(latestRecord?.amount)
+    ?? (resolvedFee ? resolvedFee.amount : null)
+    ?? app.application_fee
+    ?? null
+  const latestCurrency = latestRecord?.currency ?? resolvedFee?.currency ?? 'ZMW'
 
   return (
     <div className={`rounded-lg border p-4 space-y-3 ${isSelected ? 'border-primary bg-primary/5' : 'border-border'}`}>

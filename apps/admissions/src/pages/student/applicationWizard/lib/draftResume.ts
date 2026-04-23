@@ -5,8 +5,6 @@ import type { SubjectGrade } from '../types'
 export interface DraftResumeApplicationState {
   full_name?: string | null
   program?: string | null
-  result_slip_url?: string | null
-  extra_kyc_url?: string | null
   payment_status?: string | null
 }
 
@@ -24,10 +22,10 @@ export function normalizeDraftResumeGrades(grades: unknown[] | null | undefined)
     .filter((grade) => grade.subject_id.length > 0 && Number.isInteger(grade.grade) && grade.grade >= 1 && grade.grade <= 9)
 }
 
-export function deriveDraftResumeUploads(application: DraftResumeApplicationState) {
+export function deriveDraftResumeUploads(_application: DraftResumeApplicationState) {
   return {
-    result_slip: Boolean(application.result_slip_url),
-    extra_kyc: Boolean(application.extra_kyc_url),
+    result_slip: false,
+    extra_kyc: false,
   }
 }
 

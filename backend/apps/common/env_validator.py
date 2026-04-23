@@ -19,7 +19,12 @@ def validate_required_env_vars() -> None:
     raises ``ImproperlyConfigured`` with a message listing every offending
     variable so the operator can fix them all in one pass.
     """
-    required: list[str] = getattr(settings, "REQUIRED_ENV_VARS", [])
+    required: list[str] = list(getattr(settings, "REQUIRED_ENV_VARS", []))
+
+    # SECRET_KEY is critical in production — must not use the dev default
+    if "prod" in os.environ.get("DJANGO_SETTINGS_MODULE", "") and "SECRET_KEY" not in required:
+        required.append("SECRET_KEY")
+
     if not required:
         return
 

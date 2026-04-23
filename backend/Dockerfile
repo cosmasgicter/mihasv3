@@ -19,6 +19,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Remove build tools no longer needed at runtime
+RUN apt-get purge -y --auto-remove gcc && rm -rf /var/lib/apt/lists/*
+
 # Copy project code
 COPY . .
 
@@ -51,5 +54,9 @@ RUN SECRET_KEY=build-time-placeholder \
 ENV PORT=8000 \
     WEB_CONCURRENCY=2
 EXPOSE 8000
+
+# Run as non-root user
+RUN addgroup --system app && adduser --system --ingroup app app
+USER app
 
 CMD ["sh", "-c", "uvicorn config.asgi:application --host 0.0.0.0 --port ${PORT:-8000} --workers ${WEB_CONCURRENCY:-3} --lifespan off --timeout-keep-alive 30"]

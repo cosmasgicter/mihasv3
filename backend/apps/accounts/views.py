@@ -467,25 +467,24 @@ class RefreshView(APIView):
             new_access, new_refresh = rotate_tokens(refresh_token, user=user)
         except jwt.ExpiredSignatureError:
             return Response(
-                {"success": False, "error": "Refresh token has expired", "code": "REFRESH_EXPIRED"},
+                {"success": False, "error": "Refresh token has expired", "code": "TOKEN_EXPIRED"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
         except ValueError as e:
             # "Token has been revoked" or "Token already consumed" — blacklisted/reused
-            code = "TOKEN_BLACKLISTED" if "revoked" in str(e) else "TOKEN_BLACKLISTED"
             return Response(
-                {"success": False, "error": "Refresh token has been revoked", "code": code},
+                {"success": False, "error": "Refresh token has been revoked", "code": "TOKEN_EXPIRED"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
         except jwt.InvalidTokenError:
             return Response(
-                {"success": False, "error": "Invalid refresh token", "code": "REFRESH_EXPIRED"},
+                {"success": False, "error": "Invalid refresh token", "code": "TOKEN_EXPIRED"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
         except Exception:
             logger.warning("Unexpected error during token refresh", exc_info=True)
             return Response(
-                {"success": False, "error": "Token refresh failed", "code": "REFRESH_EXPIRED"},
+                {"success": False, "error": "Token refresh failed", "code": "TOKEN_EXPIRED"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
@@ -590,8 +589,23 @@ class RegisterView(APIView):
 
         # Check if email already exists — return generic success to not reveal existence
         if Profile.objects.filter(email__iexact=data["email"]).exists():
-            # Return success-like response to not reveal email existence
-            # But actually don't create a duplicate
+            try:
+                from django.core.mail import send_mail
+
+                send_mail(
+                    subject="MIHAS Account — Sign-in Attempt",
+                    message=(
+                        "Someone tried to create an account with this email address. "
+                        "If this was you, try signing in instead at https://apply.mihas.edu.zm/signin. "
+                        "If you forgot your password, reset it at https://apply.mihas.edu.zm/forgot-password."
+                    ),
+                    from_email=None,
+                    recipient_list=[data["email"]],
+                    fail_silently=True,
+                )
+            except Exception:
+                logger.debug("Failed to send duplicate-registration notice")
+
             return Response(
                 {
                     "success": True,
@@ -610,6 +624,7 @@ class RegisterView(APIView):
             nationality=data.get("nationality", "Zambian"),
             role="student",
             is_active=True,
+            email_verified=False,
         )
 
         return Response(

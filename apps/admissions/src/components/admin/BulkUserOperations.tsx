@@ -34,6 +34,15 @@ export function BulkUserOperations({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [selectedRole, setSelectedRole] = useState('student')
   const [operationResult, setOperationResult] = useState<any>(null)
+  const [confirmationToken, setConfirmationToken] = useState<string | null>(null)
+  const [confirmInput, setConfirmInput] = useState('')
+
+  const computeConfirmationToken = async (operation: string, details: Record<string, unknown>): Promise<string> => {
+    const payload = JSON.stringify({ operation, ...details, userIds: selectedUsers.sort() })
+    const encoded = new TextEncoder().encode(payload)
+    const hash = await crypto.subtle.digest('SHA-256', encoded)
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 8)
+  }
 
   const handleSelectAll = () => {
     if (selectedUsers.length === users.length) {
@@ -52,17 +61,23 @@ export function BulkUserOperations({
   }
 
   const handleBulkRoleUpdate = async () => {
+    if (confirmInput !== confirmationToken) return
     const result = await bulkUpdateRoles(selectedUsers, selectedRole)
     setOperationResult(result)
     setShowRoleDialog(false)
+    setConfirmationToken(null)
+    setConfirmInput('')
     onSelectionChange([])
     onOperationComplete()
   }
 
   const handleBulkDelete = async () => {
+    if (confirmInput !== confirmationToken) return
     const result = await bulkDeleteUsers(selectedUsers)
     setOperationResult(result)
     setShowDeleteDialog(false)
+    setConfirmationToken(null)
+    setConfirmInput('')
     onSelectionChange([])
     onOperationComplete()
   }
@@ -100,7 +115,7 @@ export function BulkUserOperations({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowRoleDialog(true)}
+              onClick={() => { void computeConfirmationToken('role_update', { role: selectedRole }).then(t => { setConfirmationToken(t); setConfirmInput(''); setShowRoleDialog(true) }) }}
               className="text-primary border-blue-300 hover:bg-primary/5"
             >
               <Shield className="h-4 w-4 mr-1" />
@@ -110,7 +125,7 @@ export function BulkUserOperations({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setShowDeleteDialog(true)}
+                onClick={() => { void computeConfirmationToken('delete', {}).then(t => { setConfirmationToken(t); setConfirmInput(''); setShowDeleteDialog(true) }) }}
                 className="text-destructive border-destructive/30 hover:bg-destructive/5"
               >
                 <Trash2 className="h-4 w-4 mr-1" />
@@ -186,6 +201,20 @@ export function BulkUserOperations({
                 ℹ️ This will update the role for all selected users. This action cannot be undone.
               </p>
             </div>
+            {confirmationToken && (
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Type <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono">{confirmationToken}</code> to confirm
+                </label>
+                <input
+                  type="text"
+                  value={confirmInput}
+                  onChange={(e) => setConfirmInput(e.target.value)}
+                  placeholder="Enter confirmation code"
+                  className="w-full px-3 py-2 border border-input rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 font-mono"
+                />
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button
@@ -198,6 +227,7 @@ export function BulkUserOperations({
             <Button
               onClick={handleBulkRoleUpdate}
               loading={loading}
+              disabled={confirmInput !== confirmationToken}
               className="bg-primary hover:bg-primary text-white"
             >
               Update Roles
@@ -228,6 +258,20 @@ export function BulkUserOperations({
                 </div>
               </div>
             </div>
+            {confirmationToken && (
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Type <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono">{confirmationToken}</code> to confirm
+                </label>
+                <input
+                  type="text"
+                  value={confirmInput}
+                  onChange={(e) => setConfirmInput(e.target.value)}
+                  placeholder="Enter confirmation code"
+                  className="w-full px-3 py-2 border border-input rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 font-mono"
+                />
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button
@@ -240,6 +284,7 @@ export function BulkUserOperations({
             <Button
               onClick={handleBulkDelete}
               loading={loading}
+              disabled={confirmInput !== confirmationToken}
               variant="destructive"
             >
               Deactivate Users

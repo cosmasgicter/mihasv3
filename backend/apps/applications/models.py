@@ -137,11 +137,7 @@ class ApplicationStatusHistory(models.Model):
 
 
 class ApplicationDraft(models.Model):
-    """Maps to 'application_drafts' table.
-
-    DEPRECATED: This table is not used by the current application flow.
-    The system uses applications.status='draft' instead. Kept for backward compatibility.
-    """
+    """Maps to 'application_drafts' table. Stores wizard draft state for in-progress applications."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey('accounts.Profile', on_delete=models.CASCADE)

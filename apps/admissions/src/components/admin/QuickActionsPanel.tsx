@@ -151,9 +151,8 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
             <Button 
               variant="outline" 
               className="w-full justify-start h-12 border-2 hover:border-accent hover:bg-accent/5 transition-all duration-300"
-              onClick={() => {
-                // Export functionality
-              }}
+              disabled
+              title="Coming soon"
             >
               <Download className="h-4 w-4 mr-3" />
               <div className="text-left">

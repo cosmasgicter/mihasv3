@@ -194,16 +194,17 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
     const exportRows = buildExportRows(data)
     const headers = Object.keys(exportRows[0] ?? {})
 
+    const escapeCsvField = (raw: unknown): string => {
+      if (raw === null || raw === undefined) return ''
+      const str = String(raw).substring(0, 1000)
+      if (str.includes('"') || str.includes(',') || str.includes('\n') || str.includes('\r')) {
+        return `"${str.replace(/"/g, '""')}"`
+      }
+      return str
+    }
+
     const rows = exportRows.map(row =>
-      headers.map(header => {
-        const value = row[header]
-        if (value === null || value === undefined) return ''
-        if (typeof value === 'string') {
-          const sanitized = String(value).replace(/["\r\n]/g, '').substring(0, 1000)
-          return sanitized.includes(',') ? `"${sanitized}"` : sanitized
-        }
-        return String(value || '').substring(0, 1000)
-      })
+      headers.map(header => escapeCsvField(row[header]))
     )
 
     const csvContent = [headers, ...rows]

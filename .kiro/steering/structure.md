@@ -287,7 +287,7 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | Jobs Ops frontend validation | `apps/jobs-ops` commands | Type-check, lint, and build are current quality gates |
 | Backend unit tests | `backend/tests/unit/` | Includes admissions, jobs-ops, and audit production fix coverage |
 | Backend property tests | `backend/tests/property/` | Schema, middleware, validation, migration invariants, audit fix validation (hypothesis) |
-| Browser automation tests | Monorepo root or app-local | Stagehand for AI-driven E2E; Playwright for deterministic flows |
+| Browser automation tests | Monorepo root or app-local | Playwright for deterministic E2E flows |
 
 ## Current Migration-Sensitive Facts
 

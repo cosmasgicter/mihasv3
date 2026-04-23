@@ -53,6 +53,13 @@ contract and should define its own explicit contract as that product matures.
 | POST | `/api/v1/auth/refresh/` | Silent token refresh |
 | POST | `/api/v1/auth/logout/` | Logout + token blacklist |
 | GET | `/api/v1/auth/session/` | Session validity check |
+| POST | `/api/v1/auth/password-reset/` | Password reset request (sends email) |
+| POST | `/api/v1/auth/password-reset/confirm/` | Password reset execution (token + new password) |
+| GET/PATCH | `/api/v1/auth/profile/` | Authenticated profile read and update |
+
+### CSRF Recovery
+
+`GET /api/v1/auth/session/?refresh_csrf=1` forces a fresh CSRF token in the `X-CSRF-Token` response header. Use this after a page refresh when the in-memory CSRF token is lost, or during CSRF recovery flows. The `X-CSRF-Recovery: 1` header also triggers a fresh token.
 
 ### Refresh Error Codes
 

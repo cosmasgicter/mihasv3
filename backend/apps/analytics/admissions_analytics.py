@@ -38,11 +38,16 @@ class AdmissionsAnalyticsService:
     def timing_metrics(self, filters: dict) -> dict:
         qs = Application.objects.exclude(submitted_at=None)
         qs = self._apply_filters(qs, filters)
-        return qs.aggregate(
+        raw = qs.aggregate(
             avg_draft_to_submit_days=Avg(F("submitted_at") - F("created_at")),
             avg_submit_to_review_days=Avg(F("review_started_at") - F("submitted_at")),
             avg_review_to_decision_days=Avg(F("decision_date") - F("review_started_at")),
         )
+        # Convert timedelta values to float days for JSON serialization
+        return {
+            k: (v.total_seconds() / 86400 if v is not None else None)
+            for k, v in raw.items()
+        }
 
     def payment_metrics(self, filters: dict) -> dict:
         qs = Payment.objects.all()

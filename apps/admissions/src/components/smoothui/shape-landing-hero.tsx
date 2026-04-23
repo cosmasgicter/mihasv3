@@ -32,15 +32,23 @@
  * ──────────────────────────────────────────────────────────────────────────
  */
 
-import type React from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { InfiniteGrid } from './infinite-grid';
-import { TextRotate } from './text-rotate';
-import { ShinyText } from './shiny-text';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { CheckCircle } from '@/components/icons';
 import { preloadAuthRoutes } from '@/lib/routePreload';
+
+/** Simple text rotator — cycles through phrases on an interval */
+function TextRotate({ phrases, interval = 3000 }: { phrases: string[]; interval?: number; duration?: number; announce?: boolean }) {
+  const [index, setIndex] = React.useState(0);
+  React.useEffect(() => {
+    if (phrases.length <= 1) return;
+    const id = setInterval(() => setIndex(i => (i + 1) % phrases.length), interval);
+    return () => clearInterval(id);
+  }, [phrases, interval]);
+  return <span className="transition-opacity duration-500">{phrases[index]}</span>;
+}
 
 interface ShapeLandingHeroProps {
   /** Headline text */
@@ -93,13 +101,11 @@ export function ShapeLandingHero({
       <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-primary opacity-95" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-black/10" />
 
-      {/* InfiniteGrid background layer */}
-      <InfiniteGrid
-        cellSize={48}
-        lineColor="rgba(255,255,255,0.5)"
-        lineOpacity={0.08}
-        speed={0.5}
-        className="z-[1]"
+      {/* Grid background layer */}
+      <div
+        className="absolute inset-0 z-[1] opacity-[0.08]"
+        style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)', backgroundSize: '48px 48px' }}
+        aria-hidden="true"
       />
 
       {/* Content — pt-16 accounts for the sticky header height */}
@@ -140,10 +146,7 @@ export function ShapeLandingHero({
 
             {/* ShinyText brand accent */}
             <div className="mb-6 sm:mb-8">
-              <ShinyText
-                text="MIHAS-KATC"
-                className="text-sm font-bold uppercase tracking-widest text-white"
-              />
+              <span className="text-sm font-bold uppercase tracking-widest text-white">MIHAS-KATC</span>
             </div>
 
             {/* CTA buttons */}

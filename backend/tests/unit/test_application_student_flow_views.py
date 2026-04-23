@@ -229,14 +229,12 @@ class TestStudentPostSubmissionMutationGuards:
         assert response.data["code"] == "APPLICATION_NOT_EDITABLE"
 
     @patch("apps.applications.student_views.transaction.atomic")
-    @patch("apps.applications.student_views.connection")
     @patch("apps.applications.student_views.IsOwnerOrAdmin")
     @patch("apps.applications.student_views._with_payment_summary")
     def test_student_can_delete_draft_application_with_explicit_child_cleanup(
         self,
         mock_with_payment_summary,
         mock_permission,
-        mock_connection,
         mock_atomic,
     ):
         user_id = uuid.uuid4()
@@ -247,45 +245,46 @@ class TestStudentPostSubmissionMutationGuards:
         mock_with_payment_summary.return_value.get.return_value = application
         mock_permission.return_value.has_object_permission.return_value = True
         mock_atomic.return_value.__enter__.return_value = None
-        mock_cursor = MagicMock()
-        mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
 
-        request = _auth_request(
-            self.factory,
-            "delete",
-            f"/api/v1/applications/{app_id}/",
-            student,
-        )
-        response = ApplicationDetailView.as_view()(request, application_id=app_id)
+        with patch("apps.applications.student_views.ApplicationDocument") as mock_doc, \
+             patch("apps.applications.student_views.ApplicationGrade") as mock_grade, \
+             patch("apps.applications.student_views.Payment") as mock_pay, \
+             patch("apps.applications.student_views.ApplicationStatusHistory") as mock_hist, \
+             patch("apps.applications.student_views.ApplicationDraft") as mock_draft, \
+             patch("apps.applications.student_views.ApplicationInterview") as mock_interview, \
+             patch("apps.applications.student_views.ApplicationCondition") as mock_cond, \
+             patch("apps.applications.student_views.ApplicationAmendment") as mock_amend, \
+             patch("apps.applications.student_views.FeeWaiver") as mock_waiver, \
+             patch("apps.applications.student_views.Application") as mock_app:
 
-        assert response.status_code == 204
-        executed_sql = [call.args[0] for call in mock_cursor.execute.call_args_list]
-        assert executed_sql == [
-            "DELETE FROM application_documents WHERE application_id = %s",
-            "DELETE FROM application_grades WHERE application_id = %s",
-            "DELETE FROM payments WHERE application_id = %s",
-            "DELETE FROM application_status_history WHERE application_id = %s",
-            "DELETE FROM application_drafts WHERE application_id = %s",
-            "DELETE FROM application_interviews WHERE application_id = %s",
-            "DELETE FROM application_conditions WHERE application_id = %s",
-            "DELETE FROM application_amendments WHERE application_id = %s",
-            "DELETE FROM fee_waivers WHERE application_id = %s",
-            "DELETE FROM documents WHERE application_id = %s",
-            "DELETE FROM applications WHERE id = %s",
-        ]
-        for call in mock_cursor.execute.call_args_list:
-            assert call.args[1] == [str(app_id)]
-        application.delete.assert_not_called()
+            request = _auth_request(
+                self.factory,
+                "delete",
+                f"/api/v1/applications/{app_id}/",
+                student,
+            )
+            response = ApplicationDetailView.as_view()(request, application_id=app_id)
+
+            assert response.status_code == 204
+            # Verify all child tables are cleaned up before parent
+            mock_doc.objects.filter.assert_called_with(application_id=app_id)
+            mock_grade.objects.filter.assert_called_with(application_id=app_id)
+            mock_pay.objects.filter.assert_called_with(application_id=app_id)
+            mock_hist.objects.filter.assert_called_with(application_id=app_id)
+            mock_draft.objects.filter.assert_called_with(application_id=app_id)
+            mock_interview.objects.filter.assert_called_with(application_id=app_id)
+            mock_cond.objects.filter.assert_called_with(application_id=app_id)
+            mock_amend.objects.filter.assert_called_with(application_id=app_id)
+            mock_waiver.objects.filter.assert_called_with(application_id=app_id)
+            mock_app.objects.filter.assert_called_with(id=app_id)
 
     @patch("apps.applications.student_views.transaction.atomic")
-    @patch("apps.applications.student_views.connection")
     @patch("apps.applications.student_views.IsOwnerOrAdmin")
     @patch("apps.applications.student_views._with_payment_summary")
     def test_delete_draft_database_failure_returns_json_error(
         self,
         mock_with_payment_summary,
         mock_permission,
-        mock_connection,
         mock_atomic,
     ):
         user_id = uuid.uuid4()
@@ -296,20 +295,20 @@ class TestStudentPostSubmissionMutationGuards:
         mock_with_payment_summary.return_value.get.return_value = application
         mock_permission.return_value.has_object_permission.return_value = True
         mock_atomic.return_value.__enter__.return_value = None
-        mock_cursor = MagicMock()
-        mock_cursor.execute.side_effect = DatabaseError("delete failed")
-        mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
 
-        request = _auth_request(
-            self.factory,
-            "delete",
-            f"/api/v1/applications/{app_id}/",
-            student,
-        )
-        response = ApplicationDetailView.as_view()(request, application_id=app_id)
+        with patch("apps.applications.student_views.ApplicationDocument") as mock_doc:
+            mock_doc.objects.filter.return_value.delete.side_effect = DatabaseError("delete failed")
 
-        assert response.status_code == 500
-        assert response.data["code"] == "APPLICATION_DELETE_FAILED"
+            request = _auth_request(
+                self.factory,
+                "delete",
+                f"/api/v1/applications/{app_id}/",
+                student,
+            )
+            response = ApplicationDetailView.as_view()(request, application_id=app_id)
+
+            assert response.status_code == 500
+            assert response.data["code"] == "APPLICATION_DELETE_FAILED"
 
     @patch("apps.applications.student_views.IsOwnerOrAdmin")
     @patch("apps.applications.student_views.Application.objects")
@@ -366,3 +365,117 @@ class TestStudentPostSubmissionMutationGuards:
 
         assert response.status_code == 403
         assert response.data["code"] == "APPLICATION_NOT_EDITABLE"
+
+
+# ---------------------------------------------------------------------------
+# Regression tests for production failures (2026-04-23)
+# ---------------------------------------------------------------------------
+
+
+class TestDraftDeletionRegression:
+    """Draft deletion must succeed with all dependent tables present."""
+
+    factory = APIRequestFactory()
+
+    @patch("apps.applications.student_views.transaction.atomic")
+    @patch("apps.applications.student_views.IsOwnerOrAdmin")
+    @patch("apps.applications.student_views._with_payment_summary")
+    def test_delete_draft_with_all_dependents_returns_204(
+        self,
+        mock_with_payment_summary,
+        mock_permission,
+        mock_atomic,
+    ):
+        """Regression: raw SQL delete was failing with 500 due to table name mismatches."""
+        user_id = uuid.uuid4()
+        app_id = uuid.uuid4()
+        student = _student_user(user_id=user_id)
+        application = _make_application(app_id=app_id, status="draft", user_id=user_id)
+
+        mock_with_payment_summary.return_value.get.return_value = application
+        mock_permission.return_value.has_object_permission.return_value = True
+        mock_atomic.return_value.__enter__.return_value = None
+
+        with patch("apps.applications.student_views.ApplicationDocument") as m_doc, \
+             patch("apps.applications.student_views.ApplicationGrade") as m_grade, \
+             patch("apps.applications.student_views.Payment") as m_pay, \
+             patch("apps.applications.student_views.ApplicationStatusHistory") as m_hist, \
+             patch("apps.applications.student_views.ApplicationDraft") as m_draft, \
+             patch("apps.applications.student_views.ApplicationInterview") as m_interview, \
+             patch("apps.applications.student_views.ApplicationCondition") as m_cond, \
+             patch("apps.applications.student_views.ApplicationAmendment") as m_amend, \
+             patch("apps.applications.student_views.FeeWaiver") as m_waiver, \
+             patch("apps.applications.student_views.Application") as m_app:
+
+            request = _auth_request(self.factory, "delete", f"/api/v1/applications/{app_id}/", student)
+            response = ApplicationDetailView.as_view()(request, application_id=app_id)
+
+            assert response.status_code == 204
+            # All 9 child tables + parent must be cleaned
+            for model in [m_doc, m_grade, m_pay, m_hist, m_draft, m_interview, m_cond, m_amend, m_waiver]:
+                model.objects.filter.return_value.delete.assert_called_once()
+            m_app.objects.filter.return_value.delete.assert_called_once()
+
+
+class TestSubmitAfterDeferRegression:
+    """Submit must succeed when payment is deferred and identity docs exist."""
+
+    factory = APIRequestFactory()
+
+    @patch("apps.applications.student_views.ApplicationSerializer")
+    @patch("apps.applications.student_views.submit_application")
+    @patch("apps.applications.student_views.IsOwnerOrAdmin")
+    @patch("apps.applications.student_views._with_payment_summary")
+    def test_submit_after_defer_with_identity_doc_succeeds(
+        self,
+        mock_with_payment_summary,
+        mock_permission,
+        mock_submit,
+        mock_serializer,
+    ):
+        """Regression: submit was returning 400 after defer because of state inconsistency."""
+        user_id = uuid.uuid4()
+        app_id = uuid.uuid4()
+        student = _student_user(user_id=user_id)
+        application = _make_application(app_id=app_id, status="draft", user_id=user_id)
+        application.payment_status = "deferred"
+
+        mock_with_payment_summary.return_value.get.return_value = application
+        mock_permission.return_value.has_object_permission.return_value = True
+        mock_submit.return_value = (application, "TRK-TESTCODE123")
+        mock_serializer.return_value.data = {"id": str(app_id), "status": "submitted"}
+
+        request = _auth_request(self.factory, "post", f"/api/v1/applications/{app_id}/submit/", student)
+        response = ApplicationSubmitView.as_view()(request, application_id=app_id)
+
+        assert response.status_code == 200
+        mock_submit.assert_called_once()
+
+    @patch("apps.applications.student_views.submit_application")
+    @patch("apps.applications.student_views.IsOwnerOrAdmin")
+    @patch("apps.applications.student_views._with_payment_summary")
+    def test_submit_after_defer_without_identity_doc_fails(
+        self,
+        mock_with_payment_summary,
+        mock_permission,
+        mock_submit,
+    ):
+        """Regression: backend must reject when identity doc is missing, even if deferred."""
+        user_id = uuid.uuid4()
+        app_id = uuid.uuid4()
+        student = _student_user(user_id=user_id)
+        application = _make_application(app_id=app_id, status="draft", user_id=user_id)
+        application.payment_status = "deferred"
+
+        mock_with_payment_summary.return_value.get.return_value = application
+        mock_permission.return_value.has_object_permission.return_value = True
+        mock_submit.side_effect = ApplicationSubmissionError(
+            "IDENTITY_DOCUMENT_REQUIRED",
+            "An NRC or Passport document must be uploaded before submission.",
+        )
+
+        request = _auth_request(self.factory, "post", f"/api/v1/applications/{app_id}/submit/", student)
+        response = ApplicationSubmitView.as_view()(request, application_id=app_id)
+
+        assert response.status_code == 400
+        assert response.data["code"] == "IDENTITY_DOCUMENT_REQUIRED"

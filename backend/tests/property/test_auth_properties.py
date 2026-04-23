@@ -49,8 +49,7 @@ from apps.accounts.tokens import (  # noqa: E402
     verify_token,
 )
 
-# Shared fakeredis instance for test isolation
-_fake_redis = fakeredis.FakeRedis(decode_responses=True)
+# Each test gets its own fakeredis instance via setUp — no shared state
 
 # bcrypt is intentionally slow (12 rounds) — disable hypothesis deadline
 _bcrypt_settings = settings(max_examples=5, deadline=None)
@@ -148,8 +147,8 @@ class TestJWTTokenLifecycleRotation(SimpleTestCase):
     """
 
     def setUp(self):
-        _fake_redis.flushall()
-        self._redis_patcher = patch("apps.accounts.tokens._get_redis", return_value=_fake_redis)
+        self._fake_redis = fakeredis.FakeRedis(decode_responses=True)
+        self._redis_patcher = patch("apps.accounts.tokens._get_redis", return_value=self._fake_redis)
         self._redis_patcher.start()
 
     def tearDown(self):
@@ -159,7 +158,7 @@ class TestJWTTokenLifecycleRotation(SimpleTestCase):
     @_default_settings
     def test_rotation_produces_valid_new_tokens(self, role):
         """rotate_tokens returns a new access + refresh token pair."""
-        _fake_redis.flushall()
+        self._fake_redis.flushall()
 
         user = _make_mock_user(role=role)
         refresh = generate_refresh_token(user)
@@ -177,7 +176,7 @@ class TestJWTTokenLifecycleRotation(SimpleTestCase):
     @_default_settings
     def test_rotation_blacklists_old_refresh_token(self, role):
         """After rotation, the original refresh token must be rejected."""
-        _fake_redis.flushall()
+        self._fake_redis.flushall()
 
         user = _make_mock_user(role=role)
         old_refresh = generate_refresh_token(user)
@@ -190,7 +189,7 @@ class TestJWTTokenLifecycleRotation(SimpleTestCase):
     @_default_settings
     def test_double_rotation_rejects_first_token(self, role):
         """Using the same refresh token twice should fail on the second attempt."""
-        _fake_redis.flushall()
+        self._fake_redis.flushall()
 
         user = _make_mock_user(role=role)
         refresh = generate_refresh_token(user)

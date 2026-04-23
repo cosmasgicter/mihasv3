@@ -7,7 +7,7 @@ enrollment confirmation, amendments, waitlist position, and conditions.
 
 import logging
 
-from django.db import DatabaseError, connection, transaction
+from django.db import DatabaseError, transaction
 from drf_spectacular.utils import (
     OpenApiParameter,
     OpenApiResponse,
@@ -24,8 +24,10 @@ from apps.accounts.permissions import IsOwnerOrAdmin
 from apps.applications.duplicate_checker import DuplicateChecker
 from apps.applications.models import (
     Application,
+    ApplicationAmendment,
     ApplicationCondition,
     ApplicationDraft,
+    ApplicationInterview,
     ApplicationStatusHistory,
 )
 from apps.applications.serializers import (
@@ -41,7 +43,7 @@ from apps.applications.services import (
 )
 from apps.common.idempotency import idempotent
 from apps.common.openapi_helpers import ErrorResponseSerializer
-from apps.documents.models import ApplicationDocument, ApplicationGrade, Payment
+from apps.documents.models import ApplicationDocument, ApplicationGrade, FeeWaiver, Payment
 
 from rest_framework.throttling import UserRateThrottle
 
@@ -129,18 +131,6 @@ logger = logging.getLogger(__name__)
 class ApplicationDetailView(APIView):
     permission_classes = [IsOwnerOrAdmin]
     serializer_class = ApplicationSerializer
-    _application_delete_statements = (
-        "DELETE FROM application_documents WHERE application_id = %s",
-        "DELETE FROM application_grades WHERE application_id = %s",
-        "DELETE FROM payments WHERE application_id = %s",
-        "DELETE FROM application_status_history WHERE application_id = %s",
-        "DELETE FROM application_drafts WHERE application_id = %s",
-        "DELETE FROM application_interviews WHERE application_id = %s",
-        "DELETE FROM application_conditions WHERE application_id = %s",
-        "DELETE FROM application_amendments WHERE application_id = %s",
-        "DELETE FROM fee_waivers WHERE application_id = %s",
-        "DELETE FROM applications WHERE id = %s",
-    )
 
     @staticmethod
     def _student_can_mutate_application(request, app) -> bool:
@@ -216,14 +206,20 @@ class ApplicationDetailView(APIView):
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @classmethod
-    def _delete_application_graph(cls, application_id):
-        """Delete an application and known dependents without relying on ORM cascade."""
-        application_id_value = str(application_id)
+    @staticmethod
+    def _delete_application_graph(application_id):
+        """Delete an application and all dependents via ORM in FK-safe order."""
         with transaction.atomic():
-            with connection.cursor() as cursor:
-                for statement in cls._application_delete_statements:
-                    cursor.execute(statement, [application_id_value])
+            ApplicationDocument.objects.filter(application_id=application_id).delete()
+            ApplicationGrade.objects.filter(application_id=application_id).delete()
+            Payment.objects.filter(application_id=application_id).delete()
+            ApplicationStatusHistory.objects.filter(application_id=application_id).delete()
+            ApplicationDraft.objects.filter(application_id=application_id).delete()
+            ApplicationInterview.objects.filter(application_id=application_id).delete()
+            ApplicationCondition.objects.filter(application_id=application_id).delete()
+            ApplicationAmendment.objects.filter(application_id=application_id).delete()
+            FeeWaiver.objects.filter(application_id=application_id).delete()
+            Application.objects.filter(id=application_id).delete()
 
     def _get_application(self, request, application_id):
         try:

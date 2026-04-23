@@ -1142,12 +1142,10 @@ const useWizardController = (): UseWizardControllerResult => {
             const mergedLocalUploads = {
               result_slip:
                 Boolean(localDraft.uploadedFiles?.result_slip) ||
-                serverUploads.result_slip ||
-                Boolean(serverApp?.result_slip_url),
+                Boolean(serverUploads.result_slip),
               extra_kyc:
                 Boolean(localDraft.uploadedFiles?.extra_kyc) ||
-                serverUploads.extra_kyc ||
-                Boolean(serverApp?.extra_kyc_url),
+                Boolean(serverUploads.extra_kyc),
             }
             markUploadedFile('result_slip', mergedLocalUploads.result_slip)
             markUploadedFile('extra_kyc', mergedLocalUploads.extra_kyc)
@@ -1212,8 +1210,8 @@ const useWizardController = (): UseWizardControllerResult => {
           setValue('intake', app.intake || '', { shouldValidate: false })
           const hydratedServerUploads = await hydrateServerDocuments(app.id)
           const restoredUploads = {
-            result_slip: hydratedServerUploads.result_slip || Boolean(app.result_slip_url),
-            extra_kyc: hydratedServerUploads.extra_kyc || Boolean(app.extra_kyc_url),
+            result_slip: Boolean(hydratedServerUploads.result_slip),
+            extra_kyc: Boolean(hydratedServerUploads.extra_kyc),
           }
           markUploadedFile('result_slip', restoredUploads.result_slip)
           markUploadedFile('extra_kyc', restoredUploads.extra_kyc)
@@ -1346,8 +1344,8 @@ const useWizardController = (): UseWizardControllerResult => {
       const hydratedServerUploads = await hydrateServerDocuments(resolvedDraftId)
       const restoredUploads = {
         ...deriveDraftResumeUploads(draft),
-        result_slip: hydratedServerUploads.result_slip || Boolean(draft.result_slip_url),
-        extra_kyc: hydratedServerUploads.extra_kyc || Boolean(draft.extra_kyc_url),
+        result_slip: Boolean(hydratedServerUploads.result_slip),
+        extra_kyc: Boolean(hydratedServerUploads.extra_kyc),
       }
       markUploadedFile('result_slip', restoredUploads.result_slip)
       markUploadedFile('extra_kyc', restoredUploads.extra_kyc)

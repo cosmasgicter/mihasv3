@@ -182,8 +182,15 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
     }
   }
 
+  const getExpandedMessage = (text: string): string =>
+    text
+      .replace(/\{\{full_name\}\}/g, applicant.full_name)
+      .replace(/\{\{email\}\}/g, applicant.email)
+      .replace(/\{\{phone\}\}/g, applicant.phone ?? '')
+      .replace(/\{name\}/g, applicant.full_name)
+
   const characterLimit = channel === 'sms' ? 160 : 1000
-  const remainingChars = characterLimit - message.length
+  const remainingChars = characterLimit - getExpandedMessage(message).length
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

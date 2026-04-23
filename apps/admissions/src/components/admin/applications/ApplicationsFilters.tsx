@@ -270,6 +270,7 @@ export function ApplicationsFilters({
                   <option value="all">All Payment States</option>
                   <option value="not_paid">Awaiting Payment</option>
                   <option value="pending_review">Awaiting Payment Review</option>
+                  <option value="deferred">Deferred</option>
                   <option value="verified">Verified</option>
                   <option value="rejected">Payment Rejected</option>
                 </select>

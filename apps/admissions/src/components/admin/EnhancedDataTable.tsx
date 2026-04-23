@@ -520,7 +520,7 @@ export function EnhancedDataTable<T extends object>({
             
               {paginatedData.length > 0 ? (
                 paginatedData.map((row, index) => (
-                  <tr className={cn(
+                  <tr key={String(row[keyField])} className={cn(
                       'border-b border-border transition-colors',
                       striped && index % 2 === 1 && 'bg-muted/30',
                       onRowClick && 'cursor-pointer',

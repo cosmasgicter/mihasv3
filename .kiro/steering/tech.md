@@ -52,7 +52,7 @@ inclusion: always
 | Email | Zoho SMTP (primary) + Resend (fallback) | Zoho SMTP for outbound email; Resend as fallback for transactional delivery |
 | HTTP client | `requests` | Used by `check_uptime_task` for internal health checks |
 | AI + messaging | OpenAI and Telegram planned placeholders | Env scaffolding now exists; integration wiring remains to be completed |
-| Browser automation | Stagehand (AI) + Playwright (low-level) | Stagehand installed at monorepo root for AI-driven browser tasks; Playwright for deterministic automation |
+| Browser automation | Playwright | Deterministic browser automation for E2E testing |
 | Error monitoring | GlitchTip (Sentry-compatible) via `sentry-sdk` | DSN-based — see Error Monitoring section below |
 | API docs | drf-spectacular | Schema and docs under `/api/v1/` |
 | Testing | pytest + hypothesis | Backend tests live under `backend/tests/` |
@@ -225,53 +225,6 @@ The platform uses GlitchTip (Sentry-compatible, free tier at app.glitchtip.com) 
 - `ERROR_ALERT_EMAIL` is still used for non-error-monitoring alerts (uptime, payment failures, SLA breaches).
 - Frontend error reporting endpoint (`/api/v1/errors/report/`) remains unauthenticated (`AllowAny`), CSRF-exempt, and rate-limited.
 - Frontend `tracesSampleRate` is set to 0.01 (1%) to conserve GlitchTip disk space.
-
-## Stagehand (AI Browser Automation)
-
-Stagehand (`@browserbasehq/stagehand`) is installed at the monorepo root for AI-driven browser automation. It wraps Playwright with an LLM layer that can interpret natural-language instructions to interact with web pages.
-
-### Use Cases in MIHAS
-
-| Use Case | Surface | Notes |
-|----------|---------|-------|
-| E2E smoke tests with natural language | Admissions, Jobs-Ops | Write resilient tests that survive UI refactors — Stagehand finds elements by intent, not selectors |
-| Outreach automation | Jobs-Ops | Browser-based job application submission, form filling on external career portals |
-| Scraping job boards | Jobs-Ops | AI-guided extraction from dynamic job listing pages that resist traditional scraping |
-| Admissions document verification | Admissions | Automated cross-referencing of uploaded documents against external registries |
-| Competitive intelligence | Jobs-Ops | Monitor competitor job postings and salary data from public sources |
-
-### Integration Pattern
-
-- Stagehand runs in Node.js with `env: "LOCAL"` — uses a local Chromium instance, no Browserbase account needed
-- Requires an LLM API key (`OPENAI_API_KEY` or `ANTHROPIC_API_KEY`) for AI-driven page interaction
-- For E2E tests against the live site, point Stagehand at the production URL (`https://apply.mihas.edu.zm`) so env variables and real behavior are exercised
-- For backend-triggered browser tasks, create a Node.js worker script that the Django backend calls via HTTP or a task queue
-- Environment variables: `OPENAI_API_KEY` (add to `.env.local` — already documented in `.env.example`)
-
-### Local Setup
-
-```typescript
-import { Stagehand } from "@browserbasehq/stagehand";
-
-const stagehand = new Stagehand({
-  env: "LOCAL",
-  model: "openai/gpt-4o",
-  localBrowserLaunchOptions: {
-    headless: false,  // set true for CI
-  },
-});
-
-await stagehand.init();
-const page = stagehand.context.pages()[0];
-await page.goto("https://apply.mihas.edu.zm");
-```
-
-### Commands
-
-| Command | Purpose |
-|---------|---------|
-| `bun add @browserbasehq/stagehand` | Already installed at monorepo root |
-| `npx playwright install chromium` | Install local Chromium for Stagehand |
 
 ## Admissions Business Logic Services
 

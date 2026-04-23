@@ -353,8 +353,10 @@ class ApplicationReviewView(APIView):
         force = serializer.validated_data.get("force", False)
         reason = serializer.validated_data.get("reason", "")
         if new_status == "approved" and not force:
+            # All statuses that mean "payment resolved" — includes legacy (verified, paid) and current (successful, force_approved, deferred)
+            _RESOLVED_PAYMENT_STATUSES = ("successful", "force_approved", "verified", "paid", "deferred")
             has_verified = (
-                app.payment_status in ("successful", "force_approved")
+                app.payment_status in _RESOLVED_PAYMENT_STATUSES
                 or Payment.objects.filter(application_id=application_id, status__in=("successful", "force_approved")).exists()
             )
             if not has_verified:

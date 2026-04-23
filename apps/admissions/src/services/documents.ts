@@ -3,8 +3,7 @@ import { apiClient } from './client'
 
 export const documentService = {
   /** Upload a document via Django multipart endpoint. */
-  upload: async (data: { file: File; fileType: string; applicationId: string; userId?: string }) => {
-    void data.userId
+  upload: async (data: { file: File; fileType: string; applicationId: string }) => {
     const formData = new FormData()
     formData.append('file', data.file)
     formData.append('application_id', data.applicationId)
@@ -23,10 +22,7 @@ export const documentService = {
   },
 
   /** Extract text from an uploaded document via Celery. */
-  extract: async (data: { documentId?: string; documentUrl?: string; applicationId?: string }) => {
-    void data.documentUrl
-    void data.applicationId
-
+  extract: async (data: { documentId?: string }) => {
     if (!data.documentId) {
       throw new Error('Document extraction requires an uploaded document ID')
     }

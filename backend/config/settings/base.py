@@ -438,6 +438,10 @@ HEALTH_CHECK_URL = os.environ.get(
     "HEALTH_CHECK_URL", "https://api.mihas.edu.zm/health/ready/"
 )
 
+KEEP_ALIVE_URL = os.environ.get(
+    "KEEP_ALIVE_URL", "https://api.mihas.edu.zm/health/live/"
+)
+
 # ---------------------------------------------------------------------------
 # Password hashing
 # ---------------------------------------------------------------------------

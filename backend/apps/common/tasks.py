@@ -299,13 +299,7 @@ def keep_alive_task(self):
     """
     import requests as http_requests
 
-    health_url = getattr(
-        settings,
-        "HEALTH_CHECK_URL",
-        "https://api.mihas.edu.zm/health/ready/",
-    )
-    # Use /health/live/ for keep-alive — lighter than /health/ready/
-    live_url = health_url.replace("/health/ready/", "/health/live/")
+    live_url = getattr(settings, "KEEP_ALIVE_URL", "https://api.mihas.edu.zm/health/live/")
 
     try:
         resp = http_requests.get(live_url, timeout=10)
