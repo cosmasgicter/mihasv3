@@ -130,12 +130,21 @@ export function useAdminDashboardPolling(
     }
   }, [])
 
+  const consecutiveErrorsRef = useRef(0)
+
   const query = useQuery({
     queryKey: ['admin-dashboard-polling'],
     queryFn: fetchStats,
     enabled,
     refetchInterval: enabled
       ? () => {
+          // Back off on repeated errors (429 or otherwise)
+          if (consecutiveErrorsRef.current > 0) {
+            return Math.min(
+              pollingInterval * Math.pow(2, consecutiveErrorsRef.current),
+              5 * 60_000,
+            )
+          }
           if (document.visibilityState === 'visible') {
             return pollingInterval
           }
@@ -148,9 +157,22 @@ export function useAdminDashboardPolling(
         }
       : false,
     staleTime: pollingInterval / 2,
-    retry: (failureCount) => failureCount <= MAX_RETRY_ATTEMPTS,
+    retry: (failureCount, error) => {
+      const status = (error as { status?: number })?.status
+      if (status === 429) return false
+      return failureCount <= MAX_RETRY_ATTEMPTS
+    },
     retryDelay: (attemptIndex) => getDashboardRetryDelay(attemptIndex),
   })
+
+  // Reset or increment error counter
+  useEffect(() => {
+    if (query.isSuccess) consecutiveErrorsRef.current = 0
+  }, [query.isSuccess])
+
+  useEffect(() => {
+    if (query.isError) consecutiveErrorsRef.current = Math.min(consecutiveErrorsRef.current + 1, 6)
+  }, [query.isError, query.errorUpdateCount])
 
   useEffect(() => {
     if (!query.data) return

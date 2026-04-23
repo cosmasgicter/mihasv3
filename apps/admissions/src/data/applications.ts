@@ -152,7 +152,12 @@ export const applicationsData = {
       gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
       refetchInterval: 60000,
       refetchOnWindowFocus: false,
-      refetchOnMount: false
+      refetchOnMount: false,
+      retry: (failureCount: number, error: unknown) => {
+        const status = (error as { status?: number })?.status
+        if (status === 429) return false
+        return failureCount < 2
+      },
     })
   },
 
