@@ -10,7 +10,7 @@ export interface StepValidation {
 }
 
 interface StepValidationOptions {
-  paymentStatus?: 'pending' | 'successful' | 'failed' | null
+  paymentStatus?: 'pending' | 'successful' | 'failed' | 'deferred' | null
   confirmSubmission?: boolean
   selectedGrades?: SubjectGrade[]
   hasResultSlip?: boolean
@@ -100,7 +100,7 @@ export const useStepValidation = (
         }
       },
       2: () => {
-        const paymentComplete = paymentStatus === 'successful'
+        const paymentComplete = paymentStatus === 'successful' || paymentStatus === 'deferred'
         return {
           isValid: paymentComplete,
           completedFields: paymentComplete ? 1 : 0,
@@ -109,7 +109,7 @@ export const useStepValidation = (
         }
       },
       3: () => {
-        const paymentComplete = paymentStatus === 'successful'
+        const paymentComplete = paymentStatus === 'successful' || paymentStatus === 'deferred'
         const confirmationComplete = confirmSubmission
         const missing: string[] = []
         if (!paymentComplete) {

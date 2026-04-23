@@ -15,7 +15,7 @@ interface OverallProgressOptions {
   uploadedFiles?: Record<string, boolean>
   hasResultSlipFile?: boolean
   hasIdentityFile?: boolean
-  paymentStatus?: 'pending' | 'successful' | 'failed' | null
+  paymentStatus?: 'pending' | 'successful' | 'failed' | 'deferred' | null
   confirmSubmission?: boolean
 }
 

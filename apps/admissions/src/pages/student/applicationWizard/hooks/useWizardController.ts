@@ -103,7 +103,7 @@ interface UseWizardControllerResult {
   gradesHydrating: boolean
   submittedApplication: SubmittedApplicationSummary | null
   applicationId: string | null
-  paymentStatus: 'pending' | 'successful' | 'failed' | null
+  paymentStatus: 'pending' | 'successful' | 'failed' | 'deferred' | null
   ocrStatus: 'idle' | 'polling' | 'done' | 'failed'
   ocrExtractedCount: number
   persistingSlip: boolean
@@ -127,7 +127,7 @@ interface UseWizardControllerResult {
   watchValues: () => WizardFormData
   goToStep: (index: number) => void
   refetchPaymentStatus: () => Promise<void>
-  setPaymentStatus: (status: 'pending' | 'successful' | 'failed' | null) => void
+  setPaymentStatus: (status: 'pending' | 'successful' | 'failed' | 'deferred' | null) => void
 }
 
 export interface PaymentValidationContext {
@@ -1911,7 +1911,7 @@ const useWizardController = (): UseWizardControllerResult => {
         return
       }
 
-      if (paymentStatus !== 'successful') {
+      if (paymentStatus !== 'successful' && paymentStatus !== 'deferred') {
         const errorMessage = 'Complete and confirm payment before continuing to the review step.'
         setError(errorMessage)
         showError(errorMessage)

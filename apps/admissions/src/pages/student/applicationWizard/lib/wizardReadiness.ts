@@ -35,7 +35,7 @@ export interface BuildWizardReadinessInput {
   uploadedFiles?: Record<string, boolean>
   hasResultSlipFile?: boolean
   hasIdentityFile?: boolean
-  paymentStatus?: 'pending' | 'successful' | 'failed' | null
+  paymentStatus?: 'pending' | 'successful' | 'failed' | 'deferred' | null
   confirmSubmission?: boolean
 }
 
@@ -126,7 +126,7 @@ export const buildWizardReadiness = ({
   ]
 
   const paymentItems = [
-    createItem('payment', 'payment', 'Payment', paymentStatus === 'successful', 'Complete and confirm payment.'),
+    createItem('payment', 'payment', 'Payment', paymentStatus === 'successful' || paymentStatus === 'deferred', 'Complete and confirm payment.'),
   ]
 
   const submitItems = [

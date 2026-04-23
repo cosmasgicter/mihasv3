@@ -464,7 +464,7 @@ export function PaymentForm({
             onClick={handleMomoPayment}
             data-testid="pay-momo-button"
           >
-            {momoLoading ? 'Sending payment request…' : `Pay ${formatCurrency(amount, currency)}`}
+            {momoLoading ? 'Sending payment request…' : `Pay ${formatCurrency(amount * 1.01, currency)}`}
           </Button>
 
           <p className="text-center text-xs text-muted-foreground">
@@ -497,7 +497,7 @@ export function PaymentForm({
             onClick={startCardPayment}
             data-testid="pay-card-button"
           >
-            {cardPaymentStatus === 'initiating' ? 'Preparing…' : `Pay ${formatCurrency(amount, currency)} by card`}
+            {cardPaymentStatus === 'initiating' ? 'Preparing…' : `Pay ${formatCurrency(amount * 1.01, currency)} by card`}
           </Button>
 
           <p className="text-center text-xs text-muted-foreground">
