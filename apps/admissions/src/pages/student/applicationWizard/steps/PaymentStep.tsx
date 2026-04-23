@@ -101,7 +101,11 @@ const PaymentStep = ({
               ) : fee ? (
                 <>
                   <p className="mt-1 text-2xl font-bold text-foreground">{formatCurrency(fee.amount, fee.currency)}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">A small transaction processing fee will be added at checkout.</p>
+                  <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+                    <div className="flex justify-between"><span>Application fee</span><span>{formatCurrency(fee.amount, fee.currency)}</span></div>
+                    <div className="flex justify-between"><span>Transaction fee (1%)</span><span>{formatCurrency(fee.amount * 0.01, fee.currency)}</span></div>
+                    <div className="flex justify-between border-t border-border pt-1 font-semibold text-foreground"><span>Total charged</span><span>{formatCurrency(fee.amount * 1.01, fee.currency)}</span></div>
+                  </div>
                 </>
               ) : (
                 <p className="mt-1 text-sm text-muted-foreground">Select a program to see the fee</p>

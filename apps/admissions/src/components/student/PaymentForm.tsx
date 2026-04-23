@@ -96,6 +96,12 @@ function classifyError(error: string): { message: string; type: 'network' | 'rat
     return { message: 'Check your connection and try again.', type: 'network' }
   if (lower.includes('rate') || lower.includes('too many') || lower.includes('429'))
     return { message: 'Too many attempts. Please wait a moment.', type: 'rate_limit' }
+  if (lower.includes('maximum payment attempts') || lower.includes('max_payment_attempts'))
+    return { message: 'You have reached the maximum number of payment attempts. Please contact support or try again later.', type: 'rate_limit' }
+  if (lower.includes('insufficient') || lower.includes('balance'))
+    return { message: 'Insufficient funds. Please top up your account and try again.', type: 'failed' }
+  if (lower.includes('provider error') || lower.includes('provider_error'))
+    return { message: 'The mobile money provider could not process your payment. Please try again or use a different payment method.', type: 'failed' }
   return { message: "The payment didn't go through. You can try again or use a different method.", type: 'failed' }
 }
 

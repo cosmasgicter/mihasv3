@@ -1880,6 +1880,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
       // Files already uploaded on selection, just sync grades and proceed
       try {
+        setLoading(true)
         if (validSelectedGrades.length > 0) {
           await syncGrades.mutateAsync({ id: applicationId, grades: validSelectedGrades })
           setSelectedGrades(validSelectedGrades)
@@ -1898,6 +1899,8 @@ const useWizardController = (): UseWizardControllerResult => {
 
         const errorMessage = toError(error).message || 'Failed to save grades'
         setError(errorMessage)
+      } finally {
+        setLoading(false)
       }
       return
     }
