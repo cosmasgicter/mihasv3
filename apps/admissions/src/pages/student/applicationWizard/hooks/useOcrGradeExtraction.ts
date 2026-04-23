@@ -1,6 +1,13 @@
 /**
  * useOcrGradeExtraction — polls for OCR results after result slip upload
  * and auto-populates grade selectors when AI analysis is available.
+ *
+ * Resilience guarantees:
+ * - Never blocks the wizard — all failures are silent
+ * - Never overwrites manually entered grades (≥3 threshold)
+ * - Stops polling on unmount, navigation, or timeout
+ * - Uses refs for callbacks to avoid stale closures
+ * - Validates every AI response field before use
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { apiClient } from '@/services/client'
@@ -28,7 +35,7 @@ interface CatalogSubject {
   name: string
 }
 
-interface MatchedGrade {
+export interface MatchedGrade {
   subject_id: string
   grade: number
 }
@@ -37,45 +44,71 @@ const POLL_INTERVAL = 3000
 const MAX_POLLS = 20 // 60 seconds max
 
 /**
- * Fuzzy-match an AI-extracted subject name to a catalog subject ID.
- * Handles variations like "English Language" → "English", "Biology" → "Biology", etc.
+ * Fuzzy-match an AI-extracted subject name to a catalog subject.
+ * Uses a scoring system to pick the best match above a threshold.
  */
 function matchSubjectName(aiName: string, catalogSubjects: CatalogSubject[]): string | null {
+  if (!aiName || catalogSubjects.length === 0) return null
   const normalized = aiName.toLowerCase().trim()
+  if (normalized.length < 2) return null
 
-  // Exact match first
+  // Exact match
   const exact = catalogSubjects.find(s => s.name.toLowerCase() === normalized)
   if (exact) return exact.id
 
-  // Contains match (e.g., "English Language" matches "English")
-  const contains = catalogSubjects.find(s =>
-    normalized.includes(s.name.toLowerCase()) || s.name.toLowerCase().includes(normalized)
-  )
-  if (contains) return contains.id
+  // Contains match — require at least 4 chars to avoid false positives
+  if (normalized.length >= 4) {
+    const contains = catalogSubjects.find(s => {
+      const catLower = s.name.toLowerCase()
+      return normalized.includes(catLower) || catLower.includes(normalized)
+    })
+    if (contains) return contains.id
+  }
 
-  // Word-start match (e.g., "Bio" matches "Biology")
-  const startsWith = catalogSubjects.find(s =>
-    s.name.toLowerCase().startsWith(normalized.slice(0, 4)) ||
-    normalized.startsWith(s.name.toLowerCase().slice(0, 4))
-  )
-  if (startsWith) return startsWith.id
+  // Word overlap — split both into words and count matches
+  const aiWords = normalized.split(/[\s\-\/]+/).filter(w => w.length >= 3)
+  if (aiWords.length > 0) {
+    let bestMatch: CatalogSubject | null = null
+    let bestScore = 0
+    for (const cat of catalogSubjects) {
+      const catWords = cat.name.toLowerCase().split(/[\s\-\/]+/).filter(w => w.length >= 3)
+      const overlap = aiWords.filter(w => catWords.some(cw => cw.startsWith(w) || w.startsWith(cw))).length
+      const score = overlap / Math.max(aiWords.length, catWords.length)
+      if (score > bestScore && score >= 0.5) {
+        bestScore = score
+        bestMatch = cat
+      }
+    }
+    if (bestMatch) return bestMatch.id
+  }
 
   return null
 }
 
+function isValidEczGrade(grade: unknown): grade is number {
+  return typeof grade === 'number' && Number.isInteger(grade) && grade >= 1 && grade <= 9
+}
+
 function mapAiGradesToCatalog(
-  aiSubjects: AiSubject[],
+  aiSubjects: unknown,
   catalogSubjects: CatalogSubject[]
 ): MatchedGrade[] {
+  // Defensive: validate the AI response shape
+  if (!Array.isArray(aiSubjects)) return []
+
   const matched: MatchedGrade[] = []
   const usedIds = new Set<string>()
 
   for (const ai of aiSubjects) {
-    if (ai.grade < 1 || ai.grade > 9) continue // Invalid ECZ grade
+    if (!ai || typeof ai !== 'object') continue
+    const name = typeof (ai as AiSubject).name === 'string' ? (ai as AiSubject).name : ''
+    const grade = (ai as AiSubject).grade
 
-    const subjectId = matchSubjectName(ai.name, catalogSubjects)
+    if (!name || !isValidEczGrade(grade)) continue
+
+    const subjectId = matchSubjectName(name, catalogSubjects)
     if (subjectId && !usedIds.has(subjectId)) {
-      matched.push({ subject_id: subjectId, grade: ai.grade })
+      matched.push({ subject_id: subjectId, grade })
       usedIds.add(subjectId)
     }
   }
@@ -90,9 +123,25 @@ export function useOcrGradeExtraction(
 ) {
   const [status, setStatus] = useState<'idle' | 'polling' | 'done' | 'failed'>('idle')
   const [extractedCount, setExtractedCount] = useState(0)
+
+  // Use refs for values that change between polls to avoid stale closures
   const pollCountRef = useRef(0)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const calledBackRef = useRef(false)
+  const doneRef = useRef(false)
+  const catalogRef = useRef(catalogSubjects)
+  const callbackRef = useRef(onGradesExtracted)
+  const docIdRef = useRef(documentId)
+  const mountedRef = useRef(true)
+
+  // Keep refs in sync
+  catalogRef.current = catalogSubjects
+  callbackRef.current = onGradesExtracted
+  docIdRef.current = documentId
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
 
   const stopPolling = useCallback(() => {
     if (timeoutRef.current) {
@@ -102,58 +151,69 @@ export function useOcrGradeExtraction(
   }, [])
 
   const poll = useCallback(async () => {
-    if (!documentId || calledBackRef.current) return
+    if (doneRef.current || !mountedRef.current) return
+    const currentDocId = docIdRef.current
+    if (!currentDocId) return
 
     pollCountRef.current += 1
     if (pollCountRef.current > MAX_POLLS) {
-      setStatus('done') // Timed out — student enters manually
-      logger.info('[OCR] Polling timed out after %d attempts', MAX_POLLS)
+      if (mountedRef.current) setStatus('done')
+      logger.info('[OCR] Polling timed out', { attempts: MAX_POLLS })
       return
     }
 
     try {
-      const info = await apiClient.request<DocumentInfo>(`/documents/${documentId}/info/`)
-      if (!info) return
+      const info = await apiClient.request<DocumentInfo>(`/documents/${currentDocId}/info/`)
+      if (!mountedRef.current || doneRef.current) return
+      if (!info) {
+        timeoutRef.current = setTimeout(poll, POLL_INTERVAL)
+        return
+      }
 
-      if (info.ai_analysis?.subjects && info.ai_analysis.subjects.length > 0) {
-        // AI analysis available — map to catalog subjects
-        const matched = mapAiGradesToCatalog(info.ai_analysis.subjects, catalogSubjects)
-        if (matched.length > 0 && !calledBackRef.current) {
-          calledBackRef.current = true
-          setExtractedCount(matched.length)
-          setStatus('done')
-          onGradesExtracted(matched)
-          logger.info('[OCR] Auto-populated %d grades from AI analysis', matched.length)
+      const analysis = info.ai_analysis
+      if (analysis?.subjects && Array.isArray(analysis.subjects) && analysis.subjects.length > 0) {
+        const matched = mapAiGradesToCatalog(analysis.subjects, catalogRef.current)
+        if (matched.length > 0 && !doneRef.current) {
+          doneRef.current = true
+          if (mountedRef.current) {
+            setExtractedCount(matched.length)
+            setStatus('done')
+          }
+          callbackRef.current(matched)
+          logger.info('[OCR] Auto-populated grades from AI', { matched: matched.length, total: analysis.subjects.length })
           return
         }
       }
 
-      if (info.extracted_text && !info.ai_analysis) {
-        // Text extracted but no AI analysis — might still be processing
-        // Continue polling a few more times
-        if (pollCountRef.current > 10) {
-          setStatus('done')
-          return
-        }
+      // Text extracted but no usable analysis yet — keep polling
+      if (info.extracted_text && pollCountRef.current > 12) {
+        if (mountedRef.current) setStatus('done')
+        return
       }
 
-      // Schedule next poll
-      timeoutRef.current = setTimeout(poll, POLL_INTERVAL)
+      if (mountedRef.current) {
+        timeoutRef.current = setTimeout(poll, POLL_INTERVAL)
+      }
     } catch {
-      // Non-critical — just stop polling
-      setStatus('failed')
+      // Non-critical — retry silently
+      if (mountedRef.current && pollCountRef.current < MAX_POLLS) {
+        timeoutRef.current = setTimeout(poll, POLL_INTERVAL * 2)
+      } else if (mountedRef.current) {
+        setStatus('failed')
+      }
     }
-  }, [documentId, catalogSubjects, onGradesExtracted])
+  }, []) // No deps — uses refs for everything
 
   const startPolling = useCallback(() => {
-    if (!documentId || catalogSubjects.length === 0) return
-    calledBackRef.current = false
+    if (!docIdRef.current) return
+    doneRef.current = false
     pollCountRef.current = 0
     setStatus('polling')
     setExtractedCount(0)
-    // Wait a bit before first poll — give Celery time to start
-    timeoutRef.current = setTimeout(poll, POLL_INTERVAL)
-  }, [documentId, catalogSubjects, poll])
+    stopPolling()
+    // Delay first poll — give Celery time to pick up the task
+    timeoutRef.current = setTimeout(poll, POLL_INTERVAL + 1000)
+  }, [poll, stopPolling])
 
   // Cleanup on unmount
   useEffect(() => () => stopPolling(), [stopPolling])

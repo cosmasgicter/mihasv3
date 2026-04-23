@@ -25,8 +25,14 @@ function detectOperator(phone: string): MomoOperator {
 }
 
 /** Format phone as user types: 0977 123 456 */
+/** Format phone for display: 0977 123 456 */
 function formatPhone(raw: string): string {
-  const digits = raw.replace(/\D/g, '').slice(0, 10)
+  let digits = raw.replace(/\D/g, '')
+  // Strip country code to get local 10-digit format for display
+  if (digits.startsWith('260') && digits.length >= 12) {
+    digits = '0' + digits.slice(3)
+  }
+  digits = digits.slice(0, 10)
   if (digits.length <= 4) return digits
   if (digits.length <= 7) return `${digits.slice(0, 4)} ${digits.slice(4)}`
   return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`

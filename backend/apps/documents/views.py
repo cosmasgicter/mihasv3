@@ -768,7 +768,7 @@ class MobileMoneyInitiateView(APIView):
                     "phone": phone,
                     "operator": operator,
                     "country": "zm",
-                    "bearer": "merchant",
+                    "bearer": "customer",
                 },
                 headers={"Authorization": f"Bearer {api_secret}"},
                 timeout=15,

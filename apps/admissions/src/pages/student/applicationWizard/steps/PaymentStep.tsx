@@ -99,7 +99,10 @@ const PaymentStep = ({
               ) : feeError ? (
                 <p className="mt-1 text-sm text-destructive">{feeError}</p>
               ) : fee ? (
-                <p className="mt-1 text-2xl font-bold text-foreground">{formatCurrency(fee.amount, fee.currency)}</p>
+                <>
+                  <p className="mt-1 text-2xl font-bold text-foreground">{formatCurrency(fee.amount, fee.currency)}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">A small transaction processing fee will be added at checkout.</p>
+                </>
               ) : (
                 <p className="mt-1 text-sm text-muted-foreground">Select a program to see the fee</p>
               )}
