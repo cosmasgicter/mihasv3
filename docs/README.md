@@ -1,289 +1,159 @@
-# MIHAS Application System V2
+# MIHAS Platform
 
-## 🎉 Version 2.0 - Complete with All Improvements + Security Audit
+Multi-application monorepo for the Mukuba Institute of Health and Allied Sciences. Two active product surfaces backed by a shared Django API.
 
-This is the upgraded MIHAS/KATC Application System with all Phase 2 improvements integrated, comprehensive security audit completed, and ready for production deployment on Netlify.
+## Architecture
 
-### 🔒 Security Audit Completed
-- ✅ **300+ security vulnerabilities identified and fixed**
-- ✅ **Zero critical security issues remaining**
-- ✅ **Enterprise-grade security framework implemented**
-- ✅ **Production-ready security posture achieved**
-- ✅ **Comprehensive security test suite added**
+| Layer | Technology | Hosting |
+|-------|------------|---------|
+| Admissions frontend | React 18 + TypeScript + Vite | Vercel |
+| Jobs-Ops frontend | React 18 + TypeScript + Vite | Vercel |
+| Backend API | Django 5 + DRF + Uvicorn (ASGI) | Koyeb |
+| Database | Neon Postgres | Neon |
+| Task queue | Celery + Redis | Koyeb worker |
+| Object storage | Cloudflare R2 | Cloudflare |
+| Email | Zoho SMTP (primary) + Resend (fallback) | — |
+| Error monitoring | GlitchTip (Sentry-compatible) | app.glitchtip.com |
+| Uptime monitoring | Internal Celery task + UptimeRobot | — |
+| Package manager | Bun (frontend) / pip (backend) | — |
 
-### ✨ V2 Features Included
+## Products
 
-#### Performance Enhancements
-- ✅ **Enhanced Loading Components**: Advanced spinners, skeletons, and progress indicators
-- ✅ **API Response Caching**: Smart caching with network-aware TTL
-- ✅ **Image Compression**: Automatic client-side compression before upload
-- ✅ **Database Optimization**: Connection pooling and query optimization utilities
+### Admissions (`apps/admissions/`)
 
-#### Mobile-First Improvements
-- ✅ **Enhanced Mobile Navigation**: Fixed overlapping issues with proper z-index management
-- ✅ **Touch-Optimized Components**: 44px minimum touch targets following Apple/Google guidelines
-- ✅ **Mobile-Optimized Buttons**: Comprehensive button system with touch feedback
-- ✅ **Responsive Design**: Improved layouts across all screen sizes
+Student-facing application portal and admin review dashboard.
 
-#### File Upload Enhancements
-- ✅ **Drag & Drop Support**: Modern file upload experience with react-dropzone
-- ✅ **Image Compression**: Client-side compression for large images
-- ✅ **Progress Tracking**: Real-time upload and compression progress
-- ✅ **Network Awareness**: Adaptive behavior based on connection speed
-- ✅ **Enhanced Validation**: Better error messages and file type checking
+- Multi-step application wizard with auto-save
+- Lenco payment gateway (mobile money primary, card secondary, defer option)
+- AI-powered OCR grade extraction from result slips
+- AI admin review summaries (gpt-4o-mini)
+- Document upload with magic-byte validation
+- Interview scheduling with conflict detection
+- Waitlist management with auto-promotion
+- Conditional admission lifecycle
+- Communication templates with variable substitution
 
-#### Auto-Save & Draft Management
-- ✅ **Auto-Save Every 30 Seconds**: Automatic form data persistence
-- ✅ **Session Recovery**: Restore forms after browser crashes
-- ✅ **Draft Warnings**: Clear notifications about unsaved changes
-- ✅ **Session Timeout**: Configurable timeout with warnings
+Live at: `***REMOVED***`
 
-#### Smart Features
-- ✅ **OCR Auto-Fill**: Extract data from uploaded documents using Tesseract.js
-- ✅ **Grade Calculator**: Automatic eligibility scoring
-- ✅ **Duplicate Detection**: Advanced duplicate application detection
-- ✅ **Smart Matching**: AI-powered program recommendations
+### Jobs-Ops (`apps/jobs-ops/`)
 
-#### Enhanced Admin Tools
-- ✅ **Bulk Operations**: Multi-select with batch actions
-- ✅ **Enhanced Filtering**: 8+ filter types with quick filters
-- ✅ **Export Improvements**: Filtered data export capabilities
-- ✅ **Performance Dashboard**: Real-time system metrics
+AI job hunting and outreach operations dashboard.
 
-#### Error Handling & UX
-- ✅ **User-Friendly Messages**: Technical errors translated to readable text
-- ✅ **Inline Validation**: Real-time form validation
-- ✅ **Error Recovery**: Automatic retry mechanisms with backoff
-- ✅ **Global Error Boundary**: Graceful error handling across the app
+- Job discovery, scoring, and review
+- Resume/document tailoring
+- Outreach CRM and email operations
+- Human-in-the-loop automation
+- Analytics and reporting
 
-#### Security & Compliance
-- ✅ **Comprehensive Security Framework**: Enterprise-grade security implementation
-- ✅ **Input Sanitization**: XSS and injection attack prevention
-- ✅ **SSRF Protection**: Server-side request forgery prevention
-- ✅ **File Upload Security**: Secure file handling with validation
-- ✅ **Rate Limiting**: API abuse prevention
-- ✅ **Security Headers**: CSP, HSTS, and other security headers
-- ✅ **Secure Error Handling**: Sanitized error messages and logging
+## Quick Start
 
-### 🚀 Quick Start
+### Frontend
 
-#### For Netlify Deployment (Recommended)
-1. Upload this entire directory to Netlify
-2. Set build command: `npm run build:prod`
-3. Set publish directory: `dist`
-4. Configure environment variables (see DEPLOYMENT_GUIDE.md)
-5. Deploy!
-
-#### For the CloudFront CDN Deployment
-1. Provision the infrastructure in `infra/cdn` (Terraform 1.6+, AWS credentials required)
-   ```bash
-   cd infra/cdn
-   terraform init
-   terraform apply \
-     -var="project=mihas" \
-     -var="bucket_name=<unique-s3-bucket-name>" \
-     -var="domain_name=application.mihas.edu.zm" \
-     -var="hosted_zone_id=<route53-zone-id>" \
-     -var="certificate_arn=<acm-certificate-arn>"
-   ```
-2. Point your DNS `CNAME`/`A` record to the CloudFront domain output by Terraform (or let Terraform manage Route53).
-3. Build the site: `npm run build:prod`.
-4. Export the CloudFront details as environment variables before running `./deploy.sh`:
-   ```bash
-   export CDN_BUCKET_NAME=<same-s3-bucket-name>
-   export CDN_DISTRIBUTION_ID=<terraform-output-cdn_distribution_id>
-   ./deploy.sh
-   ```
-5. Verify the distribution is serving the new build from all required regions (see DEPLOYMENT_GUIDE.md for testing tips).
-
-#### For Local Development
 ```bash
-# Install dependencies
-npm install
+# Install dependencies (from monorepo root)
+bun install
 
-# Start development server
-npm run dev
+# Admissions
+bun run dev:admissions      # Dev server
+bun run build:admissions    # Production build
+bun run test:admissions     # Vitest suite
+bun run lint:admissions     # ESLint
 
-# Build for production
-npm run build:prod
+# Jobs-Ops
+bun run dev:jobs-ops        # Dev server
+bun run build:jobs-ops      # Production build
+bun run type-check:jobs-ops # TypeScript check
+bun run lint:jobs-ops       # ESLint
 ```
 
-> The Vite development server reads its port from the `VITE_DEV_SERVER_PORT` environment variable (default `5173`).
-> Add it to your `.env.local` or `.env.development` file if you need to run on a different port.
+### Backend
 
-### 🌐 CDN Automation Environment Variables
+```bash
+cd backend
 
-The `deploy.sh` script can automatically push the `dist/` build to CloudFront and invalidate cached objects when the following
-environment variables are defined:
+# Development
+python3 manage.py runserver
+python3 -m uvicorn config.asgi:application --reload  # ASGI parity
 
-| Variable | Description |
-| --- | --- |
-| `CDN_BUCKET_NAME` | Name of the S3 bucket created by Terraform to store the static assets |
-| `CDN_DISTRIBUTION_ID` | CloudFront distribution identifier returned by Terraform |
-| `CDN_INVALIDATION_PATHS` | Optional space-delimited list of paths to invalidate (default: `/*`) |
-| `CDN_DEFAULT_CACHE_CONTROL` | Optional Cache-Control header applied during the S3 sync for hashed assets |
-| `CDN_HTML_CACHE_CONTROL` | Optional Cache-Control header override for HTML shell files |
-| `PUBLISH_TO_CDN` | Set to `false` to skip CDN publishing during a deploy run |
+# Testing
+python3 -m pytest
+python3 manage.py check
+python3 manage.py spectacular --file /tmp/schema.yaml
 
-### 📁 Project Structure
-
-```
-mihas-application-v2/
-├── src/
-│   ├── components/
-│   │   ├── ui/              # Enhanced UI components
-│   │   ├── admin/           # Enhanced admin components
-│   │   ├── forms/           # Form components
-│   │   └── ...
-│   ├── hooks/               # Enhanced hooks including V2 improvements
-│   ├── utils/               # V2 utilities (OCR, caching, etc.)
-│   ├── contexts/            # React contexts
-│   └── ...
-├── api/                     # Backend API functions
-├── netlify/
-│   └── functions/           # Netlify serverless functions
-├── .env                     # Environment variables template
-├── .env.production          # Production environment variables
-├── netlify.toml             # Netlify configuration with security headers
-├── deploy.sh                # Deployment script
-├── DEPLOYMENT_GUIDE.md      # Comprehensive deployment guide
-└── package.json             # Dependencies with V2 additions
+# Celery (separate terminal)
+celery -A config worker -l info
+celery -A config beat -l info
 ```
 
-### 🔧 Technology Stack
+## Project Structure
 
-- **Frontend**: React 18 + TypeScript + Vite
-- **Styling**: Tailwind CSS + Radix UI
-- **Backend**: Supabase (Database, Auth, Storage, Edge Functions)
-- **Deployment**: Netlify with serverless functions
-- **State Management**: Zustand + React Query
-- **File Upload**: React-Dropzone with compression
-- **OCR**: Tesseract.js for text extraction
-- **Forms**: React Hook Form + Zod validation
-
-### 🌟 Key V2 Components
-
-#### Enhanced File Upload
-```tsx
-import { EnhancedFileUpload } from '@/components/ui/EnhancedFileUpload'
-
-<EnhancedFileUpload
-  onFileSelect={handleFileUpload}
-  accept={['image/*', '.pdf']}
-  maxSize={5 * 1024 * 1024} // 5MB
-  autoCompress={true}
-  compressionQuality={0.8}
-/>
+```
+├── apps/
+│   ├── admissions/          # Admissions React app (Vercel)
+│   ├── jobs-ops/            # Jobs-Ops React app (Vercel)
+│   ├── website/             # Future public website (placeholder)
+│   └── student-portal/      # Future student portal (placeholder)
+├── backend/
+│   ├── apps/
+│   │   ├── accounts/        # Auth, sessions, profiles
+│   │   ├── applications/    # Admissions domain (split views)
+│   │   ├── catalog/         # Programs, intakes, subjects
+│   │   ├── documents/       # Documents, OCR, payments
+│   │   ├── common/          # Middleware, health, notifications
+│   │   ├── jobs/            # Jobs-ops job APIs
+│   │   ├── outreach/        # CRM and campaigns
+│   │   ├── automation/      # Rules and runs
+│   │   ├── integrations/    # Telegram, OpenAI, email
+│   │   └── analytics/       # Reports and analytics
+│   ├── config/              # Django settings and URLs
+│   └── tests/               # Unit and property tests
+├── shared/                  # Cross-app shared code
+├── docs/                    # Documentation and runbooks
+└── .kiro/                   # Specs, steering, hooks
 ```
 
-#### Auto-Save Hook
-```tsx
-import { useAutoSave } from '@/hooks/useAutoSave'
+## API
 
-const { lastSaved, isDirty, isSaving } = useAutoSave(formData, {
-  interval: 30000, // 30 seconds
-  key: 'application-form'
-})
-```
+All routes under `/api/v1/`. Resource-style REST. Response envelope: `{"success": true, "data": ...}`.
 
-#### Enhanced Loading Spinner
-```tsx
-import { EnhancedLoadingSpinner } from '@/components/ui/EnhancedLoadingSpinner'
+Auth: HTTP-only cookies (access_token 30min, refresh_token 7 days). CSRF required on state-changing requests. Cross-origin from `apply.mihas.edu.zm` to `api.mihas.edu.zm`.
 
-<EnhancedLoadingSpinner 
-  variant="spinner" 
-  size="lg" 
-  message="Processing your application..." 
-/>
-```
+API docs: `***REMOVED***/api/v1/docs/`
 
-### 📋 Environment Variables
+## Environment
 
-All environment variables are pre-configured for production. See `.env.production` for the complete list.
+Backend env vars are documented in `.env.example`. Frontend env vars use `VITE_` prefix and are in `.env.frontend`.
 
-- `VITE_DEV_SERVER_PORT` (default `5173`) – overrides the port used by the local Vite development scripts:
-  - `npm run dev`
-  - `npm run dev:network`
+Key variables:
+- `DATABASE_URL` — Neon Postgres connection string
+- `REDIS_URL` — Redis for Celery, JTI blacklist, caching
+- `LENCO_API_SECRET_KEY` / `LENCO_PUBLIC_KEY` — Payment gateway
+- `AI_GATEWAY_API_KEY` — LLM gateway for AI features
+- `GLITCHTIP_DSN` / `VITE_GLITCHTIP_DSN` — Error monitoring
+- `ZOHO_EMAIL_HOST_PASSWORD` — SMTP credentials
 
-#### Email delivery configuration
+## Deployment
 
-The Supabase edge function `send-email` expects the following secrets to be configured (via `supabase secrets set` or your hosting provider):
+- Frontend: Push to `main` triggers Vercel auto-deploy
+- Backend: Push to `main` triggers Koyeb auto-deploy (Dockerfile)
+- Celery Beat: Dedicated Koyeb worker (exactly 1 instance)
+- Database migrations: Manual SQL scripts in `backend/scripts/`
 
-- `EMAIL_PROVIDER` – set to `resend` or `sendgrid`.
-- `EMAIL_FROM_ADDRESS` – default sender address used when provider-specific values are not supplied.
-- `RESEND_API_KEY` and optionally `RESEND_FROM_EMAIL` – required when `EMAIL_PROVIDER=resend`.
-- `SENDGRID_API_KEY` and optionally `SENDGRID_FROM_EMAIL` – required when `EMAIL_PROVIDER=sendgrid`.
+## Runbooks
 
-You may also provide `DEFAULT_FROM_EMAIL` as a fallback sender address if `EMAIL_FROM_ADDRESS` is not available.
+- `docs/runbooks/secrets-rotation.md` — Rotate production secrets
+- `docs/runbooks/redis-recovery.md` — Redis failure recovery
+- `docs/runbooks/scaling-playbook.md` — Scaling Koyeb and Neon
 
-### 📖 Documentation
+## Key Documentation
 
-- **DEPLOYMENT_GUIDE.md** - Complete deployment instructions
-- **Component documentation** - Available in V2 improvements package
-- **API documentation** - Available in the API directory
-
-### 🔐 Security Features
-
-- Content Security Policy headers
-- XSS protection
-- CSRF protection via Supabase RLS
-- Input validation and sanitization
-- File upload security checks
-
-### 📊 Performance Features
-
-- Code splitting and lazy loading
-- Service worker for offline capability
-- Image optimization and compression
-- API response caching
-- Database query optimization
-
-### 🧠 Shared API Cache Usage
-
-Feature teams can use the shared API client cache without changing existing service layers. `apiClient.request` automatically serves GET requests through the cache with a default TTL of five minutes and invalidates related entries after successful mutations. Use the following options to tune behavior when needed:
-
-```ts
-// Adjust cache lifetime for high-churn data (value in milliseconds)
-const programs = await apiClient.request('/api/catalog/programs', {
-  cacheTTL: 2 * 60 * 1000 // Cache results for 2 minutes
-})
-
-// Skip the cache when a fresh fetch is required (e.g., admin overrides)
-const latest = await apiClient.request('/api/catalog/programs', {
-  skipCache: true
-})
-
-// Disable caching for a specific call without affecting global defaults
-await apiClient.request('/api/catalog/programs', {
-  useCache: false
-})
-
-// Provide explicit invalidation targets for mutations that affect multiple views
-await apiClient.request('/api/catalog/programs', {
-  method: 'POST',
-  body: JSON.stringify(newProgram),
-  invalidateCache: [
-    '/api/catalog/programs',
-    `/api/catalog/programs/${newProgram.id}`
-  ]
-})
-```
-
-Additional controls include the `cacheKey` option (for advanced scenarios such as multi-tenant caches) and the automatic cache purge for related REST routes when a mutation succeeds. Teams can also combine these options—e.g., `skipCache: true` together with a custom `invalidateCache` pattern—to orchestrate cache refreshes tailored to their feature domains.
-
-### 🎯 Production Ready
-
-This application is fully configured and ready for production deployment with:
-- ✅ All V2 improvements integrated
-- ✅ Production environment variables configured
-- ✅ Netlify deployment configuration complete
-- ✅ Security headers and performance optimizations
-- ✅ Error handling and monitoring
-- ✅ Mobile-first responsive design
+- `.kiro/steering/tech.md` — Technology stack and conventions
+- `.kiro/steering/structure.md` — Code organization and placement
+- `.kiro/steering/product.md` — Product context and business rules
+- `docs/schema-ownership.md` — Database table ownership
+- `docs/redis-dependency-tiers.md` — Redis key usage and TTLs
+- `docs/security-api-audit-2026-04.md` — Security audit report
 
 ---
 
-**Version**: 2.0.0 with V2 Improvements  
-**Status**: Production Ready  
-**Last Updated**: 2025-09-23  
-**Author**: MiniMax Agent
+Developed by [Beanola Technologies](https://beanola.com) · Creator: Cosmas Kanchepa

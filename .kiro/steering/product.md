@@ -42,8 +42,9 @@ The platform uses GlitchTip (Sentry-compatible, free tier) for error tracking. B
 ### Admissions
 
 - Student onboarding, profile management, application wizard, document upload, payment via Lenco gateway, interview progression, and decisions
-- Admin and reviewer tools for application review, verification, fee management, payment status override, audit, and operational oversight
+- Admin and reviewer tools for application review, verification, fee management, payment status override, audit, and operational oversight. AI-powered admin review summaries are available via `GET /api/v1/applications/{id}/admin-summary/`.
 - Payment is processed in real-time via the Lenco inline widget — no manual proof-of-payment uploads
+- AI-powered OCR extracts grades from uploaded result slips (never overwrites manual entries). AI preview summaries personalize the review step.
 
 #### Current Admissions Flow Contract
 
@@ -153,7 +154,7 @@ Jobs-ops expectations:
 |-------|---------------------|
 | Transport | TLS only, strict transport headers in production |
 | Auth | HTTP-only cookies, refresh rotation, Django-managed signing, JWT middleware fully implemented. Access tokens: 30 min, refresh tokens: 7 days with Redis JTI blacklisting. |
-| CSRF | Required on state-changing requests; custom `CSRFEnforcementMiddleware` with exempt patterns for unauthenticated endpoints |
+| CSRF | Required on state-changing requests; enforced in `JWTCookieAuthentication._enforce_csrf()` with exempt patterns for unauthenticated endpoints. CSRF tokens are in-memory only on the frontend; bootstrap session call uses `?refresh_csrf=1` to recover after page refresh. Cross-origin recovery uses query params (not custom headers) to avoid CORS preflight issues. |
 | Validation | Validate every input at the API boundary |
 | File uploads | Validate content type and file shape defensively |
 | Secrets | Credentials must be environment-backed and masked in logs |
