@@ -146,7 +146,7 @@ class TestDocumentSignedUrlEndpoint(SimpleTestCase):
             response = view(request, document_id=doc_id)
 
         self.assertEqual(response.status_code, 200)
-        mock_signed.assert_called_once_with("media/documents/app123/abc_transcript.pdf")
+        mock_signed.assert_called_once_with("documents/app123/abc_transcript.pdf")
 
     def test_signed_url_requires_authentication(self):
         factory = APIRequestFactory()
