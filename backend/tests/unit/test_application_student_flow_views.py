@@ -267,6 +267,8 @@ class TestStudentPostSubmissionMutationGuards:
             "DELETE FROM application_status_history WHERE application_id = %s",
             "DELETE FROM application_drafts WHERE application_id = %s",
             "DELETE FROM application_interviews WHERE application_id = %s",
+            "DELETE FROM application_conditions WHERE application_id = %s",
+            "DELETE FROM application_amendments WHERE application_id = %s",
             "DELETE FROM applications WHERE id = %s",
         ]
         for call in mock_cursor.execute.call_args_list:
