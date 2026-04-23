@@ -148,3 +148,53 @@ Text:
     except Exception:
         logger.exception("AI document analysis failed")
         return None
+
+
+def generate_student_preview_summary(application_data: dict) -> str | None:
+    """Generate a personalized, encouraging summary for the student review step.
+
+    This appears on the wizard's final review page to make the student feel
+    their application is complete and personal.
+    """
+    client = _get_client()
+    if not client:
+        return None
+
+    model = getattr(settings, "AI_MODEL_FAST", "google/gemini-2.5-flash")
+
+    name = application_data.get('full_name', 'Student')
+    first_name = name.split()[0] if name else 'Student'
+    program = application_data.get('program', 'your chosen programme')
+    institution = application_data.get('institution', 'MIHAS')
+    grades = application_data.get('grades_summary', '')
+    subjects_count = application_data.get('subjects_count', 0)
+    intake = application_data.get('intake', '')
+
+    prompt = f"""Write a brief, warm, personalized 2-3 sentence summary for {first_name} who is about to submit their application to {institution} for {program}.
+
+Details:
+- Subjects recorded: {subjects_count}
+- Grades: {grades or 'entered'}
+- Intake: {intake}
+
+The tone should be:
+- Encouraging but professional
+- Personal (use their first name)
+- Acknowledge their specific programme choice
+- Brief (2-3 sentences max, no bullet points)
+
+Example style: "{first_name}, your application for {program} is looking strong. With your {subjects_count} recorded subjects, you've met the documentation requirements. Once submitted, the admissions team will review your application promptly."
+
+Do NOT mention payment status, fees, or anything negative. Keep it positive and forward-looking."""
+
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=150,
+            temperature=0.7,
+        )
+        return response.choices[0].message.content
+    except Exception:
+        logger.exception("AI student preview summary failed")
+        return None

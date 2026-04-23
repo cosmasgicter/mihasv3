@@ -1,10 +1,13 @@
+import { useEffect, useState } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
-import { AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Sparkles } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
 import { CheckboxWithLabel } from '@/components/ui/checkbox'
 import { SectionCard } from '@/components/ui/SectionCard'
+import { Skeleton } from '@/components/ui'
 import { animateClasses } from '@/lib/animations'
+import { apiClient } from '@/services/client'
 // eslint-disable-next-line no-restricted-imports -- type import from eligibilityEngine until API-backed replacement is ready
 import type { EligibilityResult } from '@/lib/eligibilityEngine'
 import { cn } from '@/lib/utils'
@@ -27,6 +30,7 @@ interface SubmitStepProps {
   selectedInstitutionLabel?: string
   paymentStatus?: 'pending' | 'successful' | 'failed' | null
   wizardReadiness?: WizardReadiness
+  applicationId?: string | null
 }
 
 const gradeLabelMap: Record<number, string> = {
@@ -55,10 +59,28 @@ const SubmitStep = ({
   selectedProgramName,
   selectedInstitutionLabel,
   paymentStatus,
-  wizardReadiness
+  wizardReadiness,
+  applicationId
 }: SubmitStepProps) => {
   const formValues = form.watch()
   const programLabel = selectedProgramName?.trim() || formValues.program
+
+  // AI-powered personalized summary
+  const [aiSummary, setAiSummary] = useState<string | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
+
+  useEffect(() => {
+    if (!applicationId) return
+    let cancelled = false
+    setAiLoading(true)
+    apiClient.request<{ summary: string | null }>(`/applications/${applicationId}/preview-summary/`)
+      .then(data => {
+        if (!cancelled && data?.summary) setAiSummary(data.summary)
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setAiLoading(false) })
+    return () => { cancelled = true }
+  }, [applicationId])
   const institutionLabel = selectedInstitutionLabel?.trim() || ''
   const hasResultSlip = Boolean(resultSlipFile || uploadedFiles.result_slip)
   const hasIdentityDocument = Boolean(extraKycFile || uploadedFiles.extra_kyc)
@@ -106,6 +128,28 @@ const SubmitStep = ({
         description="Review the details below before you submit. Once the application is sent, you cannot edit it from this wizard."
         contentClassName="space-y-6"
       >
+        {/* AI-powered personalized summary */}
+        {(aiSummary || aiLoading) && (
+          <div className={`rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5 p-5 ${animateClasses.fadeIn}`}>
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold uppercase tracking-wide text-primary/70">Application Preview</p>
+                {aiLoading ? (
+                  <div className="mt-2 space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                  </div>
+                ) : (
+                  <p className="mt-1.5 text-sm leading-relaxed text-foreground">{aiSummary}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
           <section className="space-y-4" aria-labelledby="submit-readiness-heading">
             <div>

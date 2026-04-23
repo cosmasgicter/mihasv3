@@ -776,6 +776,7 @@ const ApplicationWizardContent = () => {
                 }
                 paymentStatus={paymentStatus}
                 wizardReadiness={wizardReadiness}
+                applicationId={applicationId}
               />
             )}
             </div>
