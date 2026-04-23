@@ -500,20 +500,37 @@ class ApplicationPreviewSummaryView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        subjects_count = ApplicationGrade.objects.filter(application_id=app.id).count()
+        first_name = (app.full_name or "").split()[0] or "Student"
+        program = app.program or "your chosen programme"
+        intake = getattr(app, "intake", "") or ""
+
+        # Try AI summary, fall back to template
         summary = None
         try:
             from apps.common.ai_service import generate_student_preview_summary
-
             summary = generate_student_preview_summary({
                 "full_name": app.full_name,
-                "program": app.program,
+                "program": program,
                 "institution": getattr(app, "institution", "MIHAS"),
-                "intake": getattr(app, "intake", ""),
+                "intake": intake,
                 "grades_summary": build_grades_summary(app),
-                "subjects_count": ApplicationGrade.objects.filter(application_id=app.id).count(),
+                "subjects_count": subjects_count,
             })
         except Exception:
             pass
+
+        if not summary or len(summary) < 20:
+            parts = [f"{first_name}, your application for {program} is looking great."]
+            if subjects_count > 0:
+                parts.append(f"You've recorded {subjects_count} subject{'s' if subjects_count != 1 else ''} so far.")
+            if intake:
+                parts.append(f"Once submitted, the admissions team will review your application for the {intake} promptly.")
+            else:
+                parts.append("Once submitted, the admissions team will review your application promptly.")
+            summary = " ".join(parts)
+
+        return Response({"success": True, "data": {"summary": summary}})
 
         return Response({"success": True, "data": {"summary": summary}})
 
