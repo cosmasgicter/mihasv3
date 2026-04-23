@@ -560,8 +560,31 @@ const useWizardController = (): UseWizardControllerResult => {
       }
       
       try {
-        // Result slip uploaded — persist URL and let user enter grades manually
-        await persistResultSlipUrl()
+        // Result slip uploaded — persist URL and trigger OCR extraction
+        const persisted = await persistResultSlipUrl()
+        if (!persisted) return
+
+        // Trigger backend OCR extraction (async Celery task)
+        // The document ID is available from the upload response stored in uploadedFiles
+        try {
+          // Find the document ID from the most recent upload
+          const docs = await apiClient.request<{ results?: Array<{ id: string; document_type: string }> } | Array<{ id: string; document_type: string }>>(
+            `/applications/${applicationId}/documents/`
+          )
+          const docList = Array.isArray(docs) ? docs : (docs?.results ?? [])
+          const resultSlipDoc = docList.find((d: { document_type: string }) => d.document_type === 'result_slip')
+
+          if (resultSlipDoc?.id) {
+            // Fire OCR extraction — this is async (Celery task), don't await completion
+            apiClient.request(`/documents/${resultSlipDoc.id}/extract/`, { method: 'POST' }).catch(() => {
+              // OCR is best-effort — don't block the wizard if it fails
+            })
+            showSuccess('Result slip uploaded. Grades can be entered below.')
+          }
+        } catch {
+          // Non-critical — OCR is a convenience, not a requirement
+          showSuccess('Result slip uploaded successfully.')
+        }
       } catch (e) {
         if (isApplicationMissingError(e)) {
           clearStaleApplicationReference(
