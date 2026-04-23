@@ -785,7 +785,7 @@ class MobileMoneyInitiateView(APIView):
                     "country": "zm",
                     "bearer": "customer",
                 },
-                headers={"Authorization": f"Bearer {api_secret}"},
+                headers={"Authorization": f"Bearer {api_secret}", "User-Agent": "MIHAS/2.0", "Accept": "application/json"},
                 timeout=15,
             )
             lenco_data = resp.json() if resp.content else {}
