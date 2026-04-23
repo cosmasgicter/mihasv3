@@ -5,13 +5,15 @@ from unittest.mock import MagicMock, patch
 from apps.applications.duplicate_checker import DuplicateChecker, NON_TERMINAL_STATUSES
 
 
-def _app(uid, program="CS", intake="Jan 2026", status="submitted"):
+def _app(uid, program="CS", intake="Jan 2026", status="submitted", nrc="123456/78/1"):
     a = MagicMock()
     a.id = uuid.uuid4()
     a.user_id = str(uid)
     a.program = program
     a.intake = intake
     a.status = status
+    a.nrc_number = nrc
+    a.passport_number = None
     return a
 
 
@@ -29,7 +31,7 @@ class TestUnrestrictedPolicy:
             mock_setting.value = "unrestricted"
             ms.filter.return_value.first.return_value = mock_setting
 
-            ma.filter.return_value.first.return_value = None
+            ma.filter.return_value = []
 
             result = DuplicateChecker.check_at_create(uid, "CS", "Jul 2026")
             assert result.has_duplicate is False
@@ -46,9 +48,9 @@ class TestUnrestrictedPolicy:
             mock_setting.value = "unrestricted"
             ms.filter.return_value.first.return_value = mock_setting
 
-            ma.filter.return_value.first.return_value = existing
+            ma.filter.return_value = [existing]
 
-            result = DuplicateChecker.check_at_create(uid, "CS", "Jan 2026")
+            result = DuplicateChecker.check_at_create(uid, "CS", "Jan 2026", nrc_number="123456/78/1")
             assert result.has_duplicate is True
 
 
@@ -67,7 +69,7 @@ class TestSingleActivePolicy:
             mock_setting.value = "single_active"
             ms.filter.return_value.first.return_value = mock_setting
 
-            ma.filter.return_value.first.return_value = existing
+            ma.filter.return_value = [existing]
 
             result = DuplicateChecker.check_at_create(uid, "CS", "Jul 2026")
             assert result.has_duplicate is True
@@ -83,7 +85,7 @@ class TestSingleActivePolicy:
             mock_setting.value = "single_active"
             ms.filter.return_value.first.return_value = mock_setting
 
-            ma.filter.return_value.first.return_value = None
+            ma.filter.return_value = []
 
             result = DuplicateChecker.check_at_create(uid, "IT", "Jan 2026")
             assert result.has_duplicate is False
@@ -141,7 +143,7 @@ class TestDuplicateCheckerDefaultPolicy:
             patch("apps.applications.duplicate_checker.Application.objects") as ma,
         ):
             ms.filter.return_value.first.return_value = None
-            ma.filter.return_value.first.return_value = None
+            ma.filter.return_value = []
 
             result = DuplicateChecker.check_at_create(uid, "CS", "Jan 2026")
             assert result.has_duplicate is False
