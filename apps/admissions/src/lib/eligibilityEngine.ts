@@ -410,7 +410,7 @@ function checkCounsellingEligibility(grades: StudentGrades): EligibilityResult {
 
   let competitiveness: EligibilityResult['competitivenessLevel'] = 'Not Eligible'
   if (missing.length === 0) {
-    const avg = allGrades.slice(0, 5).reduce((a, b) => a + b, 0) / 5
+    const avg = allGrades.slice(0, 5).reduce((a, b) => (a ?? 0) + (b ?? 0), 0) / 5
     competitiveness = avg <= 3 ? 'Highly Competitive' : avg <= 5 ? 'Competitive' : 'Minimum'
     recommendations.push('Interview may be required as part of the selection process')
   }
