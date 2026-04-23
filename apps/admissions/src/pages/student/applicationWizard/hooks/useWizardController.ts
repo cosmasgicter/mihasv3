@@ -52,6 +52,7 @@ import { buildWizardReadiness, type WizardReadiness } from '../lib/wizardReadine
 
 import useApplicationSlip, { SubmittedApplicationSummary } from './useApplicationSlip'
 import useApplicationFileUploads, { type ApplicationUploadState } from './useApplicationFileUploads'
+import { useOcrGradeExtraction } from './useOcrGradeExtraction'
 import {
   createWizardSchema,
   normalizePhoneNumberInput,
@@ -238,6 +239,8 @@ const useWizardController = (): UseWizardControllerResult => {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [applicationId, setApplicationId] = useState<string | null>(null)
+  const [ocrDocumentId, setOcrDocumentId] = useState<string | null>(null)
+  const startOcrPollingRef = useRef<(() => void) | null>(null)
   const [submittedApplication, setSubmittedApplication] = useState<SubmittedApplicationSummary | null>(null)
   const [selectedGrades, setSelectedGrades] = useState<SubjectGrade[]>([])
   const [isDraftSaving, setIsDraftSaving] = useState(false)
@@ -576,10 +579,11 @@ const useWizardController = (): UseWizardControllerResult => {
 
           if (resultSlipDoc?.id) {
             // Fire OCR extraction — this is async (Celery task), don't await completion
-            apiClient.request(`/documents/${resultSlipDoc.id}/extract/`, { method: 'POST' }).catch(() => {
-              // OCR is best-effort — don't block the wizard if it fails
-            })
-            showSuccess('Result slip uploaded. Grades can be entered below.')
+            apiClient.request(`/documents/${resultSlipDoc.id}/extract/`, { method: 'POST' }).catch(() => {})
+            // Start polling for AI grade extraction results
+            setOcrDocumentId(resultSlipDoc.id)
+            startOcrPollingRef.current?.()
+            showInfo('Analyzing your result slip...', 'AI is extracting grades — they will auto-populate shortly.')
           }
         } catch {
           // Non-critical — OCR is a convenience, not a requirement
@@ -1557,6 +1561,30 @@ const useWizardController = (): UseWizardControllerResult => {
   const getPaymentTarget = useCallback(async () => {
     return 'Processed via Lenco payment gateway'
   }, [])
+
+  // OCR grade auto-population: poll for AI analysis after result slip upload
+  const handleOcrGrades = useCallback((grades: Array<{ subject_id: string; grade: number }>) => {
+    if (grades.length === 0) return
+    // Only auto-populate if student hasn't already entered grades
+    if (selectedGrades.length >= 3) return
+
+    setSelectedGrades(grades)
+    showSuccess(`✨ AI detected ${grades.length} subjects from your result slip!`)
+
+    // Sync to server if we have an application ID
+    if (applicationId) {
+      syncGrades.mutateAsync({ id: applicationId, grades }).catch(() => {
+        // Non-critical — grades are in local state
+      })
+    }
+  }, [applicationId, selectedGrades.length, syncGrades, showSuccess])
+
+  const { status: ocrStatus, extractedCount: ocrExtractedCount, startPolling: startOcrPolling } = useOcrGradeExtraction(
+    ocrDocumentId,
+    subjects,
+    handleOcrGrades,
+  )
+  startOcrPollingRef.current = startOcrPolling
 
   const goToStep = useCallback((index: number) => {
     setCurrentStepIndex(Math.min(Math.max(index, 0), totalSteps - 1))

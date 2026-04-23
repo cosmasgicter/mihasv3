@@ -1248,6 +1248,8 @@ class DocumentInfoView(APIView):
             "uploaded_at": document.uploaded_at.isoformat() if document.uploaded_at else None,
             "file_size": document.file_size,
             "mime_type": document.mime_type,
+            "extracted_text": bool(document.extracted_text),
+            "ai_analysis": (document.metadata or {}).get("ai_analysis") if document.extracted_text else None,
         }
 
         return Response({"success": True, "data": data})
