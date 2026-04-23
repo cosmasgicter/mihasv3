@@ -138,10 +138,9 @@ Text:
     try:
         response = client.chat.completions.create(
             model=model,
-            messages=[{"role": "user", "content": prompt}],
+            messages=[{"role": "user", "content": prompt + "\n\nReturn ONLY valid JSON, no markdown or explanation."}],
             max_tokens=500,
             temperature=0,
-            response_format={"type": "json_object"},
         )
         import json
         return json.loads(response.choices[0].message.content)

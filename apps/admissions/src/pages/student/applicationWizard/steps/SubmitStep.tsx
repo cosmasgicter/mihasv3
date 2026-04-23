@@ -29,7 +29,7 @@ interface SubmitStepProps {
   selectedProgramName?: string
   selectedIntakeLabel?: string
   selectedInstitutionLabel?: string
-  paymentStatus?: 'pending' | 'successful' | 'failed' | null
+  paymentStatus?: 'pending' | 'successful' | 'failed' | 'deferred' | null
   wizardReadiness?: WizardReadiness
   applicationId?: string | null
 }
@@ -113,11 +113,13 @@ const SubmitStep = ({
       completed: isRequirementComplete('extra_kyc', hasIdentityDocument),
     },
     {
-      label: 'Payment completed via Lenco',
+      label: paymentStatus === 'deferred' ? 'Payment deferred' : 'Payment completed via Lenco',
       detail: paymentStatus === 'successful'
         ? 'Payment confirmed through the secure Lenco gateway.'
-        : 'Please complete payment in the payment step before submitting.',
-      completed: isRequirementComplete('payment', paymentStatus === 'successful'),
+        : paymentStatus === 'deferred'
+          ? 'You chose to pay later. You can pay from your dashboard after submission.'
+          : 'Please complete payment in the payment step before submitting.',
+      completed: isRequirementComplete('payment', paymentStatus === 'successful' || paymentStatus === 'deferred'),
     },
   ]
 
@@ -274,7 +276,7 @@ const SubmitStep = ({
         description="You must confirm that the application is accurate before the submit button is enabled."
         padding="sm"
       >
-        {paymentStatus !== 'successful' && (
+        {paymentStatus !== 'successful' && paymentStatus !== 'deferred' && (
           <Alert variant="warning" className="mb-4">
             <AlertTitle className="text-foreground">Payment required</AlertTitle>
             <AlertDescription className="text-muted-foreground">

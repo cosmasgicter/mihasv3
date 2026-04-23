@@ -132,7 +132,7 @@ def _application_has_completed_payment(application_id) -> bool:
 def _application_has_identity_document(application_id) -> bool:
     return ApplicationDocument.objects.filter(
         application_id=application_id,
-        document_type__in=["nrc", "passport"],
+        document_type__in=["nrc", "passport", "extra_kyc"],
     ).exists()
 
 

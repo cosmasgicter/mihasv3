@@ -15,8 +15,8 @@ interface PaymentStepProps {
   form: UseFormReturn<WizardFormData>
   applicationId: string | null
   applicationNumber: string | null
-  polledStatus?: 'pending' | 'successful' | 'failed' | null
-  onPaymentStatusChange?: (status: 'pending' | 'successful' | 'failed' | null) => void
+  polledStatus?: 'pending' | 'successful' | 'failed' | 'deferred' | null
+  onPaymentStatusChange?: (status: 'pending' | 'successful' | 'failed' | 'deferred' | null) => void
   onPaymentStatusRefresh?: () => Promise<void>
 }
 
@@ -46,7 +46,12 @@ const PaymentStep = ({
   const [deferError, setDeferError] = useState<string | null>(null)
   const [deferConfirm, setDeferConfirm] = useState(false)
 
-  const isPaymentSuccessful = polledStatus === 'successful'
+  const isPaymentSuccessful = polledStatus === 'successful' || polledStatus === 'deferred'
+
+  // Sync local deferred state from polled status (e.g. when navigating back)
+  useEffect(() => {
+    if (polledStatus === 'deferred') setDeferred(true)
+  }, [polledStatus])
 
   const handleDefer = useCallback(async () => {
     if (!applicationId) return
@@ -62,7 +67,7 @@ const PaymentStep = ({
         body: JSON.stringify({ application_id: applicationId }),
       })
       setDeferred(true)
-      onPaymentStatusChange?.('successful')
+      onPaymentStatusChange?.('deferred')
     } catch (err) {
       setDeferError(err instanceof Error ? err.message : 'Failed to defer payment')
     } finally {
@@ -140,7 +145,7 @@ const PaymentStep = ({
             phone={watch('phone') || ''}
             fullName={watch('full_name') || ''}
             email={watch('email') || ''}
-            polledStatus={polledStatus}
+            polledStatus={polledStatus === 'deferred' ? null : polledStatus}
             onPaymentStatusChange={onPaymentStatusChange}
             onPaymentStatusRefresh={onPaymentStatusRefresh}
           />

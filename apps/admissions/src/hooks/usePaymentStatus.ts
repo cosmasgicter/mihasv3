@@ -7,7 +7,7 @@ import { apiClient } from '@/services/client'
 // Types
 // ---------------------------------------------------------------------------
 
-export type PaymentStatusValue = 'pending' | 'successful' | 'failed' | null
+export type PaymentStatusValue = 'pending' | 'successful' | 'failed' | 'deferred' | null
 
 interface PaymentRecord {
   status: string
@@ -37,8 +37,9 @@ export function normalizePaymentStatusValue(status?: string | null): PaymentStat
     case 'pending_review':
       return 'pending'
     case 'verified':
-    case 'deferred':
       return 'successful'
+    case 'deferred':
+      return 'deferred'
     case 'rejected':
       return 'failed'
     default:
@@ -72,8 +73,8 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
 
   useEffect(() => {
     const normalized = normalizePaymentStatusValue(applicationPaymentStatus)
-    if (normalized === 'successful') {
-      updateStatus('successful')
+    if (normalized === 'successful' || normalized === 'deferred') {
+      updateStatus(normalized)
     }
   }, [applicationPaymentStatus, updateStatus])
 
@@ -129,7 +130,7 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
 
   const scheduleNext = useCallback(() => {
     // Stop polling on terminal statuses or after max attempts
-    if (statusRef.current === 'successful' || statusRef.current === 'failed') return
+    if (statusRef.current === 'successful' || statusRef.current === 'failed' || statusRef.current === 'deferred') return
     if (pollCountRef.current >= MAX_POLL_COUNT) return
     if (failCountRef.current >= 5) return  // Stop polling after 5 consecutive failures
 
@@ -174,7 +175,7 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
 
   // Stop polling when status becomes terminal
   useEffect(() => {
-    if (status === 'successful' || status === 'failed') {
+    if (status === 'successful' || status === 'failed' || status === 'deferred') {
       clearPending()
     }
   }, [status, clearPending])

@@ -199,12 +199,12 @@ const ApplicationWizardContent = () => {
       }
     }
 
-    if (currentStepConfig.key === 'payment' && paymentStatus !== 'successful') {
+    if (currentStepConfig.key === 'payment' && paymentStatus !== 'successful' && paymentStatus !== 'deferred') {
       errors.push({ field: 'payment', label: 'Payment', message: 'Complete payment confirmation before moving to the review step' })
     }
 
     if (currentStepConfig.key === 'submit') {
-      if (paymentStatus !== 'successful') {
+      if (paymentStatus !== 'successful' && paymentStatus !== 'deferred') {
         errors.push({ field: 'payment', label: 'Payment', message: 'Payment must be confirmed before you can submit the application' })
       }
       if (!confirmSubmission) {
@@ -382,11 +382,11 @@ const ApplicationWizardContent = () => {
         ]
       case 2:
         return [
-          { label: 'Payment processed via Lenco gateway', completed: paymentStatus === 'successful' }
+          { label: 'Payment processed via Lenco gateway', completed: paymentStatus === 'successful' || paymentStatus === 'deferred' }
         ]
       case 3:
         return [
-          { label: 'Payment confirmed', completed: paymentStatus === 'successful' },
+          { label: 'Payment confirmed', completed: paymentStatus === 'successful' || paymentStatus === 'deferred' },
           { label: 'Terms accepted', completed: confirmSubmission }
         ]
       default:
@@ -802,7 +802,7 @@ const ApplicationWizardContent = () => {
             <div className="order-1 sm:order-2">
               {!isLastStep ? (
                 <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
-                  <Button type="button" variant="primary" onClick={wrappedHandleNextStep} loading={loading} disabled={loading || uploading || (currentStepConfig.key === 'payment' && paymentStatus !== 'successful')} className="w-full sm:w-auto min-h-[48px]" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
+                  <Button type="button" variant="primary" onClick={wrappedHandleNextStep} loading={loading} disabled={loading || uploading || (currentStepConfig.key === 'payment' && paymentStatus !== 'successful' && paymentStatus !== 'deferred')} className="w-full sm:w-auto min-h-[48px]" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
                     {loading || isUploadBlocking ? nextButtonLabel : (<><span>{nextButtonLabel}</span><ArrowRight className="h-4 w-4 ml-2" /></>)}
                   </Button>
                 </div>
