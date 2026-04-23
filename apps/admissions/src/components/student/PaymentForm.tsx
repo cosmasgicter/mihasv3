@@ -38,27 +38,8 @@ function formatPhone(raw: string): string {
   return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`
 }
 
-function phoneDigits(formatted: string): string {
-  return formatted.replace(/\D/g, '')
-}
-
-/** Normalize any Zambian phone to E.164 format (+260XXXXXXXXX) for API calls */
-export function normalizeZambianPhone(raw: string): string {
-  const digits = raw.replace(/\D/g, '')
-  // +260977... → 260977...
-  if (digits.startsWith('260') && digits.length >= 12) {
-    return '+' + digits.slice(0, 12)
-  }
-  // 0977... → +260977...
-  if (digits.startsWith('0') && digits.length === 10) {
-    return '+260' + digits.slice(1)
-  }
-  // 977... (9 digits, no leading 0) → +260977...
-  if (digits.length === 9) {
-    return '+260' + digits
-  }
-  return digits
-}
+export { normalizeZambianPhone } from '@/lib/phoneNormalization'
+import { normalizeZambianPhone, phoneDigits } from '@/lib/phoneNormalization'
 
 interface MobileMoneyResponse {
   payment_id: string
