@@ -96,6 +96,8 @@ interface EducationStepProps {
   getUsedSubjects: () => string[]
   handleResultSlipUpload: (file: File | null) => void
   handleExtraKycUpload: (file: File | null) => void
+  ocrStatus?: 'idle' | 'polling' | 'done' | 'failed'
+  ocrExtractedCount?: number
 }
 
 const EducationStep = ({
@@ -115,7 +117,9 @@ const EducationStep = ({
   updateGrade,
   getUsedSubjects,
   handleResultSlipUpload,
-  handleExtraKycUpload
+  handleExtraKycUpload,
+  ocrStatus,
+  ocrExtractedCount
 }: EducationStepProps) => {
   const lastSubjectRef = useRef<HTMLDivElement>(null)
   const prevGradeCountRef = useRef(selectedGrades.length)
@@ -167,6 +171,24 @@ const EducationStep = ({
       <h2 className="text-lg font-semibold text-foreground mb-4">{title}</h2>
 
       <div className="space-y-6">
+        {/* OCR progress indicator */}
+        {ocrStatus === 'polling' && (
+          <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-primary animate-in fade-in duration-300">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <span>Scanning your result slip for grades…</span>
+          </div>
+        )}
+        {ocrStatus === 'done' && ocrExtractedCount && ocrExtractedCount > 0 && (
+          <div className="flex items-center gap-3 rounded-lg border border-green-500/20 bg-green-500/5 px-4 py-3 text-sm text-green-600 animate-in fade-in duration-300">
+            <span>✓ Auto-populated {ocrExtractedCount} subject{ocrExtractedCount > 1 ? 's' : ''} from your result slip</span>
+          </div>
+        )}
+        {ocrStatus === 'failed' && (
+          <div className="flex items-center gap-3 rounded-lg border border-muted/30 bg-muted/5 px-4 py-3 text-sm text-muted-foreground animate-in fade-in duration-300">
+            <span>Grade scanning didn't find results — please add your subjects manually below.</span>
+          </div>
+        )}
+
         <fieldset className="border-none p-0 m-0">
           <legend className="sr-only">Education Details</legend>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
