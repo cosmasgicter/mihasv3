@@ -185,7 +185,7 @@ const EducationStep = ({
         )}
         {ocrStatus === 'failed' && (
           <div className="flex items-center gap-3 rounded-lg border border-muted/30 bg-muted/5 px-4 py-3 text-sm text-muted-foreground animate-in fade-in duration-300">
-            <span>Grade scanning didn't find results — please add your subjects manually below.</span>
+            <span>Automatic grade scanning is not available right now. Please add your subjects manually below.</span>
           </div>
         )}
 
