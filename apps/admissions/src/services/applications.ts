@@ -174,6 +174,10 @@ async function loadApplicationDetails(
       if (err && typeof err === 'object' && 'status' in err && (err as { status: number }).status === 404) {
         return null
       }
+      // Propagate 429 with status so React Query's retry function can see it
+      if (err && typeof err === 'object' && 'status' in err && (err as { status: number }).status === 429) {
+        throw err
+      }
       throw err
     }),
     shouldLoadDocuments

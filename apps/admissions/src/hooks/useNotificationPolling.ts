@@ -109,16 +109,41 @@ export function useNotificationPolling(
     return normalizeNotificationsResponse(result)
   }, [user?.id])
 
+  const consecutiveErrorsRef = useRef(0)
+
   const query = useQuery({
     queryKey,
     queryFn: fetchNotifications,
     enabled: enabled && !!user?.id,
+    retry: (failureCount, error) => {
+      const status = (error as { status?: number })?.status
+      if (status === 429) return false
+      return failureCount < 1
+    },
     refetchInterval: enabled
-      ? () => getRefetchInterval(hiddenSinceRef.current, pollingInterval)
+      ? () => {
+          // Back off on repeated errors (429 or otherwise)
+          if (consecutiveErrorsRef.current > 0) {
+            return Math.min(
+              pollingInterval * Math.pow(2, consecutiveErrorsRef.current),
+              5 * 60_000,
+            )
+          }
+          return getRefetchInterval(hiddenSinceRef.current, pollingInterval)
+        }
       : false,
     refetchOnWindowFocus: true,
     staleTime: pollingInterval / 2,
   })
+
+  // Reset or increment error counter
+  useEffect(() => {
+    if (query.isSuccess) consecutiveErrorsRef.current = 0
+  }, [query.isSuccess])
+
+  useEffect(() => {
+    if (query.isError) consecutiveErrorsRef.current = Math.min(consecutiveErrorsRef.current + 1, 6)
+  }, [query.isError, query.errorUpdateCount])
 
   const notifications = query.data ?? []
   const unreadCount = computeUnreadCount(notifications)
