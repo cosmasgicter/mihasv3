@@ -47,7 +47,10 @@ class TestSessionListLifecycle(SimpleTestCase):
         session.created_at = None
         session.session_token = current_hash
 
-        mock_objects.filter.return_value.filter.return_value.order_by.return_value = [session]
+        mock_qs = mock_objects.filter.return_value.filter.return_value.filter.return_value.order_by.return_value
+        mock_qs.__getitem__ = lambda self, key: [session][key] if isinstance(key, slice) else [session][key]
+        mock_qs.__len__ = lambda self: 1
+        mock_qs.__iter__ = lambda self: iter([session])
 
         request = factory.get("/api/v1/sessions/")
         request.user = _jwt_user()

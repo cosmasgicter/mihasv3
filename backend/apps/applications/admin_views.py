@@ -110,11 +110,15 @@ class ApplicationListCreateView(APIView):
             ).all()
             queryset = _with_payment_summary(queryset)
         else:
+            # Student path: lightweight query — no payment summary subqueries,
+            # no document prefetch. Grades prefetched for serializer computed fields.
             queryset = Application.objects.select_related(
-                'user', 'payment_verified_by', 'reviewed_by', 'admin_feedback_by'
+                'payment_verified_by'
             ).prefetch_related(
-                'applicationdocument_set', 'applicationgrade_set', 'payment_set'
-            ).filter(user_id=str(user.id))
+                'applicationgrade_set'
+            ).filter(
+                user_id=str(user.id)
+            )
         filterset = ApplicationFilter(request.query_params, queryset=queryset)
         queryset = filterset.qs
 
