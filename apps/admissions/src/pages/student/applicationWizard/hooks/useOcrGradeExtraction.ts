@@ -41,7 +41,7 @@ export interface MatchedGrade {
 }
 
 const POLL_INTERVAL = 3000
-const MAX_POLLS = 20 // 60 seconds max
+const MAX_POLLS = 10 // 30 seconds max
 
 /**
  * Fuzzy-match an AI-extracted subject name to a catalog subject.
