@@ -405,12 +405,12 @@ function checkCounsellingEligibility(grades: StudentGrades): EligibilityResult {
     matched.push(`English: Grade ${grades.english}`)
   } else missing.push('English (Grade 1-6)')
 
-  const allGrades = [grades.english, grades.mathematics, grades.biology || grades.science, grades.civicEducation, grades.religiousEducation, grades.geography, grades.chemistry, grades.physics, ...(grades.otherSubjects || [])].filter(g => g && g <= 6)
+  const allGrades = [grades.english, grades.mathematics, grades.biology || grades.science, grades.civicEducation, grades.religiousEducation, grades.geography, grades.chemistry, grades.physics, ...(grades.otherSubjects || [])].filter((g): g is number => typeof g === 'number' && g <= 6)
   if (allGrades.length < 5) missing.push(`${5 - allGrades.length} more credit(s) needed (5 minimum)`)
 
   let competitiveness: EligibilityResult['competitivenessLevel'] = 'Not Eligible'
   if (missing.length === 0) {
-    const avg = allGrades.slice(0, 5).reduce((a, b) => (a ?? 0) + (b ?? 0), 0) / 5
+    const avg = allGrades.slice(0, 5).reduce((a, b) => a + b, 0) / 5
     competitiveness = avg <= 3 ? 'Highly Competitive' : avg <= 5 ? 'Competitive' : 'Minimum'
     recommendations.push('Interview may be required as part of the selection process')
   }
