@@ -136,6 +136,8 @@ class ApplicationDetailView(APIView):
         "DELETE FROM application_interviews WHERE application_id = %s",
         "DELETE FROM application_conditions WHERE application_id = %s",
         "DELETE FROM application_amendments WHERE application_id = %s",
+        "DELETE FROM fee_waivers WHERE application_id = %s",
+        "DELETE FROM documents WHERE application_id = %s",
         "DELETE FROM applications WHERE id = %s",
     )
 
