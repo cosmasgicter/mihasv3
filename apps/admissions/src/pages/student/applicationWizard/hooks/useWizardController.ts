@@ -249,6 +249,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const [programs, setPrograms] = useState<WizardProgram[]>([])
   const [intakes, setIntakes] = useState<WizardIntake[]>([])
   const isSavingRef = useRef(false)
+  const createBlockedRef = useRef(false)
   const isSubmittingRef = useRef(false)
   const authRecoveryInFlightRef = useRef(false)
 
@@ -1351,7 +1352,7 @@ const useWizardController = (): UseWizardControllerResult => {
         console.error('Error saving draft:', { error: sanitizeForLog(toError(error).message) })
       }
 
-      if (syncServer && !applicationId && navigator.onLine && canCreateServerDraft(formData)) {
+      if (syncServer && !applicationId && !createBlockedRef.current && navigator.onLine && canCreateServerDraft(formData)) {
         try {
           const metadata = getUserMetadata(user)
           const nationality = getBestValue(profile?.nationality, metadata.nationality, 'Zambian')
@@ -1412,8 +1413,18 @@ const useWizardController = (): UseWizardControllerResult => {
           if (isAuthSaveError(serverError)) {
             throw serverError
           }
-          logApiError('application-wizard', 'POST /applications/', serverError)
-          console.warn('Server draft create failed, local draft retained:', sanitizeForLog(toError(serverError).message))
+          // 409 = duplicate application exists for this program+intake.
+          // Adopt the existing ID so auto-save stops retrying create.
+          const errStatus = (serverError as { status?: number })?.status
+          if (errStatus === 409) {
+            // Duplicate application exists — stop retrying create.
+            // The student already has an active application for this program+intake.
+            logger.info('[saveDraft] Duplicate application exists, skipping server create')
+            createBlockedRef.current = true
+          } else {
+            logApiError('application-wizard', 'POST /applications/', serverError)
+            console.warn('Server draft create failed, local draft retained:', sanitizeForLog(toError(serverError).message))
+          }
         }
       }
 
