@@ -1565,19 +1565,24 @@ const useWizardController = (): UseWizardControllerResult => {
   // OCR grade auto-population: poll for AI analysis after result slip upload
   const handleOcrGrades = useCallback((grades: Array<{ subject_id: string; grade: number }>) => {
     if (grades.length === 0) return
-    // Only auto-populate if student hasn't already entered grades
-    if (selectedGrades.length >= 3) return
 
-    setSelectedGrades(grades)
-    showSuccess(`✨ AI detected ${grades.length} subjects from your result slip!`)
-
-    // Sync to server if we have an application ID
-    if (applicationId) {
-      syncGrades.mutateAsync({ id: applicationId, grades }).catch(() => {
-        // Non-critical — grades are in local state
-      })
+    if (selectedGrades.length > 0) {
+      // Student already has grades — don't overwrite. Show what AI found as info only.
+      showInfo(
+        `AI detected ${grades.length} subjects`,
+        'Your manually entered grades are preserved. You can adjust them if needed.'
+      )
+      return
     }
-  }, [applicationId, selectedGrades.length, syncGrades, showSuccess])
+
+    // No manual grades yet — safe to auto-populate
+    setSelectedGrades(grades)
+    showSuccess(`✨ AI detected ${grades.length} subjects from your result slip! Please verify the grades are correct.`)
+
+    if (applicationId) {
+      syncGrades.mutateAsync({ id: applicationId, grades }).catch(() => {})
+    }
+  }, [applicationId, selectedGrades.length, syncGrades, showSuccess, showInfo])
 
   const { status: ocrStatus, extractedCount: ocrExtractedCount, startPolling: startOcrPolling } = useOcrGradeExtraction(
     ocrDocumentId,

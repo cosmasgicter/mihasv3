@@ -197,6 +197,7 @@ export function useLencoWidget() {
           amount: config.amount,
           currency: config.currency,
           channels: ['card', 'mobile-money'],
+          bearer: 'customer',
           customer: {
             firstName: config.customerFirstName,
             lastName: config.customerLastName,
