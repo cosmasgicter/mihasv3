@@ -470,6 +470,53 @@ class ApplicationSummaryView(APIView):
 
 
 # ---------------------------------------------------------------------------
+# Application Preview Summary (AI-powered)
+# ---------------------------------------------------------------------------
+
+
+class ApplicationPreviewSummaryView(APIView):
+    """GET /api/v1/applications/{id}/preview-summary/
+
+    Returns a personalized AI-generated summary for the student's review step.
+    Best-effort — returns null if AI is unavailable.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, application_id):
+        try:
+            app = Application.objects.get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if str(app.user_id) != str(request.user.id):
+            return Response(
+                {"success": False, "error": "Not authorized", "code": "INSUFFICIENT_PERMISSIONS"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        summary = None
+        try:
+            from apps.common.ai_service import generate_student_preview_summary
+
+            summary = generate_student_preview_summary({
+                "full_name": app.full_name,
+                "program": app.program,
+                "institution": getattr(app, "institution", "MIHAS"),
+                "intake": getattr(app, "intake", ""),
+                "grades_summary": build_grades_summary(app),
+                "subjects_count": ApplicationGrade.objects.filter(application_id=app.id).count(),
+            })
+        except Exception:
+            pass
+
+        return Response({"success": True, "data": {"summary": summary}})
+
+
+# ---------------------------------------------------------------------------
 # Submit
 # ---------------------------------------------------------------------------
 
