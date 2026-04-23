@@ -247,6 +247,11 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `docs/runbooks/secrets-rotation.md` | Production secret rotation runbook |
 | `docs/runbooks/redis-recovery.md` | Redis failure recovery procedures |
 | `docs/runbooks/scaling-playbook.md` | Scaling playbook for Koyeb workers and Neon |
+| `docs/runbooks/release-and-rollback.md` | Release process and rollback procedures |
+| `docs/runbooks/post-deploy-smoke-check.md` | Post-deployment verification checklist |
+| `docs/runbooks/database-backup-restore.md` | Neon database backup and restore |
+| `docs/runbooks/local-parity.md` | Local dev environment parity with production |
+| `docs/runbooks/redis-incident-response.md` | Redis incident response playbook |
 | `docs/security-api-audit-2026-04.md` | April 2026 security and API audit report |
 | `docs/full-audit-report-2026-04-22.md` | Full codebase audit report (April 22, 2026) |
 
@@ -258,6 +263,12 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `backend/apps/applications/admin_views.py` | Admin view module |
 | `backend/apps/applications/public_views.py` | Public/unauthenticated view module |
 | `backend/apps/applications/document_views.py` | Document view module |
+| `backend/apps/applications/interview_views.py` | Interview view module |
+| `backend/apps/applications/history_views.py` | Timeline/history view module |
+| `backend/apps/applications/_view_helpers.py` | Shared view utilities (permissions, pagination) |
+| `backend/config/settings/staging.py` | Staging environment settings |
+| `backend/apps/common/celery_signals.py` | Celery task signal handlers for monitoring |
+| `backend/apps/common/management/commands/check_missed_tasks.py` | Management command to detect missed Celery Beat tasks |
 | `backend/apps/applications/interview_views.py` | Interview view module |
 | `backend/apps/applications/history_views.py` | History/timeline view module |
 | `backend/apps/applications/_view_helpers.py` | Shared view helpers |
