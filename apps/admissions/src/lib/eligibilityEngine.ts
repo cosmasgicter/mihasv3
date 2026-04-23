@@ -396,6 +396,37 @@ function checkEnvironmentalHealthEligibility(grades: StudentGrades): Eligibility
   }
 }
 
+function checkCounsellingEligibility(grades: StudentGrades): EligibilityResult {
+  const matched: string[] = []
+  const missing: string[] = []
+  const recommendations: string[] = []
+
+  if (grades.english && grades.english <= 6) {
+    matched.push(`English: Grade ${grades.english}`)
+  } else missing.push('English (Grade 1-6)')
+
+  const allGrades = [grades.english, grades.mathematics, grades.biology || grades.science, grades.civicEducation, grades.religiousEducation, grades.geography, grades.chemistry, grades.physics, ...(grades.otherSubjects || [])].filter(g => g && g <= 6)
+  if (allGrades.length < 5) missing.push(`${5 - allGrades.length} more credit(s) needed (5 minimum)`)
+
+  let competitiveness: EligibilityResult['competitivenessLevel'] = 'Not Eligible'
+  if (missing.length === 0) {
+    const avg = allGrades.slice(0, 5).reduce((a, b) => a + b, 0) / 5
+    competitiveness = avg <= 3 ? 'Highly Competitive' : avg <= 5 ? 'Competitive' : 'Minimum'
+    recommendations.push('Interview may be required as part of the selection process')
+  }
+
+  return {
+    eligible: missing.length === 0,
+    message: missing.length === 0 ? '✓ Meets Certificate in Psychosocial Counselling requirements' : `Missing: ${missing.join(', ')}`,
+    score: missing.length === 0 ? Math.round((1 - (missing.length / 5)) * 100) : Math.round((matched.length / 5) * 100),
+    recommendations,
+    missingSubjects: missing,
+    canProceed: true,
+    competitivenessLevel: competitiveness,
+    matchedRequirements: matched,
+  }
+}
+
 // ─── Public Eligibility Functions ──────────────────────────────────────────────
 
 /**
@@ -412,6 +443,7 @@ export function checkEligibility(programName: string, grades: SubjectGrade[], cu
   if (normalized.includes('nursing')) return checkNursingEligibility(parsed)
   if (normalized.includes('clinical')) return checkClinicalMedicineEligibility(parsed)
   if (normalized.includes('environmental')) return checkEnvironmentalHealthEligibility(parsed)
+  if (normalized.includes('counselling') || normalized.includes('counseling') || normalized.includes('psychosocial')) return checkCounsellingEligibility(parsed)
 
   return {
     eligible: false,
