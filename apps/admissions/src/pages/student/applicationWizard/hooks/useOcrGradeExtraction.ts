@@ -157,7 +157,7 @@ export function useOcrGradeExtraction(
 
     pollCountRef.current += 1
     if (pollCountRef.current > MAX_POLLS) {
-      if (mountedRef.current) setStatus('done')
+      if (mountedRef.current) setStatus('failed')
       logger.info('[OCR] Polling timed out', { attempts: MAX_POLLS })
       return
     }
@@ -192,7 +192,7 @@ export function useOcrGradeExtraction(
 
       // Text extracted but no usable analysis yet — keep polling
       if (info.extracted_text && pollCountRef.current > 12) {
-        if (mountedRef.current) setStatus('done')
+        if (mountedRef.current) setStatus('failed')
         return
       }
 
