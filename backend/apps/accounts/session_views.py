@@ -5,6 +5,9 @@ Requirements: 9.1, 9.2, 9.3
 """
 
 import logging
+from datetime import timedelta
+
+from django.db.models import Q
 from django.utils import timezone
 
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema, extend_schema_view
@@ -63,11 +66,17 @@ class SessionListView(APIView):
 
         deactivate_stale_sessions(user_id)
         current_refresh_hash = _hash_value(request.COOKIES["refresh_token"]) if request.COOKIES.get("refresh_token") else None
+
+        # Show sessions active in the last 24 hours (not the full 7-day refresh window)
+        # to avoid overwhelming the UI with dozens of stale entries.
+        recent_cutoff = timezone.now() - timedelta(hours=24)
         sessions = DeviceSession.objects.filter(
             user_id=user_id, is_active=True
         ).filter(
             active_session_filters(timezone.now())
-        ).order_by("-last_activity")
+        ).filter(
+            Q(last_activity__gte=recent_cutoff) | Q(last_activity__isnull=True, created_at__gte=recent_cutoff)
+        ).order_by("-last_activity")[:10]
 
         data = [
             {

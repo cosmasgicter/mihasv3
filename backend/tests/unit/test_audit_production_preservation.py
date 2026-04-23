@@ -76,7 +76,9 @@ class TestPreservationSessionsDataShape:
         mock_session.created_at = now - timedelta(hours=1)
         mock_session.session_token = None
 
-        mock_qs.filter.return_value.filter.return_value.order_by.return_value = [mock_session]
+        mock_qs.filter.return_value.filter.return_value.filter.return_value.order_by.return_value.__getitem__ = lambda self, key: [mock_session][key] if isinstance(key, slice) else [mock_session][key]
+        mock_qs.filter.return_value.filter.return_value.filter.return_value.order_by.return_value.__len__ = lambda self: 1
+        mock_qs.filter.return_value.filter.return_value.filter.return_value.order_by.return_value.__iter__ = lambda self: iter([mock_session])
 
         request = _auth_request(self.factory, "get", "/api/v1/sessions/", self.user)
         response = self.view(request)
