@@ -128,7 +128,8 @@ The frontend and backend share a single, unified API contract. There is no compa
 - DRF authentication classes are the sole authority for setting `request.user`. The `JWTAuthenticationMiddleware` does NOT authenticate — it only flags expired tokens so 403→401 conversion fires for the frontend refresh interceptor.
 - Access tokens have a 30-minute lifetime; refresh tokens last 7 days with JTI blacklisting via Redis.
 - Token refresh (`POST /api/v1/auth/refresh/`) uses distinct error codes: `NO_REFRESH_TOKEN` when the cookie is missing, `TOKEN_EXPIRED` for expired/blacklisted/invalid tokens. Frontend can differentiate between configuration issues and token expiry.
-- CSRF is required for state-changing requests in authenticated flows.
+- CSRF is required for state-changing requests in authenticated flows. CSRF tokens are validated at the `JWTCookieAuthentication` layer (not middleware). The frontend bootstrap session call (`GET /api/v1/auth/session/?refresh_csrf=1`) requests a fresh token when the in-memory store is empty (e.g. after page refresh). CSRF recovery uses the `?refresh_csrf=1` query parameter (not a custom header) to avoid CORS preflight issues on cross-origin requests. `x-csrf-token`, `x-csrf-recovery`, and `idempotency-key` are all in `CORS_ALLOW_HEADERS`. CSRF tokens are issued by `SessionView` and `RefreshView` in the `X-CSRF-Token` response header. The frontend stores them in-memory only (never localStorage). After a page refresh the in-memory token is lost, so the bootstrap session call includes `?refresh_csrf=1` to force a fresh token. The CSRF recovery flow (`recoverCsrfAndRetry`) also uses `?refresh_csrf=1` instead of a custom header to avoid CORS preflight issues on cross-origin requests.
+- `CORS_ALLOW_HEADERS` includes `x-csrf-token`, `x-csrf-recovery`, `idempotency-key`, and `cache-control` in addition to the `corsheaders` defaults.
 - Application tracking (`GET /api/v1/applications/track/`) validates code format against `APP-YYYYMMDD-XXXXXXXX` or `TRK-XXXXXXXXXXXX` patterns, returning 400 with `INVALID_FORMAT` for bad formats and descriptive 404 messages for valid-format codes not found.
 - Jobs-ops currently exposes public read-oriented scaffold routes for some surfaces while keeping risky write actions authenticated and policy-gated.
 
@@ -360,6 +361,18 @@ Two layers of uptime monitoring are in place:
 ## Secrets Rotation
 
 A runbook for rotating production secrets lives at `docs/runbooks/secrets-rotation.md`. It covers JWT signing key, database credentials, Resend API key, S3/R2 keys, and Redis URL rotation with step-by-step procedures and rollback guidance.
+
+## AI-Powered Features
+
+| Feature | Backend | Frontend | Model |
+|---------|---------|----------|-------|
+| OCR grade extraction | `backend/apps/documents/ocr_service.py` | Education step in wizard | Tesseract via Celery task |
+| AI admin review summary | `GET /api/v1/applications/{id}/admin-summary/` | Admin review panel | `gpt-4o-mini` via `AI_GATEWAY_API_KEY` |
+| AI preview summary | Review step in wizard | Personalized application summary | `gpt-4o-mini` |
+
+- AI features use `AI_GATEWAY_API_KEY` (not `OPENAI_API_KEY`) for the LLM gateway.
+- OCR never overwrites manually entered grades. Timeout is 30 seconds.
+- AI admin summary is cached and rate-limited. Falls back gracefully when the API key is missing.
 
 ## Current Jobs Ops State
 

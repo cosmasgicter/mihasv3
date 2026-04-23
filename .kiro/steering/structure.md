@@ -59,7 +59,14 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `apps/admissions/src/pages/student/Interview.tsx` | Student interview schedule and join actions |
 | `apps/admissions/src/pages/student/ApplicationStatus.tsx` | Student status tracking and next actions |
 | `apps/admissions/src/pages/student/Settings.tsx` | Student profile/settings form with dirty-state risk |
-| `backend/apps/applications/views.py` | Submission, review, interview list, and tracking endpoints |
+| `backend/apps/applications/views.py` | Legacy re-exports for URL compatibility (imports from split modules) |
+| `backend/apps/applications/student_views.py` | Student-facing endpoints: submit, withdraw, email-slip, enrollment, amendments |
+| `backend/apps/applications/admin_views.py` | Admin endpoints: review, assign, bulk status, fee waiver, conditions |
+| `backend/apps/applications/public_views.py` | Unauthenticated endpoints: track application |
+| `backend/apps/applications/document_views.py` | Document list and detail endpoints per application |
+| `backend/apps/applications/interview_views.py` | Interview scheduling and list endpoints |
+| `backend/apps/applications/history_views.py` | Application history/timeline endpoints |
+| `backend/apps/applications/_view_helpers.py` | Shared helpers: permission checks, queryset builders |
 | `backend/apps/applications/services.py` | Submission and transition enforcement |
 | `backend/apps/documents/payment_service.py` | Lenco payment lifecycle and state transitions |
 
@@ -238,6 +245,27 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `docs/redis-dependency-tiers.md` | Redis key usage, TTLs, and failure impact tiers |
 | `shared/PLATFORM_CONTRACT.md` | Cross-app API and data contract |
 | `docs/runbooks/secrets-rotation.md` | Production secret rotation runbook |
+| `docs/runbooks/redis-recovery.md` | Redis failure recovery procedures |
+| `docs/runbooks/scaling-playbook.md` | Scaling playbook for Koyeb workers and Neon |
+| `docs/security-api-audit-2026-04.md` | April 2026 security and API audit report |
+| `docs/full-audit-report-2026-04-22.md` | Full codebase audit report (April 22, 2026) |
+
+### Files Added During Production Readiness Hardening
+
+| Path | Purpose |
+|------|---------|
+| `backend/apps/applications/student_views.py` | Student-facing view module (split from monolithic views.py) |
+| `backend/apps/applications/admin_views.py` | Admin view module |
+| `backend/apps/applications/public_views.py` | Public/unauthenticated view module |
+| `backend/apps/applications/document_views.py` | Document view module |
+| `backend/apps/applications/interview_views.py` | Interview view module |
+| `backend/apps/applications/history_views.py` | History/timeline view module |
+| `backend/apps/applications/_view_helpers.py` | Shared view helpers |
+| `backend/apps/common/celery_signals.py` | Celery task success/failure signal handlers for metrics |
+| `backend/apps/common/management/commands/check_missed_tasks.py` | Management command to detect missed Celery Beat tasks |
+| `backend/config/settings/staging.py` | Staging environment settings |
+| `backend/scripts/check_circular_imports.py` | Script to detect circular import chains |
+| `backend/tests/property/test_production_readiness_*.py` | Property tests for CSRF, health, JTI, metrics, views, Celery, test isolation |
 
 ## Testing Layout
 
