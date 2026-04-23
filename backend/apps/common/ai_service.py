@@ -136,14 +136,20 @@ Text:
 {text}"""
 
     try:
+        # Use gpt-4o-mini for analysis — 7x cheaper than Gemini for text, returns clean JSON
+        analysis_model = getattr(settings, "AI_MODEL_ANALYSIS", "openai/gpt-4o-mini")
         response = client.chat.completions.create(
-            model=model,
+            model=analysis_model,
             messages=[{"role": "user", "content": prompt + "\n\nReturn ONLY valid JSON, no markdown or explanation."}],
             max_tokens=500,
             temperature=0,
         )
         import json
-        return json.loads(response.choices[0].message.content)
+        content = response.choices[0].message.content.strip()
+        # Strip markdown fences if present (some models wrap in ```json ... ```)
+        if content.startswith("```"):
+            content = content.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
+        return json.loads(content)
     except Exception:
         logger.exception("AI document analysis failed")
         return None

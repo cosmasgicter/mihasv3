@@ -518,6 +518,7 @@ AI_GATEWAY_API_KEY = os.environ.get("AI_GATEWAY_API_KEY", "")
 AI_GATEWAY_BASE_URL = os.environ.get("AI_GATEWAY_BASE_URL", "https://ai-gateway.vercel.sh/v1")
 AI_MODEL_FAST = os.environ.get("AI_MODEL_FAST", "google/gemini-2.5-flash")  # cheap, fast tasks
 AI_MODEL_VISION = os.environ.get("AI_MODEL_VISION", "google/gemini-2.5-flash")  # document OCR
+AI_MODEL_ANALYSIS = os.environ.get("AI_MODEL_ANALYSIS", "openai/gpt-4o-mini")  # structured JSON extraction (cheapest)
 AI_MODEL_SMART = os.environ.get("AI_MODEL_SMART", "deepseek/deepseek-v3")  # complex reasoning (cheapest: $0.28/M input)
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "***REMOVED***")
 PAYMENT_DEV_BYPASS = os.environ.get("PAYMENT_DEV_BYPASS", "").lower() in (
