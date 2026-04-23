@@ -132,15 +132,15 @@ def poll_pending_payments_task(self):
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60, soft_time_limit=120, time_limit=180)
 def extract_document_text_task(self, document_id):
-    """Run pytesseract OCR on an uploaded document and store extracted text.
+    """Run OCR on an uploaded document and store extracted text + AI analysis.
 
-    Downloads the file from S3/R2, extracts text using AI vision (Vercel AI Gateway),
-    and saves the extracted text to the ApplicationDocument record.
+    Downloads the file from S3/R2, extracts text using AI vision,
+    and saves results to the ApplicationDocument record.
     Falls back to pytesseract if AI is unavailable.
-
-    Retry delays: 60s, 120s, 240s (exponential backoff).
     """
+    import json as _json
     from apps.documents.models import ApplicationDocument
+    from apps.documents.views import _get_document_storage_key
 
     try:
         document = ApplicationDocument.objects.get(id=document_id)
@@ -152,52 +152,53 @@ def extract_document_text_task(self, document_id):
         logger.info("Document %s already has extracted text, skipping", document_id)
         return
 
+    file_key = _get_document_storage_key(document)
+    if not file_key:
+        logger.error("Document %s has no file URL", document_id)
+        return
+
     try:
         from apps.common.storage import MediaStorage
 
         storage = MediaStorage()
 
-        # Download file
-        with tempfile.NamedTemporaryFile(suffix=_get_suffix(document.file_key)) as tmp:
-            file_obj = storage.open(document.file_key, "rb")
+        suffix = "." + file_key.rsplit(".", 1)[-1] if "." in file_key else ".tmp"
+        with tempfile.NamedTemporaryFile(suffix=suffix) as tmp:
+            file_obj = storage.open(file_key, "rb")
             file_bytes = file_obj.read()
             tmp.write(file_bytes)
             tmp.flush()
             file_obj.close()
 
             extracted_text = None
+            ai_analysis = None
 
-            # Try AI vision first (Vercel AI Gateway)
+            # Try AI vision first
             try:
                 from apps.common.ai_service import extract_text_from_image, analyze_document
 
                 mime = "image/jpeg"
-                if document.file_key.lower().endswith(".png"):
+                if file_key.lower().endswith(".png"):
                     mime = "image/png"
-                elif document.file_key.lower().endswith(".pdf"):
+                elif file_key.lower().endswith(".pdf"):
                     mime = "application/pdf"
 
                 extracted_text = extract_text_from_image(file_bytes, mime)
 
-                # If we got text, also try structured analysis
                 if extracted_text:
                     doc_type = "result_slip" if "slip" in (document.document_type or "").lower() else "identity"
-                    analysis = analyze_document(extracted_text, doc_type)
-                    if analysis:
-                        meta = document.metadata or {}
-                        meta["ai_analysis"] = analysis
-                        document.metadata = meta
+                    ai_analysis = analyze_document(extracted_text, doc_type)
 
             except Exception:
                 logger.info("AI vision unavailable, falling back to Tesseract for document %s", document_id)
 
-            # Fallback to Tesseract if AI didn't work
+            # Fallback to Tesseract
             if not extracted_text:
                 try:
                     import pytesseract
                     from PIL import Image
 
-                    if document.file_key.lower().endswith(".pdf"):
+                    if file_key.lower().endswith(".pdf"):
                         try:
                             from pdf2image import convert_from_path
                             images = convert_from_path(tmp.name)
@@ -213,6 +214,8 @@ def extract_document_text_task(self, document_id):
 
         if extracted_text:
             document.extracted_text = extracted_text.strip()
+        if ai_analysis:
+            document.verification_notes = _json.dumps({"ai_analysis": ai_analysis})
         document.save()
         logger.info("OCR completed for document %s (%d chars)", document_id, len(document.extracted_text or ""))
 

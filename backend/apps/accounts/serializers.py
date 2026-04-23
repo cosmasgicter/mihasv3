@@ -59,7 +59,17 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
     """Validates password reset confirmation."""
 
     token = serializers.CharField(required=True)
-    new_password = serializers.CharField(required=True, min_length=6, write_only=True)
+    new_password = serializers.CharField(required=True, min_length=8, write_only=True)
+
+    def validate_new_password(self, value):
+        """Enforce same password strength as registration."""
+        if len(value) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters.")
+        has_letter = any(c.isalpha() for c in value)
+        has_digit = any(c.isdigit() for c in value)
+        if not (has_letter and has_digit):
+            raise serializers.ValidationError("Password must contain both letters and numbers.")
+        return value
 
 
 class SessionSerializer(serializers.Serializer):

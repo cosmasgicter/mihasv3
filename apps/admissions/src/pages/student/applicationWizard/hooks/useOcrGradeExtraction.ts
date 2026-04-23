@@ -172,6 +172,11 @@ export function useOcrGradeExtraction(
 
       const analysis = info.ai_analysis
       if (analysis?.subjects && Array.isArray(analysis.subjects) && analysis.subjects.length > 0) {
+        // Wait for catalog subjects to load before attempting match
+        if (catalogRef.current.length === 0) {
+          timeoutRef.current = setTimeout(poll, POLL_INTERVAL)
+          return
+        }
         const matched = mapAiGradesToCatalog(analysis.subjects, catalogRef.current)
         if (matched.length > 0 && !doneRef.current) {
           doneRef.current = true

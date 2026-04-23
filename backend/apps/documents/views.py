@@ -45,6 +45,17 @@ from django.http import HttpResponseRedirect
 logger = logging.getLogger(__name__)
 
 
+def _parse_ai_analysis(verification_notes: str | None) -> dict | None:
+    """Extract AI analysis JSON from verification_notes field."""
+    if not verification_notes:
+        return None
+    try:
+        data = json.loads(verification_notes)
+        return data.get("ai_analysis") if isinstance(data, dict) else None
+    except (json.JSONDecodeError, TypeError):
+        return None
+
+
 def _document_not_found_response():
     return Response(
         {"success": False, "error": "Document not found", "code": "NOT_FOUND"},
@@ -1249,7 +1260,7 @@ class DocumentInfoView(APIView):
             "file_size": document.file_size,
             "mime_type": document.mime_type,
             "extracted_text": bool(document.extracted_text),
-            "ai_analysis": (document.metadata or {}).get("ai_analysis") if document.extracted_text else None,
+            "ai_analysis": _parse_ai_analysis(document.verification_notes) if document.extracted_text else None,
         }
 
         return Response({"success": True, "data": data})
