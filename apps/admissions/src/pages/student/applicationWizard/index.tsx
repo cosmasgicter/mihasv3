@@ -76,6 +76,8 @@ const ApplicationWizardContent = () => {
     submittedApplication,
     applicationId,
     paymentStatus,
+    ocrStatus,
+    ocrExtractedCount,
     persistingSlip,
     slipLoading,
     emailLoading,
@@ -741,6 +743,8 @@ const ApplicationWizardContent = () => {
                 getUsedSubjects={handleGetUsedSubjects}
                 handleResultSlipUpload={handleResultSlipUpload}
                 handleExtraKycUpload={handleExtraKycUpload}
+                ocrStatus={ocrStatus}
+                ocrExtractedCount={ocrExtractedCount}
               />
             )}
 

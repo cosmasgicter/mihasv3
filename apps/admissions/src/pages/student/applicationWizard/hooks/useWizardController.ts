@@ -104,6 +104,8 @@ interface UseWizardControllerResult {
   submittedApplication: SubmittedApplicationSummary | null
   applicationId: string | null
   paymentStatus: 'pending' | 'successful' | 'failed' | null
+  ocrStatus: 'idle' | 'polling' | 'done' | 'failed'
+  ocrExtractedCount: number
   persistingSlip: boolean
   slipLoading: boolean
   emailLoading: boolean
@@ -2142,6 +2144,8 @@ const useWizardController = (): UseWizardControllerResult => {
     submittedApplication,
     applicationId,
     paymentStatus,
+    ocrStatus,
+    ocrExtractedCount,
     persistingSlip,
     slipLoading,
     emailLoading,
