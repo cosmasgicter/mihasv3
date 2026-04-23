@@ -188,6 +188,8 @@ class ApplicationListCreateView(APIView):
             user_id=str(request.user.id),
             program=data["program"],
             intake=data["intake"],
+            nrc_number=data.get("nrc_number"),
+            passport_number=data.get("passport_number"),
         )
         if dup_result.has_duplicate:
             return Response(
