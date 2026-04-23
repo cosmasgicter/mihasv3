@@ -773,6 +773,7 @@ const ApplicationWizardContent = () => {
                 confirmSubmission={confirmSubmission}
                 onConfirmChange={setConfirmSubmission}
                 selectedProgramName={selectedProgramDetails?.name}
+                selectedIntakeLabel={intakes.find(i => i.id === form.watch('intake'))?.name}
                 selectedInstitutionLabel={
                   selectedProgramDetails?.institutions?.full_name ||
                   selectedProgramDetails?.institutions?.name ||
