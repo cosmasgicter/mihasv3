@@ -43,6 +43,8 @@ from apps.common.idempotency import idempotent
 from apps.common.openapi_helpers import ErrorResponseSerializer
 from apps.documents.models import ApplicationDocument, ApplicationGrade, Payment
 
+from rest_framework.throttling import UserRateThrottle
+
 from ._view_helpers import (
     ApplicationConditionSerializer,
     ApplicationDraftResponseSerializer,
@@ -189,9 +191,15 @@ class ApplicationDetailView(APIView):
         app = self._get_application(request, application_id)
         if app is None:
             return Response(status=status.HTTP_204_NO_CONTENT)
-        if not self._student_can_mutate_application(request, app):
+        if app.status != 'draft':
             return Response(
-                {"success": False, "error": "Only draft applications can be deleted by students", "code": "APPLICATION_NOT_EDITABLE"},
+                {"success": False, "error": "Only draft applications can be deleted", "code": "APPLICATION_NOT_EDITABLE"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        role = getattr(request.user, 'role', 'student')
+        if role not in ('admin', 'super_admin') and str(app.user_id) != str(request.user.id):
+            return Response(
+                {"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -542,6 +550,10 @@ class ApplicationPreviewSummaryView(APIView):
 # ---------------------------------------------------------------------------
 
 
+class SubmitRateThrottle(UserRateThrottle):
+    rate = '5/min'
+
+
 @extend_schema_view(
     post=extend_schema(
         operation_id="applications_submit",
@@ -561,6 +573,7 @@ class ApplicationPreviewSummaryView(APIView):
 class ApplicationSubmitView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ApplicationSerializer
+    throttle_classes = [SubmitRateThrottle]
 
     @idempotent
     def post(self, request, application_id):

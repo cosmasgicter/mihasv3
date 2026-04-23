@@ -118,6 +118,7 @@ class AmendmentService:
         amendment_id: str,
         status: str,
         admin_id: str,
+        application_id: str = "",
     ) -> ApplicationAmendment:
         """Review (approve/reject) an amendment.
 
@@ -125,6 +126,7 @@ class AmendmentService:
             amendment_id: UUID of the amendment.
             status: 'approved' or 'rejected'.
             admin_id: UUID of the admin reviewing.
+            application_id: If provided, validates the amendment belongs to this application.
 
         Returns:
             The updated ApplicationAmendment instance.
@@ -136,6 +138,9 @@ class AmendmentService:
             amendment = ApplicationAmendment.objects.get(id=amendment_id)
         except ApplicationAmendment.DoesNotExist:
             raise AmendmentError("AMENDMENT_NOT_FOUND", "Amendment not found.")
+
+        if application_id and str(amendment.application_id) != application_id:
+            raise AmendmentError("AMENDMENT_NOT_FOUND", "Amendment not found for this application.")
 
         if amendment.status != "pending":
             raise AmendmentError(

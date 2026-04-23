@@ -981,6 +981,7 @@ class ApplicationAmendmentReviewView(APIView):
                 amendment_id=str(amendment_id),
                 status=target_status,
                 admin_id=str(request.user.id),
+                application_id=str(application_id),
             )
         except AmendmentError as exc:
             return Response(

@@ -99,7 +99,8 @@ def transition_application_status(
     if not application.review_started_at:
         application.review_started_at = timezone.now()
 
-    application.reviewed_by_id = changed_by
+    if new_status not in ('submitted',):
+        application.reviewed_by_id = changed_by
 
     if notes:
         application.admin_feedback = notes
@@ -152,29 +153,6 @@ def submit_application(
     the normal student flow (e.g. offline payments, paper documents).
     """
 
-    if not admin_force:
-        has_payment = (
-            application.payment_status in ("verified", "paid", "force_approved", "deferred")
-            or _application_has_completed_payment(application.id)
-        )
-        if not has_payment:
-            raise ApplicationSubmissionError(
-                "PAYMENT_REQUIRED",
-                "Payment must be completed before submitting the application.",
-            )
-
-        has_identity_document = _application_has_identity_document(application.id)
-        if not has_identity_document:
-            raise ApplicationSubmissionError(
-                "IDENTITY_DOCUMENT_REQUIRED",
-                "An NRC or Passport document must be uploaded before submission.",
-            )
-    else:
-        logger.warning(
-            "Admin force-submit bypassing payment/document checks: app=%s admin=%s",
-            application.id, changed_by,
-        )
-
     # Intake deadline and capacity enforcement (Req 6.1, 6.3)
     from apps.applications.intake_enforcer import IntakeEnforcer
 
@@ -182,46 +160,66 @@ def submit_application(
     if not intake_check.allowed:
         raise ApplicationSubmissionError(intake_check.code, intake_check.message)
 
-    # Late application fee enforcement (Req 6.3, 6.5, 6.6, 6.7)
-    late_fee_amount = None
-    if intake_check.is_late:
-        from apps.documents.fee_resolver import FeeResolver
-        from apps.documents.models import ProgramFee
+    with transaction.atomic():
+        if not admin_force:
+            has_payment = (
+                application.payment_status in ("verified", "paid", "force_approved", "deferred")
+                or _application_has_completed_payment(application.id)
+            )
+            if not has_payment:
+                raise ApplicationSubmissionError(
+                    "PAYMENT_REQUIRED",
+                    "Payment must be completed before submitting the application.",
+                )
 
-        try:
-            from apps.catalog.models import Program
-            program_obj = Program.objects.filter(name=application.program, is_active=True).first()
-            if program_obj:
-                late_fee = ProgramFee.objects.filter(
-                    program=program_obj,
-                    fee_type="late_application",
-                    is_active=True,
-                ).first()
-                if late_fee:
-                    late_fee_amount = late_fee.amount
-                    # Check if late fee has been paid
-                    late_fee_paid = Payment.objects.filter(
-                        application_id=application.id,
-                        status="successful",
-                        metadata__fee_type="late_application",
-                    ).exists()
-                    # Also allow if payment_status is force_approved (admin bypass)
-                    if not late_fee_paid and application.payment_status != "force_approved":
-                        raise ApplicationSubmissionError(
-                            "LATE_FEE_REQUIRED",
-                            f"A late application fee of {late_fee.amount} {late_fee.currency} "
-                            "must be paid before submitting a late application.",
-                        )
-        except ApplicationSubmissionError:
-            raise
-        except Exception:
+            has_identity_document = _application_has_identity_document(application.id)
+            if not has_identity_document:
+                raise ApplicationSubmissionError(
+                    "IDENTITY_DOCUMENT_REQUIRED",
+                    "An NRC or Passport document must be uploaded before submission.",
+                )
+        else:
             logger.warning(
-                "Late fee check failed for application %s, allowing submission",
-                application.id,
-                exc_info=True,
+                "Admin force-submit bypassing payment/document checks: app=%s admin=%s",
+                application.id, changed_by,
             )
 
-    with transaction.atomic():
+        # Late application fee enforcement (Req 6.3, 6.5, 6.6, 6.7)
+        late_fee_amount = None
+        if intake_check.is_late is True:
+            from apps.documents.fee_resolver import FeeResolver
+            from apps.documents.models import ProgramFee
+
+            try:
+                from apps.catalog.models import Program
+                program_obj = Program.objects.filter(name=application.program, is_active=True).first()
+                if program_obj:
+                    late_fee = ProgramFee.objects.filter(
+                        program=program_obj,
+                        fee_type="late_application",
+                        is_active=True,
+                    ).first()
+                    if late_fee:
+                        late_fee_amount = late_fee.amount
+                        late_fee_paid = Payment.objects.filter(
+                            application_id=application.id,
+                            status="successful",
+                            metadata__fee_type="late_application",
+                        ).exists()
+                        if not late_fee_paid and application.payment_status != "force_approved":
+                            raise ApplicationSubmissionError(
+                                "LATE_FEE_REQUIRED",
+                                f"A late application fee of {late_fee.amount} {late_fee.currency} "
+                                "must be paid before submitting a late application.",
+                            )
+            except ApplicationSubmissionError:
+                raise
+            except Exception:
+                raise ApplicationSubmissionError(
+                    "LATE_FEE_CHECK_FAILED",
+                    "Unable to verify late fee requirements. Please try again.",
+                )
+
         locked_app = Application.objects.select_for_update().get(id=application.id)
         if locked_app.status != "draft":
             raise ApplicationSubmissionError(
@@ -275,7 +273,7 @@ def submit_application(
         update_fields = ["submitted_at", "updated_at"]
 
         # Flag late submissions (Req 6.3)
-        if intake_check.is_late:
+        if intake_check.is_late is True:
             locked_app.is_late_submission = True
             update_fields.append("is_late_submission")
 
