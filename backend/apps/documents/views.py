@@ -102,6 +102,10 @@ def _get_document_storage_key(document):
     if bucket_name and key.startswith(f"{bucket_name}/"):
         key = key[len(bucket_name) + 1:]
 
+    # MediaStorage uses location='media', so strip the prefix to avoid media/media/...
+    if key.startswith("media/"):
+        key = key[len("media/"):]
+
     return key
 
 
