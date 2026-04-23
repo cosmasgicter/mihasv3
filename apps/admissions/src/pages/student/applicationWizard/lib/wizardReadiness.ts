@@ -126,7 +126,13 @@ export const buildWizardReadiness = ({
   ]
 
   const paymentItems = [
-    createItem('payment', 'payment', 'Payment', paymentStatus === 'successful' || paymentStatus === 'deferred', 'Complete and confirm payment.'),
+    createItem(
+      'payment',
+      'payment',
+      'Payment or deferment',
+      paymentStatus === 'successful' || paymentStatus === 'deferred',
+      'Complete payment or defer it before continuing.'
+    ),
   ]
 
   const submitItems = [

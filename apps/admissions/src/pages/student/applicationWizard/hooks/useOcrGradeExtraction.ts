@@ -42,6 +42,7 @@ export interface MatchedGrade {
 
 const POLL_INTERVAL = 3000
 const MAX_POLLS = 10 // 30 seconds max
+const POST_EXTRACTION_GRACE_POLLS = 2
 
 /**
  * Fuzzy-match an AI-extracted subject name to a catalog subject.
@@ -128,6 +129,7 @@ export function useOcrGradeExtraction(
   const pollCountRef = useRef(0)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const doneRef = useRef(false)
+  const runIdRef = useRef(0)
   const catalogRef = useRef(catalogSubjects)
   const callbackRef = useRef(onGradesExtracted)
   const docIdRef = useRef(documentId)
@@ -153,6 +155,7 @@ export function useOcrGradeExtraction(
   const poll = useCallback(async () => {
     if (doneRef.current || !mountedRef.current) return
     const currentDocId = docIdRef.current
+    const currentRunId = runIdRef.current
     if (!currentDocId) return
 
     pollCountRef.current += 1
@@ -164,7 +167,7 @@ export function useOcrGradeExtraction(
 
     try {
       const info = await apiClient.request<DocumentInfo>(`/documents/${currentDocId}/info/`)
-      if (!mountedRef.current || doneRef.current) return
+      if (!mountedRef.current || doneRef.current || currentRunId !== runIdRef.current || docIdRef.current !== currentDocId) return
       if (!info) {
         timeoutRef.current = setTimeout(poll, POLL_INTERVAL)
         return
@@ -191,7 +194,7 @@ export function useOcrGradeExtraction(
       }
 
       // Text extracted but no usable analysis yet — keep polling
-      if (info.extracted_text && pollCountRef.current > 12) {
+      if (info.extracted_text && pollCountRef.current >= MAX_POLLS - POST_EXTRACTION_GRACE_POLLS) {
         if (mountedRef.current) setStatus('failed')
         return
       }
@@ -212,6 +215,7 @@ export function useOcrGradeExtraction(
   const startPolling = useCallback(() => {
     if (!docIdRef.current) return
     doneRef.current = false
+    runIdRef.current += 1
     pollCountRef.current = 0
     setStatus('polling')
     setExtractedCount(0)
@@ -219,6 +223,14 @@ export function useOcrGradeExtraction(
     // Delay first poll — give Celery time to pick up the task
     timeoutRef.current = setTimeout(poll, POLL_INTERVAL + 1000)
   }, [poll, stopPolling])
+
+  useEffect(() => {
+    doneRef.current = false
+    pollCountRef.current = 0
+    setExtractedCount(0)
+    setStatus('idle')
+    stopPolling()
+  }, [documentId, stopPolling])
 
   // Cleanup on unmount
   useEffect(() => () => stopPolling(), [stopPolling])

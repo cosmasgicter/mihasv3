@@ -86,7 +86,6 @@ const ApplicationWizardContent = () => {
     dismissSlipProgress,
     handleResultSlipUpload,
     handleExtraKycUpload,
-    getPaymentTarget,
     handleLoadDraft,
     handleNextStep,
     handlePrevStep,
@@ -144,6 +143,16 @@ const ApplicationWizardContent = () => {
 
   const progressPercent = overallProgress.percentage
   const currentStepReadiness = wizardReadiness.stepProgressByKey[currentStepConfig.key]
+  const paymentChecklistLabel = paymentStatus === 'deferred'
+    ? 'Payment deferred for later'
+    : paymentStatus === 'successful'
+      ? 'Payment processed via Lenco gateway'
+      : 'Payment action completed'
+  const submitPaymentChecklistLabel = paymentStatus === 'deferred'
+    ? 'Payment deferred and still outstanding'
+    : paymentStatus === 'successful'
+      ? 'Payment confirmed'
+      : 'Payment not yet resolved'
 
   // Structured validation errors for the error summary (Req 5.2, 5.3)
   const [validationErrors, setValidationErrors] = useState<WizardValidationError[]>([])
@@ -382,11 +391,11 @@ const ApplicationWizardContent = () => {
         ]
       case 2:
         return [
-          { label: 'Payment processed via Lenco gateway', completed: paymentStatus === 'successful' || paymentStatus === 'deferred' }
+          { label: paymentChecklistLabel, completed: paymentStatus === 'successful' || paymentStatus === 'deferred' }
         ]
       case 3:
         return [
-          { label: 'Payment confirmed', completed: paymentStatus === 'successful' || paymentStatus === 'deferred' },
+          { label: submitPaymentChecklistLabel, completed: paymentStatus === 'successful' || paymentStatus === 'deferred' },
           { label: 'Terms accepted', completed: confirmSubmission }
         ]
       default:

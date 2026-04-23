@@ -46,7 +46,7 @@ const PaymentStep = ({
   const [deferError, setDeferError] = useState<string | null>(null)
   const [deferConfirm, setDeferConfirm] = useState(false)
 
-  const isPaymentSuccessful = polledStatus === 'successful' || polledStatus === 'deferred'
+  const isPaymentSettledForWizard = polledStatus === 'successful' || polledStatus === 'deferred'
 
   // Sync local deferred state from polled status (e.g. when navigating back)
   useEffect(() => {
@@ -152,7 +152,7 @@ const PaymentStep = ({
         )}
 
         {/* Pay Later — text link, not a big button */}
-        {!isPaymentSuccessful && !deferred && fee && applicationId && (
+        {!isPaymentSettledForWizard && !deferred && fee && applicationId && (
           <div className="pt-2 text-center space-y-2">
             {deferError && <p className="text-sm text-destructive">{deferError}</p>}
 

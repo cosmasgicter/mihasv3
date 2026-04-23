@@ -105,7 +105,7 @@ export const useStepValidation = (
           isValid: paymentComplete,
           completedFields: paymentComplete ? 1 : 0,
           totalFields: 1,
-          missingFields: paymentComplete ? [] : ['Complete payment confirmation']
+          missingFields: paymentComplete ? [] : ['Complete payment or choose pay later']
         }
       },
       3: () => {
@@ -113,7 +113,7 @@ export const useStepValidation = (
         const confirmationComplete = confirmSubmission
         const missing: string[] = []
         if (!paymentComplete) {
-          missing.push('Payment confirmation')
+          missing.push('Payment completion or deferment')
         }
         if (!confirmationComplete) {
           missing.push('Final confirmation checkbox')
