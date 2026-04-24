@@ -357,7 +357,10 @@ class ApplicationReviewView(APIView):
             _RESOLVED_PAYMENT_STATUSES = ("successful", "force_approved", "verified", "paid", "deferred")
             has_verified = (
                 app.payment_status in _RESOLVED_PAYMENT_STATUSES
-                or Payment.objects.filter(application_id=application_id, status__in=("successful", "force_approved")).exists()
+                or Payment.objects.filter(
+                    application_id=application_id,
+                    status__in=_RESOLVED_PAYMENT_STATUSES,
+                ).exists()
             )
             if not has_verified:
                 return Response({"success": False, "error": "Payment must be verified before approval. Set force=true to override.", "code": "PAYMENT_UNVERIFIED"}, status=status.HTTP_400_BAD_REQUEST)

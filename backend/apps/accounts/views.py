@@ -102,6 +102,7 @@ def _set_auth_cookies(response: Response, access_token: str, refresh_token: str)
     samesite = getattr(settings, "AUTH_COOKIE_SAMESITE", "Lax")
     secure = getattr(settings, "AUTH_COOKIE_SECURE", True)
     httponly = getattr(settings, "AUTH_COOKIE_HTTPONLY", True)
+    refresh_max_age = int(get_refresh_token_expiry().timestamp() - timezone.now().timestamp())
 
     # Access token cookie — lifetime from settings
     response.set_cookie(
@@ -119,7 +120,7 @@ def _set_auth_cookies(response: Response, access_token: str, refresh_token: str)
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
-        max_age=7 * 24 * 60 * 60,
+        max_age=max(refresh_max_age, 0),
         httponly=httponly,
         secure=secure,
         samesite=samesite,
