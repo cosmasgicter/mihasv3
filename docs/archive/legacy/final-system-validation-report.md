@@ -217,7 +217,7 @@ This report validates the completion of all production fixes and enhancements fo
 - **Cross-browser testing:** ✅ Chrome, Firefox, Safari, Edge
 - **Performance testing:** ✅ All metrics meet targets
 - **Accessibility testing:** ✅ WCAG AA compliant
-- **Security testing:** ✅ No critical vulnerabilities (see security-audit-report.md)
+- **Security testing:** ✅ No critical vulnerabilities reported in the legacy audit set
 
 ---
 

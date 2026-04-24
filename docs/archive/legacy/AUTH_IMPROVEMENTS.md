@@ -333,7 +333,6 @@ After deployment, monitor:
 
 ## 14. Related Documents
 - [PERFORMANCE_FIXES.md](./PERFORMANCE_FIXES.md)
-- [SESSION_CLEANUP_GUIDE.md](./SESSION_CLEANUP_GUIDE.md)
 - [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)
 
 ---

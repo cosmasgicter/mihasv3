@@ -58,4 +58,4 @@ NODE_ENV=production
 
 ---
 
-**Need help?** See `CLOUDFLARE_MIGRATION.md` for full guide.
+**Need help?** This quick-start guide has been retained without the older full migration companion.
