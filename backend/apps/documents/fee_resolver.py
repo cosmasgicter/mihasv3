@@ -39,9 +39,9 @@ class FeeResolver:
         nationality: str | None, country: str | None
     ) -> str:
         """Return 'local' if the student is Zambian, else 'international'."""
-        if nationality == 'Zambian':
+        if nationality and nationality.lower() == 'zambian':
             return 'local'
-        if country in ('Zambia', 'ZM'):
+        if country and country.upper() in ('ZAMBIA', 'ZM'):
             return 'local'
         return 'international'
 

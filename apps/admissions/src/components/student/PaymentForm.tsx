@@ -14,6 +14,9 @@ import { normalizePaymentStatusValue } from '@/hooks/usePaymentStatus'
 type PaymentMethod = 'mobile-money' | 'card'
 type MomoOperator = 'airtel' | 'mtn' | null
 
+/** Transaction fee rate charged by the payment gateway (1%) */
+const TRANSACTION_FEE_RATE = 0.01
+
 function detectOperator(phone: string): MomoOperator {
   const digits = phone.replace(/[\s\-+]/g, '')
   const local = digits.startsWith('260') ? digits.slice(3) : digits
@@ -333,8 +336,8 @@ export function PaymentForm({
           <p className="text-lg font-bold text-foreground">{isMobileMoneyPending ? 'Check your phone' : 'Confirming your payment'}</p>
           <p className="mt-1 text-sm text-muted-foreground">
             {isMobileMoneyPending
-              ? <>Approve the payment of <span className="font-semibold text-foreground">{formatCurrency(amount * 1.01, currency)}</span> (includes 1% transaction fee)</>
-              : <>We are confirming your card payment of <span className="font-semibold text-foreground">{formatCurrency(amount * 1.01, currency)}</span>.</>}
+              ? <>Approve the payment of <span className="font-semibold text-foreground">{formatCurrency(amount * (1 + TRANSACTION_FEE_RATE), currency)}</span> (includes 1% transaction fee)</>
+              : <>We are confirming your card payment of <span className="font-semibold text-foreground">{formatCurrency(amount * (1 + TRANSACTION_FEE_RATE), currency)}</span>.</>}
           </p>
 
           {isMobileMoneyPending && (
@@ -514,7 +517,7 @@ export function PaymentForm({
             onClick={handleMomoPayment}
             data-testid="pay-momo-button"
           >
-            {momoLoading ? 'Sending payment request…' : `Pay ${formatCurrency(amount * 1.01, currency)}`}
+            {momoLoading ? 'Sending payment request…' : `Pay ${formatCurrency(amount * (1 + TRANSACTION_FEE_RATE), currency)}`}
           </Button>
 
           <p className="text-center text-xs text-muted-foreground">
@@ -547,7 +550,7 @@ export function PaymentForm({
             onClick={handleCardPayment}
             data-testid="pay-card-button"
           >
-            {cardPaymentStatus === 'initiating' ? 'Preparing…' : `Pay ${formatCurrency(amount * 1.01, currency)} by card`}
+            {cardPaymentStatus === 'initiating' ? 'Preparing…' : `Pay ${formatCurrency(amount * (1 + TRANSACTION_FEE_RATE), currency)} by card`}
           </Button>
 
           <p className="text-center text-xs text-muted-foreground">

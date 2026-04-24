@@ -66,28 +66,37 @@ class WebhookProcessor:
         A ``WebhookEventLog`` record is **always** created — even when the
         signature was invalid (the caller passes ``signature_valid=False``).
         """
+        from django.db import transaction
+
         reference = self._extract_reference(payload)
 
-        # Dedup check: skip if this (reference, event_type) was already processed
+        # Atomic dedup check: use get_or_create inside a transaction to prevent
+        # concurrent duplicate processing.
         if reference and signature_valid:
-            already_processed = WebhookEventLog.objects.filter(
-                reference=reference,
-                event_type=event_type,
-                processed=True,
-            ).exists()
-
-            if already_processed:
-                WebhookEventLog.objects.create(
-                    event_type=event_type,
+            with transaction.atomic():
+                _, created = WebhookEventLog.objects.select_for_update().get_or_create(
                     reference=reference,
-                    payload=payload,
-                    signature_valid=signature_valid,
+                    event_type=event_type,
                     processed=True,
-                    processing_error='Duplicate event \u2014 already processed',
-                    created_at=timezone.now(),
+                    defaults={
+                        'payload': payload,
+                        'signature_valid': signature_valid,
+                        'processing_error': None,
+                        'created_at': timezone.now(),
+                    },
                 )
-                logger.info("Duplicate webhook skipped: ref=%s event=%s", reference, event_type)
-                return
+                if not created:
+                    WebhookEventLog.objects.create(
+                        event_type=event_type,
+                        reference=reference,
+                        payload=payload,
+                        signature_valid=signature_valid,
+                        processed=True,
+                        processing_error='Duplicate event \u2014 already processed',
+                        created_at=timezone.now(),
+                    )
+                    logger.info("Duplicate webhook skipped: ref=%s event=%s", reference, event_type)
+                    return
 
         log_entry = WebhookEventLog.objects.create(
             event_type=event_type,

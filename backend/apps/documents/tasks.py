@@ -68,6 +68,16 @@ def poll_pending_payments_task(self):
                 expired_count += 1
                 logger.info("Payment %s expired (pending > 24h)", payment.id)
 
+                # Sync application payment_status if still pending
+                try:
+                    from apps.applications.models import Application
+                    Application.objects.filter(
+                        id=payment.application_id,
+                        payment_status='pending',
+                    ).update(payment_status='expired', updated_at=now)
+                except Exception:
+                    logger.exception("Failed to sync application payment_status for payment %s", payment.id)
+
                 # Notify student via CommunicationService
                 try:
                     from apps.applications.models import Application

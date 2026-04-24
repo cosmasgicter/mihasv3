@@ -375,6 +375,31 @@ class PaymentService:
                     currency=existing.currency,
                 )
 
+            # Transition existing pending payment to deferred instead of creating new
+            existing_pending = (
+                Payment.objects.select_for_update()
+                .filter(application_id=application_id, status='pending')
+                .first()
+            )
+            if existing_pending:
+                existing_pending.status = 'deferred'
+                existing_pending.updated_at = timezone.now()
+                meta = existing_pending.metadata or {}
+                meta['deferred'] = True
+                existing_pending.metadata = meta
+                existing_pending.save(update_fields=['status', 'updated_at', 'metadata'])
+
+                Application.objects.filter(id=application_id).update(
+                    payment_status='deferred', updated_at=timezone.now(),
+                )
+
+                return PaymentInitiationResult(
+                    payment_id=existing_pending.id,
+                    reference=existing_pending.transaction_reference,
+                    amount=existing_pending.amount,
+                    currency=existing_pending.currency,
+                )
+
             application = Application.objects.get(id=application_id)
 
             if application.payment_status in ('successful', 'verified', 'force_approved'):
@@ -666,6 +691,17 @@ class PaymentService:
                         locked.id,
                         locked.amount,
                         lenco_amount,
+                    )
+                    return
+
+                lenco_currency = str(lenco_data.get('currency', '')).upper()
+                if lenco_currency and locked.currency and lenco_currency != locked.currency.upper():
+                    logger.warning(
+                        "Currency mismatch in _update_payment_status for payment %s: "
+                        "expected=%s got=%s — skipping transition to successful",
+                        locked.id,
+                        locked.currency,
+                        lenco_currency,
                     )
                     return
 

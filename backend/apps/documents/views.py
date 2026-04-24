@@ -741,48 +741,52 @@ class MobileMoneyInitiateView(APIView):
             )
 
         # Check for existing pending payment first (reuse without creating new)
-        existing_pending = (
-            Payment.objects.filter(application_id=application_id, status='pending').first()
-        )
-        if existing_pending:
-            payment_id = existing_pending.id
-            amount = existing_pending.amount
-            reference = existing_pending.transaction_reference
-            currency = existing_pending.currency
-        else:
-            # Only create a new payment record if none is pending
-            try:
-                result = service.initiate_payment(application_id=application.id, user_id=user.id)
-            except ValueError as exc:
-                error_msg = str(exc)
-                if error_msg.startswith("MAX_PAYMENT_ATTEMPTS_EXCEEDED"):
-                    emit_metric('payment.initiation_failed', method='mobile_money', reason='max_attempts_exceeded', application_id=str(application_id))
+        from django.db import transaction as db_transaction
+
+        with db_transaction.atomic():
+            existing_pending = (
+                Payment.objects.select_for_update()
+                .filter(application_id=application_id, status='pending').first()
+            )
+            if existing_pending:
+                payment_id = existing_pending.id
+                amount = existing_pending.amount
+                reference = existing_pending.transaction_reference
+                currency = existing_pending.currency
+            else:
+                # Only create a new payment record if none is pending
+                try:
+                    result = service.initiate_payment(application_id=application.id, user_id=user.id)
+                except ValueError as exc:
+                    error_msg = str(exc)
+                    if error_msg.startswith("MAX_PAYMENT_ATTEMPTS_EXCEEDED"):
+                        emit_metric('payment.initiation_failed', method='mobile_money', reason='max_attempts_exceeded', application_id=str(application_id))
+                        return Response(
+                            {"success": False, "error": "Maximum payment attempts exceeded. Please contact support.", "code": "MAX_PAYMENT_ATTEMPTS_EXCEEDED"},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                    emit_metric('payment.initiation_failed', method='mobile_money', reason=str(exc), application_id=str(application_id))
                     return Response(
-                        {"success": False, "error": "Maximum payment attempts exceeded. Please contact support.", "code": "MAX_PAYMENT_ATTEMPTS_EXCEEDED"},
+                        {"success": False, "error": str(exc), "code": "PAYMENT_ERROR"},
                         status=status.HTTP_400_BAD_REQUEST,
                     )
-                emit_metric('payment.initiation_failed', method='mobile_money', reason=str(exc), application_id=str(application_id))
-                return Response(
-                    {"success": False, "error": str(exc), "code": "PAYMENT_ERROR"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            except Exception:
-                logger.exception("Failed to initiate payment for application %s", application_id)
-                return Response(
-                    {"success": False, "error": "Failed to initiate payment. Please try again.", "code": "PAYMENT_ERROR"},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
+                except Exception:
+                    logger.exception("Failed to initiate payment for application %s", application_id)
+                    return Response(
+                        {"success": False, "error": "Failed to initiate payment. Please try again.", "code": "PAYMENT_ERROR"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
 
-            if not result.payment_id:
-                return Response(
-                    {"success": True, "data": {"status": "already_paid"}},
-                    status=status.HTTP_200_OK,
-                )
+                if not result.payment_id:
+                    return Response(
+                        {"success": True, "data": {"status": "already_paid"}},
+                        status=status.HTTP_200_OK,
+                    )
 
-            payment_id = result.payment_id
-            amount = result.amount
-            reference = result.reference
-            currency = result.currency
+                payment_id = result.payment_id
+                amount = result.amount
+                reference = result.reference
+                currency = result.currency
 
         # Call Lenco mobile money API
         api_secret = getattr(settings, "LENCO_API_SECRET_KEY", "")
@@ -802,7 +806,7 @@ class MobileMoneyInitiateView(APIView):
             resp = http_requests.post(
                 url,
                 json={
-                    "amount": float(amount),
+                    "amount": str(amount),
                     "reference": reference,
                     "phone": phone,
                     "operator": operator,
