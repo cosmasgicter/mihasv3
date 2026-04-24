@@ -7057,10 +7057,8 @@
 ./docs/archive/legacy/UNIFIED_TEMPLATES_SYSTEM.md
 ./docs/archive/legacy/VERIFICATION_COMPLETE.md
 ./docs/archive/legacy/accessibility/KEYBOARD_NAVIGATION_IMPLEMENTATION.md
-./docs/archive/legacy/analysis/ADMINISTRATOR_OPERATIONS_GUIDE.md
 ./docs/archive/legacy/analysis/AI_SYSTEM_ANALYSIS.md
 ./docs/archive/legacy/analysis/APPLICATIONS_PAGE_ANALYSIS.md
-./docs/archive/legacy/analysis/CLOUDFLARE_AI_MIGRATION.md
 ./docs/archive/legacy/analysis/COMPETITIVE_ANALYSIS.md
 ./docs/archive/legacy/analysis/COMPREHENSIVE_CSS_ANALYSIS.md
 ./docs/archive/legacy/analysis/COMPREHENSIVE_DEEP_ANALYSIS.md
@@ -7083,7 +7081,6 @@
 ./docs/archive/legacy/analysis/STATE_MANAGEMENT_FULL_ANALYSIS.md
 ./docs/archive/legacy/analysis/STYLING_AUDIT.md
 ./docs/archive/legacy/analysis/SYSTEMS_ANALYSIS_COMPLETE.md
-./docs/archive/legacy/analysis/SYSTEM_ANALYSIS_GUIDE.md
 ./docs/archive/legacy/analysis/SYSTEM_ANALYSIS_REPORT.md
 ./docs/archive/legacy/analysis/TOAST_SYSTEM_ANALYSIS.md
 ./docs/archive/legacy/analysis/UI_DARKNESS_ANALYSIS.md
