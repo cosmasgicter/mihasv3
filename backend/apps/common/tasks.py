@@ -235,9 +235,9 @@ def send_bulk_notifications_task(self, notification_ids):
     if not notification_ids:
         return
 
-    notifications = Notification.objects.filter(id__in=notification_ids)
+    notifications = list(Notification.objects.filter(id__in=notification_ids))
 
-    for notification in notifications:
+    for index, notification in enumerate(notifications):
         try:
             # Check user notification preferences.
             pref = UserNotificationPreference.objects.filter(
@@ -268,13 +268,20 @@ def send_bulk_notifications_task(self, notification_ids):
 
         except Exception as exc:
             logger.exception("Failed to process notification %s", notification.id)
+            remaining_notification_ids = [
+                str(remaining.id) for remaining in notifications[index:]
+            ]
             # Retry on transient errors with exponential backoff
             try:
-                self.retry(exc=exc, countdown=60 * (2 ** self.request.retries))
+                self.retry(
+                    exc=exc,
+                    args=[remaining_notification_ids],
+                    countdown=60 * (2 ** self.request.retries),
+                )
             except self.MaxRetriesExceededError:
                 error_msg = (
                     f"All retries exhausted for bulk notification task. "
-                    f"IDs: {notification_ids}, last error: {exc}"
+                    f"IDs: {remaining_notification_ids}, last error: {exc}"
                 )
                 logger.error(error_msg)
                 # Forward to GlitchTip
