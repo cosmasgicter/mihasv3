@@ -313,7 +313,8 @@ describe('Student Dashboard page verification', () => {
   it('calls applicationService.list with Django-compatible params', async () => {
     await renderAndWait()
 
-    // Dashboard calls list twice: once for drafts, once for all applications
+    // Render-path tests are not stable for exact request counts because
+    // the component mounts several async listeners around the mocked tree.
     expect(mockApplicationServiceList).toHaveBeenCalled()
     const calls = mockApplicationServiceList.mock.calls
     // At least one call should request mine: true

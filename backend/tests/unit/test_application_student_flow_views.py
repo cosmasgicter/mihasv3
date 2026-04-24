@@ -4,7 +4,6 @@ import uuid
 from unittest.mock import MagicMock, patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.db import DatabaseError
 from django.utils import timezone
 from rest_framework.test import APIRequestFactory, force_authenticate
 
@@ -231,7 +230,7 @@ class TestStudentPostSubmissionMutationGuards:
     @patch("apps.applications.student_views.transaction.atomic")
     @patch("apps.applications.student_views.IsOwnerOrAdmin")
     @patch("apps.applications.student_views._with_payment_summary")
-    def test_student_can_delete_draft_application_with_explicit_child_cleanup(
+    def test_student_can_delete_draft_application_via_model_delete(
         self,
         mock_with_payment_summary,
         mock_permission,
@@ -246,37 +245,18 @@ class TestStudentPostSubmissionMutationGuards:
         mock_permission.return_value.has_object_permission.return_value = True
         mock_atomic.return_value.__enter__.return_value = None
 
-        with patch("apps.applications.student_views.ApplicationDocument") as mock_doc, \
-             patch("apps.applications.student_views.ApplicationGrade") as mock_grade, \
-             patch("apps.applications.student_views.Payment") as mock_pay, \
-             patch("apps.applications.student_views.ApplicationStatusHistory") as mock_hist, \
-             patch("apps.applications.student_views.ApplicationDraft") as mock_draft, \
-             patch("apps.applications.student_views.ApplicationInterview") as mock_interview, \
-             patch("apps.applications.student_views.ApplicationCondition") as mock_cond, \
-             patch("apps.applications.student_views.ApplicationAmendment") as mock_amend, \
-             patch("apps.applications.student_views.FeeWaiver") as mock_waiver, \
-             patch("apps.applications.student_views.Application") as mock_app:
+        application.delete = MagicMock()
 
-            request = _auth_request(
-                self.factory,
-                "delete",
-                f"/api/v1/applications/{app_id}/",
-                student,
-            )
-            response = ApplicationDetailView.as_view()(request, application_id=app_id)
+        request = _auth_request(
+            self.factory,
+            "delete",
+            f"/api/v1/applications/{app_id}/",
+            student,
+        )
+        response = ApplicationDetailView.as_view()(request, application_id=app_id)
 
-            assert response.status_code == 204
-            # Verify all child tables are cleaned up before parent
-            mock_doc.objects.filter.assert_called_with(application_id=app_id)
-            mock_grade.objects.filter.assert_called_with(application_id=app_id)
-            mock_pay.objects.filter.assert_called_with(application_id=app_id)
-            mock_hist.objects.filter.assert_called_with(application_id=app_id)
-            mock_draft.objects.filter.assert_called_with(application_id=app_id)
-            mock_interview.objects.filter.assert_called_with(application_id=app_id)
-            mock_cond.objects.filter.assert_called_with(application_id=app_id)
-            mock_amend.objects.filter.assert_called_with(application_id=app_id)
-            mock_waiver.objects.filter.assert_called_with(application_id=app_id)
-            mock_app.objects.filter.assert_called_with(id=app_id)
+        assert response.status_code == 204
+        application.delete.assert_called_once_with()
 
     @patch("apps.applications.student_views.transaction.atomic")
     @patch("apps.applications.student_views.IsOwnerOrAdmin")
@@ -296,19 +276,18 @@ class TestStudentPostSubmissionMutationGuards:
         mock_permission.return_value.has_object_permission.return_value = True
         mock_atomic.return_value.__enter__.return_value = None
 
-        with patch("apps.applications.student_views.ApplicationDocument") as mock_doc:
-            mock_doc.objects.filter.return_value.delete.side_effect = DatabaseError("delete failed")
+        application.delete = MagicMock(side_effect=RuntimeError("delete failed"))
 
-            request = _auth_request(
-                self.factory,
-                "delete",
-                f"/api/v1/applications/{app_id}/",
-                student,
-            )
-            response = ApplicationDetailView.as_view()(request, application_id=app_id)
+        request = _auth_request(
+            self.factory,
+            "delete",
+            f"/api/v1/applications/{app_id}/",
+            student,
+        )
+        response = ApplicationDetailView.as_view()(request, application_id=app_id)
 
-            assert response.status_code == 500
-            assert response.data["code"] == "APPLICATION_DELETE_FAILED"
+        assert response.status_code == 500
+        assert response.data["code"] == "APPLICATION_DELETE_FAILED"
 
     @patch("apps.applications.student_views.IsOwnerOrAdmin")
     @patch("apps.applications.student_views.Application.objects")
@@ -396,25 +375,13 @@ class TestDraftDeletionRegression:
         mock_permission.return_value.has_object_permission.return_value = True
         mock_atomic.return_value.__enter__.return_value = None
 
-        with patch("apps.applications.student_views.ApplicationDocument") as m_doc, \
-             patch("apps.applications.student_views.ApplicationGrade") as m_grade, \
-             patch("apps.applications.student_views.Payment") as m_pay, \
-             patch("apps.applications.student_views.ApplicationStatusHistory") as m_hist, \
-             patch("apps.applications.student_views.ApplicationDraft") as m_draft, \
-             patch("apps.applications.student_views.ApplicationInterview") as m_interview, \
-             patch("apps.applications.student_views.ApplicationCondition") as m_cond, \
-             patch("apps.applications.student_views.ApplicationAmendment") as m_amend, \
-             patch("apps.applications.student_views.FeeWaiver") as m_waiver, \
-             patch("apps.applications.student_views.Application") as m_app:
+        application.delete = MagicMock()
 
-            request = _auth_request(self.factory, "delete", f"/api/v1/applications/{app_id}/", student)
-            response = ApplicationDetailView.as_view()(request, application_id=app_id)
+        request = _auth_request(self.factory, "delete", f"/api/v1/applications/{app_id}/", student)
+        response = ApplicationDetailView.as_view()(request, application_id=app_id)
 
-            assert response.status_code == 204
-            # All 9 child tables + parent must be cleaned
-            for model in [m_doc, m_grade, m_pay, m_hist, m_draft, m_interview, m_cond, m_amend, m_waiver]:
-                model.objects.filter.return_value.delete.assert_called_once()
-            m_app.objects.filter.return_value.delete.assert_called_once()
+        assert response.status_code == 204
+        application.delete.assert_called_once_with()
 
 
 class TestSubmitAfterDeferRegression:

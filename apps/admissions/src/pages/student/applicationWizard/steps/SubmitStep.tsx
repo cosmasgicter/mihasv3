@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
-import { AlertTriangle, CheckCircle2, Sparkles } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, RefreshCw, Sparkles } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
 import { CheckboxWithLabel } from '@/components/ui/checkbox'
@@ -46,6 +46,47 @@ const gradeLabelMap: Record<number, string> = {
   9: 'F'
 }
 
+function buildFallbackPreviewSummary({
+  fullName,
+  program,
+  intake,
+  institution,
+  subjectsCount,
+  paymentStatus,
+}: {
+  fullName?: string | null
+  program?: string | null
+  intake?: string | null
+  institution?: string | null
+  subjectsCount: number
+  paymentStatus?: 'pending' | 'successful' | 'failed' | 'deferred' | null
+}) {
+  const firstName = fullName?.trim()?.split(/\s+/)[0] || 'Student'
+  const programLabel = program?.trim() || 'your chosen programme'
+  const institutionLabel = institution?.trim() || 'MIHAS'
+  const intakeLabel = intake?.trim()
+  const paymentLine = paymentStatus === 'successful'
+    ? 'Your payment has already been confirmed.'
+    : paymentStatus === 'deferred'
+      ? 'Your payment is marked as deferred, so you can submit now and pay later from the dashboard.'
+      : paymentStatus === 'pending'
+        ? 'Your payment is still being confirmed, so keep this page open while we check for updates.'
+        : 'Complete payment in the previous step before you submit.'
+
+  const parts = [
+    `${firstName}, you are preparing an application to ${institutionLabel} for ${programLabel}.`,
+    subjectsCount > 0
+      ? `You currently have ${subjectsCount} recorded subject${subjectsCount === 1 ? '' : 's'} in this application.`
+      : 'Your subjects will appear here once you finish the education step.',
+    intakeLabel
+      ? `The application will be reviewed for the ${intakeLabel} intake once you submit it.`
+      : 'The admissions team will review the selected intake once you submit it.',
+    paymentLine,
+  ]
+
+  return parts.join(' ')
+}
+
 const SubmitStep = ({
   title,
   form,
@@ -70,19 +111,51 @@ const SubmitStep = ({
   // AI-powered personalized summary
   const [aiSummary, setAiSummary] = useState<string | null>(null)
   const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState<string | null>(null)
+  const [aiRetryNonce, setAiRetryNonce] = useState(0)
+  const fallbackSummary = useMemo(() => buildFallbackPreviewSummary({
+    fullName: formValues.full_name,
+    program: programLabel,
+    intake: selectedIntakeLabel || ((formValues as Record<string, unknown>).intake_name as string | undefined) || formValues.intake,
+    institution: selectedInstitutionLabel,
+    subjectsCount: selectedGrades.length,
+    paymentStatus,
+  }), [formValues.full_name, formValues.intake, paymentStatus, programLabel, selectedGrades.length, selectedInstitutionLabel, selectedIntakeLabel])
+
+  const loadAiSummary = useCallback(async () => {
+    if (!applicationId) return
+
+    let finalError: string | null = null
+    setAiLoading(true)
+    setAiError(null)
+
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        const data = await apiClient.request<{ summary: string | null }>(`/applications/${applicationId}/preview-summary/`)
+        if (data?.summary?.trim()) {
+          setAiSummary(data.summary.trim())
+          setAiError(null)
+          setAiLoading(false)
+          return
+        }
+        finalError = 'No personalized summary was returned.'
+      } catch (error) {
+        finalError = error instanceof Error ? error.message : 'Unable to load the personalized summary.'
+      }
+
+      if (attempt === 0) {
+        await new Promise(resolve => window.setTimeout(resolve, 1200))
+      }
+    }
+
+    setAiSummary(null)
+    setAiError(finalError)
+    setAiLoading(false)
+  }, [applicationId])
 
   useEffect(() => {
-    if (!applicationId) return
-    let cancelled = false
-    setAiLoading(true)
-    apiClient.request<{ summary: string | null }>(`/applications/${applicationId}/preview-summary/`)
-      .then(data => {
-        if (!cancelled && data?.summary) setAiSummary(data.summary)
-      })
-      .catch(() => {})
-      .finally(() => { if (!cancelled) setAiLoading(false) })
-    return () => { cancelled = true }
-  }, [applicationId])
+    void loadAiSummary()
+  }, [aiRetryNonce, loadAiSummary])
   const institutionLabel = selectedInstitutionLabel?.trim() || ''
   const hasResultSlip = Boolean(resultSlipFile || uploadedFiles.result_slip)
   const hasIdentityDocument = Boolean(extraKycFile || uploadedFiles.extra_kyc)
@@ -139,7 +212,7 @@ const SubmitStep = ({
         contentClassName="space-y-6"
       >
         {/* AI-powered personalized summary */}
-        {(aiSummary || aiLoading) && (
+        {(aiSummary || fallbackSummary || aiLoading) && (
           <div className={`rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5 p-5 ${animateClasses.fadeIn}`}>
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-primary/10">
@@ -147,13 +220,32 @@ const SubmitStep = ({
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold uppercase tracking-wide text-primary/70">Application Preview</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {aiSummary
+                    ? 'Personalized preview loaded.'
+                    : aiLoading
+                      ? 'Generating a personalized preview. A resilient local summary is shown in the meantime.'
+                      : 'Showing the resilient local preview because the personalized summary is unavailable right now.'}
+                </p>
                 {aiLoading ? (
                   <div className="mt-2 space-y-2">
                     <Skeleton className="h-4 w-full" />
                     <Skeleton className="h-4 w-3/4" />
                   </div>
                 ) : (
-                  <p className="mt-1.5 text-sm leading-relaxed text-foreground">{aiSummary}</p>
+                  <>
+                    <p className="mt-1.5 text-sm leading-relaxed text-foreground">{aiSummary || fallbackSummary}</p>
+                    {aiError && applicationId && (
+                      <button
+                        type="button"
+                        onClick={() => setAiRetryNonce((count) => count + 1)}
+                        className="mt-3 inline-flex items-center gap-2 text-xs font-medium text-primary transition-colors hover:text-primary/80"
+                      >
+                        <RefreshCw className="h-3.5 w-3.5" />
+                        Retry personalized preview
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>

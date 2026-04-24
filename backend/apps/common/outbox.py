@@ -33,6 +33,7 @@ def _record_outbox_event(
             target_table=target_table,
             target_id=target_id,
             idempotency_key=idempotency_key,
+            created_at=timezone.now(),
             processed_at=timezone.now(),
         )
     except Exception:
