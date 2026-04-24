@@ -1,0 +1,201 @@
+# Exhaustive Backend Core Pass 2
+
+- total-files: 193
+- improve: 10
+- remove: 2
+- ignore-as-correct: 181
+- needs-human-decision: 0
+
+- backend/.dockerignore | ignore-as-correct | none | docker ignore file is narrow and aligned with the backend container build context
+- backend/.env | remove | zero-day-class-risk | workspace env file contains live-looking database, Redis, SMTP, payment, and storage secrets and must not remain in the auditable runtime surface
+- backend/.env.example | ignore-as-correct | none | template uses placeholders and documents the current backend secret surface without embedding live credentials
+- backend/.env.production | remove | zero-day-class-risk | workspace production env file contains live-looking database, Redis, payment, storage, and email secrets and must not remain in the auditable runtime surface
+- backend/.pytest_cache/.gitignore | ignore-as-correct | none | cache ignore artifact has no runtime effect beyond keeping test cache out of version control
+- backend/DEPLOY.md | ignore-as-correct | none | deployment guide aligns with Neon, Koyeb, Redis, and current backend smoke-check expectations in this pass
+- backend/apps/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/accounts/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/accounts/admin_urls.py | ignore-as-correct | none | routing module looked structurally consistent and no isolated dispatch defect was identified in this pass
+- backend/apps/accounts/admin_views.py | improve | zero-day-class-risk | admin-facing mutations still need tighter privilege boundaries for high-impact role and account-management paths
+- backend/apps/accounts/apps.py | ignore-as-correct | none | app registration module is minimal and consistent with the current Django app layout
+- backend/apps/accounts/authentication.py | ignore-as-correct | none | auth/security support module did not expose a new isolated defect beyond the flagged higher-level view/admin surfaces
+- backend/apps/accounts/batch_views.py | improve | zero-day-class-risk | batch user import is a high-impact admin surface and needs stronger auditability and duplicate/race hardening
+- backend/apps/accounts/management/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/accounts/management/commands/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/accounts/management/commands/cleanup_stale_sessions.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/accounts/management/commands/recover_jti_blacklist.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/accounts/models.py | ignore-as-correct | none | model mapping file stayed within the managed-false/schema-mapping posture already used across the backend
+- backend/apps/accounts/permissions.py | ignore-as-correct | none | auth/security support module did not expose a new isolated defect beyond the flagged higher-level view/admin surfaces
+- backend/apps/accounts/serializers.py | ignore-as-correct | none | serializer module remained aligned with the surrounding backend contract surface in this pass
+- backend/apps/accounts/services.py | ignore-as-correct | none | business-logic support module did not show a distinct standalone defect beyond the explicitly flagged caller surfaces
+- backend/apps/accounts/session_lifecycle.py | ignore-as-correct | none | auth/security support module did not expose a new isolated defect beyond the flagged higher-level view/admin surfaces
+- backend/apps/accounts/session_urls.py | ignore-as-correct | none | routing module looked structurally consistent and no isolated dispatch defect was identified in this pass
+- backend/apps/accounts/session_views.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/accounts/tasks.py | ignore-as-correct | none | task module did not expose a distinct defect in this pass beyond the specific task files already flagged
+- backend/apps/accounts/tokens.py | ignore-as-correct | none | auth/security support module did not expose a new isolated defect beyond the flagged higher-level view/admin surfaces
+- backend/apps/accounts/urls.py | ignore-as-correct | none | routing module looked structurally consistent and no isolated dispatch defect was identified in this pass
+- backend/apps/accounts/views.py | improve | confirmed-bug | auth/session endpoints still show contract-drift risk around response shape and cookie lifetime coupling
+- backend/apps/analytics/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/analytics/admissions_analytics.py | improve | confirmed-bug | timing aggregates are at risk of returning raw timedelta values, which are not safely JSON-serializable in API responses
+- backend/apps/analytics/apps.py | ignore-as-correct | none | app registration module is minimal and consistent with the current Django app layout
+- backend/apps/analytics/migrations/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/analytics/models.py | ignore-as-correct | none | model mapping file stayed within the managed-false/schema-mapping posture already used across the backend
+- backend/apps/analytics/report_urls.py | ignore-as-correct | none | routing module looked structurally consistent and no isolated dispatch defect was identified in this pass
+- backend/apps/analytics/serializers.py | ignore-as-correct | none | serializer module remained aligned with the surrounding backend contract surface in this pass
+- backend/apps/analytics/urls.py | ignore-as-correct | none | routing module looked structurally consistent and no isolated dispatch defect was identified in this pass
+- backend/apps/analytics/views.py | ignore-as-correct | none | view/controller surface was reviewed at slice level and no additional per-file defect was isolated beyond the explicitly flagged files
+- backend/apps/applications/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/applications/_view_helpers.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/applications/admin_views.py | improve | suspicious-stale-path | review/admin logic still carries legacy payment-status compatibility paths that need consolidation against the canonical payments model
+- backend/apps/applications/amendment_service.py | ignore-as-correct | none | business-logic support module did not show a distinct standalone defect beyond the explicitly flagged caller surfaces
+- backend/apps/applications/apps.py | ignore-as-correct | none | app registration module is minimal and consistent with the current Django app layout
+- backend/apps/applications/condition_manager.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/applications/document_intelligence.py | ignore-as-correct | none | business-logic support module did not show a distinct standalone defect beyond the explicitly flagged caller surfaces
+- backend/apps/applications/document_views.py | ignore-as-correct | none | view/controller surface was reviewed at slice level and no additional per-file defect was isolated beyond the explicitly flagged files
+- backend/apps/applications/duplicate_checker.py | ignore-as-correct | none | business-logic support module did not show a distinct standalone defect beyond the explicitly flagged caller surfaces
+- backend/apps/applications/eligibility_engine.py | ignore-as-correct | none | business-logic support module did not show a distinct standalone defect beyond the explicitly flagged caller surfaces
+- backend/apps/applications/enrollment_service.py | ignore-as-correct | none | business-logic support module did not show a distinct standalone defect beyond the explicitly flagged caller surfaces
+- backend/apps/applications/filters.py | ignore-as-correct | none | business-logic support module did not show a distinct standalone defect beyond the explicitly flagged caller surfaces
+- backend/apps/applications/history_views.py | ignore-as-correct | none | view/controller surface was reviewed at slice level and no additional per-file defect was isolated beyond the explicitly flagged files
+- backend/apps/applications/identifier_resolver.py | ignore-as-correct | none | business-logic support module did not show a distinct standalone defect beyond the explicitly flagged caller surfaces
+- backend/apps/applications/intake_enforcer.py | ignore-as-correct | none | business-logic support module did not show a distinct standalone defect beyond the explicitly flagged caller surfaces
+- backend/apps/applications/interview_service.py | ignore-as-correct | none | business-logic support module did not show a distinct standalone defect beyond the explicitly flagged caller surfaces
+- backend/apps/applications/interview_views.py | ignore-as-correct | none | view/controller surface was reviewed at slice level and no additional per-file defect was isolated beyond the explicitly flagged files
+- backend/apps/applications/models.py | ignore-as-correct | none | model mapping file stayed within the managed-false/schema-mapping posture already used across the backend
+- backend/apps/applications/public_views.py | ignore-as-correct | none | view/controller surface was reviewed at slice level and no additional per-file defect was isolated beyond the explicitly flagged files
+- backend/apps/applications/review_queue.py | ignore-as-correct | none | business-logic support module did not show a distinct standalone defect beyond the explicitly flagged caller surfaces
+- backend/apps/applications/serializers.py | ignore-as-correct | none | serializer module remained aligned with the surrounding backend contract surface in this pass
+- backend/apps/applications/services.py | ignore-as-correct | none | business-logic support module did not show a distinct standalone defect beyond the explicitly flagged caller surfaces
+- backend/apps/applications/student_views.py | ignore-as-correct | none | view/controller surface was reviewed at slice level and no additional per-file defect was isolated beyond the explicitly flagged files
+- backend/apps/applications/tasks.py | improve | confirmed-bug | task file still carries legacy-format generation and cascade behavior risks that can drift from canonical application/tracking helpers
+- backend/apps/applications/urls.py | ignore-as-correct | none | routing module looked structurally consistent and no isolated dispatch defect was identified in this pass
+- backend/apps/applications/views.py | improve | suspicious-stale-path | module-level wildcard re-export file is a stale compatibility surface that obscures the actual admissions view ownership graph
+- backend/apps/applications/waitlist_manager.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/applications/withdrawal_service.py | ignore-as-correct | none | business-logic support module did not show a distinct standalone defect beyond the explicitly flagged caller surfaces
+- backend/apps/automation/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/automation/apps.py | ignore-as-correct | none | app registration module is minimal and consistent with the current Django app layout
+- backend/apps/automation/migrations/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/automation/models.py | ignore-as-correct | none | model mapping file stayed within the managed-false/schema-mapping posture already used across the backend
+- backend/apps/automation/serializers.py | ignore-as-correct | none | serializer module remained aligned with the surrounding backend contract surface in this pass
+- backend/apps/automation/tasks.py | ignore-as-correct | none | task module did not expose a distinct defect in this pass beyond the specific task files already flagged
+- backend/apps/automation/urls.py | ignore-as-correct | none | routing module looked structurally consistent and no isolated dispatch defect was identified in this pass
+- backend/apps/automation/views.py | ignore-as-correct | none | view/controller surface was reviewed at slice level and no additional per-file defect was isolated beyond the explicitly flagged files
+- backend/apps/catalog/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/catalog/apps.py | ignore-as-correct | none | app registration module is minimal and consistent with the current Django app layout
+- backend/apps/catalog/intake_date_computer.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/catalog/management/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/catalog/management/commands/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/catalog/management/commands/manage_intakes.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/catalog/models.py | ignore-as-correct | none | model mapping file stayed within the managed-false/schema-mapping posture already used across the backend
+- backend/apps/catalog/serializers.py | ignore-as-correct | none | serializer module remained aligned with the surrounding backend contract surface in this pass
+- backend/apps/catalog/tasks.py | ignore-as-correct | none | task module did not expose a distinct defect in this pass beyond the specific task files already flagged
+- backend/apps/catalog/urls.py | ignore-as-correct | none | routing module looked structurally consistent and no isolated dispatch defect was identified in this pass
+- backend/apps/catalog/views.py | ignore-as-correct | none | view/controller surface was reviewed at slice level and no additional per-file defect was isolated beyond the explicitly flagged files
+- backend/apps/common/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/common/ai_service.py | ignore-as-correct | none | business-logic support module did not show a distinct standalone defect beyond the explicitly flagged caller surfaces
+- backend/apps/common/apps.py | ignore-as-correct | none | app registration module is minimal and consistent with the current Django app layout
+- backend/apps/common/audit_network.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/celery_signals.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/communication_service.py | ignore-as-correct | none | business-logic support module did not show a distinct standalone defect beyond the explicitly flagged caller surfaces
+- backend/apps/common/email_templates.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/email_urls.py | ignore-as-correct | none | routing module looked structurally consistent and no isolated dispatch defect was identified in this pass
+- backend/apps/common/env_validator.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/error_urls.py | ignore-as-correct | none | routing module looked structurally consistent and no isolated dispatch defect was identified in this pass
+- backend/apps/common/error_views.py | ignore-as-correct | none | view/controller surface was reviewed at slice level and no additional per-file defect was isolated beyond the explicitly flagged files
+- backend/apps/common/exceptions.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/health.py | ignore-as-correct | none | view/controller surface was reviewed at slice level and no additional per-file defect was isolated beyond the explicitly flagged files
+- backend/apps/common/idempotency.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/jobs_ops_seed.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/logging.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/management/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/common/management/commands/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/common/management/commands/check_missed_tasks.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/management/commands/flush_sessions.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/management/commands/test_glitchtip.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/meta_urls.py | ignore-as-correct | none | routing module looked structurally consistent and no isolated dispatch defect was identified in this pass
+- backend/apps/common/meta_views.py | ignore-as-correct | none | view/controller surface was reviewed at slice level and no additional per-file defect was isolated beyond the explicitly flagged files
+- backend/apps/common/metrics.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/middleware.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/middleware_compat.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/models.py | ignore-as-correct | none | model mapping file stayed within the managed-false/schema-mapping posture already used across the backend
+- backend/apps/common/notification_urls.py | ignore-as-correct | none | routing module looked structurally consistent and no isolated dispatch defect was identified in this pass
+- backend/apps/common/notification_views.py | ignore-as-correct | none | view/controller surface was reviewed at slice level and no additional per-file defect was isolated beyond the explicitly flagged files
+- backend/apps/common/openapi.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/openapi_helpers.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/outbox.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/pagination.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/permissions.py | ignore-as-correct | none | auth/security support module did not expose a new isolated defect beyond the flagged higher-level view/admin surfaces
+- backend/apps/common/readonly.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/renderers.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/storage.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/tasks.py | improve | confirmed-bug | bulk notification retry behavior remains high-risk because a single failure can cause larger batch reprocessing semantics
+- backend/apps/common/template_urls.py | ignore-as-correct | none | routing module looked structurally consistent and no isolated dispatch defect was identified in this pass
+- backend/apps/common/template_views.py | ignore-as-correct | none | view/controller surface was reviewed at slice level and no additional per-file defect was isolated beyond the explicitly flagged files
+- backend/apps/common/validators.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/common/views.py | ignore-as-correct | none | view/controller surface was reviewed at slice level and no additional per-file defect was isolated beyond the explicitly flagged files
+- backend/apps/documents/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/documents/apps.py | ignore-as-correct | none | app registration module is minimal and consistent with the current Django app layout
+- backend/apps/documents/fee_resolver.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/documents/fee_waiver_service.py | ignore-as-correct | none | business-logic support module did not show a distinct standalone defect beyond the explicitly flagged caller surfaces
+- backend/apps/documents/job_views.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/documents/models.py | ignore-as-correct | none | model mapping file stayed within the managed-false/schema-mapping posture already used across the backend
+- backend/apps/documents/payment_service.py | ignore-as-correct | none | business-logic support module did not show a distinct standalone defect beyond the explicitly flagged caller surfaces
+- backend/apps/documents/serializers.py | ignore-as-correct | none | serializer module remained aligned with the surrounding backend contract surface in this pass
+- backend/apps/documents/tasks.py | ignore-as-correct | none | task module did not expose a distinct defect in this pass beyond the specific task files already flagged
+- backend/apps/documents/urls.py | ignore-as-correct | none | routing module looked structurally consistent and no isolated dispatch defect was identified in this pass
+- backend/apps/documents/validators.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/documents/views.py | ignore-as-correct | none | view/controller surface was reviewed at slice level and no additional per-file defect was isolated beyond the explicitly flagged files
+- backend/apps/documents/webhook_processor.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/apps/integrations/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/integrations/apps.py | ignore-as-correct | none | app registration module is minimal and consistent with the current Django app layout
+- backend/apps/integrations/email_views.py | ignore-as-correct | none | view/controller surface was reviewed at slice level and no additional per-file defect was isolated beyond the explicitly flagged files
+- backend/apps/integrations/migrations/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/integrations/models.py | ignore-as-correct | none | model mapping file stayed within the managed-false/schema-mapping posture already used across the backend
+- backend/apps/integrations/serializers.py | ignore-as-correct | none | serializer module remained aligned with the surrounding backend contract surface in this pass
+- backend/apps/integrations/tasks.py | ignore-as-correct | none | task module did not expose a distinct defect in this pass beyond the specific task files already flagged
+- backend/apps/integrations/urls.py | ignore-as-correct | none | routing module looked structurally consistent and no isolated dispatch defect was identified in this pass
+- backend/apps/integrations/views.py | ignore-as-correct | none | view/controller surface was reviewed at slice level and no additional per-file defect was isolated beyond the explicitly flagged files
+- backend/apps/jobs/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/jobs/ai_service.py | ignore-as-correct | none | business-logic support module did not show a distinct standalone defect beyond the explicitly flagged caller surfaces
+- backend/apps/jobs/application_urls.py | ignore-as-correct | none | routing module looked structurally consistent and no isolated dispatch defect was identified in this pass
+- backend/apps/jobs/apps.py | ignore-as-correct | none | app registration module is minimal and consistent with the current Django app layout
+- backend/apps/jobs/migrations/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/jobs/models.py | ignore-as-correct | none | model mapping file stayed within the managed-false/schema-mapping posture already used across the backend
+- backend/apps/jobs/serializers.py | ignore-as-correct | none | serializer module remained aligned with the surrounding backend contract surface in this pass
+- backend/apps/jobs/tasks.py | ignore-as-correct | none | task module did not expose a distinct defect in this pass beyond the specific task files already flagged
+- backend/apps/jobs/urls.py | ignore-as-correct | none | routing module looked structurally consistent and no isolated dispatch defect was identified in this pass
+- backend/apps/jobs/views.py | ignore-as-correct | none | view/controller surface was reviewed at slice level and no additional per-file defect was isolated beyond the explicitly flagged files
+- backend/apps/outreach/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/outreach/apps.py | ignore-as-correct | none | app registration module is minimal and consistent with the current Django app layout
+- backend/apps/outreach/migrations/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/apps/outreach/models.py | ignore-as-correct | none | model mapping file stayed within the managed-false/schema-mapping posture already used across the backend
+- backend/apps/outreach/serializers.py | ignore-as-correct | none | serializer module remained aligned with the surrounding backend contract surface in this pass
+- backend/apps/outreach/urls.py | ignore-as-correct | none | routing module looked structurally consistent and no isolated dispatch defect was identified in this pass
+- backend/apps/outreach/views.py | ignore-as-correct | none | view/controller surface was reviewed at slice level and no additional per-file defect was isolated beyond the explicitly flagged files
+- backend/config/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/config/asgi.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/config/celery.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/config/settings/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/config/settings/dev.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/config/settings/prod.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/config/settings/staging.py | improve | suspicious-stale-path | staging settings remain lighter than production hardening and need re-audit before being trusted as production-parity configuration
+- backend/config/urls.py | ignore-as-correct | none | routing module looked structurally consistent and no isolated dispatch defect was identified in this pass
+- backend/manage.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/pyproject.toml | ignore-as-correct | none | no standalone backend runtime defect was isolated in this pass
+- backend/requirements.txt | improve | suspicious-stale-path | dependency ranges are not fully pinned, which weakens reproducibility for security and deployment-sensitive backend builds
+- backend/scripts/__init__.py | ignore-as-correct | none | package marker only; no standalone runtime behavior was exposed in this pass
+- backend/scripts/add_audit_log_encrypted_network_context.sql | ignore-as-correct | none | SQL artifact remains part of the documented manual-schema ownership model and was not individually contradicted in this pass
+- backend/scripts/add_missing_payment_columns.sql | ignore-as-correct | none | SQL artifact remains part of the documented manual-schema ownership model and was not individually contradicted in this pass
+- backend/scripts/add_outbox_events.sql | ignore-as-correct | none | SQL artifact remains part of the documented manual-schema ownership model and was not individually contradicted in this pass
+- backend/scripts/add_payments_app_status_index.sql | ignore-as-correct | none | SQL artifact remains part of the documented manual-schema ownership model and was not individually contradicted in this pass
+- backend/scripts/add_performance_indexes.sql | ignore-as-correct | none | SQL artifact remains part of the documented manual-schema ownership model and was not individually contradicted in this pass
+- backend/scripts/business_logic_densification.sql | ignore-as-correct | none | SQL artifact remains part of the documented manual-schema ownership model and was not individually contradicted in this pass
+- backend/scripts/cambridge_subjects.sql | ignore-as-correct | none | SQL artifact remains part of the documented manual-schema ownership model and was not individually contradicted in this pass
+- backend/scripts/check_circular_imports.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/scripts/create_error_logs_table.sql | ignore-as-correct | none | SQL artifact remains part of the documented manual-schema ownership model and was not individually contradicted in this pass
+- backend/scripts/deferred_payments.sql | ignore-as-correct | none | SQL artifact remains part of the documented manual-schema ownership model and was not individually contradicted in this pass
+- backend/scripts/drop_program_fee_full_unique.sql | ignore-as-correct | none | SQL artifact remains part of the documented manual-schema ownership model and was not individually contradicted in this pass
+- backend/scripts/idempotency_redesign.sql | ignore-as-correct | none | SQL artifact remains part of the documented manual-schema ownership model and was not individually contradicted in this pass
+- backend/scripts/lenco_payment_integration.sql | ignore-as-correct | none | SQL artifact remains part of the documented manual-schema ownership model and was not individually contradicted in this pass
+- backend/scripts/seed_program_fees.sql | ignore-as-correct | none | SQL artifact remains part of the documented manual-schema ownership model and was not individually contradicted in this pass
+- backend/scripts/verify_migration.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass
+- backend/scripts/verify_schema_static.py | ignore-as-correct | none | backend support module did not expose a distinct isolated issue in this pass

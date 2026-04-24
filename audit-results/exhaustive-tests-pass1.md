@@ -1,0 +1,530 @@
+# Exhaustive Tests Pass 1
+
+- total-files: 522
+- improve: 221
+- remove: 0
+- ignore-as-correct: 247
+- needs-human-decision: 54
+
+- apps/admissions/playwright.config.ts | ignore-as-correct | none | baseURL/retry config is simple and does not hide coverage by itself
+- apps/admissions/tests/admin/dashboard.regression.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/e2e/accessibility.spec.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/e2e/applicationFlow.spec.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/integration/auth-flows.integration.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/integration/email-check.integration.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/integration/no-infinite-loops.integration.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/integration/securityHeaders.integration.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/admin-system-health-fixes/audit-log-actor.property.test.ts | needs-human-decision | suspicious-stale-path | campaign-specific audit suite is time-bound and partially excluded from default runs
+- apps/admissions/tests/property/admin-system-health-fixes/user-roles-rls.property.test.ts | needs-human-decision | suspicious-stale-path,zero-day-class-risk | campaign-specific audit suite is time-bound and partially excluded from default runs
+- apps/admissions/tests/property/admin-users-registration-bugfix-exploration.test.ts | needs-human-decision | suspicious-stale-path,already-fixed-local | comments now describe post-fix or already-fixed behavior, so transitional test intent is stale
+- apps/admissions/tests/property/admin-users-registration-bugfix-preservation.test.ts | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- apps/admissions/tests/property/adminDashboardOverhaul.property.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/adminRoleCheck.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/adminSchemaValidation.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/admissions-logic-canonicalization.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/admissionsFlowBugCondition.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/admissionsFlowPreservation.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/altText.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/api-hardening/simple-endpoints.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/apiClient.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/apiClient401Cascade.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/apiClientCsrf.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/apiConfig.property.test.ts | improve | none | depends on or mutates global environment state, which can leak across test processes
+- apps/admissions/tests/property/apiEnvelope.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/application-process-hardening.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/applicationStats.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/applicationTrackerSearch.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/ariaAttributes.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/audit-remediation-security.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/audit-remediation-ui.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/audit-remediation-validation.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/auditProductionBugCondition.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/auditProductionFixValidation.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/auditProductionPreservation.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/auth-profile-cache-fix-exploration.test.ts | needs-human-decision | suspicious-stale-path,zero-day-class-risk | transitional bug-state test family may preserve wrong behavior after fixes land
+- apps/admissions/tests/property/auth-profile-cache-fix-preservation.test.ts | needs-human-decision | suspicious-stale-path,zero-day-class-risk | transitional bug-state test family may preserve wrong behavior after fixes land
+- apps/admissions/tests/property/authBroadcast.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/authFailureCascade.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/authFormsAuditBugCondition.property.test.ts | needs-human-decision | suspicious-stale-path,zero-day-class-risk | transitional bug-state test family may preserve wrong behavior after fixes land
+- apps/admissions/tests/property/authFormsAuditPreservation.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/authSessionProfileHardening.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/authSimplificationRefresh.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/authenticated-pages-polish.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/auto-save.property.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/autoLogoutRaceBugCondition.property.test.ts | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- apps/admissions/tests/property/autoLogoutRacePreservation.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/autoSaveDataRoundTrip.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/autoSavePause.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/autoSaveVersionOrdering.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/batchQuery.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/button-loading-spinner.property.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/chunkAutoReloadPolicy.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/colorContrast.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/communicationsHistory.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/consolidation-async-cleanup.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/consolidation-autosave.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/consolidation-cache-keys.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/consolidation-canonical-source.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/consolidation-dead-files.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/consolidation-draft-dedup.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/consolidation-eslint.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/consolidation-exports.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/consolidation-focus-trap.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/consolidation-imports.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/consolidation-logger.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/consolidation-mql.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/consolidation-no-ddl.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/contrast-heading.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/cssAnimationEquivalence.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/dashboardNormalizer.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/dashboardPartialFailure.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/dateFormatRoundTrip.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/deadCode.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/decorative-aria-hidden.property.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/deleteDraft404Resilience.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/dependencies.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/emptystate-errordisplay.property.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/errorPropagationStability.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/errorReporter.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/escapeKey.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/fileUploadProceedOnNetworkError.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/fileUploadRetryOnAuthError.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/form-error-aria.property.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/frontend-django-alignment/auth-extraction.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/frontend-django-alignment/error-logging.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/frontend-django-alignment/service-normalization.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/homepagePerformanceBugCondition.property.test.ts | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- apps/admissions/tests/property/homepagePerformancePreservation.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/idempotencyDedup.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/interviewRouting.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/keyboard-navigation.property.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/localStorageCache.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/loginCacheSeeding.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/metricsConsistency.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/no-pii-logs.property.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/non-blocking-validation.property.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/normalization.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/passwordReset.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/paymentPageExtraction.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/paymentStatusFiltering.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/polling-interval.property.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/pollingConfiguration.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/pollingDeduplication.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/postMigrationQaBugs.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/postMigrationQaPreservation.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/preloaderDefaults.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/production-cors-pagination-fix-exploration.test.ts | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- apps/admissions/tests/property/production-cors-pagination-fix-preservation.test.ts | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- apps/admissions/tests/property/production-readiness-audit/auditTrailImmutability.property.test.ts | needs-human-decision | suspicious-stale-path | campaign-specific audit suite is time-bound and partially excluded from default runs
+- apps/admissions/tests/property/production-readiness-audit/authEnforcement.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/production-readiness-audit/dashboardCountAccuracy.property.test.ts | needs-human-decision | suspicious-stale-path | campaign-specific audit suite is time-bound and partially excluded from default runs
+- apps/admissions/tests/property/production-readiness-audit/debounceTiming.property.test.ts | needs-human-decision | suspicious-stale-path | campaign-specific audit suite is time-bound and partially excluded from default runs
+- apps/admissions/tests/property/production-readiness-audit/draftRoundTrip.property.test.ts | needs-human-decision | suspicious-stale-path | campaign-specific audit suite is time-bound and partially excluded from default runs
+- apps/admissions/tests/property/production-readiness-audit/externalApiDegradation.property.test.ts | needs-human-decision | suspicious-stale-path | campaign-specific audit suite is time-bound and partially excluded from default runs
+- apps/admissions/tests/property/production-readiness-audit/interviewSlotUniqueness.property.test.ts | needs-human-decision | suspicious-stale-path | campaign-specific audit suite is time-bound and partially excluded from default runs
+- apps/admissions/tests/property/production-readiness-audit/notificationPreferences.property.test.ts | needs-human-decision | suspicious-stale-path | campaign-specific audit suite is time-bound and partially excluded from default runs
+- apps/admissions/tests/property/production-readiness-audit/notificationRetryLogic.property.test.ts | needs-human-decision | suspicious-stale-path | campaign-specific audit suite is time-bound and partially excluded from default runs
+- apps/admissions/tests/property/production-readiness-audit/paymentGateEnforcement.property.test.ts | needs-human-decision | suspicious-stale-path | campaign-specific audit suite is time-bound and partially excluded from default runs
+- apps/admissions/tests/property/production-readiness-audit/referenceUniqueness.property.test.ts | needs-human-decision | suspicious-stale-path | campaign-specific audit suite is time-bound and partially excluded from default runs
+- apps/admissions/tests/property/production-readiness-audit/securityHeaders.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/production-readiness-audit/sessionExpiryHandling.property.test.ts | needs-human-decision | suspicious-stale-path | campaign-specific audit suite is time-bound and partially excluded from default runs
+- apps/admissions/tests/property/profileCompletenessBugCondition.property.test.ts | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- apps/admissions/tests/property/profileCompletenessPreservation.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/profileCompletion.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/pwaArtifactAbsence.property.test.ts | improve | confirmed-bug | contains skipped or conditionally skipped coverage
+- apps/admissions/tests/property/rateLimiting.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/rbac.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/reducedMotion.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/refreshDeduplication.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/relativeTimeThreshold.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/reloadGuard.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/schemaValidation.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/scoutqaAccessibilityFixValidation.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/scoutqaLandingPageBugCondition.property.test.ts | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- apps/admissions/tests/property/scoutqaLandingPagePreservation.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/secureStorage.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/services.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/sessionDeduplication.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/sessions.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/singleSourceOfTruth.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/skeleton-mapping.property.test.tsx | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/sseRemovalNotificationPolling.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/staleChunkRecoveryBugCondition.property.test.ts | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- apps/admissions/tests/property/staleChunkRecoveryPreservation.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/style-injection.property.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/submissionPayload.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/supabase-auth-removal.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/supabase-exit-migration.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/systemAlignmentAvailableSpots.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/systemAlignmentBuildIntakePayload.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/systemAlignmentCapacityValidation.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/systemAlignmentNormalizeIntake.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/test_bug2_auth_error.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/test_bug2_preservation.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/test_bug3_hydration_race.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/test_bug3_preservation.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/test_bug4_preservation.test.ts | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- apps/admissions/tests/property/test_bug5_preservation.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/test_bug5_slip_service.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/test_drift_bug7_types.test.ts | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- apps/admissions/tests/property/tokenRefreshDedup.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/tokenRotation.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/transaction.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/typeCompatibility.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/ui-ux-accessibility.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/ui-ux-card-variants.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/ui-ux-design-tokens.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/ui-ux-error-handling.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/ui-ux-performance-overhaul/accessibility.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/ui-ux-performance-overhaul/animationDuration.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/ui-ux-performance-overhaul/hooks.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/ui-ux-performance-overhaul/notifications.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/ui-ux-performance-overhaul/pageIntegration.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/ui-ux-performance-overhaul/responsiveDesign.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/ui-ux-performance-overhaul/stateComponents.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/ui-ux-performance-overhaul/uiPrimitives.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/ui-ux-toast-aria.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/unusedDeps.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/urlSafety.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/vercel-api-bundling-fix/file-transformation.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/vercel-api-bundling-fix/import-resolution.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/vercel-api-bundling-fix/underscore-exclusion.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/visibilityGuard.property.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/property/wizardProperties.property.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/property/zambian-formats.property.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/ui/__snapshots__/bottom-navigation.mobile.test.tsx.snap | improve | suspicious-stale-path | raw HTML snapshot is brittle and can preserve markup churn more than user-visible contract
+- apps/admissions/tests/ui/application-wizard-accessibility.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/ui/bottom-navigation.mobile.test.tsx | improve | suspicious-stale-path | snapshot assertion is markup-heavy and can mask behavior regressions
+- apps/admissions/tests/ui/error-display.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/ui/save-status-indicator.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/ApplicationCard.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/Button.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/EducationStep.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/SubmitStep.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/accessibilityUtilsLogger.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/adminApplicationStatusMutation.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/adminApplicationsOverview.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/adminBulkAndPushClientUsage.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/adminDashboardBootstrap.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/adminDashboardOverhaul.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/adminEndToEndWiring.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/adminReportTemplatesLegacyEndpointGuard.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/adminRouteActionParity.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/adminUserImportEndpointConsistency.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/adminUserService.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/animations.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/apiClient401Retry.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/apiClientCsrf403Retry.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/apiClientTimeoutRetry.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/appGlobalLazyLoading.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/appShellSkeleton.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/applicationQueryInvalidation.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/applicationSessionDrafts.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/applicationStats.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/applicationStatus.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/applicationStatusUi.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/audit-remediation-code-structure.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/auditTrailCompleteness.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/auth-context-thin-wrapper.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/authAdminRoleResolution.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/authBroadcast.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/authContextVisibility.test.tsx | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/authFormAttributes.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/authLayoutMobileOverflow.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/authLoadingState.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/authPageFormMarkup.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/authPageshowRevalidation.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/authRefreshCleanRedirect.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/authRoutePreload.contract.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/authStateUnification.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/cacheInvalidation.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/capacityWarning.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/checkIsAdminNoEmail.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/clientFileValidation.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/communicationsHistory.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/contactFormSubmission.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/contactPageContrast.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/contracts/adminContracts.test.ts | improve | confirmed-bug,suspicious-stale-path | validates hand-written samples against schemas that already diverge from backend envelope shape
+- apps/admissions/tests/unit/contracts/schemas/index.ts | improve | confirmed-bug,suspicious-stale-path | frontend contract schemas expect flat applications/users payloads instead of current success/data Django envelope
+- apps/admissions/tests/unit/dateFormat.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/deadCodeRemovalVerification.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/delete404Resilience.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/dependentScreensProfileAccess.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/documentTemplatesPremium.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/documentUploadPayload.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/doubleSubmit.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/draftAutosave.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/draftManagerStorage.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/educationCatalog.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/errorMessages.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/errorReporterInit.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/forensic-cleanliness.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/frontend-auth.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/generateIdempotencyKey.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/gradesSyncPost.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/infiniteGrid.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/inputA11yConsistency.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/intakeUtilization.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/lazyImportRecovery.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/lazyLoadErrorBoundary.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/locationOptions.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/mobileResponsiveness.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/nationalityMigration.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/notificationServiceCacheBehavior.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/notificationServiceUpdatePreferences.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/notificationSettingsPreferences.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/optimized-auth-routes.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/optimizedImage.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/optimizedImageSizing.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/optimizedImageWebpNative.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/page-verification/admin-audit-trail.test.tsx | improve | suspicious-stale-path | page-verification smoke test is broad and mock-heavy, so user contract coverage is shallow
+- apps/admissions/tests/unit/page-verification/admin-dashboard.test.tsx | improve | suspicious-stale-path | page-verification smoke test is broad and mock-heavy, so user contract coverage is shallow
+- apps/admissions/tests/unit/page-verification/admin-intakes.test.tsx | improve | suspicious-stale-path | page-verification smoke test is broad and mock-heavy, so user contract coverage is shallow
+- apps/admissions/tests/unit/page-verification/admin-programs.test.tsx | improve | suspicious-stale-path | page-verification smoke test is broad and mock-heavy, so user contract coverage is shallow
+- apps/admissions/tests/unit/page-verification/admin-settings.test.tsx | improve | suspicious-stale-path | page-verification smoke test is broad and mock-heavy, so user contract coverage is shallow
+- apps/admissions/tests/unit/page-verification/contact-page.test.tsx | improve | suspicious-stale-path | page-verification smoke test is broad and mock-heavy, so user contract coverage is shallow
+- apps/admissions/tests/unit/page-verification/landing-page.test.tsx | improve | suspicious-stale-path | page-verification smoke test is broad and mock-heavy, so user contract coverage is shallow
+- apps/admissions/tests/unit/page-verification/not-found-page.test.tsx | improve | suspicious-stale-path | page-verification smoke test is broad and mock-heavy, so user contract coverage is shallow
+- apps/admissions/tests/unit/page-verification/payment-page.test.tsx | improve | suspicious-stale-path | page-verification smoke test is broad and mock-heavy, so user contract coverage is shallow
+- apps/admissions/tests/unit/page-verification/public-tracker.test.tsx | improve | suspicious-stale-path | page-verification smoke test is broad and mock-heavy, so user contract coverage is shallow
+- apps/admissions/tests/unit/page-verification/signin-page.test.tsx | improve | suspicious-stale-path | page-verification smoke test is broad and mock-heavy, so user contract coverage is shallow
+- apps/admissions/tests/unit/page-verification/student-dashboard.test.tsx | improve | suspicious-stale-path | page-verification smoke test is broad and mock-heavy, so user contract coverage is shallow
+- apps/admissions/tests/unit/page-verification/student-interview.test.tsx | improve | suspicious-stale-path | page-verification smoke test is broad and mock-heavy, so user contract coverage is shallow
+- apps/admissions/tests/unit/page-verification/student-settings.test.tsx | improve | suspicious-stale-path | page-verification smoke test is broad and mock-heavy, so user contract coverage is shallow
+- apps/admissions/tests/unit/page-verification/wizard-step1.test.tsx | improve | suspicious-stale-path | page-verification smoke test is broad and mock-heavy, so user contract coverage is shallow
+- apps/admissions/tests/unit/passwordInputA11yConsistency.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/paymentStep.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/playwrightConfig.test.ts | improve | none | depends on or mutates global environment state, which can leak across test processes
+- apps/admissions/tests/unit/preloader.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/profileCacheSynchronization.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/profileFieldMapping.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/protectedRouteTimeout.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/pwaPackageRemoval.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/queryCacheConfig.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/routePrefetcherRouteAware.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/routeRuntime.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/sanitizer.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/scoutqaAccessibilityFixes.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/scrollReveal.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/sessionHardening.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/sessionMonitor.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/settingsProfileUpdateFields.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/shapeLandingHero.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/shinyText.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/signInBroadcast.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/signOutRaceRegression.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/signout-cleanup.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/skeletonConsistency.test.tsx | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/slipServiceEmail.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/smoothuiA11yConsistency.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/studentRouteSmoke.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/subjectMatcher.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/test_bug1_csp_config.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/test_bug1_preservation.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/test_drift_bug8_cleanup.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/textEffect.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/textRotate.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/toast.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/tooltip.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/urlSafety.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/useAdminDashboardPolling.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/useApplicationBulkActions.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/useApplicationSubmitSafety.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/useAutoSaveSafety.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/useDocumentGeneration.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/useManualRefresh.test.tsx | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/useScrollRestoration.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/useStudentDashboardPolling.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/useWizardController.contract.test.ts | improve | suspicious-stale-path | asserts source text or file contents instead of a runtime contract
+- apps/admissions/tests/unit/userDisplayName.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/wizardDraftResume.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/wizardIntakeIdentity.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/wizardProgressSummary.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/wizardRefreshDedupe.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/tests/unit/wizardSessionRedirect.test.ts | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- apps/admissions/vitest.config.ts | improve | confirmed-bug | exclude list disables audit-remediation, api-hardening, admin-system-health-fixes, and production-readiness suites
+- backend/tests/__init__.py | ignore-as-correct | none | package marker only
+- backend/tests/conftest.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/contract/__init__.py | ignore-as-correct | none | package marker only
+- backend/tests/contract/conftest.py | improve | suspicious-stale-path | SQLite bootstrap seeds a narrow local schema, so parity can pass without proving recorded backend equivalence
+- backend/tests/contract/recordings/applications_list.json | improve | confirmed-bug,suspicious-stale-path | fixture records authenticated 200 list response while parity test exercises unauthenticated 401
+- backend/tests/contract/recordings/auth_login.json | improve | confirmed-bug,suspicious-stale-path | fixture records 200 success+cookies but parity test only checks invalid-credential error envelope
+- backend/tests/contract/recordings/catalog_programs.json | improve | suspicious-stale-path | recording has no capture date/version pin and parity only checks top-level envelope keys
+- backend/tests/contract/recordings/health_ping.json | improve | suspicious-stale-path | recording has no capture date/version pin and parity only checks top-level envelope keys
+- backend/tests/contract/test_contract_parity.py | improve | confirmed-bug,suspicious-stale-path | parity assertions diverge from recordings: auth_login ignores recorded 200 success path and applications_list forces 401
+- backend/tests/factories.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/property/__init__.py | ignore-as-correct | none | package marker only
+- backend/tests/property/test_accounts_error_handling.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_admin_dashboard_overhaul.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_admin_endpoint_auth.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_admin_fee_auth.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_admin_override.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_admissions_canonicalization.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_amount_mismatch.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_application_endpoints.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_application_hardening.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_application_properties.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_application_tasks.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_audit_cleanup.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_audit_production_properties.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_audit_report_structure.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/property/test_auth_properties.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_auth_status_contract.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_bug1_preservation.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_bug1_secrets_exploration.py | needs-human-decision | suspicious-stale-path,zero-day-class-risk | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_bug2_csp_exploration.py | needs-human-decision | suspicious-stale-path,zero-day-class-risk | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_bug2_csp_preservation.py | needs-human-decision | suspicious-stale-path,zero-day-class-risk | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_bug3_cache_control_exploration.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_bug3_preservation.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_bug4_permissions_exploration.py | needs-human-decision | suspicious-stale-path,zero-day-class-risk | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_bug4_preservation.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_bug4_session_403.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_bug5_admin_docs_exploration.py | needs-human-decision | suspicious-stale-path,already-fixed-local,zero-day-class-risk | comments now describe post-fix or already-fixed behavior, so transitional test intent is stale
+- backend/tests/property/test_bug5_email_slip.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_bug5_preservation.py | needs-human-decision | suspicious-stale-path,already-fixed-local | comments now describe post-fix or already-fixed behavior, so transitional test intent is stale
+- backend/tests/property/test_bulk_notification_retry.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_bulk_status_atomic.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_catalog_properties.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_communications_history_properties.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_csrf_bug_condition.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_csrf_preservation.py | needs-human-decision | suspicious-stale-path,already-fixed-local,zero-day-class-risk | comments now describe post-fix or already-fixed behavior, so transitional test intent is stale
+- backend/tests/property/test_dead_deps.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_documents_error_handling.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_drift_bug1_fix.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_drift_bug1_preservation.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_drift_bug2_preservation.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_drift_bug3_preservation.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_drift_bug4_fix.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_drift_bug4_preservation.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_drift_bug5_fix.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_drift_bug5_preservation.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_drift_bug6_fix.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_duplicate_checker_semantics.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_email_constant.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_email_dispatch.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_enrollment_sync.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_error_monitoring.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_fee_resolution.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_fee_resolver.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_fee_resolver_correctness.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_go_live_polish_regression.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/property/test_grades_sync_roundtrip.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_health_endpoint.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_infra_properties.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_intake_date_computation_properties.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/property/test_intake_open_count_properties.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/property/test_ip_address_column.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_jti_blacklist_properties.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_jwt_middleware.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_live_500_fixes.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_middleware_properties.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_migration_idempotency.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_migration_properties.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_model_nullability.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_notification_pagination.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_password_rehash.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_payment_fee_matching.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_payment_forward_transitions.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_payment_initiation.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_payment_reference.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_payment_status_normalization.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_payment_status_update.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_payment_transitions.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_pending_query_window.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_permissions_roundtrip.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_post_migration_qa_bugs.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_post_migration_qa_preservation.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_production_cors_pagination_fix_exploration.py | improve | confirmed-bug | contains skipped or conditionally skipped coverage
+- backend/tests/property/test_production_cors_pagination_fix_preservation.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/property/test_production_readiness_celery.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_production_readiness_csrf.py | improve | confirmed-bug,zero-day-class-risk | contains skipped or conditionally skipped coverage
+- backend/tests/property/test_production_readiness_health.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_production_readiness_jti.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_production_readiness_metrics.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_production_readiness_test_isolation.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_production_readiness_views.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/property/test_program_fee_coverage.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_program_fee_uniqueness.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_program_fee_validation.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_rate_limiting.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_rbac_properties.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_referential_integrity.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_response_properties.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_schema_field_correspondence.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_security_headers.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_session_properties.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_settlement_metadata.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_status_history_validity.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_status_transitions.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_submission_gate.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_submission_gates.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_system_alignment_institution_passthrough.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_system_alignment_tracking_code_pattern.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_system_alignment_tracking_safe_fields.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_token_refresh_properties.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_type_mismatch_severity.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_unique_constraints.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_uptime_task.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_validation_properties.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_webhook_idempotency.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_webhook_logging.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/property/test_webhook_signature.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/__init__.py | ignore-as-correct | none | package marker only
+- backend/tests/unit/test_admin_dashboard_overhaul.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_amendments.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_api_docs.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_application_contract_alignment.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_application_endpoints.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_application_student_flow_views.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_application_tasks.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_audit_cleanup.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_audit_network_context.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_audit_production_bug_conditions.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_audit_production_preservation.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/unit/test_auth_csrf_headers.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_batch_operations.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_cleanup_stale_sessions_command.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_cleanup_stale_sessions_task.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_communication_service.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_communications_history.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_conditions.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_deduplication_helpers.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_device_session_lifecycle.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_document_sla.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_drf_csrf_authentication.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_drift_bug2_endpoints.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/unit/test_drift_bug3_endpoints.py | needs-human-decision | suspicious-stale-path | transitional bug-state test family may preserve wrong behavior after fixes land
+- backend/tests/unit/test_email_outbox_hardening.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_email_slip_endpoint.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_email_templates_premium.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_email_wiring.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_enrollment.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_env_validator.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_error_monitoring.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_expiry.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_fee_resolver_international.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_fee_waivers.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_health.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_intake_manager_task.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_interview_scheduling.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_jobs_ops_endpoints.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_jobs_score_view.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_jti_blacklist.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_jwt_middleware.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_late_applications.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_live_500_fixes.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_multi_intake.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_notification_endpoints.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_optional_public_auth.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_outbox_helpers.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_password_rehash.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_payment_expiry.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_review_notifications.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_reviewer_assignment.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_schema_decorator_fixes.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_session_hardening.py | improve | none | depends on or mutates global environment state, which can leak across test processes
+- backend/tests/unit/test_structured_logging.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_system_alignment_model_serializer.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_view_auth_classification.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_waitlist.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan
+- backend/tests/unit/test_withdrawal.py | ignore-as-correct | none | no skip/focused/source-grep/global-env issue found in quick scan

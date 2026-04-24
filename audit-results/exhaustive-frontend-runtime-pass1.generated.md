@@ -1,0 +1,565 @@
+# Exhaustive Frontend Runtime Audit Pass 1
+
+Total files: 556
+
+- improve: 23
+- remove: 17
+- ignore-as-correct: 496
+- needs-human-decision: 20
+
+- .env.development | ignore-as-correct | none | tracked env template/public vars only; no secret or drift issue isolated
+- .env.example | improve | confirmed-bug | template points VITE_API_BASE_URL at frontend origin, not API host
+- .env.frontend | improve | suspicious-stale-path | production bundle vars duplicated outside app-level env contract
+- .env.local | remove | zero-day-class-risk | tracked local env contains live database/JWT/R2/SMTP/Vercel secrets
+- .env.production | improve | suspicious-stale-path | frontend and backend deployment vars mixed in one tracked file
+- .env.scripts.example | ignore-as-correct | none | tracked env template/public vars only; no secret or drift issue isolated
+- .env.vercel.development | remove | zero-day-class-risk | tracked Vercel export includes live secrets and OIDC token
+- .env.vercel.preview | remove | zero-day-class-risk | tracked preview env includes live secrets and OIDC token
+- .env.vercel.production | ignore-as-correct | none | tracked env template/public vars only; no secret or drift issue isolated
+- apps/admissions/.env | improve | suspicious-stale-path | tracked deployment-specific values duplicate Vercel config surface
+- apps/admissions/.env.example | ignore-as-correct | none | tracked env template/public vars only; no secret or drift issue isolated
+- apps/admissions/.env.local | remove | suspicious-stale-path | tracked local override creates non-portable build/runtime drift
+- apps/admissions/.env.production | improve | suspicious-stale-path | tracked production env omits SITE_URL/public key and drifts from examples
+- apps/admissions/components.json | ignore-as-correct | none | shadcn metadata only; no runtime behavior by itself
+- apps/admissions/eslint.config.js | ignore-as-correct | none | lint config only; no runtime behavior by itself
+- apps/admissions/index.html | improve | suspicious-stale-path | production shell still preconnects sandbox payment host
+- apps/admissions/package.json | ignore-as-correct | none | scripts/deps match Vite+Bun admissions runtime needs
+- apps/admissions/playwright.config.ts | ignore-as-correct | none | e2e config only; no shipped runtime effect
+- apps/admissions/postcss.config.js | ignore-as-correct | none | PostCSS config is standard and low-risk
+- apps/admissions/public/.well-known/security.txt | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/favicon.ico | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/icons/icon-192x192-maskable.png | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/icons/icon-192x192-maskable.svg | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/icons/icon-192x192.png | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/icons/icon-192x192.svg | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/icons/icon-512x512-maskable.png | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/icons/icon-512x512-maskable.svg | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/icons/icon-512x512.png | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/icons/icon-512x512.svg | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/accreditation/GNCLogo-blur.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/accreditation/GNCLogo.png | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/accreditation/GNCLogo.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/accreditation/eczlogo-blur.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/accreditation/eczlogo.png | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/accreditation/eczlogo.png.backup | remove | suspicious-stale-path | backup artifact is publicly shipped from runtime asset path
+- apps/admissions/public/images/accreditation/eczlogo.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/accreditation/hpc_logobig-blur.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/accreditation/hpc_logobig.png | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/accreditation/hpc_logobig.png.backup | remove | suspicious-stale-path | backup artifact is publicly shipped from runtime asset path
+- apps/admissions/public/images/accreditation/hpc_logobig.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/accreditation/unza-blur.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/accreditation/unza.jpg | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/accreditation/unza.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/logos/katc-logo-blur.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/logos/katc-logo.png | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/logos/katc-logo.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/logos/mihas-logo-blur.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/logos/mihas-logo.png | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/logos/mihas-logo.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/og-image.png | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/placeholder.svg | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/programs/katc-campus-1024w.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/programs/katc-campus-320w.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/programs/katc-campus-640w.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/programs/katc-campus-768w.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/programs/katc-campus-blur.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/programs/katc-campus.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/programs/mihas-campus-1024w.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/programs/mihas-campus-320w.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/programs/mihas-campus-640w.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/programs/mihas-campus-768w.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/programs/mihas-campus-blur.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/images/programs/mihas-campus.webp | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/ocr/tesseract/core/tesseract-core-lstm.wasm | remove | suspicious-stale-path | large OCR runtime asset appears unreferenced by current frontend code
+- apps/admissions/public/ocr/tesseract/core/tesseract-core-lstm.wasm.js | remove | suspicious-stale-path | large OCR runtime asset appears unreferenced by current frontend code
+- apps/admissions/public/ocr/tesseract/core/tesseract-core-simd-lstm.wasm | remove | suspicious-stale-path | large OCR runtime asset appears unreferenced by current frontend code
+- apps/admissions/public/ocr/tesseract/core/tesseract-core-simd-lstm.wasm.js | remove | suspicious-stale-path | large OCR runtime asset appears unreferenced by current frontend code
+- apps/admissions/public/ocr/tesseract/core/tesseract-core-simd.wasm | remove | suspicious-stale-path | large OCR runtime asset appears unreferenced by current frontend code
+- apps/admissions/public/ocr/tesseract/core/tesseract-core-simd.wasm.js | remove | suspicious-stale-path | large OCR runtime asset appears unreferenced by current frontend code
+- apps/admissions/public/ocr/tesseract/core/tesseract-core.wasm | remove | suspicious-stale-path | large OCR runtime asset appears unreferenced by current frontend code
+- apps/admissions/public/ocr/tesseract/core/tesseract-core.wasm.js | remove | suspicious-stale-path | large OCR runtime asset appears unreferenced by current frontend code
+- apps/admissions/public/ocr/tesseract/worker.min.js | remove | suspicious-stale-path | large OCR runtime asset appears unreferenced by current frontend code
+- apps/admissions/public/robots.txt | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/public/screenshots/application-wizard-mobile.png | remove | suspicious-stale-path | public screenshot appears unreferenced runtime baggage
+- apps/admissions/public/screenshots/student-dashboard-wide.png | remove | suspicious-stale-path | public screenshot appears unreferenced runtime baggage
+- apps/admissions/public/sitemap.xml | ignore-as-correct | none | public runtime asset looked valid and plausibly referenced
+- apps/admissions/src/App.tsx | improve | suspicious-stale-path | clears old chunk-reload keys while main.tsx writes v2 keys
+- apps/admissions/src/components/8starlabs/index.ts | ignore-as-correct | none | display component only; no route/auth/api behavior
+- apps/admissions/src/components/8starlabs/partition-bar.tsx | ignore-as-correct | none | display component only; no route/auth/api behavior
+- apps/admissions/src/components/8starlabs/status-indicator.tsx | ignore-as-correct | none | display component only; no route/auth/api behavior
+- apps/admissions/src/components/8starlabs/timeline.tsx | ignore-as-correct | none | display component only; no route/auth/api behavior
+- apps/admissions/src/components/AdminRoute.tsx | ignore-as-correct | none | reviewed and no isolated frontend runtime issue found
+- apps/admissions/src/components/AuthenticatedRouteShell.tsx | ignore-as-correct | none | reviewed and no isolated frontend runtime issue found
+- apps/admissions/src/components/DashboardRedirect.tsx | ignore-as-correct | none | reviewed and no isolated frontend runtime issue found
+- apps/admissions/src/components/DeferredGlobalFeedback.tsx | ignore-as-correct | none | reviewed and no isolated frontend runtime issue found
+- apps/admissions/src/components/LazyLoadErrorBoundary.tsx | improve | suspicious-stale-path | legacy reload keys/policy duplicate newer main.tsx recovery path
+- apps/admissions/src/components/ProtectedRoute.tsx | ignore-as-correct | none | reviewed and no isolated frontend runtime issue found
+- apps/admissions/src/components/StudentRoute.tsx | ignore-as-correct | none | reviewed and no isolated frontend runtime issue found
+- apps/admissions/src/components/admin/AdminCommunicationsPanel.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/AdminErrorBoundary.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/BulkOperations.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/BulkUserOperations.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/CommunicationModal.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/EnhancedDataTable.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/QuickActionsPanel.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/RealtimeMetricsDisplay.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/UserActivityLog.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/UserExport.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/UserImport.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/UserPermissions.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/UserRowCard.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/UserStats.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/AdminMetrics.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/ApplicationApprovalActions.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/ApplicationCard.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/ApplicationDetailDocuments.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/ApplicationDetailHeader.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/ApplicationDetailInterview.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/ApplicationDetailModal.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/ApplicationDetailPayment.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/ApplicationDetailTimeline.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/ApplicationsCards.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/ApplicationsFilters.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/ApplicationsMetrics.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/ApplicationsSkeleton.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/ApplicationsTable.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/ApplicationsTableView.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/BulkActionsBar.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/CapacityWarning.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/DraftBadge.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/FiltersPanel.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/MetricsHeader.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/SendNotificationModal.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/VirtualizedApplicationsGrid.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/applicationDetailTypes.ts | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/index.ts | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/modal/DocumentsTab.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/modal/GradesTab.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/modal/StatusHistoryTab.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/applications/modal/index.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/dashboard/DashboardActivityFeed.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/dashboard/DashboardQuickActions.tsx | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/admin/index.ts | ignore-as-correct | none | admin UI delegates mutations/fetching to reviewed services/hooks
+- apps/admissions/src/components/application/ContinueApplication.tsx | ignore-as-correct | none | small application UI component; no direct integration risk found
+- apps/admissions/src/components/application/EligibilityNotification.tsx | ignore-as-correct | none | small application UI component; no direct integration risk found
+- apps/admissions/src/components/auth/AuthLayout.tsx | ignore-as-correct | none | auth shell/monitor component with no direct backend drift found
+- apps/admissions/src/components/auth/SessionMonitor.tsx | ignore-as-correct | none | auth shell/monitor component with no direct backend drift found
+- apps/admissions/src/components/auth/index.ts | ignore-as-correct | none | auth shell/monitor component with no direct backend drift found
+- apps/admissions/src/components/icons/index.ts | ignore-as-correct | none | icon export only; no runtime side effects
+- apps/admissions/src/components/landing/LandingPageSections.tsx | ignore-as-correct | none | reviewed and no isolated frontend runtime issue found
+- apps/admissions/src/components/layout/PublicLayout.tsx | ignore-as-correct | none | layout/navigation view code; no unsafe runtime behavior found
+- apps/admissions/src/components/layout/PublicSiteHeader.tsx | ignore-as-correct | none | layout/navigation view code; no unsafe runtime behavior found
+- apps/admissions/src/components/layout/SharedFooter.tsx | ignore-as-correct | none | layout/navigation view code; no unsafe runtime behavior found
+- apps/admissions/src/components/navigation/AppLayout.tsx | ignore-as-correct | none | navigation shell code; no auth or API drift found
+- apps/admissions/src/components/navigation/BaseNavigation.tsx | ignore-as-correct | none | navigation shell code; no auth or API drift found
+- apps/admissions/src/components/navigation/Breadcrumbs.tsx | ignore-as-correct | none | navigation shell code; no auth or API drift found
+- apps/admissions/src/components/navigation/DesktopSidebar.tsx | ignore-as-correct | none | navigation shell code; no auth or API drift found
+- apps/admissions/src/components/navigation/Header.tsx | ignore-as-correct | none | navigation shell code; no auth or API drift found
+- apps/admissions/src/components/navigation/MobileBottomNav.tsx | ignore-as-correct | none | navigation shell code; no auth or API drift found
+- apps/admissions/src/components/navigation/index.ts | ignore-as-correct | none | navigation shell code; no auth or API drift found
+- apps/admissions/src/components/seo/Seo.tsx | ignore-as-correct | none | reviewed and no isolated frontend runtime issue found
+- apps/admissions/src/components/smoothui/animated-counter.tsx | ignore-as-correct | none | animation/presentation component; no runtime integration risk found
+- apps/admissions/src/components/smoothui/animated-input.tsx | ignore-as-correct | none | animation/presentation component; no runtime integration risk found
+- apps/admissions/src/components/smoothui/index.ts | ignore-as-correct | none | animation/presentation component; no runtime integration risk found
+- apps/admissions/src/components/smoothui/page-transition.tsx | ignore-as-correct | none | animation/presentation component; no runtime integration risk found
+- apps/admissions/src/components/smoothui/shape-landing-hero.tsx | ignore-as-correct | none | animation/presentation component; no runtime integration risk found
+- apps/admissions/src/components/student/ApplicationListItem.tsx | ignore-as-correct | none | student view component; runtime logic delegates to reviewed hooks/services
+- apps/admissions/src/components/student/ApplicationSlipActions.tsx | ignore-as-correct | none | student view component; runtime logic delegates to reviewed hooks/services
+- apps/admissions/src/components/student/ApplicationTimeline.tsx | ignore-as-correct | none | student view component; runtime logic delegates to reviewed hooks/services
+- apps/admissions/src/components/student/DashboardStatusOverview.tsx | ignore-as-correct | none | student view component; runtime logic delegates to reviewed hooks/services
+- apps/admissions/src/components/student/DocumentButtons.tsx | ignore-as-correct | none | student view component; runtime logic delegates to reviewed hooks/services
+- apps/admissions/src/components/student/DownloadReceiptButton.tsx | ignore-as-correct | none | student view component; runtime logic delegates to reviewed hooks/services
+- apps/admissions/src/components/student/InterviewDetails.tsx | ignore-as-correct | none | student view component; runtime logic delegates to reviewed hooks/services
+- apps/admissions/src/components/student/NotificationBell.tsx | ignore-as-correct | none | student view component; runtime logic delegates to reviewed hooks/services
+- apps/admissions/src/components/student/NotificationItem.tsx | ignore-as-correct | none | student view component; runtime logic delegates to reviewed hooks/services
+- apps/admissions/src/components/student/PaymentForm.tsx | ignore-as-correct | none | student view component; runtime logic delegates to reviewed hooks/services
+- apps/admissions/src/components/student/QuickActions.tsx | ignore-as-correct | none | student view component; runtime logic delegates to reviewed hooks/services
+- apps/admissions/src/components/student/StudentErrorBoundary.tsx | ignore-as-correct | none | student view component; runtime logic delegates to reviewed hooks/services
+- apps/admissions/src/components/student/StudentNextActionCard.tsx | ignore-as-correct | none | student view component; runtime logic delegates to reviewed hooks/services
+- apps/admissions/src/components/ui/ActiveSessions.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/Alert.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/AppShellSkeleton.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/AuthLoadingOverlay.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/AutoSaveIndicator.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/Banner.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/BottomNavigation.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/BuildVersionBadge.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/Button.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/ButtonSpinner.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/CanonicalSelect.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/ConfirmDialog.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/Container.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/DataPopulationConfirmation.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/Dialog.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/EmptyState.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/ErrorBoundary.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/ErrorDisplay.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/FileUpload.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/FocusTrap.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/FormError.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/FormErrorAnnouncer.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/FormFeedback.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/Grid.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/GuardInlineSkeleton.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/InfoCallout.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/InlineLoader.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/LoadingButton.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/LoadingFallback.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/LoadingOverlay.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/LoadingSpinner.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/MobilePageHeader.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/Modal.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/OptimizedImage.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/PageHeader.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/PageLoadingFallback.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/PageShell.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/Pagination.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/PasswordInput.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/ProfileAutoPopulationIndicator.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/ProgressIndicator.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/Radio.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/ResponsiveLayout.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/ResponsiveTable.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/SafeAreaProvider.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/SafeHtml.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/SaveStatusIndicator.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/Section.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/SectionCard.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/SkipLink.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/Spinner.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/Stack.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/StatusIcon.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/Stepper.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/Table.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/Toast.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/UserMenu.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/accordion.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/alert-dialog.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/badge.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/card.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/checkbox.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/dropdown-menu.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/form-radio-group.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/form-select.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/index.ts | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/input.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/label.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/progress.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/radio-group.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/select.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/separator.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/skeleton.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/skeletons/AdminTableSkeleton.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/skeletons/AuthSkeleton.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/skeletons/DashboardSkeleton.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/skeletons/DetailSkeleton.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/skeletons/WizardSkeleton.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/skeletons/index.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/switch.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/tabs.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/textarea.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/components/ui/tooltip.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/admissions/src/contexts/AuthContext.tsx | ignore-as-correct | none | context wiring reviewed; no new runtime issue flagged here
+- apps/admissions/src/contexts/SidebarContext.tsx | ignore-as-correct | none | context wiring reviewed; no new runtime issue flagged here
+- apps/admissions/src/data/applications.ts | ignore-as-correct | none | data/query helper showed no distinct route/auth/payment defect
+- apps/admissions/src/data/catalog.ts | ignore-as-correct | none | data/query helper showed no distinct route/auth/payment defect
+- apps/admissions/src/data/users.ts | ignore-as-correct | none | data/query helper showed no distinct route/auth/payment defect
+- apps/admissions/src/design-system/helpers.ts | ignore-as-correct | none | design token/helper module; no network or session path
+- apps/admissions/src/design-system/index.ts | ignore-as-correct | none | design token/helper module; no network or session path
+- apps/admissions/src/design-system/tokens.colors.cjs | ignore-as-correct | none | design token/helper module; no network or session path
+- apps/admissions/src/design-system/tokens.colors.d.cts | ignore-as-correct | none | design token/helper module; no network or session path
+- apps/admissions/src/design-system/tokens.ts | ignore-as-correct | none | design token/helper module; no network or session path
+- apps/admissions/src/design-system/variants.ts | ignore-as-correct | none | design token/helper module; no network or session path
+- apps/admissions/src/forms/applicationSchema.ts | ignore-as-correct | none | reviewed and no isolated frontend runtime issue found
+- apps/admissions/src/hooks/admin/applicationQueryInvalidation.ts | ignore-as-correct | none | admin hook composes reviewed services/query cache
+- apps/admissions/src/hooks/admin/index.ts | ignore-as-correct | none | admin hook composes reviewed services/query cache
+- apps/admissions/src/hooks/admin/useApplicationActions.ts | ignore-as-correct | none | admin hook composes reviewed services/query cache
+- apps/admissions/src/hooks/admin/useApplicationBulkActions.ts | ignore-as-correct | none | admin hook composes reviewed services/query cache
+- apps/admissions/src/hooks/admin/useApplicationDocuments.ts | ignore-as-correct | none | admin hook composes reviewed services/query cache
+- apps/admissions/src/hooks/admin/useApplicationFilters.ts | ignore-as-correct | none | admin hook composes reviewed services/query cache
+- apps/admissions/src/hooks/admin/useApplicationStatusHistory.ts | ignore-as-correct | none | admin hook composes reviewed services/query cache
+- apps/admissions/src/hooks/admin/useApplicationStatusUpdate.ts | ignore-as-correct | none | admin hook composes reviewed services/query cache
+- apps/admissions/src/hooks/admin/useApplicationsData.ts | ignore-as-correct | none | admin hook composes reviewed services/query cache
+- apps/admissions/src/hooks/auth/authQueries.ts | ignore-as-correct | none | auth hook aligns with cookie/CSRF session model
+- apps/admissions/src/hooks/auth/useProfileQuery.ts | ignore-as-correct | none | auth hook aligns with cookie/CSRF session model
+- apps/admissions/src/hooks/auth/useRoleVerification.ts | ignore-as-correct | none | auth hook aligns with cookie/CSRF session model
+- apps/admissions/src/hooks/auth/useSessionListener.ts | ignore-as-correct | none | auth hook aligns with cookie/CSRF session model
+- apps/admissions/src/hooks/queries/index.ts | ignore-as-correct | none | query wrapper around reviewed services/config
+- apps/admissions/src/hooks/queries/useApplicationDataQueries.ts | ignore-as-correct | none | query wrapper around reviewed services/config
+- apps/admissions/src/hooks/queries/useApplicationQueries.ts | ignore-as-correct | none | query wrapper around reviewed services/config
+- apps/admissions/src/hooks/queries/useNotificationQueries.ts | ignore-as-correct | none | query wrapper around reviewed services/config
+- apps/admissions/src/hooks/queries/useQueryConfig.ts | ignore-as-correct | none | query wrapper around reviewed services/config
+- apps/admissions/src/hooks/queries/useStorageQueries.ts | ignore-as-correct | none | query wrapper around reviewed services/config
+- apps/admissions/src/hooks/useAdminDashboardPolling.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useApplicationPaymentAction.ts | improve | confirmed-bug | payment initiate flow never stores callback payment id for PaymentCallback
+- apps/admissions/src/hooks/useApplicationSubmit.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useAutoSave.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useCommunications.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useConfirmDialog.tsx | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useDebounce.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useDebouncedCallback.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useDeferredHydration.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useDocumentGeneration.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useDraftManager.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useEligibilityChecker.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useEscapeKey.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useFeeResolver.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useFocusTrap.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useLencoWidget.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useManualRefresh.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useNotificationPolling.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useOptimizedAnimation.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/usePaymentReceipt.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/usePaymentStatus.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/usePrefetch.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useProfileAutoPopulation.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useResidenceLocationOptions.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useResponsive.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useScrollDirection.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useScrollRestoration.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useSignOutAction.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useStudentDashboardPolling.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useStyleInjection.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useTimeline.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useToast.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/hooks/useUserManagement.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/index.css | ignore-as-correct | none | reviewed and no isolated frontend runtime issue found
+- apps/admissions/src/lib/acceptanceLetterGenerator.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/accessibility-utils.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/animation-config.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/animations.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/api/adminApi.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/apiConfig.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/apiErrorHandler.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/apiErrorLogger.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/appVersion.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/applicationSession.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/applicationSlip.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/applicationSlip.types.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/applicationSlipPdf.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/applicationSlipStorage.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/applicationStats.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/applicationStatusUi.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/auditExports.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/auth/roles.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/authBroadcast.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/authSession.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/chunkAutoReloadPolicy.ts | ignore-as-correct | already-fixed-local | centralized reload policy exists and matches current main.tsx guard
+- apps/admissions/src/lib/connectionFix.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/constants/landing.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/csrfToken.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/dateFormat.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/draftManager.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/draftStorageKeys.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/eligibilityEngine.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/env.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/errorMessages.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/errorReporter.ts | ignore-as-correct | already-fixed-local | GlitchTip init is gated by env and avoids default PII sending
+- apps/admissions/src/lib/exportUtils.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/gradeValidation.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/grades.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/hardReload.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/lazyImportRecovery.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/loaderTelemetry.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/localStorageCache.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/locationOptions.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/logger.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/nationalityOptions.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/paymentStatus.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/phoneNormalization.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/profileFieldMapping.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/publicRouteMode.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/queryCacheConfig.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/queryClient.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/receiptGenerator.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/reloadControl.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/residenceTown.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/routePreload.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/routeRuntime.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/sanitize/index.ts | ignore-as-correct | none | central sanitization helper used for display/log normalization
+- apps/admissions/src/lib/secureStorage.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/security.ts | improve | suspicious-stale-path | legacy handwritten sanitizer module remains in runtime despite consolidated sanitize path
+- apps/admissions/src/lib/sessionHardening.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/slipService.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/speculativePrefetch.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/storage.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/subjectMatcher.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/toError.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/urlSafety.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/userDisplayName.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/utils.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/lib/zod.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/admissions/src/main.tsx | ignore-as-correct | already-fixed-local | v2 chunk reload guard and preloader dismissal replace older stale recovery
+- apps/admissions/src/pages/ContactPage.tsx | ignore-as-correct | none | page is largely presentational and showed no isolated runtime defect
+- apps/admissions/src/pages/LandingPage.tsx | ignore-as-correct | none | page is largely presentational and showed no isolated runtime defect
+- apps/admissions/src/pages/NotFoundPage.tsx | ignore-as-correct | none | page is largely presentational and showed no isolated runtime defect
+- apps/admissions/src/pages/PrivacyPage.tsx | ignore-as-correct | none | page is largely presentational and showed no isolated runtime defect
+- apps/admissions/src/pages/TermsPage.tsx | ignore-as-correct | none | page is largely presentational and showed no isolated runtime defect
+- apps/admissions/src/pages/admin/Applications.tsx | ignore-as-correct | none | admin page uses guarded routes and shared services
+- apps/admissions/src/pages/admin/AuditTrail.tsx | ignore-as-correct | none | admin page uses guarded routes and shared services
+- apps/admissions/src/pages/admin/Dashboard.tsx | ignore-as-correct | none | admin page uses guarded routes and shared services
+- apps/admissions/src/pages/admin/Intakes.tsx | ignore-as-correct | none | admin page uses guarded routes and shared services
+- apps/admissions/src/pages/admin/ProgramFees.tsx | ignore-as-correct | none | admin page uses guarded routes and shared services
+- apps/admissions/src/pages/admin/Programs.tsx | ignore-as-correct | none | admin page uses guarded routes and shared services
+- apps/admissions/src/pages/admin/Settings.tsx | ignore-as-correct | none | admin page uses guarded routes and shared services
+- apps/admissions/src/pages/admin/Users.tsx | ignore-as-correct | none | admin page uses guarded routes and shared services
+- apps/admissions/src/pages/admin/lib/applicationsOverview.ts | ignore-as-correct | none | admin helper module; no direct runtime exposure
+- apps/admissions/src/pages/admin/lib/dashboardBootstrap.ts | ignore-as-correct | none | admin helper module; no direct runtime exposure
+- apps/admissions/src/pages/auth/AuthCallbackPage.tsx | improve | confirmed-bug,suspicious-stale-path | route is shipped but always errors because backend callback is unavailable
+- apps/admissions/src/pages/auth/ForgotPasswordPage.tsx | ignore-as-correct | none | auth page uses reviewed auth/session primitives
+- apps/admissions/src/pages/auth/ResetPasswordPage.tsx | ignore-as-correct | none | auth page uses reviewed auth/session primitives
+- apps/admissions/src/pages/auth/SignInPage.tsx | ignore-as-correct | none | auth page uses reviewed auth/session primitives
+- apps/admissions/src/pages/auth/SignUpPage.tsx | ignore-as-correct | none | auth page uses reviewed auth/session primitives
+- apps/admissions/src/pages/public/tracker/components/ApplicationActions.tsx | ignore-as-correct | none | public tracker runtime appears scoped and sanitized
+- apps/admissions/src/pages/public/tracker/components/ApplicationInfoGrid.tsx | ignore-as-correct | none | public tracker runtime appears scoped and sanitized
+- apps/admissions/src/pages/public/tracker/components/ApplicationStatusDetails.tsx | ignore-as-correct | none | public tracker runtime appears scoped and sanitized
+- apps/admissions/src/pages/public/tracker/components/ApplicationStatusHeader.tsx | ignore-as-correct | none | public tracker runtime appears scoped and sanitized
+- apps/admissions/src/pages/public/tracker/components/HelpSection.tsx | ignore-as-correct | none | public tracker runtime appears scoped and sanitized
+- apps/admissions/src/pages/public/tracker/components/NoResultsView.tsx | ignore-as-correct | none | public tracker runtime appears scoped and sanitized
+- apps/admissions/src/pages/public/tracker/components/ShareModal.tsx | ignore-as-correct | none | public tracker runtime appears scoped and sanitized
+- apps/admissions/src/pages/public/tracker/components/TrackerSearchSection.tsx | ignore-as-correct | none | public tracker runtime appears scoped and sanitized
+- apps/admissions/src/pages/public/tracker/components/index.ts | ignore-as-correct | none | public tracker runtime appears scoped and sanitized
+- apps/admissions/src/pages/public/tracker/hooks/useApplicationTracker.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/pages/public/tracker/index.tsx | ignore-as-correct | none | public tracker runtime appears scoped and sanitized
+- apps/admissions/src/pages/public/tracker/utils/trackerUtils.ts | ignore-as-correct | none | public tracker runtime appears scoped and sanitized
+- apps/admissions/src/pages/student/ApplicationDetail.tsx | ignore-as-correct | none | student page composes reviewed hooks/services without new defect
+- apps/admissions/src/pages/student/ApplicationStatus.tsx | ignore-as-correct | none | student page composes reviewed hooks/services without new defect
+- apps/admissions/src/pages/student/Communications.tsx | ignore-as-correct | none | student page composes reviewed hooks/services without new defect
+- apps/admissions/src/pages/student/Dashboard.tsx | ignore-as-correct | none | student page composes reviewed hooks/services without new defect
+- apps/admissions/src/pages/student/History.tsx | ignore-as-correct | none | student page composes reviewed hooks/services without new defect
+- apps/admissions/src/pages/student/Interview.tsx | ignore-as-correct | none | student page composes reviewed hooks/services without new defect
+- apps/admissions/src/pages/student/NotificationSettings.tsx | ignore-as-correct | none | student page composes reviewed hooks/services without new defect
+- apps/admissions/src/pages/student/Payment.tsx | ignore-as-correct | none | student page composes reviewed hooks/services without new defect
+- apps/admissions/src/pages/student/PaymentCallback.tsx | improve | confirmed-bug,suspicious-stale-path | callback verifies mihas:pending-payment-id that no runtime code persists
+- apps/admissions/src/pages/student/Settings.tsx | ignore-as-correct | none | student page composes reviewed hooks/services without new defect
+- apps/admissions/src/pages/student/applicationWizard/components/AnalyticsDashboard.tsx | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/components/ApplicationPreview.tsx | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/components/DraftManager.tsx | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/components/EnhancedProgressIndicator.tsx | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/components/KeyboardShortcutsHelp.tsx | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/components/ResidenceLocationFields.tsx | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/components/StepChecklist.tsx | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/components/SubmissionSuccess.tsx | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/components/WizardErrorSummary.tsx | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/constants.ts | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/hooks/useApplicationFileUploads.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/pages/student/applicationWizard/hooks/useApplicationSlip.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/pages/student/applicationWizard/hooks/useEstimatedTime.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/pages/student/applicationWizard/hooks/useMultiDraft.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/pages/student/applicationWizard/hooks/useOcrGradeExtraction.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/pages/student/applicationWizard/hooks/useOverallProgress.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/pages/student/applicationWizard/hooks/useSmartAutoSave.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/pages/student/applicationWizard/hooks/useStepValidation.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/pages/student/applicationWizard/hooks/useWizardController.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/pages/student/applicationWizard/hooks/wizard/index.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/pages/student/applicationWizard/hooks/wizard/state/useWizardState.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/pages/student/applicationWizard/hooks/wizard/utils/wizardUtils.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/pages/student/applicationWizard/hooks/wizard/validation/paymentValidation.ts | ignore-as-correct | none | hook logic reviewed; no distinct runtime defect isolated here
+- apps/admissions/src/pages/student/applicationWizard/index.tsx | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/lib/draftAutosave.ts | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/lib/draftResume.ts | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/lib/educationCatalog.ts | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/lib/progressSummary.ts | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/lib/wizardReadiness.ts | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/steps/BasicKycStep.tsx | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/steps/EducationStep.tsx | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/steps/PaymentStep.tsx | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/steps/SubmitStep.tsx | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/steps/config.ts | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/pages/student/applicationWizard/types.ts | ignore-as-correct | none | wizard runtime path reviewed; no distinct issue isolated here
+- apps/admissions/src/routes/config.tsx | ignore-as-correct | none | reviewed and no isolated frontend runtime issue found
+- apps/admissions/src/services/admin/audit.ts | ignore-as-correct | none | admin service uses shared cookie API client
+- apps/admissions/src/services/admin/dashboard.ts | ignore-as-correct | none | admin service uses shared cookie API client
+- apps/admissions/src/services/admin/users.ts | ignore-as-correct | none | admin service uses shared cookie API client
+- apps/admissions/src/services/apiHelpers.ts | ignore-as-correct | none | service delegates to shared API client with no new issue isolated
+- apps/admissions/src/services/applications.ts | ignore-as-correct | none | service delegates to shared API client with no new issue isolated
+- apps/admissions/src/services/auth.ts | ignore-as-correct | none | service delegates to shared API client with no new issue isolated
+- apps/admissions/src/services/catalog.ts | ignore-as-correct | none | service delegates to shared API client with no new issue isolated
+- apps/admissions/src/services/client.ts | ignore-as-correct | none | service delegates to shared API client with no new issue isolated
+- apps/admissions/src/services/communications.ts | ignore-as-correct | none | service delegates to shared API client with no new issue isolated
+- apps/admissions/src/services/csrf.ts | ignore-as-correct | none | service delegates to shared API client with no new issue isolated
+- apps/admissions/src/services/documents.ts | ignore-as-correct | none | service delegates to shared API client with no new issue isolated
+- apps/admissions/src/services/interviews.ts | ignore-as-correct | none | service delegates to shared API client with no new issue isolated
+- apps/admissions/src/services/notifications.ts | ignore-as-correct | none | service delegates to shared API client with no new issue isolated
+- apps/admissions/src/services/retry.ts | ignore-as-correct | none | service delegates to shared API client with no new issue isolated
+- apps/admissions/src/services/sessionService.ts | ignore-as-correct | none | service delegates to shared API client with no new issue isolated
+- apps/admissions/src/stores/authStore.ts | ignore-as-correct | none | local UI/auth store only; no direct runtime bug flagged
+- apps/admissions/src/styles/accreditation.css | ignore-as-correct | none | style sheet only; no route/auth/api behavior
+- apps/admissions/src/styles/admin-colors.css | ignore-as-correct | none | style sheet only; no route/auth/api behavior
+- apps/admissions/src/styles/animations.css | ignore-as-correct | none | style sheet only; no route/auth/api behavior
+- apps/admissions/src/styles/design-tokens.css | ignore-as-correct | none | style sheet only; no route/auth/api behavior
+- apps/admissions/src/styles/interactive-feedback.css | ignore-as-correct | none | style sheet only; no route/auth/api behavior
+- apps/admissions/src/styles/legibility.css | ignore-as-correct | none | style sheet only; no route/auth/api behavior
+- apps/admissions/src/styles/mobile-enhancements.css | ignore-as-correct | none | style sheet only; no route/auth/api behavior
+- apps/admissions/src/styles/mobile.css | ignore-as-correct | none | style sheet only; no route/auth/api behavior
+- apps/admissions/src/styles/print.css | ignore-as-correct | none | style sheet only; no route/auth/api behavior
+- apps/admissions/src/styles/smooth-animations.css | ignore-as-correct | none | style sheet only; no route/auth/api behavior
+- apps/admissions/src/types/application.ts | ignore-as-correct | none | type-only module; no runtime side effects
+- apps/admissions/src/types/applicationStatus.ts | ignore-as-correct | none | type-only module; no runtime side effects
+- apps/admissions/src/types/auth.ts | ignore-as-correct | none | type-only module; no runtime side effects
+- apps/admissions/src/types/dashboard.ts | ignore-as-correct | none | type-only module; no runtime side effects
+- apps/admissions/src/types/database.ts | ignore-as-correct | none | type-only module; no runtime side effects
+- apps/admissions/src/types/eligibility.ts | ignore-as-correct | none | type-only module; no runtime side effects
+- apps/admissions/src/types/eligibilityAssessment.ts | ignore-as-correct | none | type-only module; no runtime side effects
+- apps/admissions/src/types/errors.ts | ignore-as-correct | none | type-only module; no runtime side effects
+- apps/admissions/src/types/notifications.ts | ignore-as-correct | none | type-only module; no runtime side effects
+- apps/admissions/src/types/users.ts | ignore-as-correct | none | type-only module; no runtime side effects
+- apps/admissions/src/vite-env.d.ts | ignore-as-correct | none | reviewed and no isolated frontend runtime issue found
+- apps/admissions/vercel.json | needs-human-decision | none | CSP keeps unsafe-inline/report-uri tradeoff for static hosting
+- apps/admissions/vite.config.ts | ignore-as-correct | none | Vite config aligns with current runtime expectations
+- apps/admissions/vitest.config.ts | ignore-as-correct | none | test config only; no frontend runtime effect in production
+- apps/jobs-ops/README.md | needs-human-decision | suspicious-stale-path | README explicitly says auth/live persistence do not exist yet
+- apps/jobs-ops/bunfig.toml | ignore-as-correct | none | Bun install/run settings are minimal and coherent
+- apps/jobs-ops/dist/assets/index-DcfZA8yR.js | ignore-as-correct | none | reviewed and no isolated frontend runtime issue found
+- apps/jobs-ops/dist/assets/index-dJmv8dQl.css | ignore-as-correct | none | reviewed and no isolated frontend runtime issue found
+- apps/jobs-ops/dist/index.html | ignore-as-correct | none | document shell looked coherent for shipped runtime
+- apps/jobs-ops/eslint.config.js | ignore-as-correct | none | lint config only; no runtime behavior by itself
+- apps/jobs-ops/index.html | needs-human-decision | suspicious-stale-path | document description labels app as scaffolded operator dashboard
+- apps/jobs-ops/package.json | ignore-as-correct | none | package metadata is consistent with scaffold runtime
+- apps/jobs-ops/postcss.config.js | ignore-as-correct | none | PostCSS config is standard and low-risk
+- apps/jobs-ops/src/App.tsx | ignore-as-correct | none | reviewed and no isolated frontend runtime issue found
+- apps/jobs-ops/src/app/layout/JobsOpsShell.tsx | needs-human-decision | suspicious-stale-path | shell copy advertises seeded read models rather than live protected workspace
+- apps/jobs-ops/src/app/layout/navigation.ts | needs-human-decision | suspicious-stale-path | navigation copy hardcodes scaffold migration focus and seeded artifacts
+- apps/jobs-ops/src/app/providers.tsx | ignore-as-correct | none | query client provider is minimal and runtime-safe
+- apps/jobs-ops/src/app/router.tsx | improve | confirmed-bug | all operator routes are public; no auth or role gate exists
+- apps/jobs-ops/src/components/ui/EmptyState.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/jobs-ops/src/components/ui/LoadingState.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/jobs-ops/src/components/ui/MetricCard.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/jobs-ops/src/components/ui/PageHeader.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/jobs-ops/src/components/ui/ProgressBar.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/jobs-ops/src/components/ui/SectionCard.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/jobs-ops/src/components/ui/StatusBadge.tsx | ignore-as-correct | none | presentational primitive; no auth/session/payment integration found
+- apps/jobs-ops/src/features/analytics/pages/ReportsPage.tsx | needs-human-decision | suspicious-stale-path | page copy/data model is scaffolded or seeded, not clearly production-backed
+- apps/jobs-ops/src/features/audit/pages/AuditLogPage.tsx | needs-human-decision | suspicious-stale-path | page copy/data model is scaffolded or seeded, not clearly production-backed
+- apps/jobs-ops/src/features/automation/pages/AutomationRunsPage.tsx | needs-human-decision | suspicious-stale-path | page copy/data model is scaffolded or seeded, not clearly production-backed
+- apps/jobs-ops/src/features/documents/pages/ResumeLabPage.tsx | needs-human-decision | suspicious-stale-path | page copy/data model is scaffolded or seeded, not clearly production-backed
+- apps/jobs-ops/src/features/email/pages/EmailOpsPage.tsx | needs-human-decision | suspicious-stale-path | page copy/data model is scaffolded or seeded, not clearly production-backed
+- apps/jobs-ops/src/features/integrations/pages/IntegrationsPage.tsx | needs-human-decision | suspicious-stale-path | page copy/data model is scaffolded or seeded, not clearly production-backed
+- apps/jobs-ops/src/features/job-applications/pages/JobApplicationsPage.tsx | needs-human-decision | suspicious-stale-path | page copy/data model is scaffolded or seeded, not clearly production-backed
+- apps/jobs-ops/src/features/jobs/pages/JobDetailPage.tsx | needs-human-decision | suspicious-stale-path | page copy/data model is scaffolded or seeded, not clearly production-backed
+- apps/jobs-ops/src/features/jobs/pages/JobsInboxPage.tsx | needs-human-decision | suspicious-stale-path | page copy/data model is scaffolded or seeded, not clearly production-backed
+- apps/jobs-ops/src/features/outreach/pages/OutreachCRMPage.tsx | needs-human-decision | suspicious-stale-path | page copy/data model is scaffolded or seeded, not clearly production-backed
+- apps/jobs-ops/src/features/overview/pages/OverviewPage.tsx | needs-human-decision | suspicious-stale-path | page copy/data model is scaffolded or seeded, not clearly production-backed
+- apps/jobs-ops/src/features/review/pages/ReviewWorkbenchPage.tsx | needs-human-decision | suspicious-stale-path | page copy/data model is scaffolded or seeded, not clearly production-backed
+- apps/jobs-ops/src/features/shared/ScaffoldPage.tsx | needs-human-decision | suspicious-stale-path | component renders planned routes/backend placeholders by design
+- apps/jobs-ops/src/features/sources/pages/SourceHealthPage.tsx | needs-human-decision | suspicious-stale-path | page copy/data model is scaffolded or seeded, not clearly production-backed
+- apps/jobs-ops/src/index.css | ignore-as-correct | none | reviewed and no isolated frontend runtime issue found
+- apps/jobs-ops/src/lib/env.ts | improve | confirmed-bug | missing VITE_API_BASE_URL silently falls back to localhost in shipped bundle
+- apps/jobs-ops/src/lib/format.ts | ignore-as-correct | none | utility module reviewed; no isolated runtime defect found
+- apps/jobs-ops/src/main.tsx | ignore-as-correct | none | reviewed and no isolated frontend runtime issue found
+- apps/jobs-ops/src/services/api/analytics.ts | improve | suspicious-stale-path | returns seeded fallback analytics when live API fails
+- apps/jobs-ops/src/services/api/automation.ts | improve | suspicious-stale-path | returns seeded automation runs/rules when API fails
+- apps/jobs-ops/src/services/api/client.ts | improve | confirmed-bug | cookie API client lacks auth/session failure handling and masks outages via retries
+- apps/jobs-ops/src/services/api/contracts.ts | ignore-as-correct | none | service delegates to shared API client with no new issue isolated
+- apps/jobs-ops/src/services/api/documents.ts | improve | suspicious-stale-path | returns seeded resume assets when API fails
+- apps/jobs-ops/src/services/api/email.ts | improve | suspicious-stale-path | returns seeded email threads/messages when API fails
+- apps/jobs-ops/src/services/api/job-applications.ts | improve | suspicious-stale-path | returns seeded applications when API fails
+- apps/jobs-ops/src/services/api/jobs.ts | improve | suspicious-stale-path | returns scaffold jobs/detail including example.com links on API failure
+- apps/jobs-ops/src/services/api/outreach.ts | improve | suspicious-stale-path | returns seeded contacts/campaigns when API fails
+- apps/jobs-ops/src/services/api/platform.ts | improve | suspicious-stale-path | returns seeded platform metadata when API fails
+- apps/jobs-ops/src/stores/ui-store.ts | ignore-as-correct | none | local UI/auth store only; no direct runtime bug flagged
+- apps/jobs-ops/tailwind.config.js | ignore-as-correct | none | styling build config only; no direct runtime logic
+- apps/jobs-ops/tsconfig.build.json | ignore-as-correct | none | compile-time config only; no direct runtime behavior
+- apps/jobs-ops/tsconfig.json | ignore-as-correct | none | compile-time config only; no direct runtime behavior
+- apps/jobs-ops/vercel.json | needs-human-decision | none | CSP keeps unsafe-inline while app still lacks auth gates
+- apps/jobs-ops/vite.config.ts | ignore-as-correct | none | Vite config aligns with current runtime expectations

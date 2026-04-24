@@ -1,0 +1,60 @@
+# Deployment / Control-Surface Audit Ledger
+
+Total files: 51
+
+- improve: 12
+- remove: 28
+- ignore-as-correct: 10
+- needs-human-decision: 1
+
+- `.github/workflows/backend-governance.yml` | improve | confirmed-bug | Watches `docs/decision/**`, but accepted ADRs currently live under `docs/archive/legacy/decision/**`, so policy-only edits can bypass this governance gate.
+- `.github/workflows/ci.yml` | ignore-as-correct | none | CI covers backend tests plus admissions and jobs-ops type/lint/build slices without stale platform references in the workflow itself.
+- `package.json` | ignore-as-correct | none | Root workspace scripts are minimal and do not embed deploy targets, secrets, or misleading platform assumptions.
+- `README.md` | improve | none | Top-level deployment summary omits the same-site `.mihas.edu.zm` cookie-domain requirement that `backend/DEPLOY.md` treats as mandatory for auth/CSRF, so it can mislead operators toward broken domain choices.
+- `shared/PLATFORM_CONTRACT.md` | ignore-as-correct | none | CSRF recovery contract matches live code paths (`?refresh_csrf=1` and `X-CSRF-Recovery`) and keeps admissions-only scope explicit.
+- `shared/package.json` | ignore-as-correct | none | Metadata-only package file; no deploy/security decision surface beyond package identity.
+- `docs/schema-ownership.md` | improve | confirmed-bug | References missing `docs/decision/2026-04-21-adr-004-schema-ownership.md` and missing `docs/migration/2026-03-07-manual-migration-order.md`; the only present copies are archived.
+- `docs/redis-dependency-tiers.md` | improve | confirmed-bug | References missing `docs/decision/2026-04-21-adr-007-redis-dependency-policy.md`, leaving operators one broken hop away from the canonical dependency policy.
+- `docs/security-api-audit-2026-04.md` | improve | already-fixed-local | Still marks H1/N1 open, but `.kiro/mcp.json` and `.kiro/settings/mcp.json` now use blank placeholders and the analytics/email/document scaffold endpoints are now auth-gated.
+- `production-hardening.md` | improve | already-fixed-local | “Remaining” items are partly stale: the critical frontend slice is already in `.github/workflows/ci.yml`, and the secrets rotation / post-deploy runbooks now exist.
+- `docs/full-audit-report-2026-04-22.md` | improve | suspicious-stale-path | The report is a point-in-time snapshot, but its stale-doc examples point at old `docs/...` locations while the live misleading operator docs now sit under `docs/archive/legacy/...`.
+- `docs/runbooks/database-backup-restore.md` | ignore-as-correct | none | Aligns with current Neon/Koyeb rollback posture and avoids ad-hoc SQL rollback advice.
+- `docs/runbooks/local-parity.md` | ignore-as-correct | none | Matches the current Docker Compose local Postgres/Redis parity workflow and does not claim production-only behavior.
+- `docs/runbooks/post-deploy-smoke-check.md` | ignore-as-correct | none | References an existing smoke script and current production domains/endpoints.
+- `docs/runbooks/redis-incident-response.md` | improve | confirmed-bug | Operational content matches the code, but it links to missing `docs/decision/2026-04-21-adr-007-redis-dependency-policy.md` instead of the archived accepted ADR.
+- `docs/runbooks/redis-recovery.md` | ignore-as-correct | none | Recovery commands and endpoint behavior match live code, including `recover_jti_blacklist` and `/health/redis/`.
+- `docs/runbooks/release-and-rollback.md` | ignore-as-correct | none | Release-tag and rollback flow matches current scripts and current Koyeb/Vercel split.
+- `docs/runbooks/scaling-playbook.md` | needs-human-decision | none | Hardcodes environment facts like “Neon 0.25 CU tier” and “Upstash free tier” that the repo cannot verify; operators need a real plan/limit confirmation before trusting it.
+- `docs/runbooks/secrets-rotation.md` | ignore-as-correct | none | Secret inventory and restart guidance align with current Django/Koyeb/Vercel deployment shape.
+- `docs/archive/legacy/DEPLOY_NOW.md` | remove | suspicious-stale-path | Archived quick deploy guide still instructs Cloudflare Pages deploys, Supabase-token console checks, and RLS rollback SQL for a retired stack.
+- `docs/archive/legacy/MONITORING_SETUP.md` | remove | suspicious-stale-path | Still tells operators to monitor `mihasv3.pages.dev` through Cloudflare Pages and Supabase dashboards, which no longer represent the current production topology.
+- `docs/archive/legacy/UNIFIED_TEMPLATES_DEPLOYMENT.md` | remove | suspicious-stale-path | Deployment checklist is built around Netlify and Supabase function logs, not the current Koyeb/Vercel/Django platform.
+- `docs/archive/legacy/production-deployment-guide.md` | remove | suspicious-stale-path | Full production guide still prescribes Supabase backups and Cloudflare Pages deploy/rollback steps to `mihasv3.pages.dev`.
+- `docs/archive/legacy/security-audit-report.md` | remove | suspicious-stale-path | Security posture is written for a Supabase-auth / Pages-functions architecture, so keeping it available as operator guidance is misleading.
+- `docs/archive/legacy/analysis/ADMINISTRATOR_OPERATIONS_GUIDE.md` | remove | suspicious-stale-path | Directs operators to an `/admin/system-health` dashboard and analysis framework that are not part of the current deployment control surface.
+- `docs/archive/legacy/analysis/CLOUDFLARE_AI_MIGRATION.md` | remove | suspicious-stale-path | Archived Cloudflare Workers AI migration plan describes retired endpoints and hosting assumptions.
+- `docs/archive/legacy/analysis/SYSTEM_ANALYSIS_GUIDE.md` | remove | suspicious-stale-path | Tells operators to use `/admin/system-health` and check Supabase credentials before applying fixes to production, which is stale operational guidance.
+- `docs/archive/legacy/decision/2026-04-21-adr-004-schema-ownership.md` | improve | suspicious-stale-path | This accepted schema-governance ADR still appears authoritative, but it only exists in archive while live docs/workflows point to a missing non-archive path.
+- `docs/archive/legacy/decision/2026-04-21-adr-006-outbox-and-side-effects.md` | improve | suspicious-stale-path | Accepted queue/outbox policy is archived even though it still governs operator-facing communications and side-effect handling decisions.
+- `docs/archive/legacy/decision/2026-04-21-adr-007-redis-dependency-policy.md` | improve | suspicious-stale-path | The accepted Redis dependency policy appears current, but it is archived while active runbooks and docs link to a missing live ADR path.
+- `docs/archive/legacy/migration/2026-03-07-manual-migration-order.md` | improve | suspicious-stale-path | Current schema docs reference this migration-order path as if it were live, but the only usable copy is archived.
+- `docs/archive/legacy/guides/CLOUDFLARE_MIGRATION.md` | remove | suspicious-stale-path | Migration guide still converts Netlify functions to Cloudflare Pages/Wrangler, which is retired deployment guidance.
+- `docs/archive/legacy/guides/CLOUDFLARE_PAGES_SETUP.md` | remove | zero-day-class-risk, suspicious-stale-path | Archived Pages setup includes live-looking login curl examples with a hardcoded password and directs deploy/test steps at `mihasv3.pages.dev`.
+- `docs/archive/legacy/guides/CLOUDFLARE_SETUP.md` | remove | suspicious-stale-path | GitHub-to-Cloudflare Pages setup doc is obsolete for the current Koyeb/Vercel deployment model.
+- `docs/archive/legacy/guides/CRON_JOB_CONFIG.md` | remove | zero-day-class-risk, suspicious-stale-path | Contains a hardcoded `X-Cron-Key` secret and a retired `mihasv3.pages.dev/cron/process-email-queue` endpoint.
+- `docs/archive/legacy/guides/CRON_SETUP.md` | remove | suspicious-stale-path | Still tells operators to wire cron-job.org/easycron against a Cloudflare Pages cron endpoint instead of current Celery beat scheduling.
+- `docs/archive/legacy/guides/EMAIL_CONFIGURATION_REQUIRED.md` | remove | suspicious-stale-path | Written around Supabase Auth SMTP setup, which no longer matches the Django auth/email stack.
+- `docs/archive/legacy/guides/EMAIL_QUEUE_SETUP.md` | remove | zero-day-class-risk, suspicious-stale-path | Contains a live-looking Resend API key in curl examples and instructs operators to use Cloudflare Pages cron processing.
+- `docs/archive/legacy/guides/EMAIL_READY.md` | remove | suspicious-stale-path | “Ready to deploy” guidance still assumes Cloudflare environment variables, `npm run deploy`, and Pages logs.
+- `docs/archive/legacy/guides/LAUNCH_INSTRUCTIONS.md` | remove | suspicious-stale-path | Launch flow is built around Vercel-only API routes like `/api/health?action=*` and custom JWT env vars that do not match the live backend.
+- `docs/archive/legacy/guides/PRE_DEPLOYMENT_CHECKLIST.md` | remove | suspicious-stale-path | Checklist still deploys with `npm run deploy:cf` and validates `mihasv3.pages.dev` paths.
+- `docs/archive/legacy/guides/SESSION_CLEANUP_GUIDE.md` | remove | suspicious-stale-path | Session cleanup is described as Pages cron endpoints and frontend-triggered function logic instead of the current Django/Celery/session model.
+- `docs/archive/legacy/guides/TECH_STACK.md` | remove | suspicious-stale-path | Stack guide still documents custom JWT + Vercel Functions hosting, which conflicts with the current Django/Koyeb backend.
+- `docs/archive/legacy/guides/ZERO_DOWNTIME_DEPLOYMENT_GUIDE.md` | remove | suspicious-stale-path | Blue-green/canary guidance is tied to old feature-flag and Supabase-backed function code that is not current deployment reality.
+- `docs/archive/legacy/reports/CRITICAL_PRODUCTION_FIXES.md` | remove | suspicious-stale-path | Archived “production fixes” runbook still tells operators to deploy and rollback through Cloudflare Pages and Supabase.
+- `docs/archive/legacy/reports/DEPLOY_100_PERCENT_FIX.md` | remove | suspicious-stale-path | Starts with “apply SQL fixes to Supabase” and treats that retired platform as the production control plane.
+- `docs/archive/legacy/reports/NETLIFY_DEPLOYMENT_DIAGNOSIS.md` | remove | zero-day-class-risk, suspicious-stale-path | Contains live-looking SMTP/API secrets plus a retired Netlify/Supabase operational model.
+- `docs/archive/legacy/reports/NETLIFY_ENV_SETUP.md` | remove | suspicious-stale-path | Netlify environment inventory is obsolete and encourages operators to redeploy the wrong platform.
+- `docs/archive/legacy/reports/PRODUCTION_TEST_GUIDE.md` | remove | zero-day-class-risk, suspicious-stale-path | Includes production account passwords and a TestMonitor token while targeting retired `mihasv3.pages.dev` endpoints.
+- `docs/archive/legacy/reports/SECURITY.md` | remove | suspicious-stale-path | Security implementation guide documents Vercel/Netlify/Supabase-era controls instead of the current backend and deployment posture.
+- `docs/archive/legacy/reports/SIGNUP_READY_TO_DEPLOY.md` | remove | suspicious-stale-path | Signup deploy note is tied to Supabase triggers, Cloudflare Pages auto-deploy, and a retired auth path.
