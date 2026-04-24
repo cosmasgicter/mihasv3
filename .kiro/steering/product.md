@@ -154,14 +154,16 @@ Jobs-ops expectations:
 |-------|---------------------|
 | Transport | TLS only, strict transport headers in production |
 | Auth | HTTP-only cookies, refresh rotation, Django-managed signing, JWT middleware fully implemented. Access tokens: 30 min, refresh tokens: 7 days with Redis JTI blacklisting. |
+| RBAC | Role hierarchy: super_admin > admin > reviewer > student. Admins cannot assign roles higher than their own. Self-deactivation is prevented. Batch imports enforce role-level validation. |
 | CSRF | Required on state-changing requests; enforced in `JWTCookieAuthentication._enforce_csrf()` with exempt patterns for unauthenticated endpoints. CSRF tokens are in-memory only on the frontend; bootstrap session call uses `?refresh_csrf=1` to recover after page refresh. Cross-origin recovery uses query params (not custom headers) to avoid CORS preflight issues. |
 | Validation | Validate every input at the API boundary |
 | File uploads | Validate content type and file shape defensively |
-| Secrets | Credentials must be environment-backed and masked in logs |
-| Audit | Keep audit trails while avoiding PII in logs |
+| Secrets | Credentials must be environment-backed and masked in logs. Only `.env.example` and `.env.scripts.example` are tracked in git — all real env files are gitignored. |
+| Audit | Keep audit trails while avoiding PII in logs. Batch user imports are audit-logged. Admin user modifications are audit-logged with encrypted network context. |
 | URL safety | Prevent open redirects and unsafe external URL handling |
 | Automation safety | Respect approval thresholds, domain policies, and send caps |
 | Error monitoring | GlitchTip (Sentry-compatible) via `sentry-sdk` and `@sentry/react` |
+| Payment review | `ApplicationReviewView` payment gate checks the full resolved payment status set (`successful`, `force_approved`, `verified`, `paid`, `deferred`) before allowing approval. |
 
 ## Working Assumptions For Changes
 

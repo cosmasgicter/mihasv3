@@ -168,7 +168,7 @@ Staging settings are available at `backend/config/settings/staging.py` for pre-p
 | AI admin review summary | `GET /api/v1/applications/{id}/admin-summary/` | `gpt-4o-mini` | Cached, rate-limited, graceful fallback when API key missing |
 | AI preview summary | Review step in wizard | `gpt-4o-mini` | Personalized application summary for students |
 
-AI features use `AI_GATEWAY_API_KEY` (not `OPENAI_API_KEY`) for the LLM gateway.
+AI features use `AI_GATEWAY_API_KEY` (not `OPENAI_API_KEY`) for the Vercel AI Gateway. The gateway supports multiple model tiers: `AI_MODEL_FAST` (gemini-2.5-flash), `AI_MODEL_VISION` (gemini-2.5-flash), `AI_MODEL_ANALYSIS` (gpt-4o-mini), `AI_MODEL_SMART` (deepseek-v3).
 
 ## Auth & CSRF
 
@@ -225,8 +225,11 @@ Completed and in-progress spec-driven development workflows. Each spec directory
 |------|----------|---------|
 | `keep_alive_task` | Every 4 minutes | Lightweight ping to prevent Koyeb cold starts |
 | `check_uptime_task` | Every 15 minutes | Internal health check with alert on failure/recovery |
+| `cleanup_stale_sessions_task` | Daily at 02:30 UTC | Deactivate expired device sessions |
 | `cleanup_audit_logs_task` | Daily at 03:00 UTC | Purge expired audit logs (90d standard, 365d security) |
+| `cleanup_idempotency_keys` | Daily at 03:00 UTC | Purge expired idempotency key records |
 | `poll_pending_payments_task` | Every 10 minutes | Poll Lenco API for pending payments, expire payments > 24h |
+| `process_pending_emails_task` | Every 2 minutes | Sweep stale pending EmailQueue rows |
 | `intake_manager_task` | Daily at 04:00 UTC | Ensure ≥2 open intakes exist (Jan/Jul pattern) |
 | `condition_expiry_task` | Daily at 05:00 UTC | Expire overdue admission conditions, trigger auto-rejection |
 | `draft_expiry_reminder_task` | Daily at 06:00 UTC | Remind students about stale drafts, expire at 30 days |
@@ -234,12 +237,15 @@ Completed and in-progress spec-driven development workflows. Each spec directory
 | `document_verification_sla_task` | Daily at 08:00 UTC | Notify admins about documents pending beyond SLA, escalate at 2x |
 | `enrollment_confirmation_expiry_task` | Daily at 09:00 UTC | Expire unconfirmed enrollments, release spots to waitlist |
 | `waitlist_cascade_task` | Daily at 10:00 UTC | Cascade waitlisted applications to next intake |
+| `deferred_payment_reminder_task` | Daily at 11:00 UTC | Remind students who deferred payment |
 | `interview_auto_complete_task` | Every 2 hours | Auto-complete past interviews |
 | `interview_reminder_task` | Every hour | Send reminders for interviews within 24 hours |
 
 ## Environment
 
-Backend env vars are documented in `.env.example`. Frontend env vars use `VITE_` prefix and are documented in `.env.frontend`. Key integrations requiring configuration:
+Backend env vars are documented in `.env.example`. Frontend env vars use `VITE_` prefix and are documented in `.env.frontend`. Only `.env.example` and `.env.scripts.example` are tracked in git — all real env files (`.env`, `.env.local`, `.env.vercel.*`) are gitignored.
+
+Key integrations requiring configuration:
 
 - Neon Postgres (database)
 - Redis (Celery broker + cache)
@@ -263,8 +269,23 @@ Backend env vars are documented in `.env.example`. Frontend env vars use `VITE_`
 | Post-deploy smoke | `docs/runbooks/post-deploy-smoke-check.md` | Post-deployment verification checklist |
 | Database backup | `docs/runbooks/database-backup-restore.md` | Neon database backup and restore |
 | Local parity | `docs/runbooks/local-parity.md` | Local dev environment parity with production |
-| Security audit | `docs/security-api-audit-2026-04.md` | April 2026 security and API audit report |
-| Full audit report | `docs/full-audit-report-2026-04-22.md` | Full codebase audit report (April 22, 2026) |
+| Security audit (Apr 22) | `docs/security-api-audit-2026-04.md` | April 2026 security and API audit report |
+| Full audit (Apr 22) | `docs/full-audit-report-2026-04-22.md` | Full codebase audit report (April 22, 2026) |
+| Exhaustive audit (Apr 24) | `AUDIT-REPORT-2026-04-24.md` | 335/520 items audited — 18 bugs, 9 zero-day risks, priority action plan |
+| Audit file inventory | `all-files.txt` | File-by-file audit status with classification markers |
+
+## Security Hardening (April 2026)
+
+The platform underwent an exhaustive security audit on April 24, 2026 covering 335 of 520 runtime items (100% of security-critical paths). Key hardening applied:
+
+- Admin privilege escalation blocked — admins cannot assign roles higher than their own or modify higher-role users
+- Batch user import audit trail — every batch operation creates an `AuditLog` entry with encrypted network context
+- Bulk notification retry dedup — retries only process remaining unprocessed notifications, preventing duplicate emails
+- Payment review gate aligned — `ApplicationReviewView` now checks the full resolved payment status set
+- Tracked env placeholder files removed — only `.env.example` remains as the canonical template
+- Self-deactivation guard — admins cannot deactivate their own accounts
+
+See `AUDIT-REPORT-2026-04-24.md` for the full findings and priority action plan.
 
 ## License
 

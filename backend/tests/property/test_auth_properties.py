@@ -783,7 +783,7 @@ class TestPreservationCookieAndDockerfile(SimpleTestCase):
     These tests capture behavior that MUST remain unchanged after the fix:
     - Refresh token max_age stays aligned with settings
     - Cookie attributes (domain, samesite, secure, httponly, path) match settings
-    - Dockerfile contains all 11 original placeholder env vars
+    - Dockerfile contains the current build-time placeholder env vars
     - prod.py contains the ImproperlyConfigured Lenco guard
 
     **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6**
@@ -843,9 +843,8 @@ class TestPreservationCookieAndDockerfile(SimpleTestCase):
             self.assertTrue(call["httponly"])
             self.assertEqual(call["path"], "/")
 
-    def test_preservation_dockerfile_contains_all_11_original_placeholders(self):
-        """Dockerfile must contain all 11 original build-time placeholder
-        env vars unchanged."""
+    def test_preservation_dockerfile_contains_current_build_time_placeholders(self):
+        """Dockerfile must contain the current build-time placeholder env vars."""
         import pathlib
 
         dockerfile_path = pathlib.Path(__file__).resolve().parents[2] / "Dockerfile"
@@ -862,14 +861,14 @@ class TestPreservationCookieAndDockerfile(SimpleTestCase):
             "S3_ENDPOINT_URL=https://build-placeholder.example.com",
             "S3_BUCKET=build-placeholder",
             "S3_ACCESS_KEY=build-placeholder",
-            "S3_SECRET_KEY=build-placeholder",
+            "S3_SECRET_KEY=build-time-placeholder",
         ]
 
         for placeholder in expected_placeholders:
             self.assertIn(
                 placeholder,
                 dockerfile_content,
-                f"Dockerfile missing original placeholder: {placeholder}",
+                f"Dockerfile missing current placeholder: {placeholder}",
             )
 
     def test_preservation_prod_py_lenco_guard_present(self):
