@@ -26,7 +26,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import Profile
-from apps.accounts.permissions import IsAdmin
+from apps.accounts.permissions import IsAdmin, ROLE_HIERARCHY
 from apps.accounts.services import hash_password
 from apps.common.audit_network import build_audit_network_fields, decrypt_network_value
 from apps.common.models import AuditLog, Setting
@@ -39,6 +39,10 @@ from apps.common.openapi_helpers import (
 from apps.common.pagination import StandardPagination
 
 logger = logging.getLogger(__name__)
+
+
+def _role_level(role: str | None) -> int:
+    return ROLE_HIERARCHY.get(role or "", 0)
 
 
 # ---------------------------------------------------------------------------
@@ -702,12 +706,44 @@ class AdminUserDetailView(APIView):
 
         data = serializer.validated_data
         changes = {}
+        actor_role = getattr(request.user, "role", None)
+        actor_level = _role_level(actor_role)
+        target_level = _role_level(user.role)
+
+        if target_level > actor_level:
+            return Response(
+                {
+                    "success": False,
+                    "error": "You cannot modify a user with a higher role than your own.",
+                    "code": "INSUFFICIENT_PRIVILEGES",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         if "role" in data:
+            requested_level = _role_level(data["role"])
+            if requested_level > actor_level:
+                return Response(
+                    {
+                        "success": False,
+                        "error": "You cannot assign a role higher than your own.",
+                        "code": "INSUFFICIENT_PRIVILEGES",
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
             changes["role"] = {"old": user.role, "new": data["role"]}
             user.role = data["role"]
 
         if "is_active" in data:
+            if not data["is_active"] and str(getattr(request.user, "pk", "")) == str(user.pk):
+                return Response(
+                    {
+                        "success": False,
+                        "error": "You cannot deactivate your own account.",
+                        "code": "SELF_DEACTIVATION_FORBIDDEN",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             changes["is_active"] = {"old": user.is_active, "new": data["is_active"]}
             user.is_active = data["is_active"]
 

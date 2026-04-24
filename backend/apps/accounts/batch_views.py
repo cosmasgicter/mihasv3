@@ -7,20 +7,26 @@ Accepts JSON array of user objects, validates all first, creates in a single tra
 import logging
 import secrets
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import Profile
-from apps.accounts.permissions import IsAdmin
+from apps.accounts.permissions import IsAdmin, ROLE_HIERARCHY
 from apps.accounts.services import hash_password
+from apps.common.audit_network import build_audit_network_fields
+from apps.common.models import AuditLog
 
 logger = logging.getLogger(__name__)
 
 VALID_ROLES = {"student", "admin", "reviewer", "super_admin"}
 MAX_BATCH_SIZE = 100
+
+
+def _role_level(role: str | None) -> int:
+    return ROLE_HIERARCHY.get(role or "", 0)
 
 
 class BatchUserItemSerializer(serializers.Serializer):
@@ -52,6 +58,9 @@ class BatchUserImportView(APIView):
         # Phase 1: validate all
         errors = []
         validated = []
+        seen_emails = set()
+        actor_role = getattr(request.user, "role", None)
+        actor_level = _role_level(actor_role)
         existing_emails = set(
             Profile.objects.filter(
                 email__in=[u.get("email", "").lower() for u in users_data if isinstance(u, dict)]
@@ -64,9 +73,24 @@ class BatchUserImportView(APIView):
                 errors.append({"index": i, "email": item.get("email", ""), "errors": ser.errors})
                 continue
             data = ser.validated_data
-            if data["email"].lower() in existing_emails:
+            normalized_email = data["email"].lower()
+            if normalized_email in seen_emails:
+                errors.append({"index": i, "email": data["email"], "errors": {"email": ["Duplicate in batch"]}})
+                continue
+            if normalized_email in existing_emails:
                 errors.append({"index": i, "email": data["email"], "errors": {"email": ["Already exists"]}})
                 continue
+            if _role_level(data["role"]) > actor_level:
+                errors.append(
+                    {
+                        "index": i,
+                        "email": data["email"],
+                        "errors": {"role": ["You cannot create a user with a higher role than your own"]},
+                    }
+                )
+                continue
+            data["email"] = normalized_email
+            seen_emails.add(normalized_email)
             validated.append(data)
 
         if errors and not validated:
@@ -75,21 +99,53 @@ class BatchUserImportView(APIView):
                 status=status.HTTP_200_OK,
             )
 
-        # Phase 2: create in single transaction
+        # Phase 2: create with per-row savepoints so duplicate races do not
+        # discard the rest of the validated batch.
         created = 0
-        with transaction.atomic():
-            for data in validated:
-                password = data["password"] or secrets.token_urlsafe(10)
-                Profile.objects.create(
-                    email=data["email"],
-                    password_hash=hash_password(password),
-                    first_name=data["first_name"],
-                    last_name=data["last_name"],
-                    phone=data.get("phone", ""),
-                    role=data["role"],
-                    is_active=True,
+        created_emails = []
+        for data in validated:
+            password = data["password"] or secrets.token_urlsafe(10)
+            try:
+                with transaction.atomic():
+                    Profile.objects.create(
+                        email=data["email"],
+                        password_hash=hash_password(password),
+                        first_name=data["first_name"],
+                        last_name=data["last_name"],
+                        phone=data.get("phone", ""),
+                        role=data["role"],
+                        is_active=True,
+                    )
+            except IntegrityError:
+                errors.append(
+                    {
+                        "index": None,
+                        "email": data["email"],
+                        "errors": {"email": ["Already exists"]},
+                    }
                 )
-                created += 1
+                continue
+            created += 1
+            created_emails.append(data["email"])
+
+        if created or errors:
+            actor_id = getattr(request.user, "pk", None)
+            network_fields = build_audit_network_fields(request)
+            AuditLog.objects.create(
+                actor_id=actor_id,
+                action="user_batch_import",
+                entity_type="profiles",
+                changes={
+                    "created_count": created,
+                    "skipped_count": len(errors),
+                    "created_emails": created_emails,
+                },
+                ip_address=network_fields["ip_address"],
+                user_agent=network_fields["user_agent"],
+                ip_address_encrypted=network_fields["ip_address_encrypted"],
+                user_agent_encrypted=network_fields["user_agent_encrypted"],
+                retention_category="security",
+            )
 
         return Response(
             {"success": True, "data": {"created": created, "skipped": len(errors), "errors": errors}},
