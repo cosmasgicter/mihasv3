@@ -1626,23 +1626,21 @@ const useWizardController = (): UseWizardControllerResult => {
   const handleOcrGrades = useCallback((grades: Array<{ subject_id: string; grade: number }>) => {
     if (grades.length === 0) return
 
-    if (selectedGrades.length > 0) {
-      // Student already has grades — don't overwrite. Show what AI found as info only.
-      showInfo(
-        `AI detected ${grades.length} subjects`,
-        'Your manually entered grades are preserved. You can adjust them if needed.'
-      )
-      return
-    }
+    const hadManualGrades = selectedGrades.length > 0
 
-    // No manual grades yet — safe to auto-populate
+    // OCR takes precedence — replace whatever is there. Grades remain editable.
     setSelectedGrades(grades)
-    showSuccess(`✨ AI detected ${grades.length} subjects from your result slip! Please verify the grades are correct.`)
+
+    if (hadManualGrades) {
+      showSuccess(`✨ AI detected ${grades.length} subjects from your result slip — your previous entries have been replaced. Please verify the grades are correct.`)
+    } else {
+      showSuccess(`✨ AI detected ${grades.length} subjects from your result slip! Please verify the grades are correct.`)
+    }
 
     if (applicationId) {
       syncGrades.mutateAsync({ id: applicationId, grades }).catch(() => {})
     }
-  }, [applicationId, selectedGrades.length, syncGrades, showSuccess, showInfo])
+  }, [applicationId, selectedGrades.length, syncGrades, showSuccess])
 
   const { status: ocrStatus, extractedCount: ocrExtractedCount, failureReason: ocrFailureReason, startPolling: startOcrPolling } = useOcrGradeExtraction(
     ocrDocumentId,
