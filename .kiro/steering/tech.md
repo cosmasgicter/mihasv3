@@ -51,7 +51,8 @@ inclusion: always
 | Storage | Cloudflare R2 via `django-storages` | Signed URL workflow |
 | Email | Zoho SMTP (primary) + Resend (fallback) | Zoho SMTP for outbound email; Resend as fallback for transactional delivery |
 | HTTP client | `requests` | Used by `check_uptime_task` for internal health checks |
-| AI + messaging | OpenAI and Telegram planned placeholders | Env scaffolding now exists; integration wiring remains to be completed |
+| AI gateway | Vercel AI Gateway (multi-model) | `AI_GATEWAY_API_KEY` — routes to gpt-4o-mini, gemini-2.5-flash, deepseek-v3 by task type |
+| Messaging | Telegram planned placeholder | Env scaffolding exists; integration wiring remains to be completed |
 | Browser automation | Playwright | Deterministic browser automation for E2E testing |
 | Error monitoring | GlitchTip (Sentry-compatible) via `sentry-sdk` | DSN-based — see Error Monitoring section below |
 | API docs | drf-spectacular | Schema and docs under `/api/v1/` |
@@ -290,8 +291,11 @@ Celery Beat runs as a dedicated Koyeb worker service (exactly 1 instance to avoi
 |------|----------|---------|
 | `keep_alive_task` | Every 240 seconds (4 minutes) | Lightweight ping to /health/live/ to prevent Koyeb cold starts |
 | `check_uptime_task` | Every 900 seconds (15 minutes) | Internal health check — pings `/health/ready/`, alerts on failure/recovery transitions |
+| `cleanup_stale_sessions_task` | Daily at 02:30 UTC | Deactivate expired device sessions |
 | `cleanup_audit_logs_task` | Daily at 03:00 UTC | Purge expired audit log records and CSRF tokens: standard retention 90 days, security retention 365 days |
+| `cleanup_idempotency_keys` | Daily at 03:00 UTC | Purge expired idempotency key records |
 | `poll_pending_payments_task` | Every 600 seconds (10 minutes) | Polls Lenco API for pending payments, expires payments > 24h, max 50 per run |
+| `process_pending_emails_task` | Every 120 seconds (2 minutes) | Sweep stale pending EmailQueue rows |
 | `intake_manager_task` | Daily at 04:00 UTC | Ensures at least 2 open intakes exist following the Jan/Jul pattern |
 | `condition_expiry_task` | Daily at 05:00 UTC | Expires overdue admission conditions, triggers auto-rejection |
 | `draft_expiry_reminder_task` | Daily at 06:00 UTC | Reminds students about stale drafts (7+ days), expires drafts at 30 days |
@@ -299,6 +303,7 @@ Celery Beat runs as a dedicated Koyeb worker service (exactly 1 instance to avoi
 | `document_verification_sla_task` | Daily at 08:00 UTC | Notifies admins about documents pending verification beyond SLA, escalates at 2x |
 | `enrollment_confirmation_expiry_task` | Daily at 09:00 UTC | Expires unconfirmed enrollments, decrements capacity, triggers waitlist promotion |
 | `waitlist_cascade_task` | Daily at 10:00 UTC | Cascades waitlisted applications to next intake when current intake closes |
+| `deferred_payment_reminder_task` | Daily at 11:00 UTC | Reminds students who deferred payment to complete it |
 | `interview_auto_complete_task` | Every 7200 seconds (2 hours) | Auto-completes interviews whose scheduled time has passed |
 | `interview_reminder_task` | Every 3600 seconds (1 hour) | Sends reminder notifications for interviews within next 24 hours |
 
@@ -323,7 +328,8 @@ A runbook for rotating production secrets lives at `docs/runbooks/secrets-rotati
 | AI admin review summary | `GET /api/v1/applications/{id}/admin-summary/` | Admin review panel | `gpt-4o-mini` via `AI_GATEWAY_API_KEY` |
 | AI preview summary | Review step in wizard | Personalized application summary | `gpt-4o-mini` |
 
-- AI features use `AI_GATEWAY_API_KEY` (not `OPENAI_API_KEY`) for the LLM gateway.
+- AI features use `AI_GATEWAY_API_KEY` (not `OPENAI_API_KEY`) for the Vercel AI Gateway.
+- The gateway supports multiple model tiers configured in `base.py`: `AI_MODEL_FAST` (gemini-2.5-flash), `AI_MODEL_VISION` (gemini-2.5-flash), `AI_MODEL_ANALYSIS` (gpt-4o-mini), `AI_MODEL_SMART` (deepseek-v3).
 - OCR never overwrites manually entered grades. Timeout is 30 seconds.
 - AI admin summary is cached and rate-limited. Falls back gracefully when the API key is missing.
 
@@ -344,3 +350,30 @@ A runbook for rotating production secrets lives at `docs/runbooks/secrets-rotati
 - Keep steering files aligned with the actual repo state.
 - When modifying `ErrorDisplay`, `Settings.tsx`, `useSessionListener.ts`, `session_views.py`, `RefreshView`, or `ApplicationTrackView`, re-run the corresponding audit production fix tests to verify no regressions.
 - Backend endpoints that return lists must use the `{"success": true, "data": [...]}` envelope format. Do not return raw lists from authenticated endpoints.
+
+## Security Hardening (April 2026 Audit)
+
+The following security measures were applied during the April 2026 full repository audit:
+
+- Admin privilege escalation blocked: admins cannot assign roles higher than their own, and cannot modify users with higher roles. Self-deactivation is prevented.
+- Batch user import now creates an `AuditLog` entry with `action=user_batch_import` for every batch operation. Per-row savepoints handle `IntegrityError` races without discarding the entire batch. Role-level validation prevents creating users with roles above the actor's own.
+- Bulk notification retry no longer re-sends emails for already-processed notifications. The task retries with only the remaining unprocessed IDs.
+- `ApplicationReviewView` payment gate now checks the full `_RESOLVED_PAYMENT_STATUSES` tuple (including `verified`, `paid`, `deferred`) instead of a subset.
+- Tracked `.env.development` and `.env.production` placeholder files removed from the repository. Only `.env.example` and `.env.scripts.example` remain as tracked templates. Real env files (`.env`, `.env.local`, `.env.vercel.*`) are gitignored.
+
+### Known Open Issues (from AUDIT-REPORT-2026-04-24.md)
+
+These findings are documented but not yet fixed:
+
+- `cleanup-idempotency-keys` Celery Beat task uses a bare task name instead of a dotted module path.
+- `SessionView.get()` returns non-envelope format for unauthenticated users.
+- Several catalog, analytics, and integrations views return raw data without the `{"success": true, "data": ...}` envelope.
+- `PaymentVerifyView` and `PaymentInitiateView` lack per-user rate limiting.
+- `IsAuthenticatedOrDebug` permission class bypasses auth when `DEBUG=True`.
+- `AuditMiddleware` does not populate `entity_id` from URL path segments.
+- `ReadOnlyMiddleware` queries the database on every write request when the env var is not set.
+- Jobs-ops frontend has no auth refresh interceptor or session management.
+- 7 SQL scripts in `backend/scripts/` are fully applied and stale (safe to archive).
+- `idempotency_redesign.sql` contains a `DROP TABLE` without a re-run guard.
+
+See `AUDIT-REPORT-2026-04-24.md` and `all-files.txt` for the full file-by-file audit inventory.

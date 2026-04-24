@@ -21,7 +21,7 @@ from rest_framework.views import APIView
 
 from apps.accounts.authentication import OptionalJWTCookieAuthentication
 
-from apps.accounts.session_lifecycle import get_refresh_token_expiry
+from apps.accounts.session_lifecycle import get_refresh_token_expiry, get_refresh_token_lifetime
 from apps.accounts.models import CSRFToken, DeviceSession, Profile
 from django.utils import timezone
 
@@ -102,7 +102,7 @@ def _set_auth_cookies(response: Response, access_token: str, refresh_token: str)
     samesite = getattr(settings, "AUTH_COOKIE_SAMESITE", "Lax")
     secure = getattr(settings, "AUTH_COOKIE_SECURE", True)
     httponly = getattr(settings, "AUTH_COOKIE_HTTPONLY", True)
-    refresh_max_age = int(get_refresh_token_expiry().timestamp() - timezone.now().timestamp())
+    refresh_max_age = int(get_refresh_token_lifetime().total_seconds())
 
     # Access token cookie — lifetime from settings
     response.set_cookie(

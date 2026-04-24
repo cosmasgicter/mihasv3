@@ -254,13 +254,15 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `docs/runbooks/redis-incident-response.md` | Redis incident response playbook |
 | `docs/security-api-audit-2026-04.md` | April 2026 security and API audit report |
 | `docs/full-audit-report-2026-04-22.md` | Full codebase audit report (April 22, 2026) |
+| `AUDIT-REPORT-2026-04-24.md` | April 24 exhaustive repository audit — 335/520 items, 18 bugs, 9 zero-day risks |
+| `all-files.txt` | File-by-file audit status inventory with classification markers |
 
 ### Files Added During Production Readiness Hardening
 
 | Path | Purpose |
 |------|---------|
 | `backend/apps/applications/student_views.py` | Student-facing view module (split from monolithic views.py) |
-| `backend/apps/applications/admin_views.py` | Admin view module |
+| `backend/apps/applications/admin_views.py` | Admin view module with role-level privilege escalation guards |
 | `backend/apps/applications/public_views.py` | Public/unauthenticated view module |
 | `backend/apps/applications/document_views.py` | Document view module |
 | `backend/apps/applications/interview_views.py` | Interview view module |
@@ -269,14 +271,26 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `backend/config/settings/staging.py` | Staging environment settings |
 | `backend/apps/common/celery_signals.py` | Celery task signal handlers for monitoring |
 | `backend/apps/common/management/commands/check_missed_tasks.py` | Management command to detect missed Celery Beat tasks |
-| `backend/apps/applications/interview_views.py` | Interview view module |
-| `backend/apps/applications/history_views.py` | History/timeline view module |
-| `backend/apps/applications/_view_helpers.py` | Shared view helpers |
-| `backend/apps/common/celery_signals.py` | Celery task success/failure signal handlers for metrics |
-| `backend/apps/common/management/commands/check_missed_tasks.py` | Management command to detect missed Celery Beat tasks |
-| `backend/config/settings/staging.py` | Staging environment settings |
 | `backend/scripts/check_circular_imports.py` | Script to detect circular import chains |
 | `backend/tests/property/test_production_readiness_*.py` | Property tests for CSRF, health, JTI, metrics, views, Celery, test isolation |
+
+### Files Added During April 2026 Security Audit
+
+| Path | Purpose |
+|------|---------|
+| `AUDIT-REPORT-2026-04-24.md` | Full repository audit report with 18 confirmed bugs, 9 zero-day risks, priority action plan |
+| `all-files.txt` | File-by-file audit status inventory (~335 of 520 items audited) |
+| `backend/tests/unit/test_admin_user_management_hardening.py` | Tests for privilege escalation guards and batch import audit trail |
+| `backend/tests/unit/test_bulk_notification_task.py` | Tests for bulk notification retry dedup fix |
+| `backend/tests/unit/test_application_review_payment_gate.py` | Tests for payment review gate status alignment |
+| `backend/tests/unit/test_tracked_env_files.py` | Tests verifying no tracked env files contain real secrets |
+
+### Files Removed During April 2026 Security Audit
+
+| Path | Reason |
+|------|--------|
+| `.env.development` | Tracked placeholder file — removed to prevent confusion with gitignored real env files |
+| `.env.production` | Tracked placeholder file — removed; `.env.example` is the canonical template |
 
 ## Testing Layout
 
