@@ -147,6 +147,9 @@ CELERY_TIMEZONE = "UTC"
 # Celery Beat — periodic task schedule
 from celery.schedules import crontab  # noqa: E402
 
+# Store the beat schedule file in /tmp so the non-root container user can write it
+CELERY_BEAT_SCHEDULE_FILENAME = "/tmp/celerybeat-schedule"
+
 CELERY_BEAT_SCHEDULE = {
     "keep-alive": {
         "task": "apps.common.tasks.keep_alive_task",

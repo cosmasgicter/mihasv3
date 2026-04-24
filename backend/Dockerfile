@@ -25,6 +25,10 @@ RUN apt-get purge -y --auto-remove gcc && rm -rf /var/lib/apt/lists/*
 # Copy project code
 COPY . .
 
+# Create non-root user and set ownership before collectstatic
+RUN addgroup --system app && adduser --system --ingroup app app \
+    && chown -R app:app /app
+
 # Default settings module for production
 ENV DJANGO_SETTINGS_MODULE=config.settings.prod
 
@@ -43,7 +47,7 @@ RUN SECRET_KEY=build-time-placeholder \
     S3_ENDPOINT_URL=https://build-placeholder.example.com \
     S3_BUCKET=build-placeholder \
     S3_ACCESS_KEY=build-placeholder \
-    S3_SECRET_KEY=build-placeholder \
+    S3_SECRET_KEY=build-time-placeholder \
     LENCO_API_SECRET_KEY=build-time-placeholder \
     LENCO_PUBLIC_KEY=build-time-placeholder \
     AUDIT_LOG_ENCRYPTION_KEY=build-time-placeholder-key-0123456789ab \
@@ -56,7 +60,6 @@ ENV PORT=8000 \
 EXPOSE 8000
 
 # Run as non-root user
-RUN addgroup --system app && adduser --system --ingroup app app
 USER app
 
 CMD ["sh", "-c", "uvicorn config.asgi:application --host 0.0.0.0 --port ${PORT:-8000} --workers ${WEB_CONCURRENCY:-3} --lifespan off --timeout-keep-alive 30"]
