@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { animateClasses } from '@/lib/animations'
 import { apiClient } from '@/services/client'
 import { useApplicationPaymentAction } from '@/hooks/useApplicationPaymentAction'
+import { normalizePaymentStatusValue } from '@/hooks/usePaymentStatus'
 
 type PaymentMethod = 'mobile-money' | 'card'
 type MomoOperator = 'airtel' | 'mtn' | null
@@ -106,6 +107,8 @@ export function PaymentForm({
   const [momoError, setMomoError] = useState<string | null>(null)
   const [momoStatus, setMomoStatus] = useState<'idle' | 'pending' | 'successful' | 'failed'>('idle')
   const [pendingElapsed, setPendingElapsed] = useState(0)
+  const [activePendingMethod, setActivePendingMethod] = useState<PaymentMethod | null>(null)
+  const [activeMomoPaymentId, setActiveMomoPaymentId] = useState<string | null>(null)
   const retryRef = useRef<HTMLButtonElement>(null)
   const pollRef = useRef<ReturnType<typeof setInterval>>()
 
@@ -134,18 +137,49 @@ export function PaymentForm({
   const isPaymentPending = paymentStatus === 'pending' || polledStatus === 'pending'
   const isPaymentFailed = paymentStatus === 'failed' || polledStatus === 'failed'
 
+  const syncPendingPayment = useCallback(async () => {
+    if (activePendingMethod === 'mobile-money' && activeMomoPaymentId) {
+      try {
+        const verification = await apiClient.request<{ status?: string; data?: { status?: string } }>(
+          `/payments/${encodeURIComponent(activeMomoPaymentId)}/verify/`,
+          { method: 'POST' }
+        )
+
+        const normalized = normalizePaymentStatusValue(verification?.status ?? verification?.data?.status ?? null)
+        if (normalized === 'successful') {
+          setMomoStatus('successful')
+          onPaymentStatusChange?.('successful')
+          return
+        }
+        if (normalized === 'failed') {
+          setMomoStatus('failed')
+          onPaymentStatusChange?.('failed')
+          return
+        }
+        if (normalized === 'pending') {
+          setMomoStatus('pending')
+          onPaymentStatusChange?.('pending')
+        }
+      } catch {
+        // Fall back to the broader application-level status refresh below.
+      }
+    }
+
+    await onPaymentStatusRefresh?.()
+  }, [activeMomoPaymentId, activePendingMethod, onPaymentStatusChange, onPaymentStatusRefresh])
+
   // Auto-poll every 10s while pending
   useEffect(() => {
     if (isPaymentPending) {
       setPendingElapsed(0)
       pollRef.current = setInterval(() => {
         setPendingElapsed(prev => prev + 10)
-        onPaymentStatusRefresh?.()
+        void syncPendingPayment()
       }, 10000)
       return () => clearInterval(pollRef.current)
     }
     return () => clearInterval(pollRef.current)
-  }, [isPaymentPending, onPaymentStatusRefresh])
+  }, [isPaymentPending, syncPendingPayment])
 
   // Auto-advance on success
   useEffect(() => {
@@ -163,8 +197,12 @@ export function PaymentForm({
     if (polledStatus === 'successful') {
       setMomoStatus('successful')
       updateCardPaymentStatus('successful', 'Payment confirmed.')
+      setActivePendingMethod(null)
+      setActiveMomoPaymentId(null)
     } else if (polledStatus === 'failed' && momoStatus === 'pending') {
       setMomoStatus('failed')
+      setActivePendingMethod(null)
+      setActiveMomoPaymentId(null)
     }
   }, [polledStatus, momoStatus, updateCardPaymentStatus])
 
@@ -184,34 +222,60 @@ export function PaymentForm({
     }
     setMomoLoading(true)
     setMomoError(null)
+    setActivePendingMethod('mobile-money')
     try {
       const data = await apiClient.request<MobileMoneyResponse>('/payments/mobile-money/', {
         method: 'POST',
         body: JSON.stringify({ application_id: applicationId, phone: normalized, operator: momoOperator || 'airtel' }),
       })
       if (!data) throw new Error('No response from payment service')
+      setActiveMomoPaymentId(data.payment_id || null)
       if ((data as MobileMoneyResponse).status === 'already_paid') {
         setMomoStatus('successful')
+        setActivePendingMethod(null)
         onPaymentStatusChange?.('successful')
+        return
+      }
+      const initiatedStatus = normalizePaymentStatusValue(data.status || data.lenco_status || null)
+      if (initiatedStatus === 'successful') {
+        setMomoStatus('successful')
+        setActivePendingMethod(null)
+        onPaymentStatusChange?.('successful')
+        return
+      }
+      if (initiatedStatus === 'failed') {
+        setMomoStatus('failed')
+        setActivePendingMethod(null)
+        onPaymentStatusChange?.('failed')
         return
       }
       setMomoStatus('pending')
       onPaymentStatusChange?.('pending')
+      void syncPendingPayment()
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Failed to initiate payment'
       setMomoError(msg)
       setMomoStatus('failed')
+      setActivePendingMethod(null)
+      setActiveMomoPaymentId(null)
     } finally {
       setMomoLoading(false)
     }
-  }, [applicationId, momoPhone, momoOperator, onPaymentStatusChange])
+  }, [applicationId, momoPhone, momoOperator, onPaymentStatusChange, syncPendingPayment])
 
   const handleRetry = useCallback(() => {
     setMomoStatus('idle')
     setMomoError(null)
+    setActivePendingMethod(null)
+    setActiveMomoPaymentId(null)
     updateCardPaymentStatus('idle')
     setCardInitiateError(null)
   }, [updateCardPaymentStatus, setCardInitiateError])
+
+  const handleCardPayment = useCallback(() => {
+    setActivePendingMethod('card')
+    void startCardPayment()
+  }, [startCardPayment])
 
   const canPay = amount > 0 && !isPaymentSuccessful && !isPaymentPending
 
@@ -259,25 +323,30 @@ export function PaymentForm({
 
   // ── Pending State ──
   if (isPaymentPending) {
+    const isMobileMoneyPending = activePendingMethod !== 'card'
     return (
       <div className="space-y-4" data-testid="payment-form">
         <div className={`rounded-2xl border border-primary/30 bg-primary/5 p-6 text-center ${animateClasses.scaleIn}`}>
           <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10" style={{ animation: 'pending-pulse 2s ease-in-out infinite' }}>
-            <Smartphone className="h-10 w-10 text-primary" />
+            {isMobileMoneyPending ? <Smartphone className="h-10 w-10 text-primary" /> : <CreditCard className="h-10 w-10 text-primary" />}
           </div>
-          <p className="text-lg font-bold text-foreground">Check your phone</p>
+          <p className="text-lg font-bold text-foreground">{isMobileMoneyPending ? 'Check your phone' : 'Confirming your payment'}</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Approve the payment of <span className="font-semibold text-foreground">{formatCurrency(amount * 1.01, currency)}</span> (includes 1% transaction fee)
+            {isMobileMoneyPending
+              ? <>Approve the payment of <span className="font-semibold text-foreground">{formatCurrency(amount * 1.01, currency)}</span> (includes 1% transaction fee)</>
+              : <>We are confirming your card payment of <span className="font-semibold text-foreground">{formatCurrency(amount * 1.01, currency)}</span>.</>}
           </p>
 
-          <div className="mx-auto mt-6 max-w-xs space-y-3 text-left">
-            {['Open your phone', 'Enter your PIN', 'Confirm the payment'].map((step, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{i + 1}</span>
-                <span className="text-sm text-foreground">{step}</span>
-              </div>
-            ))}
-          </div>
+          {isMobileMoneyPending && (
+            <div className="mx-auto mt-6 max-w-xs space-y-3 text-left">
+              {['Open your phone', 'Enter your PIN', 'Confirm the payment'].map((step, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{i + 1}</span>
+                  <span className="text-sm text-foreground">{step}</span>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <Loader2 className="h-3 w-3 animate-spin" />
@@ -293,8 +362,8 @@ export function PaymentForm({
             </p>
           )}
 
-          <Button type="button" variant="outline" size="sm" className="mt-4" onClick={async () => { await onPaymentStatusRefresh?.() }}>
-            <RefreshCw className="mr-1 h-3 w-3" />I've approved — check now
+          <Button type="button" variant="outline" size="sm" className="mt-4" onClick={async () => { await syncPendingPayment() }}>
+            <RefreshCw className="mr-1 h-3 w-3" />{isMobileMoneyPending ? "I've approved — check now" : 'Check payment now'}
           </Button>
         </div>
         <style>{`
@@ -475,7 +544,7 @@ export function PaymentForm({
             className="w-full"
             disabled={!canPay || !isScriptLoaded || widgetLoading || cardPaymentStatus === 'initiating'}
             loading={cardPaymentStatus === 'initiating' || widgetLoading}
-            onClick={startCardPayment}
+            onClick={handleCardPayment}
             data-testid="pay-card-button"
           >
             {cardPaymentStatus === 'initiating' ? 'Preparing…' : `Pay ${formatCurrency(amount * 1.01, currency)} by card`}

@@ -77,6 +77,7 @@ export default function StudentDashboard() {
   const [isClearingAllDrafts, setIsClearingAllDrafts] = useState(false)
   const [scheduledInterviews, setScheduledInterviews] = useState<ApplicationInterview[]>([])
   const [sessionError, setSessionError] = useState('')
+  const [isPollingEnabled, setIsPollingEnabled] = useState(false)
   const hasLoadedRef = useRef(false)
   const abortControllerRef = useRef<AbortController | null>(null)
   const loadRequestIdRef = useRef(0)
@@ -133,6 +134,7 @@ export default function StudentDashboard() {
 
   // Requirements: 1.1, 1.2 - Dashboard data refresh via polling
   useStudentDashboardPolling({
+    enabled: isPollingEnabled,
     onDataChange: syncApplicationsFromPolling,
   })
 
@@ -251,6 +253,7 @@ export default function StudentDashboard() {
       setApplicationsError('')
       setIntakesError('')
       setInterviewsError('')
+      setIsPollingEnabled(false)
       setIsInitialLoading(false)
       setIsRefreshing(false)
       hasLoadedRef.current = false
@@ -276,8 +279,8 @@ export default function StudentDashboard() {
       setIntakesError('')
       setInterviewsError('')
 
-      // --- Load all sections in parallel for faster dashboard render ---
-      const [localDraftResult, applicationsResult, intakesResult, interviewsResult] = await Promise.allSettled([
+      // Keep first paint focused on the primary dashboard data.
+      const [localDraftResult, applicationsResult, interviewsResult] = await Promise.allSettled([
         // Local draft check (runs in parallel instead of blocking)
         applicationSessionManager.getLocalWizardDraft(user.id),
         // Applications: single call for all (draft check merged into full list)
@@ -288,11 +291,22 @@ export default function StudentDashboard() {
           sortOrder: 'desc',
           mine: true
         }),
-        // Intakes
-        catalogService.getIntakes() as Promise<{ intakes: Intake[] }>,
         // Interviews
         user.id ? interviewsService.list() : Promise.resolve(null),
       ])
+
+      void catalogService.getIntakes()
+        .then((response) => {
+          if (!isLatestRequest() || signal.aborted) return
+          setIntakes(response?.intakes || [])
+          setIntakesError('')
+        })
+        .catch((intakeError) => {
+          if (!isLatestRequest() || signal.aborted) return
+          if (intakeError instanceof Error && (intakeError.name === 'AbortError' || intakeError.message.includes('aborted'))) return
+          logApiError('student-dashboard', '/api/v1/catalog/intakes/', intakeError)
+          setIntakesError(`Failed to load intakes. ${intakeError instanceof Error ? intakeError.message : 'Please try again.'}`)
+        })
 
       if (!isLatestRequest() || signal.aborted) return
 
@@ -333,19 +347,6 @@ export default function StudentDashboard() {
         }
       }
 
-      // --- Process intakes result ---
-      if (intakesResult.status === 'fulfilled') {
-        setIntakes(intakesResult.value?.intakes || [])
-        setIntakesError('')
-      } else {
-        const intakeError = intakesResult.reason
-        if (intakeError instanceof Error && (intakeError.name === 'AbortError' || intakeError.message.includes('aborted'))) { /* skip */ }
-        else {
-          logApiError('student-dashboard', '/api/v1/catalog/intakes/', intakeError)
-          setIntakesError(`Failed to load intakes. ${intakeError instanceof Error ? intakeError.message : 'Please try again.'}`)
-        }
-      }
-
       // --- Process interviews result ---
       if (interviewsResult.status === 'fulfilled' && interviewsResult.value) {
         const interviewData = interviewsResult.value
@@ -365,7 +366,7 @@ export default function StudentDashboard() {
       }
 
       // --- Requirements 8.3, 8.5: Detect all-403 (session expired) and redirect to sign-in ---
-      const results = [applicationsResult, intakesResult, interviewsResult]
+      const results = [applicationsResult, interviewsResult]
       const failedResults = results.filter(r => r.status === 'rejected')
       const all403 = failedResults.length === results.length &&
         failedResults.every(r => is403Error((r as PromiseRejectedResult).reason))
@@ -390,6 +391,7 @@ export default function StudentDashboard() {
       initialLoadCompleteRef.current = true
       if (isInitialLoad) {
         setIsInitialLoading(false)
+        setIsPollingEnabled(true)
       } else {
         setIsRefreshing(false)
       }

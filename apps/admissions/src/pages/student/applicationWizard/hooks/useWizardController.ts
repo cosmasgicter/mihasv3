@@ -53,6 +53,7 @@ import { buildWizardReadiness, type WizardReadiness } from '../lib/wizardReadine
 import useApplicationSlip, { SubmittedApplicationSummary } from './useApplicationSlip'
 import useApplicationFileUploads, { type ApplicationUploadState } from './useApplicationFileUploads'
 import { useOcrGradeExtraction } from './useOcrGradeExtraction'
+import { selectLatestDocumentByType, type UploadedApplicationDocument } from '../lib/documentSelection'
 import {
   createWizardSchema,
   normalizePhoneNumberInput,
@@ -269,7 +270,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const [success, setSuccess] = useState(false)
   const [applicationId, setApplicationId] = useState<string | null>(null)
   const [ocrDocumentId, setOcrDocumentId] = useState<string | null>(null)
-  const startOcrPollingRef = useRef<(() => void) | null>(null)
+  const startOcrPollingRef = useRef<((documentId?: string | null) => void) | null>(null)
   const [submittedApplication, setSubmittedApplication] = useState<SubmittedApplicationSummary | null>(null)
   const [selectedGrades, setSelectedGrades] = useState<SubjectGrade[]>([])
   const [isDraftSaving, setIsDraftSaving] = useState(false)
@@ -616,18 +617,18 @@ const useWizardController = (): UseWizardControllerResult => {
         // The document ID is available from the upload response stored in uploadedFiles
         try {
           // Find the document ID from the most recent upload
-          const docs = await apiClient.request<{ results?: Array<{ id: string; document_type: string }> } | Array<{ id: string; document_type: string }>>(
+          const docs = await apiClient.request<{ results?: UploadedApplicationDocument[] } | UploadedApplicationDocument[]>(
             `/applications/${applicationId}/documents/`
           )
           const docList = Array.isArray(docs) ? docs : (docs?.results ?? [])
-          const resultSlipDoc = docList.find((d: { document_type: string }) => d.document_type === 'result_slip')
+          const resultSlipDoc = selectLatestDocumentByType(docList, 'result_slip')
 
           if (resultSlipDoc?.id) {
             // Fire OCR extraction — this is async (Celery task), don't await completion
             apiClient.request(`/documents/${resultSlipDoc.id}/extract/`, { method: 'POST' }).catch(() => {})
             // Start polling for AI grade extraction results
             setOcrDocumentId(resultSlipDoc.id)
-            startOcrPollingRef.current?.()
+            startOcrPollingRef.current?.(resultSlipDoc.id)
             showInfo('Analyzing your result slip...', 'AI is extracting grades — they will auto-populate shortly.')
           }
         } catch {

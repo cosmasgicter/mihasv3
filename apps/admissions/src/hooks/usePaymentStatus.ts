@@ -10,6 +10,7 @@ import { apiClient } from '@/services/client'
 export type PaymentStatusValue = 'pending' | 'successful' | 'failed' | 'deferred' | null
 
 interface PaymentRecord {
+  id?: string
   status: string
   created_at?: string
   [key: string]: unknown
@@ -48,6 +49,25 @@ export function normalizePaymentStatusValue(status?: string | null): PaymentStat
     default:
       return null
   }
+}
+
+function extractVerifiedStatus(payload: unknown): string | null {
+  if (!payload || typeof payload !== 'object') return null
+
+  const directStatus = (payload as { status?: unknown }).status
+  if (typeof directStatus === 'string' && directStatus.trim()) {
+    return directStatus
+  }
+
+  const nestedData = (payload as { data?: unknown }).data
+  if (nestedData && typeof nestedData === 'object') {
+    const nestedStatus = (nestedData as { status?: unknown }).status
+    if (typeof nestedStatus === 'string' && nestedStatus.trim()) {
+      return nestedStatus
+    }
+  }
+
+  return null
 }
 
 /**
@@ -130,7 +150,27 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
 
       // Pick the most recent payment (backend sorts by created_at desc)
       const latest = records[0]
-      const normalized = normalizePaymentStatusValue(latest?.status)
+      let normalized = normalizePaymentStatusValue(latest?.status)
+
+      if (normalized === 'pending' && latest?.id) {
+        try {
+          const verification = await apiClient.request<{ status?: string; data?: { status?: string } }>(
+            `/payments/${encodeURIComponent(latest.id)}/verify/`,
+            { method: 'POST' }
+          )
+
+          if (!mountedRef.current || requestId !== requestIdRef.current) return
+
+          const verifiedStatus = extractVerifiedStatus(verification)
+          const normalizedVerified = normalizePaymentStatusValue(verifiedStatus)
+          if (normalizedVerified) {
+            normalized = normalizedVerified
+          }
+        } catch {
+          // Best-effort verification: fall back to the last known list status.
+        }
+      }
+
       if (normalized) {
         updateStatus(normalized)
       }

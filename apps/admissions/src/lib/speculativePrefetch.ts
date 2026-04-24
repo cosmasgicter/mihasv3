@@ -253,14 +253,8 @@ export function onLoginSuccess(_response: unknown, role?: string): void {
  */
 export function onDashboardMount(userId?: string): void {
   once(`dashboard-mount:${userId ?? 'anonymous'}`, () => {
-    prefetchCatalog()
-    // Preload wizard + secondary pages during idle
+    // Keep dashboard entry lightweight: preload only the next-most-likely route.
     preloadStudentWizard()
-    preloadStudentSecondaryPages()
-    // Prefetch data for payment page and notification settings
-    prefetchProfile(userId)
-    prefetchStudentApplications(userId)
-    prefetchNotificationPrefs(userId)
   })
 }
 

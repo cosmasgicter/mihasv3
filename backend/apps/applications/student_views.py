@@ -7,7 +7,7 @@ enrollment confirmation, amendments, waitlist position, and conditions.
 
 import logging
 
-from django.db import DatabaseError, transaction
+from django.db import transaction
 from drf_spectacular.utils import (
     OpenApiParameter,
     OpenApiResponse,
@@ -43,8 +43,6 @@ from apps.applications.services import (
 )
 from apps.common.idempotency import idempotent
 from apps.common.openapi_helpers import ErrorResponseSerializer
-from apps.documents.models import ApplicationDocument, ApplicationGrade, FeeWaiver, Payment
-
 from rest_framework.throttling import UserRateThrottle
 
 from ._view_helpers import (
@@ -193,8 +191,8 @@ class ApplicationDetailView(APIView):
             )
 
         try:
-            self._delete_application_graph(application_id)
-        except DatabaseError:
+            self._delete_application_graph(app)
+        except Exception:
             logger.exception("Failed to delete application %s", application_id)
             return Response(
                 {
@@ -207,19 +205,15 @@ class ApplicationDetailView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @staticmethod
-    def _delete_application_graph(application_id):
-        """Delete an application and all dependents via ORM in FK-safe order."""
+    def _delete_application_graph(application):
+        """Delete an application and dependents in one transaction.
+
+        Use the application instance rather than a hand-maintained child-table
+        list so reverse relations and database-level cascades stay aligned with
+        the live schema.
+        """
         with transaction.atomic():
-            ApplicationDocument.objects.filter(application_id=application_id).delete()
-            ApplicationGrade.objects.filter(application_id=application_id).delete()
-            Payment.objects.filter(application_id=application_id).delete()
-            ApplicationStatusHistory.objects.filter(application_id=application_id).delete()
-            ApplicationDraft.objects.filter(application_id=application_id).delete()
-            ApplicationInterview.objects.filter(application_id=application_id).delete()
-            ApplicationCondition.objects.filter(application_id=application_id).delete()
-            ApplicationAmendment.objects.filter(application_id=application_id).delete()
-            FeeWaiver.objects.filter(application_id=application_id).delete()
-            Application.objects.filter(id=application_id).delete()
+            application.delete()
 
     def _get_application(self, request, application_id):
         try:

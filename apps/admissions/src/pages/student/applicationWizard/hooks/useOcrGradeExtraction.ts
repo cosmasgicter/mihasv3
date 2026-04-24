@@ -212,7 +212,10 @@ export function useOcrGradeExtraction(
     }
   }, []) // No deps — uses refs for everything
 
-  const startPolling = useCallback(() => {
+  const startPolling = useCallback((nextDocumentId?: string | null) => {
+    if (nextDocumentId) {
+      docIdRef.current = nextDocumentId
+    }
     if (!docIdRef.current) return
     doneRef.current = false
     runIdRef.current += 1

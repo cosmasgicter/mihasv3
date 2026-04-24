@@ -79,6 +79,7 @@ describe('Feature: website-quality-remediation, Security Headers (Req 5)', () =>
       )!;
       expect(csp.value).toContain("connect-src 'self' ***REMOVED***");
       expect(csp.value).toContain('https://pay.lenco.co');
+      expect(csp.value).toContain('https://*.r2.cloudflarestorage.com');
     });
 
     it('should allow local blob workers', () => {
