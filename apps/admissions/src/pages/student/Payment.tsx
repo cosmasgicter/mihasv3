@@ -153,6 +153,7 @@ function ApplicationPaymentCard({ app, records, isSelected, onPaymentRefresh }: 
   const showVerified = isPaymentVerified(app.payment_status)
   const isDeferred = (app.payment_status ?? '').toLowerCase() === 'deferred'
   const [expanded, setExpanded] = useState(isSelected)
+  const [polledStatus, setPolledStatus] = useState<'pending' | 'successful' | 'failed' | null>(null)
   const latestRecord = [...records].sort((left, right) => (
     new Date(right.created_at).getTime() - new Date(left.created_at).getTime()
   ))[0]
@@ -224,6 +225,8 @@ function ApplicationPaymentCard({ app, records, isSelected, onPaymentRefresh }: 
             phone={app.phone ?? ''}
             fullName={app.full_name ?? ''}
             email={app.email ?? ''}
+            polledStatus={polledStatus}
+            onPaymentStatusChange={setPolledStatus}
             onPaymentStatusRefresh={onPaymentRefresh}
             onSuccess={onPaymentRefresh}
           />

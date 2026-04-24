@@ -15,6 +15,8 @@ export function normalizePaymentStatus(paymentStatus?: string | null): Canonical
       return 'rejected'
     case 'deferred':
       return 'deferred'
+    case 'expired':
+      return 'not_paid'
     default:
       return 'not_paid'
   }

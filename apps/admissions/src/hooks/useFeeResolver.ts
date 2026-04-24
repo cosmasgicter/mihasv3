@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { apiClient, buildQueryString } from '@/services/client'
 
@@ -38,6 +38,7 @@ export function useFeeResolver(
   const [fee, setFee] = useState<ResolvedFee | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [resolveCount, setResolveCount] = useState(0)
 
   useEffect(() => {
     // Nothing to resolve without a program
@@ -48,6 +49,7 @@ export function useFeeResolver(
     }
 
     let cancelled = false
+    let retryTimeout: ReturnType<typeof setTimeout> | undefined
 
     const resolve = async () => {
       setIsLoading(true)
@@ -81,6 +83,11 @@ export function useFeeResolver(
           err instanceof Error ? err.message : 'Unable to determine fee'
         setError(message)
         setFee(null)
+
+        // Single automatic retry after 2 seconds
+        retryTimeout = setTimeout(() => {
+          if (!cancelled) setResolveCount(c => c + 1)
+        }, 2000)
       } finally {
         if (!cancelled) setIsLoading(false)
       }
@@ -90,8 +97,11 @@ export function useFeeResolver(
 
     return () => {
       cancelled = true
+      if (retryTimeout) clearTimeout(retryTimeout)
     }
-  }, [programCode, nationality, country])
+  }, [programCode, nationality, country, resolveCount])
 
-  return { fee, isLoading, error }
+  const retry = useCallback(() => setResolveCount(c => c + 1), [])
+
+  return { fee, isLoading, error, retry }
 }

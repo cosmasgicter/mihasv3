@@ -10,6 +10,9 @@ import { useFeeResolver } from '@/hooks/useFeeResolver'
 import { PaymentForm } from '@/components/student/PaymentForm'
 import type { WizardFormData } from '../types'
 
+/** Transaction fee rate charged by the payment gateway (1%) */
+const TRANSACTION_FEE_RATE = 0.01
+
 interface PaymentStepProps {
   title: string
   form: UseFormReturn<WizardFormData>
@@ -108,8 +111,8 @@ const PaymentStep = ({
                   <p className="mt-1 text-2xl font-bold text-foreground">{formatCurrency(fee.amount, fee.currency)}</p>
                   <div className="mt-2 space-y-1 text-xs text-muted-foreground">
                     <div className="flex justify-between"><span>Application fee</span><span>{formatCurrency(fee.amount, fee.currency)}</span></div>
-                    <div className="flex justify-between"><span>Transaction fee (1%)</span><span>{formatCurrency(fee.amount * 0.01, fee.currency)}</span></div>
-                    <div className="flex justify-between border-t border-border pt-1 font-semibold text-foreground"><span>Total charged</span><span>{formatCurrency(fee.amount * 1.01, fee.currency)}</span></div>
+                    <div className="flex justify-between"><span>Transaction fee (1%)</span><span>{formatCurrency(fee.amount * TRANSACTION_FEE_RATE, fee.currency)}</span></div>
+                    <div className="flex justify-between border-t border-border pt-1 font-semibold text-foreground"><span>Total charged</span><span>{formatCurrency(fee.amount * (1 + TRANSACTION_FEE_RATE), fee.currency)}</span></div>
                   </div>
                 </>
               ) : (
