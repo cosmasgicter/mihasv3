@@ -4,7 +4,7 @@
  *
  * Resilience guarantees:
  * - Never blocks the wizard — all failures are silent
- * - Never overwrites manually entered grades (≥3 threshold)
+ * - Scanned grades take precedence over manual entries (but remain editable)
  * - Stops polling on unmount, navigation, or timeout
  * - Uses refs for callbacks to avoid stale closures
  * - Validates every AI response field before use
