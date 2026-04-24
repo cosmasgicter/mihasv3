@@ -21,6 +21,11 @@ _redis_client = None
 JTI_PREFIX = "jti:"
 
 
+def _get_refresh_ttl_seconds() -> int:
+    lifetime = settings.SIMPLE_JWT.get("REFRESH_TOKEN_LIFETIME", timedelta(days=7))
+    return max(int(lifetime.total_seconds()), 0)
+
+
 def _get_redis() -> redis.Redis:
     """Lazy-init Redis client from CELERY_BROKER_URL."""
     global _redis_client
@@ -164,8 +169,9 @@ def rotate_tokens(refresh_token: str, user=None) -> tuple[str, str]:
     return new_access, new_refresh
 
 
-def blacklist_jti(jti: str, ttl_seconds: int = 604800) -> None:
+def blacklist_jti(jti: str, ttl_seconds: int | None = None) -> None:
     """Store jti in Redis with TTL. Logs errors but does not raise to avoid blocking auth."""
+    ttl_seconds = _get_refresh_ttl_seconds() if ttl_seconds is None else ttl_seconds
     try:
         _get_redis().setex(f"{JTI_PREFIX}{jti}", ttl_seconds, "1")
     except redis.RedisError:

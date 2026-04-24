@@ -9,6 +9,7 @@ import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 os.environ["TESTING"] = "1"
 
+from datetime import timedelta  # noqa: E402
 import uuid  # noqa: E402
 from unittest.mock import MagicMock, patch  # noqa: E402
 
@@ -18,7 +19,8 @@ django.setup()
 
 import fakeredis  # noqa: E402
 import redis  # noqa: E402
-from django.test import SimpleTestCase  # noqa: E402
+from django.conf import settings  # noqa: E402
+from django.test import SimpleTestCase, override_settings  # noqa: E402
 
 from apps.accounts.tokens import (  # noqa: E402
     JTI_PREFIX,
@@ -70,13 +72,21 @@ class TestJTIBlacklistTTL(SimpleTestCase):
         self._redis_patcher.stop()
 
     def test_blacklisted_jti_has_correct_ttl(self):
-        """After blacklist_jti, the Redis key TTL should be approximately 604800s (7 days)."""
+        """After blacklist_jti, the Redis key TTL should match refresh lifetime."""
         jti = str(uuid.uuid4())
         blacklist_jti(jti)
 
         ttl = self._fake_redis.ttl(f"{JTI_PREFIX}{jti}")
-        # TTL should be very close to 604800 (allow 5s tolerance for test execution)
-        self.assertAlmostEqual(ttl, 604800, delta=5)
+        expected_ttl = int(settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds())
+        self.assertAlmostEqual(ttl, expected_ttl, delta=5)
+
+    @override_settings(SIMPLE_JWT={**settings.SIMPLE_JWT, "REFRESH_TOKEN_LIFETIME": timedelta(days=3)})
+    def test_blacklisted_jti_ttl_tracks_configured_refresh_lifetime(self):
+        jti = str(uuid.uuid4())
+        blacklist_jti(jti)
+
+        ttl = self._fake_redis.ttl(f"{JTI_PREFIX}{jti}")
+        self.assertAlmostEqual(ttl, 3 * 24 * 60 * 60, delta=5)
 
 
 class TestJTIBlacklistKeyPrefix(SimpleTestCase):

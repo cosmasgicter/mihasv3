@@ -597,7 +597,10 @@ class TestAuthCookieAttributes(SimpleTestCase):
 
         refresh_call = next(c for c in cookie_calls if c["key"] == "refresh_token")
         self.assertEqual(refresh_call["value"], refresh)
-        self.assertEqual(refresh_call["max_age"], 7 * 24 * 60 * 60)
+        self.assertEqual(
+            refresh_call["max_age"],
+            int(django_settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds()),
+        )
 
     def test_base_settings_define_cookie_attributes(self):
         """base.py must define all four AUTH_COOKIE_* settings."""
@@ -778,7 +781,7 @@ class TestPreservationCookieAndDockerfile(SimpleTestCase):
     """Preservation property tests — baseline behavior on UNFIXED code.
 
     These tests capture behavior that MUST remain unchanged after the fix:
-    - Refresh token max_age stays 604800 (7 days)
+    - Refresh token max_age stays aligned with settings
     - Cookie attributes (domain, samesite, secure, httponly, path) match settings
     - Dockerfile contains all 11 original placeholder env vars
     - prod.py contains the ImproperlyConfigured Lenco guard
@@ -789,8 +792,8 @@ class TestPreservationCookieAndDockerfile(SimpleTestCase):
     @given(role=_roles)
     @_default_settings
     @override_settings(**_PROD_COOKIE_SETTINGS)
-    def test_preservation_refresh_token_max_age_is_604800(self, role):
-        """Refresh token cookie max_age must be 604800 (7 days) for all roles."""
+    def test_preservation_refresh_token_max_age_matches_settings(self, role):
+        """Refresh token cookie max_age must match SIMPLE_JWT refresh lifetime."""
         from apps.accounts.views import _set_auth_cookies
 
         user = _make_mock_user(role=role)
@@ -804,10 +807,13 @@ class TestPreservationCookieAndDockerfile(SimpleTestCase):
         _set_auth_cookies(response, access, refresh)
 
         refresh_call = next(c for c in cookie_calls if c["key"] == "refresh_token")
+        expected_max_age = int(
+            django_settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds()
+        )
         self.assertEqual(
             refresh_call["max_age"],
-            7 * 24 * 60 * 60,
-            f"Refresh token max_age must be 604800 but got {refresh_call['max_age']}",
+            expected_max_age,
+            f"Refresh token max_age must match settings ({expected_max_age}) but got {refresh_call['max_age']}",
         )
 
     @given(role=_roles)
