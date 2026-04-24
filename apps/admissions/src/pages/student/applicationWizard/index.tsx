@@ -78,6 +78,7 @@ const ApplicationWizardContent = () => {
     paymentStatus,
     ocrStatus,
     ocrExtractedCount,
+    retryOcr,
     persistingSlip,
     slipLoading,
     emailLoading,
@@ -754,6 +755,7 @@ const ApplicationWizardContent = () => {
                 handleExtraKycUpload={handleExtraKycUpload}
                 ocrStatus={ocrStatus}
                 ocrExtractedCount={ocrExtractedCount}
+                onRetryOcr={retryOcr}
               />
             )}
 

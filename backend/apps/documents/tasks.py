@@ -167,18 +167,34 @@ def extract_document_text_task(self, document_id):
         logger.error("Document %s has no file URL", document_id)
         return
 
+    # Mark as processing so the frontend can distinguish "in progress" from "not started"
+    document.verification_status = "ocr_processing"
+    document.save(update_fields=["verification_status"])
+
     try:
         from apps.common.storage import MediaStorage
 
         storage = MediaStorage()
 
+        # Guard against oversized files (max 10MB for OCR)
+        MAX_OCR_FILE_SIZE = 10 * 1024 * 1024
+        try:
+            file_obj = storage.open(file_key, "rb")
+            file_bytes = file_obj.read(MAX_OCR_FILE_SIZE + 1)
+            file_obj.close()
+            if len(file_bytes) > MAX_OCR_FILE_SIZE:
+                logger.warning("Document %s exceeds OCR size limit (%d bytes)", document_id, len(file_bytes))
+                document.verification_status = "ocr_skipped"
+                document.save(update_fields=["verification_status"])
+                return
+        except Exception:
+            logger.exception("Failed to download document %s from storage", document_id)
+            raise
+
         suffix = "." + file_key.rsplit(".", 1)[-1] if "." in file_key else ".tmp"
         with tempfile.NamedTemporaryFile(suffix=suffix) as tmp:
-            file_obj = storage.open(file_key, "rb")
-            file_bytes = file_obj.read()
             tmp.write(file_bytes)
             tmp.flush()
-            file_obj.close()
 
             extracted_text = None
             ai_analysis = None
@@ -191,7 +207,19 @@ def extract_document_text_task(self, document_id):
                 if file_key.lower().endswith(".png"):
                     mime = "image/png"
                 elif file_key.lower().endswith(".pdf"):
-                    mime = "application/pdf"
+                    # Convert first page of PDF to image for vision models
+                    try:
+                        from pdf2image import convert_from_path
+                        images = convert_from_path(tmp.name, first_page=1, last_page=1)
+                        if images:
+                            import io
+                            buf = io.BytesIO()
+                            images[0].save(buf, format="JPEG", quality=85)
+                            file_bytes = buf.getvalue()
+                            mime = "image/jpeg"
+                    except ImportError:
+                        logger.info("pdf2image not available, sending raw PDF to vision model")
+                        mime = "application/pdf"
 
                 extracted_text = extract_text_from_image(file_bytes, mime)
 
@@ -226,6 +254,7 @@ def extract_document_text_task(self, document_id):
             document.extracted_text = extracted_text.strip()
         if ai_analysis:
             document.verification_notes = _json.dumps({"ai_analysis": ai_analysis})
+        document.verification_status = "ocr_complete" if extracted_text else "ocr_no_text"
         document.save()
         logger.info("OCR completed for document %s (%d chars)", document_id, len(document.extracted_text or ""))
 

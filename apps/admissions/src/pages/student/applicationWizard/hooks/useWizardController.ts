@@ -107,6 +107,7 @@ interface UseWizardControllerResult {
   paymentStatus: 'pending' | 'successful' | 'failed' | 'deferred' | null
   ocrStatus: 'idle' | 'polling' | 'done' | 'failed'
   ocrExtractedCount: number
+  retryOcr: (documentId?: string | null) => void
   persistingSlip: boolean
   slipLoading: boolean
   emailLoading: boolean
@@ -2205,6 +2206,7 @@ const useWizardController = (): UseWizardControllerResult => {
     paymentStatus,
     ocrStatus,
     ocrExtractedCount,
+    retryOcr: startOcrPolling,
     persistingSlip,
     slipLoading,
     emailLoading,

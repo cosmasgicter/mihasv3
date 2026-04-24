@@ -28,6 +28,7 @@ interface DocumentInfo {
   id: string
   extracted_text: boolean
   ai_analysis: AiAnalysis | null
+  verification_status?: string | null
 }
 
 interface CatalogSubject {
@@ -41,8 +42,8 @@ export interface MatchedGrade {
 }
 
 const POLL_INTERVAL = 3000
-const MAX_POLLS = 10 // 30 seconds max
-const POST_EXTRACTION_GRACE_POLLS = 2
+const MAX_POLLS = 30 // 90 seconds max — Celery cold-start can take 30-60s
+const POST_EXTRACTION_GRACE_POLLS = 3
 
 /**
  * Fuzzy-match an AI-extracted subject name to a catalog subject.
@@ -170,6 +171,14 @@ export function useOcrGradeExtraction(
       if (!mountedRef.current || doneRef.current || currentRunId !== runIdRef.current || docIdRef.current !== currentDocId) return
       if (!info) {
         timeoutRef.current = setTimeout(poll, POLL_INTERVAL)
+        return
+      }
+
+      // Stop early if backend reports permanent OCR failure
+      const vStatus = info.verification_status
+      if (vStatus === 'ocr_failed' || vStatus === 'ocr_skipped') {
+        if (mountedRef.current) setStatus('failed')
+        logger.info('[OCR] Backend reported permanent failure', { status: vStatus })
         return
       }
 
