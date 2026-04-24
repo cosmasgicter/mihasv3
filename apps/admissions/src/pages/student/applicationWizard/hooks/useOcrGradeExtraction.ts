@@ -118,6 +118,8 @@ function mapAiGradesToCatalog(
   return matched
 }
 
+export type OcrFailureReason = 'timeout' | 'server_failed' | 'skipped' | 'no_text' | 'no_grades_matched' | null
+
 export function useOcrGradeExtraction(
   documentId: string | null,
   catalogSubjects: CatalogSubject[],
@@ -125,6 +127,7 @@ export function useOcrGradeExtraction(
 ) {
   const [status, setStatus] = useState<'idle' | 'polling' | 'done' | 'failed'>('idle')
   const [extractedCount, setExtractedCount] = useState(0)
+  const [failureReason, setFailureReason] = useState<OcrFailureReason>(null)
 
   // Use refs for values that change between polls to avoid stale closures
   const pollCountRef = useRef(0)
@@ -161,7 +164,10 @@ export function useOcrGradeExtraction(
 
     pollCountRef.current += 1
     if (pollCountRef.current > MAX_POLLS) {
-      if (mountedRef.current) setStatus('failed')
+      if (mountedRef.current) {
+        setFailureReason('timeout')
+        setStatus('failed')
+      }
       logger.info('[OCR] Polling timed out', { attempts: MAX_POLLS })
       return
     }
@@ -177,7 +183,10 @@ export function useOcrGradeExtraction(
       // Stop early if backend reports permanent OCR failure
       const vStatus = info.verification_status
       if (vStatus === 'ocr_failed' || vStatus === 'ocr_skipped') {
-        if (mountedRef.current) setStatus('failed')
+        if (mountedRef.current) {
+          setFailureReason(vStatus === 'ocr_skipped' ? 'skipped' : 'server_failed')
+          setStatus('failed')
+        }
         logger.info('[OCR] Backend reported permanent failure', { status: vStatus })
         return
       }
@@ -204,7 +213,11 @@ export function useOcrGradeExtraction(
 
       // Text extracted but no usable analysis yet — keep polling
       if (info.extracted_text && pollCountRef.current >= MAX_POLLS - POST_EXTRACTION_GRACE_POLLS) {
-        if (mountedRef.current) setStatus('failed')
+        const reason = (analysis?.subjects && analysis.subjects.length > 0) ? 'no_grades_matched' : 'no_text'
+        if (mountedRef.current) {
+          setFailureReason(reason)
+          setStatus('failed')
+        }
         return
       }
 
@@ -216,6 +229,7 @@ export function useOcrGradeExtraction(
       if (mountedRef.current && pollCountRef.current < MAX_POLLS) {
         timeoutRef.current = setTimeout(poll, POLL_INTERVAL * 2)
       } else if (mountedRef.current) {
+        setFailureReason('timeout')
         setStatus('failed')
       }
     }
@@ -231,6 +245,7 @@ export function useOcrGradeExtraction(
     pollCountRef.current = 0
     setStatus('polling')
     setExtractedCount(0)
+    setFailureReason(null)
     stopPolling()
     // Delay first poll — give Celery time to pick up the task
     timeoutRef.current = setTimeout(poll, POLL_INTERVAL + 1000)
@@ -247,5 +262,5 @@ export function useOcrGradeExtraction(
   // Cleanup on unmount
   useEffect(() => () => stopPolling(), [stopPolling])
 
-  return { status, extractedCount, startPolling, stopPolling }
+  return { status, extractedCount, failureReason, startPolling, stopPolling }
 }

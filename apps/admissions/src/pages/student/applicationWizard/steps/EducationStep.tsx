@@ -98,6 +98,7 @@ interface EducationStepProps {
   handleExtraKycUpload: (file: File | null) => void
   ocrStatus?: 'idle' | 'polling' | 'done' | 'failed'
   ocrExtractedCount?: number
+  ocrFailureReason?: import('../hooks/useOcrGradeExtraction').OcrFailureReason
   onRetryOcr?: () => void
 }
 
@@ -121,6 +122,7 @@ const EducationStep = ({
   handleExtraKycUpload,
   ocrStatus,
   ocrExtractedCount,
+  ocrFailureReason,
   onRetryOcr,
 }: EducationStepProps) => {
   const lastSubjectRef = useRef<HTMLDivElement>(null)
@@ -181,13 +183,29 @@ const EducationStep = ({
           </div>
         )}
         {ocrStatus === 'done' && ocrExtractedCount && ocrExtractedCount > 0 && (
-          <div className="flex items-center gap-3 rounded-lg border border-green-500/20 bg-green-500/5 px-4 py-3 text-sm text-green-600 animate-in fade-in duration-300">
-            <span>✓ Auto-populated {ocrExtractedCount} subject{ocrExtractedCount > 1 ? 's' : ''} from your result slip</span>
+          <div className="flex items-center gap-3 rounded-lg border border-green-500/20 bg-green-500/5 px-4 py-3 text-sm text-green-600 animate-in fade-in duration-300" role="status">
+            <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            <span>Auto-populated {ocrExtractedCount} subject{ocrExtractedCount > 1 ? 's' : ''} from your result slip. Review them below and correct any mistakes.</span>
+          </div>
+        )}
+        {ocrStatus === 'done' && (!ocrExtractedCount || ocrExtractedCount === 0) && (
+          <div className="flex items-center gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-700 animate-in fade-in duration-300" role="status">
+            <span>Your result slip was scanned but we couldn't auto-detect any grades. Please add your subjects manually below — your upload is still saved.</span>
           </div>
         )}
         {ocrStatus === 'failed' && (
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-muted/30 bg-muted/5 px-4 py-3 text-sm text-muted-foreground animate-in fade-in duration-300">
-            <span>Automatic grade scanning is taking longer than expected. You can keep going manually below without losing your upload.</span>
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-700 animate-in fade-in duration-300" role="alert">
+            <span>
+              {ocrFailureReason === 'server_failed'
+                ? 'The grade scanner encountered an error processing your result slip. Please add your subjects manually — your upload is still saved.'
+                : ocrFailureReason === 'skipped'
+                  ? 'Your file is too large for automatic scanning. Please add your subjects manually below.'
+                  : ocrFailureReason === 'no_text'
+                    ? 'We couldn\'t read any text from your result slip. Make sure the image is clear and well-lit, then try again.'
+                    : ocrFailureReason === 'no_grades_matched'
+                      ? 'We found text in your result slip but couldn\'t match it to known subjects. Please add your subjects manually below.'
+                      : 'Automatic grade scanning is taking longer than expected. You can keep going manually below without losing your upload.'}
+            </span>
             {onRetryOcr && (
               <button type="button" onClick={onRetryOcr} className="shrink-0 text-xs font-medium text-primary underline underline-offset-2 hover:text-primary/80">
                 Retry scan

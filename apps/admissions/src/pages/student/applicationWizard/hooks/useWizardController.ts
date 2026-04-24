@@ -107,6 +107,7 @@ interface UseWizardControllerResult {
   paymentStatus: 'pending' | 'successful' | 'failed' | 'deferred' | null
   ocrStatus: 'idle' | 'polling' | 'done' | 'failed'
   ocrExtractedCount: number
+  ocrFailureReason: import('./useOcrGradeExtraction').OcrFailureReason
   retryOcr: (documentId?: string | null) => void
   persistingSlip: boolean
   slipLoading: boolean
@@ -1643,7 +1644,7 @@ const useWizardController = (): UseWizardControllerResult => {
     }
   }, [applicationId, selectedGrades.length, syncGrades, showSuccess, showInfo])
 
-  const { status: ocrStatus, extractedCount: ocrExtractedCount, startPolling: startOcrPolling } = useOcrGradeExtraction(
+  const { status: ocrStatus, extractedCount: ocrExtractedCount, failureReason: ocrFailureReason, startPolling: startOcrPolling } = useOcrGradeExtraction(
     ocrDocumentId,
     subjects,
     handleOcrGrades,
@@ -2206,6 +2207,7 @@ const useWizardController = (): UseWizardControllerResult => {
     paymentStatus,
     ocrStatus,
     ocrExtractedCount,
+    ocrFailureReason,
     retryOcr: startOcrPolling,
     persistingSlip,
     slipLoading,
