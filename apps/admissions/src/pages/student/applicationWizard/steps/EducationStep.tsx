@@ -98,6 +98,7 @@ interface EducationStepProps {
   handleExtraKycUpload: (file: File | null) => void
   ocrStatus?: 'idle' | 'polling' | 'done' | 'failed'
   ocrExtractedCount?: number
+  onRetryOcr?: () => void
 }
 
 const EducationStep = ({
@@ -119,7 +120,8 @@ const EducationStep = ({
   handleResultSlipUpload,
   handleExtraKycUpload,
   ocrStatus,
-  ocrExtractedCount
+  ocrExtractedCount,
+  onRetryOcr,
 }: EducationStepProps) => {
   const lastSubjectRef = useRef<HTMLDivElement>(null)
   const prevGradeCountRef = useRef(selectedGrades.length)
@@ -184,8 +186,13 @@ const EducationStep = ({
           </div>
         )}
         {ocrStatus === 'failed' && (
-          <div className="flex items-center gap-3 rounded-lg border border-muted/30 bg-muted/5 px-4 py-3 text-sm text-muted-foreground animate-in fade-in duration-300">
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-muted/30 bg-muted/5 px-4 py-3 text-sm text-muted-foreground animate-in fade-in duration-300">
             <span>Automatic grade scanning is taking longer than expected. You can keep going manually below without losing your upload.</span>
+            {onRetryOcr && (
+              <button type="button" onClick={onRetryOcr} className="shrink-0 text-xs font-medium text-primary underline underline-offset-2 hover:text-primary/80">
+                Retry scan
+              </button>
+            )}
           </div>
         )}
 
