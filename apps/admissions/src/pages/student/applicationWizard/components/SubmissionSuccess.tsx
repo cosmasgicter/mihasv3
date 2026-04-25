@@ -166,11 +166,11 @@ const SubmissionSuccess = ({
         </p>
 
         <div className="space-y-3 mb-6">
-          <Button onClick={onDownload} loading={slipLoading} className="w-full bg-success hover:bg-success/90">
+          <Button onClick={onDownload} loading={slipLoading} className="w-full min-h-[48px] touch-manipulation bg-success hover:bg-success/90">
             <Download className="h-5 w-5 mr-2" />
             Download Application Slip
           </Button>
-          <Button variant="outline" onClick={onEmail} loading={emailLoading} className="w-full">
+          <Button variant="outline" onClick={onEmail} loading={emailLoading} className="w-full min-h-[48px] touch-manipulation">
             <Mail className="h-5 w-5 mr-2" />
             Email Me the Slip
           </Button>
@@ -179,14 +179,14 @@ const SubmissionSuccess = ({
         <div className="space-y-3">
           {(submittedApplication.paymentStatus == null || submittedApplication.paymentStatus === 'deferred') && (
             <Link to="/student/payment">
-              <Button variant="outline" className="w-full">Complete Payment Later</Button>
+              <Button variant="outline" className="w-full min-h-[48px] touch-manipulation">Complete Payment Later</Button>
             </Link>
           )}
           <Link to="/student/dashboard">
-            <Button className="w-full bg-primary hover:bg-primary">Go to Dashboard</Button>
+            <Button className="w-full min-h-[48px] touch-manipulation bg-primary hover:bg-primary">Go to Dashboard</Button>
           </Link>
           <Link to="/track-application">
-            <Button variant="outline" className="w-full">Track Application Status</Button>
+            <Button variant="outline" className="w-full min-h-[48px] touch-manipulation">Track Application Status</Button>
           </Link>
         </div>
       </div>

@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 
 import type { Grade12Subject, SubjectGrade, WizardFormData } from '../types'
 import type { WizardReadiness } from '../lib/wizardReadiness'
+import type { StepKey } from '../steps/config'
 
 interface SubmitStepProps {
   title: string
@@ -31,6 +32,7 @@ interface SubmitStepProps {
   paymentStatus?: 'pending' | 'successful' | 'failed' | 'deferred' | null
   wizardReadiness?: WizardReadiness
   applicationId?: string | null
+  onNavigateToStep?: (stepKey: StepKey) => void
 }
 
 const gradeLabelMap: Record<number, string> = {
@@ -102,7 +104,8 @@ const SubmitStep = ({
   selectedInstitutionLabel,
   paymentStatus,
   wizardReadiness,
-  applicationId
+  applicationId,
+  onNavigateToStep
 }: SubmitStepProps) => {
   const formValues = form.watch()
   const programLabel = selectedProgramName?.trim() || formValues.program
@@ -170,21 +173,25 @@ const SubmitStep = ({
       label: 'Personal information completed',
       detail: formValues.full_name ? formValues.full_name : 'Full name is still missing',
       completed: isRequirementComplete('full_name', Boolean(formValues.full_name)),
+      stepKey: 'basicKyc' as StepKey,
     },
     {
       label: 'Minimum Grade 12 subjects added',
       detail: `${selectedGrades.length}/5 subjects recorded`,
       completed: isRequirementComplete('grades', selectedGrades.length >= 5),
+      stepKey: 'education' as StepKey,
     },
     {
       label: 'Result slip attached',
       detail: resultSlipFile ? resultSlipFile.name : hasResultSlip ? 'Already uploaded' : 'Upload your result slip to complete this step',
       completed: isRequirementComplete('result_slip', hasResultSlip),
+      stepKey: 'education' as StepKey,
     },
     {
       label: 'Identity document attached (NRC or Passport)',
       detail: extraKycFile ? extraKycFile.name : hasIdentityDocument ? 'Already uploaded' : 'Upload your NRC or passport to complete this step',
       completed: isRequirementComplete('extra_kyc', hasIdentityDocument),
+      stepKey: 'education' as StepKey,
     },
     {
       label: isSuccessfulPayment
@@ -198,6 +205,7 @@ const SubmitStep = ({
           ? 'You chose to pay later. You can pay from your dashboard after submission.'
           : 'Please complete payment in the payment step before submitting.',
       completed: isRequirementComplete('payment', isSuccessfulPayment || isDeferredPayment),
+      stepKey: 'payment' as StepKey,
     },
   ]
 
@@ -270,10 +278,19 @@ const SubmitStep = ({
                     ) : (
                       <AlertTriangle className="mt-0.5 h-5 w-5 text-warning" aria-hidden="true" />
                     )}
-                    <div className="space-y-1">
+                    <div className="min-w-0 flex-1 space-y-1">
                       <p className="text-sm font-semibold text-foreground">{item.label}</p>
                       <p className="text-sm text-muted-foreground">{item.detail}</p>
                     </div>
+                    {!item.completed && onNavigateToStep && (
+                      <button
+                        type="button"
+                        onClick={() => onNavigateToStep(item.stepKey)}
+                        className="mt-0.5 shrink-0 rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning-foreground transition-colors hover:bg-warning/20"
+                      >
+                        Go to step
+                      </button>
+                    )}
                   </div>
                 </li>
               ))}

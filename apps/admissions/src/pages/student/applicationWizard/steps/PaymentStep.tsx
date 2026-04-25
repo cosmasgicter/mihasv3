@@ -154,35 +154,42 @@ const PaymentStep = ({
           />
         )}
 
-        {/* Pay Later — text link, not a big button */}
+        {/* Pay Later — visible card option */}
         {!isPaymentSettledForWizard && !deferred && fee && applicationId && (
-          <div className="pt-2 text-center space-y-2">
-            {deferError && <p className="text-sm text-destructive">{deferError}</p>}
+          <div className="space-y-2">
+            {deferError && <p className="text-sm text-destructive text-center">{deferError}</p>}
 
             {!deferConfirm ? (
               <button
                 type="button"
-                className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors disabled:opacity-50"
-                disabled={deferring}
+                className="w-full rounded-xl border-2 border-dashed border-border bg-card p-4 text-left transition-colors hover:border-primary/40 hover:bg-primary/5"
                 onClick={handleDefer}
                 data-testid="pay-later-button"
               >
-                <span className="font-medium text-foreground">Pay Later</span>: Can't pay right now? You can pay later from your dashboard
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+                    <Clock className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Pay Later</p>
+                    <p className="text-xs text-muted-foreground">Can't pay right now? Submit your application and pay anytime from your dashboard.</p>
+                  </div>
+                </div>
               </button>
             ) : (
-              <div className={`rounded-xl border border-border bg-card/50 p-4 ${animateClasses.scaleIn}`}>
+              <div className={`rounded-xl border-2 border-primary/30 bg-primary/5 p-4 ${animateClasses.scaleIn}`}>
                 <p className="text-sm text-foreground">You can submit now and pay anytime from your dashboard.</p>
-                <div className="mt-3 flex items-center justify-center gap-3">
+                <div className="mt-3 flex items-center gap-3">
                   <button
                     type="button"
-                    className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                    className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
                     onClick={() => setDeferConfirm(false)}
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
-                    className="rounded-lg bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
                     disabled={deferring}
                     onClick={handleDefer}
                   >

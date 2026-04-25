@@ -43,6 +43,7 @@ const BasicKycStep = ({
 }: BasicKycStepProps) => {
   const {
     register,
+    trigger,
     control,
     formState: { errors }
   } = form
@@ -95,8 +96,9 @@ const BasicKycStep = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-visible sm:gap-6">
           <div className="md:col-span-2" style={shouldAnimate ? staggerChild(0) : undefined}>
             <AnimatedInput
-              {...register('full_name')}
+              {...register('full_name', { onBlur: () => trigger('full_name') })}
               label="Full Name *"
+              autoComplete="name"
               error={errors.full_name?.message}
               extraDescribedBy={getFieldAriaDescribedBy?.('full_name')}
             />
@@ -107,6 +109,8 @@ const BasicKycStep = ({
               {...register('nrc_number')}
               label="NRC Number"
               placeholder="e.g., 123456/78/9"
+              autoComplete="off"
+              inputMode="text"
               error={errors.nrc_number?.message}
               helperText="NRC or Passport required"
               extraDescribedBy={getFieldAriaDescribedBy?.('nrc_number')}
@@ -117,6 +121,7 @@ const BasicKycStep = ({
             <AnimatedInput
               {...register('passport_number')}
               label="Passport Number"
+              autoComplete="off"
               error={errors.passport_number?.message}
               helperText="NRC or Passport required"
             />
@@ -127,6 +132,7 @@ const BasicKycStep = ({
               type="date"
               {...register('date_of_birth')}
               label="Date of Birth *"
+              max={new Date().toISOString().split('T')[0]}
               error={errors.date_of_birth?.message}
               extraDescribedBy={getFieldAriaDescribedBy?.('date_of_birth')}
             />
@@ -150,7 +156,10 @@ const BasicKycStep = ({
 
           <div style={shouldAnimate ? staggerChild(5) : undefined}>
             <AnimatedInput
-              {...register('phone')}
+              {...register('phone', { onBlur: () => trigger('phone') })}
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
               label="Phone Number *"
               placeholder="e.g., +260971234567"
               helperText="Use digits only after +260; spaces are removed automatically."
@@ -162,7 +171,9 @@ const BasicKycStep = ({
           <div style={shouldAnimate ? staggerChild(6) : undefined}>
             <AnimatedInput
               type="email"
-              {...register('email')}
+              inputMode="email"
+              autoComplete="email"
+              {...register('email', { onBlur: () => trigger('email') })}
               label="Email Address *"
               error={errors.email?.message}
               extraDescribedBy={getFieldAriaDescribedBy?.('email')}
