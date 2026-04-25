@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { X } from 'lucide-react'
+import { GraduationCap, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
 import { CanonicalSelect } from '@/components/ui/CanonicalSelect'
@@ -264,19 +264,27 @@ const EducationStep = ({
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
             <h3 className="text-md font-medium text-foreground">Grade 12 Subjects (<span className={selectedGrades.length < 5 ? 'text-red-500' : 'text-green-600'}>{selectedGrades.length}/5 minimum</span>)</h3>
             {selectedGrades.length === 0 && (
+              <span className="sr-only">No subjects added yet</span>
+            )}
+          </div>
+
+          {selectedGrades.length === 0 && (
+            <div className={`mb-6 flex flex-col items-center rounded-xl border-2 border-dashed border-border bg-muted/30 px-6 py-10 text-center ${animateClasses.fadeIn}`}>
+              <GraduationCap className="h-12 w-12 text-muted-foreground/50" aria-hidden="true" />
+              <p className="mt-4 text-base font-semibold text-foreground">Add your Grade 12 subjects to continue</p>
+              <p className="mt-1 text-sm text-muted-foreground">You need at least 5 subjects with grades to proceed.</p>
               <Button
                 type="button"
                 onClick={event => {
                   event.preventDefault()
                   addGrade()
                 }}
-                disabled={selectedGrades.length >= 10}
-                className="w-full sm:w-auto bg-primary hover:bg-primary touch-manipulation min-h-[44px]"
+                className="mt-5 bg-primary hover:bg-primary touch-manipulation min-h-[44px]"
               >
-                + Add Your First Subject
+                + Add First Subject
               </Button>
-            )}
-          </div>
+            </div>
+          )}
 
           {eligibilityCheck && selectedGrades.length >= 5 && (
             <div className="mb-4">

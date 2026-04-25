@@ -81,9 +81,9 @@ export function PageShell({
         <div className="absolute right-[-5rem] top-20 h-64 w-64 rounded-full bg-[radial-gradient(circle_at_center,rgba(15,23,42,0.08),transparent_72%)] blur-3xl" />
       </div>
       <div className={cn('mx-auto px-4 sm:px-6 lg:px-8', containerClass)}>
-        <header className="py-6 sm:py-8">
+        <header className="py-3 sm:py-8">
           <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/82 shadow-[0_24px_80px_-36px_rgba(15,23,42,0.35)] backdrop-blur-xl">
-            <div className="border-b border-slate-200/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.95),rgba(255,255,255,0.72))] px-5 py-5 sm:px-7 sm:py-6">
+            <div className="border-b border-slate-200/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.95),rgba(255,255,255,0.72))] px-4 py-3 sm:px-7 sm:py-6">
               <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div className="max-w-3xl">
                   {eyebrow && (
@@ -91,7 +91,7 @@ export function PageShell({
                       {eyebrow}
                     </p>
                   )}
-                  <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
+                  <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-4xl">
                     {title}
                   </h1>
                   {subtitle && (
@@ -108,11 +108,11 @@ export function PageShell({
               </div>
             </div>
             {metrics && metrics.length > 0 && (
-              <div className="grid gap-3 bg-slate-50/85 px-5 py-4 sm:grid-cols-2 sm:px-7 lg:grid-cols-4">
+              <div className="grid gap-2 bg-slate-50/85 px-4 py-2.5 sm:gap-3 sm:grid-cols-2 sm:px-7 sm:py-4 lg:grid-cols-4">
                 {metrics.map((metric) => (
                   <div
                     key={metric.label}
-                    className="rounded-2xl border border-slate-200/80 bg-white/90 px-4 py-3 shadow-[0_12px_28px_-24px_rgba(15,23,42,0.55)]"
+                    className="rounded-2xl border border-slate-200/80 bg-white/90 px-3 py-2 sm:px-4 sm:py-3 shadow-[0_12px_28px_-24px_rgba(15,23,42,0.55)]"
                   >
                     <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-slate-500">
                       {metric.label}

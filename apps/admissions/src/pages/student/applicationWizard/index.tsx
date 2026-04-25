@@ -1,6 +1,6 @@
 import { ArrowLeft, ArrowRight, CheckCircle, Send } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef, useCallback, useSyncExternalStore } from 'react'
 import { Seo } from '@/components/seo/Seo'
 
 import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
@@ -31,8 +31,33 @@ import { useOverallProgress } from './hooks/useOverallProgress'
 import { useSmartAutoSave } from './hooks/useSmartAutoSave'
 import { useEstimatedTime } from './hooks/useEstimatedTime'
 import { previousButtonLabel, saveNowLabel, wizardSteps } from './steps/config'
+import type { StepKey } from './steps/config'
 import type { SubjectGrade } from './types'
 import { WIZARD_COPY } from './constants'
+
+// --- Lightweight online/offline hook ---
+const onlineSubscribe = (cb: () => void) => {
+  window.addEventListener('online', cb)
+  window.addEventListener('offline', cb)
+  return () => { window.removeEventListener('online', cb); window.removeEventListener('offline', cb) }
+}
+const getOnlineSnapshot = () => navigator.onLine
+const useIsOnline = () => useSyncExternalStore(onlineSubscribe, getOnlineSnapshot, () => true)
+
+// --- Detect mobile keyboard open via visualViewport ---
+function useKeyboardOpen() {
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const initialHeight = vv.height
+    const threshold = 150 // keyboard typically shrinks viewport by 150px+
+    const onResize = () => setOpen(initialHeight - vv.height > threshold)
+    vv.addEventListener('resize', onResize)
+    return () => vv.removeEventListener('resize', onResize)
+  }, [])
+  return open
+}
 
 const ApplicationWizardContent = () => {
   const {
@@ -121,6 +146,8 @@ const ApplicationWizardContent = () => {
   })
   const { formattedTime } = useEstimatedTime(currentStepIndex, totalSteps)
   const { shouldAnimate } = useOptimizedAnimation()
+  const isOnline = useIsOnline()
+  const keyboardOpen = useKeyboardOpen()
 
   // Pause auto-save during critical operations (Req 9.1, 9.2):
   // - Payment step with payment in progress (initiating or pending)
@@ -233,11 +260,16 @@ const ApplicationWizardContent = () => {
   const [stepDirection, setStepDirection] = useState<'forward' | 'backward'>('forward')
   const [stepKey, setStepKey] = useState(currentStepIndex)
   const isPopstateNavRef = useRef(false)
+  const stepContentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setStepKey(currentStepIndex)
     // Clear validation errors when navigating to a new step
     setValidationErrors([])
+    // Focus the step content container so screen readers announce the new step
+    requestAnimationFrame(() => {
+      stepContentRef.current?.focus({ preventScroll: false })
+    })
   }, [currentStepIndex, totalSteps, currentStepConfig.title])
 
   // Browser back/forward navigation support (Req 11.2, 11.3)
@@ -297,6 +329,15 @@ const ApplicationWizardContent = () => {
     void saveWizardDraft()
     goToStep(stepIndex)
   }, [currentStepIndex, goToStep, saveWizardDraft])
+
+  const handleNavigateToStep = useCallback((stepKey: StepKey) => {
+    const idx = wizardSteps.findIndex(s => s.key === stepKey)
+    if (idx >= 0) {
+      setStepDirection('backward')
+      void saveWizardDraft()
+      goToStep(idx)
+    }
+  }, [goToStep, saveWizardDraft])
 
   // Populate validation errors and focus first errored field on validation error (Req 5.2, 5.3)
   useEffect(() => {
@@ -514,6 +555,12 @@ const ApplicationWizardContent = () => {
       <div aria-live="polite" aria-atomic="true" className="sr-only">
         {stepAnnouncement}
       </div>
+      {/* P1-8: Offline indicator */}
+      {!isOnline && (
+        <div role="alert" className="mx-auto mb-4 max-w-2xl rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-center text-sm text-warning-strong">
+          You appear to be offline. Your progress is saved locally and will sync when you reconnect.
+        </div>
+      )}
       <div className="w-full">
         <Container size="md" className="py-4 sm:py-8">
           <div className="mb-8 space-y-4">
@@ -718,8 +765,8 @@ const ApplicationWizardContent = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           <div className="lg:col-span-2">
-            <form onSubmit={form.handleSubmit(handleSubmitApplication)} className="space-y-6 lg:space-y-8">
-            <div key={stepKey} className={stepDirection === 'forward' ? 'wizard-step-forward' : 'wizard-step-backward'}>
+            <form onSubmit={form.handleSubmit(handleSubmitApplication)} className="space-y-6 lg:space-y-8" style={{ scrollPaddingBottom: '5rem' }}>
+            <div key={stepKey} ref={stepContentRef} tabIndex={-1} className={`outline-none ${stepDirection === 'forward' ? 'wizard-step-forward' : 'wizard-step-backward'}`}>
             {/* Background upload indicator — visible on any step */}
             {uploading && currentStepConfig.key !== 'education' && (
               <div className="mb-4 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5 text-sm text-primary animate-in fade-in duration-300" role="status">
@@ -802,11 +849,12 @@ const ApplicationWizardContent = () => {
                 paymentStatus={paymentStatus}
                 wizardReadiness={wizardReadiness}
                 applicationId={applicationId}
+                onNavigateToStep={handleNavigateToStep}
               />
             )}
             </div>
 
-              <div className="sticky bottom-0 z-10 -mx-4 border-t border-border/40 bg-background/80 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] pt-3 backdrop-blur-xl sm:static sm:mx-0 sm:border-t-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
+              <div className={`${keyboardOpen ? 'relative' : 'sticky bottom-0'} z-10 -mx-4 border-t border-border/40 bg-background/80 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] pt-3 backdrop-blur-xl sm:static sm:mx-0 sm:border-t-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none`}>
               <div className="glass-panel flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-5">
             <div className="order-2 sm:order-1">
               {currentStepIndex > 0 && (
