@@ -143,14 +143,38 @@ const EducationStep = ({
   // Subject options for CanonicalSelect
   const getSubjectOptions = (currentSubjectId: string) => {
     const usedSubjects = getUsedSubjects()
-    return subjects.map(subject => {
-      const isUsed = usedSubjects.includes(subject.id) && currentSubjectId !== subject.id
-      return {
-        value: subject.id,
-        label: `${subject.name}${isUsed ? ' (Already selected)' : ''}`,
-        disabled: isUsed,
-      }
-    })
+
+    // Group subjects by level
+    const grade12 = subjects.filter(s => !s.level || s.level === 'grade12')
+    const olevel = subjects.filter(s => s.level === 'olevel')
+    const alevel = subjects.filter(s => s.level === 'alevel')
+
+    const mapOptions = (list: typeof subjects) =>
+      list.map(subject => {
+        const isUsed = usedSubjects.includes(subject.id) && currentSubjectId !== subject.id
+        return {
+          value: subject.id,
+          label: `${subject.name}${isUsed ? ' (Already selected)' : ''}`,
+          disabled: isUsed,
+        }
+      })
+
+    const options: Array<{ value: string; label: string; disabled?: boolean }> = []
+
+    if (grade12.length > 0) {
+      options.push({ value: '__header_grade12', label: '── Grade 12 (ECZ Senior Secondary) ──', disabled: true })
+      options.push(...mapOptions(grade12))
+    }
+    if (olevel.length > 0) {
+      options.push({ value: '__header_olevel', label: '── O-Level (Grade 9) ──', disabled: true })
+      options.push(...mapOptions(olevel))
+    }
+    if (alevel.length > 0) {
+      options.push({ value: '__header_alevel', label: '── A-Level (Advanced) ──', disabled: true })
+      options.push(...mapOptions(alevel))
+    }
+
+    return options
   }
 
   // Grade options for CanonicalSelect
