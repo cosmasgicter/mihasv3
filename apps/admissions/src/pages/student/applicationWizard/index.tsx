@@ -127,7 +127,7 @@ const ApplicationWizardContent = () => {
   // - Submission processing (loading flag)
   const isPaymentStepActive = currentStepConfig.key === 'payment'
   const isPaymentInProgress = isPaymentStepActive && (paymentStatus === 'pending')
-  const isUploadBlocking = currentStepConfig.key === 'education' && uploading
+  const isUploadBlocking = false // Uploads run in background — never block navigation
   const nextButtonLabel = loading
     ? 'Saving step...'
     : isUploadBlocking
@@ -205,9 +205,6 @@ const ApplicationWizardContent = () => {
       if (!extraKycFile && !uploadedFiles.extra_kyc) {
         errors.push({ field: 'extra_kyc', label: 'Identity Document', message: 'An NRC or Passport document is required before proceeding' })
       }
-      if (uploading) {
-        errors.push({ field: 'result_slip', label: 'Uploads', message: 'Please wait for file upload to complete' })
-      }
     }
 
     if (currentStepConfig.key === 'payment' && paymentStatus !== 'successful' && paymentStatus !== 'deferred') {
@@ -217,6 +214,9 @@ const ApplicationWizardContent = () => {
     if (currentStepConfig.key === 'submit') {
       if (paymentStatus !== 'successful' && paymentStatus !== 'deferred') {
         errors.push({ field: 'payment', label: 'Payment', message: 'Payment must be confirmed before you can submit the application' })
+      }
+      if (uploading) {
+        errors.push({ field: 'result_slip', label: 'Uploads', message: 'A file is still uploading. Please wait for it to finish before submitting.' })
       }
       if (!confirmSubmission) {
         errors.push({ field: 'confirmSubmission', label: 'Confirmation', message: 'Please confirm that all information is accurate' })
@@ -412,7 +412,7 @@ const ApplicationWizardContent = () => {
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && !loading && !uploading) {
+      if ((e.ctrlKey || e.metaKey) && !loading) {
         if (e.key === 'ArrowRight' && !isLastStep) {
           e.preventDefault()
           wrappedHandleNextStep()
@@ -720,6 +720,13 @@ const ApplicationWizardContent = () => {
           <div className="lg:col-span-2">
             <form onSubmit={form.handleSubmit(handleSubmitApplication)} className="space-y-6 lg:space-y-8">
             <div key={stepKey} className={stepDirection === 'forward' ? 'wizard-step-forward' : 'wizard-step-backward'}>
+            {/* Background upload indicator — visible on any step */}
+            {uploading && currentStepConfig.key !== 'education' && (
+              <div className="mb-4 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5 text-sm text-primary animate-in fade-in duration-300" role="status">
+                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary/40 border-t-primary" />
+                <span>Your documents are uploading in the background. You can keep going.</span>
+              </div>
+            )}
             {currentStepConfig.key === 'basicKyc' && (
               <BasicKycStep
                 form={form}
@@ -804,7 +811,7 @@ const ApplicationWizardContent = () => {
             <div className="order-2 sm:order-1">
               {currentStepIndex > 0 && (
                 <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
-                  <Button type="button" variant="outline" onClick={wrappedHandlePrevStep} className="w-full sm:w-auto" disabled={loading || uploading} aria-label={`Go back to ${wizardSteps[currentStepIndex - 1]?.progressTitle || 'previous step'}`}>
+                  <Button type="button" variant="outline" onClick={wrappedHandlePrevStep} className="w-full sm:w-auto" disabled={loading} aria-label={`Go back to ${wizardSteps[currentStepIndex - 1]?.progressTitle || 'previous step'}`}>
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     {previousButtonLabel}
                   </Button>
@@ -815,7 +822,7 @@ const ApplicationWizardContent = () => {
             <div className="order-1 sm:order-2">
               {!isLastStep ? (
                 <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
-                  <Button type="button" variant="primary" onClick={wrappedHandleNextStep} loading={loading} disabled={loading || uploading || (currentStepConfig.key === 'payment' && paymentStatus !== 'successful' && paymentStatus !== 'deferred')} className="w-full sm:w-auto min-h-[48px]" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
+                  <Button type="button" variant="primary" onClick={wrappedHandleNextStep} loading={loading} disabled={loading || (currentStepConfig.key === 'payment' && paymentStatus !== 'successful' && paymentStatus !== 'deferred')} className="w-full sm:w-auto min-h-[48px]" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
                     {loading || isUploadBlocking ? nextButtonLabel : (<><span>{nextButtonLabel}</span><ArrowRight className="h-4 w-4 ml-2" /></>)}
                   </Button>
                 </div>
