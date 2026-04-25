@@ -5,7 +5,6 @@ import { AlertTriangle, CheckCircle2, RefreshCw, Sparkles } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
 import { CheckboxWithLabel } from '@/components/ui/checkbox'
 import { SectionCard } from '@/components/ui/SectionCard'
-import { Skeleton } from '@/components/ui'
 import { animateClasses } from '@/lib/animations'
 import { apiClient } from '@/services/client'
 // eslint-disable-next-line no-restricted-imports -- type import from eligibilityEngine until API-backed replacement is ready
@@ -220,32 +219,25 @@ const SubmitStep = ({
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold uppercase tracking-wide text-primary/70">Application Preview</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {aiSummary
-                    ? 'Personalized preview loaded.'
-                    : aiLoading
-                      ? 'Generating a personalized preview. A resilient local summary is shown in the meantime.'
-                      : 'Showing the resilient local preview because the personalized summary is unavailable right now.'}
+                {/* Always show the summary text — fallback first, AI replaces it */}
+                <p className="mt-1.5 text-sm leading-relaxed text-foreground" role="status">
+                  {aiSummary || fallbackSummary}
                 </p>
-                {aiLoading ? (
-                  <div className="mt-2 space-y-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
+                {aiLoading && (
+                  <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary/40 border-t-primary" />
+                    <span>Personalizing your preview…</span>
                   </div>
-                ) : (
-                  <>
-                    <p className="mt-1.5 text-sm leading-relaxed text-foreground">{aiSummary || fallbackSummary}</p>
-                    {aiError && applicationId && (
-                      <button
-                        type="button"
-                        onClick={() => setAiRetryNonce((count) => count + 1)}
-                        className="mt-3 inline-flex items-center gap-2 text-xs font-medium text-primary transition-colors hover:text-primary/80"
-                      >
-                        <RefreshCw className="h-3.5 w-3.5" />
-                        Retry personalized preview
-                      </button>
-                    )}
-                  </>
+                )}
+                {aiError && !aiLoading && applicationId && (
+                  <button
+                    type="button"
+                    onClick={() => setAiRetryNonce((count) => count + 1)}
+                    className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:text-primary/80"
+                  >
+                    <RefreshCw className="h-3 w-3" />
+                    Load personalized preview
+                  </button>
                 )}
               </div>
             </div>
