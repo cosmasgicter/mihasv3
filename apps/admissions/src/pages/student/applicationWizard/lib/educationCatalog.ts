@@ -5,39 +5,54 @@ type EducationUploadCopy = {
   helperText: string
 }
 
-// ── Grade 12 (ECZ Senior Secondary) ──────────────────────────────────────
+// ── ECZ Grade 12 (Senior Secondary Certificate) ──────────────────────────
+// Complete list per ECZ examination syllabus
 
 const CORE_SUBJECTS: Grade12Subject[] = [
-  { id: 'fallback-english', name: 'English', code: 'ENG', category: 'languages', level: 'grade12' },
-  { id: 'fallback-mathematics', name: 'Mathematics', code: 'MATH', category: 'sciences', level: 'grade12' },
-  { id: 'fallback-ordinary-mathematics', name: 'Ordinary Mathematics', code: 'OMATH', category: 'sciences', level: 'grade12' },
-  { id: 'fallback-additional-mathematics', name: 'Additional Mathematics', code: 'ADDMATH', category: 'sciences', level: 'grade12' },
+  { id: 'fallback-english', name: 'English Language', code: 'ENG', category: 'core', level: 'grade12' },
+  { id: 'fallback-mathematics', name: 'Mathematics', code: 'MATH', category: 'core', level: 'grade12' },
+  { id: 'fallback-civic-education', name: 'Civic Education', code: 'CE', category: 'core', level: 'grade12' },
+]
+
+const ELECTIVE_SUBJECTS: Grade12Subject[] = [
+  // Sciences
   { id: 'fallback-biology', name: 'Biology', code: 'BIO', category: 'sciences', level: 'grade12' },
   { id: 'fallback-chemistry', name: 'Chemistry', code: 'CHEM', category: 'sciences', level: 'grade12' },
   { id: 'fallback-physics', name: 'Physics', code: 'PHY', category: 'sciences', level: 'grade12' },
   { id: 'fallback-science', name: 'Science', code: 'SCI', category: 'sciences', level: 'grade12' },
   { id: 'fallback-integrated-science', name: 'Integrated Science', code: 'INTSCI', category: 'sciences', level: 'grade12' },
-]
-
-const ELECTIVE_SUBJECTS: Grade12Subject[] = [
   { id: 'fallback-agricultural-science', name: 'Agricultural Science', code: 'AGR', category: 'sciences', level: 'grade12' },
+  { id: 'fallback-additional-mathematics', name: 'Additional Mathematics', code: 'ADDMATH', category: 'sciences', level: 'grade12' },
+  { id: 'fallback-ordinary-mathematics', name: 'Ordinary Mathematics', code: 'OMATH', category: 'sciences', level: 'grade12' },
+  // Commercial
+  { id: 'fallback-commerce', name: 'Commerce', code: 'COM', category: 'commercial', level: 'grade12' },
+  { id: 'fallback-principles-of-accounts', name: 'Principles of Accounts', code: 'POA', category: 'commercial', level: 'grade12' },
+  { id: 'fallback-economics', name: 'Economics', code: 'ECON', category: 'commercial', level: 'grade12' },
+  { id: 'fallback-business-studies', name: 'Business Studies', code: 'BS', category: 'commercial', level: 'grade12' },
+  { id: 'fallback-office-practice', name: 'Office Practice', code: 'OP', category: 'commercial', level: 'grade12' },
+  { id: 'fallback-entrepreneurship', name: 'Entrepreneurship', code: 'ENT', category: 'commercial', level: 'grade12' },
+  // Humanities
   { id: 'fallback-geography', name: 'Geography', code: 'GEO', category: 'humanities', level: 'grade12' },
   { id: 'fallback-history', name: 'History', code: 'HIST', category: 'humanities', level: 'grade12' },
   { id: 'fallback-religious-education', name: 'Religious Education', code: 'RE', category: 'humanities', level: 'grade12' },
-  { id: 'fallback-civic-education', name: 'Civic Education', code: 'CE', category: 'humanities', level: 'grade12' },
   { id: 'fallback-development-studies', name: 'Development Studies', code: 'DS', category: 'humanities', level: 'grade12' },
+  { id: 'fallback-literature-in-english', name: 'Literature in English', code: 'LIT', category: 'humanities', level: 'grade12' },
+  // Technology
   { id: 'fallback-computer-studies', name: 'Computer Studies', code: 'CS', category: 'technology', level: 'grade12' },
   { id: 'fallback-ict', name: 'ICT', code: 'ICT', category: 'technology', level: 'grade12' },
-  { id: 'fallback-principles-of-accounts', name: 'Principles of Accounts', code: 'POA', category: 'commercial', level: 'grade12' },
-  { id: 'fallback-commerce', name: 'Commerce', code: 'COM', category: 'commercial', level: 'grade12' },
-  { id: 'fallback-economics', name: 'Economics', code: 'ECON', category: 'commercial', level: 'grade12' },
-  { id: 'fallback-business-studies', name: 'Business Studies', code: 'BS', category: 'commercial', level: 'grade12' },
+  { id: 'fallback-design-and-technology', name: 'Design & Technology', code: 'DT', category: 'technology', level: 'grade12' },
+  { id: 'fallback-metalwork', name: 'Metalwork', code: 'MW', category: 'technology', level: 'grade12' },
+  { id: 'fallback-woodwork', name: 'Woodwork', code: 'WW', category: 'technology', level: 'grade12' },
+  { id: 'fallback-technical-drawing', name: 'Technical Drawing', code: 'TD', category: 'technology', level: 'grade12' },
+  { id: 'fallback-power-mechanics', name: 'Power Mechanics', code: 'PM', category: 'technology', level: 'grade12' },
+  // Practical / Creative
   { id: 'fallback-home-economics', name: 'Home Economics', code: 'HE', category: 'practical', level: 'grade12' },
   { id: 'fallback-food-and-nutrition', name: 'Food & Nutrition', code: 'FN', category: 'practical', level: 'grade12' },
-  { id: 'fallback-design-and-technology', name: 'Design & Technology', code: 'DT', category: 'technology', level: 'grade12' },
   { id: 'fallback-art-and-design', name: 'Art & Design', code: 'ART', category: 'practical', level: 'grade12' },
   { id: 'fallback-music', name: 'Music', code: 'MUSIC', category: 'practical', level: 'grade12' },
   { id: 'fallback-physical-education', name: 'Physical Education', code: 'PE', category: 'practical', level: 'grade12' },
+  { id: 'fallback-fashion-and-fabrics', name: 'Fashion & Fabrics', code: 'FF', category: 'practical', level: 'grade12' },
+  // Languages
   { id: 'fallback-french', name: 'French', code: 'FRENCH', category: 'languages', level: 'grade12' },
   { id: 'fallback-portuguese', name: 'Portuguese', code: 'PORT', category: 'languages', level: 'grade12' },
   { id: 'fallback-bemba', name: 'Bemba', code: 'BEMBA', category: 'languages', level: 'grade12' },
@@ -49,40 +64,12 @@ const ELECTIVE_SUBJECTS: Grade12Subject[] = [
   { id: 'fallback-luvale', name: 'Luvale', code: 'LUVALE', category: 'languages', level: 'grade12' },
 ]
 
-// ── O-Level (ECZ Grade 9 / Junior Secondary) ─────────────────────────────
-
-const O_LEVEL_SUBJECTS: Grade12Subject[] = [
-  { id: 'fallback-ol-english', name: 'English Language (O-Level)', code: 'OL-ENG', category: 'languages', level: 'olevel' },
-  { id: 'fallback-ol-mathematics', name: 'Mathematics (O-Level)', code: 'OL-MATH', category: 'sciences', level: 'olevel' },
-  { id: 'fallback-ol-integrated-science', name: 'Integrated Science (O-Level)', code: 'OL-INTSCI', category: 'sciences', level: 'olevel' },
-  { id: 'fallback-ol-social-studies', name: 'Social Studies (O-Level)', code: 'OL-SS', category: 'humanities', level: 'olevel' },
-  { id: 'fallback-ol-zambian-languages', name: 'Zambian Languages (O-Level)', code: 'OL-ZL', category: 'languages', level: 'olevel' },
-  { id: 'fallback-ol-religious-education', name: 'Religious Education (O-Level)', code: 'OL-RE', category: 'humanities', level: 'olevel' },
-  { id: 'fallback-ol-civic-education', name: 'Civic Education (O-Level)', code: 'OL-CE', category: 'humanities', level: 'olevel' },
-  { id: 'fallback-ol-geography', name: 'Geography (O-Level)', code: 'OL-GEO', category: 'humanities', level: 'olevel' },
-  { id: 'fallback-ol-history', name: 'History (O-Level)', code: 'OL-HIST', category: 'humanities', level: 'olevel' },
-  { id: 'fallback-ol-home-economics', name: 'Home Economics (O-Level)', code: 'OL-HE', category: 'practical', level: 'olevel' },
-  { id: 'fallback-ol-agricultural-science', name: 'Agricultural Science (O-Level)', code: 'OL-AGR', category: 'sciences', level: 'olevel' },
-  { id: 'fallback-ol-art-and-design', name: 'Art & Design (O-Level)', code: 'OL-ART', category: 'practical', level: 'olevel' },
-  { id: 'fallback-ol-music', name: 'Music (O-Level)', code: 'OL-MUSIC', category: 'practical', level: 'olevel' },
-  { id: 'fallback-ol-physical-education', name: 'Physical Education (O-Level)', code: 'OL-PE', category: 'practical', level: 'olevel' },
-  { id: 'fallback-ol-computer-studies', name: 'Computer Studies (O-Level)', code: 'OL-CS', category: 'technology', level: 'olevel' },
-  { id: 'fallback-ol-design-and-technology', name: 'Design & Technology (O-Level)', code: 'OL-DT', category: 'technology', level: 'olevel' },
-  { id: 'fallback-ol-business-studies', name: 'Business Studies (O-Level)', code: 'OL-BS', category: 'commercial', level: 'olevel' },
-  { id: 'fallback-ol-french', name: 'French (O-Level)', code: 'OL-FRENCH', category: 'languages', level: 'olevel' },
-  { id: 'fallback-ol-bemba', name: 'Bemba (O-Level)', code: 'OL-BEMBA', category: 'languages', level: 'olevel' },
-  { id: 'fallback-ol-nyanja', name: 'Nyanja (O-Level)', code: 'OL-NYANJA', category: 'languages', level: 'olevel' },
-  { id: 'fallback-ol-tonga', name: 'Tonga (O-Level)', code: 'OL-TONGA', category: 'languages', level: 'olevel' },
-  { id: 'fallback-ol-lozi', name: 'Lozi (O-Level)', code: 'OL-LOZI', category: 'languages', level: 'olevel' },
-]
-
-// ── A-Level (Advanced / Cambridge equivalent) ─────────────────────────────
+// ── A-Level (GCE Advanced Level / Cambridge) ──────────────────────────────
 
 const A_LEVEL_SUBJECTS: Grade12Subject[] = [
   { id: 'fallback-al-english', name: 'English Language (A-Level)', code: 'AL-ENG', category: 'languages', level: 'alevel' },
-  { id: 'fallback-al-mathematics', name: 'Mathematics (A-Level)', code: 'AL-MATH', category: 'sciences', level: 'alevel' },
-  { id: 'fallback-al-pure-mathematics', name: 'Pure Mathematics', code: 'AL-PMATH', category: 'sciences', level: 'alevel' },
-  { id: 'fallback-al-further-mathematics', name: 'Further Mathematics', code: 'AL-FMATH', category: 'sciences', level: 'alevel' },
+  { id: 'fallback-al-pure-mathematics', name: 'Pure Mathematics (A-Level)', code: 'AL-PMATH', category: 'sciences', level: 'alevel' },
+  { id: 'fallback-al-further-mathematics', name: 'Further Mathematics (A-Level)', code: 'AL-FMATH', category: 'sciences', level: 'alevel' },
   { id: 'fallback-al-biology', name: 'Biology (A-Level)', code: 'AL-BIO', category: 'sciences', level: 'alevel' },
   { id: 'fallback-al-chemistry', name: 'Chemistry (A-Level)', code: 'AL-CHEM', category: 'sciences', level: 'alevel' },
   { id: 'fallback-al-physics', name: 'Physics (A-Level)', code: 'AL-PHY', category: 'sciences', level: 'alevel' },
@@ -98,16 +85,21 @@ const A_LEVEL_SUBJECTS: Grade12Subject[] = [
   { id: 'fallback-al-french', name: 'French (A-Level)', code: 'AL-FRENCH', category: 'languages', level: 'alevel' },
   { id: 'fallback-al-literature', name: 'Literature in English (A-Level)', code: 'AL-LIT', category: 'languages', level: 'alevel' },
   { id: 'fallback-al-art-and-design', name: 'Art & Design (A-Level)', code: 'AL-ART', category: 'practical', level: 'alevel' },
+  { id: 'fallback-al-law', name: 'Law (A-Level)', code: 'AL-LAW', category: 'humanities', level: 'alevel' },
 ]
 
-/** Subject level labels for UI grouping */
-export const SUBJECT_LEVEL_LABELS: Record<string, string> = {
-  grade12: 'Grade 12 (ECZ Senior Secondary)',
-  olevel: 'O-Level (Grade 9 / Junior Secondary)',
-  alevel: 'A-Level (Advanced)',
+/** Category labels for UI grouping within each level */
+export const SUBJECT_CATEGORY_LABELS: Record<string, string> = {
+  core: 'Core Subjects',
+  sciences: 'Sciences',
+  commercial: 'Commercial',
+  humanities: 'Humanities',
+  technology: 'Technology & Technical',
+  practical: 'Practical & Creative',
+  languages: 'Languages',
 }
 
-const ZAMBIA_SUBJECT_FALLBACKS: Grade12Subject[] = [...CORE_SUBJECTS, ...ELECTIVE_SUBJECTS, ...O_LEVEL_SUBJECTS, ...A_LEVEL_SUBJECTS]
+const ZAMBIA_SUBJECT_FALLBACKS: Grade12Subject[] = [...CORE_SUBJECTS, ...ELECTIVE_SUBJECTS, ...A_LEVEL_SUBJECTS]
 const BACKEND_SUBJECT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 export const EDUCATION_UPLOAD_COPY: Record<'resultSlip' | 'identityDocument', EducationUploadCopy> = {
@@ -179,7 +171,7 @@ export function mergeWizardSubjects(subjects: Grade12Subject[]): Grade12Subject[
   }
 
   // Sort: Grade 12 first, then O-Level, then A-Level, then alphabetical within each
-  const levelOrder: Record<string, number> = { grade12: 0, olevel: 1, alevel: 2 }
+  const levelOrder: Record<string, number> = { grade12: 0, alevel: 1 }
   return Array.from(byName.values()).sort((left, right) => {
     const leftLevel = levelOrder[left.level || 'grade12'] ?? 0
     const rightLevel = levelOrder[right.level || 'grade12'] ?? 0
