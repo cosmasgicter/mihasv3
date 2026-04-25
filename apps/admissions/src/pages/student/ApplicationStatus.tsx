@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Seo } from '@/components/seo/Seo'
@@ -34,6 +34,15 @@ import {
   Edit3,
   Send
 } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
@@ -108,18 +117,6 @@ export default function ApplicationStatus() {
   const [amendReason, setAmendReason] = useState('')
   const [amendError, setAmendError] = useState('')
   const [amendSuccess, setAmendSuccess] = useState('')
-
-  // Dialog refs for auto-focus
-  const withdrawDialogRef = useRef<HTMLDivElement>(null)
-  const enrollDialogRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (showWithdrawDialog) withdrawDialogRef.current?.focus()
-  }, [showWithdrawDialog])
-
-  useEffect(() => {
-    if (showEnrollDialog) enrollDialogRef.current?.focus()
-  }, [showEnrollDialog])
 
   const {
     data: application = null,
@@ -963,19 +960,21 @@ export default function ApplicationStatus() {
     </PageShell>
 
     {/* Withdrawal confirmation dialog */}
-    {showWithdrawDialog && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onKeyDown={(e) => { if (e.key === 'Escape') setShowWithdrawDialog(false) }}>
-        <div ref={withdrawDialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="withdraw-dialog-title" className="w-full max-w-md rounded-xl bg-card p-6 shadow-xl">
-          <div className="flex items-center gap-3 mb-4">
+    <AlertDialog open={showWithdrawDialog} onOpenChange={(open) => { if (!open) { setShowWithdrawDialog(false); setWithdrawalReason('') } }}>
+      <AlertDialogContent>
+        <AlertDialogHeader className="p-6">
+          <div className="flex items-center gap-3">
             <div className="rounded-lg bg-destructive/10 p-2">
               <LogOut className="h-5 w-5 text-destructive" />
             </div>
-            <h3 id="withdraw-dialog-title" className="text-lg font-semibold text-foreground">Withdraw application</h3>
+            <AlertDialogTitle>Withdraw application</AlertDialogTitle>
           </div>
-          <p className="text-sm text-muted-foreground mb-4">
+        </AlertDialogHeader>
+        <div className="px-6">
+          <AlertDialogDescription>
             This action cannot be undone. Your application will be permanently withdrawn.
-          </p>
-          <div className="mb-4">
+          </AlertDialogDescription>
+          <div className="mt-4">
             <label htmlFor="withdrawal-reason" className="block text-sm font-medium text-foreground mb-1">
               Reason for withdrawal (min 10 characters)
             </label>
@@ -992,71 +991,65 @@ export default function ApplicationStatus() {
             <p className="text-xs text-muted-foreground mt-1">{withdrawalReason.length}/10 characters minimum</p>
           </div>
           {withdrawMutation.isError && (
-            <p className="text-sm text-destructive mb-3">
+            <p className="text-sm text-destructive mt-3">
               {withdrawMutation.error instanceof Error ? withdrawMutation.error.message : 'Failed to withdraw application.'}
             </p>
           )}
-          <div className="flex justify-end gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => { setShowWithdrawDialog(false); setWithdrawalReason('') }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              className="bg-destructive hover:bg-destructive/90 text-white"
-              onClick={handleWithdraw}
-              loading={withdrawMutation.isPending}
-              disabled={withdrawalReason.trim().length < 10}
-            >
-              Confirm withdrawal
-            </Button>
-          </div>
         </div>
-      </div>
-    )}
+        <AlertDialogFooter className="p-6">
+          <AlertDialogCancel asChild>
+            <Button variant="outline" size="sm">Cancel</Button>
+          </AlertDialogCancel>
+          <Button
+            variant="primary"
+            size="sm"
+            className="bg-destructive hover:bg-destructive/90 text-white"
+            onClick={handleWithdraw}
+            loading={withdrawMutation.isPending}
+            disabled={withdrawalReason.trim().length < 10}
+          >
+            Confirm withdrawal
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
 
     {/* Enrollment confirmation dialog */}
-    {showEnrollDialog && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onKeyDown={(e) => { if (e.key === 'Escape') setShowEnrollDialog(false) }}>
-        <div ref={enrollDialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="enroll-dialog-title" className="w-full max-w-md rounded-xl bg-card p-6 shadow-xl">
-          <div className="flex items-center gap-3 mb-4">
+    <AlertDialog open={showEnrollDialog} onOpenChange={(open) => { if (!open) setShowEnrollDialog(false) }}>
+      <AlertDialogContent>
+        <AlertDialogHeader className="p-6">
+          <div className="flex items-center gap-3">
             <div className="rounded-lg bg-success/10 p-2">
               <CheckCircle className="h-5 w-5 text-success" />
             </div>
-            <h3 id="enroll-dialog-title" className="text-lg font-semibold text-foreground">Confirm enrollment</h3>
+            <AlertDialogTitle>Confirm enrollment</AlertDialogTitle>
           </div>
-          <p className="text-sm text-muted-foreground mb-4">
+        </AlertDialogHeader>
+        <div className="px-6">
+          <AlertDialogDescription>
             Are you sure you want to confirm your enrollment? This action cannot be undone.
-          </p>
+          </AlertDialogDescription>
           {confirmEnrollmentMutation.isError && (
-            <p className="text-sm text-destructive mb-3">
+            <p className="text-sm text-destructive mt-3">
               {confirmEnrollmentMutation.error instanceof Error ? confirmEnrollmentMutation.error.message : 'Failed to confirm enrollment.'}
             </p>
           )}
-          <div className="flex justify-end gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowEnrollDialog(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => confirmEnrollmentMutation.mutate(undefined, { onSuccess: () => setShowEnrollDialog(false) })}
-              loading={confirmEnrollmentMutation.isPending}
-            >
-              Confirm
-            </Button>
-          </div>
         </div>
-      </div>
-    )}
+        <AlertDialogFooter className="p-6">
+          <AlertDialogCancel asChild>
+            <Button variant="outline" size="sm">Cancel</Button>
+          </AlertDialogCancel>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => confirmEnrollmentMutation.mutate(undefined, { onSuccess: () => setShowEnrollDialog(false) })}
+            loading={confirmEnrollmentMutation.isPending}
+          >
+            Confirm
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </>
   )
 }

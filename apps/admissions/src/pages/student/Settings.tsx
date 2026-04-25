@@ -9,6 +9,7 @@ import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useToastStore } from '@/hooks/useToast'
 import { onSettingsMount } from '@/lib/speculativePrefetch'
 import { Button } from '@/components/ui/Button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { FormSelect } from '@/components/ui/form-select'
 import { Input } from '@/components/ui/input'
 import { ActiveSessions } from '@/components/ui/ActiveSessions'
@@ -74,7 +75,7 @@ function getDisplayValue(value?: string | null, fallback = 'Not provided') {
 export default function StudentSettings() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { profile, updateProfile, updatingProfile } = useProfileQuery()
+  const { profile, updateProfile, updatingProfile, isLoading: profileLoading } = useProfileQuery()
   const { metadata } = useProfileAutoPopulation()
   const toast = useToastStore()
 
@@ -269,6 +270,36 @@ export default function StudentSettings() {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to dashboard
         </button>
+
+        {profileLoading ? (
+          <div className="space-y-6" role="status" aria-label="Loading profile">
+            <SectionCard title="Applicant profile" icon={<User className="h-5 w-5" />}>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div><Skeleton className="h-4 w-20 mb-2" /><Skeleton className="h-10 w-full rounded-md" /></div>
+                <div><Skeleton className="h-4 w-24 mb-2" /><Skeleton className="h-10 w-full rounded-md" /></div>
+              </div>
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 mt-5">
+                <div><Skeleton className="h-4 w-24 mb-2" /><Skeleton className="h-10 w-full rounded-md" /></div>
+                <div><Skeleton className="h-4 w-20 mb-2" /><Skeleton className="h-10 w-full rounded-md" /></div>
+                <div><Skeleton className="h-4 w-12 mb-2" /><Skeleton className="h-10 w-full rounded-md" /></div>
+              </div>
+            </SectionCard>
+            <SectionCard title="Residence and identity" icon={<MapPin className="h-5 w-5" />}>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+                <div><Skeleton className="h-4 w-28 mb-2" /><Skeleton className="h-10 w-full rounded-md" /></div>
+                <div><Skeleton className="h-4 w-20 mb-2" /><Skeleton className="h-10 w-full rounded-md" /></div>
+                <div><Skeleton className="h-4 w-20 mb-2" /><Skeleton className="h-10 w-full rounded-md" /></div>
+              </div>
+            </SectionCard>
+            <SectionCard title="Emergency contact" icon={<Users className="h-5 w-5" />}>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div><Skeleton className="h-4 w-28 mb-2" /><Skeleton className="h-10 w-full rounded-md" /></div>
+                <div><Skeleton className="h-4 w-28 mb-2" /><Skeleton className="h-10 w-full rounded-md" /></div>
+              </div>
+            </SectionCard>
+            <span className="sr-only">Loading profile settings</span>
+          </div>
+        ) : (
 
         <form className="space-y-6" onSubmit={onSubmit}>
           {saveStatus && (
@@ -515,6 +546,7 @@ export default function StudentSettings() {
             </Button>
           </div>
         </form>
+        )}
       </div>
     </PageShell>
     </>

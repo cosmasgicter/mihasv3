@@ -588,20 +588,8 @@ export default function StudentDashboard() {
               </div>
             </div>
 
-            <StudentNextActionCard
-              applications={applications}
-              draftCount={totalDraftCount}
-              hasPendingPayment={hasPendingPayment}
-              hasScheduledInterview={hasScheduledInterview}
-              profileCompletion={profileCompletion}
-            />
-
+            {/* Applications first — most important on mobile */}
             <ContinueApplication />
-
-            {/* Status Overview with 8starlabs StatusIndicator */}
-            <DashboardStatusOverview
-              applications={applications}
-            />
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
               <SectionCard
@@ -749,6 +737,19 @@ export default function StudentDashboard() {
                 />
               </div>
             </div>
+
+            {/* Status overview and action cards after the main content */}
+            <DashboardStatusOverview
+              applications={applications}
+            />
+
+            <StudentNextActionCard
+              applications={applications}
+              draftCount={totalDraftCount}
+              hasPendingPayment={hasPendingPayment}
+              hasScheduledInterview={hasScheduledInterview}
+              profileCompletion={profileCompletion}
+            />
           </div>
         )}
       <ConfirmAlertDialog

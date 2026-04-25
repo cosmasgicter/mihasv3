@@ -40,6 +40,11 @@ import {
   UserPlus,
   UserX,
   Users as UsersIcon,
+  ArrowUpDown,
+  ChevronUp,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import { useToastStore } from '@/hooks/useToast'
 import { sanitizeForLog } from '@/lib/security'
@@ -162,6 +167,10 @@ export default function AdminUsers() {
   const [activityLogUserId, setActivityLogUserId] = useState<string | null>(null)
   const [showExportDialog, setShowExportDialog] = useState(false)
   const [showImportDialog, setShowImportDialog] = useState(false)
+  const [sortField, setSortField] = useState<'name' | 'role' | 'email' | 'created'>('name')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+  const [currentPage, setCurrentPage] = useState(1)
+  const PAGE_SIZE = 25
 
   const selectedUserId = selectedUser?.user_id || selectedUser?.id
   const permissionsQuery = userQueries.usePermissions(showPermissionsDialog ? selectedUserId : undefined)
@@ -193,6 +202,52 @@ export default function AdminUsers() {
 
     return filtered
   }, [roleFilter, debouncedSearchTerm, users])
+
+  const sortedUsers = useMemo(() => {
+    const sorted = [...filteredUsers]
+    sorted.sort((a, b) => {
+      let cmp = 0
+      switch (sortField) {
+        case 'name':
+          cmp = (a.full_name || '').localeCompare(b.full_name || '')
+          break
+        case 'email':
+          cmp = (a.email || '').localeCompare(b.email || '')
+          break
+        case 'role':
+          cmp = (a.role || '').localeCompare(b.role || '')
+          break
+        case 'created':
+          cmp = (a.created_at || '').localeCompare(b.created_at || '')
+          break
+      }
+      return sortDirection === 'asc' ? cmp : -cmp
+    })
+    return sorted
+  }, [filteredUsers, sortField, sortDirection])
+
+  const totalPages = Math.max(1, Math.ceil(sortedUsers.length / PAGE_SIZE))
+  const paginatedUsers = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE
+    return sortedUsers.slice(start, start + PAGE_SIZE)
+  }, [sortedUsers, currentPage])
+
+  // Reset page when filters change
+  useEffect(() => { setCurrentPage(1) }, [debouncedSearchTerm, roleFilter])
+
+  const toggleSort = useCallback((field: typeof sortField) => {
+    if (sortField === field) {
+      setSortDirection(d => d === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('asc')
+    }
+  }, [sortField])
+
+  const SortIcon = ({ field }: { field: typeof sortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="h-3 w-3 opacity-40" />
+    return sortDirection === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+  }
 
   const filteredCount = filteredUsers.length
   const selectedCount = selectedUsers.length
@@ -597,7 +652,7 @@ export default function AdminUsers() {
               </div>
 
               <div className="block space-y-4 lg:hidden">
-                {filteredUsers.map((user) => {
+                {paginatedUsers.map((user) => {
                   const userId = user.user_id || user.id
                   return (
                     <UserMobileCard
@@ -631,32 +686,34 @@ export default function AdminUsers() {
                               <Square className="h-4 w-4" />
                             )}
                           </button>
-                          <span>User</span>
+                          <button onClick={() => toggleSort('name')} className="flex items-center gap-1 hover:text-foreground">
+                            User <SortIcon field="name" />
+                          </button>
                         </div>
                       </th>
                       <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        <div className="flex items-center gap-2">
+                        <button onClick={() => toggleSort('email')} className="flex items-center gap-1 hover:text-foreground">
                           <Phone className="h-4 w-4" />
-                          Contact
-                        </div>
+                          Contact <SortIcon field="email" />
+                        </button>
                       </th>
                       <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        <div className="flex items-center gap-2">
+                        <button onClick={() => toggleSort('role')} className="flex items-center gap-1 hover:text-foreground">
                           <Trophy className="h-4 w-4" />
-                          Role
-                        </div>
+                          Role <SortIcon field="role" />
+                        </button>
                       </th>
                       <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        <div className="flex items-center gap-2">
+                        <button onClick={() => toggleSort('created')} className="flex items-center gap-1 hover:text-foreground">
                           <Calendar className="h-4 w-4" />
-                          Joined
-                        </div>
+                          Joined <SortIcon field="created" />
+                        </button>
                       </th>
                       <th scope="col" className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/40 bg-card">
-                    {filteredUsers.map((user) => {
+                    {paginatedUsers.map((user) => {
                       const userId = user.user_id || user.id
                       return (
                         <UserTableRow
@@ -674,6 +731,59 @@ export default function AdminUsers() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-border/60 bg-muted/30 px-4 py-3">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, sortedUsers.length)} of {sortedUsers.length}
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="min-h-[36px] min-w-[36px]"
+                      aria-label="Previous page"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                      .reduce<(number | 'ellipsis')[]>((acc, p, idx, arr) => {
+                        if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('ellipsis')
+                        acc.push(p)
+                        return acc
+                      }, [])
+                      .map((item, idx) =>
+                        item === 'ellipsis' ? (
+                          <span key={`e${idx}`} className="px-1 text-muted-foreground">…</span>
+                        ) : (
+                          <Button
+                            key={item}
+                            variant={currentPage === item ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setCurrentPage(item as number)}
+                            className="min-h-[36px] min-w-[36px]"
+                          >
+                            {item}
+                          </Button>
+                        ),
+                      )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="min-h-[36px] min-w-[36px]"
+                      aria-label="Next page"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </SectionCard>

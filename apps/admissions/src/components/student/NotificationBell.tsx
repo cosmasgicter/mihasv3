@@ -9,12 +9,14 @@ import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { NotificationItem } from '@/components/student/NotificationItem'
 import { sanitizeText } from '@/lib/sanitize'
+import { useAuth } from '@/contexts/AuthContext'
 
 export function NotificationBell() {
   const [showPanel, setShowPanel] = useState(false)
   const [isPulsing, setIsPulsing] = useState(false)
   const prevUnreadRef = useRef<number>(0)
   const navigate = useNavigate()
+  const { isAdmin } = useAuth()
   const focusTrapRef = useFocusTrap(showPanel)
   useEscapeKey(showPanel, () => setShowPanel(false))
   const { 
@@ -204,7 +206,7 @@ export function NotificationBell() {
               {notifications.length > 0 && (
                 <div className="p-3 border-t border-border/60">
                   <div className="flex items-center justify-center">
-                    <Link to="/student/notifications" className="text-xs font-medium text-primary hover:underline" onClick={() => setShowPanel(false)}>
+                    <Link to={isAdmin ? '/admin/dashboard' : '/student/notifications'} className="text-xs font-medium text-primary hover:underline" onClick={() => setShowPanel(false)}>
                       View all notifications
                     </Link>
                   </div>
