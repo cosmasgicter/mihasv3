@@ -49,10 +49,13 @@ export default function SignUpPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<SignUpForm>({
     resolver: zodResolver(signUpSchema),
   });
+
+  const passwordValue = watch('password', '');
 
   useEffect(() => {
     return () => {
@@ -245,6 +248,27 @@ export default function SignUpPage() {
                 className="min-h-[48px]"
               />
             </div>
+            {passwordValue.length > 0 && (() => {
+              const checks = [
+                passwordValue.length >= 8,
+                /[A-Z]/.test(passwordValue),
+                /[0-9]/.test(passwordValue),
+                /[^A-Za-z0-9]/.test(passwordValue),
+              ]
+              const strength = checks.filter(Boolean).length
+              const label = ['Weak', 'Fair', 'Good', 'Strong'][strength - 1] || 'Weak'
+              const color = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'][strength - 1] || 'bg-red-500'
+              return (
+                <div className="space-y-1.5" aria-live="polite">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4].map((level) => (
+                      <div key={level} className={cn('h-1.5 flex-1 rounded-full transition-colors', level <= strength ? color : 'bg-muted')} />
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Password strength: <span className="font-medium">{label}</span></p>
+                </div>
+              )
+            })()}
           </fieldset>
 
           <fieldset className="space-y-4 rounded-2xl border border-border/30 bg-muted/30 p-5 sm:p-6">

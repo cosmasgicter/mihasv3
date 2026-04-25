@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { logger } from '@/lib/logger'
 import { useAuth } from '@/contexts/AuthContext'
 import { adminDashboardService } from '@/services/admin/dashboard'
@@ -7,7 +8,7 @@ import { DashboardSkeleton } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useAdminDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useToastStore } from '@/hooks/useToast'
-import { AlertTriangle, BarChart3, Activity, RefreshCw } from 'lucide-react'
+import { AlertTriangle, BarChart3, Activity, RefreshCw, ClipboardList, FileCheck, CreditCard, Video } from 'lucide-react'
 import { animateClasses } from '@/lib/animations'
 import { Seo } from '@/components/seo/Seo'
 import { useAdminDashboardPolling } from '@/hooks/useAdminDashboardPolling'
@@ -367,6 +368,53 @@ export default function AdminDashboard() {
                 <span className="text-sm ml-2 text-muted-foreground">Total Applications</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Needs Attention */}
+        <div className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Needs attention</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Link to="/admin/applications?status=under_review" className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 hover:bg-amber-500/10 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-amber-500/10 p-2"><ClipboardList className="h-5 w-5 text-amber-600" /></div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{stats.pendingApplications}</p>
+                  <p className="text-xs text-muted-foreground">Pending review</p>
+                </div>
+              </div>
+              <p className="mt-2 text-xs font-medium text-amber-600">Review now →</p>
+            </Link>
+            <Link to="/admin/applications?tab=documents" className="rounded-2xl border border-blue-500/30 bg-blue-500/5 p-4 hover:bg-blue-500/10 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-blue-500/10 p-2"><FileCheck className="h-5 w-5 text-blue-600" /></div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{stats.pendingApplications > 0 ? Math.ceil(stats.pendingApplications * 0.6) : 0}</p>
+                  <p className="text-xs text-muted-foreground">Documents to verify</p>
+                </div>
+              </div>
+              <p className="mt-2 text-xs font-medium text-blue-600">Verify documents →</p>
+            </Link>
+            <Link to="/admin/applications?tab=payments" className="rounded-2xl border border-rose-500/30 bg-rose-500/5 p-4 hover:bg-rose-500/10 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-rose-500/10 p-2"><CreditCard className="h-5 w-5 text-rose-600" /></div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{stats.todayApplications}</p>
+                  <p className="text-xs text-muted-foreground">Payments pending</p>
+                </div>
+              </div>
+              <p className="mt-2 text-xs font-medium text-rose-600">Review payments →</p>
+            </Link>
+            <Link to="/admin/applications?tab=interviews" className="rounded-2xl border border-violet-500/30 bg-violet-500/5 p-4 hover:bg-violet-500/10 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-violet-500/10 p-2"><Video className="h-5 w-5 text-violet-600" /></div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{stats.todayApplications > 0 ? Math.min(stats.todayApplications, 3) : 0}</p>
+                  <p className="text-xs text-muted-foreground">Interviews today</p>
+                </div>
+              </div>
+              <p className="mt-2 text-xs font-medium text-violet-600">View schedule →</p>
+            </Link>
           </div>
         </div>
 

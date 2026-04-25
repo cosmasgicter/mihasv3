@@ -9,7 +9,7 @@ import { PublicLayout } from '@/components/layout/PublicLayout'
 import { Card, CardContent, CardTitle } from '@/components/ui'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/Button'
-import { ArrowLeft, Mail, Phone, MapPin } from '@/components/icons'
+import { ArrowLeft, Mail, Phone, MapPin, MessageCircle } from '@/components/icons'
 import { Seo } from '@/components/seo/Seo'
 import { contactInfo } from '@/lib/constants/landing'
 
@@ -112,9 +112,9 @@ export default function ContactPage() {
             <div className="polished-panel p-5 sm:p-6">
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary/80">Fastest route</p>
               <div className="mt-4 grid gap-3">
-                <div className="rounded-2xl bg-slate-50 px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Email</p>
-                  <p className="mt-1 text-lg font-semibold text-slate-950">{contactInfo.email}</p>
+                <div className="rounded-2xl bg-green-50 px-4 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-green-700">WhatsApp</p>
+                  <a href={`https://wa.me/${contactInfo.katcPhone.replace(/[\s+]/g, '')}`} className="mt-1 text-lg font-semibold text-slate-950 hover:underline block">{contactInfo.katcPhone}</a>
                 </div>
                 <div className="rounded-2xl bg-slate-50 px-4 py-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Phone support</p>
@@ -131,13 +131,17 @@ export default function ContactPage() {
               <CardContent className="space-y-5 p-6 sm:p-8">
                 <CardTitle className="text-xl font-semibold">Talk to our team</CardTitle>
                 <div className="space-y-3">
-                  <ContactItem href={`tel:${contactInfo.katcPhone.replace(/\s/g, '')}`} icon={<Phone className="h-4 w-4 text-primary" aria-hidden="true" />} label="KATC">
+                  {/* WhatsApp — primary contact for Zambian students */}
+                  <ContactItem href={`https://wa.me/${contactInfo.katcPhone.replace(/[\s+]/g, '')}`} icon={<MessageCircle className="h-4 w-4 text-green-600" aria-hidden="true" />} label="WhatsApp (fastest)">
                     {contactInfo.katcPhone}
                   </ContactItem>
-                  <ContactItem href={`tel:${contactInfo.mihasPhone.replace(/\s/g, '')}`} icon={<Phone className="h-4 w-4 text-primary" aria-hidden="true" />} label="MIHAS">
+                  <ContactItem href={`tel:${contactInfo.katcPhone.replace(/\s/g, '')}`} icon={<Phone className="h-4 w-4 text-primary" aria-hidden="true" />} label="Call KATC">
+                    {contactInfo.katcPhone}
+                  </ContactItem>
+                  <ContactItem href={`tel:${contactInfo.mihasPhone.replace(/\s/g, '')}`} icon={<Phone className="h-4 w-4 text-primary" aria-hidden="true" />} label="Call MIHAS">
                     {contactInfo.mihasPhone}
                   </ContactItem>
-                  <ContactItem href={`mailto:${contactInfo.email}`} icon={<Mail className="h-4 w-4 text-primary" aria-hidden="true" />}>
+                  <ContactItem href={`mailto:${contactInfo.email}`} icon={<Mail className="h-4 w-4 text-primary" aria-hidden="true" />} label="Email">
                     {contactInfo.email}
                   </ContactItem>
                   <ContactItem icon={<MapPin className="h-4 w-4 text-primary" aria-hidden="true" />} label="Address">
