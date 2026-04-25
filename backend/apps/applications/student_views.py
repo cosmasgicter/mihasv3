@@ -481,12 +481,15 @@ class ApplicationPreviewSummaryView(APIView):
     """GET /api/v1/applications/{id}/preview-summary/
 
     Returns a personalized AI-generated summary for the student's review step.
-    Best-effort — returns null if AI is unavailable.
+    Cached for 10 minutes per application. Best-effort — returns a template
+    fallback if AI is unavailable or slow.
     """
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request, application_id):
+        from django.core.cache import cache
+
         try:
             app = Application.objects.get(id=application_id)
         except Application.DoesNotExist:
@@ -501,39 +504,64 @@ class ApplicationPreviewSummaryView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        # Check cache first (10 min TTL)
+        cache_key = f"preview_summary:{application_id}"
+        cached = cache.get(cache_key)
+        if cached:
+            return Response({"success": True, "data": {"summary": cached, "source": "ai"}})
+
         subjects_count = ApplicationGrade.objects.filter(application_id=app.id).count()
         first_name = (app.full_name or "").split()[0] or "Student"
         program = app.program or "your chosen programme"
         intake = getattr(app, "intake", "") or ""
 
-        # Try AI summary, fall back to template
+        # Try AI summary with a 15-second timeout
         summary = None
+        source = "fallback"
         try:
+            import signal
+
+            def _timeout_handler(signum, frame):
+                raise TimeoutError("AI summary timed out")
+
             from apps.common.ai_service import generate_student_preview_summary
-            summary = generate_student_preview_summary({
-                "full_name": app.full_name,
-                "program": program,
-                "institution": getattr(app, "institution", "MIHAS"),
-                "intake": intake,
-                "grades_summary": build_grades_summary(app),
-                "subjects_count": subjects_count,
-            })
+
+            old_handler = signal.signal(signal.SIGALRM, _timeout_handler)
+            signal.alarm(15)
+            try:
+                summary = generate_student_preview_summary({
+                    "full_name": app.full_name,
+                    "program": program,
+                    "institution": getattr(app, "institution", "MIHAS"),
+                    "intake": intake,
+                    "grades_summary": build_grades_summary(app),
+                    "subjects_count": subjects_count,
+                })
+            finally:
+                signal.alarm(0)
+                signal.signal(signal.SIGALRM, old_handler)
+
+            if summary and len(summary) >= 20:
+                source = "ai"
         except Exception:
-            pass
+            logger.info("AI preview summary unavailable for %s, using fallback", application_id)
 
         if not summary or len(summary) < 20:
             parts = [f"{first_name}, your application for {program} is looking great."]
             if subjects_count > 0:
                 parts.append(f"You've recorded {subjects_count} subject{'s' if subjects_count != 1 else ''} so far.")
             if intake:
-                parts.append(f"Once submitted, the admissions team will review your application for the {intake} promptly.")
+                parts.append(f"Once submitted, the admissions team will review your application for the {intake} intake promptly.")
             else:
                 parts.append("Once submitted, the admissions team will review your application promptly.")
             summary = " ".join(parts)
+            source = "fallback"
 
-        return Response({"success": True, "data": {"summary": summary}})
+        # Cache AI summaries for 10 minutes
+        if source == "ai":
+            cache.set(cache_key, summary, timeout=600)
 
-        return Response({"success": True, "data": {"summary": summary}})
+        return Response({"success": True, "data": {"summary": summary, "source": source}})
 
 
 # ---------------------------------------------------------------------------
