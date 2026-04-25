@@ -101,7 +101,7 @@ export const NotificationItem = React.memo<NotificationItemProps>(function Notif
           </span>
         </div>
         <div className="flex items-center gap-0.5 flex-shrink-0">
-          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
+          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/30 opacity-60 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" aria-hidden="true" />
           <Button
             variant="ghost"
             size="sm"
@@ -110,7 +110,7 @@ export const NotificationItem = React.memo<NotificationItemProps>(function Notif
               try { await onDelete(notification.id) } catch { /* handled upstream */ }
             }}
             aria-label={`Delete notification: ${sanitizeText(notification.title)}`}
-            className="p-1 h-auto opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
+            className="p-1 h-auto opacity-60 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
           >
             <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
           </Button>

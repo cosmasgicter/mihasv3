@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { Seo } from '@/components/seo/Seo'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -60,8 +60,8 @@ export function isNotificationChannelEnabled(
 
 const CHANNEL_DETAILS: Record<ChannelKey, { title: string; description: string; Icon: React.ComponentType<{ className?: string }> }> = {
   sms: {
-    title: 'SMS Alerts',
-    description: 'Receive important application updates as text messages directly to your phone.',
+    title: 'SMS Alerts — Coming Soon',
+    description: 'SMS delivery is not yet available. This feature is planned for a future release.',
     Icon: MessageSquare
   }
 }
@@ -81,6 +81,7 @@ function formatTimestamp(timestamp?: string | null) {
 
 export default function NotificationSettings() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const { profile } = useProfileQuery()
   const queryClient = useQueryClient()
   const {
@@ -154,7 +155,7 @@ export default function NotificationSettings() {
     }
 
     if (actionUrl && isSafeNavigationUrl(actionUrl)) {
-      window.location.href = actionUrl
+      navigate(actionUrl)
     }
   }
 
@@ -236,22 +237,17 @@ export default function NotificationSettings() {
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-border">
           <span className="text-xs text-muted-foreground">
-            {optedIn ? 'You will receive SMS alerts' : 'SMS alerts are off'}
+            Coming soon — SMS delivery is not yet available
           </span>
           <button
             type="button"
             role="switch"
-            aria-checked={optedIn}
-            disabled={savingChannel === channel || disableGrant}
-            onClick={() => handleConsentChange(channel, !optedIn)}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
-              optedIn ? 'bg-primary' : 'bg-muted'
-            }`}
+            aria-checked={false}
+            disabled
+            className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-muted`}
           >
             <span
-              className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform duration-200 ease-in-out ${
-                optedIn ? 'translate-x-5' : 'translate-x-0'
-              }`}
+              className="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform duration-200 ease-in-out translate-x-0"
             />
           </button>
         </div>
@@ -274,7 +270,7 @@ export default function NotificationSettings() {
       tone="student"
       metrics={[
         { label: 'Inbox items', value: notifications.length, helper: 'Latest portal notifications on this page' },
-        { label: 'SMS consent', value: preferences.sms_enabled ? 'Enabled' : 'Disabled', helper: 'Student-controlled delivery preference' },
+        { label: 'SMS consent', value: 'Coming soon', helper: 'SMS delivery is planned for a future release' },
         { label: 'Contact source', value: contactSourceLabel, helper: contactPhone || 'No phone number on file' },
         { label: 'State', value: loading ? 'Loading' : (error || preferencesErrorMessage) ? 'Needs attention' : 'Ready', helper: error || preferencesErrorMessage || success || 'Notification controls are available' },
       ]}

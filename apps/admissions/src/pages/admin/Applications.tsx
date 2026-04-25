@@ -17,6 +17,8 @@ import { useToastStore } from '@/hooks/useToast'
 import { applicationService } from '@/services/applications'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
+import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
+import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { PageShell } from '@/components/ui/PageShell'
 import { Seo } from '@/components/seo/Seo'
 import { VirtualizedApplicationsGrid } from '@/components/admin/applications/VirtualizedApplicationsGrid'
@@ -50,7 +52,8 @@ import {
   Send,
   Download,
   LayoutGrid,
-  Table
+  Table,
+  Keyboard
 } from 'lucide-react'
 
 const EXPORT_BATCH_SIZE = 500
@@ -233,6 +236,9 @@ export default function Applications() {
   }>({ notification: false, acceptance: false, receipt: false })
   const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards')
+  const confirmDialog = useConfirmDialog()
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const [showShortcuts, setShowShortcuts] = useState(false)
   // Track which application is currently being updated (for virtualized grid)
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
   const [updatingPaymentId, setUpdatingPaymentId] = useState<string | null>(null)
@@ -461,7 +467,13 @@ export default function Applications() {
 
       // Handle advisory warning (no payment proof uploaded)
       if (result && typeof result === 'object' && 'warning' in result && (result as any).warning === true) {
-        const confirmed = window.confirm((result as any).message + '\n\nClick OK to proceed anyway.')
+        const confirmed = await confirmDialog.confirm({
+          title: 'Payment Warning',
+          message: (result as any).message || 'No payment proof uploaded. Proceed anyway?',
+          confirmText: 'Proceed',
+          cancelText: 'Cancel',
+          variant: 'danger'
+        })
         if (confirmed) {
           // Retry with force flag
           await updatePaymentStatus(applicationId, newPaymentStatus, verificationNotes, true)
@@ -492,7 +504,7 @@ export default function Applications() {
     } finally {
       setUpdatingPaymentId(null)
     }
-  }, [updatePaymentStatus, showSuccess, showError, refreshCurrentPage])
+  }, [updatePaymentStatus, showSuccess, showError, refreshCurrentPage, confirmDialog])
 
   const handleBulkAction = useCallback(async (action: BulkApplicationAction, ids: string[]) => {
     if (ids.length === 0) {
@@ -534,6 +546,27 @@ export default function Applications() {
   const stats = useMemo(() => {
     return buildApplicationsOverview(applications, pagination.totalCount)
   }, [applications, pagination.totalCount])
+
+  // P1-2: Keyboard shortcuts for admin power users
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (e.target as HTMLElement)?.isContentEditable) return
+      if (showDetails) {
+        if (e.key === 'Escape') { handleCloseDetails(); e.preventDefault() }
+        return
+      }
+      if (e.key === 'r' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); void handleRefresh() }
+      if (e.key === '/') {
+        e.preventDefault()
+        const input = document.querySelector<HTMLInputElement>('[aria-label="Search applications"]')
+        input?.focus()
+      }
+      if (e.key === 'Escape') { handleCloseDetails() }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [showDetails, handleCloseDetails, handleRefresh])
 
   return (
     <>
@@ -620,6 +653,29 @@ export default function Applications() {
           >
             <RefreshCw className="h-4 w-4" aria-hidden="true" />
           </Button>
+          <div className="relative hidden sm:block">
+            <button
+              type="button"
+              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Keyboard shortcuts"
+              onMouseEnter={() => setShowShortcuts(true)}
+              onMouseLeave={() => setShowShortcuts(false)}
+              onFocus={() => setShowShortcuts(true)}
+              onBlur={() => setShowShortcuts(false)}
+            >
+              <Keyboard className="h-4 w-4" aria-hidden="true" />
+            </button>
+            {showShortcuts && (
+              <div className="absolute right-0 top-full mt-2 z-50 w-52 rounded-xl border border-border bg-card p-3 shadow-lg text-xs">
+                <p className="font-semibold text-foreground mb-2">Keyboard shortcuts</p>
+                <div className="space-y-1.5 text-muted-foreground">
+                  <div className="flex justify-between"><span>Refresh list</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">R</kbd></div>
+                  <div className="flex justify-between"><span>Focus search</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">/</kbd></div>
+                  <div className="flex justify-between"><span>Close modal</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">Esc</kbd></div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       }
     >
@@ -867,6 +923,16 @@ export default function Applications() {
         />
       </div>
     </PageShell>
+    <ConfirmAlertDialog
+      isOpen={confirmDialog.isOpen}
+      onClose={confirmDialog.handleCancel}
+      onConfirm={confirmDialog.handleConfirm}
+      title={confirmDialog.options.title}
+      message={confirmDialog.options.message}
+      confirmText={confirmDialog.options.confirmText}
+      cancelText={confirmDialog.options.cancelText}
+      variant={confirmDialog.options.variant}
+    />
     </>
   )
 }
