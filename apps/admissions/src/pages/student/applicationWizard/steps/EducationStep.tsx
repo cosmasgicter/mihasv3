@@ -144,34 +144,55 @@ const EducationStep = ({
   const getSubjectOptions = (currentSubjectId: string) => {
     const usedSubjects = getUsedSubjects()
 
-    // Group subjects by level
+    // Group subjects by level, then by category within each level
     const grade12 = subjects.filter(s => !s.level || s.level === 'grade12')
-    const olevel = subjects.filter(s => s.level === 'olevel')
     const alevel = subjects.filter(s => s.level === 'alevel')
 
-    const mapOptions = (list: typeof subjects) =>
-      list.map(subject => {
-        const isUsed = usedSubjects.includes(subject.id) && currentSubjectId !== subject.id
-        return {
-          value: subject.id,
-          label: `${subject.name}${isUsed ? ' (Already selected)' : ''}`,
-          disabled: isUsed,
+    const categoryOrder = ['core', 'sciences', 'commercial', 'humanities', 'technology', 'practical', 'languages']
+    const categoryLabels: Record<string, string> = {
+      core: '★ Core Subjects',
+      sciences: '🔬 Sciences',
+      commercial: '💼 Commercial',
+      humanities: '📚 Humanities',
+      technology: '💻 Technology & Technical',
+      practical: '🎨 Practical & Creative',
+      languages: '🌍 Languages',
+    }
+
+    const buildGroupedOptions = (list: typeof subjects) => {
+      const grouped = new Map<string, typeof subjects>()
+      for (const s of list) {
+        const cat = s.category || 'other'
+        if (!grouped.has(cat)) grouped.set(cat, [])
+        grouped.get(cat)!.push(s)
+      }
+
+      const options: Array<{ value: string; label: string; disabled?: boolean }> = []
+      for (const cat of categoryOrder) {
+        const items = grouped.get(cat)
+        if (!items || items.length === 0) continue
+        options.push({ value: `__cat_${cat}`, label: categoryLabels[cat] || cat, disabled: true })
+        for (const subject of items.sort((a, b) => a.name.localeCompare(b.name))) {
+          const isUsed = usedSubjects.includes(subject.id) && currentSubjectId !== subject.id
+          options.push({
+            value: subject.id,
+            label: `  ${subject.name}${isUsed ? ' (Already selected)' : ''}`,
+            disabled: isUsed,
+          })
         }
-      })
+      }
+      return options
+    }
 
     const options: Array<{ value: string; label: string; disabled?: boolean }> = []
 
     if (grade12.length > 0) {
-      options.push({ value: '__header_grade12', label: '── Grade 12 (ECZ Senior Secondary) ──', disabled: true })
-      options.push(...mapOptions(grade12))
-    }
-    if (olevel.length > 0) {
-      options.push({ value: '__header_olevel', label: '── O-Level (Grade 9) ──', disabled: true })
-      options.push(...mapOptions(olevel))
+      options.push({ value: '__header_grade12', label: '━━ Grade 12 (ECZ) ━━', disabled: true })
+      options.push(...buildGroupedOptions(grade12))
     }
     if (alevel.length > 0) {
-      options.push({ value: '__header_alevel', label: '── A-Level (Advanced) ──', disabled: true })
-      options.push(...mapOptions(alevel))
+      options.push({ value: '__header_alevel', label: '━━ A-Level (GCE Advanced) ━━', disabled: true })
+      options.push(...buildGroupedOptions(alevel))
     }
 
     return options
