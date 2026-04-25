@@ -94,6 +94,8 @@ export interface Grade12Subject {
   id: string
   name: string
   code: string
+  category?: string
+  level?: 'grade12' | 'olevel' | 'alevel'
 }
 
 export interface SubjectGrade {
