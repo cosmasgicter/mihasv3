@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Bell, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useNotificationPolling } from '@/hooks/useNotificationPolling'
@@ -14,6 +14,7 @@ export function NotificationBell() {
   const [showPanel, setShowPanel] = useState(false)
   const [isPulsing, setIsPulsing] = useState(false)
   const prevUnreadRef = useRef<number>(0)
+  const navigate = useNavigate()
   const focusTrapRef = useFocusTrap(showPanel)
   useEscapeKey(showPanel, () => setShowPanel(false))
   const { 
@@ -64,7 +65,8 @@ export function NotificationBell() {
       // Navigate after optimistic update (don't wait for server)
       if (notification.action_url) {
         if (isSafeNavigationUrl(notification.action_url)) {
-          window.location.href = notification.action_url
+          setShowPanel(false)
+          navigate(notification.action_url)
         } else if (import.meta.env.DEV) {
           console.warn('[NotificationBell] Blocked unsafe navigation URL:', notification.action_url)
         }

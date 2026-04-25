@@ -518,7 +518,7 @@ class NotificationMarkAllReadView(APIView):
     def _mark_all_read(self, request):
         updated = Notification.objects.filter(
             user_id=request.user.pk, is_read=False
-        ).update(is_read=True)
+        ).update(is_read=True, read_at=timezone.now())
 
         return Response({
             "success": True,

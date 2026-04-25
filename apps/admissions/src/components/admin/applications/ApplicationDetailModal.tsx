@@ -384,17 +384,46 @@ export function ApplicationDetailModal({
  {/* Header */}
  <ApplicationDetailHeader application={application} onClose={onClose} />
 
+ {/* Approval Actions — above the fold */}
+ <div className="flex-shrink-0 border-b border-slate-200/80 bg-slate-50/60 px-4 py-3 sm:px-6">
+ <ApplicationApprovalActions
+ applicationId={application.id}
+ currentStatus={application.status}
+ currentPaymentStatus={application.payment_status || 'not_paid'}
+ onStatusUpdate={handleStatusWithWarning}
+ onPaymentStatusUpdate={onPaymentStatusUpdate}
+ disabled={updating === application.id}
+ />
+ </div>
+
  {/* Tabs */}
  <div className="flex-shrink-0 overflow-x-auto border-b border-slate-200/80 bg-white/90">
- <div className="flex px-2 sm:px-6 min-w-max">
- {tabs.map((tab) => {
+ <div className="flex px-2 sm:px-6 min-w-max" role="tablist" aria-label="Application details">
+ {tabs.map((tab, index) => {
  const Icon = tab.icon
  return (
  <button
  key={tab.id}
- onClick={() => setActiveTab(tab.id)}
- aria-label={tab.label}
+ id={`tab-${tab.id}`}
+ role="tab"
  aria-selected={activeTab === tab.id}
+ aria-controls={`panel-${tab.id}`}
+ tabIndex={activeTab === tab.id ? 0 : -1}
+ onClick={() => setActiveTab(tab.id)}
+ onKeyDown={(e) => {
+ const ids = tabs.map(t => t.id)
+ const cur = ids.indexOf(tab.id)
+ let next = -1
+ if (e.key === 'ArrowRight') next = (cur + 1) % ids.length
+ else if (e.key === 'ArrowLeft') next = (cur - 1 + ids.length) % ids.length
+ else if (e.key === 'Home') next = 0
+ else if (e.key === 'End') next = ids.length - 1
+ if (next >= 0) {
+ e.preventDefault()
+ setActiveTab(ids[next]!)
+ document.getElementById(`tab-${ids[next]}`)?.focus()
+ }
+ }}
  className={`flex items-center gap-1 whitespace-nowrap rounded-t-2xl px-3 py-3 text-xs font-medium transition-all sm:gap-2 sm:px-4 sm:text-sm ${
  activeTab === tab.id
  ? 'bg-slate-950 text-white shadow-[0_16px_28px_-20px_rgba(15,23,42,0.7)]'
@@ -410,7 +439,7 @@ export function ApplicationDetailModal({
  </div>
  {/* Content */}
  <div className="flex-1 overflow-y-auto">
- <div className="p-4 sm:p-6">
+ <div id={`panel-${activeTab}`} role="tabpanel" aria-labelledby={`tab-${activeTab}`} className="p-4 sm:p-6">
  {loading ? (
  <div className="flex items-center justify-center py-12" role="status" aria-label="Loading application details">
  <div className="space-y-4 w-full max-w-lg">
@@ -777,21 +806,9 @@ export function ApplicationDetailModal({
  )}
  </div>
  
- <div className="sm:min-w-[320px]">
- <ApplicationApprovalActions
- applicationId={application.id}
- currentStatus={application.status}
- currentPaymentStatus={application.payment_status || 'not_paid'}
- onStatusUpdate={handleStatusWithWarning}
- onPaymentStatusUpdate={onPaymentStatusUpdate}
- disabled={updating === application.id}
- />
- <div className="mt-3 flex justify-end">
  <Button variant="outline" onClick={onClose}>
  Close
  </Button>
- </div>
- </div>
  </div>
  </div>
  </div>
