@@ -37,8 +37,14 @@ const statusMapping: Record<string, 'operational' | 'degraded' | 'down' | 'idle'
   under_review: 'pending',
   pending_payment: 'warning',
   interview_scheduled: 'operational',
+  waitlisted: 'warning',
+  conditionally_approved: 'operational',
   approved: 'success',
+  enrolled: 'success',
   rejected: 'error',
+  withdrawn: 'down',
+  expired: 'down',
+  enrollment_expired: 'down',
 };
 
 const statusLabels: Record<string, string> = {
@@ -47,8 +53,14 @@ const statusLabels: Record<string, string> = {
   under_review: 'Under Review',
   pending_payment: 'Pending Payment',
   interview_scheduled: 'Interview Scheduled',
+  waitlisted: 'Waitlisted',
+  conditionally_approved: 'Conditionally Approved',
   approved: 'Approved',
+  enrolled: 'Enrolled',
   rejected: 'Rejected',
+  withdrawn: 'Withdrawn',
+  expired: 'Expired',
+  enrollment_expired: 'Enrollment Expired',
 };
 
 interface MetricCardProps {

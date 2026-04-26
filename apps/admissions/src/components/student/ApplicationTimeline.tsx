@@ -25,10 +25,16 @@ type TimelineStatus = 'completed' | 'current' | 'pending' | 'error';
 function mapApplicationStatusToTimelineStatus(status: string): TimelineStatus {
   switch (status) {
     case 'approved':
+    case 'enrolled':
       return 'completed';
     case 'rejected':
+    case 'withdrawn':
+    case 'expired':
+    case 'enrollment_expired':
       return 'error';
     case 'under_review':
+    case 'conditionally_approved':
+    case 'waitlisted':
       return 'current';
     case 'submitted':
       return 'pending';
@@ -57,6 +63,18 @@ function getStatusDescription(status: string, paymentStatus?: string): string {
       return 'Congratulations! Your application has been approved';
     case 'rejected':
       return 'Unfortunately, your application was not successful';
+    case 'waitlisted':
+      return 'You have been placed on the waitlist — you will be notified if a spot opens';
+    case 'conditionally_approved':
+      return 'Your application has been conditionally approved — please review the conditions';
+    case 'enrolled':
+      return 'Congratulations! Your enrollment has been confirmed';
+    case 'withdrawn':
+      return 'Your application has been withdrawn';
+    case 'expired':
+      return 'Your application has expired';
+    case 'enrollment_expired':
+      return 'Your enrollment confirmation period has expired';
     default:
       return 'Application status update';
   }

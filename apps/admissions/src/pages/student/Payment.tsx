@@ -98,9 +98,12 @@ function formatTimestamp(iso: string): string {
 }
 
 function paymentStatusBadge(status: string) {
-  switch (status.toLowerCase()) {
-    case 'successful': return { variant: 'success' as const, label: 'Successful', icon: <CheckCircle className="h-3.5 w-3.5" /> }
-    case 'failed': return { variant: 'destructive' as const, label: 'Failed', icon: <XCircle className="h-3.5 w-3.5" /> }
+  const normalized = normalizePaymentStatus(status)
+  switch (normalized) {
+    case 'verified': return { variant: 'success' as const, label: 'Successful', icon: <CheckCircle className="h-3.5 w-3.5" /> }
+    case 'rejected': return { variant: 'destructive' as const, label: 'Failed', icon: <XCircle className="h-3.5 w-3.5" /> }
+    case 'deferred': return { variant: 'secondary' as const, label: 'Deferred', icon: <Clock className="h-3.5 w-3.5" /> }
+    case 'pending_review': return { variant: 'warning' as const, label: 'Pending Review', icon: <Clock className="h-3.5 w-3.5" /> }
     default: return { variant: 'warning' as const, label: 'Pending', icon: <Clock className="h-3.5 w-3.5" /> }
   }
 }
