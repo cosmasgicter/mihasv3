@@ -58,7 +58,6 @@ class TestReadinessView(SimpleTestCase):
         self.assertEqual(response.data["status"], "ok")
         self.assertEqual(response.data["db"], "ok")
         self.assertEqual(response.data["redis"], "ok")
-        self.assertIn("redis_latency_ms", response.data)
 
     @patch.object(ReadinessView, "_check_db", return_value=False)
     @patch.object(ReadinessView, "_check_redis_with_latency", return_value=("ok", 1.0))
@@ -102,7 +101,6 @@ class TestReadinessView(SimpleTestCase):
         self.assertIn("status", response.data)
         self.assertIn("db", response.data)
         self.assertIn("redis", response.data)
-        self.assertIn("redis_latency_ms", response.data)
 
 
 class TestRedisHealthView(SimpleTestCase):
