@@ -452,7 +452,9 @@ export const adminDashboardService = {
       const rawStats = normalizeStats({
         ...(raw.stats ?? {}),
         total_applications: applications?.total,
-        pending_applications: applicationStatusBreakdown?.pending ?? applicationStatusBreakdown?.draft,
+        pending_applications:
+          toNumber(applicationStatusBreakdown?.submitted) +
+          toNumber(applicationStatusBreakdown?.under_review),
         approved_applications: applicationStatusBreakdown?.approved,
         rejected_applications: applicationStatusBreakdown?.rejected,
         today_applications: applications?.today,
