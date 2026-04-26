@@ -334,9 +334,16 @@ class AdminDashboardUserStatsSerializer(serializers.Serializer):
     active = serializers.IntegerField()
 
 
+class AdminDashboardNeedsAttentionSerializer(serializers.Serializer):
+    pending_payments = serializers.IntegerField()
+    pending_documents = serializers.IntegerField()
+    upcoming_interviews = serializers.IntegerField()
+
+
 class AdminDashboardSerializer(serializers.Serializer):
     applications = AdminDashboardApplicationStatsSerializer()
     users = AdminDashboardUserStatsSerializer()
+    needs_attention = AdminDashboardNeedsAttentionSerializer()
     recent_activity = AdminDashboardActivitySerializer(many=True)
 
 
@@ -498,6 +505,29 @@ class AdminDashboardView(APIView):
             total_users = Profile.objects.count()
             active_users = Profile.objects.filter(is_active=True).count()
 
+            # Needs attention counts
+            try:
+                from apps.documents.models import ApplicationDocument, Payment
+                from apps.applications.models import ApplicationInterview
+
+                pending_payments = Payment.objects.filter(
+                    status__in=['pending', 'initiated']
+                ).count()
+
+                pending_documents = ApplicationDocument.objects.filter(
+                    verification_status__in=[None, '', 'pending', 'uploaded']
+                ).count()
+
+                upcoming_interviews = ApplicationInterview.objects.filter(
+                    scheduled_at__gte=now,
+                    status__in=['scheduled', 'pending'],
+                ).count()
+            except Exception:
+                logger.warning("Failed to load needs-attention counts", exc_info=True)
+                pending_payments = 0
+                pending_documents = 0
+                upcoming_interviews = 0
+
             return Response({
                 "success": True,
                 "data": {
@@ -511,6 +541,11 @@ class AdminDashboardView(APIView):
                     "users": {
                         "total": total_users,
                         "active": active_users,
+                    },
+                    "needs_attention": {
+                        "pending_payments": pending_payments,
+                        "pending_documents": pending_documents,
+                        "upcoming_interviews": upcoming_interviews,
                     },
                     "recent_activity": recent_activity,
                 },
