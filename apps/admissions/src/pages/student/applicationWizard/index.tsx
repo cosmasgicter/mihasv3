@@ -260,6 +260,7 @@ const ApplicationWizardContent = () => {
   const [stepDirection, setStepDirection] = useState<'forward' | 'backward'>('forward')
   const [stepKey, setStepKey] = useState(currentStepIndex)
   const isPopstateNavRef = useRef(false)
+  const isInitialSyncRef = useRef(true)
   const stepContentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -276,14 +277,20 @@ const ApplicationWizardContent = () => {
   // Push history state when step changes (but not on popstate-driven changes)
   useEffect(() => {
     if (success) return
+    if (restoringDraft) return
     if (isPopstateNavRef.current) {
       isPopstateNavRef.current = false
       return
     }
     const url = new URL(window.location.href)
     url.searchParams.set('step', currentStepConfig.key)
-    window.history.pushState({ wizardStep: currentStepIndex }, '', url.toString())
-  }, [currentStepIndex, currentStepConfig.key, success])
+    if (isInitialSyncRef.current) {
+      isInitialSyncRef.current = false
+      window.history.replaceState({ wizardStep: currentStepIndex }, '', url.toString())
+    } else {
+      window.history.pushState({ wizardStep: currentStepIndex }, '', url.toString())
+    }
+  }, [currentStepIndex, currentStepConfig.key, success, restoringDraft])
 
   // Listen for popstate (browser back/forward)
   useEffect(() => {

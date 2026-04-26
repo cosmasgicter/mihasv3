@@ -414,7 +414,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const updateApplication = applicationsData.useUpdate()
   const submitApplicationMutation = applicationsData.useSubmit()
   const syncGrades = applicationsData.useSyncGrades()
-  const { data: draftApplications } = applicationsData.useList({
+  const { data: draftApplications, isPending: draftApplicationsLoading } = applicationsData.useList({
     status: 'draft',
     mine: true,
     page: 1,
@@ -972,7 +972,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
   useEffect(() => {
     const loadDraft = async () => {
-      if (!user || authLoading || draftLoaded) return
+      if (!user || authLoading || draftLoaded || draftApplicationsLoading) return
       setRestoringDraft(true)
       let draftRestored = false
       
@@ -1271,14 +1271,15 @@ const useWizardController = (): UseWizardControllerResult => {
       }
     }
 
-    // Only load draft on initial mount when user is available
-    if (user && !authLoading && !draftLoaded) {
+    // Only load draft on initial mount when user is available and draft query resolved
+    if (user && !authLoading && !draftLoaded && !draftApplicationsLoading) {
       loadDraft()
     }
   }, [
     user,
     authLoading,
     draftLoaded,
+    draftApplicationsLoading,
     setValue,
     draftApplications,
     location.search,
