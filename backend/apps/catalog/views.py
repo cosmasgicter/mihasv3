@@ -178,7 +178,7 @@ class ProgramListCreateView(APIView):
             response = paginator.get_paginated_response(serializer.data)
         else:
             serializer = ProgramSerializer(queryset, many=True)
-            response = Response(serializer.data)
+            response = Response({"success": True, "data": serializer.data})
 
         if not _is_admin(request):
             _set_public_cache(response)
@@ -198,7 +198,7 @@ class ProgramListCreateView(APIView):
             )
         program = Program.objects.create(**serializer.validated_data)
         out = ProgramSerializer(program)
-        return Response(out.data, status=status.HTTP_201_CREATED)
+        return Response({"success": True, "data": out.data}, status=status.HTTP_201_CREATED)
 
 
 @extend_schema_view(
@@ -254,7 +254,7 @@ class ProgramDetailView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         serializer = ProgramSerializer(program)
-        return Response(serializer.data)
+        return Response({"success": True, "data": serializer.data})
 
     def patch(self, request, program_id):
         try:
@@ -280,7 +280,7 @@ class ProgramDetailView(APIView):
             setattr(program, attr, value)
         program.save()
         out = ProgramSerializer(program)
-        return Response(out.data)
+        return Response({"success": True, "data": out.data})
 
     def delete(self, request, program_id):
         try:
@@ -292,7 +292,7 @@ class ProgramDetailView(APIView):
             )
         program.is_active = False
         program.save(update_fields=["is_active"])
-        return Response({"message": "Program deactivated"})
+        return Response({"success": True, "data": {"message": "Program deactivated"}})
 
 
 @extend_schema_view(
@@ -355,7 +355,7 @@ class IntakeListCreateView(APIView):
 
         queryset = queryset.order_by("-year", "name")
         serializer = IntakeSerializer(queryset, many=True)
-        response = Response(serializer.data)
+        response = Response({"success": True, "data": serializer.data})
 
         if not _is_admin(request):
             _set_public_cache(response)
@@ -375,7 +375,7 @@ class IntakeListCreateView(APIView):
             )
         intake = Intake.objects.create(**serializer.validated_data)
         out = IntakeSerializer(intake)
-        return Response(out.data, status=status.HTTP_201_CREATED)
+        return Response({"success": True, "data": out.data}, status=status.HTTP_201_CREATED)
 
 
 @extend_schema_view(
@@ -431,7 +431,7 @@ class IntakeDetailView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         serializer = IntakeSerializer(intake)
-        return Response(serializer.data)
+        return Response({"success": True, "data": serializer.data})
 
     def patch(self, request, intake_id):
         try:
@@ -455,7 +455,7 @@ class IntakeDetailView(APIView):
         for attr, value in serializer.validated_data.items():
             setattr(intake, attr, value)
         intake.save()
-        return Response(IntakeSerializer(intake).data)
+        return Response({"success": True, "data": IntakeSerializer(intake).data})
 
     def delete(self, request, intake_id):
         try:
@@ -467,7 +467,7 @@ class IntakeDetailView(APIView):
             )
         intake.is_active = False
         intake.save(update_fields=["is_active"])
-        return Response({"message": "Intake deactivated"})
+        return Response({"success": True, "data": {"message": "Intake deactivated"}})
 
 
 @extend_schema_view(
@@ -488,7 +488,7 @@ class SubjectListView(APIView):
     def get(self, request):
         queryset = Subject.objects.all().order_by("name")
         serializer = SubjectSerializer(queryset, many=True)
-        response = Response(serializer.data)
+        response = Response({"success": True, "data": serializer.data})
         _set_public_cache(response)
         return response
 
@@ -539,7 +539,7 @@ class InstitutionListCreateView(APIView):
 
         queryset = queryset.order_by("name")
         serializer = InstitutionSerializer(queryset, many=True)
-        response = Response(serializer.data)
+        response = Response({"success": True, "data": serializer.data})
 
         if not _is_admin(request):
             _set_public_cache(response)
@@ -559,7 +559,7 @@ class InstitutionListCreateView(APIView):
             )
         institution = Institution.objects.create(**serializer.validated_data)
         out = InstitutionSerializer(institution)
-        return Response(out.data, status=status.HTTP_201_CREATED)
+        return Response({"success": True, "data": out.data}, status=status.HTTP_201_CREATED)
 
 
 @extend_schema_view(
@@ -616,7 +616,7 @@ class InstitutionDetailView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         serializer = InstitutionSerializer(institution)
-        return Response(serializer.data)
+        return Response({"success": True, "data": serializer.data})
 
     def patch(self, request, institution_id):
         try:
@@ -642,7 +642,7 @@ class InstitutionDetailView(APIView):
             setattr(institution, attr, value)
         institution.save()
         out = InstitutionSerializer(institution)
-        return Response(out.data)
+        return Response({"success": True, "data": out.data})
 
     def delete(self, request, institution_id):
         """Soft-delete: reject if institution has active programs (409)."""
@@ -670,4 +670,4 @@ class InstitutionDetailView(APIView):
 
         institution.is_active = False
         institution.save(update_fields=["is_active"])
-        return Response({"message": "Institution deactivated"})
+        return Response({"success": True, "data": {"message": "Institution deactivated"}})

@@ -145,26 +145,27 @@ class WaitlistManager:
 
         Requirement: 3.6
         """
-        waitlisted = (
-            Application.objects.filter(
-                program=program,
-                intake=intake,
-                status="waitlisted",
-            )
-            .order_by("created_at")
-        )
-
-        for idx, app in enumerate(waitlisted, start=1):
-            if app.waitlist_position != idx:
-                Application.objects.filter(id=app.id).update(
-                    waitlist_position=idx,
+        with transaction.atomic():
+            waitlisted = list(
+                Application.objects.select_for_update()
+                .filter(
+                    program=program,
+                    intake=intake,
+                    status="waitlisted",
                 )
+                .order_by("created_at")
+            )
+
+            for idx, app in enumerate(waitlisted, start=1):
+                if app.waitlist_position != idx:
+                    app.waitlist_position = idx
+                    app.save(update_fields=["waitlist_position"])
 
         logger.info(
             "Reindexed waitlist positions for program=%s intake=%s (%d apps)",
             program,
             intake,
-            waitlisted.count(),
+            len(waitlisted),
         )
 
     @staticmethod

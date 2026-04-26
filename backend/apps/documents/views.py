@@ -171,7 +171,7 @@ class PaymentListView(APIView):
             return paginator.get_paginated_response(serializer.data)
 
         serializer = PaymentSerializer(queryset, many=True)
-        return Response(serializer.data)
+        return Response({"success": True, "data": serializer.data})
 
 
 @extend_schema_view(
@@ -1232,7 +1232,7 @@ class DocumentSignedUrlView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-        return Response({"url": signed_url})
+        return Response({"success": True, "data": {"url": signed_url}})
 
 
 class DocumentDownloadView(APIView):

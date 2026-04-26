@@ -91,8 +91,8 @@ class TestDocumentSignedUrlEndpoint(SimpleTestCase):
             response = view(request, document_id=doc_id)
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn("url", response.data)
-        self.assertEqual(response.data["url"], "https://r2.example.com/signed")
+        self.assertTrue(response.data["success"])
+        self.assertEqual(response.data["data"]["url"], "https://r2.example.com/signed")
 
     def test_signed_url_returns_404_for_missing_document(self):
         factory = APIRequestFactory()
