@@ -678,7 +678,7 @@ class SessionView(APIView):
     def get(self, request):
         user = request.user
         if not getattr(user, "is_authenticated", False):
-            return Response({"user": None})
+            return Response({"success": True, "data": None})
 
         serializer = SessionSerializer({
             "id": user.id,
@@ -687,7 +687,7 @@ class SessionView(APIView):
             "last_name": user.last_name,
             "role": user.role,
         })
-        response = Response(serializer.data)
+        response = Response({"success": True, "data": serializer.data})
         request_query_params = getattr(request, "query_params", request.GET)
         force_csrf_refresh = (
             request_query_params.get("refresh_csrf") == "1"

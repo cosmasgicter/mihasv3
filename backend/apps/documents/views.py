@@ -365,9 +365,12 @@ class DocumentExtractView(APIView):
 
         return Response(
             {
-                "task_id": task.id,
-                "document_id": str(document.id),
-                "status": "queued",
+                "success": True,
+                "data": {
+                    "task_id": task.id,
+                    "document_id": str(document.id),
+                    "status": "queued",
+                },
             },
             status=status.HTTP_202_ACCEPTED,
         )
@@ -434,7 +437,7 @@ class PaymentReceiptView(APIView):
             "applicant_name": application.full_name if application else None,
         }
 
-        return Response(receipt)
+        return Response({"success": True, "data": receipt})
 
 
 @extend_schema_view(

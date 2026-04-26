@@ -35,7 +35,7 @@ class TestSessionViewCsrfHeader(SimpleTestCase):
         response = SessionView().get(request)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, {"user": None})
+        self.assertEqual(response.data, {"success": True, "data": None})
         self.assertNotIn("X-CSRF-Token", response)
 
     @patch("apps.accounts.views._generate_csrf_token", return_value="session-csrf-token")
