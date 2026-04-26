@@ -65,7 +65,10 @@ export default function AdminDashboard() {
     decisionVelocity24h: 0,
     activeUsers: 0,
     activeUsersLast7d: 0,
-    systemHealth: 'good'
+    systemHealth: 'good',
+    pendingPayments: 0,
+    pendingDocuments: 0,
+    upcomingInterviews: 0
   })
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [error, setError] = useState('')
@@ -389,7 +392,7 @@ export default function AdminDashboard() {
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-blue-500/10 p-2"><FileCheck className="h-5 w-5 text-blue-600" /></div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{stats.pendingApplications > 0 ? Math.ceil(stats.pendingApplications * 0.6) : 0}</p>
+                  <p className="text-2xl font-bold text-foreground">{stats.pendingDocuments}</p>
                   <p className="text-xs text-muted-foreground">Documents to verify</p>
                 </div>
               </div>
@@ -399,7 +402,7 @@ export default function AdminDashboard() {
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-rose-500/10 p-2"><CreditCard className="h-5 w-5 text-rose-600" /></div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{stats.todayApplications}</p>
+                  <p className="text-2xl font-bold text-foreground">{stats.pendingPayments}</p>
                   <p className="text-xs text-muted-foreground">Payments pending</p>
                 </div>
               </div>
@@ -409,8 +412,8 @@ export default function AdminDashboard() {
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-violet-500/10 p-2"><Video className="h-5 w-5 text-violet-600" /></div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{stats.todayApplications > 0 ? Math.min(stats.todayApplications, 3) : 0}</p>
-                  <p className="text-xs text-muted-foreground">Interviews today</p>
+                  <p className="text-2xl font-bold text-foreground">{stats.upcomingInterviews}</p>
+                  <p className="text-xs text-muted-foreground">Upcoming interviews</p>
                 </div>
               </div>
               <p className="mt-2 text-xs font-medium text-violet-600">View schedule →</p>

@@ -36,6 +36,9 @@ export interface AdminDashboardStats {
   activeUsers: number
   activeUsersLast7d: number
   systemHealth: 'excellent' | 'good' | 'warning' | 'critical'
+  pendingPayments: number
+  pendingDocuments: number
+  upcomingInterviews: number
 }
 
 export type AdminDashboardActivityType =
@@ -108,7 +111,10 @@ const DEFAULT_STATS: AdminDashboardStats = {
   decisionVelocity24h: 0,
   activeUsers: 0,
   activeUsersLast7d: 0,
-  systemHealth: 'good'
+  systemHealth: 'good',
+  pendingPayments: 0,
+  pendingDocuments: 0,
+  upcomingInterviews: 0
 }
 
 const DEFAULT_PROCESSING_METRICS: AdminDashboardProcessingMetrics = {
@@ -235,6 +241,9 @@ const normalizeStats = (stats?: Record<string, unknown>): AdminDashboardStats =>
     decisionVelocity24h: toNumber(stats?.decisionVelocity24h ?? stats?.decision_velocity_24h),
     activeUsers: toNumber(stats?.activeUsers ?? stats?.active_users),
     activeUsersLast7d: toNumber(stats?.activeUsersLast7d ?? stats?.active_users_last_7d),
+    pendingPayments: toNumber(stats?.pendingPayments ?? stats?.pending_payments),
+    pendingDocuments: toNumber(stats?.pendingDocuments ?? stats?.pending_documents),
+    upcomingInterviews: toNumber(stats?.upcomingInterviews ?? stats?.upcoming_interviews),
     systemHealth
   }
 }
@@ -438,6 +447,7 @@ export const adminDashboardService = {
       const applications = raw.applications as Record<string, unknown> | undefined
       const applicationStatusBreakdown = applications?.by_status as Record<string, unknown> | undefined
       const users = raw.users as Record<string, unknown> | undefined
+      const needsAttention = (raw as Record<string, unknown>).needs_attention as Record<string, unknown> | undefined
 
       const rawStats = normalizeStats({
         ...(raw.stats ?? {}),
@@ -450,6 +460,9 @@ export const adminDashboardService = {
         month_applications: applications?.this_month,
         total_students: users?.total,
         active_users: users?.active,
+        pending_payments: needsAttention?.pending_payments,
+        pending_documents: needsAttention?.pending_documents,
+        upcoming_interviews: needsAttention?.upcoming_interviews,
       })
       const statusBreakdown = normalizeNumberRecord(
         raw.statusBreakdown ??
