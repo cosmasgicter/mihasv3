@@ -24,8 +24,8 @@ export interface ApplicationStats {
   total: number;
 }
 
-const IN_PROGRESS_STATUSES = new Set(['draft', 'submitted']);
-const COMPLETED_STATUSES = new Set(['approved', 'rejected', 'waitlisted']);
+const IN_PROGRESS_STATUSES = new Set(['draft', 'submitted', 'under_review', 'conditionally_approved', 'waitlisted']);
+const COMPLETED_STATUSES = new Set(['approved', 'enrolled', 'rejected', 'withdrawn', 'expired', 'enrollment_expired']);
 
 /**
  * Compute application statistics from a list of applications.

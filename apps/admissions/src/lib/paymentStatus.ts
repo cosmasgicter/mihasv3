@@ -24,7 +24,7 @@ export function normalizePaymentStatus(paymentStatus?: string | null): Canonical
 
 export function requiresStudentPaymentAction(paymentStatus?: string | null) {
   const normalized = normalizePaymentStatus(paymentStatus)
-  return normalized === 'not_paid' || normalized === 'rejected' || normalized === 'deferred'
+  return normalized === 'not_paid' || normalized === 'rejected'
 }
 
 export function isPaymentVerified(paymentStatus?: string | null) {

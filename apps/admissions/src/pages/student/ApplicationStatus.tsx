@@ -231,9 +231,16 @@ export default function ApplicationStatus() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'approved':
+      case 'enrolled':
         return <CheckCircle className="h-5 w-5 text-success" />
+      case 'conditionally_approved':
+        return <AlertCircle className="h-5 w-5 text-amber-600" />
       case 'rejected':
         return <XCircle className="h-5 w-5 text-error" />
+      case 'withdrawn':
+      case 'expired':
+      case 'enrollment_expired':
+        return <XCircle className="h-5 w-5 text-muted-foreground" />
       case 'under_review':
         return <Clock className="h-5 w-5 text-primary" />
       case 'submitted':
@@ -242,6 +249,8 @@ export default function ApplicationStatus() {
         return <Clock className="h-5 w-5 text-amber-600" />
       case 'interview_scheduled':
         return <Calendar className="h-5 w-5 text-primary" />
+      case 'draft':
+        return <Clock className="h-5 w-5 text-muted-foreground" />
       default:
         return <Clock className="h-5 w-5 text-secondary" />
     }

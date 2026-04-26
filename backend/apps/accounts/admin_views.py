@@ -555,7 +555,7 @@ class AdminDashboardView(APIView):
             return Response(
                 {
                     "success": False,
-                    "error": f"Dashboard data load failed: {exc.__class__.__name__}: {exc}",
+                    "error": "Dashboard data load failed. Please try again later.",
                     "code": "DASHBOARD_ERROR",
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -643,6 +643,16 @@ class AdminUserListView(APIView):
             )
 
         data = serializer.validated_data
+
+        # Privilege escalation guard: actor cannot create users with a higher role
+        actor_role = getattr(request.user, "role", "student")
+        actor_level = _role_level(actor_role)
+        requested_level = _role_level(data["role"])
+        if requested_level > actor_level:
+            return Response(
+                {"success": False, "error": "You cannot create a user with a higher role than your own.", "code": "PRIVILEGE_ESCALATION"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         if Profile.objects.filter(email__iexact=data["email"]).exists():
             return Response(
