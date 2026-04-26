@@ -236,6 +236,9 @@ export default function Applications() {
   }>({ notification: false, acceptance: false, receipt: false })
   const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards')
+
+  const programOptions = useMemo(() => [...new Set(applications.map(a => a.program).filter(Boolean))].sort(), [applications])
+  const institutionOptions = useMemo(() => [...new Set(applications.map(a => a.institution).filter(Boolean))].sort(), [applications])
   const confirmDialog = useConfirmDialog()
   const searchInputRef = useRef<HTMLInputElement>(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
@@ -817,6 +820,8 @@ export default function Applications() {
               assignedReviewerFilter={filters.assignedReviewerFilter}
               lateSubmissionFilter={filters.lateSubmissionFilter}
               pendingAmendmentsFilter={filters.pendingAmendmentsFilter}
+              programOptions={programOptions}
+              institutionOptions={institutionOptions}
               onFilterChange={updateFilter}
             />
           </div>
@@ -834,6 +839,8 @@ export default function Applications() {
             assignedReviewerFilter={filters.assignedReviewerFilter}
             lateSubmissionFilter={filters.lateSubmissionFilter}
             pendingAmendmentsFilter={filters.pendingAmendmentsFilter}
+            programOptions={programOptions}
+            institutionOptions={institutionOptions}
             onFilterChange={updateFilter}
           />
         </div>

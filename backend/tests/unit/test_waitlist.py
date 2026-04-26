@@ -2,6 +2,7 @@
 import uuid
 from unittest.mock import MagicMock, call, patch
 
+import pytest
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from apps.accounts.authentication import JWTUser
@@ -395,6 +396,15 @@ class TestPromotionTriggeredByWithdrawal:
 class TestPromotionTriggeredByRejection:
     """Rejection triggers waitlist promotion (Req 3.7b)."""
 
+    def setup_method(self):
+        self._tx_patcher = patch("apps.applications.admin_views.transaction")
+        mock_tx = self._tx_patcher.start()
+        mock_tx.atomic.return_value.__enter__ = MagicMock()
+        mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
+
+    def teardown_method(self):
+        self._tx_patcher.stop()
+
     @patch("apps.catalog.models.Intake.objects")
     @patch("apps.common.models.EmailQueue.objects")
     @patch("apps.common.models.Notification.objects")
@@ -414,6 +424,7 @@ class TestPromotionTriggeredByRejection:
         app = _app(uid=uid, status="under_review", aid=uuid.uuid4())
         app.reviewed_by = None
         mock_qs.get.return_value = app
+        mock_qs.select_for_update.return_value.get.return_value = app
         mock_ser.return_value.data = {"id": str(app.id), "status": "rejected"}
         mock_email_qs.create.return_value = MagicMock(id=uuid.uuid4())
         mock_intake_qs.filter.return_value.first.return_value = None

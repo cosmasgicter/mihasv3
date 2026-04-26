@@ -110,6 +110,7 @@ def transition_application_status(
     if new_status in ("approved", "rejected", "conditionally_approved", "withdrawn", "expired", "enrolled", "enrollment_expired"):
         application.decision_date = timezone.now()
 
+    application.updated_at = timezone.now()
     application.save(update_fields=_STATUS_TRANSITION_UPDATE_FIELDS)
 
     ApplicationStatusHistory.objects.create(

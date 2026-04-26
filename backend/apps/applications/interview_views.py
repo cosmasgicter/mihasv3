@@ -78,7 +78,7 @@ class ApplicationInterviewListView(APIView):
             queryset = queryset.filter(application_id=application_id)
 
         interviews = queryset.order_by("scheduled_at", "-created_at")
-        return Response(ApplicationInterviewSerializer(interviews, many=True).data)
+        return Response({"success": True, "data": ApplicationInterviewSerializer(interviews, many=True).data})
 
 
 # ---------------------------------------------------------------------------
@@ -172,7 +172,7 @@ class ApplicationInterviewView(APIView):
             return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
 
         interviews = ApplicationInterview.objects.filter(application_id=application_id).order_by("-scheduled_at")
-        return Response(ApplicationInterviewSerializer(interviews, many=True).data)
+        return Response({"success": True, "data": ApplicationInterviewSerializer(interviews, many=True).data})
 
     def post(self, request, application_id):
         if not IsAdmin().has_permission(request, self):
@@ -214,7 +214,7 @@ class ApplicationInterviewView(APIView):
         response_data = ApplicationInterviewSerializer(interview).data
         if validation.get("warnings"):
             response_data["warnings"] = validation["warnings"]
-        return Response(response_data, status=status.HTTP_201_CREATED)
+        return Response({"success": True, "data": response_data}, status=status.HTTP_201_CREATED)
 
     def patch(self, request, application_id):
         return self._update_latest_interview(request, application_id)
@@ -267,7 +267,7 @@ class ApplicationInterviewView(APIView):
             response_data = ApplicationInterviewSerializer(updated_interview).data
             if validation.get("warnings"):
                 response_data["warnings"] = validation["warnings"]
-            return Response(response_data)
+            return Response({"success": True, "data": response_data})
 
         if new_status == "cancelled":
             cancellation_reason = serializer.validated_data.get("notes", "").strip()
@@ -282,7 +282,7 @@ class ApplicationInterviewView(APIView):
                     {"success": False, "error": exc.message, "code": exc.code},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            return Response(ApplicationInterviewSerializer(updated_interview).data)
+            return Response({"success": True, "data": ApplicationInterviewSerializer(updated_interview).data})
 
         mode = serializer.validated_data.get("mode", "").strip()
         if mode:
@@ -314,7 +314,7 @@ class ApplicationInterviewView(APIView):
             update_fields.append("notes")
 
         interview.save(update_fields=update_fields)
-        return Response(ApplicationInterviewSerializer(interview).data)
+        return Response({"success": True, "data": ApplicationInterviewSerializer(interview).data})
 
     def delete(self, request, application_id):
         if not IsAdmin().has_permission(request, self):

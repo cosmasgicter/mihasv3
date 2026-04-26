@@ -78,6 +78,14 @@ class TestApprovalCreatesNotificationAndEmail:
         self.factory = APIRequestFactory()
         self.view = ApplicationReviewView.as_view()
         self.admin = _make_user()
+        # Mock transaction.atomic so select_for_update doesn't need a real DB
+        self._tx_patcher = patch("apps.applications.admin_views.transaction")
+        mock_tx = self._tx_patcher.start()
+        mock_tx.atomic.return_value.__enter__ = MagicMock()
+        mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
+
+    def teardown_method(self):
+        self._tx_patcher.stop()
 
     @patch(_HISTORY)
     @patch(_PAYMENT)
@@ -93,6 +101,7 @@ class TestApprovalCreatesNotificationAndEmail:
         """Approving an application calls CommunicationService.send with application_approved."""
         app = _make_application()
         mock_app_qs.get.return_value = app
+        mock_app_qs.select_for_update.return_value.get.return_value = app
         mock_transition.return_value = "submitted"
         mock_payment.filter.return_value.exists.return_value = True
         mock_history.filter.return_value.order_by.return_value.first.return_value = None
@@ -125,6 +134,7 @@ class TestApprovalCreatesNotificationAndEmail:
         """Approving an application dispatches via CommunicationService."""
         app = _make_application()
         mock_app_qs.get.return_value = app
+        mock_app_qs.select_for_update.return_value.get.return_value = app
         mock_transition.return_value = "submitted"
         mock_payment.filter.return_value.exists.return_value = True
         mock_history.filter.return_value.order_by.return_value.first.return_value = None
@@ -158,6 +168,7 @@ class TestApprovalCreatesNotificationAndEmail:
         """Approving an application calls CommunicationService.send (which dispatches email)."""
         app = _make_application()
         mock_app_qs.get.return_value = app
+        mock_app_qs.select_for_update.return_value.get.return_value = app
         mock_transition.return_value = "submitted"
         mock_payment.filter.return_value.exists.return_value = True
         mock_history.filter.return_value.order_by.return_value.first.return_value = None
@@ -186,6 +197,13 @@ class TestRejectionCreatesNotificationAndEmail:
         self.factory = APIRequestFactory()
         self.view = ApplicationReviewView.as_view()
         self.admin = _make_user()
+        self._tx_patcher = patch("apps.applications.admin_views.transaction")
+        mock_tx = self._tx_patcher.start()
+        mock_tx.atomic.return_value.__enter__ = MagicMock()
+        mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
+
+    def teardown_method(self):
+        self._tx_patcher.stop()
 
     @patch(_HISTORY)
     @patch(_COMM_SEND)
@@ -199,6 +217,7 @@ class TestRejectionCreatesNotificationAndEmail:
         """Rejecting an application calls CommunicationService.send with application_rejected."""
         app = _make_application()
         mock_app_qs.get.return_value = app
+        mock_app_qs.select_for_update.return_value.get.return_value = app
         mock_transition.return_value = "submitted"
         mock_history.filter.return_value.order_by.return_value.first.return_value = None
 
@@ -228,6 +247,7 @@ class TestRejectionCreatesNotificationAndEmail:
         """Rejecting an application dispatches via CommunicationService."""
         app = _make_application()
         mock_app_qs.get.return_value = app
+        mock_app_qs.select_for_update.return_value.get.return_value = app
         mock_transition.return_value = "submitted"
         mock_history.filter.return_value.order_by.return_value.first.return_value = None
 
@@ -256,6 +276,7 @@ class TestRejectionCreatesNotificationAndEmail:
         """Rejecting an application calls CommunicationService.send (which dispatches email)."""
         app = _make_application()
         mock_app_qs.get.return_value = app
+        mock_app_qs.select_for_update.return_value.get.return_value = app
         mock_transition.return_value = "submitted"
         mock_history.filter.return_value.order_by.return_value.first.return_value = None
 

@@ -8,6 +8,11 @@ export interface DraftResumeApplicationState {
   payment_status?: string | null
 }
 
+export interface DraftResumeUploads {
+  result_slip: boolean
+  extra_kyc: boolean
+}
+
 export function normalizeDraftResumeGrades(grades: unknown[] | null | undefined): SubjectGrade[] {
   if (!Array.isArray(grades)) {
     return []
@@ -31,18 +36,20 @@ export function deriveDraftResumeUploads(_application: DraftResumeApplicationSta
 
 export function resolveDraftResumeStepId(
   application: DraftResumeApplicationState,
-  grades: SubjectGrade[]
+  grades: SubjectGrade[],
+  uploads?: DraftResumeUploads
 ): number {
   if (!application.program || !application.full_name) {
     return 1
   }
 
-  if (normalizePaymentStatus(application.payment_status) === 'verified') {
+  const paymentStatus = normalizePaymentStatus(application.payment_status)
+  if (paymentStatus === 'verified' || paymentStatus === 'deferred') {
     return 4
   }
 
-  const uploads = deriveDraftResumeUploads(application)
-  const hasEducationComplete = grades.length >= 5 && uploads.result_slip && uploads.extra_kyc
+  const resolvedUploads = uploads ?? { result_slip: false, extra_kyc: false }
+  const hasEducationComplete = grades.length >= 5 && resolvedUploads.result_slip && resolvedUploads.extra_kyc
 
   return hasEducationComplete ? 3 : 2
 }

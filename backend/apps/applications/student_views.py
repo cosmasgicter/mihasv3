@@ -30,6 +30,7 @@ from apps.applications.models import (
     ApplicationInterview,
     ApplicationStatusHistory,
 )
+from apps.documents.models import ApplicationDocument, ApplicationGrade
 from apps.applications.serializers import (
     ApplicationCreateSerializer,
     ApplicationGradeSerializer,
@@ -519,17 +520,12 @@ class ApplicationPreviewSummaryView(APIView):
         summary = None
         source = "fallback"
         try:
-            import signal
-
-            def _timeout_handler(signum, frame):
-                raise TimeoutError("AI summary timed out")
+            from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
             from apps.common.ai_service import generate_student_preview_summary
 
-            old_handler = signal.signal(signal.SIGALRM, _timeout_handler)
-            signal.alarm(15)
-            try:
-                summary = generate_student_preview_summary({
+            def _call_ai():
+                return generate_student_preview_summary({
                     "full_name": app.full_name,
                     "program": program,
                     "institution": getattr(app, "institution", "MIHAS"),
@@ -537,13 +533,14 @@ class ApplicationPreviewSummaryView(APIView):
                     "grades_summary": build_grades_summary(app),
                     "subjects_count": subjects_count,
                 })
-            finally:
-                signal.alarm(0)
-                signal.signal(signal.SIGALRM, old_handler)
+
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(_call_ai)
+                summary = future.result(timeout=15)
 
             if summary and len(summary) >= 20:
                 source = "ai"
-        except Exception:
+        except (FuturesTimeoutError, Exception):
             logger.info("AI preview summary unavailable for %s, using fallback", application_id)
 
         if not summary or len(summary) < 20:
