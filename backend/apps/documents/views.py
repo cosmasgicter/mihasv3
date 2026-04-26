@@ -360,7 +360,8 @@ class DocumentExtractView(APIView):
         # Enqueue OCR task.
         from apps.documents.tasks import extract_document_text_task
 
-        task = extract_document_text_task.delay(str(document.id))
+        force = request.data.get("force", False) is True
+        task = extract_document_text_task.delay(str(document.id), force=force)
 
         return Response(
             {

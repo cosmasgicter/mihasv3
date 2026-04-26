@@ -141,7 +141,7 @@ def poll_pending_payments_task(self):
         _release_task_lock("poll_pending_payments_task")
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60, soft_time_limit=120, time_limit=180)
-def extract_document_text_task(self, document_id):
+def extract_document_text_task(self, document_id, force=False):
     """Run OCR on an uploaded document and store extracted text + AI analysis.
 
     Downloads the file from S3/R2, extracts text using AI vision,
@@ -158,9 +158,15 @@ def extract_document_text_task(self, document_id):
         logger.error("Document %s not found", document_id)
         return
 
-    if document.extracted_text:
+    if document.extracted_text and not force:
         logger.info("Document %s already has extracted text, skipping", document_id)
         return
+
+    if force:
+        document.extracted_text = None
+        document.verification_notes = None
+        document.verification_status = None
+        document.save(update_fields=["extracted_text", "verification_notes", "verification_status"])
 
     file_key = _get_document_storage_key(document)
     if not file_key:
