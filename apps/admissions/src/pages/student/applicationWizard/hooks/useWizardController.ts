@@ -1629,19 +1629,24 @@ const useWizardController = (): UseWizardControllerResult => {
 
     const hadManualGrades = selectedGrades.length > 0
 
-    // OCR takes precedence — replace whatever is there. Grades remain editable.
-    setSelectedGrades(grades)
+    // Merge: OCR fills empty slots, never overwrites manually entered grades
+    const manualSubjectIds = new Set(selectedGrades.map(g => g.subject_id))
+    const newGrades = grades.filter(g => !manualSubjectIds.has(g.subject_id))
+    const merged = [...selectedGrades, ...newGrades]
+    setSelectedGrades(merged)
 
-    if (hadManualGrades) {
-      showSuccess(`✨ AI detected ${grades.length} subjects from your result slip — your previous entries have been replaced. Please verify the grades are correct.`)
+    if (hadManualGrades && newGrades.length > 0) {
+      showSuccess(`✨ AI detected ${grades.length} subjects — added ${newGrades.length} new subjects (your ${selectedGrades.length} existing entries were kept). Please verify.`)
+    } else if (hadManualGrades && newGrades.length === 0) {
+      showSuccess(`✨ AI detected ${grades.length} subjects, but all were already entered. Please verify your grades.`)
     } else {
       showSuccess(`✨ AI detected ${grades.length} subjects from your result slip! Please verify the grades are correct.`)
     }
 
     if (applicationId) {
-      syncGrades.mutateAsync({ id: applicationId, grades }).catch(() => {})
+      syncGrades.mutateAsync({ id: applicationId, grades: merged }).catch(() => {})
     }
-  }, [applicationId, selectedGrades.length, syncGrades, showSuccess])
+  }, [applicationId, selectedGrades, syncGrades, showSuccess])
 
   const { status: ocrStatus, extractedCount: ocrExtractedCount, failureReason: ocrFailureReason, startPolling: startOcrPolling } = useOcrGradeExtraction(
     ocrDocumentId,
@@ -1649,6 +1654,13 @@ const useWizardController = (): UseWizardControllerResult => {
     handleOcrGrades,
   )
   startOcrPollingRef.current = startOcrPolling
+
+  const retryOcr = useCallback((documentId?: string | null) => {
+    const docId = documentId || ocrDocumentId
+    if (!docId) return
+    apiClient.request(`/documents/${docId}/extract/`, { method: 'POST', body: JSON.stringify({ force: true }), headers: { 'Content-Type': 'application/json' } }).catch(() => {})
+    startOcrPolling(docId)
+  }, [ocrDocumentId, startOcrPolling])
 
   const goToStep = useCallback((index: number) => {
     setCurrentStepIndex(Math.min(Math.max(index, 0), totalSteps - 1))
@@ -2207,7 +2219,7 @@ const useWizardController = (): UseWizardControllerResult => {
     ocrStatus,
     ocrExtractedCount,
     ocrFailureReason,
-    retryOcr: startOcrPolling,
+    retryOcr,
     persistingSlip,
     slipLoading,
     emailLoading,
