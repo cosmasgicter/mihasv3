@@ -15,6 +15,8 @@ interface FiltersPanelProps {
   assignedReviewerFilter?: string
   lateSubmissionFilter?: string
   pendingAmendmentsFilter?: string
+  programOptions?: string[]
+  institutionOptions?: string[]
   onFilterChange: (key: keyof ApplicationFilters, value: string) => void
 }
 
@@ -28,6 +30,8 @@ export function FiltersPanel({
   assignedReviewerFilter = '',
   lateSubmissionFilter = '',
   pendingAmendmentsFilter = '',
+  programOptions = [],
+  institutionOptions = [],
   onFilterChange
 }: FiltersPanelProps) {
   // Local state keeps the input responsive on every keystroke
@@ -160,9 +164,9 @@ export function FiltersPanel({
             className={selectClasses}
           >
             <option value="">All Programs</option>
-            <option value="Clinical Medicine">Clinical Medicine</option>
-            <option value="Environmental Health">Environmental Health</option>
-            <option value="Registered Nursing">Registered Nursing</option>
+            {programOptions.map(p => (
+              <option key={p} value={p}>{p}</option>
+            ))}
           </select>
         </div>
       </div>
@@ -178,8 +182,9 @@ export function FiltersPanel({
             className={selectClasses}
           >
             <option value="">All Institutions</option>
-            <option value="Kalulushi Training Centre">Kalulushi Training Centre</option>
-            <option value="Mukuba Institute of Health and Allied Sciences">Mukuba Institute of Health and Allied Sciences</option>
+            {institutionOptions.map(i => (
+              <option key={i} value={i}>{i}</option>
+            ))}
           </select>
         </div>
         <div>

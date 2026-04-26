@@ -128,10 +128,17 @@ export function ApplicationsTableView({
         }
         // For non-draft statuses, render the status badge manually
         const statusConfig: Record<string, { color: string; label: string }> = {
+          draft: { color: 'bg-gray-100 text-gray-800 border-gray-300', label: 'DRAFT' },
           submitted: { color: 'bg-blue-100 text-blue-800 border-blue-300', label: 'SUBMITTED' },
           under_review: { color: 'bg-yellow-100 text-yellow-800 border-yellow-300', label: 'UNDER REVIEW' },
+          waitlisted: { color: 'bg-purple-100 text-purple-800 border-purple-300', label: 'WAITLISTED' },
+          conditionally_approved: { color: 'bg-amber-100 text-amber-800 border-amber-300', label: 'CONDITIONAL' },
           approved: { color: 'bg-green-100 text-green-800 border-green-300', label: 'APPROVED' },
+          enrolled: { color: 'bg-emerald-100 text-emerald-800 border-emerald-300', label: 'ENROLLED' },
           rejected: { color: 'bg-red-100 text-red-800 border-red-300', label: 'REJECTED' },
+          withdrawn: { color: 'bg-slate-100 text-slate-800 border-slate-300', label: 'WITHDRAWN' },
+          expired: { color: 'bg-orange-100 text-orange-800 border-orange-300', label: 'EXPIRED' },
+          enrollment_expired: { color: 'bg-orange-100 text-orange-800 border-orange-300', label: 'ENROLLMENT EXPIRED' },
         };
         const config = statusConfig[strValue] || { color: 'bg-gray-100 text-foreground border-gray-300', label: strValue?.toUpperCase() || 'UNKNOWN' };
         return (
@@ -153,6 +160,7 @@ export function ApplicationsTableView({
           not_paid: 'bg-slate-100 text-slate-800 border-slate-300',
           pending_review: 'bg-orange-100 text-orange-800 border-orange-300',
           verified: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+          deferred: 'bg-sky-100 text-sky-800 border-sky-300',
           rejected: 'bg-rose-100 text-rose-800 border-rose-300',
         };
 

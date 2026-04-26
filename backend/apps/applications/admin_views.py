@@ -352,85 +352,95 @@ class ApplicationReviewView(APIView):
         notes = serializer.validated_data.get("notes", "")
         force = serializer.validated_data.get("force", False)
         reason = serializer.validated_data.get("reason", "")
-        if new_status == "approved" and not force:
-            # All statuses that mean "payment resolved" — includes legacy (verified, paid) and current (successful, force_approved, deferred)
-            _RESOLVED_PAYMENT_STATUSES = ("successful", "force_approved", "verified", "paid", "deferred")
-            has_verified = (
-                app.payment_status in _RESOLVED_PAYMENT_STATUSES
-                or Payment.objects.filter(
-                    application_id=application_id,
-                    status__in=_RESOLVED_PAYMENT_STATUSES,
-                ).exists()
-            )
-            if not has_verified:
-                return Response({"success": False, "error": "Payment must be verified before approval. Set force=true to override.", "code": "PAYMENT_UNVERIFIED"}, status=status.HTTP_400_BAD_REQUEST)
 
-        raw_ip = self._get_client_ip(request) or ""
-        ip_hash = hashlib.sha256(str(raw_ip).encode("utf-8")).hexdigest()
-        user_agent = str(request.META.get("HTTP_USER_AGENT", "") or "")
+        with transaction.atomic():
+            app = Application.objects.select_for_update().get(id=application_id)
 
-        if force and new_status == "approved":
-            bypass_notes = f"[FORCE-BYPASS] Payment verification bypassed. Reason: {reason or 'Not provided'}"
-            bypass_changes = {"force_bypass": True, "reason": reason or "Not provided"}
-            logger.warning(
-                "Force-bypass: app=%s admin=%s status=%s",
-                app.id, request.user.id, new_status,
-            )
-        else:
-            bypass_notes = notes
-            bypass_changes = None
+            if new_status == "approved" and not force:
+                # All statuses that mean "payment resolved" — includes legacy (verified, paid) and current (successful, force_approved, deferred)
+                _RESOLVED_PAYMENT_STATUSES = ("successful", "force_approved", "verified", "paid", "deferred")
+                has_verified = (
+                    app.payment_status in _RESOLVED_PAYMENT_STATUSES
+                    or Payment.objects.filter(
+                        application_id=application_id,
+                        status__in=_RESOLVED_PAYMENT_STATUSES,
+                    ).exists()
+                )
+                if not has_verified:
+                    return Response({"success": False, "error": "Payment must be verified before approval. Set force=true to override.", "code": "PAYMENT_UNVERIFIED"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if new_status == "submitted":
-            try:
-                locked_app, old_status = submit_application(
+            raw_ip = self._get_client_ip(request) or ""
+            ip_hash = hashlib.sha256(str(raw_ip).encode("utf-8")).hexdigest()
+            user_agent = str(request.META.get("HTTP_USER_AGENT", "") or "")
+
+            if force and new_status == "approved":
+                bypass_notes = f"[FORCE-BYPASS] Payment verification bypassed. Reason: {reason or 'Not provided'}"
+                bypass_changes = {"force_bypass": True, "reason": reason or "Not provided"}
+                logger.warning(
+                    "Force-bypass: app=%s admin=%s status=%s",
+                    app.id, request.user.id, new_status,
+                )
+            else:
+                bypass_notes = notes
+                bypass_changes = None
+
+            if new_status == "submitted":
+                try:
+                    locked_app, old_status = submit_application(
+                        application=app,
+                        changed_by=str(request.user.id),
+                        notes=bypass_notes,
+                        ip_address=ip_hash,
+                        user_agent=user_agent,
+                        admin_force=True,
+                    )
+                except ApplicationSubmissionError as exc:
+                    return Response(
+                        {"success": False, "error": exc.message, "code": exc.code},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                return Response({"success": True, "data": {"message": f"Status updated from {old_status} to {new_status}", "application_id": str(locked_app.id), "old_status": old_status, "new_status": new_status}})
+
+            conditions_payload = request.data.get("conditions") if isinstance(request.data, dict) else None
+            if new_status == "conditionally_approved" and conditions_payload:
+                from apps.applications.condition_manager import ConditionError, ConditionManager
+
+                try:
+                    old_status = app.status
+                    ConditionManager.assign_conditions(
+                        application_id=str(application_id),
+                        conditions=conditions_payload,
+                        admin_id=str(request.user.id),
+                    )
+                    app.refresh_from_db()
+                except ConditionError as exc:
+                    return Response(
+                        {"success": False, "error": exc.message, "code": exc.code},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+            else:
+                try:
+                    old_status = transition_application_status(
+                        application=app,
+                        new_status=new_status,
+                        changed_by=str(request.user.id),
+                        notes=bypass_notes,
+                        ip_address=ip_hash,
+                        user_agent=user_agent,
+                    )
+                except ValueError as exc:
+                    return Response(
+                        {"success": False, "error": str(exc), "code": "INVALID_TRANSITION"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+            if bypass_changes:
+                history = ApplicationStatusHistory.objects.filter(
                     application=app,
-                    changed_by=str(request.user.id),
-                    notes=bypass_notes,
-                    ip_address=ip_hash,
-                    user_agent=user_agent,
-                    admin_force=True,
-                )
-            except ApplicationSubmissionError as exc:
-                return Response(
-                    {"success": False, "error": exc.message, "code": exc.code},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            return Response({"success": True, "data": {"message": f"Status updated from {old_status} to {new_status}", "application_id": str(locked_app.id), "old_status": old_status, "new_status": new_status}})
-
-        conditions_payload = request.data.get("conditions") if isinstance(request.data, dict) else None
-        if new_status == "conditionally_approved" and conditions_payload:
-            from apps.applications.condition_manager import ConditionError, ConditionManager
-
-            try:
-                old_status = app.status
-                ConditionManager.assign_conditions(
-                    application_id=str(application_id),
-                    conditions=conditions_payload,
-                    admin_id=str(request.user.id),
-                )
-                app.refresh_from_db()
-            except ConditionError as exc:
-                return Response(
-                    {"success": False, "error": exc.message, "code": exc.code},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        else:
-            old_status = transition_application_status(
-                application=app,
-                new_status=new_status,
-                changed_by=str(request.user.id),
-                notes=bypass_notes,
-                ip_address=ip_hash,
-                user_agent=user_agent,
-            )
-
-        if bypass_changes:
-            history = ApplicationStatusHistory.objects.filter(
-                application=app,
-            ).order_by('-created_at').first()
-            if history:
-                history.changes = bypass_changes
-                history.save(update_fields=['changes'])
+                ).order_by('-created_at').first()
+                if history:
+                    history.changes = bypass_changes
+                    history.save(update_fields=['changes'])
 
         if new_status == "waitlisted":
             try:

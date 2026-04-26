@@ -240,7 +240,7 @@ class FinanceReceiptView(APIView):
             )
 
         has_verified_payment = Payment.objects.filter(
-            application_id=application.id, status__in=("successful", "force_approved")
+            application_id=application.id, status__in=("successful", "force_approved", "verified", "paid")
         ).exists()
         if not has_verified_payment:
             return Response(

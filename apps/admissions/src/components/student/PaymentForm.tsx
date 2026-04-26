@@ -24,6 +24,8 @@ function detectOperator(phone: string): MomoOperator {
   if (/^0?96/.test(local) || /^0?76/.test(local)) return 'mtn'
   // Airtel: 097x, 077x
   if (/^0?97/.test(local) || /^0?77/.test(local)) return 'airtel'
+  // Zamtel: 095x, 075x — route via Airtel gateway (Zamtel not separately supported)
+  if (/^0?95/.test(local) || /^0?75/.test(local)) return 'airtel'
   if (local.length >= 4) return 'airtel'
   return null
 }
@@ -512,7 +514,7 @@ export function PaymentForm({
             variant="primary"
             size="lg"
             className="w-full"
-            disabled={!canPay || momoLoading || !!phoneValidationError || phoneDigits(momoPhone).length < 10}
+            disabled={!canPay || momoLoading || !!phoneValidationError || phoneDigits(momoPhone).length < 9}
             loading={momoLoading}
             onClick={handleMomoPayment}
             data-testid="pay-momo-button"

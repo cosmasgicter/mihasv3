@@ -186,11 +186,11 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
                               <Edit2 className="h-3.5 w-3.5" />
                             </button>
                             <button
-                              onClick={async () => {
-                                try {
-                                  await deleteDraft(draft.id)
-                                } catch (error) {
-                                  console.error('Failed to delete draft:', error)
+                              onClick={() => {
+                                if (window.confirm(`Delete draft "${draft.draft_name}"? This cannot be undone.`)) {
+                                  deleteDraft(draft.id).catch(error => {
+                                    console.error('Failed to delete draft:', error)
+                                  })
                                 }
                               }}
                               className="text-caption hover:text-destructive p-1"

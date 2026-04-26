@@ -1227,7 +1227,7 @@ const useWizardController = (): UseWizardControllerResult => {
           }
 
           // 3.1: ALWAYS restore step - removed currentStepIndex === 0 condition
-          const stepId = resolveDraftResumeStepId(app, restoredGrades)
+          const stepId = resolveDraftResumeStepId(app, restoredGrades, restoredUploads)
           const index = getStepIndexById(stepId)
           setCurrentStepIndex(index >= 0 ? index : Math.min(Math.max(stepId - 1, 0), totalSteps - 1))
 
@@ -1361,7 +1361,7 @@ const useWizardController = (): UseWizardControllerResult => {
         setGradesHydrating(false)
       }
 
-      const stepId = resolveDraftResumeStepId(draft, restoredGrades)
+      const stepId = resolveDraftResumeStepId(draft, restoredGrades, restoredUploads)
       const index = getStepIndexById(stepId)
       setCurrentStepIndex(index >= 0 ? index : Math.min(Math.max(stepId - 1, 0), totalSteps - 1))
 
@@ -1592,7 +1592,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const updateGrade = useCallback((index: number, field: keyof SubjectGrade, value: string | number) => {
     setSelectedGrades(prev => {
       const next = [...prev]
-      next[index] = { ...next[index]!, [field]: value }
+      next[index] = { ...next[index]!, [field]: field === 'grade' ? Number(value) : value }
       return next
     })
   }, [])

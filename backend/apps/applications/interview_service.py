@@ -54,6 +54,7 @@ class InterviewService:
         application: Application,
         scheduled_at,
         admin_id: str,
+        exclude_id=None,
     ) -> dict:
         """Validate interview scheduling constraints.
 
@@ -98,12 +99,15 @@ class InterviewService:
         # --- 3. Application time conflict (Req 2.3) ---
         conflict_start = scheduled_at - timedelta(hours=APPLICATION_CONFLICT_HOURS)
         conflict_end = scheduled_at + timedelta(hours=APPLICATION_CONFLICT_HOURS)
-        app_conflict = ApplicationInterview.objects.filter(
+        app_conflict_qs = ApplicationInterview.objects.filter(
             application_id=application.id,
             scheduled_at__gte=conflict_start,
             scheduled_at__lte=conflict_end,
             status__in=["scheduled", "rescheduled"],
-        ).first()
+        )
+        if exclude_id:
+            app_conflict_qs = app_conflict_qs.exclude(id=exclude_id)
+        app_conflict = app_conflict_qs.first()
         if app_conflict:
             raise InterviewSchedulingError(
                 "TIME_CONFLICT",
@@ -286,7 +290,7 @@ class InterviewService:
         # --- 1. Validate scheduling constraints ---
         # Exclude the current interview from conflict checks
         validation = InterviewService.validate_scheduling(
-            application, new_scheduled_at, admin_id
+            application, new_scheduled_at, admin_id, exclude_id=interview.id
         )
 
         # --- 2. Validate mode ---
