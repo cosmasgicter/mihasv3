@@ -123,11 +123,8 @@ class EnrollmentService:
             ).first()
             if event:
                 from datetime import datetime, time
-                return timezone.make_aware(
-                    datetime.combine(event.event_date, time(23, 59, 59))
-                ) if timezone.is_naive(
-                    datetime.combine(event.event_date, time(23, 59, 59))
-                ) else datetime.combine(event.event_date, time(23, 59, 59))
+                naive = datetime.combine(event.event_date, time(23, 59, 59))
+                return timezone.make_aware(naive)
 
         # Fallback: approval_date + 14 days
         approval_date = application.decision_date or timezone.now()

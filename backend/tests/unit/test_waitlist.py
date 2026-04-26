@@ -178,42 +178,40 @@ class TestPromoteNext:
 class TestReindexPositions:
     """Reindex assigns sequential positions ordered by created_at (Req 3.6)."""
 
+    @patch("apps.applications.waitlist_manager.transaction")
     @patch(_APP_OBJECTS)
-    def test_reindex_assigns_sequential_positions(self, mock_qs):
+    def test_reindex_assigns_sequential_positions(self, mock_qs, mock_tx):
+        mock_tx.atomic.return_value.__enter__ = MagicMock()
+        mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
         a1 = MagicMock(id=uuid.uuid4(), waitlist_position=3)
         a2 = MagicMock(id=uuid.uuid4(), waitlist_position=5)
         a3 = MagicMock(id=uuid.uuid4(), waitlist_position=7)
-        qs = MagicMock()
-        qs.__iter__ = MagicMock(return_value=iter([a1, a2, a3]))
-        qs.count.return_value = 3
-        mock_qs.filter.return_value.order_by.return_value = qs
+        mock_qs.select_for_update.return_value.filter.return_value.order_by.return_value = [a1, a2, a3]
 
         WaitlistManager.reindex_positions("CS", "Jan 2026")
 
-        mock_qs.filter.return_value.order_by.assert_called_once_with("created_at")
-        # Each app with a mismatched position triggers an update via filter(id=...).update(...)
-        # 3 apps with positions 3,5,7 all differ from expected 1,2,3 so 3 updates
-        id_filter_calls = [
-            c for c in mock_qs.filter.call_args_list
-            if c.kwargs.get("id") in (a1.id, a2.id, a3.id)
-        ]
-        assert len(id_filter_calls) == 3
+        # Each app with a mismatched position triggers save
+        assert a1.save.called
+        assert a2.save.called
+        assert a3.save.called
+        assert a1.waitlist_position == 1
+        assert a2.waitlist_position == 2
+        assert a3.waitlist_position == 3
 
+    @patch("apps.applications.waitlist_manager.transaction")
     @patch(_APP_OBJECTS)
-    def test_reindex_no_change_when_already_sequential(self, mock_qs):
+    def test_reindex_no_change_when_already_sequential(self, mock_qs, mock_tx):
+        mock_tx.atomic.return_value.__enter__ = MagicMock()
+        mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
         a1 = MagicMock(id=uuid.uuid4(), waitlist_position=1)
         a2 = MagicMock(id=uuid.uuid4(), waitlist_position=2)
-        qs = MagicMock()
-        qs.__iter__ = MagicMock(return_value=iter([a1, a2]))
-        qs.count.return_value = 2
-        mock_qs.filter.return_value.order_by.return_value = qs
+        mock_qs.select_for_update.return_value.filter.return_value.order_by.return_value = [a1, a2]
 
         WaitlistManager.reindex_positions("CS", "Jan 2026")
 
-        # filter is called once for the initial queryset, no id-based updates needed
-        mock_qs.filter.assert_called_once_with(
-            program="CS", intake="Jan 2026", status="waitlisted",
-        )
+        # No saves needed when positions are already correct
+        assert not a1.save.called
+        assert not a2.save.called
 
 
 # ---------------------------------------------------------------------------

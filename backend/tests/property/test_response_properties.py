@@ -173,10 +173,12 @@ class TestPaginationMetadata(SimpleTestCase):
 
         response = paginator.get_paginated_response(data=["item1", "item2"])
 
-        self.assertIn("page", response.data)
-        self.assertIn("pageSize", response.data)
-        self.assertIn("totalCount", response.data)
-        self.assertIn("results", response.data)
+        self.assertTrue(response.data["success"])
+        inner = response.data["data"]
+        self.assertIn("page", inner)
+        self.assertIn("pageSize", inner)
+        self.assertIn("totalCount", inner)
+        self.assertIn("results", inner)
 
         self.assertEqual(response.data["page"], page_number)
         self.assertEqual(response.data["totalCount"], total_count)
