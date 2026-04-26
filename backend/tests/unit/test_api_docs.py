@@ -19,20 +19,15 @@ class ApiDocsTests(SimpleTestCase):
 
     @override_settings(DEBUG=True)
     def test_schema_endpoint_renders_successfully(self):
-        """Schema is accessible in DEBUG mode (dev)."""
+        """Schema requires authentication even in DEBUG mode."""
         response = self.client.get("/api/v1/schema/")
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("application/vnd.oai.openapi", response["Content-Type"])
-        self.assertIn("openapi", response.content.decode("utf-8"))
+        self.assertIn(response.status_code, (401, 403))
 
     @override_settings(DEBUG=True)
     def test_swagger_ui_renders_successfully(self):
-        """Swagger UI is accessible in DEBUG mode (dev)."""
+        """Swagger UI requires authentication even in DEBUG mode."""
         response = self.client.get("/api/v1/docs/")
-        self.assertEqual(response.status_code, 200)
-        html = response.content.decode("utf-8")
-        self.assertIn("swagger", html.lower())
-        self.assertIn("/api/v1/schema/", html)
+        self.assertIn(response.status_code, (401, 403))
 
     @override_settings(DEBUG=False)
     def test_schema_endpoint_requires_auth_in_production(self):

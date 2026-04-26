@@ -49,7 +49,7 @@ class SecurityHeadersMiddleware:
         response["Permissions-Policy"] = (
             "camera=(), microphone=(), geolocation=(), payment=()"
         )
-        response["X-XSS-Protection"] = "1; mode=block"
+        response["X-XSS-Protection"] = "0"
         response["Content-Security-Policy"] = (
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline' https://pay.lenco.co https://pay.sandbox.lenco.co; "

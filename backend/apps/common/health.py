@@ -55,7 +55,7 @@ class ReadinessView(APIView):
 
     def get(self, request):
         db_ok = self._check_db()
-        redis_status, redis_latency = self._check_redis_with_latency()
+        redis_status, _redis_latency = self._check_redis_with_latency()
 
         # Return 200 as long as the database is healthy.
         # Redis is non-critical — auth and API work without it (JTI blacklist
@@ -67,7 +67,6 @@ class ReadinessView(APIView):
                     "status": "ok",
                     "db": "ok",
                     "redis": redis_status,
-                    "redis_latency_ms": redis_latency,
                 },
                 status=200,
             )
@@ -77,7 +76,6 @@ class ReadinessView(APIView):
                 "status": "unhealthy",
                 "db": "error",
                 "redis": redis_status,
-                "redis_latency_ms": redis_latency,
             },
             status=503,
         )
