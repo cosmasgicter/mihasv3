@@ -116,6 +116,7 @@ export function PaymentForm({
   const [activeMomoPaymentId, setActiveMomoPaymentId] = useState<string | null>(null)
   const retryRef = useRef<HTMLButtonElement>(null)
   const pollRef = useRef<ReturnType<typeof setInterval>>()
+  const pollErrorCountRef = useRef(0)
 
   const getCustomerDetails = useCallback(() => ({ fullName, email, phone: normalizedPhone }), [fullName, email, normalizedPhone])
 
@@ -139,7 +140,7 @@ export function PaymentForm({
 
   const paymentStatus = paymentMethod === 'mobile-money' ? momoStatus : cardPaymentStatus
   const isPaymentSuccessful = paymentStatus === 'successful' || polledStatus === 'successful'
-  const isPaymentPending = paymentStatus === 'pending' || polledStatus === 'pending'
+  const isPaymentPending = (paymentStatus === 'pending' || polledStatus === 'pending') && activePendingMethod !== null
   const isPaymentFailed = paymentStatus === 'failed' || polledStatus === 'failed'
 
   const syncPendingPayment = useCallback(async () => {
@@ -150,6 +151,7 @@ export function PaymentForm({
           { method: 'POST' }
         )
 
+        pollErrorCountRef.current = 0
         const normalized = normalizePaymentStatusValue(verification?.status ?? verification?.data?.status ?? null)
         if (normalized === 'successful') {
           setMomoStatus('successful')
@@ -166,11 +168,23 @@ export function PaymentForm({
           onPaymentStatusChange?.('pending')
         }
       } catch {
-        // Fall back to the broader application-level status refresh below.
+        pollErrorCountRef.current += 1
+        if (pollErrorCountRef.current >= 3) {
+          clearInterval(pollRef.current)
+          setMomoStatus('failed')
+          setMomoError('Unable to verify payment status. Please try again.')
+          setActivePendingMethod(null)
+          onPaymentStatusChange?.('failed')
+          return
+        }
       }
     }
 
-    await onPaymentStatusRefresh?.()
+    try {
+      await onPaymentStatusRefresh?.()
+    } catch {
+      // Ignore refresh errors — the verify call above is the primary check.
+    }
   }, [activeMomoPaymentId, activePendingMethod, onPaymentStatusChange, onPaymentStatusRefresh])
 
   // Auto-poll every 10s while pending
@@ -273,6 +287,7 @@ export function PaymentForm({
     setMomoError(null)
     setActivePendingMethod(null)
     setActiveMomoPaymentId(null)
+    pollErrorCountRef.current = 0
     updateCardPaymentStatus('idle')
     setCardInitiateError(null)
   }, [updateCardPaymentStatus, setCardInitiateError])

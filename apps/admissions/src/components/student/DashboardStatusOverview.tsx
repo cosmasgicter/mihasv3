@@ -310,6 +310,12 @@ export function DashboardStatusOverview({
                   {latestApplication.status === 'draft' ? 'Continue Application →' : latestApplicationRequiresPayment ? 'Complete Payment →' : 'View Details →'}
                 </Link>
               </div>
+              {latestApplication.admin_feedback && (
+                <div className="mt-3 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
+                  <p className="text-xs font-semibold text-primary/70 mb-1">Feedback from Admissions</p>
+                  <p className="text-sm text-foreground">{latestApplication.admin_feedback}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
