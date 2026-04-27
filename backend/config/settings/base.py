@@ -335,7 +335,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_THROTTLE_RATES": {
         "error_report": "5/min",
-        "payment_verify": "10/10m",
+        "payment_verify": "10/min",
     },
     "DEFAULT_PAGINATION_CLASS": "apps.common.pagination.StandardPagination",
     "PAGE_SIZE": 20,

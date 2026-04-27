@@ -54,6 +54,46 @@ function matchSubjectName(aiName: string, catalogSubjects: CatalogSubject[]): st
   const normalized = aiName.toLowerCase().trim()
   if (normalized.length < 2) return null
 
+  // ECZ alias normalization — AI extracts short names, catalog has full names
+  const ECZ_ALIASES: Record<string, string[]> = {
+    'english language': ['english'],
+    'mathematics': ['ordinary mathematics', 'maths'],
+    'science': ['ordinary science', 'combined science', 'physical science'],
+    'design & technology': ['design and technology'],
+    'design and technology': ['design & technology'],
+    'civic education': ['civics'],
+    'commerce': ['commercial studies'],
+    'biology': ['ordinary biology'],
+  }
+
+  // Try the AI name and all its aliases
+  const candidates = [normalized]
+  for (const [key, aliases] of Object.entries(ECZ_ALIASES)) {
+    if (normalized === key) candidates.push(...aliases)
+    if (aliases.includes(normalized)) candidates.push(key)
+  }
+  // Also try stripping common suffixes/prefixes
+  if (normalized.endsWith(' language')) candidates.push(normalized.replace(/ language$/, ''))
+  if (normalized.startsWith('ordinary ')) candidates.push(normalized.replace(/^ordinary /, ''))
+  const withAnd = normalized.replace(/&/g, 'and')
+  if (withAnd !== normalized) candidates.push(withAnd)
+
+  // Try exact match against all candidates
+  for (const candidate of candidates) {
+    const exact = catalogSubjects.find(s => s.name.toLowerCase() === candidate)
+    if (exact) return exact.id
+  }
+
+  // Try catalog names stripped of "Ordinary" prefix against candidates
+  for (const candidate of candidates) {
+    const match = catalogSubjects.find(s => {
+      const catLower = s.name.toLowerCase()
+      const catStripped = catLower.replace(/^ordinary /, '')
+      return catStripped === candidate || catLower === candidate
+    })
+    if (match) return match.id
+  }
+
   // Exact match
   const exact = catalogSubjects.find(s => s.name.toLowerCase() === normalized)
   if (exact) return exact.id
