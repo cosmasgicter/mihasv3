@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/api/client'
+import { env } from '@/lib/env'
 import type { EmailMessage, EmailThread, PaginatedResponse } from '@/services/api/contracts'
 
 type RawEmailThread = {
@@ -86,13 +87,9 @@ export async function listEmailThreads(): Promise<PaginatedResponse<EmailThread>
       ...payload,
       results: payload.results.map(mapThread),
     }
-  } catch {
-    return {
-      page: 1,
-      pageSize: 20,
-      totalCount: fallbackThreads.length,
-      results: fallbackThreads,
-    }
+  } catch (error) {
+    if (env.demoMode) return { page: 1, pageSize: 20, totalCount: fallbackThreads.length, results: fallbackThreads }
+    throw error
   }
 }
 
@@ -103,12 +100,8 @@ export async function listEmailMessages(): Promise<PaginatedResponse<EmailMessag
       ...payload,
       results: payload.results.map(mapMessage),
     }
-  } catch {
-    return {
-      page: 1,
-      pageSize: 20,
-      totalCount: fallbackMessages.length,
-      results: fallbackMessages,
-    }
+  } catch (error) {
+    if (env.demoMode) return { page: 1, pageSize: 20, totalCount: fallbackMessages.length, results: fallbackMessages }
+    throw error
   }
 }

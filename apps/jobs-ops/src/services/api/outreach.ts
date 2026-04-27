@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/api/client'
+import { env } from '@/lib/env'
 import type { OutreachCampaign, OutreachContact, PaginatedResponse } from '@/services/api/contracts'
 
 type RawOutreachContact = {
@@ -86,13 +87,9 @@ export async function listOutreachContacts(): Promise<PaginatedResponse<Outreach
       ...payload,
       results: payload.results.map(mapContact),
     }
-  } catch {
-    return {
-      page: 1,
-      pageSize: 20,
-      totalCount: fallbackContacts.length,
-      results: fallbackContacts,
-    }
+  } catch (error) {
+    if (env.demoMode) return { page: 1, pageSize: 20, totalCount: fallbackContacts.length, results: fallbackContacts }
+    throw error
   }
 }
 
@@ -103,12 +100,8 @@ export async function listOutreachCampaigns(): Promise<PaginatedResponse<Outreac
       ...payload,
       results: payload.results.map(mapCampaign),
     }
-  } catch {
-    return {
-      page: 1,
-      pageSize: 20,
-      totalCount: fallbackCampaigns.length,
-      results: fallbackCampaigns,
-    }
+  } catch (error) {
+    if (env.demoMode) return { page: 1, pageSize: 20, totalCount: fallbackCampaigns.length, results: fallbackCampaigns }
+    throw error
   }
 }

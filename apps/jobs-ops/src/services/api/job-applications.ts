@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/api/client'
+import { env } from '@/lib/env'
 import type { JobApplicationItem, PaginatedResponse } from '@/services/api/contracts'
 
 type RawJobApplicationItem = {
@@ -65,12 +66,8 @@ export async function listJobApplications(): Promise<PaginatedResponse<JobApplic
       ...payload,
       results: payload.results.map(mapJobApplication),
     }
-  } catch {
-    return {
-      page: 1,
-      pageSize: 20,
-      totalCount: fallbackApplications.length,
-      results: fallbackApplications,
-    }
+  } catch (error) {
+    if (env.demoMode) return { page: 1, pageSize: 20, totalCount: fallbackApplications.length, results: fallbackApplications }
+    throw error
   }
 }

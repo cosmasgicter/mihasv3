@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/api/client'
+import { env } from '@/lib/env'
 import type { AutomationRule, AutomationRun, PaginatedResponse } from '@/services/api/contracts'
 
 type RawAutomationRule = {
@@ -86,13 +87,9 @@ export async function listAutomationRules(): Promise<PaginatedResponse<Automatio
       ...payload,
       results: payload.results.map(mapRule),
     }
-  } catch {
-    return {
-      page: 1,
-      pageSize: 20,
-      totalCount: fallbackRules.length,
-      results: fallbackRules,
-    }
+  } catch (error) {
+    if (env.demoMode) return { page: 1, pageSize: 20, totalCount: fallbackRules.length, results: fallbackRules }
+    throw error
   }
 }
 
@@ -103,12 +100,8 @@ export async function listAutomationRuns(): Promise<PaginatedResponse<Automation
       ...payload,
       results: payload.results.map(mapRun),
     }
-  } catch {
-    return {
-      page: 1,
-      pageSize: 20,
-      totalCount: fallbackRuns.length,
-      results: fallbackRuns,
-    }
+  } catch (error) {
+    if (env.demoMode) return { page: 1, pageSize: 20, totalCount: fallbackRuns.length, results: fallbackRuns }
+    throw error
   }
 }

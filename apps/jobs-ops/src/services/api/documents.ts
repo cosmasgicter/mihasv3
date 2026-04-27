@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/api/client'
+import { env } from '@/lib/env'
 import type { ResumeAsset } from '@/services/api/contracts'
 
 type RawResumeAsset = {
@@ -52,7 +53,8 @@ export async function listResumeAssets(): Promise<ResumeAsset[]> {
   try {
     const payload = await apiClient.get<RawResumeAsset[]>('/api/v1/documents/resumes/')
     return payload.map(mapResumeAsset)
-  } catch {
-    return fallbackAssets
+  } catch (error) {
+    if (env.demoMode) return fallbackAssets
+    throw error
   }
 }
