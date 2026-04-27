@@ -275,6 +275,8 @@ const useWizardController = (): UseWizardControllerResult => {
   const startOcrPollingRef = useRef<((documentId?: string | null) => void) | null>(null)
   const [submittedApplication, setSubmittedApplication] = useState<SubmittedApplicationSummary | null>(null)
   const [selectedGrades, setSelectedGrades] = useState<SubjectGrade[]>([])
+  const selectedGradesRef = useRef<SubjectGrade[]>([])
+  selectedGradesRef.current = selectedGrades
   const [isDraftSaving, setIsDraftSaving] = useState(false)
   const [draftSaved, setDraftSaved] = useState(false)
   const [restoringDraft, setRestoringDraft] = useState(false)
@@ -521,7 +523,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const persistLocalDraftSnapshot = useCallback(() => {
     const draftSnapshot = {
       formData: getValues(),
-      selectedGrades,
+      selectedGrades: selectedGradesRef.current,
       uploadedFiles,
       currentStep: currentStepConfig.id,
       currentStepKey: currentStepConfig.key,
@@ -540,7 +542,7 @@ const useWizardController = (): UseWizardControllerResult => {
     }
 
     return draftSnapshot
-  }, [applicationId, currentStepConfig.id, currentStepConfig.key, getValues, paymentStatus, selectedGrades, uploadedFiles, user?.id])
+  }, [applicationId, currentStepConfig.id, currentStepConfig.key, getValues, paymentStatus, uploadedFiles, user?.id])
 
   const hydrateServerGrades = useCallback(async (draftApplicationId: string): Promise<SubjectGrade[]> => {
     try {
@@ -1424,7 +1426,7 @@ const useWizardController = (): UseWizardControllerResult => {
       const now = new Date().toISOString()
       const draft = {
         formData,
-        selectedGrades,
+        selectedGrades: selectedGradesRef.current,
         uploadedFiles,
         currentStep: currentStepConfig.id,
         currentStepKey: currentStepConfig.key,
@@ -1627,16 +1629,18 @@ const useWizardController = (): UseWizardControllerResult => {
   const handleOcrGrades = useCallback((grades: Array<{ subject_id: string; grade: number }>) => {
     if (grades.length === 0) return
 
-    const hadManualGrades = selectedGrades.length > 0
+    // Read from ref to get the absolute latest grades (avoids stale closure)
+    const currentGrades = selectedGradesRef.current
+    const hadManualGrades = currentGrades.length > 0
 
     // Merge: OCR fills empty slots, never overwrites manually entered grades
-    const manualSubjectIds = new Set(selectedGrades.map(g => g.subject_id))
+    const manualSubjectIds = new Set(currentGrades.map(g => g.subject_id))
     const newGrades = grades.filter(g => !manualSubjectIds.has(g.subject_id))
-    const merged = [...selectedGrades, ...newGrades]
+    const merged = [...currentGrades, ...newGrades]
     setSelectedGrades(merged)
 
     if (hadManualGrades && newGrades.length > 0) {
-      showSuccess(`✨ AI detected ${grades.length} subjects — added ${newGrades.length} new subjects (your ${selectedGrades.length} existing entries were kept). Please verify.`)
+      showSuccess(`✨ AI detected ${grades.length} subjects — added ${newGrades.length} new subjects (your ${currentGrades.length} existing entries were kept). Please verify.`)
     } else if (hadManualGrades && newGrades.length === 0) {
       showSuccess(`✨ AI detected ${grades.length} subjects, but all were already entered. Please verify your grades.`)
     } else {
@@ -1646,7 +1650,7 @@ const useWizardController = (): UseWizardControllerResult => {
     if (applicationId) {
       syncGrades.mutateAsync({ id: applicationId, grades: merged }).catch(() => {})
     }
-  }, [applicationId, selectedGrades, syncGrades, showSuccess])
+  }, [applicationId, syncGrades, showSuccess])
 
   const { status: ocrStatus, extractedCount: ocrExtractedCount, failureReason: ocrFailureReason, startPolling: startOcrPolling } = useOcrGradeExtraction(
     ocrDocumentId,
@@ -1910,7 +1914,10 @@ const useWizardController = (): UseWizardControllerResult => {
     }
 
     if (currentStepConfig.key === 'education') {
-      const validGradeCount = selectedGrades.filter(
+      // Read from ref to avoid stale closure — selectedGrades state may not
+      // have flushed yet if the user's last dropdown selection was very recent.
+      const latestGrades = selectedGradesRef.current
+      const validGradeCount = latestGrades.filter(
         g => g.subject_id && Number(g.grade) >= 1 && Number(g.grade) <= 9
       ).length
 
@@ -1952,7 +1959,7 @@ const useWizardController = (): UseWizardControllerResult => {
       // Files already uploaded on selection, just sync grades and proceed
       try {
         setLoading(true)
-        const gradesToSync = normalizeSelectedGrades(selectedGrades)
+        const gradesToSync = normalizeSelectedGrades(latestGrades)
         if (gradesToSync.length > 0) {
           await syncGrades.mutateAsync({ id: applicationId, grades: gradesToSync })
           setSelectedGrades(gradesToSync)
@@ -2040,7 +2047,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
     const finalReadiness = buildWizardReadiness({
       values: data,
-      selectedGrades,
+      selectedGrades: selectedGradesRef.current,
       uploadedFiles,
       hasResultSlipFile: Boolean(resultSlipFile),
       hasIdentityFile: Boolean(extraKycFile),
@@ -2176,7 +2183,7 @@ const useWizardController = (): UseWizardControllerResult => {
       setLoading(false)
       isSubmittingRef.current = false
     }
-  }, [confirmSubmission, selectedGrades, uploadedFiles, resultSlipFile, extraKycFile, paymentStatus, applicationId, submitApplicationMutation, user?.id, showError, showSuccess, queryClient, clearStaleApplicationReference, goToStep])
+  }, [confirmSubmission, uploadedFiles, resultSlipFile, extraKycFile, paymentStatus, applicationId, submitApplicationMutation, user?.id, showError, showSuccess, queryClient, clearStaleApplicationReference, goToStep])
 
   return {
     authLoading,
