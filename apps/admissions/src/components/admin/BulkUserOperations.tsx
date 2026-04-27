@@ -62,24 +62,34 @@ export function BulkUserOperations({
 
   const handleBulkRoleUpdate = async () => {
     if (confirmInput !== confirmationToken) return
-    const result = await bulkUpdateRoles(selectedUsers, selectedRole)
-    setOperationResult(result)
-    setShowRoleDialog(false)
-    setConfirmationToken(null)
-    setConfirmInput('')
-    onSelectionChange([])
-    onOperationComplete()
+    try {
+      const result = await bulkUpdateRoles(selectedUsers, selectedRole)
+      setOperationResult(result)
+      onSelectionChange([])
+      onOperationComplete()
+    } catch (error) {
+      setOperationResult({ success: 0, failed: selectedUsers.length, errors: [error instanceof Error ? error.message : 'Role update failed'] })
+    } finally {
+      setShowRoleDialog(false)
+      setConfirmationToken(null)
+      setConfirmInput('')
+    }
   }
 
   const handleBulkDelete = async () => {
     if (confirmInput !== confirmationToken) return
-    const result = await bulkDeleteUsers(selectedUsers)
-    setOperationResult(result)
-    setShowDeleteDialog(false)
-    setConfirmationToken(null)
-    setConfirmInput('')
-    onSelectionChange([])
-    onOperationComplete()
+    try {
+      const result = await bulkDeleteUsers(selectedUsers)
+      setOperationResult(result)
+      onSelectionChange([])
+      onOperationComplete()
+    } catch (error) {
+      setOperationResult({ success: 0, failed: selectedUsers.length, errors: [error instanceof Error ? error.message : 'Deactivation failed'] })
+    } finally {
+      setShowDeleteDialog(false)
+      setConfirmationToken(null)
+      setConfirmInput('')
+    }
   }
 
   const selectedUserDetails = users.filter(user => user.user_id && selectedUsers.includes(user.user_id))

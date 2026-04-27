@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { Button } from '@/components/ui/Button'
 import { useTimeline } from '@/hooks/useTimeline'
+import { useQueryClient } from '@tanstack/react-query'
 import { formatRelative } from '@/lib/dateFormat'
 
 // ─── Status color mapping ───
@@ -51,10 +52,12 @@ export default function History() {
   const totalPages = Math.max(1, Math.ceil(pagination.totalCount / pagination.pageSize))
   const isEmpty = !isLoading && !error && groupedEntries.length === 0
 
+  const queryClient = useQueryClient()
+
   const refetch = useCallback(() => {
-    // Reset to page 1 on retry
     setPage(1)
-  }, [])
+    queryClient.invalidateQueries({ queryKey: ['timeline'] })
+  }, [queryClient])
 
   return (
     <>
