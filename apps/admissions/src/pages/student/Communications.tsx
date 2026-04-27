@@ -75,6 +75,7 @@ export default function Communications() {
   const [typeFilter, setTypeFilter] = useState('')
   const [readFilter, setReadFilter] = useState('')
   const [page, setPage] = useState(1)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const filters: CommunicationsFilters = {
     page,
@@ -105,6 +106,9 @@ export default function Communications() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => notificationService.delete(id),
     onSuccess: invalidate,
+    onError: () => {
+      setDeleteError('Failed to delete notification. Please try again.')
+    },
   })
 
   // ─── Handlers ───
@@ -204,6 +208,12 @@ export default function Communications() {
           </SectionCard>
 
           {/* Error state */}
+          {deleteError && (
+            <ErrorDisplay
+              message={deleteError}
+              onRetry={() => setDeleteError(null)}
+            />
+          )}
           {error && (
             <ErrorDisplay
               title="Failed to load communications"

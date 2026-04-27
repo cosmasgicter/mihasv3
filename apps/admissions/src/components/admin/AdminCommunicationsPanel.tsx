@@ -186,7 +186,7 @@ export default function AdminCommunicationsPanel({
 
   const sendMutation = useMutation({
     mutationFn: () =>
-      notificationService.send({ to: userId, subject: title, message }),
+      notificationService.send({ to: userId, subject: title, message, type }),
     onMutate: async () => {
       setSendError(null)
       // Cancel outgoing refetches so they don't overwrite optimistic update

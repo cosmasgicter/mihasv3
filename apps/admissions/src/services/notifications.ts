@@ -20,6 +20,7 @@ type SendNotificationPayload = {
   to: string
   subject: string
   message: string
+  type?: string
 }
 
 type SendNotificationApiResponse = {
@@ -160,7 +161,7 @@ export const notificationService = {
       user_id: payload.to,
       title: payload.subject,
       message: payload.message,
-      type: 'info'
+      type: payload.type || 'info'
     }
     const response = await apiClient.request<SendNotificationApiResponse>('/notifications/', {
       method: 'POST',
