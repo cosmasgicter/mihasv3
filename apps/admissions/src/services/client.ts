@@ -118,7 +118,10 @@ class ApiClient {
       '/api/v1/auth/login/',
       '/api/v1/auth/register/',
     ];
-    return excludedPatterns.some(pattern => endpoint.includes(pattern));
+    if (excludedPatterns.some(pattern => endpoint.includes(pattern))) return true;
+    // Don't attempt refresh on auth pages — the user is logged out
+    if (typeof window !== 'undefined' && /^\/auth\//i.test(window.location.pathname)) return true;
+    return false;
   }
 
   private isSessionEndpoint(endpoint: string): boolean {
