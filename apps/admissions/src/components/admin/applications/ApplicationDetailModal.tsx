@@ -747,9 +747,9 @@ export function ApplicationDetailModal({
  )}
 
  {activeTab === 'communications' && (
- application.user_id ? (
+ (applicationData?.application?.user_id || application.user_id) ? (
  <AdminCommunicationsPanel
- userId={application.user_id}
+ userId={(applicationData?.application?.user_id || application.user_id)!}
  studentName={application.full_name}
  />
  ) : (

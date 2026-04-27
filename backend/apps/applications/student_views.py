@@ -538,12 +538,12 @@ class ApplicationPreviewSummaryView(APIView):
                 future = executor.submit(_call_ai)
                 summary = future.result(timeout=15)
 
-            if summary and len(summary) >= 20:
+            if summary and len(summary) >= 50:
                 source = "ai"
         except (FuturesTimeoutError, Exception):
             logger.info("AI preview summary unavailable for %s, using fallback", application_id)
 
-        if not summary or len(summary) < 20:
+        if not summary or len(summary) < 50:
             parts = [f"{first_name}, your application for {program} is looking great."]
             if subjects_count > 0:
                 parts.append(f"You've recorded {subjects_count} subject{'s' if subjects_count != 1 else ''} so far.")

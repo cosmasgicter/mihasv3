@@ -424,11 +424,12 @@ const useWizardController = (): UseWizardControllerResult => {
     sortBy: 'date',
     sortOrder: 'desc',
   })
+  const paymentStepActive = currentStepConfig.key === 'payment' || currentStepConfig.key === 'submit'
   const {
     status: paymentStatus,
     refetch: refetchPaymentStatus,
     setStatus: setPaymentStatus,
-  } = usePaymentStatus(applicationId || '', submittedApplication?.paymentStatus ?? null)
+  } = usePaymentStatus(paymentStepActive ? (applicationId || '') : '', submittedApplication?.paymentStatus ?? null)
 
   const restorePaymentStatus = useCallback((status?: string | null) => {
     const normalized = normalizePaymentStatusValue(status)
@@ -570,9 +571,22 @@ const useWizardController = (): UseWizardControllerResult => {
   const hydrateServerDocuments = useCallback(async (draftApplicationId: string): Promise<Record<string, boolean>> => {
     try {
       const response = await applicationService.getDocuments(draftApplicationId)
-      const normalized = normalizeServerUploadedFiles(Array.isArray(response) ? response : [])
+      const docList = Array.isArray(response) ? response : []
+      const normalized = normalizeServerUploadedFiles(docList)
       markUploadedFile('result_slip', Boolean(normalized.result_slip))
       markUploadedFile('extra_kyc', Boolean(normalized.extra_kyc))
+
+      // If a result slip exists, store its ID so OCR can check for existing analysis
+      if (normalized.result_slip) {
+        const resultSlipDoc = selectLatestDocumentByType(
+          docList.filter((d): d is UploadedApplicationDocument => d != null && typeof d === 'object' && 'id' in d && 'document_type' in d) as UploadedApplicationDocument[],
+          'result_slip'
+        )
+        if (resultSlipDoc?.id) {
+          setOcrDocumentId(resultSlipDoc.id)
+        }
+      }
+
       return normalized
     } catch (documentError) {
       logApiError('application-wizard', `/applications/${draftApplicationId}/documents/`, documentError)
@@ -1659,6 +1673,13 @@ const useWizardController = (): UseWizardControllerResult => {
   )
   startOcrPollingRef.current = startOcrPolling
 
+  // Auto-start OCR polling on draft restore when result slip exists but no grades loaded
+  useEffect(() => {
+    if (ocrDocumentId && ocrStatus === 'idle' && selectedGrades.length === 0 && subjects.length > 0) {
+      startOcrPolling(ocrDocumentId)
+    }
+  }, [ocrDocumentId, ocrStatus, selectedGrades.length, subjects.length, startOcrPolling])
+
   const retryOcr = useCallback((documentId?: string | null) => {
     const docId = documentId || ocrDocumentId
     if (!docId) return
@@ -1930,7 +1951,9 @@ const useWizardController = (): UseWizardControllerResult => {
       }
       
       if (validGradeCount < 5) {
-        const errorMessage = `Minimum 5 subjects required (${validGradeCount} added)`
+        const emptyRows = latestGrades.filter(g => !g.subject_id).length
+        const hint = emptyRows > 0 ? ` — ${emptyRows} row${emptyRows > 1 ? 's have' : ' has'} no subject selected` : ''
+        const errorMessage = `Minimum 5 subjects required (${validGradeCount} added${hint})`
         setError(errorMessage)
         return
       }

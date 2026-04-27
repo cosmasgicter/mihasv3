@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { GraduationCap, X } from 'lucide-react'
+import { GraduationCap, X, CheckCircle } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
 import { CanonicalSelect } from '@/components/ui/CanonicalSelect'
@@ -422,16 +422,28 @@ const EducationStep = ({
                   {resultSlipStatus.label}
                 </span>
               </div>
-              <FileUpload
-                label={EDUCATION_UPLOAD_COPY.resultSlip.label}
-                accept=".pdf,.jpg,.jpeg,.png"
-                maxSize={10 * 1024 * 1024}
-                onChange={(files) => handleResultSlipUpload(files as File | null)}
-                value={resultSlipFile}
-                uploading={uploadStates.result_slip === 'uploading'}
-                progress={uploadProgress.result_slip}
-                preview={resultSlipPreview}
-              />
+              {uploadedFiles.result_slip && !resultSlipFile ? (
+                <div className="flex flex-1 items-center gap-3 rounded-lg border border-success/30 bg-success/5 p-4 text-sm text-success">
+                  <CheckCircle className="h-5 w-5 shrink-0" />
+                  <div>
+                    <p className="font-medium">Previously uploaded</p>
+                    <button type="button" className="mt-1 text-xs underline text-muted-foreground hover:text-foreground" onClick={() => handleResultSlipUpload(null)}>
+                      Replace file
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <FileUpload
+                  label={EDUCATION_UPLOAD_COPY.resultSlip.label}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  maxSize={10 * 1024 * 1024}
+                  onChange={(files) => handleResultSlipUpload(files as File | null)}
+                  value={resultSlipFile}
+                  uploading={uploadStates.result_slip === 'uploading'}
+                  progress={uploadProgress.result_slip}
+                  preview={resultSlipPreview}
+                />
+              )}
             </div>
 
             <div className="flex h-full flex-col rounded-xl border border-border bg-card p-4 sm:p-5">
@@ -444,16 +456,28 @@ const EducationStep = ({
                   {identityStatus.label}
                 </span>
               </div>
-              <FileUpload
-                label={EDUCATION_UPLOAD_COPY.identityDocument.label}
-                accept=".pdf,.jpg,.jpeg,.png"
-                maxSize={10 * 1024 * 1024}
-                onChange={(files) => handleExtraKycUpload(files as File | null)}
-                value={extraKycFile}
-                uploading={uploadStates.extra_kyc === 'uploading'}
-                progress={uploadProgress.extra_kyc}
-                preview={identityPreview}
-              />
+              {uploadedFiles.extra_kyc && !extraKycFile ? (
+                <div className="flex flex-1 items-center gap-3 rounded-lg border border-success/30 bg-success/5 p-4 text-sm text-success">
+                  <CheckCircle className="h-5 w-5 shrink-0" />
+                  <div>
+                    <p className="font-medium">Previously uploaded</p>
+                    <button type="button" className="mt-1 text-xs underline text-muted-foreground hover:text-foreground" onClick={() => handleExtraKycUpload(null)}>
+                      Replace file
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <FileUpload
+                  label={EDUCATION_UPLOAD_COPY.identityDocument.label}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  maxSize={10 * 1024 * 1024}
+                  onChange={(files) => handleExtraKycUpload(files as File | null)}
+                  value={extraKycFile}
+                  uploading={uploadStates.extra_kyc === 'uploading'}
+                  progress={uploadProgress.extra_kyc}
+                  preview={identityPreview}
+                />
+              )}
             </div>
           </div>
         </fieldset>

@@ -492,7 +492,15 @@ class PaymentVerifyView(APIView):
         from apps.documents.payment_service import PaymentService
 
         service = PaymentService()
-        result = service.verify_payment(payment_id)
+        try:
+            result = service.verify_payment(payment_id)
+        except Exception:
+            import sentry_sdk
+            sentry_sdk.capture_exception()
+            return Response(
+                {"success": False, "error": "Payment verification failed. Please try again later.", "code": "VERIFICATION_ERROR"},
+                status=status.HTTP_200_OK,
+            )
 
         data = {
             "status": result.status,
