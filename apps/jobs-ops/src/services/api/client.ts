@@ -7,6 +7,32 @@ type RequestOptions = Omit<RequestInit, 'body'> & {
 }
 
 let csrfToken: string | null = null
+let refreshPromise: Promise<boolean> | null = null
+let onAuthFailure: (() => void) | null = null
+
+export function configureAuthFailure(callback: () => void) {
+  onAuthFailure = callback
+}
+
+async function refreshSession(): Promise<boolean> {
+  if (refreshPromise) return refreshPromise
+  refreshPromise = fetch(`${env.apiBaseUrl}/api/v1/auth/refresh/`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+    },
+  })
+    .then((res) => {
+      const nextCsrf = res.headers.get('X-CSRF-Token')
+      if (nextCsrf) csrfToken = nextCsrf
+      return res.ok
+    })
+    .catch(() => false)
+    .finally(() => { refreshPromise = null })
+  return refreshPromise
+}
 
 export class ApiRequestError extends Error {
   readonly status?: number
@@ -87,6 +113,17 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       const payload = await parsePayload<T>(response)
 
       if (!response.ok) {
+        // 401 → attempt token refresh (skip for the refresh endpoint itself)
+        if (response.status === 401 && !path.includes('/auth/refresh/')) {
+          const refreshed = await refreshSession()
+          if (refreshed) {
+            // Retry the original request once
+            return request<T>(path, { ...options, retries: 0 })
+          }
+          onAuthFailure?.()
+          throw new ApiRequestError('Session expired', path, 401)
+        }
+
         if (typeof payload === 'object' && payload && 'error' in payload) {
           throw new ApiRequestError(
             String(payload.error || 'API request failed'),

@@ -47,6 +47,17 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
         working-directory: backend
+      - name: Install security tools
+        run: pip install pip-audit bandit
+        working-directory: backend
+      - name: Python dependency audit
+        run: pip-audit -r requirements.txt
+        working-directory: backend
+        continue-on-error: true
+      - name: Python security lint
+        run: bandit -r apps config -x tests
+        working-directory: backend
+        continue-on-error: true
       - name: Django checks
         run: python manage.py check
         working-directory: backend
@@ -87,6 +98,10 @@ jobs:
       - name: Build
         run: bun run build
         working-directory: apps/admissions
+      - name: Dependency audit
+        run: bun pm scan
+        working-directory: apps/admissions
+        continue-on-error: true
 
   jobs-ops:
     runs-on: ubuntu-latest
@@ -106,3 +121,7 @@ jobs:
       - name: Build
         run: bun run build
         working-directory: apps/jobs-ops
+      - name: Dependency audit
+        run: bun pm scan
+        working-directory: apps/jobs-ops
+        continue-on-error: true

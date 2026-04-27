@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/api/client'
+import { env } from '@/lib/env'
 import type { PlatformMeta } from '@/services/api/contracts'
 
 const fallbackMeta: PlatformMeta = {
@@ -26,7 +27,8 @@ export async function getPlatformMeta(): Promise<PlatformMeta> {
       apiVersion: payload.api_version,
       status: payload.status,
     }
-  } catch {
-    return fallbackMeta
+  } catch (error) {
+    if (env.demoMode) return fallbackMeta
+    throw error
   }
 }

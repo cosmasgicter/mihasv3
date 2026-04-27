@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/api/client'
+import { env } from '@/lib/env'
 import type { DailyDigest, FunnelAnalytics, OutreachAnalytics, SourceAnalytics } from '@/services/api/contracts'
 
 type RawSourceAnalytics = {
@@ -50,8 +51,9 @@ const fallbackDigest: DailyDigest = {
 export async function getFunnelAnalytics(): Promise<FunnelAnalytics> {
   try {
     return await apiClient.get<FunnelAnalytics>('/api/v1/analytics/funnel/')
-  } catch {
-    return fallbackFunnel
+  } catch (error) {
+    if (env.demoMode) return fallbackFunnel
+    throw error
   }
 }
 
@@ -64,8 +66,9 @@ export async function listSourceAnalytics(): Promise<SourceAnalytics[]> {
       duplicateRatio: item.duplicate_ratio,
       successRate: item.success_rate,
     }))
-  } catch {
-    return fallbackSources
+  } catch (error) {
+    if (env.demoMode) return fallbackSources
+    throw error
   }
 }
 
@@ -77,8 +80,9 @@ export async function getOutreachAnalytics(): Promise<OutreachAnalytics> {
       positiveReplies: payload.positive_replies,
       interviewsGenerated: payload.interviews_generated,
     }
-  } catch {
-    return fallbackOutreach
+  } catch (error) {
+    if (env.demoMode) return fallbackOutreach
+    throw error
   }
 }
 
@@ -90,7 +94,8 @@ export async function getDailyDigest(): Promise<DailyDigest> {
       summary: payload.summary,
       generatedAt: payload.generated_at,
     }
-  } catch {
-    return fallbackDigest
+  } catch (error) {
+    if (env.demoMode) return fallbackDigest
+    throw error
   }
 }

@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/api/client'
+import { env } from '@/lib/env'
 import type { JobDetail, JobSummary, PaginatedResponse } from '@/services/api/contracts'
 
 type RawJobSummary = {
@@ -98,13 +99,9 @@ export async function listJobs(): Promise<PaginatedResponse<JobSummary>> {
       ...payload,
       results: payload.results.map(mapJobSummary),
     }
-  } catch {
-    return {
-      page: 1,
-      pageSize: 20,
-      totalCount: scaffoldJobs.length,
-      results: scaffoldJobs,
-    }
+  } catch (error) {
+    if (env.demoMode) return { page: 1, pageSize: 20, totalCount: scaffoldJobs.length, results: scaffoldJobs }
+    throw error
   }
 }
 
@@ -112,9 +109,9 @@ export async function getJobDetail(jobId: string): Promise<JobDetail> {
   try {
     const payload = await apiClient.get<RawJobDetail>(`/api/v1/jobs/${jobId}/`)
     return mapJobDetail(payload)
-  } catch {
-    return (
-      scaffoldJobDetails[jobId] || {
+  } catch (error) {
+    if (env.demoMode) {
+      return scaffoldJobDetails[jobId] || {
         ...scaffoldJobs[0],
         id: jobId,
         applicationUrl: 'https://example.com/jobs/scaffold-job',
@@ -122,6 +119,7 @@ export async function getJobDetail(jobId: string): Promise<JobDetail> {
         missingSignals: ['Add real AI fit explanation and gap analysis.'],
         sourceNames: ['scaffold-source'],
       }
-    )
+    }
+    throw error
   }
 }

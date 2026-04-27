@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 
 import { JobsOpsShell } from '@/app/layout/JobsOpsShell'
+import { ProtectedRoute } from '@/auth/ProtectedRoute'
 import { ReportsPage } from '@/features/analytics/pages/ReportsPage'
 import { AuditLogPage } from '@/features/audit/pages/AuditLogPage'
 import { AutomationRunsPage } from '@/features/automation/pages/AutomationRunsPage'
@@ -18,7 +19,11 @@ import { SourceHealthPage } from '@/features/sources/pages/SourceHealthPage'
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <JobsOpsShell />,
+    element: (
+      <ProtectedRoute>
+        <JobsOpsShell />
+      </ProtectedRoute>
+    ),
     children: [
       { index: true, element: <OverviewPage /> },
       { path: 'jobs', element: <JobsInboxPage /> },
