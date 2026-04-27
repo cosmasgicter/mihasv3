@@ -1,14 +1,9 @@
 /**
  * useAdminDashboardPolling Hook
  *
- * Provides polling-based data fetching for admin dashboard.
- * Polls GET /api/v1/admin/dashboard/ via the admin dashboard service at 30-second intervals.
- *
- * Polling Strategy:
- * - React Query polling against Django REST API
- * - Polling doubles interval when page is hidden (battery-friendly)
- * - React Query structural sharing prevents re-renders on identical data
- * - onDataChange callback uses ref pattern to avoid stale closure issues
+ * Provides dashboard data fetching for admin screens. Automatic polling is
+ * disabled by default because it created confusing refresh-like behaviour on
+ * mobile. Callers that truly need live polling must opt in with autoPoll.
  *
  * @module hooks/useAdminDashboardPolling
  */
@@ -34,6 +29,7 @@ export interface AdminDashboardStats {
 export interface UseAdminDashboardPollingOptions {
   enabled?: boolean
   pollingInterval?: number
+  autoPoll?: boolean
   onDataChange?: (stats: AdminDashboardStats) => void
 }
 
@@ -90,6 +86,7 @@ export function useAdminDashboardPolling(
   const {
     enabled = true,
     pollingInterval = POLLING_INTERVAL,
+    autoPoll = false,
     onDataChange,
   } = options
 
@@ -103,15 +100,13 @@ export function useAdminDashboardPolling(
     onDataChangeRef.current = onDataChange
   }, [onDataChange])
 
-  // Track page visibility to pause polling when hidden > 5 minutes
+  // Track page visibility. Refresh on visibility is manual-only unless polling is explicitly enabled.
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         hiddenSinceRef.current = Date.now()
       } else {
         hiddenSinceRef.current = null
-        // Invalidate to get fresh data when tab becomes visible again
-        queryClient.invalidateQueries({ queryKey: ['admin-dashboard-polling'] })
       }
     }
 
@@ -119,7 +114,7 @@ export function useAdminDashboardPolling(
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [queryClient])
+  }, [])
 
   const fetchStats = useCallback(async (): Promise<AdminDashboardStats> => {
     try {
@@ -136,8 +131,11 @@ export function useAdminDashboardPolling(
     queryKey: ['admin-dashboard-polling'],
     queryFn: fetchStats,
     enabled,
-    refetchInterval: enabled
+    refetchInterval: enabled && autoPoll
       ? () => {
+          if (pollingInterval <= 0) {
+            return false
+          }
           // Back off on repeated errors (429 or otherwise)
           if (consecutiveErrorsRef.current > 0) {
             return Math.min(
@@ -156,6 +154,7 @@ export function useAdminDashboardPolling(
           return pollingInterval * 2
         }
       : false,
+    refetchOnWindowFocus: false,
     staleTime: pollingInterval / 2,
     retry: (failureCount, error) => {
       const status = (error as { status?: number })?.status
@@ -195,7 +194,7 @@ export function useAdminDashboardPolling(
   return {
     stats: query.data || null,
     isLoading: query.isLoading,
-    isPolling: enabled && !query.isLoading,
+    isPolling: Boolean(enabled && autoPoll && !query.isLoading),
     error: query.error as Error | null,
     refresh,
     lastUpdated,
@@ -218,6 +217,7 @@ export function useAdminPendingCount(options: { enabled?: boolean } = {}) {
     enabled,
     select: (data) => data.pendingApplications,
     staleTime: POLLING_INTERVAL / 2,
+    refetchOnWindowFocus: false,
   })
 }
 
@@ -235,5 +235,6 @@ export function useAdminTotalApplicationCount(options: { enabled?: boolean } = {
     enabled,
     select: (data) => data.totalApplications,
     staleTime: POLLING_INTERVAL / 2,
+    refetchOnWindowFocus: false,
   })
 }
