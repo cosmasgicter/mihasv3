@@ -1525,10 +1525,16 @@ const useWizardController = (): UseWizardControllerResult => {
           // Adopt the existing ID so auto-save stops retrying create.
           const errStatus = (serverError as { status?: number })?.status
           if (errStatus === 409) {
-            // Duplicate application exists — stop retrying create.
-            // The student already has an active application for this program+intake.
-            logger.info('[saveDraft] Duplicate application exists, skipping server create')
-            createBlockedRef.current = true
+            // Duplicate application exists — adopt the existing draft ID
+            const errBody = (serverError as { data?: { existing_id?: string } })?.data
+            const existingId = errBody?.existing_id
+            if (existingId) {
+              setApplicationId(existingId)
+              logger.info('[saveDraft] Adopted existing application %s from 409', existingId)
+            } else {
+              createBlockedRef.current = true
+              logger.info('[saveDraft] Duplicate application exists, skipping server create')
+            }
           } else {
             logApiError('application-wizard', 'POST /applications/', serverError)
             console.warn('Server draft create failed, local draft retained:', sanitizeForLog(toError(serverError).message))
@@ -1662,7 +1668,10 @@ const useWizardController = (): UseWizardControllerResult => {
     }
 
     if (applicationId) {
-      syncGrades.mutateAsync({ id: applicationId, grades: merged }).catch(() => {})
+      const syncable = merged.filter(g => !g.subject_id.startsWith('fallback-'))
+      if (syncable.length > 0) {
+        syncGrades.mutateAsync({ id: applicationId, grades: syncable }).catch(() => {})
+      }
     }
   }, [applicationId, syncGrades, showSuccess])
 

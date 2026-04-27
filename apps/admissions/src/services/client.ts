@@ -488,12 +488,14 @@ class ApiClient {
         let errorMessage = `API Error: ${response.statusText}`;
         let errorCode: string | undefined;
         let fieldErrors: Record<string, string> | undefined;
+        let errorResponseData: Record<string, unknown> | undefined;
         try {
           const errorData = await response.text();
           if (errorData) {
             const parsed = JSON.parse(errorData);
             errorMessage = parsed.error || parsed.message || errorMessage;
             errorCode = parsed.code;
+            errorResponseData = parsed;
             if (parsed.fieldErrors && typeof parsed.fieldErrors === 'object') {
               fieldErrors = parsed.fieldErrors as Record<string, string>;
             } else if (parsed.details && typeof parsed.details === 'object') {
@@ -681,8 +683,9 @@ class ApiClient {
         }
 
         // Create error with status for retry logic
-        const statusError = new Error(errorMessage) as Error & { status: number };
+        const statusError = new Error(errorMessage) as Error & { status: number; data?: Record<string, unknown> };
         statusError.status = response.status;
+        if (errorResponseData) statusError.data = errorResponseData;
         if (fieldErrors && Object.keys(fieldErrors).length > 0) {
           ;(statusError as Error & { fieldErrors?: Record<string, string> }).fieldErrors = fieldErrors
         }
