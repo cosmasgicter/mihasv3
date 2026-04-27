@@ -24,7 +24,7 @@ export function normalizeDraftResumeGrades(grades: unknown[] | null | undefined)
       subject_id: typeof grade.subject_id === 'string' ? grade.subject_id.trim() : '',
       grade: Number(grade.grade) || 0,
     }))
-    .filter((grade) => grade.subject_id.length > 0 && Number.isInteger(grade.grade) && grade.grade >= 1 && grade.grade <= 9)
+    .filter((grade) => grade.subject_id.length > 0 && grade.grade >= 1 && grade.grade <= 9)
 }
 
 export function deriveDraftResumeUploads(_application: DraftResumeApplicationState) {

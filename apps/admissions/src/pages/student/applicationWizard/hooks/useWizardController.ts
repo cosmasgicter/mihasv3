@@ -1910,7 +1910,9 @@ const useWizardController = (): UseWizardControllerResult => {
     }
 
     if (currentStepConfig.key === 'education') {
-      const validSelectedGrades = normalizeSelectedGrades(selectedGrades)
+      const validGradeCount = selectedGrades.filter(
+        g => g.subject_id && Number(g.grade) >= 1 && Number(g.grade) <= 9
+      ).length
 
       if (!applicationId) {
         const errorMessage = 'Application not created. Returning to Basic Information step.'
@@ -1920,8 +1922,8 @@ const useWizardController = (): UseWizardControllerResult => {
         return
       }
       
-      if (validSelectedGrades.length < 5) {
-        const errorMessage = `Minimum 5 subjects required (${validSelectedGrades.length} added)`
+      if (validGradeCount < 5) {
+        const errorMessage = `Minimum 5 subjects required (${validGradeCount} added)`
         setError(errorMessage)
         return
       }
@@ -1950,9 +1952,10 @@ const useWizardController = (): UseWizardControllerResult => {
       // Files already uploaded on selection, just sync grades and proceed
       try {
         setLoading(true)
-        if (validSelectedGrades.length > 0) {
-          await syncGrades.mutateAsync({ id: applicationId, grades: validSelectedGrades })
-          setSelectedGrades(validSelectedGrades)
+        const gradesToSync = normalizeSelectedGrades(selectedGrades)
+        if (gradesToSync.length > 0) {
+          await syncGrades.mutateAsync({ id: applicationId, grades: gradesToSync })
+          setSelectedGrades(gradesToSync)
           queryClient.invalidateQueries({ queryKey: ['applications'] })
         }
         goToStep(currentStepIndex + 1)
