@@ -44,6 +44,7 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
     queryKey: profileQueryKey(user?.id),
     enabled: enabled && Boolean(user?.id),
     staleTime: PROFILE_STALE_TIME_MS,
+    retry: false,
     queryFn: async () => {
       if (!user?.id) return null
       try {
