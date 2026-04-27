@@ -508,7 +508,7 @@ export const applicationService = {
 
   /** POST /applications/{id}/withdraw/ */
   withdraw: async (id: string, reason: string) => {
-    return apiClient.request(`/applications/${id}/withdraw/`, {
+    return apiClient.request(`/applications/${encodeURIComponent(id)}/withdraw/`, {
       method: 'POST',
       body: JSON.stringify({ withdrawal_reason: reason }),
     })
@@ -516,17 +516,17 @@ export const applicationService = {
 
   /** GET /applications/{id}/waitlist-position/ */
   getWaitlistPosition: async (id: string) => {
-    return apiClient.request<{ position: number; total: number }>(`/applications/${id}/waitlist-position/`)
+    return apiClient.request<{ position: number; total: number }>(`/applications/${encodeURIComponent(id)}/waitlist-position/`)
   },
 
   /** GET /applications/{id}/conditions/ */
   getConditions: async (id: string) => {
-    return apiClient.request<Array<{ id: string; description: string; condition_type: string; deadline: string; status: string }>>(`/applications/${id}/conditions/`)
+    return apiClient.request<Array<{ id: string; description: string; condition_type: string; deadline: string; status: string }>>(`/applications/${encodeURIComponent(id)}/conditions/`)
   },
 
   /** POST /applications/{id}/amendments/ */
   submitAmendment: async (id: string, data: { field_name: string; new_value: string; reason: string }) => {
-    return apiClient.request(`/applications/${id}/amendments/`, {
+    return apiClient.request(`/applications/${encodeURIComponent(id)}/amendments/`, {
       method: 'POST',
       body: JSON.stringify(data),
     })
@@ -534,7 +534,7 @@ export const applicationService = {
 
   /** POST /applications/{id}/assign/ */
   assignReviewer: async (id: string, reviewerId: string) => {
-    return apiClient.request(`/applications/${id}/assign/`, {
+    return apiClient.request(`/applications/${encodeURIComponent(id)}/assign/`, {
       method: 'POST',
       body: JSON.stringify({ reviewer_id: reviewerId }),
     })
