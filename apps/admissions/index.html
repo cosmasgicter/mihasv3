@@ -8,7 +8,6 @@
     <meta name="robots" content="index, follow" />
     <meta name="description" content="Apply to Mukuba Institute of Health and Allied Sciences (MIHAS). Complete your student application online with real-time eligibility checking for nursing, midwifery, and allied health programs." />
 
-    <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="MIHAS Application System" />
     <meta property="og:description" content="Apply online to Mukuba Institute of Health and Allied Sciences. Nursing, Clinical Medicine, and allied health programs in Zambia." />
     <meta property="og:image" content="https://apply.mihas.edu.zm/images/og-image.png" />
@@ -16,123 +15,23 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="MIHAS Admissions" />
 
-    <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="MIHAS Admissions Portal" />
     <meta name="twitter:description" content="Apply online to Mukuba Institute of Health and Allied Sciences. Nursing, Clinical Medicine, and allied health programs in Zambia." />
     <meta name="twitter:image" content="https://apply.mihas.edu.zm/images/og-image.png" />
 
-    <!-- Performance: Preconnect to critical origins -->
     <link rel="preconnect" href="https://api.mihas.edu.zm" crossorigin />
     <link rel="preconnect" href="https://pay.lenco.co" />
     <link rel="preconnect" href="https://pay.sandbox.lenco.co" />
-    <!-- Supabase preconnect removed - fully migrated to Neon Postgres -->
 
-    <!-- 
-      Font strategy: Inter is used as the primary font via the system font stack.
-      No external font files are loaded — the browser uses a locally installed Inter
-      or falls back to system-ui / sans-serif. This eliminates font download latency
-      entirely and avoids FOIT/FOUT issues.
-      
-      If a hosted Inter font is added in the future, add:
-      <link rel="preload" href="/fonts/Inter.woff2" as="font" type="font/woff2" crossorigin>
-    -->
-
-    <!--
-      Asset preloading note: Vite generates hashed filenames for CSS and JS bundles
-      (e.g., assets/js/index-[hash].js). Vite's built-in modulepreload injection
-      handles preloading of the entry module and its direct imports automatically
-      in the production build output. Manual <link rel="preload"> tags are not
-      needed here since they would require hardcoded hashes that change every build.
-      
-      The Vite config has modulePreload.polyfill set to false (modern browsers only)
-      and cssCodeSplit enabled for optimal loading.
-    -->
-
-    <title>MIHAS Application System</title>
-
-    <!-- Preloader styles — white background loader matching app theme (inline, renders before JS) -->
     <style>
       html, body { background: #ffffff; margin: 0; }
-      .preloader {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background: #ffffff;
-        transition: opacity 0.25s ease;
-      }
-      .preloader.fade-out {
-        opacity: 0;
-        pointer-events: none;
-      }
-      .preloader-dots {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .preloader-dots span {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: #6366f1;
-        animation: preloader-float 1.4s ease-in-out infinite;
-      }
-      .preloader-dots span:nth-child(1) { animation-delay: 0s; }
-      .preloader-dots span:nth-child(2) { animation-delay: 0.16s; }
-      .preloader-dots span:nth-child(3) { animation-delay: 0.32s; }
-      @keyframes preloader-float {
-        0%, 100% { transform: translateY(0); opacity: 0.3; }
-        50% { transform: translateY(-8px); opacity: 1; }
-      }
-      .preloader-slow {
-        margin-top: 24px;
-        font-family: system-ui, -apple-system, sans-serif;
-        font-size: 13px;
-        color: #6b7280;
-        text-align: center;
-      }
-      .preloader-slow a {
-        color: #4f46e5;
-        text-decoration: underline;
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .preloader-dots span { animation: none; opacity: 0.6; }
-      }
     </style>
 
-    <!--
-      Structured data is injected dynamically by the Seo component in React.
-      Static JSON-LD removed to avoid duplication with the dynamic version.
-    -->
+    <title>MIHAS Application System</title>
   </head>
   <body>
-    <div id="preloader" class="preloader" aria-live="polite" aria-label="Loading application">
-      <div class="preloader-dots">
-        <span></span><span></span><span></span>
-      </div>
-      <p id="preloader-slow" class="preloader-slow" hidden>
-        Taking longer than expected. <a href="/">Refresh</a>
-      </p>
-    </div>
     <div id="root"></div>
-    <script>
-      (function() {
-        var t = setTimeout(function() {
-          var el = document.getElementById('preloader-slow');
-          if (el) el.hidden = false;
-        }, 5000);
-        window.__preloaderTimeout = t;
-        // Safety: auto-remove preloader after 12s even if app never signals
-        window.__preloaderMaxTimeout = setTimeout(function() {
-          var p = document.getElementById('preloader');
-          if (p) { p.classList.add('fade-out'); setTimeout(function() { p.remove(); }, 300); }
-        }, 12000);
-      })();
-    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
