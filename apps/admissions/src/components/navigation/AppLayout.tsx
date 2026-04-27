@@ -46,7 +46,7 @@ const pageTitles: Record<string, string> = {
   '/apply': 'Application',
   '/student/payment': 'Payment',
   '/student/interview': 'Interview',
-  '/student/settings': 'Settings',
+  '/student/settings': 'Profile & Settings',
   '/student/notifications': 'Notifications',
   '/student/status': 'Application Status',
   '/admin/dashboard': 'Admin Dashboard',
@@ -131,8 +131,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
   const pageTitle = resolvePageTitle(location.pathname)
   const showBack = backRoutes.has(location.pathname) || location.pathname.includes('/application/')
   const handleBack = () => navigate(-1)
-  const isStudentRoute = location.pathname.startsWith('/student')
-  const isWizardRoute = location.pathname === '/apply' || location.pathname.startsWith('/student/application-wizard')
+  const isStudentRoute = location.pathname.startsWith('/student') || location.pathname === '/apply'
   const handleSignOut = async () => {
     try {
       await signOut()
@@ -167,6 +166,14 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
     </div>
   ) : isAdmin ? (
     <div className="flex items-center justify-end gap-1 pr-1">
+      <button
+        type="button"
+        onClick={() => navigate('/admin/settings')}
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-accent"
+        aria-label="Open admin settings"
+      >
+        <Settings className="h-5 w-5" />
+      </button>
       <button
         type="button"
         onClick={() => { void handleSignOut() }}
@@ -219,8 +226,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
         <main
           id={APP_MAIN_CONTENT_ID}
           className={cn(
-            'min-h-screen scroll-smooth overflow-x-hidden transition-all duration-300 ease-in-out',
-            isWizardRoute ? 'pb-6 md:pb-6' : 'pb-20 md:pb-6'
+            'min-h-screen scroll-smooth overflow-x-hidden pb-20 transition-all duration-300 ease-in-out md:pb-6'
           )}
           style={{
             paddingTop: isMobile ? '4rem' : 'var(--header-height)',
@@ -238,13 +244,11 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
       </div>
 
       {/* Canonical bottom navigation — mobile only */}
-      {!isWizardRoute && (
-        <BottomNavigation
-          items={navItems}
-          isAuthenticated
-          overflowMode
-        />
-      )}
+      <BottomNavigation
+        items={navItems}
+        isAuthenticated
+        overflowMode
+      />
     </div>
   )
 })
