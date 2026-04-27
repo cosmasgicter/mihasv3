@@ -186,6 +186,10 @@ class RateLimitMiddleware:
         ("/api/v1/outreach/", "30/10m"),
         ("/api/v1/email/", "30/10m"),
         ("/api/v1/integrations/", "20/10m"),
+        ("/api/v1/payments/initiate/", "10/10m"),
+        ("/api/v1/payments/mobile-money/", "5/10m"),
+        ("/api/v1/payments/defer/", "10/10m"),
+        ("/api/v1/payments/resolve-fee/", "30/10m"),
         ("/api/v1/payments/webhook/", "30/10m"),
         ("/api/v1/payments/", "60/10m"),
         # Catch-all (must be last)

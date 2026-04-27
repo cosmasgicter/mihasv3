@@ -54,7 +54,7 @@ interface MobileMoneyResponse {
   currency: string
   lenco_status: string
   operator: string
-  phone: string
+  masked_phone: string
   status?: string
 }
 
