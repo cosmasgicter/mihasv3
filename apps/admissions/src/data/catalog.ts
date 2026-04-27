@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { catalogService, programService, intakeService } from '@/services/catalog'
 import { QUERY_CACHE_CONFIG } from '@/lib/queryCacheConfig'
 
@@ -27,7 +27,7 @@ export const catalogData = {
       queryKey: [...QUERY_KEYS.programs, 'intake', intakeId],
       queryFn: () => intakeId ? catalogService.getProgramsForIntake(intakeId) : catalogService.getPrograms(),
       ...QUERY_CACHE_CONFIG.static,
-      enabled: true,
+      placeholderData: keepPreviousData,
     })
   },
 
