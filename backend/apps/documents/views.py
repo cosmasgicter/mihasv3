@@ -18,6 +18,7 @@ from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, OpenApiType
 from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
@@ -440,6 +441,10 @@ class PaymentReceiptView(APIView):
         return Response({"success": True, "data": receipt})
 
 
+class PaymentVerifyThrottle(UserRateThrottle):
+    scope = "payment_verify"
+
+
 @extend_schema_view(
     post=extend_schema(
         operation_id="payments_verify",
@@ -464,6 +469,7 @@ class PaymentVerifyView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [PaymentVerifyThrottle]
 
     def post(self, request, payment_id):
         try:
@@ -690,6 +696,12 @@ class MobileMoneyInitiateView(APIView):
     permission_classes = [IsAuthenticated]
 
     @staticmethod
+    def _mask_phone(phone: str) -> str:
+        if len(phone) <= 4:
+            return "****"
+        return f"{'*' * (len(phone) - 4)}{phone[-4:]}"
+
+    @staticmethod
     def _normalize_phone_e164(raw: str) -> str:
         """Normalize any Zambian phone input to E.164 (+260XXXXXXXXX)."""
         digits = "".join(c for c in raw if c.isdigit())
@@ -860,7 +872,8 @@ class MobileMoneyInitiateView(APIView):
                     **existing_meta,
                     "lenco_initiation": lenco_data.get("data", {}),
                     "operator": operator,
-                    "phone": phone,
+                    "phone_hash": hashlib.sha256(phone.encode("utf-8")).hexdigest(),
+                    "phone_last4": phone[-4:],
                 },
             )
         except Exception:
@@ -878,7 +891,7 @@ class MobileMoneyInitiateView(APIView):
                     "lenco_status": lenco_status,
                     "lenco_reference": lenco_ref,
                     "operator": operator,
-                    "phone": phone,
+                    "masked_phone": self._mask_phone(phone),
                 },
             },
             status=status.HTTP_201_CREATED,
