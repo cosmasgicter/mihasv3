@@ -12,6 +12,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { apiClient } from '@/services/client'
 import { logger } from '@/lib/logger'
+import { findBestSubjectId } from '@/lib/subjectMatcher'
 
 interface AiSubject {
   name: string
@@ -45,88 +46,6 @@ const POLL_INTERVAL = 3000
 const MAX_POLLS = 30 // 90 seconds max — Celery cold-start can take 30-60s
 const POST_EXTRACTION_GRACE_POLLS = 3
 
-/**
- * Fuzzy-match an AI-extracted subject name to a catalog subject.
- * Uses a scoring system to pick the best match above a threshold.
- */
-function matchSubjectName(aiName: string, catalogSubjects: CatalogSubject[]): string | null {
-  if (!aiName || catalogSubjects.length === 0) return null
-  const normalized = aiName.toLowerCase().trim()
-  if (normalized.length < 2) return null
-
-  // ECZ alias normalization — AI extracts short names, catalog has full names
-  const ECZ_ALIASES: Record<string, string[]> = {
-    'english language': ['english'],
-    'mathematics': ['ordinary mathematics', 'maths'],
-    'science': ['ordinary science', 'combined science', 'physical science'],
-    'design & technology': ['design and technology'],
-    'design and technology': ['design & technology'],
-    'civic education': ['civics'],
-    'commerce': ['commercial studies'],
-    'biology': ['ordinary biology'],
-  }
-
-  // Try the AI name and all its aliases
-  const candidates = [normalized]
-  for (const [key, aliases] of Object.entries(ECZ_ALIASES)) {
-    if (normalized === key) candidates.push(...aliases)
-    if (aliases.includes(normalized)) candidates.push(key)
-  }
-  // Also try stripping common suffixes/prefixes
-  if (normalized.endsWith(' language')) candidates.push(normalized.replace(/ language$/, ''))
-  if (normalized.startsWith('ordinary ')) candidates.push(normalized.replace(/^ordinary /, ''))
-  const withAnd = normalized.replace(/&/g, 'and')
-  if (withAnd !== normalized) candidates.push(withAnd)
-
-  // Try exact match against all candidates
-  for (const candidate of candidates) {
-    const exact = catalogSubjects.find(s => s.name.toLowerCase() === candidate)
-    if (exact) return exact.id
-  }
-
-  // Try catalog names stripped of "Ordinary" prefix against candidates
-  for (const candidate of candidates) {
-    const match = catalogSubjects.find(s => {
-      const catLower = s.name.toLowerCase()
-      const catStripped = catLower.replace(/^ordinary /, '')
-      return catStripped === candidate || catLower === candidate
-    })
-    if (match) return match.id
-  }
-
-  // Exact match
-  const exact = catalogSubjects.find(s => s.name.toLowerCase() === normalized)
-  if (exact) return exact.id
-
-  // Contains match — require at least 4 chars to avoid false positives
-  if (normalized.length >= 4) {
-    const contains = catalogSubjects.find(s => {
-      const catLower = s.name.toLowerCase()
-      return normalized.includes(catLower) || catLower.includes(normalized)
-    })
-    if (contains) return contains.id
-  }
-
-  // Word overlap — split both into words and count matches
-  const aiWords = normalized.split(/[\s\-\/]+/).filter(w => w.length >= 3)
-  if (aiWords.length > 0) {
-    let bestMatch: CatalogSubject | null = null
-    let bestScore = 0
-    for (const cat of catalogSubjects) {
-      const catWords = cat.name.toLowerCase().split(/[\s\-\/]+/).filter(w => w.length >= 3)
-      const overlap = aiWords.filter(w => catWords.some(cw => cw.startsWith(w) || w.startsWith(cw))).length
-      const score = overlap / Math.max(aiWords.length, catWords.length)
-      if (score > bestScore && score >= 0.5) {
-        bestScore = score
-        bestMatch = cat
-      }
-    }
-    if (bestMatch) return bestMatch.id
-  }
-
-  return null
-}
-
 function isValidEczGrade(grade: unknown): grade is number {
   return typeof grade === 'number' && Number.isInteger(grade) && grade >= 1 && grade <= 9
 }
@@ -148,7 +67,7 @@ function mapAiGradesToCatalog(
 
     if (!name || !isValidEczGrade(grade)) continue
 
-    const subjectId = matchSubjectName(name, catalogSubjects)
+    const subjectId = findBestSubjectId(name, catalogSubjects)
     if (subjectId && !usedIds.has(subjectId)) {
       matched.push({ subject_id: subjectId, grade })
       usedIds.add(subjectId)

@@ -1,5 +1,9 @@
-import { FileText, Download, CheckCircle, Clock } from 'lucide-react'
+import { useState } from 'react'
+import { FileText, Download, CheckCircle, Clock, Loader2 } from 'lucide-react'
 import { Skeleton } from '@/components/ui'
+import { documentService } from '@/services/documents'
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 interface DocumentItem {
   id: string
@@ -8,6 +12,35 @@ interface DocumentItem {
   file_size?: number
   verification_status: string
   system_generated: boolean
+}
+
+function ViewButton({ doc }: { doc: DocumentItem }) {
+  const [loading, setLoading] = useState(false)
+  const isReal = UUID_RE.test(doc.id)
+
+  const handleClick = async () => {
+    if (!isReal) {
+      window.open(doc.file_url, '_blank', 'noopener,noreferrer')
+      return
+    }
+    setLoading(true)
+    try {
+      const result = await documentService.getSignedUrl(doc.id)
+      const url = (result as any)?.url || doc.file_url
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } catch {
+      window.open(doc.file_url, '_blank', 'noopener,noreferrer')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <button type="button" onClick={handleClick} disabled={loading} className="flex items-center gap-1 px-3 py-2 text-sm hover:bg-blue-50 rounded-lg disabled:opacity-50">
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+      View
+    </button>
+  )
 }
 
 export function DocumentsTab({ documents, loading, application }: { documents: DocumentItem[], loading: boolean, application?: any }) {
@@ -53,7 +86,7 @@ export function DocumentsTab({ documents, loading, application }: { documents: D
               </span>
             </div>
           </div>
-          <a href={d.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 px-3 py-2 text-sm hover:bg-blue-50 rounded-lg"><Download className="h-4 w-4" />View</a>
+          <ViewButton doc={d} />
         </div>
       ))}
     </div>
