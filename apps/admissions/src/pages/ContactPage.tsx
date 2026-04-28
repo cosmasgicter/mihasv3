@@ -39,7 +39,7 @@ interface ContactItemProps {
 
 function ContactItem({ href, icon, label, children }: ContactItemProps) {
   const content = (
-    <div className="flex items-center gap-4 rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 transition-all hover:shadow-md hover:border-primary/30">
+    <div className="flex items-center gap-4 rounded-lg border border-border/40 bg-card/80  p-4 transition-all hover:shadow-md hover:border-primary/30">
       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
         {icon}
       </div>
@@ -112,11 +112,11 @@ export default function ContactPage() {
             <div className="polished-panel p-5 sm:p-6">
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary/80">Fastest route</p>
               <div className="mt-4 grid gap-3">
-                <div className="rounded-2xl bg-green-50 px-4 py-3">
+                <div className="rounded-lg bg-green-50 px-4 py-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-green-700">WhatsApp</p>
                   <a href={`https://wa.me/${contactInfo.katcPhone.replace(/[\s+]/g, '')}`} className="mt-1 text-lg font-semibold text-slate-950 hover:underline block">{contactInfo.katcPhone}</a>
                 </div>
-                <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                <div className="rounded-lg bg-slate-50 px-4 py-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Phone support</p>
                   <p className="mt-1 text-lg font-semibold text-slate-950">{contactInfo.katcPhone}</p>
                 </div>
@@ -127,7 +127,7 @@ export default function ContactPage() {
           {/* Two-column layout */}
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             {/* Contact info */}
-            <Card className="rounded-[1.75rem] border border-white/70 bg-white/92 shadow-[0_22px_60px_-34px_rgba(15,23,42,0.25)]">
+            <Card className="rounded-lg border border-white/70 bg-white/92 shadow-[0_22px_60px_-34px_rgba(15,23,42,0.25)]">
               <CardContent className="space-y-5 p-6 sm:p-8">
                 <CardTitle className="text-xl font-semibold">Talk to our team</CardTitle>
                 <div className="space-y-3">
@@ -152,12 +152,12 @@ export default function ContactPage() {
             </Card>
 
             {/* Contact form */}
-            <Card className="rounded-[1.75rem] border border-white/70 bg-white/92 shadow-[0_22px_60px_-34px_rgba(15,23,42,0.25)]">
+            <Card className="rounded-lg border border-white/70 bg-white/92 shadow-[0_22px_60px_-34px_rgba(15,23,42,0.25)]">
               <CardContent className="p-6 sm:p-8">
                 <CardTitle className="mb-6 text-xl font-semibold">Send a Message</CardTitle>
 
                 {submitState === 'draft_ready' && draftUrl && (
-                  <div className="mb-6 space-y-3 rounded-2xl border border-green-200 bg-green-50 p-5 text-sm text-green-800" role="status">
+                  <div className="mb-6 space-y-3 rounded-lg border border-green-200 bg-green-50 p-5 text-sm text-green-800" role="status">
                     <p>
                       Your message draft is ready. Open it in your email app using the button below.
                       If no email app is available, use the contact details shown on this page.

@@ -6,7 +6,7 @@ type PaddingScale = 'sm' | 'md' | 'lg'
 
 const headerVariantStyles: Record<HeaderVariant, string> = {
   default: 'bg-card',
-  tinted: 'bg-gradient-to-r from-muted to-muted/50',
+  tinted: 'bg-muted/40',
   plain: 'bg-transparent'
 }
 
@@ -49,21 +49,21 @@ export function SectionCard({
 
   return (
     <section
-      className={cn('interactive-surface motion-card rounded-2xl border border-border/60 bg-card shadow-sm hover:shadow-md', className)}
+      className={cn('interactive-surface motion-card rounded-lg border border-border/45 bg-card shadow-sm', className)}
       {...props}
     >
       {hasHeader && (
         <div
           className={cn(
-            'flex flex-col gap-3 border-b border-border/60 px-6 py-5 sm:flex-row sm:items-center sm:justify-between',
+            'flex flex-col gap-3 border-b border-border/45 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5',
             headerVariantStyles[headerVariant],
-            stickyHeader && 'sticky top-[4.25rem] z-10 backdrop-blur-md',
+            stickyHeader && 'sticky top-[4.25rem] z-10 bg-card/95',
             headerClassName
           )}
         >
           <div className="flex flex-1 items-start gap-3">
             {icon && (
-              <div className="mt-1 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-info-strong">
+              <div className="mt-1 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 {icon}
               </div>
             )}

@@ -701,11 +701,11 @@ export default function Applications() {
           <div className="polished-panel p-5 sm:p-6">
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary/80">Review posture</p>
             <div className="mt-4 grid gap-3">
-              <div className="rounded-2xl bg-slate-50 px-4 py-3">
+              <div className="rounded-lg bg-slate-50 px-4 py-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Today</p>
                 <p className="mt-1 text-lg font-semibold text-slate-950">{stats.todaySubmissions} new submissions landed</p>
               </div>
-              <div className="rounded-2xl bg-slate-50 px-4 py-3">
+              <div className="rounded-lg bg-slate-50 px-4 py-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Most urgent</p>
                 <p className="mt-1 text-lg font-semibold text-slate-950">
                   {stats.paymentPending > 0 ? 'Payment proof review is active' : stats.decisionQueue > 0 ? 'Decision queue needs attention' : 'Queue is under control'}
@@ -867,7 +867,7 @@ export default function Applications() {
           <ApplicationsSkeleton />
         ) : !isInitialLoading && applications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="grid h-16 w-16 place-items-center rounded-3xl border border-slate-200 bg-slate-50 mb-4">
+            <div className="grid h-16 w-16 place-items-center rounded-lg border border-slate-200 bg-slate-50 mb-4">
               <FileText className="h-7 w-7 text-slate-500" />
             </div>
             <h3 className="text-lg font-semibold text-foreground mb-1">No applications found</h3>

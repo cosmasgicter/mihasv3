@@ -494,7 +494,7 @@ export default function StudentDashboard() {
     <PageShell
       title={`Welcome back, ${firstName}`}
       eyebrow="Student Workspace"
-      subtitle="Track your applications, manage drafts, and stay ahead of deadlines, interviews, and payment actions from one calm, guided dashboard."
+      subtitle="Your next required action, application status, documents, payments, and interviews are kept in one workspace."
       maxWidth="7xl"
       tone="student"
       metrics={[
@@ -557,31 +557,43 @@ export default function StudentDashboard() {
               </Banner>
             )}
 
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.75fr)]">
-              <div className="glass-panel p-5 sm:p-6">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="feature-chip">Application command center</span>
-                  <span className="feature-chip">Live timeline cues</span>
-                  <span className="feature-chip">Decision-ready status tracking</span>
-                </div>
-                <h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
-                  Everything important is surfaced before it becomes urgent
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.75fr)]">
+              <div className="glass-panel p-4 sm:p-5">
+                <p className="text-xs font-semibold uppercase text-primary">Next action</p>
+                <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+                  {totalDraftCount > 0
+                    ? 'Finish your saved application draft'
+                    : hasPendingPayment
+                      ? 'Resolve the pending payment'
+                      : hasScheduledInterview
+                        ? 'Prepare for your scheduled interview'
+                        : submittedApplications.length > 0
+                          ? 'Monitor your submitted application'
+                          : 'Start a new application'}
                 </h2>
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
-                  This dashboard is designed to keep the next step obvious: continue a draft, settle a payment issue, prepare for an interview, or review the latest admissions decision without hunting through menus.
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                  {totalDraftCount > 0
+                    ? 'Open the draft and complete the remaining fields before submission.'
+                    : hasPendingPayment
+                      ? 'Review the payment section so admissions can continue processing your application.'
+                      : hasScheduledInterview
+                        ? 'Check your interview schedule and any required preparation notes.'
+                        : submittedApplications.length > 0
+                          ? 'Keep an eye on status updates, document requests, and admissions decisions.'
+                          : 'Create your first application and save progress as you go.'}
                 </p>
               </div>
-              <div className="polished-panel p-5 sm:p-6">
-                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary/80">Today’s readiness</p>
+              <div className="polished-panel p-4 sm:p-5">
+                <p className="text-xs font-semibold uppercase text-primary">Today’s readiness</p>
                 <div className="mt-4 grid gap-3">
-                  <div className="rounded-2xl bg-slate-50 px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Drafts</p>
-                    <p className="mt-1 text-lg font-semibold text-slate-950">{totalDraftCount > 0 ? `${totalDraftCount} awaiting completion` : 'All drafts resolved'}</p>
+                  <div className="rounded-lg bg-slate-50 px-4 py-3">
+                    <p className="text-xs font-medium uppercase text-slate-500">Drafts</p>
+                    <p className="mt-1 text-base font-semibold text-slate-950">{totalDraftCount > 0 ? `${totalDraftCount} awaiting completion` : 'All drafts resolved'}</p>
                   </div>
-                  <div className="rounded-2xl bg-slate-50 px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Immediate focus</p>
-                    <p className="mt-1 text-lg font-semibold text-slate-950">
-                      {hasPendingPayment ? 'Payment follow-up' : hasScheduledInterview ? 'Interview preparation' : 'Monitor application progress'}
+                  <div className="rounded-lg bg-slate-50 px-4 py-3">
+                    <p className="text-xs font-medium uppercase text-slate-500">Immediate focus</p>
+                    <p className="mt-1 text-base font-semibold text-slate-950">
+                      {hasPendingPayment ? 'Payment follow-up' : hasScheduledInterview ? 'Interview preparation' : 'Application progress'}
                     </p>
                   </div>
                 </div>

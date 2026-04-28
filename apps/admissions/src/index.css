@@ -47,10 +47,7 @@
   }
   
   body {
-    background:
-      radial-gradient(circle at top left, rgba(14, 165, 233, 0.08), transparent 22rem),
-      radial-gradient(circle at top right, rgba(37, 99, 235, 0.06), transparent 26rem),
-      linear-gradient(180deg, #f8fbff 0%, #ffffff 18rem, #f8fafc 100%);
+    background: #f8fafc;
     @apply bg-background text-foreground;
     font-family: Inter, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -267,42 +264,38 @@ input, textarea, select {
   }
   
   .text-vibrant {
-    @apply bg-gradient-to-r from-blue-600/90 to-indigo-600/85 bg-clip-text text-transparent;
+    @apply text-primary;
   }
 
   .glass-panel {
-    @apply rounded-[1.75rem] border border-white/70 bg-white/80 shadow-[0_22px_70px_-36px_rgba(15,23,42,0.35)] backdrop-blur-xl;
+    @apply rounded-lg border border-slate-200 bg-white shadow-sm;
   }
 
   .polished-panel {
-    @apply rounded-[1.5rem] border border-slate-200/80 bg-white/95 shadow-[0_18px_44px_-28px_rgba(15,23,42,0.28)];
+    @apply rounded-lg border border-slate-200 bg-white shadow-sm;
   }
 
   .feature-chip {
-    @apply inline-flex items-center gap-2 rounded-full border border-slate-200/80 bg-white/85 px-3 py-1.5 text-xs font-semibold tracking-wide text-slate-600 shadow-sm;
+    @apply inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600;
   }
 
   .ambient-divider {
-    background: linear-gradient(90deg, rgba(37,99,235,0.16), rgba(14,165,233,0.08), rgba(15,23,42,0));
+    background: rgb(226 232 240);
   }
 
   .interactive-surface {
     transition:
-      transform var(--motion-normal) var(--motion-ease-standard),
       box-shadow var(--motion-normal) var(--motion-ease-standard),
       border-color var(--motion-fast) var(--motion-ease-standard),
       background-color var(--motion-fast) var(--motion-ease-standard),
       opacity var(--motion-fast) var(--motion-ease-standard);
-    transform: translateZ(0);
-    backface-visibility: hidden;
   }
 
   .interactive-surface:hover {
-    transform: translate3d(0, -2px, 0);
+    border-color: rgb(var(--color-ring-rgb) / 0.28);
   }
 
   .interactive-surface:active {
-    transform: translate3d(0, 0, 0) scale(0.992);
     transition-duration: var(--motion-fast);
   }
 
@@ -310,16 +303,14 @@ input, textarea, select {
     transition:
       transform var(--motion-fast) var(--motion-ease-standard),
       opacity var(--motion-fast) var(--motion-ease-standard);
-    transform: translateZ(0);
   }
 
   .micro-lift:hover {
-    transform: translate3d(0, -1px, 0);
+    opacity: 0.9;
   }
 
   .motion-card {
-    will-change: transform, box-shadow;
-    transform: translateZ(0);
+    will-change: auto;
   }
 
   .motion-chip {
@@ -327,11 +318,10 @@ input, textarea, select {
       transform var(--motion-fast) var(--motion-ease-standard),
       background-color var(--motion-fast) var(--motion-ease-standard),
       border-color var(--motion-fast) var(--motion-ease-standard);
-    transform: translateZ(0);
   }
 
   .motion-chip:hover {
-    transform: translate3d(0, -1px, 0);
+    border-color: rgb(var(--color-ring-rgb) / 0.28);
   }
   
   /* Performance-optimized animations */

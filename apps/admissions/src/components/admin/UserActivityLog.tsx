@@ -117,7 +117,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid gap-4 rounded-2xl border border-border bg-muted/20 p-4 md:grid-cols-[minmax(0,1fr)_220px]">
+        <div className="grid gap-4 rounded-lg border border-border bg-muted/20 p-4 md:grid-cols-[minmax(0,1fr)_220px]">
           <Input
             label="Search activity"
             value={actionFilter}
@@ -155,7 +155,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
               ))}
             </div>
           ) : filteredActivities.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border bg-muted/20 px-6 py-16 text-center">
+            <div className="rounded-lg border border-dashed border-border bg-muted/20 px-6 py-16 text-center">
               <Activity className="mx-auto h-10 w-10 text-muted-foreground" />
               <h3 className="mt-4 text-lg font-semibold text-foreground">No linked activity found</h3>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -184,7 +184,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                       : 'Linked to this user'
 
                 return (
-                  <div key={activity.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+                  <div key={activity.id} className="rounded-lg border border-border bg-card p-4 shadow-sm">
                     <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">

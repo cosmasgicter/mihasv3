@@ -165,7 +165,7 @@ export function FeeWaiverDialog({ open, onClose, onApply, saving }: FeeWaiverDia
   if (!open) return null
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm space-y-3">
+    <div className="rounded-lg border border-slate-200 bg-white/95 p-4 shadow-sm space-y-3">
       <h4 className="text-sm font-semibold text-foreground">Apply Fee Waiver</h4>
       <div className="grid grid-cols-2 gap-3">
         <div>

@@ -100,7 +100,7 @@ export const UserMobileCard = React.memo<UserRowProps>(function UserMobileCard({
   const userId = user.user_id || user.id
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+    <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
       <div className="flex items-start gap-3">
         <button
           onClick={() => onSelect(userId)}

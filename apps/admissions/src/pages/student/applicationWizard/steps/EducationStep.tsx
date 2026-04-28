@@ -214,7 +214,7 @@ const EducationStep = ({
   return (
     <div
       key="step2"
-      className={`bg-card rounded-2xl shadow-sm ring-1 ring-border/50 p-5 sm:p-8 ${animateClasses.fadeIn}`}
+      className={`bg-card rounded-lg shadow-sm ring-1 ring-border/50 p-5 sm:p-8 ${animateClasses.fadeIn}`}
       data-testid="education-step"
     >
       <h2 className="text-lg font-semibold text-foreground mb-4">{title}</h2>

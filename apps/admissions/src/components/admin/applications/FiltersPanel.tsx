@@ -71,7 +71,7 @@ export function FiltersPanel({
   const selectClasses = "w-full h-11 rounded-xl border border-border/60 bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors hover:border-primary/20"
 
   return (
-    <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-5 mb-6">
+    <div className="bg-card rounded-lg border border-border/60 shadow-sm p-5 mb-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Search className="h-4 w-4 text-muted-foreground" />

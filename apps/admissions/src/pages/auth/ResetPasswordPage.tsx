@@ -244,7 +244,7 @@ export default function ResetPasswordPage() {
           </div>
         </div>
 
-        <fieldset className="space-y-5 rounded-2xl border border-border/30 bg-muted/30 p-5 sm:p-6">
+        <fieldset className="space-y-5 rounded-lg border border-border/30 bg-muted/30 p-5 sm:p-6">
           <legend className="sr-only">New password</legend>
 
           <PasswordInput

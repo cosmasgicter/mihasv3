@@ -207,23 +207,26 @@ function BrandingPanel({ variant }: { variant: AuthLayoutVariant }) {
   const config = layoutVariants[variant];
 
   return (
-    <div className="relative hidden lg:flex lg:flex-col lg:justify-center lg:px-12 xl:px-16">
-      <div className={cn('absolute inset-0 bg-gradient-to-br', config.desktopGradientClass)} />
-
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute left-0 top-0 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white blur-3xl" />
-        <div className="absolute bottom-0 right-0 h-96 w-96 translate-x-1/2 translate-y-1/2 rounded-full bg-white blur-3xl" />
+    <div className="relative hidden border-r border-slate-200 bg-slate-950 lg:flex lg:flex-col lg:justify-center lg:px-12 xl:px-16">
+      <div className="absolute inset-0 opacity-35">
+        <img
+          src="/images/programs/mihas-campus.webp"
+          alt=""
+          className="h-full w-full object-cover"
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 bg-slate-950/72" />
       </div>
 
       <div className="relative z-10 max-w-lg">
         <div className="mb-8">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-white backdrop-blur-sm">
+          <span className="inline-flex items-center gap-2 rounded-md border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold uppercase text-white">
             <span className={cn('h-2 w-2 rounded-full', config.badgeDotClass)} aria-hidden />
             {config.badgeLabel}
           </span>
         </div>
 
-        <p className="text-4xl font-bold leading-tight text-white drop-shadow-lg xl:text-5xl">
+        <p className="text-4xl font-semibold leading-tight text-white xl:text-5xl">
           {config.heroTitle}
         </p>
 
@@ -235,7 +238,7 @@ function BrandingPanel({ variant }: { variant: AuthLayoutVariant }) {
           {config.features.map((feature, index) => (
             <div
               key={feature.title}
-              className="animate-fade-in rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm transition-colors hover:bg-white/15"
+              className="animate-fade-in rounded-lg border border-white/15 bg-white/10 p-4 transition-colors hover:bg-white/15"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <feature.icon className="mb-2 h-6 w-6 text-white/90" />
@@ -290,17 +293,17 @@ function FormPanel({
         </Link>
 
         <div className="mt-4 flex items-center lg:hidden" role="img" aria-label="Mukuba Institute of Health and Allied Sciences logo">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-sky-700 via-cyan-600 to-slate-900 text-white shadow-lg" aria-hidden="true">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-950 text-white shadow-sm" aria-hidden="true">
             <GraduationCap className="h-6 w-6" />
           </div>
           <span className="ml-3 text-lg font-semibold text-foreground">MIHAS</span>
         </div>
 
-        <div className={cn('mt-4 rounded-[1.75rem] border bg-gradient-to-r p-5 shadow-[0_18px_44px_-28px_rgba(15,23,42,0.22)] lg:hidden', config.mobileCardClass)}>
+        <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:hidden">
           <p className="text-sm leading-relaxed text-muted-foreground">{config.mobileSummary}</p>
           <div className="mt-3 flex flex-wrap gap-3">
             {config.mobileFeatures.map((feature) => (
-              <span key={feature.text} className="inline-flex items-center gap-1.5 rounded-full border border-white/70 bg-white/70 px-3 py-1.5 text-xs font-medium text-foreground/80">
+              <span key={feature.text} className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-medium text-foreground/80">
                 <feature.icon className="h-3.5 w-3.5" aria-hidden="true" />
                 {feature.text}
               </span>
@@ -308,11 +311,11 @@ function FormPanel({
           </div>
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-[2rem] border border-white/70 bg-white/92 p-6 shadow-[0_30px_90px_-44px_rgba(15,23,42,0.42)] backdrop-blur-xl sm:p-8 lg:p-10 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-[0.98] motion-safe:duration-500">
+        <div className="mt-6 overflow-hidden rounded-lg border border-slate-200 bg-white p-6 shadow-2xl shadow-slate-950/10 backdrop-blur sm:p-8 lg:p-10 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200">
           <div className="space-y-6">
             {resolvedPanelBadge && (
               <div>
-                <span className={cn('inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]', config.panelBadgeClass)}>
+                <span className={cn('inline-flex items-center rounded-md border px-3 py-1 text-xs font-semibold uppercase', config.panelBadgeClass)}>
                   {resolvedPanelBadge}
                 </span>
               </div>
@@ -358,7 +361,7 @@ export function AuthLayout({
 
   return (
     <PageTransition mode="fade">
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.1),transparent_20rem),radial-gradient(circle_at_bottom_right,rgba(37,99,235,0.08),transparent_24rem),linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)]">
+      <div className="min-h-screen bg-slate-50">
         <div className="flex min-h-screen">
           {showBranding && (
             <div className="hidden lg:flex lg:w-1/2 xl:w-[55%]">
@@ -368,11 +371,11 @@ export function AuthLayout({
 
           <div
             className={cn(
-              'flex flex-1 flex-col overflow-y-auto min-w-0 bg-gradient-to-br from-background via-background to-primary/5',
+              'flex flex-1 flex-col overflow-y-auto min-w-0 bg-slate-50',
               showBranding ? 'lg:w-1/2 xl:w-[45%]' : 'w-full',
             )}
           >
-            <div className={cn('h-1.5 bg-gradient-to-r lg:hidden', config.mobileGradientClass)} aria-hidden="true" />
+            <div className="h-1.5 bg-gradient-to-r from-primary to-primary lg:hidden" aria-hidden="true" />
 
             <FormPanel
               title={title}

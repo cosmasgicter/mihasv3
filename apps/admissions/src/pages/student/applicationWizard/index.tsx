@@ -531,7 +531,7 @@ const ApplicationWizardContent = () => {
     <PageShell
       title="Student Application"
       eyebrow="Application Flow"
-      subtitle={`Apply in ${totalSteps} guided steps with live progress, autosave, and clear approval readiness checks.`}
+      subtitle={`Complete ${totalSteps} steps with autosave, upload status, payment confirmation, and review before submission.`}
       maxWidth="full"
       tone="application"
       metrics={[
@@ -573,28 +573,24 @@ const ApplicationWizardContent = () => {
           <div className="mb-8 space-y-4">
             <Link
               to="/student/dashboard"
-              className="feature-chip"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-lg px-2 text-sm font-medium text-primary hover:bg-primary/5"
             >
               <ArrowLeft style={{ width: 'var(--icon-size-sm)', height: 'var(--icon-size-sm)', marginRight: '0.5rem' }} />
               Back to Dashboard
             </Link>
 
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(18rem,0.8fr)]">
-              <div className="glass-panel p-5 sm:p-6">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="feature-chip">Live autosave</span>
-                  <span className="feature-chip">Approval-ready checklist</span>
-                  <span className="feature-chip">Secure payment confirmation</span>
-                </div>
-                <h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
-                  A guided application experience that stays clear under pressure
+              <div className="glass-panel p-4 sm:p-5">
+                <p className="text-xs font-semibold uppercase text-primary">Current step</p>
+                <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+                  {currentStepConfig.title}
                 </h2>
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
-                  Every step is framed around what admissions actually needs to approve you faster: complete identity details, strong education evidence, confirmed payment, and a final review before submission.
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                  {currentStepConfig.description}
                 </p>
               </div>
-              <div className="polished-panel p-5 sm:p-6">
-                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary/80">Session</p>
+              <div className="polished-panel p-4 sm:p-5">
+                <p className="text-xs font-semibold uppercase text-primary">Session</p>
                 <p className="mt-3 text-sm font-semibold text-slate-900 break-all">{user.email}</p>
                 <div className="mt-4 h-px ambient-divider" />
                 <div className="mt-4 grid gap-3 text-sm text-slate-600">
@@ -617,7 +613,7 @@ const ApplicationWizardContent = () => {
         </Container>
 
         <Container size="md" className="mb-6 lg:mb-8">
-          <div className="glass-panel p-4 sm:p-5 lg:p-6">
+          <div className="glass-panel p-4 sm:p-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div className="flex-1">
               <h2 className="text-base sm:text-lg font-semibold text-foreground">
@@ -637,7 +633,7 @@ const ApplicationWizardContent = () => {
                     aria-valuenow={progressPercent}
                   >
                     <div
-                      className="h-2 rounded-full bg-gradient-to-r from-primary to-success transition-all duration-700 ease-out"
+                      className="h-2 rounded-full bg-primary transition-all duration-200 ease-out"
                       style={{ width: `${progressPercent}%` }}
                     />
                   </div>
@@ -861,11 +857,11 @@ const ApplicationWizardContent = () => {
             )}
             </div>
 
-              <div className={`${keyboardOpen ? 'relative' : 'sticky bottom-0'} z-10 -mx-4 border-t border-border/40 bg-background/80 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] pt-3 backdrop-blur-xl sm:static sm:mx-0 sm:border-t-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none`}>
-              <div className="glass-panel flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-5">
+              <div className={`${keyboardOpen ? 'relative' : 'sticky bottom-0'} z-10 -mx-4 border-t border-border/50 bg-background px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] pt-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] sm:static sm:mx-0 sm:border-t-0 sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none`}>
+              <div className="glass-panel flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="order-2 sm:order-1">
               {currentStepIndex > 0 && (
-                <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
+                <div>
                   <Button type="button" variant="outline" onClick={wrappedHandlePrevStep} className="w-full sm:w-auto" disabled={loading} aria-label={`Go back to ${wizardSteps[currentStepIndex - 1]?.progressTitle || 'previous step'}`}>
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     {previousButtonLabel}
@@ -876,13 +872,13 @@ const ApplicationWizardContent = () => {
 
             <div className="order-1 sm:order-2">
               {!isLastStep ? (
-                <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
+                <div>
                   <Button type="button" variant="primary" onClick={wrappedHandleNextStep} loading={loading} disabled={loading || (currentStepConfig.key === 'payment' && paymentStatus !== 'successful' && paymentStatus !== 'deferred')} className="w-full sm:w-auto min-h-[48px]" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
                     {loading || isUploadBlocking ? nextButtonLabel : (<><span>{nextButtonLabel}</span><ArrowRight className="h-4 w-4 ml-2" /></>)}
                   </Button>
                 </div>
               ) : (
-                <div className="transition-transform duration-150 hover:scale-105 active:scale-95">
+                <div>
                   <Button type="submit" variant="success" loading={loading} disabled={loading || !wizardReadiness.canSubmit} className="w-full sm:w-auto min-h-[48px]">
                     {loading ? 'Submitting...' : (<><Send className="h-4 w-4 mr-2" />Submit Application</>)}
                   </Button>

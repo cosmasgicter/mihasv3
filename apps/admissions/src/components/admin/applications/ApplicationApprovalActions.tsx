@@ -220,11 +220,11 @@ export function ApplicationApprovalActions({
   return (
     <div className="space-y-3">
       <div className="grid gap-2 sm:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/90 px-3 py-3">
+        <div className="rounded-lg border border-slate-200/80 bg-slate-50/90 px-3 py-3">
           <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-slate-500">Application</p>
           <p className="mt-1 text-sm font-semibold text-slate-950">{currentStatus.replace(/_/g, ' ')}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/90 px-3 py-3">
+        <div className="rounded-lg border border-slate-200/80 bg-slate-50/90 px-3 py-3">
           <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-slate-500">Payment</p>
           <p className="mt-1 text-sm font-semibold text-slate-950">{normalizedPaymentStatus.replace(/_/g, ' ')}</p>
         </div>
@@ -238,7 +238,7 @@ export function ApplicationApprovalActions({
         <div className="grid gap-2 sm:grid-cols-2">
           {currentStatus === 'draft' && (
             <>
-              <div className="flex-1 rounded-2xl border border-slate-200 bg-slate-50 py-3 text-center">
+              <div className="flex-1 rounded-lg border border-slate-200 bg-slate-50 py-3 text-center">
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-300">
                   Draft — not yet submitted
                 </span>
@@ -332,7 +332,7 @@ export function ApplicationApprovalActions({
         <div className="grid gap-2 sm:grid-cols-2">
           {normalizedPaymentStatus === 'not_paid' && (
             <div className="sm:col-span-2 grid gap-2">
-            <div className="text-center py-2 space-y-1 rounded-2xl border border-amber-200 bg-amber-50">
+            <div className="text-center py-2 space-y-1 rounded-lg border border-amber-200 bg-amber-50">
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-300">
                 Awaiting Payment
               </span>
@@ -415,7 +415,7 @@ export function ApplicationApprovalActions({
 
           {normalizedPaymentStatus === 'deferred' && (
             <>
-              <div className="text-center py-3 rounded-2xl border border-amber-200 bg-amber-50">
+              <div className="text-center py-3 rounded-lg border border-amber-200 bg-amber-50">
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
                   <Clock className="h-3 w-3 mr-1" />
                   Deferred

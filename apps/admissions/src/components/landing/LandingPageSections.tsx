@@ -80,11 +80,11 @@ function FeaturesSection() {
         <StaggerReveal className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-10" staggerDelay={0.1}>
           {features.map((feature) => (
             <StaggerItem key={feature.title}>
-              <Card className="group h-full rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm text-center shadow-sm transition-all duration-300 hover:shadow-lg">
+              <Card className="group h-full rounded-lg border border-border/40 bg-card/80  text-center shadow-sm transition-all duration-300 hover:shadow-lg">
                 <CardContent className="p-6 sm:p-8">
                   <div
                     className={cn(
-                      'mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br shadow-lg sm:mb-6 sm:h-20 sm:w-20 lg:h-24 lg:w-24',
+                      'mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-lg bg-gradient-to-br shadow-lg sm:mb-6 sm:h-20 sm:w-20 lg:h-24 lg:w-24',
                       'group-hover:scale-110 transition-transform duration-300',
                       feature.gradient,
                     )}
@@ -130,7 +130,7 @@ function AccreditationSection() {
         <StaggerReveal className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8" staggerDelay={0.1}>
           {accreditations.map((accred) => (
             <StaggerItem key={accred.title}>
-              <Card className="group h-full rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm text-center shadow-sm transition-all duration-300 hover:shadow-lg">
+              <Card className="group h-full rounded-lg border border-border/40 bg-card/80  text-center shadow-sm transition-all duration-300 hover:shadow-lg">
                 <CardContent className="p-4 sm:p-6">
                   <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-muted p-2 sm:h-16 sm:w-16 group-hover:scale-110 transition-transform duration-300">
                     <OptimizedImage
@@ -181,7 +181,7 @@ function ProgramsSection() {
         <StaggerReveal className="grid grid-cols-1 gap-8 sm:gap-12 lg:grid-cols-2" staggerDelay={0.2}>
           {programs.map((program) => (
             <StaggerItem key={program.institution}>
-              <Card className="group rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg">
+              <Card className="group rounded-lg border border-border/40 bg-card/80  shadow-sm transition-all duration-300 hover:shadow-lg">
                 <CardContent className="p-6 sm:p-8">
                   <div className="relative mb-6 overflow-hidden rounded-lg">
                     <OptimizedImage
@@ -262,7 +262,7 @@ function CTASection() {
           asChild
           variant="secondary"
           size="xl"
-          className="group min-h-[48px] bg-white px-6 font-bold text-primary shadow-lg hover:bg-white/90 hover:shadow-xl sm:px-8 rounded-2xl"
+          className="group min-h-[48px] bg-white px-6 font-bold text-primary shadow-lg hover:bg-white/90 hover:shadow-md sm:px-8 rounded-lg"
         >
           <Link
             to="/auth/signup"

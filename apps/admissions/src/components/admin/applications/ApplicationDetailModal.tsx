@@ -304,8 +304,8 @@ export function ApplicationDetailModal({
  // Show skeleton during SSR/initial render to prevent hydration mismatch
  if (!isClient) {
  return (
- <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-0 sm:p-4 z-[60] overflow-hidden">
- <div className="bg-card w-full h-full sm:rounded-2xl sm:max-w-6xl sm:w-full sm:max-h-[95vh] overflow-hidden flex flex-col max-w-full">
+ <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-0 sm:p-4 z-[60] overflow-hidden">
+ <div className="bg-card w-full h-full sm:rounded-lg sm:max-w-6xl sm:w-full sm:max-h-[95vh] overflow-hidden flex flex-col max-w-full">
  {/* Header Skeleton */}
  <div className="flex-shrink-0 p-4 sm:p-6 border-b border-border bg-gradient-to-r from-blue-50 to-indigo-50">
  <div className="flex items-center justify-between gap-2">
@@ -373,13 +373,13 @@ export function ApplicationDetailModal({
  }
 
  return (
- <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-hidden bg-slate-950/55 p-0 backdrop-blur-md sm:p-4">
+ <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-hidden bg-slate-950/55 p-0  sm:p-4">
  <div
  ref={focusTrapRef as React.RefObject<HTMLDivElement>}
  role="dialog"
  aria-modal="true"
  aria-label={`Application details for ${application.full_name}`}
- className="flex h-full max-w-full flex-col overflow-hidden bg-white/96 shadow-[0_38px_120px_-52px_rgba(15,23,42,0.55)] animate-in fade-in zoom-in-95 duration-200 sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-[2rem]"
+ className="flex h-full max-w-full flex-col overflow-hidden bg-white/96 shadow-[0_38px_120px_-52px_rgba(15,23,42,0.55)] animate-in fade-in zoom-in-95 duration-200 sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-lg"
  >
  {/* Header */}
  <ApplicationDetailHeader application={application} onClose={onClose} />
@@ -459,7 +459,7 @@ export function ApplicationDetailModal({
  />
  {/* Quick Stats */}
  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
- <div className="rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-blue-100 p-4 shadow-sm">
+ <div className="rounded-lg border border-blue-100 bg-gradient-to-r from-blue-50 to-blue-100 p-4 shadow-sm">
  <div className="flex items-center gap-3">
  {application.status === 'approved' ? <CheckCircle className="h-5 w-5 text-accent" /> :
   application.status === 'under_review' ? <Eye className="h-5 w-5 text-accent" /> :
@@ -474,7 +474,7 @@ export function ApplicationDetailModal({
  </div>
  </div>
  
- <div className="rounded-2xl border border-emerald-100 bg-gradient-to-r from-green-50 to-green-100 p-4 shadow-sm">
+ <div className="rounded-lg border border-emerald-100 bg-gradient-to-r from-green-50 to-green-100 p-4 shadow-sm">
  <div className="flex items-center gap-3">
  <CreditCard className="h-5 w-5 text-accent" />
  <div>
@@ -486,7 +486,7 @@ export function ApplicationDetailModal({
  </div>
  </div>
  
- <div className="rounded-2xl border border-purple-100 bg-gradient-to-r from-purple-50 to-purple-100 p-4 shadow-sm">
+ <div className="rounded-lg border border-purple-100 bg-gradient-to-r from-purple-50 to-purple-100 p-4 shadow-sm">
  <div className="flex items-center gap-3">
  <Calendar className="h-5 w-5 text-secondary" />
  <div>
@@ -815,8 +815,8 @@ export function ApplicationDetailModal({
       
       {/* Payment Warning Dialog (Req 26.4) */}
       {paymentWarning && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[70]">
-          <div className="bg-card rounded-2xl max-w-md w-full p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-[70]">
+          <div className="bg-card rounded-lg max-w-md w-full p-6 shadow-md animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-amber-100 rounded-lg">
                 <AlertCircle className="h-5 w-5 text-amber-600" />

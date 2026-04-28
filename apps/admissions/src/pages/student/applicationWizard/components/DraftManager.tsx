@@ -88,7 +88,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
             role="dialog"
             aria-modal="true"
             aria-label="My Drafts"
-            className="fixed top-0 right-0 h-full w-full max-w-md bg-card border-l border-border shadow-xl z-50 overflow-y-auto animate-slide-in-right"
+            className="fixed top-0 right-0 h-full w-full max-w-md bg-card border-l border-border shadow-md z-50 overflow-y-auto animate-slide-in-right"
             style={{ animation: 'slideInRight 300ms ease-out' }}
           >
             <div className="p-6">

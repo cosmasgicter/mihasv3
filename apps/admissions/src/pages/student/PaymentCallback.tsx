@@ -61,7 +61,7 @@ export default function PaymentCallback() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-6 rounded-2xl border border-border bg-card p-8 text-center shadow-lg">
+      <div className="w-full max-w-md space-y-6 rounded-lg border border-border bg-card p-8 text-center shadow-lg">
         {status === 'verifying' && (
           <>
             <Clock className="mx-auto h-12 w-12 animate-pulse text-muted-foreground" />

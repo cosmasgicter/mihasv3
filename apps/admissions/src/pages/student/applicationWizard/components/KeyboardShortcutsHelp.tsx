@@ -42,7 +42,7 @@ export const KeyboardShortcutsHelp = () => {
             role="dialog"
             aria-modal="true"
             aria-label="Keyboard Shortcuts"
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card border border-border rounded-lg shadow-xl p-6 z-50 w-full max-w-md animate-scale-in"
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card border border-border rounded-lg shadow-md p-6 z-50 w-full max-w-md animate-scale-in"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">

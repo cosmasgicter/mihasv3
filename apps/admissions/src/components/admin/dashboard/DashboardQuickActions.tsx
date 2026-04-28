@@ -21,7 +21,7 @@ export function DashboardQuickActions({
   ]
 
   return (
-    <div className="rounded-2xl border border-border/60 bg-card shadow-sm">
+    <div className="rounded-lg border border-border/60 bg-card shadow-sm">
       <div className="px-6 py-4 border-b border-border/40">
         <h3 className="text-lg font-bold text-foreground">Quick Actions</h3>
       </div>

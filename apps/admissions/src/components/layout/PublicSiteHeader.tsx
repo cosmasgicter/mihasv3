@@ -53,17 +53,17 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
   return (
     <>
       <SkipLink />
-      <header className={cn('sticky top-0 z-50 border-b border-white/70 bg-white/80 backdrop-blur-2xl shadow-[0_18px_40px_-32px_rgba(15,23,42,0.45)]', className)}>
-        <div className="border-b border-white/60 bg-[linear-gradient(90deg,rgba(15,23,42,0.94),rgba(37,99,235,0.92),rgba(20,184,166,0.88))]">
+      <header className={cn('sticky top-0 z-50 border-b border-slate-200 bg-white shadow-sm', className)}>
+        <div className="border-b border-slate-200 bg-slate-950">
           <div className="container-responsive flex min-h-10 items-center justify-between gap-3 px-4 py-2 text-[0.72rem] font-medium tracking-wide text-white/90 sm:px-6 lg:px-8">
             <span className="truncate">Accredited health sciences admissions with live application tracking</span>
-            <span className="hidden rounded-full border border-white/20 bg-white/10 px-3 py-1 sm:inline-flex">Applications feel real-time</span>
+            <span className="hidden rounded-md border border-white/20 bg-white/10 px-3 py-1 sm:inline-flex">Applications feel real-time</span>
           </div>
         </div>
         <div className="container-responsive px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between gap-3">
             <Link to="/" className="inline-flex items-center gap-3 font-semibold text-foreground" aria-label="Mukuba Institute of Health and Allied Sciences logo - Home">
-              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-slate-950 via-primary to-cyan-500 text-white shadow-[0_16px_34px_-16px_rgba(37,99,235,0.6)]" aria-hidden="true">
+              <span className="grid h-11 w-11 place-items-center rounded-lg bg-slate-950 text-white shadow-sm" aria-hidden="true">
                 <GraduationCap className="h-5 w-5" />
               </span>
               <span className="hidden sm:block">
@@ -84,8 +84,8 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
                     onTouchStart={href.startsWith('/auth') ? warmAuthRoutes : undefined}
                     aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
-                      active ? 'bg-slate-950 text-white shadow-[0_16px_28px_-20px_rgba(15,23,42,0.7)]' : 'text-slate-700 hover:bg-white hover:text-slate-950 hover:shadow-sm'
+                      'rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-200',
+                      active ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-950'
                     )}
                   >
                     {label}
@@ -97,7 +97,7 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
                 onPointerEnter={warmAuthRoutes}
                 onFocus={warmAuthRoutes}
                 onTouchStart={warmAuthRoutes}
-                className="ml-2 inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full bg-gradient-to-r from-slate-950 via-primary to-cyan-500 px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-[0_18px_34px_-18px_rgba(37,99,235,0.65)] transition-[transform,box-shadow,filter] duration-150 hover:brightness-105 hover:shadow-[0_22px_40px_-18px_rgba(37,99,235,0.72)] active:scale-[0.98]"
+                className="ml-2 inline-flex min-h-[40px] items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-150 hover:bg-primary/90"
               >
                 <UserPlus className="h-4 w-4" />
                 Apply now
@@ -106,7 +106,7 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
 
             <button
               type="button"
-              className="grid h-11 w-11 min-h-[44px] min-w-[44px] place-items-center rounded-2xl border border-slate-200 bg-white/90 md:hidden"
+              className="grid h-11 w-11 min-h-[44px] min-w-[44px] place-items-center rounded-lg border border-slate-200 bg-white/90 md:hidden"
               aria-label={open ? 'Close menu' : 'Open menu'}
               aria-expanded={open}
               aria-controls="public-mobile-menu"
@@ -121,7 +121,7 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
         <div
           id="public-mobile-menu"
           className={cn(
-            'overflow-hidden border-t border-white/70 bg-white/90 backdrop-blur-xl transition-[max-height,opacity] duration-200 ease-in-out md:hidden',
+            'overflow-hidden border-t border-slate-200 bg-white transition-[max-height,opacity] duration-200 ease-in-out md:hidden',
             open ? 'max-h-[26rem] opacity-100' : 'max-h-0 opacity-0'
           )}
           role="region"
@@ -141,7 +141,7 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
                   onTouchStart={href.startsWith('/auth') ? warmAuthRoutes : undefined}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'flex min-h-[44px] items-center gap-2 rounded-2xl px-3 py-3 text-sm font-medium',
+                    'flex min-h-[44px] items-center gap-2 rounded-lg px-3 py-3 text-sm font-medium',
                     active ? 'bg-slate-950 text-primary-foreground' : 'hover:bg-slate-50'
                   )}
                 >
@@ -155,7 +155,7 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
               onPointerEnter={warmAuthRoutes}
               onFocus={warmAuthRoutes}
               onTouchStart={warmAuthRoutes}
-              className="mt-2 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-slate-950 via-primary to-cyan-500 px-4 py-3 text-sm font-semibold text-primary-foreground shadow-[0_18px_34px_-18px_rgba(37,99,235,0.65)] transition-[transform,box-shadow,filter] duration-150 hover:brightness-105 hover:shadow-[0_22px_40px_-18px_rgba(37,99,235,0.72)] active:scale-[0.98]"
+              className="mt-2 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-150 hover:bg-primary/90"
             >
               <UserPlus className="h-4 w-4" />
               Start application

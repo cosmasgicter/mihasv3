@@ -324,11 +324,11 @@ export default function PublicApplicationTracker() {
               <div className="polished-panel p-5 sm:p-6">
                 <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary/80">Best input</p>
                 <div className="mt-4 grid gap-3">
-                  <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                  <div className="rounded-lg bg-slate-50 px-4 py-3">
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Use</p>
                     <p className="mt-1 text-lg font-semibold text-slate-950">Application number or tracking code</p>
                   </div>
-                  <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                  <div className="rounded-lg bg-slate-50 px-4 py-3">
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Outcome</p>
                     <p className="mt-1 text-lg font-semibold text-slate-950">Status, milestones, and application slip</p>
                   </div>
@@ -351,7 +351,7 @@ export default function PublicApplicationTracker() {
           {/* Application Results - conditional rendering replaces AnimatePresence */}
           {application && (
             <div className={animateClasses.slideUp}>
-              <SectionCard className="overflow-hidden rounded-[1.75rem] border-white/70 bg-white/92 shadow-[0_22px_60px_-34px_rgba(15,23,42,0.25)]" padding="sm">
+              <SectionCard className="overflow-hidden rounded-lg border-white/70 bg-white/92 shadow-[0_22px_60px_-34px_rgba(15,23,42,0.25)]" padding="sm">
                 <ApplicationStatusHeader
                   application={application}
                   copied={copied}

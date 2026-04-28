@@ -616,29 +616,29 @@ export default function AdminSettings() {
             ) : (
               <>
                 <div className="grid gap-4 md:grid-cols-4">
-                  <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
+                  <div className="rounded-lg border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
                     <p className="text-xs font-semibold uppercase tracking-wide text-primary">Guided Controls</p>
                     <p className="mt-2 text-3xl font-bold text-foreground">{configuredBlueprintCount}/{SETTING_BLUEPRINTS.length}</p>
                     <p className="mt-1 text-sm text-muted-foreground">Operational settings configured</p>
                   </div>
-                  <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
+                  <div className="rounded-lg border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
                     <p className="text-xs font-semibold uppercase tracking-wide text-primary">Public Settings</p>
                     <p className="mt-2 text-3xl font-bold text-foreground">{publicSettingsCount}</p>
                     <p className="mt-1 text-sm text-muted-foreground">Visible to applicants and portal surfaces</p>
                   </div>
-                  <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
+                  <div className="rounded-lg border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
                     <p className="text-xs font-semibold uppercase tracking-wide text-primary">Private Settings</p>
                     <p className="mt-2 text-3xl font-bold text-foreground">{privateSettingsCount}</p>
                     <p className="mt-1 text-sm text-muted-foreground">Operational settings only for staff workflows</p>
                   </div>
-                  <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
+                  <div className="rounded-lg border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
                     <p className="text-xs font-semibold uppercase tracking-wide text-primary">Advanced Keys</p>
                     <p className="mt-2 text-3xl font-bold text-foreground">{advancedSettingsCount}</p>
                     <p className="mt-1 text-sm text-muted-foreground">Custom keys outside the guided configuration</p>
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-border bg-muted/30 p-4">
+                <div className="rounded-lg border border-border bg-muted/30 p-4">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex-1">
                       <Input
@@ -684,7 +684,7 @@ export default function AdminSettings() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-border bg-card p-5">
+                <div className="rounded-lg border border-border bg-card p-5">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <h2 className="text-lg font-semibold text-foreground">Guided Configuration</h2>
@@ -700,7 +700,7 @@ export default function AdminSettings() {
                   <div className="mt-6 grid gap-6 xl:grid-cols-3">
                     {filteredGuidedSections.length > 0 ? (
                       filteredGuidedSections.map((section) => (
-                        <div key={section.id} className="rounded-2xl border border-border bg-muted/20 p-4">
+                        <div key={section.id} className="rounded-lg border border-border bg-muted/20 p-4">
                           <div className="mb-4 flex items-start gap-3">
                             <div className="rounded-xl bg-primary/10 p-3 text-primary">
                               {section.icon}
@@ -814,7 +814,7 @@ export default function AdminSettings() {
                         </div>
                       ))
                     ) : (
-                      <div className="xl:col-span-3 rounded-2xl border border-dashed border-border bg-muted/20 px-6 py-12 text-center">
+                      <div className="xl:col-span-3 rounded-lg border border-dashed border-border bg-muted/20 px-6 py-12 text-center">
                         <Settings className="mx-auto h-10 w-10 text-muted-foreground" />
                         <h3 className="mt-4 text-lg font-semibold text-foreground">No guided controls match this filter</h3>
                         <p className="mt-2 text-sm text-muted-foreground">
@@ -825,7 +825,7 @@ export default function AdminSettings() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-border bg-card">
+                <div className="rounded-lg border border-border bg-card">
                   <button
                     type="button"
                     onClick={() => setShowAdvancedSettings((current) => !current)}
@@ -844,7 +844,7 @@ export default function AdminSettings() {
                   {showAdvancedSettings ? (
                     <div className="border-t border-border p-5">
                       {showAddForm ? (
-                        <div className="mb-6 rounded-2xl border border-primary/30 bg-primary/5 p-5">
+                        <div className="mb-6 rounded-lg border border-primary/30 bg-primary/5 p-5">
                           <div className="mb-4 flex items-center gap-2">
                             <Plus className="h-5 w-5 text-primary" />
                             <h3 className="font-semibold text-foreground">Create Advanced Key</h3>
@@ -1112,7 +1112,7 @@ export default function AdminSettings() {
                           </div>
                         </>
                       ) : (
-                        <div className="rounded-2xl border border-dashed border-border bg-muted/20 px-6 py-12 text-center">
+                        <div className="rounded-lg border border-dashed border-border bg-muted/20 px-6 py-12 text-center">
                           <Database className="mx-auto h-10 w-10 text-muted-foreground" />
                           <h3 className="mt-4 text-lg font-semibold text-foreground">No advanced keys found</h3>
                           <p className="mt-2 text-sm text-muted-foreground">

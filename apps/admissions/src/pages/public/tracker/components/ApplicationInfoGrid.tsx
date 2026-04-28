@@ -18,7 +18,7 @@ interface InfoCardProps {
 
 const InfoCard: React.FC<InfoCardProps> = ({ icon, iconBg, label, value, index = 0 }) => (
   <div
-    className={`flex items-start gap-3 rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 transition-all hover:shadow-md hover:border-primary/30 ${animateClasses.fadeIn}`}
+    className={`flex items-start gap-3 rounded-lg border border-border/40 bg-card/80  p-4 transition-all hover:shadow-md hover:border-primary/30 ${animateClasses.fadeIn}`}
     style={staggerChild(index)}
   >
     <div className={`flex-shrink-0 rounded-xl p-2.5 ${iconBg}`}>{icon}</div>

@@ -169,7 +169,7 @@ const AuditEntryCard = React.memo(function AuditEntryCard({ entry }: { entry: Au
   const payloadText = stringifyPayload(entry.changes || entry.metadata)
 
   return (
-    <div className="rounded-2xl border border-border bg-card shadow-sm">
+    <div className="rounded-lg border border-border bg-card shadow-sm">
       <div className="flex flex-col gap-4 p-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -488,7 +488,7 @@ export default function AuditTrailPage() {
     >
       <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
+          <div className="rounded-lg border border-border/60 bg-card p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total events</p>
@@ -500,7 +500,7 @@ export default function AuditTrailPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
+          <div className="rounded-lg border border-border/60 bg-card p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Unique actors</p>
@@ -512,7 +512,7 @@ export default function AuditTrailPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
+          <div className="rounded-lg border border-border/60 bg-card p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Top category</p>
@@ -525,7 +525,7 @@ export default function AuditTrailPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
+          <div className="rounded-lg border border-border/60 bg-card p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Most active entity</p>
@@ -540,7 +540,7 @@ export default function AuditTrailPage() {
         </div>
 
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(340px,1fr)]">
-          <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="rounded-lg border border-border bg-card p-5">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold text-foreground">Category breakdown</h2>
@@ -567,7 +567,7 @@ export default function AuditTrailPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="rounded-lg border border-border bg-card p-5">
             <h2 className="text-lg font-semibold text-foreground">Most frequent actions</h2>
             <p className="text-sm text-muted-foreground">
               The timeline below is backed by live action frequencies from the audit API.
@@ -597,7 +597,7 @@ export default function AuditTrailPage() {
         </div>
 
         {showFilters ? (
-          <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="rounded-lg border border-border bg-card p-5">
             <div className="mb-4 flex items-center gap-2">
               <Filter className="h-4 w-4 text-primary" />
               <h2 className="text-lg font-semibold text-foreground">Filter activity</h2>
@@ -698,7 +698,7 @@ export default function AuditTrailPage() {
         ) : null}
 
         {error ? (
-          <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5">
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3">
                 <AlertTriangle className="mt-0.5 h-5 w-5 text-destructive" />
@@ -729,7 +729,7 @@ export default function AuditTrailPage() {
               ))}
             </div>
 
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="rounded-lg border border-border bg-card p-5">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="text-sm text-muted-foreground">
                   Showing page <span className="font-semibold text-foreground">{response.page}</span> of{' '}
@@ -779,7 +779,7 @@ export default function AuditTrailPage() {
             </div>
           </>
         ) : (
-          <div className="rounded-2xl border border-dashed border-border bg-muted/20 px-6 py-16 text-center">
+          <div className="rounded-lg border border-dashed border-border bg-muted/20 px-6 py-16 text-center">
             <Shield className="mx-auto h-10 w-10 text-muted-foreground" />
             <h3 className="mt-4 text-lg font-semibold text-foreground">No audit activity found</h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -802,7 +802,7 @@ export default function AuditTrailPage() {
         )}
 
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="rounded-lg border border-border bg-card p-5">
             <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <Shield className="h-4 w-4 text-primary" />
               Authentication coverage
@@ -812,7 +812,7 @@ export default function AuditTrailPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="rounded-lg border border-border bg-card p-5">
             <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <BellRing className="h-4 w-4 text-primary" />
               Communication visibility
@@ -822,7 +822,7 @@ export default function AuditTrailPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="rounded-lg border border-border bg-card p-5">
             <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <BarChart3 className="h-4 w-4 text-primary" />
               Export-ready view

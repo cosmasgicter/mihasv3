@@ -21,7 +21,7 @@ export function MobilePageHeader({
     <header
       className={cn(
         'fixed left-0 right-0 top-0 z-40 flex h-16 items-center md:hidden',
-        'border-b border-border/70 bg-background/90 shadow-sm backdrop-blur-xl',
+        'border-b border-border/60 bg-background shadow-sm',
         className
       )}
     >
@@ -31,7 +31,7 @@ export function MobilePageHeader({
           <button
             type="button"
             onClick={onBack}
-            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-2xl text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             aria-label="Go back"
           >
             <ArrowLeft className="h-5 w-5" />

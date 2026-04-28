@@ -332,7 +332,7 @@ export function PaymentForm({
   if (isPaymentSuccessful) {
     return (
       <div className="space-y-4" data-testid="payment-form">
-        <div className={`relative overflow-hidden rounded-2xl border-2 border-green-500/30 bg-green-50 dark:bg-green-950/20 p-8 text-center ${animateClasses.scaleIn}`}>
+        <div className={`relative overflow-hidden rounded-lg border-2 border-green-500/30 bg-green-50 dark:bg-green-950/20 p-8 text-center ${animateClasses.scaleIn}`}>
           {/* CSS confetti */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
             {Array.from({ length: 12 }).map((_, i) => (
@@ -375,7 +375,7 @@ export function PaymentForm({
     const isMobileMoneyPending = activePendingMethod !== 'card'
     return (
       <div className="space-y-4" data-testid="payment-form">
-        <div className={`rounded-2xl border border-primary/30 bg-primary/5 p-6 text-center ${animateClasses.scaleIn}`}>
+        <div className={`rounded-lg border border-primary/30 bg-primary/5 p-6 text-center ${animateClasses.scaleIn}`}>
           <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10" style={{ animation: 'pending-pulse 2s ease-in-out infinite' }}>
             {isMobileMoneyPending ? <Smartphone className="h-10 w-10 text-primary" /> : <CreditCard className="h-10 w-10 text-primary" />}
           </div>
@@ -430,7 +430,7 @@ export function PaymentForm({
     const errorInfo = classifyError(momoError || cardStatusMessage || '')
     return (
       <div className="space-y-4" data-testid="payment-form">
-        <div className={`rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-center ${animateClasses.scaleIn}`}>
+        <div className={`rounded-lg border border-destructive/30 bg-destructive/5 p-6 text-center ${animateClasses.scaleIn}`}>
           {errorInfo.type === 'network' ? (
             <WifiOff className="mx-auto mb-3 h-10 w-10 text-destructive/70" />
           ) : (
@@ -456,7 +456,7 @@ export function PaymentForm({
         <button
           type="button"
           onClick={() => setPaymentMethod('mobile-money')}
-          className={`relative flex items-start gap-4 rounded-2xl border-2 p-5 text-left transition-all ${
+          className={`relative flex items-start gap-4 rounded-lg border-2 p-5 text-left transition-all ${
             paymentMethod === 'mobile-money'
               ? 'border-primary bg-primary/5'
               : 'border-dashed border-border bg-card text-muted-foreground hover:border-primary/40'
@@ -480,7 +480,7 @@ export function PaymentForm({
         <button
           type="button"
           onClick={() => setPaymentMethod('card')}
-          className={`relative flex items-start gap-4 rounded-2xl border-2 p-5 text-left transition-all ${
+          className={`relative flex items-start gap-4 rounded-lg border-2 p-5 text-left transition-all ${
             paymentMethod === 'card'
               ? 'border-primary bg-primary/5'
               : 'border-dashed border-border bg-card text-muted-foreground hover:border-primary/40'
@@ -504,7 +504,7 @@ export function PaymentForm({
 
       {/* Mobile Money Form */}
       {paymentMethod === 'mobile-money' && (
-        <div className="space-y-4 rounded-2xl border border-border bg-card/50 p-5">
+        <div className="space-y-4 rounded-lg border border-border bg-card/50 p-5">
           <div className="flex flex-wrap items-center gap-2" aria-label="Supported mobile money networks">
             <span className="rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
               Airtel Money
@@ -574,7 +574,7 @@ export function PaymentForm({
 
       {/* Card Payment */}
       {paymentMethod === 'card' && (
-        <div className="space-y-4 rounded-2xl border border-border bg-card/50 p-5">
+        <div className="space-y-4 rounded-lg border border-border bg-card/50 p-5">
           {!isScriptLoaded && !widgetLoading && (
             <div className="rounded-xl border border-warning/30 bg-warning/5 p-4 text-sm">
               <p className="text-muted-foreground">{widgetLoadError || 'The card payment module is loading…'}</p>

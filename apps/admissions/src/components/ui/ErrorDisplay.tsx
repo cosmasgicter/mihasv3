@@ -80,7 +80,7 @@ export function ErrorDisplay({
       role="alert"
       aria-live="assertive"
       className={cn(
-        'flex flex-col items-center gap-4 rounded-2xl border border-border/60 bg-card p-8 text-center shadow-sm',
+        'flex flex-col items-center gap-4 rounded-lg border border-border/60 bg-card p-8 text-center shadow-sm',
         className,
       )}
     >

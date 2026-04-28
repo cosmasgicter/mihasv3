@@ -187,7 +187,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
 
 
   return (
-    <div className={`relative bg-card rounded-2xl border p-4 sm:p-6 shadow-sm hover:shadow-md transition-all duration-200 group ${
+    <div className={`relative bg-card rounded-lg border p-4 sm:p-6 shadow-sm hover:shadow-md transition-all duration-200 group ${
       isSelected ? 'border-primary/40 bg-primary/5 ring-1 ring-primary/20' : 'border-border/60 hover:border-primary/20'
     }`}>
       {/* Selection Checkbox */}
@@ -407,7 +407,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
 
       {/* Loading Overlays */}
       {(updatingStatus || updatingPayment) && (
-        <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-card/80 backdrop-blur-sm">
+        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-card/80 ">
           <div className="flex items-center gap-2 text-sm text-foreground">
             <div className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse" aria-hidden="true" />
             <span>Updating...</span>

@@ -102,7 +102,7 @@ export function UserMenu() {
       {isOpen && (
         <div 
           role="menu"
-          className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] bg-card rounded-lg shadow-2xl border border-border py-1 z-[110]"
+          className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] bg-card rounded-lg shadow-lg border border-border py-1 z-[110]"
           data-testid="user-menu-dropdown"
           onKeyDown={handleMenuKeyDown}
         >

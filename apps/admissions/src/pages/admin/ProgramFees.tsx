@@ -381,7 +381,7 @@ export default function ProgramFees() {
             )}
 
             <div className="grid gap-4 md:grid-cols-2">
-              <Card className="rounded-2xl border-border/60 shadow-sm">
+              <Card className="rounded-lg border-border/60 shadow-sm">
                 <CardHeader className="pb-3">
                   <CardDescription>Active Fees</CardDescription>
                   <CardTitle className="flex items-center gap-2 text-3xl tracking-tight">
@@ -396,7 +396,7 @@ export default function ProgramFees() {
                 </CardContent>
               </Card>
 
-              <Card className="rounded-2xl border-border/60 shadow-sm">
+              <Card className="rounded-lg border-border/60 shadow-sm">
                 <CardHeader className="pb-3">
                   <CardDescription>Programs with Fees</CardDescription>
                   <CardTitle className="flex items-center gap-2 text-3xl tracking-tight">
@@ -413,7 +413,7 @@ export default function ProgramFees() {
             </div>
 
             {fees.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-muted/40 px-6 py-14 text-center">
+              <div className="rounded-lg border border-dashed border-border bg-muted/40 px-6 py-14 text-center">
                 <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <DollarSign className="h-10 w-10" />
                 </div>

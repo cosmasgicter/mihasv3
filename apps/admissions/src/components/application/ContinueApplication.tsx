@@ -182,7 +182,7 @@ export function ContinueApplication() {
   return (
     <SectionCard
       className={cn(
-        'shadow-md backdrop-blur-sm',
+        'shadow-md ',
         isExpiringSoon() ? 'border-warning/30 bg-warning/5' : 'border-border/80 bg-card/90'
       )}
       padding="sm"

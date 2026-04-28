@@ -109,7 +109,7 @@ function BottomNavLink({
   const baseClassName = cn(
     'flex flex-col items-center justify-center',
     'min-h-[44px] min-w-[44px] px-3 py-2',
-    'rounded-xl',
+    'rounded-lg',
     'transition-colors duration-150',
     'touch-manipulation select-none',
     '[-webkit-tap-highlight-color:transparent]',
@@ -240,7 +240,7 @@ export function BottomNavigation({
     <nav
       className={cn(
         'fixed bottom-0 left-0 right-0 z-50',
-        'border-t border-border/40 bg-background/80 shadow-[0_-18px_50px_rgba(15,23,42,0.12)] backdrop-blur-xl',
+        'border-t border-border/45 bg-background shadow-sm',
         'md:hidden',
         className
       )}
@@ -253,7 +253,7 @@ export function BottomNavigation({
           <div className="fixed inset-0 z-[-1]" onClick={() => setIsMoreOpen(false)} aria-hidden="true" />
           <div
             id="bottom-navigation-overflow"
-            className="absolute bottom-full left-3 right-3 mb-3 rounded-3xl border border-border/80 bg-background/95 px-3 pb-3 pt-3 shadow-2xl backdrop-blur-xl"
+            className="absolute bottom-full left-3 right-3 mb-3 rounded-lg border border-border/60 bg-background px-3 pb-3 pt-3 shadow-lg"
             role="menu"
             aria-label="More navigation items"
             onKeyDown={(e) => {
@@ -290,7 +290,7 @@ export function BottomNavigation({
             ref={moreButtonRef}
             onClick={() => setIsMoreOpen((prev) => !prev)}
             className={cn(
-              'flex flex-col items-center justify-center rounded-xl',
+              'flex flex-col items-center justify-center rounded-lg',
               'min-h-[44px] min-w-[44px] px-3 py-2',
               'touch-manipulation select-none [-webkit-tap-highlight-color:transparent]',
               'transition-colors duration-150',

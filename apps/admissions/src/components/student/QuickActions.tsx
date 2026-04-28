@@ -67,7 +67,7 @@ function ActionCard({
   const content = (
     <div
       className={cn(
-        'interactive-surface motion-card flex min-h-[44px] items-center gap-3 rounded-2xl border p-3',
+        'interactive-surface motion-card flex min-h-[44px] items-center gap-3 rounded-lg border p-3',
         variantStyles[variant],
         disabled && 'opacity-50 cursor-not-allowed',
         !disabled && 'cursor-pointer'
@@ -131,7 +131,7 @@ export function QuickActions({
   }
 
   return (
-    <Card className={cn('border-border/50 rounded-2xl', className)}>
+    <Card className={cn('border-border/50 rounded-lg', className)}>
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-semibold flex items-center gap-2">
           <Plus className="h-4 w-4 text-primary" />

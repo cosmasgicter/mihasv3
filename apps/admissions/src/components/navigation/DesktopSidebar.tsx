@@ -95,7 +95,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
   return (
     <aside
       aria-label="Main navigation"
-      className="fixed left-0 top-0 z-40 hidden h-screen flex-col border-r border-white/10 bg-slate-950 text-white shadow-2xl transition-all duration-300 ease-in-out md:flex"
+      className="fixed left-0 top-0 z-40 hidden h-screen flex-col border-r border-slate-800 bg-slate-950 text-white shadow-lg transition-all duration-200 ease-in-out md:flex"
       style={{ width: collapsed ? 'var(--sidebar-collapsed)' : 'var(--sidebar-expanded)' }}
     >
       {/* Header / Logo area */}
@@ -103,12 +103,11 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         'relative overflow-hidden border-b border-white/10 py-4 transition-all duration-300',
         collapsed ? 'px-2' : 'px-4'
       )}>
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(14,165,233,0.28),transparent_32%),radial-gradient(circle_at_80%_0%,rgba(34,197,94,0.16),transparent_28%)]" aria-hidden="true" />
         <div className={cn(
-          'relative flex items-center rounded-3xl border border-white/10 bg-white/10 shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-300',
+          'relative flex items-center rounded-lg border border-white/10 bg-white/5 shadow-sm transition-all duration-200',
           collapsed ? 'justify-center px-2 py-3' : 'gap-3 px-3 py-3'
         )} role="img" aria-label="Mukuba Institute of Health and Allied Sciences logo">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400 via-cyan-400 to-emerald-300 text-slate-950 shadow-lg shadow-sky-950/40" aria-hidden="true">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-cyan-300 text-slate-950 shadow-sm" aria-hidden="true">
             <span className="text-sm font-black tracking-tight">MI</span>
           </div>
 
@@ -186,8 +185,8 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         collapsed ? 'p-2' : 'p-4'
       )}>
         {!collapsed ? (
-          <div className="flex items-center gap-3 rounded-3xl border border-white/10 bg-white/10 px-3 py-3 text-xs text-slate-300 shadow-sm transition-opacity duration-200 motion-reduce:transition-none">
-            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-400/15 text-emerald-200">
+          <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/10 px-3 py-3 text-xs text-slate-300 shadow-sm transition-opacity duration-200 motion-reduce:transition-none">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-400/15 text-emerald-200">
               <Sparkles className="h-4 w-4" />
             </div>
             <div>
@@ -198,7 +197,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         ) : (
           <Tooltip content="Workspace ready" side="right">
             <div className="flex justify-center transition-opacity duration-200 motion-reduce:transition-none" role="status">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-emerald-200 shadow-sm">
+              <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-white/10 text-emerald-200 shadow-sm">
                 <Sparkles className="h-4 w-4" aria-hidden="true" />
               </div>
               <span className="sr-only">Workspace ready</span>

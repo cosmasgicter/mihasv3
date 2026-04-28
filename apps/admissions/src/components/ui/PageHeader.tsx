@@ -24,9 +24,9 @@ export interface PageHeaderProps {
 }
 
 const variantStyles: Record<NonNullable<PageHeaderProps['variant']>, string> = {
- gradient: 'bg-gradient-vibrant text-primary-foreground border-card/20 shadow-2xl',
- surface: 'bg-card text-foreground border border-border shadow-xl',
- subtle: 'bg-card/90 text-foreground border border-card/60 shadow-lg backdrop-blur-sm'
+ gradient: 'bg-gradient-vibrant text-primary-foreground border-card/20 shadow-lg',
+ surface: 'bg-card text-foreground border border-border shadow-md',
+ subtle: 'bg-card/90 text-foreground border border-card/60 shadow-lg '
 }
 
 const statAccentStyles: Record<StatAccent, string> = {
@@ -60,14 +60,14 @@ export function PageHeader({
  const { label, value, icon: statIcon, accent = 'neutral' } = stat
 
  const baseClasses = isGradient
- ? 'bg-white/95 border-white/40 text-foreground backdrop-blur-md'
+ ? 'bg-white/95 border-white/40 text-foreground '
  : statAccentStyles[accent]
 
  return (
  <div
  key={index}
  className={cn(
- 'flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-sm backdrop-blur-sm',
+ 'flex items-center gap-3 rounded-lg border px-4 py-3 shadow-sm ',
  baseClasses
  )}
  >
@@ -86,7 +86,7 @@ export function PageHeader({
 		 <div className="animate-fade-in">
 			 <header
 				 className={cn(
-					 'relative overflow-hidden rounded-3xl section-padding',
+					 'relative overflow-hidden rounded-lg section-padding',
 					 variantStyles[variant],
 					 className
 				 )}
@@ -108,8 +108,8 @@ export function PageHeader({
 							 {icon && (
 								 <div
 									 className={cn(
-										 'flex items-center justify-center rounded-2xl border shadow-inner',
-										 isGradient ? 'border-white/40 bg-white/95 text-foreground backdrop-blur-md' : 'border-primary/10 bg-primary/5 text-primary'
+										 'flex items-center justify-center rounded-lg border shadow-inner',
+										 isGradient ? 'border-white/40 bg-white/95 text-foreground ' : 'border-primary/10 bg-primary/5 text-primary'
 									 )}
 									 style={{ width: '3.5rem', height: '3.5rem', fontSize: 'var(--type-2xl)' }}
 								 >
