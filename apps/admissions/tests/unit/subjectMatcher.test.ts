@@ -67,6 +67,22 @@ describe('findBestSubjectId', () => {
       ])
       expect(result).toBe('math')
     })
+
+    it('prefers backend UUID subjects over frontend fallback subjects', () => {
+      const result = findBestSubjectId('Commerce', [
+        { id: 'fallback-commerce', name: 'Commerce', code: 'COM' },
+        { id: '2d055d2c-2c0a-4b90-a00f-6e5b0ffb279f', name: 'Commerce', code: 'COM' },
+      ])
+      expect(result).toBe('2d055d2c-2c0a-4b90-a00f-6e5b0ffb279f')
+    })
+
+    it('uses backend UUIDs for OCR aliases before falling back to local IDs', () => {
+      const result = findBestSubjectId('Ordinary Science', [
+        { id: 'fallback-science', name: 'Science', code: 'SCI' },
+        { id: '6f34b423-04ea-40d6-8ce5-c53400f10c29', name: 'Science', code: 'SCI' },
+      ])
+      expect(result).toBe('6f34b423-04ea-40d6-8ce5-c53400f10c29')
+    })
   })
 
   describe('abbreviations', () => {
