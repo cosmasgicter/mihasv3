@@ -68,7 +68,7 @@ export function BaseNavigation({
   }
 
   return (
-    <nav className={cn("bg-card/95 backdrop-blur-sm shadow-lg border-b border-border/50 sticky top-0 z-50", className)}>
+    <nav className={cn("bg-card/95  shadow-lg border-b border-border/50 sticky top-0 z-50", className)}>
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-3 sm:py-4 max-w-7xl mx-auto">
           {/* Brand */}
@@ -102,7 +102,7 @@ export function BaseNavigation({
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/70 backdrop-blur-md lg:hidden transition-opacity duration-250 motion-reduce:transition-none"
+            className="fixed inset-0 bg-black/70  lg:hidden transition-opacity duration-250 motion-reduce:transition-none"
             style={{ zIndex: 9998 }}
             onClick={closeMenu}
           />
@@ -110,7 +110,7 @@ export function BaseNavigation({
           {/* Mobile Menu */}
           <div
             className={cn(
-              "fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-card shadow-2xl lg:hidden border-l-4 border-primary overflow-y-auto",
+              "fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-card shadow-lg lg:hidden border-l-4 border-primary overflow-y-auto",
               "transition-transform duration-250 ease-standard motion-reduce:transition-none",
               isOpen ? "translate-x-0" : "translate-x-full"
             )}

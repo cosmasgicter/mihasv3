@@ -76,7 +76,7 @@ export function ApplicationsCards({
                 className={`relative overflow-hidden rounded-xl shadow-lg transition-all duration-300 card-mobile ${
                   selectedApplications.includes(application.id) 
                     ? 'ring-2 ring-primary bg-blue-50' 
-                    : 'hover:shadow-2xl hover:-translate-y-1'
+                    : 'hover:shadow-lg hover:-translate-y-1'
                 }`}
               >
                 <div className="relative z-10 p-6">

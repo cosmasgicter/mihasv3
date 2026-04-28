@@ -62,7 +62,7 @@
   /* Status cards: clean borders, no shadows, avoid page breaks (Req 15.3, 15.4) */
   .rounded-xl,
   .rounded-lg,
-  .rounded-2xl {
+  .rounded-lg {
     border: 1px solid #333 !important;
     box-shadow: none !important;
     break-inside: avoid;

@@ -205,7 +205,7 @@ export default function ApplicationDetail() {
 
         {/* Documents */}
         <div
-          className={`bg-card rounded-2xl shadow-lg border border-border p-6 mb-8 ${animateClasses.slideUp}`}
+          className={`bg-card rounded-lg shadow-lg border border-border p-6 mb-8 ${animateClasses.slideUp}`}
           style={staggerChild(2, 100)}
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
@@ -225,7 +225,7 @@ export default function ApplicationDetail() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Personal Information */}
           <div
-            className={`bg-card rounded-2xl shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
+            className={`bg-card rounded-lg shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
             style={staggerChild(3, 100)}
           >
             <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
@@ -266,7 +266,7 @@ export default function ApplicationDetail() {
 
           {/* Program Information */}
           <div
-            className={`bg-card rounded-2xl shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
+            className={`bg-card rounded-lg shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
             style={staggerChild(4, 100)}
           >
             <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
@@ -295,7 +295,7 @@ export default function ApplicationDetail() {
 
           {/* Application Timeline */}
           <div
-            className={`bg-card rounded-2xl shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
+            className={`bg-card rounded-lg shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
             style={staggerChild(5, 100)}
           >
             <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
@@ -344,7 +344,7 @@ export default function ApplicationDetail() {
 
           {/* Payment Information */}
           <div
-            className={`bg-card rounded-2xl shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
+            className={`bg-card rounded-lg shadow-lg border border-border p-6 ${animateClasses.slideUp}`}
             style={staggerChild(6, 100)}
           >
             <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">

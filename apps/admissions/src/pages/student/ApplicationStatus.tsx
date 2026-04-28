@@ -484,11 +484,11 @@ export default function ApplicationStatus() {
             <div className="polished-panel p-5 sm:p-6">
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary/80">Decision snapshot</p>
               <div className="mt-4 grid gap-3">
-                <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                <div className="rounded-lg bg-slate-50 px-4 py-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Status</p>
                   <p className="mt-1 text-lg font-semibold text-slate-950">{formatStatusLabel(application.status)}</p>
                 </div>
-                <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                <div className="rounded-lg bg-slate-50 px-4 py-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Priority</p>
                   <p className="mt-1 text-lg font-semibold text-slate-950">
                     {needsPaymentAttention ? 'Resolve payment' : hasActiveInterview ? 'Prepare for interview' : application.status === 'approved' ? 'Confirm enrollment' : 'Watch review progress'}

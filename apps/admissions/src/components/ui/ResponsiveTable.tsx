@@ -78,7 +78,7 @@ function TableView<T>({
     <table className="w-full border-collapse" aria-label={caption}>
       {caption && <caption className="sr-only">{caption}</caption>}
       <thead className="sticky top-0 z-10">
-        <tr className="border-b border-border/40 bg-muted/50 backdrop-blur-sm">
+        <tr className="border-b border-border/40 bg-muted/50 ">
           {columns.map((col) => (
             <th
               key={String(col.key)}

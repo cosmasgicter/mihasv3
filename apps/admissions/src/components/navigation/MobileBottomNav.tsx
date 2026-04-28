@@ -96,7 +96,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
   return (
     <>
       <nav 
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/40 bg-background/80 backdrop-blur-xl shadow-lg safe-area-bottom animate-fade-in"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/40 bg-background/80  shadow-lg safe-area-bottom animate-fade-in"
         role="navigation"
         aria-label="Mobile bottom navigation"
       >
@@ -127,10 +127,10 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
             role="button"
             tabIndex={0}
             aria-label="Close more menu"
-            className="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 animate-fade-in"
+            className="md:hidden fixed inset-0 bg-black/50  z-40 animate-fade-in"
           />
           <div 
-            className="md:hidden fixed bottom-20 right-4 w-56 max-w-[calc(100vw-2rem)] bg-card rounded-2xl shadow-lg border border-border z-50 overflow-hidden animate-fade-in"
+            className="md:hidden fixed bottom-20 right-4 w-56 max-w-[calc(100vw-2rem)] bg-card rounded-lg shadow-lg border border-border z-50 overflow-hidden animate-fade-in"
             role="menu"
             aria-label="Additional student options"
           >
@@ -167,10 +167,10 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
             role="button"
             tabIndex={0}
             aria-label="Close more menu"
-            className="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 animate-fade-in"
+            className="md:hidden fixed inset-0 bg-black/50  z-40 animate-fade-in"
           />
           <div 
-            className="md:hidden fixed bottom-20 right-4 w-56 max-w-[calc(100vw-2rem)] bg-card rounded-2xl shadow-lg border border-border z-50 overflow-hidden animate-fade-in"
+            className="md:hidden fixed bottom-20 right-4 w-56 max-w-[calc(100vw-2rem)] bg-card rounded-lg shadow-lg border border-border z-50 overflow-hidden animate-fade-in"
             role="menu"
             aria-label="Additional navigation options"
           >

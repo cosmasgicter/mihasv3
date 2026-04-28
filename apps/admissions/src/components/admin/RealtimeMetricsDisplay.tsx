@@ -132,7 +132,7 @@ function DataUpdateFlash({
   return (
     <div
       className={cn(
-        'rounded-2xl transition-shadow duration-600 motion-reduce:transition-none',
+        'rounded-lg transition-shadow duration-600 motion-reduce:transition-none',
         // Intentional inline rgba: blue-500 at 30% opacity for highlight glow ring — Tailwind has no semantic shadow-color utility for this
         show && 'shadow-[0_0_0_4px_rgba(59,130,246,0.3)]'
       )}
@@ -198,7 +198,7 @@ function MetricCard({
     <DataUpdateFlash show={showFlash}>
       <div
         className={cn(
-          "bg-card rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5",
+          "bg-card rounded-lg shadow-sm hover:shadow-md hover:-translate-y-0.5",
           "transition-all duration-300 border border-border/60 relative overflow-hidden",
           "motion-reduce:hover:translate-y-0",
           "animate-fade-in opacity-0",

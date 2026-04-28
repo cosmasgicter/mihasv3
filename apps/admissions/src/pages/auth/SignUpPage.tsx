@@ -201,17 +201,12 @@ export default function SignUpPage() {
             </Banner>
           ) : null}
 
-          <div className="glass-panel p-5">
-            <div className="flex flex-wrap gap-2">
-              <span className="feature-chip">Create once</span>
-              <span className="feature-chip">Reuse profile later</span>
-              <span className="feature-chip">Move faster in the wizard</span>
-            </div>
-            <p className="mt-4 text-sm leading-6 text-slate-600">
-              This account is your secure starting point. Once it exists, the application flow becomes faster because core profile details can carry forward into your admissions journey.
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <p className="text-sm leading-6 text-slate-600">
+              Create your secure portal account first. Program choice, uploads, and payment happen in the application flow after sign in.
             </p>
           </div>
-          <fieldset className="space-y-4 rounded-2xl border border-border/30 bg-muted/30 p-5 sm:p-6">
+          <fieldset className="space-y-4 rounded-lg border border-border/35 bg-white p-4 sm:p-5">
             <legend className="px-2 text-base font-semibold text-foreground">Portal access</legend>
 
             <Input
@@ -273,7 +268,7 @@ export default function SignUpPage() {
             })()}
           </fieldset>
 
-          <fieldset className="space-y-4 rounded-2xl border border-border/30 bg-muted/30 p-5 sm:p-6">
+          <fieldset className="space-y-4 rounded-lg border border-border/35 bg-white p-4 sm:p-5">
             <legend className="px-2 text-base font-semibold text-foreground">Profile basics</legend>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

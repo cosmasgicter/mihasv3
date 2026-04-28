@@ -31,7 +31,7 @@ export default function TermsPage() {
           />
 
           {/* Table of Contents */}
-          <nav aria-label="Table of contents" className="rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm p-6">
+          <nav aria-label="Table of contents" className="rounded-lg border border-border/40 bg-card/80  p-6">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">On this page</h2>
             <ol className="space-y-2">
               {sections.map((s, i) => (

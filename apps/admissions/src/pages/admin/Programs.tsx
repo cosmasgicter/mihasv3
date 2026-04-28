@@ -454,7 +454,7 @@ export default function AdminPrograms() {
   const renderProgramGrid = () => {
     if (programs.length === 0) {
       return (
-        <div className="rounded-2xl border border-dashed border-border bg-muted/40 px-6 py-14 text-center">
+        <div className="rounded-lg border border-dashed border-border bg-muted/40 px-6 py-14 text-center">
           <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
             <GraduationCap className="h-10 w-10" aria-hidden="true" />
           </div>
@@ -552,7 +552,7 @@ export default function AdminPrograms() {
   const renderInstitutionGrid = () => {
     if (institutions.length === 0) {
       return (
-        <div className="rounded-2xl border border-dashed border-border bg-muted/40 px-6 py-14 text-center">
+        <div className="rounded-lg border border-dashed border-border bg-muted/40 px-6 py-14 text-center">
           <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Building2 className="h-10 w-10" aria-hidden="true" />
           </div>
@@ -738,7 +738,7 @@ export default function AdminPrograms() {
                 ) : null}
 
                 <div className="grid gap-4 md:grid-cols-3">
-                  <Card className="rounded-2xl border-border/60 shadow-sm">
+                  <Card className="rounded-lg border-border/60 shadow-sm">
                     <CardHeader className="pb-3">
                       <CardDescription>Total Programs</CardDescription>
                       <CardTitle className="flex items-center gap-2 text-3xl tracking-tight">
@@ -753,7 +753,7 @@ export default function AdminPrograms() {
                     </CardContent>
                   </Card>
 
-                  <Card className="rounded-2xl border-border/60 shadow-sm">
+                  <Card className="rounded-lg border-border/60 shadow-sm">
                     <CardHeader className="pb-3">
                       <CardDescription>Institutions</CardDescription>
                       <CardTitle className="flex items-center gap-2 text-3xl tracking-tight">
@@ -768,7 +768,7 @@ export default function AdminPrograms() {
                     </CardContent>
                   </Card>
 
-                  <Card className="rounded-2xl border-border/60 shadow-sm">
+                  <Card className="rounded-lg border-border/60 shadow-sm">
                     <CardHeader className="pb-3">
                       <CardDescription>Archived Institutions</CardDescription>
                       <CardTitle className="flex items-center gap-2 text-3xl tracking-tight">

@@ -222,7 +222,7 @@ const SubmitStep = ({
       >
         {/* AI-powered personalized summary */}
         {(aiSummary || fallbackSummary || aiLoading) && (
-          <div className={`rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5 p-5 ${animateClasses.fadeIn}`}>
+          <div className={`rounded-lg border border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5 p-5 ${animateClasses.fadeIn}`}>
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-primary/10">
                 <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />

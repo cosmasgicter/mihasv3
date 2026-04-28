@@ -23,7 +23,7 @@ export function ApplicationsMetrics({ stats, show }: ApplicationsMetricsProps) {
     <div 
       className={`${animateClasses.slideUp} opacity-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-6 mb-6 sm:mb-8`}
     >
-      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-blue-500 to-blue-600 text-white col-span-2 sm:col-span-1">
+      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-lg hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-blue-500 to-blue-600 text-white col-span-2 sm:col-span-1">
         <div className="relative z-10 p-6">
         <div className="flex items-center justify-between">
           <div>
@@ -35,7 +35,7 @@ export function ApplicationsMetrics({ stats, show }: ApplicationsMetricsProps) {
         </div>
       </div>
       
-      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-muted-foreground to-foreground text-white">
+      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-lg hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-muted-foreground to-foreground text-white">
         <div className="relative z-10 p-6">
         <div className="flex items-center justify-between">
           <div>
@@ -47,7 +47,7 @@ export function ApplicationsMetrics({ stats, show }: ApplicationsMetricsProps) {
         </div>
       </div>
       
-      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-yellow-500 to-orange-500 text-white">
+      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-lg hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-yellow-500 to-orange-500 text-white">
         <div className="relative z-10 p-6">
         <div className="flex items-center justify-between">
           <div>
@@ -59,7 +59,7 @@ export function ApplicationsMetrics({ stats, show }: ApplicationsMetricsProps) {
         </div>
       </div>
       
-      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-purple-500 to-indigo-500 text-white">
+      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-lg hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-purple-500 to-indigo-500 text-white">
         <div className="relative z-10 p-6">
         <div className="flex items-center justify-between">
           <div>
@@ -71,7 +71,7 @@ export function ApplicationsMetrics({ stats, show }: ApplicationsMetricsProps) {
         </div>
       </div>
       
-      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-green-500 to-emerald-500 text-white">
+      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-lg hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-green-500 to-emerald-500 text-white">
         <div className="relative z-10 p-6">
         <div className="flex items-center justify-between">
           <div>
@@ -83,7 +83,7 @@ export function ApplicationsMetrics({ stats, show }: ApplicationsMetricsProps) {
         </div>
       </div>
       
-      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-red-500 to-pink-500 text-white">
+      <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-lg hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-red-500 to-pink-500 text-white">
         <div className="relative z-10 p-6">
         <div className="flex items-center justify-between">
           <div>

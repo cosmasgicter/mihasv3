@@ -68,7 +68,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
     <div className="space-y-6">
       {/* Primary Actions */}
       <div 
-        className={`${animateClasses.slideUp} opacity-0 bg-card rounded-2xl shadow-lg border border-border`}
+        className={`${animateClasses.slideUp} opacity-0 bg-card rounded-lg shadow-lg border border-border`}
         style={staggerChild(0)}
       >
         <div className="px-6 py-4 border-b border-border">
@@ -87,7 +87,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
                     style={staggerChild(index)}
                   >
                     <Button 
-                      className={`w-full h-24 flex flex-col items-center justify-center space-y-2 bg-gradient-to-r ${action.color} hover:shadow-xl transition-all duration-300 relative overflow-hidden`}
+                      className={`w-full h-24 flex flex-col items-center justify-center space-y-2 bg-gradient-to-r ${action.color} hover:shadow-md transition-all duration-300 relative overflow-hidden`}
                     >
                       {action.urgent && (
                         <div className="absolute top-2 right-2">
@@ -112,7 +112,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
 
       {/* System Tools */}
       <div 
-        className={`${animateClasses.slideUp} opacity-0 bg-card rounded-2xl shadow-lg border border-border`}
+        className={`${animateClasses.slideUp} opacity-0 bg-card rounded-lg shadow-lg border border-border`}
         style={staggerChild(2)}
       >
         <div className="px-6 py-4 border-b border-border">
@@ -166,7 +166,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
 
       {/* Quick Stats */}
       <div 
-        className={`${animateClasses.slideUp} opacity-0 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-primary/30`}
+        className={`${animateClasses.slideUp} opacity-0 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 border border-primary/30`}
         style={staggerChild(4)}
       >
         <h3 className="text-lg font-bold text-foreground mb-4"><BarChart3 className="w-5 h-5" /> Quick Stats</h3>

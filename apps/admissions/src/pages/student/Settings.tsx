@@ -308,8 +308,8 @@ export default function StudentSettings() {
               aria-live={saveStatus.tone === 'error' ? 'assertive' : 'polite'}
               className={
                 saveStatus.tone === 'error'
-                  ? 'rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive'
-                  : 'rounded-2xl border border-success/30 bg-success/5 px-4 py-3 text-sm text-success'
+                  ? 'rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive'
+                  : 'rounded-lg border border-success/30 bg-success/5 px-4 py-3 text-sm text-success'
               }
             >
               {saveStatus.message}
@@ -493,17 +493,17 @@ export default function StudentSettings() {
             }
           >
             <div className="grid gap-4 sm:grid-cols-3">
-              <div className="rounded-2xl border border-border bg-muted/40 px-4 py-3">
+              <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Delivery phone</p>
                 <p className="mt-2 text-sm font-semibold text-foreground">
                   {getDisplayValue(notificationPhone, 'No phone number on file')}
                 </p>
               </div>
-              <div className="rounded-2xl border border-border bg-muted/40 px-4 py-3">
+              <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">In-app inbox</p>
                 <p className="mt-2 text-sm font-semibold text-foreground">Always available in the portal</p>
               </div>
-              <div className="rounded-2xl border border-border bg-muted/40 px-4 py-3">
+              <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Channel controls</p>
                 <p className="mt-2 text-sm font-semibold text-foreground">SMS delivery settings</p>
               </div>
@@ -515,7 +515,7 @@ export default function StudentSettings() {
             description="Review every device currently signed in to your account and revoke any session you do not recognize."
             icon={<Shield className="h-5 w-5" />}
           >
-            <div className="rounded-2xl border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+            <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
               Terminating another session signs that device out without affecting the current page. Use this after shared-device access or if you notice an unfamiliar browser or IP address.
             </div>
             <ActiveSessions />

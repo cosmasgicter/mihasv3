@@ -102,7 +102,7 @@ function MetricCard({
 
   const content = (
     <div className={cn(
-      'rounded-2xl border border-border/50 p-4 transition-all duration-200',
+      'rounded-lg border border-border/50 p-4 transition-all duration-200',
       'border-l-4',
       accentStyles[accent],
       href && 'hover:shadow-md hover:border-primary/20 cursor-pointer min-h-[44px]',
@@ -258,7 +258,7 @@ export function DashboardStatusOverview({
       {/* Requirement 19.4: Zero applications prompt */}
       {stats.total === 0 && (
         <div
-          className={`${animateClasses.slideUp} opacity-0 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-6 text-center`}
+          className={`${animateClasses.slideUp} opacity-0 rounded-lg border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-6 text-center`}
           style={staggerChild(4)}
         >
           <p className="text-sm font-semibold text-foreground mb-1">
@@ -279,7 +279,7 @@ export function DashboardStatusOverview({
       {/* Current Application Status */}
       {latestApplication && (
         <div className={`${animateClasses.slideUp} opacity-0`} style={staggerChild(5)}>
-          <Card className="border-border/50 overflow-hidden rounded-2xl">
+          <Card className="border-border/50 overflow-hidden rounded-lg">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-primary" />
@@ -324,7 +324,7 @@ export function DashboardStatusOverview({
       {/* Pending Payment Alert */}
       {paymentActionRequiredCount > 0 && (
         <div
-          className={`${animateClasses.scaleIn} opacity-0 rounded-2xl border border-warning/30 bg-gradient-to-br from-warning/10 to-transparent p-4`}
+          className={`${animateClasses.scaleIn} opacity-0 rounded-lg border border-warning/30 bg-gradient-to-br from-warning/10 to-transparent p-4`}
           style={staggerChild(6)}
         >
           <div className="flex items-start gap-3">

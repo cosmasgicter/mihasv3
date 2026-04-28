@@ -15,21 +15,21 @@ import { ButtonSpinner } from './ButtonSpinner'
 
 const buttonVariants = cva(
   // Base styles with focus-visible ring and touch-manipulation for mobile
-  'relative inline-flex transform-gpu items-center justify-center gap-2 whitespace-nowrap rounded-xl font-semibold ring-offset-background transition-[transform,box-shadow,background-color,border-color,color,opacity,filter] duration-200 ease-smooth-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 touch-manipulation [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-semibold ring-offset-background transition-all duration-200 ease-smooth-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 touch-manipulation [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
         default: 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-[0.98]',
         primary: 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-[0.98]',
-        secondary: 'bg-secondary text-secondary-foreground border border-border shadow-sm hover:bg-secondary/80 active:scale-[0.98]',
-        outline: 'border-2 border-primary text-primary bg-transparent hover:bg-primary/5 active:scale-[0.98]',
+        secondary: 'bg-secondary text-secondary-foreground border border-border/35 shadow-sm hover:bg-secondary/80 active:scale-[0.98]',
+        outline: 'border border-border/60 bg-background text-foreground shadow-sm hover:border-primary/40 hover:bg-primary/5 hover:text-primary active:scale-[0.98]',
         ghost: 'text-primary hover:bg-primary/5 active:scale-[0.98]',
         link: 'text-primary underline-offset-4 hover:underline',
         destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 active:scale-[0.98]',
         danger: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 active:scale-[0.98]',
         success: 'bg-success text-white shadow-sm hover:bg-success/90 active:scale-[0.98]',
         warning: 'bg-warning text-white shadow-sm hover:bg-warning/90 active:scale-[0.98]',
-        gradient: 'bg-gradient-to-r from-primary via-primary to-info text-primary-foreground shadow-lg hover:brightness-105 hover:shadow-xl active:scale-[0.98]',
+        gradient: 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-[0.98]',
       },
       size: {
         default: 'h-11 px-4 text-sm',           // 44px - meets touch target minimum

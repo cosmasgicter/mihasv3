@@ -17,7 +17,7 @@ export function LoadingOverlay({ className, message, transparent = false, ...pro
   return (
     <div
       className={cn(
-        'fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm',
+        'fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 ',
         transparent && 'bg-background/60 backdrop-blur-0',
         className
       )}
@@ -25,7 +25,7 @@ export function LoadingOverlay({ className, message, transparent = false, ...pro
       aria-live="polite"
       {...props}
     >
-      <div className="w-full max-w-sm rounded-2xl border border-border bg-card/90 p-6 shadow-xl">
+      <div className="w-full max-w-sm rounded-lg border border-border bg-card/90 p-6 shadow-md">
         <div className="flex flex-col items-center gap-4">
           <Skeleton className="h-14 w-14 rounded-full" />
           <div className="w-full space-y-2 text-center">

@@ -266,7 +266,7 @@ export function BreadcrumbsContainer({
     <div 
       className={cn(
         'bg-card/50 border-b border-border/50',
-        'backdrop-blur-sm',
+        '',
         className
       )}
     >

@@ -89,8 +89,8 @@ const SubmissionSuccess = ({
     <div className="max-w-lg w-full">
       {/* Dismissible slip generation overlay */}
       {(persistingSlip || slipLoading) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" role="dialog" aria-modal="true" onKeyDown={(e) => { if (e.key === 'Escape') onDismissSlipProgress?.() }}>
-          <div className="relative bg-card rounded-lg shadow-xl p-6 max-w-sm w-full mx-4 text-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 " role="dialog" aria-modal="true" onKeyDown={(e) => { if (e.key === 'Escape') onDismissSlipProgress?.() }}>
+          <div className="relative bg-card rounded-lg shadow-md p-6 max-w-sm w-full mx-4 text-center">
             <button
               type="button"
               onClick={onDismissSlipProgress}
@@ -110,7 +110,7 @@ const SubmissionSuccess = ({
         </div>
       )}
       <div
-        className={`bg-card rounded-2xl shadow-sm ring-1 ring-border/50 p-5 sm:p-8 text-center ${animateClasses.scaleIn}`}
+        className={`bg-card rounded-lg shadow-sm ring-1 ring-border/50 p-5 sm:p-8 text-center ${animateClasses.scaleIn}`}
       >
         <div className={`relative inline-flex items-center justify-center ${animateClasses.scaleIn}`}>
           {/* Celebratory ring pulse */}

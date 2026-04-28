@@ -40,7 +40,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] transition-opacity duration-200"
+        className="fixed inset-0 bg-black/50  z-[200] transition-opacity duration-200"
       />
 
       {/* Dialog — scrollable container for mobile */}
@@ -51,7 +51,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             role="dialog"
             aria-modal="true"
             aria-label={title}
-            className="bg-card rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-in"
+            className="bg-card rounded-lg shadow-lg w-full max-w-md overflow-hidden animate-scale-in"
           >
             {/* Header with sticky close button */}
             <div className={`sticky top-0 z-10 p-4 sm:p-6 ${

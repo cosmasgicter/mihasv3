@@ -155,13 +155,13 @@ export function StudentNextActionCard(props: StudentNextActionCardProps) {
   return (
     <section
       className={cn(
-        'overflow-hidden rounded-3xl border p-4 shadow-lg sm:p-5',
+        'overflow-hidden rounded-lg border p-4 shadow-lg sm:p-5',
         toneClasses[action.tone]
       )}
       aria-labelledby="student-next-action-heading"
     >
       <div className="flex items-start gap-4">
-        <div className={cn('grid h-12 w-12 shrink-0 place-items-center rounded-2xl shadow-sm', iconClasses[action.tone])}>
+        <div className={cn('grid h-12 w-12 shrink-0 place-items-center rounded-lg shadow-sm', iconClasses[action.tone])}>
           <Icon className="h-6 w-6" aria-hidden="true" />
         </div>
         <div className="min-w-0 flex-1">

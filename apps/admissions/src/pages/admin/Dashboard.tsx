@@ -347,7 +347,7 @@ export default function AdminDashboard() {
     >
         {/* System Status Bar */}
         <div className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}>
-          <div className="rounded-2xl border border-border/60 bg-card p-4 sm:p-6 shadow-sm">
+          <div className="rounded-lg border border-border/60 bg-card p-4 sm:p-6 shadow-sm">
             <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
               <div className="flex items-center space-x-2">
                 <div className={`w-3 h-3 rounded-full ${
@@ -378,7 +378,7 @@ export default function AdminDashboard() {
         <div className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}>
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Needs attention</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link to="/admin/applications?status=under_review" className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 hover:bg-amber-500/10 transition-colors">
+            <Link to="/admin/applications?status=under_review" className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 hover:bg-amber-500/10 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-amber-500/10 p-2"><ClipboardList className="h-5 w-5 text-amber-600" /></div>
                 <div>
@@ -388,7 +388,7 @@ export default function AdminDashboard() {
               </div>
               <p className="mt-2 text-xs font-medium text-amber-600">Review now →</p>
             </Link>
-            <Link to="/admin/applications?tab=documents" className="rounded-2xl border border-blue-500/30 bg-blue-500/5 p-4 hover:bg-blue-500/10 transition-colors">
+            <Link to="/admin/applications?tab=documents" className="rounded-lg border border-blue-500/30 bg-blue-500/5 p-4 hover:bg-blue-500/10 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-blue-500/10 p-2"><FileCheck className="h-5 w-5 text-blue-600" /></div>
                 <div>
@@ -398,7 +398,7 @@ export default function AdminDashboard() {
               </div>
               <p className="mt-2 text-xs font-medium text-blue-600">Verify documents →</p>
             </Link>
-            <Link to="/admin/applications?tab=payments" className="rounded-2xl border border-rose-500/30 bg-rose-500/5 p-4 hover:bg-rose-500/10 transition-colors">
+            <Link to="/admin/applications?tab=payments" className="rounded-lg border border-rose-500/30 bg-rose-500/5 p-4 hover:bg-rose-500/10 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-rose-500/10 p-2"><CreditCard className="h-5 w-5 text-rose-600" /></div>
                 <div>
@@ -408,7 +408,7 @@ export default function AdminDashboard() {
               </div>
               <p className="mt-2 text-xs font-medium text-rose-600">Review payments →</p>
             </Link>
-            <Link to="/admin/applications?tab=interviews" className="rounded-2xl border border-violet-500/30 bg-violet-500/5 p-4 hover:bg-violet-500/10 transition-colors">
+            <Link to="/admin/applications?tab=interviews" className="rounded-lg border border-violet-500/30 bg-violet-500/5 p-4 hover:bg-violet-500/10 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-violet-500/10 p-2"><Video className="h-5 w-5 text-violet-600" /></div>
                 <div>
@@ -456,7 +456,7 @@ export default function AdminDashboard() {
 
         {(isRefreshing || isManualRefreshing) && (
           <div className="mb-6">
-            <div className="rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
+            <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2 text-sm font-medium text-info-strong">
                   <div className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse" aria-hidden="true" />
@@ -507,7 +507,7 @@ export default function AdminDashboard() {
         </div>
         {/* Weekly Overview */}
         <div 
-          className={`mt-8 rounded-2xl border border-border/60 bg-card shadow-sm ${animateClasses.slideUp}`}
+          className={`mt-8 rounded-lg border border-border/60 bg-card shadow-sm ${animateClasses.slideUp}`}
         >
           <div className="px-6 py-4 border-b border-border/40">
             <h3 className="text-lg font-bold text-foreground flex items-center gap-2">

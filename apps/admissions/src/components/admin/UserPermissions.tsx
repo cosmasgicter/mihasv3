@@ -204,12 +204,12 @@ export function UserPermissions({
 
         <div className="space-y-6">
           <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-border bg-muted/60 p-4">
+            <div className="rounded-lg border border-border bg-muted/60 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Assigned role</p>
               <p className="mt-2 text-lg font-semibold text-foreground">{formatRoleLabel(user.role)}</p>
               <p className="mt-1 text-sm text-foreground">Role defaults start from this access baseline.</p>
             </div>
-            <div className="rounded-2xl border border-border bg-muted/60 p-4">
+            <div className="rounded-lg border border-border bg-muted/60 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Current source</p>
               <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-sm font-medium text-foreground">
                 {permissionSource === 'override' ? <ShieldAlert className="h-4 w-4 text-warning" /> : <ShieldCheck className="h-4 w-4 text-success" />}
@@ -221,7 +221,7 @@ export function UserPermissions({
                   : 'This account currently inherits access directly from the assigned role.'}
               </p>
             </div>
-            <div className="rounded-2xl border border-border bg-muted/60 p-4">
+            <div className="rounded-lg border border-border bg-muted/60 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-foreground">{readOnly ? 'Effective total' : 'After save'}</p>
               <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-sm font-medium text-foreground">
                 {pendingSource === 'override' ? <ShieldAlert className="h-4 w-4 text-warning" /> : <ShieldCheck className="h-4 w-4 text-success" />}
@@ -237,7 +237,7 @@ export function UserPermissions({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+          <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
             <div className="flex items-start gap-3">
               <Shield className="mt-0.5 h-5 w-5 text-primary" />
               <div className="space-y-1">
@@ -250,7 +250,7 @@ export function UserPermissions({
           </div>
 
           {!readOnly && (
-            <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 md:flex-row md:items-center md:justify-between">
               <div className="space-y-2">
                 <p className="text-sm font-medium text-foreground">
                   {matchesRoleDefaults
@@ -284,7 +284,7 @@ export function UserPermissions({
           {isLoading ? (
             <div className="space-y-4 py-6">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="rounded-2xl border border-border bg-card p-4 animate-pulse space-y-3">
+                <div key={i} className="rounded-lg border border-border bg-card p-4 animate-pulse space-y-3">
                   <Skeleton className="h-5 w-32" />
                   <Skeleton className="h-3 w-48" />
                   <div className="grid grid-cols-2 gap-2">
@@ -302,7 +302,7 @@ export function UserPermissions({
               const allSelected = selectedInCategory === categoryPermissions.length
 
               return (
-                <div key={category} className="rounded-2xl border border-border bg-card p-4">
+                <div key={category} className="rounded-lg border border-border bg-card p-4">
                   <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <h3 className="font-semibold text-foreground">{category}</h3>

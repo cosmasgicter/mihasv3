@@ -26,7 +26,7 @@ export function AuthLoadingOverlay({ message = 'Signing you in...' }: AuthLoadin
   return (
     <div
       className={`
-        fixed inset-0 z-50 bg-background/90 backdrop-blur-sm
+        fixed inset-0 z-50 bg-background/90 
         flex items-center justify-center
         transition-opacity duration-200
         ${isVisible ? 'opacity-100' : 'opacity-0'}

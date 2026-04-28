@@ -527,21 +527,21 @@ export default function AdminUsers() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-primary">Access changes</p>
               <p className="mt-2 text-base font-semibold text-foreground">Role and permission saves force reauthentication</p>
               <p className="mt-2 text-sm text-foreground">
                 Admin role updates and custom permission overrides revoke active sessions so the next login receives fresh claims.
               </p>
             </div>
-            <div className="rounded-2xl border border-border bg-muted/50 p-4">
+            <div className="rounded-lg border border-border bg-muted/50 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Operational directory</p>
               <p className="mt-2 text-base font-semibold text-foreground">Deactivated users stay in history, not the live list</p>
               <p className="mt-2 text-sm text-foreground">
                 Account deactivation removes sign-in access immediately while preserving audit continuity and prior application ownership.
               </p>
             </div>
-            <div className="rounded-2xl border border-border bg-muted/50 p-4">
+            <div className="rounded-lg border border-border bg-muted/50 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Account creation</p>
               <p className="mt-2 text-base font-semibold text-foreground">Phone, role, and seeded profile basics are captured together</p>
               <p className="mt-2 text-sm text-foreground">
@@ -587,7 +587,7 @@ export default function AdminUsers() {
           )}
         >
           {error && (
-            <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
               <p className="text-sm font-medium text-destructive">User operations issue</p>
               <p className="mt-1 text-sm text-foreground">{error}</p>
             </div>
@@ -605,7 +605,7 @@ export default function AdminUsers() {
               </div>
             </>
           ) : filteredUsers.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border bg-muted/40 px-6 py-12 text-center">
+            <div className="rounded-lg border border-dashed border-border bg-muted/40 px-6 py-12 text-center">
               <UsersIcon className="mx-auto h-12 w-12 text-foreground" />
               <h3 className="mt-4 text-xl font-semibold text-foreground">
                 {hasActiveFilters ? 'No matching users' : 'No active users found'}
@@ -632,7 +632,7 @@ export default function AdminUsers() {
             </div>
           ) : (
             <>
-              <div className="rounded-2xl border border-border bg-muted/40 p-4">
+              <div className="rounded-lg border border-border bg-muted/40 p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-foreground">Showing the operational active-user directory.</p>
@@ -671,7 +671,7 @@ export default function AdminUsers() {
 
               <div className="hidden overflow-x-auto rounded-xl border border-border/60 lg:block">
                 <table className="min-w-full divide-y divide-border/40" aria-label="Users">
-                  <thead className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm">
+                  <thead className="sticky top-0 z-10 bg-muted/50 ">
                     <tr>
                       <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         <div className="flex items-center gap-2">
@@ -797,7 +797,7 @@ export default function AdminUsers() {
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="rounded-2xl border border-border bg-muted/50 p-4">
+              <div className="rounded-lg border border-border bg-muted/50 p-4">
                 <p className="text-sm font-medium text-foreground">Create the account with its operational role from the start.</p>
                 <p className="mt-1 text-sm text-foreground">
                   The phone number captured here now feeds the same profile/contact flows used elsewhere in the system.
@@ -882,7 +882,7 @@ export default function AdminUsers() {
             </DialogHeader>
             <div className="space-y-4">
               {selectedUser && (
-                <div className="rounded-2xl border border-border bg-muted/50 p-4">
+                <div className="rounded-lg border border-border bg-muted/50 p-4">
                   <p className="text-sm font-medium text-foreground">{sanitizeForDisplay(selectedUser.email)}</p>
                   <p className="mt-1 text-sm text-foreground">
                     Changing the assigned role revokes active sessions so the user signs in again with fresh access.
@@ -957,7 +957,7 @@ export default function AdminUsers() {
               <p className="text-sm text-foreground">
                 Deactivate <strong>{sanitizeForDisplay(selectedUser?.full_name || selectedUser?.email)}</strong>?
               </p>
-              <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
+              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
                 <p className="text-sm font-medium text-destructive">This removes live sign-in access immediately.</p>
                 <p className="mt-1 text-sm text-foreground">
                   Existing sessions are revoked, but audit history and owned records remain intact for operational traceability.

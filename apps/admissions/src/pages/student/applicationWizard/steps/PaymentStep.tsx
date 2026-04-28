@@ -95,7 +95,7 @@ const PaymentStep = ({
         <legend className="sr-only">Payment</legend>
 
         {/* Fee display */}
-        <div className="rounded-2xl border border-border bg-card p-5">
+        <div className="rounded-lg border border-border bg-card p-5">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Application fee</p>

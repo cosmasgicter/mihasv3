@@ -41,7 +41,7 @@ export function DataPopulationConfirmation({
         role="dialog"
         aria-modal="true"
         aria-label="Auto-Fill Detected"
-        className="bg-card rounded-lg shadow-xl max-w-md w-full mx-4"
+        className="bg-card rounded-lg shadow-md max-w-md w-full mx-4"
       >
         <div className="p-6">
           <div className="flex items-center space-x-3 mb-4">

@@ -103,7 +103,7 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
         {/* Right — Status & Actions */}
         <div className={`flex flex-col items-center lg:items-end gap-4 ${animateClasses.fadeIn}`} style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
           {/* Status Badge */}
-          <div className={`inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 backdrop-blur-sm px-5 py-2.5 ${getStatusColor(application.status)}`}>
+          <div className={`inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/10  px-5 py-2.5 ${getStatusColor(application.status)}`}>
             {getStatusIcon(application.status)}
             <span className="text-sm font-bold uppercase tracking-wide text-white">
               {application.status.replace('_', ' ')}
@@ -117,22 +117,22 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
           
           {/* Action Buttons */}
           <div className="flex flex-wrap justify-center lg:justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={onShare} className="rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm">
+            <Button variant="outline" size="sm" onClick={onShare} className="rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 ">
               <Share2 className="h-4 w-4 mr-1.5" />
               Share
             </Button>
-            <Button variant="outline" size="sm" onClick={onCopy} className="rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm">
+            <Button variant="outline" size="sm" onClick={onCopy} className="rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 ">
               <Copy className="h-4 w-4 mr-1.5" />
               {copied ? 'Copied!' : 'Copy #'}
             </Button>
           </div>
           
           <div className="flex flex-wrap justify-center lg:justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={onDownloadSlip} loading={slipLoading} className="rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm">
+            <Button variant="outline" size="sm" onClick={onDownloadSlip} loading={slipLoading} className="rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 ">
               <Download className="h-4 w-4 mr-1.5" />
               Download Slip
             </Button>
-            <Button variant="outline" size="sm" onClick={onEmailSlip} loading={emailLoading} className="rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm">
+            <Button variant="outline" size="sm" onClick={onEmailSlip} loading={emailLoading} className="rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 ">
               <Mail className="h-4 w-4 mr-1.5" />
               Email Slip
             </Button>

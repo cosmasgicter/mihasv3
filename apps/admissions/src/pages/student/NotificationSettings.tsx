@@ -190,7 +190,7 @@ export default function NotificationSettings() {
     return (
       <div
         key={channel}
-        className={`bg-card rounded-2xl shadow-lg border border-border p-6 space-y-4 ${animateClasses.slideUp}`}
+        className={`bg-card rounded-lg shadow-lg border border-border p-6 space-y-4 ${animateClasses.slideUp}`}
         style={staggerChild(0, 100)}
       >
         <div className="flex items-start justify-between gap-4">
@@ -326,18 +326,18 @@ export default function NotificationSettings() {
               icon={<Bell className="h-5 w-5" />}
             >
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                <div className="rounded-2xl border border-border bg-muted/40 px-4 py-3">
+                <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Current delivery number</p>
                   <p className="mt-2 text-sm font-semibold text-foreground break-words">
                     {contactPhone || 'No phone number on file'}
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">{contactSourceLabel}</p>
                 </div>
-                <div className="rounded-2xl border border-border bg-muted/40 px-4 py-3">
+                <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Portal inbox refresh</p>
                   <p className="mt-2 text-sm font-semibold text-foreground">{inboxRefreshLabel}</p>
                 </div>
-                <div className="rounded-2xl border border-border bg-muted/40 px-4 py-3">
+                <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Always enabled</p>
                   <p className="mt-2 text-sm font-semibold text-foreground">Portal inbox notifications</p>
                   <p className="mt-1 text-xs text-muted-foreground">

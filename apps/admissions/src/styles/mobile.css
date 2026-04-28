@@ -78,7 +78,7 @@ button, a, [role="button"] {
 
 /* Optimize backdrop blur for mobile */
 @media (max-width: 768px) {
-  .backdrop-blur-xl {
+  . {
     backdrop-filter: blur(8px);
   }
   
@@ -86,7 +86,7 @@ button, a, [role="button"] {
     backdrop-filter: blur(6px);
   }
   
-  .backdrop-blur-md {
+  . {
     backdrop-filter: blur(4px);
   }
 }

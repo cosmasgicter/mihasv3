@@ -35,7 +35,7 @@ export function SkeletonText({ lines = 3, className }: SkeletonTextProps) {
 
 export function SkeletonCard() {
   return (
-    <div className="p-4 border border-border/60 rounded-2xl space-y-3">
+    <div className="p-4 border border-border/60 rounded-lg space-y-3">
       <Skeleton className="h-5 w-3/5" />
       <div className="space-y-2">
         <Skeleton className="h-4 w-full" />
@@ -181,7 +181,7 @@ export function AuthSkeleton() {
               {/* Feature cards grid */}
               <div className="grid grid-cols-2 gap-4 mt-8">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="rounded-2xl border border-white/20 bg-white/10 p-4">
+                  <div key={i} className="rounded-lg border border-white/20 bg-white/10 p-4">
                     <Skeleton className="h-6 w-6 rounded bg-white/20 mb-2" />
                     <Skeleton className="h-4 w-24 bg-white/15 mb-1" />
                     <Skeleton className="h-3 w-full bg-white/10" />
@@ -221,7 +221,7 @@ export function AuthSkeleton() {
               </div>
 
               {/* Mobile summary card */}
-              <div className="mt-4 rounded-2xl border border-border bg-muted/30 p-4 lg:hidden">
+              <div className="mt-4 rounded-lg border border-border bg-muted/30 p-4 lg:hidden">
                 <Skeleton className="h-4 w-full mb-2" />
                 <Skeleton className="h-4 w-3/4 mb-3" />
                 <div className="flex gap-3">
@@ -232,7 +232,7 @@ export function AuthSkeleton() {
               </div>
 
               {/* Form card */}
-              <div className="mt-6 rounded-[28px] border border-border/70 bg-background/90 p-5 shadow-xl sm:p-8 lg:p-9">
+              <div className="mt-6 rounded-lg border border-border/70 bg-background/90 p-5 shadow-md sm:p-8 lg:p-9">
                 <div className="space-y-5">
                   {/* Badge */}
                   <Skeleton className="h-6 w-40 rounded-full" />

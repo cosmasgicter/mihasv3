@@ -16,6 +16,7 @@ import { Seo } from '@/components/seo/Seo';
 import { prefersReducedMotion } from '@/lib/animation-config';
 import { useDeferredHydration } from '@/hooks/useDeferredHydration';
 import { onLandingMount } from '@/lib/speculativePrefetch';
+import { scheduleLikelyAuthRoutePreload } from '@/lib/routePreload';
 
 const LandingPageSections = lazy(() => import('@/components/landing/LandingPageSections').then((mod) => ({ default: mod.LandingPageSections })));
 
@@ -123,8 +124,8 @@ function LandingSectionsFallback() {
           </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-10">
             {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-                <div className="mb-5 h-16 w-16 animate-pulse rounded-2xl bg-muted" />
+              <div key={index} className="rounded-lg border border-border bg-card p-6 shadow-sm">
+                <div className="mb-5 h-16 w-16 animate-pulse rounded-lg bg-muted" />
                 <div className="mb-3 h-6 w-2/3 animate-pulse rounded bg-muted" />
                 <div className="space-y-2">
                   <div className="h-4 w-full animate-pulse rounded bg-muted/80" />
@@ -153,6 +154,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     onLandingMount()
+    return scheduleLikelyAuthRoutePreload(900)
   }, [])
 
   useEffect(() => {
