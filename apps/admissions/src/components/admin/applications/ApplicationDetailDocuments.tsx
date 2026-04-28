@@ -1,6 +1,44 @@
-import { FileText, Download } from 'lucide-react'
+import { useState } from 'react'
+import { FileText, Download, Loader2 } from 'lucide-react'
 import { Skeleton } from '@/components/ui'
 import type { DocumentItem, ApplicationWithDetails } from './applicationDetailTypes'
+import { documentService } from '@/services/documents'
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+function ViewDocButton({ doc }: { doc: DocumentItem }) {
+  const [loading, setLoading] = useState(false)
+  const isReal = UUID_RE.test(doc.id)
+
+  const handleClick = async () => {
+    if (!isReal) {
+      window.open(doc.file_url, '_blank', 'noopener,noreferrer')
+      return
+    }
+    setLoading(true)
+    try {
+      const result = await documentService.getSignedUrl(doc.id)
+      const url = (result as any)?.url || doc.file_url
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } catch {
+      window.open(doc.file_url, '_blank', 'noopener,noreferrer')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={loading}
+      className="flex items-center gap-1 px-3 py-2 text-sm text-primary hover:text-foreground hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
+    >
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+      View
+    </button>
+  )
+}
 
 interface ApplicationDetailDocumentsProps {
   documents: DocumentItem[]
@@ -104,15 +142,7 @@ export function ApplicationDetailDocuments({ documents, loading, application }: 
                 )}
               </div>
             </div>
-            <a
-              href={doc.file_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 px-3 py-2 text-sm text-primary hover:text-foreground hover:bg-blue-50 rounded-lg transition-colors"
-            >
-              <Download className="h-4 w-4" />
-              View
-            </a>
+            <ViewDocButton doc={doc} />
           </div>
         )
       })}
