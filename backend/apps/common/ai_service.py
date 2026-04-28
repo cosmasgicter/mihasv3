@@ -117,11 +117,15 @@ def analyze_document(text: str, document_type: str = "result_slip") -> dict | No
     model = getattr(settings, "AI_MODEL_FAST", "google/gemini-2.5-flash")
 
     if document_type == "result_slip":
-        prompt = f"""Extract subjects and grades from this Zambian ECZ result slip text.
+        prompt = f"""Extract subjects and grades from this Zambian ECZ Grade 12 result slip text.
 Return a JSON object with:
-{{"subjects": [{{"name": "English", "grade": 3}}, ...], "exam_number": "...", "year": "..."}}
+{{"subjects": [{{"name": "English Language", "grade": 3}}, ...], "exam_number": "...", "year": "..."}}
 
-Only include subjects you can clearly identify. Use the ECZ 1-9 grade scale.
+IMPORTANT rules:
+- Use FULL official ECZ subject names: "English Language" (not "English"), "Civic Education" (not "Civics"), "Religious Education" (not "RE"), "Principles of Accounts" (not "Accounts"), "Literature in English" (not "Literature"), "Agricultural Science" (not "Agriculture"), "Computer Studies" (not "ICT").
+- Grades must be integers 1-9 on the ECZ scale (1=best, 9=fail). If you see letter grades, convert: A+=1, A=2, B+=3, B=4, C+=5, C=6, D+=7, D=8, F=9.
+- Only include subjects you can clearly identify with a grade.
+- Do NOT guess grades — if a grade is unclear, skip that subject.
 
 Text:
 {text}"""

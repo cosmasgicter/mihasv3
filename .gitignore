@@ -212,3 +212,6 @@ node_modules
 
 # MCP settings with secrets
 .kiro/settings/mcp.json
+
+# KATC audit files
+katc/

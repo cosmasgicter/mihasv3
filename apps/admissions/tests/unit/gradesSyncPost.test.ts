@@ -69,7 +69,7 @@ describe('Grades Sync POST Unit Tests', () => {
     const mockFetch = vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
       return makeJsonResponse(200, {
         success: true,
-        data: [{ subject_id: 'subj-1', grade: 85 }],
+        data: [{ subject_id: 'subj-1', grade: 1 }],
       });
     });
 
@@ -77,7 +77,7 @@ describe('Grades Sync POST Unit Tests', () => {
 
     const { syncGradesWithRecovery } = await import('@/lib/connectionFix');
 
-    await syncGradesWithRecovery('app-123', [{ subject_id: 'subj-1', grade: 85 }]);
+    await syncGradesWithRecovery('app-123', [{ subject_id: 'subj-1', grade: 1 }]);
 
     // Verify fetch was called with POST method
     expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -96,8 +96,8 @@ describe('Grades Sync POST Unit Tests', () => {
       return makeJsonResponse(200, {
         success: true,
         data: [
-          { subject_id: 'subj-1', grade: 85 },
-          { subject_id: 'subj-2', grade: 72 },
+          { subject_id: 'subj-1', grade: 1 },
+          { subject_id: 'subj-2', grade: 2 },
         ],
       });
     });
@@ -107,8 +107,8 @@ describe('Grades Sync POST Unit Tests', () => {
     const { syncGradesWithRecovery } = await import('@/lib/connectionFix');
 
     const grades = [
-      { subject_id: 'subj-1', grade: 85 },
-      { subject_id: 'subj-2', grade: 72 },
+      { subject_id: 'subj-1', grade: 1 },
+      { subject_id: 'subj-2', grade: 2 },
     ];
 
     await syncGradesWithRecovery('app-456', grades);
@@ -119,12 +119,35 @@ describe('Grades Sync POST Unit Tests', () => {
     expect(body).toEqual({ grades });
   });
 
+  it('filters unresolved fallback subject ids before posting grades', async () => {
+    const mockFetch = vi.fn(async (_url: string | URL | Request, _init?: RequestInit) => {
+      return makeJsonResponse(200, {
+        success: true,
+        data: [{ subject_id: 'subj-1', grade: 1 }],
+      });
+    });
+
+    vi.stubGlobal('fetch', mockFetch);
+
+    const { syncGradesWithRecovery } = await import('@/lib/connectionFix');
+
+    await syncGradesWithRecovery('app-456', [
+      { subject_id: 'subj-1', grade: 1 },
+      { subject_id: 'fallback-commerce', grade: 4 },
+    ]);
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const bodyOptions = mockFetch.mock.calls[0]![1];
+    const body = JSON.parse(bodyOptions?.body as string);
+    expect(body).toEqual({ grades: [{ subject_id: 'subj-1', grade: 1 }] });
+  });
+
   // _Requirements: 10.3_
   it('batch POST returns 200 with the list of upserted grades', async () => {
     const batchGrades = [
-      { subject_id: 'subj-1', grade: 85 },
-      { subject_id: 'subj-2', grade: 72 },
-      { subject_id: 'subj-3', grade: 90 },
+      { subject_id: 'subj-1', grade: 1 },
+      { subject_id: 'subj-2', grade: 2 },
+      { subject_id: 'subj-3', grade: 3 },
     ];
 
     let capturedStatus: number | undefined;
@@ -163,7 +186,7 @@ describe('Grades Sync POST Unit Tests', () => {
     const mockFetch = vi.fn(async (_url: string | URL | Request, _init?: RequestInit) => {
       const resp = makeJsonResponse(201, {
         success: true,
-        data: { subject_id: 'subj-new', grade: 95, id: 'grade-new' },
+        data: { subject_id: 'subj-new', grade: 4, id: 'grade-new' },
       });
       capturedStatus = resp.status;
       return resp;
@@ -174,11 +197,11 @@ describe('Grades Sync POST Unit Tests', () => {
     const { syncGradesWithRecovery } = await import('@/lib/connectionFix');
 
     const result = await syncGradesWithRecovery('app-101', [
-      { subject_id: 'subj-new', grade: 95 },
+      { subject_id: 'subj-new', grade: 4 },
     ]);
 
     // Verify the response contains the new grade
-    expect(result).toEqual({ subject_id: 'subj-new', grade: 95, id: 'grade-new' });
+    expect(result).toEqual({ subject_id: 'subj-new', grade: 4, id: 'grade-new' });
 
     // Verify the mock returned a 201 status for the new grade POST
     expect(capturedStatus).toBe(201);
@@ -194,7 +217,7 @@ describe('Grades Sync POST Unit Tests', () => {
     const mockFetch = vi.fn(async (_url: string | URL | Request, _init?: RequestInit) => {
       const resp = makeJsonResponse(200, {
         success: true,
-        data: { subject_id: 'subj-existing', grade: 88, id: 'grade-existing' },
+        data: { subject_id: 'subj-existing', grade: 5, id: 'grade-existing' },
       });
       capturedStatus = resp.status;
       return resp;
@@ -205,11 +228,11 @@ describe('Grades Sync POST Unit Tests', () => {
     const { syncGradesWithRecovery } = await import('@/lib/connectionFix');
 
     const result = await syncGradesWithRecovery('app-102', [
-      { subject_id: 'subj-existing', grade: 88 },
+      { subject_id: 'subj-existing', grade: 5 },
     ]);
 
     // Verify the response contains the updated grade
-    expect(result).toEqual({ subject_id: 'subj-existing', grade: 88, id: 'grade-existing' });
+    expect(result).toEqual({ subject_id: 'subj-existing', grade: 5, id: 'grade-existing' });
 
     // Verify the mock returned a 200 status for the updated grade POST
     expect(capturedStatus).toBe(200);
