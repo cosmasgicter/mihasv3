@@ -16,6 +16,9 @@ type MomoOperator = 'airtel' | 'mtn' | null
 
 /** Transaction fee rate charged by the payment gateway (1%) */
 const TRANSACTION_FEE_RATE = 0.01
+const PAYMENT_VERIFY_INTERVAL_MS = 10000
+const PAYMENT_VERIFY_MAX_ATTEMPTS = 12
+const PAYMENT_VERIFY_MAX_ERRORS = 2
 
 function detectOperator(phone: string): MomoOperator {
   const digits = phone.replace(/[\s\-+]/g, '')
@@ -117,6 +120,7 @@ export function PaymentForm({
   const retryRef = useRef<HTMLButtonElement>(null)
   const pollRef = useRef<ReturnType<typeof setInterval>>()
   const pollErrorCountRef = useRef(0)
+  const pollAttemptCountRef = useRef(0)
 
   const getCustomerDetails = useCallback(() => ({ fullName, email, phone: normalizedPhone }), [fullName, email, normalizedPhone])
 
@@ -143,23 +147,43 @@ export function PaymentForm({
   const isPaymentPending = (paymentStatus === 'pending' || polledStatus === 'pending') && activePendingMethod !== null
   const isPaymentFailed = paymentStatus === 'failed' || polledStatus === 'failed'
 
-  const syncPendingPayment = useCallback(async () => {
-    if (activePendingMethod === 'mobile-money' && activeMomoPaymentId) {
+  const syncPendingPayment = useCallback(async (paymentIdOverride?: string | null) => {
+    const paymentId = paymentIdOverride || activeMomoPaymentId
+    const pendingMethod = paymentIdOverride ? 'mobile-money' : activePendingMethod
+
+    if (pendingMethod === 'mobile-money' && paymentId) {
+      pollAttemptCountRef.current += 1
+
+      if (pollAttemptCountRef.current > PAYMENT_VERIFY_MAX_ATTEMPTS) {
+        clearInterval(pollRef.current)
+        setMomoStatus('failed')
+        setMomoError('We could not confirm this payment automatically. Please try checking again or start a new payment request.')
+        setActivePendingMethod(null)
+        onPaymentStatusChange?.('failed')
+        return
+      }
+
       try {
         const verification = await apiClient.request<{ status?: string; data?: { status?: string } }>(
-          `/payments/${encodeURIComponent(activeMomoPaymentId)}/verify/`,
-          { method: 'POST' }
+          `/payments/${encodeURIComponent(paymentId)}/verify/`,
+          { method: 'POST', retries: 0 }
         )
 
         pollErrorCountRef.current = 0
         const normalized = normalizePaymentStatusValue(verification?.status ?? verification?.data?.status ?? null)
         if (normalized === 'successful') {
+          clearInterval(pollRef.current)
           setMomoStatus('successful')
+          setActivePendingMethod(null)
+          setActiveMomoPaymentId(null)
           onPaymentStatusChange?.('successful')
           return
         }
         if (normalized === 'failed') {
+          clearInterval(pollRef.current)
           setMomoStatus('failed')
+          setActivePendingMethod(null)
+          setActiveMomoPaymentId(null)
           onPaymentStatusChange?.('failed')
           return
         }
@@ -169,10 +193,10 @@ export function PaymentForm({
         }
       } catch {
         pollErrorCountRef.current += 1
-        if (pollErrorCountRef.current >= 3) {
+        if (pollErrorCountRef.current >= PAYMENT_VERIFY_MAX_ERRORS) {
           clearInterval(pollRef.current)
           setMomoStatus('failed')
-          setMomoError('Unable to verify payment status. Please try again.')
+          setMomoError('Unable to verify payment status right now. Please try again in a moment.')
           setActivePendingMethod(null)
           onPaymentStatusChange?.('failed')
           return
@@ -191,10 +215,12 @@ export function PaymentForm({
   useEffect(() => {
     if (isPaymentPending) {
       setPendingElapsed(0)
+      pollAttemptCountRef.current = 0
+      pollErrorCountRef.current = 0
       pollRef.current = setInterval(() => {
-        setPendingElapsed(prev => prev + 10)
+        setPendingElapsed(prev => prev + PAYMENT_VERIFY_INTERVAL_MS / 1000)
         void syncPendingPayment()
-      }, 10000)
+      }, PAYMENT_VERIFY_INTERVAL_MS)
       return () => clearInterval(pollRef.current)
     }
     return () => clearInterval(pollRef.current)
@@ -270,7 +296,9 @@ export function PaymentForm({
       }
       setMomoStatus('pending')
       onPaymentStatusChange?.('pending')
-      void syncPendingPayment()
+      setTimeout(() => {
+        void syncPendingPayment(data.payment_id)
+      }, 1500)
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Failed to initiate payment'
       setMomoError(msg)
@@ -288,6 +316,7 @@ export function PaymentForm({
     setActivePendingMethod(null)
     setActiveMomoPaymentId(null)
     pollErrorCountRef.current = 0
+    pollAttemptCountRef.current = 0
     updateCardPaymentStatus('idle')
     setCardInitiateError(null)
   }, [updateCardPaymentStatus, setCardInitiateError])

@@ -25,13 +25,44 @@ function expandCandidates(name: string): string[] {
     out.push('ordinary ' + name)
   }
 
-  // " language" suffix: strip
+  // " language" suffix: strip or append
   if (name.endsWith(' language')) {
     out.push(name.slice(0, -9).trim())
+  } else if (LANGUAGE_SUBJECTS.has(name)) {
+    out.push(name + ' language')
+  }
+
+  // " education" suffix: strip or append
+  if (name.endsWith(' education')) {
+    out.push(name.slice(0, -10).trim())
+  }
+
+  // " studies" suffix: strip
+  if (name.endsWith(' studies')) {
+    out.push(name.slice(0, -8).trim())
+  }
+
+  // " science" suffix: strip for compound science names
+  if (name.endsWith(' science') && name !== 'science') {
+    out.push(name.slice(0, -8).trim())
   }
 
   return out
 }
+
+// Subjects where the AI commonly drops the " Language" suffix
+const LANGUAGE_SUBJECTS = new Set([
+  'english',
+  'french',
+  'portuguese',
+  'bemba',
+  'nyanja',
+  'tonga',
+  'lozi',
+  'kaonde',
+  'lunda',
+  'luvale',
+])
 
 // Merged alias map: abbreviations + ECZ naming variants (bidirectional)
 const ALIASES: Record<string, string> = {
@@ -53,6 +84,51 @@ const ALIASES: Record<string, string> = {
   'combined science': 'science',
   'physical science': 'science',
   'ordinary science': 'science',
+  // Common AI/OCR output variations
+  'english language': 'english',
+  'english': 'english language',
+  'religious studies': 'religious education',
+  'religious education': 'religious studies',
+  're': 'religious education',
+  'computer science': 'computer studies',
+  'computer studies': 'computer science',
+  'ict': 'computer studies',
+  'information technology': 'computer studies',
+  'accounts': 'principles of accounts',
+  'accounting': 'principles of accounts',
+  'principles of accounts': 'accounting',
+  'poa': 'principles of accounts',
+  'food and nutrition': 'food nutrition',
+  'food nutrition': 'food and nutrition',
+  'art and design': 'art design',
+  'art design': 'art and design',
+  'art': 'art and design',
+  'design and technology': 'design technology',
+  'design technology': 'design and technology',
+  'fashion and fabrics': 'fashion fabrics',
+  'fashion fabrics': 'fashion and fabrics',
+  'home economics': 'home management',
+  'home management': 'home economics',
+  'literature': 'literature in english',
+  'literature in english': 'literature',
+  'lit in english': 'literature in english',
+  'english literature': 'literature in english',
+  'agric': 'agricultural science',
+  'agriculture': 'agricultural science',
+  'agricultural science': 'agriculture',
+  'agric science': 'agricultural science',
+  'dev studies': 'development studies',
+  'geog': 'geography',
+  'hist': 'history',
+  'econ': 'economics',
+  'bus studies': 'business studies',
+  'business': 'business studies',
+  'tech drawing': 'technical drawing',
+  'td': 'technical drawing',
+  'pe': 'physical education',
+  'phys ed': 'physical education',
+  'integrated science': 'science',
+  'general science': 'science',
 }
 
 function levenshtein(a: string, b: string): number {
@@ -155,10 +231,16 @@ export function findBestSubjectId(
     const targetTokens = mappedTarget.split(' ')
     const candidateTokens = c.norm.split(' ')
     const common = targetTokens.filter(t => candidateTokens.includes(t)).length
-    const overlap = common / Math.max(targetTokens.length, candidateTokens.length)
-    if (overlap >= 0.6) {
-      const lengthPenalty = Math.abs(candidateTokens.length - targetTokens.length) / Math.max(targetTokens.length, candidateTokens.length)
-      const tokenScore = 0.1 + lengthPenalty
+    const maxLen = Math.max(targetTokens.length, candidateTokens.length)
+    const overlap = common / maxLen
+
+    // Containment check: if all target tokens appear in candidate (or vice versa)
+    const targetInCandidate = targetTokens.every(t => candidateTokens.includes(t))
+    const candidateInTarget = candidateTokens.every(t => targetTokens.includes(t))
+
+    if (targetInCandidate || candidateInTarget || overlap >= 0.5) {
+      const lengthPenalty = Math.abs(candidateTokens.length - targetTokens.length) / maxLen
+      const tokenScore = 0.1 + lengthPenalty * (targetInCandidate || candidateInTarget ? 0.5 : 1)
       if (tokenScore < bestScore) {
         bestScore = tokenScore
         bestId = c.id

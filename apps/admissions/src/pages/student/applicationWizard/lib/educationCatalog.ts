@@ -1,4 +1,5 @@
 import type { Grade12Subject } from '../types'
+import { findBestSubjectId } from '@/lib/subjectMatcher'
 
 type EducationUploadCopy = {
   label: string
@@ -191,13 +192,18 @@ export function resolveWizardSubjectId(value: string | undefined | null, subject
   const fallbackSubject = FALLBACK_SUBJECT_BY_ID.get(trimmed)
   const fallbackCode = fallbackSubject?.code.trim().toUpperCase()
   const normalizedLookup = normalizeSubjectName(fallbackSubject?.name || trimmed)
+  const backendSubjects = subjects.filter(subject => isBackendSubjectId(subject.id))
 
-  const match = subjects.find(subject => {
-    if (!isBackendSubjectId(subject.id)) return false
+  const exactMatch = backendSubjects.find(subject => {
     const normalizedName = normalizeSubjectName(subject.name)
     const normalizedCode = subject.code.trim().toUpperCase()
     return normalizedName === normalizedLookup || (Boolean(fallbackCode) && normalizedCode === fallbackCode)
   })
 
-  return match?.id || ''
+  if (exactMatch?.id) {
+    return exactMatch.id
+  }
+
+  const matchedId = findBestSubjectId(fallbackSubject?.name || trimmed, backendSubjects)
+  return matchedId || ''
 }

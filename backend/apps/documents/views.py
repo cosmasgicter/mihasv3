@@ -443,6 +443,9 @@ class PaymentReceiptView(APIView):
 
 class PaymentVerifyThrottle(UserRateThrottle):
     scope = "payment_verify"
+    # Keep the view independent from malformed deployment overrides. DRF rate
+    # strings must use a period token such as "min", not values like "1min".
+    rate = "10/min"
 
 
 @extend_schema_view(

@@ -134,13 +134,15 @@ const SubmitStep = ({
     for (let attempt = 0; attempt < 2; attempt += 1) {
       try {
         const data = await apiClient.request<{ summary: string | null }>(`/applications/${applicationId}/preview-summary/`)
-        if (data?.summary?.trim()) {
-          setAiSummary(data.summary.trim())
+        const summary = data?.summary?.trim() || ''
+        const looksComplete = summary.length >= 50 && /[.!?]$/.test(summary)
+        if (looksComplete) {
+          setAiSummary(summary)
           setAiError(null)
           setAiLoading(false)
           return
         }
-        finalError = 'No personalized summary was returned.'
+        finalError = summary ? 'The personalized summary was incomplete.' : 'No personalized summary was returned.'
       } catch (error) {
         finalError = error instanceof Error ? error.message : 'Unable to load the personalized summary.'
       }

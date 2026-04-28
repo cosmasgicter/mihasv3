@@ -471,6 +471,7 @@ class ApplicationCreateSerializer(serializers.Serializer):
 class ApplicationListSerializer(ApplicationPaymentSummaryMixin, serializers.ModelSerializer):
     """Lightweight serializer for list views."""
 
+    user_id = serializers.UUIDField(read_only=True)
     tracking_code = serializers.CharField(source="public_tracking_code", read_only=True)
     payment_verified_by_name = serializers.SerializerMethodField()
     payment_verified_by_email = serializers.SerializerMethodField()
@@ -484,7 +485,7 @@ class ApplicationListSerializer(ApplicationPaymentSummaryMixin, serializers.Mode
     class Meta:
         model = Application
         fields = [
-            "id", "application_number", "public_tracking_code", "tracking_code",
+            "id", "user_id", "application_number", "public_tracking_code", "tracking_code",
             "full_name", "email", "phone", "program", "intake", "institution",
             "status", "payment_status", "payment_method", "paid_amount", "paid_at",
             "receipt_number",

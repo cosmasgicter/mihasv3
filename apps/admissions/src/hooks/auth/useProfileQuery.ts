@@ -37,12 +37,13 @@ export function useProfileQuery(options: UseProfileQueryOptions = {}): ProfileQu
   const { user: contextUser } = useAuth()
   const queryClient = useQueryClient()
   const user = options.user ?? contextUser
+  const isAuthRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/auth/')
   const enabled = options.enabled ?? Boolean(user?.id)
 
 
   const profileQuery = useQuery({
     queryKey: profileQueryKey(user?.id),
-    enabled: enabled && Boolean(user?.id),
+    enabled: enabled && Boolean(user?.id) && !isAuthRoute,
     staleTime: PROFILE_STALE_TIME_MS,
     retry: false,
     queryFn: async () => {

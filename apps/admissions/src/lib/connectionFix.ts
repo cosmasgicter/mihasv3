@@ -147,10 +147,23 @@ export async function syncGradesWithRecovery(
   grades: Array<{ subject_id: string; grade: number }>
 ): Promise<any> {
   const connectionManager = ConnectionManager.getInstance()
+  const syncableGrades = grades.filter(
+    grade =>
+      typeof grade.subject_id === 'string' &&
+      grade.subject_id.length > 0 &&
+      !grade.subject_id.startsWith('fallback-') &&
+      Number.isInteger(grade.grade) &&
+      grade.grade >= 1 &&
+      grade.grade <= 9
+  )
+
+  if (syncableGrades.length === 0) {
+    return { grades: [] }
+  }
   
   return connectionManager.makeRequest(`/applications/${applicationId}/grades/`, {
     method: 'POST',
-    body: JSON.stringify({ grades }),
+    body: JSON.stringify({ grades: syncableGrades }),
     retryKey: `sync_grades_${applicationId}`
   })
 }

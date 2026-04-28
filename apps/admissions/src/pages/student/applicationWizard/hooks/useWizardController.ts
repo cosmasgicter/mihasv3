@@ -1947,7 +1947,8 @@ const useWizardController = (): UseWizardControllerResult => {
       // Read from ref to avoid stale closure — selectedGrades state may not
       // have flushed yet if the user's last dropdown selection was very recent.
       const latestGrades = selectedGradesRef.current
-      const validGradeCount = latestGrades.filter(
+      const normalizedLatestGrades = normalizeSelectedGrades(latestGrades)
+      const validGradeCount = normalizedLatestGrades.filter(
         g => g.subject_id && Number(g.grade) >= 1 && Number(g.grade) <= 9
       ).length
 
@@ -1960,7 +1961,7 @@ const useWizardController = (): UseWizardControllerResult => {
       }
       
       if (validGradeCount < 5) {
-        const emptyRows = latestGrades.filter(g => !g.subject_id).length
+        const emptyRows = latestGrades.length - normalizedLatestGrades.length
         const hint = emptyRows > 0 ? ` — ${emptyRows} row${emptyRows > 1 ? 's have' : ' has'} no subject selected` : ''
         const errorMessage = `Minimum 5 subjects required (${validGradeCount} added${hint})`
         setError(errorMessage)
@@ -1991,7 +1992,7 @@ const useWizardController = (): UseWizardControllerResult => {
       // Files already uploaded on selection, just sync grades and proceed
       try {
         setLoading(true)
-        const gradesToSync = normalizeSelectedGrades(latestGrades)
+        const gradesToSync = normalizedLatestGrades
         if (gradesToSync.length > 0) {
           await syncGrades.mutateAsync({ id: applicationId, grades: gradesToSync })
           setSelectedGrades(gradesToSync)
