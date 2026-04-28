@@ -58,14 +58,15 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    # 1. Custom security headers (HSTS, X-Content-Type-Options, etc.)
-    "apps.common.middleware.SecurityHeadersMiddleware",
-    # 2. Django built-in security (SSL redirect, SECURE_PROXY_SSL_HEADER)
-    "django.middleware.security.SecurityMiddleware",
-    # 3. WhiteNoise for static files
-    "whitenoise.middleware.WhiteNoiseMiddleware",
-    # 4. CORS enforcement
+    # 1. CORS must run before any middleware that can return an error response,
+    # otherwise browsers hide legitimate 4xx/5xx API responses as CORS failures.
     "corsheaders.middleware.CorsMiddleware",
+    # 2. Custom security headers (HSTS, X-Content-Type-Options, etc.)
+    "apps.common.middleware.SecurityHeadersMiddleware",
+    # 3. Django built-in security (SSL redirect, SECURE_PROXY_SSL_HEADER)
+    "django.middleware.security.SecurityMiddleware",
+    # 4. WhiteNoise for static files
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     # 5. Request ID generation/propagation
     "apps.common.middleware.RequestIDMiddleware",
     # 5.5. Request metrics (after RequestID so request_id is available)

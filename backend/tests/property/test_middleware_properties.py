@@ -643,6 +643,21 @@ class TestCORSOriginEnforcementProperty(SimpleTestCase):
 
         self.assertTrue(django_settings.CORS_ALLOW_CREDENTIALS)
 
+    def test_cors_middleware_runs_before_response_generating_middleware(self):
+        """CORS must wrap error responses produced by security/rate-limit middleware."""
+        from django.conf import settings as django_settings
+
+        middleware = list(django_settings.MIDDLEWARE)
+        self.assertEqual(middleware[0], "corsheaders.middleware.CorsMiddleware")
+        self.assertLess(
+            middleware.index("corsheaders.middleware.CorsMiddleware"),
+            middleware.index("apps.common.middleware.SecurityHeadersMiddleware"),
+        )
+        self.assertLess(
+            middleware.index("corsheaders.middleware.CorsMiddleware"),
+            middleware.index("apps.common.middleware.RateLimitMiddleware"),
+        )
+
     def test_cors_exposes_required_headers(self):
         """CORS must expose X-CSRF-Token and X-Request-ID headers."""
         from django.conf import settings as django_settings

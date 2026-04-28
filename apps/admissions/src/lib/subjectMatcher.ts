@@ -131,6 +131,12 @@ const ALIASES: Record<string, string> = {
   'general science': 'science',
 }
 
+const BACKEND_SUBJECT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+function isBackendSubjectId(value: string): boolean {
+  return BACKEND_SUBJECT_ID_PATTERN.test(value)
+}
+
 function levenshtein(a: string, b: string): number {
   const al = a.length
   const bl = b.length
@@ -192,28 +198,21 @@ function jaroWinkler(s1: string, s2: string): number {
   return jaro + prefix * 0.1 * (1 - jaro)
 }
 
-export function findBestSubjectId(
-  parsedName: string,
-  subjects: Array<{ id: string; name?: string; code?: string }>,
-): string | null {
-  if (!parsedName) return null
-  const target = normalize(parsedName)
-  if (!target) return null
+type CatalogCandidate = {
+  id: string
+  norm: string
+  isBackend: boolean
+}
 
-  // Build normalized candidate names for each catalog subject once
-  const catalog = subjects.map(s => ({
-    id: s.id,
-    norm: normalize(s.name || s.code || ''),
-  })).filter(c => c.norm)
-
+function findBestSubjectIdInCatalog(target: string, catalog: CatalogCandidate[]): string | null {
   // Phase 1: exact match using all expanded forms of the input
   const expansions = expandCandidates(target)
   for (const exp of expansions) {
     for (const c of catalog) {
       if (c.norm === exp) return c.id
     }
-    // Also try expanding each catalog name to match against the raw target
   }
+
   // Try the reverse: expand each catalog name and match against target
   for (const c of catalog) {
     const catExpansions = expandCandidates(c.norm)
@@ -271,4 +270,28 @@ export function findBestSubjectId(
   if (bestJW >= 0.86) return bestJWId
 
   return null
+}
+
+export function findBestSubjectId(
+  parsedName: string,
+  subjects: Array<{ id: string; name?: string; code?: string }>,
+): string | null {
+  if (!parsedName) return null
+  const target = normalize(parsedName)
+  if (!target) return null
+
+  // Build normalized candidate names for each catalog subject once
+  const catalog = subjects.map(s => ({
+    id: s.id,
+    norm: normalize(s.name || s.code || ''),
+    isBackend: isBackendSubjectId(s.id),
+  })).filter(c => c.norm)
+
+  const backendCatalog = catalog.filter(c => c.isBackend)
+  if (backendCatalog.length > 0) {
+    const backendMatch = findBestSubjectIdInCatalog(target, backendCatalog)
+    if (backendMatch) return backendMatch
+  }
+
+  return findBestSubjectIdInCatalog(target, catalog)
 }
