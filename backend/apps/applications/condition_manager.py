@@ -183,6 +183,7 @@ class ConditionManager:
             condition.status = status
             condition.met_at = timezone.now()
             condition.verified_by_id = admin_id
+            condition.updated_at = timezone.now()
             condition.save(update_fields=["status", "met_at", "verified_by", "updated_at"])
 
         logger.info(

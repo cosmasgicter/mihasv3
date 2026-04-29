@@ -96,7 +96,7 @@ def transition_application_status(
 
     application.status = new_status
 
-    if not application.review_started_at:
+    if not application.review_started_at and new_status in ("under_review", "conditionally_approved", "approved", "rejected"):
         application.review_started_at = timezone.now()
 
     if new_status not in ('submitted',):
