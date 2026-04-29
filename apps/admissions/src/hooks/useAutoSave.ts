@@ -460,7 +460,9 @@ export function useAutoSave(
         if (mountedRef.current) {
           setSaveError(null)
           setSaveStatus('idle')
-          // Resume cloud saves by triggering a save cycle
+          // Immediately sync current dirty data to the server
+          void saveData()
+          // Also process any queued saves (belt-and-suspenders)
           void processSaveQueue()
         }
       }
@@ -477,7 +479,7 @@ export function useAutoSave(
       window.removeEventListener('mihas:auth-expired', handleAuthExpired)
       window.removeEventListener('mihas:auth-recovered', handleAuthRecovered)
     }
-  }, [processSaveQueue])
+  }, [saveData, processSaveQueue])
 
   // Check if there are unsaved changes
   useEffect(() => {

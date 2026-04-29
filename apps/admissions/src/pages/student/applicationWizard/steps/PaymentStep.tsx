@@ -48,6 +48,8 @@ const PaymentStep = ({
   const [deferred, setDeferred] = useState(false)
   const [deferError, setDeferError] = useState<string | null>(null)
   const [deferConfirm, setDeferConfirm] = useState(false)
+  const [devBypassing, setDevBypassing] = useState(false)
+  const [devBypassError, setDevBypassError] = useState<string | null>(null)
 
   const isPaymentSettledForWizard = polledStatus === 'successful' || polledStatus === 'deferred'
 
@@ -78,9 +80,28 @@ const PaymentStep = ({
     }
   }, [applicationId, onPaymentStatusChange, deferConfirm])
 
+  const handleDevBypass = useCallback(async () => {
+    if (!applicationId) return
+    setDevBypassing(true)
+    setDevBypassError(null)
+    try {
+      await apiClient.request('/payments/dev-bypass/', {
+        method: 'POST',
+        body: JSON.stringify({ application_id: applicationId }),
+      })
+      onPaymentStatusChange?.('successful')
+    } catch (err) {
+      setDevBypassError(err instanceof Error ? err.message : 'Dev bypass failed')
+    } finally {
+      setDevBypassing(false)
+    }
+  }, [applicationId, onPaymentStatusChange])
+
   useEffect(() => {
     if (polledStatus === 'successful' && !deferred) setDeferred(false)
   }, [polledStatus, deferred])
+
+  const showDevBypass = import.meta.env.DEV && import.meta.env.VITE_PAYMENT_DEV_BYPASS === 'true' && !isPaymentSettledForWizard
 
   return (
     <SectionCard
@@ -198,6 +219,31 @@ const PaymentStep = ({
                 </div>
               </div>
             )}
+          </div>
+        )}
+        {/* Dev payment bypass — only in development with VITE_PAYMENT_DEV_BYPASS=true */}
+        {showDevBypass && applicationId && (
+          <div className="space-y-2">
+            {devBypassError && <p className="text-sm text-destructive text-center">{devBypassError}</p>}
+            <button
+              type="button"
+              className="w-full rounded-xl border-2 border-dashed border-orange-400 bg-orange-50 p-4 text-left transition-colors hover:border-orange-500 hover:bg-orange-100 disabled:opacity-50 dark:bg-orange-950/20 dark:hover:bg-orange-950/40"
+              onClick={handleDevBypass}
+              disabled={devBypassing}
+              data-testid="dev-bypass-button"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                  <span className="text-lg">⚡</span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-orange-700 dark:text-orange-300">
+                    {devBypassing ? 'Simulating…' : '⚡ Simulate Payment (Dev)'}
+                  </p>
+                  <p className="text-xs text-orange-600/70 dark:text-orange-400/70">Bypass Lenco gateway — dev only, tree-shaken from production builds.</p>
+                </div>
+              </div>
+            </button>
           </div>
         )}
       </fieldset>

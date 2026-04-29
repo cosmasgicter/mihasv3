@@ -321,6 +321,118 @@ export function ApplicationApprovalActions({
               </span>
             </div>
           )}
+
+          {currentStatus === 'conditionally_approved' && (
+            <>
+              <div className="sm:col-span-2 text-center py-2">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300">
+                  <Clock className="h-3 w-3 mr-1" />
+                  Conditionally Approved
+                </span>
+              </div>
+              <Button
+                variant="success"
+                onClick={() => handleStatusUpdate('approved')}
+                disabled={updatingStatus || disabled || !isPaymentVerified}
+                className="w-full"
+                title={!isPaymentVerified ? 'Payment must be verified first' : 'Approve application'}
+              >
+                {updatingStatus ? 'Updating...' : (
+                  <>
+                    <CheckCircle className="h-3 w-3" />
+                    Approve
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => handleStatusUpdate('rejected')}
+                disabled={updatingStatus || disabled}
+                className="w-full"
+              >
+                {updatingStatus ? 'Updating...' : (
+                  <>
+                    <XCircle className="h-3 w-3" />
+                    Reject
+                  </>
+                )}
+              </Button>
+            </>
+          )}
+
+          {currentStatus === 'waitlisted' && (
+            <>
+              <div className="sm:col-span-2 text-center py-2">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
+                  <Clock className="h-3 w-3 mr-1" />
+                  Waitlisted
+                </span>
+              </div>
+              <Button
+                variant="success"
+                onClick={() => handleStatusUpdate('approved')}
+                disabled={updatingStatus || disabled || !isPaymentVerified}
+                className="w-full"
+                title={!isPaymentVerified ? 'Payment must be verified first' : 'Approve application'}
+              >
+                {updatingStatus ? 'Updating...' : (
+                  <>
+                    <CheckCircle className="h-3 w-3" />
+                    Approve
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => handleStatusUpdate('rejected')}
+                disabled={updatingStatus || disabled}
+                className="w-full"
+              >
+                {updatingStatus ? 'Updating...' : (
+                  <>
+                    <XCircle className="h-3 w-3" />
+                    Reject
+                  </>
+                )}
+              </Button>
+            </>
+          )}
+
+          {currentStatus === 'enrolled' && (
+            <div className="sm:col-span-2 text-center py-2">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-300">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Enrolled
+              </span>
+            </div>
+          )}
+
+          {currentStatus === 'withdrawn' && (
+            <div className="sm:col-span-2 text-center py-2">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-300">
+                <XCircle className="h-3 w-3 mr-1" />
+                Withdrawn
+              </span>
+            </div>
+          )}
+
+          {currentStatus === 'expired' && (
+            <div className="sm:col-span-2 text-center py-2">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-300">
+                <XCircle className="h-3 w-3 mr-1" />
+                Expired
+              </span>
+            </div>
+          )}
+
+          {currentStatus === 'enrollment_expired' && (
+            <div className="sm:col-span-2 text-center py-2">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
+                <Clock className="h-3 w-3 mr-1" />
+                Enrollment Expired
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
