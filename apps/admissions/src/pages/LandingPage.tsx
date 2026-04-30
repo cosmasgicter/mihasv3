@@ -10,7 +10,7 @@ import { useLocation } from 'react-router-dom';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { ShapeLandingHero } from '@/components/smoothui/shape-landing-hero';
 import { 
-  Star, ArrowRight, 
+  ArrowRight, BookOpen,
 } from '@/components/icons';
 import { Seo } from '@/components/seo/Seo';
 import { prefersReducedMotion } from '@/lib/animation-config';
@@ -97,10 +97,9 @@ const landingStructuredData = [
 
 /** Rotating phrases displayed in the hero via TextRotate */
 const heroRotatingPhrases = [
-  'Nursing Excellence',
+  'Registered Nursing',
   'Clinical Medicine',
-  'Pharmacy',
-  'Public Health',
+  'Environmental Health',
 ];
 
 function LandingSectionsFallback() {
@@ -172,8 +171,8 @@ export default function LandingPage() {
         structuredData={landingStructuredData}
       />
       <ShapeLandingHero
-        headline="Train for the Healthcare Jobs Zambia Needs"
-        description="Government-accredited nursing, clinical medicine, and environmental health diplomas — 92% of graduates working within a year."
+        headline="Apply to accredited health science programs in one place"
+        description="Start your MIHAS-KATC application, choose your diploma path, upload documents, and track every admissions step from your phone."
         rotatingPhrases={heroRotatingPhrases}
         primaryCta={{
           label: 'Start Your Application',
@@ -183,7 +182,7 @@ export default function LandingPage() {
         secondaryCta={{
           label: 'Explore Programs',
           href: '#programs',
-          icon: <Star className="w-5 h-5" />,
+          icon: <BookOpen className="w-5 h-5" />,
         }}
         proofPanel={{
           image: {

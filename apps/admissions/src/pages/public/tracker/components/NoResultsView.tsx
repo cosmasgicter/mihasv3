@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Rocket, FileQuestion } from 'lucide-react'
+import { Search, UserPlus, FileQuestion } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { animateClasses } from '@/lib/animations'
@@ -15,7 +15,7 @@ export const NoResultsView: React.FC<NoResultsViewProps> = ({ onTryAgain }) => {
       <div className={`py-8 space-y-6 ${animateClasses.slideUp}`}>
         {/* Icon */}
         <div className="flex justify-center">
-          <div className="p-4 rounded-full bg-muted">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <FileQuestion className="h-12 w-12 text-muted-foreground" />
           </div>
         </div>
@@ -45,9 +45,9 @@ export const NoResultsView: React.FC<NoResultsViewProps> = ({ onTryAgain }) => {
           <Link to="/auth/signup">
             <Button 
               size="lg" 
-              className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto"
             >
-              <Rocket className="h-5 w-5 mr-2" />
+              <UserPlus className="h-5 w-5 mr-2" />
               Create Account to Apply
             </Button>
           </Link>
