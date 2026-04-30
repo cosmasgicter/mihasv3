@@ -39,10 +39,9 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
       title="Find Your Application"
       description="Enter your application number (e.g., MIHAS123456) or tracking code to check status."
       icon={<Search className="h-5 w-5" />}
-      headerVariant="tinted"
+      headerVariant="default"
     >
-      <div className="space-y-8">
-        {/* Search Input — prominent, centered */}
+      <div className="space-y-6">
         <div className="mx-auto max-w-2xl">
           <div className="flex flex-col gap-3 sm:flex-row">
             <div className="relative flex-1">
@@ -57,21 +56,20 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
                 onPaste={onPaste}
                 onKeyPress={onKeyPress}
                 placeholder="Enter application number..."
-                className="h-14 w-full pl-12 pr-4 text-base rounded-lg border-2 border-border bg-background focus:border-primary shadow-sm"
+                className="h-14 w-full rounded-lg border border-slate-300 bg-white pl-12 pr-4 text-base shadow-sm focus:border-primary"
               />
             </div>
             <Button
               onClick={onSearch}
               loading={loading}
               size="lg"
-              className="h-14 rounded-lg bg-gradient-to-r from-blue-600 to-secondary hover:from-blue-700 hover:to-secondary text-white font-semibold px-8 shadow-md hover:shadow-lg transition-all"
+              className="h-14 rounded-lg bg-primary px-8 font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
             >
               <Search className="h-5 w-5 mr-2" aria-hidden="true" />
               {loading ? 'Searching...' : 'Search'}
             </Button>
           </div>
           
-          {/* Error Message */}
           {error && (
             <div
               className={`mt-4 rounded-lg bg-error/10 border border-error/30 p-4 transition-all duration-300 ease-out ${
@@ -86,10 +84,9 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
           )}
         </div>
         
-        {/* Help Cards — premium rounded-lg with backdrop-blur */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 p-4  transition-all hover:shadow-md">
-            <div className="flex-shrink-0 rounded-xl bg-primary/10 p-2.5">
+          <div className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <div className="flex-shrink-0 rounded-lg bg-white p-2.5 text-primary">
               <Mail className="h-5 w-5 text-primary" />
             </div>
             <div>
@@ -97,18 +94,18 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
               <p className="mt-0.5 text-sm text-muted-foreground">Application number sent after submission</p>
             </div>
           </div>
-          <div className="flex items-start gap-3 rounded-lg border border-warning/20 bg-warning/5 p-4  transition-all hover:shadow-md">
-            <div className="flex-shrink-0 rounded-xl bg-warning/10 p-2.5">
-              <Hash className="h-5 w-5 text-warning" />
+          <div className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <div className="flex-shrink-0 rounded-lg bg-white p-2.5 text-primary">
+              <Hash className="h-5 w-5 text-primary" />
             </div>
             <div>
               <h3 className="text-sm font-semibold text-foreground">Format Example</h3>
               <p className="mt-0.5 text-sm font-mono text-muted-foreground">MIHAS123456</p>
             </div>
           </div>
-          <div className="flex items-start gap-3 rounded-lg border border-success/20 bg-success/5 p-4  transition-all hover:shadow-md">
-            <div className="flex-shrink-0 rounded-xl bg-success/10 p-2.5">
-              <Zap className="h-5 w-5 text-success" />
+          <div className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <div className="flex-shrink-0 rounded-lg bg-white p-2.5 text-primary">
+              <Zap className="h-5 w-5 text-primary" />
             </div>
             <div>
               <h3 className="text-sm font-semibold text-foreground">Instant Results</h3>

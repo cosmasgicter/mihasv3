@@ -22,7 +22,7 @@ export const ApplicationActions: React.FC = () => {
             <Button 
               variant="outline" 
               size="lg" 
-              className="w-full sm:w-auto h-12 rounded-lg border-2 border-border hover:bg-secondary hover:text-white hover:border-secondary transition-all"
+              className="h-12 w-full rounded-lg border border-border transition-colors hover:bg-slate-100 sm:w-auto"
             >
               <Rocket className="h-5 w-5 mr-2" />
               Create Account
@@ -31,7 +31,7 @@ export const ApplicationActions: React.FC = () => {
           <Link to="/auth/signin">
             <Button 
               size="lg" 
-              className="w-full sm:w-auto h-12 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all"
+              className="h-12 w-full rounded-lg bg-primary text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:w-auto"
             >
               <Eye className="h-5 w-5 mr-2" />
               View Full Details

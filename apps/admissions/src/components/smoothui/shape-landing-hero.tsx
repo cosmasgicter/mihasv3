@@ -1,23 +1,9 @@
-/**
- * ShapeLandingHero — Centered cinematic hero with full-bleed background.
- * Clean, spacious, center-aligned. No clutter.
- */
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { preloadAuthRoutes } from '@/lib/routePreload';
-
-function TextRotate({ phrases, interval = 3000 }: { phrases: string[]; interval?: number }) {
-  const [index, setIndex] = React.useState(0);
-  React.useEffect(() => {
-    if (phrases.length <= 1) return;
-    const id = setInterval(() => setIndex(i => (i + 1) % phrases.length), interval);
-    return () => clearInterval(id);
-  }, [phrases, interval]);
-  return <span className="inline-block transition-opacity duration-500">{phrases[index]}</span>;
-}
+import { CheckCircle } from '@/components/icons';
 
 interface ShapeLandingHeroProps {
   headline: string;
@@ -47,69 +33,48 @@ export function ShapeLandingHero({
   const warmPrimaryRoute = primaryCta.href.startsWith('/auth')
     ? () => { void preloadAuthRoutes('hero-cta') }
     : undefined;
+  const visiblePrograms = rotatingPhrases.slice(0, 3);
 
   return (
-    <section id="hero" className="relative isolate overflow-hidden bg-slate-950">
-      {/* Background image */}
-      <OptimizedImage
-        src={proofPanel.image.src}
-        alt=""
-        width={proofPanel.image.width}
-        height={proofPanel.image.height}
-        lazy={false}
-        fetchPriority="high"
-        decoding="sync"
-        srcSetWidths={[640, 960, 1280, 1920]}
-        sizes="100vw"
-        className="absolute inset-0 -z-10 h-full w-full object-cover"
-        aria-hidden="true"
-      />
-      <div className="absolute inset-0 -z-10 bg-slate-950/70" aria-hidden="true" />
-      <div className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-t from-slate-950 to-transparent" aria-hidden="true" />
+    <section id="hero" className="relative isolate overflow-hidden border-b border-slate-200 bg-slate-50">
+      <div className="container-responsive px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-18">
+        <div className="grid min-h-[calc(100svh-8rem)] items-center gap-8 lg:grid-cols-[minmax(0,1fr)_29rem] xl:grid-cols-[minmax(0,1fr)_32rem]">
+          <div className="max-w-3xl">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold uppercase text-slate-600 shadow-sm">
+              <CheckCircle className="h-4 w-4 text-primary" aria-hidden="true" />
+              Government accredited admissions
+            </div>
 
-      {/* Content */}
-      <div className="container-responsive px-4 sm:px-6 lg:px-8">
-        <div className="flex min-h-[calc(100svh-6.5rem)] flex-col items-center justify-center py-20 text-center sm:py-24 lg:py-28">
+            <h1 className="max-w-4xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl lg:leading-[1.02]">
+              {headline}
+            </h1>
 
-          {/* Pill */}
-          <p className="mb-6 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/90 backdrop-blur-sm sm:mb-8">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
-            Government Accredited
-          </p>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-700 sm:text-lg">
+              {description}
+            </p>
 
-          {/* Headline */}
-          <h1 className="mx-auto max-w-4xl text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl lg:leading-[1.05]">
-            {headline}
-          </h1>
+            {visiblePrograms.length > 0 && (
+              <div className="mt-5 flex flex-wrap gap-2" aria-label="Available program areas">
+                {visiblePrograms.map((phrase) => (
+                  <span key={phrase} className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700">
+                    {phrase}
+                  </span>
+                ))}
+              </div>
+            )}
 
-          {/* Rotating phrases */}
-          {rotatingPhrases.length > 0 && (
-            <>
-              <p className="sr-only">Programs include {rotatingPhrases.join(', ')}.</p>
-              <p aria-hidden="true" className="mt-4 text-xl font-semibold text-emerald-300 sm:mt-5 sm:text-2xl md:text-3xl">
-                <TextRotate phrases={rotatingPhrases} interval={3000} />
-              </p>
-            </>
-          )}
-
-          {/* Description */}
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-slate-300 sm:mt-6 sm:text-lg md:text-xl">
-            {description}
-          </p>
-
-          {/* CTAs */}
-          <div className="mt-8 flex flex-col items-center gap-3 sm:mt-10 sm:flex-row">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
               to={primaryCta.href}
               onPointerEnter={warmPrimaryRoute}
               onFocus={warmPrimaryRoute}
               onTouchStart={warmPrimaryRoute}
               className={cn(
-                'inline-flex items-center justify-center gap-2 rounded-lg font-semibold',
-                'bg-white text-slate-950 shadow-lg shadow-white/10',
-                'hover:bg-slate-100 active:bg-slate-200',
+                'inline-flex min-h-[48px] items-center justify-center gap-2 rounded-lg font-semibold',
+                'bg-primary px-6 text-primary-foreground shadow-sm',
+                'hover:bg-primary/90 active:bg-primary/85',
                 'transition-colors duration-150 touch-manipulation',
-                'h-13 px-8 text-base sm:h-14 sm:px-10 sm:text-lg',
+                'text-base',
               )}
             >
               <span>{primaryCta.label}</span>
@@ -119,11 +84,12 @@ export function ShapeLandingHero({
             {secondaryCta.href.startsWith('#') ? (
               <a
                 href={secondaryCta.href}
+                aria-label={secondaryCta.label}
                 className={cn(
-                  'inline-flex items-center justify-center gap-2 rounded-lg font-semibold',
-                  'border border-white/30 text-white hover:bg-white/10',
+                  'inline-flex min-h-[48px] items-center justify-center gap-2 rounded-lg font-semibold',
+                  'border border-slate-950 bg-slate-950 px-6 text-white shadow-sm hover:bg-slate-800',
                   'transition-colors duration-150 touch-manipulation',
-                  'h-13 px-8 text-base sm:h-14 sm:px-10 sm:text-lg',
+                  'text-base',
                 )}
               >
                 <span>{secondaryCta.label}</span>
@@ -132,45 +98,81 @@ export function ShapeLandingHero({
             ) : (
               <Link
                 to={secondaryCta.href}
+                aria-label={secondaryCta.label}
                 className={cn(
-                  'inline-flex items-center justify-center gap-2 rounded-lg font-semibold',
-                  'border border-white/30 text-white hover:bg-white/10',
+                  'inline-flex min-h-[48px] items-center justify-center gap-2 rounded-lg font-semibold',
+                  'border border-slate-950 bg-slate-950 px-6 text-white shadow-sm hover:bg-slate-800',
                   'transition-colors duration-150 touch-manipulation',
-                  'h-13 px-8 text-base sm:h-14 sm:px-10 sm:text-lg',
+                  'text-base',
                 )}
               >
                 <span>{secondaryCta.label}</span>
                 {secondaryCta.icon && <span aria-hidden="true">{secondaryCta.icon}</span>}
               </Link>
             )}
+            </div>
+
+            <div className="mt-8 grid grid-cols-3 gap-3 border-t border-slate-200 pt-6">
+              {proofPanel.highlights.map((stat) => (
+                <div key={stat.label}>
+                  <p className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">{stat.value}</p>
+                  <p className="mt-1 text-xs font-medium uppercase text-slate-500">{stat.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Stats row */}
-          <div className="mt-12 flex flex-wrap items-center justify-center gap-x-10 gap-y-4 sm:mt-14">
-            {[
-              { value: '92%', label: 'Job Placement' },
-              { value: '300+', label: 'Graduates Employed' },
-              { value: '25+', label: 'Employer Partners' },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <p className="text-3xl font-bold text-white sm:text-4xl">{stat.value}</p>
-                <p className="mt-1 text-xs font-medium uppercase tracking-wider text-slate-400 sm:text-sm">{stat.label}</p>
+          <aside className="rounded-lg border border-slate-200 bg-white p-3 shadow-md">
+            <div className="relative overflow-hidden rounded-lg bg-slate-100">
+              <OptimizedImage
+                src={proofPanel.image.src}
+                alt={proofPanel.image.alt}
+                width={proofPanel.image.width}
+                height={proofPanel.image.height}
+                lazy={false}
+                fetchPriority="high"
+                decoding="sync"
+                srcSetWidths={[320, 640]}
+                sizes="(min-width: 1024px) 32rem, 100vw"
+                className="aspect-[4/3] h-auto w-full object-cover"
+              />
+            </div>
+
+            <div className="space-y-5 p-4 sm:p-5">
+              <div>
+                <p className="text-xs font-semibold uppercase text-primary">{proofPanel.eyebrow}</p>
+                <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950">{proofPanel.title}</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{proofPanel.description}</p>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
-      {/* Trust bar — pinned to bottom */}
-      <div className="border-t border-white/10 bg-slate-950/80 backdrop-blur-sm">
-        <div className="container-responsive flex flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 py-3 sm:px-6 lg:px-8">
-          {proofPanel.badges.map((badge) => (
-            <span key={badge} className="text-[0.7rem] font-bold uppercase tracking-widest text-white/50">
-              {badge}
-            </span>
-          ))}
-          <span className="hidden h-3 w-px bg-white/20 sm:block" aria-hidden="true" />
-          <span className="text-xs text-white/50">{proofPanel.title}</span>
+              <div className="grid gap-3">
+                {proofPanel.checklist.slice(0, 3).map((item) => (
+                  <div key={item} className="flex gap-3 text-sm leading-6 text-slate-700">
+                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 border-t border-slate-200 pt-4">
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <CheckCircle className="h-4 w-4 text-primary" aria-hidden="true" />
+                  <p className="mt-2 text-sm font-semibold text-slate-950">Online tracking</p>
+                  <p className="mt-1 text-xs text-slate-500">Status updates from phone or desktop</p>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <p className="text-xs font-semibold uppercase text-slate-500">Recognized by</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {proofPanel.badges.map((badge) => (
+                      <span key={badge} className="rounded-md border border-slate-950/10 bg-slate-950/75 px-2 py-1 text-[0.7rem] font-semibold text-white">
+                        {badge}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
         </div>
       </div>
     </section>
