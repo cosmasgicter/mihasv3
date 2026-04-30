@@ -8,7 +8,7 @@ import { Skeleton, SkeletonCard } from '@/components/ui'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { PageShell } from '@/components/ui/PageShell'
 import { notificationService } from '@/services/notifications'
-import { ArrowLeft, Bell, ExternalLink, MessageSquare, RefreshCw, Trash2 } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Bell, CheckCircle2, ExternalLink, MessageSquare, RefreshCw, Trash2 } from 'lucide-react'
 import { staggerChild, animateClasses } from '@/lib/animations'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useNotificationPolling } from '@/hooks/useNotificationPolling'
@@ -190,12 +190,12 @@ export default function NotificationSettings() {
     return (
       <div
         key={channel}
-        className={`bg-card rounded-lg shadow-lg border border-border p-6 space-y-4 ${animateClasses.slideUp}`}
+        className={`bg-card rounded-lg shadow-sm border border-border p-6 space-y-4 ${animateClasses.slideUp}`}
         style={staggerChild(0, 100)}
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="p-3 rounded-xl bg-primary/10 text-primary shadow-inner">
+            <div className="rounded-lg bg-primary/10 p-3 text-primary">
               <details.Icon className="h-6 w-6" />
             </div>
             <div>
@@ -204,7 +204,7 @@ export default function NotificationSettings() {
             </div>
           </div>
           <span
-            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+            className={`rounded-md px-3 py-1 text-xs font-semibold ${
               optedIn ? 'bg-success/5 text-success border border-success/30' : 'bg-accent text-foreground border border-border'
             }`}
           >
@@ -216,7 +216,7 @@ export default function NotificationSettings() {
           <p className="text-foreground">SMS uses the phone number on your profile.</p>
 
           {disableGrant && (
-            <div className="rounded-xl bg-accent/5 border border-yellow-200 px-4 py-3 text-xs text-yellow-700">
+            <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-xs text-yellow-800">
               <p className="font-medium">Add a valid phone number in your profile to enable this channel.</p>
               <p>
                 <Link to="/student/settings" className="underline font-semibold text-accent-foreground">
@@ -279,7 +279,7 @@ export default function NotificationSettings() {
         <div className="mb-6 sm:mb-8">
           <Link
             to="/student/settings"
-            className="feature-chip mb-4"
+            className="mb-4 inline-flex min-h-[40px] items-center rounded-lg border border-border bg-white px-3 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-muted"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to profile settings
@@ -288,10 +288,10 @@ export default function NotificationSettings() {
 
         {(error || preferencesErrorMessage) && (
           <div
-            className={`rounded-xl bg-destructive/5 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg ${animateClasses.slideUp}`}
+            className={`mb-6 rounded-lg border border-destructive/30 bg-destructive/5 p-4 sm:p-5 ${animateClasses.slideUp}`}
           >
             <div className="flex items-center space-x-3">
-              <div className="text-3xl">⚠️</div>
+              <AlertTriangle className="h-5 w-5 flex-shrink-0 text-destructive" />
               <div className="text-error font-medium">{error || preferencesErrorMessage}</div>
             </div>
           </div>
@@ -299,10 +299,10 @@ export default function NotificationSettings() {
 
         {success && (
           <div
-            className={`rounded-xl bg-success/5 border border-success/30 p-4 sm:p-6 mb-6 shadow-lg ${animateClasses.slideUp}`}
+            className={`mb-6 rounded-lg border border-success/30 bg-success/5 p-4 sm:p-5 ${animateClasses.slideUp}`}
           >
             <div className="flex items-center space-x-3">
-              <div className="text-3xl">✅</div>
+              <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-success" />
               <div className="text-success font-medium">{success}</div>
             </div>
           </div>
@@ -380,15 +380,15 @@ export default function NotificationSettings() {
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-xl border border-border bg-muted/50 px-4 py-3">
+                  <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
                     <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Unread</p>
                     <p className="mt-1 text-2xl font-bold text-foreground">{unreadCount}</p>
                   </div>
-                  <div className="rounded-xl border border-border bg-muted/50 px-4 py-3">
+                  <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
                     <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Total recent</p>
                     <p className="mt-1 text-2xl font-bold text-foreground">{notifications.length}</p>
                   </div>
-                  <div className="rounded-xl border border-border bg-muted/50 px-4 py-3">
+                  <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
                     <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Phone source</p>
                     <p className="mt-1 text-sm font-semibold text-foreground break-words">{contactSourceLabel}</p>
                   </div>
@@ -397,7 +397,7 @@ export default function NotificationSettings() {
                 {notificationsLoading ? (
                   <div className="space-y-3 py-4" role="status" aria-label="Loading notifications">
                     {[...Array(3)].map((_, i) => (
-                      <div key={i} className="rounded-xl border border-border px-4 py-3 space-y-2">
+                      <div key={i} className="space-y-2 rounded-lg border border-border px-4 py-3">
                         <Skeleton className="h-4 w-3/5" />
                         <Skeleton className="h-3 w-full" />
                         <Skeleton className="h-3 w-1/3" />
@@ -405,7 +405,7 @@ export default function NotificationSettings() {
                     ))}
                   </div>
                 ) : notifications.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-border px-4 py-8 text-center">
+                    <div className="rounded-lg border border-dashed border-border px-4 py-8 text-center">
                       <p className="font-medium text-foreground">No in-app notifications yet</p>
                     <p className="mt-1 text-sm text-foreground">Important updates will appear here as soon as they are sent. If you have just changed application state elsewhere, use refresh to pull the newest inbox items immediately.</p>
                   </div>
@@ -414,7 +414,7 @@ export default function NotificationSettings() {
                     {notifications.map(notification => (
                       <div
                         key={notification.id}
-                        className={`rounded-xl px-4 py-3 min-h-[60px] transition-colors ${
+                        className={`min-h-[60px] rounded-lg px-4 py-3 transition-colors ${
                           notification.read
                             ? 'bg-transparent hover:bg-muted/50'
                             : 'bg-primary/5 border-l-2 border-primary hover:bg-primary/10'

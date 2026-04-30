@@ -161,8 +161,8 @@ export function ApplicationSlipActions({ applicationId, applicationNumber, compa
           disabled={isDownloading}
           variant="secondary"
           className={compact
-            ? 'min-h-[44px] w-full justify-center gap-2 rounded-xl border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400'
-            : 'min-h-[44px] w-full justify-center gap-2 rounded-xl border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400 sm:w-auto'
+            ? 'min-h-[44px] w-full justify-center gap-2 rounded-lg border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400'
+            : 'min-h-[44px] w-full justify-center gap-2 rounded-lg border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400 sm:w-auto'
           }
           loading={isDownloading}
         >
@@ -175,8 +175,8 @@ export function ApplicationSlipActions({ applicationId, applicationNumber, compa
             onClick={handleEmailOpen}
             variant="primary"
             className={compact
-              ? 'min-h-[44px] w-full justify-center gap-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90'
-              : 'min-h-[44px] w-full justify-center gap-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto'
+              ? 'min-h-[44px] w-full justify-center gap-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90'
+              : 'min-h-[44px] w-full justify-center gap-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto'
             }
           >
             <Mail className="h-4 w-4" />
@@ -195,7 +195,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber, compa
               onKeyDown={(e) => { if (e.key === 'Enter') handleEmailSend() }}
               placeholder="Enter email address"
               autoFocus
-              className="h-12 flex-1 rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
+              className="h-12 flex-1 rounded-lg border border-slate-300 bg-white px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
               disabled={isEmailing}
               aria-label="Email address for application slip"
             />
@@ -203,7 +203,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber, compa
               onClick={handleEmailSend}
               disabled={isEmailing || !emailAddress.trim()}
               variant="primary"
-              className="min-h-[44px] rounded-xl bg-primary px-5 text-primary-foreground hover:bg-primary/90"
+              className="min-h-[44px] rounded-lg bg-primary px-5 text-primary-foreground hover:bg-primary/90"
               loading={isEmailing}
             >
               {!isEmailing && <Mail className="h-4 w-4" />}

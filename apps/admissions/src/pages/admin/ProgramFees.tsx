@@ -363,7 +363,7 @@ export default function ProgramFees() {
         ) : (
           <>
             {error && (
-              <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-destructive">
+              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-destructive">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm font-semibold">Action needs attention</p>

@@ -88,7 +88,7 @@ export function ApplicationsTable({
         <>
           {/* Select All Header */}
           {onSelectionChange && (
-            <div className="bg-card rounded-xl border border-border p-4 mb-4">
+            <div className="mb-4 rounded-lg border border-border bg-card p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <input
@@ -129,7 +129,7 @@ export function ApplicationsTable({
             ))}
           </div>
           
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-card rounded-xl p-6 border border-border shadow-sm">
+          <div className="flex flex-col gap-4 rounded-lg border border-border bg-card p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <div className="text-sm text-foreground">
                 Showing <span className="font-semibold text-foreground">{loadedCount}</span>
@@ -154,7 +154,7 @@ export function ApplicationsTable({
                 type="button"
                 onClick={onLoadMore}
                 loading={isLoadingMore}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 {isLoadingMore ? 'Loading more...' : 'Load more applications'}
               </Button>
@@ -169,7 +169,7 @@ export function ApplicationsTable({
           </div>
         </>
       ) : (
-        <div className="text-center py-16 bg-card rounded-xl border border-border">
+        <div className="rounded-lg border border-border bg-card py-16 text-center">
           <div className="mx-auto w-16 h-16 bg-accent rounded-full flex items-center justify-center mb-4">
             <FileText className="h-8 w-8 text-foreground" />
           </div>

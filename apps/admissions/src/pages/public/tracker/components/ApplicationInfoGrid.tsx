@@ -21,7 +21,7 @@ const InfoCard: React.FC<InfoCardProps> = ({ icon, iconBg, label, value, index =
     className={`flex items-start gap-3 rounded-lg border border-border/40 bg-card/80  p-4 transition-all hover:shadow-md hover:border-primary/30 ${animateClasses.fadeIn}`}
     style={staggerChild(index)}
   >
-    <div className={`flex-shrink-0 rounded-xl p-2.5 ${iconBg}`}>{icon}</div>
+    <div className={`flex-shrink-0 rounded-lg p-2.5 ${iconBg}`}>{icon}</div>
     <div className="flex-1 min-w-0">
       <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
       <div className="text-sm font-semibold text-foreground mt-1 break-words">{value}</div>

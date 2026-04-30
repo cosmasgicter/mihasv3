@@ -37,13 +37,13 @@ export function ApplicationDetailPayment({
   }[paymentStatusLabel] || 'text-foreground'
 
   return (
-    <div className="bg-card border border-border rounded-xl p-6">
+    <div className="bg-card border border-border rounded-lg p-6">
       <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
         <CreditCard className="h-5 w-5 text-primary" />
         Payment Information
       </h3>
 
-      <div className="mb-4 p-3 rounded-lg bg-gradient-to-r from-green-50 to-green-100">
+      <div className="mb-4 p-3 rounded-lg bg-white">
         <div className="flex items-center gap-3">
           {getPaymentIcon(application.payment_status || 'not_paid')}
           <div>

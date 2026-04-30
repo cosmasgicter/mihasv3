@@ -669,7 +669,7 @@ export default function Applications() {
               <Keyboard className="h-4 w-4" aria-hidden="true" />
             </button>
             {showShortcuts && (
-              <div className="absolute right-0 top-full mt-2 z-50 w-52 rounded-xl border border-border bg-card p-3 shadow-lg text-xs">
+              <div className="absolute right-0 top-full mt-2 z-50 w-52 rounded-lg border border-border bg-card p-3 shadow-md text-xs">
                 <p className="font-semibold text-foreground mb-2">Keyboard shortcuts</p>
                 <div className="space-y-1.5 text-muted-foreground">
                   <div className="flex justify-between"><span>Refresh list</span><kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">R</kbd></div>
@@ -685,11 +685,13 @@ export default function Applications() {
       {/* Enhanced Admin Metrics */}
       <div className="px-4 py-4 sm:px-6">
         <div className="mb-6 grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.8fr)]">
-          <div className="glass-panel p-5 sm:p-6">
+          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="feature-chip">High-confidence approvals</span>
-              <span className="feature-chip">Payment-first decisioning</span>
-              <span className="feature-chip">Queue visibility</span>
+              {['High-confidence approvals', 'Payment-first decisioning', 'Queue visibility'].map((item) => (
+                <span key={item} className="rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-700">
+                  {item}
+                </span>
+              ))}
             </div>
             <h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
               Built for fast triage without sacrificing judgment
@@ -698,15 +700,15 @@ export default function Applications() {
               The review flow now emphasizes what admissions officers need first: today’s intake pressure, payment proof requiring attention, and the exact queue that still needs a decision.
             </p>
           </div>
-          <div className="polished-panel p-5 sm:p-6">
-            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary/80">Review posture</p>
+          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <p className="text-xs font-semibold uppercase text-primary">Review posture</p>
             <div className="mt-4 grid gap-3">
-              <div className="rounded-lg bg-slate-50 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Today</p>
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase text-slate-500">Today</p>
                 <p className="mt-1 text-lg font-semibold text-slate-950">{stats.todaySubmissions} new submissions landed</p>
               </div>
-              <div className="rounded-lg bg-slate-50 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Most urgent</p>
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase text-slate-500">Most urgent</p>
                 <p className="mt-1 text-lg font-semibold text-slate-950">
                   {stats.paymentPending > 0 ? 'Payment proof review is active' : stats.decisionQueue > 0 ? 'Decision queue needs attention' : 'Queue is under control'}
                 </p>
@@ -718,7 +720,7 @@ export default function Applications() {
         
         {/* Quick Stats Cards - Mobile First */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-          <div className="polished-panel p-4">
+          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center space-x-2">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Clock className="h-4 w-4 text-primary" />
@@ -729,7 +731,7 @@ export default function Applications() {
               </div>
             </div>
           </div>
-          <div className="polished-panel p-4">
+          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center space-x-2">
               <div className="p-2 bg-accent/10 rounded-lg">
                 <AlertCircle className="h-4 w-4 text-accent" />
@@ -740,7 +742,7 @@ export default function Applications() {
               </div>
             </div>
           </div>
-          <div className="polished-panel p-4">
+          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center space-x-2">
               <div className="p-2 bg-orange-100 rounded-lg">
                 <CreditCard className="h-4 w-4 text-orange-600" />
@@ -751,7 +753,7 @@ export default function Applications() {
               </div>
             </div>
           </div>
-          <div className="polished-panel p-4">
+          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center space-x-2">
               <div className="p-2 bg-destructive/10 rounded-lg">
                 <XCircle className="h-4 w-4 text-destructive" />
@@ -765,7 +767,7 @@ export default function Applications() {
         </div>
 
         {/* Mobile Export Actions */}
-        <div className="polished-panel mb-6 p-4">
+        <div className="mb-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-foreground">Export Data</h3>
             <Download className="h-4 w-4 text-muted-foreground" />
@@ -809,7 +811,7 @@ export default function Applications() {
 
         {/* Mobile Filters Panel */}
         {showFilters && (
-          <div className="polished-panel mb-6 p-4 sm:hidden">
+          <div className="mb-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:hidden">
             <FiltersPanel
               searchTerm={filters.searchTerm}
               statusFilter={filters.statusFilter}
@@ -828,7 +830,7 @@ export default function Applications() {
         )}
 
         {/* Desktop Filters */}
-        <div className="polished-panel mb-6 hidden p-4 sm:block">
+        <div className="mb-6 hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:block">
           <FiltersPanel
             searchTerm={filters.searchTerm}
             statusFilter={filters.statusFilter}
@@ -857,7 +859,7 @@ export default function Applications() {
         )}
 
         {isRefreshing && (
-          <div className="flex items-center gap-2 rounded-xl bg-primary/5 px-4 py-3 text-sm text-primary mb-6">
+          <div className="mb-6 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-primary">
             <div className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse" aria-hidden="true" />
             <span>Refreshing latest applications…</span>
           </div>

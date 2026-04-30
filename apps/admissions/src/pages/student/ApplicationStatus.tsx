@@ -461,18 +461,20 @@ export default function ApplicationStatus() {
         <div className="space-y-6 sm:space-y-8">
           <Link
             to="/student/dashboard"
-            className="feature-chip"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="h-4 w-4" />
             Back to dashboard
           </Link>
 
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.8fr)]">
-            <div className="glass-panel p-5 sm:p-6">
+            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="feature-chip">Status clarity</span>
-                <span className="feature-chip">Document access</span>
-                <span className="feature-chip">Payment guidance</span>
+                {['Status clarity', 'Document access', 'Payment guidance'].map((item) => (
+                  <span key={item} className="rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-700">
+                    {item}
+                  </span>
+                ))}
               </div>
               <h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
                 A single view of where your application stands and what happens next
@@ -481,15 +483,15 @@ export default function ApplicationStatus() {
                 This page is structured to reduce uncertainty. The latest admissions state, payment position, interview details, and supporting documents are all surfaced here in the order students usually need them.
               </p>
             </div>
-            <div className="polished-panel p-5 sm:p-6">
-              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary/80">Decision snapshot</p>
+            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+              <p className="text-xs font-semibold uppercase text-primary">Decision snapshot</p>
               <div className="mt-4 grid gap-3">
-                <div className="rounded-lg bg-slate-50 px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Status</p>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                  <p className="text-xs font-semibold uppercase text-slate-500">Status</p>
                   <p className="mt-1 text-lg font-semibold text-slate-950">{formatStatusLabel(application.status)}</p>
                 </div>
-                <div className="rounded-lg bg-slate-50 px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Priority</p>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                  <p className="text-xs font-semibold uppercase text-slate-500">Priority</p>
                   <p className="mt-1 text-lg font-semibold text-slate-950">
                     {needsPaymentAttention ? 'Resolve payment' : hasActiveInterview ? 'Prepare for interview' : application.status === 'approved' ? 'Confirm enrollment' : 'Watch review progress'}
                   </p>
@@ -554,7 +556,7 @@ export default function ApplicationStatus() {
                       style={staggerChild(index, 50)}
                     >
                       <div
-                        className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border shadow-sm ${
+                        className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg border shadow-sm ${
                           step.completed
                             ? 'border-success/20 bg-success/10 text-success'
                             : 'border-border bg-accent text-foreground'
@@ -581,7 +583,7 @@ export default function ApplicationStatus() {
                 icon={<FileText className="h-5 w-5" />}
               >
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div className="rounded-xl border border-primary/30 bg-primary/5 px-5 py-4">
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-5 py-4">
                     <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><User className="w-5 h-5" aria-hidden="true" /> Personal information</h3>
                     <dl className="space-y-2 text-sm">
                       <DetailRow label="Full name" value={application.full_name || 'Not provided'} />
@@ -591,7 +593,7 @@ export default function ApplicationStatus() {
                       <DetailRow label="Email" value={application.email || 'Not provided'} />
                     </dl>
                   </div>
-                  <div className="rounded-xl border border-accent/30 bg-accent/10 px-5 py-4">
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-5 py-4">
                     <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><Phone className="w-5 h-5" aria-hidden="true" /> Contact information</h3>
                     <dl className="space-y-2 text-sm">
                       <DetailRow label="Residence town" value={application.residence_town || 'Not provided'} />
@@ -600,7 +602,7 @@ export default function ApplicationStatus() {
                       <DetailRow label="Next of kin phone" value={application.next_of_kin_phone || 'Not provided'} />
                     </dl>
                   </div>
-                  <div className="rounded-xl border border-input/30 bg-secondary/5 px-5 py-4 lg:col-span-2">
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-5 py-4 lg:col-span-2">
                     <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><CreditCard className="w-5 h-5" aria-hidden="true" /> Payment information</h3>
                     <dl className="grid gap-2 text-sm sm:grid-cols-2">
                       <DetailRow label="Payment status" value={paymentStatusLabel} />
@@ -626,7 +628,7 @@ export default function ApplicationStatus() {
                 <div className="space-y-4">
                   {application.result_slip_url && (
                     <div
-                      className={`flex items-center justify-between rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 ${animateClasses.fadeIn}`}
+                      className={`flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 ${animateClasses.fadeIn}`}
                     >
                       <div className="flex items-center gap-3">
                         <div className="rounded-lg bg-primary/10 p-2">
@@ -657,7 +659,7 @@ export default function ApplicationStatus() {
 
                   {application.extra_kyc_url && (
                     <div
-                      className={`flex items-center justify-between rounded-xl border border-accent/30 bg-accent/10 px-4 py-3 ${animateClasses.fadeIn}`}
+                      className={`flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 ${animateClasses.fadeIn}`}
                       style={staggerChild(1, 100)}
                     >
                       <div className="flex items-center gap-3">

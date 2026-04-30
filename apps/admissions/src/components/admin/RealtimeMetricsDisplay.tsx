@@ -62,31 +62,26 @@ interface RealtimeMetricsDisplayProps {
 const colorConfig = {
   blue: {
     bg: 'bg-primary/10',
-    gradient: 'from-blue-500/10 to-blue-600/20',
     icon: 'text-primary',
     pulse: 'bg-primary',
   },
   yellow: {
     bg: 'bg-warning/10',
-    gradient: 'from-yellow-500/10 to-orange-600/20',
     icon: 'text-warning',
     pulse: 'bg-warning',
   },
   green: {
     bg: 'bg-success/10',
-    gradient: 'from-green-500/10 to-green-600/20',
     icon: 'text-success',
     pulse: 'bg-success',
   },
   purple: {
     bg: 'bg-secondary/10',
-    gradient: 'from-purple-500/10 to-purple-600/20',
     icon: 'text-secondary',
     pulse: 'bg-secondary',
   },
   orange: {
     bg: 'bg-accent/10',
-    gradient: 'from-orange-500/10 to-orange-600/20',
     icon: 'text-accent',
     pulse: 'bg-accent',
   },
@@ -206,12 +201,9 @@ function MetricCard({
         )}
         style={staggerChild(delay * 10)}
       >
-        {/* Background gradient */}
-        <div className={cn('absolute top-0 right-0 w-20 h-20 bg-gradient-to-br rounded-bl-full', colors.gradient)} />
-        
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-4">
-            <div className={cn('rounded-xl', colors.bg, compact ? 'p-2' : 'p-3')}>
+            <div className={cn('rounded-lg', colors.bg, compact ? 'p-2' : 'p-3')}>
               <Icon className={cn(colors.icon, compact ? 'h-5 w-5' : 'h-6 w-6')} />
             </div>
             <div className="text-right">
@@ -457,7 +449,7 @@ export function RealtimeMetricsDisplay({
       
       {/* Summary stats row */}
       <div
-        className="bg-card rounded-xl border border-border p-4 animate-slide-up opacity-0"
+        className="animate-slide-up rounded-lg border border-border bg-card p-4 opacity-0"
         style={staggerChild(5)}
       >
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">

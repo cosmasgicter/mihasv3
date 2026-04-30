@@ -36,7 +36,7 @@ export function CapacityWarning({ intake_capacity, intake_enrollment }: Capacity
       <div
         role="alert"
         data-testid="capacity-warning"
-        className="flex items-start gap-3 p-4 rounded-xl border border-red-300 bg-red-50"
+        className="flex items-start gap-3 p-4 rounded-lg border border-red-300 bg-red-50"
       >
         <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
         <div>
@@ -52,7 +52,7 @@ export function CapacityWarning({ intake_capacity, intake_enrollment }: Capacity
     <div
       role="status"
       data-testid="capacity-warning"
-      className="flex items-start gap-3 p-4 rounded-xl border border-amber-300 bg-amber-50"
+      className="flex items-start gap-3 p-4 rounded-lg border border-amber-300 bg-amber-50"
     >
       <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
       <div>

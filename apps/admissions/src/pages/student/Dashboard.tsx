@@ -558,7 +558,7 @@ export default function StudentDashboard() {
             )}
 
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.75fr)]">
-              <div className="glass-panel p-4 sm:p-5">
+              <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
                 <p className="text-xs font-semibold uppercase text-primary">Next action</p>
                 <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
                   {totalDraftCount > 0
@@ -583,14 +583,14 @@ export default function StudentDashboard() {
                           : 'Create your first application and save progress as you go.'}
                 </p>
               </div>
-              <div className="polished-panel p-4 sm:p-5">
+              <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
                 <p className="text-xs font-semibold uppercase text-primary">Today’s readiness</p>
                 <div className="mt-4 grid gap-3">
-                  <div className="rounded-lg bg-slate-50 px-4 py-3">
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
                     <p className="text-xs font-medium uppercase text-slate-500">Drafts</p>
                     <p className="mt-1 text-base font-semibold text-slate-950">{totalDraftCount > 0 ? `${totalDraftCount} awaiting completion` : 'All drafts resolved'}</p>
                   </div>
-                  <div className="rounded-lg bg-slate-50 px-4 py-3">
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
                     <p className="text-xs font-medium uppercase text-slate-500">Immediate focus</p>
                     <p className="mt-1 text-base font-semibold text-slate-950">
                       {hasPendingPayment ? 'Payment follow-up' : hasScheduledInterview ? 'Interview preparation' : 'Application progress'}
@@ -664,23 +664,23 @@ export default function StudentDashboard() {
                   icon={<User className="h-5 w-5" />}
                 >
                   <div className="grid gap-2.5">
-                    <div className="rounded-xl bg-muted/60 px-4 py-3">
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
                       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Full name</p>
                       <p className="mt-0.5 text-sm font-semibold text-foreground break-words">
                         {sanitizeForDisplay(getBestValue(profile?.full_name, metadata.full_name, user?.email?.split('@')[0]))}
                       </p>
                     </div>
-                    <div className="rounded-xl bg-muted/60 px-4 py-3">
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
                       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Email</p>
                       <p className="mt-0.5 text-sm font-semibold text-foreground break-all">{sanitizeForDisplay(user?.email) || 'Not provided'}</p>
                     </div>
-                    <div className="rounded-xl bg-muted/60 px-4 py-3">
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
                       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Phone</p>
                       <p className="mt-0.5 text-sm font-semibold text-foreground break-words">
                         {sanitizeForDisplay(getBestValue(profile?.phone, metadata.phone, 'Not provided'))}
                       </p>
                     </div>
-                    <div className="rounded-xl bg-muted/60 px-4 py-3">
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
                       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Residence</p>
                       <p className="mt-0.5 text-sm font-semibold text-foreground break-words">
                         {sanitizeForDisplay(getBestValue(profile?.address, metadata.address, 'Not provided'))}
@@ -688,7 +688,7 @@ export default function StudentDashboard() {
                     </div>
                   </div>
                   <Link to="/student/settings" className="block">
-                    <Button variant="outline" size="sm" className="mt-4 min-h-[44px] w-full transition-all duration-200 hover:border-primary/30 active:scale-[0.98]">
+                    <Button variant="outline" size="sm" className="mt-4 min-h-[44px] w-full transition-colors duration-150 hover:border-primary/30">
                       Update profile
                     </Button>
                   </Link>
@@ -717,7 +717,7 @@ export default function StudentDashboard() {
                       intakes.slice(0, 3).map((intake, index) => (
                         <div
                           key={intake.id}
-                          className={`rounded-xl border border-warning/20 bg-gradient-to-br from-warning/5 to-transparent px-4 py-3 transition-all duration-200 hover:border-warning/40 hover:shadow-sm ${animateClasses.slideUp}`}
+                          className={`rounded-lg border border-warning/25 bg-warning/5 px-4 py-3 transition-colors duration-150 hover:border-warning/40 ${animateClasses.slideUp}`}
                           style={staggerChild(index, 100)}
                         >
                           <p className="text-sm font-semibold text-foreground">{intake.name}</p>

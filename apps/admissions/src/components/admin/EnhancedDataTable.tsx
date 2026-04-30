@@ -431,14 +431,14 @@ export function EnhancedDataTable<T extends object>({
 
   if (loading) {
     return (
-      <div className={cn('bg-card rounded-xl border border-border overflow-hidden', className)}>
+      <div className={cn('bg-card rounded-lg border border-border overflow-hidden', className)}>
         <TableSkeleton columns={columns.length} rows={pageSize} />
       </div>
     );
   }
 
   return (
-    <div className={cn('bg-card rounded-xl border border-border overflow-hidden', className)}>
+    <div className={cn('bg-card rounded-lg border border-border overflow-hidden', className)}>
       {/* Search and filters */}
       {searchable && (
         <div className="p-4 border-b border-border">

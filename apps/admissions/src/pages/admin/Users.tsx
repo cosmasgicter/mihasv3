@@ -512,7 +512,7 @@ export default function AdminUsers() {
                 <select
                   value={roleFilter}
                   onChange={(event) => setRoleFilter(event.target.value)}
-                  className="min-h-[44px] h-12 w-full rounded-xl border border-input bg-background pl-10 pr-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="min-h-[44px] h-12 w-full rounded-lg border border-input bg-background pl-10 pr-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="">All roles</option>
                   {AVAILABLE_ROLES.map((role) => (
@@ -669,7 +669,7 @@ export default function AdminUsers() {
                 })}
               </div>
 
-              <div className="hidden overflow-x-auto rounded-xl border border-border/60 lg:block">
+              <div className="hidden overflow-x-auto rounded-lg border border-border/60 lg:block">
                 <table className="min-w-full divide-y divide-border/40" aria-label="Users">
                   <thead className="sticky top-0 z-10 bg-muted/50 ">
                     <tr>
@@ -734,7 +734,7 @@ export default function AdminUsers() {
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-border/60 bg-muted/30 px-4 py-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-border/60 bg-muted/30 px-4 py-3">
                   <p className="text-sm text-muted-foreground">
                     Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, sortedUsers.length)} of {sortedUsers.length}
                   </p>
@@ -850,7 +850,7 @@ export default function AdminUsers() {
                 <select
                   value={createForm.role}
                   onChange={(event) => setCreateForm({ ...createForm, role: event.target.value })}
-                  className="min-h-[44px] h-12 w-full rounded-xl border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="min-h-[44px] h-12 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   required
                 >
                   {AVAILABLE_ROLES.map((role) => (
@@ -917,7 +917,7 @@ export default function AdminUsers() {
                 <select
                   value={editForm.role}
                   onChange={(event) => setEditForm({ ...editForm, role: event.target.value })}
-                  className="min-h-[44px] h-12 w-full rounded-xl border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="min-h-[44px] h-12 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   required
                   disabled={selectedUser?.role === 'super_admin'}
                 >

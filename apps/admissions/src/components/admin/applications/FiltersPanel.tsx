@@ -68,7 +68,7 @@ export function FiltersPanel({
     onFilterChange('pendingAmendmentsFilter', '')
   }
 
-  const selectClasses = "w-full h-11 rounded-xl border border-border/60 bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors hover:border-primary/20"
+  const selectClasses = "w-full h-11 rounded-lg border border-border/60 bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors hover:border-primary/20"
 
   return (
     <div className="bg-card rounded-lg border border-border/60 shadow-sm p-5 mb-6">
@@ -99,7 +99,7 @@ export function FiltersPanel({
               placeholder="Search applicant, email, application number..."
               value={localSearch}
               onChange={handleSearchChange}
-              className="pl-10 h-11 rounded-xl border-border/60 hover:border-primary/20 transition-colors"
+              className="pl-10 h-11 rounded-lg border-border/60 hover:border-primary/20 transition-colors"
               aria-label="Search applications"
             />
           </div>

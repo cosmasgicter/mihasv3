@@ -39,8 +39,8 @@ interface ContactItemProps {
 
 function ContactItem({ href, icon, label, children }: ContactItemProps) {
   const content = (
-    <div className="flex items-center gap-4 rounded-lg border border-border/40 bg-card/80  p-4 transition-all hover:shadow-md hover:border-primary/30">
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+    <div className="flex items-center gap-4 rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:border-primary/30 hover:bg-slate-50">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-primary/15 bg-primary/10">
         {icon}
       </div>
       <div className="min-w-0">
@@ -78,46 +78,48 @@ export default function ContactPage() {
         description="Reach the MIHAS-KATC admissions team for application help, program guidance, and enrollment support."
         path="/contact"
       />
-      <div className="container-responsive px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
-        <ScrollReveal className="mx-auto max-w-5xl space-y-10">
-          {/* Page Header */}
-          <div className="glass-panel p-8 sm:p-12">
+      <div className="bg-slate-50">
+      <div className="container-responsive px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
+        <ScrollReveal className="mx-auto max-w-5xl space-y-8">
+          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-7 lg:p-8">
             <Link
               to="/"
-              className="feature-chip mb-6"
+              className="mb-6 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Back to Home
             </Link>
-            <div className="flex flex-wrap gap-2">
-              <span className="feature-chip">Admissions support</span>
-              <span className="feature-chip">Programme guidance</span>
-              <span className="feature-chip">Enrollment help</span>
+            <div className="flex flex-wrap gap-2" aria-label="Contact support topics">
+              {['Admissions support', 'Programme guidance', 'Enrollment help'].map((topic) => (
+                <span key={topic} className="rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-700">
+                  {topic}
+                </span>
+              ))}
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+            <h1 className="mt-5 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
               Contact Admissions
             </h1>
-            <p className="mt-3 max-w-2xl text-base text-muted-foreground sm:text-lg">
+            <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
               Reach our admissions team for application help, program guidance, and enrollment support.
             </p>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.8fr)]">
-            <div className="polished-panel p-5 sm:p-6">
+            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
               <h2 className="text-xl font-semibold tracking-tight text-slate-950">Talk to a real admissions team, not a dead form</h2>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
                 Use this page when you need help choosing a programme, understanding payment steps, or resolving an application issue. We kept the path short so students can act quickly and confidently.
               </p>
             </div>
-            <div className="polished-panel p-5 sm:p-6">
-              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-primary/80">Fastest route</p>
+            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+              <p className="text-xs font-semibold uppercase text-primary">Fastest route</p>
               <div className="mt-4 grid gap-3">
-                <div className="rounded-lg bg-green-50 px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-green-700">WhatsApp</p>
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+                  <p className="text-xs font-semibold uppercase text-emerald-700">WhatsApp</p>
                   <a href={`https://wa.me/${contactInfo.katcPhone.replace(/[\s+]/g, '')}`} className="mt-1 text-lg font-semibold text-slate-950 hover:underline block">{contactInfo.katcPhone}</a>
                 </div>
-                <div className="rounded-lg bg-slate-50 px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Phone support</p>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                  <p className="text-xs font-semibold uppercase text-slate-500">Phone support</p>
                   <p className="mt-1 text-lg font-semibold text-slate-950">{contactInfo.katcPhone}</p>
                 </div>
               </div>
@@ -127,7 +129,7 @@ export default function ContactPage() {
           {/* Two-column layout */}
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             {/* Contact info */}
-            <Card className="rounded-lg border border-white/70 bg-white/92 shadow-[0_22px_60px_-34px_rgba(15,23,42,0.25)]">
+            <Card className="rounded-lg border border-slate-200 bg-white shadow-sm">
               <CardContent className="space-y-5 p-6 sm:p-8">
                 <CardTitle className="text-xl font-semibold">Talk to our team</CardTitle>
                 <div className="space-y-3">
@@ -152,7 +154,7 @@ export default function ContactPage() {
             </Card>
 
             {/* Contact form */}
-            <Card className="rounded-lg border border-white/70 bg-white/92 shadow-[0_22px_60px_-34px_rgba(15,23,42,0.25)]">
+            <Card className="rounded-lg border border-slate-200 bg-white shadow-sm">
               <CardContent className="p-6 sm:p-8">
                 <CardTitle className="mb-6 text-xl font-semibold">Send a Message</CardTitle>
 
@@ -163,14 +165,14 @@ export default function ContactPage() {
                       If no email app is available, use the contact details shown on this page.
                     </p>
                     <div className="flex flex-col gap-3 sm:flex-row">
-                      <Button asChild variant="gradient" size="lg" className="w-full sm:w-auto h-12 rounded-xl">
+                      <Button asChild size="lg" className="h-12 w-full sm:w-auto">
                         <a href={draftUrl}>Open Email App</a>
                       </Button>
                       <Button
                         type="button"
                         variant="outline"
                         size="lg"
-                        className="w-full sm:w-auto h-12 rounded-xl"
+                        className="h-12 w-full sm:w-auto"
                         onClick={() => { setSubmitState('idle'); setDraftUrl('') }}
                       >
                         Edit Message
@@ -188,7 +190,7 @@ export default function ContactPage() {
                     autoComplete="name"
                     placeholder="Your name"
                     error={errors.name?.message}
-                    className="h-12 rounded-xl"
+                    className="h-12 rounded-lg"
                     required
                   />
                   <Input
@@ -199,7 +201,7 @@ export default function ContactPage() {
                     autoComplete="email"
                     placeholder="Email"
                     error={errors.email?.message}
-                    className="h-12 rounded-xl"
+                    className="h-12 rounded-lg"
                     required
                   />
                   <div className="w-full">
@@ -211,7 +213,7 @@ export default function ContactPage() {
                       autoComplete="off"
                       placeholder="How can we help?"
                       rows={5}
-                      className="w-full min-h-[120px] rounded-xl border border-input bg-background px-4 py-3 text-[15px] text-foreground placeholder:text-muted-foreground hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all duration-200"
+                      className="w-full min-h-[120px] rounded-lg border border-input bg-background px-4 py-3 text-[15px] text-foreground placeholder:text-muted-foreground hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors duration-150"
                       aria-invalid={!!errors.message}
                       aria-describedby={errors.message ? 'contact-message-error' : undefined}
                       {...register('message')}
@@ -222,7 +224,7 @@ export default function ContactPage() {
                       </p>
                     )}
                   </div>
-                  <Button type="submit" variant="gradient" size="lg" className="w-full h-12 rounded-xl">
+                  <Button type="submit" size="lg" className="h-12 w-full">
                     {submitState === 'draft_ready' ? 'Update Email Draft' : 'Prepare Email Draft'}
                   </Button>
                 </form>
@@ -230,6 +232,7 @@ export default function ContactPage() {
             </Card>
           </div>
         </ScrollReveal>
+      </div>
       </div>
     </PublicLayout>
   )

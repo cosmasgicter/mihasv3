@@ -139,9 +139,9 @@ export function StudentNextActionCard(props: StudentNextActionCardProps) {
   const Icon = action.icon
 
   const toneClasses = {
-    primary: 'border-primary/25 bg-gradient-to-br from-primary/10 via-card to-info/10',
-    warning: 'border-warning/35 bg-gradient-to-br from-warning/15 via-card to-card',
-    success: 'border-success/30 bg-gradient-to-br from-success/10 via-card to-card',
+    primary: 'border-primary/20 bg-white',
+    warning: 'border-warning/35 bg-warning/5',
+    success: 'border-success/30 bg-success/5',
     neutral: 'border-border bg-card',
   }
 
@@ -155,7 +155,7 @@ export function StudentNextActionCard(props: StudentNextActionCardProps) {
   return (
     <section
       className={cn(
-        'overflow-hidden rounded-lg border p-4 shadow-lg sm:p-5',
+        'overflow-hidden rounded-lg border p-4 shadow-sm sm:p-5',
         toneClasses[action.tone]
       )}
       aria-labelledby="student-next-action-heading"
@@ -174,11 +174,11 @@ export function StudentNextActionCard(props: StudentNextActionCardProps) {
       </div>
 
       <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center">
-        <Button asChild variant={action.tone === 'warning' ? 'warning' : 'primary'} className="min-h-12 w-full transition-all duration-200 active:scale-[0.98] sm:w-auto">
+        <Button asChild variant={action.tone === 'warning' ? 'warning' : 'primary'} className="min-h-12 w-full transition-colors duration-150 sm:w-auto">
           <Link to={action.href}>{action.cta}</Link>
         </Button>
         {action.secondaryHref && action.secondaryCta && (
-          <Button asChild variant="ghost" className="min-h-12 w-full transition-all duration-200 active:scale-[0.98] sm:w-auto">
+          <Button asChild variant="ghost" className="min-h-12 w-full transition-colors duration-150 sm:w-auto">
             <Link to={action.secondaryHref}>{action.secondaryCta}</Link>
           </Button>
         )}

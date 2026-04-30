@@ -580,7 +580,7 @@ const ApplicationWizardContent = () => {
             </Link>
 
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(18rem,0.8fr)]">
-              <div className="glass-panel p-4 sm:p-5">
+              <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
                 <p className="text-xs font-semibold uppercase text-primary">Current step</p>
                 <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
                   {currentStepConfig.title}
@@ -589,10 +589,10 @@ const ApplicationWizardContent = () => {
                   {currentStepConfig.description}
                 </p>
               </div>
-              <div className="polished-panel p-4 sm:p-5">
+              <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
                 <p className="text-xs font-semibold uppercase text-primary">Session</p>
                 <p className="mt-3 text-sm font-semibold text-slate-900 break-all">{user.email}</p>
-                <div className="mt-4 h-px ambient-divider" />
+                <div className="mt-4 h-px bg-slate-200" />
                 <div className="mt-4 grid gap-3 text-sm text-slate-600">
                   <div className="flex items-center justify-between gap-3">
                     <span>Autosave</span>
@@ -613,7 +613,7 @@ const ApplicationWizardContent = () => {
         </Container>
 
         <Container size="md" className="mb-6 lg:mb-8">
-          <div className="glass-panel p-4 sm:p-5">
+          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div className="flex-1">
               <h2 className="text-base sm:text-lg font-semibold text-foreground">
@@ -858,7 +858,7 @@ const ApplicationWizardContent = () => {
             </div>
 
               <div className={`${keyboardOpen ? 'relative' : 'sticky bottom-0'} z-10 -mx-4 border-t border-border/50 bg-background px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] pt-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] sm:static sm:mx-0 sm:border-t-0 sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none`}>
-              <div className="glass-panel flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-4 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
             <div className="order-2 sm:order-1">
               {currentStepIndex > 0 && (
                 <div>

@@ -339,7 +339,7 @@ export function UserPermissions({
                       return (
                         <div
                           key={permission.id}
-                          className={`rounded-xl border p-3 transition-colors ${
+                          className={`rounded-lg border p-3 transition-colors ${
                             selected
                               ? 'border-primary/30 bg-primary/5'
                               : 'border-border bg-muted/40'

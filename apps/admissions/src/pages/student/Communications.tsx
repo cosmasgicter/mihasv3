@@ -228,7 +228,7 @@ export default function Communications() {
               {Array.from({ length: 3 }).map((_, i) => (
                 <div
                   key={i}
-                  className="animate-pulse rounded-xl border border-border bg-card p-4"
+                  className="animate-pulse rounded-lg border border-border bg-card p-4"
                 >
                   <div className="h-4 w-1/3 rounded bg-muted" />
                   <div className="mt-2 h-3 w-2/3 rounded bg-muted" />

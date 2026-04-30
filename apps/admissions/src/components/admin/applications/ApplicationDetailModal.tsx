@@ -307,10 +307,10 @@ export function ApplicationDetailModal({
  <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-0 sm:p-4 z-[60] overflow-hidden">
  <div className="bg-card w-full h-full sm:rounded-lg sm:max-w-6xl sm:w-full sm:max-h-[95vh] overflow-hidden flex flex-col max-w-full">
  {/* Header Skeleton */}
- <div className="flex-shrink-0 p-4 sm:p-6 border-b border-border bg-gradient-to-r from-blue-50 to-indigo-50">
+ <div className="flex-shrink-0 p-4 sm:p-6 border-b border-border bg-white">
  <div className="flex items-center justify-between gap-2">
  <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
- <Skeleton className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex-shrink-0" />
+ <Skeleton className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex-shrink-0" />
  <div className="min-w-0 flex-1 space-y-2">
  <Skeleton className="h-6 w-48" />
  <Skeleton className="h-4 w-32" />
@@ -323,9 +323,9 @@ export function ApplicationDetailModal({
  {/* Content Skeleton */}
  <div className="flex-1 overflow-y-auto p-4 sm:p-6">
  <div className="space-y-4">
- <Skeleton className="h-32 rounded-xl" />
- <Skeleton className="h-48 rounded-xl" />
- <Skeleton className="h-48 rounded-xl" />
+ <Skeleton className="h-32 rounded-lg" />
+ <Skeleton className="h-48 rounded-lg" />
+ <Skeleton className="h-48 rounded-lg" />
  </div>
  </div>
  
@@ -443,9 +443,9 @@ export function ApplicationDetailModal({
  {loading ? (
  <div className="flex items-center justify-center py-12" role="status" aria-label="Loading application details">
  <div className="space-y-4 w-full max-w-lg">
- <Skeleton className="h-32 w-full rounded-xl" />
- <Skeleton className="h-48 w-full rounded-xl" />
- <Skeleton className="h-48 w-full rounded-xl" />
+ <Skeleton className="h-32 w-full rounded-lg" />
+ <Skeleton className="h-48 w-full rounded-lg" />
+ <Skeleton className="h-48 w-full rounded-lg" />
  </div>
  </div>
  ) : (
@@ -459,7 +459,7 @@ export function ApplicationDetailModal({
  />
  {/* Quick Stats */}
  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
- <div className="rounded-lg border border-blue-100 bg-gradient-to-r from-blue-50 to-blue-100 p-4 shadow-sm">
+ <div className="rounded-lg border border-blue-100 bg-white p-4 shadow-sm">
  <div className="flex items-center gap-3">
  {application.status === 'approved' ? <CheckCircle className="h-5 w-5 text-accent" /> :
   application.status === 'under_review' ? <Eye className="h-5 w-5 text-accent" /> :
@@ -474,7 +474,7 @@ export function ApplicationDetailModal({
  </div>
  </div>
  
- <div className="rounded-lg border border-emerald-100 bg-gradient-to-r from-green-50 to-green-100 p-4 shadow-sm">
+ <div className="rounded-lg border border-emerald-100 bg-white p-4 shadow-sm">
  <div className="flex items-center gap-3">
  <CreditCard className="h-5 w-5 text-accent" />
  <div>
@@ -486,7 +486,7 @@ export function ApplicationDetailModal({
  </div>
  </div>
  
- <div className="rounded-lg border border-purple-100 bg-gradient-to-r from-purple-50 to-purple-100 p-4 shadow-sm">
+ <div className="rounded-lg border border-purple-100 bg-white p-4 shadow-sm">
  <div className="flex items-center gap-3">
  <Calendar className="h-5 w-5 text-secondary" />
  <div>
@@ -506,7 +506,7 @@ export function ApplicationDetailModal({
    const dt = interview.scheduled_at ? new Date(interview.scheduled_at).toLocaleString() : 'Not scheduled'
    const modeLabel = interview.mode === 'in_person' ? 'In person' : interview.mode === 'virtual' ? 'Virtual' : interview.mode === 'phone' ? 'Phone' : (interview.mode || 'Not specified')
    return (
-     <div className="bg-card border border-primary/30 rounded-xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+     <div className="bg-white border border-primary/20 rounded-lg p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
        <div className="flex items-center gap-3">
          <Calendar className="h-10 w-10 text-primary" />
          <div>
@@ -565,7 +565,7 @@ export function ApplicationDetailModal({
  />
 
  {/* Personal Information */}
- <div className="bg-card border border-border rounded-xl p-6">
+ <div className="bg-white border border-border rounded-lg p-6">
  <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
  <User className="h-5 w-5 text-primary" />
  Personal Information
@@ -621,7 +621,7 @@ export function ApplicationDetailModal({
  </div>
 
  {/* Program Information */}
- <div className="bg-card border border-border rounded-xl p-6">
+ <div className="bg-white border border-border rounded-lg p-6">
  <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
  <GraduationCap className="h-5 w-5 text-primary" />
  Program Information
@@ -661,7 +661,7 @@ export function ApplicationDetailModal({
  />
 
  {/* Admin Feedback */}
- <div className="bg-blue-50 border border-primary/30 rounded-xl p-6">
+ <div className="bg-white border border-primary/20 rounded-lg p-6">
  <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
  <AlertCircle className="h-5 w-5" />
  Admin Feedback
@@ -698,7 +698,7 @@ export function ApplicationDetailModal({
 
  {/* Pending Amendment Requests */}
  {((applicationData?.application?.pending_amendments && applicationData.application.pending_amendments.length > 0) || (application.pending_amendments && application.pending_amendments.length > 0)) && (
- <div className="bg-card border border-amber-200 rounded-xl p-6">
+ <div className="bg-white border border-amber-200 rounded-lg p-6">
  <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
  <ClipboardList className="h-5 w-5 text-amber-600" />
  Pending Amendment Requests

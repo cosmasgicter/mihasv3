@@ -115,7 +115,7 @@ const SubmissionSuccess = ({
         <div className={`relative inline-flex items-center justify-center ${animateClasses.scaleIn}`}>
           {/* Celebratory ring pulse */}
           <div className="absolute inset-0 w-20 h-20 rounded-full bg-success/20 animate-ping" style={{ animationDuration: '1.5s', animationIterationCount: '3' }} />
-          <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-success to-emerald-400 flex items-center justify-center shadow-lg shadow-success/30">
+          <div className="relative w-20 h-20 rounded-full bg-success flex items-center justify-center  ">
             <CheckCircle className="h-10 w-10 text-white" />
           </div>
         </div>

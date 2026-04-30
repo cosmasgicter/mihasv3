@@ -73,10 +73,10 @@ export function ApplicationsCards({
               onClick={() => onToggleSelection(application.id)}
             >
               <div 
-                className={`relative overflow-hidden rounded-xl shadow-lg transition-all duration-300 card-mobile ${
+                className={`relative overflow-hidden rounded-lg shadow-sm transition-all duration-300 card-mobile ${
                   selectedApplications.includes(application.id) 
                     ? 'ring-2 ring-primary bg-blue-50' 
-                    : 'hover:shadow-lg hover:-translate-y-1'
+                    : 'hover:shadow-sm '
                 }`}
               >
                 <div className="relative z-10 p-6">

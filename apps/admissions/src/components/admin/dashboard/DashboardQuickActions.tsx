@@ -32,7 +32,7 @@ export function DashboardQuickActions({
             <Link
               key={action.label}
               to={action.to}
-              className="flex items-center justify-between rounded-xl border border-border/40 p-3 hover:bg-muted/30 transition-colors min-h-[44px]"
+              className="flex items-center justify-between rounded-lg border border-border/40 p-3 hover:bg-muted/30 transition-colors min-h-[44px]"
             >
               <div className="flex items-center gap-2">
                 <Icon className="h-4 w-4 text-primary" />

@@ -70,7 +70,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
         aria-label={label}
         className={cn(
           "relative flex flex-col items-center justify-center flex-1 h-full group",
-          "min-h-[44px] min-w-[44px] px-2 rounded-xl",
+          "min-h-[44px] min-w-[44px] px-2 rounded-lg",
           "transition-colors duration-150",
           isActive && "bg-primary/10"
         )}
@@ -96,7 +96,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
   return (
     <>
       <nav 
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/40 bg-background/80  shadow-lg safe-area-bottom animate-fade-in"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/60 bg-background shadow-md safe-area-bottom animate-fade-in"
         role="navigation"
         aria-label="Mobile bottom navigation"
       >
@@ -109,7 +109,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
             aria-haspopup="menu"
             className={cn(
               "relative flex flex-col items-center justify-center flex-1 h-full group",
-              "min-h-[44px] min-w-[44px] px-2 rounded-xl",
+              "min-h-[44px] min-w-[44px] px-2 rounded-lg",
               "transition-colors duration-150 hover:bg-muted/50"
             )}
           >
@@ -127,10 +127,10 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
             role="button"
             tabIndex={0}
             aria-label="Close more menu"
-            className="md:hidden fixed inset-0 bg-black/50  z-40 animate-fade-in"
+            className="md:hidden fixed inset-0 bg-black/50 z-40 animate-fade-in"
           />
           <div 
-            className="md:hidden fixed bottom-20 right-4 w-56 max-w-[calc(100vw-2rem)] bg-card rounded-lg shadow-lg border border-border z-50 overflow-hidden animate-fade-in"
+            className="md:hidden fixed bottom-20 right-4 w-56 max-w-[calc(100vw-2rem)] bg-card rounded-lg shadow-md border border-border z-50 overflow-hidden animate-fade-in"
             role="menu"
             aria-label="Additional student options"
           >
@@ -144,7 +144,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
                     onClick={() => setShowStudentMore(false)}
                     role="menuitem"
                     className={cn(
-                      "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors duration-150",
+                      "flex items-center gap-3 px-3 py-3 rounded-lg transition-colors duration-150",
                       "min-h-[44px]",
                       isActive ? "bg-primary/10 text-primary font-semibold" : "text-foreground hover:bg-muted/50"
                     )}
@@ -167,10 +167,10 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
             role="button"
             tabIndex={0}
             aria-label="Close more menu"
-            className="md:hidden fixed inset-0 bg-black/50  z-40 animate-fade-in"
+            className="md:hidden fixed inset-0 bg-black/50 z-40 animate-fade-in"
           />
           <div 
-            className="md:hidden fixed bottom-20 right-4 w-56 max-w-[calc(100vw-2rem)] bg-card rounded-lg shadow-lg border border-border z-50 overflow-hidden animate-fade-in"
+            className="md:hidden fixed bottom-20 right-4 w-56 max-w-[calc(100vw-2rem)] bg-card rounded-lg shadow-md border border-border z-50 overflow-hidden animate-fade-in"
             role="menu"
             aria-label="Additional navigation options"
           >
@@ -189,7 +189,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
                         onClick={() => setShowMoreMenu(false)}
                         role="menuitem"
                         className={cn(
-                          "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors duration-150",
+                          "flex items-center gap-3 px-3 py-3 rounded-lg transition-colors duration-150",
                           "min-h-[44px]",
                           isActive ? "bg-primary/10 text-primary font-semibold" : "text-foreground hover:bg-muted/50"
                         )}

@@ -28,7 +28,6 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
       description: `${stats.pendingApplications} in decision queue`,
       icon: FileText,
       href: '/admin/applications',
-      color: 'from-blue-600 to-purple-600',
       urgent: stats.pendingApplications > 0
     },
     {
@@ -36,7 +35,6 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
       description: `${stats.totalPrograms} active programs`,
       icon: GraduationCap,
       href: '/admin/programs',
-      color: 'from-purple-500 to-indigo-600',
       urgent: false
     },
     {
@@ -44,7 +42,6 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
       description: `${stats.totalStudents} students`,
       icon: Users,
       href: '/admin/users',
-      color: 'from-blue-500 to-cyan-600',
       urgent: false
     }
   ]
@@ -68,7 +65,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
     <div className="space-y-6">
       {/* Primary Actions */}
       <div 
-        className={`${animateClasses.slideUp} opacity-0 bg-card rounded-lg shadow-lg border border-border`}
+        className={`${animateClasses.slideUp} opacity-0 rounded-lg border border-border bg-card shadow-sm`}
         style={staggerChild(0)}
       >
         <div className="px-6 py-4 border-b border-border">
@@ -83,21 +80,22 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
               return (
                 <Link key={action.title} to={action.href}>
                   <div
-                    className={`${animateClasses.slideUp} opacity-0 group relative hover:scale-[1.02] active:scale-[0.98] transition-transform duration-150`}
+                    className={`${animateClasses.slideUp} opacity-0 group relative`}
                     style={staggerChild(index)}
                   >
                     <Button 
-                      className={`w-full h-24 flex flex-col items-center justify-center space-y-2 bg-gradient-to-r ${action.color} hover:shadow-md transition-all duration-300 relative overflow-hidden`}
+                      variant="outline"
+                      className="relative flex h-24 w-full flex-col items-center justify-center space-y-2 overflow-hidden border-slate-200 bg-white transition-colors duration-150 hover:bg-slate-50"
                     >
                       {action.urgent && (
                         <div className="absolute top-2 right-2">
                           <div className="w-3 h-3 bg-destructive rounded-full animate-pulse"></div>
                         </div>
                       )}
-                      <Icon className="h-6 w-6 group-hover:scale-110 transition-transform" />
+                      <Icon className="h-6 w-6 text-primary" />
                       <span className="font-semibold text-sm">{action.title}</span>
                       {action.urgent && (
-                        <span className="text-xs bg-card/20 px-2 py-1 rounded-full">
+                        <span className="rounded-md bg-primary/10 px-2 py-1 text-xs text-primary">
                           {action.description}
                         </span>
                       )}
@@ -112,11 +110,11 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
 
       {/* System Tools */}
       <div 
-        className={`${animateClasses.slideUp} opacity-0 bg-card rounded-lg shadow-lg border border-border`}
+        className={`${animateClasses.slideUp} opacity-0 rounded-lg border border-border bg-card shadow-sm`}
         style={staggerChild(2)}
       >
         <div className="px-6 py-4 border-b border-border">
-          <h3 className="text-lg font-bold text-foreground">🛠️ System Tools</h3>
+          <h3 className="text-lg font-bold text-foreground">System Tools</h3>
         </div>
         
         <div className="p-6 space-y-3">
@@ -125,12 +123,12 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
             return (
               <Link key={action.title} to={action.href}>
                 <div
-                  className={`${animateClasses.fadeIn} opacity-0 hover:scale-[1.02] active:scale-[0.98] transition-transform duration-150`}
+                  className={`${animateClasses.fadeIn} opacity-0`}
                   style={staggerChild(index)}
                 >
                   <Button 
                     variant="outline" 
-                    className="w-full justify-start h-12 border-2 hover:border-primary hover:bg-primary/5 transition-all duration-300"
+                    className="h-12 w-full justify-start border-slate-200 transition-colors duration-150 hover:border-primary/40 hover:bg-primary/5"
                   >
                     <Icon className="h-4 w-4 mr-3" />
                     <div className="text-left">
@@ -145,12 +143,12 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
           
           {/* Quick Export */}
           <div
-            className={`${animateClasses.fadeIn} opacity-0 hover:scale-[1.02] active:scale-[0.98] transition-transform duration-150`}
+            className={`${animateClasses.fadeIn} opacity-0`}
             style={staggerChild(4)}
           >
             <Button 
               variant="outline" 
-              className="w-full justify-start h-12 border-2 hover:border-accent hover:bg-accent/5 transition-all duration-300"
+              className="h-12 w-full justify-start border-slate-200 transition-colors duration-150 hover:border-accent hover:bg-accent/5"
               disabled
               title="Coming soon"
             >
@@ -166,7 +164,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
 
       {/* Quick Stats */}
       <div 
-        className={`${animateClasses.slideUp} opacity-0 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 border border-primary/30`}
+        className={`${animateClasses.slideUp} opacity-0 rounded-lg border border-slate-200 bg-white p-6 shadow-sm`}
         style={staggerChild(4)}
       >
         <h3 className="text-lg font-bold text-foreground mb-4"><BarChart3 className="w-5 h-5" /> Quick Stats</h3>
