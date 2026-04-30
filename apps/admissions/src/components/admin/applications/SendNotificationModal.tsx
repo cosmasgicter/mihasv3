@@ -58,7 +58,7 @@ export function SendNotificationModal({
           <DialogTitle>Send Notification</DialogTitle>
         </DialogHeader>
 
-        <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+        <div className="mb-4 p-3 bg-slate-50 rounded-lg">
           <p className="text-sm text-foreground">
             <strong>To:</strong> {studentName}
           </p>

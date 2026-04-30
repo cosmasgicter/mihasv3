@@ -11,7 +11,7 @@ interface Grade {
 export function GradesTab({ grades, loading }: { grades: Grade[], loading: boolean }) {
   if (loading) return (
     <div className="space-y-3 py-4" role="status" aria-label="Loading grades">
-      <div className="flex justify-between p-4 bg-blue-50 rounded-lg">
+      <div className="flex justify-between p-4 bg-slate-50 rounded-lg">
         <Skeleton className="h-5 w-24" />
         <Skeleton className="h-6 w-12" />
       </div>
@@ -19,7 +19,7 @@ export function GradesTab({ grades, loading }: { grades: Grade[], loading: boole
         {[...Array(4)].map((_, i) => (
           <div key={i} className="flex justify-between p-3 border rounded-lg">
             <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-6 w-10 rounded-full" />
+            <Skeleton className="h-6 w-10 rounded-md" />
           </div>
         ))}
       </div>
@@ -34,7 +34,7 @@ export function GradesTab({ grades, loading }: { grades: Grade[], loading: boole
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between p-4 bg-blue-50 rounded-lg">
+      <div className="flex justify-between p-4 bg-slate-50 rounded-lg">
         <div><p className="text-sm font-medium">{grades.length} Subjects</p></div>
         <div><p className="text-lg font-bold">{points}</p><p className="text-xs">Points</p></div>
       </div>
@@ -45,7 +45,7 @@ export function GradesTab({ grades, loading }: { grades: Grade[], loading: boole
           return (
             <div key={i} className={`flex justify-between p-3 border rounded-lg ${best ? 'bg-green-50' : 'bg-card'}`}>
               <span>{g.subject_name}{best && <span className="ml-2 text-xs text-accent">BEST 5</span>}</span>
-              <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold ${norm && norm <= 6 ? 'bg-green-100 text-green-900' : 'bg-red-100 text-red-900'}`}>
+              <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-md text-sm font-bold ${norm && norm <= 6 ? 'bg-green-100 text-green-900' : 'bg-red-100 text-red-900'}`}>
                 {norm && norm <= 6 ? <CheckCircle className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
                 {g.grade}
                 <span className="sr-only">{norm && norm <= 6 ? '(Pass)' : '(Fail)'}</span>

@@ -46,7 +46,7 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
  if (loading) {
  return (
  <div className="space-y-4" role="status" aria-label="Loading grades">
- <div className="flex justify-between p-4 bg-blue-50 rounded-lg">
+ <div className="flex justify-between rounded-lg border border-border bg-slate-50 p-4">
  <Skeleton className="h-5 w-24" />
  <Skeleton className="h-6 w-12" />
  </div>
@@ -54,7 +54,7 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
  {[...Array(4)].map((_, i) => (
  <div key={i} className="flex justify-between p-3 border rounded-lg">
  <Skeleton className="h-4 w-28" />
- <Skeleton className="h-6 w-10 rounded-full" />
+ <Skeleton className="h-6 w-10 rounded-md" />
  </div>
  ))}
  </div>
@@ -87,7 +87,7 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
 
  return (
  <div className="space-y-4">
- <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+ <div className="flex items-center justify-between rounded-lg border border-border bg-slate-50 p-4">
  <div>
  <p className="text-sm font-medium text-foreground">{grades.length} Subjects</p>
  <p className="text-xs text-info-strong">Grade 12 Results</p>
@@ -104,13 +104,13 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
  const isBestFive = normalized !== null && bestFiveSubjectIds.has(grade.subject_id)
  return (
  <div key={index} className={`flex justify-between items-center p-3 border rounded-lg ${
- isBestFive ? 'bg-green-50 border-green-200' : 'bg-card border-border'
+ isBestFive ? 'border-green-200 bg-green-50' : 'border-border bg-white'
  }`}>
  <div>
  <span className="font-medium text-foreground">{grade.subject_name}</span>
  {isBestFive && <span className="ml-2 text-xs text-accent font-medium">BEST 5</span>}
  </div>
- <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+ <span className={`px-3 py-1 rounded-md text-sm font-bold ${
  normalized !== null && normalized <= 3 ? 'bg-green-100 text-green-900' :
  normalized !== null && normalized <= 6 ? 'bg-green-100 text-green-900' :
  'bg-red-100 text-red-900'
@@ -305,7 +305,7 @@ export function ApplicationDetailModal({
  if (!isClient) {
  return (
  <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-0 sm:p-4 z-[60] overflow-hidden">
- <div className="bg-card w-full h-full sm:rounded-lg sm:max-w-6xl sm:w-full sm:max-h-[95vh] overflow-hidden flex flex-col max-w-full">
+ <div className="flex h-full max-w-full flex-col overflow-hidden bg-white sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-lg">
  {/* Header Skeleton */}
  <div className="flex-shrink-0 p-4 sm:p-6 border-b border-border bg-white">
  <div className="flex items-center justify-between gap-2">
@@ -373,19 +373,19 @@ export function ApplicationDetailModal({
  }
 
  return (
- <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-hidden bg-slate-950/55 p-0  sm:p-4">
+ <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-hidden bg-slate-950/55 p-0 sm:p-4">
  <div
  ref={focusTrapRef as React.RefObject<HTMLDivElement>}
  role="dialog"
  aria-modal="true"
  aria-label={`Application details for ${application.full_name}`}
- className="flex h-full max-w-full flex-col overflow-hidden bg-white/96 shadow-[0_38px_120px_-52px_rgba(15,23,42,0.55)] animate-in fade-in zoom-in-95 duration-200 sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-lg"
+ className="flex h-full max-w-full flex-col overflow-hidden bg-white shadow-lg animate-in fade-in zoom-in-95 duration-200 sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-lg"
  >
  {/* Header */}
  <ApplicationDetailHeader application={application} onClose={onClose} />
 
  {/* Approval Actions — above the fold */}
- <div className="flex-shrink-0 border-b border-slate-200/80 bg-slate-50/60 px-4 py-3 sm:px-6">
+ <div className="flex-shrink-0 border-b border-slate-200 bg-slate-50 px-4 py-3 sm:px-6">
  <ApplicationApprovalActions
  applicationId={application.id}
  currentStatus={application.status}
@@ -397,8 +397,8 @@ export function ApplicationDetailModal({
  </div>
 
  {/* Tabs */}
- <div className="flex-shrink-0 overflow-x-auto border-b border-slate-200/80 bg-white/90">
- <div className="flex px-2 sm:px-6 min-w-max" role="tablist" aria-label="Application details">
+ <div className="flex-shrink-0 overflow-x-auto border-b border-slate-200 bg-white">
+ <div className="flex min-w-max gap-1 px-2 py-2 sm:px-6" role="tablist" aria-label="Application details">
  {tabs.map((tab, index) => {
  const Icon = tab.icon
  return (
@@ -424,9 +424,9 @@ export function ApplicationDetailModal({
  document.getElementById(`tab-${ids[next]}`)?.focus()
  }
  }}
- className={`flex items-center gap-1 whitespace-nowrap rounded-t-2xl px-3 py-3 text-xs font-medium transition-all sm:gap-2 sm:px-4 sm:text-sm ${
+ className={`flex min-h-[40px] items-center gap-1 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition-colors sm:gap-2 sm:px-4 sm:text-sm ${
  activeTab === tab.id
- ? 'bg-slate-950 text-white shadow-[0_16px_28px_-20px_rgba(15,23,42,0.7)]'
+ ? 'bg-slate-950 text-white'
  : 'text-foreground hover:bg-slate-50 hover:text-slate-950'
  }`}
  >
@@ -438,7 +438,7 @@ export function ApplicationDetailModal({
  </div>
  </div>
  {/* Content */}
- <div className="flex-1 overflow-y-auto">
+ <div className="flex-1 overflow-y-auto bg-slate-50/50">
  <div id={`panel-${activeTab}`} role="tabpanel" aria-labelledby={`tab-${activeTab}`} className="p-4 sm:p-6">
  {loading ? (
  <div className="flex items-center justify-center py-12" role="status" aria-label="Loading application details">
@@ -459,7 +459,7 @@ export function ApplicationDetailModal({
  />
  {/* Quick Stats */}
  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
- <div className="rounded-lg border border-blue-100 bg-white p-4 shadow-sm">
+ <div className="rounded-lg border border-border bg-white p-4 shadow-sm">
  <div className="flex items-center gap-3">
  {application.status === 'approved' ? <CheckCircle className="h-5 w-5 text-accent" /> :
   application.status === 'under_review' ? <Eye className="h-5 w-5 text-accent" /> :
@@ -474,7 +474,7 @@ export function ApplicationDetailModal({
  </div>
  </div>
  
- <div className="rounded-lg border border-emerald-100 bg-white p-4 shadow-sm">
+ <div className="rounded-lg border border-border bg-white p-4 shadow-sm">
  <div className="flex items-center gap-3">
  <CreditCard className="h-5 w-5 text-accent" />
  <div>
@@ -486,7 +486,7 @@ export function ApplicationDetailModal({
  </div>
  </div>
  
- <div className="rounded-lg border border-purple-100 bg-white p-4 shadow-sm">
+ <div className="rounded-lg border border-border bg-white p-4 shadow-sm">
  <div className="flex items-center gap-3">
  <Calendar className="h-5 w-5 text-secondary" />
  <div>
@@ -525,13 +525,13 @@ export function ApplicationDetailModal({
  {/* Admin badges: reviewer, fee waiver, late submission */}
  <div className="flex flex-wrap gap-2">
  {(applicationData?.application?.assigned_reviewer_name || application.assigned_reviewer_name) && (
- <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 border border-indigo-200 px-3 py-1.5 text-xs font-medium text-indigo-800">
+ <span className="inline-flex items-center gap-1.5 rounded-md bg-indigo-50 border border-indigo-200 px-3 py-1.5 text-xs font-medium text-indigo-800">
  <Shield className="h-3.5 w-3.5" />
  Reviewer: {applicationData?.application?.assigned_reviewer_name || application.assigned_reviewer_name}
  </span>
  )}
  {(applicationData?.application?.fee_waiver || application.fee_waiver) && (
- <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-medium text-emerald-800">
+ <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-medium text-emerald-800">
  <Tag className="h-3.5 w-3.5" />
  Fee waiver: {(applicationData?.application?.fee_waiver || application.fee_waiver)?.reason_code?.replace(/_/g, ' ')}
  {(applicationData?.application?.fee_waiver || application.fee_waiver)?.discount_percentage !== 100 && (
@@ -540,7 +540,7 @@ export function ApplicationDetailModal({
  </span>
  )}
  {(applicationData?.application?.is_late_submission || application.is_late_submission) && (
- <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs font-medium text-amber-800">
+ <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs font-medium text-amber-800">
  <AlertTriangle className="h-3.5 w-3.5" />
  Late submission
  </span>
@@ -548,7 +548,7 @@ export function ApplicationDetailModal({
  {!(applicationData?.application?.fee_waiver || application.fee_waiver) && (
  <button
    onClick={() => setFeeWaiverOpen(true)}
-   className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200 px-3 py-1.5 text-xs font-medium text-blue-800 hover:bg-blue-100 transition-colors"
+   className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg border border-blue-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-blue-800 transition-colors hover:bg-blue-100"
  >
    <Tag className="h-3.5 w-3.5" />
    Apply Fee Waiver
@@ -712,7 +712,7 @@ export function ApplicationDetailModal({
  <p className="text-xs text-muted-foreground mt-0.5">Reason: {amendment.reason}</p>
  <p className="text-xs text-muted-foreground mt-0.5">{formatDate(amendment.created_at)}</p>
  </div>
- <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">
+ <span className="inline-flex items-center rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">
  {amendment.status}
  </span>
  </div>
@@ -770,7 +770,7 @@ export function ApplicationDetailModal({
  </div>
  </div>
  {/* Footer Actions */}
- <div className="flex-shrink-0 p-4 sm:p-6 border-t border-border bg-muted">
+ <div className="flex-shrink-0 border-t border-border bg-white p-4 sm:p-5">
  <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4">
  <div className="flex flex-wrap gap-2">
  <Button
@@ -816,7 +816,7 @@ export function ApplicationDetailModal({
       {/* Payment Warning Dialog (Req 26.4) */}
       {paymentWarning && (
         <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-[70]">
-          <div className="bg-card rounded-lg max-w-md w-full p-6 shadow-md animate-in fade-in zoom-in-95 duration-200">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-md animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-amber-100 rounded-lg">
                 <AlertCircle className="h-5 w-5 text-amber-600" />

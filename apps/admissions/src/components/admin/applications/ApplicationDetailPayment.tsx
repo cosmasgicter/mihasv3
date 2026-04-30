@@ -37,13 +37,13 @@ export function ApplicationDetailPayment({
   }[paymentStatusLabel] || 'text-foreground'
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6">
+    <div className="rounded-lg border border-border bg-white p-6">
       <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
         <CreditCard className="h-5 w-5 text-primary" />
         Payment Information
       </h3>
 
-      <div className="mb-4 p-3 rounded-lg bg-white">
+      <div className="mb-4 rounded-lg border border-border bg-slate-50 p-3">
         <div className="flex items-center gap-3">
           {getPaymentIcon(application.payment_status || 'not_paid')}
           <div>
@@ -83,7 +83,7 @@ export function ApplicationDetailPayment({
         <p className="text-sm font-medium text-foreground mb-3">Payment History</p>
         {loadingPayments ? (
           <div className="flex items-center gap-2 text-sm text-foreground py-4">
-            <div className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse" aria-hidden="true" />
+            <div className="h-2.5 w-2.5 rounded-md bg-primary animate-pulse" aria-hidden="true" />
             <span>Loading payment records...</span>
           </div>
         ) : paymentRecords.length === 0 ? (
@@ -96,7 +96,7 @@ export function ApplicationDetailPayment({
             {paymentRecords.map((payment) => (
               <div key={payment.id} className="flex items-center justify-between p-3 bg-muted border border-border rounded-lg">
                 <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
                     payment.status === 'successful' ? 'bg-green-100' :
                     payment.status === 'failed' ? 'bg-red-100' : 'bg-amber-100'
                   }`}>
@@ -165,7 +165,7 @@ export function FeeWaiverDialog({ open, onClose, onApply, saving }: FeeWaiverDia
   if (!open) return null
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white/95 p-4 shadow-sm space-y-3">
+    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm space-y-3">
       <h4 className="text-sm font-semibold text-foreground">Apply Fee Waiver</h4>
       <div className="grid grid-cols-2 gap-3">
         <div>

@@ -71,13 +71,13 @@ export function FiltersPanel({
   const selectClasses = "w-full h-11 rounded-lg border border-border/60 bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors hover:border-primary/20"
 
   return (
-    <div className="bg-card rounded-lg border border-border/60 shadow-sm p-5 mb-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Search className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium text-foreground">Filters</span>
           {activeFilterCount > 0 && (
-            <span className="inline-flex items-center justify-center h-5 min-w-[20px] rounded-full bg-primary text-primary-foreground text-[10px] font-bold px-1.5">
+            <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-md bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
               {activeFilterCount}
             </span>
           )}
@@ -85,7 +85,7 @@ export function FiltersPanel({
         {(activeFilterCount > 0 || localSearch) && (
           <button
             onClick={handleClearAll}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
+            className="min-h-[36px] rounded-lg px-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             Clear all
           </button>

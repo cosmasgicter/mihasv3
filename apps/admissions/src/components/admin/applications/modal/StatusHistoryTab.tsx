@@ -16,7 +16,7 @@ export function StatusHistoryTab({ history, loading }: { history: StatusHistoryI
     <div className="space-y-3 py-4" role="status" aria-label="Loading status history">
       {[...Array(3)].map((_, i) => (
         <div key={i} className="flex gap-4 p-4 bg-card border rounded-lg">
-          <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
+          <Skeleton className="w-8 h-8 rounded-md flex-shrink-0" />
           <div className="flex-1 space-y-2">
             <div className="flex justify-between">
               <Skeleton className="h-4 w-24" />
@@ -41,7 +41,7 @@ export function StatusHistoryTab({ history, loading }: { history: StatusHistoryI
     <div className="space-y-3">
       {history.map(item => (
         <div key={item.id} className="flex gap-4 p-4 bg-card border rounded-lg">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${item.status === 'approved' ? 'bg-green-100' : item.status === 'rejected' ? 'bg-red-100' : 'bg-blue-100'}`}>
+          <div className={`w-8 h-8 rounded-md flex items-center justify-center ${item.status === 'approved' ? 'bg-green-100' : item.status === 'rejected' ? 'bg-red-100' : 'bg-blue-100'}`}>
             {getIcon(item.status)}
           </div>
           <div className="flex-1">

@@ -111,7 +111,7 @@ export function ApplicationDetailInterview({ application, applicationData, onApp
 
   return (
     <div className="space-y-6">
-      <div className="bg-card border border-border rounded-lg p-6">
+      <div className="rounded-lg border border-border bg-white p-6">
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
           <Calendar className="h-5 w-5 text-primary" />
           Interview Overview
@@ -126,11 +126,11 @@ export function ApplicationDetailInterview({ application, applicationData, onApp
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-blue-50 border border-primary/30 rounded-lg p-4">
+              <div className="rounded-lg border border-border bg-slate-50 p-4">
                 <p className="text-sm text-primary uppercase tracking-wide">Mode</p>
                 <p className="text-lg font-semibold text-foreground">{formatInterviewModeLabel(currentInterview?.mode)}</p>
               </div>
-              <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
+              <div className="rounded-lg border border-border bg-slate-50 p-4">
                 <p className="text-sm text-primary uppercase tracking-wide">Status</p>
                 <p className="text-lg font-semibold text-foreground capitalize">{formatInterviewStatus(currentInterview?.status)}</p>
               </div>
@@ -155,7 +155,7 @@ export function ApplicationDetailInterview({ application, applicationData, onApp
         )}
       </div>
 
-      <div className="bg-card border border-border rounded-lg p-6">
+      <div className="rounded-lg border border-border bg-white p-6">
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
           <Users className="h-5 w-5 text-primary" />
           Manage Interview Schedule

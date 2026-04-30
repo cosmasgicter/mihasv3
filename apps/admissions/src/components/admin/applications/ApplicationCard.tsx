@@ -187,13 +187,14 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
 
 
   return (
-    <div className={`relative bg-card rounded-lg border p-4 sm:p-6 shadow-sm hover:shadow-md transition-all duration-200 group ${
+    <article className={`relative rounded-lg border bg-card p-4 shadow-sm transition-colors duration-200 sm:p-5 ${
       isSelected ? 'border-primary/40 bg-primary/5 ring-1 ring-primary/20' : 'border-border/60 hover:border-primary/20'
     }`}>
       {/* Selection Checkbox */}
       {onSelect && (
-        <div className="absolute top-4 right-4">
+        <div className="absolute right-4 top-4">
           <input
+            aria-label={`Select application ${app.application_number}`}
             type="checkbox"
             checked={isSelected}
             onChange={(e) => onSelect(app.id, e.target.checked)}
@@ -202,20 +203,20 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         </div>
       )}
       {/* Header */}
-      <div className="flex items-start justify-between mb-4">
+      <div className={onSelect ? 'mb-4 flex items-start justify-between gap-4 pr-8' : 'mb-4 flex items-start justify-between gap-4'}>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            <h3 className="text-base font-semibold text-foreground truncate">{app.full_name}</h3>
+            <h3 className="truncate text-base font-semibold text-foreground">{app.full_name}</h3>
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="font-mono">#{app.application_number}</span>
+            <span className="truncate font-mono">#{app.application_number}</span>
             <span>•</span>
             <Calendar className="h-3 w-3" />
-            <span>{formatDate(app.submitted_at || app.created_at)}</span>
+            <span className="truncate">{formatDate(app.submitted_at || app.created_at)}</span>
           </div>
         </div>
-        <div className="flex flex-col items-end gap-2">
+        <div className="flex max-w-[52%] flex-col items-end gap-2">
           {app.isDraft ? (
             <DraftBadge
               completionPercentage={app.completionPercentage}
@@ -251,7 +252,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       )}
 
       {/* Contact Info */}
-      <div className="space-y-1.5 mb-4">
+      <div className="mb-4 space-y-1.5">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Mail className="h-3 w-3" />
           <span className="truncate">{app.email}</span>
@@ -265,12 +266,12 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       </div>
 
       {/* Program Info */}
-      <div className="bg-muted/50 rounded-lg p-3 mb-4">
+      <div className="mb-4 rounded-lg border border-border bg-muted/40 p-3">
         <div className="flex items-center gap-2 mb-1">
           <GraduationCap className="h-4 w-4 text-primary" />
           <span className="font-medium text-foreground text-sm">{app.program}</span>
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <Building className="h-3 w-3" />
           <span>{getInstitutionName(app.institution)}</span>
           <span>•</span>
@@ -280,7 +281,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
 
 
       {/* Payment & Grades */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <div className="text-xs text-muted-foreground mb-1">Payment Status</div>
           {getPaymentBadge(app.payment_status)}
@@ -334,7 +335,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
 
       {/* Documents */}
       {documentsCount > 0 && (
-        <div className="flex items-center gap-2 mb-4 p-2 bg-blue-50 rounded-lg">
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-primary/15 bg-primary/5 p-2">
           <FileText className="h-4 w-4 text-primary" />
           <span className="text-sm text-info-strong">{documentsCount} document{documentsCount > 1 ? 's' : ''} uploaded</span>
         </div>
@@ -353,10 +354,11 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       />
 
       {/* Actions */}
-      <div className="flex gap-2 mt-4 pt-4 border-t border-border/40">
+      <div className="mt-4 flex gap-2 border-t border-border/40 pt-4">
         <button
+          type="button"
           onClick={() => onViewDetails(app.id)}
-          className="flex-1 bg-primary text-primary-foreground text-sm py-2.5 px-4 rounded-lg hover:bg-primary/90 transition-all duration-200 font-medium flex items-center justify-center gap-2"
+          className="flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors duration-200 hover:bg-primary/90"
         >
           <Eye className="h-4 w-4" />
           View Details
@@ -365,8 +367,9 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         {/* Contact Applicant Button - Show for draft applications */}
         {app.isDraft && (
           <button
+            type="button"
             onClick={() => setShowCommunicationModal(true)}
-            className="bg-secondary text-secondary-foreground text-sm py-2.5 px-4 rounded-lg hover:bg-secondary/80 transition-all duration-200 font-medium flex items-center justify-center gap-2"
+            className="flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground transition-colors duration-200 hover:bg-secondary/80"
             title="Contact Applicant"
           >
             <MessageSquare className="h-4 w-4" />
@@ -381,7 +384,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
                 href={app.result_slip_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg p-2 transition-colors"
+                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 title="Result Slip"
               >
                 <FileText className="h-4 w-4" />
@@ -414,7 +417,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
           </div>
         </div>
       )}
-    </div>
+    </article>
   )
 }, areApplicationCardPropsEqual)
 

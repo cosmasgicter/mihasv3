@@ -13,8 +13,8 @@ export function ApplicationDetailTimeline({ history, loading }: ApplicationDetai
     return (
       <div className="space-y-3" role="status" aria-label="Loading status history">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="flex gap-4 p-4 bg-card border rounded-lg">
-            <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
+          <div key={i} className="flex gap-4 rounded-lg border border-border bg-white p-4">
+            <Skeleton className="w-8 h-8 rounded-md flex-shrink-0" />
             <div className="flex-1 space-y-2">
               <div className="flex justify-between">
                 <Skeleton className="h-4 w-24" />
@@ -46,17 +46,17 @@ export function ApplicationDetailTimeline({ history, loading }: ApplicationDetai
           ? `${item.old_status.replace('_', ' ')} → ${item.new_status.replace('_', ' ')}`
           : status.replace('_', ' ')
         return (
-          <div key={item.id || `${status}-${item.created_at}-${index}`} className="flex gap-4 p-4 bg-card border border-border rounded-lg">
+          <div key={item.id || `${status}-${item.created_at}-${index}`} className="flex gap-4 p-4 rounded-lg border border-border bg-white">
             <div className="flex-shrink-0">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+              <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
                 status === 'approved' ? 'bg-green-100' :
                 status === 'rejected' ? 'bg-red-100' :
-                status === 'under_review' ? 'bg-green-100' :
+                status === 'under_review' ? 'bg-blue-100' :
                 'bg-primary/10'
               }`}>
                 {status === 'approved' ? <CheckCircle className="h-4 w-4 text-accent" /> :
                   status === 'rejected' ? <XCircle className="h-4 w-4 text-destructive" /> :
-                  status === 'under_review' ? <Eye className="h-4 w-4 text-accent" /> :
+                  status === 'under_review' ? <Eye className="h-4 w-4 text-primary" /> :
                   <Clock className="h-4 w-4 text-primary" />}
               </div>
             </div>
