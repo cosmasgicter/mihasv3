@@ -68,7 +68,7 @@ export function BaseNavigation({
   }
 
   return (
-    <nav className={cn("bg-card/95  shadow-lg border-b border-border/50 sticky top-0 z-50", className)}>
+    <nav className={cn("bg-card/95  shadow-sm border-b border-border/50 sticky top-0 z-50", className)}>
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-3 sm:py-4 max-w-7xl mx-auto">
           {/* Brand */}
@@ -81,7 +81,7 @@ export function BaseNavigation({
 
           {/* Mobile Menu Button */}
           <button
-            className="lg:hidden p-3 rounded-xl bg-card hover:bg-muted transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[48px] min-w-[48px] touch-target border-2 border-border shadow-lg active:scale-95 motion-reduce:transform-none"
+            className="lg:hidden p-3 rounded-lg bg-card hover:bg-muted transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[48px] min-w-[48px] touch-target border-2 border-border shadow-sm  motion-reduce:transform-none"
             onClick={toggleMenu}
             aria-label={isOpen ? "Close menu" : "Open menu"}
             aria-expanded={isOpen}
@@ -110,7 +110,7 @@ export function BaseNavigation({
           {/* Mobile Menu */}
           <div
             className={cn(
-              "fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-card shadow-lg lg:hidden border-l-4 border-primary overflow-y-auto",
+              "fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-card shadow-sm lg:hidden border-l-4 border-primary overflow-y-auto",
               "transition-transform duration-250 ease-standard motion-reduce:transition-none",
               isOpen ? "translate-x-0" : "translate-x-full"
             )}
@@ -118,10 +118,10 @@ export function BaseNavigation({
           >
             <div className="flex flex-col h-full">
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-border/70 bg-gradient-to-r from-primary/5 to-secondary/5">
+              <div className="flex items-center justify-between p-6 border-b border-border/70 bg-white">
                 {mobileHeader}
                 <button
-                  className="p-2 rounded-lg hover:bg-accent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[44px] min-w-[44px] touch-target active:scale-95 motion-reduce:transform-none"
+                  className="p-2 rounded-lg hover:bg-accent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[44px] min-w-[44px] touch-target  motion-reduce:transform-none"
                   onClick={closeMenu}
                   aria-label="Close menu"
                 >
@@ -148,9 +148,9 @@ export function BaseNavigation({
                         <button
                           onClick={() => handleItemClick(item.href)}
                           className={cn(
-                            "w-full flex items-center justify-between px-4 py-4 rounded-xl transition-all duration-200 min-h-[48px] touch-target",
+                            "w-full flex items-center justify-between px-4 py-4 rounded-lg transition-all duration-200 min-h-[48px] touch-target",
                             isActive
-                              ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg"
+                              ? "bg-primary text-primary-foreground shadow-sm"
                               : "bg-card text-foreground hover:bg-accent border-2 border-border hover:border-primary"
                           )}
                         >

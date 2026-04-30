@@ -467,7 +467,7 @@ export function PaymentForm({
               <Check className="h-3 w-3" />
             </span>
           )}
-          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${paymentMethod === 'mobile-money' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${paymentMethod === 'mobile-money' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
             <Smartphone className="h-6 w-6" />
           </div>
           <div>
@@ -491,7 +491,7 @@ export function PaymentForm({
               <Check className="h-3 w-3" />
             </span>
           )}
-          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${paymentMethod === 'card' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${paymentMethod === 'card' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
             <CreditCard className="h-6 w-6" />
           </div>
           <div>
@@ -536,7 +536,7 @@ export function PaymentForm({
                   else setMomoOperator(null)
                 }}
                 placeholder="0977 123 456"
-                className={`w-full h-12 pl-10 rounded-xl border bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all ${
+                className={`w-full h-12 pl-10 rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all ${
                   phoneValidationError || momoError ? 'border-destructive pr-4' : 'border-border pr-4'
                 } ${momoOperator ? 'pr-28' : 'pr-4'}`}
               />
@@ -576,7 +576,7 @@ export function PaymentForm({
       {paymentMethod === 'card' && (
         <div className="space-y-4 rounded-lg border border-border bg-card/50 p-5">
           {!isScriptLoaded && !widgetLoading && (
-            <div className="rounded-xl border border-warning/30 bg-warning/5 p-4 text-sm">
+            <div className="rounded-lg border border-warning/30 bg-warning/5 p-4 text-sm">
               <p className="text-muted-foreground">{widgetLoadError || 'The card payment module is loading…'}</p>
               <Button type="button" variant="outline" size="sm" className="mt-3" onClick={retryWidgetLoad}>
                 <RefreshCw className="mr-2 h-3 w-3" />Retry

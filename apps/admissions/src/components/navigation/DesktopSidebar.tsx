@@ -95,7 +95,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
   return (
     <aside
       aria-label="Main navigation"
-      className="fixed left-0 top-0 z-40 hidden h-screen flex-col border-r border-slate-800 bg-slate-950 text-white shadow-lg transition-all duration-200 ease-in-out md:flex"
+      className="fixed left-0 top-0 z-40 hidden h-screen flex-col border-r border-slate-800 bg-slate-950 text-white shadow-md transition-all duration-200 ease-in-out md:flex"
       style={{ width: collapsed ? 'var(--sidebar-collapsed)' : 'var(--sidebar-expanded)' }}
     >
       {/* Header / Logo area */}
@@ -236,7 +236,7 @@ function SidebarSection({
           onClick={onToggle}
           aria-expanded={expanded}
           className={cn(
-            'flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-[0.22em]',
+            'flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-[0.22em]',
             'text-slate-400 transition-colors hover:text-white',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950',
             hasActiveItem && 'text-sky-200'
@@ -301,12 +301,12 @@ function SidebarNavItem({
       to={item.to}
       aria-current={isActive ? 'page' : undefined}
       className={cn(
-        'group relative flex min-h-[44px] items-center overflow-hidden rounded-xl',
+        'group relative flex min-h-[44px] items-center overflow-hidden rounded-lg',
         'transition-colors duration-150',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950',
         collapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5',
         isActive
-          ? 'bg-white text-slate-950 font-semibold shadow-lg shadow-black/20'
+          ? 'bg-white text-slate-950 font-semibold shadow-sm'
           : 'text-slate-300 hover:bg-white/8 hover:text-white'
       )}
     >
@@ -345,7 +345,7 @@ function SidebarNavItem({
 
       {/* Hover effect */}
       {!isActive && (
-        <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-sky-400/10 to-emerald-300/10 opacity-0 transition-opacity duration-150 group-hover:opacity-100" aria-hidden="true" />
+        <div className="pointer-events-none absolute inset-0 rounded-lg bg-white/5 opacity-0 transition-opacity duration-150 group-hover:opacity-100" aria-hidden="true" />
       )}
     </Link>
   )

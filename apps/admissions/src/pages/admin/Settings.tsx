@@ -596,13 +596,13 @@ export default function AdminSettings() {
     >
         <div className="space-y-6">
             {error ? (
-              <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-destructive" role="alert" aria-live="assertive">
+              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-destructive" role="alert" aria-live="assertive">
                 {error}
               </div>
             ) : null}
 
             {success ? (
-              <div className="rounded-xl border border-accent/30 bg-accent/10 p-4 text-accent" role="status" aria-live="polite">
+              <div className="rounded-lg border border-accent/30 bg-accent/10 p-4 text-accent" role="status" aria-live="polite">
                 {success}
               </div>
             ) : null}
@@ -616,22 +616,22 @@ export default function AdminSettings() {
             ) : (
               <>
                 <div className="grid gap-4 md:grid-cols-4">
-                  <div className="rounded-lg border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
+                  <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                     <p className="text-xs font-semibold uppercase tracking-wide text-primary">Guided Controls</p>
                     <p className="mt-2 text-3xl font-bold text-foreground">{configuredBlueprintCount}/{SETTING_BLUEPRINTS.length}</p>
                     <p className="mt-1 text-sm text-muted-foreground">Operational settings configured</p>
                   </div>
-                  <div className="rounded-lg border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
+                  <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                     <p className="text-xs font-semibold uppercase tracking-wide text-primary">Public Settings</p>
                     <p className="mt-2 text-3xl font-bold text-foreground">{publicSettingsCount}</p>
                     <p className="mt-1 text-sm text-muted-foreground">Visible to applicants and portal surfaces</p>
                   </div>
-                  <div className="rounded-lg border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
+                  <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                     <p className="text-xs font-semibold uppercase tracking-wide text-primary">Private Settings</p>
                     <p className="mt-2 text-3xl font-bold text-foreground">{privateSettingsCount}</p>
                     <p className="mt-1 text-sm text-muted-foreground">Operational settings only for staff workflows</p>
                   </div>
-                  <div className="rounded-lg border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
+                  <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                     <p className="text-xs font-semibold uppercase tracking-wide text-primary">Advanced Keys</p>
                     <p className="mt-2 text-3xl font-bold text-foreground">{advancedSettingsCount}</p>
                     <p className="mt-1 text-sm text-muted-foreground">Custom keys outside the guided configuration</p>
@@ -692,7 +692,7 @@ export default function AdminSettings() {
                         Use these operational controls for the main admissions settings instead of creating raw keys manually.
                       </p>
                     </div>
-                    <div className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                    <div className="rounded-md bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                       {configuredBlueprintCount} configured
                     </div>
                   </div>
@@ -702,7 +702,7 @@ export default function AdminSettings() {
                       filteredGuidedSections.map((section) => (
                         <div key={section.id} className="rounded-lg border border-border bg-muted/20 p-4">
                           <div className="mb-4 flex items-start gap-3">
-                            <div className="rounded-xl bg-primary/10 p-3 text-primary">
+                            <div className="rounded-lg bg-primary/10 p-3 text-primary">
                               {section.icon}
                             </div>
                             <div>
@@ -718,7 +718,7 @@ export default function AdminSettings() {
                               const isSavingBlueprint = activeMutationKey === blueprint.key
 
                               return (
-                                <div key={blueprint.key} className="rounded-xl border border-border bg-card p-4">
+                                <div key={blueprint.key} className="rounded-lg border border-border bg-card p-4">
                                   <div className="mb-3 flex items-start justify-between gap-3">
                                     <div>
                                       <div className="flex flex-wrap items-center gap-2">
@@ -793,7 +793,7 @@ export default function AdminSettings() {
                                       placeholder={blueprint.description}
                                     />
 
-                                    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 px-3 py-2">
+                                    <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/20 px-3 py-2">
                                       <div className="text-sm text-muted-foreground">
                                         Live value: <span className="font-medium text-foreground">{formatValue(draft.value || blueprint.placeholder, blueprint.valueType)}</span>
                                       </div>
@@ -921,7 +921,7 @@ export default function AdminSettings() {
                           {/* Mobile card layout */}
                           <div className="space-y-3 md:hidden">
                             {filteredAdvancedSettings.map((setting) => (
-                              <div key={setting.id} className="rounded-xl border border-border bg-muted/20 p-4">
+                              <div key={setting.id} className="rounded-lg border border-border bg-muted/20 p-4">
                                 <div className="mb-2 flex items-start justify-between gap-2">
                                   <div className="flex items-center gap-2 min-w-0">
                                     <Database className="h-4 w-4 shrink-0 text-muted-foreground" />

@@ -97,7 +97,7 @@ export function NotificationBell() {
         variant="ghost"
         size="sm"
         onClick={() => setShowPanel(!showPanel)}
-        className="relative min-h-[44px] min-w-[44px] hover:bg-muted/50 rounded-xl transition-colors duration-150 flex items-center justify-center"
+        className="relative min-h-[44px] min-w-[44px] hover:bg-muted/50 rounded-lg transition-colors duration-150 flex items-center justify-center"
         aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : 'Notifications'}
         data-testid="notification-bell"
       >
@@ -128,7 +128,7 @@ export function NotificationBell() {
               role="dialog"
               aria-modal="true"
               aria-label="Notifications"
-              className="fixed md:absolute right-2 md:right-0 top-16 md:top-full md:mt-2 w-80 md:w-96 bg-card rounded-lg shadow-lg border border-border/60 z-[9999] max-h-[70vh] flex flex-col motion-safe:animate-scale-in"
+              className="fixed md:absolute right-2 md:right-0 top-16 md:top-full md:mt-2 w-80 md:w-96 bg-card rounded-lg shadow-sm border border-border/60 z-[9999] max-h-[70vh] flex flex-col motion-safe:animate-scale-in"
               data-testid="notifications-panel"
             >
               {/* Header */}

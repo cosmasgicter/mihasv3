@@ -81,7 +81,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
 
   if (!stats) {
     return (
-      <div className={`bg-card rounded-xl shadow-sm border border-border p-6 ${className}`}>
+      <div className={`rounded-lg border border-border bg-card p-6 shadow-sm ${className}`}>
         <div className="animate-pulse">
           <div className="h-4 bg-skeleton rounded w-1/4 mb-4"></div>
           <div className="space-y-3">
@@ -98,31 +98,31 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
     <div className={`space-y-6 ${className}`}>
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
+        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-100 text-sm font-medium">Total Users</p>
-              <p className="text-2xl sm:text-3xl font-bold break-words">{stats.total}</p>
+              <p className="text-sm font-medium text-muted-foreground">Total Users</p>
+              <p className="break-words text-2xl font-bold text-foreground sm:text-3xl">{stats.total}</p>
             </div>
-            <Users className="h-8 w-8 text-blue-200" />
+            <Users className="h-8 w-8 text-primary" />
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white">
+        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-100 text-sm font-medium">Active Roles</p>
-              <p className="text-2xl sm:text-3xl font-bold break-words">{Object.keys(stats.byRole).length}</p>
+              <p className="text-sm font-medium text-muted-foreground">Active Roles</p>
+              <p className="break-words text-2xl font-bold text-foreground sm:text-3xl">{Object.keys(stats.byRole).length}</p>
             </div>
-            <Shield className="h-8 w-8 text-green-200" />
+            <Shield className="h-8 w-8 text-primary" />
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white">
+        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-100 text-sm font-medium">New This Month</p>
-              <p className="text-2xl sm:text-3xl font-bold break-words">
+              <p className="text-sm font-medium text-muted-foreground">New This Month</p>
+              <p className="break-words text-2xl font-bold text-foreground sm:text-3xl">
                 {users.filter(user => {
                   const userDate = new Date(user.created_at ?? 0)
                   const now = new Date()
@@ -130,13 +130,13 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
                 }).length}
               </p>
             </div>
-            <TrendingUp className="h-8 w-8 text-purple-200" />
+            <TrendingUp className="h-8 w-8 text-primary" />
           </div>
         </div>
       </div>
 
       {/* Role Distribution */}
-      <div className="bg-card rounded-xl shadow-sm border border-border p-6">
+      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
           <Shield className="h-5 w-5 mr-2 text-foreground" />
           Role Distribution
@@ -170,7 +170,7 @@ export function UserStats({ users, className = '' }: UserStatsProps) {
       </div>
 
       {/* Recent Users */}
-      <div className="bg-card rounded-xl shadow-sm border border-border p-6">
+      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
           <Calendar className="h-5 w-5 mr-2 text-foreground" />
           Recent Users

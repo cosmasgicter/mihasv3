@@ -184,7 +184,7 @@ const AuditEntryCard = React.memo(function AuditEntryCard({ entry }: { entry: Au
           <h3 className="mt-3 text-lg font-semibold text-foreground">{sanitizeForDisplay(entry.action)}</h3>
 
           <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-xl border border-border bg-muted/20 p-3">
+            <div className="rounded-lg border border-border bg-muted/20 p-3">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 <User className="h-3.5 w-3.5" />
                 Actor
@@ -193,7 +193,7 @@ const AuditEntryCard = React.memo(function AuditEntryCard({ entry }: { entry: Au
               <p className="text-xs text-muted-foreground">{actorRole}</p>
             </div>
 
-            <div className="rounded-xl border border-border bg-muted/20 p-3">
+            <div className="rounded-lg border border-border bg-muted/20 p-3">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 <Database className="h-3.5 w-3.5" />
                 Target
@@ -202,7 +202,7 @@ const AuditEntryCard = React.memo(function AuditEntryCard({ entry }: { entry: Au
               <p className="truncate text-xs text-muted-foreground">{sanitizeForDisplay(entry.targetId) || 'No target id'}</p>
             </div>
 
-            <div className="rounded-xl border border-border bg-muted/20 p-3">
+            <div className="rounded-lg border border-border bg-muted/20 p-3">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 <Globe className="h-3.5 w-3.5" />
                 IP Hash
@@ -211,7 +211,7 @@ const AuditEntryCard = React.memo(function AuditEntryCard({ entry }: { entry: Au
               <p className="text-xs text-muted-foreground">Privacy-safe correlation value</p>
             </div>
 
-            <div className="rounded-xl border border-border bg-muted/20 p-3">
+            <div className="rounded-lg border border-border bg-muted/20 p-3">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 <Clock3 className="h-3.5 w-3.5" />
                 Time
@@ -247,7 +247,7 @@ const AuditEntryCard = React.memo(function AuditEntryCard({ entry }: { entry: Au
       {expanded ? (
         <div className="border-t border-border bg-muted/15 p-5">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-xl border border-border bg-card p-4">
+            <div className="rounded-lg border border-border bg-card p-4">
               <h4 className="text-sm font-semibold text-foreground">Request context</h4>
               <dl className="mt-3 space-y-3 text-sm">
                 <div>
@@ -273,7 +273,7 @@ const AuditEntryCard = React.memo(function AuditEntryCard({ entry }: { entry: Au
               </dl>
             </div>
 
-            <div className="rounded-xl border border-border bg-card p-4">
+            <div className="rounded-lg border border-border bg-card p-4">
               <h4 className="text-sm font-semibold text-foreground">Change payload</h4>
               {payloadText ? (
                 <pre className="mt-3 max-h-72 overflow-auto rounded-lg bg-slate-950 p-3 text-xs text-slate-100">
@@ -494,7 +494,7 @@ export default function AuditTrailPage() {
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total events</p>
                 <p className="mt-2 text-3xl font-bold tracking-tight text-foreground">{response?.totalCount || 0}</p>
               </div>
-              <div className="rounded-xl bg-foreground/10 p-3">
+              <div className="rounded-lg bg-foreground/10 p-3">
                 <Activity className="h-5 w-5 text-foreground" />
               </div>
             </div>
@@ -506,7 +506,7 @@ export default function AuditTrailPage() {
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Unique actors</p>
                 <p className="mt-2 text-3xl font-bold tracking-tight text-foreground">{summary?.uniqueActors || 0}</p>
               </div>
-              <div className="rounded-xl bg-primary/10 p-3">
+              <div className="rounded-lg bg-primary/10 p-3">
                 <User className="h-5 w-5 text-primary" />
               </div>
             </div>
@@ -519,7 +519,7 @@ export default function AuditTrailPage() {
                 <p className="mt-2 text-xl font-bold tracking-tight text-foreground">{topCategory?.[0] || 'None yet'}</p>
                 <p className="text-sm text-muted-foreground">{topCategory ? `${topCategory[1]} events` : 'No activity loaded'}</p>
               </div>
-              <div className="rounded-xl bg-success/10 p-3">
+              <div className="rounded-lg bg-success/10 p-3">
                 <Settings className="h-5 w-5 text-success" />
               </div>
             </div>
@@ -532,7 +532,7 @@ export default function AuditTrailPage() {
                 <p className="mt-2 text-xl font-bold tracking-tight text-foreground">{topEntity ? formatEntityLabel(topEntity.label) : 'None yet'}</p>
                 <p className="text-sm text-muted-foreground">{topEntity ? `${topEntity.count} events` : 'No entity activity loaded'}</p>
               </div>
-              <div className="rounded-xl bg-warning/10 p-3">
+              <div className="rounded-lg bg-warning/10 p-3">
                 <Database className="h-5 w-5 text-warning" />
               </div>
             </div>
@@ -555,7 +555,7 @@ export default function AuditTrailPage() {
 
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               {CATEGORY_OPTIONS.map((category) => (
-                <div key={category} className="rounded-xl border border-border bg-muted/20 p-4">
+                <div key={category} className="rounded-lg border border-border bg-muted/20 p-4">
                   <div className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${formatCategoryStyles(category)}`}>
                     {category}
                   </div>
@@ -576,7 +576,7 @@ export default function AuditTrailPage() {
             <div className="mt-4 space-y-3">
               {(summary?.actionBreakdown || []).length > 0 ? (
                 summary?.actionBreakdown.map((item) => (
-                  <div key={item.label} className="flex items-center justify-between rounded-xl border border-border bg-muted/20 px-4 py-3">
+                  <div key={item.label} className="flex items-center justify-between rounded-lg border border-border bg-muted/20 px-4 py-3">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-foreground">{item.label}</p>
                       <p className="text-xs text-muted-foreground">Ranked from current filter set</p>
@@ -587,7 +587,7 @@ export default function AuditTrailPage() {
                   </div>
                 ))
               ) : (
-                <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-8 text-center">
+                <div className="rounded-lg border border-dashed border-border bg-muted/20 px-4 py-8 text-center">
                   <BarChart3 className="mx-auto h-8 w-8 text-muted-foreground" />
                   <p className="mt-3 text-sm text-muted-foreground">No action summary is available for the current view yet.</p>
                 </div>
@@ -626,7 +626,7 @@ export default function AuditTrailPage() {
                   <select
                     value={formFilters.targetTable}
                     onChange={(event) => setFormFilters((current) => ({ ...current, targetTable: event.target.value }))}
-                    className="h-12 w-full rounded-xl border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="h-12 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     {ENTITY_OPTIONS.map((option) => (
                       <option key={option.value || 'all'} value={option.value}>
@@ -641,7 +641,7 @@ export default function AuditTrailPage() {
                   <select
                     value={formFilters.category}
                     onChange={(event) => setFormFilters((current) => ({ ...current, category: event.target.value }))}
-                    className="h-12 w-full rounded-xl border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="h-12 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     <option value="">All categories</option>
                     {CATEGORY_OPTIONS.map((category) => (
@@ -683,7 +683,7 @@ export default function AuditTrailPage() {
                       setPageSize(Number.parseInt(event.target.value, 10) || DEFAULT_PAGE_SIZE)
                       setPage(1)
                     }}
-                    className="h-12 rounded-xl border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="h-12 rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     {PAGE_SIZE_OPTIONS.map((option) => (
                       <option key={option} value={option}>

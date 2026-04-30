@@ -170,7 +170,7 @@ export function VirtualizedApplicationsGrid({
               onFocus={() => setFocusedRowIndex(virtualRow.index)}
               className={`outline-none ${
                 isFocused
-                  ? 'ring-2 ring-primary ring-offset-2 rounded-xl'
+                  ? 'ring-2 ring-primary ring-offset-2 rounded-lg'
                   : ''
               }`}
               style={{

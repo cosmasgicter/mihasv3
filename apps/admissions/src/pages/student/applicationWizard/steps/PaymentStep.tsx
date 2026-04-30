@@ -183,7 +183,7 @@ const PaymentStep = ({
             {!deferConfirm ? (
               <button
                 type="button"
-                className="w-full rounded-xl border-2 border-dashed border-border bg-card p-4 text-left transition-colors hover:border-primary/40 hover:bg-primary/5"
+                className="w-full rounded-lg border-2 border-dashed border-border bg-card p-4 text-left transition-colors hover:border-primary/40 hover:bg-primary/5"
                 onClick={handleDefer}
                 data-testid="pay-later-button"
               >
@@ -198,7 +198,7 @@ const PaymentStep = ({
                 </div>
               </button>
             ) : (
-              <div className={`rounded-xl border-2 border-primary/30 bg-primary/5 p-4 ${animateClasses.scaleIn}`}>
+              <div className={`rounded-lg border-2 border-primary/30 bg-primary/5 p-4 ${animateClasses.scaleIn}`}>
                 <p className="text-sm text-foreground">You can submit now and pay anytime from your dashboard.</p>
                 <div className="mt-3 flex items-center gap-3">
                   <button
@@ -227,7 +227,7 @@ const PaymentStep = ({
             {devBypassError && <p className="text-sm text-destructive text-center">{devBypassError}</p>}
             <button
               type="button"
-              className="w-full rounded-xl border-2 border-dashed border-orange-400 bg-orange-50 p-4 text-left transition-colors hover:border-orange-500 hover:bg-orange-100 disabled:opacity-50 dark:bg-orange-950/20 dark:hover:bg-orange-950/40"
+              className="w-full rounded-lg border-2 border-dashed border-orange-400 bg-orange-50 p-4 text-left transition-colors hover:border-orange-500 hover:bg-orange-100 disabled:opacity-50 dark:bg-orange-950/20 dark:hover:bg-orange-950/40"
               onClick={handleDevBypass}
               disabled={devBypassing}
               data-testid="dev-bypass-button"

@@ -269,7 +269,7 @@ const EducationStep = ({
           </div>
 
           {selectedGrades.length === 0 && (
-            <div className={`mb-6 flex flex-col items-center rounded-xl border-2 border-dashed border-border bg-muted/30 px-6 py-10 text-center ${animateClasses.fadeIn}`}>
+            <div className={`mb-6 flex flex-col items-center rounded-lg border-2 border-dashed border-border bg-muted/30 px-6 py-10 text-center ${animateClasses.fadeIn}`}>
               <GraduationCap className="h-12 w-12 text-muted-foreground/50" aria-hidden="true" />
               <p className="mt-4 text-base font-semibold text-foreground">Add your Grade 12 subjects to continue</p>
               <p className="mt-1 text-sm text-muted-foreground">You need at least 5 subjects with grades to proceed.</p>
@@ -412,7 +412,7 @@ const EducationStep = ({
         <fieldset className="border-none p-0 m-0">
           <legend className="sr-only">Document Uploads</legend>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="flex h-full flex-col rounded-xl border border-border bg-card p-4 sm:p-5">
+            <div className="flex h-full flex-col rounded-lg border border-border bg-card p-4 sm:p-5">
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-semibold text-foreground">Result slip</h3>
@@ -446,7 +446,7 @@ const EducationStep = ({
               )}
             </div>
 
-            <div className="flex h-full flex-col rounded-xl border border-border bg-card p-4 sm:p-5">
+            <div className="flex h-full flex-col rounded-lg border border-border bg-card p-4 sm:p-5">
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-semibold text-foreground">NRC or passport</h3>

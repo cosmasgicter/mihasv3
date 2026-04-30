@@ -39,7 +39,7 @@ export const ApplicationStatusDetails: React.FC<ApplicationStatusDetailsProps> =
           Current Status
         </h3>
         
-        <div className={`rounded-xl border-2 p-6 ${getStatusStyles(application.status)}`}>
+        <div className={`rounded-lg border p-5 sm:p-6 ${getStatusStyles(application.status)}`}>
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
             <div className="flex-shrink-0">
               {getStatusIcon(application.status)}
@@ -67,8 +67,8 @@ export const ApplicationStatusDetails: React.FC<ApplicationStatusDetailsProps> =
             Message from Admissions
           </h3>
           
-          <div className="rounded-xl border-2 border-success/30 bg-success/5 p-6">
-            <div className="bg-white/80 rounded-lg p-4 mb-4 border border-success/20">
+          <div className="rounded-lg border border-success/30 bg-success/5 p-5 sm:p-6">
+            <div className="mb-4 rounded-lg border border-success/20 bg-white p-4">
               <p className="text-foreground text-base leading-relaxed">
                 {application.admin_feedback}
               </p>

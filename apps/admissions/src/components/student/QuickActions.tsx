@@ -74,7 +74,7 @@ function ActionCard({
       )}
     >
       <div className={cn(
-        'flex h-9 w-9 items-center justify-center rounded-xl shrink-0',
+        'flex h-9 w-9 items-center justify-center rounded-lg shrink-0',
         iconStyles[variant]
       )}>
         {loading ? (

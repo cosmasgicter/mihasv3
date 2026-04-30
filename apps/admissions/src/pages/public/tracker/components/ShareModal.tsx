@@ -43,7 +43,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
         
         {/* Content */}
         <div className="space-y-4">
-          <div className="bg-muted/50 rounded-xl p-4 border border-border">
+          <div className="bg-muted/50 rounded-lg p-4 border border-border">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Application Number</p>
             <p className="font-mono text-lg font-bold text-foreground">{applicationNumber}</p>
           </div>

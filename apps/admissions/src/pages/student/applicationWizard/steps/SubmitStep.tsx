@@ -222,9 +222,9 @@ const SubmitStep = ({
       >
         {/* AI-powered personalized summary */}
         {(aiSummary || fallbackSummary || aiLoading) && (
-          <div className={`rounded-lg border border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5 p-5 ${animateClasses.fadeIn}`}>
+          <div className={`rounded-lg border border-primary/20 bg-primary/5 p-5 ${animateClasses.fadeIn}`}>
             <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
                 <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
               </div>
               <div className="min-w-0 flex-1">
@@ -270,7 +270,7 @@ const SubmitStep = ({
                 <li
                   key={item.label}
                   className={cn(
-                    'rounded-xl border px-4 py-3.5 transition-all duration-300',
+                    'rounded-lg border px-4 py-3.5 transition-all duration-300',
                     item.completed ? 'border-success/20 bg-success/5' : 'border-warning/20 bg-warning/5'
                   )}
                 >
@@ -310,31 +310,31 @@ const SubmitStep = ({
             </div>
 
             <dl className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-border/70 bg-muted/50 px-4 py-3">
+              <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Full name</dt>
                 <dd className="mt-1 text-sm font-medium text-foreground">{formValues.full_name || 'Not provided'}</dd>
               </div>
-              <div className="rounded-xl border border-border/70 bg-muted/50 px-4 py-3">
+              <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Programme</dt>
                 <dd className="mt-1 text-sm font-medium text-foreground">{programLabel || 'Not selected'}</dd>
               </div>
               {institutionLabel && (
-                <div className="rounded-xl border border-border/70 bg-muted/50 px-4 py-3">
+                <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
                   <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Institution</dt>
                   <dd className="mt-1 text-sm font-medium text-foreground">{institutionLabel}</dd>
                 </div>
               )}
-              <div className="rounded-xl border border-border/70 bg-muted/50 px-4 py-3">
+              <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Intake</dt>
                 <dd className="mt-1 text-sm font-medium text-foreground">{selectedIntakeLabel || (formValues as Record<string, unknown>).intake_name as string || formValues.intake || 'Not selected'}</dd>
               </div>
-              <div className="rounded-xl border border-border/70 bg-muted/50 px-4 py-3">
+              <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Documents</dt>
                 <dd className="mt-1 text-sm font-medium text-foreground">
                   Result slip {hasResultSlip ? 'attached' : 'missing'}, identity document {hasIdentityDocument ? 'attached' : 'not added'}
                 </dd>
               </div>
-              <div className="rounded-xl border border-border/70 bg-muted/50 px-4 py-3">
+              <div className="rounded-lg border border-border/70 bg-muted/50 px-4 py-3">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Payment</dt>
                 <dd className="mt-1 text-sm font-medium text-foreground">
                   {isSuccessfulPayment
@@ -346,7 +346,7 @@ const SubmitStep = ({
               </div>
             </dl>
 
-            <div className="rounded-xl border border-border/70 bg-card px-4 py-4">
+            <div className="rounded-lg border border-border/70 bg-card px-4 py-4">
               <p className="text-sm font-semibold text-foreground">Subjects ({selectedGrades.length})</p>
               <ul className="mt-3 space-y-2 text-sm text-foreground">
                 {selectedGrades.map((grade, index) => {

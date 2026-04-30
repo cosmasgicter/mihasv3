@@ -86,7 +86,7 @@ export function DocumentButtons({ applicationId, applicationNumber, status, paym
   return (
     <>
       {/* Mobile: collapsible */}
-      <details className="group w-full rounded-xl border border-border bg-muted/30 sm:hidden">
+      <details className="group w-full rounded-lg border border-border bg-muted/30 sm:hidden">
         <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 text-sm font-semibold text-foreground marker:hidden">
           <span className="inline-flex items-center gap-2">
             <FileText className="h-4 w-4 text-primary" aria-hidden="true" />

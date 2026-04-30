@@ -148,7 +148,7 @@ export function ApplicationsFilters({
               placeholder="Search by applicant, email, application number, programme, or institution..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="form-input-mobile w-full pl-10 sm:pl-12 pr-4 py-3 border-2 border-border rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="form-input-mobile w-full rounded-lg border border-border py-3 pl-10 pr-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:pl-12"
             />
           </div>
         </div>
@@ -158,7 +158,7 @@ export function ApplicationsFilters({
           <select
             value={statusFilter}
             onChange={(e) => onStatusFilterChange(e.target.value)}
-            className="form-input-mobile w-full px-3 sm:px-4 py-3 border-2 border-border rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="form-input-mobile w-full rounded-lg border border-border px-3 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:px-4"
           >
             <option value="all">All Application Statuses</option>
             <option value="draft">Draft</option>
@@ -177,7 +177,7 @@ export function ApplicationsFilters({
               const [field, order] = e.target.value.split('-')
               onSortChange(field!, order!)
             }}
-            className="form-input-mobile w-full px-3 sm:px-4 py-3 border-2 border-border rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="form-input-mobile w-full rounded-lg border border-border px-3 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:px-4"
           >
             <option value="date-desc">Newest</option>
             <option value="date-asc">Oldest</option>
@@ -191,7 +191,7 @@ export function ApplicationsFilters({
       {/* Advanced Filters */}
         {showAdvancedFilters && (
           <div
-            className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-primary/30 rounded-xl p-6 animate-slide-up"
+            className="animate-slide-up rounded-lg border border-primary/20 bg-primary/5 p-5"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-foreground"><Target className="w-5 h-5" /> Advanced Filters</h3>

@@ -424,7 +424,7 @@ export default function AdminDashboard() {
         {/* Error Display */}
           {error && (
             <div 
-              className={`rounded-xl bg-destructive/5 border border-destructive/30 p-4 sm:p-6 mb-6 shadow-lg ${animateClasses.fadeIn}`}
+              className={`mb-6 rounded-lg border border-destructive/30 bg-destructive/5 p-4 sm:p-5 ${animateClasses.fadeIn}`}
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center space-x-3">

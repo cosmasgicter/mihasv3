@@ -61,7 +61,7 @@ const StepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
         'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg',
         'min-w-0',
         isClickable ? 'cursor-pointer' : 'cursor-default',
-        shouldAnimate && 'transition-transform duration-200 hover:scale-105 active:scale-95'
+        shouldAnimate && 'transition-transform duration-200  '
       )}
       style={shouldAnimate ? staggerChild(index, 100) : undefined}
       aria-label={`Step ${step.id}: ${step.progressTitle}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
@@ -75,7 +75,7 @@ const StepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
           isCompleted
             ? 'bg-success/90 border-success/70 text-white shadow-sm'
             : isCurrent
-            ? 'bg-primary border-primary text-white shadow-lg shadow-primary/25 scale-110'
+            ? 'bg-primary border-primary text-white  shadow-primary/25 scale-110'
             : 'bg-background border-border/50 text-muted-foreground/60',
         )}
         style={{ width: isCurrent ? '48px' : 'var(--touch-target, 44px)', height: isCurrent ? '48px' : 'var(--touch-target, 44px)' }}
@@ -265,7 +265,7 @@ export const EnhancedProgressIndicator = ({
         
         {/* Animated progress line */}
         <div
-          className="absolute top-[22px] left-0 h-0.5 bg-gradient-to-r from-primary to-success rounded-full transition-all duration-700 ease-out shadow-[0_0_8px_rgba(var(--primary-rgb,59,130,246),0.3)]"
+          className="absolute top-[22px] left-0 h-0.5 bg-primary rounded-full transition-all duration-700 ease-out "
           style={{ width: `${displayProgressPercentage}%` }}
         />
 
@@ -335,7 +335,7 @@ export const EnhancedProgressIndicator = ({
                     'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                     isClickable ? 'cursor-pointer' : 'cursor-default',
                     isCurrent
-                      ? 'w-12 h-12 bg-primary text-white shadow-lg shadow-primary/25'
+                      ? 'w-12 h-12 bg-primary text-white  shadow-primary/25'
                       : isCompleted
                       ? 'w-10 h-10 bg-success/90 text-white'
                       : 'w-10 h-10 bg-muted border border-border/50 text-muted-foreground/60'
@@ -370,7 +370,7 @@ export const EnhancedProgressIndicator = ({
         </div>
         <div className="h-2 bg-border rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-primary to-success rounded-full transition-all duration-500 ease-out"
+            className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
             style={{ width: `${displayProgressPercentage}%` }}
           />
         </div>

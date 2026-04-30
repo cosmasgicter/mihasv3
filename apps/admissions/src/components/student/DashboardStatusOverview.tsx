@@ -123,7 +123,7 @@ function MetricCard({
           )}
         </div>
         <div className={cn(
-          'flex h-9 w-9 items-center justify-center rounded-xl shrink-0',
+          'flex h-9 w-9 items-center justify-center rounded-lg shrink-0',
           iconStyles[accent]
         )}>
           {icon}
@@ -258,7 +258,7 @@ export function DashboardStatusOverview({
       {/* Requirement 19.4: Zero applications prompt */}
       {stats.total === 0 && (
         <div
-          className={`${animateClasses.slideUp} opacity-0 rounded-lg border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-6 text-center`}
+          className={`${animateClasses.slideUp} opacity-0 rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm`}
           style={staggerChild(4)}
         >
           <p className="text-sm font-semibold text-foreground mb-1">
@@ -268,7 +268,7 @@ export function DashboardStatusOverview({
             Start your admissions journey by creating your first application.
           </p>
           <Link to="/student/application-wizard">
-            <Button variant="primary" size="sm" className="min-h-[44px] transition-all duration-200 active:scale-[0.98]">
+            <Button variant="primary" size="sm" className="min-h-[44px] transition-colors duration-150">
               <Plus className="mr-2 h-4 w-4" />
               New Application
             </Button>
@@ -324,7 +324,7 @@ export function DashboardStatusOverview({
       {/* Pending Payment Alert */}
       {paymentActionRequiredCount > 0 && (
         <div
-          className={`${animateClasses.scaleIn} opacity-0 rounded-lg border border-warning/30 bg-gradient-to-br from-warning/10 to-transparent p-4`}
+          className={`${animateClasses.scaleIn} opacity-0 rounded-lg border border-warning/30 bg-warning/5 p-4`}
           style={staggerChild(6)}
         >
           <div className="flex items-start gap-3">

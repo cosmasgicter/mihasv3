@@ -139,7 +139,7 @@ export default function ResetPasswordPage() {
           </div>
 
           {/* Success message */}
-          <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-center">
+          <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-center">
             <h3 className="text-base font-semibold text-green-700">Password updated successfully</h3>
             <p className="mt-1 text-sm text-green-600">
               Your password has been reset. You can now sign in with your new password.
@@ -185,7 +185,7 @@ export default function ResetPasswordPage() {
           </div>
 
           {/* Error message */}
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-center">
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center">
             <h3 className="text-base font-semibold text-red-700">Reset link invalid</h3>
             <p className="mt-1 text-sm text-red-600">{verifyError}</p>
           </div>
@@ -273,7 +273,7 @@ export default function ResetPasswordPage() {
         {resetPasswordMutation.error ? (
           <div className={`overflow-hidden ${animateClasses.fadeIn}`}
                role="alert" aria-live="assertive" aria-atomic="true">
-            <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+            <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
               <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
               <div className="text-sm font-medium text-destructive">
                 {(resetPasswordMutation.error as Error).message || 'Failed to update password. Please try again.'}

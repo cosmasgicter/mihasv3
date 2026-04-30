@@ -111,7 +111,7 @@ export function ApplicationDetailInterview({ application, applicationData, onApp
 
   return (
     <div className="space-y-6">
-      <div className="bg-card border border-border rounded-xl p-6">
+      <div className="bg-card border border-border rounded-lg p-6">
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
           <Calendar className="h-5 w-5 text-primary" />
           Interview Overview
@@ -155,7 +155,7 @@ export function ApplicationDetailInterview({ application, applicationData, onApp
         )}
       </div>
 
-      <div className="bg-card border border-border rounded-xl p-6">
+      <div className="bg-card border border-border rounded-lg p-6">
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
           <Users className="h-5 w-5 text-primary" />
           Manage Interview Schedule

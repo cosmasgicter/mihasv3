@@ -73,7 +73,7 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
     iconContainerClass: string
     trend?: number 
   }) => (
-    <div className="bg-card rounded-xl p-4 sm:p-6 border border-border shadow-sm">
+    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
@@ -96,7 +96,7 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
   )
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+    <div className="mb-6 grid grid-cols-2 gap-3 sm:mb-8 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
       <MetricCard
         title="New Today"
         value={metrics.todaySubmissions}

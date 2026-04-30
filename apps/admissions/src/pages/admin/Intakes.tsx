@@ -83,7 +83,7 @@ const IntakeFormFields = ({ register, errors }: { register: any; errors: any }) 
     <Input label="Year" type="number" {...register('year')} error={errors.year?.message} required />
     <div>
       <label htmlFor="semester" className="block text-sm font-medium text-foreground mb-1">Semester</label>
-      <select id="semester" className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm h-12" {...register('semester')}>
+      <select id="semester" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" {...register('semester')}>
         <option value="">Select semester</option>
         <option value="1">Semester 1 (January)</option>
         <option value="2">Semester 2 (July)</option>
@@ -311,7 +311,7 @@ export default function AdminIntakes() {
                 </div>
               </div>
             ) : error ? (
-              <div className="rounded-xl bg-destructive/5 border border-destructive/30 p-6 text-center">
+              <div className="rounded-lg bg-destructive/5 border border-destructive/30 p-6 text-center">
                 <div className="text-6xl mb-4">😱</div>
                 <p className="text-destructive font-medium text-lg">{error}</p>
                 <Button 

@@ -265,7 +265,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       </div>
 
       {/* Program Info */}
-      <div className="bg-muted/50 rounded-xl p-3 mb-4">
+      <div className="bg-muted/50 rounded-lg p-3 mb-4">
         <div className="flex items-center gap-2 mb-1">
           <GraduationCap className="h-4 w-4 text-primary" />
           <span className="font-medium text-foreground text-sm">{app.program}</span>
@@ -356,7 +356,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       <div className="flex gap-2 mt-4 pt-4 border-t border-border/40">
         <button
           onClick={() => onViewDetails(app.id)}
-          className="flex-1 bg-primary text-primary-foreground text-sm py-2.5 px-4 rounded-xl hover:bg-primary/90 transition-all duration-200 font-medium flex items-center justify-center gap-2"
+          className="flex-1 bg-primary text-primary-foreground text-sm py-2.5 px-4 rounded-lg hover:bg-primary/90 transition-all duration-200 font-medium flex items-center justify-center gap-2"
         >
           <Eye className="h-4 w-4" />
           View Details
@@ -366,7 +366,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         {app.isDraft && (
           <button
             onClick={() => setShowCommunicationModal(true)}
-            className="bg-secondary text-secondary-foreground text-sm py-2.5 px-4 rounded-xl hover:bg-secondary/80 transition-all duration-200 font-medium flex items-center justify-center gap-2"
+            className="bg-secondary text-secondary-foreground text-sm py-2.5 px-4 rounded-lg hover:bg-secondary/80 transition-all duration-200 font-medium flex items-center justify-center gap-2"
             title="Contact Applicant"
           >
             <MessageSquare className="h-4 w-4" />

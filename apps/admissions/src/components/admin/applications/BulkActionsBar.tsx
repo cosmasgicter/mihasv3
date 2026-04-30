@@ -36,7 +36,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
   return (
     <>
     <div className="fixed bottom-0 left-0 right-0 z-50 animate-in slide-in-from-bottom duration-300">
-      <div className=" bg-background/90 border-t border-border shadow-lg px-4 py-3 sm:px-6">
+      <div className=" bg-background/90 border-t border-border shadow-sm px-4 py-3 sm:px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <span className="inline-flex items-center justify-center h-7 min-w-[28px] rounded-full bg-primary text-primary-foreground text-xs font-bold px-2">
@@ -53,7 +53,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
               variant="outline"
               onClick={() => handleAction('approve')}
               loading={loading === 'approve'}
-              className="text-emerald-700 border-emerald-300 hover:bg-emerald-50 rounded-xl min-h-[40px]"
+              className="text-emerald-700 border-emerald-300 hover:bg-emerald-50 rounded-lg min-h-[40px]"
             >
               <CheckCircle className="h-4 w-4 mr-1" />
               Approve
@@ -64,7 +64,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
               variant="outline"
               onClick={() => setConfirmReject(true)}
               loading={loading === 'reject'}
-              className="text-destructive border-destructive/30 hover:bg-destructive/5 rounded-xl min-h-[40px]"
+              className="text-destructive border-destructive/30 hover:bg-destructive/5 rounded-lg min-h-[40px]"
             >
               <XCircle className="h-4 w-4 mr-1" />
               Reject
@@ -75,7 +75,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
               variant="outline"
               onClick={() => handleAction('review')}
               loading={loading === 'review'}
-              className="text-primary border-primary/30 hover:bg-primary/5 rounded-xl min-h-[40px]"
+              className="text-primary border-primary/30 hover:bg-primary/5 rounded-lg min-h-[40px]"
             >
               <Clock className="h-4 w-4 mr-1" />
               Review
@@ -87,7 +87,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
               size="sm"
               variant="ghost"
               onClick={onClearSelection}
-              className="text-muted-foreground hover:text-foreground rounded-xl"
+              className="text-muted-foreground hover:text-foreground rounded-lg"
             >
               Clear
             </Button>

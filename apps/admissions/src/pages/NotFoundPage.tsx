@@ -111,25 +111,23 @@ export default function NotFoundPage() {
         path="/404"
         noindex
       />
-      <div className="min-h-[60vh] bg-muted flex flex-col justify-center py-6 sm:py-12">
-        <div className="content-wrapper">
-          <div className="mx-auto w-full max-w-2xl">
-            <div className="bg-card py-8 px-4 shadow sm:rounded-lg sm:px-10">
-              <div className="text-center mb-8">
-                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-destructive/10 mb-4">
-                  <span className="text-3xl font-bold text-destructive">404</span>
+      <div className="flex min-h-[60vh] flex-col justify-center bg-slate-50 px-4 py-10 sm:px-6 sm:py-14">
+        <div className="mx-auto w-full max-w-2xl">
+            <div className="rounded-lg border border-slate-200 bg-white px-5 py-8 shadow-sm sm:px-8">
+              <div className="mb-8 text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-lg border border-destructive/20 bg-destructive/10">
+                  <span className="text-3xl font-semibold text-destructive">404</span>
                 </div>
-                <h1 className="text-2xl font-bold text-foreground mb-2">Page Not Found</h1>
-                <p className="text-sm text-muted-foreground mb-2">
+                <h1 className="mb-2 text-2xl font-semibold tracking-tight text-slate-950">Page Not Found</h1>
+                <p className="mb-2 text-sm text-slate-600">
                   The page you're looking for doesn't exist or has been moved.
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  Attempted path: <code className="bg-muted px-2 py-1 rounded">{location.pathname}</code>
+                <p className="text-xs text-slate-500">
+                  Attempted path: <code className="rounded bg-slate-100 px-2 py-1">{location.pathname}</code>
                 </p>
               </div>
 
-              {/* Quick Actions */}
-              <div className="space-y-3 mb-8">
+              <div className="mb-8 space-y-3">
                 <Link to="/" className="block">
                   <Button className="w-full">
                     <Home className="h-4 w-4 mr-2" aria-hidden="true" />
@@ -149,25 +147,25 @@ export default function NotFoundPage() {
               {/* Suggested Pages */}
               {suggestedPages.length > 0 && (
                 <div>
-                  <h2 className="text-sm font-semibold text-foreground mb-3">
+                  <h2 className="mb-3 text-sm font-semibold text-slate-950">
                     You might be looking for:
                   </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {suggestedPages.map((page) => (
                       <Link
                         key={page.path}
                         to={page.path}
-                        className="block p-4 border border-border rounded-lg hover:border-primary hover:bg-accent transition-colors"
+                        className="block rounded-lg border border-slate-200 p-4 transition-colors hover:border-primary/40 hover:bg-slate-50"
                       >
                         <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0 mt-0.5 text-primary">
+                          <div className="mt-0.5 flex-shrink-0 text-primary">
                             {page.icon}
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-sm font-medium text-foreground mb-1">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="mb-1 text-sm font-medium text-slate-950">
                               {page.label}
                             </h3>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs text-slate-600">
                               {page.description}
                             </p>
                           </div>
@@ -179,13 +177,12 @@ export default function NotFoundPage() {
               )}
 
               {/* Help Text */}
-              <div className="mt-8 pt-6 border-t border-border text-center">
-                <p className="text-xs text-muted-foreground">
+              <div className="mt-8 border-t border-slate-200 pt-6 text-center">
+                <p className="text-xs text-slate-500">
                   If you believe this is an error, please contact support or try refreshing the page.
                 </p>
               </div>
             </div>
-          </div>
         </div>
       </div>
     </PublicLayout>

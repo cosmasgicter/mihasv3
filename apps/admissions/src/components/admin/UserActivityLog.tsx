@@ -136,7 +136,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
 
         <div className="flex-1 overflow-y-auto">
           {error ? (
-            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
               <p className="text-sm text-destructive">{error}</p>
             </div>
           ) : null}
@@ -144,7 +144,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
           {loading ? (
             <div className="space-y-4 py-6">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-start gap-3 animate-pulse rounded-xl border border-border p-4">
+                <div key={i} className="flex items-start gap-3 animate-pulse rounded-lg border border-border p-4">
                   <Skeleton className="h-9 w-9 rounded-full flex-shrink-0" />
                   <div className="flex-1 space-y-2">
                     <Skeleton className="h-4 w-32" />
@@ -199,7 +199,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                         <h4 className="mt-3 text-base font-semibold text-foreground">{activity.action}</h4>
 
                         <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                          <div className="rounded-xl border border-border bg-muted/20 p-3">
+                          <div className="rounded-lg border border-border bg-muted/20 p-3">
                             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                               <User className="h-3.5 w-3.5" />
                               Actor
@@ -212,7 +212,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                             </p>
                           </div>
 
-                          <div className="rounded-xl border border-border bg-muted/20 p-3">
+                          <div className="rounded-lg border border-border bg-muted/20 p-3">
                             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                               <Database className="h-3.5 w-3.5" />
                               Target
@@ -223,7 +223,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                             <p className="truncate text-xs text-muted-foreground">{activity.targetId || 'No target id'}</p>
                           </div>
 
-                          <div className="rounded-xl border border-border bg-muted/20 p-3">
+                          <div className="rounded-lg border border-border bg-muted/20 p-3">
                             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                               <Globe className="h-3.5 w-3.5" />
                               Request IP
@@ -231,7 +231,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                             <p className="mt-1 text-sm font-medium text-foreground">{activity.requestIp || 'Unavailable'}</p>
                           </div>
 
-                          <div className="rounded-xl border border-border bg-muted/20 p-3">
+                          <div className="rounded-lg border border-border bg-muted/20 p-3">
                             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                               <Shield className="h-3.5 w-3.5" />
                               Time

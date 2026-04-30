@@ -264,14 +264,14 @@ export default function InterviewPage() {
       />
       <PageShell title="Interview Schedule" subtitle="Loading interview information...">
         <div className="space-y-6" role="status" aria-label="Loading interview information">
-          <div className="rounded-xl border border-primary/20 bg-card p-6">
+          <div className="rounded-lg border border-primary/20 bg-card p-6">
             <div className="space-y-2">
               <Skeleton className="h-6 w-48" />
               <Skeleton className="h-4 w-64" />
             </div>
             <div className="mt-6 space-y-4">
               {[...Array(3)].map((_, index) => (
-                <div key={index} className="rounded-xl border border-border bg-background p-4">
+                <div key={index} className="rounded-lg border border-border bg-background p-4">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="space-y-2">
                       <Skeleton className="h-5 w-44" />
@@ -317,7 +317,7 @@ export default function InterviewPage() {
         <div className="mb-6">
           <Link 
             to="/student/dashboard" 
-            className="feature-chip"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to Dashboard
@@ -511,7 +511,7 @@ function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpco
           <div className="flex-shrink-0">
             <Button
               asChild
-              className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               <a
                 href={meetingLink}

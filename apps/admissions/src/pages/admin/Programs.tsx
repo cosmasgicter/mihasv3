@@ -720,7 +720,7 @@ export default function AdminPrograms() {
             ) : (
               <>
                 {error ? (
-                  <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-destructive">
+                  <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-destructive">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <p className="text-sm font-semibold">Catalog action needs attention</p>
@@ -792,7 +792,7 @@ export default function AdminPrograms() {
 
                   <TabsContent value="programs" className="space-y-6">
                     {activeInstitutions.length === 0 ? (
-                      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
+                      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                           <div>
                             <p className="font-semibold">Programs need an institution first</p>
@@ -812,7 +812,7 @@ export default function AdminPrograms() {
                   </TabsContent>
 
                   <TabsContent value="institutions" className="space-y-6">
-                    <div className="rounded-xl border border-border bg-muted/30 p-4">
+                    <div className="rounded-lg border border-border bg-muted/30 p-4">
                       <p className="text-sm font-semibold text-foreground">Institution management rules</p>
                       <p className="mt-1 text-sm text-muted-foreground">
                         Institutions can be edited or archived here. Archiving is blocked while active programs still point to the institution.
@@ -870,15 +870,15 @@ export default function AdminPrograms() {
             />
                   <div>
                     <label htmlFor="tuition_fee" className="block text-sm font-medium text-foreground mb-1">Tuition fee (ZMW)</label>
-                    <input id="tuition_fee" type="number" min="0" step="0.01" className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm h-12" value={programForm.tuition_fee} onChange={e => setProgramForm(f => ({ ...f, tuition_fee: e.target.value }))} placeholder="e.g. 15000" />
+                    <input id="tuition_fee" type="number" min="0" step="0.01" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={programForm.tuition_fee} onChange={e => setProgramForm(f => ({ ...f, tuition_fee: e.target.value }))} placeholder="e.g. 15000" />
                   </div>
                   <div>
                     <label htmlFor="regulatory_body" className="block text-sm font-medium text-foreground mb-1">Regulatory body</label>
-                    <input id="regulatory_body" type="text" className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm h-12" value={programForm.regulatory_body} onChange={e => setProgramForm(f => ({ ...f, regulatory_body: e.target.value }))} placeholder="e.g. HPCZ, NMCZ, ECZ" />
+                    <input id="regulatory_body" type="text" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={programForm.regulatory_body} onChange={e => setProgramForm(f => ({ ...f, regulatory_body: e.target.value }))} placeholder="e.g. HPCZ, NMCZ, ECZ" />
                   </div>
                   <div>
                     <label htmlFor="accreditation_status" className="block text-sm font-medium text-foreground mb-1">Accreditation status</label>
-                    <select id="accreditation_status" className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm h-12" value={programForm.accreditation_status} onChange={e => setProgramForm(f => ({ ...f, accreditation_status: e.target.value }))}>
+                    <select id="accreditation_status" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={programForm.accreditation_status} onChange={e => setProgramForm(f => ({ ...f, accreditation_status: e.target.value }))}>
                       <option value="active">Active</option>
                       <option value="provisional">Provisional</option>
                       <option value="suspended">Suspended</option>
@@ -937,15 +937,15 @@ export default function AdminPrograms() {
             />
                   <div>
                     <label htmlFor="edit_tuition_fee" className="block text-sm font-medium text-foreground mb-1">Tuition fee (ZMW)</label>
-                    <input id="edit_tuition_fee" type="number" min="0" step="0.01" className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm h-12" value={programForm.tuition_fee} onChange={e => setProgramForm(f => ({ ...f, tuition_fee: e.target.value }))} placeholder="e.g. 15000" />
+                    <input id="edit_tuition_fee" type="number" min="0" step="0.01" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={programForm.tuition_fee} onChange={e => setProgramForm(f => ({ ...f, tuition_fee: e.target.value }))} placeholder="e.g. 15000" />
                   </div>
                   <div>
                     <label htmlFor="edit_regulatory_body" className="block text-sm font-medium text-foreground mb-1">Regulatory body</label>
-                    <input id="edit_regulatory_body" type="text" className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm h-12" value={programForm.regulatory_body} onChange={e => setProgramForm(f => ({ ...f, regulatory_body: e.target.value }))} placeholder="e.g. HPCZ, NMCZ, ECZ" />
+                    <input id="edit_regulatory_body" type="text" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={programForm.regulatory_body} onChange={e => setProgramForm(f => ({ ...f, regulatory_body: e.target.value }))} placeholder="e.g. HPCZ, NMCZ, ECZ" />
                   </div>
                   <div>
                     <label htmlFor="edit_accreditation_status" className="block text-sm font-medium text-foreground mb-1">Accreditation status</label>
-                    <select id="edit_accreditation_status" className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm h-12" value={programForm.accreditation_status} onChange={e => setProgramForm(f => ({ ...f, accreditation_status: e.target.value }))}>
+                    <select id="edit_accreditation_status" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={programForm.accreditation_status} onChange={e => setProgramForm(f => ({ ...f, accreditation_status: e.target.value }))}>
                       <option value="active">Active</option>
                       <option value="provisional">Provisional</option>
                       <option value="suspended">Suspended</option>
@@ -1018,21 +1018,21 @@ export default function AdminPrograms() {
             />
                   <div>
                     <label htmlFor="inst_address" className="block text-sm font-medium text-foreground mb-1">Address</label>
-                    <input id="inst_address" type="text" className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.address} onChange={e => setInstitutionForm(f => ({ ...f, address: e.target.value }))} placeholder="Physical address" />
+                    <input id="inst_address" type="text" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.address} onChange={e => setInstitutionForm(f => ({ ...f, address: e.target.value }))} placeholder="Physical address" />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor="inst_phone" className="block text-sm font-medium text-foreground mb-1">Phone</label>
-                      <input id="inst_phone" type="tel" className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.phone} onChange={e => setInstitutionForm(f => ({ ...f, phone: e.target.value }))} placeholder="+260..." />
+                      <input id="inst_phone" type="tel" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.phone} onChange={e => setInstitutionForm(f => ({ ...f, phone: e.target.value }))} placeholder="+260..." />
                     </div>
                     <div>
                       <label htmlFor="inst_email" className="block text-sm font-medium text-foreground mb-1">Email</label>
-                      <input id="inst_email" type="email" className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.email} onChange={e => setInstitutionForm(f => ({ ...f, email: e.target.value }))} placeholder="info@institution.edu.zm" />
+                      <input id="inst_email" type="email" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.email} onChange={e => setInstitutionForm(f => ({ ...f, email: e.target.value }))} placeholder="info@institution.edu.zm" />
                     </div>
                   </div>
                   <div>
                     <label htmlFor="inst_website" className="block text-sm font-medium text-foreground mb-1">Website</label>
-                    <input id="inst_website" type="url" className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.website} onChange={e => setInstitutionForm(f => ({ ...f, website: e.target.value }))} placeholder="https://..." />
+                    <input id="inst_website" type="url" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.website} onChange={e => setInstitutionForm(f => ({ ...f, website: e.target.value }))} placeholder="https://..." />
                   </div>
           </div>
           <DialogFooter>
@@ -1080,21 +1080,21 @@ export default function AdminPrograms() {
             />
                   <div>
                     <label htmlFor="edit_inst_address" className="block text-sm font-medium text-foreground mb-1">Address</label>
-                    <input id="edit_inst_address" type="text" className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.address} onChange={e => setInstitutionForm(f => ({ ...f, address: e.target.value }))} placeholder="Physical address" />
+                    <input id="edit_inst_address" type="text" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.address} onChange={e => setInstitutionForm(f => ({ ...f, address: e.target.value }))} placeholder="Physical address" />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor="edit_inst_phone" className="block text-sm font-medium text-foreground mb-1">Phone</label>
-                      <input id="edit_inst_phone" type="tel" className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.phone} onChange={e => setInstitutionForm(f => ({ ...f, phone: e.target.value }))} placeholder="+260..." />
+                      <input id="edit_inst_phone" type="tel" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.phone} onChange={e => setInstitutionForm(f => ({ ...f, phone: e.target.value }))} placeholder="+260..." />
                     </div>
                     <div>
                       <label htmlFor="edit_inst_email" className="block text-sm font-medium text-foreground mb-1">Email</label>
-                      <input id="edit_inst_email" type="email" className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.email} onChange={e => setInstitutionForm(f => ({ ...f, email: e.target.value }))} placeholder="info@institution.edu.zm" />
+                      <input id="edit_inst_email" type="email" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.email} onChange={e => setInstitutionForm(f => ({ ...f, email: e.target.value }))} placeholder="info@institution.edu.zm" />
                     </div>
                   </div>
                   <div>
                     <label htmlFor="edit_inst_website" className="block text-sm font-medium text-foreground mb-1">Website</label>
-                    <input id="edit_inst_website" type="url" className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.website} onChange={e => setInstitutionForm(f => ({ ...f, website: e.target.value }))} placeholder="https://..." />
+                    <input id="edit_inst_website" type="url" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.website} onChange={e => setInstitutionForm(f => ({ ...f, website: e.target.value }))} placeholder="https://..." />
                   </div>
             <CanonicalSelect
               label="Status"
