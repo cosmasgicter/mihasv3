@@ -254,7 +254,7 @@ export function ApplicationsTableView({
       loading={loading}
       emptyMessage="No applications found"
       emptyIcon={<FileText className="h-12 w-12 text-muted-foreground/50" />}
-      className={cn('overflow-hidden rounded-lg border border-white/70 bg-white/92 shadow-[0_22px_60px_-34px_rgba(15,23,42,0.25)]', className)}
+      className={cn('overflow-hidden rounded-lg border border-border bg-white shadow-sm', className)}
       striped
     />
   );

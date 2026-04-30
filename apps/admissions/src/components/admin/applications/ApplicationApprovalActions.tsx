@@ -239,7 +239,7 @@ export function ApplicationApprovalActions({
           {currentStatus === 'draft' && (
             <>
               <div className="flex-1 rounded-lg border border-slate-200 bg-slate-50 py-3 text-center">
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-300">
+                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600 border border-gray-300">
                   Draft — not yet submitted
                 </span>
               </div>
@@ -302,7 +302,7 @@ export function ApplicationApprovalActions({
           
           {(currentStatus === 'approved' || currentStatus === 'rejected') && (
             <div className="sm:col-span-2 text-center py-2">
-              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+              <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
                 currentStatus === 'approved' 
                   ? 'bg-green-100 text-green-800 border border-green-300' 
                   : 'bg-red-100 text-red-800 border border-red-300'
@@ -325,7 +325,7 @@ export function ApplicationApprovalActions({
           {currentStatus === 'conditionally_approved' && (
             <>
               <div className="sm:col-span-2 text-center py-2">
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300">
+                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300">
                   <Clock className="h-3 w-3 mr-1" />
                   Conditionally Approved
                 </span>
@@ -363,7 +363,7 @@ export function ApplicationApprovalActions({
           {currentStatus === 'waitlisted' && (
             <>
               <div className="sm:col-span-2 text-center py-2">
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
+                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
                   <Clock className="h-3 w-3 mr-1" />
                   Waitlisted
                 </span>
@@ -400,7 +400,7 @@ export function ApplicationApprovalActions({
 
           {currentStatus === 'enrolled' && (
             <div className="sm:col-span-2 text-center py-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-300">
+              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800 border border-green-300">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Enrolled
               </span>
@@ -409,7 +409,7 @@ export function ApplicationApprovalActions({
 
           {currentStatus === 'withdrawn' && (
             <div className="sm:col-span-2 text-center py-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-300">
+              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600 border border-gray-300">
                 <XCircle className="h-3 w-3 mr-1" />
                 Withdrawn
               </span>
@@ -418,7 +418,7 @@ export function ApplicationApprovalActions({
 
           {currentStatus === 'expired' && (
             <div className="sm:col-span-2 text-center py-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-300">
+              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-red-100 text-red-800 border border-red-300">
                 <XCircle className="h-3 w-3 mr-1" />
                 Expired
               </span>
@@ -427,7 +427,7 @@ export function ApplicationApprovalActions({
 
           {currentStatus === 'enrollment_expired' && (
             <div className="sm:col-span-2 text-center py-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
+              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
                 <Clock className="h-3 w-3 mr-1" />
                 Enrollment Expired
               </span>
@@ -445,7 +445,7 @@ export function ApplicationApprovalActions({
           {normalizedPaymentStatus === 'not_paid' && (
             <div className="sm:col-span-2 grid gap-2">
             <div className="text-center py-2 space-y-1 rounded-lg border border-amber-200 bg-amber-50">
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-300">
+              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-700 border border-amber-300">
                 Awaiting Payment
               </span>
             </div>
@@ -528,7 +528,7 @@ export function ApplicationApprovalActions({
           {normalizedPaymentStatus === 'deferred' && (
             <>
               <div className="text-center py-3 rounded-lg border border-amber-200 bg-amber-50">
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
+                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
                   <Clock className="h-3 w-3 mr-1" />
                   Deferred
                 </span>
@@ -551,7 +551,7 @@ export function ApplicationApprovalActions({
           
           {(normalizedPaymentStatus === 'verified' || normalizedPaymentStatus === 'rejected') && (
             <div className="sm:col-span-2 text-center py-2">
-              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+              <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
                 normalizedPaymentStatus === 'verified'
                   ? 'bg-green-100 text-green-800 border border-green-300' 
                   : 'bg-red-100 text-red-800 border border-red-300'

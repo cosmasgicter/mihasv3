@@ -36,7 +36,7 @@ function ViewButton({ doc }: { doc: DocumentItem }) {
   }
 
   return (
-    <button type="button" onClick={handleClick} disabled={loading} className="flex items-center gap-1 px-3 py-2 text-sm hover:bg-blue-50 rounded-lg disabled:opacity-50">
+    <button type="button" onClick={handleClick} disabled={loading} className="flex items-center gap-1 px-3 py-2 text-sm hover:bg-slate-50 rounded-lg disabled:opacity-50">
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
       View
     </button>
@@ -52,7 +52,7 @@ export function DocumentsTab({ documents, loading, application }: { documents: D
             <Skeleton className="w-10 h-10 rounded-lg" />
             <div className="space-y-2">
               <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-3 w-20 rounded-full" />
+              <Skeleton className="h-3 w-20 rounded-md" />
             </div>
           </div>
           <Skeleton className="h-8 w-16 rounded-lg" />
@@ -80,7 +80,7 @@ export function DocumentsTab({ documents, loading, application }: { documents: D
             </div>
             <div>
               <p className="font-medium">{d.document_name}</p>
-              <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full ${d.verification_status === 'verified' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+              <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md ${d.verification_status === 'verified' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                 {d.verification_status === 'verified' ? <CheckCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
                 {d.verification_status.toUpperCase()}
               </span>
