@@ -84,17 +84,23 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
 
  const bestFiveSubjectIds = new Set(bestFiveGrades.map(grade => grade.subject_id))
  const totalPoints = calculateBestFivePoints(normalizedGrades.map(grade => grade.normalized))
+ const getGradeBadgeClass = (normalized: number | null) => {
+ if (normalized === null) return 'border-slate-300 bg-slate-50 text-slate-800'
+ if (normalized <= 3) return 'border-green-300 bg-green-50 text-green-800'
+ if (normalized <= 6) return 'border-amber-300 bg-amber-50 text-amber-800'
+ return 'border-red-300 bg-red-50 text-red-800'
+ }
 
  return (
  <div className="space-y-4">
- <div className="flex items-center justify-between rounded-lg border border-border bg-slate-50 p-4">
+ <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
  <div>
- <p className="text-sm font-medium text-foreground">{grades.length} Subjects</p>
- <p className="text-xs text-info-strong">Grade 12 Results</p>
+ <p className="text-base font-semibold text-slate-950">{grades.length} Subjects</p>
+ <p className="text-xs font-medium text-slate-600">Grade 12 results</p>
  </div>
  <div className="text-right">
- <p className="text-lg font-bold text-foreground">{totalPoints}</p>
- <p className="text-xs text-info-strong">Points (Best 5)</p>
+ <p className="text-xl font-bold text-slate-950">{totalPoints}</p>
+ <p className="text-xs font-medium text-slate-600">Best 5 points</p>
  </div>
  </div>
 
@@ -104,17 +110,13 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
  const isBestFive = normalized !== null && bestFiveSubjectIds.has(grade.subject_id)
  return (
  <div key={index} className={`flex justify-between items-center p-3 border rounded-lg ${
- isBestFive ? 'border-green-200 bg-green-50' : 'border-border bg-white'
+ isBestFive ? 'border-green-300 bg-green-50' : 'border-slate-200 bg-white'
  }`}>
- <div>
- <span className="font-medium text-foreground">{grade.subject_name}</span>
- {isBestFive && <span className="ml-2 text-xs text-accent font-medium">BEST 5</span>}
+ <div className="min-w-0 pr-3">
+ <span className="break-words text-sm font-semibold text-slate-950">{grade.subject_name}</span>
+ {isBestFive && <span className="ml-2 inline-flex rounded-md border border-green-300 bg-white px-2 py-0.5 text-xs font-semibold text-green-800">BEST 5</span>}
  </div>
- <span className={`px-3 py-1 rounded-md text-sm font-bold ${
- normalized !== null && normalized <= 3 ? 'bg-green-100 text-green-900' :
- normalized !== null && normalized <= 6 ? 'bg-green-100 text-green-900' :
- 'bg-red-100 text-red-900'
- }`}>
+ <span className={`inline-flex min-w-11 items-center justify-center rounded-md border px-3 py-1 text-sm font-bold ${getGradeBadgeClass(normalized)}`}>
  {grade.grade}
  </span>
  </div>

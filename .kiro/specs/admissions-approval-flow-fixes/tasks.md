@@ -121,3 +121,4 @@
   - Run full backend test suite: `cd backend && python3 -m pytest tests/property/test_approval_flow_bug_conditions.py tests/property/test_approval_flow_preservation.py -v`
   - Run full frontend test suite: `cd apps/admissions && bun run test -- --run tests/property/approvalFlowBugCondition.property.test.ts tests/property/approvalFlowPreservation.property.test.ts`
   - Ensure all tests pass, ask the user if questions arise.
+ea

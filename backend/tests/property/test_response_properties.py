@@ -255,7 +255,8 @@ class TestSignedUrlExpiry(SimpleTestCase):
 
         self.assertEqual(call_args[0][0], "get_object")
         self.assertEqual(call_args[1]["ExpiresIn"], 900)
-        self.assertEqual(call_args[1]["Params"]["Key"], file_key)
+        expected_key = file_key if file_key.startswith("media/") else f"media/{file_key}"
+        self.assertEqual(call_args[1]["Params"]["Key"], expected_key)
 
         # The returned value should be a non-empty string
         self.assertIsInstance(url, str)
