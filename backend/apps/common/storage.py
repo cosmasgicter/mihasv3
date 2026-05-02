@@ -17,11 +17,20 @@ class MediaStorage(S3Boto3Storage):
     file_overwrite = False
 
 
+def _get_presigned_object_key(file_key):
+    """Convert a MediaStorage-relative name into the real S3/R2 object key."""
+    key = str(file_key or "").lstrip("/")
+    location = MediaStorage.location.strip("/")
+    if location and key and not key.startswith(f"{location}/"):
+        return f"{location}/{key}"
+    return key
+
+
 def generate_signed_url(file_key, expiry=None):
     """Generate a time-limited signed URL for a file.
 
     Args:
-        file_key: The S3/R2 object key.
+        file_key: MediaStorage-relative file key or full S3/R2 object key.
         expiry: URL expiry in seconds. Defaults to AWS_QUERYSTRING_EXPIRE (900s = 15 min).
 
     Returns:
@@ -39,6 +48,6 @@ def generate_signed_url(file_key, expiry=None):
 
     return client.generate_presigned_url(
         "get_object",
-        Params={"Bucket": settings.AWS_STORAGE_BUCKET_NAME, "Key": file_key},
+        Params={"Bucket": settings.AWS_STORAGE_BUCKET_NAME, "Key": _get_presigned_object_key(file_key)},
         ExpiresIn=expiry,
     )

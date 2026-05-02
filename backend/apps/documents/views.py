@@ -89,7 +89,7 @@ def _get_authorized_document(request, view, document_id):
 
 
 def _get_document_storage_key(document):
-    """Convert persisted file URLs/keys into the S3/R2 object key used for signing."""
+    """Convert persisted file URLs/keys into a MediaStorage-relative file name."""
     raw_file_url = (getattr(document, "file_url", None) or "").strip()
     if not raw_file_url:
         return ""
