@@ -6,6 +6,7 @@ from apps.common.communication_service import (
     CommunicationService,
     _DEFAULT_BODY,
     _DEFAULT_SUBJECT,
+    _html_to_notification_text,
     _substitute,
 )
 
@@ -97,6 +98,20 @@ class TestFallback:
         assert subject == _DEFAULT_SUBJECT
         assert body == _DEFAULT_BODY
 
+    @patch("apps.common.models.CommunicationTemplate.objects")
+    def test_payment_expired_has_specific_fallback(self, mock_qs):
+        mock_qs.filter.return_value.first.return_value = None
+
+        subject, body = CommunicationService.render_template(
+            "payment_expired",
+            {"student_name": "Alice", "application_number": "MIHAS202600008"},
+        )
+
+        assert subject == "Payment Expired — New Payment Required"
+        assert "Dear Alice" in body
+        assert "MIHAS202600008" in body
+        assert "new notification from MIHAS Admissions" not in body
+
 
 class TestSendNotificationCreation:
     """4. Notification and EmailQueue creation (Req 9.3, 9.4)."""
@@ -115,6 +130,7 @@ class TestSendNotificationCreation:
 
         mock_notif_create.assert_called_once()
         mock_queue_email.assert_called_once()
+        assert mock_notif_create.call_args.kwargs["message"] == "Dear John Doe"
 
     @patch("apps.common.outbox.queue_email")
     @patch("apps.common.outbox.create_notification")
@@ -184,3 +200,14 @@ class TestSendExtraContext:
 
         call_kwargs = mock_notif_create.call_args
         assert "Great work" in call_kwargs.kwargs.get("title", "") or "Great work" in str(call_kwargs)
+
+
+class TestNotificationTextRendering:
+    """6. In-app notifications use readable plain text."""
+
+    def test_html_body_converts_to_plain_text(self):
+        text = _html_to_notification_text(
+            "<p>Dear Alice,</p><p>Your payment expired.</p><p>Best regards,<br>MIHAS Admissions</p>"
+        )
+
+        assert text == "Dear Alice,\n\nYour payment expired.\n\nBest regards,\nMIHAS Admissions"

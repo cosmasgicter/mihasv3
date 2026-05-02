@@ -54,10 +54,23 @@ class NotificationPreferenceSerializer(serializers.Serializer):
 
 class NotificationSendSerializer(serializers.Serializer):
     user_id = serializers.UUIDField()
-    title = serializers.CharField(max_length=255)
-    message = serializers.CharField()
-    type = serializers.CharField(max_length=50, default="general")
-    idempotency_key = serializers.CharField(max_length=255, required=False, allow_null=True)
+    title = serializers.CharField(max_length=255, trim_whitespace=True)
+    message = serializers.CharField(max_length=5000, trim_whitespace=True)
+    type = serializers.ChoiceField(choices=["info", "success", "warning", "error"], default="info")
+    priority = serializers.ChoiceField(
+        choices=["low", "normal", "high", "urgent"],
+        required=False,
+        allow_null=True,
+    )
+    action_url = serializers.CharField(max_length=2048, required=False, allow_blank=True, allow_null=True)
+    idempotency_key = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True)
+
+    def validate_user_id(self, value):
+        from apps.accounts.models import Profile
+
+        if not Profile.objects.filter(pk=value).exists():
+            raise serializers.ValidationError("User not found.")
+        return value
 
 
 class EmailSendSerializer(serializers.Serializer):
@@ -229,12 +242,21 @@ class NotificationSendView(APIView):
             )
 
         data = serializer.validated_data
-        idempotency_key = data.get("idempotency_key")
+        idempotency_key = (data.get("idempotency_key") or "").strip() or None
 
         # Check idempotency
         if idempotency_key:
             existing = Notification.objects.filter(idempotency_key=idempotency_key).first()
             if existing:
+                if str(existing.user_id) != str(data["user_id"]):
+                    return Response(
+                        {
+                            "success": False,
+                            "error": "Idempotency key already used for another notification",
+                            "code": "IDEMPOTENCY_KEY_CONFLICT",
+                        },
+                        status=status.HTTP_409_CONFLICT,
+                    )
                 return Response({
                     "success": True,
                     "data": {
@@ -247,7 +269,9 @@ class NotificationSendView(APIView):
             user_id=data["user_id"],
             title=data["title"],
             message=data["message"],
-            type=data.get("type", "general"),
+            type=data.get("type", "info"),
+            priority=data.get("priority"),
+            action_url=data.get("action_url"),
             idempotency_key=idempotency_key,
         )
 
@@ -397,13 +421,15 @@ class NotificationListView(APIView):
         # Backward compatible: without explicit params, return all results
         has_pagination_params = "page" in request.query_params or "pageSize" in request.query_params
         if not has_pagination_params:
-            # Return all results but in the paginated envelope
-            data = NotificationItemSerializer(notifications, many=True).data
+            # Keep the old envelope shape but cap implicit reads to avoid
+            # unbounded inbox payloads on the polling endpoint.
+            implicit_page_size = min(max(total_count, 20), 100)
+            data = NotificationItemSerializer(notifications[:implicit_page_size], many=True).data
             return Response({
                 "success": True,
                 "data": {
                     "page": 1,
-                    "pageSize": max(total_count, 20),
+                    "pageSize": implicit_page_size,
                     "totalCount": total_count,
                     "results": data,
                 },

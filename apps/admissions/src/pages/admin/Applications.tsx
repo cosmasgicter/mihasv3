@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { useToastStore } from '@/hooks/useToast'
 import { applicationService } from '@/services/applications'
+import { documentService } from '@/services/documents'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
@@ -350,24 +351,41 @@ export default function Applications() {
     }
   }, [selectedApplication, showSuccess, showError])
 
-  const handleViewDocuments = useCallback(() => {
+  const handleViewDocuments = useCallback(async () => {
     if (!selectedApp) return
-    
-    const documents: Array<{ name: string; url: string }> = []
-    if (selectedApp.result_slip_url && !selectedApp.result_slip_url.includes('supabase')) documents.push({ name: 'Result Slip', url: selectedApp.result_slip_url })
-    if (selectedApp.extra_kyc_url && !selectedApp.extra_kyc_url.includes('supabase')) documents.push({ name: 'Identity Support Document', url: selectedApp.extra_kyc_url })
-    
-    if (documents.length === 0) {
-      showInfo('No documents', 'No documents have been uploaded for this application.')
-      return
+
+    try {
+      const documents = await applicationService.getDocuments(selectedApp.id) as Array<{ id?: string; document_name?: string }> | undefined
+      const realDocuments = (documents || []).filter((doc) => doc.id)
+
+      if (realDocuments.length === 0) {
+        showInfo('No documents', 'Open the application details to review any legacy document references.')
+        return
+      }
+
+      const signedUrls = await Promise.all(
+        realDocuments.map(async (doc) => {
+          const result = await documentService.getSignedUrl(doc.id!)
+          return (result as any)?.url as string | undefined
+        }),
+      )
+
+      const opened = signedUrls.filter(Boolean)
+      opened.forEach((url) => {
+        window.open(url, '_blank', 'noopener,noreferrer')
+      })
+
+      if (opened.length === 0) {
+        showError('Documents unavailable', 'No document links could be prepared.')
+        return
+      }
+
+      showInfo('Documents opened', `Opened ${opened.length} document(s) in new tabs.`)
+    } catch (error) {
+      logApiError('admin-applications', `/applications/${selectedApp.id}/documents/`, error)
+      showError('Documents unavailable', error instanceof Error ? error.message : 'Unable to prepare document links.')
     }
-    
-    documents.forEach(doc => {
-      window.open(doc.url, '_blank', 'noopener,noreferrer')
-    })
-    
-    showInfo('Documents opened', `Opened ${documents.length} document(s) in new tabs.`)
-  }, [selectedApp, showInfo])
+  }, [selectedApp, showError, showInfo])
 
   const handleViewHistory = useCallback(async () => {
     if (!selectedApplication) return

@@ -9,6 +9,7 @@ import re
 
 from django.utils import timezone
 from html import escape as html_escape
+from html.parser import HTMLParser
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +21,48 @@ _DEFAULT_BODY = (
     "<p>Best regards,<br>MIHAS Admissions</p>"
 )
 
+_FALLBACK_TEMPLATES = {
+    "payment_expired": (
+        "Payment Expired — New Payment Required",
+        (
+            "<p>Dear {{student_name}},</p>"
+            "<p>Your pending payment for application {{application_number}} has expired after 24 hours.</p>"
+            "<p>Please log in and initiate a new payment.</p>"
+            "<p>Best regards,<br>MIHAS Admissions</p>"
+        ),
+    ),
+}
+
 # Regex for {{variable}} placeholders
 _PLACEHOLDER_RE = re.compile(r"\{\{(\w+)\}\}")
+
+
+class _NotificationTextParser(HTMLParser):
+    """Convert simple email HTML into readable notification text."""
+
+    _BLOCK_TAGS = {"p", "div", "section", "article", "ul", "ol", "li", "tr"}
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.parts: list[str] = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag.lower() == "br":
+            self.parts.append("\n")
+
+    def handle_endtag(self, tag):
+        if tag.lower() in self._BLOCK_TAGS:
+            self.parts.append("\n\n")
+
+    def handle_data(self, data):
+        self.parts.append(data)
+
+    def text(self) -> str:
+        text = "".join(self.parts)
+        text = re.sub(r"[ \t\r\f\v]+", " ", text)
+        text = re.sub(r" *\n *", "\n", text)
+        text = re.sub(r"\n{3,}", "\n\n", text)
+        return text.strip()
 
 
 def _log_best_effort_failure(action: str, template_key: str, application_id=None, exc: Exception | None = None) -> None:
@@ -75,6 +116,9 @@ class CommunicationService:
             logger.info(
                 "Template '%s' not found or inactive — using fallback", template_key
             )
+            if template_key in _FALLBACK_TEMPLATES:
+                subject_template, body_template = _FALLBACK_TEMPLATES[template_key]
+                return _substitute(subject_template, context), _substitute(body_template, context)
             return _DEFAULT_SUBJECT, _DEFAULT_BODY
 
         subject = _substitute(template.subject_template, context)
@@ -112,7 +156,7 @@ class CommunicationService:
                 create_notification(
                     user_id=application.user_id,
                     title=subject,
-                    message=body,
+                    message=_html_to_notification_text(body),
                     type="info",
                     priority="normal",
                     action_url=f"/student/application/{application.id}",
@@ -159,6 +203,18 @@ def _substitute(template_str: str, context: dict) -> str:
         return html_escape(str(value)) if value else ""
 
     return _PLACEHOLDER_RE.sub(_replacer, template_str)
+
+
+def _html_to_notification_text(value: str) -> str:
+    """Return readable plain text for in-app notification previews."""
+    if not value:
+        return ""
+
+    parser = _NotificationTextParser()
+    parser.feed(value)
+    parser.close()
+    text = parser.text()
+    return text or re.sub(r"<[^>]+>", "", value).strip()
 
 
 def _build_context(application, extra_context: dict | None = None) -> dict:

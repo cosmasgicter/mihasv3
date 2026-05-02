@@ -21,6 +21,7 @@ type SendNotificationPayload = {
   subject: string
   message: string
   type?: string
+  actionUrl?: string
 }
 
 type SendNotificationApiResponse = {
@@ -43,6 +44,49 @@ function normalizeNotificationType(value: unknown): StudentNotification['type'] 
 
 function stringValue(value: unknown, fallback = ''): string {
   return typeof value === 'string' ? value : fallback
+}
+
+export function normalizeNotificationContent(value: string): string {
+  if (!value) return ''
+
+  let text = value
+
+  if (text.includes('<')) {
+    text = text
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/p\s*>/gi, '\n\n')
+      .replace(/<p\b[^>]*>/gi, '')
+      .replace(/<[^>]+>/g, '')
+  } else if (/^p[A-Z]/.test(text) || text.includes('/pp') || text.includes(',br')) {
+    text = text
+      .replace(/\/pp/g, '\n\n')
+      .replace(/^p(?=[A-Z])/g, '')
+      .replace(/\/p$/g, '')
+      .replace(/\/p/g, '')
+      .replace(/,br/g, ',\n')
+      .replace(/\bbr(?=[A-Z])/g, '\n')
+  }
+
+  return text
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;|&#39;/g, "'")
+    .replace(/[ \t\r\f\v]+/g, ' ')
+    .replace(/ *\n */g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
+function createIdempotencyKey(): string {
+  const cryptoRef = globalThis.crypto
+  if (cryptoRef && typeof cryptoRef.randomUUID === 'function') {
+    return cryptoRef.randomUUID()
+  }
+
+  return `notification-${Date.now()}-${Math.random().toString(36).slice(2)}`
 }
 
 function normalizeNotification(item: unknown): StudentNotification | null {
@@ -69,7 +113,7 @@ function normalizeNotification(item: unknown): StudentNotification | null {
   return {
     id,
     title: stringValue(raw.title, 'Notification'),
-    content: stringValue(raw.content, stringValue(raw.message)),
+    content: normalizeNotificationContent(stringValue(raw.content, stringValue(raw.message))),
     type: normalizeNotificationType(raw.type),
     read,
     ...(actionUrl ? { action_url: actionUrl } : {}),
@@ -161,7 +205,9 @@ export const notificationService = {
       user_id: payload.to,
       title: payload.subject,
       message: payload.message,
-      type: payload.type || 'info'
+      type: normalizeNotificationType(payload.type),
+      idempotency_key: createIdempotencyKey(),
+      ...(payload.actionUrl ? { action_url: payload.actionUrl } : {}),
     }
     const response = await apiClient.request<SendNotificationApiResponse>('/notifications/', {
       method: 'POST',

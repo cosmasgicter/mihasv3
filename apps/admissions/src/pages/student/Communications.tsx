@@ -19,8 +19,9 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { Button } from '@/components/ui/Button'
 import { useCommunications, type CommunicationsFilters } from '@/hooks/useCommunications'
-import { notificationService } from '@/services/notifications'
+import { normalizeNotificationContent, notificationService } from '@/services/notifications'
 import { formatRelative } from '@/lib/dateFormat'
+import { isSafeNavigationUrl } from '@/lib/urlSafety'
 
 // ─── Type indicator config ───
 
@@ -263,8 +264,9 @@ export default function Communications() {
                   const isRead = notification.is_read as boolean
                   const type = notification.type as string | null
                   const title = notification.title as string
-                  const message = notification.message as string
+                  const message = normalizeNotificationContent(notification.message as string)
                   const actionUrl = notification.action_url as string | null
+                  const safeActionUrl = actionUrl && isSafeNavigationUrl(actionUrl) ? actionUrl : null
                   const createdAt = notification.created_at as string
                   const config = getTypeConfig(type)
 
@@ -313,9 +315,9 @@ export default function Communications() {
                           <time className="text-xs text-muted-foreground" dateTime={createdAt}>
                             {formatRelative(createdAt)}
                           </time>
-                          {actionUrl && (
+                          {safeActionUrl && (
                             <a
-                              href={actionUrl}
+                              href={safeActionUrl}
                               className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                               onClick={(e) => e.stopPropagation()}
                             >

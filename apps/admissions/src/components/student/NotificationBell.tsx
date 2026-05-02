@@ -76,7 +76,7 @@ export function NotificationBell() {
     } catch (error) {
       console.error('Failed to handle notification click')
     }
-  }, [markAsRead])
+  }, [markAsRead, navigate])
 
   const handleMarkAllRead = async () => {
     try {
@@ -206,7 +206,7 @@ export function NotificationBell() {
               {notifications.length > 0 && (
                 <div className="p-3 border-t border-border/60">
                   <div className="flex items-center justify-center">
-                    <Link to={isAdmin ? '/admin/dashboard' : '/student/notifications'} className="text-xs font-medium text-primary hover:underline" onClick={() => setShowPanel(false)}>
+                    <Link to={isAdmin ? '/admin/dashboard' : '/student/communications'} className="text-xs font-medium text-primary hover:underline" onClick={() => setShowPanel(false)}>
                       View all notifications
                     </Link>
                   </div>
