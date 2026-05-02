@@ -22,7 +22,7 @@ import {
   type PaginatedResponse,
   type TimelineEntry,
 } from '@/services/communications'
-import { notificationService } from '@/services/notifications'
+import { normalizeNotificationContent, notificationService } from '@/services/notifications'
 import { formatRelative } from '@/lib/dateFormat'
 
 // ─── Props ───
@@ -372,7 +372,7 @@ export default function AdminCommunicationsPanel({
                   const isOptimistic = typeof id === 'string' && id.startsWith('optimistic-')
                   const nType = notification.type as string | null
                   const nTitle = notification.title as string
-                  const nMessage = notification.message as string
+                  const nMessage = normalizeNotificationContent(notification.message as string)
                   const createdAt = notification.created_at as string
                   const config = getTypeConfig(nType)
 

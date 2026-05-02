@@ -380,15 +380,14 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         {documentsCount > 0 && (
           <div className="flex gap-1">
             {app.result_slip_url && (
-              <a
-                href={app.result_slip_url}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() => onViewDetails(app.id)}
                 className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 title="Result Slip"
               >
                 <FileText className="h-4 w-4" />
-              </a>
+              </button>
             )}
           </div>
         )}
